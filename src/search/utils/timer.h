@@ -13,6 +13,15 @@ public:
     operator double() const {
         return seconds;
     }
+    Duration& operator+=(const Duration& other)
+    {
+        seconds += other.seconds;
+        return *this;
+    }
+    Duration operator+(const Duration& other) const
+    {
+        return Duration(seconds + other.seconds);
+    }
     Duration& operator-=(const Duration& other)
     {
         seconds -= other.seconds;

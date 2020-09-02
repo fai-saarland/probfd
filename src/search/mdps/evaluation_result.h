@@ -32,8 +32,8 @@ public:
     explicit operator value_type::value_t() const;
 
 private:
-    bool bool_;
-    value_type::value_t value_;
+    bool bool_; // terminal state flag (true -> considered terminal)
+    value_type::value_t value_; // value estimate
 };
 
 value_type::value_t

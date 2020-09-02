@@ -634,7 +634,8 @@ ProbabilisticProjection::compute_value_table(
         one_state_reward);
 
     IntervalIteration::ValueStore values;
-    IntervalIteration::BoolStore deads(false);
+    IntervalIteration::BoolStore deads(false); // states that cannot reach goal
+    // states that can reach goal with absolute certainty
     IntervalIteration::BoolStore ones(false);
 
     vi.solve(initial_state_, &values, &deads, &ones);
@@ -699,6 +700,9 @@ compute_value_table(
     AnalysisObjective* objective,
     QualitativeResultStore* dead_ends)
 {
+    // filter states that can reach goal with absolute certainty
+    bool separate_one_states =
+        dynamic_cast<GoalProbabilityObjective*>(objective) == nullptr;
     if (dynamic_cast<GoalProbabilityObjective*>(objective) == nullptr) {
         g_err << "Probabilistic projections currently only support MaxGoalProb "
                  "objectives."
@@ -715,7 +719,7 @@ compute_value_table(
         &no_reward,
         value_type::zero,
         value_type::one,
-        true,
+        separate_one_states,
         value_type::one,
         dead_ends);
 }

@@ -740,7 +740,10 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/quantitative_result_store
         mdps/heuristics/pdbs/probabilistic_projection
         mdps/heuristics/pdbs/probabilistic_pdb_heuristic
+        mdps/heuristics/pdbs/probabilistic_canonical_pdb_heuristic
         mdps/heuristics/pdbs/types
+        mdps/heuristics/pdbs/multiplicativity
+        mdps/heuristics/pdbs/syntactic_projection
     DEPENDS SUCCESSOR_GENERATOR
     )
 
