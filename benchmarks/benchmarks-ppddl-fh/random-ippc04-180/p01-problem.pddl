@@ -1,0 +1,18 @@
+(define (problem random-problem862) 
+ (:domain prob_domain) 
+ 
+(:objects horzn0 horzn1 horzn2 horzn3 horzn4 horzn5 horzn6 horzn7 horzn8 horzn9 - horizon-value)
+(:init (horizon horzn9) (horizon-decrement horzn1 horzn0) (horizon-decrement horzn2 horzn1) (horizon-decrement horzn3 horzn2) (horizon-decrement horzn4 horzn3) (horizon-decrement horzn5 horzn4) (horizon-decrement horzn6 horzn5) (horizon-decrement horzn7 horzn6) (horizon-decrement horzn8 horzn7) (horizon-decrement horzn9 horzn8) 
+(not-clear)
+(OF OZ PO) (OF XQ EF) (OF OZ OZ) (OF PO EF) (OF FB AW) (IU ZO EF) (NH AW JU) (KI RA) (NH JU EF) (IU OZ XQ) (UV AW) (IU OZ VF) (OF OZ EF) (NH EF EF) (IU JU PO) (NH OZ ZO) (NH ZO FB) (KI EF) (NH XQ PO) (IU XQ VF)  
+)
+ (:goal (and 
+(UV OZ ) 
+(OF OZ  JU ) 
+(UV RA ) 
+(OF ZO  RA ) 
+(OF PO  RA ) 
+(OF XQ  RA ) 
+))
+(:metric minimize (total-cost))
+)

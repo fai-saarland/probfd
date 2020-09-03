@@ -1,0 +1,20 @@
+(define (problem sysadmin-nocount)
+(:domain sysadmin-nocount)
+(:objects
+)
+(:init
+  (all-updated)
+)
+(:goal (and
+  (all-updated)
+  (running comp0)
+  (running comp1)
+  (running comp2)
+  (running comp3)
+  (running comp4)
+  (running comp5)
+  (running comp6)
+  (running comp7)
+))
+(:metric minimize (total-cost))
+)

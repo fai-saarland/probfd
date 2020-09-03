@@ -1,0 +1,16 @@
+(define (problem sysadmin-nocount)
+(:domain sysadmin-nocount)
+(:objects horzn0 horzn1 horzn2 horzn3 horzn4 - horizon-value
+)
+(:init (horizon horzn4) (horizon-decrement horzn1 horzn0) (horizon-decrement horzn2 horzn1) (horizon-decrement horzn3 horzn2) (horizon-decrement horzn4 horzn3)
+  (all-updated)
+)
+(:goal (and
+  (all-updated)
+  (running comp0)
+  (running comp1)
+  (running comp2)
+  (running comp3)
+))
+(:metric minimize (total-cost))
+)
