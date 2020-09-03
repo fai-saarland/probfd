@@ -143,12 +143,9 @@ ProbabilisticCanonicalPDBHeuristic::ProbabilisticCanonicalPDBHeuristic(
             g_log << "]";
 #endif
             g_log << " identifies initial state as dead-end!" << std::endl;
-            if (result.value_table)
-                delete (result.value_table);
-            if (result.one_states)
-                delete (result.one_states);
-            if (result.dead_ends)
-                delete (result.dead_ends);
+            delete (result.value_table);
+            delete (result.one_states);
+            delete (result.dead_ends);
             break;
         }
 
@@ -189,14 +186,10 @@ ProbabilisticCanonicalPDBHeuristic::ProbabilisticCanonicalPDBHeuristic(
             g_debug << " **deterministic projection**";
 #endif
             ++deterministic;
-            if (result.value_table) {
-                delete (result.value_table);
-                result.value_table = nullptr;
-            }
-            if (result.one_states) {
-                delete (result.one_states);
-                result.one_states = nullptr;
-            }
+            delete (result.value_table);
+            delete (result.one_states);
+            result.value_table = nullptr;
+            result.one_states = nullptr;
             dead_end_database_.emplace_back(state_mapper, result);
         } else if (
             max_clique_patterns_enabled
@@ -227,9 +220,9 @@ ProbabilisticCanonicalPDBHeuristic::ProbabilisticCanonicalPDBHeuristic(
     utils::Timer t_init_cliques;
 
     // Compute cliques
-    const bool use_new_criterion = opts.get<bool>("use_nc");
+    const bool use_dpa = opts.get<bool>("use_dpa");
 
-    if (use_new_criterion) {
+    if (use_dpa) {
         std::cout << "NOTE: Using the DPA criterion." << std::endl;
         max_cliques::compute_max_cliques(
             multiplicativity::buildCompatibilityGraphDPA(clique_patterns_),
@@ -241,7 +234,7 @@ ProbabilisticCanonicalPDBHeuristic::ProbabilisticCanonicalPDBHeuristic(
             this->cliques_);
     }
 
-    std::cout << "PCPDB -- cliques computed in " << t_init_cliques
+    std::cout << "Multiplicative PPDBs -- cliques computed in " << t_init_cliques
               << " [t=" << ::utils::g_timer << "]" << std::endl;
 
     std::cout << "Number of cliques: " << cliques_.size() << std::endl;
@@ -276,26 +269,28 @@ ProbabilisticCanonicalPDBHeuristic::ProbabilisticCanonicalPDBHeuristic(
         std::cout << "dead-end" << std::endl;
     } else {
         // Technically a virtual function call in a constructor, so be verbose.
-        std::cout << ((value_type::value_t)
-                          ProbabilisticCanonicalPDBHeuristic::evaluate(
-                              g_initial_state()))
-                  << std::endl;
+        value_type::value_t estimate =
+            static_cast<value_type::value_t>(
+                ProbabilisticCanonicalPDBHeuristic::
+                evaluate(g_initial_state())
+            );
+        std::cout << estimate << std::endl;
     }
 }
 
 value_type::value_t
 ProbabilisticCanonicalPDBHeuristic::lookup(
-    const ProjectionInfo* info,
+    const ProjectionInfo& info,
     const AbstractState& s) const
 {
-    assert(!info->dead_ends->get(s));
-    if (info->one_states == nullptr && info->values == nullptr) {
+    assert(!info.dead_ends->get(s));
+    if (info.one_states == nullptr && info.values == nullptr) {
         return g_analysis_objective->max();
     }
-    if (info->one_states != nullptr && info->one_states->get(s)) {
+    if (info.one_states != nullptr && info.one_states->get(s)) {
         return one_state_reward_;
     }
-    return info->values->get(s);
+    return info.values->get(s);
 }
 
 EvaluationResult
@@ -304,37 +299,36 @@ ProbabilisticCanonicalPDBHeuristic::evaluate(const GlobalState& state)
     if (initial_state_is_dead_end_) {
         return EvaluationResult(true, g_analysis_objective->min());
     }
+
     value_type::value_t result = g_analysis_objective->max();
-    for (unsigned i = 0; i < dead_end_database_.size(); ++i) {
-        const ProjectionInfo& store = dead_end_database_[i];
-        const AbstractState x = (*store.state_mapper)(state);
+    for (const ProjectionInfo& store : dead_end_database_) {
+        const AbstractState x = store.state_mapper->operator()(state);
         if (store.dead_ends->get(x)) {
             return EvaluationResult(true, g_analysis_objective->min());
         }
-        const value_type::value_t estimate = lookup(&store, x);
-        if (estimate < result) {
-            result = estimate;
-        }
+        const value_type::value_t estimate = lookup(store, x);
+        result = std::min(result, estimate);
     }
+
     std::vector<value_type::value_t> estimates(clique_database_.size());
-    for (unsigned i = 0; i < clique_database_.size(); ++i) {
+    for (unsigned i = 0; i != clique_database_.size(); ++i) {
         const ProjectionInfo& store = clique_database_[i];
-        const AbstractState x = (*store.state_mapper)(state);
+        const AbstractState x = store.state_mapper->operator()(state);
         if (store.dead_ends->get(x)) {
             return EvaluationResult(true, g_analysis_objective->min());
         }
-        estimates[i] = lookup(&store, x);
+        estimates[i] = lookup(store, x);
         assert(estimates[i] > 0);
     }
+
     for (const PatternClique& clique : cliques_) {
         value_type::value_t multiplicative = value_type::one;
         for (const PatternID i : clique) {
             multiplicative *= estimates[i];
         }
-        if (multiplicative < result) {
-            result = multiplicative;
-        }
+        result = std::min(result, multiplicative);
     }
+
     return EvaluationResult(false, result);
 }
 
@@ -381,12 +375,12 @@ ProbabilisticCanonicalPDBHeuristic::add_options_to_parser(
     parser.add_option<double>("time_limit", "", "0");
     parser.add_option<int>("max_states", "", "-1");
     parser.add_option<bool>("dump_projections", "", "false");
-    parser.add_option<bool>("use_nc", "", "false");
+    parser.add_option<bool>("use_dpa", "", "false");
     parser.add_option<int>("max_clique_patterns", "", "-1");
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(
-    "pcpdb",
+    "ppdb_mul",
     options::parse<GlobalStateEvaluator, ProbabilisticCanonicalPDBHeuristic>);
 
 } // namespace pdbs

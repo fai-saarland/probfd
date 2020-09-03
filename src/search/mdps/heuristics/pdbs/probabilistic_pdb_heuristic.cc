@@ -1,6 +1,5 @@
 #include "probabilistic_pdb_heuristic.h"
 
-#include "../../../global_state.h"
 #include "../../../globals.h"
 #include "../../../operator_cost.h"
 #include "../../../option_parser.h"
@@ -8,17 +7,14 @@
 #include "../../../pdbs/pattern_generator.h"
 #include "../../../plugin.h"
 #include "../../../utils/countdown_timer.h"
-#include "../../../utils/timer.h"
 #include "../../analysis_objective.h"
 #include "../../globals.h"
 #include "../../logging.h"
 #include "probabilistic_projection.h"
 #include "qualitative_result_store.h"
-#include "quantitative_result_store.h"
 
 #include <cassert>
 #include <iostream>
-#include <sstream>
 #include <string>
 
 namespace probabilistic {
@@ -134,12 +130,9 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
             g_log << "]";
 #endif
             g_log << " identifies initial state as dead-end!" << std::endl;
-            if (result.value_table)
-                delete (result.value_table);
-            if (result.one_states)
-                delete (result.one_states);
-            if (result.dead_ends)
-                delete (result.dead_ends);
+            delete (result.value_table);
+            delete (result.one_states);
+            delete (result.dead_ends);
             break;
         }
 
@@ -197,13 +190,10 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
         g_log << g_analysis_objective->max();
     } else {
         value_type::value_t min_val = g_analysis_objective->max();
-        ProjectionInfo* info = &database_[0];
-        for (int i = database_.size(); i > 0; --i, ++info) {
-            auto state = info->state_mapper->operator()(g_initial_state_values);
+        for (ProjectionInfo& info : database_) {
+            auto state = info.state_mapper->operator()(g_initial_state_values);
             const value_type::value_t val = lookup(info, state);
-            if (val < min_val) {
-                min_val = val;
-            }
+            min_val = std::min(min_val, val);
         }
         g_log << min_val;
     }
@@ -212,14 +202,14 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
 
 value_type::value_t
 ProbabilisticPDBHeuristic::lookup(
-    const ProjectionInfo* info,
+    const ProjectionInfo& info,
     const AbstractState& s) const
 {
-    assert(!info->dead_ends->get(s));
-    if (info->one_states != nullptr && info->one_states->get(s)) {
+    assert(!info.dead_ends->get(s));
+    if (info.one_states != nullptr && info.one_states->get(s)) {
         return one_state_reward_;
     }
-    return info->values->get(s);
+    return info.values->get(s);
 }
 
 void
@@ -241,18 +231,17 @@ ProbabilisticPDBHeuristic::evaluate(const GlobalState& state)
     } else if (database_.empty()) {
         return EvaluationResult(false, g_analysis_objective->max());
     }
+
     value_type::value_t result = g_analysis_objective->max();
-    for (int i = database_.size() - 1; i >= 0; i--) {
-        const auto& store = database_[i];
-        const AbstractState x = (*store.state_mapper)(state);
+    for (const ProjectionInfo& store : database_) {
+        const AbstractState x = store.state_mapper->operator()(state);
         if (store.dead_ends->get(x)) {
             return EvaluationResult(true, g_analysis_objective->min());
         }
-        const value_type::value_t estimate = lookup(&store, x);
-        if (estimate < result) {
-            result = estimate;
-        }
+        const value_type::value_t estimate = lookup(store, x);
+        result = std::min(result, estimate);
     }
+
     return EvaluationResult(false, result);
 }
 

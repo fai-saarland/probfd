@@ -43,7 +43,7 @@ private:
     };
 
     value_type::value_t
-    lookup(const ProjectionInfo* info, const AbstractState& s) const;
+    lookup(const ProjectionInfo& info, const AbstractState& s) const;
 
     bool initial_state_is_dead_end_;
     std::vector<ProjectionInfo> database_;
