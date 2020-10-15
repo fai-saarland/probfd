@@ -755,6 +755,13 @@ fast_downward_plugin(
         mdps/heuristics/occupation_measure/regrouped_operator_counting_heuristic
     )
 
+fast_downward_plugin(
+    NAME i2dual
+    HELP "i-dual with hpom integration"
+    SOURCES
+        mdps/i2dual/i2dual
+    )
+
 fast_downward_add_plugin_sources(PLANNER_SOURCES)
 
 # The order in PLANNER_SOURCES influences the order in which object

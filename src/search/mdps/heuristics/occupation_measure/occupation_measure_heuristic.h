@@ -18,6 +18,13 @@ public:
     explicit ProjectionOccupationMeasureHeuristic(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
+    static void generate_hpom_lp(
+            lp::LPSolver& lp_solver,
+            std::vector<lp::LPVariable>& vars,
+            std::vector<lp::LPConstraint>& constraints,
+            std::vector<int>& offsets,
+            std::vector<int>& goal);
+
 protected:
     virtual EvaluationResult evaluate(const GlobalState& state) override;
 

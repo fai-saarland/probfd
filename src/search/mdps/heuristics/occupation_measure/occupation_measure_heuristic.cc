@@ -18,9 +18,13 @@
 namespace probabilistic {
 namespace occupation_measure_heuristic {
 
-ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
-    const options::Options& opts)
-    : lp_solver_(lp::LPSolverType(opts.get_enum("lpsolver")))
+void
+ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
+    lp::LPSolver& lp_solver_,
+    std::vector<lp::LPVariable>& lp_vars,
+    std::vector<lp::LPConstraint>& constraints,
+    std::vector<int>& offset_,
+    std::vector<int>& goal_)
 {
     ::verify_no_axioms_no_conditional_effects();
     if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())
@@ -29,13 +33,7 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    std::cout << "Initializing projection occupation measure heuristic ..."
-              << std::endl;
-    utils::Timer timer;
-
     const double inf = lp_solver_.get_infinity();
-    std::vector<lp::LPVariable> lp_vars;
-    std::vector<lp::LPConstraint> constraints;
 
     offset_.resize(g_variable_domain.size(), g_goal.size());
     for (unsigned var = 1; var < g_variable_domain.size(); ++var) {
@@ -163,6 +161,19 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
         }
         tieing.clear();
     }
+}
+
+ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
+    const options::Options& opts)
+    : lp_solver_(lp::LPSolverType(opts.get_enum("lpsolver")))
+{
+    std::cout << "Initializing projection occupation measure heuristic ..."
+              << std::endl;
+    utils::Timer timer;
+
+    std::vector<lp::LPVariable> lp_vars;
+    std::vector<lp::LPConstraint> constraints;
+    generate_hpom_lp(lp_solver_, lp_vars, constraints, offset_, goal_);
     lp_solver_.load_problem(
         lp::LPObjectiveSense::MAXIMIZE, lp_vars, constraints);
 

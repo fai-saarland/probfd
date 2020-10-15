@@ -72,11 +72,13 @@ void
 LPConstraint::insert(int index, double coefficient)
 {
     auto it = std::lower_bound(variables.begin(), variables.end(), index);
-    assert(it == variables.end() || (*it) > index);
     unsigned i = std::distance(variables.begin(), it);
-    variables.insert(it, index);
-    coefficients.insert(coefficients.begin() + i, coefficient);
-    assert(variables[i] == index && coefficients[i] == coefficient);
+    if (it == variables.end() || (*it) > index) {
+        variables.insert(it, index);
+        coefficients.insert(coefficients.begin() + i, coefficient);
+    } else {
+        coefficients[i] += coefficient;
+    }
 }
 
 void
