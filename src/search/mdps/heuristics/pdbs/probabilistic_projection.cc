@@ -169,12 +169,9 @@ ProbabilisticProjection::setup_abstract_operators()
                     return true;
                 } else if (x[i].first > y[i].first) {
                     return false;
-                }
-            }
-            for (int i = x.size() - 1; i >= 0; i--) {
-                if (lt(x[i].second, y[i].second)) {
+                } else if (x[i].second < y[i].second) {
                     return true;
-                } else if (lt(y[i].second, x[i].second)) {
+                } else if (x[i].second > y[i].second) {
                     return false;
                 }
             }
@@ -308,8 +305,11 @@ ProbabilisticProjection::setup_abstract_operators()
                     footprint.emplace_back(out->first, out->second);
                 }
                 std::sort(footprint.begin(), footprint.end());
-                footprint.emplace_back(
-                    state_mapper_->from_values(values), value_type::zero);
+                footprint.emplace_back(-1, 0);
+                for (unsigned i = 0; i < pre_var_indices.size(); ++i) {
+                    footprint.emplace_back(pre_var_indices[i], 0);
+                    footprint.emplace_back(values[pre_var_indices[i]], 0);
+                }
                 if (operators.insert(footprint).second) {
                     abstract_operators_.emplace_back(std::move(new_op));
                     preconditions.emplace_back(pre_var_indices.size());
