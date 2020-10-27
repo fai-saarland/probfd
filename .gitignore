@@ -3,3 +3,6 @@ output
 output.sas
 sas_plan*
 builds/
+.idea/
+CMakeLists.txt
+cmake-build-debug/
