@@ -4,6 +4,11 @@
 
 (:types horizon-value - object host port)
 
+(:constants
+    host0 host1 host2 host3 host4 host5 host6 host7 host8 host9 host10 host11 host12 host13 host14 host15 internet - host
+    p80 p3306 p445 - port
+)
+
 (:predicates (horizon ?h - horizon-value) (horizon-decrement ?h0 ?h1 - horizon-value)
     (target_under_control)
     (hacl ?src ?dest - host ?p - port)
@@ -33,11 +38,6 @@
 )
 
 (:functions (total-cost))
-
-(:constants
-    host0 host1 host2 host3 host4 host5 host6 host7 host8 host9 host10 host11 host12 host13 host14 host15 internet - host
-    p80 p3306 p445 - port
-)
 
 (:action ex-host0_winNT4ser_IIS4_vuln7
     :parameters (?hcur ?hnew - horizon-value ?src - host)

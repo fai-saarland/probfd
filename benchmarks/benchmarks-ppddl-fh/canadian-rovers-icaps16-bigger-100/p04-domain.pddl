@@ -2,6 +2,9 @@
 (:requirements :typing)
 (:types horizon-value - object rover waypoint store camera mode lander objective road)
 
+(:constants road0 road1 road2 road3 road4 road5 road6 road7 road8 road9 road10 - road
+            waypoint0 waypoint1 waypoint2 waypoint3 waypoint4 waypoint5 - waypoint)
+
 (:predicates (horizon ?h - horizon-value) (horizon-decrement ?h0 ?h1 - horizon-value)  (at ?x - rover ?y - waypoint)
               (at_lander ?x - lander ?y - waypoint)
               (can_traverse ?r - rover ?x - waypoint ?y - waypoint)
@@ -33,9 +36,6 @@
 )
 
 (:functions (total-cost))
-(:constants road0 road1 road2 road3 road4 road5 road6 road7 road8 road9 road10 - road
-            waypoint0 waypoint1 waypoint2 waypoint3 waypoint4 waypoint5 - waypoint)
-
 (:action sample_soil
     :parameters (?hcur ?hnew - horizon-value ?x - rover ?s - store ?p - waypoint)
     :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (at ?x ?p) (at_soil_sample ?p) (equipped_for_soil_analysis ?x) (store_of ?s ?x) (empty ?s))

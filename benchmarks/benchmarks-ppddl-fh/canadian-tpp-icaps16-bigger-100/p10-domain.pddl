@@ -8,6 +8,12 @@
     road - object
 )
 
+(:constants
+    depot0 - depot
+    market1 market2 market3 market4 market5 market6 market7 - market
+    road0 road1 road2 road3 road4 road5 road6 road7 - road
+)
+
 (:predicates (horizon ?h - horizon-value) (horizon-decrement ?h0 ?h1 - horizon-value)
     (at ?t - truck ?p - place)
     (on-sale ?g - goods ?m - market)
@@ -17,12 +23,6 @@
     (road_isunknown ?r - road) (road_isblocked ?r - road) (road_isfree ?r - road))
 
 (:functions (total-cost) (price ?g - goods ?m - market))
-
-(:constants
-    depot0 - depot
-    market1 market2 market3 market4 market5 market6 market7 - market
-    road0 road1 road2 road3 road4 road5 road6 road7 - road
-)
 
 (:action buy
     :parameters (?hcur ?hnew - horizon-value ?t - truck ?g - goods ?m - market)
