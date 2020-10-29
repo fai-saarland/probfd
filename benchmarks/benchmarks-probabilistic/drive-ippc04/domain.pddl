@@ -3,6 +3,17 @@
 
         (:types coord direction color delay preference length rotation)
 
+        (:constants
+                ;; deprected
+                left right straight - rotation
+
+                north south east west - direction
+                green red unknown - color
+                north_south none east_west - preference
+                quick normal slow - delay
+                short medium long - length
+        )
+
         (:predicates
                 (heading ?d - direction)
                 (clockwise ?d1 ?d2 - direction)
@@ -14,17 +25,6 @@
                 (light_preference ?x ?y - coord ?p - preference)
                 (road-length ?start-x ?start-y ?end-x ?end-y - coord ?l - length)
                 (alive)
-        )
-
-        (:constants
-                ;; deprected
-                left right straight - rotation
-
-                north south east west - direction
-                green red unknown - color
-                north_south none east_west - preference
-                quick normal slow - delay
-                short medium long - length
         )
 
         (:functions (total-cost))

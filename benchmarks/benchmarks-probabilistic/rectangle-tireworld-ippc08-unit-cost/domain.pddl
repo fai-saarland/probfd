@@ -19,12 +19,11 @@
 
 (define (domain rectangle-world)
   (:requirements :typing :strips :negative-preconditions :probabilistic-effects)
-  (:functions (total-cost))
   (:types int)
   (:predicates (xpos ?x - int) (ypos ?y - int) (next ?i ?j - int)
 	       (safeX ?x - int) (safeY ?y - int) (unsafe ?x ?y - int)
 	       (dead))
-
+  (:functions (total-cost))
 
   ;;; The 4 "normal" moves.
   (:action move-U-safe-safe
