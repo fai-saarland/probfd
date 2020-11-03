@@ -75,7 +75,7 @@ VariableOrthogonality compute_prob_orthogonal_vars() {
 }
 
 
-std::vector<std::vector<int>> buildCompatibilityGraphOrth(
+std::vector<std::vector<int>> buildCompatibilityGraphOrthogonality(
     const ::pdbs::PatternCollection& patterns)
 {
     VariableOrthogonality are_orthogonal = compute_prob_orthogonal_vars();
@@ -97,7 +97,7 @@ std::vector<std::vector<int>> buildCompatibilityGraphOrth(
     return cgraph;
 }
 
-std::vector<std::vector<int>> buildCompatibilityGraphDPA(
+std::vector<std::vector<int>> buildCompatibilityGraphWeakOrthogonality(
     const ::pdbs::PatternCollection& patterns)
 {
     using namespace syntactic_projection;

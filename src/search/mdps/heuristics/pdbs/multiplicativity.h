@@ -118,10 +118,10 @@ bool isIndependentCollection(PatternIt pattern_begin, PatternIt pattern_end) {
     return true;
 }
 
-std::vector<std::vector<int>> buildCompatibilityGraphOrth(
+std::vector<std::vector<int>> buildCompatibilityGraphOrthogonality(
     const ::pdbs::PatternCollection& patterns);
 
-std::vector<std::vector<int>> buildCompatibilityGraphDPA(
+std::vector<std::vector<int>> buildCompatibilityGraphWeakOrthogonality(
     const ::pdbs::PatternCollection& patterns);
 
 }

@@ -220,17 +220,17 @@ ProbabilisticCanonicalPDBHeuristic::ProbabilisticCanonicalPDBHeuristic(
     utils::Timer t_init_cliques;
 
     // Compute cliques
-    const bool use_dpa = opts.get<bool>("use_dpa");
+    const bool use_weak = opts.get<bool>("weak");
 
-    if (use_dpa) {
-        std::cout << "NOTE: Using the DPA criterion." << std::endl;
+    if (use_weak) {
+        std::cout << "NOTE: Using the weak orthogonality criterion." << std::endl;
         max_cliques::compute_max_cliques(
-            multiplicativity::buildCompatibilityGraphDPA(clique_patterns_),
+            multiplicativity::buildCompatibilityGraphWeakOrthogonality(clique_patterns_),
             this->cliques_);
     } else {
         std::cout << "NOTE: Using the orthogonality criterion." << std::endl;
         max_cliques::compute_max_cliques(
-            multiplicativity::buildCompatibilityGraphOrth(clique_patterns_),
+            multiplicativity::buildCompatibilityGraphOrthogonality(clique_patterns_),
             this->cliques_);
     }
 
@@ -377,6 +377,7 @@ ProbabilisticCanonicalPDBHeuristic::add_options_to_parser(
     parser.add_option<bool>("dump_projections", "", "false");
     parser.add_option<bool>("use_dpa", "", "false");
     parser.add_option<int>("max_clique_patterns", "", "-1");
+    parser.add_option<bool>("weak", "false");
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(
