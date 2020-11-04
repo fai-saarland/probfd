@@ -1,12 +1,12 @@
 (define (domain canadian-transport-l5-e10-t1-p4--minP200--maxP200--s808550)
 (:requirements :typing :probabilistic-effects)
 (:types location package road status)
-(:predicates (at ?l - location) (p-at ?p - package ?l - location) (road-status ?r - road ?s - status) (trunk ?p - package))
 (:constants
     l0 l1 l2 l3 l4 - location
     p0 p1 p2 p3 - package
     r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 - road
     unknown clear blocked - status)
+(:predicates (at ?l - location) (p-at ?p - package ?l - location) (road-status ?r - road ?s - status) (trunk ?p - package))
 (:functions (total-cost))
 (:action load
     :parameters (?p - package ?l - location)

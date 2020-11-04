@@ -1,7 +1,8 @@
 (define (domain roverdom--s479795--m25--r2--w3--o2--c2--g3--p0--P1--Z200--X200--C10)
 (:requirements :typing :action-costs)
 (:types rover waypoint store camera mode lander objective road)
-
+(:constants road0 road1 road2 - road
+            waypoint0 waypoint1 waypoint2 - waypoint)
 (:predicates  (at ?x - rover ?y - waypoint)
               (at_lander ?x - lander ?y - waypoint)
               (can_traverse ?r - rover ?x - waypoint ?y - waypoint)
@@ -33,8 +34,6 @@
 )
 
 (:functions (total-cost))
-(:constants road0 road1 road2 - road
-            waypoint0 waypoint1 waypoint2 - waypoint)
 
 (:action sample_soil
     :parameters (?x - rover ?s - store ?p - waypoint)
