@@ -220,7 +220,7 @@ private:
                 }
             }
             if (fully_explored) {
-                backtracked = false;
+                backtracked = !einfo.is_leaf;
                 last_lowlink = sinfo.lowlink;
                 if (sinfo.lowlink == sinfo.index) {
                     backtracked = true;
