@@ -377,7 +377,7 @@ ProbabilisticCanonicalPDBHeuristic::add_options_to_parser(
     parser.add_option<bool>("dump_projections", "", "false");
     parser.add_option<bool>("use_dpa", "", "false");
     parser.add_option<int>("max_clique_patterns", "", "-1");
-    parser.add_option<bool>("weak", "false");
+    parser.add_option<bool>("weak", "", "false");
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(
