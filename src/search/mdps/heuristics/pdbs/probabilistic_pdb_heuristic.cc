@@ -151,6 +151,10 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
             g_debug << " **deterministic projection**";
 #endif
             ++deterministic;
+            delete (result.value_table);
+            delete (result.one_states);
+            result.value_table = nullptr;
+            result.one_states = nullptr;
         }
 
         database_.emplace_back(state_mapper, result);
@@ -206,9 +210,16 @@ ProbabilisticPDBHeuristic::lookup(
     const AbstractState& s) const
 {
     assert(!info.dead_ends->get(s));
+
+    if (info.one_states == nullptr && info.values == nullptr) { // Dead end projection
+        return g_analysis_objective->max();
+    }
+
     if (info.one_states != nullptr && info.one_states->get(s)) {
         return one_state_reward_;
     }
+
+    assert(info.values);
     return info.values->get(s);
 }
 
@@ -228,8 +239,6 @@ ProbabilisticPDBHeuristic::evaluate(const GlobalState& state)
 {
     if (initial_state_is_dead_end_) {
         return EvaluationResult(true, g_analysis_objective->min());
-    } else if (database_.empty()) {
-        return EvaluationResult(false, g_analysis_objective->max());
     }
 
     value_type::value_t result = g_analysis_objective->max();
