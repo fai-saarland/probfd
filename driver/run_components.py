@@ -76,7 +76,7 @@ def run_translate(args):
         if not stderr:
             output_related_to_memory_error = False
         for line in stderr.splitlines():
-            if "MemoryError" not in line:
+            if b"MemoryError" not in line:
                 output_related_to_memory_error = False
                 break
         if output_related_to_memory_error:
