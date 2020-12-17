@@ -1,8 +1,8 @@
 (define (problem sysadmin-nocount)
 (:domain sysadmin-nocount)
-(:objects horzn0 horzn1 horzn2 horzn3 horzn4 horzn5 - horizon-value
+(:objects horzn0 horzn2 horzn3 horzn4 horzn5 - horizon-value
 )
-(:init (horizon horzn5) (horizon-decrement horzn1 horzn0) (horizon-decrement horzn2 horzn1) (horizon-decrement horzn3 horzn2) (horizon-decrement horzn4 horzn3) (horizon-decrement horzn5 horzn4)
+(:init (horizon horzn5) (horizon-decrement horzn1 horzn1 horzn0) (horizon-decrement horzn2 horzn1 horzn1) (horizon-decrement horzn3 horzn1 horzn2) (horizon-decrement horzn4 horzn1 horzn3) (horizon-decrement horzn5 horzn1 horzn4)
   (all-updated)
 )
 (:goal (and

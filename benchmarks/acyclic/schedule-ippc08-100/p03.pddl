@@ -1,8 +1,8 @@
 (define (problem a-schedule-problem609)
 (:domain a-schedule-problem609)
-(:objects horzn0 horzn1 horzn2 horzn3 - horizon-value
+(:objects horzn0 horzn2 horzn3 - horizon-value
 )
-(:init (horizon horzn3) (horizon-decrement horzn1 horzn0) (horizon-decrement horzn2 horzn1) (horizon-decrement horzn3 horzn2)
+(:init (horizon horzn3) (horizon-decrement horzn1 horzn1 horzn0) (horizon-decrement horzn2 horzn1 horzn1) (horizon-decrement horzn3 horzn1 horzn2)
   (alive)
   (current-phase Arrivals-and-updating)
   (current-timestep U0)

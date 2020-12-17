@@ -1,177 +1,137 @@
-(define (domain roverdom--s527693--m25--r2--w3--o3--c2--g6--p0--P1--Z200--X200--C10)
-(:requirements :typing)
-(:types horizon-value - object rover waypoint store camera mode lander objective road)
-
-(:constants road0 road1 road2 - road
-            waypoint0 waypoint1 waypoint2 - waypoint)
-
-(:predicates (horizon ?h - horizon-value) (horizon-decrement ?h0 ?h1 - horizon-value)  (at ?x - rover ?y - waypoint)
-              (at_lander ?x - lander ?y - waypoint)
-              (can_traverse ?r - rover ?x - waypoint ?y - waypoint)
-              (equipped_for_soil_analysis ?r - rover)
-              (equipped_for_rock_analysis ?r - rover)
-              (equipped_for_imaging ?r - rover)
-              (empty ?s - store)
-              (have_rock_analysis ?r - rover ?w - waypoint)
-              (have_soil_analysis ?r - rover ?w - waypoint)
-              (full ?s - store)
-              (calibrated ?c - camera ?r - rover)
-              (supports ?c - camera ?m - mode)
-              (available ?r - rover)
-              (visible ?w - waypoint ?p - waypoint)
-              (have_image ?r - rover ?o - objective ?m - mode)
-              (communicated_soil_data ?w - waypoint)
-              (communicated_rock_data ?w - waypoint)
-              (communicated_image_data ?o - objective ?m - mode)
-              (at_soil_sample ?w - waypoint)
-              (at_rock_sample ?w - waypoint)
-              (visible_from ?o - objective ?w - waypoint)
-              (store_of ?s - store ?r - rover)
-              (calibration_target ?i - camera ?o - objective)
-              (on_board ?i - camera ?r - rover)
-              (channel_free ?l - lander)
-              (road_isunknown ?r - road)
-              (road_isfree ?r - road)
-              (road_isblocked ?r - road)
-)
-
-(:functions (total-cost))
-(:action sample_soil
+(define
+  (domain roverdom--s527693--m25--r2--w3--o3--c2--g6--p0--P1--Z200--X200--C10)
+  (:requirements :typing)
+  (:types horizon-value - object rover waypoint store camera mode lander objective road)
+  (:predicates (horizon ?h - horizon-value) (horizon-decrement ?h0 ?h1 ?h2 - horizon-value)
+    (at ?x - rover ?y - waypoint)
+    (at_lander ?x - lander ?y - waypoint)
+    (can_traverse ?r - rover ?x - waypoint ?y - waypoint)
+    (equipped_for_soil_analysis ?r - rover)
+    (equipped_for_rock_analysis ?r - rover)
+    (equipped_for_imaging ?r - rover)
+    (empty ?s - store)
+    (have_rock_analysis ?r - rover ?w - waypoint)
+    (have_soil_analysis ?r - rover ?w - waypoint)
+    (full ?s - store)
+    (calibrated ?c - camera ?r - rover)
+    (supports ?c - camera ?m - mode)
+    (available ?r - rover)
+    (visible ?w - waypoint ?p - waypoint)
+    (have_image ?r - rover ?o - objective ?m - mode)
+    (communicated_soil_data ?w - waypoint)
+    (communicated_rock_data ?w - waypoint)
+    (communicated_image_data ?o - objective ?m - mode)
+    (at_soil_sample ?w - waypoint)
+    (at_rock_sample ?w - waypoint)
+    (visible_from ?o - objective ?w - waypoint)
+    (store_of ?s - store ?r - rover)
+    (calibration_target ?i - camera ?o - objective)
+    (on_board ?i - camera ?r - rover)
+    (channel_free ?l - lander)
+    (road_isunknown ?r - road)
+    (road_isfree ?r - road)
+    (road_isblocked ?r - road)
+  )
+  (:functions (total-cost))
+  (:constants horzn1 horzn7 horzn13 horzn23 - horizon-value  road0 road1 road2 - road waypoint0 waypoint1 waypoint2 - waypoint)
+  (:action sample_soil
     :parameters (?hcur ?hnew - horizon-value ?x - rover ?s - store ?p - waypoint)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (at ?x ?p) (at_soil_sample ?p) (equipped_for_soil_analysis ?x) (store_of ?s ?x) (empty ?s))
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew) (at ?x ?p) (at_soil_sample ?p) (equipped_for_soil_analysis ?x) (store_of ?s ?x) (empty ?s))
     :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (empty ?s)) (full ?s) (have_soil_analysis ?x ?p) (not (at_soil_sample ?p)))
-)
-
-(:action sample_rock
+  )
+  (:action sample_rock
     :parameters (?hcur ?hnew - horizon-value ?x - rover ?s - store ?p - waypoint)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew)  (at ?x ?p) (at_rock_sample ?p) (equipped_for_rock_analysis ?x) (store_of ?s ?x)(empty ?s))
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew) (at ?x ?p) (at_rock_sample ?p) (equipped_for_rock_analysis ?x) (store_of ?s ?x) (empty ?s))
     :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (empty ?s)) (full ?s) (have_rock_analysis ?x ?p) (not (at_rock_sample ?p)))
-)
-
-(:action drop
+  )
+  (:action drop
     :parameters (?hcur ?hnew - horizon-value ?x - rover ?y - store)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (store_of ?y ?x) (full ?y))
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew) (store_of ?y ?x) (full ?y))
     :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (full ?y)) (empty ?y))
-)
-
-(:action calibrate
+  )
+  (:action calibrate
     :parameters (?hcur ?hnew - horizon-value ?r - rover ?i - camera ?t - objective ?w - waypoint)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (equipped_for_imaging ?r) (calibration_target ?i ?t) (at ?r ?w) (visible_from ?t ?w) (on_board ?i ?r))
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew) (equipped_for_imaging ?r) (calibration_target ?i ?t) (at ?r ?w) (visible_from ?t ?w) (on_board ?i ?r))
     :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (calibrated ?i ?r))
-)
-
-(:action take_image
+  )
+  (:action take_image
     :parameters (?hcur ?hnew - horizon-value ?r - rover ?p - waypoint ?o - objective ?i - camera ?m - mode)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (calibrated ?i ?r) (on_board ?i ?r) (equipped_for_imaging ?r) (supports ?i ?m) (visible_from ?o ?p) (at ?r ?p))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (have_image ?r ?o ?m)(not (calibrated ?i ?r)))
-)
-
-(:action communicate_soil_data
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew) (calibrated ?i ?r) (on_board ?i ?r) (equipped_for_imaging ?r) (supports ?i ?m) (visible_from ?o ?p) (at ?r ?p))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (have_image ?r ?o ?m) (not (calibrated ?i ?r)))
+  )
+  (:action communicate_soil_data
     :parameters (?hcur ?hnew - horizon-value ?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (at ?r ?x)(at_lander ?l ?y)(have_soil_analysis ?r ?p)  (visible ?x ?y)(available ?r)(channel_free ?l))
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew) (at ?r ?x) (at_lander ?l ?y) (have_soil_analysis ?r ?p) (visible ?x ?y) (available ?r) (channel_free ?l))
     :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (communicated_soil_data ?p))
-)
-
-(:action communicate_rock_data
+  )
+  (:action communicate_rock_data
     :parameters (?hcur ?hnew - horizon-value ?r - rover ?l - lander ?p - waypoint ?x - waypoint ?y - waypoint)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (at ?r ?x)(at_lander ?l ?y)(have_rock_analysis ?r ?p) (visible ?x ?y)(available ?r)(channel_free ?l))
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew) (at ?r ?x) (at_lander ?l ?y) (have_rock_analysis ?r ?p) (visible ?x ?y) (available ?r) (channel_free ?l))
     :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (communicated_rock_data ?p))
-)
-
-(:action communicate_image_data
+  )
+  (:action communicate_image_data
     :parameters (?hcur ?hnew - horizon-value ?r - rover ?l - lander ?o - objective ?m - mode ?x - waypoint ?y - waypoint)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (at ?r ?x)(at_lander ?l ?y)(have_image ?r ?o ?m)(visible ?x ?y)(available ?r)(channel_free ?l))
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew) (at ?r ?x) (at_lander ?l ?y) (have_image ?r ?o ?m) (visible ?x ?y) (available ?r) (channel_free ?l))
     :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (communicated_image_data ?o ?m))
-)
-
-(:action try-navigate-l0-l1
+  )
+  (:action try-navigate-l0-l1
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint0 waypoint1) (available ?x) (at ?x waypoint0) (visible waypoint0 waypoint1) (road_isunknown road0))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (road_isunknown road0)) (probabilistic 
-        200/1000 (and (road_isblocked road0))
-        800/1000 (and (road_isfree road0) (not (at ?x waypoint0)) (at ?x waypoint1))
-    ))
-)
-
-(:action navigate-l0-l1
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn23 ?hnew) (can_traverse ?x waypoint0 waypoint1) (available ?x) (at ?x waypoint0) (visible waypoint0 waypoint1) (road_isunknown road0))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 23) (not (road_isunknown road0)) (probabilistic 200/1000 (and (road_isblocked road0)) 800/1000 (and (road_isfree road0) (not (at ?x waypoint0)) (at ?x waypoint1))))
+  )
+  (:action navigate-l0-l1
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint0 waypoint1) (available ?x) (at ?x waypoint0) (visible waypoint0 waypoint1) (road_isfree road0))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (at ?x waypoint0)) (at ?x waypoint1))
-)
-
-(:action try-navigate-l1-l0
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn23 ?hnew) (can_traverse ?x waypoint0 waypoint1) (available ?x) (at ?x waypoint0) (visible waypoint0 waypoint1) (road_isfree road0))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 23) (not (at ?x waypoint0)) (at ?x waypoint1))
+  )
+  (:action try-navigate-l1-l0
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint1 waypoint0) (available ?x) (at ?x waypoint1) (visible waypoint1 waypoint0) (road_isunknown road0))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (road_isunknown road0)) (probabilistic 
-        200/1000 (and (road_isblocked road0))
-        800/1000 (and (road_isfree road0) (not (at ?x waypoint1)) (at ?x waypoint0))
-    ))
-)
-
-(:action navigate-l1-l0
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn23 ?hnew) (can_traverse ?x waypoint1 waypoint0) (available ?x) (at ?x waypoint1) (visible waypoint1 waypoint0) (road_isunknown road0))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 23) (not (road_isunknown road0)) (probabilistic 200/1000 (and (road_isblocked road0)) 800/1000 (and (road_isfree road0) (not (at ?x waypoint1)) (at ?x waypoint0))))
+  )
+  (:action navigate-l1-l0
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint1 waypoint0) (available ?x) (at ?x waypoint1) (visible waypoint1 waypoint0) (road_isfree road0))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (at ?x waypoint1)) (at ?x waypoint0))
-)
-
-(:action try-navigate-l0-l2
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn23 ?hnew) (can_traverse ?x waypoint1 waypoint0) (available ?x) (at ?x waypoint1) (visible waypoint1 waypoint0) (road_isfree road0))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 23) (not (at ?x waypoint1)) (at ?x waypoint0))
+  )
+  (:action try-navigate-l0-l2
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint0 waypoint2) (available ?x) (at ?x waypoint0) (visible waypoint0 waypoint2) (road_isunknown road1))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (road_isunknown road1)) (probabilistic 
-        200/1000 (and (road_isblocked road1))
-        800/1000 (and (road_isfree road1) (not (at ?x waypoint0)) (at ?x waypoint2))
-    ))
-)
-
-(:action navigate-l0-l2
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn13 ?hnew) (can_traverse ?x waypoint0 waypoint2) (available ?x) (at ?x waypoint0) (visible waypoint0 waypoint2) (road_isunknown road1))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 13) (not (road_isunknown road1)) (probabilistic 200/1000 (and (road_isblocked road1)) 800/1000 (and (road_isfree road1) (not (at ?x waypoint0)) (at ?x waypoint2))))
+  )
+  (:action navigate-l0-l2
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint0 waypoint2) (available ?x) (at ?x waypoint0) (visible waypoint0 waypoint2) (road_isfree road1))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (at ?x waypoint0)) (at ?x waypoint2))
-)
-
-(:action try-navigate-l2-l0
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn13 ?hnew) (can_traverse ?x waypoint0 waypoint2) (available ?x) (at ?x waypoint0) (visible waypoint0 waypoint2) (road_isfree road1))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 13) (not (at ?x waypoint0)) (at ?x waypoint2))
+  )
+  (:action try-navigate-l2-l0
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint2 waypoint0) (available ?x) (at ?x waypoint2) (visible waypoint2 waypoint0) (road_isunknown road1))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (road_isunknown road1)) (probabilistic 
-        200/1000 (and (road_isblocked road1))
-        800/1000 (and (road_isfree road1) (not (at ?x waypoint2)) (at ?x waypoint0))
-    ))
-)
-
-(:action navigate-l2-l0
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn13 ?hnew) (can_traverse ?x waypoint2 waypoint0) (available ?x) (at ?x waypoint2) (visible waypoint2 waypoint0) (road_isunknown road1))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 13) (not (road_isunknown road1)) (probabilistic 200/1000 (and (road_isblocked road1)) 800/1000 (and (road_isfree road1) (not (at ?x waypoint2)) (at ?x waypoint0))))
+  )
+  (:action navigate-l2-l0
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint2 waypoint0) (available ?x) (at ?x waypoint2) (visible waypoint2 waypoint0) (road_isfree road1))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (at ?x waypoint2)) (at ?x waypoint0))
-)
-
-(:action try-navigate-l1-l2
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn13 ?hnew) (can_traverse ?x waypoint2 waypoint0) (available ?x) (at ?x waypoint2) (visible waypoint2 waypoint0) (road_isfree road1))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 13) (not (at ?x waypoint2)) (at ?x waypoint0))
+  )
+  (:action try-navigate-l1-l2
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint1 waypoint2) (available ?x) (at ?x waypoint1) (visible waypoint1 waypoint2) (road_isunknown road2))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (road_isunknown road2)) (probabilistic 
-        200/1000 (and (road_isblocked road2))
-        800/1000 (and (road_isfree road2) (not (at ?x waypoint1)) (at ?x waypoint2))
-    ))
-)
-
-(:action navigate-l1-l2
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn7 ?hnew) (can_traverse ?x waypoint1 waypoint2) (available ?x) (at ?x waypoint1) (visible waypoint1 waypoint2) (road_isunknown road2))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 7) (not (road_isunknown road2)) (probabilistic 200/1000 (and (road_isblocked road2)) 800/1000 (and (road_isfree road2) (not (at ?x waypoint1)) (at ?x waypoint2))))
+  )
+  (:action navigate-l1-l2
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint1 waypoint2) (available ?x) (at ?x waypoint1) (visible waypoint1 waypoint2) (road_isfree road2))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (at ?x waypoint1)) (at ?x waypoint2))
-)
-
-(:action try-navigate-l2-l1
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn7 ?hnew) (can_traverse ?x waypoint1 waypoint2) (available ?x) (at ?x waypoint1) (visible waypoint1 waypoint2) (road_isfree road2))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 7) (not (at ?x waypoint1)) (at ?x waypoint2))
+  )
+  (:action try-navigate-l2-l1
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint2 waypoint1) (available ?x) (at ?x waypoint2) (visible waypoint2 waypoint1) (road_isunknown road2))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (road_isunknown road2)) (probabilistic 
-        200/1000 (and (road_isblocked road2))
-        800/1000 (and (road_isfree road2) (not (at ?x waypoint2)) (at ?x waypoint1))
-    ))
-)
-
-(:action navigate-l2-l1
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn7 ?hnew) (can_traverse ?x waypoint2 waypoint1) (available ?x) (at ?x waypoint2) (visible waypoint2 waypoint1) (road_isunknown road2))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 7) (not (road_isunknown road2)) (probabilistic 200/1000 (and (road_isblocked road2)) 800/1000 (and (road_isfree road2) (not (at ?x waypoint2)) (at ?x waypoint1))))
+  )
+  (:action navigate-l2-l1
     :parameters (?hcur ?hnew - horizon-value ?x - rover)
-    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew) (can_traverse ?x waypoint2 waypoint1) (available ?x) (at ?x waypoint2) (visible waypoint2 waypoint1) (road_isfree road2))
-    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 1) (not (at ?x waypoint2)) (at ?x waypoint1))
-)
-
+    :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn7 ?hnew) (can_traverse ?x waypoint2 waypoint1) (available ?x) (at ?x waypoint2) (visible waypoint2 waypoint1) (road_isfree road2))
+    :effect (and (not (horizon ?hcur)) (horizon ?hnew) (increase (total-cost) 7) (not (at ?x waypoint2)) (at ?x waypoint1))
+  )
 )

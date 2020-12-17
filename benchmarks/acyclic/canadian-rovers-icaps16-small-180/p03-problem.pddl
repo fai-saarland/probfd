@@ -1,5 +1,5 @@
 (define (problem roverprob--s479795--m25--r2--w3--o2--c2--g3--p0--P1--Z200--X200--C10) (:domain roverdom--s479795--m25--r2--w3--o2--c2--g3--p0--P1--Z200--X200--C10)
-(:objects horzn0 horzn1 horzn2 horzn3 horzn4 horzn5 horzn6 horzn7 horzn8 horzn9 horzn10 horzn11 horzn12 horzn13 horzn14 - horizon-value
+(:objects horzn0 horzn2 horzn3 horzn4 horzn6 horzn7 horzn8 horzn9 horzn10 horzn12 horzn13 - horizon-value
 	general - Lander
 	colour high_res low_res - Mode
 	rover0 rover1 - Rover
@@ -7,7 +7,7 @@
 	camera0 camera1 camera2 camera3 - Camera
 	objective0 objective1 - Objective
 	)
-(:init (horizon horzn14) (horizon-decrement horzn1 horzn0) (horizon-decrement horzn2 horzn1) (horizon-decrement horzn3 horzn2) (horizon-decrement horzn4 horzn3) (horizon-decrement horzn5 horzn4) (horizon-decrement horzn6 horzn5) (horizon-decrement horzn7 horzn6) (horizon-decrement horzn8 horzn7) (horizon-decrement horzn9 horzn8) (horizon-decrement horzn10 horzn9) (horizon-decrement horzn11 horzn10) (horizon-decrement horzn12 horzn11) (horizon-decrement horzn13 horzn12) (horizon-decrement horzn14 horzn13)
+(:init (horizon horzn14) (horizon-decrement horzn1 horzn1 horzn0) (horizon-decrement horzn2 horzn1 horzn1) (horizon-decrement horzn3 horzn1 horzn2) (horizon-decrement horzn4 horzn1 horzn3) (horizon-decrement horzn5 horzn1 horzn4) (horizon-decrement horzn6 horzn1 horzn5) (horizon-decrement horzn7 horzn1 horzn6) (horizon-decrement horzn8 horzn1 horzn7) (horizon-decrement horzn9 horzn1 horzn8) (horizon-decrement horzn10 horzn1 horzn9) (horizon-decrement horzn11 horzn1 horzn10) (horizon-decrement horzn12 horzn1 horzn11) (horizon-decrement horzn13 horzn1 horzn12) (horizon-decrement horzn14 horzn1 horzn13) (horizon-decrement horzn5 horzn5 horzn0) (horizon-decrement horzn6 horzn5 horzn1) (horizon-decrement horzn7 horzn5 horzn2) (horizon-decrement horzn8 horzn5 horzn3) (horizon-decrement horzn9 horzn5 horzn4) (horizon-decrement horzn10 horzn5 horzn5) (horizon-decrement horzn11 horzn5 horzn6) (horizon-decrement horzn12 horzn5 horzn7) (horizon-decrement horzn13 horzn5 horzn8) (horizon-decrement horzn14 horzn5 horzn9) (horizon-decrement horzn11 horzn11 horzn0) (horizon-decrement horzn12 horzn11 horzn1) (horizon-decrement horzn13 horzn11 horzn2) (horizon-decrement horzn14 horzn11 horzn3) (horizon-decrement horzn14 horzn14 horzn0)
     (road_isunknown road0)
     (road_isunknown road1)
     (road_isunknown road2)

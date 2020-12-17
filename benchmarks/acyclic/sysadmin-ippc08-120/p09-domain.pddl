@@ -1,10 +1,10 @@
 (define (domain sysadmin-nocount)
 (:requirements :probabilistic-effects :negative-preconditions :typing)
 (:types horizon-value - object computer - object)
-(:constants
+(:constants horzn1 - horizon-value 
   comp0 comp1 comp2 comp3 comp4 comp5 comp6 comp7 comp8 comp9 comp10 comp11 comp12 comp13 comp14 comp15 comp16 comp17 comp18 comp19 comp20 comp21 comp22 comp23 comp24 comp25 comp26 comp27 comp28 comp29 - computer
 )
-(:predicates (horizon ?h - horizon-value) (horizon-decrement ?h0 ?h1 - horizon-value)
+(:predicates (horizon ?h - horizon-value) (horizon-decrement ?h0 ?h1 ?h2 - horizon-value)
   (running ?c - computer)
   (rebooted ?c - computer)
   (evaluate ?c - computer)
@@ -15,12 +15,14 @@
 )
 (:action reboot
   :parameters (?hcur ?hnew - horizon-value ?c - computer)
-  :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew)
+  :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew)
     (all-updated)
+    (not (running ?c))
   )
   :effect (and (not (horizon ?hcur)) (horizon ?hnew)
     (increase (total-cost) 1)
     (not (all-updated))
+    (running ?c)
     (evaluate comp0)
     (rebooted ?c)
   )
@@ -1355,7 +1357,7 @@
     (not (update-status comp0))
     (update-status comp1)
     (not (rebooted comp0))
-    (probabilistic 9/10 (and (running comp0)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp0)) 1/10 (and (not (running comp0))))
   )
 )
 (:action update-status-comp0-all-on
@@ -1396,7 +1398,7 @@
     (not (update-status comp1))
     (update-status comp2)
     (not (rebooted comp1))
-    (probabilistic 9/10 (and (running comp1)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp1)) 1/10 (and (not (running comp1))))
   )
 )
 (:action update-status-comp1-all-on
@@ -1437,7 +1439,7 @@
     (not (update-status comp2))
     (update-status comp3)
     (not (rebooted comp2))
-    (probabilistic 9/10 (and (running comp2)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp2)) 1/10 (and (not (running comp2))))
   )
 )
 (:action update-status-comp2-all-on
@@ -1478,7 +1480,7 @@
     (not (update-status comp3))
     (update-status comp4)
     (not (rebooted comp3))
-    (probabilistic 9/10 (and (running comp3)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp3)) 1/10 (and (not (running comp3))))
   )
 )
 (:action update-status-comp3-all-on
@@ -1519,7 +1521,7 @@
     (not (update-status comp4))
     (update-status comp5)
     (not (rebooted comp4))
-    (probabilistic 9/10 (and (running comp4)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp4)) 1/10 (and (not (running comp4))))
   )
 )
 (:action update-status-comp4-all-on
@@ -1560,7 +1562,7 @@
     (not (update-status comp5))
     (update-status comp6)
     (not (rebooted comp5))
-    (probabilistic 9/10 (and (running comp5)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp5)) 1/10 (and (not (running comp5))))
   )
 )
 (:action update-status-comp5-all-on
@@ -1601,7 +1603,7 @@
     (not (update-status comp6))
     (update-status comp7)
     (not (rebooted comp6))
-    (probabilistic 9/10 (and (running comp6)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp6)) 1/10 (and (not (running comp6))))
   )
 )
 (:action update-status-comp6-all-on
@@ -1642,7 +1644,7 @@
     (not (update-status comp7))
     (update-status comp8)
     (not (rebooted comp7))
-    (probabilistic 9/10 (and (running comp7)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp7)) 1/10 (and (not (running comp7))))
   )
 )
 (:action update-status-comp7-all-on
@@ -1683,7 +1685,7 @@
     (not (update-status comp8))
     (update-status comp9)
     (not (rebooted comp8))
-    (probabilistic 9/10 (and (running comp8)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp8)) 1/10 (and (not (running comp8))))
   )
 )
 (:action update-status-comp8-all-on
@@ -1724,7 +1726,7 @@
     (not (update-status comp9))
     (update-status comp10)
     (not (rebooted comp9))
-    (probabilistic 9/10 (and (running comp9)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp9)) 1/10 (and (not (running comp9))))
   )
 )
 (:action update-status-comp9-all-on
@@ -1765,7 +1767,7 @@
     (not (update-status comp10))
     (update-status comp11)
     (not (rebooted comp10))
-    (probabilistic 9/10 (and (running comp10)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp10)) 1/10 (and (not (running comp10))))
   )
 )
 (:action update-status-comp10-all-on
@@ -1806,7 +1808,7 @@
     (not (update-status comp11))
     (update-status comp12)
     (not (rebooted comp11))
-    (probabilistic 9/10 (and (running comp11)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp11)) 1/10 (and (not (running comp11))))
   )
 )
 (:action update-status-comp11-all-on
@@ -1847,7 +1849,7 @@
     (not (update-status comp12))
     (update-status comp13)
     (not (rebooted comp12))
-    (probabilistic 9/10 (and (running comp12)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp12)) 1/10 (and (not (running comp12))))
   )
 )
 (:action update-status-comp12-all-on
@@ -1888,7 +1890,7 @@
     (not (update-status comp13))
     (update-status comp14)
     (not (rebooted comp13))
-    (probabilistic 9/10 (and (running comp13)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp13)) 1/10 (and (not (running comp13))))
   )
 )
 (:action update-status-comp13-all-on
@@ -1929,7 +1931,7 @@
     (not (update-status comp14))
     (update-status comp15)
     (not (rebooted comp14))
-    (probabilistic 9/10 (and (running comp14)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp14)) 1/10 (and (not (running comp14))))
   )
 )
 (:action update-status-comp14-all-on
@@ -1970,7 +1972,7 @@
     (not (update-status comp15))
     (update-status comp16)
     (not (rebooted comp15))
-    (probabilistic 9/10 (and (running comp15)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp15)) 1/10 (and (not (running comp15))))
   )
 )
 (:action update-status-comp15-all-on
@@ -2011,7 +2013,7 @@
     (not (update-status comp16))
     (update-status comp17)
     (not (rebooted comp16))
-    (probabilistic 9/10 (and (running comp16)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp16)) 1/10 (and (not (running comp16))))
   )
 )
 (:action update-status-comp16-all-on
@@ -2052,7 +2054,7 @@
     (not (update-status comp17))
     (update-status comp18)
     (not (rebooted comp17))
-    (probabilistic 9/10 (and (running comp17)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp17)) 1/10 (and (not (running comp17))))
   )
 )
 (:action update-status-comp17-all-on
@@ -2093,7 +2095,7 @@
     (not (update-status comp18))
     (update-status comp19)
     (not (rebooted comp18))
-    (probabilistic 9/10 (and (running comp18)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp18)) 1/10 (and (not (running comp18))))
   )
 )
 (:action update-status-comp18-all-on
@@ -2134,7 +2136,7 @@
     (not (update-status comp19))
     (update-status comp20)
     (not (rebooted comp19))
-    (probabilistic 9/10 (and (running comp19)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp19)) 1/10 (and (not (running comp19))))
   )
 )
 (:action update-status-comp19-all-on
@@ -2175,7 +2177,7 @@
     (not (update-status comp20))
     (update-status comp21)
     (not (rebooted comp20))
-    (probabilistic 9/10 (and (running comp20)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp20)) 1/10 (and (not (running comp20))))
   )
 )
 (:action update-status-comp20-all-on
@@ -2216,7 +2218,7 @@
     (not (update-status comp21))
     (update-status comp22)
     (not (rebooted comp21))
-    (probabilistic 9/10 (and (running comp21)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp21)) 1/10 (and (not (running comp21))))
   )
 )
 (:action update-status-comp21-all-on
@@ -2257,7 +2259,7 @@
     (not (update-status comp22))
     (update-status comp23)
     (not (rebooted comp22))
-    (probabilistic 9/10 (and (running comp22)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp22)) 1/10 (and (not (running comp22))))
   )
 )
 (:action update-status-comp22-all-on
@@ -2298,7 +2300,7 @@
     (not (update-status comp23))
     (update-status comp24)
     (not (rebooted comp23))
-    (probabilistic 9/10 (and (running comp23)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp23)) 1/10 (and (not (running comp23))))
   )
 )
 (:action update-status-comp23-all-on
@@ -2339,7 +2341,7 @@
     (not (update-status comp24))
     (update-status comp25)
     (not (rebooted comp24))
-    (probabilistic 9/10 (and (running comp24)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp24)) 1/10 (and (not (running comp24))))
   )
 )
 (:action update-status-comp24-all-on
@@ -2380,7 +2382,7 @@
     (not (update-status comp25))
     (update-status comp26)
     (not (rebooted comp25))
-    (probabilistic 9/10 (and (running comp25)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp25)) 1/10 (and (not (running comp25))))
   )
 )
 (:action update-status-comp25-all-on
@@ -2421,7 +2423,7 @@
     (not (update-status comp26))
     (update-status comp27)
     (not (rebooted comp26))
-    (probabilistic 9/10 (and (running comp26)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp26)) 1/10 (and (not (running comp26))))
   )
 )
 (:action update-status-comp26-all-on
@@ -2462,7 +2464,7 @@
     (not (update-status comp27))
     (update-status comp28)
     (not (rebooted comp27))
-    (probabilistic 9/10 (and (running comp27)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp27)) 1/10 (and (not (running comp27))))
   )
 )
 (:action update-status-comp27-all-on
@@ -2503,7 +2505,7 @@
     (not (update-status comp28))
     (update-status comp29)
     (not (rebooted comp28))
-    (probabilistic 9/10 (and (running comp28)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp28)) 1/10 (and (not (running comp28))))
   )
 )
 (:action update-status-comp28-all-on
@@ -2544,7 +2546,7 @@
     (not (update-status comp29))
     (all-updated)
     (not (rebooted comp29))
-    (probabilistic 9/10 (and (running comp29)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp29)) 1/10 (and (not (running comp29))))
   )
 )
 (:action update-status-comp29-all-on

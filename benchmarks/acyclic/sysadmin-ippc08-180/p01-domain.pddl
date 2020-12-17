@@ -1,10 +1,10 @@
 (define (domain sysadmin-nocount)
 (:requirements :probabilistic-effects :negative-preconditions :typing)
 (:types horizon-value - object computer - object)
-(:constants
+(:constants horzn1 - horizon-value 
   comp0 comp1 comp2 comp3 - computer
 )
-(:predicates (horizon ?h - horizon-value) (horizon-decrement ?h0 ?h1 - horizon-value)
+(:predicates (horizon ?h - horizon-value) (horizon-decrement ?h0 ?h1 ?h2 - horizon-value)
   (running ?c - computer)
   (rebooted ?c - computer)
   (evaluate ?c - computer)
@@ -15,12 +15,14 @@
 )
 (:action reboot
   :parameters (?hcur ?hnew - horizon-value ?c - computer)
-  :precondition (and (horizon ?hcur) (horizon-decrement ?hcur ?hnew)
+  :precondition (and (horizon ?hcur) (horizon-decrement ?hcur horzn1 ?hnew)
     (all-updated)
+    (not (running ?c))
   )
   :effect (and (not (horizon ?hcur)) (horizon ?hnew)
     (increase (total-cost) 1)
     (not (all-updated))
+    (running ?c)
     (evaluate comp0)
     (rebooted ?c)
   )
@@ -197,7 +199,7 @@
     (not (update-status comp0))
     (update-status comp1)
     (not (rebooted comp0))
-    (probabilistic 9/10 (and (running comp0)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp0)) 1/10 (and (not (running comp0))))
   )
 )
 (:action update-status-comp0-all-on
@@ -238,7 +240,7 @@
     (not (update-status comp1))
     (update-status comp2)
     (not (rebooted comp1))
-    (probabilistic 9/10 (and (running comp1)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp1)) 1/10 (and (not (running comp1))))
   )
 )
 (:action update-status-comp1-all-on
@@ -279,7 +281,7 @@
     (not (update-status comp2))
     (update-status comp3)
     (not (rebooted comp2))
-    (probabilistic 9/10 (and (running comp2)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp2)) 1/10 (and (not (running comp2))))
   )
 )
 (:action update-status-comp2-all-on
@@ -320,7 +322,7 @@
     (not (update-status comp3))
     (all-updated)
     (not (rebooted comp3))
-    (probabilistic 9/10 (and (running comp3)) 1/10 (and))
+    (probabilistic 9/10 (and (running comp3)) 1/10 (and (not (running comp3))))
   )
 )
 (:action update-status-comp3-all-on
