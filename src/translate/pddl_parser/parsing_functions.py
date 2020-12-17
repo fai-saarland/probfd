@@ -348,7 +348,10 @@ def parse_action(alist, type_dict, predicate_dict):
                     all_fractions.append(fractions.Fraction(cep[2]).limit_denominator())
                     # summed += all_fractions[-1]
                 # assert(summed == fractions.Fraction(1))
-                lcm = functools.reduce(lambda a,b: (a*b)/fractions.gcd(a,b), [f.denominator for f in all_fractions], 1)
+                # lcm = functools.reduce(lambda a,b: (a*b)/fractions.gcd(a,b), [f.denominator for f in all_fractions], 1)
+                lcm = all_fractions[0].denominator
+                for f in all_fractions[1:]:
+                    lcm = lcm * f.denominator // math.gcd(lcm, f.denominator)
                 # Use the fractions and lcm to build the weights
                 cost_eff_pairs = [(cost_eff_pairs[i][0], cost_eff_pairs[i][1], "_DETDUP_%d_WEIGHT_%d_%d" %
                     (i, all_fractions[i].numerator*(lcm/all_fractions[i].denominator), lcm)) for i in range(len(cost_eff_pairs))]

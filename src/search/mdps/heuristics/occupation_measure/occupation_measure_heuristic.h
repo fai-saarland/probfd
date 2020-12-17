@@ -22,15 +22,13 @@ public:
             lp::LPSolver& lp_solver,
             std::vector<lp::LPVariable>& vars,
             std::vector<lp::LPConstraint>& constraints,
-            std::vector<int>& offsets,
-            std::vector<int>& goal);
+            std::vector<int>& offsets);
 
 protected:
     virtual EvaluationResult evaluate(const GlobalState& state) override;
 
     lp::LPSolver lp_solver_;
     std::vector<int> offset_;
-    std::vector<int> goal_;
 };
 
 } // namespace occupation_measure_heuristic

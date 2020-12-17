@@ -88,8 +88,8 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
              lp_var > lp_var_start;
              --lp_var, --i) {
             constraints.emplace_back(0, 0);
-            constraints.back().insert(lp_var_start, op[0].prob);
-            constraints.back().insert(lp_var, -op[i].prob);
+            constraints.back().insert(lp_var_start, 1.0 / op[0].prob);
+            constraints.back().insert(lp_var, -1.0 / op[i].prob);
         }
     }
 

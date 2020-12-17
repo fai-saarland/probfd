@@ -23,8 +23,7 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     lp::LPSolver& lp_solver_,
     std::vector<lp::LPVariable>& lp_vars,
     std::vector<lp::LPConstraint>& constraints,
-    std::vector<int>& offset_,
-    std::vector<int>& goal_)
+    std::vector<int>& offset_)
 {
     ::verify_no_axioms_no_conditional_effects();
     if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())
@@ -35,22 +34,20 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
     const double inf = lp_solver_.get_infinity();
 
-    offset_.resize(g_variable_domain.size(), g_goal.size());
+    offset_.resize(g_variable_domain.size(), 0);
     for (unsigned var = 1; var < g_variable_domain.size(); ++var) {
         offset_[var] = offset_[var - 1] + g_variable_domain[var - 1];
     }
     constraints.resize(
-        g_goal.size() + offset_.back() + g_variable_domain.back(),
-        lp::LPConstraint(0, inf));
+        offset_.back() + g_variable_domain.back(), lp::LPConstraint(0, inf));
 
-    lp_vars.emplace_back(0, 1, 1);
-    goal_.resize(g_variable_domain.size(), -1);
+    lp_vars.emplace_back(0, inf, 1);
     for (unsigned i = 0; i < g_goal.size(); ++i) {
-        goal_[g_goal[i].first] = i;
-        constraints[i].insert(0, -1);
+        constraints[offset_[g_goal[i].first] + g_goal[i].second].insert(0, -1);
     }
 
-    std::vector<std::pair<int, int>> tieing;
+    std::vector<std::pair<int, int>> tieing_equality;
+    std::vector<std::pair<int, int>> tieing_inequality;
 
     std::vector<int> ref;
     std::vector<int> pre(g_variable_domain.size(), -1);
@@ -83,11 +80,9 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
         std::sort(ref.begin(), ref.end());
         ref.erase(std::unique(ref.begin(), ref.end()), ref.end());
         for (unsigned i = 0; i < ref.size(); ++i) {
-            tieing.emplace_back(lp_vars.size(), 0);
+            std::pair<int, int> var_range(lp_vars.size(), 0);
             bool has_pure_self_loop = false;
             const int var = ref[i];
-            const int goal_val =
-                goal_[var] >= 0 ? g_goal[goal_[var]].second : -1;
             lp::LPConstraint* flow = &constraints[offset_[var]];
             if (pre[var] == -1) {
                 for (int val = 0; val < g_variable_domain[var]; ++val) {
@@ -97,17 +92,6 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
                     }
                     const int lpvar = lp_vars.size();
                     lp_vars.emplace_back(0, inf, 0);
-                    if (goal_val >= 0) {
-                        value_type::value_t gprob = 0;
-                        if (goal_val == val) {
-                            gprob = post[var][val] + post[var].back() - 1;
-                        } else {
-                            gprob = post[var][goal_val];
-                        }
-                        if (gprob != 0) {
-                            constraints[goal_[var]].insert(lpvar, gprob);
-                        }
-                    }
                     flow[val].insert(
                         lpvar, -1 + post[var].back() + post[var][val]);
                     for (int val2 = g_variable_domain[var] - 1; val2 >= 0;
@@ -122,17 +106,6 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
                 const int val = pre[var];
                 const int lpvar = lp_vars.size();
                 lp_vars.emplace_back(0, inf, 0);
-                if (goal_val >= 0) {
-                    value_type::value_t gprob = 0;
-                    if (goal_val == val) {
-                        gprob = post[var][val] + post[var].back() - 1;
-                    } else {
-                        gprob = post[var][goal_val];
-                    }
-                    if (gprob != 0) {
-                        constraints[goal_[var]].insert(lpvar, gprob);
-                    }
-                }
                 flow[val].insert(lpvar, -1 + post[var].back() + post[var][val]);
                 for (int val2 = g_variable_domain[var] - 1; val2 >= 0; --val2) {
                     const value_type::value_t prob = post[var][val2];
@@ -141,25 +114,43 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
                     }
                 }
             }
-            tieing.back().second = lp_vars.size();
+            var_range.second = lp_vars.size();
             if (has_pure_self_loop) {
-                tieing.pop_back();
+                tieing_inequality.push_back(var_range);
+            } else {
+                tieing_equality.push_back(var_range);
             }
         }
         ref.clear();
-        int i = 0;
-        for (unsigned j = i + 1; j < tieing.size(); ++j) {
+        if (!tieing_equality.empty()) {
+            const auto& base_range = tieing_equality[0];
+            for (unsigned j = 1; j < tieing_equality.size(); ++j) {
             constraints.emplace_back(0, 0);
-            for (int lpvar = tieing[i].first; lpvar < tieing[i].second;
+                for (int lpvar = base_range.first; lpvar < base_range.second;
                  ++lpvar) {
                 constraints.back().insert(lpvar, 1);
             }
-            for (int lpvar = tieing[j].first; lpvar < tieing[j].second;
+                for (int lpvar = tieing_equality[j].first;
+                     lpvar < tieing_equality[j].second;
                  ++lpvar) {
                 constraints.back().insert(lpvar, -1);
             }
         }
-        tieing.clear();
+            for (unsigned j = 0; j < tieing_inequality.size(); ++j) {
+                constraints.emplace_back(0, inf);
+                for (int lpvar = base_range.first; lpvar < base_range.second;
+                     ++lpvar) {
+                    constraints.back().insert(lpvar, 1);
+                }
+                for (int lpvar = tieing_inequality[j].first;
+                     lpvar < tieing_inequality[j].second;
+                     ++lpvar) {
+                    constraints.back().insert(lpvar, -1);
+                }
+            }
+        }
+        tieing_equality.clear();
+        tieing_inequality.clear();
     }
 }
 
@@ -173,7 +164,7 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
 
     std::vector<lp::LPVariable> lp_vars;
     std::vector<lp::LPConstraint> constraints;
-    generate_hpom_lp(lp_solver_, lp_vars, constraints, offset_, goal_);
+    generate_hpom_lp(lp_solver_, lp_vars, constraints, offset_);
     lp_solver_.load_problem(
         lp::LPObjectiveSense::MAXIMIZE, lp_vars, constraints);
 
@@ -183,18 +174,14 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
 EvaluationResult
 ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state)
 {
-    for (unsigned i = 0; i < g_goal.size(); ++i) {
-        if (state[g_goal[i].first] == g_goal[i].second) {
-            lp_solver_.set_constraint_lower_bound(i, -1);
-        }
-    }
     for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
         lp_solver_.set_constraint_lower_bound(offset_[var] + state[var], -1);
     }
     lp_solver_.solve();
     EvaluationResult res(true, 0.0);
     if (lp_solver_.has_optimal_solution()) {
-        res = EvaluationResult(false, lp_solver_.get_objective_value());
+        const double v = lp_solver_.get_objective_value();
+        res = EvaluationResult(v == 0.0, v);
     }
     for (unsigned i = 0; i < g_goal.size(); ++i) {
         if (state[g_goal[i].first] == g_goal[i].second) {

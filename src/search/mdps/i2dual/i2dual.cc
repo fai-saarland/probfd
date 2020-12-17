@@ -364,41 +364,16 @@ I2Dual::solve()
 void
 I2Dual::prepare_hpom(
     std::vector<lp::LPVariable>& vars,
-    std::vector<lp::LPConstraint>& constraints)
+    std::vector<lp::LPConstraint>& )
 {
     if (!hpom_) {
         return;
     }
     hpom_timer_.resume();
-    std::vector<lp::LPConstraint> constraints2;
-    std::vector<int> offset;
     occupation_measure_heuristic::ProjectionOccupationMeasureHeuristic::
-        generate_hpom_lp(lp_solver_, vars, constraints2, offset, goal_);
+        generate_hpom_lp(lp_solver_, vars, hpom_constraints_, offset_);
     hpom_num_vars_ = vars.size();
-    hpom_num_constraints_ = constraints2.size();
-    int prev = g_goal.size();
-    hpom_constraints_.insert(
-        hpom_constraints_.end(),
-        constraints2.begin(),
-        constraints2.begin() + prev);
-    for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
-        if (prev < offset[var]) {
-            constraints.insert(
-                constraints.end(),
-                constraints2.begin() + prev,
-                constraints2.begin() + offset[var]);
-        }
-        offset_.push_back(hpom_constraints_.size());
-        hpom_constraints_.insert(
-            hpom_constraints_.end(),
-            constraints2.begin() + offset[var],
-            constraints2.begin() + offset[var] + g_variable_domain[var]);
-        prev = offset[var] + g_variable_domain[var];
-    }
-    if (prev < static_cast<int>(constraints2.size())) {
-        constraints.insert(
-            constraints.end(), constraints2.begin() + prev, constraints2.end());
-    }
+    hpom_num_constraints_ = hpom_constraints_.size();
     hpom_timer_.stop();
 }
 
@@ -416,14 +391,6 @@ I2Dual::update_hpom_constraints_for_state(
             // std::cout << var << ":" << val << ", " << om.second << " -> "
             // << (offset_[var] + val) << std::endl;
             c.insert(om.second, negate * om.first);
-        }
-    }
-    for (unsigned j = 0; j < g_goal.size(); ++j) {
-        if (state[g_goal[j].first] == g_goal[j].second) {
-            lp::LPConstraint& c = constraints[j];
-            for (const auto& om : var_infos.incoming) {
-                c.insert(om.second, negate * om.first);
-            }
         }
     }
 }

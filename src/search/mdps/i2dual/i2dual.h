@@ -67,7 +67,6 @@ private:
 
     bool hpom_initialized_ = false;
     std::vector<int> offset_;
-    std::vector<int> goal_;
     std::vector<lp::LPConstraint> hpom_constraints_;
 
     utils::Timer hpom_timer_;
