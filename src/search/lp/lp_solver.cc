@@ -81,6 +81,20 @@ LPConstraint::insert(int index, double coefficient)
     }
 }
 
+double
+LPConstraint::remove(int index)
+{
+    auto it = std::lower_bound(variables.begin(), variables.end(), index);
+    if (it == variables.end() || (*it) > index) {
+        return 0;
+    }
+    variables.erase(it);
+    unsigned i = std::distance(variables.begin(), it);
+    const double res = coefficients[i];
+    coefficients.erase(coefficients.begin() + i);
+    return res;
+}
+
 void
 LPConstraint::dump() const
 {

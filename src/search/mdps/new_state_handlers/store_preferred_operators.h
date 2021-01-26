@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../algorithms/types_storage.h"
 #include "../new_state_handler.h"
+#include "../storage/per_state_storage.h"
 
 #include <cassert>
 #include <memory>
@@ -59,7 +59,7 @@ public:
     explicit StorePreferredOperators(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
-    const PrefOpsCacheEntry& get_cached_ops(const GlobalState& s);
+    const PrefOpsCacheEntry& get_cached_ops(const StateID& s);
 
     virtual void touch(const GlobalState& s) override;
     virtual void touch_goal(const GlobalState& s) override;
@@ -68,7 +68,7 @@ public:
 private:
     const bool fetch_only_;
     std::shared_ptr<Heuristic> heuristic_;
-    algorithms::storage::PerStateStorage<PrefOpsCacheEntry> store_;
+    storage::PerStateStorage<PrefOpsCacheEntry> store_;
     std::vector<const GlobalOperator*> pref_;
     std::vector<unsigned> ids_;
     std::vector<unsigned> refs_;

@@ -12,7 +12,7 @@ namespace open_lists {
 LifoHOpenList::LifoHOpenList(const options::Options& opts)
     : heuristic_(std::dynamic_pointer_cast<new_state_handlers::StoreHeuristic>(
         opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
-    , exp_(StateID::no_state)
+    , exp_(StateID::undefined)
 {
 }
 
@@ -45,24 +45,23 @@ LifoHOpenList::pop()
 }
 
 void
-LifoHOpenList::push(const StateID& state_id, const GlobalState&)
+LifoHOpenList::push(const StateID& state_id)
 {
     queue_.push_back(state_id);
 }
 
 void
 LifoHOpenList::push(
-    const StateID& stateid,
-    const GlobalState& parent,
+    const StateID& parent,
     const ProbabilisticOperator*,
     const value_type::value_t&,
-    const GlobalState& succ)
+    const StateID& state_id)
 {
-    if (parent.get_id() != exp_) {
+    if (parent != exp_) {
         populate();
-        exp_ = parent.get_id();
+        exp_ = parent;
     }
-    temp_.emplace_back(heuristic_->get_cached_h_value(succ), stateid);
+    temp_.emplace_back(heuristic_->get_cached_h_value(state_id), state_id);
 }
 
 void
@@ -72,8 +71,7 @@ LifoHOpenList::populate()
         return;
     }
     std::sort(temp_.begin(), temp_.end(), [](const auto& x, const auto& y) {
-        return x.first < y.first
-            || (x.first == y.first && x.second.hash() > y.second.hash());
+        return x.first < y.first || (x.first == y.first && x.second > y.second);
     });
     temp_.erase(std::unique(temp_.begin(), temp_.end()), temp_.end());
     const auto* ptr = &temp_[temp_.size() - 1];

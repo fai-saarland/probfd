@@ -9,7 +9,7 @@ namespace options {
 class OptionParser;
 }
 
-enum OperatorCost {NORMAL = 0, ONE = 1, PLUSONE = 2, ZERO=3, MAX_OPERATOR_COST};
+enum OperatorCost {NORMAL = 0, ONE = 1, PLUSONE = 2, ZERO=3, MINONE=4, MAX_OPERATOR_COST};
 
 int get_adjusted_action_cost(int cost, OperatorCost cost_type);
 int get_adjusted_action_cost(const GlobalOperator &op, OperatorCost cost_type);

@@ -85,6 +85,21 @@ bool peek_magic(istream &in, string magic) {
     return result;
 }
 
+static
+bool conditional_check_magic(istream& in, const string& magic)
+{
+    istream::pos_type start = in.tellg();
+    string word;
+    if (! (in >> word) ) {
+        return false;
+    }
+    if (magic == word) {
+        return true;
+    }
+    in.seekg(start, ios_base::beg);
+    return false;
+}
+
 void check_magic(istream &in, string magic) {
     string word;
     in >> word;
@@ -238,6 +253,26 @@ void read_axioms(istream &in) {
     g_axiom_evaluator = new AxiomEvaluator;
 }
 
+void read_dnf_formula(istream &in)
+{
+    if (conditional_check_magic(in, "begin_dnf")) {
+        int count;
+        in >> count;
+        while (count-- > 0) {
+            std::vector<std::pair<int, int>> c;
+            int n;
+            in >> n;
+            while (n-- > 0) {
+                c.emplace_back();
+                in >> c.back().first;
+                in >> c.back().second;
+            }
+            g_dnf_formula.push_back(std::move(c));
+        }
+        check_magic(in, "end_dnf");
+    }
+}
+
 void read_everything(istream &in) {
     cout << "reading input... [t=" << utils::g_timer << "]" << endl;
     read_and_verify_version(in);
@@ -255,6 +290,7 @@ void read_everything(istream &in) {
     read_goal(in);
     read_operators(in);
     read_axioms(in);
+    read_dnf_formula(in);
     // check_magic(in, "begin_SG");
     // g_successor_generator = read_successor_generator(in);
     // check_magic(in, "end_SG");
@@ -396,3 +432,4 @@ bool g_is_part_of_anytime_portfolio = false;
 
 utils::RandomNumberGenerator g_rng(2011);
 std::vector<std::vector<std::set<std::pair<int, int> > > > g_inconsistent_facts;
+std::vector<std::vector<std::pair<int, int>>> g_dnf_formula;

@@ -23,9 +23,9 @@ StoreHeuristic::add_options_to_parser(options::OptionParser& parser)
 }
 
 int
-StoreHeuristic::get_cached_h_value(const GlobalState& s)
+StoreHeuristic::get_cached_h_value(const StateID& s)
 {
-    const int res = hstore_[s.get_id()];
+    const int res = hstore_[s];
     assert(res != -2);
     return res;
 }
@@ -33,13 +33,13 @@ StoreHeuristic::get_cached_h_value(const GlobalState& s)
 void
 StoreHeuristic::touch_goal(const GlobalState& s)
 {
-    hstore_[s.get_id()] = 0;
+    hstore_[s.get_id().hash()] = 0;
 }
 
 void
 StoreHeuristic::touch_dead_end(const GlobalState& s)
 {
-    hstore_[s.get_id()] = -1;
+    hstore_[s.get_id().hash()] = -1;
 }
 
 void
@@ -48,7 +48,7 @@ StoreHeuristic::touch(const GlobalState& s)
     if (!fetch_only_) {
         heuristic_->evaluate(s);
     }
-    hstore_[s.get_id()] = heuristic_->get_value();
+    hstore_[s.get_id().hash()] = heuristic_->get_value();
 }
 
 static Plugin<NewGlobalStateHandler> _plugin(

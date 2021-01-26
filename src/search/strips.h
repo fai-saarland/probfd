@@ -156,4 +156,10 @@ private:
     std::vector<std::vector<unsigned>> actions_with_mutex_progression_;
 };
 
+extern std::pair<int, int>
+string_to_variable_assignment(const std::string& fact);
+
+extern std::vector<std::pair<int, int>>
+string_to_variable_assignments(const std::string& fact_set);
+
 } // namespace strips_utils

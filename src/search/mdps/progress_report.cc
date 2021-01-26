@@ -43,11 +43,35 @@ ProgressReport::register_value(
 }
 
 void
-ProgressReport::operator()()
+ProgressReport::print()
 {
-    if (!enabled_) {
-        return;
+    extract_values();
+    if (!extracted_values_.empty()) {
+        print_progress();
     }
+}
+
+void
+ProgressReport::print_progress()
+{
+    (*out_) << "[";
+    for (unsigned i = 0; i < value_names_.size(); i++) {
+        (*out_) << (i > 0 ? ", " : "") << value_names_[i] << "="
+                << extracted_values_[i];
+    }
+    //(*out_) << (value_names_.empty() ? "" : ", ")
+    //        << "registered=" << g_state_registry->size();
+    for (unsigned i = 0; i < additional_informations_.size(); i++) {
+        (*out_) << ", ";
+        additional_informations_[i](*out_);
+    }
+    (*out_) << ", t=" << utils::g_timer << "]"
+            << "\n";
+}
+
+bool
+ProgressReport::extract_values()
+{
     bool print = last_printed_values_.size() != value_getters_.size();
     last_printed_values_.resize(value_getters_.size(), value_type::zero);
     for (int i = value_getters_.size() - 1; i >= 0; --i) {
@@ -56,19 +80,17 @@ ProgressReport::operator()()
             || (value_type::abs(last_printed_values_[i] - val) >= min_change_);
         extracted_values_[i] = val;
     }
-    if (print) {
-        (*out_) << "[";
-        for (unsigned i = 0; i < value_names_.size(); i++) {
-            (*out_) << (i > 0 ? ", " : "") << value_names_[i] << "="
-                    << extracted_values_[i];
-        }
-        //(*out_) << (value_names_.empty() ? "" : ", ")
-        //        << "registered=" << g_state_registry->size();
-        for (unsigned i = 0; i < additional_informations_.size(); i++) {
-            (*out_) << ", ";
-            additional_informations_[i](*out_);
-        }
-        (*out_) << ", t=" << utils::g_timer << "]" << "\n";
+    return print;
+}
+
+void
+ProgressReport::operator()()
+{
+    if (!enabled_) {
+        return;
+    }
+    if (extract_values()) {
+        print_progress();
         last_printed_values_.swap(extracted_values_);
     }
 }

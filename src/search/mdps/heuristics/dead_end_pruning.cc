@@ -46,6 +46,12 @@ DeadEndPruningHeuristic::evaluate(const GlobalState& state)
     return EvaluationResult(false, default_value_);
 }
 
+void
+DeadEndPruningHeuristic::print_statistics() const
+{
+    pruning_function_->print_statistics();
+}
+
 static Plugin<GlobalStateEvaluator> _plugin(
     "prune_dead_ends",
     options::parse<GlobalStateEvaluator, DeadEndPruningHeuristic>);

@@ -6,8 +6,8 @@
 #include "../../../plugin.h"
 #include "../../../utils/system.h"
 #include "../../../utils/timer.h"
+#include "../../analysis_objectives/goal_probability_objective.h"
 #include "../../globals.h"
-#include "../../goal_probability_objective.h"
 #include "../../probabilistic_operator.h"
 
 #include <algorithm>
@@ -34,7 +34,7 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
     const double inf = lp_solver_.get_infinity();
 
-    offset_.resize(g_variable_domain.size(), 0);
+    offset_.resize(g_variable_domain.size(), constraints.size());
     for (unsigned var = 1; var < g_variable_domain.size(); ++var) {
         offset_[var] = offset_[var - 1] + g_variable_domain[var - 1];
     }
@@ -125,17 +125,17 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
         if (!tieing_equality.empty()) {
             const auto& base_range = tieing_equality[0];
             for (unsigned j = 1; j < tieing_equality.size(); ++j) {
-            constraints.emplace_back(0, 0);
+                constraints.emplace_back(0, 0);
                 for (int lpvar = base_range.first; lpvar < base_range.second;
-                 ++lpvar) {
-                constraints.back().insert(lpvar, 1);
-            }
+                     ++lpvar) {
+                    constraints.back().insert(lpvar, 1);
+                }
                 for (int lpvar = tieing_equality[j].first;
                      lpvar < tieing_equality[j].second;
-                 ++lpvar) {
-                constraints.back().insert(lpvar, -1);
+                     ++lpvar) {
+                    constraints.back().insert(lpvar, -1);
+                }
             }
-        }
             for (unsigned j = 0; j < tieing_inequality.size(); ++j) {
                 constraints.emplace_back(0, inf);
                 for (int lpvar = base_range.first; lpvar < base_range.second;

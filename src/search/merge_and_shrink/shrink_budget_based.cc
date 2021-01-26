@@ -2,6 +2,7 @@
 
 #include "../option_parser.h"
 #include "../plugin.h"
+#include "../mdps/globals.h"
 #include "abstraction.h"
 
 using namespace std;
@@ -46,15 +47,20 @@ BudgetShrink::name() const
 static shared_ptr<ShrinkStrategy>
 _parse(options::OptionParser& parser)
 {
+    parser.add_option<int>("budget", "", options::OptionParser::NONE);
     ShrinkStrategy::add_options_to_parser(parser);
     Options opts = parser.parse();
     if (!parser.dry_run()) {
+        ShrinkStrategy::handle_option_defaults(opts);
+        if (!opts.contains("budget")) {
+            opts.set<int>("budget", probabilistic::g_step_bound);
+        }
         return shared_ptr<ShrinkStrategy>(new BudgetShrink(opts));
     }
     return nullptr;
 }
 
-static Plugin<ShrinkStrategy> _plugin("budget", _parse);
+static Plugin<ShrinkStrategy> _plugin("shrink_budget", _parse);
 
 } // namespace merge_and_shrink
 

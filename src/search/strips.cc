@@ -482,45 +482,121 @@ std::string
 STRIPS::to_string(const Fact& p) const
 {
     auto x = get_variable_assignment(p);
-    return g_fact_names[x.first][x.second];
+    const std::string& s = g_fact_names[x.first][x.second];
+    if (s == "<none of those>") {
+        std::ostringstream res;
+        res << "![";
+        bool sep = false;
+        for (int val = 0; val < g_variable_domain[x.first]; ++val) {
+            if (val != x.second) {
+                res << (sep ? " | " : "") << g_fact_names[x.first][val];
+                sep = true;
+            }
+        }
+        res << "]";
+        return res.str();
+    }
+    return s;
 }
 
 std::string
 STRIPS::to_string(const FactSet& fact_set) const
 {
     std::ostringstream out;
-    out << "[";
     for (unsigned i = 0; i < fact_set.size(); i++) {
-        out << (i > 0 ? " | " : "") << to_string(fact_set[i]);
+        out << (i > 0 ? " & " : "") << to_string(fact_set[i]);
     }
-    out << "]";
     return out.str();
+}
+
+template<typename F>
+static void
+split_string(const std::string& s, const char splitter, F f)
+{
+    if (s.empty()) {
+        return;
+    }
+    unsigned i = (s[0] == splitter);
+    unsigned j = 0;
+    for (; i <= s.size(); ++i) {
+        if (i == s.size() || s[i] == splitter) {
+            unsigned k = i - 1;
+            while (k > j && s[k] == ' ')
+                --k;
+            f(s.substr(j, k + 1 - j));
+            j = i + 1;
+            while (j < s.size() && s[j] == ' ')
+                ++j;
+        }
+    }
 }
 
 Fact
 STRIPS::parse_fact_string(const std::string& fact) const
 {
-    for (int var = g_variable_domain.size() - 1; var >= 0; var--) {
-        for (int val = g_variable_domain[var] - 1; val >= 0; val--) {
-            if (g_fact_names[var][val] == fact) {
-                return get_fact(var, val);
-            }
-        }
-    }
-    assert(false);
-    return -1;
+    return get_fact(string_to_variable_assignment(fact));
 }
 
 FactSet
 STRIPS::parse_fact_set_string(const std::string& fact_set) const
 {
     FactSet result;
-    for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
-        for (int val = 0; val < g_variable_domain[var]; ++val) {
-            if (fact_set.find(g_fact_names[var][val]) != std::string::npos) {
-                result.push_back(get_fact(var, val));
+    split_string(fact_set, '&', [&](const std::string& f) {
+        result.push_back(parse_fact_string(f));
+    });
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+std::pair<int, int>
+string_to_variable_assignment(const std::string& fact)
+{
+    auto lookup = [](const std::string& fact) {
+        for (int var = g_variable_domain.size() - 1; var >= 0; var--) {
+            for (int val = g_variable_domain[var] - 1; val >= 0; val--) {
+                if (g_fact_names[var][val] == fact) {
+                    return std::make_pair(var, val);
+                }
             }
         }
+        std::cerr << "no fact with name '" << fact << "' found!" << std::endl;
+        return std::make_pair(-1, -1);
+    };
+    if (fact.substr(0, 2) == "![") {
+        std::vector<std::pair<int, int>> facts;
+        split_string(
+            fact.substr(2, fact.size() - 3), '|', [&](const std::string& f) {
+                facts.push_back(lookup(f));
+            });
+        assert(!facts.empty());
+#if !defined(NDEBUG)
+        for (unsigned i = 0; i < facts.size() - 1; ++i) {
+            assert(facts[i].first == facts[i + 1].first);
+        }
+#endif
+        const int var = facts.front().first;
+        for (int val = g_variable_domain[var] - 1; val >= 0; --val) {
+            if (g_fact_names[var][val] == "<none of those>") {
+                return std::make_pair(var, val);
+            }
+        }
+        assert(false);
+        return std::make_pair(-1, -1);
+    } else {
+        return lookup(fact);
+    }
+}
+
+std::vector<std::pair<int, int>>
+string_to_variable_assignments(const std::string& fact_set)
+{
+    std::vector<std::pair<int, int>> result;
+    split_string(fact_set, '&', [&](const std::string& f) {
+        result.push_back(string_to_variable_assignment(f));
+    });
+    std::sort(result.begin(), result.end());
+    if (result.size() > 0 && result[0].first == -1) {
+        return std::vector<std::pair<int,int>>();
     }
     return result;
 }

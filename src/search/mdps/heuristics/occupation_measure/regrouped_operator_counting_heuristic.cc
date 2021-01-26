@@ -6,8 +6,8 @@
 #include "../../../plugin.h"
 #include "../../../utils/system.h"
 #include "../../../utils/timer.h"
+#include "../../analysis_objectives/goal_probability_objective.h"
 #include "../../globals.h"
-#include "../../goal_probability_objective.h"
 #include "../../probabilistic_operator.h"
 
 #include <algorithm>
@@ -114,7 +114,8 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state)
     lp_solver_.solve();
     EvaluationResult res(true, 0.0);
     if (lp_solver_.has_optimal_solution()) {
-        res = EvaluationResult(false, lp_solver_.get_objective_value());
+        const double v = lp_solver_.get_objective_value();
+        res = EvaluationResult(v == 0.0, v);
     }
     for (unsigned i = 0; i < g_goal.size(); ++i) {
         if (state[g_goal[i].first] == g_goal[i].second) {

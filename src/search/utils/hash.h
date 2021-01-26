@@ -258,6 +258,20 @@ void feed(HashState &hash_state, const std::vector<T> &vec) {
     }
 }
 
+template<typename T>
+void feed_iterable(HashState &hash_state, T begin, T end) {
+    /*
+      Feed vector size to ensure that no two different vectors of the same type
+      have the same code prefix.
+
+      Using uint64_t is wasteful on 32-bit platforms but feeding a size_t breaks
+      the build on MacOS (see msg7812).
+    */
+    for (auto it = begin; it != end; ++it) {
+        feed(hash_state, *it);
+    }
+}
+
 
 /*
   Public hash functions.

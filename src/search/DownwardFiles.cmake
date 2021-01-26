@@ -317,16 +317,6 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME TARJAN_DFS_SEARCH
-    HELP "Depth-first search implementation with SCC detection."
-    SOURCES
-        tarjan_search/search_node
-        tarjan_search/search_node_info
-        tarjan_search/tarjan_depth_oriented_search
-    DEPENDS 
-)
-
-fast_downward_plugin(
     NAME LP_SOLVER
     HELP "Interface to an LP solver"
     SOURCES
@@ -529,223 +519,140 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME CRITICAL_PATH_HEURISTIC
-    HELP "Plugin containing the code for the critical-path heuristic hC"
-    SOURCES
-        critical_paths/critical_path_heuristic
-        critical_paths/critical_path_heuristic_nogoods
-        critical_paths/critical_path_online_cart_heuristic
-        critical_paths/critical_path_heuristic_refinement
-        critical_paths/critical_path_heuristic_neighbors_refinement
-)
-
-fast_downward_plugin(
-    NAME DELTA_TRAP_HEURISTIC
-    HELP "Plugin containing the code for the Delta trap heuristic"
-    SOURCES
-        traps/delta_trap_heuristic
-        traps/delta_trap_neighbors_refinement
-    DEPENDS PERFECT_HASHING_FUNCTION
-)
-
-fast_downward_plugin(
-    NAME PROBABILISTIC_CORE_SOURCES
+    NAME MDP
     HELP "Core source files for supporting MDPs"
     SOURCES
         mdps/value_type
         mdps/logging
         mdps/evaluation_result
-        mdps/interfaces/i_printable
-        mdps/state_evaluator
-        mdps/transition_evaluator
-        mdps/analysis_result
-        mdps/analysis_objective
-        mdps/goal_probability_objective
-        mdps/probabilistic_operator
-        mdps/applicable_actions_generator
-        mdps/transition_generator
         mdps/globals
-        mdps/state_listener
-        mdps/transition_sampler
-        mdps/policy_chooser
-        mdps/utils/distribution_uniform_sampler
-        mdps/utils/distribution_random_sampler
+        mdps/probabilistic_operator
+        mdps/analysis_objective
+        mdps/analysis_objectives/goal_probability_objective
+        mdps/action_id_map
+        mdps/state_id_map
+        mdps/action_evaluator
+        mdps/state_evaluator
+        mdps/transition_generator
+        mdps/solvers/mdp_solver
         mdps/progress_report
-        mdps/solver_plugins/mdp_solver
-        mdps/new_state_handler
-
-        DEPENDS SUCCESSOR_GENERATOR
-    CORE_PLUGIN
-)
-
-fast_downward_plugin(
-    NAME PROBABILISTIC_CONSTANT_HEURISTIC
-    HELP ""
-    SOURCES
+        mdps/quotient_system
+        mdps/utils/distribution_random_sampler
+        mdps/utils/distribution_uniform_sampler
+        mdps/bisimulation/bisimilar_state_space
         mdps/heuristics/constant_evaluator
-)
-
-fast_downward_plugin(
-    NAME PROBABILISTIC_DEAD_END_PRUNING
-    HELP ""
-    SOURCES
         mdps/heuristics/dead_end_pruning
         mdps/heuristics/budget_pruning
-)
-
-fast_downward_plugin(
-    NAME PROBABILISTIC_NEW_STATE_HANDLERS
-    HELP ""
-    SOURCES
-        mdps/new_state_handlers/store_heuristic
-        mdps/new_state_handlers/store_preferred_operators
-)
-
-fast_downward_plugin(
-    NAME VALUE_ITERATION
-    HELP "Value Iteration MDP Engine"
-    SOURCES
-        mdps/solver_plugins/value_iteration
-)
-
-fast_downward_plugin(
-    NAME INTERVAL_ITERATION
-    HELP "Interval Iteration MDP Engine"
-    SOURCES
-        mdps/solver_plugins/interval_iteration
-)
-
-fast_downward_plugin(
-    NAME PROBABILISTIC_SUCCESSOR_SAMPLER
-    HELP ""
-    SOURCES
-        mdps/successor_sampler/random_successor_sampler
-        mdps/successor_sampler/uniform_successor_sampler
-        mdps/successor_sampler/hbased_successor_sampler
-        mdps/successor_sampler/vbased_successor_sampler
-        mdps/successor_sampler/vdiff_successor_sampler
-        mdps/successor_sampler/most_likely_successor_selector
+    DEPENDS SUCCESSOR_GENERATOR MAS_HEURISTIC
     DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(
-    NAME PROBABILISTIC_POLICY_TIEBREAKING
-    HELP ""
+    NAME ACYCLIC_VALUE_ITERATION_SOLVER
+    HELP "acyclic_vi"
     SOURCES
-        mdps/policy_tiebreaking/arbitrary_tiebreaker
-        mdps/policy_tiebreaking/random_tiebreaker
-        mdps/policy_tiebreaking/operator_id_tiebreaker
-        mdps/policy_tiebreaking/hbased_tiebreaker
-        mdps/policy_tiebreaking/preferred_operators_tiebreaker
-        mdps/policy_tiebreaking/vdiff_tiebreaker
-    DEPENDENCY_ONLY
+        mdps/solvers/acyclic_vi
+    DEPENDS MDP
 )
 
 fast_downward_plugin(
-    NAME PROBABILISTIC_OPEN_LISTS
-    HELP ""
+    NAME TOPOLOGICAL_VALUE_ITERATION_SOLVER
+    HELP "topological_vi"
     SOURCES
-        mdps/open_lists/open_list
+        mdps/solvers/topological_vi
+    DEPENDS MDP
+)
+
+fast_downward_plugin(
+    NAME INTERVAL_ITERATION_SOLVER
+    HELP "interval_iteration"
+    SOURCES
+        mdps/solvers/interval_iteration
+    DEPENDS MDP
+)
+
+fast_downward_plugin(
+    NAME IDUAL_SOLVER
+    HELP "idual & i2dual solvers"
+    SOURCES
+        mdps/solvers/idual
+        mdps/solvers/i2dual
+    DEPENDS MDP LP_SOLVER OCCUPATION_MEASURE_HEURISTICS
+)
+
+fast_downward_plugin(
+    NAME BISIMULATION_BASED_SOLVER
+    HELP "bisimulation_vi"
+    SOURCES
+        mdps/solvers/bisimulation_vi
+    DEPENDS MDP
+)
+
+fast_downward_plugin(
+    NAME MDP_HEURISTIC_SEARCH_BASE
+    HELP "mdp heuristic search core"
+    SOURCES
+        mdps/heuristic_search_interfaceable
+        mdps/policy_picker
+        mdps/successor_sort
+        mdps/new_state_handler
+        mdps/transition_sampler
+        mdps/dead_end_listener
+        mdps/open_list
         mdps/open_lists/lifo_open_list
         mdps/open_lists/fifo_open_list
-        mdps/open_lists/lifo_preferred_operators_open_list
-        mdps/open_lists/lifo_h_open_list
         mdps/open_lists/h_open_list
+        mdps/open_lists/lifo_h_open_list
+        mdps/open_lists/lifo_preferred_operators_open_list
+        mdps/new_state_handlers/store_heuristic
+        mdps/new_state_handlers/store_preferred_operators
+        mdps/transition_sampler/hbiased_successor_sampler
+        mdps/transition_sampler/most_likely_selector
+        mdps/transition_sampler/arbitrary_selector
+        mdps/transition_sampler/uniform_successor_sampler
+        mdps/transition_sampler/random_successor_sampler
+        mdps/transition_sampler/vbiased_successor_sampler
+        mdps/transition_sampler/vdiff_successor_sampler
+        mdps/policy_picker/arbitrary_tiebreaker
+        mdps/policy_picker/hbased_tiebreaker
+        mdps/policy_picker/operator_id_tiebreaker
+        mdps/policy_picker/preferred_operators_tiebreaker
+        mdps/policy_picker/random_tiebreaker
+        mdps/policy_picker/vdiff_tiebreaker
+        mdps/solvers/mdp_heuristic_search
+        mdps/solvers/bisimulation_engine
     DEPENDENCY_ONLY
-)
- 
-fast_downward_plugin(
-    NAME AO_FAMILY
-    HELP "AO FAMILY*"
-    SOURCES
-        mdps/solver_plugins/aostar
-        mdps/solver_plugins/exhaustive_ao
-    DEPENDS PROBABILISTIC_SUCCESSOR_SAMPLER PROBABILISTIC_POLICY_TIEBREAKING PROBABILISTIC_OPEN_LISTS
-)
- 
-fast_downward_plugin(
-    NAME LRTDP
-    HELP "LRTDP"
-    SOURCES
-        mdps/solver_plugins/lrtdp
-    DEPENDS PROBABILISTIC_SUCCESSOR_SAMPLER PROBABILISTIC_POLICY_TIEBREAKING
+    DEPENDS MDP
 )
 
 fast_downward_plugin(
-    NAME GSSP_LRTDP
-    HELP "GSSP_LRTDP"
+    NAME AO_SEARCH
+    HELP "aostar"
     SOURCES
-        mdps/solver_plugins/gssp_lrtdp
-    DEPENDS PROBABILISTIC_SUCCESSOR_SAMPLER PROBABILISTIC_POLICY_TIEBREAKING
-)
+        mdps/solvers/aostar
+        mdps/solvers/exhaustive_ao
+    DEPENDS MDP_HEURISTIC_SEARCH_BASE)
 
 fast_downward_plugin(
-    NAME GSSP_DOHS
-    HELP "GSSP_DOHS"
+    NAME EXHDFS
+    HELP "EXHDFS"
     SOURCES
-        mdps/solver_plugins/gssp_dohs
-    DEPENDS PROBABILISTIC_POLICY_TIEBREAKING PROBABILISTIC_OPEN_LISTS
-)
+        mdps/solvers/exhaustive_dfs
+    DEPENDS MDP_HEURISTIC_SEARCH_BASE)
 
 fast_downward_plugin(
-    NAME DEPTH_ORIENTED_HEURISTIC_SEARCH
-    HELP "DEPTH_ORIENTED_HEURISTIC_SEARCH"
+    NAME LRTDP_SOLVER
+    HELP "lrtdp"
     SOURCES
-        mdps/solver_plugins/dohs
-    DEPENDS PROBABILISTIC_HEURISTIC_SEARCH
-)
- 
-fast_downward_plugin(
-    NAME FRET
-    HELP "FRET"
-    SOURCES
-        mdps/solver_plugins/fret
-)
+        mdps/solvers/lrtdp
+    DEPENDS MDP_HEURISTIC_SEARCH_BASE)
 
 fast_downward_plugin(
-    NAME END_COMPONENT_DECOMPOSITION
-    HELP "END_COMPONENT_DECOMPOSITION"
+    NAME HDFS_SOLVERS
+    HELP "hdfs"
     SOURCES
-        mdps/solver_plugins/ec_decomposition
-)
-
-fast_downward_plugin(
-    NAME EXHAUSTIVE_DFS
-    HELP ""
-    SOURCES
-        mdps/solver_plugins/exhaustive_dfs
-)
-
-fast_downward_plugin(
-    NAME IDUAL
-    HELP "IDUAL"
-    SOURCES
-        mdps/solver_plugins/idual
-)
-
-fast_downward_plugin(
-    NAME PROBABILISTIC_BISIMULATION
-    HELP "PROBABILISTIC_BISIMULATION"
-    SOURCES
-        mdps/bisimulation/bisimilar_state_space
-        mdps/solver_plugins/bisimulation_value_iteration
-)
-
-fast_downward_plugin(
-    NAME PROBABILISTIC_PDBS
-    HELP "Probabilistic PDBS"
-    SOURCES
-        mdps/heuristics/pdbs/abstract_state
-        mdps/heuristics/pdbs/qualitative_result_store
-        mdps/heuristics/pdbs/quantitative_result_store
-        mdps/heuristics/pdbs/probabilistic_projection
-        mdps/heuristics/pdbs/maxprob_pdb_heuristic
-        mdps/heuristics/pdbs/types
-        mdps/heuristics/pdbs/multiplicativity
-        mdps/heuristics/pdbs/syntactic_projection
-        mdps/heuristics/pdbs/utils
-    DEPENDS SUCCESSOR_GENERATOR
-    )
+        mdps/solvers/hdfs
+    DEPENDS MDP_HEURISTIC_SEARCH_BASE)
 
 fast_downward_plugin(
     NAME OCCUPATION_MEASURE_HEURISTICS
@@ -753,13 +660,24 @@ fast_downward_plugin(
     SOURCES
         mdps/heuristics/occupation_measure/occupation_measure_heuristic
         mdps/heuristics/occupation_measure/regrouped_operator_counting_heuristic
+    DEPENDS MDP LP_SOLVER
     )
 
 fast_downward_plugin(
-    NAME i2dual
-    HELP "i-dual with hpom integration"
+    NAME PROBABILISTIC_PDBS
+    HELP "Probabilistic PDBS"
     SOURCES
-        mdps/i2dual/i2dual
+        mdps/heuristics/pdbs/abstract_state
+        mdps/heuristics/pdbs/abstract_operator
+        mdps/heuristics/pdbs/qualitative_result_store
+        mdps/heuristics/pdbs/quantitative_result_store
+        mdps/heuristics/pdbs/engine_interfaces
+        mdps/heuristics/pdbs/probabilistic_projection
+        mdps/heuristics/pdbs/maxprob_pdb_heuristic
+        mdps/heuristics/pdbs/multiplicativity
+        mdps/heuristics/pdbs/syntactic_projection
+        mdps/heuristics/pdbs/utils
+    DEPENDS MDP SUCCESSOR_GENERATOR
     )
 
 fast_downward_add_plugin_sources(PLANNER_SOURCES)

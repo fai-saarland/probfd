@@ -36,6 +36,7 @@ protected:
 
     virtual void initialize() {}
     virtual SearchStatus step() = 0;
+    virtual void statistics() const;
 
     void set_plan(const Plan &plan);
     bool check_goal_and_set_plan(const GlobalState &state);
@@ -44,13 +45,11 @@ public:
     SearchEngine(const options::Options &opts);
     virtual ~SearchEngine();
     void set_state_registry(std::shared_ptr<StateRegistry> state_registry);
-    virtual void print_statistics() const;
+    virtual void print_statistics() const final override;
     virtual void save_result_if_necessary() const;
     virtual bool found_solution() const override;
     virtual void solve() override;
 
-    virtual void statistics() const;
-    virtual void heuristic_statistics() const {}
     virtual void save_plan_if_necessary() const;
     SearchStatus get_status() const;
     const Plan &get_plan() const;

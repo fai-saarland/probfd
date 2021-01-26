@@ -19,6 +19,13 @@ Heuristic::Heuristic(const options::Options &opts)
 Heuristic::~Heuristic() {
 }
 
+void Heuristic::ensure_initialized() {
+    if (heuristic == NOT_INITIALIZED) {
+        initialize();
+        heuristic = 0;
+    }
+}
+
 void Heuristic::set_preferred(const GlobalOperator *op) {
     if (!op->is_marked()) {
         op->mark();

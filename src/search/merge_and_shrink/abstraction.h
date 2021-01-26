@@ -289,6 +289,13 @@ public:
         return transitions_by_op.size();
     }
 
+    std::vector<std::vector<AbstractTransition>> extract_transitions()
+    {
+        std::vector<std::vector<AbstractTransition>> result(std::move(transitions_by_op));
+        transitions_by_op.clear();
+        return result;
+    }
+
     const std::vector<AbstractTransition> &get_transitions_for_op(int op_no) const
     {
         return transitions_by_op[op_no];

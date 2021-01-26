@@ -5,13 +5,13 @@
 #include "../../../successor_generator.h"
 #include "../../../utils/hash.h"
 #include "../../../utils/system.h"
-#include "../../algorithms/types_storage.h"
 #include "../../analysis_objective.h"
+#include "../../analysis_objectives/goal_probability_objective.h"
+#include "../../engines/interval_iteration.h"
 #include "../../globals.h"
-#include "../../goal_probability_objective.h"
 #include "../../logging.h"
 #include "../../probabilistic_operator.h"
-#include "algorithms.h"
+#include "../../utils/graph_visualization.h"
 
 #include <algorithm>
 #include <deque>
@@ -499,28 +499,32 @@ ProbabilisticProjection::dump_graphviz(
 {
     setup_abstract_operators();
 
-    algorithms::StateIDMap<AbstractState> state_id_map;
-    algorithms::
-        ApplicableActionsGenerator<AbstractState, const AbstractOperator*>
-            aops_gen(state_mapper_, progression_aops_generator_);
-    algorithms::TransitionGenerator<AbstractState, const AbstractOperator*>
-        transition_gen;
+    StateIDMap<AbstractState> state_id_map;
+
+    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
+        state_id_map, state_mapper_, progression_aops_generator_);
+    TransitionGenerator<const AbstractOperator*> transition_gen(
+        state_id_map, state_mapper_, progression_aops_generator_);
 
     AbstractStateToString state_to_string(state_mapper_);
     AbstractOperatorToString op_to_string(&g_operators);
-
-    ProjectionGraphVis<AbstractStateToString> vis(
-        &state_id_map,
-        &aops_gen,
-        &transition_gen,
-        state_reward,
-        &state_to_string,
-        show_transition_labels ? &op_to_string : nullptr,
-        true);
+    AbstractOperatorToString* op_to_string_ptr =
+        show_transition_labels ? &op_to_string : nullptr;
 
     std::ofstream out;
     out.open(path);
-    vis(out, initial_state_);
+
+    graphviz::dump(
+        out,
+        initial_state_,
+        &state_id_map,
+        state_reward,
+        &aops_gen,
+        &transition_gen,
+        &state_to_string,
+        op_to_string_ptr,
+        true);
+
     out.close();
 }
 
@@ -535,12 +539,12 @@ ProbabilisticProjection::dump_graphviz(
 {
     setup_abstract_operators();
 
-    algorithms::StateIDMap<AbstractState> state_id_map;
-    algorithms::
-        ApplicableActionsGenerator<AbstractState, const AbstractOperator*>
-            aops_gen(state_mapper_, progression_aops_generator_);
-    algorithms::TransitionGenerator<AbstractState, const AbstractOperator*>
-        transition_gen;
+    StateIDMap<AbstractState> state_id_map;
+
+    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
+        state_id_map, state_mapper_, progression_aops_generator_);
+    TransitionGenerator<const AbstractOperator*> transition_gen(
+        state_id_map, state_mapper_, progression_aops_generator_);
 
     struct StateToString {
         explicit StateToString(
@@ -579,26 +583,30 @@ ProbabilisticProjection::dump_graphviz(
 
     StateToString state_to_string(values, v0, v1, state_mapper_);
     AbstractOperatorToString op_to_string(&g_operators);
-
-    ProjectionGraphVis<StateToString> vis(
-        &state_id_map,
-        &aops_gen,
-        &transition_gen,
-        state_reward,
-        &state_to_string,
-        show_transition_labels ? &op_to_string : nullptr,
-        true);
+    AbstractOperatorToString* op_to_string_ptr =
+        show_transition_labels ? &op_to_string : nullptr;
 
     std::ofstream out;
     out.open(path);
-    vis(out, initial_state_);
+
+    graphviz::dump(
+        out,
+        initial_state_,
+        &state_id_map,
+        state_reward,
+        &aops_gen,
+        &transition_gen,
+        &state_to_string,
+        op_to_string_ptr,
+        true);
+
     out.close();
 }
 
 AbstractAnalysisResult
 ProbabilisticProjection::compute_value_table(
     AbstractStateEvaluator* state_reward,
-    AbstractTransitionRewardFunction* transition_reward,
+    AbstractOperatorEvaluator* transition_reward,
     value_type::value_t dead_end_value,
     value_type::value_t upper,
     bool one,
@@ -607,55 +615,58 @@ ProbabilisticProjection::compute_value_table(
 {
     setup_abstract_operators();
 
-    algorithms::StateIDMap<AbstractState> state_id_map;
-    algorithms::
-        ApplicableActionsGenerator<AbstractState, const AbstractOperator*>
-            aops_gen(state_mapper_, progression_aops_generator_);
-    algorithms::TransitionGenerator<AbstractState, const AbstractOperator*>
-        transition_gen;
+    StateIDMap<AbstractState> state_id_map;
+    ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
+
+    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
+        state_id_map, state_mapper_, progression_aops_generator_);
+    TransitionGenerator<const AbstractOperator*> transition_gen(
+        state_id_map, state_mapper_, progression_aops_generator_);
 
     std::unique_ptr<AbstractStateEvaluator> heuristic = nullptr;
     if (dead_ends != nullptr) {
-        heuristic =
-            std::unique_ptr<AbstractStateEvaluator>(new AbstractStateInStore(
+        heuristic = std::unique_ptr<AbstractStateEvaluator>(
+            new AbstractStateInStoreEvaluator(
                 dead_ends, value_type::zero, value_type::zero));
     }
 
-    IntervalIteration vi(
-        &state_id_map,
-        &aops_gen,
-        &transition_gen,
-        state_reward,
-        transition_reward,
-        dead_end_value,
-        upper,
-        heuristic.get(),
-        one,
-        one_state_reward);
+    interval_iteration::
+        IntervalIteration<AbstractState, const AbstractOperator*, true>
+            vi(heuristic.get(),
+               one,
+               &state_id_map,
+               &action_id_map,
+               state_reward,
+               transition_reward,
+               dead_end_value,
+               upper,
+               &aops_gen,
+               &transition_gen);
 
-    IntervalIteration::ValueStore values;
-    IntervalIteration::BoolStore deads(false); // states that cannot reach goal
+    interval_iteration::ValueStore values;
+    // states that cannot reach goal
+    interval_iteration::BoolStore deads(false);
     // states that can reach goal with absolute certainty
-    IntervalIteration::BoolStore ones(false);
+    interval_iteration::BoolStore ones(false);
 
     vi.solve(initial_state_, &values, &deads, &ones);
 
 #if !defined(NDEBUG)
     {
-        const StateID state_id = state_id_map[initial_state_];
-        g_debug << "(II) Pattern [";
+        const StateID state_id = state_id_map.get_state_id(initial_state_);
+        logging::out << "(II) Pattern [";
         for (unsigned i = 0; i < state_mapper_->get_variables().size(); ++i) {
-            g_debug << (i > 0 ? ", " : "") << state_mapper_->get_variables()[i];
+            logging::out << (i > 0 ? ", " : "")
+                         << state_mapper_->get_variables()[i];
         }
-        g_debug
-            << "]: lb="
-            << algorithms::interval_iteration::lower_bound(values[state_id])
-            << ", ub="
-            << algorithms::interval_iteration::upper_bound(values[state_id])
-            << ", error="
-            << (algorithms::interval_iteration::upper_bound(values[state_id])
-                - algorithms::interval_iteration::lower_bound(values[state_id]))
-            << std::endl;
+        logging::out << "]: lb="
+                     << interval_iteration::lower_bound(values[state_id])
+                     << ", ub="
+                     << interval_iteration::upper_bound(values[state_id])
+                     << ", error="
+                     << (interval_iteration::upper_bound(values[state_id])
+                         - interval_iteration::lower_bound(values[state_id]))
+                     << std::endl;
     }
 #endif
 
@@ -686,8 +697,7 @@ ProbabilisticProjection::compute_value_table(
             result.one_states->set(s, true);
         } else {
             result.value_table->set(
-                s,
-                algorithms::interval_iteration::upper_bound(values[state_id]));
+                s, interval_iteration::upper_bound(values[state_id]));
         }
     }
 
@@ -704,16 +714,17 @@ compute_value_table(
     bool separate_one_states =
         dynamic_cast<GoalProbabilityObjective*>(objective) != nullptr;
     if (dynamic_cast<GoalProbabilityObjective*>(objective) == nullptr) {
-        g_err << "Probabilistic projections currently only support MaxGoalProb "
-                 "objectives."
-              << std::endl;
+        logging::err
+            << "Probabilistic projections currently only support MaxGoalProb "
+               "objectives."
+            << std::endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
-    AbstractStateInStore is_goal(
+    AbstractStateInStoreEvaluator is_goal(
         &projection->get_abstract_goal_states(),
         value_type::one,
         value_type::zero);
-    AbstractTransitionNoReward no_reward;
+    ZeroCostActionEvaluator no_reward;
     return projection->compute_value_table(
         &is_goal,
         &no_reward,
@@ -733,17 +744,18 @@ dump_graphviz(
     bool values)
 {
     if (dynamic_cast<GoalProbabilityObjective*>(objective) == nullptr) {
-        g_err << "Probabilistic projections currently only support MaxGoalProb "
-                 "objectives."
-              << std::endl;
+        logging::err
+            << "Probabilistic projections currently only support MaxGoalProb "
+               "objectives."
+            << std::endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
-    AbstractStateInStore is_goal(
+    AbstractStateInStoreEvaluator is_goal(
         &projection->get_abstract_goal_states(),
         value_type::one,
         value_type::zero);
     if (values) {
-        AbstractTransitionNoReward no_reward;
+        ZeroCostActionEvaluator no_reward;
         AbstractAnalysisResult values = projection->compute_value_table(
             &is_goal,
             &no_reward,

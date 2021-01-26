@@ -3,8 +3,13 @@
 #include "../../algorithms/segmented_vector.h"
 #include "../../operator_cost.h"
 #include "../../state_id.h"
-#include "../algorithms/types_common.h"
 #include "../distribution.h"
+#include "../engine_interfaces/action_evaluator.h"
+#include "../engine_interfaces/action_id_map.h"
+#include "../engine_interfaces/applicable_actions_generator.h"
+#include "../engine_interfaces/state_evaluator.h"
+#include "../engine_interfaces/state_id_map.h"
+#include "../engine_interfaces/transition_generator.h"
 
 #include <cassert>
 #include <unordered_set>
@@ -18,21 +23,27 @@ class Abstraction;
 namespace probabilistic {
 namespace bisimulation {
 
-class QuotientState : public StateID {
+class QuotientState : public ::StateID {
 public:
-    using StateID::StateID;
-    explicit QuotientState(const StateID& id)
-        : StateID(id)
+    using ::StateID::StateID;
+    explicit QuotientState(const ::StateID& id)
+        : ::StateID(id)
     {
     }
-    QuotientState& operator=(const StateID& id)
+    QuotientState& operator=(const ::StateID& id)
     {
         StateID::operator=(id);
         return *this;
     }
-    bool operator==(const StateID& s) const { return this->hash() == s.hash(); }
-    bool operator!=(const StateID& s) const { return this->hash() != s.hash(); }
-    bool operator<(const StateID& s) const { return this->hash() < s.hash(); }
+    bool operator==(const ::StateID& s) const
+    {
+        return this->hash() == s.hash();
+    }
+    bool operator!=(const ::StateID& s) const
+    {
+        return this->hash() != s.hash();
+    }
+    bool operator<(const ::StateID& s) const { return this->hash() < s.hash(); }
 };
 
 struct QuotientAction {
@@ -40,6 +51,9 @@ struct QuotientAction {
         : idx(idx)
     {
     }
+
+    bool operator==(const QuotientAction& o) const { return o.idx == idx; }
+
     unsigned idx;
 };
 
@@ -62,14 +76,15 @@ public:
     bool is_dead_end(const QuotientState& s) const;
 
     void get_applicable_actions(
-        const QuotientState& s,
+        const StateID& s,
         std::vector<QuotientAction>& result) const;
 
-    Distribution<QuotientState>
-    get_successors(const QuotientState& s, const QuotientAction& action);
+    void get_successors(
+        const StateID& s,
+        const QuotientAction& action,
+        Distribution<StateID>& succs);
 
-    QuotientState
-    get_budget_extended_state(const int& ref, const int& budget);
+    QuotientState get_budget_extended_state(const int& ref, const int& budget);
 
     unsigned num_bisimilar_states() const;
     unsigned num_extended_states() const;
@@ -90,6 +105,17 @@ private:
         const segmented_vector::SegmentedVector<elem_type>* extended_;
     };
 
+    struct Equal {
+        using elem_type = std::pair<int, int>;
+        explicit Equal(
+            const segmented_vector::SegmentedVector<elem_type>* extended)
+            : extended_(extended)
+        {
+        }
+        bool operator()(int i, int j) const;
+        const segmented_vector::SegmentedVector<elem_type>* extended_;
+    };
+
     const bool limited_budget_;
     const OperatorCost cost_type_;
 
@@ -100,65 +126,75 @@ private:
     QuotientState dead_end_state_;
     segmented_vector::SegmentedVector<std::vector<CachedTransition>>
         transitions_;
+    std::vector<int> operator_cost_;
+    
+    std::vector<int*> store_;
 
     segmented_vector::SegmentedVector<std::pair<int, int>> extended_;
-    std::unordered_set<int, Hash> ids_;
+    std::unordered_set<int, Hash, Equal> ids_;
 };
 
 } // namespace bisimulation
 
-namespace algorithms {
 template<>
 struct StateIDMap<bisimulation::QuotientState> {
-    StateID operator[](const bisimulation::QuotientState& state) const;
-    bisimulation::QuotientState operator[](const StateID& state_id) const;
+    StateID get_state_id(const bisimulation::QuotientState& state) const;
+    bisimulation::QuotientState get_state(const StateID& state_id) const;
 };
 
 template<>
-struct ApplicableActionsGenerator<
-    bisimulation::QuotientState,
-    bisimulation::QuotientAction> {
+struct ActionIDMap<bisimulation::QuotientAction> {
+    ActionID get_action_id(
+        const StateID& state_id,
+        const bisimulation::QuotientAction& action) const;
+    bisimulation::QuotientAction
+    get_action(const StateID& state_id, const ActionID& action) const;
+};
+
+template<>
+struct ApplicableActionsGenerator<bisimulation::QuotientAction> {
     explicit ApplicableActionsGenerator(
         bisimulation::BisimilarStateSpace* bisim);
     void operator()(
-        const bisimulation::QuotientState& state,
+        const StateID& state,
         std::vector<bisimulation::QuotientAction>& result) const;
     bisimulation::BisimilarStateSpace* bisim_;
 };
 
 template<>
-struct TransitionGenerator<
-    bisimulation::QuotientState,
-    bisimulation::QuotientAction> {
+struct TransitionGenerator<bisimulation::QuotientAction> {
     explicit TransitionGenerator(bisimulation::BisimilarStateSpace* bisim);
-    Distribution<bisimulation::QuotientState> operator()(
-        const bisimulation::QuotientState& state,
-        const bisimulation::QuotientAction& action) const;
+    void operator()(
+        const StateID& state,
+        const bisimulation::QuotientAction& action,
+        Distribution<StateID>& result) const;
+    void operator()(
+        const StateID& state,
+        std::vector<bisimulation::QuotientAction>& aops,
+        std::vector<Distribution<StateID>>& result) const;
     bisimulation::BisimilarStateSpace* bisim_;
 };
 
 template<>
-struct StateEvaluationFunction<bisimulation::QuotientState> {
-    explicit StateEvaluationFunction(
+struct StateEvaluator<bisimulation::QuotientState> {
+    explicit StateEvaluator(
         bisimulation::BisimilarStateSpace* bisim,
         const value_type::value_t min,
-        const value_type::value_t max);
+        const value_type::value_t max,
+        value_type::value_t default_value = 0);
     EvaluationResult operator()(const bisimulation::QuotientState& state) const;
     bisimulation::BisimilarStateSpace* bisim_;
     const value_type::value_t min_;
     const value_type::value_t max_;
+    const value_type::value_t default_;
 };
 
 template<>
-struct TransitionRewardFunction<
-    bisimulation::QuotientState,
-    bisimulation::QuotientAction> {
+struct ActionEvaluator<bisimulation::QuotientAction> {
     value_type::value_t operator()(
-        const bisimulation::QuotientState& state,
+        const StateID& state,
         const bisimulation::QuotientAction& action) const;
 };
-
-} // namespace algorithms
 
 } // namespace probabilistic
 

@@ -64,9 +64,9 @@ StorePreferredOperators::add_options_to_parser(options::OptionParser& parser)
 }
 
 const PrefOpsCacheEntry&
-StorePreferredOperators::get_cached_ops(const GlobalState& s)
+StorePreferredOperators::get_cached_ops(const StateID& s)
 {
-    return store_[s.get_id()];
+    return store_[s];
 }
 
 void
@@ -105,7 +105,7 @@ StorePreferredOperators::touch(const GlobalState& s)
     std::sort(ids_.begin(), ids_.end());
     ids_.erase(std::unique(ids_.begin(), ids_.end()), ids_.end());
 
-    PrefOpsCacheEntry& entry = store_[s.get_id()];
+    PrefOpsCacheEntry& entry = store_[s.get_id().hash()];
     entry.ops_ = new unsigned[ids_.size() + 1];
     entry.ops_[0] = ids_.size();
     unsigned* id = entry.ops_ + 1;

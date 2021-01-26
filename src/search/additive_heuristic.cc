@@ -39,6 +39,17 @@ void AdditiveHeuristic::initialize() {
     RelaxationHeuristic::initialize();
 }
 
+void AdditiveHeuristic::compute_proposition_costs(const std::vector<int>& state)
+{
+    ensure_initialized();
+    setup_exploration_queue();
+    for (size_t var = 0; var < propositions.size(); ++var) {
+        Proposition *init_prop = &propositions[var][state[var]];
+        enqueue_if_necessary(init_prop, 0, 0);
+    }
+    relaxed_exploration();
+}
+
 // heuristic computation
 void AdditiveHeuristic::setup_exploration_queue() {
     queue.clear();

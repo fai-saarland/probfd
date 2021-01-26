@@ -170,12 +170,15 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             if (i + 1 == argc) {
                 throw ArgError("missing argument after " + arg);
             }
-            probabilistic::g_step_bound = parse_int_arg(arg, argv[++i]);
-            probabilistic::g_steps_bounded = true;
-            if (probabilistic::g_step_bound < 0) {
-                throw ArgError("budget must be non-negative");
+            const std::string budget = argv[++i];
+            if (budget != "infinity") {
+                probabilistic::g_step_bound = parse_int_arg(arg, budget);
+                probabilistic::g_steps_bounded = true;
+                if (probabilistic::g_step_bound < 0) {
+                    throw ArgError("budget must be non-negative");
+                }
             }
-        } else if (arg == "--step-cost-type") {
+        } else if (arg == "--step-cost-type" || arg == "--budget-cost-type") {
             active = true;
             if (i + 1 == argc) {
                 throw ArgError("missing argument after " + arg);
@@ -189,6 +192,8 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
                 probabilistic::g_step_cost_type = PLUSONE;
             } else if (type == "zero") {
                 probabilistic::g_step_cost_type = ZERO;
+            } else if (type == "minone") {
+                probabilistic::g_step_cost_type = MINONE;
             } else {
                 throw ArgError("unknown operator cost type " + type);
             }
@@ -251,8 +256,6 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
     }
 
     if (!dry_run) {
-        probabilistic::prepare_globals();
-
         if (build_causal_graph) {
             cout << "building causal graph..." << flush;
             g_causal_graph = new CausalGraph;
@@ -271,6 +274,9 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
         //                 probabilistic::g_step_cost_type,
         //                 probabilistic::value_type::from_double(give_up_cost));
         // }
+
+        probabilistic::prepare_globals();
+        probabilistic::print_task_info();
     }
 
     return parse_cmd_line_aux(args, registry, dry_run);

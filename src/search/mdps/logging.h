@@ -1,8 +1,11 @@
 #pragma once
 
+#include "value_type.h"
+
 #include <iostream>
 
 namespace probabilistic {
+namespace logging {
 
 struct Discard : std::streambuf, std::ostream {
     Discard()
@@ -17,14 +20,45 @@ struct Discard : std::streambuf, std::ostream {
     }
 };
 
-extern std::ostream g_log;
+class whitespace {
+public:
+    explicit whitespace(int ws)
+        : ws_(ws)
+    {
+    }
+    std::ostream& print(std::ostream& out) const
+    {
+        int i = ws_;
+        while (i-- > 0) {
+            out << " ";
+        }
+        return out;
+    }
 
-#if !defined(NDEBUG)
-extern std::ostream g_debug;
-#else
-extern Discard g_debug;
-#endif
+private:
+    int ws_;
+};
 
-extern std::ostream g_err;
+extern std::ostream out;
+extern std::ostream err;
 
+void print_analysis_result(
+    const value_type::value_t);
+
+void print_analysis_result(
+    const value_type::value_t,
+    const bool error_supported,
+    const value_type::value_t error);
+
+void print_initial_state_value(const value_type::value_t, int spaces = 0);
+
+} // namespace logging
 } // namespace probabilistic
+
+namespace std {
+inline ostream&
+operator<<(ostream& out, const probabilistic::logging::whitespace& ws)
+{
+    return ws.print(out);
+}
+} // namespace std

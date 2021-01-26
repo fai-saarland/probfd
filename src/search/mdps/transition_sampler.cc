@@ -3,26 +3,15 @@
 #include "../plugin.h"
 
 namespace probabilistic {
-namespace algorithms {
-GlobalState
-TransitionSampler<GlobalState, const ProbabilisticOperator*>::operator()(
-    const GlobalState& state,
+StateID
+TransitionSampler<const ProbabilisticOperator*>::operator()(
+    const StateID& state,
     const ProbabilisticOperator* op,
-    const Distribution<GlobalState>& transition)
+    const Distribution<StateID>& transition)
 {
     return this->sample(state, op, transition);
 }
 
-void
-TransitionSampler<GlobalState, const ProbabilisticOperator*>::connect(
-    algorithms::HeuristicSearchStatusInterface<
-        GlobalState,
-        const ProbabilisticOperator*>* e)
-{
-    hs_interface_ = e;
-}
-
-} // namespace algorithms
-static PluginTypePlugin<TransitionSampler>
+static PluginTypePlugin<ProbabilisticOperatorTransitionSampler>
     _plugin_type("TransitionSampler", "");
 } // namespace probabilistic

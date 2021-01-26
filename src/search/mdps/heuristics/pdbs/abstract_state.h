@@ -147,6 +147,5 @@ struct hash<probabilistic::pdbs::AbstractState> {
 } // namespace std
 
 namespace utils {
-void
-feed(HashState& h, const probabilistic::pdbs::AbstractState& s);
+void feed(HashState& h, const probabilistic::pdbs::AbstractState& s);
 } // namespace utils

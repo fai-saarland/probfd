@@ -1,6 +1,6 @@
 #pragma once
 
-#include "open_list.h"
+#include "../open_list.h"
 
 #include <deque>
 #include <memory>
@@ -24,16 +24,19 @@ public:
     static void add_options_to_parser(options::OptionParser&);
 
     virtual unsigned size() const override;
+
     virtual void clear() override;
+
     virtual StateID pop() override;
+
     virtual void
-    push(const StateID& state_id, const GlobalState& state) override;
+    push(const StateID& state_id) override;
+
     virtual void push(
-        const StateID& state_id,
-        const GlobalState& parent,
+        const StateID& parent,
         const ProbabilisticOperator* op,
         const value_type::value_t& prob,
-        const GlobalState& state) override;
+        const StateID& state_id) override;
 
 private:
     void populate();

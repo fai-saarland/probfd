@@ -82,6 +82,7 @@ extern bool g_is_part_of_anytime_portfolio;
 extern utils::RandomNumberGenerator g_rng;
 
 extern std::vector<std::vector<std::set<std::pair<int, int> > > > g_inconsistent_facts;
+extern std::vector<std::vector<std::pair<int, int>>> g_dnf_formula;
 
 
 #endif

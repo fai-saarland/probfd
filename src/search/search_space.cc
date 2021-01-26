@@ -193,5 +193,4 @@ void SearchSpace::dump() const {
 }
 
 void SearchSpace::statistics() const {
-    cout << "Number of registered states: " << state_registry->size() << endl;
 }

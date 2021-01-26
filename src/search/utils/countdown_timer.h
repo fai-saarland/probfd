@@ -13,7 +13,10 @@ public:
     bool is_expired() const;
     Duration get_elapsed_time() const;
     Duration get_remaining_time() const;
+    friend std::ostream &operator<<(std::ostream &os, const CountdownTimer &cd_timer);
 };
+
+std::ostream &operator<<(std::ostream &os, const CountdownTimer &cd_timer);
 }
 
 #endif

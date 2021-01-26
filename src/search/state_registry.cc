@@ -106,6 +106,20 @@ GlobalState StateRegistry::get_successor_state(const GlobalState &predecessor, c
     return make_permanent();
 }
 
+GlobalState StateRegistry::get_successor_state(const GlobalState &predecessor, const GlobalOperator &op, int var, int val) {
+    state_data_pool.push_back(predecessor.get_packed_buffer());
+    PackedStateBin *buffer = state_data_pool[state_data_pool.size() - 1];
+    for (size_t i = 0; i < op.get_effects().size(); ++i) {
+        const GlobalEffect &effect = op.get_effects()[i];
+        if (effect.does_fire(predecessor))
+            state_packer->set(buffer, effect.var, effect.val);
+    }
+    axiom_evaluator->evaluate(buffer, *state_packer);
+    state_packer->set(buffer, var, val);
+    return make_permanent();
+}
+
+
 int StateRegistry::get_bins_per_state() const {
     return state_packer->get_num_bins();
 }
