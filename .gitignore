@@ -6,3 +6,5 @@ builds/
 .idea/
 CMakeLists.txt
 cmake-build-debug/
+*.patch
+.vs/
