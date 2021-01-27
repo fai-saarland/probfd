@@ -165,5 +165,11 @@ ZeroCostActionEvaluator::evaluate(const AbstractOperator*)
     return 0;
 }
 
+value_type::value_t
+UnitCostActionEvaluator::evaluate(const AbstractOperator*)
+{
+    return -1;
+}
+
 } // namespace pdbs
 } // namespace probabilistic

@@ -46,6 +46,12 @@ public:
 
     QualitativeResultStore compute_dead_ends();
 
+    AbstractAnalysisResult compute_value_table_expected_cost(
+        AbstractStateEvaluator* state_reward,
+        AbstractOperatorEvaluator* transition_reward,
+        value_type::value_t dead_end_value,
+        value_type::value_t upper);
+
     AbstractAnalysisResult compute_value_table(
         AbstractStateEvaluator* state_reward,
         AbstractOperatorEvaluator* transition_reward,

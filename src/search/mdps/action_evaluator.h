@@ -10,7 +10,13 @@ class ActionEvaluator<const ProbabilisticOperator*> {
 public:
     virtual ~ActionEvaluator() = default;
     value_type::value_t
-    operator()(const StateID&, const ProbabilisticOperator* const&) const
+    operator()(const StateID& id, const ProbabilisticOperator* const& op) const
+    {
+        return this->evaluate(id, op);
+    }
+protected:
+    virtual value_type::value_t
+    evaluate(const StateID&, const ProbabilisticOperator* const&) const
     {
         return 0;
     }

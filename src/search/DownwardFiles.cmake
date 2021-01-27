@@ -529,6 +529,7 @@ fast_downward_plugin(
         mdps/probabilistic_operator
         mdps/analysis_objective
         mdps/analysis_objectives/goal_probability_objective
+        mdps/analysis_objectives/expected_cost_objective
         mdps/action_id_map
         mdps/state_id_map
         mdps/action_evaluator
@@ -677,6 +678,7 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/multiplicativity
         mdps/heuristics/pdbs/syntactic_projection
         mdps/heuristics/pdbs/utils
+        mdps/heuristics/pdbs/expected_cost/expected_cost_pdb_heuristic
     DEPENDS MDP SUCCESSOR_GENERATOR
     )
 

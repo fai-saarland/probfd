@@ -24,8 +24,14 @@ QuantitativeResultStore::get(const AbstractState& x) const
 value_type::value_t&
 QuantitativeResultStore::operator[](const AbstractState& state)
 {
-    auto x = values_.insert(
-        std::pair<int, value_type::value_t>(state.id, value_type::zero));
+    auto x = values_.insert(std::make_pair(state.id, value_type::zero));
+    return x.first->second;
+}
+
+value_type::value_t&
+QuantitativeResultStore::operator[](const StateID& id)
+{
+    auto x = values_.insert(std::make_pair(id, value_type::zero));
     return x.first->second;
 }
 
