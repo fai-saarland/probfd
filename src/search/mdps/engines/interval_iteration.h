@@ -137,7 +137,8 @@ public:
         value_type::value_t x =
             this->mysolve(state, value_store, dead_ends, one_states, sys);
         for (auto qit = sys->begin(); qit != sys->end(); ++qit) {
-            auto states_iterators = sys->quotient_iterator(*qit);
+            StateID repr_id = *qit;
+            auto states_iterators = sys->quotient_iterator(repr_id);
             auto& sit = states_iterators.first;
             const auto& send = states_iterators.second;
             const StateID repr = *sit;
