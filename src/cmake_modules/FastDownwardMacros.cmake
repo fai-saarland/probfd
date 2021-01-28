@@ -6,9 +6,9 @@ macro(fast_downward_set_compiler_flags)
     # we have to fix this.
     if(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
         include(CheckCXXCompilerFlag)
-        check_cxx_compiler_flag( "-std=c++14" CXX14_FOUND )
-        if(CXX14_FOUND)
-             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+        check_cxx_compiler_flag( "-std=c++17" CXX17_FOUND )
+        if(CXX17_FOUND)
+             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
         else()
             message(FATAL_ERROR "${CMAKE_CXX_COMPILER} does not support C++14, please use a different compiler")
         endif()
@@ -18,7 +18,7 @@ macro(fast_downward_set_compiler_flags)
 
         ## Configuration-specific flags
         set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -fomit-frame-pointer")
-        set(CMAKE_CXX_FLAGS_DEBUG "-O3 -D_GLIBCXX_DEBUG")
+        set(CMAKE_CXX_FLAGS_DEBUG "-O0 -D_GLIBCXX_DEBUG")
         set(CMAKE_CXX_FLAGS_PROFILE "-O3 -pg")
     elseif(MSVC)
         # We force linking to be static on Windows because this makes compiling OSI simpler
