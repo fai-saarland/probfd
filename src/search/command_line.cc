@@ -19,6 +19,9 @@
 #include "mdps/globals.h"
 #include "operator_cost.h"
 
+#include "mdps/analysis_objectives/goal_probability_objective.h"
+#include "mdps/analysis_objectives/expected_cost_objective.h"
+
 #include <algorithm>
 #include <vector>
 #include <limits>
@@ -243,8 +246,11 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             }
             string prop = sanitize_arg_string(argv[i+1]);
             if (prop == "goalprob") {
-            // } else if (prop == "expcost") {
-            //     expected_cost = true;
+                probabilistic::g_analysis_objective =
+                    std::make_shared<probabilistic::GoalProbabilityObjective>();
+            } else if (prop == "expcost") {
+                probabilistic::g_analysis_objective =
+                    std::make_shared<probabilistic::ExpectedCostObjective>();
             } else {
                 throw ArgError("unknown property " + prop);
             }

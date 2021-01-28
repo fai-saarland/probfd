@@ -216,7 +216,9 @@ reconstruct_probabilistic_operators()
 void
 prepare_globals()
 {
-    g_analysis_objective = std::make_shared<GoalProbabilityObjective>();
+    if (!g_analysis_objective) {
+        g_analysis_objective = std::make_shared<GoalProbabilityObjective>();
+    }
 
     std::cout << "reconstructing probabilistic operators..." << std::flush;
     reconstruct_probabilistic_operators();
