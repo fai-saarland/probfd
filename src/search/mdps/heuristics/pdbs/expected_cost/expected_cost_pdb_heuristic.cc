@@ -12,6 +12,8 @@
 #include "../../../logging.h"
 #include "../probabilistic_projection.h"
 #include "../../../analysis_objectives/expected_cost_objective.h"
+#include "../../../../algorithms/max_cliques.h"
+#include "../multiplicativity.h"
 
 #include <cassert>
 #include <iostream>
@@ -20,8 +22,17 @@
 namespace probabilistic {
 namespace pdbs {
 
+using ::pdbs::PatternCollectionGenerator;
+using ::pdbs::PatternCollectionInformation;
+using ::pdbs::PatternCollection;
+
+namespace {
 #ifndef NDEBUG
-void dump_pattern(std::ostream& out, unsigned id, const std::vector<int>& p) {
+void dump_pattern(
+    std::ostream &out,
+    unsigned id,
+    const ExpectedCostPDBHeuristic::Pattern &p)
+{
     out << "pattern[" << id << "]: vars = [";
 
     for (unsigned j = 0; j < p.size(); j++) {
@@ -38,8 +49,9 @@ void dump_pattern(std::ostream& out, unsigned id, const std::vector<int>& p) {
 }
 #endif
 
-static void dumpProjection(unsigned int projection_id,
-                           ProbabilisticProjection& projection)
+void dumpProjection(
+    unsigned int projection_id,
+    ProbabilisticProjection &projection)
 {
     std::ostringstream path;
     path << "pattern" << projection_id << ".dot";
@@ -53,6 +65,20 @@ static void dumpProjection(unsigned int projection_id,
         print_values);
 }
 
+}
+
+
+struct ExpectedCostPDBHeuristic::ProjectionInfo {
+    ProjectionInfo(
+        std::shared_ptr<AbstractStateMapper> state_mapper,
+        AbstractAnalysisResult& result);
+
+    std::shared_ptr<AbstractStateMapper> state_mapper;
+    std::unique_ptr<QuantitativeResultStore> values;
+
+    [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
+};
+
 ExpectedCostPDBHeuristic::ProjectionInfo::ProjectionInfo(
     std::shared_ptr<AbstractStateMapper> state_mapper,
     AbstractAnalysisResult& result)
@@ -60,6 +86,24 @@ ExpectedCostPDBHeuristic::ProjectionInfo::ProjectionInfo(
     , values(result.value_table)
 {
 }
+
+value_type::value_t
+ExpectedCostPDBHeuristic::ProjectionInfo::lookup(const AbstractState& s) const
+{
+    assert(values);
+    return values->get(s);
+}
+
+void ExpectedCostPDBHeuristic::Statistics::dump(std::ostream &out) const {
+    // Dump statistics.
+    out << "Expected-Cost PDB initialization completed after "
+        << init_time << " [t=" << ::utils::g_timer << "]" << std::endl;
+    out << "Stored " << num_patterns << " projections." << std::endl;
+    out << "Abstract states: " << total_states << std::endl;
+    out << "Number of additive sub-collections: " << num_additive_subcollections
+        << std::endl;
+}
+
 
 ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
     const options::Options& opts)
@@ -71,24 +115,18 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
     logging::out << "Initializing Probabilistic PDB Heuristic..." << std::endl;
     utils::Timer t_init;
 
-    std::shared_ptr<::pdbs::PatternCollectionGenerator> patterns_generator =
-        opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
-            "patterns");
-    ::pdbs::PatternCollectionInformation patterns_info =
-        patterns_generator->generate(NORMAL);
-    std::shared_ptr<::pdbs::PatternCollection> patterns =
-        patterns_info.get_patterns();
+    auto patterns_generator =
+        opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns");
+    auto patterns_info = patterns_generator->generate(NORMAL);
+    auto patterns = patterns_info.get_patterns();
 
     database_.reserve(patterns->size());
 
     const bool countdown_enabled = opts.get<double>("time_limit") > 0;
-    const unsigned max_states = opts.get<int>("max_states");
     utils::CountdownTimer countdown(opts.get<double>("time_limit"));
+    const unsigned max_states = opts.get<int>("max_states");
 
     // Statistics.
-    unsigned num_states = 0;
-    unsigned num_reachable = 0;
-
     bool terminate = false;
 
     for (unsigned i = 0; i < patterns->size() && !terminate; i++) {
@@ -104,49 +142,53 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
         auto state_mapper = projection.get_abstract_state_mapper();
 
         // If we exceed max_states, this will be the last projection
-        if (max_states - state_mapper->size() < num_states) {
+        if (max_states - state_mapper->size() < statistics_.total_states) {
             terminate = true;
         }
 
-        if (opts.get<bool>("dump_projections")) {
-            dumpProjection(i, projection);
-        }
+        // FIXME: Dumping projections is not supported for this analysis obj
+        //if (opts.get<bool>("dump_projections")) {
+        //    dumpProjection(i, projection);
+        //}
 
         // Compute the value table for this projection
         AbstractAnalysisResult result =
             compute_value_table(&projection, g_analysis_objective.get());
 
-#ifndef NDEBUG
-        dump_pattern(logging::out, i, p);
-#endif
-
-        // Add to the list of PDB heuristics.
+        // Add to the list of PDB heuristics and update statistics.
         database_.emplace_back(state_mapper, result);
-
-        // Update statistics.
-        num_states += state_mapper->size();
-        num_reachable += result.reachable_states;
+        statistics_.total_states += state_mapper->size();
 
 #ifndef NDEBUG
         {
+            dump_pattern(logging::out, i, p);
+
             AbstractState s0 = state_mapper->operator()(g_initial_state_values);
-
             assert(result.value_table && result.value_table->has_value(s0));
-
             logging::out << " ~~> estimate(s0) = "
-                         << result.value_table->get(s0)
-                         << std::endl;
+                         << result.value_table->get(s0) << std::endl;
         }
 #endif
     }
 
-    // Dump statistics.
-    logging::out << "Expected-Cost PDB initialization completed after "
-                 << t_init << " [t=" << ::utils::g_timer << "]" << std::endl;
-    logging::out << "Stored " << database_.size() << " projections."
-                 << std::endl;
-    logging::out << "Abstract states: " << num_states << " (" << num_reachable
-                 << " reachable)" << std::endl;
+    const bool additive_patterns = opts.get<bool>("additive");
+    if (additive_patterns) {
+        max_cliques::compute_max_cliques(
+            multiplicativity::buildCompatibilityGraphOrthogonality<false>(
+                *patterns),
+            this->additive_patterns_);
+    } else {
+        int size = static_cast<int>(database_.size());
+
+        for (PatternID i = 0; i != size; ++i) {
+            additive_patterns_.push_back({i});
+        }
+    }
+
+    statistics_.init_time = t_init();
+    statistics_.num_patterns = database_.size();
+    statistics_.num_additive_subcollections = additive_patterns_.size();
+    statistics_.dump(logging::out);
 
     const auto val = static_cast<value_type::value_t>(
         ExpectedCostPDBHeuristic::evaluate(g_initial_state()));
@@ -154,37 +196,58 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
     logging::out << "Initial state value estimate: " << val << std::endl;
 }
 
-value_type::value_t
-ExpectedCostPDBHeuristic::ProjectionInfo::lookup(const AbstractState& s) const
-{
-    assert(values);
-    return values->get(s);
-}
-
 void
 ExpectedCostPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
-        "patterns", "", "systematic(pattern_max_size=2)");
+        "patterns", "", "systematic(pattern_max_size=3)");
     parser.add_option<double>("time_limit", "", "0");
     parser.add_option<int>("max_states", "", "-1");
     parser.add_option<bool>("dump_projections", "", "false");
+    parser.add_option<bool>("additive", "", "false");
 }
 
 EvaluationResult
 ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
 {
-    if (database_.empty()) {
-        return { false, g_analysis_objective->max() };
-    }
-
     value_type::value_t result = g_analysis_objective->max();
-    for (const ProjectionInfo& store : database_) {
-        const AbstractState x = store.state_mapper->operator()(state);
-        result = std::min(result, store.lookup(x));
+
+    if (!database_.empty()) {
+        // Get pattern estimates
+        std::vector<value_type::value_t> estimates(database_.size());
+        for (std::size_t i = 0; i != database_.size(); ++i) {
+            const ProjectionInfo &store = database_[i];
+            const AbstractState x = store.state_mapper->operator()(state);
+            estimates[i] = store.lookup(x);
+        }
+
+        // Get lowest additive subcollection value
+        for (const auto &additive_collection : additive_patterns_) {
+            value_type::value_t val = value_type::zero;
+
+            for (PatternID id : additive_collection) {
+                val += estimates[id];
+            }
+
+            result = std::min(result, val);
+        }
     }
 
-    return { false, result };
+    if (!value_type::approx_equal()(result, value_type::zero)) {
+        ++statistics_.num_nontrivial_estimates;
+    }
+
+    ++statistics_.num_estimates;
+    statistics_.highest_estimate =
+        std::max(statistics_.highest_estimate, result);
+    statistics_.lowest_estimate =
+        std::min(statistics_.lowest_estimate, result);
+    statistics_.average_estimate =
+        (statistics_.average_estimate *
+        (statistics_.num_estimates - 1) +
+        result) / statistics_.num_estimates;
+
+    return {false, result};
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(
