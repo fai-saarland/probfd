@@ -7,7 +7,7 @@
 
 namespace probabilistic {
 
-class GoalCheck : public GlobalStateEvaluator {
+class GoalCheckZ : public GlobalStateEvaluator {
 protected:
     EvaluationResult evaluate(const GlobalState& state) override
     {
@@ -16,7 +16,7 @@ protected:
 };
 
 ExpectedCostObjective::ExpectedCostObjective()
-    : state_eval_(new GoalCheck())
+    : state_eval_(new GoalCheckZ())
     , action_eval_(new ActionCostEvaluator())
 {
 }
