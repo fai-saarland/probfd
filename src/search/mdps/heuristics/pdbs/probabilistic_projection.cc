@@ -621,7 +621,7 @@ ProbabilisticProjection::compute_value_table_expected_cost(
         state_id_map, state_mapper_, progression_aops_generator_);
 
     topological_vi::TopologicalValueIteration
-        <AbstractState, const AbstractOperator*>
+        <AbstractState, const AbstractOperator*, true>
         vi(nullptr,
            &state_id_map,
            &action_id_map,

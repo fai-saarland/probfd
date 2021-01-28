@@ -20,6 +20,24 @@
 namespace probabilistic {
 namespace pdbs {
 
+#ifndef NDEBUG
+void dump_pattern(std::ostream& out, unsigned id, const std::vector<int>& p) {
+    out << "pattern[" << id << "]: vars = [";
+
+    for (unsigned j = 0; j < p.size(); j++) {
+        out << (j > 0 ? ", " : "") << p[j];
+    }
+
+    out << "] ({";
+
+    for (unsigned j = 0; j < p.size(); j++) {
+        out << (j > 0 ? ", " : "") << ::g_fact_names[p[j]][0];
+    }
+
+    out << "})" << std::flush;
+}
+#endif
+
 static void dumpProjection(unsigned int projection_id,
                            ProbabilisticProjection& projection)
 {
@@ -99,17 +117,7 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
             compute_value_table(&projection, g_analysis_objective.get());
 
 #ifndef NDEBUG
-        {
-            logging::out << "pattern[" << i << "]: vars = [";
-            for (unsigned j = 0; j < p.size(); j++) {
-                logging::out << (j > 0 ? ", " : "") << p[j];
-            }
-            logging::out << "] ({";
-            for (unsigned j = 0; j < p.size(); j++) {
-                logging::out << (j > 0 ? ", " : "") << ::g_fact_names[p[j]][0];
-            }
-            logging::out << "})" << std::flush;
-        }
+        dump_pattern(logging::out, i, p);
 #endif
 
         // Add to the list of PDB heuristics.
