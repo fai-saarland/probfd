@@ -21,7 +21,7 @@ namespace probabilistic {
 
 class AnalysisObjective;
 
-void prepare_globals();
+void prepare_globals(std::shared_ptr<AnalysisObjective> objective);
 void print_task_info();
 
 extern bool g_probabilistic_mode_enabled;

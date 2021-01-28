@@ -15,6 +15,12 @@ template<>
 struct IncumbentSolution<std::true_type>
     : public std::pair<value_type::value_t, value_type::value_t> {
     using std::pair<value_type::value_t, value_type::value_t>::pair;
+    explicit IncumbentSolution(
+        const value_type::value_t& lb,
+        const value_type::value_t& ub)
+        : std::pair<value_type::value_t, value_type::value_t>(lb, ub)
+    {
+    }
     explicit IncumbentSolution(const value_type::value_t& val)
         : std::pair<value_type::value_t, value_type::value_t>(val, val)
     {
@@ -25,6 +31,12 @@ template<>
 struct IncumbentSolution<std::false_type> {
     explicit IncumbentSolution()
         : first(value_type::zero)
+    {
+    }
+    explicit IncumbentSolution(
+        const value_type::value_t& a,
+        const value_type::value_t&)
+        : first(a)
     {
     }
     explicit IncumbentSolution(const value_type::value_t& val)

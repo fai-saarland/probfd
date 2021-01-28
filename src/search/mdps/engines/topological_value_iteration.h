@@ -53,9 +53,7 @@ struct StateValueBounds {
     bool update(const value_utils::IncumbentSolution<std::false_type>& vals)
     {
         const bool result = !value_type::approx_equal()(vals.first, value);
-        if (vals.first > value) {
-            value = vals.first;
-        }
+        value = vals.first;
         return result;
     }
 
@@ -87,12 +85,8 @@ struct StateValueBounds<std::true_type> {
     {
         const bool result = !value_type::approx_equal()(val.first, value)
             || !value_type::approx_equal()(val.second, value2);
-        if (val.first > value) {
-            value = val.first;
-        }
-        if (val.second < value2) {
-            value2 = val.second;
-        }
+        value = val.first;
+        value2 = val.second;
         assert(!value_type::approx_less()(value2, value));
         return result;
     }
@@ -372,10 +366,15 @@ private:
 
     struct StackInfo {
 
-        StackInfo(const StateID& state_id, Bounds* value, unsigned num_aops)
+        StackInfo(
+            const StateID& state_id,
+            Bounds* value,
+            const value_type::value_t& lb,
+            const value_type::value_t& ub,
+            unsigned num_aops)
             : state_id(state_id)
             , value(value)
-            , b(value_type::zero)
+            , b(lb, ub)
         {
             infos.reserve(num_aops);
         }
@@ -414,7 +413,7 @@ private:
         BoolStore* dead)
     {
         assert(state_info.status == StateInfo::NEW);
-        // std::cout << "push state " << state << " with id " << state_id <<
+        // std::cout << "push state " << state_id <<
         // std::endl;
         state_info.index = state_info.lowlink = index_++;
         state_info.status = StateInfo::ONSTACK;
@@ -451,13 +450,14 @@ private:
             if (aops.empty()) {
                 state_value.set(dead_end_value_, dead_end_value_);
             } else {
-                state_value.set(dead_end_value_, upper_bound_);
+                state_value.set(value_type::zero, upper_bound_);
             }
         }
+        // std::cout << state_value.value << std::endl;
         if (aops.empty()) {
             ++statistics_.terminal_states;
             state_info.status = StateInfo::CLOSED;
-            if (!ExpandGoalStates || state_info.dead) {
+            if (state_info.dead) {
                 ++statistics_.dead_ends;
                 if (!std::is_same<BoolStore, NoStore>::value) {
                     dead->operator[](state_id) = true;
@@ -466,10 +466,6 @@ private:
             backtracked_state_value_ = &state_value;
             return false;
         }
-        stack_.emplace_back(state_id, &state_value, aops.size());
-        stack_.back().infos.emplace_back(
-            (value_type::value_t)x
-            + this->get_action_reward(state_id, aops.back()));
 #if 0 
         exploration_stack_.emplace_back(
             state,
@@ -492,16 +488,49 @@ private:
         exploration_stack_.emplace_back(
             state_id,
             (value_type::value_t)x,
-            stack_.size() - 1,
+            stack_.size(),
             std::move(aops));
-        this->generate_successors(
+        ExplorationInfo& einfo = exploration_stack_.back();
+        do {
+            this->generate_successors(
+                state_id, einfo.aops.back(), einfo.transition);
+            einfo.transition.make_unique();
+            einfo.successor = einfo.transition.begin();
+            if (einfo.transition.size() == 1
+                && einfo.successor->first == state_id) {
+                einfo.transition.clear();
+                einfo.aops.pop_back();
+                if (einfo.aops.empty()) {
+                    break;
+                }
+            } else {
+                break;
+            }
+        } while (true);
+        if (einfo.aops.empty()) {
+            exploration_stack_.pop_back();
+            if (!ExpandGoalStates || state_info.status != StateInfo::TERMINAL) {
+                ++statistics_.dead_ends;
+                state_value.set(dead_end_value_, dead_end_value_);
+                if (!std::is_same<BoolStore, NoStore>::value) {
+                    dead->operator[](state_id) = true;
+                }
+            }
+            state_info.status = StateInfo::CLOSED;
+            backtracked_state_value_ = &state_value;
+            return false;
+        }
+        stack_.emplace_back(
             state_id,
-            exploration_stack_.back().aops.back(),
-            exploration_stack_.back().transition);
-        exploration_stack_.back().transition.make_unique();
-        exploration_stack_.back().aops.pop_back();
-        exploration_stack_.back().successor =
-            exploration_stack_.back().transition.begin();
+            &state_value,
+            dead_end_value_,
+            upper_bound_,
+            einfo.aops.size());
+        stack_.back().infos.emplace_back(
+            (value_type::value_t)x
+            + this->get_action_reward(state_id, einfo.aops.back()));
+        // std::cout <<stack_.back().infos.back().base.first << std::endl;
+        einfo.aops.pop_back();
 
         return true;
     }

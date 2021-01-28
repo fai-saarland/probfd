@@ -7,7 +7,6 @@
 #include "../utils/hash.h"
 #include "../utils/timer.h"
 #include "analysis_objective.h"
-#include "analysis_objectives/goal_probability_objective.h"
 
 #include <algorithm>
 #include <cassert>
@@ -214,11 +213,9 @@ reconstruct_probabilistic_operators()
 }
 
 void
-prepare_globals()
+prepare_globals(std::shared_ptr<AnalysisObjective> objective)
 {
-    if (!g_analysis_objective) {
-        g_analysis_objective = std::make_shared<GoalProbabilityObjective>();
-    }
+    g_analysis_objective = objective;
 
     std::cout << "reconstructing probabilistic operators..." << std::flush;
     reconstruct_probabilistic_operators();
@@ -302,12 +299,12 @@ print_task_info()
               << (g_state_packer->get_num_bins()
                   * g_state_packer->get_bin_size_in_bytes())
               << " bytes" << std::endl;
-    std::cout << "  Operators: " << g_operators.size()
+    std::cout << "  Operators: " << g_operators.size() << std::endl;
+    std::cout << "  Operators with stochastic effects: " << prob_ops
               << std::endl;
-    std::cout << "  Operators with stochastic effects: "
-              << prob_ops << std::endl;
     std::cout << "  Operator outcomes: " << outcomes << " ("
-              << ::g_operators.size() << " without dummy outcomes)" << std::endl;
+              << ::g_operators.size() << " without dummy outcomes)"
+              << std::endl;
 
     std::cout << "  Step bound: ";
     if (g_steps_bounded)

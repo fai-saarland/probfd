@@ -39,6 +39,7 @@ public:
     const std::string& get_name() const;
     bool is_stochastic() const;
     std::size_t num_outcomes() const;
+    int get_cost() const;
 
     const ProbabilisticOutcome& operator[](unsigned outcome) const;
     const ProbabilisticOutcome& get(unsigned outcome) const;

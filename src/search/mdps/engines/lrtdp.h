@@ -14,6 +14,12 @@
 namespace probabilistic {
 namespace lrtdp {
 
+enum class TrialTerminationCondition {
+    Disabled = 0,
+    Consistent = 1,
+    Inconsistent = 2,
+};
+
 namespace internal {
 
 struct Statistics {
@@ -100,7 +106,7 @@ public:
 
     template<typename... Args>
     LRTDP(
-        bool stop_consistent,
+        TrialTerminationCondition stop_consistent,
         TransitionSampler<Action>* succ_sampler,
         DeadEndIdentificationLevel level,
         Args... args)
@@ -225,7 +231,8 @@ private:
             }
             // state_info.mark_trial();
             assert(!this->state_status_(state_id, state_info).is_terminal());
-            if (!value_changed && StopConsistent) {
+            if ((StopConsistent == TrialTerminationCondition::Consistent && !value_changed) 
+                || (StopConsistent == TrialTerminationCondition::Inconsistent && value_changed)) {
                 this->selected_transition_.clear();
                 break;
             }
@@ -270,9 +277,10 @@ private:
 
         bool mark_solved = true;
         bool epsilon_consistent = true;
-        bool all_dead = this->last_check_and_solve_was_dead_
-            && (!StopConsistent
-                || this->has_dead_end_value(this->current_trial_.back()));
+        bool all_dead = true;
+        //this->last_check_and_solve_was_dead_
+        //    && (!StopConsistent
+        //        || this->has_dead_end_value(this->current_trial_.back()));
         bool any_dead = false;
         this->last_check_and_solve_was_dead_ = false;
 
@@ -500,7 +508,7 @@ private:
 
     void cleanup_state_info_store(std::false_type) { delete (state_infos_); }
 
-    const bool StopConsistent;
+    const TrialTerminationCondition StopConsistent;
     storage::PerStateStorage<StateInfo>* state_infos_;
     TransitionSampler<Action>* sample_;
     const ExpandInDeadEndCheck expansion_condition_;

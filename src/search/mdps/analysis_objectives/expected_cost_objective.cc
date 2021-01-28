@@ -15,22 +15,9 @@ protected:
     }
 };
 
-class UnitActionEvaluator :
-    public ProbabilisticOperatorEvaluator {
-public:
-    ~UnitActionEvaluator() override = default;
-
-    value_type::value_t
-    evaluate(const StateID&, const ProbabilisticOperator* const&)
-    const override
-    {
-        return -1;
-    }
-};
-
 ExpectedCostObjective::ExpectedCostObjective()
     : state_eval_(new GoalCheck())
-    , action_eval_(new UnitActionEvaluator())
+    , action_eval_(new ActionCostEvaluator())
 {
 }
 

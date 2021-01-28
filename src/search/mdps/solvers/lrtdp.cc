@@ -20,12 +20,15 @@ public:
 
     explicit LRTDPSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
-        , stop_consistent_(opts.get<bool>("stop_consistent"))
+        , stop_consistent_(lrtdp::TrialTerminationCondition(
+              opts.get_enum("terminate_trial")))
         , successor_sampler_(this->wrap(
               opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
                   "successor_sampler")))
     {
-        if (Fret::value && !stop_consistent_) {
+        if (Fret::value
+            && stop_consistent_
+                != lrtdp::TrialTerminationCondition::Consistent) {
             logging::out << std::endl;
             logging::out << "Warning: LRTDP is run within FRET without "
                             "stop_consistent being enabled! LRTDP's trials may "
@@ -56,7 +59,7 @@ protected:
         MDPHeuristicSearch<Bisimulation, Fret>::print_additional_statistics();
     }
 
-    const bool stop_consistent_;
+    const lrtdp::TrialTerminationCondition stop_consistent_;
     WrappedType<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>
         successor_sampler_;
 };
@@ -67,7 +70,11 @@ struct LRTDPOptions {
         parser.add_option<
             std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
             "successor_sampler", "", "random_successor_sampler");
-        parser.add_option<bool>("stop_consistent", "", "false");
+        {
+            std::vector<std::string> opts(
+                { "false", "consistent", "inconsistent" });
+            parser.add_enum_option("terminate_trial", opts, "", "false");
+        }
     }
 };
 

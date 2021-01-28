@@ -17,6 +17,8 @@
 
 #include "mdps/value_type.h"
 #include "mdps/globals.h"
+#include "mdps/analysis_objectives/goal_probability_objective.h"
+#include "mdps/analysis_objectives/expected_cost_objective.h"
 #include "operator_cost.h"
 
 #include "mdps/analysis_objectives/goal_probability_objective.h"
@@ -159,6 +161,8 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
     bool build_causal_graph = true;
     bool build_successor_generator = true;
 
+    bool expected_cost = false;
+
     for (int i = 1; i < argc; ++i) {
         string arg = sanitize_arg_string(argv[i]);
 
@@ -245,12 +249,9 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
                 throw ArgError("missing argument after " + arg);
             }
             string prop = sanitize_arg_string(argv[i+1]);
-            if (prop == "goalprob") {
-                probabilistic::g_analysis_objective =
-                    std::make_shared<probabilistic::GoalProbabilityObjective>();
+            if (prop == "maxprob") {
             } else if (prop == "expcost") {
-                probabilistic::g_analysis_objective =
-                    std::make_shared<probabilistic::ExpectedCostObjective>();
+                expected_cost = true;
             } else {
                 throw ArgError("unknown property " + prop);
             }
@@ -281,7 +282,16 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
         //                 probabilistic::value_type::from_double(give_up_cost));
         // }
 
-        probabilistic::prepare_globals();
+        std::shared_ptr<probabilistic::AnalysisObjective> obj = nullptr;
+        if (expected_cost) {
+            obj = std::make_shared<probabilistic::ExpectedCostObjective>();
+            std::cout << "expected cost analysis." << std::endl;
+        } else {
+            obj = std::make_shared<probabilistic::GoalProbabilityObjective>();
+            std::cout << "max goal prob analysis." << std::endl;
+        }
+
+        probabilistic::prepare_globals(obj);
         probabilistic::print_task_info();
     }
 
