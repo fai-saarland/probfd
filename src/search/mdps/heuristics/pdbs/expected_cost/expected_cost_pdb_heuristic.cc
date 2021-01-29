@@ -233,7 +233,7 @@ void
 ExpectedCostPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
-        "patterns", "", "systematic(pattern_max_size=3)");
+        "patterns", "", "systematic(pattern_max_size=2)");
     parser.add_option<double>("time_limit", "", "0");
     parser.add_option<int>("max_states", "", "-1");
     parser.add_option<bool>("dump_projections", "", "false");
