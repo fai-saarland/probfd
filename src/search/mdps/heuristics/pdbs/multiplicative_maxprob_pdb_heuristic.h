@@ -2,6 +2,7 @@
 
 #include "../../evaluation_result.h"
 #include "../../state_evaluator.h"
+#include "../../../pdbs/types.h"
 #include "abstract_state.h"
 
 #include <memory>
@@ -23,45 +24,44 @@ class QualitativeResultStore;
 class AbstractAnalysisResult;
 
 class MultiplicativeMaxProbPDBHeuristic : public GlobalStateEvaluator {
+private:
+    struct ProjectionInfo;
+
+    struct Statistics {
+        unsigned abstract_states = 0;
+        unsigned abstract_reachable_states = 0;
+        unsigned abstract_dead_ends = 0;
+        unsigned abstract_one_states = 0;
+
+        unsigned total_projections = 0;
+
+        double init_time = 0.0;
+        double clique_init_time = 0.0;
+        double eval_time = 0.0;
+    };
+
 public:
     explicit MultiplicativeMaxProbPDBHeuristic(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) override;
+    EvaluationResult evaluate(const GlobalState& state) override;
 
 private:
-    using Pattern = std::vector<int>;
-    using PatternID = int;
-    using PatternClique = std::vector<PatternID>;
+    void dump_construction_statistics() const;
+    void dump_statistics() const;
 
-    struct ProjectionInfo {
-        ProjectionInfo(
-            std::shared_ptr<AbstractStateMapper> state_mapper,
-            AbstractAnalysisResult& result);
+private:
+    bool weak_orthogonality = false;
+    bool initial_state_is_dead_end_ = false;
 
-        std::shared_ptr<AbstractStateMapper> state_mapper;
-        std::unique_ptr<QuantitativeResultStore> values;
-        std::unique_ptr<QualitativeResultStore> dead_ends;
-        std::unique_ptr<QualitativeResultStore> one_states;
-    };
-
-    void dumpCliqueWithHValues(
-        std::ostream& out,
-        const GlobalState& state,
-        const PatternClique& clique);
-
-    value_type::value_t
-    lookup(const ProjectionInfo& info, const AbstractState& s) const;
-
-    bool initial_state_is_dead_end_;
     std::vector<ProjectionInfo> dead_end_database_;
-
-    std::vector<Pattern> clique_patterns_;
     std::vector<ProjectionInfo> clique_database_;
-    std::vector<PatternClique> cliques_;
 
-    value_type::value_t one_state_reward_;
+    std::vector<::pdbs::Pattern> clique_patterns_;
+    std::vector<::pdbs::PatternClique> cliques_;
+
+    Statistics statistics_;
 };
 
 } // namespace pdbs
