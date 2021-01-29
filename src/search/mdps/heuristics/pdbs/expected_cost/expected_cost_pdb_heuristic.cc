@@ -18,6 +18,8 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#include <iomanip>
+#include <numeric>
 
 namespace probabilistic {
 namespace pdbs {
@@ -76,6 +78,7 @@ struct ExpectedCostPDBHeuristic::ProjectionInfo {
     std::shared_ptr<AbstractStateMapper> state_mapper;
     std::unique_ptr<QuantitativeResultStore> values;
 
+    [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
     [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
 };
 
@@ -88,20 +91,31 @@ ExpectedCostPDBHeuristic::ProjectionInfo::ProjectionInfo(
 }
 
 value_type::value_t
+ExpectedCostPDBHeuristic::ProjectionInfo::lookup(const GlobalState& s) const
+{
+    return lookup(state_mapper->operator()(s));
+}
+
+value_type::value_t
 ExpectedCostPDBHeuristic::ProjectionInfo::lookup(const AbstractState& s) const
 {
     assert(values);
     return values->get(s);
 }
 
-void ExpectedCostPDBHeuristic::Statistics::dump(std::ostream &out) const {
-    // Dump statistics.
-    out << "Expected-Cost PDB initialization completed after "
-        << init_time << " [t=" << ::utils::g_timer << "]" << std::endl;
-    out << "Stored " << num_patterns << " projections." << std::endl;
-    out << "Abstract states: " << total_states << std::endl;
-    out << "Number of additive sub-collections: " << num_additive_subcollections
+void ExpectedCostPDBHeuristic::dump_init_statistics(std::ostream &out) const {
+    out << "  Additivity: " << (statistics_.additive ? "Enabled" : "Disabled")
         << std::endl;
+    out << "  Construction time: " << statistics_.init_time << "s" << std::endl;
+    out << "  Projections: " << statistics_.num_patterns << std::endl;
+    out << "  Abstract states: " << statistics_.total_states << std::endl;
+    out << "  Additive sub-collections: "
+        << statistics_.num_additive_subcollections
+        << std::endl;
+    out << "  Largest additive subcollection size: "
+        << statistics_.largest_additive_subcollection_size << std::endl;
+    out << "  Average additive subcollection size: "
+        << statistics_.average_additive_subcollection_size << std::endl;
 }
 
 
@@ -172,6 +186,8 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
     }
 
     const bool additive_patterns = opts.get<bool>("additive");
+    statistics_.additive = additive_patterns;
+
     if (additive_patterns) {
         max_cliques::compute_max_cliques(
             multiplicativity::buildCompatibilityGraphOrthogonality<false>(
@@ -185,10 +201,27 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
         }
     }
 
+    // Gather statistics.
     statistics_.init_time = t_init();
     statistics_.num_patterns = database_.size();
     statistics_.num_additive_subcollections = additive_patterns_.size();
-    statistics_.dump(logging::out);
+
+    std::size_t total = 0;
+    std::size_t largest = 0;
+
+    std::vector<std::size_t> sizes(additive_patterns_.size());
+    for (auto& subcollection : additive_patterns_) {
+        total += subcollection.size();
+        largest = std::max(largest, subcollection.size());
+    }
+
+    statistics_.largest_additive_subcollection_size = largest;
+    statistics_.average_additive_subcollection_size =
+        total / additive_patterns_.size();
+
+    // Dump the initialization statistics
+    logging::out << "\nExpected-Cost Pattern Databases Initialization:" << std::endl;
+    dump_init_statistics(logging::out);
 
     const auto val = static_cast<value_type::value_t>(
         ExpectedCostPDBHeuristic::evaluate(g_initial_state()));
@@ -210,15 +243,17 @@ ExpectedCostPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
 EvaluationResult
 ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
 {
+#ifdef ECPDB_MEASURE_EVALUATE
+    utils::Timer t;
+#endif
+
     value_type::value_t result = g_analysis_objective->max();
 
     if (!database_.empty()) {
         // Get pattern estimates
         std::vector<value_type::value_t> estimates(database_.size());
         for (std::size_t i = 0; i != database_.size(); ++i) {
-            const ProjectionInfo &store = database_[i];
-            const AbstractState x = store.state_mapper->operator()(state);
-            estimates[i] = store.lookup(x);
+            estimates[i] = database_[i].lookup(state);
         }
 
         // Get lowest additive subcollection value
@@ -247,7 +282,38 @@ ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
         (statistics_.num_estimates - 1) +
         result) / statistics_.num_estimates;
 
+#ifdef ECPDB_MEASURE_EVALUATE
+    statistics_.evaluate_time += t();
+#endif
+
     return {false, result};
+}
+
+void ExpectedCostPDBHeuristic::print_statistics() const {
+    auto& out = logging::out;
+
+    // Set fp output precision to 5 digits
+    out << std::setprecision(4);
+
+    out << "\nExpected-Cost Pattern Databases Statistics:" << std::endl;
+
+    dump_init_statistics(out);
+
+    out << "  Estimate calls: " << statistics_.num_estimates << std::endl;
+    out << "  Non-Trivial estimates: " << statistics_.num_nontrivial_estimates
+        << std::endl;
+    out << "  Average estimate: " << statistics_.average_estimate << std::endl;
+    out << "  Lowest estimate: " << statistics_.lowest_estimate << std::endl;
+    out << "  Highest estimate: " << statistics_.highest_estimate << std::endl;
+
+    out << "  Initialization time: " << statistics_.init_time << "s"
+        << std::endl;
+#ifdef ECPDB_MEASURE_EVALUATE
+    out << "  Estimate time: " << statistics_.evaluate_time << "s" << std::endl;
+#endif
+
+    // Undo for later statistics
+    out << std::setprecision(std::numeric_limits<double>::digits10 + 1);
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(

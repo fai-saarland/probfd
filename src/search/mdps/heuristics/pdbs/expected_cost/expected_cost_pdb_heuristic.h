@@ -8,6 +8,8 @@
 #include <vector>
 #include <ostream>
 
+#define ECPDB_MEASURE_EVALUATE
+
 class GlobalState;
 
 namespace options {
@@ -31,20 +33,25 @@ public:
 
 private:
     struct Statistics {
+        bool additive = false;
+
         unsigned int total_states = 0;
         unsigned int num_patterns = 0;
+
         unsigned int num_additive_subcollections = 0;
+        std::size_t average_additive_subcollection_size = 0;
+        std::size_t largest_additive_subcollection_size = 0;
 
         unsigned int num_estimates = 0;
         unsigned int num_nontrivial_estimates = 0;
         value_type::value_t average_estimate = 0;
         value_type::value_t lowest_estimate = 0;
-        value_type::value_t highest_estimate = 0;
-        value_type::value_t initial_estimate = 0;
+        value_type::value_t highest_estimate = -value_type::inf;
 
         double init_time = 0.0;
-
-        void dump(std::ostream& out) const;
+#ifdef ECPDB_MEASURE_EVALUATE
+        double evaluate_time = 0.0;
+#endif
     };
 
     struct ProjectionInfo;
@@ -57,8 +64,13 @@ public:
     explicit ExpectedCostPDBHeuristic(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
+    void print_statistics() const override;
+
 protected:
     EvaluationResult evaluate(const GlobalState& state) override;
+
+private:
+    void dump_init_statistics(std::ostream &out) const;
 };
 
 } // namespace pdbs
