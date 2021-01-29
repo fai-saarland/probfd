@@ -14,6 +14,7 @@
 #include "../../../analysis_objectives/expected_cost_objective.h"
 #include "../../../../algorithms/max_cliques.h"
 #include "../multiplicativity.h"
+#include "../utils.h"
 
 #include <cassert>
 #include <iostream>
@@ -26,31 +27,8 @@ namespace pdbs {
 
 using ::pdbs::PatternCollectionGenerator;
 using ::pdbs::PatternCollectionInformation;
-using ::pdbs::PatternCollection;
 
 namespace {
-#ifndef NDEBUG
-void dump_pattern(
-    std::ostream &out,
-    unsigned id,
-    const ExpectedCostPDBHeuristic::Pattern &p)
-{
-    out << "pattern[" << id << "]: vars = [";
-
-    for (unsigned j = 0; j < p.size(); j++) {
-        out << (j > 0 ? ", " : "") << p[j];
-    }
-
-    out << "] ({";
-
-    for (unsigned j = 0; j < p.size(); j++) {
-        out << (j > 0 ? ", " : "") << ::g_fact_names[p[j]][0];
-    }
-
-    out << "})" << std::flush;
-}
-#endif
-
 void dumpProjection(
     unsigned int projection_id,
     ProbabilisticProjection &projection)
@@ -66,7 +44,6 @@ void dumpProjection(
         print_transition_labels,
         print_values);
 }
-
 }
 
 

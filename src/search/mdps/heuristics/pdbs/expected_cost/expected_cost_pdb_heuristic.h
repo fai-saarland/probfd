@@ -3,6 +3,7 @@
 #include "../../../evaluation_result.h"
 #include "../../../state_evaluator.h"
 #include "../abstract_state.h"
+#include "../types.h"
 
 #include <memory>
 #include <vector>
@@ -26,12 +27,6 @@ class QualitativeResultStore;
 class AbstractAnalysisResult;
 
 class ExpectedCostPDBHeuristic : public GlobalStateEvaluator {
-public:
-    using PatternID = int;
-    using Pattern = std::vector<int>;
-    using PatternCollection = std::vector<PatternID>;
-
-private:
     struct Statistics {
         bool additive = false;
 
@@ -57,7 +52,7 @@ private:
     struct ProjectionInfo;
 
     std::vector<ProjectionInfo> database_;
-    std::vector<PatternCollection> additive_patterns_;
+    std::vector<PatternClique> additive_patterns_;
     Statistics statistics_;
 
 public:

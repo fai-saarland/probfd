@@ -680,6 +680,8 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/syntactic_projection
         mdps/heuristics/pdbs/utils
         mdps/heuristics/pdbs/expected_cost/expected_cost_pdb_heuristic
+        mdps/heuristics/pdbs/utils
+        mdps/heuristics/pdbs/types
     DEPENDS MDP SUCCESSOR_GENERATOR
     )
 
