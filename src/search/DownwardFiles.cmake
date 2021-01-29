@@ -544,6 +544,7 @@ fast_downward_plugin(
         mdps/heuristics/constant_evaluator
         mdps/heuristics/dead_end_pruning
         mdps/heuristics/budget_pruning
+        mdps/heuristics/determinization_cost
     DEPENDS SUCCESSOR_GENERATOR MAS_HEURISTIC
     DEPENDENCY_ONLY
 )
