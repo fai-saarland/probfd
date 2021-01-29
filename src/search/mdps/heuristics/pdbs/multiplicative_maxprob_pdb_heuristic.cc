@@ -1,4 +1,4 @@
-#include "probabilistic_canonical_pdb_heuristic.h"
+#include "multiplicative_maxprob_pdb_heuristic.h"
 
 #include "../../../global_state.h"
 #include "../../../globals.h"
@@ -27,7 +27,7 @@
 namespace probabilistic {
 namespace pdbs {
 
-ProbabilisticCanonicalPDBHeuristic::ProjectionInfo::ProjectionInfo(
+MultiplicativeMaxProbPDBHeuristic::ProjectionInfo::ProjectionInfo(
     std::shared_ptr<AbstractStateMapper> state_mapper,
     AbstractAnalysisResult& result)
     : state_mapper(state_mapper)
@@ -37,7 +37,7 @@ ProbabilisticCanonicalPDBHeuristic::ProjectionInfo::ProjectionInfo(
 {
 }
 
-ProbabilisticCanonicalPDBHeuristic::ProbabilisticCanonicalPDBHeuristic(
+MultiplicativeMaxProbPDBHeuristic::MultiplicativeMaxProbPDBHeuristic(
     const options::Options& opts)
     : initial_state_is_dead_end_(false)
 {
@@ -271,7 +271,7 @@ ProbabilisticCanonicalPDBHeuristic::ProbabilisticCanonicalPDBHeuristic(
         // Technically a virtual function call in a constructor, so be verbose.
         value_type::value_t estimate =
             static_cast<value_type::value_t>(
-                ProbabilisticCanonicalPDBHeuristic::
+                MultiplicativeMaxProbPDBHeuristic::
                 evaluate(g_initial_state())
             );
         std::cout << estimate << std::endl;
@@ -279,7 +279,7 @@ ProbabilisticCanonicalPDBHeuristic::ProbabilisticCanonicalPDBHeuristic(
 }
 
 value_type::value_t
-ProbabilisticCanonicalPDBHeuristic::lookup(
+MultiplicativeMaxProbPDBHeuristic::lookup(
     const ProjectionInfo& info,
     const AbstractState& s) const
 {
@@ -294,7 +294,7 @@ ProbabilisticCanonicalPDBHeuristic::lookup(
 }
 
 EvaluationResult
-ProbabilisticCanonicalPDBHeuristic::evaluate(const GlobalState& state)
+MultiplicativeMaxProbPDBHeuristic::evaluate(const GlobalState& state)
 {
     if (initial_state_is_dead_end_) {
         return EvaluationResult(true, g_analysis_objective->min());
@@ -341,7 +341,7 @@ dumpPattern(std::ostream& out, const std::vector<int>& pattern)
 }
 
 void
-ProbabilisticCanonicalPDBHeuristic::dumpCliqueWithHValues(
+MultiplicativeMaxProbPDBHeuristic::dumpCliqueWithHValues(
     std::ostream& out,
     const GlobalState& state,
     const std::vector<PatternID>& clique)
@@ -366,7 +366,7 @@ ProbabilisticCanonicalPDBHeuristic::dumpCliqueWithHValues(
 }
 
 void
-ProbabilisticCanonicalPDBHeuristic::add_options_to_parser(
+MultiplicativeMaxProbPDBHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
@@ -382,7 +382,7 @@ ProbabilisticCanonicalPDBHeuristic::add_options_to_parser(
 
 static Plugin<GlobalStateEvaluator> _plugin(
     "ppdb_mul",
-    options::parse<GlobalStateEvaluator, ProbabilisticCanonicalPDBHeuristic>);
+    options::parse<GlobalStateEvaluator, MultiplicativeMaxProbPDBHeuristic>);
 
 } // namespace pdbs
 } // namespace probabilistic

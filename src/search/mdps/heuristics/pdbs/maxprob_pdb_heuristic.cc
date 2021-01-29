@@ -1,4 +1,4 @@
-#include "probabilistic_pdb_heuristic.h"
+#include "maxprob_pdb_heuristic.h"
 
 #include "../../../globals.h"
 #include "../../../operator_cost.h"
@@ -61,7 +61,7 @@ void dump_projection(std::size_t i, ProbabilisticProjection& projection) {
 }
 }
 
-struct ProbabilisticPDBHeuristic::ProjectionInfo {
+struct MaxProbPDBHeuristic::ProjectionInfo {
     ProjectionInfo(
         std::shared_ptr<AbstractStateMapper> state_mapper,
         AbstractAnalysisResult& result);
@@ -75,7 +75,7 @@ struct ProbabilisticPDBHeuristic::ProjectionInfo {
     lookup(const AbstractState& s) const;
 };
 
-ProbabilisticPDBHeuristic::ProjectionInfo::ProjectionInfo(
+MaxProbPDBHeuristic::ProjectionInfo::ProjectionInfo(
     std::shared_ptr<AbstractStateMapper> state_mapper,
     AbstractAnalysisResult& result)
     : state_mapper(std::move(state_mapper))
@@ -85,7 +85,7 @@ ProbabilisticPDBHeuristic::ProjectionInfo::ProjectionInfo(
 {
 }
 
-void ProbabilisticPDBHeuristic::Statistics::dump(std::ostream& out) const {
+void MaxProbPDBHeuristic::Statistics::dump(std::ostream& out) const {
     out << "MaxProb-PDB initialization complete: " << std::endl;
     out << "  Initialization time: " << init_time << std::endl;
     out << "  Stored " << stored_projections << "/" << total_projections
@@ -97,7 +97,7 @@ void ProbabilisticPDBHeuristic::Statistics::dump(std::ostream& out) const {
         << abstract_one_states << " one states)" << std::endl;
 }
 
-ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
+MaxProbPDBHeuristic::MaxProbPDBHeuristic(
     const options::Options& opts)
 {
     ::verify_no_axioms_no_conditional_effects();
@@ -211,13 +211,13 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
 
     statistics_.dump(g_log);
 
-    auto eval = ProbabilisticPDBHeuristic::evaluate(g_initial_state());
+    auto eval = MaxProbPDBHeuristic::evaluate(g_initial_state());
     g_log << "  Initial state value estimate: "
           << eval.operator value_type::value_t() << std::endl;
 }
 
 value_type::value_t
-ProbabilisticPDBHeuristic::ProjectionInfo::lookup(const AbstractState& s) const
+MaxProbPDBHeuristic::ProjectionInfo::lookup(const AbstractState& s) const
 {
     assert(!dead_ends->get(s));
 
@@ -234,7 +234,7 @@ ProbabilisticPDBHeuristic::ProjectionInfo::lookup(const AbstractState& s) const
 }
 
 void
-ProbabilisticPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
+MaxProbPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
         "patterns", "", "systematic(pattern_max_size=2)");
@@ -245,7 +245,7 @@ ProbabilisticPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
 }
 
 EvaluationResult
-ProbabilisticPDBHeuristic::evaluate(const GlobalState& state)
+MaxProbPDBHeuristic::evaluate(const GlobalState& state)
 {
     if (initial_state_is_dead_end_) {
         return EvaluationResult(true, g_analysis_objective->min());
@@ -264,8 +264,8 @@ ProbabilisticPDBHeuristic::evaluate(const GlobalState& state)
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(
-    "ppdb",
-    options::parse<GlobalStateEvaluator, ProbabilisticPDBHeuristic>);
+    "maxprob_pdb",
+    options::parse<GlobalStateEvaluator, MaxProbPDBHeuristic>);
 
 } // namespace pdbs
 } // namespace probabilistic

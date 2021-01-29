@@ -22,9 +22,9 @@ class QuantitativeResultStore;
 class QualitativeResultStore;
 class AbstractAnalysisResult;
 
-class ProbabilisticCanonicalPDBHeuristic : public GlobalStateEvaluator {
+class MultiplicativeMaxProbPDBHeuristic : public GlobalStateEvaluator {
 public:
-    explicit ProbabilisticCanonicalPDBHeuristic(const options::Options& opts);
+    explicit MultiplicativeMaxProbPDBHeuristic(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:

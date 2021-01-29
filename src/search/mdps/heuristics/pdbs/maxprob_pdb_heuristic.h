@@ -23,7 +23,7 @@ class QuantitativeResultStore;
 class QualitativeResultStore;
 class AbstractAnalysisResult;
 
-class ProbabilisticPDBHeuristic : public GlobalStateEvaluator {
+class MaxProbPDBHeuristic : public GlobalStateEvaluator {
 private:
     struct ProjectionInfo;
 
@@ -45,7 +45,7 @@ private:
     };
 
 public:
-    explicit ProbabilisticPDBHeuristic(const options::Options& opts);
+    explicit MaxProbPDBHeuristic(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
