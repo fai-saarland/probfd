@@ -18,7 +18,7 @@ namespace critical_path_heuristic {
 struct CounterInfo;
 
 struct ConjunctionInfo {
-    static const int UNACHIEVED;
+    static constexpr int UNACHIEVED = -1;
 
     ConjunctionInfo();
     ~ConjunctionInfo() = default;

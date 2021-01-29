@@ -116,7 +116,7 @@ public:
     using QuotientStateIDIterator = const StateID*;
     using iterator = typename QMap::const_iterator;
 
-    static const unsigned SELF = -1;
+    static constexpr unsigned SELF = -1;
 
     explicit QuotientSystem(
         bool remove_self_loops,

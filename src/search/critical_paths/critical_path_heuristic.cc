@@ -18,8 +18,6 @@
 
 namespace critical_path_heuristic {
 
-constexpr const int ConjunctionInfo::UNACHIEVED = -1;
-
 ConjunctionInfo::ConjunctionInfo()
     : id(-1)
     , cost(UNACHIEVED)
