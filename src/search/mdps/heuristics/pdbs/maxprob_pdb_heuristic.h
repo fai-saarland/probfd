@@ -4,6 +4,7 @@
 #include "../../state_evaluator.h"
 #include "../../../pdbs/types.h"
 #include "abstract_state.h"
+#include "types.h"
 
 #include <memory>
 #include <vector>

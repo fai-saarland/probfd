@@ -4,6 +4,7 @@
 #include "../../distribution.h"
 #include "../../evaluation_result.h"
 #include "../../value_type.h"
+#include "../../../pdbs/types.h"
 #include "abstract_state.h"
 
 #include <memory>
@@ -20,6 +21,11 @@ namespace probabilistic {
 class ProbabilisticOperator;
 
 namespace pdbs {
+
+using PatternCollection = ::pdbs::PatternCollection;
+using Pattern = ::pdbs::Pattern;
+using PatternID = ::pdbs::PatternID;
+using PatternClique = ::pdbs::PatternClique;
 
 class QualitativeResultStore;
 

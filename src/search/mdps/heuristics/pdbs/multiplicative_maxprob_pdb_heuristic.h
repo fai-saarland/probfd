@@ -2,7 +2,7 @@
 
 #include "../../evaluation_result.h"
 #include "../../state_evaluator.h"
-#include "../../../pdbs/types.h"
+#include "types.h"
 #include "abstract_state.h"
 
 #include <memory>
@@ -58,8 +58,8 @@ private:
     std::vector<ProjectionInfo> dead_end_database_;
     std::vector<ProjectionInfo> clique_database_;
 
-    std::vector<::pdbs::Pattern> clique_patterns_;
-    std::vector<::pdbs::PatternClique> cliques_;
+    std::vector<Pattern> clique_patterns_;
+    std::vector<PatternClique> cliques_;
 
     Statistics statistics_;
 };

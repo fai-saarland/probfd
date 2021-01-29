@@ -744,6 +744,7 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/types
         mdps/heuristics/pdbs/multiplicativity
         mdps/heuristics/pdbs/syntactic_projection
+        mdps/heuristics/pdbs/utils
     DEPENDS SUCCESSOR_GENERATOR
     )
 
