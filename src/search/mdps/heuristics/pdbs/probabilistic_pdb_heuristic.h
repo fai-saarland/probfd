@@ -2,6 +2,7 @@
 
 #include "../../evaluation_result.h"
 #include "../../state_evaluator.h"
+#include "../../../pdbs/types.h"
 #include "abstract_state.h"
 
 #include <memory>
@@ -23,31 +24,37 @@ class QualitativeResultStore;
 class AbstractAnalysisResult;
 
 class ProbabilisticPDBHeuristic : public GlobalStateEvaluator {
+private:
+    struct ProjectionInfo;
+
+    struct Statistics {
+        unsigned abstract_states = 0;
+        unsigned abstract_reachable_states = 0;
+        unsigned abstract_dead_ends = 0;
+        unsigned abstract_one_states = 0;
+
+        unsigned total_projections = 0;
+        unsigned stored_projections = 0;
+        unsigned deterministic_projections = 0;
+
+        double init_time = 0.0;
+        double eval_time = 0.0;
+
+        void dump_initialization_statistics(std::ostream& out) const;
+        void dump(std::ostream& out) const;
+    };
+
 public:
     explicit ProbabilisticPDBHeuristic(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) override;
+    EvaluationResult evaluate(const GlobalState& state) override;
 
 private:
-    struct ProjectionInfo {
-        ProjectionInfo(
-            std::shared_ptr<AbstractStateMapper> state_mapper,
-            AbstractAnalysisResult& result);
-
-        std::shared_ptr<AbstractStateMapper> state_mapper;
-        std::unique_ptr<QuantitativeResultStore> values;
-        std::unique_ptr<QualitativeResultStore> dead_ends;
-        std::unique_ptr<QualitativeResultStore> one_states;
-    };
-
-    value_type::value_t
-    lookup(const ProjectionInfo& info, const AbstractState& s) const;
-
-    bool initial_state_is_dead_end_;
+    bool initial_state_is_dead_end_ = false;
     std::vector<ProjectionInfo> database_;
-    value_type::value_t one_state_reward_;
+    Statistics statistics_;
 };
 
 } // namespace pdbs

@@ -20,70 +20,122 @@
 namespace probabilistic {
 namespace pdbs {
 
+using ::pdbs::PatternCollectionGenerator;
+using ::pdbs::PatternCollectionInformation;
+using ::pdbs::PatternCollection;
+using ::pdbs::Pattern;
+using ::pdbs::PatternID;
+
+namespace {
+void dump_pattern_short(std::ostream& out, PatternID i, const Pattern& p) {
+    out << "pattern[" << i << "]: vars = [";
+    for (unsigned j = 0; j < p.size(); j++) {
+        out << (j > 0 ? ", " : "") << p[j];
+    }
+    out << "]";
+}
+
+void dump_pattern(std::ostream& out, PatternID i, const Pattern& p) {
+    dump_pattern_short(out, i, p);
+
+    out << " ({";
+    for (unsigned j = 0; j < p.size(); j++) {
+        out << (j > 0 ? ", " : "") << ::g_fact_names[p[j]][0];
+    }
+    out << "})" << std::flush;
+}
+
+void dump_projection(std::size_t i, ProbabilisticProjection& projection) {
+    const bool print_transition_labels = true;
+    const bool print_values = true;
+
+    std::ostringstream path;
+    path << "pattern" << i << ".dot";
+
+    dump_graphviz(
+        &projection,
+        g_analysis_objective.get(),
+        path.str(),
+        print_transition_labels,
+        print_values);
+}
+}
+
+struct ProbabilisticPDBHeuristic::ProjectionInfo {
+    ProjectionInfo(
+        std::shared_ptr<AbstractStateMapper> state_mapper,
+        AbstractAnalysisResult& result);
+
+    std::shared_ptr<AbstractStateMapper> state_mapper;
+    std::unique_ptr<QuantitativeResultStore> values;
+    std::unique_ptr<QualitativeResultStore> dead_ends;
+    std::unique_ptr<QualitativeResultStore> one_states;
+
+    [[nodiscard]] value_type::value_t
+    lookup(const AbstractState& s) const;
+};
+
 ProbabilisticPDBHeuristic::ProjectionInfo::ProjectionInfo(
     std::shared_ptr<AbstractStateMapper> state_mapper,
     AbstractAnalysisResult& result)
-    : state_mapper(state_mapper)
+    : state_mapper(std::move(state_mapper))
     , values(result.value_table)
     , dead_ends(result.dead_ends)
     , one_states(result.one_states)
 {
 }
 
+void ProbabilisticPDBHeuristic::Statistics::dump(std::ostream& out) const {
+    out << "MaxProb-PDB initialization complete: " << std::endl;
+    out << "  Initialization time: " << init_time << std::endl;
+    out << "  Stored " << stored_projections << "/" << total_projections
+        << " projections (" << deterministic_projections
+        << " are non-probabilistic)" << std::endl;
+    out << "  Abstract states: " << abstract_states << " ("
+        << abstract_reachable_states << " reachable, "
+        << abstract_dead_ends << " dead ends, "
+        << abstract_one_states << " one states)" << std::endl;
+}
+
 ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
     const options::Options& opts)
-    : initial_state_is_dead_end_(false)
 {
-    g_log << "Initializing Probabilistic PDB Heuristic..." << std::endl;
     ::verify_no_axioms_no_conditional_effects();
+
+    g_log << "Initializing Probabilistic PDB Heuristic..." << std::endl;
     utils::Timer t_init;
 
-    std::shared_ptr<::pdbs::PatternCollectionGenerator> patterns_generator =
-        opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
-            "patterns");
-    ::pdbs::PatternCollectionInformation patterns_info =
-        patterns_generator->generate(NORMAL);
-    std::shared_ptr<::pdbs::PatternCollection> patterns =
-        patterns_info.get_patterns();
+    auto patterns_generator =
+        opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns");
+    auto patterns_info = patterns_generator->generate(NORMAL);
 
-    database_.reserve(patterns->size());
+    const PatternCollection& patterns = *patterns_info.get_patterns();
+
+    database_.reserve(patterns.size());
 
     const bool countdown_enabled = opts.get<double>("time_limit") > 0;
     const unsigned max_states = opts.get<int>("max_states");
     utils::CountdownTimer countdown(opts.get<double>("time_limit"));
-    unsigned states = 0;
-    // value_type::value_t ival = g_property->get_optimistic_bound();
 
-    unsigned reachable = 0;
-    unsigned dead_ends = 0;
-    unsigned one_states = 0;
-    unsigned deterministic = 0;
     bool terminate = false;
 
-    for (unsigned i = 0; i < patterns->size(); i++) {
-        if (terminate || (countdown_enabled && countdown.is_expired())) {
+    for (unsigned i = 0; i < patterns.size() || terminate; i++) {
+        const Pattern& p = patterns[i];
+
+        if (countdown_enabled && countdown.is_expired()) {
             break;
         }
-        ProbabilisticProjection projection(
-            patterns->at(i), ::g_variable_domain);
+
+        ProbabilisticProjection projection(p, ::g_variable_domain);
+
         auto state_mapper = projection.get_abstract_state_mapper();
 
-        if (max_states - state_mapper->size() < states) {
+        if (max_states - state_mapper->size() < statistics_.abstract_states) {
             terminate = true;
         }
-        states += state_mapper->size();
 
         if (opts.get<bool>("dump_projections")) {
-            std::ostringstream path;
-            path << "pattern" << i << ".dot";
-            const bool print_transition_labels = true;
-            const bool print_values = true;
-            dump_graphviz(
-                &projection,
-                g_analysis_objective.get(),
-                path.str(),
-                print_transition_labels,
-                print_values);
+            dump_projection(i, projection);
         }
 
         AbstractState s0 = state_mapper->operator()(g_initial_state_values);
@@ -105,29 +157,13 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
         }
 
 #ifndef NDEBUG
-        {
-            const auto& p = patterns->at(i);
-            g_debug << "pattern[" << i << "]: vars = [";
-            for (unsigned j = 0; j < p.size(); j++) {
-                g_debug << (j > 0 ? ", " : "") << p[j];
-            }
-            g_debug << "] ({";
-            for (unsigned j = 0; j < p.size(); j++) {
-                g_debug << (j > 0 ? ", " : "") << ::g_fact_names[p[j]][0];
-            }
-            g_debug << "})" << std::flush;
-        }
+        dump_pattern(g_log, i, p);
 #endif
 
         if (initial_state_is_dead_end_) {
             database_.clear();
 #if defined(NDEBUG)
-            g_log << "Pattern [";
-            const auto& p = patterns->at(i);
-            for (unsigned j = 0; j < p.size(); j++) {
-                g_log << (j > 0 ? ", " : "") << p[j];
-            }
-            g_log << "]";
+            dump_pattern_short(g_log, i, p);
 #endif
             g_log << " identifies initial state as dead-end!" << std::endl;
             delete (result.value_table);
@@ -138,9 +174,8 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
 
         if (result.one == result.reachable_states) {
 #ifndef NDEBUG
-            g_debug << " **trivial projection**"
-                    << " ~~> estimate(s0) = " << result.one_state_reward
-                    << std::endl;
+            g_debug << " **trivial projection** ~~> estimate(s0) = "
+                    << result.one_state_reward << std::endl;
 #endif
             delete (result.value_table);
             delete (result.one_states);
@@ -150,7 +185,7 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
 #ifndef NDEBUG
             g_debug << " **deterministic projection**";
 #endif
-            ++deterministic;
+            ++statistics_.deterministic_projections;
             delete (result.value_table);
             delete (result.one_states);
             result.value_table = nullptr;
@@ -159,68 +194,43 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
 
         database_.emplace_back(state_mapper, result);
 
-        reachable += result.reachable_states;
-        dead_ends += result.dead;
-        one_states += result.one;
+        statistics_.abstract_states += state_mapper->size();
+        statistics_.abstract_reachable_states += result.reachable_states;
+        statistics_.abstract_dead_ends += result.dead;
+        statistics_.abstract_one_states += result.one;
 
-        one_state_reward_ = result.one_state_reward;
 #ifndef NDEBUG
-        {
-            assert(
-                (result.one_states != nullptr && result.one_states->get(s0))
-                || result.value_table->has_value(s0));
-            g_debug << " ~~> estimate(s0) = "
-                    << ((result.one_states != nullptr
-                         && result.one_states->get(s0))
-                            ? one_state_reward_
-                            : result.value_table->get(s0))
-                    << std::endl;
-        }
+        const auto eval = database_.back().lookup(s0);
+        g_debug << " ~~> estimate(s0) = " << eval << std::endl;
 #endif
     }
 
-    g_log << "probabilistic PDB initialization completed after " << t_init
-          << " [t=" << ::utils::g_timer << "]" << std::endl;
-    g_log << "Stored " << database_.size() << "/" << patterns->size()
-          << " projections (" << deterministic << " are non-probabilistic)"
-          << std::endl;
-    g_log << "Abstract states: " << states << " (" << reachable
-          << " reachable, " << dead_ends << " dead ends, " << one_states
-          << " one states)" << std::endl;
-    g_log << "Initial state value estimate: ";
-    if (initial_state_is_dead_end_) {
-        g_log << "dead-end";
-    } else if (database_.empty()) {
-        g_log << g_analysis_objective->max();
-    } else {
-        value_type::value_t min_val = g_analysis_objective->max();
-        for (ProjectionInfo& info : database_) {
-            auto state = info.state_mapper->operator()(g_initial_state_values);
-            const value_type::value_t val = lookup(info, state);
-            min_val = std::min(min_val, val);
-        }
-        g_log << min_val;
-    }
-    g_log << std::endl;
+    statistics_.total_projections = patterns.size();
+    statistics_.stored_projections = database_.size();
+    statistics_.init_time = t_init();
+
+    statistics_.dump(g_log);
+
+    auto eval = ProbabilisticPDBHeuristic::evaluate(g_initial_state());
+    g_log << "  Initial state value estimate: "
+          << eval.operator value_type::value_t() << std::endl;
 }
 
 value_type::value_t
-ProbabilisticPDBHeuristic::lookup(
-    const ProjectionInfo& info,
-    const AbstractState& s) const
+ProbabilisticPDBHeuristic::ProjectionInfo::lookup(const AbstractState& s) const
 {
-    assert(!info.dead_ends->get(s));
+    assert(!dead_ends->get(s));
 
-    if (info.one_states == nullptr && info.values == nullptr) { // Dead end projection
+    if (one_states == nullptr && values == nullptr) { // Dead end projection
         return g_analysis_objective->max();
     }
 
-    if (info.one_states != nullptr && info.one_states->get(s)) {
-        return one_state_reward_;
+    if (one_states != nullptr && one_states->get(s)) {
+        return value_type::one;
     }
 
-    assert(info.values);
-    return info.values->get(s);
+    assert(values);
+    return values->get(s);
 }
 
 void
@@ -247,8 +257,7 @@ ProbabilisticPDBHeuristic::evaluate(const GlobalState& state)
         if (store.dead_ends->get(x)) {
             return EvaluationResult(true, g_analysis_objective->min());
         }
-        const value_type::value_t estimate = lookup(store, x);
-        result = std::min(result, estimate);
+        result = std::min(result, store.lookup(x));
     }
 
     return EvaluationResult(false, result);
