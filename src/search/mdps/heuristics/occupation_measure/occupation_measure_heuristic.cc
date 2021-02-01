@@ -153,6 +153,7 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     }
 }
 
+namespace {
 // Explicit goal values (-1 if variable not required)
 std::vector<int> get_goal_explicit() {
     std::vector<int> the_goal(g_variable_domain.size(), -1);
@@ -204,6 +205,7 @@ get_transition_probs_explicit(
     }
 
     return p;
+}
 }
 
 void
@@ -303,24 +305,20 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp_expcost(
             tying.push_back(var_range);
         }
 
-        // Build tying constraint coefficients
-        // One tying constraint between every pair of projections
-
-        // Basically, the occupation measure variables for this action
-        // need to be the same, i.e. their difference is zero in LP terms.
-        for (size_t i = 0; i != tying.size(); ++i) {
-            const auto& [range_i_b, range_i_e] = tying[i];
-            for (size_t j = i + 1; j != tying.size(); ++j) {
-                const auto& [range_j_b, range_j_e] = tying[j];
+        // Build tying constraints, tie everything to first projection
+        if (!tying.empty()) {
+            const auto& [base_range_b, base_range_e] = tying[0];
+            for (unsigned j = 1; j < tying.size(); ++j) {
+                const auto& [j_range_b, j_range_e] = tying[j];
 
                 lp::LPConstraint &tying_constraint =
                     constraints.emplace_back(0, 0);
 
-                for (int lpvar = range_i_b; lpvar < range_i_e; ++lpvar) {
+                for (int lpvar = base_range_b; lpvar < base_range_e; ++lpvar) {
                     tying_constraint.insert(lpvar, 1);
                 }
 
-                for (int lpvar = range_j_b; lpvar < range_j_e; ++lpvar) {
+                for (int lpvar = j_range_b; lpvar < j_range_e; ++lpvar) {
                     tying_constraint.insert(lpvar, -1);
                 }
             }
