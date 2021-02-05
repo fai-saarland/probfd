@@ -326,9 +326,11 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp_expcost(
 
         // Set objective coefficients for occupation measures of the first
         // projection (does not matter which one)
-        const auto& [range_b, range_e] = tying[0];
-        for (int i = range_b; i < range_e; ++i) {
-            lp_vars[i].objective_coefficient = cost;
+        if (!tying.empty()) {
+            const auto&[range_b, range_e] = tying[0];
+            for (int i = range_b; i < range_e; ++i) {
+                lp_vars[i].objective_coefficient = cost;
+            }
         }
     }
 }
