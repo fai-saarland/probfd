@@ -5,6 +5,7 @@
 #include "../../../../option_parser.h"
 #include "../../../../pdbs/pattern_collection_information.h"
 #include "../../../../pdbs/pattern_generator.h"
+#include "../../../../pdbs/dominance_pruning.h"
 #include "../../../../plugin.h"
 #include "../../../../utils/countdown_timer.h"
 #include "../../../analysis_objective.h"
@@ -178,6 +179,28 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
         }
     }
 
+    // Run dominance pruning.
+    double max_time_dominance_pruning =
+        opts.get<double>("max_time_dominance_pruning");
+    if (max_time_dominance_pruning > 0.0) {
+        int num_variables = g_variable_domain.size();
+        /*
+          NOTE: Dominance pruning could also be computed without having access
+          to the PDBs, but since we want to delete patterns, we also want to
+          update the list of corresponding PDBs so they are synchronized.
+
+          In the long term, we plan to have patterns and their PDBs live
+          together, in which case we would only need to pass their container
+          and the pattern cliques.
+        */
+        ::pdbs::prune_dominated_cliques(
+            *patterns,
+            database_,
+            additive_patterns_,
+            num_variables,
+            max_time_dominance_pruning);
+    }
+
     // Gather statistics.
     statistics_.init_time = t_init();
     statistics_.num_patterns = database_.size();
@@ -211,6 +234,7 @@ ExpectedCostPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
         "patterns", "", "systematic(pattern_max_size=2)");
+    parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
     parser.add_option<double>("time_limit", "", "0");
     parser.add_option<int>("max_states", "", "-1");
     parser.add_option<bool>("dump_projections", "", "false");
