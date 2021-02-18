@@ -38,12 +38,16 @@ class ExpectedCostPDBHeuristic : public GlobalStateEvaluator {
         std::size_t largest_additive_subcollection_size = 0;
 
         unsigned int num_estimates = 0;
-        unsigned int num_nontrivial_estimates = 0;
         value_type::value_t average_estimate = 0;
         value_type::value_t lowest_estimate = 0;
         value_type::value_t highest_estimate = -value_type::inf;
 
-        double init_time = 0.0;
+        double pattern_construction_time = 0.0;
+        double database_construction_time = 0.0;
+        double clique_computation_time = 0.0;
+        double dominance_pruning_time = 0.0;
+
+        double construction_time = 0.0;
 #ifdef ECPDB_MEASURE_EVALUATE
         double evaluate_time = 0.0;
 #endif
@@ -66,6 +70,21 @@ protected:
 
 private:
     void dump_init_statistics(std::ostream &out) const;
+
+    std::shared_ptr<PatternCollection>
+    construct_patterns(const options::Options& opts);
+
+    void construct_database(
+        const options::Options& opts,
+        const PatternCollection& patterns);
+
+    void construct_cliques(
+        const options::Options& opts,
+        PatternCollection& patterns);
+
+    void run_dominance_pruning(
+        double time_limit,
+        PatternCollection& patterns);
 };
 
 } // namespace pdbs

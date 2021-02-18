@@ -18,7 +18,6 @@
 #include "../utils.h"
 
 #include <cassert>
-#include <iostream>
 #include <string>
 #include <iomanip>
 #include <numeric>
@@ -30,7 +29,7 @@ using ::pdbs::PatternCollectionGenerator;
 using ::pdbs::PatternCollectionInformation;
 
 namespace {
-void dumpProjection(
+void dump_projection(
     unsigned int projection_id,
     ProbabilisticProjection &projection)
 {
@@ -84,7 +83,8 @@ ExpectedCostPDBHeuristic::ProjectionInfo::lookup(const AbstractState& s) const
 void ExpectedCostPDBHeuristic::dump_init_statistics(std::ostream &out) const {
     out << "  Additivity: " << (statistics_.additive ? "Enabled" : "Disabled")
         << std::endl;
-    out << "  Construction time: " << statistics_.init_time << "s" << std::endl;
+    out << "  Construction time: " << statistics_.construction_time << "s"
+        << std::endl;
     out << "  Projections: " << statistics_.num_patterns << std::endl;
     out << "  Abstract states: " << statistics_.total_states << std::endl;
     out << "  Additive sub-collections: "
@@ -96,23 +96,27 @@ void ExpectedCostPDBHeuristic::dump_init_statistics(std::ostream &out) const {
         << statistics_.average_additive_subcollection_size << std::endl;
 }
 
-
-ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
-    const options::Options& opts)
-{
-    assert(dynamic_cast<ExpectedCostObjective*>(g_analysis_objective.get()));
-
-    ::verify_no_axioms_no_conditional_effects();
-
-    logging::out << "Initializing Probabilistic PDB Heuristic..." << std::endl;
-    utils::Timer t_init;
+std::shared_ptr<PatternCollection>
+ExpectedCostPDBHeuristic::construct_patterns(const options::Options& opts) {
+    utils::Timer t;
 
     auto patterns_generator =
         opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns");
     auto patterns_info = patterns_generator->generate(NORMAL);
     auto patterns = patterns_info.get_patterns();
 
-    database_.reserve(patterns->size());
+    statistics_.pattern_construction_time = t();
+
+    return patterns;
+}
+
+void ExpectedCostPDBHeuristic::construct_database(
+    const options::Options& opts,
+    const PatternCollection& patterns)
+{
+    utils::Timer t;
+
+    database_.reserve(patterns.size());
 
     const bool countdown_enabled = opts.get<double>("time_limit") > 0;
     utils::CountdownTimer countdown(opts.get<double>("time_limit"));
@@ -121,8 +125,8 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
     // Statistics.
     bool terminate = false;
 
-    for (unsigned i = 0; i < patterns->size() && !terminate; i++) {
-        const auto& p = patterns->operator[](i);
+    for (unsigned i = 0; i < patterns.size() && !terminate; i++) {
+        const Pattern& p = patterns[i];
 
         // Check if the time ran out
         if (countdown_enabled && countdown.is_expired()) {
@@ -163,14 +167,23 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
 #endif
     }
 
+    statistics_.database_construction_time = t();
+}
+
+void ExpectedCostPDBHeuristic::construct_cliques(
+    const options::Options& opts,
+    PatternCollection& patterns)
+{
+    utils::Timer t;
+
     const bool additive_patterns = opts.get<bool>("additive");
     statistics_.additive = additive_patterns;
 
     if (additive_patterns) {
         max_cliques::compute_max_cliques(
             multiplicativity::buildCompatibilityGraphOrthogonality<false>(
-                *patterns),
-            this->additive_patterns_);
+                patterns),
+            additive_patterns_);
     } else {
         int size = static_cast<int>(database_.size());
 
@@ -179,37 +192,62 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
         }
     }
 
-    // Run dominance pruning.
-    double max_time_dominance_pruning =
-        opts.get<double>("max_time_dominance_pruning");
-    if (max_time_dominance_pruning > 0.0) {
-        int num_variables = g_variable_domain.size();
-        /*
-          NOTE: Dominance pruning could also be computed without having access
-          to the PDBs, but since we want to delete patterns, we also want to
-          update the list of corresponding PDBs so they are synchronized.
+    statistics_.clique_computation_time = t();
+}
 
-          In the long term, we plan to have patterns and their PDBs live
-          together, in which case we would only need to pass their container
-          and the pattern cliques.
-        */
-        ::pdbs::prune_dominated_cliques(
-            *patterns,
-            database_,
-            additive_patterns_,
-            num_variables,
-            max_time_dominance_pruning);
+void ExpectedCostPDBHeuristic::run_dominance_pruning(
+    double time_limit,
+    PatternCollection& patterns)
+{
+    utils::Timer t;
+
+    ::pdbs::prune_dominated_cliques(
+        patterns,
+        database_,
+        additive_patterns_,
+        g_variable_domain.size(),
+        time_limit);
+
+    statistics_.dominance_pruning_time = t();
+}
+
+ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
+    const options::Options& opts)
+{
+    assert(dynamic_cast<ExpectedCostObjective*>(g_analysis_objective.get()));
+
+    ::verify_no_axioms_no_conditional_effects();
+
+    // 1. Construct pattern collection
+    auto patterns = construct_patterns(opts);
+
+    // 2. Construct PDBs
+    construct_database(opts, *patterns);
+
+    // 3. Construct additive cliques
+    construct_cliques(opts, *patterns);
+
+    // 4. Run dominance pruning
+    const double max_time_dominance_pruning =
+        opts.get<double>("max_time_dominance_pruning");
+
+    if (max_time_dominance_pruning > 0.0) {
+        run_dominance_pruning(max_time_dominance_pruning, *patterns);
     }
 
     // Gather statistics.
-    statistics_.init_time = t_init();
+    statistics_.construction_time =
+        statistics_.pattern_construction_time +
+        statistics_.database_construction_time +
+        statistics_.clique_computation_time +
+        statistics_.dominance_pruning_time;
+
     statistics_.num_patterns = database_.size();
     statistics_.num_additive_subcollections = additive_patterns_.size();
 
     std::size_t total = 0;
     std::size_t largest = 0;
 
-    std::vector<std::size_t> sizes(additive_patterns_.size());
     for (auto& subcollection : additive_patterns_) {
         total += subcollection.size();
         largest = std::max(largest, subcollection.size());
@@ -222,11 +260,6 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
     // Dump the initialization statistics
     logging::out << "\nExpected-Cost Pattern Databases Initialization:" << std::endl;
     dump_init_statistics(logging::out);
-
-    const auto val = static_cast<value_type::value_t>(
-        ExpectedCostPDBHeuristic::evaluate(g_initial_state()));
-
-    logging::out << "Initial state value estimate: " << val << std::endl;
 }
 
 void
@@ -269,10 +302,6 @@ ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
         }
     }
 
-    if (!value_type::approx_equal()(result, value_type::zero)) {
-        ++statistics_.num_nontrivial_estimates;
-    }
-
     ++statistics_.num_estimates;
     statistics_.highest_estimate =
         std::max(statistics_.highest_estimate, result);
@@ -301,14 +330,21 @@ void ExpectedCostPDBHeuristic::print_statistics() const {
     dump_init_statistics(out);
 
     out << "  Estimate calls: " << statistics_.num_estimates << std::endl;
-    out << "  Non-Trivial estimates: " << statistics_.num_nontrivial_estimates
-        << std::endl;
     out << "  Average estimate: " << statistics_.average_estimate << std::endl;
     out << "  Lowest estimate: " << statistics_.lowest_estimate << std::endl;
     out << "  Highest estimate: " << statistics_.highest_estimate << std::endl;
 
-    out << "  Initialization time: " << statistics_.init_time << "s"
-        << std::endl;
+    out << "  Pattern construction time: "
+        << statistics_.pattern_construction_time << "s" << std::endl;
+    out << "  Database construction time: "
+        << statistics_.database_construction_time << "s" << std::endl;
+    out << "  Clique construction time: "
+        << statistics_.clique_computation_time << "s" << std::endl;
+    out << "  Dominance pruning time: "
+        << statistics_.dominance_pruning_time << "s" << std::endl;
+    out << "  Total construction time: "
+        << statistics_.construction_time << "s" << std::endl;
+
 #ifdef ECPDB_MEASURE_EVALUATE
     out << "  Estimate time: " << statistics_.evaluate_time << "s" << std::endl;
 #endif
