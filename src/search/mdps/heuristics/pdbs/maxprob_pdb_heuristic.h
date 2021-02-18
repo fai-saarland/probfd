@@ -28,22 +28,36 @@ private:
     struct ProjectionInfo;
 
     enum Multiplicativity {
-        NONE, ORTHOGONALITY, WEAK_ORTHOGONALITY
+        NONE = 0, ORTHOGONALITY = 1, WEAK_ORTHOGONALITY = 2
     };
 
     struct Statistics {
-        int multiplicativity = NONE;
+        Multiplicativity multiplicativity = NONE;
 
-        unsigned abstract_states = 0;
-        unsigned abstract_reachable_states = 0;
-        unsigned abstract_dead_ends = 0;
-        unsigned abstract_one_states = 0;
+        // Database statistics.
+        unsigned int abstract_states = 0;
+        unsigned int abstract_reachable_states = 0;
+        unsigned int abstract_dead_ends = 0;
+        unsigned int abstract_one_states = 0;
 
-        unsigned total_projections = 0;
+        unsigned int constructed_patterns = 0;
+        unsigned int discarded_patterns = 0;
+        unsigned int dead_end_patterns = 0;
+        unsigned int clique_patterns = 0;
 
-        double init_time = 0.0;
-        double clique_init_time = 0.0;
-        double eval_time = 0.0;
+        // Clique statistics.
+        unsigned int num_multiplicative_subcollections = 0;
+        double average_multiplicative_subcollection_size = 0;
+        std::size_t largest_multiplicative_subcollection_size = 0;
+
+        // Initialization statistics.
+        double pattern_construction_time = 0.0;
+        double database_construction_time = 0.0;
+        double clique_computation_time = 0.0;
+        double construction_time = 0.0;
+
+        // Runtime statistics.
+        // double evaluate_time = 0.0;
     };
 
 public:
@@ -54,8 +68,19 @@ protected:
     EvaluationResult evaluate(const GlobalState& state) override;
 
 private:
-    void dump_construction_statistics() const;
+    void dump_construction_statistics(std::ostream& out) const;
     void dump_statistics() const;
+
+    std::shared_ptr<PatternCollection>
+    construct_patterns(const options::Options& opts);
+
+    std::vector<Pattern> construct_database(
+        const options::Options& opts,
+        const PatternCollection& patterns);
+
+    void construct_cliques(
+        const options::Options& opts,
+        std::vector<Pattern>& clique_patterns);
 
 private:
     bool initial_state_is_dead_end_ = false;
@@ -63,7 +88,7 @@ private:
     std::vector<ProjectionInfo> dead_end_database_;
     std::vector<ProjectionInfo> clique_database_;
 
-    std::vector<PatternClique> cliques_;
+    std::vector<PatternClique> multiplicative_subcollections;
 
     Statistics statistics_;
 };
