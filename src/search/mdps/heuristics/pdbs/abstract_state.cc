@@ -69,7 +69,7 @@ AbstractState
 AbstractStateMapper::operator()(const GlobalState& state) const
 {
     AbstractState res(0);
-    for (int i = vars_.size() - 1; i >= 0; i--) {
+    for (size_t i = 0; i < vars_.size(); ++i) {
         res.id += multipliers_[i] * state[vars_[i]];
     }
     return res;
@@ -79,7 +79,7 @@ AbstractState
 AbstractStateMapper::operator()(const std::vector<int>& state) const
 {
     AbstractState res(0);
-    for (int i = vars_.size() - 1; i >= 0; i--) {
+    for (size_t i = 0; i < vars_.size(); ++i) {
         res.id += multipliers_[i] * state[vars_[i]];
     }
     return res;
@@ -90,7 +90,7 @@ AbstractStateMapper::from_values(const std::vector<int>& values) const
 {
     assert(values.size() == vars_.size());
     AbstractState res(0);
-    for (int i = vars_.size() - 1; i >= 0; i--) {
+    for (size_t i = 0; i < vars_.size(); ++i) {
         res.id += multipliers_[i] * values[i];
     }
     return res;
@@ -103,8 +103,7 @@ AbstractStateMapper::from_values_partial(
 {
     assert(values.size() == vars_.size());
     AbstractState res(0);
-    for (int i = indices.size() - 1; i >= 0; i--) {
-        const int j = indices[i];
+    for (int j : indices) {
         res.id += multipliers_[j] * values[j];
     }
     return res;
@@ -120,7 +119,7 @@ std::vector<int>
 AbstractStateMapper::to_values(AbstractState abstract_state) const
 {
     std::vector<int> values(vars_.size(), -1);
-    for (int i = vars_.size() - 1; i >= 0; i--) {
+    for (size_t i = 0; i < vars_.size(); ++i) {
         values[i] = ((int)(abstract_state.id / multipliers_[i])) % domains_[i];
     }
     return values;
@@ -132,14 +131,14 @@ AbstractStateMapper::to_values(
     std::vector<int>& values) const
 {
     values.resize(vars_.size());
-    for (int i = vars_.size() - 1; i >= 0; i--) {
+    for (size_t i = 0; i < vars_.size(); ++i) {
         values[i] = ((int)(abstract_state.id / multipliers_[i])) % domains_[i];
     }
 }
 
 AbstractStateToString::AbstractStateToString(
     std::shared_ptr<AbstractStateMapper> state_mapper)
-    : state_mapper_(state_mapper)
+    : state_mapper_(std::move(state_mapper))
 {
 }
 
