@@ -27,23 +27,6 @@ namespace pdbs {
 using ::pdbs::PatternCollectionGenerator;
 using ::pdbs::PatternCollectionInformation;
 
-namespace {
-void dump_projection(std::size_t i, ProbabilisticProjection& projection) {
-    const bool print_transition_labels = true;
-    const bool print_values = true;
-
-    std::ostringstream path;
-    path << "pattern" << i << ".dot";
-
-    dump_graphviz(
-        &projection,
-        g_analysis_objective.get(),
-        path.str(),
-        print_transition_labels,
-        print_values);
-}
-}
-
 struct MaxProbPDBHeuristic::ProjectionInfo {
     ProjectionInfo(
         std::shared_ptr<AbstractStateMapper> state_mapper,
@@ -205,7 +188,7 @@ void MaxProbPDBHeuristic::dump_construction_statistics(std::ostream& out) const 
         << statistics_.average_multiplicative_subcollection_size << std::endl;
 }
 
-void MaxProbPDBHeuristic::dump_statistics() const {
+void MaxProbPDBHeuristic::print_statistics() const {
     std::cout << "\nMaxProb Pattern Databases Statistics:" << std::endl;
     dump_construction_statistics(std::cout);
 }
@@ -255,7 +238,9 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
         statistics_.abstract_states += state_mapper->size();
 
         if (opts.get<bool>("dump_projections")) {
-            dump_projection(i, projection);
+            std::ostringstream path;
+            path << "pattern" << i << ".dot";
+            dump_projection(projection, path.str());
         }
 
         AbstractState s0 = state_mapper->operator()(g_initial_state_values);

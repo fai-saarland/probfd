@@ -1,5 +1,9 @@
 #include "utils.h"
 #include "../../../globals.h"
+#include "../../globals.h"
+#include "probabilistic_projection.h"
+
+#include <sstream>
 
 namespace probabilistic::pdbs {
 
@@ -24,6 +28,20 @@ void dump_pattern(std::ostream& out, PatternID i, const Pattern& p) {
         out << (j > 0 ? ", " : "") << ::g_fact_names[p[j]][0];
     }
     out << "})" << std::flush;
+}
+
+void dump_projection(
+    ProbabilisticProjection& projection,
+    const std::string& path,
+    bool print_transition_labels,
+    bool print_values)
+{
+    dump_graphviz(
+        &projection,
+        g_analysis_objective.get(),
+        path,
+        print_transition_labels,
+        print_values);
 }
 
 }

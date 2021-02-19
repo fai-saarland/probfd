@@ -69,7 +69,7 @@ protected:
 
 private:
     void dump_construction_statistics(std::ostream& out) const;
-    void dump_statistics() const;
+    void print_statistics() const override;
 
     std::shared_ptr<PatternCollection>
     construct_patterns(const options::Options& opts);
