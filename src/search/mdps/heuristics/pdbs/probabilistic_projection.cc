@@ -402,24 +402,25 @@ ProbabilisticProjection::compute_dead_ends()
 
     prepare_regression();
 
+    // Initialize open list with goal states.
     std::deque<AbstractState> open;
     {
         AbstractState partial(0);
         std::vector<int> goal(state_mapper_->get_variables().size(), 0);
         std::vector<int> missing;
         int idx = 0;
-        for (unsigned i = 0; i < projected_goal_.size(); ++i) {
-            while (idx < projected_goal_[i].first) {
+        for (const auto& [var, val] : projected_goal_) {
+            while (idx < var) {
                 missing.push_back(idx++);
             }
-            partial += state_mapper_->from_value_partial(
-                projected_goal_[i].first, projected_goal_[i].second);
-            goal[projected_goal_[i].first] = projected_goal_[i].second;
+            partial += state_mapper_->from_value_partial(var, val);
+            goal[var] = val;
             ++idx;
         }
         while (idx < static_cast<int>(state_mapper_->get_variables().size())) {
             missing.push_back(idx++);
         }
+
         state_mapper_->enumerate(
             missing,
             goal,
@@ -431,25 +432,27 @@ ProbabilisticProjection::compute_dead_ends()
             });
     }
 
-    std::vector<AbstractState> aops;
-    std::vector<int> state_values;
+    // Start regression search.
     while (!open.empty()) {
         const AbstractState s = open.front();
         open.pop_front();
+
+        std::vector<int> state_values;
         state_mapper_->to_values(s, state_values);
+
+        std::vector<AbstractState> aops;
         regression_aops_generator_->generate_applicable_ops(state_values, aops);
         if (aops.empty()) {
             continue;
         }
-        const AbstractState* eff = &aops[0];
-        for (int j = aops.size(); j > 0; --j, ++eff) {
-            const AbstractState t = s + *eff;
+
+        for (const AbstractState eff : aops) {
+            const AbstractState t = s + eff;
             if (!result.get(t)) {
                 result.set(t, true);
                 open.push_back(t);
             }
         }
-        aops.clear();
     }
 
     result.negate_all();
