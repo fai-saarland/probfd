@@ -1,7 +1,8 @@
 #include "utils.h"
 #include "../../../globals.h"
 #include "../../globals.h"
-#include "probabilistic_projection.h"
+#include "maxprob_projection.h"
+#include "expcost_projection.h"
 
 #include <sstream>
 
@@ -31,14 +32,13 @@ void dump_pattern(std::ostream& out, PatternID i, const Pattern& p) {
 }
 
 void dump_projection(
-    ProbabilisticProjection& projection,
+    MaxProbProjection& projection,
     const std::string& path,
     bool print_transition_labels,
     bool print_values)
 {
     dump_graphviz(
-        &projection,
-        g_analysis_objective.get(),
+        projection,
         path,
         print_transition_labels,
         print_values);

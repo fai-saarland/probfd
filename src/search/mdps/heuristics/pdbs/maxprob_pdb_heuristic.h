@@ -21,7 +21,7 @@ namespace pdbs {
 class ProbabilisticProjection;
 class QuantitativeResultStore;
 class QualitativeResultStore;
-class AbstractAnalysisResult;
+class MaxProbAbstractAnalysisResult;
 
 class MaxProbPDBHeuristic : public GlobalStateEvaluator {
 private:

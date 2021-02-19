@@ -11,7 +11,7 @@
 #include "../../../analysis_objective.h"
 #include "../../../globals.h"
 #include "../../../logging.h"
-#include "../probabilistic_projection.h"
+#include "../expcost_projection.h"
 #include "../../../analysis_objectives/expected_cost_objective.h"
 #include "../../../../algorithms/max_cliques.h"
 #include "../multiplicativity.h"
@@ -31,7 +31,7 @@ using ::pdbs::PatternCollectionInformation;
 struct ExpectedCostPDBHeuristic::ProjectionInfo {
     ProjectionInfo(
         std::shared_ptr<AbstractStateMapper> state_mapper,
-        AbstractAnalysisResult& result);
+        ExpCostAbstractAnalysisResult& result);
 
     std::shared_ptr<AbstractStateMapper> state_mapper;
     std::unique_ptr<QuantitativeResultStore> values;
@@ -42,7 +42,7 @@ struct ExpectedCostPDBHeuristic::ProjectionInfo {
 
 ExpectedCostPDBHeuristic::ProjectionInfo::ProjectionInfo(
     std::shared_ptr<AbstractStateMapper> state_mapper,
-    AbstractAnalysisResult& result)
+    ExpCostAbstractAnalysisResult& result)
     : state_mapper(std::move(state_mapper))
     , values(result.value_table)
 {
@@ -115,7 +115,7 @@ void ExpectedCostPDBHeuristic::construct_database(
         }
 
         // Set up the projection state space
-        ProbabilisticProjection projection(p, ::g_variable_domain);
+        ExpCostProjection projection(p, ::g_variable_domain);
         auto state_mapper = projection.get_abstract_state_mapper();
 
         // If we exceed max_states, this will be the last projection
@@ -129,8 +129,7 @@ void ExpectedCostPDBHeuristic::construct_database(
         //}
 
         // Compute the value table for this projection
-        AbstractAnalysisResult result =
-            compute_value_table(&projection, g_analysis_objective.get());
+        ExpCostAbstractAnalysisResult result = compute_value_table(projection);
 
         // Add to the list of PDB heuristics and update statistics.
         database_.emplace_back(state_mapper, result);

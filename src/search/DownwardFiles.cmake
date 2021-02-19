@@ -675,6 +675,8 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/quantitative_result_store
         mdps/heuristics/pdbs/engine_interfaces
         mdps/heuristics/pdbs/probabilistic_projection
+        mdps/heuristics/pdbs/maxprob_projection
+        mdps/heuristics/pdbs/expcost_projection
         mdps/heuristics/pdbs/maxprob_pdb_heuristic
         mdps/heuristics/pdbs/multiplicativity
         mdps/heuristics/pdbs/syntactic_projection

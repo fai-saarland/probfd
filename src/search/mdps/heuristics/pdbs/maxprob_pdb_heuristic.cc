@@ -12,7 +12,7 @@
 #include "../../logging.h"
 #include "../algorithms/max_cliques.h"
 #include "multiplicativity.h"
-#include "probabilistic_projection.h"
+#include "maxprob_projection.h"
 #include "qualitative_result_store.h"
 #include "quantitative_result_store.h"
 #include "utils.h"
@@ -30,7 +30,7 @@ using ::pdbs::PatternCollectionInformation;
 struct MaxProbPDBHeuristic::ProjectionInfo {
     ProjectionInfo(
         std::shared_ptr<AbstractStateMapper> state_mapper,
-        AbstractAnalysisResult& result);
+        MaxProbAbstractAnalysisResult& result);
 
     std::shared_ptr<AbstractStateMapper> state_mapper;
     std::unique_ptr<QuantitativeResultStore> values;
@@ -43,7 +43,7 @@ struct MaxProbPDBHeuristic::ProjectionInfo {
 
 MaxProbPDBHeuristic::ProjectionInfo::ProjectionInfo(
     std::shared_ptr<AbstractStateMapper> state_mapper,
-    AbstractAnalysisResult& result)
+    MaxProbAbstractAnalysisResult& result)
     : state_mapper(std::move(state_mapper))
     , values(result.value_table)
     , dead_ends(result.dead_ends)
@@ -228,7 +228,7 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
             break;
         }
 
-        ProbabilisticProjection projection(p, ::g_variable_domain);
+        MaxProbProjection projection(p, ::g_variable_domain);
         auto state_mapper = projection.get_abstract_state_mapper();
 
         if (max_states - state_mapper->size() < statistics_.abstract_states) {
@@ -244,20 +244,18 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
         }
 
         AbstractState s0 = state_mapper->operator()(g_initial_state_values);
-        AbstractAnalysisResult result;
+        MaxProbAbstractAnalysisResult result;
 
         if (opts.get<bool>("precompute_dead_ends")) {
             QualitativeResultStore dead_ends = projection.compute_dead_ends();
             initial_state_is_dead_end_ = dead_ends.get(s0);
             if (!initial_state_is_dead_end_) {
-                result = compute_value_table(
-                    &projection, g_analysis_objective.get(), &dead_ends);
+                result = compute_value_table(projection, &dead_ends);
                 result.dead_ends =
                     new QualitativeResultStore(std::move(dead_ends));
             }
         } else {
-            result =
-                compute_value_table(&projection, g_analysis_objective.get());
+            result = compute_value_table(projection);
             initial_state_is_dead_end_ = result.dead_ends->get(s0);
         }
 
