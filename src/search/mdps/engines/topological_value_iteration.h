@@ -270,9 +270,7 @@ public:
 private:
     // using value_t = value_type::value_t;
 
-    struct NoStore {
-        bool& operator[](const StateID&) const;
-    };
+    struct NoStore;
 
     struct StateInfo {
         static constexpr const unsigned NEW = 0;
@@ -412,6 +410,9 @@ private:
         Store& value_store,
         BoolStore* dead)
     {
+        constexpr bool is_real_store = std::is_same_v<BoolStore, NoStore>;
+        (void) dead; // silence warnings
+
         assert(state_info.status == StateInfo::NEW);
         // std::cout << "push state " << state_id <<
         // std::endl;
@@ -459,7 +460,7 @@ private:
             state_info.status = StateInfo::CLOSED;
             if (state_info.dead) {
                 ++statistics_.dead_ends;
-                if (!std::is_same<BoolStore, NoStore>::value) {
+                if constexpr (!is_real_store) {
                     dead->operator[](state_id) = true;
                 }
             }
@@ -512,7 +513,7 @@ private:
             if (!ExpandGoalStates || state_info.status != StateInfo::TERMINAL) {
                 ++statistics_.dead_ends;
                 state_value.set(dead_end_value_, dead_end_value_);
-                if (!std::is_same<BoolStore, NoStore>::value) {
+                if constexpr (!is_real_store) {
                     dead->operator[](state_id) = true;
                 }
             }
@@ -541,6 +542,9 @@ private:
         Store& value_store,
         BoolStore* is_dead_end)
     {
+        constexpr bool is_real_store = !std::is_same_v<BoolStore, NoStore>;
+        (void) is_dead_end; // silence warnings
+
         {
             StateID istate_id = this->get_state_id(initial_state);
             StateInfo& iinfo = state_information_[istate_id];
@@ -639,8 +643,7 @@ private:
                                 do {
                                     it->value->set(
                                         dead_end_value_, dead_end_value_);
-                                    if (!std::is_same<BoolStore, NoStore>::
-                                            value) {
+                                    if constexpr (is_real_store) {
                                         is_dead_end->operator[](it->state_id) =
                                             true;
                                     }
