@@ -19,6 +19,7 @@
 #include <set>
 #include <sstream>
 #include <unordered_map>
+#include <numeric>
 
 namespace probabilistic {
 namespace pdbs {
@@ -59,65 +60,78 @@ ProbabilisticProjection::setup_abstract_goal()
     unsigned num_goal_states = 1;
 
     std::vector<int> goal(variables.size(), 0);
-    for (const auto& p : g_goal) {
-        const int idx = var_index_[p.first];
+    for (const auto& var_val : g_goal) {
+        const int idx = var_index_[var_val.first];
         if (idx != -1) {
-            projected_goal_.emplace_back(idx, p.second);
-            goal[idx] = p.second;
+            std::pair<int, int> p(idx, var_val.second);
+            // Insert sorted
+            auto it = std::upper_bound(
+                projected_goal_.begin(), projected_goal_.end(), p);
+            projected_goal_.insert(it, p);
+            goal[idx] = var_val.second;
         }
     }
-    std::sort(projected_goal_.begin(), projected_goal_.end());
 
-    AbstractState base_goal = state_mapper_->from_values(goal);
-    std::vector<int> missing;
+    std::vector<int> non_goal_vars;
     int v = 0;
-    for (unsigned i = 0; i < projected_goal_.size(); i++) {
-        while (v < projected_goal_[i].first) {
+    for (const auto& var_val : projected_goal_) {
+        while (v < var_val.first) {
             num_goal_states = num_goal_states * domains[v];
-            missing.push_back(v++);
+            non_goal_vars.push_back(v++);
         }
         v++;
     }
     while (v < static_cast<int>(variables.size())) {
         num_goal_states = num_goal_states * domains[v];
-        missing.push_back(v++);
+        non_goal_vars.push_back(v++);
     }
 
     if (projected_goal_.empty()) {
         goal_states_.negate_all();
     } else if (2 * num_goal_states >= state_mapper_->size()) {
-        missing.clear();
-        for (int i = 0; i < static_cast<int>(variables.size()); ++i) {
-            missing.push_back(i);
-        }
+        // Goal state majority -> insert non-goal states, negate the lazy set
+        non_goal_vars.clear();
+
+        std::vector<int> free_vars(variables.size());
+        std::iota(free_vars.begin(), free_vars.end(), 0);
+
         std::fill(goal.begin(), goal.end(), 0);
-        base_goal = AbstractState(0);
-        for (unsigned i = 0; i < projected_goal_.size(); ++i) {
-            int idx = projected_goal_[i].first;
-            missing.erase(
-                std::lower_bound(missing.begin(), missing.end(), idx));
-            for (int val = 0; val < domains[idx]; ++val) {
-                if (val != projected_goal_[i].second) {
-                    goal[idx] = val;
-                    base_goal += state_mapper_->from_value_partial(idx, val);
+        AbstractState part_goal(0);
+
+        for (const auto& [g_var, g_val] : projected_goal_) {
+            // Fix the goal variable...
+            free_vars.erase(
+                std::lower_bound(
+                    free_vars.begin(), free_vars.end(), g_var));
+
+            // ...to any non-goal value to obtain the non-goal states
+            for (int val = 0; val < domains[g_var]; ++val) {
+                if (val != g_val) {
+                    goal[g_var] = val;
+                    part_goal += state_mapper_->from_value_partial(g_var, val);
                     state_mapper_->enumerate(
-                        missing,
+                        free_vars,
                         goal,
-                        [this, base_goal](
-                            AbstractState missing, const std::vector<int>&) {
-                            goal_states_.set(base_goal + missing, true);
+                        [this, part_goal](
+                            AbstractState state, const std::vector<int>&) {
+                            goal_states_.set(part_goal + state, true);
                         });
-                    base_goal -= state_mapper_->from_value_partial(idx, val);
+                    part_goal -= state_mapper_->from_value_partial(g_var, val);
                 }
             }
-            goal[idx] = projected_goal_[i].second;
-            base_goal += state_mapper_->from_value_partial(
-                idx, projected_goal_[i].second);
+
+            goal[g_var] = g_val;
+            part_goal += state_mapper_->from_value_partial(g_var, g_val);
         }
+
+        // Negate lazy set
         goal_states_.negate_all();
     } else {
+        // Goal state minority -> insert goal states
+        AbstractState base_goal = state_mapper_->from_values(goal);
+
         state_mapper_->enumerate(
-            missing,
+            non_goal_vars,
             goal,
             [this, base_goal](AbstractState missing, const std::vector<int>&) {
                 goal_states_.set(base_goal + missing, true);
