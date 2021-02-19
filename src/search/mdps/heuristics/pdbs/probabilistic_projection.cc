@@ -603,7 +603,8 @@ ProbabilisticProjection::compute_value_table_expected_cost(
     // FIXME Copying is expensive
     for (auto it = state_id_map.indirection_begin();
          it != state_id_map.indirection_end();
-         ++it) {
+         ++it)
+    {
         const StateID state_id(it->second);
         const AbstractState s(it->first);
         result.value_table->set(s, value_table[state_id].value);
@@ -707,7 +708,8 @@ ProbabilisticProjection::compute_value_table(
     const bool store_deads = dead_ends == nullptr;
     for (auto it = state_id_map.indirection_begin();
          it != state_id_map.indirection_end();
-         ++it) {
+         ++it)
+    {
         const StateID state_id(it->second);
         const AbstractState s(it->first);
         if (deads[state_id]) {
