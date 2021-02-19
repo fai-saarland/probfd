@@ -195,6 +195,8 @@ public:
     */
     GlobalState get_successor_state(const GlobalState &predecessor, const GlobalOperator &op);
 
+    GlobalState get_successor_state(const GlobalState &predecessor, const GlobalOperator &op, int var, int val);
+
     PackedStateBin* get_temporary_successor_state(const GlobalState& s, const GlobalOperator& op);
     void remove_temporary_state();
     GlobalState make_permanent();

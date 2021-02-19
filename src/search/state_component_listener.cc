@@ -19,7 +19,7 @@ StateComponentListener::initialize()
 void
 StateComponentListener::print_statistics() const
 {
-    std::cout << "SCC notification time: " << timer_ << std::endl;
+    std::cout << "  Heuristic refinement: " << timer_ << std::endl;
     statistics();
 }
 

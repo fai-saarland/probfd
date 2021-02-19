@@ -102,8 +102,9 @@ void EagerSearch::initialize() {
 
 
 void EagerSearch::statistics() const {
-    search_progress.print_statistics();
-    search_space.statistics();
+    for (const auto& h : heuristics) {
+        h->print_statistics();
+    }
 }
 
 SearchStatus EagerSearch::step() {
@@ -460,7 +461,7 @@ static std::shared_ptr<SearchEngine> _parse_greedy(options::OptionParser &parser
         "is equivalent to\n"
         "```\n--search eager(single(eval1))\n```\n", true);
 
-    parser.add_list_option<std::shared_ptr<Evaluator> >("evals", "scalar evaluators");
+    parser.add_list_option<std::shared_ptr<Heuristic> >("evals", "scalar evaluators");
     parser.add_list_option<std::shared_ptr<Heuristic> >(
         "preferred",
         "use preferred operators of these heuristics", "[]");
@@ -471,12 +472,15 @@ static std::shared_ptr<SearchEngine> _parse_greedy(options::OptionParser &parser
 
 
     options::Options opts = parser.parse();
-    opts.verify_list_non_empty<std::shared_ptr<Evaluator> >("evals");
+    opts.verify_list_non_empty<std::shared_ptr<Heuristic> >("evals");
 
     std::shared_ptr<EagerSearch> engine = 0;
     if (!parser.dry_run()) {
-        vector<std::shared_ptr<Evaluator> > evals =
-            opts.get_list<std::shared_ptr<Evaluator> >("evals");
+        vector<std::shared_ptr<Evaluator> > evals;
+        for (auto h :
+            opts.get_list<std::shared_ptr<Heuristic> >("evals")) {
+            evals.emplace_back(h);
+        }
         vector<std::shared_ptr<Heuristic> > preferred_list =
             opts.get_list<std::shared_ptr<Heuristic> >("preferred");
         std::shared_ptr<OpenListFactory> open = 0;

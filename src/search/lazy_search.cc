@@ -213,7 +213,9 @@ void LazySearch::reward_progress() {
 }
 
 void LazySearch::statistics() const {
-    search_progress.print_statistics();
+    for (const auto& h : heuristics) {
+        h->print_statistics();
+    }
 }
 
 

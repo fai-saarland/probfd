@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../new_state_handler.h"
-#include "../algorithms/types_storage.h"
+#include "../storage/per_state_storage.h"
 
 #include <memory>
 
@@ -20,7 +20,7 @@ public:
     explicit StoreHeuristic(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
-    int get_cached_h_value(const GlobalState& s);
+    int get_cached_h_value(const StateID& s);
 
     virtual void touch(const GlobalState& s) override;
     virtual void touch_goal(const GlobalState& s) override;
@@ -29,7 +29,7 @@ public:
 private:
     const bool fetch_only_;
     std::shared_ptr<Heuristic> heuristic_;
-    algorithms::storage::PerStateStorage<int> hstore_;
+    storage::PerStateStorage<int> hstore_;
 };
 
 } // namespace new_state_handlers

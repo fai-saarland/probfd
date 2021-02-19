@@ -277,7 +277,7 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
         }
 
 #ifndef NDEBUG
-        dump_pattern(g_debug, i, p);
+        dump_pattern(logging::out, i, p);
 #endif
 
         if (initial_state_is_dead_end_) {
@@ -285,9 +285,10 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
             clique_database_.clear();
             dead_end_database_.clear();
 #if defined(NDEBUG)
-            dump_pattern_short(g_debug, i, p);
+            dump_pattern_short(logging::out, i, p);
 #endif
-            g_log << " identifies initial state as dead-end!" << std::endl;
+            logging::out << " identifies initial state as dead-end!"
+                         << std::endl;
             delete (result.value_table);
             delete (result.one_states);
             delete (result.dead_ends);
@@ -296,8 +297,8 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
 
         if (result.one == result.reachable_states) {
 #ifndef NDEBUG
-            g_debug << " **trivial projection** ~~> estimate(s0) = "
-                    << result.one_state_reward << std::endl;
+            logging::out << " **trivial projection** ~~> estimate(s0) = "
+                         << result.one_state_reward << std::endl;
 #endif
             delete (result.value_table);
             delete (result.one_states);
@@ -314,17 +315,18 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
             assert(
                 (result.one_states != nullptr && result.one_states->get(s0))
                 || result.value_table->has_value(s0));
-            g_debug << " ~~> estimate(s0) = "
-                    << ((result.one_states != nullptr
-                         && result.one_states->get(s0))
-                        ? value_type::one : result.value_table->get(s0))
-                    << std::endl;
+            logging::out << " ~~> estimate(s0) = "
+                         << (result.one_states != nullptr &&
+                             result.one_states->get(s0)
+                            ? value_type::one
+                            : result.value_table->get(s0))
+                         << std::endl;
         }
 #endif
 
         if (result.one + result.dead == result.reachable_states) {
 #ifndef NDEBUG
-            g_debug << " **deterministic projection**";
+            logging::out << " **deterministic projection**";
 #endif
             delete (result.value_table);
             delete (result.one_states);

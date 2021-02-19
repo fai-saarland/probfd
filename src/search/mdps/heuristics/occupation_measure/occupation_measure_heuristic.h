@@ -19,10 +19,16 @@ public:
     static void add_options_to_parser(options::OptionParser& parser);
 
     static void generate_hpom_lp(
-            lp::LPSolver& lp_solver,
-            std::vector<lp::LPVariable>& vars,
-            std::vector<lp::LPConstraint>& constraints,
-            std::vector<int>& offsets);
+        lp::LPSolver& lp_solver,
+        std::vector<lp::LPVariable>& vars,
+        std::vector<lp::LPConstraint>& constraints,
+        std::vector<int>& offsets);
+
+    static void generate_hpom_lp_expcost(
+        lp::LPSolver& lp_solver,
+        std::vector<lp::LPVariable>& vars,
+        std::vector<lp::LPConstraint>& constraints,
+        std::vector<int>& offsets);
 
 protected:
     virtual EvaluationResult evaluate(const GlobalState& state) override;

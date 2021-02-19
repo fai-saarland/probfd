@@ -46,6 +46,10 @@ int main(int argc, const char **argv) {
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 
+    std::cout << std::endl;
+    std::cout << "Initialization completed! [t=" << utils::g_timer << "]" << std::endl;
+    std::cout << std::endl;
+
     utils::Timer search_timer;
     engine->solve();
     search_timer.stop();
@@ -53,6 +57,8 @@ int main(int argc, const char **argv) {
 
     engine->save_result_if_necessary();
     engine->print_statistics();
+
+    cout << endl;
     cout << "Search time: " << search_timer << endl;
     cout << "Total time: " << utils::g_timer << endl;
 

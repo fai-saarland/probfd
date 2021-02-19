@@ -1,16 +1,23 @@
 #pragma once
 
 #include "../global_state.h"
-#include "algorithms/types_heuristic_search.h"
-#include "probabilistic_operator.h"
+#include "engine_interfaces/new_state_handler.h"
 
 #include <memory>
 #include <vector>
 
 namespace probabilistic {
 
-using NewGlobalStateHandler =
-    algorithms::NewStateHandler<GlobalState, const ProbabilisticOperator*>;
+template<>
+class NewStateHandler<GlobalState> {
+public:
+    virtual ~NewStateHandler() = default;
+    virtual void touch(const GlobalState&) { }
+    virtual void touch_dead_end(const GlobalState&) { }
+    virtual void touch_goal(const GlobalState&) { }
+};
+
+using NewGlobalStateHandler = NewStateHandler<GlobalState>;
 
 class NewGlobalStateHandlerList : public NewGlobalStateHandler {
 public:

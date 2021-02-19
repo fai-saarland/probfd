@@ -23,6 +23,10 @@ protected:
 
     lp::LPSolver lp_solver_;
     std::vector<int> constraint_offsets_;
+
+private:
+    void load_expcost_lp();
+    void load_maxprob_lp();
 };
 
 } // namespace occupation_measure_heuristic

@@ -17,7 +17,12 @@
 
 #include "mdps/value_type.h"
 #include "mdps/globals.h"
+#include "mdps/analysis_objectives/goal_probability_objective.h"
+#include "mdps/analysis_objectives/expected_cost_objective.h"
 #include "operator_cost.h"
+
+#include "mdps/analysis_objectives/goal_probability_objective.h"
+#include "mdps/analysis_objectives/expected_cost_objective.h"
 
 #include <algorithm>
 #include <vector>
@@ -156,6 +161,8 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
     bool build_causal_graph = true;
     bool build_successor_generator = true;
 
+    bool expected_cost = false;
+
     for (int i = 1; i < argc; ++i) {
         string arg = sanitize_arg_string(argv[i]);
 
@@ -170,12 +177,15 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             if (i + 1 == argc) {
                 throw ArgError("missing argument after " + arg);
             }
-            probabilistic::g_step_bound = parse_int_arg(arg, argv[++i]);
-            probabilistic::g_steps_bounded = true;
-            if (probabilistic::g_step_bound < 0) {
-                throw ArgError("budget must be non-negative");
+            const std::string budget = argv[++i];
+            if (budget != "infinity") {
+                probabilistic::g_step_bound = parse_int_arg(arg, budget);
+                probabilistic::g_steps_bounded = true;
+                if (probabilistic::g_step_bound < 0) {
+                    throw ArgError("budget must be non-negative");
+                }
             }
-        } else if (arg == "--step-cost-type") {
+        } else if (arg == "--step-cost-type" || arg == "--budget-cost-type") {
             active = true;
             if (i + 1 == argc) {
                 throw ArgError("missing argument after " + arg);
@@ -189,6 +199,8 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
                 probabilistic::g_step_cost_type = PLUSONE;
             } else if (type == "zero") {
                 probabilistic::g_step_cost_type = ZERO;
+            } else if (type == "minone") {
+                probabilistic::g_step_cost_type = MINONE;
             } else {
                 throw ArgError("unknown operator cost type " + type);
             }
@@ -237,9 +249,9 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
                 throw ArgError("missing argument after " + arg);
             }
             string prop = sanitize_arg_string(argv[i+1]);
-            if (prop == "goalprob") {
-            // } else if (prop == "expcost") {
-            //     expected_cost = true;
+            if (prop == "maxprob") {
+            } else if (prop == "expcost") {
+                expected_cost = true;
             } else {
                 throw ArgError("unknown property " + prop);
             }
@@ -251,8 +263,6 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
     }
 
     if (!dry_run) {
-        probabilistic::prepare_globals();
-
         if (build_causal_graph) {
             cout << "building causal graph..." << flush;
             g_causal_graph = new CausalGraph;
@@ -271,6 +281,18 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
         //                 probabilistic::g_step_cost_type,
         //                 probabilistic::value_type::from_double(give_up_cost));
         // }
+
+        std::shared_ptr<probabilistic::AnalysisObjective> obj = nullptr;
+        if (expected_cost) {
+            obj = std::make_shared<probabilistic::ExpectedCostObjective>();
+            std::cout << "expected cost analysis." << std::endl;
+        } else {
+            obj = std::make_shared<probabilistic::GoalProbabilityObjective>();
+            std::cout << "max goal prob analysis." << std::endl;
+        }
+
+        probabilistic::prepare_globals(obj);
+        probabilistic::print_task_info();
     }
 
     return parse_cmd_line_aux(args, registry, dry_run);

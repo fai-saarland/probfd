@@ -21,20 +21,9 @@ GoalDistanceOpenList::add_options_to_parser(options::OptionParser& p)
 }
 
 int
-GoalDistanceOpenList::get_key(const StateID&, const GlobalState& state)
+GoalDistanceOpenList::get_key(const StateID& state_id)
 {
-    return heuristic_->get_cached_h_value(state);
-}
-
-int
-GoalDistanceOpenList::get_key(
-    const StateID&,
-    const GlobalState&,
-    const ProbabilisticOperator*,
-    const value_type::value_t&,
-    const GlobalState& state)
-{
-    return heuristic_->get_cached_h_value(state);
+    return heuristic_->get_cached_h_value(state_id);
 }
 
 static Plugin<GlobalStateOpenList> _plugin(

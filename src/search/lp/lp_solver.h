@@ -79,6 +79,7 @@ public:
     // Coefficients must be added without duplicate indices.
     void insert(int index, double coefficient);
     void dump() const;
+    double remove(int index);
 };
 
 struct LPVariable {

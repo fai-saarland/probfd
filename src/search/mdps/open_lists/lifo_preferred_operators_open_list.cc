@@ -48,20 +48,17 @@ LifoPreferredOperatorsOpenList::pop()
 }
 
 void
-LifoPreferredOperatorsOpenList::push(
-    const StateID& state_id,
-    const GlobalState&)
+LifoPreferredOperatorsOpenList::push(const StateID& state_id)
 {
     queue1_.push_back(state_id);
 }
 
 void
 LifoPreferredOperatorsOpenList::push(
-    const StateID& stateid,
-    const GlobalState& parent,
+    const StateID& parent,
     const ProbabilisticOperator* op,
     const value_type::value_t&,
-    const GlobalState&)
+    const StateID& stateid)
 {
     if (pref_ops_->get_cached_ops(parent).contains(op)) {
         queue1_.push_back(stateid);

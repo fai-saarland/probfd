@@ -3,10 +3,9 @@
 #include "../plugin.h"
 
 namespace probabilistic {
-namespace algorithms {
 
 EvaluationResult
-StateEvaluationFunction<GlobalState>::operator()(const GlobalState& state)
+StateEvaluator<GlobalState>::operator()(const GlobalState& state)
 {
     return this->evaluate(state);
 }
@@ -14,5 +13,4 @@ StateEvaluationFunction<GlobalState>::operator()(const GlobalState& state)
 static PluginTypePlugin<GlobalStateEvaluator>
     _plugin("GlobalStateEvaluator", "");
 
-} // namespace algorithms
 } // namespace probabilistic

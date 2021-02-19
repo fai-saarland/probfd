@@ -34,13 +34,14 @@ LifoOpenList::pop()
 }
 
 void
-LifoOpenList::push(const StateID& state_id, const GlobalState&)
+LifoOpenList::push(const StateID& state_id)
 {
     queue_.push_back(state_id);
 }
 
-static Plugin<GlobalStateOpenList>
-    _plugin("lifo", options::parse<GlobalStateOpenList, LifoOpenList>);
+static Plugin<GlobalStateOpenList> _plugin(
+    "lifo_open_list",
+    options::parse<GlobalStateOpenList, LifoOpenList>);
 
 } // namespace open_lists
 } // namespace probabilistic

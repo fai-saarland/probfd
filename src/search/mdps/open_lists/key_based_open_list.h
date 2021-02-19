@@ -1,6 +1,6 @@
 #pragma once
 
-#include "open_list.h"
+#include "../open_list.h"
 
 #include <deque>
 #include <map>
@@ -70,32 +70,33 @@ public:
         bucket_map_.clear();
     }
 
-    virtual void
-    push(const StateID& state_id, const GlobalState& state) override
+    virtual void push(const StateID& state_id) override
     {
-        Key k = get_key(state_id, state);
+        Key k = get_key(state_id);
         push(k, state_id);
     }
 
     virtual void push(
-        const StateID& state_id,
-        const GlobalState& parent,
+        const StateID& parent,
         const ProbabilisticOperator* op,
         const value_type::value_t& prob,
-        const GlobalState& state) override
+        const StateID& state_id) override
     {
-        Key k = get_key(state_id, parent, op, prob, state);
+        Key k = get_key(parent, op, prob, state_id);
         push(k, state_id);
     }
 
 protected:
-    virtual Key get_key(const StateID& state_id, const GlobalState& state) = 0;
+    virtual Key get_key(const StateID& state_id) = 0;
+
     virtual Key get_key(
-        const StateID& state_id,
-        const GlobalState& parent,
-        const ProbabilisticOperator* op,
-        const value_type::value_t& prob,
-        const GlobalState& state) = 0;
+        const StateID&,
+        const ProbabilisticOperator*,
+        const value_type::value_t&,
+        const StateID& state_id)
+    {
+        return this->get_key(state_id);
+    }
 
 private:
     void push(const Key& key, const StateID& stateid)

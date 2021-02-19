@@ -180,3 +180,9 @@ void RelaxationHeuristic::simplify() {
 
     cout << " done! [" << unary_operators.size() << " unary operators]" << endl;
 }
+
+int
+RelaxationHeuristic::get_proposition_cost(int var, int val) const
+{
+    return propositions[var][val].cost;
+}

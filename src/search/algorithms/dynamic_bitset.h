@@ -60,6 +60,12 @@ public:
           num_bits(num_bits) {
     }
 
+    void negate() {
+        for (unsigned pos = 0; pos < blocks.size(); ++pos) {
+            blocks[pos] = ~blocks[pos];
+        }
+    }
+
     std::size_t size() const {
         return num_bits;
     }

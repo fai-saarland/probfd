@@ -1,6 +1,6 @@
 #pragma once
 
-#include "open_list.h"
+#include "../open_list.h"
 
 #include <deque>
 
@@ -20,7 +20,7 @@ public:
     virtual unsigned size() const override;
     virtual void clear() override;
     virtual StateID pop() override;
-    virtual void push(const StateID& state_id, const GlobalState& state) override;
+    virtual void push(const StateID& state_id) override;
 
 private:
     std::deque<StateID> queue_;

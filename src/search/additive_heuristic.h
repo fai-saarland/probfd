@@ -51,6 +51,7 @@ protected:
     // Common part of h^add and h^ff computation.
     int compute_add_and_ff(const GlobalState &state);
 public:
+    void compute_proposition_costs(const std::vector<int>& state_values);
     AdditiveHeuristic(const options::Options &options);
     ~AdditiveHeuristic();
 };

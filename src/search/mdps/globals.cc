@@ -7,7 +7,6 @@
 #include "../utils/hash.h"
 #include "../utils/timer.h"
 #include "analysis_objective.h"
-#include "goal_probability_objective.h"
 
 #include <algorithm>
 #include <cassert>
@@ -207,16 +206,16 @@ reconstruct_probabilistic_operators()
             std::move(create_probabilistic_outcomes(
                 outcome_assignment[i], probabilities, dummy_refs)));
     }
-    std::cout << " " << dummy_refs << " dummy outcome(s) ..." << std::endl;
+    std::cout << " introduced " << dummy_refs << " dummy outcome(s)...";
     // if (!dummy_refs) {
     //     ::g_operators.pop_back();
     // }
 }
 
 void
-prepare_globals()
+prepare_globals(std::shared_ptr<AnalysisObjective> objective)
 {
-    g_analysis_objective = std::make_shared<GoalProbabilityObjective>();
+    g_analysis_objective = objective;
 
     std::cout << "reconstructing probabilistic operators..." << std::flush;
     reconstruct_probabilistic_operators();
@@ -247,13 +246,7 @@ prepare_globals()
         ::g_operators[op_id].set_id(op_id);
     }
 
-    unsigned outcomes = 0;
-    unsigned ops = 0;
     for (int i = g_operators.size() - 1; i >= 0; i--) {
-        outcomes += g_operators[i].num_outcomes();
-        if (g_operators[i].num_outcomes() > 1) {
-            ops++;
-        }
 #ifndef NDEBUG
         value_type::value_t sum = 0;
         for (int j = g_operators[i].num_outcomes() - 1; j >= 0; j--) {
@@ -275,21 +268,54 @@ prepare_globals()
         assert(value_type::approx_equal()(sum, value_type::one));
 #endif
     }
-    std::cout << "Probabilistic operators: " << g_operators.size() << std::endl;
-    std::cout << "Probabilistic operators with stochastic effects: " << ops
-              << std::endl;
-    std::cout << "Probabilistic outcomes: " << outcomes << " ("
-              << ::g_operators.size() << ")" << std::endl;
-    std::cout << "Epsilon: " << value_type::g_epsilon << std::endl;
+}
 
-    std::cout << "Step bound: ";
+void
+print_task_info()
+{
+    unsigned prob_ops = 0;
+    unsigned outcomes = 0;
+    for (int i = g_operators.size() - 1; i >= 0; i--) {
+        const ProbabilisticOperator& op = g_operators[i];
+        outcomes += op.num_outcomes();
+        prob_ops += (op.num_outcomes() > 1);
+    }
+    unsigned orig_values = 0;
+    unsigned values = 0;
+    for (int var = g_variable_domain.size() - 1; var >= 0; --var) {
+        values += g_variable_domain[var];
+        orig_values += g_variable_domain[var];
+    }
+    if (g_step_var >= 0) {
+        values += g_step_bound + 1;
+    }
+    std::cout << std::endl;
+    std::cout << "Planning task:" << std::endl;
+    std::cout << "  State variables: " << g_initial_state_values.size()
+              << std::endl;
+    std::cout << "  State variable values: " << values << " (" << orig_values
+              << " excluding step variable)" << std::endl;
+    std::cout << "  State size: "
+              << (g_state_packer->get_num_bins()
+                  * g_state_packer->get_bin_size_in_bytes())
+              << " bytes" << std::endl;
+    std::cout << "  Operators: " << g_operators.size() << std::endl;
+    std::cout << "  Operators with stochastic effects: " << prob_ops
+              << std::endl;
+    std::cout << "  Operator outcomes: " << outcomes << " ("
+              << ::g_operators.size() << " without dummy outcomes)"
+              << std::endl;
+
+    std::cout << "  Step bound: ";
     if (g_steps_bounded)
         std::cout << g_step_bound;
     else
         std::cout << "unbounded";
     std::cout << std::endl;
 
-    std::cout << "Step operator cost type: " << g_step_cost_type << std::endl;
+    std::cout << "  Step operator cost type: " << g_step_cost_type << std::endl;
+
+    std::cout << "  Epsilon: " << value_type::g_epsilon << std::endl;
 }
 
 bool g_probabilistic_mode_enabled = true;

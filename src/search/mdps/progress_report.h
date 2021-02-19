@@ -17,6 +17,7 @@ public:
         const bool enabled = true);
     ~ProgressReport() = default;
 
+    void print();
     void operator()();
 
     void enable();
@@ -29,6 +30,9 @@ public:
         std::function<value_type::value_t()> getter);
 
 private:
+    void print_progress();
+    bool extract_values();
+
     const value_type::value_t min_change_;
     bool enabled_;
     std::ostream* out_;

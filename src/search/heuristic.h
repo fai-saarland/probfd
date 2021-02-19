@@ -34,6 +34,7 @@ protected:
     // preferred operators for this heuristic once.
     void set_preferred(const GlobalOperator *op);
     int get_adjusted_cost(const GlobalOperator &op) const;
+    void ensure_initialized();
 public:
     Heuristic(const options::Options &options);
     virtual ~Heuristic();
@@ -57,6 +58,8 @@ public:
 
     void set_evaluator_value(int val);
     OperatorCost get_cost_type() const {return cost_type; }
+
+    virtual void print_statistics() const {}
 
     static void add_options_to_parser(options::OptionParser &parser);
     static options::Options default_options();

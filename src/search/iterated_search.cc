@@ -84,7 +84,7 @@ SearchStatus IteratedSearch::step() {
             set_plan(found_plan);
         }
     }
-    current_search->statistics();
+    current_search->print_statistics();
     search_progress.inc_expanded(
         current_search->get_search_progress().get_expanded());
     search_progress.inc_evaluated_states(
@@ -125,8 +125,8 @@ SearchStatus IteratedSearch::step_return_value() {
 }
 
 void IteratedSearch::statistics() const {
-    cout << "Cumulative statistics:" << endl;
-    search_progress.print_statistics();
+    // cout << "  Cumulative statistics:" << endl;
+    // search_progress.print_statistics();
 }
 
 void IteratedSearch::save_plan_if_necessary() const {

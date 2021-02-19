@@ -1,5 +1,6 @@
 #include "bisimilar_state_space.h"
 
+#include "../../algorithms/segmented_vector.h"
 #include "../../global_operator.h"
 #include "../../global_state.h"
 #include "../../globals.h"
@@ -13,6 +14,7 @@
 #include "../../merge_and_shrink/variable_order_finder.h"
 #include "../../option_parser.h"
 #include "../../utils/hash.h"
+#include "../../utils/system.h"
 #include "../../utils/timer.h"
 #include "../globals.h"
 #include "../probabilistic_operator.h"
@@ -20,12 +22,15 @@
 #include <cassert>
 #include <map>
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 using namespace merge_and_shrink;
 
 namespace probabilistic {
 namespace bisimulation {
+
+static constexpr const int BUCKET_SIZE = 1024 * 64;
 
 static bool
 is_dummy_outcome(const GlobalOperator* op)
@@ -45,6 +50,12 @@ BisimilarStateSpace::Hash::operator()(unsigned i) const
     return utils::get_hash<elem_type>(extended_->operator[](i));
 }
 
+bool
+BisimilarStateSpace::Equal::operator()(int i, int j) const
+{
+    return extended_->operator[](i) == extended_->operator[](j);
+}
+
 BisimilarStateSpace::BisimilarStateSpace(
     const GlobalState& initial_state,
     int budget,
@@ -52,16 +63,17 @@ BisimilarStateSpace::BisimilarStateSpace(
     : limited_budget_(budget != g_unlimited_budget)
     , cost_type_(cost_type)
     , abstraction_(nullptr)
-    , initial_state_(StateID::no_state)
-    , dead_end_state_(StateID::no_state)
+    , initial_state_(::StateID::no_state)
+    , dead_end_state_(::StateID::no_state)
     , transitions_()
     , extended_()
-    , ids_(1024, Hash(&extended_))
+    , ids_(1024, Hash(&extended_), Equal(&extended_))
 {
     utils::Timer timer_total;
     utils::Timer timer;
 
-    std::cout << "Computing all-outcomes determinization bisimulation..." << std::endl;
+    std::cout << "Computing all-outcomes determinization bisimulation..."
+              << std::endl;
 
     options::Options opts_bisim;
     opts_bisim.set<int>("max_states", std::numeric_limits<int>::max());
@@ -84,8 +96,8 @@ BisimilarStateSpace::BisimilarStateSpace(
         std::shared_ptr<ShrinkStrategy> bs =
             std::make_shared<BudgetShrink>(opts);
         std::vector<std::shared_ptr<ShrinkStrategy>> s;
-        s.push_back(bs);
         s.push_back(bisim);
+        s.push_back(bs);
         opts.set<std::vector<std::shared_ptr<ShrinkStrategy>>>("strategies", s);
         bisim = std::make_shared<MultipleShrinkingStrategy>(opts);
     }
@@ -127,6 +139,80 @@ BisimilarStateSpace::BisimilarStateSpace(
 
         transitions_.resize(
             abstraction_->size(), std::vector<CachedTransition>());
+
+        std::vector<std::vector<std::pair<unsigned, unsigned>>> g_to_p(
+            ::g_operators.size());
+        std::vector<std::vector<unsigned>> dummys(g_operators.size());
+        for (unsigned p_op_id = 0; p_op_id < g_operators.size(); ++p_op_id) {
+            const ProbabilisticOperator& op = g_operators[p_op_id];
+            for (unsigned i = 0; i < op.num_outcomes(); ++i) {
+                if (!is_dummy_outcome(op[i].op)) {
+                    g_to_p[get_global_operator_id(op[i].op)].emplace_back(
+                        p_op_id, i);
+                } else {
+                    dummys[p_op_id].push_back(i);
+                }
+            }
+        }
+
+        unsigned bucket_free = 0;
+        int* bucket_ptr = nullptr;
+        auto allocate = [this, &bucket_free, &bucket_ptr](unsigned size) {
+            if (size > bucket_free) {
+                store_.push_back(new int[BUCKET_SIZE]);
+                bucket_ptr = store_.back();
+                bucket_free = BUCKET_SIZE;
+            }
+            int* result = bucket_ptr;
+            bucket_ptr += size;
+            bucket_free -= size;
+            return result;
+        };
+
+#if 1
+        std::vector<std::vector<merge_and_shrink::AbstractTransition>>
+            transitions(abstraction_->extract_transitions());
+
+        for (int g_op_id = g_to_p.size() - 1; g_op_id >= 0; --g_op_id) {
+            std::vector<merge_and_shrink::AbstractTransition> op_transitions(
+                std::move(transitions.back()));
+            transitions.pop_back();
+            for (int i = op_transitions.size() - 1; i >= 0; --i) {
+                const AbstractTransition& trans = op_transitions[i];
+                std::vector<CachedTransition>& ts = transitions_[trans.src];
+                if (trans.target != Abstraction::PRUNED_STATE
+                    && trans.target != trans.src) {
+                    for (const auto& op : g_to_p[g_op_id]) {
+                        CachedTransition* t = nullptr;
+                        for (int j = ts.size() - 1; j >= 0; --j) {
+                            if (ts[j].op == op.first) {
+                                t = &ts[j];
+                                break;
+                            }
+                        }
+                        if (t == nullptr) {
+                            const unsigned size =
+                                g_operators[op.first].num_outcomes();
+                            ts.emplace_back();
+                            t = &ts.back();
+                            t->op = op.first;
+                            t->successors = allocate(size);
+                            for (int j = size - 1; j >= 0; --j) {
+                                t->successors[j] = Abstraction::PRUNED_STATE;
+                            }
+                            for (int j = dummys[op.first].size() - 1; j >= 0;
+                                 --j) {
+                                t->successors[dummys[op.first][j]] = trans.src;
+                            }
+                            ++num_cached_transitions_;
+                        }
+                        t->successors[op.second] = trans.target;
+                    }
+                }
+            }
+        }
+
+#else
         for (unsigned p_op_id = 0; p_op_id < g_operators.size(); ++p_op_id) {
             const ProbabilisticOperator& op = g_operators[p_op_id];
             for (unsigned i = 0; i < op.num_outcomes(); ++i) {
@@ -136,21 +222,34 @@ BisimilarStateSpace::BisimilarStateSpace(
                 unsigned g_op_id = get_global_operator_id(op[i].op);
                 for (const auto& trans :
                      abstraction_->get_transitions_for_op(g_op_id)) {
+                    if (trans.target == Abstraction::PRUNED_STATE || trans.target == trans.src) {
+                        continue;
+                    }
                     assert((unsigned)trans.src < transitions_.size());
                     std::vector<CachedTransition>& ts = transitions_[trans.src];
                     if (ts.empty() || ts.back().op != p_op_id) {
                         ts.emplace_back();
                         CachedTransition& t = ts.back();
                         t.op = p_op_id;
-                        t.successors = new int[op.num_outcomes()];
-                        for (int j = op.num_outcomes() - 1; j >= 0; --j) {
-                            t.successors[j] = Abstraction::PRUNED_STATE;
-                        }
+                        // t.successors = new int[op.num_outcomes()];
+                        // for (int j = op.num_outcomes() - 1; j >= 0; --j) {
+                        //     t.successors[j] = Abstraction::PRUNED_STATE;
+                        // }
+                        const unsigned size = op.num_outcomes();
+                            t.successors = allocate(size);
+                            for (int j = size - 1; j >= 0; --j) {
+                                t.successors[j] = Abstraction::PRUNED_STATE;
+                            }
+                            for (int j = dummys[p_op_id].size() - 1; j >= 0;
+                                 --j) {
+                                t.successors[dummys[p_op_id][j]] = trans.src;
+                            }
                         ++num_cached_transitions_;
                     }
                     ts.back().successors[i] = trans.target;
                 }
             }
+
 #if 0
             for (unsigned i = 0; i < op.num_outcomes(); ++i) {
                 unsigned g_op_id = get_global_operator_id(op[i].op);
@@ -165,8 +264,11 @@ BisimilarStateSpace::BisimilarStateSpace(
             }
 #endif
         }
+#endif
+
         abstraction_->release_memory();
 
+#if 0
         for (unsigned s = 0; s < transitions_.size(); ++s) {
             std::vector<CachedTransition>& ts = transitions_[s];
             unsigned j = 0;
@@ -191,6 +293,7 @@ BisimilarStateSpace::BisimilarStateSpace(
             ts.resize(j);
             ts.shrink_to_fit();
         }
+#endif
 
         if (limited_budget_) {
             extended_.push_back(std::pair<int, int>(
@@ -201,6 +304,12 @@ BisimilarStateSpace::BisimilarStateSpace(
                 std::pair<int, int>(budget, Abstraction::PRUNED_STATE));
             ids_.insert(1);
             dead_end_state_ = QuotientState(1);
+
+            operator_cost_.resize(g_operators.size(), 0);
+            for (int i = g_operators.size() - 1; i >= 0; --i) {
+                operator_cost_[i] = ::get_adjusted_action_cost(
+                    *g_operators[i].get(0).op, cost_type_);
+            }
         } else {
             initial_state_ =
                 QuotientState(abstraction_->get_abstract_state(initial_state));
@@ -221,10 +330,8 @@ BisimilarStateSpace::~BisimilarStateSpace()
     if (abstraction_ != nullptr) {
         delete (abstraction_);
     }
-    for (int i = transitions_.size() - 1; i >= 0; --i) {
-        for (int j = transitions_[i].size() - 1; j >= 0; --j) {
-            delete[](transitions_[i][j].successors);
-        }
+    for (int i = store_.size() - 1; i >= 0; --i) {
+        delete[](store_[i]);
     }
 }
 
@@ -261,23 +368,25 @@ BisimilarStateSpace::is_dead_end(const QuotientState& s) const
 
 void
 BisimilarStateSpace::get_applicable_actions(
-    const QuotientState& s,
+    const StateID& s,
     std::vector<QuotientAction>& result) const
 {
-    if (s == dead_end_state_) {
+    if (s == dead_end_state_.hash()) {
         return;
     }
     if (limited_budget_) {
-        assert(s.hash() < extended_.size());
-        const std::pair<int, int>& orig = extended_[s.hash()];
+        assert(s < extended_.size());
+        const std::pair<int, int>& orig = extended_[s];
         assert(orig.second != Abstraction::PRUNED_STATE);
         const std::vector<CachedTransition>& cache = transitions_[orig.second];
         result.reserve(cache.size());
         for (unsigned i = 0; i < cache.size(); ++i) {
-            result.emplace_back(i);
+            if (operator_cost_[cache[i].op] <= orig.first) {
+                result.emplace_back(i);
+            }
         }
     } else {
-        const std::vector<CachedTransition>& cache = transitions_[s.hash()];
+        const std::vector<CachedTransition>& cache = transitions_[s];
         result.reserve(cache.size());
         for (unsigned i = 0; i < cache.size(); ++i) {
             result.emplace_back(i);
@@ -285,46 +394,44 @@ BisimilarStateSpace::get_applicable_actions(
     }
 }
 
-Distribution<QuotientState>
+void
 BisimilarStateSpace::get_successors(
-    const QuotientState& s,
-    const QuotientAction& a)
+    const StateID& s,
+    const QuotientAction& a,
+    Distribution<StateID>& result)
 {
-    assert(s != dead_end_state_);
+    assert(s != dead_end_state_.hash());
     if (limited_budget_) {
-        const std::pair<int, int>& orig = extended_[s.hash()];
+        const std::pair<int, int>& orig = extended_[s];
         assert(orig.second != Abstraction::PRUNED_STATE);
         assert(a.idx < transitions_[orig.second].size());
         const CachedTransition& t = transitions_[orig.second][a.idx];
         const ProbabilisticOperator& op = g_operators[t.op];
-        Distribution<QuotientState> result;
         assert(t.op == op.get_id());
+        const int new_b = orig.first - operator_cost_[t.op];
+        assert(new_b >= 0);
         for (unsigned i = 0; i < op.num_outcomes(); ++i) {
-            int new_b = orig.first
-                - ::get_adjusted_action_cost(*(op[i].op), cost_type_);
-            if (new_b < 0 || t.successors[i] == Abstraction::PRUNED_STATE
+            if (t.successors[i] == Abstraction::PRUNED_STATE
                 || new_b < abstraction_->get_goal_distance(t.successors[i])) {
-                result.add(dead_end_state_, op[i].prob);
+                result.add(StateID(dead_end_state_.hash()), op[i].prob);
             } else {
                 result.add(
-                    get_budget_extended_state(t.successors[i], new_b),
+                    StateID(get_budget_extended_state(t.successors[i], new_b)
+                                .hash()),
                     op[i].prob);
             }
         }
-        return result;
     } else {
-        assert(a.idx < transitions_[s.hash()].size());
-        const CachedTransition& t = transitions_[s.hash()][a.idx];
+        assert(a.idx < transitions_[s].size());
+        const CachedTransition& t = transitions_[s][a.idx];
         const ProbabilisticOperator& op = g_operators[t.op];
-        Distribution<QuotientState> result;
         for (unsigned i = 0; i < op.num_outcomes(); ++i) {
             if (t.successors[i] == Abstraction::PRUNED_STATE) {
-                result.add(dead_end_state_, op[i].prob);
+                result.add(StateID(dead_end_state_.hash()), op[i].prob);
             } else {
-                result.add(QuotientState(t.successors[i]), op[i].prob);
+                result.add(StateID(t.successors[i]), op[i].prob);
             }
         }
-        return result;
     }
 }
 
@@ -427,67 +534,91 @@ BisimilarStateSpace::dump(std::ostream& out) const
 
 } // namespace bisimulation
 
-namespace algorithms {
-
 StateID
-StateIDMap<bisimulation::QuotientState>::operator[](
+StateIDMap<bisimulation::QuotientState>::get_state_id(
     const bisimulation::QuotientState& s) const
 {
-    return s;
+    return s.hash();
 }
 
 bisimulation::QuotientState
-StateIDMap<bisimulation::QuotientState>::operator[](const StateID& s) const
+StateIDMap<bisimulation::QuotientState>::get_state(const StateID& s) const
 {
     return bisimulation::QuotientState(s);
 }
 
-ApplicableActionsGenerator<
-    bisimulation::QuotientState,
-    bisimulation::QuotientAction>::
+ActionID
+ActionIDMap<bisimulation::QuotientAction>::get_action_id(
+    const StateID&,
+    const bisimulation::QuotientAction& action) const
+{
+    return action.idx;
+}
+
+bisimulation::QuotientAction
+ActionIDMap<bisimulation::QuotientAction>::get_action(
+    const StateID&,
+    const ActionID& action) const
+{
+    return bisimulation::QuotientAction(action);
+}
+
+ApplicableActionsGenerator<bisimulation::QuotientAction>::
     ApplicableActionsGenerator(bisimulation::BisimilarStateSpace* bisim)
     : bisim_(bisim)
 {
 }
 
 void
-ApplicableActionsGenerator<
-    bisimulation::QuotientState,
-    bisimulation::QuotientAction>::
-operator()(
-    const bisimulation::QuotientState& s,
+ApplicableActionsGenerator<bisimulation::QuotientAction>::operator()(
+    const StateID& s,
     std::vector<bisimulation::QuotientAction>& res) const
 {
     bisim_->get_applicable_actions(s, res);
 }
 
-TransitionGenerator<bisimulation::QuotientState, bisimulation::QuotientAction>::
-    TransitionGenerator(bisimulation::BisimilarStateSpace* bisim)
+TransitionGenerator<bisimulation::QuotientAction>::TransitionGenerator(
+    bisimulation::BisimilarStateSpace* bisim)
     : bisim_(bisim)
 {
 }
 
-Distribution<bisimulation::QuotientState>
-TransitionGenerator<bisimulation::QuotientState, bisimulation::QuotientAction>::
-operator()(
-    const bisimulation::QuotientState& s,
-    const bisimulation::QuotientAction& a) const
+void
+TransitionGenerator<bisimulation::QuotientAction>::operator()(
+    const StateID& s,
+    const bisimulation::QuotientAction& a,
+    Distribution<StateID>& res) const
 {
-    return bisim_->get_successors(s, a);
+    bisim_->get_successors(s, a, res);
 }
 
-StateEvaluationFunction<bisimulation::QuotientState>::StateEvaluationFunction(
+void
+TransitionGenerator<bisimulation::QuotientAction>::operator()(
+    const StateID& state,
+    std::vector<bisimulation::QuotientAction>& aops,
+    std::vector<Distribution<StateID>>& result) const
+{
+    bisim_->get_applicable_actions(state, aops);
+    result.resize(aops.size());
+    for (int i = aops.size() - 1; i >= 0; --i) {
+        bisim_->get_successors(state, aops[i], result[i]);
+    }
+}
+
+StateEvaluator<bisimulation::QuotientState>::StateEvaluator(
     bisimulation::BisimilarStateSpace* bisim,
     const value_type::value_t min,
-    const value_type::value_t max)
+    const value_type::value_t max,
+    value_type::value_t def)
     : bisim_(bisim)
     , min_(min)
     , max_(max)
+    , default_(def)
 {
 }
 
 EvaluationResult
-StateEvaluationFunction<bisimulation::QuotientState>::operator()(
+StateEvaluator<bisimulation::QuotientState>::operator()(
     const bisimulation::QuotientState& s) const
 {
     if (bisim_->is_dead_end(s)) {
@@ -496,19 +627,15 @@ StateEvaluationFunction<bisimulation::QuotientState>::operator()(
     if (bisim_->is_goal_state(s)) {
         return EvaluationResult(true, max_);
     }
-    return EvaluationResult(false, value_type::zero);
+    return EvaluationResult(false, default_);
 }
 
 value_type::value_t
-TransitionRewardFunction<
-    bisimulation::QuotientState,
-    bisimulation::QuotientAction>::
-operator()(
-    const bisimulation::QuotientState&,
+ActionEvaluator<bisimulation::QuotientAction>::operator()(
+    const StateID&,
     const bisimulation::QuotientAction&) const
 {
-    return value_type::zero;
+    return 0;
 }
-} // namespace algorithms
 
 } // namespace probabilistic

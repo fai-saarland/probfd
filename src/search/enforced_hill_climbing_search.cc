@@ -224,16 +224,16 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
 }
 
 void EnforcedHillClimbingSearch::statistics() const {
-    search_progress.print_statistics();
-
-    cout << "EHC Phases: " << num_ehc_phases << endl;
-    cout << "Average expansions per EHC Phase: " << (double)search_progress.get_expanded() / (double)num_ehc_phases << endl;
+    cout << "  EHC Phases: " << num_ehc_phases << endl;
+    cout << "  Average expansions per EHC Phase: " << (double)search_progress.get_expanded() / (double)num_ehc_phases << endl;
 
     map<int, pair<int, int> >::const_iterator it;
     for (it = d_counts.begin(); it != d_counts.end(); ++it) {
         pair<int, pair<int, int> > p = *it;
-        cout << "EHC phases of depth " << p.first << " : " << p.second.first << " - Avg. Expansions: " << (double)p.second.second / (double)p.second.first << endl;
+        cout << "  EHC phases of depth " << p.first << " : " << p.second.first << " - Avg. Expansions: " << (double)p.second.second / (double)p.second.first << endl;
     }
+
+    heuristic->print_statistics();
 }
 
 static shared_ptr<SearchEngine> _parse(options::OptionParser &parser) {

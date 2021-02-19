@@ -33,7 +33,6 @@ class GlobalState {
 
     const PackedStateBin* get_packed_buffer() const { return buffer; }
 
-    const StateRegistry& get_registry() const { return *registry; }
 
     // No implementation to prevent default construction
     GlobalState();
@@ -48,6 +47,8 @@ public:
 
     int operator[](std::size_t index) const;
     bool operator==(const GlobalState& other) const;
+
+    const StateRegistry& get_registry() const { return *registry; }
 
     void dump_pddl() const;
     void dump_fdr() const;

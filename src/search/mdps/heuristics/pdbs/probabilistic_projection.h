@@ -1,9 +1,10 @@
 #pragma once
 
+#include "abstract_operator.h"
 #include "abstract_state.h"
+#include "engine_interfaces.h"
 #include "qualitative_result_store.h"
 #include "quantitative_result_store.h"
-#include "types.h"
 
 #include <iostream>
 #include <memory>
@@ -45,9 +46,15 @@ public:
 
     QualitativeResultStore compute_dead_ends();
 
+    AbstractAnalysisResult compute_value_table_expected_cost(
+        AbstractStateEvaluator* state_reward,
+        AbstractOperatorEvaluator* transition_reward,
+        value_type::value_t dead_end_value,
+        value_type::value_t upper);
+
     AbstractAnalysisResult compute_value_table(
         AbstractStateEvaluator* state_reward,
-        AbstractTransitionRewardFunction* transition_reward,
+        AbstractOperatorEvaluator* transition_reward,
         value_type::value_t dead_end_value,
         value_type::value_t upper,
         bool one_states,

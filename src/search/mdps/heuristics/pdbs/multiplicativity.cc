@@ -1,5 +1,4 @@
 #include "multiplicativity.h"
-#include "../../../pdbs/pattern_cliques.h"
 
 namespace probabilistic {
 namespace pdbs{
@@ -31,70 +30,6 @@ bool isPseudoDeterministic(probabilistic::pdbs::syntactic_projection::SyntacticP
     return false;
 }
 
-std::vector<int> get_affected_vars(const ProbabilisticOperator& op) {
-    std::vector<int> affected_vars;
-
-    if (!op.is_stochastic()) {
-        return affected_vars;
-    }
-
-    // Compute the variables that may be changed by the operator
-    for (const ProbabilisticOutcome& outcome : op) {
-        const auto effects = outcome.op->get_effects();
-
-        for (const ::GlobalEffect& eff : outcome.op->get_effects()) {
-            affected_vars.push_back(eff.var);
-        }
-    }
-
-    return affected_vars;
-}
-
-VariableOrthogonality compute_prob_orthogonal_vars() {
-    const std::size_t num_vars = g_variable_domain.size();
-
-    VariableOrthogonality are_orthogonal(num_vars, std::vector<bool>(num_vars, true));
-
-    for (const ProbabilisticOperator& op : g_operators) {
-        const std::vector<int> affected_vars = get_affected_vars(op);
-
-        for (unsigned i1 = 0; i1 < affected_vars.size(); i1++) {
-            int var1 = affected_vars[i1];
-            are_orthogonal[var1][var1] = false;
-            for (unsigned i2 = i1 + 1; i2 < affected_vars.size(); i2++) {
-                int var2 = affected_vars[i2];
-                are_orthogonal[var1][var2] = false;
-                are_orthogonal[var2][var1] = false;
-            }
-        }
-    }
-
-    return are_orthogonal;
-}
-
-}
-
-
-std::vector<std::vector<int>> buildCompatibilityGraphOrthogonality(
-    const ::pdbs::PatternCollection& patterns)
-{
-    VariableOrthogonality are_orthogonal = compute_prob_orthogonal_vars();
-
-    std::vector<std::vector<int>> cgraph;
-    cgraph.resize(patterns.size());
-
-    for (size_t i = 0; i < patterns.size(); ++i) {
-        for (size_t j = i + 1; j < patterns.size(); ++j) {
-            if (::pdbs::are_patterns_additive(patterns[i], patterns[j], are_orthogonal)) {
-                /* If the two patterns are additive, there is an edge in the
-                   compatibility graph. */
-                cgraph[i].push_back(j);
-                cgraph[j].push_back(i);
-            }
-        }
-    }
-
-    return cgraph;
 }
 
 std::vector<std::vector<int>> buildCompatibilityGraphWeakOrthogonality(

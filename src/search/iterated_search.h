@@ -40,12 +40,12 @@ class IteratedSearch : public SearchEngine {
 
     virtual void initialize();
     virtual SearchStatus step();
+    virtual void statistics() const override;
 public:
     IteratedSearch(const options::Options &opts, options::Registry &registry,
                    const options::Predefinitions &predefinitions);
     virtual ~IteratedSearch();
     virtual void save_plan_if_necessary() const;
-    void statistics() const;
 };
 
 #endif

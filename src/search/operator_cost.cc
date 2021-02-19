@@ -29,6 +29,8 @@ int get_adjusted_action_cost(int cost, OperatorCost cost_type) {
             return cost + 1;
     case ZERO:
         return 0;
+    case MINONE:
+        return std::max(1, cost);
     default:
         ABORT("Unknown cost type");
     }
@@ -54,6 +56,9 @@ void add_cost_type_option_to_parser(options::OptionParser &parser, const std::st
     cost_types.push_back("ZERO");
     cost_types_doc.push_back(
         "all actions are accounted for as 0 cost");
+    cost_types.push_back("MINONE");
+    cost_types_doc.push_back(
+        "asd");
     parser.add_enum_option(
         name,
         cost_types,

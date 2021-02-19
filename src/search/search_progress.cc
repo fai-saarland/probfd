@@ -99,7 +99,7 @@ void SearchProgress::print_statistics() const {
     if (!initial_h_values.empty()) {
         // This will be skipped in the cumulative statistics of an
         // iterated search, which do not have initial h values.
-        cout << "Initial state h value: ";
+        cout << "  Initial state h value: ";
         for (size_t i = 0; i < initial_h_values.size(); ++i) {
             cout << initial_h_values[i];
             if (i != initial_h_values.size() - 1)
@@ -108,24 +108,24 @@ void SearchProgress::print_statistics() const {
         cout << "." << endl;
     }
 
-    cout << "Expanded " << expanded_states << " state(s)." << endl;
-    cout << "Reopened " << reopened_states << " state(s)." << endl;
-    cout << "Evaluated " << evaluated_states << " state(s)." << endl;
-    cout << "Evaluations: " << evaluations << endl;
-    cout << "Generated " << generated_states << " state(s)." << endl;
-    cout << "Dead ends: " << dead_end_states << " state(s)." << endl;
+    cout << "  Expanded " << expanded_states << " state(s)." << endl;
+    cout << "  Reopened " << reopened_states << " state(s)." << endl;
+    cout << "  Evaluated " << evaluated_states << " state(s)." << endl;
+    cout << "  Evaluations: " << evaluations << endl;
+    cout << "  Generated " << generated_states << " state(s)." << endl;
+    cout << "  Dead ends: " << dead_end_states << " state(s)." << endl;
     if (pathmax_corrections > 0) {
-        cout << "Pathmax corrections: " << pathmax_corrections << endl;
+        cout << "  Pathmax corrections: " << pathmax_corrections << endl;
     }
 
     if (lastjump_f_value >= 0) {
-        cout << "Expanded until last jump: "
+        cout << "  Expanded until last jump: "
              << lastjump_expanded_states << " state(s)." << endl;
-        cout << "Reopened until last jump: "
+        cout << "  Reopened until last jump: "
              << lastjump_reopened_states << " state(s)." << endl;
-        cout << "Evaluated until last jump: "
+        cout << "  Evaluated until last jump: "
              << lastjump_evaluated_states << " state(s)." << endl;
-        cout << "Generated until last jump: "
+        cout << "  Generated until last jump: "
              << lastjump_generated_states << " state(s)." << endl;
     }
 }

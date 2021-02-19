@@ -1,37 +1,29 @@
 #pragma once
 
-#include "../global_state.h"
-#include "algorithms/types_heuristic_search.h"
+#include "engine_interfaces/transition_sampler.h"
+#include "heuristic_search_interfaceable.h"
 #include "probabilistic_operator.h"
 
 #include <utility>
 
 namespace probabilistic {
-namespace algorithms {
 template<>
-class TransitionSampler<GlobalState, const ProbabilisticOperator*> {
+class TransitionSampler<const ProbabilisticOperator*>
+    : public HeuristicSearchInterfaceable {
 public:
-    virtual ~TransitionSampler() = default;
-    GlobalState operator()(
-        const GlobalState& state,
+    StateID operator()(
+        const StateID& state,
         const ProbabilisticOperator* op,
-        const Distribution<GlobalState>& transition);
-
-    void connect(algorithms::HeuristicSearchStatusInterface<
-                 GlobalState,
-                 const ProbabilisticOperator*>* hsinterface);
+        const Distribution<StateID>& transition);
 
 protected:
-    virtual GlobalState sample(
-        const GlobalState& state,
+    virtual StateID sample(
+        const StateID& state,
         const ProbabilisticOperator* op,
-        const Distribution<GlobalState>& transition) = 0;
-
-    algorithms::HeuristicSearchStatusInterface<
-        GlobalState,
-        const ProbabilisticOperator*>* hs_interface_ = nullptr;
+        const Distribution<StateID>& transition) = 0;
 };
-} // namespace algorithms
-using TransitionSampler =
-    algorithms::TransitionSampler<GlobalState, const ProbabilisticOperator*>;
+
+using ProbabilisticOperatorTransitionSampler =
+    TransitionSampler<const ProbabilisticOperator*>;
+
 } // namespace probabilistic

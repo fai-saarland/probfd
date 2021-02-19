@@ -1,5 +1,6 @@
 #include "multiple_shrinking_strategies.h"
 #include "../option_parser.h"
+#include "../plugin.h"
 
 #include <sstream>
 
@@ -95,5 +96,21 @@ MultipleShrinkingStrategy::get_caught_labels_set() const
 {
     return strategies_.back()->get_caught_labels_set();
 }
+
+
+static std::shared_ptr<ShrinkStrategy> _parse(options::OptionParser &parser)
+{
+    parser.add_list_option<std::shared_ptr<ShrinkStrategy>>("strategies");
+    ShrinkStrategy::add_options_to_parser(parser);
+    options::Options opts = parser.parse();
+    if (!parser.dry_run()) {
+        ShrinkStrategy::handle_option_defaults(opts);
+        return std::make_shared<MultipleShrinkingStrategy>(opts);
+    } else {
+        return 0;
+    }
+}
+
+static Plugin<ShrinkStrategy> _plugin("shrink_multiple", _parse);
 
 } // namespace merge_and_shrink
