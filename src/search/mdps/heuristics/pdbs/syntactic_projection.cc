@@ -4,47 +4,75 @@ namespace probabilistic {
 namespace pdbs {
 namespace syntactic_projection {
 
-Outcome project_outcome(
-    const Pattern& pattern,
-    const ProbabilisticOutcome& outcome)
+value_type::value_t ProjectionOperator::get_probability(
+    const std::vector<std::pair<int, int>> &effects) const
 {
-    Outcome projected_outcome;
+    auto it = effects_to_probs.find(effects);
+    return it != effects_to_probs.end() ? it->second : value_type::zero;
+}
 
-    for (const GlobalEffect& effect : outcome.op->get_effects()) {
-        const auto it = std::find(pattern.begin(), pattern.end(), effect.var);
-        if (it != pattern.end()) {
-            projected_outcome.push_back(effect);
+void
+ProjectionOperator::add_effect_probability(
+    const std::vector<std::pair<int, int>> &effects,
+    value_type::value_t probability)
+{
+    auto it = effects_to_probs.find(effects);
+
+    if (it != effects_to_probs.end()) {
+        it->second += probability;
+    } else {
+        effects_to_probs[effects] = probability;
+    }
+}
+
+bool ProjectionOperator::is_stochastic() const {
+    return effects_to_probs.size() > 1;
+}
+
+bool ProjectionOperator::is_pseudo_deterministic() const {
+    if (effects_to_probs.size() == 2) {
+        auto it = effects_to_probs.cbegin();
+        if (it->first.empty() || (++it)->first.empty()) {
+            return true;
         }
     }
 
-    return projected_outcome;
+    return false;
 }
 
-SyntacticProjection build_syntactic_projection(
+std::vector<std::pair<int, int>> project_effects(
+    const Pattern& pattern,
+    const std::vector<GlobalEffect>& effects)
+{
+    std::vector<std::pair<int, int>> projected_effects;
+
+    for (const auto& [var, val, _] : effects) {
+        const auto it = std::find(pattern.begin(), pattern.end(), var);
+        if (it != pattern.end()) {
+            projected_effects.emplace_back(var, val);
+        }
+    }
+
+    return projected_effects;
+}
+
+ProjectionOperator project_operator(
     const Pattern& pattern,
     const ProbabilisticOperator& op)
 {
-    SyntacticProjection syntactic_projection;
+    ProjectionOperator abs_operator;
 
     for (const ProbabilisticOutcome& outcome : op) {
+        const auto& effects = outcome.op->get_effects();
         const value_type::value_t probability = outcome.prob;
 
-        Outcome projected_outcome = project_outcome(pattern, outcome);
+        std::vector<std::pair<int, int>> abstract_effects =
+            project_effects(pattern, effects);
 
-        auto it = syntactic_projection.find(projected_outcome);
-
-        if (it != syntactic_projection.end()) {
-            it->second += probability;
-        } else {
-            syntactic_projection[projected_outcome] = probability;
-        }
+        abs_operator.add_effect_probability(abstract_effects, probability);
     }
 
-    return syntactic_projection;
-}
-
-bool is_stochastic(const SyntacticProjection& sp) {
-    return sp.size() > 1;
+    return abs_operator;
 }
 
 }
