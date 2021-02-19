@@ -14,7 +14,7 @@
 #include "expcost_projection.h"
 #include "../../../analysis_objectives/expected_cost_objective.h"
 #include "../../../../algorithms/max_cliques.h"
-#include "../maxprob/multiplicativity.h"
+#include "../maxprob/orthogonality.h"
 #include "../utils.h"
 
 #include <cassert>

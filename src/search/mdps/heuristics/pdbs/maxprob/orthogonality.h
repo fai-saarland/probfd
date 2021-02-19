@@ -1,18 +1,12 @@
 #pragma once
 
-#include <vector>
-#include <map>
+#include "../types.h"
 
-#include "../../../globals.h"
-#include "../../../probabilistic_operator.h"
-#include "../syntactic_projection.h"
-#include "../../../../pdbs/pattern_cliques.h"
+#include <vector>
 
 namespace probabilistic {
 namespace pdbs {
 namespace multiplicativity {
-
-bool is_independent_collection(const PatternCollection& patterns);
 
 template <bool ignore_deterministic=false>
 std::vector<std::vector<int>>

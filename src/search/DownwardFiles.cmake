@@ -677,7 +677,8 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/probabilistic_projection
         mdps/heuristics/pdbs/maxprob/maxprob_projection
         mdps/heuristics/pdbs/maxprob/maxprob_pdb_heuristic
-        mdps/heuristics/pdbs/maxprob/multiplicativity
+        mdps/heuristics/pdbs/maxprob/independence
+        mdps/heuristics/pdbs/maxprob/orthogonality
         mdps/heuristics/pdbs/syntactic_projection
         mdps/heuristics/pdbs/utils
         mdps/heuristics/pdbs/expected_cost/expcost_projection

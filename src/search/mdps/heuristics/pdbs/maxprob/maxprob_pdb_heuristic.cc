@@ -11,7 +11,7 @@
 #include "../../../globals.h"
 #include "../../../logging.h"
 #include "../../../../algorithms/max_cliques.h"
-#include "multiplicativity.h"
+#include "orthogonality.h"
 #include "maxprob_projection.h"
 #include "../qualitative_result_store.h"
 #include "../quantitative_result_store.h"
