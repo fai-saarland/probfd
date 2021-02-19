@@ -28,25 +28,6 @@ namespace pdbs {
 using ::pdbs::PatternCollectionGenerator;
 using ::pdbs::PatternCollectionInformation;
 
-namespace {
-void dump_projection(
-    unsigned int projection_id,
-    ProbabilisticProjection &projection)
-{
-    std::ostringstream path;
-    path << "pattern" << projection_id << ".dot";
-    const bool print_transition_labels = true;
-    const bool print_values = true;
-    dump_graphviz(
-        &projection,
-        g_analysis_objective.get(),
-        path.str(),
-        print_transition_labels,
-        print_values);
-}
-}
-
-
 struct ExpectedCostPDBHeuristic::ProjectionInfo {
     ProjectionInfo(
         std::shared_ptr<AbstractStateMapper> state_mapper,
