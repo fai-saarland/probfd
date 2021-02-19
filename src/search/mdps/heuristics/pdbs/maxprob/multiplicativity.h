@@ -18,7 +18,7 @@ namespace {
 
 // Return true if still incrementable, false if max value was reached
 template <typename T>
-bool incrementOrdinate(
+bool increment_ordinate(
     std::vector<T>& ordinate,
     std::size_t dimensions,
     const std::vector<T>& dim_val_begins,
@@ -42,27 +42,28 @@ bool incrementOrdinate(
 }
 
 template <typename PatternIt>
-bool isIndependentCollectionForOperator(
+bool is_independent_operator(
     PatternIt pattern_begin,
     PatternIt pattern_end,
-    const ::pdbs::Pattern& union_pattern,
+    const Pattern& union_pattern,
     const ProbabilisticOperator& op)
 {
-    using Pattern = ::pdbs::Pattern;
     using namespace syntactic_projection;
 
     const std::size_t num_patterns = std::distance(pattern_begin, pattern_end);
 
     // Build the Syntactic Projections
 
-    SyntacticProjection union_projection = buildSyntacticProjection(union_pattern, op);
+    SyntacticProjection union_projection =
+        build_syntactic_projection(union_pattern, op);
 
     std::vector<SyntacticProjection> syntactic_projections;
-
-    std::size_t i = 0;
-    for (PatternIt b = pattern_begin; b != pattern_end; ++b, ++i) {
-        const Pattern& pattern = *b;
-        syntactic_projections[i] = buildSyntacticProjection(pattern, op);
+    {
+        std::size_t i = 0;
+        for (PatternIt b = pattern_begin; b != pattern_end; ++b, ++i) {
+            const Pattern &pattern = *b;
+            syntactic_projections[i] = build_syntactic_projection(pattern, op);
+        }
     }
 
     // Set up n-dimensional iteration...
@@ -80,8 +81,8 @@ bool isIndependentCollectionForOperator(
         ordinate[i] = proj_begins[i];
     }
 
-    // Done. Now check if every combination of outcomes has the same probability in the union
-
+    // Done. Now check if every combination of outcomes has the same probability
+    // in the union.
     do {
         Outcome union_outcome;
         value_type::value_t indep_prob = value_type::one;
@@ -92,7 +93,8 @@ bool isIndependentCollectionForOperator(
             const auto& outcome = outcome_prob_pair.first;
             const auto& probability = outcome_prob_pair.second;
 
-            union_outcome.insert(union_outcome.end(), outcome.begin(), outcome.end());
+            union_outcome.insert(
+                union_outcome.end(), outcome.begin(), outcome.end());
             indep_prob *= probability;
         }
 
@@ -102,18 +104,22 @@ bool isIndependentCollectionForOperator(
             return false;
         }
 
-    } while (incrementOrdinate(ordinate, num_patterns, proj_begins, proj_ends));
+    } while (increment_ordinate(ordinate, num_patterns, proj_begins, proj_ends));
 
     return true;
 }
 
 template <typename PatternIt>
-bool isIndependentCollection(PatternIt pattern_begin, PatternIt pattern_end) {
-    static_assert(std::is_convertible<decltype(*pattern_begin), ::pdbs::Pattern&>::value, "Not a pattern iterator!");
-    static_assert(std::is_convertible<decltype(*pattern_end), ::pdbs::Pattern&>::value, "Not a pattern iterator!");
+bool is_independent_collection(PatternIt pattern_begin, PatternIt pattern_end) {
+    static_assert(
+        std::is_convertible_v<decltype(*pattern_begin), Pattern&>,
+        "Not a pattern iterator!");
+    static_assert(
+        std::is_convertible_v<decltype(*pattern_end), Pattern&>,
+        "Not a pattern iterator!");
 
     for (const ProbabilisticOperator& op : g_operators) {
-        if (!isIndependentCollectionForOperator(pattern_begin, pattern_end, op)) {
+        if (!is_independent_operator(pattern_begin, pattern_end, op)) {
             return false;
         }
     }
@@ -147,7 +153,8 @@ template <bool ignore_deterministic = true>
 VariableOrthogonality compute_prob_orthogonal_vars() {
     const std::size_t num_vars = g_variable_domain.size();
 
-    VariableOrthogonality are_orthogonal(num_vars, std::vector<bool>(num_vars, true));
+    VariableOrthogonality are_orthogonal(
+        num_vars, std::vector<bool>(num_vars, true));
 
     for (const ProbabilisticOperator& op : g_operators) {
         const std::vector<int> affected_vars =
@@ -168,10 +175,12 @@ VariableOrthogonality compute_prob_orthogonal_vars() {
 }
 
 template <bool ignore_deterministic=false>
-std::vector<std::vector<int>> buildCompatibilityGraphOrthogonality(
-    const ::pdbs::PatternCollection& patterns)
+std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
+    const PatternCollection& patterns)
 {
-    VariableOrthogonality are_orthogonal =
+    using ::pdbs::are_patterns_additive;
+
+    VariableOrthogonality pairwise =
         compute_prob_orthogonal_vars<ignore_deterministic>();
 
     std::vector<std::vector<int>> cgraph;
@@ -179,7 +188,7 @@ std::vector<std::vector<int>> buildCompatibilityGraphOrthogonality(
 
     for (size_t i = 0; i < patterns.size(); ++i) {
         for (size_t j = i + 1; j < patterns.size(); ++j) {
-            if (::pdbs::are_patterns_additive(patterns[i], patterns[j], are_orthogonal)) {
+            if (are_patterns_additive(patterns[i], patterns[j], pairwise)) {
                 /* If the two patterns are additive, there is an edge in the
                    compatibility graph. */
                 cgraph[i].push_back(j);
@@ -191,8 +200,8 @@ std::vector<std::vector<int>> buildCompatibilityGraphOrthogonality(
     return cgraph;
 }
 
-std::vector<std::vector<int>> buildCompatibilityGraphWeakOrthogonality(
-    const ::pdbs::PatternCollection& patterns);
+std::vector<std::vector<int>> build_compatibility_graph_weak_orthogonality(
+    const PatternCollection& patterns);
 
 }
 }

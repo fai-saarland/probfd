@@ -5,37 +5,37 @@
 
 #include "../../globals.h"
 #include "../../../global_operator.h"
-#include "../../../pdbs/types.h"
+#include "types.h"
 
 
 namespace probabilistic {
 namespace pdbs {
 namespace syntactic_projection {
 
-struct cmp_outcome {
-    struct cmp_eff {
-        bool operator()(const GlobalEffect& eff1, const GlobalEffect& eff2) const {
-            return eff1.var < eff2.var || (eff1.var == eff2.var && eff1.val < eff2.val);
-        }
-    };
+using Outcome = std::vector<GlobalEffect>;
 
-    bool operator()(const std::vector<GlobalEffect>& a, const std::vector<GlobalEffect>& b) const {
-        return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end(), cmp_eff());
+struct outcome_less {
+    static bool eff_less(const GlobalEffect& eff1, const GlobalEffect& eff2) {
+        return std::tie(eff1.var, eff1.val) < std::tie(eff2.var, eff2.val);
+    }
+
+    bool operator()(const Outcome& a, const Outcome& b) const {
+        return std::lexicographical_compare(
+            a.begin(), a.end(), b.begin(), b.end(), eff_less);
     }
 };
 
-using Outcome = std::vector<GlobalEffect>;
-using SyntacticProjection = std::map<Outcome, value_type::value_t, cmp_outcome>;
+using SyntacticProjection = std::map<Outcome, value_type::value_t, outcome_less>;
 
-Outcome projectOutcome(
-    const ::pdbs::Pattern& pattern,
+Outcome project_outcome(
+    const Pattern& pattern,
     const ProbabilisticOutcome& outcome);
 
-SyntacticProjection buildSyntacticProjection(
-    const ::pdbs::Pattern& pattern,
+SyntacticProjection build_syntactic_projection(
+    const Pattern& pattern,
     const ProbabilisticOperator& op);
 
-bool isStochastic(const SyntacticProjection& sp_op);
+bool is_stochastic(const SyntacticProjection& sp);
 
 }
 }

@@ -161,7 +161,7 @@ void ExpectedCostPDBHeuristic::construct_cliques(
 
     if (additive_patterns) {
         max_cliques::compute_max_cliques(
-            multiplicativity::buildCompatibilityGraphOrthogonality<false>(
+            multiplicativity::build_compatibility_graph_orthogonality<false>(
                 patterns),
             additive_patterns_);
     } else {
