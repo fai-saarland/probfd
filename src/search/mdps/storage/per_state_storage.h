@@ -153,7 +153,8 @@ template<
     typename Alloc = std::allocator<T>>
 class PerStateStorage : public PersistentPerStateStorage<T, StateIdMap, Alloc> {
 public:
-    using PersistentPerStateStorage<T, StateIdMap, Alloc>::IsPersistent;
+    using typename PersistentPerStateStorage<T, StateIdMap, Alloc>::
+        IsPersistent;
     using PersistentPerStateStorage<T, StateIdMap, Alloc>::
         PersistentPerStateStorage;
 };
@@ -163,7 +164,8 @@ class PerStateStorage<bool, StateIdMap, Alloc>
     : public internal::
           PerStateStorage<bool, StateIdMap, Alloc, resizing_vector> {
 public:
-    using internal::PerStateStorage<bool, StateIdMap, Alloc, resizing_vector>::
+    using typename
+        internal::PerStateStorage<bool, StateIdMap, Alloc, resizing_vector>::
         IsPersistent;
     using internal::PerStateStorage<bool, StateIdMap, Alloc, resizing_vector>::
         PerStateStorage;
@@ -177,7 +179,7 @@ class PerStateStorage<value_type::value_t, StateIdMap, Alloc>
           Alloc,
           resizing_vector> {
 public:
-    using internal::PerStateStorage<
+    using typename internal::PerStateStorage<
         value_type::value_t,
         StateIdMap,
         Alloc,
