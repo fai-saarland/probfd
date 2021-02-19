@@ -1,6 +1,6 @@
 #pragma once
 
-#include "probabilistic_projection.h"
+#include "../probabilistic_projection.h"
 
 namespace successor_generator {
 template<typename T>

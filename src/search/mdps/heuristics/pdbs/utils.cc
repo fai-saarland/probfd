@@ -1,8 +1,8 @@
 #include "utils.h"
 #include "../../../globals.h"
 #include "../../globals.h"
-#include "maxprob_projection.h"
-#include "expcost_projection.h"
+#include "maxprob/maxprob_projection.h"
+#include "expected_cost/expcost_projection.h"
 
 #include <sstream>
 

@@ -3,10 +3,10 @@
 #include <vector>
 #include <map>
 
-#include "../../globals.h"
-#include "../../probabilistic_operator.h"
-#include "syntactic_projection.h"
-#include "../../../pdbs/pattern_cliques.h"
+#include "../../../globals.h"
+#include "../../../probabilistic_operator.h"
+#include "../syntactic_projection.h"
+#include "../../../../pdbs/pattern_cliques.h"
 
 namespace probabilistic {
 namespace pdbs {

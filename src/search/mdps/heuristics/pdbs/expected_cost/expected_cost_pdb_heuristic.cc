@@ -11,10 +11,10 @@
 #include "../../../analysis_objective.h"
 #include "../../../globals.h"
 #include "../../../logging.h"
-#include "../expcost_projection.h"
+#include "expcost_projection.h"
 #include "../../../analysis_objectives/expected_cost_objective.h"
 #include "../../../../algorithms/max_cliques.h"
-#include "../multiplicativity.h"
+#include "../maxprob/multiplicativity.h"
 #include "../utils.h"
 
 #include <cassert>

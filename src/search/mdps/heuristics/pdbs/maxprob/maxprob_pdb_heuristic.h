@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../evaluation_result.h"
-#include "../../state_evaluator.h"
-#include "types.h"
-#include "abstract_state.h"
+#include "../../../evaluation_result.h"
+#include "../../../state_evaluator.h"
+#include "../types.h"
+#include "../abstract_state.h"
 
 #include <memory>
 #include <vector>
