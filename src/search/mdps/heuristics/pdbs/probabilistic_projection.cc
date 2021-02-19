@@ -140,7 +140,7 @@ ProbabilisticProjection::setup_abstract_goal()
 }
 
 struct OutcomeInfo {
-    OutcomeInfo(value_type::value_t prob)
+    explicit OutcomeInfo(value_type::value_t prob)
         : base_effect(0)
         , probability(prob)
     {
@@ -164,69 +164,21 @@ ProbabilisticProjection::setup_abstract_operators()
     abstract_operators_.reserve(g_operators.size());
     preconditions.reserve(g_operators.size());
 
-    std::vector<int> pre_var_indices;
-    std::vector<int> eff_no_pre_var_indices;
-    std::vector<int> pre_assignment(variables.size(), -1);
-
     using footprint_t =
         std::vector<std::pair<AbstractState, value_type::value_t>>;
-    struct footprint_less {
-        bool operator()(const footprint_t& x, const footprint_t& y) const
-        {
-            if (x.size() < y.size()) {
-                return true;
-            } else if (x.size() > y.size()) {
-                return false;
-            }
-            for (int i = x.size() - 1; i >= 0; i--) {
-                if (x[i].first < y[i].first) {
-                    return true;
-                } else if (x[i].first > y[i].first) {
-                    return false;
-                } else if (x[i].second < y[i].second) {
-                    return true;
-                } else if (x[i].second > y[i].second) {
-                    return false;
-                }
-            }
-            return false;
-        }
-        value_type::approx_less lt;
-    };
-    // struct footprint_equal {
-    //    bool operator()(const footprint_t& x, const footprint_t& y) const
-    //    {
-    //        if (x.size() < y.size()) {
-    //            return false;
-    //        } else if (x.size() > y.size()) {
-    //            return false;
-    //        }
-    //        for (int i = x.size() - 1; i >= 0; i--) {
-    //            if (x[i].first != y[i].first) {
-    //                return false;
-    //            } else if (!eq(x[i].second, y[i].second)) {
-    //                return false;
-    //            }
-    //        }
-    //        return true;
-    //    }
-    //    value_type::equal eq;
-    //};
-    std::set<footprint_t, footprint_less> operators;
+
+    std::set<footprint_t> operators;
     footprint_t footprint;
 
-    for (unsigned op_id = 0; op_id < g_operators.size(); op_id++) {
+    for (unsigned op_id = 0; op_id < g_operators.size(); ++op_id) {
         const ProbabilisticOperator& op = g_operators[op_id];
 
-        pre_var_indices.clear();
-        eff_no_pre_var_indices.clear();
+        std::vector<int> pre_var_indices;
+        std::vector<int> eff_no_pre_var_indices;
 
-        std::fill(pre_assignment.begin(), pre_assignment.end(), -1);
+        std::vector<int> pre_assignment(variables.size(), -1);
         {
-            const std::vector<GlobalCondition>& pre = op.get_preconditions();
-            for (int j = pre.size() - 1; j >= 0; j--) {
-                const int var = pre[j].var;
-                const int val = pre[j].val;
+            for (const auto& [var, val] : op.get_preconditions()) {
                 const int idx = var_index_[var];
                 if (idx != -1) {
                     pre_assignment[idx] = val;
@@ -237,19 +189,20 @@ ProbabilisticProjection::setup_abstract_operators()
 
         std::vector<OutcomeInfo> outcomes;
         value_type::value_t self_loop_prob = value_type::zero;
-        for (auto it = op.begin(); it != op.end(); it++) {
+        for (const ProbabilisticOutcome& out : op) {
+            const std::vector<GlobalEffect>& effects = out.op->get_effects();
+            const value_type::value_t prob = out.prob;
+
             bool self_loop = true;
-            OutcomeInfo info(it->prob);
+            OutcomeInfo info(prob);
             {
-                const std::vector<GlobalEffect>& effects =
-                    it->op->get_effects();
-                for (int j = effects.size() - 1; j >= 0; j--) {
-                    const int var = effects[j].var;
-                    const int idx = var_index_[var];
+                for (const auto& [eff_var, eff_val, _] : effects) {
+                    const int idx = var_index_[eff_var];
+
                     if (idx != -1) {
                         self_loop = false;
                         info.base_effect += state_mapper_->from_value_partial(
-                            idx, effects[j].val);
+                            idx, eff_val);
                         if (pre_assignment[idx] == -1) {
                             eff_no_pre_var_indices.push_back(idx);
                             info.missing_pres.push_back(idx);
@@ -261,28 +214,32 @@ ProbabilisticProjection::setup_abstract_operators()
                     }
                 }
             }
+
             if (self_loop) {
-                self_loop_prob += it->prob;
+                self_loop_prob += prob;
             } else {
                 outcomes.emplace_back(std::move(info));
             }
         }
 
-        if (outcomes.size() > 0) {
+        if (!outcomes.empty()) {
             auto setify = [](auto& v) {
                 std::sort(v.begin(), v.end());
                 v.erase(std::unique(v.begin(), v.end()), v.end());
             };
             setify(eff_no_pre_var_indices);
+
             pre_var_indices.insert(
                 pre_var_indices.end(),
                 eff_no_pre_var_indices.begin(),
                 eff_no_pre_var_indices.end());
             std::sort(pre_var_indices.begin(), pre_var_indices.end());
+
             if (value_type::approx_greater()(
                     self_loop_prob, value_type::zero)) {
                 outcomes.emplace_back(self_loop_prob);
             }
+
             auto add_operator = [this,
                                  op_id,
                                  &operators,
@@ -291,46 +248,47 @@ ProbabilisticProjection::setup_abstract_operators()
                                  &outcomes,
                                  &pre_var_indices](
                                     const AbstractState&,
-                                    const std::vector<int>& values) {
+                                    const std::vector<int>& values)
+            {
                 AbstractOperator new_op(op_id);
                 new_op.pre =
                     state_mapper_->from_values_partial(pre_var_indices, values);
 #ifndef NDEBUG
                 value_type::value_t sum = value_type::zero;
 #endif
-                for (auto out = outcomes.begin(); out != outcomes.end();
-                     out++) {
+                for (const auto& out : outcomes) {
+                    const auto& [base_effect, probability, missing_pres] = out;
 #ifndef NDEBUG
                     assert(value_type::approx_greater()(
-                        out->probability, value_type::zero));
-                    sum += out->probability;
+                        probability, value_type::zero));
+                    sum += probability;
 #endif
                     new_op.outcomes.add(
-                        out->base_effect
+                        base_effect
                             - state_mapper_->from_values_partial(
-                                out->missing_pres, values),
-                        out->probability);
+                                missing_pres, values),
+                        probability);
                 }
+
                 assert(value_type::approx_equal()(sum, value_type::one));
 
-                for (auto out = new_op.outcomes.begin();
-                     out != new_op.outcomes.end();
-                     out++) {
-                    footprint.emplace_back(out->first, out->second);
+                for (const auto& out : new_op.outcomes) {
+                    footprint.emplace_back(out.first, out.second);
                 }
+
                 std::sort(footprint.begin(), footprint.end());
                 footprint.emplace_back(-1, 0);
-                for (unsigned i = 0; i < pre_var_indices.size(); ++i) {
-                    footprint.emplace_back(pre_var_indices[i], 0);
-                    footprint.emplace_back(values[pre_var_indices[i]], 0);
+                for (int pre_var_index : pre_var_indices) {
+                    footprint.emplace_back(pre_var_index, 0);
+                    footprint.emplace_back(values[pre_var_index], 0);
                 }
                 if (operators.insert(footprint).second) {
                     abstract_operators_.emplace_back(std::move(new_op));
                     preconditions.emplace_back(pre_var_indices.size());
                     auto& precons = preconditions.back();
-                    for (int j = pre_var_indices.size() - 1; j >= 0; j--) {
+                    for (size_t j = 0; j < pre_var_indices.size(); ++j) {
                         const int idx = pre_var_indices[j];
-                        precons[j] = std::pair<int, int>(idx, values[idx]);
+                        precons[j] = std::make_pair(idx, values[idx]);
                     }
                 }
                 footprint.clear();
@@ -340,11 +298,11 @@ ProbabilisticProjection::setup_abstract_operators()
         }
     }
 
-    std::vector<const AbstractOperator*> opptrs(
-        abstract_operators_.size(), nullptr);
-    for (int i = abstract_operators_.size() - 1; i >= 0; i--) {
+    std::vector<const AbstractOperator*> opptrs(abstract_operators_.size());
+    for (size_t i = 0; i < abstract_operators_.size(); ++i) {
         opptrs[i] = &abstract_operators_[i];
     }
+
     assert(abstract_operators_.size() == preconditions.size());
 
     progression_aops_generator_ = std::make_shared<
@@ -368,35 +326,27 @@ ProbabilisticProjection::prepare_regression()
     {
         utils::HashSet<std::pair<AbstractState, AbstractState>> operator_set;
 
-        std::vector<int> precondition(pattern.size(), -1);
-        std::vector<std::pair<int, int>> projected_eff;
-        std::vector<int> eff_no_pre;
-        for (unsigned i = 0; i < ::g_operators.size(); i++) {
-            const GlobalOperator& op = ::g_operators[i];
-            eff_no_pre.clear();
-            projected_eff.clear();
-            std::fill(precondition.begin(), precondition.end(), -1);
+        for (const auto& op : ::g_operators) {
+            std::vector<std::pair<int, int>> projected_eff;
+            std::vector<int> eff_no_pre;
+            std::vector<int> precondition(pattern.size(), -1);
             {
-                const auto& all_pres = op.get_preconditions();
-                for (int j = all_pres.size() - 1; j >= 0; j--) {
-                    const int var = all_pres[j].var;
-                    const int idx = var_index_[var];
+                for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
+                    const int idx = var_index_[pre_var];
                     if (idx != -1) {
-                        precondition[idx] = all_pres[j].val;
+                        precondition[idx] = pre_val;
                     }
                 }
             }
+
             AbstractState pre(0);
             AbstractState eff(0);
             {
-                const auto& all_effs = op.get_effects();
-                for (int j = all_effs.size() - 1; j >= 0; j--) {
-                    const int var = all_effs[j].var;
-                    const int idx = var_index_[var];
+                for (const auto& [eff_var, eff_val, _] : op.get_effects()) {
+                    const int idx = var_index_[eff_var];
                     if (idx != -1) {
-                        projected_eff.emplace_back(idx, all_effs[j].val);
-                        eff += state_mapper_->from_value_partial(
-                            idx, all_effs[j].val);
+                        projected_eff.emplace_back(idx, eff_val);
+                        eff += state_mapper_->from_value_partial(idx, eff_val);
                         if (precondition[idx] == -1) {
                             eff_no_pre.push_back(idx);
                         } else {
@@ -406,16 +356,17 @@ ProbabilisticProjection::prepare_regression()
                     }
                 }
             }
+
             if (projected_eff.empty()) {
                 continue;
             }
+
             std::sort(projected_eff.begin(), projected_eff.end());
             std::sort(eff_no_pre.begin(), eff_no_pre.end());
             state_mapper_->enumerate(
                 eff_no_pre,
                 precondition,
-                [this,
-                 &progressions,
+                [&progressions,
                  &operators,
                  &operator_set,
                  &projected_eff,
