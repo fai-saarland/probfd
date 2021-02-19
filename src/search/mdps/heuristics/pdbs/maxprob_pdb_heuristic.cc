@@ -188,7 +188,7 @@ void MaxProbPDBHeuristic::dump_construction_statistics(std::ostream& out) const 
         << statistics_.average_multiplicative_subcollection_size << std::endl;
 }
 
-void MaxProbPDBHeuristic::dump_statistics() const {
+void MaxProbPDBHeuristic::print_statistics() const {
     std::cout << "\nMaxProb Pattern Databases Statistics:" << std::endl;
     dump_construction_statistics(std::cout);
 }
