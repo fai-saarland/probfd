@@ -479,8 +479,7 @@ ProbabilisticProjection::dump_graphviz(
     AbstractOperatorToString* op_to_string_ptr =
         show_transition_labels ? &op_to_string : nullptr;
 
-    std::ofstream out;
-    out.open(path);
+    std::ofstream out(path);
 
     graphviz::dump(
         out,
@@ -492,8 +491,6 @@ ProbabilisticProjection::dump_graphviz(
         &state_to_string,
         op_to_string_ptr,
         true);
-
-    out.close();
 }
 
 void
@@ -523,11 +520,11 @@ ProbabilisticProjection::dump_graphviz(
             : values(values)
             , v0(v0)
             , v1(v1)
-            , state_str(state_mapper)
+            , state_str(std::move(state_mapper))
         {
         }
 
-        std::string operator()(const AbstractState& x)
+        std::string operator()(const AbstractState& x) const
         {
             std::ostringstream out;
             out << state_str(x) << " {";
@@ -554,8 +551,7 @@ ProbabilisticProjection::dump_graphviz(
     AbstractOperatorToString* op_to_string_ptr =
         show_transition_labels ? &op_to_string : nullptr;
 
-    std::ofstream out;
-    out.open(path);
+    std::ofstream out(path);
 
     graphviz::dump(
         out,
@@ -567,8 +563,6 @@ ProbabilisticProjection::dump_graphviz(
         &state_to_string,
         op_to_string_ptr,
         true);
-
-    out.close();
 }
 
 AbstractAnalysisResult
