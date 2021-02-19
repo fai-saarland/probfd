@@ -34,9 +34,10 @@ ProbabilisticProjection::ProbabilisticProjection(
     , progression_aops_generator_(nullptr)
     , regression_aops_generator_(nullptr)
 {
-    for (int i = variables.size() - 1; i >= 0; i--) {
+    for (size_t i = 0; i < variables.size(); ++i) {
         var_index_[variables[i]] = i;
     }
+
     setup_abstract_goal();
 }
 
