@@ -794,7 +794,7 @@ dump_graphviz(
         value_type::zero);
     if (values) {
         ZeroCostActionEvaluator no_reward;
-        AbstractAnalysisResult values = projection->compute_value_table(
+        AbstractAnalysisResult result = projection->compute_value_table(
             &is_goal,
             &no_reward,
             value_type::zero,
@@ -803,15 +803,15 @@ dump_graphviz(
             value_type::one);
         projection->dump_graphviz(
             &is_goal,
-            &values,
+            &result,
             value_type::zero,
             value_type::one,
             path,
             transition_labels);
-        delete (values.value_table);
-        delete (values.dead_ends);
-        if (values.one_states != nullptr) {
-            delete (values.one_states);
+        delete (result.value_table);
+        delete (result.dead_ends);
+        if (result.one_states != nullptr) {
+            delete (result.one_states);
         }
     } else {
         projection->dump_graphviz(&is_goal, path, transition_labels);
