@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../evaluation_result.h"
-#include "../../state_evaluator.h"
-#include "types.h"
-#include "abstract_state.h"
+#include "../../../evaluation_result.h"
+#include "../../../state_evaluator.h"
+#include "../types.h"
+#include "../abstract_state.h"
 
 #include <memory>
 #include <vector>
@@ -21,7 +21,7 @@ namespace pdbs {
 class ProbabilisticProjection;
 class QuantitativeResultStore;
 class QualitativeResultStore;
-class AbstractAnalysisResult;
+class MaxProbAbstractAnalysisResult;
 
 class MaxProbPDBHeuristic : public GlobalStateEvaluator {
 private:

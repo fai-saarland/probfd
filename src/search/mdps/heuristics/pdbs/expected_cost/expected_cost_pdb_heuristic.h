@@ -24,7 +24,7 @@ namespace pdbs {
 class ProbabilisticProjection;
 class QuantitativeResultStore;
 class QualitativeResultStore;
-class AbstractAnalysisResult;
+class ExpCostAbstractAnalysisResult;
 
 class ExpectedCostPDBHeuristic : public GlobalStateEvaluator {
     struct Statistics {
