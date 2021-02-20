@@ -14,7 +14,7 @@
 #include "expcost_projection.h"
 #include "../../../analysis_objectives/expected_cost_objective.h"
 #include "../../../../algorithms/max_cliques.h"
-#include "../maxprob/multiplicativity.h"
+#include "../maxprob/orthogonality.h"
 #include "../utils.h"
 
 #include <cassert>
@@ -161,7 +161,7 @@ void ExpectedCostPDBHeuristic::construct_cliques(
 
     if (additive_patterns) {
         max_cliques::compute_max_cliques(
-            multiplicativity::buildCompatibilityGraphOrthogonality<false>(
+            multiplicativity::build_compatibility_graph_orthogonality<false>(
                 patterns),
             additive_patterns_);
     } else {

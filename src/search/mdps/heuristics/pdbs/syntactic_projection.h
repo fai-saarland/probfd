@@ -5,37 +5,57 @@
 
 #include "../../globals.h"
 #include "../../../global_operator.h"
-#include "../../../pdbs/types.h"
+#include "types.h"
 
 
 namespace probabilistic {
 namespace pdbs {
 namespace syntactic_projection {
 
-struct cmp_outcome {
-    struct cmp_eff {
-        bool operator()(const GlobalEffect& eff1, const GlobalEffect& eff2) const {
-            return eff1.var < eff2.var || (eff1.var == eff2.var && eff1.val < eff2.val);
-        }
-    };
+class ProjectionOperator {
+    std::map<std::vector<std::pair<int, int>>, value_type::value_t>
+        effects_to_probs;
 
-    bool operator()(const std::vector<GlobalEffect>& a, const std::vector<GlobalEffect>& b) const {
-        return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end(), cmp_eff());
+public:
+    using iterator = decltype(effects_to_probs)::iterator;
+    using const_iterator = decltype(effects_to_probs)::const_iterator;
+
+    ProjectionOperator() = default;
+
+    value_type::value_t get_probability(
+        const std::vector<std::pair<int, int>>& effects) const;
+
+    void add_effect_probability(
+        const std::vector<std::pair<int, int>>& effects,
+        value_type::value_t probability);
+
+    iterator begin() {
+        return effects_to_probs.begin();
     }
+
+    iterator end() {
+        return effects_to_probs.end();
+    }
+
+    const_iterator cbegin() const {
+        return effects_to_probs.cbegin();
+    }
+
+    const_iterator cend() const {
+        return effects_to_probs.cend();
+    }
+
+    bool is_stochastic() const;
+    bool is_pseudo_deterministic() const;
 };
 
-using Outcome = std::vector<GlobalEffect>;
-using SyntacticProjection = std::map<Outcome, value_type::value_t, cmp_outcome>;
+std::vector<std::pair<int, int>> project_effects(
+    const Pattern& pattern,
+    const std::vector<GlobalEffect>& effects);
 
-Outcome projectOutcome(
-    const ::pdbs::Pattern& pattern,
-    const ProbabilisticOutcome& outcome);
-
-SyntacticProjection buildSyntacticProjection(
-    const ::pdbs::Pattern& pattern,
+ProjectionOperator project_operator(
+    const Pattern& pattern,
     const ProbabilisticOperator& op);
-
-bool isStochastic(const SyntacticProjection& sp_op);
 
 }
 }

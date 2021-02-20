@@ -11,7 +11,7 @@
 #include "../../../globals.h"
 #include "../../../logging.h"
 #include "../../../../algorithms/max_cliques.h"
-#include "multiplicativity.h"
+#include "orthogonality.h"
 #include "maxprob_projection.h"
 #include "../qualitative_result_store.h"
 #include "../quantitative_result_store.h"
@@ -349,13 +349,13 @@ void MaxProbPDBHeuristic::construct_cliques(
         case ORTHOGONALITY:
             max_cliques::compute_max_cliques(
                 multiplicativity::
-                buildCompatibilityGraphOrthogonality(clique_patterns),
+                build_compatibility_graph_orthogonality(clique_patterns),
                 multiplicative_subcollections);
             break;
         case WEAK_ORTHOGONALITY:
             max_cliques::compute_max_cliques(
                 multiplicativity::
-                buildCompatibilityGraphWeakOrthogonality(clique_patterns),
+                build_compatibility_graph_weak_orthogonality(clique_patterns),
                 multiplicative_subcollections);
             break;
     }
