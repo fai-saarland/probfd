@@ -15,7 +15,6 @@ namespace pdbs {
 class AbstractOperator {
 public:
     explicit AbstractOperator(unsigned id);
-    AbstractOperator(AbstractOperator&&) = default;
     unsigned original_operator_id;
     AbstractState pre;
     Distribution<AbstractState> outcomes;

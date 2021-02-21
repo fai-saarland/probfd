@@ -14,7 +14,6 @@ class ProbabilisticProjection;
 class QuantitativeResultStore {
 public:
     explicit QuantitativeResultStore();
-    QuantitativeResultStore(QuantitativeResultStore&&) = default;
     ~QuantitativeResultStore() = default;
 
     bool has_value(const AbstractState& x) const;

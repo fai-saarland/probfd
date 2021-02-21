@@ -25,7 +25,6 @@ public:
         QualitativeResultStore* ref_;
     };
     QualitativeResultStore();
-    QualitativeResultStore(QualitativeResultStore&&) = default;
     virtual ~QualitativeResultStore() = default;
 
     /*virtual*/ void negate_all();
