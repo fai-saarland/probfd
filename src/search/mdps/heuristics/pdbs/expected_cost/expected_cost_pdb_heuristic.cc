@@ -129,7 +129,7 @@ void ExpectedCostPDBHeuristic::construct_database(
         //}
 
         // Compute the value table for this projection
-        ExpCostAbstractAnalysisResult result = compute_value_table(projection);
+        ExpCostAbstractAnalysisResult result = projection.compute_value_table();
 
         // Add to the list of PDB heuristics and update statistics.
         database_.emplace_back(state_mapper, result);

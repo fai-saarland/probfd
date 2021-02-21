@@ -240,7 +240,7 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
         if (opts.get<bool>("dump_projections")) {
             std::ostringstream path;
             path << "pattern" << i << ".dot";
-            dump_projection(projection, path.str());
+            projection.dump_graphviz(path.str());
         }
 
         AbstractState s0 = state_mapper->operator()(g_initial_state_values);
@@ -250,12 +250,12 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
             QualitativeResultStore dead_ends = projection.compute_dead_ends();
             initial_state_is_dead_end_ = dead_ends.get(s0);
             if (!initial_state_is_dead_end_) {
-                result = compute_value_table(projection, &dead_ends);
+                result = projection.compute_value_table(&dead_ends);
                 result.dead_ends =
                     new QualitativeResultStore(std::move(dead_ends));
             }
         } else {
-            result = compute_value_table(projection);
+            result = projection.compute_value_table();
             initial_state_is_dead_end_ = result.dead_ends->get(s0);
         }
 
@@ -281,7 +281,7 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
         if (result.one == result.reachable_states) {
 #ifndef NDEBUG
             logging::out << " **trivial projection** ~~> estimate(s0) = "
-                         << result.one_state_reward << std::endl;
+                         << value_type::one << std::endl;
 #endif
             delete (result.value_table);
             delete (result.one_states);

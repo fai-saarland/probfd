@@ -87,11 +87,15 @@ MaxProbProjection::compute_dead_ends()
 }
 
 void
-MaxProbProjection::dump_graphviz(
-    AbstractStateEvaluator* state_reward,
+MaxProbProjection::dump_graphviz_no_values(
     const std::string& path,
     bool show_transition_labels)
 {
+    AbstractStateInStoreEvaluator is_goal(
+        &goal_states_,
+        value_type::one,
+        value_type::zero);
+
     setup_abstract_operators();
 
     StateIDMap<AbstractState> state_id_map;
@@ -112,7 +116,7 @@ MaxProbProjection::dump_graphviz(
         out,
         initial_state_,
         &state_id_map,
-        state_reward,
+        &is_goal,
         &aops_gen,
         &transition_gen,
         &state_to_string,
@@ -121,14 +125,18 @@ MaxProbProjection::dump_graphviz(
 }
 
 void
-MaxProbProjection::dump_graphviz(
-    AbstractStateEvaluator* state_reward,
+MaxProbProjection::dump_graphviz_with_values(
     MaxProbAbstractAnalysisResult* values,
     value_type::value_t v0,
     value_type::value_t v1,
     const std::string& path,
     bool show_transition_labels)
 {
+    AbstractStateInStoreEvaluator is_goal(
+        &goal_states_,
+        value_type::one,
+        value_type::zero);
+
     setup_abstract_operators();
 
     StateIDMap<AbstractState> state_id_map;
@@ -184,7 +192,7 @@ MaxProbProjection::dump_graphviz(
         out,
         initial_state_,
         &state_id_map,
-        state_reward,
+        &is_goal,
         &aops_gen,
         &transition_gen,
         &state_to_string,
@@ -194,14 +202,14 @@ MaxProbProjection::dump_graphviz(
 
 MaxProbAbstractAnalysisResult
 MaxProbProjection::compute_value_table(
-    AbstractStateEvaluator* state_reward,
-    AbstractOperatorEvaluator* transition_reward,
-    value_type::value_t dead_end_value,
-    value_type::value_t upper,
-    bool one,
-    value_type::value_t one_state_reward,
     QualitativeResultStore* dead_ends)
 {
+    AbstractStateInStoreEvaluator is_goal(
+        &goal_states_,
+        value_type::one,
+        value_type::zero);
+    ZeroCostActionEvaluator no_reward;
+
     setup_abstract_operators();
 
     StateIDMap<AbstractState> state_id_map;
@@ -222,13 +230,13 @@ MaxProbProjection::compute_value_table(
     interval_iteration::
     IntervalIteration<AbstractState, const AbstractOperator*, true>
         vi(heuristic.get(),
-           one,
+           true,
            &state_id_map,
            &action_id_map,
-           state_reward,
-           transition_reward,
-           dead_end_value,
-           upper,
+           &is_goal,
+           &no_reward,
+           value_type::zero,
+           value_type::one,
            &aops_gen,
            &transition_gen);
 
@@ -262,12 +270,10 @@ MaxProbProjection::compute_value_table(
     MaxProbAbstractAnalysisResult result;
     result.reachable_states = state_id_map.size();
     result.value_table = new QuantitativeResultStore();
+    result.one_states = new QualitativeResultStore();
+
     if (dead_ends == nullptr) {
         result.dead_ends = new QualitativeResultStore();
-    }
-    if (one) {
-        result.one_states = new QualitativeResultStore();
-        result.one_state_reward = one_state_reward;
     }
 
     const bool store_deads = dead_ends == nullptr;
@@ -282,7 +288,7 @@ MaxProbProjection::compute_value_table(
             if (store_deads) {
                 result.dead_ends->set(s, true);
             }
-        } else if (one && ones[state_id]) {
+        } else if (ones[state_id]) {
             ++result.one;
             result.one_states->set(s, true);
         } else {
@@ -294,50 +300,15 @@ MaxProbProjection::compute_value_table(
     return result;
 }
 
-MaxProbAbstractAnalysisResult
-compute_value_table(
-    MaxProbProjection& projection,
-    QualitativeResultStore* dead_ends)
-{
-        AbstractStateInStoreEvaluator is_goal(
-            &projection.get_abstract_goal_states(),
-            value_type::one,
-            value_type::zero);
-        ZeroCostActionEvaluator no_reward;
-
-        return projection.compute_value_table(
-            &is_goal,
-            &no_reward,
-            value_type::zero,
-            value_type::one,
-            true, // filter states that can reach goal with absolute certainty
-            value_type::one,
-            dead_ends);
-}
-
 void
-dump_graphviz(
-    MaxProbProjection& projection,
+MaxProbProjection::dump_graphviz(
     const std::string& path,
     bool transition_labels,
     bool values)
 {
-    AbstractStateInStoreEvaluator is_goal(
-        &projection.get_abstract_goal_states(),
-        value_type::one,
-        value_type::zero);
-
     if (values) {
-        ZeroCostActionEvaluator no_reward;
-        MaxProbAbstractAnalysisResult result = projection.compute_value_table(
-            &is_goal,
-            &no_reward,
-            value_type::zero,
-            value_type::one,
-            true,
-            value_type::one);
-        projection.dump_graphviz(
-            &is_goal,
+        MaxProbAbstractAnalysisResult result = compute_value_table();
+        dump_graphviz_with_values(
             &result,
             value_type::zero,
             value_type::one,
@@ -349,7 +320,7 @@ dump_graphviz(
             delete (result.one_states);
         }
     } else {
-        projection.dump_graphviz(&is_goal, path, transition_labels);
+        dump_graphviz_no_values(path, transition_labels);
     }
 }
 

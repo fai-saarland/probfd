@@ -12,12 +12,14 @@ namespace probabilistic {
 namespace pdbs {
 
 ExpCostAbstractAnalysisResult
-ExpCostProjection::compute_value_table(
-    AbstractStateEvaluator* state_reward,
-    AbstractOperatorEvaluator* transition_reward,
-    value_type::value_t dead_end_value,
-    value_type::value_t upper)
+ExpCostProjection::compute_value_table()
 {
+    AbstractStateInStoreEvaluator is_goal(
+        &goal_states_,
+        value_type::zero,
+        value_type::zero);
+    UnitCostActionEvaluator neg_unit_reward;
+
     setup_abstract_operators();
 
     StateIDMap<AbstractState> state_id_map;
@@ -33,10 +35,10 @@ ExpCostProjection::compute_value_table(
         vi(nullptr,
            &state_id_map,
            &action_id_map,
-           state_reward,
-           transition_reward,
-           dead_end_value,
-           upper,
+           &is_goal,
+           &neg_unit_reward,
+           -value_type::inf,
+           value_type::zero,
            &aops_gen,
            &transition_gen);
 
@@ -71,21 +73,6 @@ ExpCostProjection::compute_value_table(
 #endif
 
     return result;
-}
-
-ExpCostAbstractAnalysisResult
-compute_value_table(ExpCostProjection& projection) {
-    AbstractStateInStoreEvaluator is_goal(
-        &projection.get_abstract_goal_states(),
-        value_type::zero,
-        value_type::zero);
-    UnitCostActionEvaluator neg_unit_reward;
-
-    return projection.compute_value_table(
-        &is_goal,
-        &neg_unit_reward,
-        -value_type::inf,
-        value_type::zero);
 }
 
 } // namespace pdbs

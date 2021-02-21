@@ -24,15 +24,8 @@ public:
 
     ~ExpCostProjection() = default;
 
-    ExpCostAbstractAnalysisResult compute_value_table(
-        AbstractStateEvaluator* state_reward,
-        AbstractOperatorEvaluator* transition_reward,
-        value_type::value_t dead_end_value,
-        value_type::value_t upper);
+    ExpCostAbstractAnalysisResult compute_value_table();
 };
-
-extern ExpCostAbstractAnalysisResult compute_value_table(
-    ExpCostProjection& projection);
 
 } // namespace pdbs
 } // namespace probabilistic
