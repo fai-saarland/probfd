@@ -81,12 +81,13 @@ void ExpectedCostPDBHeuristic::construct_database(
         }
 
         // Set up the projection state space
-        ExpCostProjection& projection =
+        const ExpCostProjection& projection =
             database_.emplace_back(p, ::g_variable_domain);
-        auto state_mapper = projection.get_abstract_state_mapper();
 
         // If we exceed max_states, this will be the last projection
-        if (max_states - state_mapper->size() < statistics_.total_states) {
+        unsigned int num_states = projection.num_states();
+
+        if (max_states - num_states < statistics_.total_states) {
             terminate = true;
         }
 
@@ -97,15 +98,13 @@ void ExpectedCostPDBHeuristic::construct_database(
         }
 
         // Update statistics.
-        statistics_.total_states += state_mapper->size();
+        statistics_.total_states += num_states;
 
 #ifndef NDEBUG
         {
             dump_pattern(logging::out, i, p);
-
-            AbstractState s0 = state_mapper->operator()(g_initial_state_values);
             logging::out << " ~~> estimate(s0) = "
-                         << projection.lookup(s0) << std::endl;
+                         << projection.lookup(g_initial_state()) << std::endl;
         }
 #endif
     }

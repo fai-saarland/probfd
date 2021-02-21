@@ -32,6 +32,8 @@ public:
     std::shared_ptr<AbstractStateMapper> get_abstract_state_mapper() const;
     QualitativeResultStore& get_abstract_goal_states();
 
+    unsigned int num_states() const;
+
 protected:
     void setup_abstract_goal();
     void setup_abstract_operators() const;

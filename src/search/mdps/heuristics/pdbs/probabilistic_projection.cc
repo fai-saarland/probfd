@@ -43,6 +43,10 @@ ProbabilisticProjection::get_abstract_goal_states()
     return goal_states_;
 }
 
+unsigned int ProbabilisticProjection::num_states() const {
+    return state_mapper_->size();
+}
+
 void
 ProbabilisticProjection::setup_abstract_goal()
 {
