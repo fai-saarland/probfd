@@ -141,7 +141,7 @@ class QualitativeResultStore;
 class AbstractStateInStoreEvaluator : public StateEvaluator<AbstractState> {
 public:
     explicit AbstractStateInStoreEvaluator(
-        QualitativeResultStore* states_,
+        const QualitativeResultStore* states_,
         value_type::value_t value_in,
         value_type::value_t value_not_in);
 
@@ -149,7 +149,7 @@ protected:
     virtual EvaluationResult evaluate(const AbstractState& state) override;
 
 private:
-    QualitativeResultStore* states_;
+    const QualitativeResultStore* states_;
     const value_type::value_t value_in_;
     const value_type::value_t value_not_in_;
 };

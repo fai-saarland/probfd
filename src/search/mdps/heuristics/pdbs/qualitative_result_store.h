@@ -30,7 +30,7 @@ public:
     /*virtual*/ void negate_all();
     /*virtual*/ void clear();
     /*virtual*/ void set(const AbstractState& s, bool val);
-    /*virtual*/ bool get(const AbstractState& s);
+    /*virtual*/ bool get(const AbstractState& s) const;
 
     assignable_bool_t operator[](const AbstractState& s);
 

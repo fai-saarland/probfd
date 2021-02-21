@@ -142,7 +142,7 @@ TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
 namespace pdbs {
 
 AbstractStateInStoreEvaluator::AbstractStateInStoreEvaluator(
-    QualitativeResultStore* states,
+    const QualitativeResultStore* states,
     value_type::value_t value_in,
     value_type::value_t value_not_in)
     : states_(states)

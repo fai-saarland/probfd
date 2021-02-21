@@ -58,7 +58,7 @@ QualitativeResultStore::set(const AbstractState& s, bool value)
 }
 
 bool
-QualitativeResultStore::get(const AbstractState& s)
+QualitativeResultStore::get(const AbstractState& s) const
 {
     return states_.count(s.id) ? !is_negated_ : is_negated_;
 }
