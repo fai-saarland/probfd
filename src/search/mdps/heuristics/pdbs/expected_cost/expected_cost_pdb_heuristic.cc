@@ -11,7 +11,6 @@
 #include "../../../analysis_objective.h"
 #include "../../../globals.h"
 #include "../../../logging.h"
-#include "expcost_projection.h"
 #include "../../../analysis_objectives/expected_cost_objective.h"
 #include "../../../../algorithms/max_cliques.h"
 #include "../maxprob/orthogonality.h"
@@ -27,39 +26,6 @@ namespace pdbs {
 
 using ::pdbs::PatternCollectionGenerator;
 using ::pdbs::PatternCollectionInformation;
-
-struct ExpectedCostPDBHeuristic::ProjectionInfo {
-    ProjectionInfo(
-        std::shared_ptr<AbstractStateMapper> state_mapper,
-        ExpCostAbstractAnalysisResult& result);
-
-    std::shared_ptr<AbstractStateMapper> state_mapper;
-    std::unique_ptr<QuantitativeResultStore> values;
-
-    [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
-    [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
-};
-
-ExpectedCostPDBHeuristic::ProjectionInfo::ProjectionInfo(
-    std::shared_ptr<AbstractStateMapper> state_mapper,
-    ExpCostAbstractAnalysisResult& result)
-    : state_mapper(std::move(state_mapper))
-    , values(result.value_table)
-{
-}
-
-value_type::value_t
-ExpectedCostPDBHeuristic::ProjectionInfo::lookup(const GlobalState& s) const
-{
-    return lookup(state_mapper->operator()(s));
-}
-
-value_type::value_t
-ExpectedCostPDBHeuristic::ProjectionInfo::lookup(const AbstractState& s) const
-{
-    assert(values);
-    return values->get(s);
-}
 
 void ExpectedCostPDBHeuristic::dump_init_statistics(std::ostream &out) const {
     out << "  Additivity: " << (statistics_.additive ? "Enabled" : "Disabled")
@@ -115,7 +81,8 @@ void ExpectedCostPDBHeuristic::construct_database(
         }
 
         // Set up the projection state space
-        ExpCostProjection projection(p, ::g_variable_domain);
+        ExpCostProjection& projection =
+            database_.emplace_back(p, ::g_variable_domain);
         auto state_mapper = projection.get_abstract_state_mapper();
 
         // If we exceed max_states, this will be the last projection
@@ -128,11 +95,7 @@ void ExpectedCostPDBHeuristic::construct_database(
         //    dumpProjection(i, projection);
         //}
 
-        // Compute the value table for this projection
-        ExpCostAbstractAnalysisResult result = projection.compute_value_table();
-
-        // Add to the list of PDB heuristics and update statistics.
-        database_.emplace_back(state_mapper, result);
+        // Update statistics.
         statistics_.total_states += state_mapper->size();
 
 #ifndef NDEBUG
@@ -140,9 +103,8 @@ void ExpectedCostPDBHeuristic::construct_database(
             dump_pattern(logging::out, i, p);
 
             AbstractState s0 = state_mapper->operator()(g_initial_state_values);
-            assert(result.value_table && result.value_table->has_value(s0));
             logging::out << " ~~> estimate(s0) = "
-                         << result.value_table->get(s0) << std::endl;
+                         << projection.lookup(s0) << std::endl;
         }
 #endif
     }
