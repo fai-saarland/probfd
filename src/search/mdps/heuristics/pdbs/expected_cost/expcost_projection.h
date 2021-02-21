@@ -31,8 +31,21 @@ public:
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
     [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
 
+    void dump_graphviz(
+        const std::string& path,
+        bool transition_labels = true,
+        bool values = true) const;
+
 private:
     void compute_value_table();
+
+    void dump_graphviz_no_values(
+        const std::string& path,
+        bool transition_labels) const;
+
+    void dump_graphviz_with_values(
+        const std::string& path,
+        bool transition_labels) const;
 };
 
 } // namespace pdbs

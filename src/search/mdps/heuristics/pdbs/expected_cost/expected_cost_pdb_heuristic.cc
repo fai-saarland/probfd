@@ -90,10 +90,11 @@ void ExpectedCostPDBHeuristic::construct_database(
             terminate = true;
         }
 
-        // FIXME: Dumping projections is not supported for this analysis obj
-        //if (opts.get<bool>("dump_projections")) {
-        //    dumpProjection(i, projection);
-        //}
+        if (opts.get<bool>("dump_projections")) {
+            std::ostringstream path;
+            path << "pattern" << i << ".dot";
+            projection.dump_graphviz(path.str());
+        }
 
         // Update statistics.
         statistics_.total_states += state_mapper->size();
