@@ -27,6 +27,11 @@ public:
     QualitativeResultStore();
     virtual ~QualitativeResultStore() = default;
 
+    QualitativeResultStore(const QualitativeResultStore&) = default;
+    QualitativeResultStore(QualitativeResultStore&&) = default;
+    QualitativeResultStore& operator=(const QualitativeResultStore&) = default;
+    QualitativeResultStore& operator=(QualitativeResultStore&&) = default;
+
     /*virtual*/ void negate_all();
     /*virtual*/ void clear();
     /*virtual*/ void set(const AbstractState& s, bool val);
