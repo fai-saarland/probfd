@@ -143,7 +143,7 @@ struct OutcomeInfo {
 };
 
 void
-ProbabilisticProjection::setup_abstract_operators()
+ProbabilisticProjection::setup_abstract_operators() const
 {
     if (progression_aops_generator_ != nullptr) {
         return;
