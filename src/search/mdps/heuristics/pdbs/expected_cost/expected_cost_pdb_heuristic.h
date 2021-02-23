@@ -4,6 +4,7 @@
 #include "../../../state_evaluator.h"
 #include "../abstract_state.h"
 #include "../types.h"
+#include "expcost_projection.h"
 
 #include <memory>
 #include <vector>
@@ -53,9 +54,7 @@ class ExpectedCostPDBHeuristic : public GlobalStateEvaluator {
 #endif
     };
 
-    struct ProjectionInfo;
-
-    std::vector<ProjectionInfo> database_;
+    std::vector<ExpCostProjection> database_;
     std::vector<PatternClique> additive_patterns_;
     Statistics statistics_;
 

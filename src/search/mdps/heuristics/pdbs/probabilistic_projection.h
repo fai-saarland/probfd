@@ -32,21 +32,25 @@ public:
     std::shared_ptr<AbstractStateMapper> get_abstract_state_mapper() const;
     QualitativeResultStore& get_abstract_goal_states();
 
+    unsigned int num_states() const;
+
 protected:
     void setup_abstract_goal();
-    void setup_abstract_operators();
+    void setup_abstract_operators() const;
     void prepare_regression();
 
     std::vector<int> var_index_;
     std::shared_ptr<AbstractStateMapper> state_mapper_;
     std::vector<std::pair<int, int>> projected_goal_;
-    std::vector<AbstractOperator> abstract_operators_;
+    mutable std::vector<AbstractOperator> abstract_operators_;
     AbstractState initial_state_;
     QualitativeResultStore goal_states_;
 
+    mutable
     std::shared_ptr<
         successor_generator::SuccessorGenerator<const AbstractOperator*>>
         progression_aops_generator_;
+    mutable
     std::shared_ptr<successor_generator::SuccessorGenerator<AbstractState>>
         regression_aops_generator_;
 };

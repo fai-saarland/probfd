@@ -27,30 +27,6 @@ namespace pdbs {
 using ::pdbs::PatternCollectionGenerator;
 using ::pdbs::PatternCollectionInformation;
 
-struct MaxProbPDBHeuristic::ProjectionInfo {
-    ProjectionInfo(
-        std::shared_ptr<AbstractStateMapper> state_mapper,
-        MaxProbAbstractAnalysisResult& result);
-
-    std::shared_ptr<AbstractStateMapper> state_mapper;
-    std::unique_ptr<QuantitativeResultStore> values;
-    std::unique_ptr<QualitativeResultStore> dead_ends;
-    std::unique_ptr<QualitativeResultStore> one_states;
-
-    [[nodiscard]]
-    value_type::value_t lookup(const AbstractState& s) const;
-};
-
-MaxProbPDBHeuristic::ProjectionInfo::ProjectionInfo(
-    std::shared_ptr<AbstractStateMapper> state_mapper,
-    MaxProbAbstractAnalysisResult& result)
-    : state_mapper(std::move(state_mapper))
-    , values(result.value_table)
-    , dead_ends(result.dead_ends)
-    , one_states(result.one_states)
-{
-}
-
 MaxProbPDBHeuristic::MaxProbPDBHeuristic(
     const options::Options& opts)
 {
@@ -97,22 +73,6 @@ MaxProbPDBHeuristic::MaxProbPDBHeuristic(
     dump_construction_statistics(std::cout);
 }
 
-value_type::value_t
-MaxProbPDBHeuristic::
-ProjectionInfo::lookup(const AbstractState& s) const
-{
-    assert(!dead_ends->get(s));
-    if (one_states == nullptr && values == nullptr) {
-        return g_analysis_objective->max();
-    }
-
-    if (one_states != nullptr && one_states->get(s)) {
-        return value_type::one;
-    }
-
-    return values->get(s);
-}
-
 EvaluationResult
 MaxProbPDBHeuristic::evaluate(const GlobalState& state)
 {
@@ -121,9 +81,9 @@ MaxProbPDBHeuristic::evaluate(const GlobalState& state)
     }
 
     value_type::value_t result = g_analysis_objective->max();
-    for (const ProjectionInfo& store : dead_end_database_) {
-        const AbstractState x = store.state_mapper->operator()(state);
-        if (store.dead_ends->get(x)) {
+    for (const auto& store : dead_end_database_) {
+        const AbstractState x = store.get_abstract_state(state);
+        if (store.is_dead_end(x)) {
             return EvaluationResult(true, g_analysis_objective->min());
         }
         result = std::min(result, store.lookup(x));
@@ -131,9 +91,9 @@ MaxProbPDBHeuristic::evaluate(const GlobalState& state)
 
     std::vector<value_type::value_t> estimates(clique_database_.size());
     for (unsigned i = 0; i != clique_database_.size(); ++i) {
-        const ProjectionInfo& store = clique_database_[i];
-        const AbstractState x = store.state_mapper->operator()(state);
-        if (store.dead_ends->get(x)) {
+        const auto& store = clique_database_[i];
+        const AbstractState x = store.get_abstract_state(state);
+        if (store.is_dead_end(x)) {
             return EvaluationResult(true, g_analysis_objective->min());
         }
         estimates[i] = store.lookup(x);
@@ -221,6 +181,8 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
 
     bool terminate = false;
 
+    const bool pre_dead_ends = opts.get<bool>("precompute_dead_ends");
+
     for (unsigned i = 0; i < patterns.size() && !terminate; ++i) {
         const Pattern& p = patterns[i];
 
@@ -228,7 +190,7 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
             break;
         }
 
-        MaxProbProjection projection(p, ::g_variable_domain);
+        MaxProbProjection projection(p, ::g_variable_domain, pre_dead_ends);
         auto state_mapper = projection.get_abstract_state_mapper();
 
         if (max_states - state_mapper->size() < statistics_.abstract_states) {
@@ -240,24 +202,10 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
         if (opts.get<bool>("dump_projections")) {
             std::ostringstream path;
             path << "pattern" << i << ".dot";
-            dump_projection(projection, path.str());
+            projection.dump_graphviz(path.str());
         }
 
-        AbstractState s0 = state_mapper->operator()(g_initial_state_values);
-        MaxProbAbstractAnalysisResult result;
-
-        if (opts.get<bool>("precompute_dead_ends")) {
-            QualitativeResultStore dead_ends = projection.compute_dead_ends();
-            initial_state_is_dead_end_ = dead_ends.get(s0);
-            if (!initial_state_is_dead_end_) {
-                result = compute_value_table(projection, &dead_ends);
-                result.dead_ends =
-                    new QualitativeResultStore(std::move(dead_ends));
-            }
-        } else {
-            result = compute_value_table(projection);
-            initial_state_is_dead_end_ = result.dead_ends->get(s0);
-        }
+        initial_state_is_dead_end_ = projection.is_dead_end(g_initial_state());
 
 #ifndef NDEBUG
         dump_pattern(logging::out, i, p);
@@ -272,53 +220,38 @@ std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
 #endif
             logging::out << " identifies initial state as dead-end!"
                          << std::endl;
-            delete (result.value_table);
-            delete (result.one_states);
-            delete (result.dead_ends);
             break;
         }
 
-        if (result.one == result.reachable_states) {
+        if (projection.is_all_one()) {
 #ifndef NDEBUG
             logging::out << " **trivial projection** ~~> estimate(s0) = "
-                         << result.one_state_reward << std::endl;
+                         << value_type::one << std::endl;
 #endif
-            delete (result.value_table);
-            delete (result.one_states);
-            delete (result.dead_ends);
             continue;
         }
 
-        statistics_.abstract_reachable_states += result.reachable_states;
-        statistics_.abstract_dead_ends += result.dead;
-        statistics_.abstract_one_states += result.one;
+        statistics_.abstract_reachable_states +=
+            projection.num_reachable_states();
+        statistics_.abstract_dead_ends += projection.num_dead_ends();
+        statistics_.abstract_one_states += projection.num_one_states();
 
 #ifndef NDEBUG
         {
-            assert(
-                (result.one_states != nullptr && result.one_states->get(s0))
-                || result.value_table->has_value(s0));
             logging::out << " ~~> estimate(s0) = "
-                         << (result.one_states != nullptr &&
-                             result.one_states->get(s0)
-                            ? value_type::one
-                            : result.value_table->get(s0))
+                         << projection.lookup(g_initial_state())
                          << std::endl;
         }
 #endif
 
-        if (result.one + result.dead == result.reachable_states) {
+        if (projection.is_deterministic()) {
 #ifndef NDEBUG
             logging::out << " **deterministic projection**";
 #endif
-            delete (result.value_table);
-            delete (result.one_states);
-            result.value_table = nullptr;
-            result.one_states = nullptr;
-            dead_end_database_.emplace_back(state_mapper, result);
+            dead_end_database_.emplace_back(std::move(projection));
         } else {
             clique_patterns_.push_back(p);
-            clique_database_.emplace_back(state_mapper, result);
+            clique_database_.emplace_back(std::move(projection));
         }
     }
 

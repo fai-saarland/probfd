@@ -31,17 +31,4 @@ void dump_pattern(std::ostream& out, PatternID i, const Pattern& p) {
     out << "})" << std::flush;
 }
 
-void dump_projection(
-    MaxProbProjection& projection,
-    const std::string& path,
-    bool print_transition_labels,
-    bool print_values)
-{
-    dump_graphviz(
-        projection,
-        path,
-        print_transition_labels,
-        print_values);
-}
-
 }

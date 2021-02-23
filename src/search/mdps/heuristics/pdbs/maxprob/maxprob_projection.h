@@ -13,58 +13,58 @@ class AnalysisObjective;
 
 namespace pdbs {
 
-struct MaxProbAbstractAnalysisResult {
-    QuantitativeResultStore* value_table = nullptr;
-    QualitativeResultStore* dead_ends = nullptr;
-    QualitativeResultStore* one_states = nullptr;
-
-    value_type::value_t one_state_reward = value_type::zero;
-
-    unsigned reachable_states = 0;
-    unsigned dead = 0;
-    unsigned one = 0;
-};
-
 class MaxProbProjection : public ProbabilisticProjection {
+    bool all_one = false;
+    bool deterministic = false;
+
+    QuantitativeResultStore value_table;
+    QualitativeResultStore one_states;
+    QualitativeResultStore dead_ends;
+
+    unsigned int n_reachable_states = 0;
+    unsigned int n_dead_ends = 0;
+    unsigned int n_one_states = 0;
+
 public:
-    using ProbabilisticProjection::ProbabilisticProjection;
+    MaxProbProjection(
+        const std::vector<int>& variables,
+        const std::vector<int>& domains,
+        bool precompute_dead_ends = false);
 
     ~MaxProbProjection() = default;
 
-    QualitativeResultStore compute_dead_ends();
+    AbstractState get_abstract_state(const GlobalState& s) const;
 
-    MaxProbAbstractAnalysisResult compute_value_table(
-        AbstractStateEvaluator* state_reward,
-        AbstractOperatorEvaluator* transition_reward,
-        value_type::value_t dead_end_value,
-        value_type::value_t upper,
-        bool one_states,
-        value_type::value_t one_state_reward,
-        QualitativeResultStore* dead_ends = nullptr);
+    unsigned int num_reachable_states() const;
+    unsigned int num_dead_ends() const;
+    unsigned int num_one_states() const;
+
+    bool is_all_one() const;
+    bool is_deterministic() const;
+
+    bool is_dead_end(AbstractState s) const;
+    bool is_dead_end(const GlobalState& s) const;
+    [[nodiscard]] value_type::value_t lookup(AbstractState s) const;
+    [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
 
     void dump_graphviz(
-        AbstractStateEvaluator* state_reward,
+        const std::string& path,
+        bool transition_labels = true,
+        bool values = true);
+
+    void precompute_dead_ends();
+
+private:
+    void compute_value_table(bool precomputed_dead_ends);
+
+    void dump_graphviz_no_values(
         const std::string& path,
         bool transition_labels);
 
-    void dump_graphviz(
-        AbstractStateEvaluator* state_reward,
-        MaxProbAbstractAnalysisResult* values,
-        value_type::value_t v0,
-        value_type::value_t v1,
+    void dump_graphviz_with_values(
         const std::string& path,
         bool transition_labels);
 };
-
-extern MaxProbAbstractAnalysisResult compute_value_table(
-    MaxProbProjection& projection,
-    QualitativeResultStore* dead_ends = nullptr);
-
-extern void dump_graphviz(
-    MaxProbProjection& projection,
-    const std::string& path,
-    bool transition_labels,
-    bool values);
 
 } // namespace pdbs
 } // namespace probabilistic

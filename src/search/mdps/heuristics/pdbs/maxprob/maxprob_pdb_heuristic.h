@@ -21,12 +21,10 @@ namespace pdbs {
 class ProbabilisticProjection;
 class QuantitativeResultStore;
 class QualitativeResultStore;
-class MaxProbAbstractAnalysisResult;
+class MaxProbProjection;
 
 class MaxProbPDBHeuristic : public GlobalStateEvaluator {
 private:
-    struct ProjectionInfo;
-
     enum Multiplicativity {
         NONE = 0, ORTHOGONALITY = 1, WEAK_ORTHOGONALITY = 2
     };
@@ -85,8 +83,8 @@ private:
 private:
     bool initial_state_is_dead_end_ = false;
 
-    std::vector<ProjectionInfo> dead_end_database_;
-    std::vector<ProjectionInfo> clique_database_;
+    std::vector<MaxProbProjection> dead_end_database_;
+    std::vector<MaxProbProjection> clique_database_;
 
     std::vector<PatternClique> multiplicative_subcollections;
 
