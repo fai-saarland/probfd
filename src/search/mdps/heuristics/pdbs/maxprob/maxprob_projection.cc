@@ -162,13 +162,17 @@ MaxProbProjection::dump_graphviz_with_values(
 
     struct StateToString {
         explicit StateToString(
+            bool all_one,
+            bool deterministic,
             const QuantitativeResultStore* value_table,
             const QualitativeResultStore* one_states,
             const QualitativeResultStore* dead_ends,
             value_type::value_t v0,
             value_type::value_t v1,
             std::shared_ptr<AbstractStateMapper> state_mapper)
-            : value_table(value_table)
+            : all_one(all_one)
+            , deterministic(deterministic)
+            , value_table(value_table)
             , one_states(one_states)
             , dead_ends(dead_ends)
             , v0(v0)
@@ -181,10 +185,9 @@ MaxProbProjection::dump_graphviz_with_values(
         {
             std::ostringstream out;
             out << state_str(x) << " {";
-            if (dead_ends->get(x)) {
+            if (!all_one && dead_ends->get(x)) {
                 out << "dead:" << v0;
-            } else if (
-                one_states != nullptr && one_states->get(x)) {
+            } else if (all_one || deterministic || one_states->get(x)) {
                 out << "one:" << v1;
             } else {
                 out << value_table->get(x);
@@ -193,6 +196,8 @@ MaxProbProjection::dump_graphviz_with_values(
             return out.str();
         }
 
+        bool all_one;
+        bool deterministic;
         const QuantitativeResultStore* value_table;
         const QualitativeResultStore* one_states;
         const QualitativeResultStore* dead_ends;
@@ -202,7 +207,14 @@ MaxProbProjection::dump_graphviz_with_values(
     };
 
     StateToString state_to_string(
-        &value_table, &one_states, &dead_ends, v0, v1, state_mapper_);
+        all_one,
+        deterministic,
+        &value_table,
+        &one_states,
+        &dead_ends,
+        v0,
+        v1,
+        state_mapper_);
     AbstractOperatorToString op_to_string(&g_operators);
     AbstractOperatorToString* op_to_string_ptr =
         show_transition_labels ? &op_to_string : nullptr;
