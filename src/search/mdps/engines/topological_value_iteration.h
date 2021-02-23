@@ -368,11 +368,11 @@ private:
             const StateID& state_id,
             Bounds* value,
             const value_type::value_t& lb,
-            const value_type::value_t& ub,
+            const value_type::value_t& ,
             unsigned num_aops)
             : state_id(state_id)
             , value(value)
-            , b(lb, ub)
+            , b(lb, lb)
         {
             infos.reserve(num_aops);
         }
