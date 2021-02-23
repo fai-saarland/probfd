@@ -39,13 +39,11 @@ public:
 private:
     void compute_value_table();
 
-    void dump_graphviz_no_values(
+    template<typename StateToString, typename ActionToString>
+    void dump_graphviz(
         const std::string& path,
-        bool transition_labels) const;
-
-    void dump_graphviz_with_values(
-        const std::string& path,
-        bool transition_labels) const;
+        const StateToString* sts,
+        const ActionToString* ats) const;
 };
 
 } // namespace pdbs

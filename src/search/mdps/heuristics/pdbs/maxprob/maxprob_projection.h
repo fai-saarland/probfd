@@ -57,13 +57,11 @@ public:
 private:
     void compute_value_table(bool precomputed_dead_ends);
 
-    void dump_graphviz_no_values(
+    template<typename StateToString, typename ActionToString>
+    void dump_graphviz(
         const std::string& path,
-        bool transition_labels);
-
-    void dump_graphviz_with_values(
-        const std::string& path,
-        bool transition_labels);
+        const StateToString* sts,
+        const ActionToString* ats);
 };
 
 } // namespace pdbs

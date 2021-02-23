@@ -24,7 +24,7 @@ class AbstractOperatorToString {
 public:
     explicit AbstractOperatorToString(
         const std::vector<ProbabilisticOperator>* ops);
-    std::string operator()(const AbstractOperator* op);
+    std::string operator()(const AbstractOperator* op) const;
 
 private:
     const std::vector<ProbabilisticOperator>* ops_;

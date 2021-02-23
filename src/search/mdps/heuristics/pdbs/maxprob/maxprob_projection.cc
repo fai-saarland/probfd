@@ -101,139 +101,6 @@ MaxProbProjection::precompute_dead_ends()
 }
 
 void
-MaxProbProjection::dump_graphviz_no_values(
-    const std::string& path,
-    bool show_transition_labels)
-{
-    AbstractStateInStoreEvaluator is_goal(
-        &goal_states_,
-        value_type::one,
-        value_type::zero);
-
-    setup_abstract_operators();
-
-    StateIDMap<AbstractState> state_id_map;
-
-    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
-    TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
-
-    AbstractStateToString state_to_string(state_mapper_);
-    AbstractOperatorToString op_to_string(&g_operators);
-    AbstractOperatorToString* op_to_string_ptr =
-        show_transition_labels ? &op_to_string : nullptr;
-
-    std::ofstream out(path);
-
-    graphviz::dump(
-        out,
-        initial_state_,
-        &state_id_map,
-        &is_goal,
-        &aops_gen,
-        &transition_gen,
-        &state_to_string,
-        op_to_string_ptr,
-        true);
-}
-
-void
-MaxProbProjection::dump_graphviz_with_values(
-    const std::string& path,
-    bool show_transition_labels)
-{
-    const value_type::value_t v0 = value_type::zero;
-    const value_type::value_t v1 = value_type::one;
-
-    AbstractStateInStoreEvaluator is_goal(
-        &goal_states_,
-        value_type::one,
-        value_type::zero);
-
-    setup_abstract_operators();
-
-    StateIDMap<AbstractState> state_id_map;
-
-    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
-    TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
-
-    struct StateToString {
-        explicit StateToString(
-            bool all_one,
-            bool deterministic,
-            const QuantitativeResultStore* value_table,
-            const QualitativeResultStore* one_states,
-            const QualitativeResultStore* dead_ends,
-            value_type::value_t v0,
-            value_type::value_t v1,
-            std::shared_ptr<AbstractStateMapper> state_mapper)
-            : all_one(all_one)
-            , deterministic(deterministic)
-            , value_table(value_table)
-            , one_states(one_states)
-            , dead_ends(dead_ends)
-            , v0(v0)
-            , v1(v1)
-            , state_str(std::move(state_mapper))
-        {
-        }
-
-        std::string operator()(const AbstractState& x) const
-        {
-            std::ostringstream out;
-            out << state_str(x) << " {";
-            if (!all_one && dead_ends->get(x)) {
-                out << "dead:" << v0;
-            } else if (all_one || deterministic || one_states->get(x)) {
-                out << "one:" << v1;
-            } else {
-                out << value_table->get(x);
-            }
-            out << "}";
-            return out.str();
-        }
-
-        bool all_one;
-        bool deterministic;
-        const QuantitativeResultStore* value_table;
-        const QualitativeResultStore* one_states;
-        const QualitativeResultStore* dead_ends;
-        value_type::value_t v0;
-        value_type::value_t v1;
-        AbstractStateToString state_str;
-    };
-
-    StateToString state_to_string(
-        all_one,
-        deterministic,
-        &value_table,
-        &one_states,
-        &dead_ends,
-        v0,
-        v1,
-        state_mapper_);
-    AbstractOperatorToString op_to_string(&g_operators);
-    AbstractOperatorToString* op_to_string_ptr =
-        show_transition_labels ? &op_to_string : nullptr;
-
-    std::ofstream out(path);
-
-    graphviz::dump(
-        out,
-        initial_state_,
-        &state_id_map,
-        &is_goal,
-        &aops_gen,
-        &transition_gen,
-        &state_to_string,
-        op_to_string_ptr,
-        true);
-}
-
-void
 MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     AbstractStateInStoreEvaluator is_goal(
         &goal_states_,
@@ -381,17 +248,114 @@ MaxProbProjection::lookup(const GlobalState& s) const {
     return lookup(get_abstract_state(s));
 }
 
+namespace {
+struct StateToString {
+    explicit StateToString(
+        bool all_one,
+        bool deterministic,
+        const QuantitativeResultStore* value_table,
+        const QualitativeResultStore* one_states,
+        const QualitativeResultStore* dead_ends,
+        value_type::value_t v0,
+        value_type::value_t v1,
+        std::shared_ptr<AbstractStateMapper> state_mapper)
+        : all_one(all_one)
+        , deterministic(deterministic)
+        , value_table(value_table)
+        , one_states(one_states)
+        , dead_ends(dead_ends)
+        , v0(v0)
+        , v1(v1)
+        , state_str(std::move(state_mapper))
+    {
+    }
+
+    std::string operator()(const AbstractState& x) const
+    {
+        std::ostringstream out;
+        out << state_str(x) << " {";
+        if (!all_one && dead_ends->get(x)) {
+            out << "dead:" << v0;
+        } else if (all_one || deterministic || one_states->get(x)) {
+            out << "one:" << v1;
+        } else {
+            out << value_table->get(x);
+        }
+        out << "}";
+        return out.str();
+    }
+
+    bool all_one;
+    bool deterministic;
+    const QuantitativeResultStore* value_table;
+    const QualitativeResultStore* one_states;
+    const QualitativeResultStore* dead_ends;
+    value_type::value_t v0;
+    value_type::value_t v1;
+    AbstractStateToString state_str;
+};
+}
+
 void
 MaxProbProjection::dump_graphviz(
     const std::string& path,
     bool transition_labels,
     bool values)
 {
+    AbstractOperatorToString op_to_string(&g_operators);
+    AbstractOperatorToString* op_to_string_ptr =
+        transition_labels ? &op_to_string : nullptr;
+
     if (values) {
-        dump_graphviz_with_values(path, transition_labels);
+        StateToString state_to_string(
+            all_one,
+            deterministic,
+            &value_table,
+            &one_states,
+            &dead_ends,
+            value_type::zero,
+            value_type::one,
+            state_mapper_);
+
+        dump_graphviz(path, &state_to_string, op_to_string_ptr);
     } else {
-        dump_graphviz_no_values(path, transition_labels);
+        AbstractStateToString state_to_string(state_mapper_);
+        dump_graphviz(path, &state_to_string, op_to_string_ptr);
     }
+}
+
+template<typename StateToString, typename ActionToString>
+void MaxProbProjection::dump_graphviz(
+    const std::string &path,
+    const StateToString *sts,
+    const ActionToString *ats)
+{
+    AbstractStateInStoreEvaluator is_goal(
+        &goal_states_,
+        value_type::one,
+        value_type::zero);
+
+    setup_abstract_operators();
+
+    StateIDMap<AbstractState> state_id_map;
+
+    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
+        state_id_map, state_mapper_, progression_aops_generator_);
+    TransitionGenerator<const AbstractOperator*> transition_gen(
+        state_id_map, state_mapper_, progression_aops_generator_);
+
+    std::ofstream out(path);
+
+    graphviz::dump(
+        out,
+        initial_state_,
+        &state_id_map,
+        &is_goal,
+        &aops_gen,
+        &transition_gen,
+        sts,
+        ats,
+        true);
 }
 
 } // namespace pdbs
