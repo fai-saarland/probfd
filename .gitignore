@@ -8,3 +8,4 @@ CMakeLists.txt
 cmake-build-debug/
 *.patch
 .vs/
+.vscode/
