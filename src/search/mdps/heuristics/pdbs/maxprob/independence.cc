@@ -13,29 +13,49 @@ using VariableOrthogonality = std::vector<std::vector<bool>>;
 
 namespace {
 
-// Return true if still incrementable, false if max value was reached
+// Helper class to iterate over permutations of values
 template <typename T>
-bool increment_ordinate(
-    std::vector<T>& ordinate,
-    std::size_t dimensions,
-    const std::vector<T>& dim_val_begins,
-    const std::vector<T>& dim_val_ends)
-{
-    // iterate over dimensions in reverse...
-    for (int dimension = (int) dimensions - 1; dimension >= 0; dimension--) {
-        if (ordinate[dimension] != dim_val_ends[dimension]) {
-            // If this dimension can handle another increment... then done.
-            ++ordinate[dimension];
-            return true;
-        }
+struct Permutation {
+    const std::vector<T> begin_values;
+    const std::vector<T> end_values;
+    std::vector<T> values;
 
-        // Otherwise, reset this dimension and bubble up to the next dimension
-        // to take a look
-        ordinate[dimension] = dim_val_begins[dimension];
+    Permutation(
+        std::vector<T> begin_values,
+        std::vector<T> end_values,
+        std::vector<T> values)
+        : begin_values(std::move(begin_values))
+        , end_values(std::move(end_values))
+        , values(std::move(values))
+    {
     }
 
-    return false;
-}
+    ~Permutation() = default;
+
+    bool get_next() {
+        for (std::size_t i = 0; i != values.size(); ++i) {
+            if (values[i] != end_values[i]) {
+                // If this dimension can handle another increment... then done.
+                ++values[i];
+                return true;
+            }
+
+            // Otherwise, reset this dimension and bubble up to the next dimension
+            // to take a look
+            values[i] = begin_values[i];
+        }
+
+        return false;
+    }
+
+    T& operator[](int i) {
+        return values[i];
+    }
+
+    const T& operator[](int i) const {
+        return values[i];
+    }
+};
 
 }
 
@@ -44,7 +64,7 @@ bool is_independent_operator(
     const Pattern& union_pattern,
     const ProbabilisticOperator& op)
 {
-    using namespace syntactic_projection;
+    using ProjectionOutcomeIterator = ProjectionOperator::const_iterator;
 
     const std::size_t num_patterns = patterns.size();
 
@@ -57,39 +77,41 @@ bool is_independent_operator(
         }
     }
 
-    // Set up n-dimensional iteration...
-    std::vector<ProjectionOperator::const_iterator> proj_begins(num_patterns);
-    std::vector<ProjectionOperator::const_iterator> proj_ends(num_patterns);
-
-    for (std::size_t i = 0; i != num_patterns; ++i) {
-        proj_begins[i] = abs_op_individual[i].cbegin();
-        proj_ends[i] = abs_op_individual[i].cend();
+    // Set up iteration over all possible permutations of outcomes...
+    std::vector<ProjectionOutcomeIterator> proj_outcomes_begins(num_patterns);
+    std::vector<ProjectionOutcomeIterator> proj_outcomes_ends(num_patterns);
+    {
+        for (std::size_t i = 0; i != num_patterns; ++i) {
+            proj_outcomes_begins[i] = abs_op_individual[i].cbegin();
+            proj_outcomes_ends[i] = abs_op_individual[i].cend();
+        }
     }
 
-    std::vector<ProjectionOperator::const_iterator> ordinate = proj_begins;
+    Permutation<ProjectionOutcomeIterator> proj_outcomes_permutation(
+        proj_outcomes_begins, proj_outcomes_ends, proj_outcomes_begins);
 
-    // Done. Now check if every combination of outcomes has the same probability
+    // Check if every permutation of outcomes has the same probability
     // in the union.
     do {
-        std::vector<std::pair<int, int>> union_outcome;
+        std::vector<std::pair<int, int>> union_effects;
         value_type::value_t indep_prob = value_type::one;
 
         for (std::size_t i = 0; i != num_patterns; ++i) {
-            const auto& [effects, prob] = *ordinate[i];
+            const auto& [effects, prob] = *proj_outcomes_permutation[i];
 
             // NOTE: This assumes patterns are disjoint!
-            union_outcome.insert(
-                union_outcome.end(), effects.begin(), effects.end());
+            union_effects.insert(
+                union_effects.end(), effects.begin(), effects.end());
             indep_prob *= prob;
         }
 
         value_type::value_t union_prob =
-            abs_op_union.get_probability(union_outcome);
+            abs_op_union.get_probability(union_effects);
 
         if (!value_type::approx_equal()(indep_prob, union_prob)) {
             return false;
         }
-    } while (increment_ordinate(ordinate, num_patterns, proj_begins, proj_ends));
+    } while (proj_outcomes_permutation.get_next());
 
     return true;
 }
