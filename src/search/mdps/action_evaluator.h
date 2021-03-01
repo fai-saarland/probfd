@@ -10,24 +10,15 @@ class ActionEvaluator<const ProbabilisticOperator*> {
 public:
     virtual ~ActionEvaluator() = default;
 
-    virtual value_type::value_t
-    operator()(const StateID&, const ProbabilisticOperator* const&) const
-    {
-        return 0;
-    }
+    value_type::value_t operator()(
+        const StateID& s, const ProbabilisticOperator* const& op) const;
+
+protected:
+    virtual value_type::value_t evaluate(
+        const StateID&, const ProbabilisticOperator* const&) const = 0;
 };
 
 using ProbabilisticOperatorEvaluator =
     ActionEvaluator<const ProbabilisticOperator*>;
-
-class ActionCostEvaluator : public ProbabilisticOperatorEvaluator {
-public:
-    value_type::value_t operator()(
-        const StateID&,
-        const ProbabilisticOperator* const& op) const override
-    {
-        return -op->get_cost();
-    }
-};
 
 } // namespace probabilistic

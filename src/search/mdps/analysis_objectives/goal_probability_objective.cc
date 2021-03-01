@@ -7,6 +7,7 @@
 
 namespace probabilistic {
 
+namespace {
 class GoalCheck : public GlobalStateEvaluator {
 protected:
     virtual EvaluationResult evaluate(const GlobalState& state) override
@@ -19,9 +20,18 @@ protected:
     }
 };
 
+class ZeroRewardActionEvaluator : public ProbabilisticOperatorEvaluator {
+protected:
+    value_type::value_t evaluate(
+    const StateID&, const ProbabilisticOperator* const&) const override {
+        return value_type::zero;
+    }
+};
+}
+
 GoalProbabilityObjective::GoalProbabilityObjective()
     : state_eval_(new GoalCheck())
-    , action_eval_(new ProbabilisticOperatorEvaluator())
+    , action_eval_(new ZeroRewardActionEvaluator())
 {
 }
 
