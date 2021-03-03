@@ -4,7 +4,7 @@
 #include "../storage/per_state_storage.h"
 #include "engine.h"
 
-#include <deque>
+#include <stack>
 #include <iostream>
 #include <memory>
 
@@ -35,44 +35,41 @@ public:
         , prune_(prune)
         , expanded_states_(false)
         , values_(this->get_minimal_reward())
-        , expansion_queue_()
+        , expansion_stack_()
     {
     }
 
     virtual void solve(const State& initial_state) override
     {
         push_state<false>(this->get_state_id(initial_state), nullptr);
-        while (!expansion_queue_.empty()) {
-            IncrementalExpansionInfo& e = expansion_queue_.back();
-            bool c = true;
+        while (!expansion_stack_.empty()) {
+            IncrementalExpansionInfo& e = expansion_stack_.top();
+
             do {
+                // Topological order: Push all successors, recurse on stack if 
+                // one has not been expanded before
                 for (; e.successor != e.transition.end(); ++e.successor) {
                     if (push_state(e.successor->first, &e)) {
-                        c = false;
-                        break;
+                        goto break_outer; // break nested loop
                     }
                 }
-                if (c) {
-                    if (e.t_value > e.value) {
-                        e.value = e.t_value;
-                    }
-                    if (e.aops.empty()) {
-                        values_[e.state] = e.value;
-                        expansion_queue_.pop_back();
-                        break;
-                    } else {
-                        e.t_value = e.reward
-                            + this->get_action_reward(e.state, e.aops.back());
-                        e.transition.clear();
-                        this->generate_successors(
-                            e.state, e.aops.back(), e.transition);
-                        e.aops.pop_back();
-                        e.successor = e.transition.begin();
-                    }
-                } else {
+
+                // Maximum Q-value
+                if (e.t_value > e.value) {
+                    e.value = e.t_value;
+                }
+
+                // If no operators are remaining, we are done. Otherwise set up 
+                // the next transition to handle.
+                if (e.remaining_aops.empty()) {
+                    values_[e.state] = e.value;
+                    expansion_stack_.pop();
                     break;
                 }
+
+                setup_next(e);
             } while (true);
+break_outer:;
         }
     }
 
@@ -92,35 +89,47 @@ private:
             const StateID& state,
             value_type::value_t reward,
             value_type::value_t value,
-            std::vector<Action>&& aops)
-            : reward(reward)
+            std::vector<Action>&& remaining_aops)
+            : state(state)
+            , reward(reward)
             , value(value)
-            , state(state)
-            , aops(std::move(aops))
-            , transition()
-            , successor(transition.end())
-            , t_value(value)
+            , remaining_aops(std::move(remaining_aops))
         {
+            assert(!remaining_aops.empty());
         }
         IncrementalExpansionInfo(IncrementalExpansionInfo&& other) = default;
 
+        const StateID state;
         const value_type::value_t reward;
         value_type::value_t value;
-        const StateID state;
 
-        std::vector<Action> aops;
+        // Appplicable operators left to expand
+        std::vector<Action> remaining_aops;
+
+        // The current expansion
         Distribution<StateID> transition;
         typename Distribution<StateID>::const_iterator successor;
         value_type::value_t t_value;
     };
 
+    void setup_next(IncrementalExpansionInfo& e) {
+        e.t_value = e.reward + 
+            this->get_action_reward(e.state, e.remaining_aops.back());
+        e.transition.clear();
+        this->generate_successors(
+            e.state, e.remaining_aops.back(), e.transition);
+        e.remaining_aops.pop_back();
+        e.successor = e.transition.begin();
+    }
+
     template<bool Update = true>
     bool push_state(const StateID& state_ref, IncrementalExpansionInfo* in)
     {
+        (void) in;
+
         if (expanded_states_[state_ref]) {
-            if (Update) {
-                in->t_value =
-                    in->t_value + in->successor->second * values_[state_ref];
+            if constexpr (Update) {
+                in->t_value += in->successor->second * values_[state_ref];
             }
             return false;
         }
@@ -128,9 +137,9 @@ private:
         expanded_states_[state_ref] = true;
         if (prune_ && bool(prune_->operator()(state))) {
             ++statistics_.pruned;
-            if (Update) {
-                in->t_value = in->t_value
-                    + in->successor->second * this->get_minimal_reward();
+            if constexpr (Update) {
+                in->t_value +=
+                    in->successor->second * this->get_minimal_reward();
             }
             return false;
         }
@@ -139,28 +148,29 @@ private:
             ++statistics_.terminal_states;
             ++statistics_.goal_states;
             values_[state_ref] = value_type::value_t(rew);
-            if (Update) {
-                in->t_value = in->t_value
-                    + in->successor->second * value_type::value_t(rew);
+            if constexpr (Update) {
+                in->t_value += in->successor->second * value_type::value_t(rew);
             }
             return false;
         }
-        std::vector<Action> aops;
-        this->generate_applicable_ops(state_ref, aops);
-        if (aops.empty()) {
+        std::vector<Action> remaining_aops;
+        this->generate_applicable_ops(state_ref, remaining_aops);
+        if (remaining_aops.empty()) {
             ++statistics_.terminal_states;
-            if (Update) {
-                in->t_value = in->t_value
-                    + in->successor->second * this->get_minimal_reward();
+            if constexpr (Update) {
+                in->t_value +=
+                    in->successor->second * this->get_minimal_reward();
             }
             return false;
         }
         ++statistics_.state_expansions;
-        expansion_queue_.emplace_back(
+        auto& e = expansion_stack_.emplace(
             state_ref,
             value_type::value_t(rew),
             this->get_minimal_reward(),
-            std::move(aops));
+            std::move(remaining_aops));
+
+        setup_next(e);
         return true;
     }
 
@@ -170,7 +180,7 @@ private:
 
     storage::PerStateStorage<bool> expanded_states_;
     storage::PerStateStorage<value_type::value_t> values_;
-    std::deque<IncrementalExpansionInfo> expansion_queue_;
+    std::stack<IncrementalExpansionInfo> expansion_stack_;
 };
 
 } // namespace acyclic_vi
