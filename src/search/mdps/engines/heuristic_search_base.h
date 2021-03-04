@@ -277,13 +277,15 @@ public:
 
     void clear_policy(const StateID& state_id)
     {
-        if (StorePolicy()) {
-            state_infos_[state_id].set_policy(ActionID::undefined);
-        }
+        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+        
+        state_infos_[state_id].set_policy(ActionID::undefined);
     }
 
     Action get_policy(const StateID& state_id)
     {
+        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+
         const ActionID aid = state_infos_[state_id].get_policy();
         assert(aid != ActionID::undefined);
         return this->lookup_action(state_id, aid);
@@ -291,7 +293,16 @@ public:
 
     bool apply_policy(const StateID& state, Distribution<StateID>& result)
     {
-        return apply_policy(StorePolicy(), state, result);
+        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+
+        const StateInfo& info = state_infos_[state];
+        if (info.policy == ActionID::undefined) {
+            return async_update(state, nullptr, &result);
+        } else {
+            Action action = this->lookup_action(state, info.policy);
+            this->generate_successors(state, action, result);
+            return false;
+        }
     }
 
     void set_dead_end(const StateID& state_id)
@@ -365,41 +376,16 @@ public:
         return false;
     }
 
-    inline bool is_dead_end_learning_enabled() const
+    bool is_dead_end_learning_enabled() const
     {
         return dead_end_listener_ != nullptr;
     }
 
-    inline bool async_update(const StateID& s)
-    {
-        return async_update(
-            this->stable_policy_,
-            s,
-            this->policy_chooser_,
-            nullptr,
-            nullptr,
-            nullptr);
-    }
-
-    inline bool async_update(
+    bool async_update(
         const StateID& s,
-        ActionID* policy_action,
-        Distribution<StateID>* policy_transition)
-    {
-        return async_update(
-            this->stable_policy_,
-            s,
-            this->policy_chooser_,
-            policy_action,
-            policy_transition,
-            nullptr);
-    }
-
-    inline bool async_update(
-        const StateID& s,
-        ActionID* policy_action,
-        Distribution<StateID>* policy_transition,
-        bool* policy_changed)
+        ActionID* policy_action = nullptr,
+        Distribution<StateID>* policy_transition = nullptr,
+        bool* policy_changed = nullptr)
     {
         return async_update(
             stable_policy_,
@@ -411,7 +397,7 @@ public:
     }
 
     template<typename T>
-    inline bool async_update(
+    bool async_update(
         const StateID& s,
         T* policy_tiebreaker,
         ActionID* policy_action,
@@ -612,19 +598,22 @@ public:
                 transition_.clear();
             }
         }
-        if (StorePolicy::value && result.first) {
-            while (!expansion_queue.empty()) {
-                auto& expansion_data = expansion_queue.back();
-                const StateID state_id = expansion_data.state;
-                StateInfo& state_info = state_infos_[state_id];
-                const ActionID pid =
-                    this->get_action_id(state_id, expansion_data.aops.back());
-                result.second =
-                    result.second || (state_info.get_policy() != pid);
-                state_info.set_policy(pid);
-                const unsigned size = expansion_data.pidx;
-                while (expansion_queue.size() != size)
-                    expansion_queue.pop_back();
+        if constexpr (StorePolicy::value) {
+            if (result.first) {
+                while (!expansion_queue.empty()) {
+                    auto& expansion_data = expansion_queue.back();
+                    const StateID state_id = expansion_data.state;
+                    StateInfo& state_info = state_infos_[state_id];
+                    const ActionID pid =
+                        this->get_action_id(
+                            state_id, expansion_data.aops.back());
+                    result.second =
+                        result.second || (state_info.get_policy() != pid);
+                    state_info.set_policy(pid);
+                    const unsigned size = expansion_data.pidx;
+                    while (expansion_queue.size() != size)
+                        expansion_queue.pop_back();
+                }
             }
         }
         if (result.first) {
@@ -642,24 +631,13 @@ protected:
     value_type::value_t create_result(const StateID& id)
     {
         const StateInfo& info = state_infos_[id];
-        if (DualBounds::value) {
+        if constexpr (DualBounds::value) {
             statistics_.print_error = true;
             statistics_.error = info.error_bound();
         }
         return info.get_value();
     }
 #endif
-
-    void add_values_to_report(const std::true_type&, const StateInfo* info)
-    {
-        report_->register_value("vl", [info]() { return info->value2; });
-        report_->register_value("vu", [info]() { return info->value; });
-    }
-
-    void add_values_to_report(const std::false_type&, const StateInfo* info)
-    {
-        report_->register_value("v", [info]() { return info->value; });
-    }
 
     void initialize_report(const State& state)
     {
@@ -672,7 +650,7 @@ protected:
 
         const StateInfo& info = lookup_initialize(this->get_state_id(state));
         // this->state_infos_[this->state_id_map_->operator[](state)];
-        this->add_values_to_report(DualBounds(), &info);
+        this->add_values_to_report(&info);
         statistics_.value = info.get_value();
         statistics_.before_last_update = statistics_;
         statistics_.initial_state_estimate = info.get_value();
@@ -691,22 +669,24 @@ protected:
     }
 
     template<typename Info>
-    inline bool do_bounds_disagree(const StateID& state_id, const Info& info)
+    bool do_bounds_disagree(const StateID& state_id, const Info& info)
     {
-        return this->do_bounds_disagree(
-            std::is_same<Info, StateInfo>(), state_id, info);
+        if constexpr (std::is_same_v<Info, StateInfo>) {
+            return DualBounds::value && interval_comparison_
+                && !info.bounds_equal();
+        } else {
+            return DualBounds::value && interval_comparison_
+                && !state_infos_[state_id].bounds_equal();
+        }
     }
 
-    const value_type::value_t&
-    get_lower_bound(const std::false_type&, const StateInfo& info) const
+    const value_type::value_t& get_lower_bound(const StateInfo& info) const
     {
-        return info.value;
-    }
-
-    const value_type::value_t&
-    get_lower_bound(const std::true_type&, const StateInfo& info) const
-    {
-        return info.value2;
+        if constexpr (DualBounds::value) {
+            return info.value2;
+        } else {
+            return info.value;
+        }
     }
 
     template<typename StateToString>
@@ -774,25 +754,15 @@ protected:
     }
 
 private:
-    bool apply_policy(
-        const std::true_type&,
-        const StateID& state,
-        Distribution<StateID>& result)
+    void add_values_to_report(const StateInfo* info)
     {
-        const StateInfo& info = state_infos_[state];
-        if (info.policy == ActionID::undefined) {
-            return async_update(state, nullptr, &result);
+        if constexpr (DualBounds::value) {
+            report_->register_value("vl", [info]() { return info->value2; });
+            report_->register_value("vu", [info]() { return info->value; });
         } else {
-            Action action = this->lookup_action(state, info.policy);
-            this->generate_successors(state, action, result);
-            return false;
+            report_->register_value("v", [info]() { return info->value; });
         }
     }
-
-    bool apply_policy(
-        const std::false_type&,
-        const State&,
-        const Distribution<State>&);
 
     StateInfo& lookup_initialize(const StateID& state_id)
     {
@@ -832,22 +802,14 @@ private:
         return state_info;
     }
 
-    inline value_utils::IncumbentSolution<std::true_type>
-    dead_end_value(const std::true_type&) const
+    value_utils::IncumbentSolution<DualBounds> dead_end_value() const
     {
-        return value_utils::IncumbentSolution<std::true_type>(
-            dead_end_value_.first, dead_end_value_.first);
-    }
-
-    inline value_utils::IncumbentSolution<std::false_type>
-    dead_end_value(const std::false_type&) const
-    {
-        return value_utils::IncumbentSolution<std::false_type>(
+        return value_utils::IncumbentSolution<DualBounds>(
             dead_end_value_.first);
     }
 
     template<typename T>
-    inline bool async_update(
+    bool async_update(
         const bool stable_policy,
         const StateID& s,
         T* policy_tiebreaker,
@@ -892,10 +854,10 @@ private:
         const std::integral_constant<bool, Policy>&,
         const std::integral_constant<bool, StablePolicy>&,
         const StateID& state_id,
-        T* choice,
-        ActionID* greedy_action,
-        Distribution<StateID>* greedy_transition,
-        bool* action_changed)
+        [[maybe_unused]] T* choice,
+        [[maybe_unused]] ActionID* greedy_action,
+        [[maybe_unused]] Distribution<StateID>* greedy_transition,
+        [[maybe_unused]] bool* action_changed)
     {
 #if defined(EXPENSIVE_STATISTICS)
         statistics_.update_time.resume();
@@ -942,8 +904,7 @@ private:
         }
 
         bool first = true;
-        value_utils::IncumbentSolution<Values2> new_value =
-            dead_end_value(Values2());
+        value_utils::IncumbentSolution<Values2> new_value = dead_end_value();
         std::vector<value_utils::IncumbentSolution<Values2>> values;
         values.reserve(aops_.size());
 
@@ -1010,7 +971,9 @@ private:
             state_info.set_dead_end();
             return result;
             // assert(is_equal_(new_value, dead_end_value_));
-        } else if (Policy) {
+        } 
+        
+        if constexpr (Policy) {
 #if defined(EXPENSIVE_STATISTICS)
             statistics_.policy_selection_time.resume();
 #endif
@@ -1087,24 +1050,6 @@ private:
             return true;
         }
         return false;
-    }
-
-    template<typename Info>
-    inline bool
-    do_bounds_disagree(const std::true_type&, const StateID&, const Info& info)
-    {
-        return DualBounds::value && interval_comparison_
-            && !info.bounds_equal();
-    }
-
-    template<typename Info>
-    inline bool do_bounds_disagree(
-        const std::false_type&,
-        const StateID& state_id,
-        const Info&)
-    {
-        return DualBounds::value && interval_comparison_
-            && !state_infos_[state_id].bounds_equal();
     }
 
 protected:
