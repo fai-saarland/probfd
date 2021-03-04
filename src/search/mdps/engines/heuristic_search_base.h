@@ -668,8 +668,13 @@ protected:
     template<typename Info>
     inline bool do_bounds_disagree(const StateID& state_id, const Info& info)
     {
-        return this->do_bounds_disagree(
-            std::is_same<Info, StateInfo>(), state_id, info);
+        if constexpr (std::is_same_v<Info, StateInfo>) {
+            return DualBounds::value && interval_comparison_
+                && !info.bounds_equal();
+        } else {
+            return DualBounds::value && interval_comparison_
+                && !state_infos_[state_id].bounds_equal();
+        }
     }
 
     const value_type::value_t&
@@ -802,7 +807,7 @@ private:
     }
 
     template<typename T>
-    inline bool async_update(
+    bool async_update(
         const bool stable_policy,
         const StateID& s,
         T* policy_tiebreaker,
@@ -1043,24 +1048,6 @@ private:
             return true;
         }
         return false;
-    }
-
-    template<typename Info>
-    inline bool
-    do_bounds_disagree(const std::true_type&, const StateID&, const Info& info)
-    {
-        return DualBounds::value && interval_comparison_
-            && !info.bounds_equal();
-    }
-
-    template<typename Info>
-    inline bool do_bounds_disagree(
-        const std::false_type&,
-        const StateID& state_id,
-        const Info&)
-    {
-        return DualBounds::value && interval_comparison_
-            && !state_infos_[state_id].bounds_equal();
     }
 
 protected:
