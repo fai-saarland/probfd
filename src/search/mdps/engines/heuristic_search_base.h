@@ -277,13 +277,15 @@ public:
 
     void clear_policy(const StateID& state_id)
     {
-        if (StorePolicy()) {
-            state_infos_[state_id].set_policy(ActionID::undefined);
-        }
+        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+        
+        state_infos_[state_id].set_policy(ActionID::undefined);
     }
 
     Action get_policy(const StateID& state_id)
     {
+        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+
         const ActionID aid = state_infos_[state_id].get_policy();
         assert(aid != ActionID::undefined);
         return this->lookup_action(state_id, aid);
