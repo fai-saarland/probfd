@@ -376,8 +376,7 @@ private:
         solved = info.unsolved == 0;
         dead = solved && info.alive == 0 && !info.is_goal_state();
         const bool vc = this->async_update(state);
-        if (this->get_lower_bound(DualBounds(), info)
-            >= this->get_maximal_reward()) {
+        if (this->get_lower_bound(info) >= this->get_maximal_reward()) {
             solved = true;
             dead = false;
         }

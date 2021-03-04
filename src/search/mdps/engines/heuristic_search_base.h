@@ -650,17 +650,6 @@ protected:
     }
 #endif
 
-    void add_values_to_report(const std::true_type&, const StateInfo* info)
-    {
-        report_->register_value("vl", [info]() { return info->value2; });
-        report_->register_value("vu", [info]() { return info->value; });
-    }
-
-    void add_values_to_report(const std::false_type&, const StateInfo* info)
-    {
-        report_->register_value("v", [info]() { return info->value; });
-    }
-
     void initialize_report(const State& state)
     {
         initial_state_id_ = this->get_state_id(state);
@@ -672,7 +661,7 @@ protected:
 
         const StateInfo& info = lookup_initialize(this->get_state_id(state));
         // this->state_infos_[this->state_id_map_->operator[](state)];
-        this->add_values_to_report(DualBounds(), &info);
+        this->add_values_to_report(&info);
         statistics_.value = info.get_value();
         statistics_.before_last_update = statistics_;
         statistics_.initial_state_estimate = info.get_value();
@@ -698,15 +687,13 @@ protected:
     }
 
     const value_type::value_t&
-    get_lower_bound(const std::false_type&, const StateInfo& info) const
+    get_lower_bound(const StateInfo& info) const
     {
-        return info.value;
-    }
-
-    const value_type::value_t&
-    get_lower_bound(const std::true_type&, const StateInfo& info) const
-    {
-        return info.value2;
+        if constexpr (DualBounds::value) {
+            return info.value2;
+        } else {
+            return info.value;
+        }
     }
 
     template<typename StateToString>
@@ -774,6 +761,16 @@ protected:
     }
 
 private:
+    void add_values_to_report(const StateInfo* info)
+    {
+        if constexpr (DualBounds::value) {
+            report_->register_value("vl", [info]() { return info->value2; });
+            report_->register_value("vu", [info]() { return info->value; });
+        } else {
+            report_->register_value("v", [info]() { return info->value; });
+        }
+    }
+
     bool apply_policy(
         const std::true_type&,
         const StateID& state,
