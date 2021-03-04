@@ -370,36 +370,11 @@ public:
         return dead_end_listener_ != nullptr;
     }
 
-    inline bool async_update(const StateID& s)
-    {
-        return async_update(
-            this->stable_policy_,
-            s,
-            this->policy_chooser_,
-            nullptr,
-            nullptr,
-            nullptr);
-    }
-
     inline bool async_update(
         const StateID& s,
-        ActionID* policy_action,
-        Distribution<StateID>* policy_transition)
-    {
-        return async_update(
-            this->stable_policy_,
-            s,
-            this->policy_chooser_,
-            policy_action,
-            policy_transition,
-            nullptr);
-    }
-
-    inline bool async_update(
-        const StateID& s,
-        ActionID* policy_action,
-        Distribution<StateID>* policy_transition,
-        bool* policy_changed)
+        ActionID* policy_action = nullptr,
+        Distribution<StateID>* policy_transition = nullptr,
+        bool* policy_changed = nullptr)
     {
         return async_update(
             stable_policy_,
