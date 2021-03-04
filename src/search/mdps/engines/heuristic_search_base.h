@@ -795,17 +795,9 @@ private:
         return state_info;
     }
 
-    inline value_utils::IncumbentSolution<std::true_type>
-    dead_end_value(const std::true_type&) const
+    inline value_utils::IncumbentSolution<DualBounds> dead_end_value() const
     {
-        return value_utils::IncumbentSolution<std::true_type>(
-            dead_end_value_.first, dead_end_value_.first);
-    }
-
-    inline value_utils::IncumbentSolution<std::false_type>
-    dead_end_value(const std::false_type&) const
-    {
-        return value_utils::IncumbentSolution<std::false_type>(
+        return value_utils::IncumbentSolution<DualBounds>(
             dead_end_value_.first);
     }
 
@@ -905,8 +897,7 @@ private:
         }
 
         bool first = true;
-        value_utils::IncumbentSolution<Values2> new_value =
-            dead_end_value(Values2());
+        value_utils::IncumbentSolution<Values2> new_value = dead_end_value();
         std::vector<value_utils::IncumbentSolution<Values2>> values;
         values.reserve(aops_.size());
 
