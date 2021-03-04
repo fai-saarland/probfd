@@ -291,7 +291,16 @@ public:
 
     bool apply_policy(const StateID& state, Distribution<StateID>& result)
     {
-        return apply_policy(StorePolicy(), state, result);
+        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+
+        const StateInfo& info = state_infos_[state];
+        if (info.policy == ActionID::undefined) {
+            return async_update(state, nullptr, &result);
+        } else {
+            Action action = this->lookup_action(state, info.policy);
+            this->generate_successors(state, action, result);
+            return false;
+        }
     }
 
     void set_dead_end(const StateID& state_id)
@@ -745,26 +754,6 @@ private:
             report_->register_value("v", [info]() { return info->value; });
         }
     }
-
-    bool apply_policy(
-        const std::true_type&,
-        const StateID& state,
-        Distribution<StateID>& result)
-    {
-        const StateInfo& info = state_infos_[state];
-        if (info.policy == ActionID::undefined) {
-            return async_update(state, nullptr, &result);
-        } else {
-            Action action = this->lookup_action(state, info.policy);
-            this->generate_successors(state, action, result);
-            return false;
-        }
-    }
-
-    bool apply_policy(
-        const std::false_type&,
-        const State&,
-        const Distribution<State>&);
 
     StateInfo& lookup_initialize(const StateID& state_id)
     {
