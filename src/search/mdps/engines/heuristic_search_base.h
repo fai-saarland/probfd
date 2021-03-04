@@ -889,10 +889,10 @@ private:
         const std::integral_constant<bool, Policy>&,
         const std::integral_constant<bool, StablePolicy>&,
         const StateID& state_id,
-        T* choice,
-        ActionID* greedy_action,
-        Distribution<StateID>* greedy_transition,
-        bool* action_changed)
+        [[maybe_unused]] T* choice,
+        [[maybe_unused]] ActionID* greedy_action,
+        [[maybe_unused]] Distribution<StateID>* greedy_transition,
+        [[maybe_unused]] bool* action_changed)
     {
 #if defined(EXPENSIVE_STATISTICS)
         statistics_.update_time.resume();
@@ -1007,7 +1007,9 @@ private:
             state_info.set_dead_end();
             return result;
             // assert(is_equal_(new_value, dead_end_value_));
-        } else if (Policy) {
+        } 
+        
+        if constexpr (Policy) {
 #if defined(EXPENSIVE_STATISTICS)
             statistics_.policy_selection_time.resume();
 #endif
