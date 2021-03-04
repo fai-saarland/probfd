@@ -376,12 +376,12 @@ public:
         return false;
     }
 
-    inline bool is_dead_end_learning_enabled() const
+    bool is_dead_end_learning_enabled() const
     {
         return dead_end_listener_ != nullptr;
     }
 
-    inline bool async_update(
+    bool async_update(
         const StateID& s,
         ActionID* policy_action = nullptr,
         Distribution<StateID>* policy_transition = nullptr,
@@ -397,7 +397,7 @@ public:
     }
 
     template<typename T>
-    inline bool async_update(
+    bool async_update(
         const StateID& s,
         T* policy_tiebreaker,
         ActionID* policy_action,
@@ -666,7 +666,7 @@ protected:
     }
 
     template<typename Info>
-    inline bool do_bounds_disagree(const StateID& state_id, const Info& info)
+    bool do_bounds_disagree(const StateID& state_id, const Info& info)
     {
         if constexpr (std::is_same_v<Info, StateInfo>) {
             return DualBounds::value && interval_comparison_
@@ -677,8 +677,7 @@ protected:
         }
     }
 
-    const value_type::value_t&
-    get_lower_bound(const StateInfo& info) const
+    const value_type::value_t& get_lower_bound(const StateInfo& info) const
     {
         if constexpr (DualBounds::value) {
             return info.value2;
@@ -800,7 +799,7 @@ private:
         return state_info;
     }
 
-    inline value_utils::IncumbentSolution<DualBounds> dead_end_value() const
+    value_utils::IncumbentSolution<DualBounds> dead_end_value() const
     {
         return value_utils::IncumbentSolution<DualBounds>(
             dead_end_value_.first);
