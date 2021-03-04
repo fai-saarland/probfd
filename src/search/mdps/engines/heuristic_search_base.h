@@ -598,19 +598,22 @@ public:
                 transition_.clear();
             }
         }
-        if (StorePolicy::value && result.first) {
-            while (!expansion_queue.empty()) {
-                auto& expansion_data = expansion_queue.back();
-                const StateID state_id = expansion_data.state;
-                StateInfo& state_info = state_infos_[state_id];
-                const ActionID pid =
-                    this->get_action_id(state_id, expansion_data.aops.back());
-                result.second =
-                    result.second || (state_info.get_policy() != pid);
-                state_info.set_policy(pid);
-                const unsigned size = expansion_data.pidx;
-                while (expansion_queue.size() != size)
-                    expansion_queue.pop_back();
+        if constexpr (StorePolicy::value) {
+            if (result.first) {
+                while (!expansion_queue.empty()) {
+                    auto& expansion_data = expansion_queue.back();
+                    const StateID state_id = expansion_data.state;
+                    StateInfo& state_info = state_infos_[state_id];
+                    const ActionID pid =
+                        this->get_action_id(
+                            state_id, expansion_data.aops.back());
+                    result.second =
+                        result.second || (state_info.get_policy() != pid);
+                    state_info.set_policy(pid);
+                    const unsigned size = expansion_data.pidx;
+                    while (expansion_queue.size() != size)
+                        expansion_queue.pop_back();
+                }
             }
         }
         if (result.first) {
@@ -628,7 +631,7 @@ protected:
     value_type::value_t create_result(const StateID& id)
     {
         const StateInfo& info = state_infos_[id];
-        if (DualBounds::value) {
+        if constexpr (DualBounds::value) {
             statistics_.print_error = true;
             statistics_.error = info.error_bound();
         }
