@@ -591,7 +591,7 @@ private:
                         if (push_state(
                                 succ_id, succ_info, value_store, is_dead_end)) {
                             // std::cout << "~";
-                            goto break_outer; // break outer loop
+                            goto continue_stack_loop; // break outer loop
                         } 
 
                         value_utils::add(
@@ -629,126 +629,6 @@ private:
                 
             check_backtrack:
                 if (explore.aops.empty()) {
-                    if (state_info.index == state_info.lowlink) {
-                        ++statistics_.sccs;
-                        statistics_.singleton_sccs +=
-                            (explore.stackidx + 1 == stack_.size());
-                        if (state_info.dead) {
-                            const StackInfo* scc_start =
-                                &stack_[explore.stackidx];
-                            StackInfo* it = &stack_.back();
-                            do {
-                                it->value->set(
-                                    dead_end_value_, dead_end_value_);
-
-                                if constexpr (is_real_store) {
-                                    is_dead_end->operator[](it->state_id) =
-                                        true;
-                                }
-
-                                StateInfo& scc_state_info =
-                                    state_information_[it->state_id];
-                                // std::cout << it->state_id << ": "
-                                //           << scc_state_info.dead << " "
-                                //           << scc_state_info.status
-                                //           << std::endl;
-                                assert(scc_state_info.dead);
-                                assert(scc_state_info.status
-                                    == StateInfo::ONSTACK);
-                                scc_state_info.status = StateInfo::CLOSED;
-
-                                if (scc_start == it) {
-                                    break;
-                                }
-                                --it;
-                            } while (true);
-
-                            statistics_.dead_ends +=
-                                (stack_.size() - explore.stackidx);
-                        } else {
-                            assert(explore.stackidx < stack_.size());
-                            unsigned scc_size =
-                                stack_.size() - explore.stackidx;
-                            if (scc_size == 1) {
-                                assert(
-                                    state_info.status == StateInfo::ONSTACK
-                                    || state_info.status
-                                        == StateInfo::TERMINAL);
-                                if (!ExpandGoalStates
-                                    || state_info.status
-                                        == StateInfo::ONSTACK) {
-                                    stack_info.value->update(stack_info.b);
-                                }
-                                state_info.status = StateInfo::CLOSED;
-                            } else {
-                                if (ExpandGoalStates) {
-                                    const int scc_start = explore.stackidx;
-                                    for (int i = stack_.size() - 1;
-                                        i >= scc_start;
-                                        --i)
-                                    {
-                                        StackInfo& scc_stack_info = stack_[i];
-                                        StateInfo& scc_state_info =
-                                            state_information_
-                                                [scc_stack_info.state_id];
-                                        assert(
-                                            scc_state_info.status
-                                                == StateInfo::ONSTACK
-                                            || scc_state_info.status
-                                                == StateInfo::TERMINAL);
-                                        if (scc_state_info.status
-                                            == StateInfo::TERMINAL)
-                                        {
-                                            --scc_size;
-                                            stack_.erase(stack_.begin() + i);
-                                        } else if (scc_stack_info.infos.empty())
-                                        {
-                                            scc_stack_info.value->update(
-                                                scc_stack_info.b);
-                                            --scc_size;
-                                            stack_.erase(stack_.begin() + i);
-                                        }
-                                        scc_state_info.dead = 0;
-                                        scc_state_info.status =
-                                            StateInfo::CLOSED;
-                                    }
-                                } else {
-                                    const StackInfo* scc_start =
-                                        &stack_[explore.stackidx];
-                                    StackInfo* it = &stack_.back();
-                                    do {
-                                        StateInfo& scc_state_info =
-                                            state_information_[it->state_id];
-                                        assert(
-                                            scc_state_info.status
-                                            == StateInfo::ONSTACK);
-                                        assert(!it->infos.empty());
-                                        scc_state_info.status =
-                                            StateInfo::CLOSED;
-                                        scc_state_info.dead = 0;
-                                        if (scc_start == it) {
-                                            break;
-                                        }
-                                        --it;
-                                    } while (true);
-                                }
-
-                                if (scc_size > 0) {
-                                    const unsigned n = bellman_backup(
-                                        stack_, explore.stackidx);
-                                    statistics_.bellman_backups += n;
-                                }
-                            }
-                        }
-
-                        while (stack_.size() > explore.stackidx) {
-                            stack_.pop_back();
-                        }
-                        // std::cout << "[backtrack-from-scc]";
-                    } // else std::cout << "[backtrack]";
-
-                    backtracked_state_info_ = &state_info;
-                    exploration_stack_.pop_back();
                     break;
                 } 
                 
@@ -757,9 +637,7 @@ private:
                 //           << std::flush;
                 explore.transition.clear();
                 this->generate_successors(
-                    explore.state,
-                    explore.aops.back(),
-                    explore.transition);
+                    explore.state, explore.aops.back(), explore.transition);
                 explore.transition.make_unique();
                 // for (auto it = explore.transition.begin();
                 //      it != explore.transition.end();
@@ -774,7 +652,7 @@ private:
                     && explore.successor->first == stack_info.state_id)
                 {
                     explore.aops.pop_back();
-                    goto check_backtrack; // oof
+                    goto check_backtrack;
                 }
 
                 stack_info.infos.emplace_back(
@@ -783,8 +661,123 @@ private:
                         explore.state, explore.aops.back()));
                 explore.aops.pop_back();
             } while (true);
-        break_outer:;
+
+            // Check if an SCC was found.
+            if (state_info.index == state_info.lowlink) {
+                ++statistics_.sccs;
+
+                if (explore.stackidx + 1 == stack_.size()) {
+                    ++statistics_.singleton_sccs;
+                }
+
+                if (state_info.dead) {
+                    const StackInfo* scc_start = &stack_[explore.stackidx];
+                    StackInfo* it = &stack_.back();
+                    do {
+                        it->value->set(dead_end_value_, dead_end_value_);
+
+                        if constexpr (is_real_store) {
+                            is_dead_end->operator[](it->state_id) = true;
+                        }
+
+                        StateInfo& scc_state_info =
+                            state_information_[it->state_id];
+                        // std::cout << it->state_id << ": "
+                        //           << scc_state_info.dead << " "
+                        //           << scc_state_info.status
+                        //           << std::endl;
+                        assert(scc_state_info.dead);
+                        assert(scc_state_info.status == StateInfo::ONSTACK);
+                        scc_state_info.status = StateInfo::CLOSED;
+
+                        if (scc_start == it) {
+                            break;
+                        }
+                        --it;
+                    } while (true);
+
+                    statistics_.dead_ends += (stack_.size() - explore.stackidx);
+                } else {
+                    assert(explore.stackidx < stack_.size());
+                    unsigned scc_size = stack_.size() - explore.stackidx;
+                    if (scc_size == 1) {
+                        assert(
+                            state_info.status == StateInfo::ONSTACK
+                            || state_info.status == StateInfo::TERMINAL);
+                        if (!ExpandGoalStates
+                            || state_info.status == StateInfo::ONSTACK)
+                        {
+                            stack_info.value->update(stack_info.b);
+                        }
+                        state_info.status = StateInfo::CLOSED;
+                    } else {
+                        if constexpr (ExpandGoalStates) {
+                            const int scc_start = explore.stackidx;
+                            for (int i = stack_.size() - 1;
+                                i >= scc_start;
+                                --i)
+                            {
+                                StackInfo& scc_stack_info = stack_[i];
+                                StateInfo& scc_state_info =
+                                    state_information_[scc_stack_info.state_id];
+                                assert(
+                                    scc_state_info.status == StateInfo::ONSTACK
+                                    || scc_state_info.status
+                                        == StateInfo::TERMINAL);
+                                if (scc_state_info.status
+                                    == StateInfo::TERMINAL)
+                                {
+                                    --scc_size;
+                                    stack_.erase(stack_.begin() + i);
+                                } else if (scc_stack_info.infos.empty())
+                                {
+                                    scc_stack_info.value->update(
+                                        scc_stack_info.b);
+                                    --scc_size;
+                                    stack_.erase(stack_.begin() + i);
+                                }
+                                scc_state_info.dead = 0;
+                                scc_state_info.status = StateInfo::CLOSED;
+                            }
+                        } else {
+                            const StackInfo* scc_start =
+                                &stack_[explore.stackidx];
+                            StackInfo* it = &stack_.back();
+                            do {
+                                StateInfo& scc_state_info =
+                                    state_information_[it->state_id];
+                                assert(
+                                    scc_state_info.status
+                                    == StateInfo::ONSTACK);
+                                assert(!it->infos.empty());
+                                scc_state_info.status = StateInfo::CLOSED;
+                                scc_state_info.dead = 0;
+                                if (scc_start == it) {
+                                    break;
+                                }
+                                --it;
+                            } while (true);
+                        }
+
+                        if (scc_size > 0) {
+                            const unsigned n = bellman_backup(
+                                stack_, explore.stackidx);
+                            statistics_.bellman_backups += n;
+                        }
+                    }
+                }
+
+                while (stack_.size() > explore.stackidx) {
+                    stack_.pop_back();
+                }
+                // std::cout << "[backtrack-from-scc]";
+            } // else std::cout << "[backtrack]";
+
+            backtracked_state_info_ = &state_info;
+            exploration_stack_.pop_back();
+
             // std::cout << std::endl;
+        continue_stack_loop:;
         }
         const Bounds& vb = value_store[this->get_state_id(initial_state)];
         return vb;
