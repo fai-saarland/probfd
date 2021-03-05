@@ -554,14 +554,16 @@ private:
             ExplorationInfo& explore = exploration_stack_.back();
             StackInfo& stack_info = stack_[explore.stackidx];
             StateInfo& state_info = state_information_[stack_info.state_id];
-            // std::cout << stack_info.state_id << " [" << state_info.status <<
-            // "]"
-            //           << std::endl;
-            assert(explore.state == stack_info.state_id);
+
+            const unsigned int state = explore.state;
+            const value_type::value_t state_reward = explore.state_reward;
+
+            // std::cout << stack_info.state_id
+            //           << " [" << state_info.status << "]" << std::endl;
+            assert(state == stack_info.state_id);
             assert(
-                state_info.status == StateInfo::ONSTACK
-                || (ExpandGoalStates
-                    && state_info.status == StateInfo::TERMINAL));
+                (state_info.status == StateInfo::ONSTACK) ||
+                (ExpandGoalStates && state_info.status == StateInfo::TERMINAL));
 
             if (backtracked_state_info_ != nullptr) {
                 state_info.lowlink = std::min(
@@ -577,11 +579,11 @@ private:
                 for (; explore.successor != explore.transition.end();
                      ++explore.successor) 
                 {
-                    const StateID succ_id = explore.successor->first;
+                    const auto& [succ_id, prob] = *explore.successor;
                     // std::cout << " " << succ_id << std::flush;
-                    if (succ_id == stack_info.state_id) {
+                    if (succ_id == state) {
                         tinfo.has_self_loop = true;
-                        tinfo.self_loop_prob += explore.successor->second;
+                        tinfo.self_loop_prob += prob;
                         continue;
                     }
 
@@ -590,17 +592,15 @@ private:
                         if (push_state(
                                 succ_id, succ_info, value_store, is_dead_end)) {
                             // std::cout << "~";
-                            goto continue_stack_loop; // break outer loop
+                            goto continue_stack_loop; // recursion on new state
                         } 
 
                         value_utils::add(
-                            tinfo.base,
-                            explore.successor->second,
-                            *backtracked_state_value_);
+                            tinfo.base, prob, *backtracked_state_value_);
                         state_info.dead = state_info.dead && succ_info.dead;
                     } else if (succ_info.status == StateInfo::ONSTACK) {
                         tinfo.successors.emplace_back(
-                            explore.successor->second, &value_store[succ_id]);
+                            prob, &value_store[succ_id]);
                         state_info.lowlink =
                             std::min(state_info.lowlink, succ_info.index);
                     } else {
@@ -610,9 +610,7 @@ private:
                                 std::min(state_info.lowlink, succ_info.index);
                         }
                         value_utils::add(
-                            tinfo.base,
-                            explore.successor->second,
-                            value_store[succ_id]);
+                            tinfo.base, prob, value_store[succ_id]);
                         state_info.dead = state_info.dead && succ_info.dead;
                     }
                 }
@@ -626,37 +624,45 @@ private:
                     stack_info.infos.pop_back();
                 }
                 
+                // Generate the transition for the next applicable operand that 
+                // is not a self-loop.
+                auto& aops = explore.aops;
+
                 do {
-                    // If this is the last successor we are done.
-                    if (explore.aops.empty()) {
+                    // If this was the last successor we are done.
+                    if (aops.empty()) {
                         goto break_successor_loop;
-                    } 
+                    }
+
+                    // Otherwise generate the next transition and check if it is
+                    // a self-loop.
                     
                     // std::cout << " (applying " << "..." << std::flush;
+
                     explore.transition.clear();
                     this->generate_successors(
-                        explore.state, explore.aops.back(), explore.transition);
+                        state, aops.back(), explore.transition);
                     explore.transition.make_unique();
+                    explore.successor = explore.transition.begin();
+
                     // for (const auto& [s, prob] : explore.transition) {
                     //     std::cout << " "
                     //               << state_id_map_->operator[](s));
                     // }
                     // std::cout << ")" << std::flush;
-                    explore.successor = explore.transition.begin();
+                    
                     if (explore.transition.size() != 1
-                        || explore.successor->first != stack_info.state_id)
+                        || explore.successor->first != state)
                     {
                         break;
                     }
 
-                    explore.aops.pop_back();
+                    aops.pop_back();
                 } while(true);
 
                 stack_info.infos.emplace_back(
-                    explore.state_reward
-                    + this->get_action_reward(
-                        explore.state, explore.aops.back()));
-                explore.aops.pop_back();
+                    state_reward + this->get_action_reward(state, aops.back()));
+                aops.pop_back();
             } while (true);
 
         break_successor_loop:;
