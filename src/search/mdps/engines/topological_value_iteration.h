@@ -535,10 +535,9 @@ private:
     value_type::value_t value_iteration(
         const State& initial_state,
         Store& value_store,
-        BoolStore* is_dead_end)
+        [[maybe_unused]] BoolStore* is_dead_end)
     {
         constexpr bool is_real_store = !std::is_same_v<BoolStore, NoStore>;
-        (void) is_dead_end; // silence warnings
 
         {
             StateID istate_id = this->get_state_id(initial_state);
