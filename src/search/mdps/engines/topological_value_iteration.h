@@ -111,34 +111,7 @@ template<typename T>
 using ValueStore = storage::PersistentPerStateStorage<StateValueBounds<T>>;
 
 template<typename T, typename VS>
-inline ValueStore<T>&
-convert_vs(std::unique_ptr<ValueStore<T>>& ptr, VS&)
-{
-    ptr = std::unique_ptr<ValueStore<T>>(new ValueStore<T>());
-    return *ptr;
-}
-
-template<>
-inline ValueStore<std::false_type>&
-convert_vs(
-    std::unique_ptr<ValueStore<std::false_type>>&,
-    ValueStore<std::false_type>& vs)
-{
-    return vs;
-}
-
-template<>
-inline ValueStore<std::true_type>&
-convert_vs(
-    std::unique_ptr<ValueStore<std::true_type>>&,
-    ValueStore<std::true_type>& vs)
-{
-    return vs;
-}
-
-template<typename T, typename VS>
-inline void
-copy_vs(VS& result, ValueStore<T>& val_store)
+void copy_vs(VS& result, ValueStore<T>& val_store)
 {
     for (int i = val_store.size() - 1; i >= 0; --i) {
         const StateID stateid(i);
@@ -146,43 +119,11 @@ copy_vs(VS& result, ValueStore<T>& val_store)
     }
 }
 
-template<>
-inline void
-copy_vs(ValueStore<std::false_type>&, ValueStore<std::false_type>&)
-{
-}
-
-template<>
-inline void
-copy_vs(ValueStore<std::true_type>&, ValueStore<std::true_type>&)
-{
-}
-
-template<>
-inline void
-copy_vs(void*&, ValueStore<std::false_type>&)
-{
-}
-
-template<>
-inline void
-copy_vs(void*&, ValueStore<std::true_type>&)
-{
-}
-
-template<typename T>
-inline bool contains(T*, const StateID&);
-
-template<>
-inline bool
-contains(void*, const StateID&)
-{
+inline bool contains(void*, const StateID&) {
     return false;
 }
 
-template<>
-inline bool
-contains(storage::PerStateStorage<bool>* store, const StateID& s)
+inline bool contains(storage::PerStateStorage<bool>* store, const StateID& s)
 {
     return store->operator[](s);
 }
@@ -236,8 +177,8 @@ public:
 
     virtual void solve(const State& initial_state) override
     {
-        void* ptr;
-        this->wrapper<void*, NoStore>(initial_state, ptr, nullptr);
+        this->value_store_.reset(new Store());
+        this->solve(initial_state, *this->value_store_);
     }
 
     virtual value_type::value_t get_result(const State& s) override
@@ -256,15 +197,29 @@ public:
     template<typename VS>
     value_type::value_t solve(const State& initial_state, VS& value_store)
     {
-        return this->wrapper<VS, NoStore>(initial_state, value_store, nullptr);
+        if constexpr (std::is_same_v<VS, Store>) {
+            return
+                value_iteration<NoStore>(initial_state, value_store, nullptr);
+        } else {
+            Store store;
+            auto res = value_iteration<NoStore>(initial_state, store, nullptr);
+            copy_vs(value_store, store);
+            return res;
+        }
     }
 
     template<typename VS, typename BoolStore>
     value_type::value_t
     solve(const State& initial_state, VS& value_store, BoolStore& is_dead_end)
     {
-        return this->wrapper<VS, BoolStore>(
-            initial_state, value_store, &is_dead_end);
+        if constexpr (std::is_same_v<VS, Store>) {
+            return value_iteration(initial_state, value_store, &is_dead_end);
+        } else {
+            Store store;
+            auto res = value_iteration(initial_state, store, &is_dead_end);
+            copy_vs(value_store, store);
+            return res;
+        }
     }
 
 private:
@@ -386,15 +341,6 @@ private:
         std::vector<BellmanBackupInfo> infos;
     };
 
-    template<typename VS, typename BS>
-    value_type::value_t wrapper(const State& s, VS& vs, BS* bs)
-    {
-        Store& vals = convert_vs(value_store_, vs);
-        value_type::value_t res = this->value_iteration(s, vals, bs);
-        copy_vs(vs, vals);
-        return res;
-    }
-
     template<typename BoolStore>
     bool push_state(
         const StateID& state_id,
@@ -425,7 +371,7 @@ private:
                 this->generate_applicable_ops(state_id, aops);
                 ++statistics_.expanded_states;
             }
-        } else if (contains(one_states_, state_id)) {
+        } else if (one_states_ && contains(one_states_, state_id)) {
             state_value.set(one_state_reward_, one_state_reward_);
             state_info.dead = false;
             if (ExpandGoalStates) {
@@ -434,7 +380,7 @@ private:
                 ++statistics_.expanded_states;
             }
         } else if (
-            contains(zero_states_, state_id)
+            (zero_states_ && contains(zero_states_, state_id))
             || (prune_ && prune_->operator()(state))) {
             state_value.set(dead_end_value_, dead_end_value_);
             ++statistics_.pruned;
