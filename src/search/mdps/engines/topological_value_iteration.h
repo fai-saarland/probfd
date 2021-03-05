@@ -268,16 +268,14 @@ public:
     }
 
 private:
-    // using value_t = value_type::value_t;
-
     struct NoStore;
 
     struct StateInfo {
-        static constexpr const unsigned NEW = 0;
-        static constexpr const unsigned OPEN = 1;
-        static constexpr const unsigned ONSTACK = 2;
-        static constexpr const unsigned CLOSED = 4;
-        static constexpr const unsigned TERMINAL = 5;
+        static constexpr unsigned NEW = 0;
+        static constexpr unsigned OPEN = 1;
+        static constexpr unsigned ONSTACK = 2;
+        static constexpr unsigned CLOSED = 4;
+        static constexpr unsigned TERMINAL = 5;
 
         StateInfo()
             : status(NEW)
@@ -320,7 +318,6 @@ private:
     };
 
     struct BellmanBackupInfo {
-
         template<typename T>
         BellmanBackupInfo(const T base)
             : has_self_loop(false)
@@ -344,10 +341,8 @@ private:
         ValueT operator()() const
         {
             ValueT res = base;
-            const auto* it = &successors[0];
-            const auto* end = it + successors.size();
-            for (; it != end; ++it) {
-                value_utils::add(res, it->first, *it->second);
+            for (auto& [prob, value] : successors) {
+                value_utils::add(res, prob, *value);
             }
             if (has_self_loop) {
                 value_utils::mult(res, self_loop_prob);
@@ -363,7 +358,6 @@ private:
     };
 
     struct StackInfo {
-
         StackInfo(
             const StateID& state_id,
             Bounds* value,
@@ -380,17 +374,15 @@ private:
         bool update_value()
         {
             ValueT val = b;
-            auto* it = &infos[0];
-            for (int i = infos.size() - 1; i >= 0; i--, ++it) {
-                auto tval = (*it)();
-                value_utils::update_incumbent(val, tval);
+            for (const BellmanBackupInfo& info : infos) {
+                value_utils::update_incumbent(val, info());
             }
             return value->update(val) || !value->bounds_equal();
         }
 
         StateID state_id;
         Bounds* value;
-        value_utils::IncumbentSolution<Interval> b;
+        ValueT b;
         std::vector<BellmanBackupInfo> infos;
     };
 
@@ -423,6 +415,7 @@ private:
         auto x = this->get_state_reward(state);
         std::vector<Action> aops;
         // std::cout << ((bool) x) << " " << std::endl;
+
         if (x) {
             state_value.set((value_type::value_t)x, ((value_type::value_t)x));
             state_info.dead = false;
@@ -454,6 +447,7 @@ private:
                 state_value.set(value_type::zero, upper_bound_);
             }
         }
+
         // std::cout << state_value.value << std::endl;
         if (aops.empty()) {
             ++statistics_.terminal_states;
@@ -486,28 +480,27 @@ private:
         exploration_stack_.back().aops.pop_back();
 #endif
 
-        exploration_stack_.emplace_back(
+        ExplorationInfo& einfo = exploration_stack_.emplace_back(
             state_id,
             (value_type::value_t)x,
             stack_.size(),
             std::move(aops));
-        ExplorationInfo& einfo = exploration_stack_.back();
+
         do {
             this->generate_successors(
                 state_id, einfo.aops.back(), einfo.transition);
             einfo.transition.make_unique();
             einfo.successor = einfo.transition.begin();
-            if (einfo.transition.size() == 1
-                && einfo.successor->first == state_id) {
-                einfo.transition.clear();
-                einfo.aops.pop_back();
-                if (einfo.aops.empty()) {
-                    break;
-                }
-            } else {
+            if (einfo.transition.size() != 1
+                || einfo.successor->first != state_id)
+            {
                 break;
             }
-        } while (true);
+
+            einfo.transition.clear();
+            einfo.aops.pop_back();
+        } while (!einfo.aops.empty());
+
         if (einfo.aops.empty()) {
             exploration_stack_.pop_back();
             if (!ExpandGoalStates || state_info.status != StateInfo::TERMINAL) {
@@ -521,13 +514,15 @@ private:
             backtracked_state_value_ = &state_value;
             return false;
         }
-        stack_.emplace_back(
+
+        auto& s_info = stack_.emplace_back(
             state_id,
             &state_value,
             dead_end_value_,
             upper_bound_,
             einfo.aops.size());
-        stack_.back().infos.emplace_back(
+
+        s_info.infos.emplace_back(
             (value_type::value_t)x
             + this->get_action_reward(state_id, einfo.aops.back()));
         // std::cout <<stack_.back().infos.back().base.first << std::endl;
