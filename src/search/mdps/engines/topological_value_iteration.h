@@ -627,33 +627,31 @@ private:
                     stack_info.infos.pop_back();
                 }
                 
-            check_backtrack:
-                if (explore.aops.empty()) {
-                    break;
-                } 
-                
-                // std::cout << " (applying "
-                //           << "..."
-                //           << std::flush;
-                explore.transition.clear();
-                this->generate_successors(
-                    explore.state, explore.aops.back(), explore.transition);
-                explore.transition.make_unique();
-                // for (auto it = explore.transition.begin();
-                //      it != explore.transition.end();
-                //      ++it) {
-                //     std::cout << " "
-                //               <<
-                //               state_id_map_->operator[](it->first);
-                // }
-                // std::cout << ")" << std::flush;
-                explore.successor = explore.transition.begin();
-                if (explore.transition.size() == 1
-                    && explore.successor->first == stack_info.state_id)
-                {
+                do {
+                    // If this is the last successor we are done.
+                    if (explore.aops.empty()) {
+                        goto break_successor_loop;
+                    } 
+                    
+                    // std::cout << " (applying " << "..." << std::flush;
+                    explore.transition.clear();
+                    this->generate_successors(
+                        explore.state, explore.aops.back(), explore.transition);
+                    explore.transition.make_unique();
+                    // for (const auto& [s, prob] : explore.transition) {
+                    //     std::cout << " "
+                    //               << state_id_map_->operator[](s));
+                    // }
+                    // std::cout << ")" << std::flush;
+                    explore.successor = explore.transition.begin();
+                    if (explore.transition.size() != 1
+                        || explore.successor->first != stack_info.state_id)
+                    {
+                        break;
+                    }
+
                     explore.aops.pop_back();
-                    goto check_backtrack;
-                }
+                } while(true);
 
                 stack_info.infos.emplace_back(
                     explore.state_reward
@@ -661,6 +659,8 @@ private:
                         explore.state, explore.aops.back()));
                 explore.aops.pop_back();
             } while (true);
+
+        break_successor_loop:;
 
             // Check if an SCC was found.
             if (state_info.index == state_info.lowlink) {
