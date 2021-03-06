@@ -14,6 +14,7 @@ endif()
 project(downward)
 fast_downward_set_compiler_flags()
 fast_downward_set_linker_flags()
+add_definitions(-Wfatal-errors)
 
 # Collect source files needed for the active plugins.
 include("${CMAKE_CURRENT_SOURCE_DIR}/DownwardFiles.cmake")

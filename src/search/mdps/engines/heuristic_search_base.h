@@ -147,6 +147,8 @@ public:
     using StorePolicy = typename StateInfo::StoresPolicy;
     using DualBounds = typename StateInfo::DualBounds;
 
+    using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
+
     template<typename T>
     class StateStatusAccessor {
     public:
@@ -778,8 +780,8 @@ private:
             auto estimate = this->get_state_reward(state);
             if (estimate) {
                 state_info.set_goal();
-                state_info.set_value(value_utils::IncumbentSolution<DualBounds>(
-                    (value_type::value_t)estimate));
+                state_info.set_value(
+                    IncumbentSolution((value_type::value_t)estimate));
                 statistics_.goal_states++;
                 if (on_new_state_)
                     on_new_state_->touch_goal(state);
@@ -802,10 +804,9 @@ private:
         return state_info;
     }
 
-    value_utils::IncumbentSolution<DualBounds> dead_end_value() const
+    IncumbentSolution dead_end_value() const
     {
-        return value_utils::IncumbentSolution<DualBounds>(
-            dead_end_value_.first);
+        return IncumbentSolution(dead_end_value_.first);
     }
 
     template<typename T>
@@ -818,7 +819,7 @@ private:
         bool* action_changed)
     {
         if (policy_tiebreaker == nullptr) {
-            return compute_value_update<DualBounds>(
+            return compute_value_update(
                 std::false_type(),
                 std::false_type(),
                 s,
@@ -828,7 +829,7 @@ private:
                 action_changed);
         } else {
             if (stable_policy) {
-                return compute_value_update<DualBounds>(
+                return compute_value_update(
                     std::true_type(),
                     std::true_type(),
                     s,
@@ -837,7 +838,7 @@ private:
                     greedy_transition,
                     action_changed);
             } else {
-                return compute_value_update<DualBounds>(
+                return compute_value_update(
                     std::true_type(),
                     std::false_type(),
                     s,
@@ -849,7 +850,7 @@ private:
         }
     }
 
-    template<typename Values2, typename T, bool Policy, bool StablePolicy>
+    template<typename T, bool Policy, bool StablePolicy>
     bool compute_value_update(
         const std::integral_constant<bool, Policy>&,
         const std::integral_constant<bool, StablePolicy>&,
@@ -904,17 +905,16 @@ private:
         }
 
         bool first = true;
-        value_utils::IncumbentSolution<Values2> new_value = dead_end_value();
-        std::vector<value_utils::IncumbentSolution<Values2>> values;
+        IncumbentSolution new_value = dead_end_value();
+        std::vector<IncumbentSolution> values;
         values.reserve(aops_.size());
 
         // for (int i = aops_.size() - 1; i >= 0; i--) {
         unsigned non_loop_transitions = 0;
         for (unsigned i = 0; i < aops_.size(); ++i) {
-            value_utils::IncumbentSolution<Values2> t_value =
-                value_utils::IncumbentSolution<Values2>(
-                    state_info.get_state_reward()
-                    + this->get_action_reward(state_id, aops_[i]));
+            IncumbentSolution t_value(
+                state_info.get_state_reward()
+                + this->get_action_reward(state_id, aops_[i]));
             value_type::value_t self_loop = value_type::zero;
             bool non_loop = false;
             bool has_self_loop = false;
@@ -1064,7 +1064,7 @@ private:
     DeadEndListener<State, Action>* dead_end_listener_;
     StateEvaluator<State>* dead_end_eval_;
 
-    const value_utils::IncumbentSolution<DualBounds> dead_end_value_;
+    const IncumbentSolution dead_end_value_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
     std::vector<Action> aops_;

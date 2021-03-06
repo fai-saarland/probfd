@@ -243,6 +243,8 @@ public:
         typename probabilistic::exhaustive_dfs::SearchNodeInformation<
             DualBounds>;
 
+    using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
+
     template<typename... Args>
     explicit ExhaustiveDepthFirstSearch(
         HeuristicSearchConnector* connector,
@@ -261,7 +263,7 @@ public:
         , statistics_()
         , report_(progress)
         , dead_end_value_(this->get_minimal_reward())
-        , trivial_bound_(get_trivial_bound(DualBounds()))
+        , trivial_bound_(get_trivial_bound())
         , evaluator_(evaluator)
         , dead_end_evaluator_(dead_end_eval)
         , dead_end_listener_(dead_end_listener)
@@ -360,24 +362,19 @@ private:
         return result;
     }
 
-    template<typename T>
-    value_utils::IncumbentSolution<T> dead_end_value() const
+    IncumbentSolution dead_end_value() const
     {
-        return value_utils::IncumbentSolution<T>(dead_end_value_.first);
+        return IncumbentSolution(dead_end_value_.first);
     }
 
-    value_utils::IncumbentSolution<std::true_type>
-    get_trivial_bound(const std::true_type&) const
+    IncumbentSolution get_trivial_bound() const
     {
-        return value_utils::IncumbentSolution<std::true_type>(
-            this->get_minimal_reward(), this->get_maximal_reward());
-    }
-
-    value_utils::IncumbentSolution<std::false_type>
-    get_trivial_bound(const std::false_type&) const
-    {
-        return value_utils::IncumbentSolution<std::false_type>(
-            this->get_minimal_reward());
+        if constexpr (DualBounds::value) {
+            return IncumbentSolution(
+                this->get_minimal_reward(), this->get_maximal_reward());
+        } else {
+            return IncumbentSolution(this->get_minimal_reward());
+        }
     }
 
 private:
@@ -441,8 +438,7 @@ private:
         info.set_value(trivial_bound_);
         if (reward) {
             info.close();
-            info.set_value(value_utils::IncumbentSolution<DualBounds>(
-                (value_type::value_t)reward));
+            info.set_value(IncumbentSolution((value_type::value_t)reward));
             ++statistics_.goal_states;
             if (new_state_handler_) {
                 new_state_handler_->touch_goal(state);
@@ -568,8 +564,7 @@ private:
                 ++statistics_.self_loop;
                 return false;
             } else {
-                info.set_value(value_utils::IncumbentSolution<DualBounds>(
-                    info.get_value()));
+                info.set_value(IncumbentSolution(info.get_value()));
                 info.close();
                 return false;
             }
@@ -776,8 +771,7 @@ private:
                                 val_changed =
                                     info.update_value(
                                         true,
-                                        value_utils::IncumbentSolution<
-                                            DualBounds>(info.get_value()))
+                                        IncumbentSolution(info.get_value()))
                                     || val_changed;
                             }
                             ++scc_size;
@@ -822,8 +816,7 @@ private:
                                             || !value_type::approx_equal()(
                                                       node_info.value, best);
                                         node_info.set_value(
-                                            value_utils::IncumbentSolution<
-                                                DualBounds>(best));
+                                            IncumbentSolution(best));
                                     }
                                 }
                                 ++iterations;
@@ -896,12 +889,12 @@ private:
             ++statistics_.value_updates;
             StackInformation& st = stack_infos_[it->stack_index];
             SearchNodeInformation& sn = search_space_[st.state_ref];
-            value_utils::IncumbentSolution<DualBounds> new_val(sn.get_value());
+            IncumbentSolution new_val(sn.get_value());
             {
                 const int i = it->successors.size() - 1;
                 const auto& succs = it->successors[i];
                 const auto& t = st.successors[i];
-                value_utils::IncumbentSolution<DualBounds> val(t.base);
+                IncumbentSolution val(t.base);
                 for (auto succ = t.successors.begin();
                      succ != t.successors.end();
                      ++succ) {
@@ -924,7 +917,7 @@ private:
             for (int i = it->successors.size() - 2; i >= 0; --i) {
                 auto& succs = it->successors[i];
                 auto& t = st.successors[i];
-                value_utils::IncumbentSolution<DualBounds> val(t.base);
+                IncumbentSolution val(t.base);
                 for (auto succ = t.successors.begin();
                      succ != t.successors.end();
                      ++succ) {
@@ -968,7 +961,7 @@ private:
                  i > it->successors.size();
                  --i) {
                 const auto& t = st.successors[i];
-                value_utils::IncumbentSolution<DualBounds> val(t.base);
+                IncumbentSolution val(t.base);
                 for (auto succ = t.successors.begin();
                      succ != t.successors.end();
                      ++succ) {
@@ -1001,11 +994,10 @@ private:
                 ++statistics_.value_updates;
                 StackInformation& st = stack_infos_[stack_index];
                 SearchNodeInformation& sn = search_space_[st.state_ref];
-                value_utils::IncumbentSolution<DualBounds> new_val(
-                    sn.get_value());
+                IncumbentSolution new_val(sn.get_value());
                 for (int i = st.successors.size() - 1; i >= 0; --i) {
                     const auto& t = st.successors[i];
-                    value_utils::IncumbentSolution<DualBounds> val(t.base);
+                    IncumbentSolution val(t.base);
                     for (auto succ = t.successors.begin();
                          succ != t.successors.end();
                          ++succ) {
@@ -1022,12 +1014,12 @@ private:
             --stack_index;
             StackInformation& st = stack_infos_[it->stack_index];
             SearchNodeInformation& sn = search_space_[st.state_ref];
-            value_utils::IncumbentSolution<DualBounds> new_val(sn.get_value());
+            IncumbentSolution new_val(sn.get_value());
             {
                 const int i = it->successors.size() - 1;
                 const auto& succs = it->successors[i];
                 const auto& t = st.successors[i];
-                value_utils::IncumbentSolution<DualBounds> val(t.base);
+                IncumbentSolution val(t.base);
                 for (auto succ = t.successors.begin();
                      succ != t.successors.end();
                      ++succ) {
@@ -1050,7 +1042,7 @@ private:
             for (int i = it->successors.size() - 2; i >= 0; --i) {
                 auto& succs = it->successors[i];
                 auto& t = st.successors[i];
-                value_utils::IncumbentSolution<DualBounds> val(t.base);
+                IncumbentSolution val(t.base);
                 for (auto succ = t.successors.begin();
                      succ != t.successors.end();
                      ++succ) {
@@ -1094,7 +1086,7 @@ private:
                  i > it->successors.size();
                  --i) {
                 const auto& t = st.successors[i];
-                value_utils::IncumbentSolution<DualBounds> val(t.base);
+                IncumbentSolution val(t.base);
                 for (auto succ = t.successors.begin();
                      succ != t.successors.end();
                      ++succ) {
@@ -1179,8 +1171,8 @@ private:
     Statistics statistics_;
 
     ProgressReport* report_;
-    const value_utils::IncumbentSolution<DualBounds> dead_end_value_;
-    const value_utils::IncumbentSolution<DualBounds> trivial_bound_;
+    const IncumbentSolution dead_end_value_;
+    const IncumbentSolution trivial_bound_;
 
     StateEvaluator<State>* evaluator_;
     StateEvaluator<State>* dead_end_evaluator_;
