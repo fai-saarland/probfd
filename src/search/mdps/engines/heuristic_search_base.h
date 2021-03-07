@@ -865,7 +865,6 @@ private:
 #endif
         statistics_.backups++;
 
-        assert(aops_.empty() && optimal_transitions_.empty());
         assert(!Policy || choice != nullptr);
         assert(greedy_transition == nullptr || greedy_transition->empty());
 
@@ -884,8 +883,11 @@ private:
             state_info.removed_from_fringe();
         }
 
+        std::vector<Action> aops_;
+        std::vector<Distribution<StateID>> optimal_transitions_;
         this->generate_all_successors(state_id, aops_, optimal_transitions_);
         assert(aops_.size() == optimal_transitions_.size());
+
         if (aops_.empty()) {
             statistics_.terminal_states++;
             bool result =
@@ -962,8 +964,6 @@ private:
         // }
 
         if (non_loop_transitions == 0) {
-            aops_.clear();
-            optimal_transitions_.clear();
             statistics_.self_loop_states++;
             const bool result =
                 state_info.update_value(interval_comparison_, dead_end_value_);
@@ -1039,9 +1039,6 @@ private:
 #endif
         }
 
-        aops_.clear();
-        optimal_transitions_.clear();
-
         if (state_info.update_value(interval_comparison_, new_value)) {
             ++statistics_.value_changes;
             if (state_id == initial_state_id_) {
@@ -1067,8 +1064,6 @@ private:
     const IncumbentSolution dead_end_value_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
-    std::vector<Action> aops_;
-    std::vector<Distribution<StateID>> optimal_transitions_;
 
     Statistics statistics_;
 
