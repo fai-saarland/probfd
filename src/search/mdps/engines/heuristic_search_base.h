@@ -819,9 +819,7 @@ private:
         bool* action_changed)
     {
         if (policy_tiebreaker == nullptr) {
-            return compute_value_update(
-                std::false_type(),
-                std::false_type(),
+            return compute_value_update<false, false>(
                 s,
                 policy_tiebreaker,
                 greedy_action,
@@ -829,18 +827,14 @@ private:
                 action_changed);
         } else {
             if (stable_policy) {
-                return compute_value_update(
-                    std::true_type(),
-                    std::true_type(),
+                return compute_value_update<true, true>(
                     s,
                     policy_tiebreaker,
                     greedy_action,
                     greedy_transition,
                     action_changed);
             } else {
-                return compute_value_update(
-                    std::true_type(),
-                    std::false_type(),
+                return compute_value_update<true, false>(
                     s,
                     policy_tiebreaker,
                     greedy_action,
@@ -850,10 +844,8 @@ private:
         }
     }
 
-    template<typename T, bool Policy, bool StablePolicy>
+    template<bool Policy, bool StablePolicy, typename T>
     bool compute_value_update(
-        const std::integral_constant<bool, Policy>&,
-        const std::integral_constant<bool, StablePolicy>&,
         const StateID& state_id,
         [[maybe_unused]] T* choice,
         [[maybe_unused]] ActionID* greedy_action,
