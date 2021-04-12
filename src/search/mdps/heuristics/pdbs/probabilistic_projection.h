@@ -5,6 +5,7 @@
 #include "engine_interfaces.h"
 #include "qualitative_result_store.h"
 #include "quantitative_result_store.h"
+#include "types.h"
 
 #include <iostream>
 #include <memory>
@@ -33,6 +34,11 @@ public:
     QualitativeResultStore& get_abstract_goal_states();
 
     unsigned int num_states() const;
+
+    // Returns the pattern (i.e. all variables used) of the PDB
+    const Pattern &get_pattern() const {
+        return state_mapper_->get_variables();
+    }
 
 protected:
     void setup_abstract_goal();

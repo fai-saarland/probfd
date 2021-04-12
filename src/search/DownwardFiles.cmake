@@ -669,23 +669,47 @@ fast_downward_plugin(
     NAME PROBABILISTIC_PDBS
     HELP "Probabilistic PDBS"
     SOURCES
-        mdps/heuristics/pdbs/abstract_state
         mdps/heuristics/pdbs/abstract_operator
-        mdps/heuristics/pdbs/qualitative_result_store
-        mdps/heuristics/pdbs/quantitative_result_store
+        mdps/heuristics/pdbs/abstract_state
         mdps/heuristics/pdbs/engine_interfaces
         mdps/heuristics/pdbs/probabilistic_projection
+        mdps/heuristics/pdbs/qualitative_result_store
+        mdps/heuristics/pdbs/quantitative_result_store
+        mdps/heuristics/pdbs/syntactic_projection
+        mdps/heuristics/pdbs/types
+        mdps/heuristics/pdbs/utils
+    DEPENDS MDP SUCCESSOR_GENERATOR
+    )
+
+fast_downward_plugin(
+    NAME MAXPROB_PDBS
+    HELP "Probabilistic PDBS for MaxProb"
+    SOURCES
+        mdps/heuristics/pdbs/maxprob/independence
         mdps/heuristics/pdbs/maxprob/maxprob_projection
         mdps/heuristics/pdbs/maxprob/maxprob_pdb_heuristic
-        mdps/heuristics/pdbs/maxprob/independence
         mdps/heuristics/pdbs/maxprob/orthogonality
-        mdps/heuristics/pdbs/syntactic_projection
-        mdps/heuristics/pdbs/utils
+    DEPENDS PROBABILISTIC_PDBS
+    )
+
+fast_downward_plugin(
+    NAME EXPECTED_COST_PDBS
+    HELP "Probabilistic PDBS for Expected Cost"
+    SOURCES
+        mdps/heuristics/pdbs/expected_cost/additive_ecpdbs
         mdps/heuristics/pdbs/expected_cost/expcost_projection
         mdps/heuristics/pdbs/expected_cost/expected_cost_pdb_heuristic
-        mdps/heuristics/pdbs/utils
-        mdps/heuristics/pdbs/types
-    DEPENDS MDP SUCCESSOR_GENERATOR
+
+        mdps/heuristics/pdbs/expected_cost/additivity/additivity_strategy
+        mdps/heuristics/pdbs/expected_cost/additivity/additivity_none
+        mdps/heuristics/pdbs/expected_cost/additivity/additivity_max_orthogonality
+
+        mdps/heuristics/pdbs/expected_cost/pattern_selection/incremental_canonical_pdbs
+        mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_generator_hillclimbing
+        mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_generator_systematic
+        mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_information
+        mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_generator
+    DEPENDS PROBABILISTIC_PDBS
     )
 
 fast_downward_add_plugin_sources(PLANNER_SOURCES)
