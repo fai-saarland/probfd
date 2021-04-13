@@ -9,6 +9,7 @@
 #include <cstdint>
 
 namespace probabilistic {
+namespace engines {
 namespace heuristic_search {
 
 struct StatesValue {
@@ -198,4 +199,5 @@ public:
 };
 
 } // namespace heuristic_search
+} // namespace engines
 } // namespace probabilistic

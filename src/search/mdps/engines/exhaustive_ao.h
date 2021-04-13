@@ -7,6 +7,7 @@
 #include <sstream>
 
 namespace probabilistic {
+namespace engines {
 namespace exhaustive_ao {
 
 namespace internal {
@@ -176,4 +177,5 @@ private:
 };
 
 } // namespace exhaustive_ao
+} // namespace engines
 } // namespace probabilistic

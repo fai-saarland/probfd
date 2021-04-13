@@ -18,7 +18,7 @@ public:
         template WrappedType<T>;
 
     template<typename State, typename Action, typename Bounds>
-    using Engine = heuristic_depth_first_search::
+    using Engine = engines::heuristic_depth_first_search::
         HeuristicDepthFirstSearch<State, Action, Bounds, Fret>;
 
     explicit HDFSSolver(const options::Options& opts)
@@ -27,7 +27,7 @@ public:
         , labeling_(opts.get<bool>("labeling"))
         , forward_updates_(opts.get<bool>("fwup"))
         , backward_updates_(
-              heuristic_depth_first_search::BacktrackingUpdateType(
+              engines::heuristic_depth_first_search::BacktrackingUpdateType(
                   opts.get_enum("bwup")))
         , cutoff_inconsistent_(opts.get<bool>("cutoff_inconsistent"))
         , partial_exploration_(opts.get<bool>("partial_exploration"))
@@ -42,7 +42,7 @@ public:
         return name_;
     }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         return this->template heuristic_search_engine_factory<Engine>(
             labeling_,
@@ -65,8 +65,8 @@ public:
                 valid = false;
             }
             if (backward_updates_
-                == heuristic_depth_first_search::BacktrackingUpdateType::
-                    OnDemand) {
+                == engines::heuristic_depth_first_search::
+                    BacktrackingUpdateType::OnDemand) {
                 error_msg
                     << "ondemand backward updates required forward updates!"
                     << std::endl;
@@ -74,8 +74,8 @@ public:
             }
             if (!value_iteration_
                 && backward_updates_
-                    == heuristic_depth_first_search::BacktrackingUpdateType::
-                        Disabled) {
+                    == engines::heuristic_depth_first_search::
+                        BacktrackingUpdateType::Disabled) {
                 error_msg << "either value_iteration, forward_updates, or "
                              "backward_updates must be enabled!"
                           << std::endl;
@@ -83,8 +83,8 @@ public:
             }
             if (expand_tip_states_
                 && backward_updates_
-                    == heuristic_depth_first_search::BacktrackingUpdateType::
-                        OnDemand) {
+                    == engines::heuristic_depth_first_search::
+                        BacktrackingUpdateType::OnDemand) {
                 error_msg
                     << "ondemand backward updates require forward updates or "
                        "expand_tip=true!"
@@ -115,7 +115,7 @@ protected:
 
     const bool labeling_;
     const bool forward_updates_;
-    const heuristic_depth_first_search::BacktrackingUpdateType
+    const engines::heuristic_depth_first_search::BacktrackingUpdateType
         backward_updates_;
     const bool cutoff_inconsistent_;
     const bool partial_exploration_;

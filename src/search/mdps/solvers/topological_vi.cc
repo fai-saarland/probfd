@@ -6,7 +6,7 @@
 
 namespace probabilistic {
 
-using TVIEngine = topological_vi::
+using TVIEngine = engines::topological_vi::
     TopologicalValueIteration<GlobalState, const ProbabilisticOperator*>;
 
 class TopologicalVISolver : public MDPSolver {
@@ -32,7 +32,7 @@ public:
         return "topological_value_iteration";
     }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         return engine_factory<TVIEngine>(prune_.get());
     }

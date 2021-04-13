@@ -9,6 +9,7 @@
 #include <vector>
 
 namespace probabilistic {
+namespace engines {
 namespace ao_star {
 
 namespace internal {
@@ -167,4 +168,5 @@ private:
 };
 
 } // namespace ao_star
+} // namespace engines
 } // namespace probabilistic

@@ -6,6 +6,7 @@
 #include <utility>
 
 namespace probabilistic {
+namespace engines {
 namespace value_utils {
 
 template<typename Dual>
@@ -174,4 +175,5 @@ mult<std::false_type>(
 }
 
 } // namespace value_utils
+} // namespace engines
 } // namespace probabilistic

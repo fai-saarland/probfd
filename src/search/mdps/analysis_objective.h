@@ -7,6 +7,7 @@
 #include <memory>
 
 namespace probabilistic {
+namespace analysis_objectives {
 
 class AnalysisObjective {
 public:
@@ -17,4 +18,5 @@ public:
     virtual ProbabilisticOperatorEvaluator* action_reward() = 0;
 };
 
+} // analysis_objectives
 } // namespace probabilistic

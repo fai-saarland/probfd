@@ -50,7 +50,7 @@ MDPSolver::solve()
     logging::out << "Running MDP engine " << get_engine_name() << "..."
                  << std::endl;
     utils::Timer total_timer;
-    std::unique_ptr<MDPEngineInterface<GlobalState>> engine(create_engine());
+    std::unique_ptr<engines::MDPEngineInterface<GlobalState>> engine(create_engine());
 
     const GlobalState initial_state = state_registry_.get_initial_state();
 

@@ -123,6 +123,8 @@ I2Dual::evaluate_state(const GlobalState& state, IDualData& data)
 void
 I2Dual::solve()
 {
+    using namespace analysis_objectives;
+
     lp_solver_timer_.reset();
     lp_solver_timer_.stop();
     hpom_timer_.reset();

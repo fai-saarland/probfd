@@ -8,6 +8,7 @@
 #include "topological_value_iteration.h"
 
 namespace probabilistic {
+namespace engines {
 namespace interval_iteration {
 
 using ValueStore = topological_vi::ValueStore<std::true_type>;
@@ -238,4 +239,5 @@ private:
 };
 
 } // namespace interval_iteration
+} // namespace engines
 } // namespace probabilistic

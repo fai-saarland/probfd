@@ -8,6 +8,8 @@ namespace probabilistic {
 
 class ProbabilisticOperator;
 
+namespace analysis_objectives {
+
 class GoalProbabilityObjective : public AnalysisObjective {
 public:
     explicit GoalProbabilityObjective();
@@ -22,4 +24,5 @@ private:
     std::unique_ptr<ProbabilisticOperatorEvaluator> action_eval_;
 };
 
+} // namespace analysis_objectives
 } // namespace probabilistic

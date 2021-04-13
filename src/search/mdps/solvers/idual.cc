@@ -9,7 +9,7 @@
 
 namespace probabilistic {
 
-using IDualEngine = idual::IDual<GlobalState, const ProbabilisticOperator*>;
+using IDualEngine = engines::idual::IDual<GlobalState, const ProbabilisticOperator*>;
 
 class IDualSolver : public MDPSolver {
 public:
@@ -30,7 +30,7 @@ public:
 
     virtual std::string get_engine_name() const override { return "idual"; }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         return engine_factory<IDualEngine>(
             solver_type_, eval_.get(), &progress_);

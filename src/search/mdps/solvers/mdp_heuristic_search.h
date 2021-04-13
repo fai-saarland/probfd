@@ -68,7 +68,7 @@ public:
     using MDPHeuristicSearchBase::MDPHeuristicSearchBase;
 
     template<template<typename, typename, typename> class HS, typename... Args>
-    MDPEngine<GlobalState, const ProbabilisticOperator*>*
+    engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
     heuristic_search_engine_factory(Args... args)
     {
         if (dual_bounds_) {
@@ -170,30 +170,30 @@ public:
     }
 
     template<template<typename, typename, typename> class HS, typename... Args>
-    MDPEngine<GlobalState, const ProbabilisticOperator*>*
+    engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
     heuristic_search_engine_factory(Args... args)
     {
         if (this->dual_bounds_) {
             if (this->fret_on_policy_) {
                 return this->template heuristic_search_engine_factory_wrapper<
-                    fret::FRETPi,
+                    engines::fret::FRETPi,
                     std::true_type,
                     HS>(args...);
             } else {
                 return this->template heuristic_search_engine_factory_wrapper<
-                    fret::FRETV,
+                    engines::fret::FRETV,
                     std::true_type,
                     HS>(args...);
             }
         } else {
             if (this->fret_on_policy_) {
                 return this->template heuristic_search_engine_factory_wrapper<
-                    fret::FRETPi,
+                    engines::fret::FRETPi,
                     std::false_type,
                     HS>(args...);
             } else {
                 return this->template heuristic_search_engine_factory_wrapper<
-                    fret::FRETV,
+                    engines::fret::FRETV,
                     std::false_type,
                     HS>(args...);
             }
@@ -201,7 +201,7 @@ public:
     }
 
     template<template<typename, typename, typename> class HS, typename... Args>
-    MDPEngine<
+    engines::MDPEngine<
         GlobalState,
         quotient_system::QuotientAction<const ProbabilisticOperator*>>*
     quotient_heuristic_search_factory(Args... args)
@@ -298,7 +298,7 @@ private:
         class HS,
         typename Bounds,
         typename... Args>
-    fret::HeuristicSearchEngine<
+    engines::fret::HeuristicSearchEngine<
         GlobalState,
         quotient_system::QuotientAction<const ProbabilisticOperator*>,
         Bounds>*
@@ -336,19 +336,19 @@ private:
         template<typename, typename, typename>
         class HS,
         typename... Args>
-    MDPEngine<GlobalState, const ProbabilisticOperator*>*
+    engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
     heuristic_search_engine_factory_wrapper(Args... args)
     {
         using FretVariant =
             Fret<GlobalState, const ProbabilisticOperator*, Bounds>;
-        fret::HeuristicSearchEngine<
+        engines::fret::HeuristicSearchEngine<
             GlobalState,
             quotient_system::QuotientAction<const ProbabilisticOperator*>,
             Bounds>* engine =
             this->template quotient_heuristic_search_factory_wrapper<
                 HS,
                 Bounds>(args...);
-        engine_ = std::unique_ptr<MDPEngine<
+        engine_ = std::unique_ptr<engines::MDPEngine<
             GlobalState,
             quotient_system::QuotientAction<const ProbabilisticOperator*>>>(
             engine);
@@ -395,7 +395,7 @@ private:
 
     options::Options opts_; // keep copy
 
-    std::unique_ptr<MDPEngine<
+    std::unique_ptr<engines::MDPEngine<
         GlobalState,
         quotient_system::QuotientAction<const ProbabilisticOperator*>>>
         engine_;

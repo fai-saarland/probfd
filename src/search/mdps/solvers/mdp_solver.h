@@ -27,7 +27,7 @@ public:
     explicit MDPSolver(const options::Options& opts);
 
     template<typename Engine, typename... Args>
-    MDPEngine<GlobalState, const ProbabilisticOperator*>*
+    engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
     engine_factory(Args... args)
     {
         return new Engine(
@@ -42,7 +42,7 @@ public:
             &transition_generator_);
     }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() = 0;
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() = 0;
     virtual std::string get_engine_name() const = 0;
     virtual void print_additional_statistics() const { }
 

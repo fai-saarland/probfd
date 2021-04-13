@@ -9,6 +9,7 @@
 #include <vector>
 
 namespace probabilistic {
+namespace engines {
 namespace idual {
 
 struct Statistics {
@@ -301,5 +302,6 @@ private:
 };
 
 } // namespace idual
+} // namespace engines
 } // namespace probabilistic
 

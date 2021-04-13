@@ -156,6 +156,8 @@ void ExpectedCostPDBHeuristic::run_dominance_pruning(
 ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
     const options::Options& opts)
 {
+    using namespace analysis_objectives;
+
     assert(dynamic_cast<ExpectedCostObjective*>(g_analysis_objective.get()));
 
     ::verify_no_axioms_no_conditional_effects();

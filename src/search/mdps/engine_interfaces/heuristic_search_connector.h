@@ -7,7 +7,8 @@ namespace probabilistic {
 class HeuristicSearchConnector {
 public:
     void
-    set_lookup_function(heuristic_search::PerStateInformationLookup* lookup)
+    set_lookup_function(
+        engines::heuristic_search::PerStateInformationLookup* lookup)
     {
         lookup_ = lookup;
     }
@@ -18,7 +19,7 @@ public:
     }
 
 private:
-    heuristic_search::PerStateInformationLookup* lookup_ = nullptr;
+    engines::heuristic_search::PerStateInformationLookup* lookup_ = nullptr;
 };
 
 } // namespace probabilistic

@@ -108,7 +108,7 @@ ExpCostProjection::compute_value_table()
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map, state_mapper_, progression_aops_generator_);
 
-    topological_vi::TopologicalValueIteration
+    engines::topological_vi::TopologicalValueIteration
         <AbstractState, const AbstractOperator*, true>
         vi(nullptr,
            &state_id_map,
@@ -120,7 +120,7 @@ ExpCostProjection::compute_value_table()
            &aops_gen,
            &transition_gen);
 
-    topological_vi::ValueStore<std::false_type> vi_value_table;
+    engines::topological_vi::ValueStore<std::false_type> vi_value_table;
     vi.solve(initial_state_, vi_value_table);
 
     // FIXME Copying is expensive

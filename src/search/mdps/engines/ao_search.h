@@ -10,6 +10,7 @@
 #include <vector>
 
 namespace probabilistic {
+namespace engines {
 namespace ao_search {
 
 struct Statistics {
@@ -436,4 +437,5 @@ private:
 };
 
 } // namespace ao_search
+} // namespace engines
 } // namespace probabilistic
