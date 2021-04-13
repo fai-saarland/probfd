@@ -13,6 +13,7 @@
 #include <iomanip>
 
 namespace probabilistic {
+namespace solvers {
 
 struct BisimulationTimer {
     utils::Timer timer;
@@ -158,4 +159,5 @@ static Plugin<SolverInterface> _plugin_ii(
     "bisimulation_ii",
     options::parse<SolverInterface, BisimulationIntervalIteration>);
 
+} // namespace solvers
 } // namespace probabilistic

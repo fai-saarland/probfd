@@ -6,6 +6,7 @@
 #include "mdp_solver.h"
 
 namespace probabilistic {
+namespace solvers {
 
 using IIEngine = engines::interval_iteration::
     IntervalIteration<GlobalState, const ProbabilisticOperator*>;
@@ -46,4 +47,5 @@ static Plugin<SolverInterface> _plugin(
     "interval_iteration",
     options::parse<SolverInterface, IntervalIterationSolver>);
 
+} // namespace solvers
 } // namespace probabilistic

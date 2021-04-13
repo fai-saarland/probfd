@@ -10,6 +10,7 @@
 // #include "mdp_heuristic_search.h"
 
 namespace probabilistic {
+namespace solvers {
 
 struct BisimulationTimer {
     utils::Timer timer;
@@ -557,4 +558,5 @@ private:
     const bool fret_on_policy_;
 };
 
+} // namespace solvers
 } // namespace probabilistic

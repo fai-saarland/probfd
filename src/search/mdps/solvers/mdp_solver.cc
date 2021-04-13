@@ -14,6 +14,7 @@
 #include <vector>
 
 namespace probabilistic {
+namespace solvers {
 
 MDPSolver::MDPSolver(const options::Options& opts)
     : progress_(opts.get<double>("report_epsilon"))
@@ -90,4 +91,5 @@ MDPSolver::add_options_to_parser(options::OptionParser& parser)
     parser.add_option<double>("report_epsilon", "", "1e-4");
 }
 
+} // namespace solvers
 } // namespace probabilistic

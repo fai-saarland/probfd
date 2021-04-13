@@ -7,6 +7,7 @@
 #include "mdp_heuristic_search.h"
 
 namespace probabilistic {
+namespace solvers {
 
 template<typename Bisimulation, typename Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
@@ -82,4 +83,5 @@ static Plugin<SolverInterface> _plugin(
     "lrtdp",
     parse_mdp_heuristic_search_solver<LRTDPSolver, LRTDPOptions>);
 
+} // namespace solvers
 } // namespace probabilistic

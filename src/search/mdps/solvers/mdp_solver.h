@@ -21,6 +21,7 @@ class OptionParser;
 } // namespace options
 
 namespace probabilistic {
+namespace solvers {
 
 class MDPSolver : public SolverInterface {
 public:
@@ -103,4 +104,5 @@ private:
     ApplicableActionsGenerator<const ProbabilisticOperator*> aops_generator_;
 };
 
+} // namespace solvers
 } // namespace probabilistic

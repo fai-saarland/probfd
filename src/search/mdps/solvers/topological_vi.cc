@@ -5,6 +5,7 @@
 #include "mdp_solver.h"
 
 namespace probabilistic {
+namespace solvers {
 
 using TVIEngine = engines::topological_vi::
     TopologicalValueIteration<GlobalState, const ProbabilisticOperator*>;
@@ -45,4 +46,5 @@ static Plugin<SolverInterface> _plugin(
     "topological_value_iteration",
     options::parse<SolverInterface, TopologicalVISolver>);
 
+} // namespace solvers
 } // namespace probabilistic

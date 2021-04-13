@@ -8,6 +8,7 @@
 #include <sstream>
 
 namespace probabilistic {
+namespace solvers {
 
 template<typename Bisimulation, typename Fret>
 class HDFSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
@@ -208,4 +209,5 @@ static Plugin<SolverInterface> _plugin4(
         NoAdditionalOptions,
         HDPOptions>);
 
+} // namespace solvers
 } // namespace probabilistic

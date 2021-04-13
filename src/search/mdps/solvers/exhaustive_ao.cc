@@ -7,6 +7,7 @@
 #include "mdp_heuristic_search.h"
 
 namespace probabilistic {
+namespace solvers {
 
 template<typename Bisimulation>
 class ExhaustiveAOSolver
@@ -52,4 +53,5 @@ static Plugin<SolverInterface> _plugin(
     "exhaustive_ao",
     parse_mdp_heuristic_search_solver<ExhaustiveAOSolver, ExhaustiveAOOptions>);
 
+} // namespace solvers
 } // namespace probabilistic

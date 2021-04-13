@@ -18,6 +18,7 @@
 #include <memory>
 
 namespace probabilistic {
+namespace solvers {
 
 template<typename Bisimulation, typename Fret>
 class MDPHeuristicSearch;
@@ -485,6 +486,7 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
     return nullptr;
 }
 
+} // namespace solvers
 } // namespace probabilistic
 
 #include "bisimulation_heuristic_search.h"

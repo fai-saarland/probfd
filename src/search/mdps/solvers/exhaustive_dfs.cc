@@ -11,6 +11,7 @@
 #include "mdp_solver.h"
 
 namespace probabilistic {
+namespace solvers {
 
 class ExhaustiveDFSSolver : public MDPSolver {
 public:
@@ -157,4 +158,5 @@ static Plugin<SolverInterface> _plugin(
     "exhaustive_dfs",
     options::parse<SolverInterface, ExhaustiveDFSSolver>);
 
+} // namespace solvers
 } // namespace probabilistic

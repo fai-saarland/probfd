@@ -13,6 +13,7 @@
 #include <memory>
 
 namespace probabilistic {
+namespace solvers {
 
 template<typename Bisimulation, typename Fret, typename T>
 struct Wrapper {
@@ -183,4 +184,5 @@ struct Unwrapper<
     }
 };
 
+} // namespace solvers
 } // namespace probabilistic

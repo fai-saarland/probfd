@@ -8,6 +8,7 @@
 #include "mdp_solver.h"
 
 namespace probabilistic {
+namespace solvers {
 
 using IDualEngine = engines::idual::IDual<GlobalState, const ProbabilisticOperator*>;
 
@@ -44,4 +45,5 @@ private:
 static Plugin<SolverInterface>
     _plugin("idual", options::parse<SolverInterface, IDualSolver>);
 
+} // namespace solvers
 } // namespace probabilistic

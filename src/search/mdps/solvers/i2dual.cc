@@ -15,6 +15,7 @@
 #include <iostream>
 
 namespace probabilistic {
+namespace solvers {
 namespace i2dual {
 
 enum class IDualStateStatus {
@@ -516,4 +517,5 @@ static Plugin<SolverInterface>
     _plugin("i2dual", options::parse<SolverInterface, I2Dual>);
 
 } // namespace i2dual
+} // namespace solvers
 } // namespace probabilistic

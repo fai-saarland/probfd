@@ -5,6 +5,7 @@
 #include "mdp_solver.h"
 
 namespace probabilistic {
+namespace solvers {
 
 using AVIEngine = engines::acyclic_vi::
     AcyclicValueIteration<GlobalState, const ProbabilisticOperator*>;
@@ -45,4 +46,5 @@ static Plugin<SolverInterface> _plugin(
     "acyclic_value_iteration",
     options::parse<SolverInterface, AcyclicVISolver>);
 
+} // namespace solvers
 } // namespace probabilistic

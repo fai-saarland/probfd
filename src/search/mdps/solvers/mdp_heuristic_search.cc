@@ -5,6 +5,7 @@
 #include <sstream>
 
 namespace probabilistic {
+namespace solvers {
 
 MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
     : MDPSolver(opts)
@@ -109,4 +110,5 @@ MDPHeuristicSearchBase::get_engine_name() const
     return this->get_heuristic_search_name();
 }
 
+} // namespace solvers
 } // namespace probabilistic

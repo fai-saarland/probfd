@@ -6,6 +6,7 @@
 #include "mdp_heuristic_search.h"
 
 namespace probabilistic {
+namespace solvers {
 
 template<typename Bisimulation>
 class AOStarSolver : public MDPHeuristicSearch<Bisimulation, std::false_type> {
@@ -64,4 +65,5 @@ static Plugin<SolverInterface> _plugin(
     "aostar",
     parse_mdp_heuristic_search_solver<AOStarSolver, AOStarOptions>);
 
+} // namespace solvers
 } // namespace probabilistic
