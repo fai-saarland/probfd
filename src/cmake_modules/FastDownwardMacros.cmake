@@ -30,7 +30,7 @@ macro(fast_downward_set_compiler_flags)
         string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 
         # Enable exceptions.
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++17")
 
         # Use warning level 4 (/W4).
         # /Wall currently detects too many warnings outside of our code to be useful.

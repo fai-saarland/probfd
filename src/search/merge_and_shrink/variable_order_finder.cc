@@ -6,6 +6,7 @@
 #include "../causal_graph.h"
 #include "../globals.h"
 #include "../utils/system.h"
+#include "../utils/rng.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -34,7 +35,7 @@ VariableOrderFinder::VariableOrderFinder(
     if (merge_strategy == MERGE_LINEAR_CG_GOAL_RANDOM ||
             merge_strategy == MERGE_LINEAR_RANDOM ||
             !is_first) {
-        std::random_shuffle(remaining_vars.begin(), remaining_vars.end());
+        ::g_rng.shuffle(remaining_vars);
     }
 
     is_causal_predecessor.resize(var_count, false);

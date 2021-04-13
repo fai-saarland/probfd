@@ -1,8 +1,5 @@
 #include "dead_end_listener.h"
 
-#include "../state_component.h"
-#include "../state_component_listener.h"
-
 namespace probabilistic {
 
 DeadEndListener<GlobalState, const ProbabilisticOperator*>::DeadEndListener(

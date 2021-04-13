@@ -97,7 +97,7 @@ struct PerStateInformation : public StateInfo {
 
 template<
     typename HeuristicSearchBase,
-    typename StateInfo = typename HeuristicSearchBase::StateInfo>
+    typename StateInfoT = typename HeuristicSearchBase::StateInfo>
 class LRTDP : public HeuristicSearchBase {
 public:
     using State = typename HeuristicSearchBase::State;
@@ -115,11 +115,11 @@ public:
         , state_infos_(nullptr)
         , sample_(succ_sampler)
         , expansion_condition_(this, level)
-        , state_status_(this->template get_state_status_access<StateInfo>())
+        , state_status_(this->template get_state_status_access<StateInfoT>())
     {
         this->setup_state_info_store(
             typename std::is_same<
-                StateInfo,
+                StateInfoT,
                 typename HeuristicSearchBase::StateInfo>::type());
     }
 
@@ -127,7 +127,7 @@ public:
     {
         this->cleanup_state_info_store(
             typename std::is_same<
-                StateInfo,
+                StateInfoT,
                 typename HeuristicSearchBase::StateInfo>::type());
     }
 
@@ -136,7 +136,7 @@ public:
         this->initialize_report(state);
         const StateID state_id = this->get_state_id(state);
         do {
-            StateInfo& info = this->state_infos_->operator[](state_id);
+            StateInfoT& info = this->state_infos_->operator[](state_id);
             if (info.is_solved()) {
                 break;
             }
@@ -155,7 +155,7 @@ public:
     virtual void reset_solver_state() override
     {
         delete (this->state_infos_);
-        this->state_infos_ = new storage::PerStateStorage<StateInfo>();
+        this->state_infos_ = new storage::PerStateStorage<StateInfoT>();
     }
 
 protected:
@@ -401,14 +401,14 @@ private:
         if (epsilon_consistent && mark_solved) {
             for (auto it = this->visited_.begin(); it != this->visited_.end();
                  ++it) {
-                StateInfo& info = this->state_infos_->operator[](*it);
+                StateInfoT& info = this->state_infos_->operator[](*it);
                 info.set_solved();
             }
         } else {
             for (auto it = visited_.begin(); it != visited_.end(); ++it) {
                 statistics_.check_and_solve_bellman_backups++;
                 this->async_update(*it);
-                StateInfo& info = this->state_infos_->operator[](*it);
+                StateInfoT& info = this->state_infos_->operator[](*it);
                 info.unmark();
             }
         }
@@ -482,7 +482,7 @@ private:
         return rv;
     }
 
-    bool check_goal_or_mark_dead_end(const StateID& state_id, StateInfo& info)
+    bool check_goal_or_mark_dead_end(const StateID& state_id, StateInfoT& info)
     {
         auto& state_info = this->state_status_(state_id, info);
         if (state_info.is_goal_state()) {
@@ -500,8 +500,8 @@ private:
 
     void setup_state_info_store(std::false_type)
     {
-        state_infos_ = new storage::PerStateStorage<StateInfo>();
-        statistics_.state_info_bytes = sizeof(StateInfo);
+        state_infos_ = new storage::PerStateStorage<StateInfoT>();
+        statistics_.state_info_bytes = sizeof(StateInfoT);
     }
 
     void cleanup_state_info_store(std::true_type) { }
@@ -509,10 +509,10 @@ private:
     void cleanup_state_info_store(std::false_type) { delete (state_infos_); }
 
     const TrialTerminationCondition StopConsistent;
-    storage::PerStateStorage<StateInfo>* state_infos_;
+    storage::PerStateStorage<StateInfoT>* state_infos_;
     TransitionSampler<Action>* sample_;
     const ExpandInDeadEndCheck expansion_condition_;
-    typename HeuristicSearchBase::template StateStatusAccessor<StateInfo>
+    typename HeuristicSearchBase::template StateStatusAccessor<StateInfoT>
         state_status_;
 
     std::deque<StateID> current_trial_;

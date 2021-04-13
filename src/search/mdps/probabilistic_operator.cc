@@ -1,7 +1,5 @@
 #include "probabilistic_operator.h"
 
-#include "../global_operator.h"
-
 namespace probabilistic {
 
 ProbabilisticOutcome::ProbabilisticOutcome(

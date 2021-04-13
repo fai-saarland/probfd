@@ -16,17 +16,18 @@ class StateRegistry;
 class Heuristic;
 class GlobalState;
 
-namespace quotient_system {
-template<typename T>
-class QuotientSystem;
-}
-
 namespace successor_generator {
 template<typename Op>
 class SuccessorGenerator;
 }
 
 namespace probabilistic {
+
+namespace quotient_system {
+template<typename T>
+class QuotientSystem;
+}
+
 
 struct CostBasedSuccessorGenerator {
 public:

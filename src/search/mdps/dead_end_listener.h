@@ -1,9 +1,12 @@
 #pragma once
 
 #include "../global_state.h"
+#include "../state_component.h"
+#include "../state_component_listener.h"
+
 #include "engine_interfaces/dead_end_listener.h"
-#include "engine_interfaces/state_id_map.h"
-#include "engine_interfaces/transition_generator.h"
+#include "state_id_map.h"
+#include "transition_generator.h"
 #include "probabilistic_operator.h"
 
 #include <memory>
@@ -11,10 +14,6 @@
 #include <vector>
 
 class Heuristic;
-
-namespace state_component {
-class StateComponentListener;
-}
 
 namespace probabilistic {
 

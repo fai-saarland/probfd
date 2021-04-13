@@ -17,7 +17,7 @@ public:
 
     explicit AOStarSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, std::false_type>(opts)
-        , successor_sampler_(this->template wrap(
+        , successor_sampler_(this->template wrap<>(
               opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
                   "successor_sampler")))
     {
@@ -38,7 +38,7 @@ public:
 protected:
     virtual void print_additional_statistics() const override
     {
-        auto sampler = this->template unwrap(successor_sampler_);
+        auto sampler = this->template unwrap<>(successor_sampler_);
         if (sampler != nullptr) {
             sampler->print_statistics(logging::out);
         }
