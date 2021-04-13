@@ -1,10 +1,14 @@
 #pragma once
 
-#include "engine_interfaces/action_id_map.h"
 #include "engine_interfaces/heuristic_search_connector.h"
 #include "engine_interfaces/policy_picker.h"
-#include "engine_interfaces/state_id_map.h"
+
+#include "state_id_map.h"
+#include "action_id_map.h"
+
 #include "probabilistic_operator.h"
+
+#include "../global_state.h"
 
 class GlobalState;
 

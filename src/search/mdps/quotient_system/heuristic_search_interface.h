@@ -212,50 +212,54 @@ public:
 
 } // namespace quotient_system
 
-template<typename State, typename Action>
-struct DeadEndListener<State, quotient_system::QuotientAction<Action>>
-    : public quotient_system::DeadEndListener<
-          State,
-          Action,
-          typename is_default_implementation<
-              DeadEndListener<State, Action>>::type> {
-    using quotient_system::DeadEndListener<
+template <typename State, typename Action>
+using DeadEndListenerBase =
+    quotient_system::DeadEndListener<
         State,
         Action,
         typename is_default_implementation<
-            DeadEndListener<State, Action>>::type>::DeadEndListener;
+            DeadEndListener<State, Action>>::type>;
+
+template<typename State, typename Action>
+struct DeadEndListener<State, quotient_system::QuotientAction<Action>>
+    : public DeadEndListenerBase<State, Action> {
+    using DeadEndListenerBase<State, Action>::DeadEndListener;
 };
+
+template <typename Action>
+using PolicyPickerBase =
+    quotient_system::PolicyPicker<
+        Action,
+        typename is_default_implementation<probabilistic::PolicyPicker<Action>>::type>;
 
 template<typename Action>
 struct PolicyPicker<quotient_system::QuotientAction<Action>>
-    : public quotient_system::PolicyPicker<
-          Action,
-          typename is_default_implementation<PolicyPicker<Action>>::type> {
-    using quotient_system::PolicyPicker<
-        Action,
-        typename is_default_implementation<PolicyPicker<Action>>::type>::
-        PolicyPicker;
+    : public PolicyPickerBase<Action> {        
+    using PolicyPickerBase<Action>::PolicyPicker;
 };
+
+template<typename Action>
+using TransitionSamplerBase =
+    quotient_system::TransitionSampler<
+        Action,
+        typename is_default_implementation<TransitionSampler<Action>>::type>;
 
 template<typename Action>
 struct TransitionSampler<quotient_system::QuotientAction<Action>>
-    : public quotient_system::TransitionSampler<
-          Action,
-          typename is_default_implementation<TransitionSampler<Action>>::type> {
-    using quotient_system::TransitionSampler<
-        Action,
-        typename is_default_implementation<TransitionSampler<Action>>::type>::
-        TransitionSampler;
+    : public TransitionSamplerBase<Action> {
+    using TransitionSamplerBase<Action>::TransitionSampler;
 };
 
 template<typename Action>
-struct OpenList<quotient_system::QuotientAction<Action>>
-    : public quotient_system::OpenList<
-          Action,
-          typename is_default_implementation<OpenList<Action>>::type> {
-    using quotient_system::OpenList<
+using OpenListBase =
+    quotient_system::OpenList<
         Action,
-        typename is_default_implementation<OpenList<Action>>::type>::OpenList;
+        typename is_default_implementation<OpenList<Action>>::type>;
+
+template<typename Action>
+struct OpenList<quotient_system::QuotientAction<Action>>
+    : public OpenListBase<Action> {
+    using OpenListBase<Action>::OpenList;
 };
 
 } // namespace probabilistic

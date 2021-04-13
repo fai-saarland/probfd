@@ -224,7 +224,7 @@ public:
                                 case (PerStateInfo::OPEN):
                                     open_states[succ_id].incoming.push_back(
                                         next_constraint_id);
-                                    __attribute__((fallthrough));
+                                    [[fallthrough]];
                                 case (PerStateInfo::CLOSED):
                                     c.insert(succ_info.idx, -it->second);
                                     break;

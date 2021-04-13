@@ -6,6 +6,8 @@
 #include "../globals.h"
 #include "../option_parser.h"
 #include "../plugin.h"
+#include "../utils/rng.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <vector>
@@ -51,8 +53,7 @@ void MultipleLinearMergeStrategy::next_vars(vector<int> &candidate_vars,
     cout << endl;
 
     if (order == RANDOM) {
-        random_shuffle(candidate_vars.begin(),
-                       candidate_vars.end());
+        ::g_rng.shuffle(candidate_vars);
     } else if (order == LEVEL) {
         std::sort(candidate_vars.begin(), candidate_vars.end(), std::greater<int>());
     } else if (order == REVERSE_LEVEL) {
@@ -83,8 +84,7 @@ LinearMergeStrategy::LinearMergeStrategy(const std::vector <std::shared_ptr<Merg
     }
 
     if (order == RANDOM || !is_first) {
-        random_shuffle(remaining_vars.begin(),
-                       remaining_vars.end());
+        ::g_rng.shuffle(remaining_vars);
     }
 
     for (size_t i = 0; i < merge_criteria.size(); ++i) {

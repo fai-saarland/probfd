@@ -1,7 +1,5 @@
 #include "heuristic_search_interfaceable.h"
 
-#include "../global_state.h"
-
 namespace probabilistic {
 
 void

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "value_type.h"
+#include "../global_operator.h"
 
 #include <iterator>
 #include <string>

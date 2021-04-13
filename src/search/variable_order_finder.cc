@@ -3,6 +3,7 @@
 #include "../globals.h"
 #include "../causal_graph.h"
 #include "../utils/system.h"
+#include "../utils/rng.h"
 
 #include <algorithm>
 #include <cassert>
@@ -29,7 +30,7 @@ VariableOrderFinder::VariableOrderFinder(VariableOrderType variable_order_type)
     if (variable_order_type == CG_GOAL_RANDOM ||
         variable_order_type == RANDOM) {
         // TODO: use an instance of RandomNumberGenerator for shuffling.
-        random_shuffle(remaining_vars.begin(), remaining_vars.end());
+        ::g_rng.shuffle(remaining_vars);
     }
 
     is_causal_predecessor.resize(var_count, false);
