@@ -125,7 +125,7 @@ MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
                 &dead_ends, value_type::zero, value_type::zero));
     }
 
-    interval_iteration::
+    engines::interval_iteration::
     IntervalIteration<AbstractState, const AbstractOperator*, true>
         vi(heuristic.get(),
            true,
@@ -138,11 +138,11 @@ MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
            &aops_gen,
            &transition_gen);
 
-    interval_iteration::ValueStore values;
+    engines::interval_iteration::ValueStore values;
     // states that cannot reach goal
-    interval_iteration::BoolStore deads(false);
+    engines::interval_iteration::BoolStore deads(false);
     // states that can reach goal with absolute certainty
-    interval_iteration::BoolStore ones(false);
+    engines::interval_iteration::BoolStore ones(false);
 
     vi.solve(initial_state_, &values, &deads, &ones);
 
@@ -155,12 +155,17 @@ MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
                          << state_mapper_->get_variables()[i];
         }
         logging::out << "]: lb="
-                     << interval_iteration::lower_bound(values[state_id])
+                     << engines::interval_iteration::
+                        lower_bound(values[state_id])
                      << ", ub="
-                     << interval_iteration::upper_bound(values[state_id])
+                     << engines::interval_iteration::
+                        upper_bound(values[state_id])
                      << ", error="
-                     << (interval_iteration::upper_bound(values[state_id])
-                         - interval_iteration::lower_bound(values[state_id]))
+                     << (engines::interval_iteration::
+                        upper_bound(values[state_id])
+                        -
+                        engines::interval_iteration::
+                        lower_bound(values[state_id]))
                      << std::endl;
     }
 #endif
@@ -183,7 +188,7 @@ MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
             one_states.set(s, true);
         } else {
             value_table.set(
-                s, interval_iteration::upper_bound(values[state_id]));
+                s, engines::interval_iteration::upper_bound(values[state_id]));
         }
     }
 

@@ -21,6 +21,7 @@
 #endif
 
 namespace probabilistic {
+namespace engines {
 namespace fret {
 
 template<typename State, typename Action, typename B2>
@@ -500,6 +501,7 @@ public:
 };
 
 } // namespace fret
+} // namespace engines
 } // namespace probabilistic
 
 #undef FRET_DEBUG_MSG

@@ -12,6 +12,7 @@
 #include <vector>
 
 namespace probabilistic {
+namespace engines {
 
 template<typename State>
 class MDPEngineInterface {
@@ -140,4 +141,5 @@ private:
     TransitionGenerator<Action>* transition_generator_;
 };
 
+} // namespace engines
 } // namespace probabilistic

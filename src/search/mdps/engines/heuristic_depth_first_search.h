@@ -16,6 +16,7 @@
 #endif
 
 namespace probabilistic {
+namespace engines {
 namespace heuristic_depth_first_search {
 
 enum class BacktrackingUpdateType {
@@ -701,6 +702,7 @@ public:
 };
 
 } // namespace heuristic_depth_first_search
+} // namespace engines
 } // namespace probabilistic
 
 #undef DMSG

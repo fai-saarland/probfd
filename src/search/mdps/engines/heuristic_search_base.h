@@ -23,6 +23,7 @@
 #include <vector>
 
 namespace probabilistic {
+namespace engines {
 namespace heuristic_search {
 
 namespace internal {
@@ -1080,4 +1081,5 @@ using HeuristicSearchBase = internal::HeuristicSearchBase<
     StateInfo<PerStateBaseInformation<StorePolicy, DualValueBounds>>>;
 
 } // namespace heuristic_search
+} // namespace engines
 } // namespace probabilistic

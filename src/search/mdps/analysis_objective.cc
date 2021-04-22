@@ -4,7 +4,7 @@
 
 namespace probabilistic {
 
-static PluginTypePlugin<AnalysisObjective>
+static PluginTypePlugin<analysis_objectives::AnalysisObjective>
     _plugin_type("AnalysisObjective", "");
 
 } // namespace probabilistic

@@ -13,6 +13,7 @@
 #include <iomanip>
 
 namespace probabilistic {
+namespace solvers {
 
 struct BisimulationTimer {
     utils::Timer timer;
@@ -78,10 +79,10 @@ public:
         logging::out << "Running " << get_engine_name()
                      << " on the bisimulation..." << std::endl;
         utils::Timer vi_timer;
-        MDPEngine<bisimulation::QuotientState, bisimulation::QuotientAction>*
+        engines::MDPEngine<bisimulation::QuotientState, bisimulation::QuotientAction>*
             solver = nullptr;
         if (interval_iteration_) {
-            solver = new interval_iteration::IntervalIteration<
+            solver = new engines::interval_iteration::IntervalIteration<
                 bisimulation::QuotientState,
                 bisimulation::QuotientAction>(
                 nullptr,
@@ -95,7 +96,7 @@ public:
                 &aops_gen,
                 &tgen);
         } else {
-            solver = new topological_vi::TopologicalValueIteration<
+            solver = new engines::topological_vi::TopologicalValueIteration<
                 bisimulation::QuotientState,
                 bisimulation::QuotientAction>(
                 nullptr,
@@ -158,4 +159,5 @@ static Plugin<SolverInterface> _plugin_ii(
     "bisimulation_ii",
     options::parse<SolverInterface, BisimulationIntervalIteration>);
 
+} // namespace solvers
 } // namespace probabilistic

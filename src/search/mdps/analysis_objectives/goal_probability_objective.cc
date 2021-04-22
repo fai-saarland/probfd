@@ -6,6 +6,7 @@
 #include "../../plugin.h"
 
 namespace probabilistic {
+namespace analysis_objectives {
 
 namespace {
 class GoalCheck : public GlobalStateEvaluator {
@@ -59,4 +60,5 @@ GoalProbabilityObjective::action_reward()
     return action_eval_.get();
 }
 
+} // namespace analysis_objectives
 } // namespace probabilistic

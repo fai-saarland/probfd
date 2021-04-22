@@ -15,6 +15,7 @@
 #include <iostream>
 
 namespace probabilistic {
+namespace solvers {
 namespace i2dual {
 
 enum class IDualStateStatus {
@@ -123,6 +124,8 @@ I2Dual::evaluate_state(const GlobalState& state, IDualData& data)
 void
 I2Dual::solve()
 {
+    using namespace analysis_objectives;
+
     lp_solver_timer_.reset();
     lp_solver_timer_.stop();
     hpom_timer_.reset();
@@ -514,4 +517,5 @@ static Plugin<SolverInterface>
     _plugin("i2dual", options::parse<SolverInterface, I2Dual>);
 
 } // namespace i2dual
+} // namespace solvers
 } // namespace probabilistic

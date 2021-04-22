@@ -213,7 +213,8 @@ reconstruct_probabilistic_operators()
 }
 
 void
-prepare_globals(std::shared_ptr<AnalysisObjective> objective)
+prepare_globals(
+    std::shared_ptr<analysis_objectives::AnalysisObjective> objective)
 {
     g_analysis_objective = objective;
 
@@ -335,6 +336,6 @@ std::shared_ptr<
     successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>
     g_successor_generator = nullptr;
 
-std::shared_ptr<AnalysisObjective> g_analysis_objective;
+std::shared_ptr<analysis_objectives::AnalysisObjective> g_analysis_objective;
 
 } // namespace probabilistic

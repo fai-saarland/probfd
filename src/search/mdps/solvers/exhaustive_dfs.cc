@@ -11,15 +11,16 @@
 #include "mdp_solver.h"
 
 namespace probabilistic {
+namespace solvers {
 
 class ExhaustiveDFSSolver : public MDPSolver {
 public:
-    using Engine = exhaustive_dfs::ExhaustiveDepthFirstSearch<
+    using Engine = engines::exhaustive_dfs::ExhaustiveDepthFirstSearch<
         GlobalState,
         const ProbabilisticOperator*,
         std::false_type>;
 
-    using Engine2 = exhaustive_dfs::ExhaustiveDepthFirstSearch<
+    using Engine2 = engines::exhaustive_dfs::ExhaustiveDepthFirstSearch<
         GlobalState,
         const ProbabilisticOperator*,
         std::true_type>;
@@ -58,7 +59,7 @@ public:
               && opts.get<bool>("interval_comparison"))
         , reevaluate_(opts.get<bool>("reevaluate"))
         , notify_s0_(opts.get<bool>("initial_state_notification"))
-        , path_updates_(exhaustive_dfs::BacktrackingUpdateType(
+        , path_updates_(engines::exhaustive_dfs::BacktrackingUpdateType(
               opts.get_enum("reverse_path_updates")))
         , only_propagate_when_changed_(
               opts.get<bool>("only_propagate_when_changed"))
@@ -104,7 +105,7 @@ public:
         return "exhaustive_dfs";
     }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
@@ -149,7 +150,7 @@ private:
     const bool interval_comparison_;
     const bool reevaluate_;
     const bool notify_s0_;
-    const exhaustive_dfs::BacktrackingUpdateType path_updates_;
+    const engines::exhaustive_dfs::BacktrackingUpdateType path_updates_;
     const bool only_propagate_when_changed_;
 };
 
@@ -157,4 +158,5 @@ static Plugin<SolverInterface> _plugin(
     "exhaustive_dfs",
     options::parse<SolverInterface, ExhaustiveDFSSolver>);
 
+} // namespace solvers
 } // namespace probabilistic

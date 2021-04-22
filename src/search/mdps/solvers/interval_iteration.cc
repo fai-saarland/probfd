@@ -6,8 +6,9 @@
 #include "mdp_solver.h"
 
 namespace probabilistic {
+namespace solvers {
 
-using IIEngine = interval_iteration::
+using IIEngine = engines::interval_iteration::
     IntervalIteration<GlobalState, const ProbabilisticOperator*>;
 
 class IntervalIterationSolver : public MDPSolver {
@@ -33,7 +34,7 @@ public:
         return "interval_iteration";
     }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         return engine_factory<IIEngine>(prune_.get(), false);
     }
@@ -46,4 +47,5 @@ static Plugin<SolverInterface> _plugin(
     "interval_iteration",
     options::parse<SolverInterface, IntervalIterationSolver>);
 
+} // namespace solvers
 } // namespace probabilistic

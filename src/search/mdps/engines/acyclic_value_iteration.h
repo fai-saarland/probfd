@@ -9,6 +9,7 @@
 #include <memory>
 
 namespace probabilistic {
+namespace engines {
 namespace acyclic_vi {
 
 struct Statistics {
@@ -184,4 +185,5 @@ private:
 };
 
 } // namespace acyclic_vi
+} // namespace engines
 } // namespace probabilistic

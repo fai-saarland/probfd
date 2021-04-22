@@ -66,6 +66,8 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     const options::Options& opts)
     : lp_solver_(lp::LPSolverType(opts.get_enum("lpsolver")))
 {
+    using namespace analysis_objectives;
+
     ::verify_no_axioms_no_conditional_effects();
 
     std::cout << "Initializing regrouped operator counting heuristic..."
@@ -87,6 +89,8 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 EvaluationResult
 RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state)
 {
+    using namespace analysis_objectives;
+    
     if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())) {
         for (unsigned i = 0; i < g_goal.size(); ++i) {
             if (state[g_goal[i].first] == g_goal[i].second) {

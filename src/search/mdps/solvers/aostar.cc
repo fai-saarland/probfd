@@ -6,6 +6,7 @@
 #include "mdp_heuristic_search.h"
 
 namespace probabilistic {
+namespace solvers {
 
 template<typename Bisimulation>
 class AOStarSolver : public MDPHeuristicSearch<Bisimulation, std::false_type> {
@@ -29,10 +30,10 @@ public:
         return "aostar";
     }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
-        return this->template heuristic_search_engine_factory<ao_star::AOStar>(
-            successor_sampler_.get());
+        return this->template heuristic_search_engine_factory<
+            engines::ao_star::AOStar>(successor_sampler_.get());
     }
 
 protected:
@@ -64,4 +65,5 @@ static Plugin<SolverInterface> _plugin(
     "aostar",
     parse_mdp_heuristic_search_solver<AOStarSolver, AOStarOptions>);
 
+} // namespace solvers
 } // namespace probabilistic

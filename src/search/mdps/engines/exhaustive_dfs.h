@@ -19,6 +19,7 @@
 #define TIMER_STATISTICS_ENABLED(x)
 
 namespace probabilistic {
+namespace engines {
 namespace exhaustive_dfs {
 
 class Statistics {
@@ -240,8 +241,7 @@ class ExhaustiveDepthFirstSearch
 public:
     using DualBounds = DualV;
     using SearchNodeInformation =
-        typename probabilistic::exhaustive_dfs::SearchNodeInformation<
-            DualBounds>;
+        typename SearchNodeInformation<DualBounds>;
 
     using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
 
@@ -1201,6 +1201,7 @@ private:
 };
 
 } // namespace exhaustive_dfs
+} // namespace engines
 } // namespace probabilistic
 
 #undef TIMER_STATISTICS_ENABLED

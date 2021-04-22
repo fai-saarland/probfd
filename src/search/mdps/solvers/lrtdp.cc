@@ -7,6 +7,7 @@
 #include "mdp_heuristic_search.h"
 
 namespace probabilistic {
+namespace solvers {
 
 template<typename Bisimulation, typename Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
@@ -16,11 +17,11 @@ public:
         typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<T>;
 
     template<typename State, typename Action, typename Bounds>
-    using LRTDP = lrtdp::LRTDP<State, Action, Bounds, Fret>;
+    using LRTDP = engines::lrtdp::LRTDP<State, Action, Bounds, Fret>;
 
     explicit LRTDPSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
-        , stop_consistent_(lrtdp::TrialTerminationCondition(
+        , stop_consistent_(engines::lrtdp::TrialTerminationCondition(
               opts.get_enum("terminate_trial")))
         , successor_sampler_(this->wrap(
               opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
@@ -28,7 +29,7 @@ public:
     {
         if (Fret::value
             && stop_consistent_
-                != lrtdp::TrialTerminationCondition::Consistent) {
+                != engines::lrtdp::TrialTerminationCondition::Consistent) {
             logging::out << std::endl;
             logging::out << "Warning: LRTDP is run within FRET without "
                             "stop_consistent being enabled! LRTDP's trials may "
@@ -43,7 +44,7 @@ public:
         return "lrtdp";
     }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         return this->template heuristic_search_engine_factory<LRTDP>(
             stop_consistent_, successor_sampler_.get());
@@ -59,7 +60,7 @@ protected:
         MDPHeuristicSearch<Bisimulation, Fret>::print_additional_statistics();
     }
 
-    const lrtdp::TrialTerminationCondition stop_consistent_;
+    const engines::lrtdp::TrialTerminationCondition stop_consistent_;
     WrappedType<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>
         successor_sampler_;
 };
@@ -82,4 +83,5 @@ static Plugin<SolverInterface> _plugin(
     "lrtdp",
     parse_mdp_heuristic_search_solver<LRTDPSolver, LRTDPOptions>);
 
+} // namespace solvers
 } // namespace probabilistic

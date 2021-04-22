@@ -14,6 +14,7 @@
 #include <vector>
 
 namespace probabilistic {
+namespace solvers {
 
 MDPSolver::MDPSolver(const options::Options& opts)
     : progress_(opts.get<double>("report_epsilon"))
@@ -50,7 +51,7 @@ MDPSolver::solve()
     logging::out << "Running MDP engine " << get_engine_name() << "..."
                  << std::endl;
     utils::Timer total_timer;
-    std::unique_ptr<MDPEngineInterface<GlobalState>> engine(create_engine());
+    std::unique_ptr<engines::MDPEngineInterface<GlobalState>> engine(create_engine());
 
     const GlobalState initial_state = state_registry_.get_initial_state();
 
@@ -90,4 +91,5 @@ MDPSolver::add_options_to_parser(options::OptionParser& parser)
     parser.add_option<double>("report_epsilon", "", "1e-4");
 }
 
+} // namespace solvers
 } // namespace probabilistic

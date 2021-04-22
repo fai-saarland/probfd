@@ -11,6 +11,7 @@
 #include <vector>
 
 namespace probabilistic {
+namespace engines {
 namespace topological_vi {
 
 struct Statistics {
@@ -773,4 +774,5 @@ private:
 };
 
 } // namespace topological_vi
+} // namespace engines
 } // namespace probabilistic

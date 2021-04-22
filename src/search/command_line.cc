@@ -282,12 +282,15 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
         //                 probabilistic::value_type::from_double(give_up_cost));
         // }
 
-        std::shared_ptr<probabilistic::AnalysisObjective> obj = nullptr;
+        std::shared_ptr<probabilistic::analysis_objectives::AnalysisObjective>
+            obj = nullptr;
         if (expected_cost) {
-            obj = std::make_shared<probabilistic::ExpectedCostObjective>();
+            obj = std::make_shared<
+                probabilistic::analysis_objectives::ExpectedCostObjective>();
             std::cout << "expected cost analysis." << std::endl;
         } else {
-            obj = std::make_shared<probabilistic::GoalProbabilityObjective>();
+            obj = std::make_shared<
+                probabilistic::analysis_objectives::GoalProbabilityObjective>();
             std::cout << "max goal prob analysis." << std::endl;
         }
 

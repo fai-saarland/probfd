@@ -5,8 +5,9 @@
 #include "mdp_solver.h"
 
 namespace probabilistic {
+namespace solvers {
 
-using TVIEngine = topological_vi::
+using TVIEngine = engines::topological_vi::
     TopologicalValueIteration<GlobalState, const ProbabilisticOperator*>;
 
 class TopologicalVISolver : public MDPSolver {
@@ -32,7 +33,7 @@ public:
         return "topological_value_iteration";
     }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         return engine_factory<TVIEngine>(prune_.get());
     }
@@ -45,4 +46,5 @@ static Plugin<SolverInterface> _plugin(
     "topological_value_iteration",
     options::parse<SolverInterface, TopologicalVISolver>);
 
+} // namespace solvers
 } // namespace probabilistic

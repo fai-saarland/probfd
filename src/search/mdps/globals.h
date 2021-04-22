@@ -19,9 +19,12 @@ class SuccessorGenerator;
 
 namespace probabilistic {
 
+namespace analysis_objectives {
 class AnalysisObjective;
+}
 
-void prepare_globals(std::shared_ptr<AnalysisObjective> objective);
+void prepare_globals(std::shared_ptr<
+    analysis_objectives::AnalysisObjective> objective);
 void print_task_info();
 
 extern bool g_probabilistic_mode_enabled;
@@ -40,6 +43,7 @@ extern std::shared_ptr<
     successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>
     g_successor_generator;
 
-extern std::shared_ptr<AnalysisObjective> g_analysis_objective;
+extern std::shared_ptr<
+    analysis_objectives::AnalysisObjective> g_analysis_objective;
 
 } // namespace probabilistic

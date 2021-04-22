@@ -5,8 +5,9 @@
 #include "mdp_solver.h"
 
 namespace probabilistic {
+namespace solvers {
 
-using AVIEngine = acyclic_vi::
+using AVIEngine = engines::acyclic_vi::
     AcyclicValueIteration<GlobalState, const ProbabilisticOperator*>;
 
 class AcyclicVISolver : public MDPSolver {
@@ -32,7 +33,7 @@ public:
         return "acyclic_value_iteration";
     }
 
-    virtual MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         return engine_factory<AVIEngine>(prune_.get());
     }
@@ -45,4 +46,5 @@ static Plugin<SolverInterface> _plugin(
     "acyclic_value_iteration",
     options::parse<SolverInterface, AcyclicVISolver>);
 
+} // namespace solvers
 } // namespace probabilistic

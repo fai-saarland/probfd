@@ -10,6 +10,7 @@
 // #include "mdp_heuristic_search.h"
 
 namespace probabilistic {
+namespace solvers {
 
 struct BisimulationTimer {
     utils::Timer timer;
@@ -27,7 +28,7 @@ struct BisimulationTimer {
 };
 
 class BisimulationBasedHeuristicSearchEngine
-    : public MDPEngineInterface<GlobalState> {
+    : public engines::MDPEngineInterface<GlobalState> {
 public:
     template<
         template<typename, typename, typename>
@@ -53,7 +54,7 @@ public:
                bisimulation::QuotientAction,
                DualValues>;
 
-        res->engine_ = std::unique_ptr<MDPEngine<
+        res->engine_ = std::unique_ptr<engines::MDPEngine<
             bisimulation::QuotientState,
             bisimulation::QuotientAction>>(
             new HeuristicSearchType(
@@ -155,7 +156,7 @@ public:
             bisimulation::QuotientAction,
             DualValues>;
 
-        fret::HeuristicSearchEngine<
+        engines::fret::HeuristicSearchEngine<
             bisimulation::QuotientState,
             quotient_system::QuotientAction<bisimulation::QuotientAction>,
             DualValues>* engine =
@@ -184,8 +185,8 @@ public:
                 res->q_transition_gen_.get());
 
         res->engine2_ =
-            std::unique_ptr<MDPEngineInterface<bisimulation::QuotientState>>(
-                engine);
+            std::unique_ptr<engines::MDPEngineInterface<
+                bisimulation::QuotientState>>(engine);
 
         res->engine_ =
             std::unique_ptr<MDPEngineInterface<bisimulation::QuotientState>>(
@@ -385,7 +386,7 @@ public:
     }
 
     template<template<typename, typename, typename> class HS, typename... Args>
-    MDPEngineInterface<GlobalState>*
+    engines::MDPEngineInterface<GlobalState>*
     heuristic_search_engine_factory(Args... args)
     {
         if (dual_bounds_) {
@@ -445,30 +446,30 @@ public:
     using MDPHeuristicSearchBase::add_options_to_parser;
 
     template<template<typename, typename, typename> class HS, typename... Args>
-    MDPEngineInterface<GlobalState>*
+    engines::MDPEngineInterface<GlobalState>*
     heuristic_search_engine_factory(Args... args)
     {
         if (this->dual_bounds_) {
             if (this->fret_on_policy_) {
                 return this->template heuristic_search_engine_factory_wrapper<
-                    fret::FRETPi,
+                    engines::fret::FRETPi,
                     std::true_type,
                     HS>(args...);
             } else {
                 return this->template heuristic_search_engine_factory_wrapper<
-                    fret::FRETV,
+                    engines::fret::FRETV,
                     std::true_type,
                     HS>(args...);
             }
         } else {
             if (this->fret_on_policy_) {
                 return this->template heuristic_search_engine_factory_wrapper<
-                    fret::FRETPi,
+                    engines::fret::FRETPi,
                     std::false_type,
                     HS>(args...);
             } else {
                 return this->template heuristic_search_engine_factory_wrapper<
-                    fret::FRETV,
+                    engines::fret::FRETV,
                     std::false_type,
                     HS>(args...);
             }
@@ -476,7 +477,7 @@ public:
     }
 
     template<template<typename, typename, typename> class HS, typename... Args>
-    MDPEngineInterface<GlobalState>*
+    engines::MDPEngineInterface<GlobalState>*
     quotient_heuristic_search_factory(Args... args)
     {
         if (dual_bounds_) {
@@ -539,7 +540,7 @@ private:
         template<typename, typename, typename>
         class HS,
         typename... Args>
-    MDPEngineInterface<GlobalState>*
+    engines::MDPEngineInterface<GlobalState>*
     heuristic_search_engine_factory_wrapper(Args... args)
     {
         return BisimulationBasedHeuristicSearchEngine::
@@ -557,4 +558,5 @@ private:
     const bool fret_on_policy_;
 };
 
+} // namespace solvers
 } // namespace probabilistic

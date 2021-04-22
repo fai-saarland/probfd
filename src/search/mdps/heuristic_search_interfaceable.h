@@ -33,34 +33,33 @@ protected:
     const ProbabilisticOperator*
     lookup_operator(const StateID& state_id, const ActionID& action_id) const;
 
-    const heuristic_search::StateFlags*
+    const engines::heuristic_search::StateFlags*
     lookup_state_flags(const StateID& state_id) const
     {
-        return reinterpret_cast<const heuristic_search::StateFlags*>(
+        return reinterpret_cast<const engines::heuristic_search::StateFlags*>(
             connector_->lookup(state_id));
     }
 
     const value_type::value_t& lookup_value(const StateID& state_id) const
     {
-        return reinterpret_cast<const heuristic_search::StatesValue*>(
+        return reinterpret_cast<const engines::heuristic_search::StatesValue*>(
                    connector_->lookup(state_id))
             ->get_value();
     }
 
-    const heuristic_search::StatesValues<std::true_type>*
+    const engines::heuristic_search::StatesValues<std::true_type>*
     lookup_dual_bounds(const StateID& state_id) const
     {
         return reinterpret_cast<
-            const heuristic_search::StatesValues<std::true_type>*>(
+            const engines::heuristic_search::StatesValues<std::true_type>*>(
             connector_->lookup(state_id));
     }
 
     ActionID lookup_policy(const StateID& state_id) const
     {
         return reinterpret_cast<
-                   const heuristic_search::StatesPolicy<std::true_type>*>(
-                   connector_->lookup(state_id))
-            ->get_policy();
+            const engines::heuristic_search::StatesPolicy<std::true_type>*>(
+            connector_->lookup(state_id))->get_policy();
     }
 
 private:

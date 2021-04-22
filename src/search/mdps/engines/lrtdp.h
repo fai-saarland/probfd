@@ -12,6 +12,7 @@
 #define CAS_DEBUG_PRINT(x)
 
 namespace probabilistic {
+namespace engines {
 namespace lrtdp {
 
 enum class TrialTerminationCondition {
@@ -559,6 +560,7 @@ struct LRTDP<State, Action, B2, std::true_type>
 };
 
 } // namespace lrtdp
+} // namespace engines
 } // namespace probabilistic
 
 #undef CAS_DEBUG_PRINT

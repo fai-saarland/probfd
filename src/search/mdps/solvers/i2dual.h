@@ -23,6 +23,7 @@ class OptionParser;
 class StateRegistry;
 
 namespace probabilistic {
+namespace solvers {
 namespace i2dual {
 
 class IDualData;
@@ -88,4 +89,5 @@ private:
 };
 
 } // namespace i2dual
+} // namespace solvers
 } // namespace probabilistic

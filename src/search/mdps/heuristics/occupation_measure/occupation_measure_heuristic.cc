@@ -26,6 +26,8 @@ ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     std::vector<lp::LPConstraint>& constraints,
     std::vector<int>& offset_)
 {
+    using namespace analysis_objectives;
+
     ::verify_no_axioms_no_conditional_effects();
     if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())
         == nullptr) {
@@ -339,6 +341,8 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     const options::Options& opts)
     : lp_solver_(lp::LPSolverType(opts.get_enum("lpsolver")))
 {
+    using namespace analysis_objectives;
+
     std::cout << "Initializing projection occupation measure heuristic ..."
               << std::endl;
     utils::Timer timer;
@@ -365,6 +369,8 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
 EvaluationResult
 ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state)
 {
+    using namespace analysis_objectives;
+
     if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())) {
         for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
             lp_solver_.set_constraint_lower_bound(
