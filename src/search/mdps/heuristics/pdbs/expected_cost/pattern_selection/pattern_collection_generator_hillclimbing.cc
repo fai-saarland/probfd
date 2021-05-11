@@ -458,6 +458,16 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
     hill_climbing_timer = nullptr;
 }
 
+static PatternCollection get_initial_pattern_collection() {
+    // A pattern for each goal variable.
+    PatternCollection initial_pattern_collection;
+    for (const auto& goal : g_goal) {
+        int goal_var_id = goal.first;
+        initial_pattern_collection.emplace_back(1, goal_var_id);
+    }
+    return initial_pattern_collection;
+}
+
 PatternCollectionInformation
 PatternCollectionGeneratorHillclimbing::generate(OperatorCost cost_type)
 {
@@ -468,15 +478,9 @@ PatternCollectionGeneratorHillclimbing::generate(OperatorCost cost_type)
         << "Generating patterns using the hill climbing generator..."
         << std::endl;
 
-    // Generate initial collection: a pattern for each goal variable.
-    PatternCollection initial_pattern_collection;
-    for (const auto& goal : g_goal) {
-        int goal_var_id = goal.first;
-        initial_pattern_collection.emplace_back(1, goal_var_id);
-    }
-
-    current_pdbs = utils::make_unique_ptr<IncrementalCanonicalPDBs>(
-        initial_pattern_collection);
+    // Generate initial collection
+    current_pdbs = std::make_unique<IncrementalCanonicalPDBs>(
+        get_initial_pattern_collection());
 
     if constexpr (VERBOSE) {
         std::cout
