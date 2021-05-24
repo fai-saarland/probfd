@@ -62,7 +62,7 @@ private:
 
     StateRegistry state_registry_;
 
-    std::shared_ptr<StateEvaluator<GlobalState>> state_reward_function_;
+    StateEvaluator<GlobalState>* state_reward_function_;
     value_type::value_t minimal_reward_;
     value_type::value_t maximal_reward_;
     TransitionGenerator<const ProbabilisticOperator*> transition_generator_;

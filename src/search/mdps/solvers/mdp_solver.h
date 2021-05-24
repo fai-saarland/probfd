@@ -35,8 +35,8 @@ public:
             args...,
             &state_id_map_,
             &action_id_map_,
-            state_reward_function_.get(),
-            action_reward_function_.get(),
+            state_reward_function_,
+            action_reward_function_,
             minimal_reward_,
             maximal_reward_,
             &aops_generator_,
@@ -62,12 +62,12 @@ protected:
 
     ActionEvaluator<const ProbabilisticOperator*>* get_action_reward_function()
     {
-        return action_reward_function_.get();
+        return action_reward_function_;
     }
 
     StateEvaluator<GlobalState>* get_state_reward_function()
     {
-        return state_reward_function_.get();
+        return state_reward_function_;
     }
 
     ApplicableActionsGenerator<const ProbabilisticOperator*>*
@@ -95,9 +95,8 @@ private:
 
     StateIDMap<GlobalState> state_id_map_;
     ActionIDMap<const ProbabilisticOperator*> action_id_map_;
-    std::shared_ptr<StateEvaluator<GlobalState>> state_reward_function_;
-    std::shared_ptr<ActionEvaluator<const ProbabilisticOperator*>>
-        action_reward_function_;
+    StateEvaluator<GlobalState>* state_reward_function_;
+    ActionEvaluator<const ProbabilisticOperator*>* action_reward_function_;
     value_type::value_t minimal_reward_;
     value_type::value_t maximal_reward_;
     TransitionGenerator<const ProbabilisticOperator*> transition_generator_;
