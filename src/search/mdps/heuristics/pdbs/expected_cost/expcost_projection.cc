@@ -32,7 +32,7 @@ value_type::value_t
 ExpCostProjection::get_value(const GlobalState &state) const {
     auto abstract_state = state_mapper_->operator()(state);
     std::optional v = value_table.get_optional(abstract_state);
-    return v ? *v : std::numeric_limits<value_type::value_t>::max();
+    return v ? *v : std::numeric_limits<value_type::value_t>::infinity();
 }
 
 unsigned int ExpCostProjection::num_reachable_states() const {
