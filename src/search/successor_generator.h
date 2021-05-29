@@ -30,15 +30,19 @@ public:
     */
     ~SuccessorGenerator();
 
-    // Transitional method, used until the search is switched to the new task interface.
+    // Transitional method, used until the search is switched to the new task 
+    // interface.
     void generate_applicable_ops(
-        const GlobalState &state, std::vector<Entry> &applicable_ops) const;
+        const GlobalState &state,
+        std::vector<Entry> &applicable_ops) const;
 
     void generate_applicable_ops(
-        const std::vector<int>& state, std::vector<Entry> &applicable_ops) const;
+        const std::vector<int>& state,
+        std::vector<Entry> &applicable_ops) const;
 
     void generate_applicable_ops(
-            const std::vector<std::pair<int, int>>& facts, std::vector<Entry>& applicable_ops) const;
+        const std::vector<std::pair<int, int>>& facts,
+        std::vector<Entry>& applicable_ops) const;
 };
 
 extern std::shared_ptr<SuccessorGenerator<const GlobalOperator*> > g_successor_generator;

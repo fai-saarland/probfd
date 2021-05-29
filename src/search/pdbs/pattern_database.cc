@@ -330,10 +330,30 @@ PatternDatabase::hash_index(const GlobalState& state) const
     return index;
 }
 
+size_t PatternDatabase::hash_index_abstracted(
+    const std::vector<int> &abs_state) const
+{
+    size_t index = 0;
+    for(size_t i = 0; i < pattern.size(); ++i) {
+        index += hash_multipliers[i] * abs_state[i];
+    }
+    return index;
+}
+
 int
 PatternDatabase::get_value(const GlobalState& state) const
 {
     return distances[hash_index(state)];
+}
+
+int PatternDatabase::get_value_abstracted(
+    const std::vector<int> &abstracted_state) const
+{
+    return distances[hash_index_abstracted(abstracted_state)];
+}
+
+int PatternDatabase::get_value_for_index(size_t index) const {
+    return distances[index];
 }
 
 double

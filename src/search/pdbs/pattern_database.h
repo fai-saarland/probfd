@@ -139,6 +139,11 @@ class PatternDatabase {
       (distances) during search.
     */
     std::size_t hash_index(const GlobalState &state) const;
+    /*
+      The given state from the abstract state-space induced by the pattern
+      is used to calculate the state's index in the distances lookup-table.
+     */
+    std::size_t hash_index_abstracted(const std::vector<int> &abs_state) const;
 public:
     /*
       Important: It is assumed that the pattern (passed via Options) is
@@ -161,6 +166,19 @@ public:
     ~PatternDatabase() = default;
 
     int get_value(const GlobalState &state) const;
+
+    int get_value_abstracted(const std::vector<int> &abstracted_state) const;
+
+    int get_value_for_index(std::size_t index) const;
+
+    bool maps_to(GlobalState &concrete, std::vector<int> &abstracted) {
+        return hash_index(concrete) == hash_index_abstracted(abstracted);
+    }
+
+    // used for astar search in cegar pdbs
+    size_t get_abstract_state_index(const std::vector<int>& abstracted_state) {
+        return hash_index_abstracted(abstracted_state);
+    }
 
     // Returns the pattern (i.e. all variables used) of the PDB
     const Pattern &get_pattern() const {

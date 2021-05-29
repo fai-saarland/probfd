@@ -519,6 +519,18 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME CEGAR_PDBS
+    HELP "Plugin containing the code for CEGAR PDBs"
+    SOURCES
+        pdbs/cegar/abstract_solution_data
+        pdbs/cegar/pattern_collection_generator_cegar
+        pdbs/cegar/pattern_collection_generator_fast_cegar
+        pdbs/cegar/tasks/pdb_abstracted_task
+        pdbs/cegar/tasks/task_proxy
+    DEPENDS PDBS
+)
+
+fast_downward_plugin(
     NAME MDP
     HELP "Core source files for supporting MDPs"
     SOURCES
