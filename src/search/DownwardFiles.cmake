@@ -707,7 +707,6 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/expected_cost/pattern_selection/incremental_canonical_pdbs
         mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_generator_deterministic
         mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_generator_hillclimbing
-        mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_generator_systematic
         mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_information
         mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_generator
     DEPENDS PROBABILISTIC_PDBS
