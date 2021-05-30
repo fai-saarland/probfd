@@ -130,7 +130,7 @@ ExpCostProjection::compute_value_table()
     {
         const StateID state_id(it->second);
         const AbstractState s(it->first);
-        value_table.set(s, vi_value_table[state_id].value);
+        value_table.set(s, vi_value_table[state_id]);
     }
 
     reachable_states = state_id_map.size();

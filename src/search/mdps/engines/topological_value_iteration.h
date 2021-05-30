@@ -38,26 +38,12 @@ struct Statistics {
     unsigned long long pruned = 0;
 };
 
-struct StateValueSingle {
-    value_type::value_t value;
-
-    explicit StateValueSingle()
-        : value(value_type::zero)
-    {
-    }
-
-    explicit StateValueSingle(value_type::value_t lb, value_type::value_t)
-        : value(lb)
-    {
-    }
-
-    operator value_type::value_t() const { return value; }
-};
+using StateValueSingle = value_type::value_t;
 
 inline bool update(StateValueSingle& v, const value_utils::IncumbentSolution<std::false_type>& vals)
 {
-    const bool result = !value_type::approx_equal()(vals.first, v.value);
-    v.value = vals.first;
+    const bool result = !value_type::approx_equal()(vals.first, v);
+    v = vals.first;
     return result;
 }
 
@@ -74,6 +60,12 @@ struct StateValueInterval {
     explicit StateValueInterval()
         : value(value_type::zero)
         , value2(value_type::zero)
+    {
+    }
+
+    explicit StateValueInterval(value_type::value_t both)
+        : value(both)
+        , value2(both)
     {
     }
 
@@ -152,12 +144,11 @@ public:
         Args... args)
         : MDPEngine<State, Action>(args...)
         , prune_(pruning_function)
-        , dead_end_value_(this->get_minimal_reward(), this->get_minimal_reward())
-        , upper_bound_(this->get_maximal_reward(), this->get_maximal_reward())
+        , dead_end_value_(this->get_minimal_reward())
+        , upper_bound_(this->get_maximal_reward())
         , zero_states_(zero_states)
         , one_states_(one_states)
-        , one_state_reward_(this->get_maximal_reward(), this->get_maximal_reward())
-        , init_value(value_type::zero, this->get_maximal_reward())
+        , one_state_reward_(this->get_maximal_reward())
         , state_information_()
         , value_store_(nullptr)
         , index_(0)
@@ -167,6 +158,11 @@ public:
         , backtracked_state_value_(nullptr)
         , statistics_()
     {
+        if constexpr (Interval::value) {
+            init_value = Bounds(value_type::zero, this->get_maximal_reward());
+        } else {
+            init_value = Bounds(value_type::zero);
+        }
     }
 
     template<typename... Args>
@@ -322,11 +318,11 @@ private:
         std::vector<BellmanBackupInfo> infos;
     };
 
-    template<typename BoolStore>
+    template<typename ValueStore, typename BoolStore>
     bool push_state(
         const StateID& state_id,
         StateInfo& state_info,
-        Store& value_store,
+        ValueStore& value_store,
         BoolStore* dead)
     {
         constexpr bool is_real_store = std::is_same_v<BoolStore, NoStore>;
@@ -344,7 +340,7 @@ private:
         // std::cout << ((bool) x) << " " << std::endl;
 
         if (x) {
-            state_value = Bounds((value_type::value_t)x, ((value_type::value_t)x));
+            state_value = Bounds(value_type::value_t(x));
             state_info.dead = false;
             ++statistics_.goal_states;
             if (ExpandGoalStates) {
@@ -458,10 +454,10 @@ private:
         return true;
     }
 
-    template<typename BoolStore>
+    template<typename ValueStore, typename BoolStore>
     value_type::value_t value_iteration(
         const State& initial_state,
-        Store& value_store,
+        ValueStore& value_store,
         [[maybe_unused]] BoolStore* is_dead_end)
     {
         constexpr bool is_real_store = !std::is_same_v<BoolStore, NoStore>;
@@ -738,7 +734,7 @@ private:
     ZeroStates* zero_states_;
     OneStates* one_states_;
     const Bounds one_state_reward_;
-    const Bounds init_value;
+    Bounds init_value;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::unique_ptr<Store> value_store_;
