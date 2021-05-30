@@ -38,87 +38,87 @@ struct Statistics {
     unsigned long long pruned = 0;
 };
 
-template<typename T = std::false_type>
-struct StateValueBounds {
+struct StateValueSingle {
+    value_type::value_t value;
 
-    explicit StateValueBounds()
+    explicit StateValueSingle()
         : value(value_type::zero)
     {
     }
 
-    void set(const value_type::value_t& lb, const value_type::value_t&)
+    explicit StateValueSingle(value_type::value_t lb, value_type::value_t)
+        : value(lb)
     {
-        value = lb;
     }
-
-    bool update(const value_utils::IncumbentSolution<std::false_type>& vals)
-    {
-        const bool result = !value_type::approx_equal()(vals.first, value);
-        value = vals.first;
-        return result;
-    }
-
-    bool bounds_equal() const { return true; }
-
-    value_type::value_t error() const { return value_type::zero; }
 
     operator value_type::value_t() const { return value; }
-
-    value_type::value_t value;
 };
 
-template<>
-struct StateValueBounds<std::true_type> {
+inline bool update(StateValueSingle& v, const value_utils::IncumbentSolution<std::false_type>& vals)
+{
+    const bool result = !value_type::approx_equal()(vals.first, v.value);
+    v.value = vals.first;
+    return result;
+}
 
-    explicit StateValueBounds()
+inline bool bounds_equal(const StateValueSingle&) { return true; }
+
+inline value_type::value_t error(const StateValueSingle&) { return value_type::zero; }
+
+
+
+struct StateValueInterval {
+    value_type::value_t value;
+    value_type::value_t value2;
+
+    explicit StateValueInterval()
         : value(value_type::zero)
         , value2(value_type::zero)
     {
     }
 
-    void set(const value_type::value_t& lb, const value_type::value_t& ub)
+    explicit StateValueInterval(value_type::value_t lb, value_type::value_t ub)
+        : value(lb)
+        , value2(ub)
     {
-        value = lb;
-        value2 = ub;
-    }
-
-    bool update(const value_utils::IncumbentSolution<std::true_type>& val)
-    {
-        const bool result = !value_type::approx_equal()(val.first, value)
-            || !value_type::approx_equal()(val.second, value2);
-        value = val.first;
-        value2 = val.second;
-        assert(!value_type::approx_less()(value2, value));
-        return result;
-    }
-
-    value_type::value_t error() const
-    {
-        return value_type::abs(value2 - value);
-    }
-
-    bool bounds_equal() const
-    {
-        return value_type::approx_equal()(value, value2);
     }
 
     operator value_type::value_t() const { return value; }
-
-    value_type::value_t value;
-    value_type::value_t value2;
 };
+
+inline bool update(StateValueInterval& v, const value_utils::IncumbentSolution<std::true_type>& val)
+{
+    const bool result = !value_type::approx_equal()(val.first, v.value)
+        || !value_type::approx_equal()(val.second, v.value2);
+    v.value = val.first;
+    v.value2 = val.second;
+    assert(!value_type::approx_less()(v.value2, v.value));
+    return result;
+}
+
+inline value_type::value_t error(const StateValueInterval& v)
+{
+    return value_type::abs(v.value2 - v.value);
+}
+
+inline bool bounds_equal(const StateValueInterval& v)
+{
+    return value_type::approx_equal()(v.value, v.value2);
+}
+
+
+
+template <typename T = std::false_type>
+using StateValueBounds = std::conditional_t<
+    T::value,
+    StateValueInterval,
+    StateValueSingle
+>;
+
+
 
 template<typename T>
 using ValueStore = storage::PersistentPerStateStorage<StateValueBounds<T>>;
-
-template<typename T, typename VS>
-void copy_vs(VS& result, ValueStore<T>& val_store)
-{
-    for (int i = val_store.size() - 1; i >= 0; --i) {
-        const StateID stateid(i);
-        result[stateid] = val_store[stateid];
-    }
-}
 
 inline bool contains(void*, const StateID&) {
     return false;
@@ -137,6 +137,8 @@ template<
     typename ZeroStates = void,
     typename OneStates = void>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
+    struct NoStore;
+
 public:
     using ValueT = value_utils::IncumbentSolution<Interval>;
     using Bounds = StateValueBounds<Interval>;
@@ -150,11 +152,12 @@ public:
         Args... args)
         : MDPEngine<State, Action>(args...)
         , prune_(pruning_function)
-        , dead_end_value_(this->get_minimal_reward())
-        , upper_bound_(this->get_maximal_reward())
+        , dead_end_value_(this->get_minimal_reward(), this->get_minimal_reward())
+        , upper_bound_(this->get_maximal_reward(), this->get_maximal_reward())
         , zero_states_(zero_states)
         , one_states_(one_states)
-        , one_state_reward_(this->get_maximal_reward())
+        , one_state_reward_(this->get_maximal_reward(), this->get_maximal_reward())
+        , init_value(value_type::zero, this->get_maximal_reward())
         , state_information_()
         , value_store_(nullptr)
         , index_(0)
@@ -195,37 +198,14 @@ public:
 
     Statistics get_statistics() const { return statistics_; }
 
-    template<typename VS>
-    value_type::value_t solve(const State& initial_state, VS& value_store)
-    {
-        if constexpr (std::is_same_v<VS, Store>) {
-            return
-                value_iteration<NoStore>(initial_state, value_store, nullptr);
-        } else {
-            Store store;
-            auto res = value_iteration<NoStore>(initial_state, store, nullptr);
-            copy_vs(value_store, store);
-            return res;
-        }
-    }
-
-    template<typename VS, typename BoolStore>
+    template<typename VS, typename BoolStore = NoStore>
     value_type::value_t
-    solve(const State& initial_state, VS& value_store, BoolStore& is_dead_end)
+    solve(const State& initial_state, VS& value_store, BoolStore* is_dead_end = nullptr)
     {
-        if constexpr (std::is_same_v<VS, Store>) {
-            return value_iteration(initial_state, value_store, &is_dead_end);
-        } else {
-            Store store;
-            auto res = value_iteration(initial_state, store, &is_dead_end);
-            copy_vs(value_store, store);
-            return res;
-        }
+        return value_iteration(initial_state, value_store, is_dead_end);
     }
 
 private:
-    struct NoStore;
-
     struct StateInfo {
         static constexpr unsigned NEW = 0;
         static constexpr unsigned OPEN = 1;
@@ -333,7 +313,7 @@ private:
             for (const BellmanBackupInfo& info : infos) {
                 value_utils::update_incumbent(val, info());
             }
-            return value->update(val) || !value->bounds_equal();
+            return update(*value, val) || !bounds_equal(*value);
         }
 
         StateID state_id;
@@ -364,7 +344,7 @@ private:
         // std::cout << ((bool) x) << " " << std::endl;
 
         if (x) {
-            state_value.set((value_type::value_t)x, ((value_type::value_t)x));
+            state_value = Bounds((value_type::value_t)x, ((value_type::value_t)x));
             state_info.dead = false;
             ++statistics_.goal_states;
             if (ExpandGoalStates) {
@@ -373,7 +353,7 @@ private:
                 ++statistics_.expanded_states;
             }
         } else if (one_states_ && contains(one_states_, state_id)) {
-            state_value.set(one_state_reward_, one_state_reward_);
+            state_value = one_state_reward_;
             state_info.dead = false;
             if (ExpandGoalStates) {
                 state_info.status = StateInfo::TERMINAL;
@@ -383,15 +363,15 @@ private:
         } else if (
             (zero_states_ && contains(zero_states_, state_id))
             || (prune_ && prune_->operator()(state))) {
-            state_value.set(dead_end_value_, dead_end_value_);
+            state_value = dead_end_value_;
             ++statistics_.pruned;
         } else {
             this->generate_applicable_ops(state_id, aops);
             ++statistics_.expanded_states;
             if (aops.empty()) {
-                state_value.set(dead_end_value_, dead_end_value_);
+                state_value = dead_end_value_;
             } else {
-                state_value.set(value_type::zero, upper_bound_);
+                state_value = init_value;
             }
         }
 
@@ -452,7 +432,7 @@ private:
             exploration_stack_.pop_back();
             if (!ExpandGoalStates || state_info.status != StateInfo::TERMINAL) {
                 ++statistics_.dead_ends;
-                state_value.set(dead_end_value_, dead_end_value_);
+                state_value = dead_end_value_;
                 if constexpr (!is_real_store) {
                     dead->operator[](state_id) = true;
                 }
@@ -626,7 +606,7 @@ private:
                     const StackInfo* scc_start = &stack_[explore.stackidx];
                     StackInfo* it = &stack_.back();
                     do {
-                        it->value->set(dead_end_value_, dead_end_value_);
+                        *it->value = dead_end_value_;
 
                         if constexpr (is_real_store) {
                             is_dead_end->operator[](it->state_id) = true;
@@ -659,7 +639,7 @@ private:
                         if (!ExpandGoalStates
                             || state_info.status == StateInfo::ONSTACK)
                         {
-                            stack_info.value->update(stack_info.b);
+                            update(*stack_info.value, stack_info.b);
                         }
                         state_info.status = StateInfo::CLOSED;
                     } else {
@@ -683,8 +663,7 @@ private:
                                     stack_.erase(stack_.begin() + i);
                                 } else if (scc_stack_info.infos.empty())
                                 {
-                                    scc_stack_info.value->update(
-                                        scc_stack_info.b);
+                                    update(*scc_stack_info.value, scc_stack_info.b);
                                     --scc_size;
                                     stack_.erase(stack_.begin() + i);
                                 }
@@ -731,8 +710,8 @@ private:
             // std::cout << std::endl;
         continue_stack_loop:;
         }
-        const Bounds& vb = value_store[this->get_state_id(initial_state)];
-        return vb;
+
+        return value_store[this->get_state_id(initial_state)];
     }
 
     unsigned
@@ -754,11 +733,12 @@ private:
     }
 
     StateEvaluator<State>* prune_;
-    const value_type::value_t dead_end_value_;
-    const value_type::value_t upper_bound_;
+    const Bounds dead_end_value_;
+    const Bounds upper_bound_;
     ZeroStates* zero_states_;
     OneStates* one_states_;
-    const value_type::value_t one_state_reward_;
+    const Bounds one_state_reward_;
+    const Bounds init_value;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::unique_ptr<Store> value_store_;
