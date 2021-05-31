@@ -18,9 +18,9 @@ class ExpCostProjection : public ProbabilisticProjection {
     unsigned int reachable_states = 0;
 
 public:
-    ExpCostProjection(const std::vector<int>& variables);
+    ExpCostProjection(const Pattern& variables);
     ExpCostProjection(
-        const std::vector<int>& variables,
+        const Pattern& variables,
         const std::vector<int>& domains);
     ~ExpCostProjection() = default;
 

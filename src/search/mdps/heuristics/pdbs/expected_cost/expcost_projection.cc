@@ -14,15 +14,13 @@
 namespace probabilistic {
 namespace pdbs {
 
-ExpCostProjection::ExpCostProjection(const std::vector<int> &variables)
+ExpCostProjection::ExpCostProjection(const Pattern& variables)
     : ExpCostProjection(variables, ::g_variable_domain)
 {
-    compute_value_table();
 }
 
-ExpCostProjection::ExpCostProjection(
-    const std::vector<int> &variables,
-    const std::vector<int> &domains)
+ExpCostProjection::
+ExpCostProjection(const Pattern& variables, const std::vector<int> &domains)
     : ProbabilisticProjection(variables, domains)
 {
     compute_value_table();
