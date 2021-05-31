@@ -161,8 +161,10 @@ struct SearchNodeCoreInformation {
 };
 
 template<typename Dual = std::false_type>
-struct SearchNodeInformation : public heuristic_search::StatesValues<Dual>,
-                               public SearchNodeCoreInformation {
+struct SearchNodeInformationDual :
+    public heuristic_search::StatesValues<Dual>,
+    public SearchNodeCoreInformation
+{
 };
 
 inline void
@@ -241,7 +243,7 @@ class ExhaustiveDepthFirstSearch
 public:
     using DualBounds = DualV;
     using SearchNodeInformation =
-        typename SearchNodeInformation<DualBounds>;
+        SearchNodeInformationDual<DualBounds>;
 
     using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
 
