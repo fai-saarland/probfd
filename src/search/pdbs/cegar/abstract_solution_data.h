@@ -44,7 +44,7 @@ struct SearchNode {
 enum class Verbosity;
 
 class AbstractSolutionData {
-    std::shared_ptr<PatternDatabase> pdb;
+    std::unique_ptr<PatternDatabase> pdb;
     tasks::PDBAbstractedTask abstracted_task;
     TaskProxy abs_task_proxy;
     std::set<int> blacklist;
@@ -87,7 +87,9 @@ public:
 
     const std::set<int>& get_blacklist() const;
 
-    const std::shared_ptr<PatternDatabase>& get_pdb();
+    const PatternDatabase& get_pdb() const;
+
+    std::unique_ptr<PatternDatabase> steal_pdb();
 
     bool solution_exists() const;
 

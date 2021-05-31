@@ -291,10 +291,16 @@ const std::set<int>& AbstractSolutionData::get_blacklist() const
     return blacklist;
 }
 
-const std::shared_ptr<PatternDatabase>&
-AbstractSolutionData::get_pdb()
+const PatternDatabase&
+AbstractSolutionData::get_pdb() const
 {
-    return pdb;
+    assert(pdb);
+    return *pdb;
+}
+
+std::unique_ptr<PatternDatabase>
+AbstractSolutionData::steal_pdb() {
+    return std::move(pdb);
 }
 
 bool AbstractSolutionData::solution_exists() const

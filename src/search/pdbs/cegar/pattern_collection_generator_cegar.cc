@@ -439,7 +439,7 @@ add_pattern_for_var(OperatorCost cost_type, int var)
         new AbstractSolutionData(
             cost_type, {var}, {}, rng, extended_plans, verbosity));
     solution_lookup[var] = solutions.size() - 1;
-    collection_size += sol->get_pdb()->get_size();
+    collection_size += sol->get_pdb().get_size();
 }
 
 void
@@ -475,8 +475,8 @@ bool
 PatternCollectionGeneratorCegar::
 can_merge_patterns(int index1, int index2) const
 {
-    int pdb_size1 = solutions[index1]->get_pdb()->get_size();
-    int pdb_size2 = solutions[index2]->get_pdb()->get_size();
+    int pdb_size1 = solutions[index1]->get_pdb().get_size();
+    int pdb_size2 = solutions[index2]->get_pdb().get_size();
 
     if (!utils::is_product_within_limit(pdb_size1, pdb_size2, max_pdb_size)) {
         return false;
@@ -513,8 +513,8 @@ merge_patterns(OperatorCost cost_type, int index1, int index2)
     sort(new_pattern.begin(), new_pattern.end());
 
     // store old pdb sizes
-    int pdb_size1 = solutions[index1]->get_pdb()->get_size();
-    int pdb_size2 = solutions[index2]->get_pdb()->get_size();
+    int pdb_size1 = solutions[index1]->get_pdb().get_size();
+    int pdb_size2 = solutions[index2]->get_pdb().get_size();
 
     // compute merge solution
     unique_ptr<AbstractSolutionData> merged =
@@ -525,7 +525,7 @@ merge_patterns(OperatorCost cost_type, int index1, int index2)
     // update collection size
     collection_size -= pdb_size1;
     collection_size -= pdb_size2;
-    collection_size += merged->get_pdb()->get_size();
+    collection_size += merged->get_pdb().get_size();
 
     // clean-up
     solutions[index1] = std::move(merged);
@@ -536,7 +536,7 @@ bool
 PatternCollectionGeneratorCegar::
 can_add_variable_to_pattern(int index, int var) const
 {
-    int pdb_size = solutions[index]->get_pdb()->get_size();
+    int pdb_size = solutions[index]->get_pdb().get_size();
     int domain_size = g_variable_domain[var];
 
     if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size)) {
@@ -565,8 +565,8 @@ add_variable_to_pattern(OperatorCost cost_type, int index, int var)
             rng, extended_plans, verbosity);
 
     // update collection size
-    collection_size -= solution.get_pdb()->get_size();
-    collection_size += new_solution->get_pdb()->get_size();
+    collection_size -= solution.get_pdb().get_size();
+    collection_size += new_solution->get_pdb().get_size();
 
     // update look-up table and possibly remaining_goals, clean-up
     solution_lookup[var] = index;
@@ -806,16 +806,16 @@ PatternCollectionGeneratorCegar::generate(OperatorCost cost_type)
     auto pdbs = std::make_shared<PDBCollection>();
 
     if (concrete_solution_index != -1) {
-        const shared_ptr<PatternDatabase> &pdb =
-                solutions[concrete_solution_index]->get_pdb();
-        pdbs->push_back(pdb);
+        unique_ptr<PatternDatabase> pdb =
+            solutions[concrete_solution_index]->steal_pdb();
         patterns->push_back(pdb->get_pattern());
+        pdbs->emplace_back(std::move(pdb));
     } else {
         for (const auto &sol : solutions) {
             if (sol) {
-                const shared_ptr<PatternDatabase> &pdb = sol->get_pdb();
-                pdbs->push_back(pdb);
+                unique_ptr<PatternDatabase> pdb = sol->steal_pdb();
                 patterns->push_back(pdb->get_pattern());
+                pdbs->emplace_back(std::move(pdb));
             }
         }
     }
