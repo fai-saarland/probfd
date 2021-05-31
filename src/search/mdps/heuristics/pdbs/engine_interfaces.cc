@@ -171,5 +171,11 @@ UnitCostActionEvaluator::evaluate(const AbstractOperator*)
     return -1;
 }
 
+value_type::value_t
+NormalCostActionEvaluator::evaluate(const AbstractOperator* op)
+{
+    return -op->cost;
+}
+
 } // namespace pdbs
 } // namespace probabilistic

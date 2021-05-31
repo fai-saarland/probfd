@@ -166,6 +166,12 @@ protected:
     virtual value_type::value_t evaluate(const AbstractOperator*) override;
 };
 
+class NormalCostActionEvaluator
+    : public ActionEvaluator<const AbstractOperator*> {
+protected:
+    virtual value_type::value_t evaluate(const AbstractOperator*) override;
+};
+
 using AbstractStateEvaluator = StateEvaluator<AbstractState>;
 
 using AbstractOperatorEvaluator = ActionEvaluator<const AbstractOperator*>;

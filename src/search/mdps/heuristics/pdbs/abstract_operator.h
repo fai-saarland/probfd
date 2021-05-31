@@ -16,6 +16,7 @@ class AbstractOperator {
 public:
     explicit AbstractOperator(unsigned id);
     unsigned original_operator_id;
+    value_type::value_t cost;
     AbstractState pre;
     Distribution<AbstractState> outcomes;
 };

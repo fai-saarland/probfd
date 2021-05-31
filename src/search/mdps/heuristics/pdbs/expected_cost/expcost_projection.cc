@@ -107,7 +107,7 @@ ExpCostProjection::compute_value_table()
         &goal_states_,
         value_type::zero,
         value_type::zero);
-    UnitCostActionEvaluator neg_unit_reward;
+    NormalCostActionEvaluator action_eval;
 
     setup_abstract_operators();
 
@@ -125,7 +125,7 @@ ExpCostProjection::compute_value_table()
            &state_id_map,
            &action_id_map,
            &is_goal,
-           &neg_unit_reward,
+           &action_eval,
            -value_type::inf,
            value_type::zero,
            &aops_gen,

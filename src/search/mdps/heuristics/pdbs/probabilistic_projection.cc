@@ -236,6 +236,7 @@ ProbabilisticProjection::setup_abstract_operators() const
             }
 
             auto add_operator = [this,
+                                 op,
                                  op_id,
                                  &operators,
                                  &footprint,
@@ -246,6 +247,7 @@ ProbabilisticProjection::setup_abstract_operators() const
                                     const std::vector<int>& values)
             {
                 AbstractOperator new_op(op_id);
+                new_op.cost = op.get_cost();
                 new_op.pre =
                     state_mapper_->from_values_partial(pre_var_indices, values);
 #ifndef NDEBUG
