@@ -35,6 +35,15 @@ QuantitativeResultStore::operator[](const StateID& id)
     return x.first->second;
 }
 
+std::optional<value_type::value_t>
+QuantitativeResultStore::get_optional(const AbstractState& x) const {
+    auto it = values_.find(x.id);
+    if (it == values_.end()) {
+        return std::nullopt;
+    }
+    return it->second;
+}
+
 void
 QuantitativeResultStore::set(
     const AbstractState& state,

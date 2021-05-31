@@ -4,6 +4,7 @@
 #include "abstract_state.h"
 
 #include <unordered_map>
+#include <optional>
 #include "../../types.h"
 
 namespace probabilistic {
@@ -21,6 +22,9 @@ public:
     value_type::value_t get(const AbstractState& x) const;
     value_type::value_t& operator[](const AbstractState& x);
     value_type::value_t& operator[](const StateID& x);
+
+    std::optional<value_type::value_t>
+    get_optional(const AbstractState& x) const;
 
 private:
     std::unordered_map<int, value_type::value_t> values_;

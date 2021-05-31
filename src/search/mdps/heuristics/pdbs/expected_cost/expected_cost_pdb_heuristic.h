@@ -5,6 +5,7 @@
 #include "../abstract_state.h"
 #include "../types.h"
 #include "expcost_projection.h"
+#include "additive_ecpdbs.h"
 
 #include <memory>
 #include <vector>
@@ -28,6 +29,7 @@ class QualitativeResultStore;
 class ExpCostAbstractAnalysisResult;
 
 class ExpectedCostPDBHeuristic : public GlobalStateEvaluator {
+#if 0
     struct Statistics {
         bool additive = false;
 
@@ -54,9 +56,10 @@ class ExpectedCostPDBHeuristic : public GlobalStateEvaluator {
 #endif
     };
 
-    std::vector<ExpCostProjection> database_;
-    std::vector<PatternClique> additive_patterns_;
     Statistics statistics_;
+#endif
+
+    AdditiveExpectedCostPDBs additive_ecpds;
 
 public:
     explicit ExpectedCostPDBHeuristic(const options::Options& opts);
@@ -66,24 +69,6 @@ public:
 
 protected:
     EvaluationResult evaluate(const GlobalState& state) override;
-
-private:
-    void dump_init_statistics(std::ostream &out) const;
-
-    std::shared_ptr<PatternCollection>
-    construct_patterns(const options::Options& opts);
-
-    void construct_database(
-        const options::Options& opts,
-        const PatternCollection& patterns);
-
-    void construct_cliques(
-        const options::Options& opts,
-        PatternCollection& patterns);
-
-    void run_dominance_pruning(
-        double time_limit,
-        PatternCollection& patterns);
 };
 
 } // namespace pdbs
