@@ -79,7 +79,7 @@ ApplicableActionsGenerator<const pdbs::AbstractOperator*>::
             const pdbs::AbstractOperator*>> aops_gen)
     : id_map_(id_map)
     , state_mapper_(state_mapper)
-    , values_(state_mapper->get_variables().size(), 0)
+    , values_(state_mapper->get_pattern().size(), 0)
     , aops_gen_(aops_gen)
 {
 }
@@ -102,7 +102,7 @@ TransitionGenerator<const pdbs::AbstractOperator*>::TransitionGenerator(
         aops_gen)
     : id_map_(id_map)
     , state_mapper_(state_mapper)
-    , values_(state_mapper->get_variables().size(), 0)
+    , values_(state_mapper->get_pattern().size(), 0)
     , aops_gen_(aops_gen)
 {
 }

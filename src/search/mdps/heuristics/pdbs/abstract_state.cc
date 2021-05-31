@@ -10,34 +10,37 @@
 namespace probabilistic {
 namespace pdbs {
 
-AbstractStateMapper::AbstractStateMapper(
-    const std::vector<int>& variables,
-    const std::vector<int>& domains)
-    : oob_(false)
-    , size_(-1)
-    , vars_(variables)
-    , domains_(variables.size())
-    , multipliers_(variables.size(), 1)
+AbstractStateMapper::
+AbstractStateMapper(Pattern pattern, const std::vector<int>& domains)
+    : vars_(std::move(pattern))
+    , domains_(vars_.size())
+    , multipliers_(vars_.size(), 1)
 {
-    assert(!variables.empty());
-    const int maxint = std::numeric_limits<int>::max();
-    for (unsigned i = 1; i < variables.size(); i++) {
-        assert(variables[i - 1] < static_cast<int>(domains.size()));
-        const int d = domains[variables[i - 1]];
+    assert(!vars_.empty());
+
+    constexpr int maxint = std::numeric_limits<int>::max();
+
+    for (unsigned i = 1; i < vars_.size(); i++) {
+        assert(vars_[i - 1] < static_cast<int>(domains.size()));
+        const int d = domains[vars_[i - 1]];
         domains_[i - 1] = d;
+
         if (multipliers_[i - 1] > maxint / d) {
-            oob_ = true;
-            return;
+            throw PatternTooLargeException();
         }
+
         multipliers_[i] = multipliers_[i - 1] * d;
     }
-    assert(variables.back() < static_cast<int>(domains.size()));
-    const int d = domains[variables.back()];
+
+    assert(vars_.back() < static_cast<int>(domains.size()));
+
+    const int d = domains[vars_.back()];
     domains_.back() = d;
+
     if (multipliers_.back() > maxint / d) {
-        oob_ = true;
-        return;
+        throw PatternTooLargeException();
     }
+
     size_ = multipliers_.back() * d;
 }
 
@@ -47,14 +50,8 @@ AbstractStateMapper::size() const
     return size_;
 }
 
-bool
-AbstractStateMapper::is_size_within_limits() const
-{
-    return !oob_;
-}
-
-const std::vector<int>&
-AbstractStateMapper::get_variables() const
+const Pattern&
+AbstractStateMapper::get_pattern() const
 {
     return vars_;
 }
@@ -149,7 +146,7 @@ AbstractStateToString::operator()(AbstractState state) const
     std::vector<int> values = state_mapper_->to_values(state);
     out << "#" << state.id << ": ";
     for (unsigned i = 0; i < values.size(); i++) {
-        const int var = state_mapper_->get_variables()[i];
+        const int var = state_mapper_->get_pattern()[i];
         out << (i > 0 ? ", " : "") << ::g_fact_names[var][values[i]];
     }
     return out.str();

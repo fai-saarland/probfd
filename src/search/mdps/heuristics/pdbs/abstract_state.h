@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../../utils/hash.h"
+#include "types.h"
 
 class GlobalState;
 
@@ -11,6 +12,13 @@ class GlobalState;
 
 namespace probabilistic {
 namespace pdbs {
+
+struct PatternTooLargeException : std::exception {
+    const char* what() const noexcept override {
+        return "Construction of PDB would exceed "
+            "std::numeric_limits<int>::max()";
+    }
+};
 
 struct AbstractState {
     int id;
@@ -45,14 +53,12 @@ extern std::ostream& operator<<(std::ostream& out, const AbstractState& s);
 
 class AbstractStateMapper {
 public:
-    AbstractStateMapper(
-        const std::vector<int>& variables,
-        const std::vector<int>& domains);
+    AbstractStateMapper(Pattern pattern, const std::vector<int>& domains);
     ~AbstractStateMapper() = default;
 
-    unsigned size() const;
-    bool is_size_within_limits() const;
-    const std::vector<int>& get_variables() const;
+    unsigned int size() const;
+
+    const Pattern& get_pattern() const;
     const std::vector<int>& get_domains() const;
 
     AbstractState operator()(const GlobalState& state) const;
@@ -83,7 +89,6 @@ private:
         AbstractState base,
         unsigned i) const;
 
-    bool oob_;
     unsigned size_;
     std::vector<int> vars_;
     std::vector<int> domains_;

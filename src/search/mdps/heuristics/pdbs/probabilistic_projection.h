@@ -37,7 +37,7 @@ public:
 
     // Returns the pattern (i.e. all variables used) of the PDB
     const Pattern &get_pattern() const {
-        return state_mapper_->get_variables();
+        return state_mapper_->get_pattern();
     }
 
 protected:

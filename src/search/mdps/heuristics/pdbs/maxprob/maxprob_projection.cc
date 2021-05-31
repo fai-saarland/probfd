@@ -48,7 +48,7 @@ MaxProbProjection::precompute_dead_ends()
     std::deque<AbstractState> open;
     {
         AbstractState partial(0);
-        std::vector<int> goal(state_mapper_->get_variables().size(), 0);
+        std::vector<int> goal(state_mapper_->get_pattern().size(), 0);
         std::vector<int> missing;
         int idx = 0;
         for (const auto& [var, val] : projected_goal_) {
@@ -59,7 +59,7 @@ MaxProbProjection::precompute_dead_ends()
             goal[var] = val;
             ++idx;
         }
-        while (idx < static_cast<int>(state_mapper_->get_variables().size())) {
+        while (idx < static_cast<int>(state_mapper_->get_pattern().size())) {
             missing.push_back(idx++);
         }
 
@@ -150,9 +150,9 @@ MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     {
         const StateID state_id = state_id_map.get_state_id(initial_state_);
         logging::out << "(II) Pattern [";
-        for (unsigned i = 0; i < state_mapper_->get_variables().size(); ++i) {
+        for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
             logging::out << (i > 0 ? ", " : "")
-                         << state_mapper_->get_variables()[i];
+                         << state_mapper_->get_pattern()[i];
         }
         logging::out << "]: lb="
                      << engines::interval_iteration::

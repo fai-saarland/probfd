@@ -50,7 +50,7 @@ unsigned int ProbabilisticProjection::num_states() const {
 void
 ProbabilisticProjection::setup_abstract_goal()
 {
-    const std::vector<int>& variables = state_mapper_->get_variables();
+    const std::vector<int>& variables = state_mapper_->get_pattern();
     const std::vector<int>& domains = state_mapper_->get_domains();
     unsigned num_goal_states = 1;
 
@@ -153,7 +153,7 @@ ProbabilisticProjection::setup_abstract_operators() const
         return;
     }
 
-    const std::vector<int>& variables = state_mapper_->get_variables();
+    const std::vector<int>& variables = state_mapper_->get_pattern();
 
     std::vector<std::vector<std::pair<int, int>>> preconditions;
     abstract_operators_.reserve(g_operators.size());
@@ -314,7 +314,7 @@ ProbabilisticProjection::prepare_regression()
         return;
     }
 
-    const std::vector<int>& pattern = state_mapper_->get_variables();
+    const std::vector<int>& pattern = state_mapper_->get_pattern();
 
     std::vector<std::vector<std::pair<int, int>>> progressions;
     progressions.reserve(::g_operators.size());

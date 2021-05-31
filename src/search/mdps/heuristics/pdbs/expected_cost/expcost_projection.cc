@@ -149,9 +149,9 @@ ExpCostProjection::compute_value_table()
 #if !defined(NDEBUG)
     {
         logging::out << "(II) Pattern [";
-        for (unsigned i = 0; i < state_mapper_->get_variables().size(); ++i) {
+        for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
             logging::out << (i > 0 ? ", " : "")
-                         << state_mapper_->get_variables()[i];
+                         << state_mapper_->get_pattern()[i];
         }
         logging::out << "]: value=" << value_table[initial_state_]
                      << std::endl;
