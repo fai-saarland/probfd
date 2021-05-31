@@ -14,7 +14,7 @@ class AnalysisObjective;
 namespace pdbs {
 
 class ExpCostProjection : public ProbabilisticProjection {
-    QuantitativeResultStore value_table;
+    std::vector<value_type::value_t> value_table;
     unsigned int reachable_states = 0;
 
 public:
@@ -28,8 +28,8 @@ public:
 
     unsigned int num_reachable_states() const;
 
-    QuantitativeResultStore& get_value_table();
-    const QuantitativeResultStore& get_value_table() const;
+    std::vector<value_type::value_t>& get_value_table();
+    const std::vector<value_type::value_t>& get_value_table() const;
 
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
     [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;

@@ -22,6 +22,9 @@ ExpCostProjection::ExpCostProjection(const Pattern& variables)
 ExpCostProjection::
 ExpCostProjection(const Pattern& variables, const std::vector<int> &domains)
     : ProbabilisticProjection(variables, domains)
+    , value_table(
+        state_mapper_->size(),
+        -std::numeric_limits<value_type::value_t>::infinity())
 {
     compute_value_table();
 }
@@ -29,20 +32,19 @@ ExpCostProjection(const Pattern& variables, const std::vector<int> &domains)
 value_type::value_t
 ExpCostProjection::get_value(const GlobalState &state) const {
     auto abstract_state = state_mapper_->operator()(state);
-    std::optional v = value_table.get_optional(abstract_state);
-    return v ? *v : std::numeric_limits<value_type::value_t>::infinity();
+    return lookup(abstract_state);
 }
 
 unsigned int ExpCostProjection::num_reachable_states() const {
     return reachable_states;
 }
 
-QuantitativeResultStore&
+std::vector<value_type::value_t>&
 ExpCostProjection::get_value_table() {
     return value_table;
 }
 
-const QuantitativeResultStore&
+const std::vector<value_type::value_t>&
 ExpCostProjection::get_value_table() const {
     return value_table;
 }
@@ -56,13 +58,13 @@ ExpCostProjection::lookup(const GlobalState& s) const
 value_type::value_t
 ExpCostProjection::lookup(const AbstractState& s) const
 {
-    return value_table.get(s);
+    return value_table[s.id];
 }
 
 namespace {
 struct StateToString {
     explicit StateToString(
-        const QuantitativeResultStore* value_table,
+        const std::vector<value_type::value_t>* value_table,
         std::shared_ptr<AbstractStateMapper> state_mapper)
         : value_table(value_table)
         , state_str(std::move(state_mapper))
@@ -72,11 +74,11 @@ struct StateToString {
     std::string operator()(const AbstractState& x) const
     {
         std::ostringstream out;
-        out << state_str(x) << " {" << value_table->get(x) << "}";
+        out << state_str(x) << " {" << (*value_table)[x.id] << "}";
         return out.str();
     }
 
-    const QuantitativeResultStore* value_table;
+    const std::vector<value_type::value_t>* value_table;
     AbstractStateToString state_str;
 };
 }
@@ -129,14 +131,7 @@ ExpCostProjection::compute_value_table()
            &aops_gen,
            &transition_gen);
 
-    engines::topological_vi::ValueStore<std::false_type> vi_value_table;
-    vi.solve(initial_state_, vi_value_table);
-
-    // FIXME Copying is expensive
-    for (size_t i = 0; i != state_mapper_->size(); ++i)
-    {
-        value_table.set(AbstractState(i), vi_value_table[i]);
-    }
+    vi.solve(initial_state_, value_table);
 
     reachable_states = state_id_map.size();
 
@@ -147,7 +142,7 @@ ExpCostProjection::compute_value_table()
             logging::out << (i > 0 ? ", " : "")
                          << state_mapper_->get_pattern()[i];
         }
-        logging::out << "]: value=" << value_table[initial_state_]
+        logging::out << "]: value=" << value_table[initial_state_.id]
                      << std::endl;
     }
 #endif
