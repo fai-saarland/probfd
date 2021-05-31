@@ -6,47 +6,32 @@
 
 namespace probabilistic {
 
-StateIDMap<pdbs::AbstractState>::StateIDMap()
-    : next_id_(0)
-    , id_map_()
-    , inverse_map_()
-{
-}
-
 unsigned
 StateIDMap<pdbs::AbstractState>::size() const
 {
-    return id_map_.size();
+    return seen.size();
 }
 
-StateIDMap<pdbs::AbstractState>::indirection_iterator
-StateIDMap<pdbs::AbstractState>::indirection_begin() const
-{
-    return id_map_.begin();
+StateIDMap<pdbs::AbstractState>::seen_iterator
+StateIDMap<pdbs::AbstractState>::seen_begin() const {
+    return seen.cbegin();
 }
 
-StateIDMap<pdbs::AbstractState>::indirection_iterator
-StateIDMap<pdbs::AbstractState>::indirection_end() const
-{
-    return id_map_.end();
+StateIDMap<pdbs::AbstractState>::seen_iterator
+StateIDMap<pdbs::AbstractState>::seen_end() const {
+    return seen.cend();
 }
 
 StateID
 StateIDMap<pdbs::AbstractState>::get_state_id(const pdbs::AbstractState& state)
 {
-    auto it = id_map_.emplace(state.id, next_id_);
-    if (it.second) {
-        ++next_id_;
-        inverse_map_.emplace_back(state.id);
-    }
-    return StateID(it.first->second);
+    return StateID(state.id);
 }
 
 pdbs::AbstractState
 StateIDMap<pdbs::AbstractState>::get_state(const StateID& id)
 {
-    assert(id < inverse_map_.size());
-    return pdbs::AbstractState(inverse_map_[id]);
+    return pdbs::AbstractState(id);
 }
 
 ActionIDMap<const pdbs::AbstractOperator*>::ActionIDMap(

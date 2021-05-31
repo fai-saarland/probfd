@@ -133,13 +133,9 @@ ExpCostProjection::compute_value_table()
     vi.solve(initial_state_, vi_value_table);
 
     // FIXME Copying is expensive
-    for (auto it = state_id_map.indirection_begin();
-         it != state_id_map.indirection_end();
-         ++it)
+    for (size_t i = 0; i != state_mapper_->size(); ++i)
     {
-        const StateID state_id(it->second);
-        const AbstractState s(it->first);
-        value_table.set(s, vi_value_table[state_id]);
+        value_table.set(AbstractState(i), vi_value_table[i]);
     }
 
     reachable_states = state_id_map.size();

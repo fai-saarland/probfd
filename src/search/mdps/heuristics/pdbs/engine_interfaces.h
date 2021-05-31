@@ -12,6 +12,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 namespace successor_generator {
 template<typename T>
@@ -23,22 +24,20 @@ namespace probabilistic {
 template<>
 class StateIDMap<pdbs::AbstractState> {
 public:
-    using indirection_iterator = std::unordered_map<int, int>::const_iterator;
+    using seen_iterator = std::set<int>::const_iterator;
 
-    explicit StateIDMap();
+    explicit StateIDMap() = default;
 
     StateID get_state_id(const pdbs::AbstractState& state);
     pdbs::AbstractState get_state(const StateID& id);
 
-    indirection_iterator indirection_begin() const;
-    indirection_iterator indirection_end() const;
-
     unsigned size() const;
 
+    seen_iterator seen_begin() const;
+    seen_iterator seen_end() const;
+
 private:
-    int next_id_;
-    std::unordered_map<int, int> id_map_;
-    std::vector<int> inverse_map_;
+    std::set<int> seen;
 };
 
 template<>

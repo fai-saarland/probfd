@@ -103,6 +103,8 @@ MaxProbProjection::precompute_dead_ends()
 
 void
 MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
+    using namespace engines::interval_iteration;
+
     AbstractStateInStoreEvaluator is_goal(
         &goal_states_,
         value_type::one,
@@ -154,40 +156,32 @@ MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
                          << state_mapper_->get_pattern()[i];
         }
         logging::out << "]: lb="
-                     << engines::interval_iteration::
-                        lower_bound(values[state_id])
+                     << lower_bound(values[state_id])
                      << ", ub="
-                     << engines::interval_iteration::
-                        upper_bound(values[state_id])
+                     << upper_bound(values[state_id])
                      << ", error="
-                     << (engines::interval_iteration::
-                        upper_bound(values[state_id])
-                        -
-                        engines::interval_iteration::
-                        lower_bound(values[state_id]))
+                     << (upper_bound(values[state_id]) - lower_bound(values[state_id]))
                      << std::endl;
     }
 #endif
 
     n_reachable_states = state_id_map.size();
 
-    for (auto it = state_id_map.indirection_begin();
-         it != state_id_map.indirection_end();
+    for (auto it = state_id_map.seen_begin();
+         it != state_id_map.seen_begin();
          ++it)
     {
-        const StateID state_id(it->second);
-        const AbstractState s(it->first);
-        if (deads[state_id]) {
+        const AbstractState s(*it);
+        if (deads[s.id]) {
             ++n_dead_ends;
             if (!precomputed_dead_ends) {
                 dead_ends.set(s, true);
             }
-        } else if (ones[state_id]) {
+        } else if (ones[s.id]) {
             ++n_one_states;
             one_states.set(s, true);
         } else {
-            value_table.set(
-                s, engines::interval_iteration::upper_bound(values[state_id]));
+            value_table.set(s, upper_bound(values[s.id]));
         }
     }
 
