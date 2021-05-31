@@ -18,8 +18,9 @@
 namespace probabilistic {
 namespace pdbs {
 
-MaxProbProjection::MaxProbProjection(
-    const std::vector<int>& variables,
+MaxProbProjection::
+MaxProbProjection(
+    const Pattern& variables,
     const std::vector<int>& domains,
     bool precompute_dead_ends)
     : ProbabilisticProjection(variables, domains)
@@ -107,8 +108,6 @@ MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
         value_type::one,
         value_type::zero);
     ZeroCostActionEvaluator no_reward;
-
-    setup_abstract_operators();
 
     StateIDMap<AbstractState> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
@@ -339,8 +338,6 @@ void MaxProbProjection::dump_graphviz(
         &goal_states_,
         value_type::one,
         value_type::zero);
-
-    setup_abstract_operators();
 
     StateIDMap<AbstractState> state_id_map;
 

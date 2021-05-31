@@ -14,21 +14,21 @@
 namespace probabilistic {
 namespace pdbs {
 
-ProbabilisticProjection::ProbabilisticProjection(
-    const std::vector<int>& variables,
-    const std::vector<int>& domains)
+ProbabilisticProjection::
+ProbabilisticProjection(const Pattern& pattern, const std::vector<int>& domains)
     : var_index_(domains.size(), -1)
-    , state_mapper_(std::make_shared<AbstractStateMapper>(variables, domains))
+    , state_mapper_(new AbstractStateMapper(pattern, domains))
     , initial_state_((*state_mapper_)(::g_initial_state_data))
     , goal_states_()
     , progression_aops_generator_(nullptr)
     , regression_aops_generator_(nullptr)
 {
-    for (size_t i = 0; i < variables.size(); ++i) {
-        var_index_[variables[i]] = i;
+    for (size_t i = 0; i < pattern.size(); ++i) {
+        var_index_[pattern[i]] = i;
     }
 
     setup_abstract_goal();
+    prepare_progression();
 }
 
 std::shared_ptr<AbstractStateMapper>
@@ -47,10 +47,14 @@ unsigned int ProbabilisticProjection::num_states() const {
     return state_mapper_->size();
 }
 
+const Pattern& ProbabilisticProjection::get_pattern() const {
+    return state_mapper_->get_pattern();
+}
+
 void
 ProbabilisticProjection::setup_abstract_goal()
 {
-    const std::vector<int>& variables = state_mapper_->get_pattern();
+    const Pattern& variables = state_mapper_->get_pattern();
     const std::vector<int>& domains = state_mapper_->get_domains();
     unsigned num_goal_states = 1;
 
@@ -147,13 +151,9 @@ struct OutcomeInfo {
 };
 
 void
-ProbabilisticProjection::setup_abstract_operators() const
+ProbabilisticProjection::prepare_progression()
 {
-    if (progression_aops_generator_ != nullptr) {
-        return;
-    }
-
-    const std::vector<int>& variables = state_mapper_->get_pattern();
+    const Pattern& variables = state_mapper_->get_pattern();
 
     std::vector<std::vector<std::pair<int, int>>> preconditions;
     abstract_operators_.reserve(g_operators.size());
@@ -302,19 +302,19 @@ ProbabilisticProjection::setup_abstract_operators() const
 
     assert(abstract_operators_.size() == preconditions.size());
 
-    progression_aops_generator_ = std::make_shared<
-        successor_generator::SuccessorGenerator<const AbstractOperator*>>(
-        state_mapper_->get_domains(), preconditions, opptrs);
+    progression_aops_generator_ =
+        std::make_shared<ProgressionSuccessorGenerator>(
+            state_mapper_->get_domains(), preconditions, opptrs);
 }
 
 void
-ProbabilisticProjection::prepare_regression()
+ProbabilisticProjection::prepare_regression() const
 {
     if (regression_aops_generator_ != nullptr) {
         return;
     }
 
-    const std::vector<int>& pattern = state_mapper_->get_pattern();
+    const Pattern& pattern = state_mapper_->get_pattern();
 
     std::vector<std::vector<std::pair<int, int>>> progressions;
     progressions.reserve(::g_operators.size());
@@ -328,7 +328,7 @@ ProbabilisticProjection::prepare_regression()
             std::vector<int> eff_no_pre;
             std::vector<int> precondition(pattern.size(), -1);
             {
-                for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
+                for (const auto [pre_var, pre_val] : op.get_preconditions()) {
                     const int idx = var_index_[pre_var];
                     if (idx != -1) {
                         precondition[idx] = pre_val;
@@ -339,7 +339,7 @@ ProbabilisticProjection::prepare_regression()
             AbstractState pre(0);
             AbstractState eff(0);
             {
-                for (const auto& [eff_var, eff_val, _] : op.get_effects()) {
+                for (const auto [eff_var, eff_val, _] : op.get_effects()) {
                     const int idx = var_index_[eff_var];
                     if (idx != -1) {
                         projected_eff.emplace_back(idx, eff_val);
@@ -383,9 +383,9 @@ ProbabilisticProjection::prepare_regression()
         }
     }
 
-    regression_aops_generator_ = std::make_shared<
-        successor_generator::SuccessorGenerator<AbstractState>>(
-        state_mapper_->get_domains(), progressions, operators);
+    regression_aops_generator_ =
+        std::make_shared<RegressionSuccessorGenerator>(
+            state_mapper_->get_domains(), progressions, operators);
 }
 
 } // namespace pdbs

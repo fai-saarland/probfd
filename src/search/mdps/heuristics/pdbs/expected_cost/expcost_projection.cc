@@ -109,8 +109,6 @@ ExpCostProjection::compute_value_table()
         value_type::zero);
     NormalCostActionEvaluator action_eval;
 
-    setup_abstract_operators();
-
     StateIDMap<AbstractState> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
 
@@ -170,8 +168,6 @@ ExpCostProjection::dump_graphviz(
         &goal_states_,
         value_type::zero,
         value_type::zero);
-
-    setup_abstract_operators();
 
     StateIDMap<AbstractState> state_id_map;
 
