@@ -144,6 +144,24 @@ AbstractStateInStoreEvaluator::evaluate(const AbstractState& state)
         is_contained, is_contained ? value_in_ : value_not_in_);
 }
 
+AbstractStateInSetEvaluator::AbstractStateInSetEvaluator(
+    const std::unordered_set<AbstractState>* states_,
+    value_type::value_t value_in,
+    value_type::value_t value_not_in)
+    : states_(states_)
+    , value_in_(value_in)
+    , value_not_in_(value_not_in)
+{
+}
+
+EvaluationResult
+AbstractStateInSetEvaluator::evaluate(const AbstractState& state)
+{
+    const bool is_contained = states_->find(state) != states_->end();
+    return EvaluationResult(
+        is_contained, is_contained ? value_in_ : value_not_in_);
+}
+
 value_type::value_t
 ZeroCostActionEvaluator::evaluate(const AbstractOperator*)
 {

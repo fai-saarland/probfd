@@ -11,6 +11,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <set>
 
@@ -149,6 +150,22 @@ protected:
 
 private:
     const QualitativeResultStore* states_;
+    const value_type::value_t value_in_;
+    const value_type::value_t value_not_in_;
+};
+
+class AbstractStateInSetEvaluator : public StateEvaluator<AbstractState> {
+public:
+    explicit AbstractStateInSetEvaluator(
+        const std::unordered_set<AbstractState>* states_,
+        value_type::value_t value_in,
+        value_type::value_t value_not_in);
+
+protected:
+    virtual EvaluationResult evaluate(const AbstractState& state) override;
+
+private:
+    const std::unordered_set<AbstractState>* states_;
     const value_type::value_t value_in_;
     const value_type::value_t value_not_in_;
 };
