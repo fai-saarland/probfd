@@ -105,7 +105,7 @@ ExpCostProjection::dump_graphviz(
 void
 ExpCostProjection::compute_value_table()
 {
-    AbstractStateInStoreEvaluator is_goal(
+    AbstractStateInSetEvaluator is_goal(
         &goal_states_,
         value_type::zero,
         value_type::zero);
@@ -155,7 +155,7 @@ ExpCostProjection::dump_graphviz(
     const StateToString* sts,
     const ActionToString* ats) const
 {
-    AbstractStateInStoreEvaluator is_goal(
+    AbstractStateInSetEvaluator is_goal(
         &goal_states_,
         value_type::zero,
         value_type::zero);

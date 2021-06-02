@@ -20,10 +20,10 @@ namespace pdbs {
 
 MaxProbProjection::
 MaxProbProjection(
-    const Pattern& variables,
+    const Pattern& pattern,
     const std::vector<int>& domains,
     bool precompute_dead_ends)
-    : ProbabilisticProjection(variables, domains)
+    : ProbabilisticProjection(pattern, domains)
 {
     if (precompute_dead_ends) {
         this->precompute_dead_ends();
@@ -35,47 +35,79 @@ MaxProbProjection(
     }
 }
 
-void
-MaxProbProjection::precompute_dead_ends()
+void MaxProbProjection::prepare_regression()
 {
-    if (projected_goal_.empty()) {
-        dead_ends.negate_all();
-        return;
+    const Pattern& pattern = state_mapper_->get_pattern();
+
+    std::vector<std::vector<std::pair<int, int>>> progressions;
+    progressions.reserve(::g_operators.size());
+    std::vector<AbstractState> operators;
+
+    using footprint_t = std::pair<AbstractState, AbstractState>;
+    utils::HashSet<footprint_t> operator_set;
+
+    for (const auto& op : ::g_operators) {
+        std::vector<std::pair<int, int>> projected_eff;
+        std::vector<int> eff_no_pre;
+        std::vector<int> precondition(pattern.size(), -1);
+        {
+            for (const auto [pre_var, pre_val] : op.get_preconditions()) {
+                const int idx = var_index_[pre_var];
+                if (idx != -1) {
+                    precondition[idx] = pre_val;
+                }
+            }
+        }
+
+        AbstractState pre(0);
+        AbstractState eff(0);
+        {
+            for (const auto [eff_var, eff_val, _] : op.get_effects()) {
+                const int idx = var_index_[eff_var];
+                if (idx != -1) {
+                    projected_eff.emplace_back(idx, eff_val);
+                    eff += state_mapper_->from_value_partial(idx, eff_val);
+                    if (precondition[idx] == -1) {
+                        eff_no_pre.push_back(idx);
+                    } else {
+                        pre += state_mapper_->from_value_partial(
+                            idx, precondition[idx]);
+                    }
+                }
+            }
+        }
+
+        if (projected_eff.empty()) {
+            continue;
+        }
+
+        std::sort(projected_eff.begin(), projected_eff.end());
+        std::sort(eff_no_pre.begin(), eff_no_pre.end());
+
+        const auto add_operator = [&](AbstractState regression)
+        {
+            if (regression.id != 0 && operator_set.emplace(eff, regression).second) {
+                progressions.push_back(projected_eff);
+                operators.push_back(regression);
+            }
+        };
+
+        state_mapper_->for_each_partial_state(pre - eff, eff_no_pre, add_operator);
     }
 
+    regression_aops_generator_ =
+        std::make_shared<RegressionSuccessorGenerator>(
+            state_mapper_->get_domains(), progressions, operators);
+}
+
+void MaxProbProjection::precompute_dead_ends()
+{
     prepare_regression();
 
     // Initialize open list with goal states.
-    std::deque<AbstractState> open;
-    {
-        AbstractState partial(0);
-        std::vector<int> goal(state_mapper_->get_pattern().size(), 0);
-        std::vector<int> missing;
-        int idx = 0;
-        for (const auto& [var, val] : projected_goal_) {
-            while (idx < var) {
-                missing.push_back(idx++);
-            }
-            partial += state_mapper_->from_value_partial(var, val);
-            goal[var] = val;
-            ++idx;
-        }
-        while (idx < static_cast<int>(state_mapper_->get_pattern().size())) {
-            missing.push_back(idx++);
-        }
+    std::deque<AbstractState> open(goal_states_.begin(), goal_states_.end());
 
-        state_mapper_->enumerate(
-            missing,
-            goal,
-            [this, &open, &partial](
-                AbstractState add, const std::vector<int>&) {
-                const AbstractState goal_state = partial + add;
-                open.push_back(goal_state);
-                dead_ends.set(goal_state, true);
-            });
-    }
-
-    // Start regression search.
+    // Regress from goal states to find all states with MaxProb > 0.
     while (!open.empty()) {
         const AbstractState s = open.front();
         open.pop_front();
@@ -99,13 +131,25 @@ MaxProbProjection::precompute_dead_ends()
     }
 
     dead_ends.negate_all();
+
+    /*
+     * TODO: Having the dead-ends, one could continue to compute the states
+     * with MaxProb = 1. A simple fixed-point iteration achieves this:
+     *
+     * 1. Initialize S with non-dead-ends computed above.
+     * 2. Regress from goal states and check for the states in S whether they
+     *    are reached by any operator staying completely within S with all
+     *    effects. If not, remove the state from from S.
+     * 3. If S has changed go to 1.
+     * 
+     * In the end, S contains all states with MaxProb 1.
+     */
 }
 
-void
-MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
+void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     using namespace engines::interval_iteration;
 
-    AbstractStateInStoreEvaluator is_goal(
+    AbstractStateInSetEvaluator is_goal(
         &goal_states_,
         value_type::one,
         value_type::zero);
@@ -328,7 +372,7 @@ void MaxProbProjection::dump_graphviz(
     const StateToString *sts,
     const ActionToString *ats)
 {
-    AbstractStateInStoreEvaluator is_goal(
+    AbstractStateInSetEvaluator is_goal(
         &goal_states_,
         value_type::one,
         value_type::zero);

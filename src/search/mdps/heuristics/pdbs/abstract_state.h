@@ -9,6 +9,7 @@ class GlobalState;
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <functional>
 
 namespace probabilistic {
 namespace pdbs {
@@ -67,6 +68,8 @@ public:
     AbstractState from_values_partial(
         const std::vector<int>& indices,
         const std::vector<int>& values) const;
+    AbstractState from_values_partial(
+        const std::vector<std::pair<int, int>>& sparse_values) const;
     AbstractState from_value_partial(int idx, int val) const;
 
     std::vector<int> to_values(AbstractState abstract_state) const;
@@ -76,18 +79,33 @@ public:
 
     template<typename Callback>
     void enumerate(
-        const std::vector<int>& indices,
         std::vector<int>& values,
+        const std::vector<int>& indices,
         Callback callback) const;
+
+    template<typename Callback, typename... Args>
+    void for_each_partial_state(
+        AbstractState partial_offset,
+        const std::vector<int>& indices,
+        Callback callback,
+        Args&&... args) const;
 
 private:
     template<typename Callback>
     void enumerate(
-        const std::vector<int>& indices,
         std::vector<int>& values,
+        const std::vector<int>& indices,
         const Callback& callback,
-        AbstractState base,
         unsigned i) const;
+
+    template<typename Callback, typename... Args>
+    void for_each_partial_state(
+        const std::vector<int>& multipliers,
+        const std::vector<int>& domains,
+        AbstractState base,
+        unsigned i,
+        const Callback& callback,
+        Args&&... args) const;
 
     unsigned size_;
     std::vector<int> vars_;
@@ -108,33 +126,83 @@ private:
 template<typename Callback>
 void
 AbstractStateMapper::enumerate(
-    const std::vector<int>& indices,
     std::vector<int>& values,
+    const std::vector<int>& indices,
     Callback callback) const
 {
-    enumerate(indices, values, callback, AbstractState(0), 0);
+    enumerate(values, indices, callback, 0);
+}
+
+template<typename Callback, typename... Args>
+void
+AbstractStateMapper::for_each_partial_state(
+    AbstractState partial_offset,
+    const std::vector<int>& indices,
+    Callback callback,
+    Args&&... args) const
+{
+    std::vector<int> fetched_multipliers(indices.size());
+    std::vector<int> fetched_domains(indices.size());
+
+    for (size_t i = 0; i != indices.size(); ++i) {
+        const int index = indices[i];
+        fetched_multipliers[i] = multipliers_[index];
+        fetched_domains[i] = domains_[index];
+    }
+
+    for_each_partial_state(
+        fetched_multipliers,
+        fetched_domains,
+        partial_offset,
+        0,
+        callback,
+        std::forward<Args>(args)...);
 }
 
 template<typename Callback>
 void
 AbstractStateMapper::enumerate(
-    const std::vector<int>& indices,
     std::vector<int>& values,
+    const std::vector<int>& indices,
     const Callback& callback,
-    AbstractState base,
     unsigned i) const
 {
     if (i == indices.size()) {
-        callback(base, values);
+        callback(values);
     } else {
         const int idx = indices[i];
-        const int mult = multipliers_[idx];
         for (int val = 0; val < domains_[idx]; val++) {
             values[idx] = val;
-            enumerate(indices, values, callback, base, i + 1);
-            base.id += mult;
+            enumerate(values, indices, callback, i + 1);
         }
         values[idx] = -1;
+    }
+}
+
+template<typename Callback, typename... Args>
+void
+AbstractStateMapper::for_each_partial_state(
+    const std::vector<int>& multipliers,
+    const std::vector<int>& domains,
+    AbstractState base,
+    unsigned i,
+    const Callback& callback,
+    Args&&... args) const
+{
+    if (i == multipliers.size()) {
+        std::invoke(callback, std::forward<Args>(args)..., base);
+    } else {
+        const int mult = multipliers[i];
+        for (int val = 0; val < domains[i]; val++) {
+            for_each_partial_state(
+                multipliers,
+                domains,
+                base,
+                i + 1,
+                callback,
+                std::forward<Args>(args)...);
+            base.id += mult;
+        }
     }
 }
 

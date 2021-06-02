@@ -14,6 +14,9 @@ class AnalysisObjective;
 namespace pdbs {
 
 class MaxProbProjection : public ProbabilisticProjection {
+    using RegressionSuccessorGenerator =
+        successor_generator::SuccessorGenerator<AbstractState>;
+    
     bool all_one = false;
     bool deterministic = false;
 
@@ -25,9 +28,11 @@ class MaxProbProjection : public ProbabilisticProjection {
     unsigned int n_dead_ends = 0;
     unsigned int n_one_states = 0;
 
+    std::shared_ptr<RegressionSuccessorGenerator> regression_aops_generator_;
+
 public:
     MaxProbProjection(
-        const std::vector<int>& variables,
+        const Pattern& pattern,
         const std::vector<int>& domains,
         bool precompute_dead_ends = false);
 
@@ -52,9 +57,10 @@ public:
         bool transition_labels = true,
         bool values = true);
 
+private:
+    void prepare_regression();
     void precompute_dead_ends();
 
-private:
     void compute_value_table(bool precomputed_dead_ends);
 
     template<typename StateToString, typename ActionToString>

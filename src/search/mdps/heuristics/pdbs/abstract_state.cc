@@ -17,6 +17,7 @@ AbstractStateMapper(Pattern pattern, const std::vector<int>& domains)
     , multipliers_(vars_.size(), 1)
 {
     assert(!vars_.empty());
+    assert(std::is_sorted(vars_.begin(), vars_.end()));
 
     constexpr int maxint = std::numeric_limits<int>::max();
 
@@ -102,6 +103,19 @@ AbstractStateMapper::from_values_partial(
     AbstractState res(0);
     for (int j : indices) {
         res.id += multipliers_[j] * values[j];
+    }
+    return res;
+}
+
+AbstractState
+AbstractStateMapper::from_values_partial(
+    const std::vector<std::pair<int, int>>& sparse_values) const
+{
+    AbstractState res(0);
+    for (const auto [idx, val] : sparse_values) {
+        assert(0 <= idx && idx < static_cast<int>(vars_.size()));
+        assert(0 <= val && val < domains_[idx]);
+        res.id += multipliers_[idx] * val;
     }
     return res;
 }

@@ -27,8 +27,6 @@ class ProbabilisticProjection {
 protected:
     using ProgressionSuccessorGenerator = 
         successor_generator::SuccessorGenerator<const AbstractOperator*>;
-    using RegressionSuccessorGenerator =
-        successor_generator::SuccessorGenerator<AbstractState>;
 
 public:
     ProbabilisticProjection(
@@ -37,7 +35,7 @@ public:
     ~ProbabilisticProjection() = default;
 
     std::shared_ptr<AbstractStateMapper> get_abstract_state_mapper() const;
-    QualitativeResultStore& get_abstract_goal_states();
+    std::unordered_set<AbstractState>& get_abstract_goal_states();
 
     unsigned int num_states() const;
 
@@ -51,20 +49,16 @@ private:
 
 protected:
     void prepare_regression() const;
+    void add_to_goals(AbstractState state);
 
     std::vector<int> var_index_;
     std::shared_ptr<AbstractStateMapper> state_mapper_;
-    std::vector<std::pair<int, int>> projected_goal_;
+    std::vector<std::pair<int, int>> sparse_goal_;
     AbstractState initial_state_;
-    QualitativeResultStore goal_states_;
+    std::unordered_set<AbstractState> goal_states_;
 
     std::vector<AbstractOperator> abstract_operators_;
     std::shared_ptr<ProgressionSuccessorGenerator> progression_aops_generator_;
-
-    // The successor generator for regression is not necessarily needed and is
-    // computed and chached here only if needed
-    mutable std::shared_ptr<RegressionSuccessorGenerator>
-        regression_aops_generator_;
 };
 
 } // namespace pdbs
