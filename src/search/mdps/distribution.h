@@ -18,9 +18,9 @@ private:
 public:
     using const_iterator = typename distribution_t::const_iterator;
 
-    explicit Distribution() { }
-    explicit Distribution(const Distribution&) = default;
-    explicit Distribution(Distribution&&) = default;
+    Distribution() { }
+    Distribution(const Distribution&) = default;
+    Distribution(Distribution&&) = default;
     explicit Distribution(std::vector<std::pair<T, value_type::value_t>>&& d)
         : distribution_(std::move(d))
     {
@@ -84,7 +84,7 @@ public:
                 ++i;
             }
         }
-        distribution_.resize(i);
+        distribution_.erase(distribution_.begin() + i, distribution_.end());
     }
 
     const_iterator erase(const_iterator it) { return distribution_.erase(it); }
