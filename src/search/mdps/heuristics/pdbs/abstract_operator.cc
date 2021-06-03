@@ -5,9 +5,9 @@
 namespace probabilistic {
 namespace pdbs {
 
-AbstractOperator::AbstractOperator(unsigned id)
+AbstractOperator::AbstractOperator(unsigned id, int cost)
     : original_operator_id(id)
-    , pre(0)
+    , cost(cost)
 {
 }
 
