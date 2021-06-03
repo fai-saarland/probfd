@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <set>
 
 namespace successor_generator {
 template<typename T>
@@ -24,6 +25,37 @@ class AnalysisObjective;
 namespace pdbs {
 
 class ProbabilisticProjection {
+    // Footprint used for detecting duplicate operators.
+    struct ProgressionOperatorFootprint {
+        int precondition_hash;
+        std::vector<std::pair<AbstractState, value_type::value_t>> successors;
+
+        ProgressionOperatorFootprint(
+            int precondition_hash,
+            const AbstractOperator& op)
+            : precondition_hash(precondition_hash)
+            , successors(op.outcomes.begin(), op.outcomes.end())
+        {
+            std::sort(successors.begin(), successors.end());
+        }
+
+        friend bool operator<(
+            const ProgressionOperatorFootprint& a,
+            const ProgressionOperatorFootprint& b)
+        {
+            return std::tie(a.precondition_hash, a.successors) < 
+                std::tie(b.precondition_hash, b.successors);
+        }
+
+        friend bool operator==(
+            const ProgressionOperatorFootprint& a,
+            const ProgressionOperatorFootprint& b)
+        {
+            return std::tie(a.precondition_hash, a.successors) == 
+                std::tie(b.precondition_hash, b.successors);
+        }
+    };
+
 protected:
     using ProgressionSuccessorGenerator = 
         successor_generator::SuccessorGenerator<const AbstractOperator*>;
@@ -46,9 +78,13 @@ public:
 private:
     void setup_abstract_goal();
     void prepare_progression();
+    void add_abstract_operators(
+        const Pattern& pattern,
+        const ProbabilisticOperator& op,
+        std::set<ProgressionOperatorFootprint>& duplicate_set,
+        std::vector<std::vector<std::pair<int, int>>>& preconditions);
 
 protected:
-    void prepare_regression() const;
     void add_to_goals(AbstractState state);
 
     std::vector<int> var_index_;

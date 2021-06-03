@@ -16,9 +16,14 @@ namespace pdbs {
 
 // TODO move to utils
 template <typename T, typename A>
-void setify(std::vector<T, A>& v) {
-    std::sort(v.begin(), v.end());
-    v.erase(std::unique(v.begin(), v.end()), v.end());
+void insert_set_sorted(std::vector<T, A>& vector, T elem) {
+    assert(std::is_sorted(vector.begin(), vector.end()));
+
+    auto it = std::lower_bound(vector.begin(), vector.end(), elem);
+
+    if (it == vector.end() || *it != elem) {
+        vector.insert(it, std::move(elem));
+    }
 }
 
 struct NoGoalVariableException : std::exception {
@@ -97,151 +102,21 @@ void ProbabilisticProjection::setup_abstract_goal()
         base_goal, non_goal_vars, &ProbabilisticProjection::add_to_goals, this);
 }
 
-struct OutcomeInfo {
-    explicit OutcomeInfo(value_type::value_t prob)
-        : base_effect(0), probability(prob) { }
-    AbstractState base_effect;
-    value_type::value_t probability;
-    std::vector<int> missing_pres;
-};
-
 void
 ProbabilisticProjection::prepare_progression()
 {
-    const Pattern& variables = state_mapper_->get_pattern();
+    abstract_operators_.reserve(g_operators.size());
+
+    const Pattern& pattern = state_mapper_->get_pattern();
 
     std::vector<std::vector<std::pair<int, int>>> preconditions;
-    abstract_operators_.reserve(g_operators.size());
     preconditions.reserve(g_operators.size());
 
-    using footprint_t =
-        std::vector<std::pair<AbstractState, value_type::value_t>>;
+    std::set<ProgressionOperatorFootprint> duplicate_set;
 
-    std::set<footprint_t> operators;
-
-    for (unsigned op_id = 0; op_id < g_operators.size(); ++op_id) {
-        const ProbabilisticOperator& op = g_operators[op_id];
-
-        std::vector<int> affected_var_indices;
-        std::vector<int> eff_no_pre_var_indices;
-        std::vector<int> dense_precondition(variables.size(), -1);
-        {
-            for (const auto& [var, val] : op.get_preconditions()) {
-                const int idx = var_index_[var];
-                if (idx != -1) {
-                    dense_precondition[idx] = val;
-                    affected_var_indices.push_back(idx);
-                }
-            }
-        }
-
-        std::vector<OutcomeInfo> outcomes;
-        value_type::value_t self_loop_prob = value_type::zero;
-
-        for (const ProbabilisticOutcome& out : op) {
-            const std::vector<GlobalEffect>& effects = out.op->get_effects();
-            const value_type::value_t prob = out.prob;
-
-            bool self_loop = true;
-            OutcomeInfo info(prob);
-            {
-                for (const auto& [eff_var, eff_val, _] : effects) {
-                    const int idx = var_index_[eff_var];
-
-                    if (idx != -1) {
-                        self_loop = false;
-
-                        const int pre_val = dense_precondition[idx];
-                        int val_change;
-
-                        if (pre_val == -1) {
-                            eff_no_pre_var_indices.push_back(idx);
-                            info.missing_pres.push_back(idx);
-                            val_change = eff_val;
-                        } else {
-                            val_change = eff_val - pre_val;
-                        }
-
-                        info.base_effect +=
-                            state_mapper_->from_value_partial(idx, val_change);
-                    }
-                }
-            }
-
-            if (self_loop) {
-                self_loop_prob += prob;
-            } else {
-                outcomes.emplace_back(std::move(info));
-            }
-        }
-
-        if (!outcomes.empty()) {
-            setify(eff_no_pre_var_indices);
-
-            affected_var_indices.insert(
-                affected_var_indices.end(),
-                eff_no_pre_var_indices.begin(),
-                eff_no_pre_var_indices.end());
-            std::sort(affected_var_indices.begin(), affected_var_indices.end());
-
-            if (value_type::approx_greater()(self_loop_prob, value_type::zero)) {
-                outcomes.emplace_back(self_loop_prob);
-            }
-
-            auto add_operator = [this,
-                                 op,
-                                 op_id,
-                                 &operators,
-                                 &preconditions,
-                                 &outcomes,
-                                 &affected_var_indices](const std::vector<int>& values)
-            {
-                footprint_t footprint;
-
-                AbstractOperator new_op(op_id);
-                new_op.cost = op.get_cost();
-                new_op.pre =
-                    state_mapper_->from_values_partial(affected_var_indices, values);
-#ifndef NDEBUG
-                value_type::value_t sum = value_type::zero;
-#endif
-                for (const auto& out : outcomes) {
-                    const auto& [base_effect, probability, missing_pres] = out;
-#ifndef NDEBUG
-                    assert(value_type::approx_greater()(
-                        probability, value_type::zero));
-                    sum += probability;
-#endif
-                    auto a = state_mapper_->from_values_partial(missing_pres, values);
-                    new_op.outcomes.add(base_effect - a, probability);
-                }
-
-                assert(value_type::approx_equal()(sum, value_type::one));
-
-                for (const auto& out : new_op.outcomes) {
-                    footprint.emplace_back(out.first, out.second);
-                }
-
-                std::sort(footprint.begin(), footprint.end());
-                
-                for (int pre_var_index : affected_var_indices) {
-                    footprint.emplace_back(pre_var_index, values[pre_var_index]);
-                }
-
-                if (operators.insert(footprint).second) {
-                    abstract_operators_.emplace_back(std::move(new_op));
-                    preconditions.emplace_back(affected_var_indices.size());
-                    auto& precons = preconditions.back();
-                    for (size_t j = 0; j < affected_var_indices.size(); ++j) {
-                        const int idx = affected_var_indices[j];
-                        precons[j] = std::make_pair(idx, values[idx]);
-                    }
-                }
-            };
-
-            state_mapper_->enumerate(
-                dense_precondition, eff_no_pre_var_indices, add_operator);
-        }
+    // Generate the abstract operators for each probabilistic operator
+    for (const ProbabilisticOperator& op : g_operators) {
+        add_abstract_operators(pattern, op, duplicate_set, preconditions);
     }
 
     std::vector<const AbstractOperator*> opptrs(abstract_operators_.size());
@@ -254,6 +129,146 @@ ProbabilisticProjection::prepare_progression()
     progression_aops_generator_ =
         std::make_shared<ProgressionSuccessorGenerator>(
             state_mapper_->get_domains(), preconditions, opptrs);
+}
+
+struct OutcomeInfo {
+    AbstractState base_effect = AbstractState(0);
+    std::vector<int> missing_pres;
+
+    friend bool operator<(const OutcomeInfo& a, const OutcomeInfo& b) {
+        return a.base_effect < b.base_effect;
+    }
+
+    friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b) {
+        return a.base_effect == b.base_effect;
+    }
+};
+
+void ProbabilisticProjection::add_abstract_operators(
+    const Pattern& pattern,
+    const ProbabilisticOperator& op,
+    std::set<ProgressionOperatorFootprint>& duplicate_set,
+    std::vector<std::vector<std::pair<int, int>>>& preconditions)
+{
+    const int operator_id = op.get_id();
+    const int cost = op.get_cost();
+
+    // The affected variables (pre + eff)
+    std::vector<int> affected_var_indices;
+
+    // The precondition embedded into an abstract state vector
+    std::vector<int> dense_precondition(pattern.size(), -1);
+    
+    for (const auto [var, val] : op.get_preconditions()) {
+        const int idx = var_index_[var];
+        if (idx != -1) {
+            dense_precondition[idx] = val;
+            affected_var_indices.push_back(idx);
+        }
+    }
+
+    // Info about each probabilistic outcome
+    Distribution<OutcomeInfo> outcomes;
+
+    // Probability for no effect
+    value_type::value_t self_loop_prob = value_type::zero;
+
+    // Variables that appear in effects but not in the precondition
+    std::vector<int> eff_no_pre_var_indices;
+
+    // Collect info about the outcomes
+    for (const ProbabilisticOutcome& out : op) {
+        const std::vector<GlobalEffect>& effects = out.op->get_effects();
+        const value_type::value_t prob = out.prob;
+
+        bool self_loop = true;
+        OutcomeInfo info;
+
+        for (const auto& [eff_var, eff_val, _] : effects) {
+            const int idx = var_index_[eff_var];
+
+            if (idx != -1) {
+                self_loop = false;
+
+                const int pre_val = dense_precondition[idx];
+                int val_change;
+
+                if (pre_val == -1) {
+                    eff_no_pre_var_indices.push_back(idx);
+                    insert_set_sorted(affected_var_indices, idx);
+                    info.missing_pres.push_back(idx);
+                    val_change = eff_val;
+                } else {
+                    val_change = eff_val - pre_val;
+                }
+
+                info.base_effect += state_mapper_->from_value_partial(idx, val_change);
+            }
+        }
+
+        if (self_loop) {
+            self_loop_prob += prob;
+        } else {
+            outcomes.add(std::move(info), prob);
+        }
+    }
+
+    outcomes.make_unique();
+
+    if (value_type::approx_greater()(self_loop_prob, value_type::zero)) {
+        outcomes.add(OutcomeInfo(), self_loop_prob);
+    }
+
+    // We need to enumerate all values for variables that are not part of
+    // the precondition but in an effect. Depending on the value of the
+    // variable, the value change caused by the abstract operator would be
+    // different, hence we generate on operator for each state where enabled.
+
+    // Variables in the precondition need not be enumerated, their value
+    // change is always effect value minus precondition value.
+    auto add_operator = [this,
+                        operator_id,
+                        cost,
+                        &duplicate_set,
+                        &preconditions,
+                        &outcomes,
+                        &affected_var_indices](const std::vector<int>& values)
+    {
+        AbstractOperator new_op(operator_id, cost);
+#ifndef NDEBUG
+        value_type::value_t sum = value_type::zero;
+#endif
+        for (const auto& [info, prob] : outcomes) {
+            const auto& [base_effect, missing_pres] = info;
+#ifndef NDEBUG
+            assert(value_type::approx_greater()(prob, value_type::zero));
+            sum += prob;
+#endif
+            auto a = state_mapper_->from_values_partial(missing_pres, values);
+            new_op.outcomes.add(base_effect - a, prob);
+        }
+
+        assert(value_type::approx_equal()(sum, value_type::one));
+
+        new_op.outcomes.make_unique();
+
+        int pre_hash = state_mapper_->get_unique_partial_state_id(
+            affected_var_indices, values);
+
+        if (duplicate_set.emplace(pre_hash, new_op).second) {
+            abstract_operators_.emplace_back(std::move(new_op));
+            preconditions.emplace_back(affected_var_indices.size());
+            auto& precons = preconditions.back();
+
+            for (size_t j = 0; j < affected_var_indices.size(); ++j) {
+                const int idx = affected_var_indices[j];
+                precons[j] = std::make_pair(idx, values[idx]);
+            }
+        }
+    };
+
+    state_mapper_->enumerate(
+        dense_precondition, eff_no_pre_var_indices, add_operator);
 }
 
 void ProbabilisticProjection::add_to_goals(AbstractState state) {
