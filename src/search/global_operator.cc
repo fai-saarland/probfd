@@ -55,6 +55,13 @@ GlobalOperator::GlobalOperator(istream &in, bool axiom) {
         for (int i = 0; i < count; ++i)
             read_pre_post(in);
 
+        const auto comp = [](const auto& e1, const auto& e2) {
+            return std::tie(e1.var, e1.val) < std::tie(e2.var, e2.val);
+        };
+
+        std::sort(preconditions.begin(), preconditions.end(), comp);
+        std::sort(effects.begin(), effects.end(), comp);
+
         int op_cost;
         in >> op_cost;
         cost = g_use_metric ? op_cost : 1;
