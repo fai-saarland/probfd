@@ -18,16 +18,12 @@ private:
 public:
     using const_iterator = typename distribution_t::const_iterator;
 
-    Distribution() { }
-    Distribution(const Distribution&) = default;
-    Distribution(Distribution&&) = default;
-    explicit Distribution(std::vector<std::pair<T, value_type::value_t>>&& d)
+    Distribution() = default;
+
+    explicit Distribution(distribution_t d)
         : distribution_(std::move(d))
     {
     }
-    ~Distribution() = default;
-    Distribution& operator=(const Distribution&) = default;
-    Distribution& operator=(Distribution&&) = default;
 
     size_t size() const { return distribution_.size(); }
 
@@ -38,10 +34,10 @@ public:
         other.distribution_.swap(distribution_);
     }
 
-    void add(const T& t, value_type::value_t prob)
+    void add(T t, value_type::value_t prob)
     {
         assert(prob > 0.0);
-        distribution_.emplace_back(t, prob);
+        distribution_.emplace_back(std::move(t), prob);
     }
 
     bool empty() const { return distribution_.empty(); }
@@ -67,6 +63,10 @@ public:
 
     void make_unique()
     {
+        if (empty()) {
+            return;
+        }
+
         std::sort(distribution_.begin(), distribution_.end());
         unsigned i = 0;
         for (unsigned j = 1; j < distribution_.size(); ++j) {
