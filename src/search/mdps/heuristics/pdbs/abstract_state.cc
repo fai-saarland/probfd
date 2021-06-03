@@ -15,6 +15,7 @@ AbstractStateMapper(Pattern pattern, const std::vector<int>& domains)
     : vars_(std::move(pattern))
     , domains_(vars_.size())
     , multipliers_(vars_.size(), 1)
+    , partial_multipliers_(vars_.size(), 1)
 {
     assert(!vars_.empty());
     assert(std::is_sorted(vars_.begin(), vars_.end()));
@@ -26,11 +27,12 @@ AbstractStateMapper(Pattern pattern, const std::vector<int>& domains)
         const int d = domains[vars_[i - 1]];
         domains_[i - 1] = d;
 
-        if (multipliers_[i - 1] > maxint / d) {
+        if (partial_multipliers_[i - 1] > maxint / (d + 1)) {
             throw PatternTooLargeException();
         }
 
         multipliers_[i] = multipliers_[i - 1] * d;
+        partial_multipliers_[i] = partial_multipliers_[i - 1] * (d + 1);
     }
 
     assert(vars_.back() < static_cast<int>(domains.size()));
@@ -124,6 +126,19 @@ AbstractState
 AbstractStateMapper::from_value_partial(int idx, int val) const
 {
     return AbstractState(multipliers_[idx] * val);
+}
+
+int
+AbstractStateMapper::get_unique_partial_state_id(
+    const std::vector<int>& indices,
+    const std::vector<int>& values) const
+{
+    assert(values.size() == vars_.size());
+    int id = 0;
+    for (int j : indices) {
+        id += partial_multipliers_[j] * (values[j] + 1);
+    }
+    return id;
 }
 
 std::vector<int>

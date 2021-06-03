@@ -72,6 +72,10 @@ public:
         const std::vector<std::pair<int, int>>& sparse_values) const;
     AbstractState from_value_partial(int idx, int val) const;
 
+    int get_unique_partial_state_id(
+        const std::vector<int>& indices,
+        const std::vector<int>& values) const;
+
     std::vector<int> to_values(AbstractState abstract_state) const;
 
     void
@@ -111,6 +115,7 @@ private:
     std::vector<int> vars_;
     std::vector<int> domains_;
     std::vector<int> multipliers_;
+    std::vector<int> partial_multipliers_;
 };
 
 class AbstractStateToString {
