@@ -4,6 +4,8 @@
 #include "../../probabilistic_operator.h"
 #include "qualitative_result_store.h"
 
+#include "../../../pdbs/pattern_database.h"
+
 namespace probabilistic {
 
 unsigned
@@ -154,12 +156,27 @@ AbstractStateInSetEvaluator::AbstractStateInSetEvaluator(
 {
 }
 
+PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
+    : pdb(pdb)
+{
+}
+
 EvaluationResult
 AbstractStateInSetEvaluator::evaluate(const AbstractState& state)
 {
     const bool is_contained = states_->find(state) != states_->end();
     return EvaluationResult(
         is_contained, is_contained ? value_in_ : value_not_in_);
+}
+
+EvaluationResult
+PDBEvaluator::evaluate(const AbstractState& state)
+{
+    int deterministic_val = pdb.get_value_for_index(state.id);
+
+    return EvaluationResult(
+        deterministic_val == std::numeric_limits<int>::max(),
+        static_cast<value_type::value_t>(deterministic_val));
 }
 
 value_type::value_t

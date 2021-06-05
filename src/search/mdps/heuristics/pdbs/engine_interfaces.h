@@ -20,6 +20,10 @@ template<typename T>
 class SuccessorGenerator;
 }
 
+namespace pdbs {
+class PatternDatabase;
+}
+
 namespace probabilistic {
 
 template<>
@@ -168,6 +172,17 @@ private:
     const std::unordered_set<AbstractState>* states_;
     const value_type::value_t value_in_;
     const value_type::value_t value_not_in_;
+};
+
+class PDBEvaluator : public StateEvaluator<AbstractState> {
+public:
+    explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
+
+protected:
+    virtual EvaluationResult evaluate(const AbstractState& state) override;
+
+private:
+    const ::pdbs::PatternDatabase& pdb;
 };
 
 class ZeroCostActionEvaluator
