@@ -7,6 +7,10 @@ template<typename T>
 class SuccessorGenerator;
 }
 
+namespace pdbs {
+class PatternDatabase;
+}
+
 namespace probabilistic {
 
 class AnalysisObjective;
@@ -18,18 +22,22 @@ class ExpCostProjection : public ProbabilisticProjection {
     unsigned int reachable_states = 0;
 
 public:
-    ExpCostProjection(const Pattern& variables);
     ExpCostProjection(
         const Pattern& variables,
-        const std::vector<int>& domains);
+        AbstractStateEvaluator* heuristic = nullptr);
+    
+    ExpCostProjection(
+        const Pattern& variables,
+        const std::vector<int>& domains,
+        AbstractStateEvaluator* heuristic = nullptr);
+
+    ExpCostProjection(const ::pdbs::PatternDatabase& pdb);
+
     ~ExpCostProjection() = default;
 
     value_type::value_t get_value(const GlobalState &state) const;
 
     unsigned int num_reachable_states() const;
-
-    std::vector<value_type::value_t>& get_value_table();
-    const std::vector<value_type::value_t>& get_value_table() const;
 
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
     [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
@@ -40,7 +48,7 @@ public:
         bool values = true) const;
 
 private:
-    void compute_value_table();
+    void compute_value_table(AbstractStateEvaluator* heuristic = nullptr);
 
     template<typename StateToString, typename ActionToString>
     void dump_graphviz(

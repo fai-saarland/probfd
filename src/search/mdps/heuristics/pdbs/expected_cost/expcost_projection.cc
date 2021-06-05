@@ -6,6 +6,8 @@
 #include "../../../globals.h"
 #include "../../../utils/graph_visualization.h"
 
+#include "../../../../pdbs/pattern_database.h"
+
 #include <deque>
 #include <sstream>
 #include <numeric>
@@ -14,19 +16,33 @@
 namespace probabilistic {
 namespace pdbs {
 
-ExpCostProjection::ExpCostProjection(const Pattern& variables)
-    : ExpCostProjection(variables, ::g_variable_domain)
+ExpCostProjection::
+ExpCostProjection(const Pattern& variables, AbstractStateEvaluator* heuristic)
+    : ExpCostProjection(variables, ::g_variable_domain, heuristic)
 {
 }
 
 ExpCostProjection::
-ExpCostProjection(const Pattern& variables, const std::vector<int> &domains)
+ExpCostProjection(
+    const Pattern& variables,
+    const std::vector<int> &domains,
+    AbstractStateEvaluator* heuristic)
     : ProbabilisticProjection(variables, domains)
     , value_table(
         state_mapper_->size(),
         -std::numeric_limits<value_type::value_t>::infinity())
 {
-    compute_value_table();
+    compute_value_table(heuristic);
+}
+
+ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
+    : ProbabilisticProjection(pdb.get_pattern(), ::g_variable_domain)
+    , value_table(
+        state_mapper_->size(),
+        -std::numeric_limits<value_type::value_t>::infinity())
+{
+    PDBEvaluator heuristic(pdb);
+    compute_value_table(&heuristic);
 }
 
 value_type::value_t
@@ -37,16 +53,6 @@ ExpCostProjection::get_value(const GlobalState &state) const {
 
 unsigned int ExpCostProjection::num_reachable_states() const {
     return reachable_states;
-}
-
-std::vector<value_type::value_t>&
-ExpCostProjection::get_value_table() {
-    return value_table;
-}
-
-const std::vector<value_type::value_t>&
-ExpCostProjection::get_value_table() const {
-    return value_table;
 }
 
 value_type::value_t
@@ -103,7 +109,7 @@ ExpCostProjection::dump_graphviz(
 }
 
 void
-ExpCostProjection::compute_value_table()
+ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
 {
     AbstractStateInSetEvaluator is_goal(
         &goal_states_,
@@ -121,7 +127,7 @@ ExpCostProjection::compute_value_table()
 
     engines::topological_vi::TopologicalValueIteration
         <AbstractState, const AbstractOperator*, true>
-        vi(nullptr,
+        vi(heuristic,
            &state_id_map,
            &action_id_map,
            &is_goal,
