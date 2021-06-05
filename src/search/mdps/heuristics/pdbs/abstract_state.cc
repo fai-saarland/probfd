@@ -10,6 +10,177 @@
 namespace probabilistic {
 namespace pdbs {
 
+AbstractStateMapper::CartesianSubsetIterator::
+CartesianSubsetIterator(
+    std::vector<int> values,
+    std::vector<int> indices,
+    const std::vector<int>& multipliers,
+    const std::vector<int>& domains)
+    : values_(std::move(values))
+    , indices_(std::move(indices))
+    , multipliers_(multipliers)
+    , domains_(domains)
+    , i(indices_.size())
+{
+    assert(values_.size() >= indices_.size());
+
+    for (size_t i = 0; i < indices_.size(); ++i) {
+        assert(0 <= indices_[i]);
+        assert(static_cast<size_t>(indices_[i]) < values_.size());
+        values_[indices_[i]] = 0;
+    }
+}
+
+AbstractStateMapper::CartesianSubsetIterator&
+AbstractStateMapper::CartesianSubsetIterator::operator++()
+{
+    assert(i >= 0);
+
+    do
+    {
+        if (static_cast<size_t>(i) == indices_.size()) {
+            --i;
+            break;
+        }
+
+        const int idx = indices_[i];
+        const int next = values_[idx] + 1;
+
+        if (next < domains_[idx]) {
+            values_[idx] = next;
+            ++i;
+        } else {
+            values_[idx] = -1;
+            --i;
+        }
+    } while (i >= 0);
+
+    return *this;
+}
+
+AbstractStateMapper::CartesianSubsetIterator&
+AbstractStateMapper::CartesianSubsetIterator::operator--()
+{
+    assert(i >= 0);
+
+    do
+    {
+        if (static_cast<size_t>(i) == indices_.size()) {
+            --i;
+            break;
+        }
+        
+        const int idx = indices_[i];
+        const int next = values_[idx] - 1;
+
+        if (next >= 0) {
+            values_[idx] = next;
+            ++i;
+        } else {
+            values_[idx] = domains_[idx];
+            --i;
+        }
+    } while (i >= 0);
+
+    return *this;
+}
+
+AbstractStateMapper::CartesianSubsetIterator::reference
+AbstractStateMapper::CartesianSubsetIterator::operator*()
+{
+    return values_;
+}
+
+AbstractStateMapper::CartesianSubsetIterator::pointer
+AbstractStateMapper::CartesianSubsetIterator::operator->()
+{
+    return &values_;
+}
+
+bool operator==(
+    const AbstractStateMapper::CartesianSubsetIterator& a,
+    const AbstractStateMapper::CartesianSubsetEndIterator&)
+{
+    return a.i == -1;
+}
+
+bool operator!=(
+    const AbstractStateMapper::CartesianSubsetIterator& a,
+    const AbstractStateMapper::CartesianSubsetEndIterator&)
+{
+    return a.i != -1;
+}
+
+
+AbstractStateMapper::PartialStateIterator::
+PartialStateIterator(
+    AbstractState state,
+    std::vector<int> indices,
+    const std::vector<int>& multipliers,
+    const std::vector<int>& domains)
+    : state_(state)
+    , indices_(std::move(indices))
+    , index_multipliers_(indices_.size())
+    , iterations_left_(indices_.size())
+    , index(indices_.size())
+{
+    for (size_t i = 0; i != indices_.size(); ++i) {
+        const int index = indices_[i];
+        index_multipliers_[i] = multipliers[index];
+        iterations_left_[i] = domains[index];
+    }
+}
+
+AbstractStateMapper::PartialStateIterator&
+AbstractStateMapper::PartialStateIterator::operator++()
+{
+    assert(index >= 0);
+
+    do {
+        if (static_cast<size_t>(index) == indices_.size()) {
+            --index;
+            break;
+        }
+        
+        if (iterations_left_[index] > 0) {
+            state_.id += index_multipliers_[index];
+            --iterations_left_[index];
+            ++index;
+        } else {
+            --index;
+        }
+    } while (index >= 0);
+
+    return *this;
+}
+
+AbstractState
+AbstractStateMapper::PartialStateIterator::operator*()
+{
+    return state_;
+}
+
+AbstractState*
+AbstractStateMapper::PartialStateIterator::operator->()
+{
+    return &state_;
+}
+
+bool operator==(
+    const AbstractStateMapper::PartialStateIterator& a,
+    const AbstractStateMapper::PartialStateEndIterator&)
+{
+    return a.index == -1;
+}
+
+bool operator!=(
+    const AbstractStateMapper::PartialStateIterator& a,
+    const AbstractStateMapper::PartialStateEndIterator&)
+{
+    return a.index != -1;
+}
+
+
 AbstractStateMapper::
 AbstractStateMapper(Pattern pattern, const std::vector<int>& domains)
     : vars_(std::move(pattern))
@@ -160,6 +331,34 @@ AbstractStateMapper::to_values(
     for (size_t i = 0; i < vars_.size(); ++i) {
         values[i] = ((int)(abstract_state.id / multipliers_[i])) % domains_[i];
     }
+}
+
+AbstractStateMapper::CartesianSubsetIterator
+AbstractStateMapper::cartesian_subsets_begin(
+    std::vector<int> values, 
+    std::vector<int> indices) const
+{
+    return CartesianSubsetIterator(values, indices, multipliers_, domains_);
+}
+
+AbstractStateMapper::CartesianSubsetEndIterator
+AbstractStateMapper::cartesian_subsets_end() const 
+{
+    return CartesianSubsetEndIterator();
+}
+
+AbstractStateMapper::PartialStateIterator
+AbstractStateMapper::partial_states_begin(
+    AbstractState offset,
+    std::vector<int> indices) const
+{
+    return PartialStateIterator(offset, indices, multipliers_, domains_);
+}
+
+AbstractStateMapper::PartialStateEndIterator
+AbstractStateMapper::partial_states_end() const
+{
+    return PartialStateEndIterator();
 }
 
 AbstractStateToString::AbstractStateToString(

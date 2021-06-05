@@ -54,6 +54,113 @@ extern std::ostream& operator<<(std::ostream& out, const AbstractState& s);
 
 class AbstractStateMapper {
 public:
+    class CartesianSubsetIterator;
+    class CartesianSubsetEndIterator;
+
+    class PartialStateIterator;
+    class PartialStateEndIterator;
+
+    class CartesianSubsetIterator {
+        friend AbstractStateMapper;
+
+        using reference = std::vector<int>&;
+        using pointer = std::vector<int>*;
+
+        std::vector<int> values_;
+        std::vector<int> indices_;
+
+        const std::vector<int>& multipliers_;
+        const std::vector<int>& domains_;
+
+        int i;
+
+    public:
+        CartesianSubsetIterator(
+            std::vector<int> values,
+            std::vector<int> indices,
+            const std::vector<int>& multipliers,
+            const std::vector<int>& domains);
+
+        CartesianSubsetIterator& operator++();
+        CartesianSubsetIterator& operator--();
+
+        CartesianSubsetIterator operator++(int) = delete;
+        CartesianSubsetIterator operator--(int) = delete;
+
+        reference operator*();
+        pointer operator->();
+
+        friend bool operator==(
+            const CartesianSubsetIterator&,
+            const CartesianSubsetEndIterator&);
+
+        friend bool operator!=(
+            const CartesianSubsetIterator&,
+            const CartesianSubsetEndIterator&);
+    };
+
+    class CartesianSubsetEndIterator {
+        friend AbstractStateMapper;
+
+        friend bool operator==(
+            const CartesianSubsetIterator&,
+            const CartesianSubsetEndIterator&);
+
+        friend bool operator!=(
+            const CartesianSubsetIterator&,
+            const CartesianSubsetEndIterator&);
+    };
+
+    class PartialStateIterator {
+        friend AbstractStateMapper;
+
+        AbstractState state_;
+
+        std::vector<int> indices_;
+
+        std::vector<int> index_multipliers_;
+        std::vector<int> iterations_left_;
+
+        int index = 0;
+
+    public:
+        PartialStateIterator(
+            AbstractState state,
+            std::vector<int> indices,
+            const std::vector<int>& multipliers,
+            const std::vector<int>& domains);
+
+        PartialStateIterator& operator++();
+        PartialStateIterator& operator--() = delete;
+
+        PartialStateIterator operator++(int) = delete;
+        PartialStateIterator operator--(int) = delete;
+
+        AbstractState operator*();
+        AbstractState* operator->();
+
+        friend bool operator==(
+            const PartialStateIterator&,
+            const PartialStateEndIterator&);
+
+        friend bool operator!=(
+            const PartialStateIterator&,
+            const PartialStateEndIterator&);
+    };
+
+    class PartialStateEndIterator {
+        friend AbstractStateMapper;
+
+        friend bool operator==(
+            const PartialStateIterator&,
+            const PartialStateEndIterator&);
+
+        friend bool operator!=(
+            const PartialStateIterator&,
+            const PartialStateEndIterator&);
+    };
+
+public:
     AbstractStateMapper(Pattern pattern, const std::vector<int>& domains);
     ~AbstractStateMapper() = default;
 
@@ -81,36 +188,19 @@ public:
     void
     to_values(AbstractState abstract_state, std::vector<int>& values) const;
 
-    template<typename Callback>
-    void enumerate(
-        std::vector<int>& values,
-        const std::vector<int>& indices,
-        Callback callback) const;
+    CartesianSubsetIterator cartesian_subsets_begin(
+        std::vector<int> values,
+        std::vector<int> indices) const;
 
-    template<typename Callback, typename... Args>
-    void for_each_partial_state(
-        AbstractState partial_offset,
-        const std::vector<int>& indices,
-        Callback callback,
-        Args&&... args) const;
+    CartesianSubsetEndIterator cartesian_subsets_end() const;
+
+    PartialStateIterator partial_states_begin(
+        AbstractState offset,
+        std::vector<int> indices) const;
+
+    PartialStateEndIterator partial_states_end() const;
 
 private:
-    template<typename Callback>
-    void enumerate(
-        std::vector<int>& values,
-        const std::vector<int>& indices,
-        const Callback& callback,
-        unsigned i) const;
-
-    template<typename Callback, typename... Args>
-    void for_each_partial_state(
-        const std::vector<int>& multipliers,
-        const std::vector<int>& domains,
-        AbstractState base,
-        unsigned i,
-        const Callback& callback,
-        Args&&... args) const;
-
     unsigned size_;
     std::vector<int> vars_;
     std::vector<int> domains_;
@@ -127,89 +217,6 @@ public:
 private:
     std::shared_ptr<AbstractStateMapper> state_mapper_;
 };
-
-template<typename Callback>
-void
-AbstractStateMapper::enumerate(
-    std::vector<int>& values,
-    const std::vector<int>& indices,
-    Callback callback) const
-{
-    enumerate(values, indices, callback, 0);
-}
-
-template<typename Callback, typename... Args>
-void
-AbstractStateMapper::for_each_partial_state(
-    AbstractState partial_offset,
-    const std::vector<int>& indices,
-    Callback callback,
-    Args&&... args) const
-{
-    std::vector<int> fetched_multipliers(indices.size());
-    std::vector<int> fetched_domains(indices.size());
-
-    for (size_t i = 0; i != indices.size(); ++i) {
-        const int index = indices[i];
-        fetched_multipliers[i] = multipliers_[index];
-        fetched_domains[i] = domains_[index];
-    }
-
-    for_each_partial_state(
-        fetched_multipliers,
-        fetched_domains,
-        partial_offset,
-        0,
-        callback,
-        std::forward<Args>(args)...);
-}
-
-template<typename Callback>
-void
-AbstractStateMapper::enumerate(
-    std::vector<int>& values,
-    const std::vector<int>& indices,
-    const Callback& callback,
-    unsigned i) const
-{
-    if (i == indices.size()) {
-        callback(values);
-    } else {
-        const int idx = indices[i];
-        for (int val = 0; val < domains_[idx]; val++) {
-            values[idx] = val;
-            enumerate(values, indices, callback, i + 1);
-        }
-        values[idx] = -1;
-    }
-}
-
-template<typename Callback, typename... Args>
-void
-AbstractStateMapper::for_each_partial_state(
-    const std::vector<int>& multipliers,
-    const std::vector<int>& domains,
-    AbstractState base,
-    unsigned i,
-    const Callback& callback,
-    Args&&... args) const
-{
-    if (i == multipliers.size()) {
-        std::invoke(callback, std::forward<Args>(args)..., base);
-    } else {
-        const int mult = multipliers[i];
-        for (int val = 0; val < domains[i]; val++) {
-            for_each_partial_state(
-                multipliers,
-                domains,
-                base,
-                i + 1,
-                callback,
-                std::forward<Args>(args)...);
-            base.id += mult;
-        }
-    }
-}
 
 } // namespace pdbs
 } // namespace probabilistic

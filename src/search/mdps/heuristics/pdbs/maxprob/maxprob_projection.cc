@@ -84,15 +84,18 @@ void MaxProbProjection::prepare_regression()
         std::sort(projected_eff.begin(), projected_eff.end());
         std::sort(eff_no_pre.begin(), eff_no_pre.end());
 
-        const auto add_operator = [&](AbstractState regression)
-        {
+        auto it = state_mapper_->partial_states_begin(
+            pre - eff, std::move(eff_no_pre));
+        auto end = state_mapper_->partial_states_end();
+
+        for (; it != end; ++it) {
+            AbstractState regression = *it;
+
             if (regression.id != 0 && operator_set.emplace(eff, regression).second) {
                 progressions.push_back(projected_eff);
                 operators.push_back(regression);
             }
-        };
-
-        state_mapper_->for_each_partial_state(pre - eff, eff_no_pre, add_operator);
+        }
     }
 
     regression_aops_generator_ =

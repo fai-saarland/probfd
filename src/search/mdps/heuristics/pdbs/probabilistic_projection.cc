@@ -14,6 +14,13 @@
 namespace probabilistic {
 namespace pdbs {
 
+template <typename T, typename A>
+void make_set(std::vector<T, A>& vector) {
+    std::sort(vector.begin(), vector.end());
+    auto it = std::unique(vector.begin(), vector.end());
+    vector.erase(it, vector.end());
+}
+
 // TODO move to utils
 template <typename T, typename A>
 void insert_set_sorted(std::vector<T, A>& vector, T elem) {
@@ -98,8 +105,14 @@ void ProbabilisticProjection::setup_abstract_goal()
     }
     
     AbstractState base_goal = state_mapper_->from_values_partial(sparse_goal_);
-    state_mapper_->for_each_partial_state(
-        base_goal, non_goal_vars, &ProbabilisticProjection::add_to_goals, this);
+
+    auto it = state_mapper_->partial_states_begin(
+        base_goal, std::move(non_goal_vars));
+    auto end = state_mapper_->partial_states_end();
+
+    for (; it != end; ++it) {
+        goal_states_.insert(*it);
+    }
 }
 
 void
@@ -213,6 +226,7 @@ void ProbabilisticProjection::add_abstract_operators(
         }
     }
 
+    make_set(eff_no_pre_var_indices);
     outcomes.make_unique();
 
     if (value_type::approx_greater()(self_loop_prob, value_type::zero)) {
@@ -226,14 +240,15 @@ void ProbabilisticProjection::add_abstract_operators(
 
     // Variables in the precondition need not be enumerated, their value
     // change is always effect value minus precondition value.
-    auto add_operator = [this,
-                        operator_id,
-                        cost,
-                        &duplicate_set,
-                        &preconditions,
-                        &outcomes,
-                        &affected_var_indices](const std::vector<int>& values)
+
+    auto it = state_mapper_->cartesian_subsets_begin(
+        std::move(dense_precondition), std::move(eff_no_pre_var_indices));
+    auto end = state_mapper_->cartesian_subsets_end();
+
+    for (; it != end; ++it)
     {
+        const std::vector<int>& values = *it;
+
         AbstractOperator new_op(operator_id, cost);
 #ifndef NDEBUG
         value_type::value_t sum = value_type::zero;
@@ -266,9 +281,6 @@ void ProbabilisticProjection::add_abstract_operators(
             }
         }
     };
-
-    state_mapper_->enumerate(
-        dense_precondition, eff_no_pre_var_indices, add_operator);
 }
 
 void ProbabilisticProjection::add_to_goals(AbstractState state) {
