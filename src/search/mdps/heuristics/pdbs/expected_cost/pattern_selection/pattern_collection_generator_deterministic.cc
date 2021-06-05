@@ -2,6 +2,9 @@
 
 #include "../../../../../option_parser.h"
 #include "../../../../../plugin.h"
+#include "../../../../../pdbs/pattern_database.h"
+
+#include "../expcost_projection.h"
 
 using namespace std;
 
@@ -29,8 +32,21 @@ PatternCollectionGeneratorDeterministic(options::Options& opts)
 PatternCollectionInformation
 PatternCollectionGeneratorDeterministic::generate(OperatorCost cost_type)
 {
-    ::pdbs::PatternCollectionInformation info = gen->generate(cost_type);
-    return PatternCollectionInformation(info.get_patterns(), additivity);
+    ::pdbs::PatternCollectionInformation det_info = gen->generate(cost_type);
+
+    std::shared_ptr<ExpCostPDBCollection> expcost_pdbs(new ExpCostPDBCollection());
+
+    for (auto& pdb_ptr : *det_info.get_pdbs()) {
+        expcost_pdbs->emplace_back(new ExpCostProjection(*pdb_ptr));
+        pdb_ptr.reset();
+    }
+
+    PatternCollectionInformation info(det_info.get_patterns(), additivity);
+    
+    info.set_pdbs(expcost_pdbs);
+    info.set_pattern_cliques(det_info.get_pattern_cliques());
+
+    return info;
 }
 
 static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser) {
