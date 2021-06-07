@@ -272,8 +272,7 @@ void ProbabilisticProjection::add_abstract_operators(
 
         if (duplicate_set.emplace(pre_hash, new_op).second) {
             abstract_operators_.emplace_back(std::move(new_op));
-            preconditions.emplace_back(affected_var_indices.size());
-            auto& precons = preconditions.back();
+            auto& precons = preconditions.emplace_back(affected_var_indices.size());
 
             for (size_t j = 0; j < affected_var_indices.size(); ++j) {
                 const int idx = affected_var_indices[j];
@@ -281,10 +280,6 @@ void ProbabilisticProjection::add_abstract_operators(
             }
         }
     };
-}
-
-void ProbabilisticProjection::add_to_goals(AbstractState state) {
-    goal_states_.insert(state);
 }
 
 } // namespace pdbs
