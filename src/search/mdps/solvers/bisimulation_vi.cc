@@ -99,6 +99,7 @@ public:
             solver = new engines::topological_vi::TopologicalValueIteration<
                 bisimulation::QuotientState,
                 bisimulation::QuotientAction>(
+                value_utils::SingleValue(value_type::zero),
                 nullptr,
                 &state_id_map,
                 &action_id_map,

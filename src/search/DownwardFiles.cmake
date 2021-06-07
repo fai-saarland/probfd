@@ -535,6 +535,7 @@ fast_downward_plugin(
     HELP "Core source files for supporting MDPs"
     SOURCES
         mdps/value_type
+        mdps/value_utils
         mdps/logging
         mdps/evaluation_result
         mdps/globals

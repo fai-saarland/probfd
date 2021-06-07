@@ -27,7 +27,7 @@ copy_lower_bounds(
         const StateID stateid(i);
         if (!filter0->operator[](stateid)
             && (filter1 == nullptr || !filter1->operator[](stateid))) {
-            target[stateid] = vs->operator[](stateid).value;
+            target[stateid] = vs->operator[](stateid).lower;
             ++res;
         }
     }
@@ -47,7 +47,7 @@ copy_upper_bounds(
         const StateID stateid(i);
         if (!filter0->operator[](stateid)
             && (filter1 == nullptr || !filter1->operator[](stateid))) {
-            target[stateid] = vs->operator[](stateid).value2;
+            target[stateid] = vs->operator[](stateid).upper;
             ++res;
         }
     }
@@ -57,13 +57,13 @@ copy_upper_bounds(
 inline value_type::value_t
 upper_bound(const ValueStore::reference b)
 {
-    return b.value2;
+    return b.upper;
 }
 
 inline value_type::value_t
 lower_bound(const ValueStore::reference b)
 {
-    return b.value;
+    return b.lower;
 }
 
 template<typename State, typename Action, bool ExpandGoalStates = false>
@@ -193,6 +193,7 @@ private:
         if (extract_probability_one_states_) {
             assert(one_states != nullptr);
             ValueIteration<BoolStore> vi(
+                value_utils::IntervalValue(value_type::zero, value_type::one),
                 nullptr,
                 dead_ends,
                 one_states,
@@ -209,6 +210,7 @@ private:
             return result;
         } else {
             ValueIteration<void> vi(
+                value_utils::IntervalValue(value_type::zero, value_type::one),
                 nullptr,
                 dead_ends,
                 static_cast<void*>(nullptr),
