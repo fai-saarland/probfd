@@ -85,8 +85,6 @@ private:
         std::vector<std::vector<std::pair<int, int>>>& preconditions);
 
 protected:
-    void add_to_goals(AbstractState state);
-
     std::vector<int> var_index_;
     std::shared_ptr<AbstractStateMapper> state_mapper_;
     std::vector<std::pair<int, int>> sparse_goal_;
