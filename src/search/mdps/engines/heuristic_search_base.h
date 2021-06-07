@@ -9,7 +9,7 @@
 #include "../utils/graph_visualization.h"
 #include "engine.h"
 #include "heuristic_search_state_information.h"
-#include "value_utils.h"
+#include "../value_utils.h"
 
 #if defined(EXPENSIVE_STATISTICS)
 #include "../../utils/timer.h"
@@ -218,7 +218,7 @@ public:
     virtual value_type::value_t get_result(const State& s) override
     {
         const StateInfo& info = state_infos_[this->get_state_id(s)];
-        return info.get_value();
+        return as_upper_bound(info.value);
     }
 
     virtual bool supports_error_bound() const override
@@ -228,8 +228,12 @@ public:
 
     virtual value_type::value_t get_error(const State& s) override
     {
-        const StateInfo& info = state_infos_[this->get_state_id(s)];
-        return info.error_bound();
+        if constexpr (DualBounds::value) {
+            const StateInfo& info = state_infos_[this->get_state_id(s)];
+            return info.value.error_bound();
+        } else {
+            return std::numeric_limits<value_type::value_t>::infinity();
+        }
     }
 
     virtual void print_statistics(std::ostream& out) const override
@@ -269,7 +273,7 @@ public:
     bool has_dead_end_value(const StateID& state)
     {
         const StateInfo& info = state_infos_[state];
-        return info.value == dead_end_value_.first;
+        return info.value == dead_end_value_;
     }
 
     bool is_marked_dead_end(const StateID& state)
@@ -312,7 +316,7 @@ public:
     {
         StateInfo& info = state_infos_[state_id];
         info.set_recognized_dead_end();
-        info.set_value(dead_end_value_);
+        info.value = dead_end_value_;
     }
 
     bool conditional_set_dead_end(const StateID& state_id)
@@ -329,7 +333,7 @@ public:
     void set_dead_end(StateInfo& info)
     {
         info.set_recognized_dead_end();
-        info.set_value(dead_end_value_);
+        info.value = dead_end_value_;
     }
 
     void notify_dead_end(const StateID& state_id)
@@ -491,7 +495,7 @@ public:
             } else if (state_info.is_dead_end()) {
                 statistics_.dead_end_safe_updates_states++;
                 statistics_.dead_end_safe_updates_dead_ends++;
-                state_info.set_value(dead_end_value_);
+                state_info.value = dead_end_value_;
                 state_info.set_recognized_dead_end();
                 listener(expansion_data.state);
                 expansion_queue.pop_back();
@@ -538,8 +542,7 @@ public:
                             expansion_data.state, expansion_data.aops);
                         if (expansion_data.aops.empty()) {
                             state_info.set_dead_end();
-                            result.second = state_info.update_value(
-                                interval_comparison_, dead_end_value_);
+                            result.second = this->update(state_info, dead_end_value_);
                             continue;
                         }
                         stack.push_front(expansion_data.state);
@@ -555,9 +558,7 @@ public:
                                 const StateID stack_state_id = *end;
                                 auto& info = state_infos_[stack_state_id];
                                 info.set_recognized_dead_end();
-                                result.second =
-                                    info.update_value(
-                                        interval_comparison_, dead_end_value_)
+                                result.second = this->update(info, dead_end_value_)
                                     || result.second;
                                 indices[stack_state_id].onstack = false;
                                 statistics_.dead_end_safe_updates_dead_ends++;
@@ -630,6 +631,16 @@ public:
     }
 
 protected:
+    bool update(StateInfo& state_info, const IncumbentSolution& other)
+    {
+        if constexpr (DualBounds::value) {
+            return update_check(state_info.value, other, interval_comparison_);
+        } else {
+            return update_check(state_info.value, other);
+        }
+    }
+
+
 #if 0
     value_type::value_t create_result(const StateID& id)
     {
@@ -654,9 +665,9 @@ protected:
         const StateInfo& info = lookup_initialize(this->get_state_id(state));
         // this->state_infos_[this->state_id_map_->operator[](state)];
         this->add_values_to_report(&info);
-        statistics_.value = info.get_value();
+        statistics_.value = as_upper_bound(info.value);
         statistics_.before_last_update = statistics_;
-        statistics_.initial_state_estimate = info.get_value();
+        statistics_.initial_state_estimate = as_upper_bound(info.value);
         statistics_.initial_state_found_terminal = info.is_terminal();
 
         setup_custom_reports(state);
@@ -674,21 +685,14 @@ protected:
     template<typename Info>
     bool do_bounds_disagree(const StateID& state_id, const Info& info)
     {
-        if constexpr (std::is_same_v<Info, StateInfo>) {
-            return DualBounds::value && interval_comparison_
-                && !info.bounds_equal();
-        } else {
-            return DualBounds::value && interval_comparison_
-                && !state_infos_[state_id].bounds_equal();
-        }
-    }
-
-    const value_type::value_t& get_lower_bound(const StateInfo& info) const
-    {
         if constexpr (DualBounds::value) {
-            return info.value2;
+            if constexpr (std::is_same_v<Info, StateInfo>) {
+                return interval_comparison_ && !info.value.bounds_equal();
+            } else {
+                return interval_comparison_ && !state_infos_[state_id].value.bounds_equal();
+            }
         } else {
-            return info.value;
+            return false;
         }
     }
 
@@ -760,10 +764,16 @@ private:
     void add_values_to_report(const StateInfo* info)
     {
         if constexpr (DualBounds::value) {
-            report_->register_value("vl", [info]() { return info->value2; });
-            report_->register_value("vu", [info]() { return info->value; });
+            report_->register_value("vl", [info]() {
+                return as_lower_bound(info->value);
+            });
+            report_->register_value("vu", [info]() {
+                return as_upper_bound(info->value);
+            });
         } else {
-            report_->register_value("v", [info]() { return info->value; });
+            report_->register_value("v", [info]() {
+                return as_upper_bound(info->value);
+            });
         }
     }
 
@@ -781,8 +791,7 @@ private:
             auto estimate = this->get_state_reward(state);
             if (estimate) {
                 state_info.set_goal();
-                state_info.set_value(
-                    IncumbentSolution((value_type::value_t)estimate));
+                state_info.value = IncumbentSolution((value_type::value_t)estimate);
                 statistics_.goal_states++;
                 if (on_new_state_)
                     on_new_state_->touch_goal(state);
@@ -791,12 +800,20 @@ private:
                 if (estimate) {
                     statistics_.pruned_states++;
                     state_info.set_recognized_dead_end();
-                    state_info.set_value(dead_end_value_);
+                    state_info.value = dead_end_value_;
                     if (on_new_state_)
                         on_new_state_->touch_dead_end(state);
                 } else {
                     state_info.set_on_fringe();
-                    state_info.set_value((value_type::value_t)estimate);
+
+                    if constexpr (DualBounds::value) {
+                        state_info.value.upper =
+                            static_cast<value_type::value_t>(estimate);
+                    } else {
+                        state_info.value.value =
+                            static_cast<value_type::value_t>(estimate);
+                    }
+
                     if (on_new_state_)
                         on_new_state_->touch(state);
                 }
@@ -807,7 +824,7 @@ private:
 
     IncumbentSolution dead_end_value() const
     {
-        return IncumbentSolution(dead_end_value_.first);
+        return dead_end_value_;
     }
 
     template<typename T>
@@ -883,8 +900,7 @@ private:
 
         if (aops_.empty()) {
             statistics_.terminal_states++;
-            bool result =
-                state_info.update_value(interval_comparison_, dead_end_value_);
+            bool result = this->update(state_info, dead_end_value_);
             state_info.set_dead_end();
             state_info.set_policy(ActionID::undefined);
 #if defined(EXPENSIVE_STATISTICS)
@@ -922,15 +938,13 @@ private:
                 } else {
                     const StateInfo& succ_info =
                         lookup_initialize(succ_id, state_infos_[succ_id]);
-                    value_utils::add(t_value, it->second, succ_info);
+                    t_value += it->second * succ_info.value;
                     non_loop = true;
                 }
             }
             if (non_loop) {
                 if (has_self_loop) {
-                    value_utils::mult(
-                        t_value,
-                        value_type::one / (value_type::one - self_loop));
+                    t_value *= value_type::one / (value_type::one - self_loop);
                 }
 
                 values.push_back(t_value);
@@ -938,7 +952,7 @@ private:
                     first = false;
                     new_value = t_value;
                 } else {
-                    value_utils::update_incumbent(new_value, t_value);
+                    value_utils::update(new_value, t_value);
                 }
                 if (non_loop_transitions != i) {
                     optimal_transitions_[i].swap(
@@ -958,8 +972,7 @@ private:
 
         if (non_loop_transitions == 0) {
             statistics_.self_loop_states++;
-            const bool result =
-                state_info.update_value(interval_comparison_, dead_end_value_);
+            const bool result = this->update(state_info, dead_end_value_);
             state_info.set_policy(ActionID::undefined);
             state_info.set_dead_end();
             return result;
@@ -1032,7 +1045,7 @@ private:
 #endif
         }
 
-        if (state_info.update_value(interval_comparison_, new_value)) {
+        if (this->update(state_info, new_value)) {
             ++statistics_.value_changes;
             if (state_id == initial_state_id_) {
                 statistics_.jump();

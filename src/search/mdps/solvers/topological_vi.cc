@@ -4,6 +4,9 @@
 #include "../state_evaluator.h"
 #include "mdp_solver.h"
 
+#include "../globals.h"
+#include "../analysis_objective.h"
+
 namespace probabilistic {
 namespace solvers {
 
@@ -18,6 +21,7 @@ public:
               opts.contains("eval")
                   ? opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval")
                   : nullptr)
+        , init_value(g_analysis_objective->max())
     {
     }
 
@@ -35,11 +39,13 @@ public:
 
     virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
-        return engine_factory<TVIEngine>(prune_.get());
+        return engine_factory<TVIEngine>(
+            value_utils::SingleValue(init_value), prune_.get());
     }
 
 private:
     std::shared_ptr<GlobalStateEvaluator> prune_;
+    value_type::value_t init_value;
 };
 
 static Plugin<SolverInterface> _plugin(

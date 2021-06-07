@@ -567,9 +567,15 @@ private:
             const bool updated =
                 this->async_update(stateid, nullptr, &transition_);
             einfo.value_changed = updated;
-            parent_value_changed = parent_value_changed || einfo.value_changed
-                || (DualBounds::value && this->interval_comparison_
-                    && !state_status_(stateid, sinfo).bounds_equal());
+
+            if constexpr (DualBounds::value) {
+                parent_value_changed = parent_value_changed || einfo.value_changed
+                || (this->interval_comparison_
+                    && !state_status_(stateid, sinfo).value.bounds_equal());
+            } else {
+                parent_value_changed = parent_value_changed || einfo.value_changed;
+            }
+
             DMSG(std::cout << "TIP " << stateid << " -> " << einfo.value_changed
                            << std::endl;)
             if (transition_.empty()) {
@@ -623,9 +629,13 @@ private:
                 value_changed =
                     this->async_update(*it, nullptr, nullptr, &policy_changed)
                     || value_changed;
-                all_converged = all_converged
-                    && (!DualBounds::value || !this->interval_comparison_
-                        || state_status_(*it).bounds_equal());
+
+                if constexpr (DualBounds::value) {
+                    all_converged = all_converged &&
+                        (!this->interval_comparison_ ||
+                            state_status_(*it).value.bounds_equal());
+                }
+
                 policy_graph_changed = policy_graph_changed || policy_changed;
                 DMSG(std::cout << (state_status_(id).get_value()) << " ["
                                << valupd << "|" << policy_changed << std::endl;)

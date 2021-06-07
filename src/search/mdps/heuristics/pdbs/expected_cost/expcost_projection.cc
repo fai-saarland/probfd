@@ -16,6 +16,8 @@
 namespace probabilistic {
 namespace pdbs {
 
+using namespace value_utils;
+
 ExpCostProjection::
 ExpCostProjection(const Pattern& variables, AbstractStateEvaluator* heuristic)
     : ExpCostProjection(variables, ::g_variable_domain, heuristic)
@@ -30,7 +32,8 @@ ExpCostProjection(
     : ProbabilisticProjection(variables, domains)
     , value_table(
         state_mapper_->size(),
-        -std::numeric_limits<value_type::value_t>::infinity())
+        SingleValue(
+            -std::numeric_limits<value_type::value_t>::infinity()))
 {
     compute_value_table(heuristic);
 }
@@ -39,7 +42,8 @@ ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
     : ProbabilisticProjection(pdb.get_pattern(), ::g_variable_domain)
     , value_table(
         state_mapper_->size(),
-        -std::numeric_limits<value_type::value_t>::infinity())
+        SingleValue(
+            -std::numeric_limits<value_type::value_t>::infinity()))
 {
     PDBEvaluator heuristic(pdb);
     compute_value_table(&heuristic);
@@ -70,7 +74,7 @@ ExpCostProjection::lookup(const AbstractState& s) const
 namespace {
 struct StateToString {
     explicit StateToString(
-        const std::vector<value_type::value_t>* value_table,
+        const std::vector<SingleValue>* value_table,
         std::shared_ptr<AbstractStateMapper> state_mapper)
         : value_table(value_table)
         , state_str(std::move(state_mapper))
@@ -80,11 +84,12 @@ struct StateToString {
     std::string operator()(const AbstractState& x) const
     {
         std::ostringstream out;
-        out << state_str(x) << " {" << (*value_table)[x.id] << "}";
+        out << state_str(x) << " {"
+            << as_upper_bound((*value_table)[x.id]) << "}";
         return out.str();
     }
 
-    const std::vector<value_type::value_t>* value_table;
+    const std::vector<SingleValue>* value_table;
     AbstractStateToString state_str;
 };
 }
@@ -127,7 +132,8 @@ ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
 
     engines::topological_vi::TopologicalValueIteration
         <AbstractState, const AbstractOperator*, true>
-        vi(heuristic,
+        vi(SingleValue(value_type::zero),
+           heuristic,
            &state_id_map,
            &action_id_map,
            &is_goal,
@@ -148,7 +154,8 @@ ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
             logging::out << (i > 0 ? ", " : "")
                          << state_mapper_->get_pattern()[i];
         }
-        logging::out << "]: value=" << value_table[initial_state_.id]
+        logging::out << "]: value="
+                     << as_upper_bound(value_table[initial_state_.id])
                      << std::endl;
     }
 #endif

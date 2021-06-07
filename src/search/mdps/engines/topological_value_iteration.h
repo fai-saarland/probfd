@@ -2,7 +2,7 @@
 
 #include "../storage/per_state_storage.h"
 #include "engine.h"
-#include "value_utils.h"
+#include "../value_utils.h"
 
 #include <deque>
 #include <iostream>
@@ -38,79 +38,17 @@ struct Statistics {
     unsigned long long pruned = 0;
 };
 
-using StateValueSingle = value_type::value_t;
-
-inline bool update(StateValueSingle& v, const value_utils::IncumbentSolution<std::false_type>& vals)
-{
-    const bool result = !value_type::approx_equal()(vals.first, v);
-    v = vals.first;
-    return result;
+inline bool bounds_equal(const value_utils::SingleValue&) { 
+    return true;
 }
 
-inline bool bounds_equal(const StateValueSingle&) { return true; }
-
-inline value_type::value_t error(const StateValueSingle&) { return value_type::zero; }
-
-
-
-struct StateValueInterval {
-    value_type::value_t value;
-    value_type::value_t value2;
-
-    explicit StateValueInterval()
-        : value(value_type::zero)
-        , value2(value_type::zero)
-    {
-    }
-
-    explicit StateValueInterval(value_type::value_t both)
-        : value(both)
-        , value2(both)
-    {
-    }
-
-    explicit StateValueInterval(value_type::value_t lb, value_type::value_t ub)
-        : value(lb)
-        , value2(ub)
-    {
-    }
-
-    operator value_type::value_t() const { return value; }
-};
-
-inline bool update(StateValueInterval& v, const value_utils::IncumbentSolution<std::true_type>& val)
+inline bool bounds_equal(const value_utils::IntervalValue& v)
 {
-    const bool result = !value_type::approx_equal()(val.first, v.value)
-        || !value_type::approx_equal()(val.second, v.value2);
-    v.value = val.first;
-    v.value2 = val.second;
-    assert(!value_type::approx_less()(v.value2, v.value));
-    return result;
+    return value_type::approx_equal()(v.lower, v.upper);
 }
-
-inline value_type::value_t error(const StateValueInterval& v)
-{
-    return value_type::abs(v.value2 - v.value);
-}
-
-inline bool bounds_equal(const StateValueInterval& v)
-{
-    return value_type::approx_equal()(v.value, v.value2);
-}
-
-
-
-template <typename T = std::false_type>
-using StateValueBounds = std::conditional_t<
-    T::value,
-    StateValueInterval,
-    StateValueSingle
->;
-
-
 
 template<typename T>
-using ValueStore = storage::PersistentPerStateStorage<StateValueBounds<T>>;
+using ValueStore = storage::PersistentPerStateStorage<value_utils::IncumbentSolution<T>>;
 
 inline bool contains(void*, const StateID&) {
     return false;
@@ -136,21 +74,22 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
 public:
     using ValueT = value_utils::IncumbentSolution<Interval>;
-    using Bounds = StateValueBounds<Interval>;
     using Store = ValueStore<Interval>;
 
     template<typename... Args>
     explicit TopologicalValueIteration(
+        ValueT init_value,
         StateEvaluator<State>* pruning_function,
         ZeroStates* zero_states,
         OneStates* one_states,
         Args... args)
         : MDPEngine<State, Action>(args...)
         , prune_(pruning_function)
-        , dead_end_value_(this->get_minimal_reward())
-        , upper_bound_(this->get_maximal_reward())
         , zero_states_(zero_states)
         , one_states_(one_states)
+        , init_value(init_value)
+        , dead_end_value_(this->get_minimal_reward())
+        , upper_bound_(this->get_maximal_reward())
         , one_state_reward_(this->get_maximal_reward())
         , state_information_()
         , value_store_(nullptr)
@@ -161,16 +100,14 @@ public:
         , backtracked_state_value_(nullptr)
         , statistics_()
     {
-        if constexpr (Interval::value) {
-            init_value = Bounds(value_type::zero, this->get_maximal_reward());
-        } else {
-            init_value = Bounds(value_type::zero);
-        }
     }
 
     template<typename... Args>
-    explicit TopologicalValueIteration(StateEvaluator<State>* pf, Args... args)
+    explicit TopologicalValueIteration(
+        ValueT init_value,
+        StateEvaluator<State>* pf, Args... args)
         : TopologicalValueIteration(
+            init_value,
             pf,
             static_cast<ZeroStates*>(nullptr),
             static_cast<OneStates*>(nullptr),
@@ -186,8 +123,7 @@ public:
 
     virtual value_type::value_t get_result(const State& s) override
     {
-        return value_type::value_t(
-            value_store_->operator[](this->get_state_id(s)));
+        return as_upper_bound(value_store_->operator[](this->get_state_id(s)));
     }
 
     virtual void print_statistics(std::ostream& out) const override
@@ -295,7 +231,7 @@ private:
                 self_loop_prob = (value_type::one / (value_type::one - self_loop_prob));
 
                 if (successors.empty()) {
-                    value_utils::mult(base, self_loop_prob);
+                    base *= self_loop_prob;
                 }
             }
 
@@ -307,11 +243,11 @@ private:
             ValueT res = base;
 
             for (auto& [prob, value] : successors) {
-                value_utils::add(res, prob, *value);
+                res +=  prob * (*value);
             }
 
             if (has_self_loop) {
-                value_utils::mult(res, self_loop_prob);
+                res *= self_loop_prob;
             }
 
             return res;
@@ -321,19 +257,18 @@ private:
         value_type::value_t self_loop_prob;
 
         ValueT base;
-        std::vector<std::pair<value_type::value_t, Bounds*>> successors;
+        std::vector<std::pair<value_type::value_t, ValueT*>> successors;
     };
 
     struct StackInfo {
         StackInfo(
             const StateID& state_id,
-            Bounds* value,
-            const value_type::value_t& lb,
-            const value_type::value_t& ,
+            ValueT* value_ref,
+            ValueT b,
             unsigned num_aops)
             : state_id(state_id)
-            , value(value)
-            , b(lb, lb)
+            , value(value_ref)
+            , b(b)
         {
             infos.reserve(num_aops);
         }
@@ -343,14 +278,14 @@ private:
             ValueT val = b;
 
             for (const BellmanBackupInfo& info : infos) {
-                value_utils::update_incumbent(val, info());
+                value_utils::update(val, info());
             }
 
-            return update(*value, val) || !bounds_equal(*value);
+            return update_check(*value, val) || !bounds_equal(*value);
         }
 
         StateID state_id;
-        Bounds* value;
+        ValueT* value;
         ValueT b;
         std::vector<BellmanBackupInfo> infos;
     };
@@ -367,13 +302,13 @@ private:
         state_info.index = state_info.lowlink = index_++;
         state_info.status = StateInfo::ONSTACK;
 
-        Bounds& state_value = value_store[state_id];
+        ValueT& state_value = value_store[state_id];
         State state = this->lookup_state(state_id);
         EvaluationResult state_eval = this->get_state_reward(state);
         std::vector<Action> aops;
 
         if (state_eval) {
-            state_value = Bounds(static_cast<value_type::value_t>(state_eval));
+            state_value = ValueT(static_cast<value_type::value_t>(state_eval));
             state_info.dead = false;
             ++statistics_.goal_states;
 
@@ -465,7 +400,6 @@ private:
             state_id,
             &state_value,
             dead_end_value_,
-            upper_bound_,
             einfo.aops.size());
 
         einfo.aops.pop_back();
@@ -487,7 +421,7 @@ private:
         StateInfo& iinfo = state_information_[init_state_id];
 
         if (iinfo.status == StateInfo::CLOSED) {
-            return value_store[init_state_id];
+            return as_upper_bound(value_store[init_state_id]);
         }
 
         push_state(init_state_id, iinfo, value_store, dead_end_store);
@@ -528,7 +462,7 @@ private:
             exploration_stack_.pop_back();
         }
 
-        return value_store[init_state_id];
+        return as_upper_bound(value_store[init_state_id]);
     }
 
     template <typename ValueStore, typename BoolStore>
@@ -564,7 +498,7 @@ private:
                         return true; // recursion on new state
                     } 
 
-                    value_utils::add(tinfo.base, prob, *backtracked_state_value_);
+                    tinfo.base += prob * (*backtracked_state_value_);
                     state_info.dead = state_info.dead && succ_info.dead;
                 } else if (succ_info.status == StateInfo::ONSTACK) {
                     tinfo.successors.emplace_back(prob, &value_store[succ_id]);
@@ -574,14 +508,14 @@ private:
                         state_info.lowlink = std::min(state_info.lowlink, succ_info.index);
                     }
 
-                    value_utils::add(tinfo.base, prob, value_store[succ_id]);
+                    tinfo.base += prob * value_store[succ_id];
                     state_info.dead = state_info.dead && succ_info.dead;
                 }
             }
 
             if (tinfo.finalize()) {
                 if (!ExpandGoalStates || state_info.status != StateInfo::TERMINAL) {
-                    value_utils::update_incumbent(stack_info.b, tinfo.base);
+                    value_utils::update(stack_info.b, tinfo.base);
                 }
 
                 stack_info.infos.pop_back();
@@ -731,12 +665,14 @@ private:
     }
 
     StateEvaluator<State>* prune_;
-    const Bounds dead_end_value_;
-    const Bounds upper_bound_;
+
     ZeroStates* zero_states_;
     OneStates* one_states_;
-    const Bounds one_state_reward_;
-    Bounds init_value;
+    
+    const ValueT init_value;
+    const ValueT dead_end_value_;
+    const ValueT upper_bound_;
+    const ValueT one_state_reward_;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::unique_ptr<Store> value_store_;
@@ -746,7 +682,7 @@ private:
     std::vector<StackInfo> stack_;
 
     StateInfo* backtracked_state_info_;
-    Bounds* backtracked_state_value_;
+    ValueT* backtracked_state_value_;
 
     Statistics statistics_;
 };

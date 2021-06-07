@@ -42,16 +42,14 @@ protected:
 
     const value_type::value_t& lookup_value(const StateID& state_id) const
     {
-        return reinterpret_cast<const engines::heuristic_search::StatesValue*>(
-                   connector_->lookup(state_id))
-            ->get_value();
+        return reinterpret_cast<const value_utils::SingleValue*>(
+            connector_->lookup(state_id))->value;
     }
 
-    const engines::heuristic_search::StatesValues<std::true_type>*
+    const value_utils::IntervalValue*
     lookup_dual_bounds(const StateID& state_id) const
     {
-        return reinterpret_cast<
-            const engines::heuristic_search::StatesValues<std::true_type>*>(
+        return reinterpret_cast<const value_utils::IntervalValue*>(
             connector_->lookup(state_id));
     }
 
