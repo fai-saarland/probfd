@@ -29,10 +29,9 @@ public:
 
     template<typename Engine, typename... Args>
     engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
-    engine_factory(Args... args)
+    engine_factory(Args&&... args)
     {
         return new Engine(
-            args...,
             &state_id_map_,
             &action_id_map_,
             state_reward_function_,
@@ -40,7 +39,8 @@ public:
             minimal_reward_,
             maximal_reward_,
             &aops_generator_,
-            &transition_generator_);
+            &transition_generator_,
+            std::forward<Args>(args)...);
     }
 
     virtual engines::MDPEngineInterface<GlobalState>* create_engine() = 0;

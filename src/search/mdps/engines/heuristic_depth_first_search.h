@@ -107,18 +107,51 @@ public:
     using DualBounds = typename HeuristicSearchBase::DualBounds;
 
 public:
-    template<typename... Args>
     HeuristicDepthFirstSearch(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
+        DeadEndIdentificationLevel level,
+        StateEvaluator<State>* dead_end_eval,
+        DeadEndListener<State, Action>* dead_end_listener,
+        PolicyPicker<Action>* policy_chooser,
+        NewStateHandler<State>* new_state_handler,
+        StateEvaluator<State>* value_init,
+        HeuristicSearchConnector* connector,
+        ProgressReport* report,
+        bool interval_comparison,
+        bool stable_policy,
         bool LabelSolved,
         bool ForwardUpdates,
         BacktrackingUpdateType BackwardUpdates,
         bool CutoffInconsistent,
         bool GreedyExploration,
         bool PerformValueIteration,
-        bool ExpandTipStates,
-        DeadEndIdentificationLevel level,
-        Args... args)
-        : HeuristicSearchBase(level, args...)
+        bool ExpandTipStates)
+        : HeuristicSearchBase(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator,
+            level,
+            dead_end_eval,
+            dead_end_listener,
+            policy_chooser,
+            new_state_handler,
+            value_init,
+            connector,
+            report,
+            interval_comparison,
+            stable_policy)
         , LabelSolved(LabelSolved)
         , ForwardUpdates(ForwardUpdates)
         , BackwardUpdates(BackwardUpdates)

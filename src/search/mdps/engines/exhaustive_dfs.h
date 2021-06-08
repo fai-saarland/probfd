@@ -225,8 +225,15 @@ public:
 
     using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
 
-    template<typename... Args>
     explicit ExhaustiveDepthFirstSearch(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
         HeuristicSearchConnector* connector,
         StateEvaluator<State>* evaluator,
         StateEvaluator<State>* dead_end_eval,
@@ -237,9 +244,16 @@ public:
         BacktrackingUpdateType path_updates,
         bool only_propagate_when_changed,
         NewStateHandler<State>* new_state_handler,
-        ProgressReport* progress,
-        Args... args)
-        : MDPEngine<State, Action>(args...)
+        ProgressReport* progress)
+        : MDPEngine<State, Action>(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator)
         , statistics_()
         , report_(progress)
         , dead_end_value_(this->get_minimal_reward())

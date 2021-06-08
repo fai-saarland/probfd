@@ -58,7 +58,14 @@ public:
             bisimulation::QuotientState,
             bisimulation::QuotientAction>>(
             new HeuristicSearchType(
-                args...,
+                &res->state_id_map,
+                &res->action_id_map,
+                res->state_reward.get(),
+                &res->transition_reward,
+                g_analysis_objective->min(),
+                g_analysis_objective->max(),
+                res->aops_gen.get(),
+                res->tgen.get(),
                 DeadEndIdentificationLevel::Disabled,
                 nullptr,
                 &res->dead_end_listener_,
@@ -69,14 +76,7 @@ public:
                 &progress,
                 interval,
                 stable_policy,
-                &res->state_id_map,
-                &res->action_id_map,
-                res->state_reward.get(),
-                &res->transition_reward,
-                g_analysis_objective->min(),
-                g_analysis_objective->max(),
-                res->aops_gen.get(),
-                res->tgen.get()));
+                args...));
 
         return res;
     }
@@ -164,7 +164,14 @@ public:
                 bisimulation::QuotientState,
                 quotient_system::QuotientAction<bisimulation::QuotientAction>,
                 DualValues>(
-                args...,
+                &res->state_id_map,
+                res->q_action_id_map_.get(),
+                res->state_reward.get(),
+                res->q_action_reward_.get(),
+                g_analysis_objective->min(),
+                g_analysis_objective->max(),
+                res->q_aops_gen_.get(),
+                res->q_transition_gen_.get(),
                 DeadEndIdentificationLevel::Disabled,
                 nullptr,
                 nullptr,
@@ -175,14 +182,7 @@ public:
                 &progress,
                 interval,
                 stable_policy,
-                &res->state_id_map,
-                res->q_action_id_map_.get(),
-                res->state_reward.get(),
-                res->q_action_reward_.get(),
-                g_analysis_objective->min(),
-                g_analysis_objective->max(),
-                res->q_aops_gen_.get(),
-                res->q_transition_gen_.get());
+                args...);
 
         res->engine2_ =
             std::unique_ptr<engines::MDPEngineInterface<
@@ -191,9 +191,6 @@ public:
         res->engine_ =
             std::unique_ptr<MDPEngineInterface<bisimulation::QuotientState>>(
                 new FretVariant(
-                    res->quotient_.get(),
-                    &progress,
-                    engine,
                     &res->state_id_map,
                     &res->action_id_map,
                     res->state_reward.get(),
@@ -201,7 +198,10 @@ public:
                     g_analysis_objective->min(),
                     g_analysis_objective->max(),
                     res->aops_gen.get(),
-                    res->tgen.get()));
+                    res->tgen.get(),
+                    res->quotient_.get(),
+                    &progress,
+                    engine));
 
         return res;
     }
