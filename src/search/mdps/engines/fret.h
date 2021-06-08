@@ -99,14 +99,28 @@ public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
-    template<typename... Args>
     FRET(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
         GreedyGraphGenerator&& greedy_graph,
         QuotientSystem* quotient,
         ProgressReport* report,
-        HeuristicSearchEngine<State, QAction, B2>* engine,
-        Args... args)
-        : MDPEngine<State, Action>(args...)
+        HeuristicSearchEngine<State, QAction, B2>* engine)
+        : MDPEngine<State, Action>(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator)
         , greedy_graph_(std::move(greedy_graph))
         , report_(report)
         , quotient_(quotient)
@@ -450,22 +464,34 @@ public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
+    using ValueGraph = typename internal::ValueGraph<State, Action, B2>;
+
     template<typename... Args>
     FRETV(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
         QuotientSystem* quotient,
         ProgressReport* report,
-        HeuristicSearchEngine<State, QAction, B2>* engine,
-        Args... args)
-        : internal::FRET<
-            State,
-            Action,
-            B2,
-            typename internal::ValueGraph<State, Action, B2>>(
-            typename internal::ValueGraph<State, Action, B2>(engine),
+        HeuristicSearchEngine<State, QAction, B2>* engine)
+        : internal::FRET<State, Action, B2, ValueGraph>(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator,
+            ValueGraph(engine),
             quotient,
             report,
-            engine,
-            args...)
+            engine)
     {
     }
 };
@@ -480,22 +506,33 @@ public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
-    template<typename... Args>
+    using PolicyGraph = typename internal::PolicyGraph<State, Action, B2>;
+
     FRETPi(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
         QuotientSystem* quotient,
         ProgressReport* report,
-        HeuristicSearchEngine<State, QAction, B2>* engine,
-        Args... args)
-        : internal::FRET<
-            State,
-            Action,
-            B2,
-            typename internal::PolicyGraph<State, Action, B2>>(
-            typename internal::PolicyGraph<State, Action, B2>(engine),
+        HeuristicSearchEngine<State, QAction, B2>* engine)
+        : internal::FRET<State, Action, B2, PolicyGraph>(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator,
+            PolicyGraph(engine),
             quotient,
             report,
-            engine,
-            args...)
+            engine)
     {
     }
 };

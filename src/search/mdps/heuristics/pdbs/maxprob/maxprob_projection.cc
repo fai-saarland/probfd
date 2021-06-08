@@ -175,16 +175,16 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
 
     engines::interval_iteration::
     IntervalIteration<AbstractState, const AbstractOperator*, true>
-        vi(heuristic.get(),
-           true,
-           &state_id_map,
+        vi(&state_id_map,
            &action_id_map,
            &state_reward,
            &no_reward,
            value_type::zero,
            value_type::one,
            &aops_gen,
-           &transition_gen);
+           &transition_gen,
+           heuristic.get(),
+           true);
 
     engines::interval_iteration::ValueStore values;
     // states that cannot reach goal

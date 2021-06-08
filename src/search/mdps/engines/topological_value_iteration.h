@@ -76,14 +76,28 @@ public:
     using ValueT = value_utils::IncumbentSolution<Interval>;
     using Store = ValueStore<Interval>;
 
-    template<typename... Args>
     explicit TopologicalValueIteration(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
         ValueT init_value,
         StateEvaluator<State>* pruning_function,
-        ZeroStates* zero_states,
-        OneStates* one_states,
-        Args... args)
-        : MDPEngine<State, Action>(args...)
+        ZeroStates* zero_states = static_cast<ZeroStates*>(nullptr),
+        OneStates* one_states = static_cast<OneStates*>(nullptr))
+        : MDPEngine<State, Action>(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator)
         , prune_(pruning_function)
         , zero_states_(zero_states)
         , one_states_(one_states)
@@ -99,19 +113,6 @@ public:
         , backtracked_state_info_(nullptr)
         , backtracked_state_value_(nullptr)
         , statistics_()
-    {
-    }
-
-    template<typename... Args>
-    explicit TopologicalValueIteration(
-        ValueT init_value,
-        StateEvaluator<State>* pf, Args... args)
-        : TopologicalValueIteration(
-            init_value,
-            pf,
-            static_cast<ZeroStates*>(nullptr),
-            static_cast<OneStates*>(nullptr),
-            args...)
     {
     }
 

@@ -134,16 +134,16 @@ ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
 
     engines::topological_vi::TopologicalValueIteration
         <AbstractState, const AbstractOperator*, true>
-        vi(SingleValue(value_type::zero),
-           heuristic,
-           &state_id_map,
+        vi(&state_id_map,
            &action_id_map,
            &state_reward,
            &action_eval,
            -value_type::inf,
            value_type::zero,
            &aops_gen,
-           &transition_gen);
+           &transition_gen,
+           SingleValue(value_type::zero),
+           heuristic);
 
     vi.solve(initial_state_, value_table);
 

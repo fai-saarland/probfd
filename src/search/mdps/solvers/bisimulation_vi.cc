@@ -85,8 +85,6 @@ public:
             solver = new engines::interval_iteration::IntervalIteration<
                 bisimulation::QuotientState,
                 bisimulation::QuotientAction>(
-                nullptr,
-                false,
                 &state_id_map,
                 &action_id_map,
                 &state_reward,
@@ -94,13 +92,13 @@ public:
                 g_analysis_objective->min(),
                 g_analysis_objective->max(),
                 &aops_gen,
-                &tgen);
+                &tgen,
+                nullptr,
+                false);
         } else {
             solver = new engines::topological_vi::TopologicalValueIteration<
                 bisimulation::QuotientState,
                 bisimulation::QuotientAction>(
-                value_utils::SingleValue(value_type::zero),
-                nullptr,
                 &state_id_map,
                 &action_id_map,
                 &state_reward,
@@ -108,7 +106,9 @@ public:
                 g_analysis_objective->min(),
                 g_analysis_objective->max(),
                 &aops_gen,
-                &tgen);
+                &tgen,
+                value_utils::SingleValue(value_type::zero),
+                nullptr);
         }
         solver->solve(bs.get_initial_state());
         stats.extended_states = bs.num_extended_states();

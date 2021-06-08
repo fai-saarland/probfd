@@ -184,8 +184,15 @@ public:
         HeuristicSearchBase* infos_;
     };
 
-    template<typename... Args>
     explicit HeuristicSearchBase(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
         DeadEndIdentificationLevel,
         StateEvaluator<State>* dead_end_eval,
         DeadEndListener<State, Action>* dead_end_listener,
@@ -195,9 +202,16 @@ public:
         HeuristicSearchConnector* connector,
         ProgressReport* report,
         bool interval_comparison,
-        bool stable_policy,
-        Args... args)
-        : MDPEngine<StateT, ActionT>(args...)
+        bool stable_policy)
+        : MDPEngine<StateT, ActionT>(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator)
         , report_(report)
         , interval_comparison_(interval_comparison)
         , stable_policy_(stable_policy)
