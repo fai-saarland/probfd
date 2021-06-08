@@ -19,8 +19,8 @@ protected:
 
 class ActionCostEvaluator : public ProbabilisticOperatorEvaluator {
 protected:
-    value_type::value_t evaluate(
-        const StateID&, const ProbabilisticOperator* const& op) const override
+    value_type::value_t
+    evaluate(StateID, const ProbabilisticOperator* op) override
     {
         return -op->get_cost();
     }

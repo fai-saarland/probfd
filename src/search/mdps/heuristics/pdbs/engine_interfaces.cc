@@ -180,19 +180,19 @@ PDBEvaluator::evaluate(const AbstractState& state)
 }
 
 value_type::value_t
-ZeroCostActionEvaluator::evaluate(const AbstractOperator*)
+ZeroCostActionEvaluator::evaluate(StateID, const AbstractOperator*)
 {
     return 0;
 }
 
 value_type::value_t
-UnitCostActionEvaluator::evaluate(const AbstractOperator*)
+UnitCostActionEvaluator::evaluate(StateID, const AbstractOperator*)
 {
     return -1;
 }
 
 value_type::value_t
-NormalCostActionEvaluator::evaluate(const AbstractOperator* op)
+NormalCostActionEvaluator::evaluate(StateID, const AbstractOperator* op)
 {
     return -op->cost;
 }

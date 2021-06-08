@@ -5,8 +5,19 @@
 namespace probabilistic {
 
 template<typename State>
-struct StateEvaluator {
-    EvaluationResult operator()(const State& state);
+class StateEvaluator {
+public:
+    virtual ~StateEvaluator() = default;
+
+    EvaluationResult operator()(const State& state)
+    {
+        return this->evaluate(state);
+    }
+
+    virtual void print_statistics() const {}
+
+protected:
+    virtual EvaluationResult evaluate(const State& state) = 0;
 };
 
 } // namespace probabilistic

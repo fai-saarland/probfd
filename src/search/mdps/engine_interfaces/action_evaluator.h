@@ -7,8 +7,16 @@ namespace probabilistic {
 
 template<typename Action>
 struct ActionEvaluator {
-    value_type::value_t
-    operator()(const StateID& state_id, const Action& action);
+    virtual ~ActionEvaluator() = default;
+
+    value_type::value_t operator()(StateID state_id, Action action)
+    {
+        return this->evaluate(state_id, action);
+    }
+
+protected:
+    virtual value_type::value_t
+    evaluate(StateID state_id, Action action) = 0;
 };
 
 } // namespace probabilistic

@@ -605,7 +605,7 @@ TransitionGenerator<bisimulation::QuotientAction>::operator()(
     }
 }
 
-StateEvaluator<bisimulation::QuotientState>::StateEvaluator(
+QuotientStateRewardEvaluator::QuotientStateRewardEvaluator(
     bisimulation::BisimilarStateSpace* bisim,
     const value_type::value_t min,
     const value_type::value_t max,
@@ -618,8 +618,7 @@ StateEvaluator<bisimulation::QuotientState>::StateEvaluator(
 }
 
 EvaluationResult
-StateEvaluator<bisimulation::QuotientState>::operator()(
-    const bisimulation::QuotientState& s) const
+QuotientStateRewardEvaluator::evaluate(const bisimulation::QuotientState& s)
 {
     if (bisim_->is_dead_end(s)) {
         return EvaluationResult(true, min_);

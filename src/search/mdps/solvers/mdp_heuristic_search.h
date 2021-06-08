@@ -135,10 +135,9 @@ public:
                   this->get_action_id_map(),
                   this->get_applicable_actions_generator(),
                   this->get_transition_generator()))
-        , q_action_reward_(new ActionEvaluator<quotient_system::QuotientAction<
-                               const ProbabilisticOperator*>>(
-              quotient_.get(),
-              this->get_action_reward_function()))
+        , q_action_reward_(new QuotientActionRewardEvaluator<
+              const ProbabilisticOperator*>(
+                  quotient_.get(), this->get_action_reward_function()))
         , q_action_id_map_(new ActionIDMap<quotient_system::QuotientAction<
                                const ProbabilisticOperator*>>(quotient_.get()))
         , q_aops_gen_(

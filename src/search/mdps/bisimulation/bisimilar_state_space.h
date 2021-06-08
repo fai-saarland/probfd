@@ -175,14 +175,20 @@ struct TransitionGenerator<bisimulation::QuotientAction> {
     bisimulation::BisimilarStateSpace* bisim_;
 };
 
-template<>
-struct StateEvaluator<bisimulation::QuotientState> {
-    explicit StateEvaluator(
+using QuotientStateEvaluator = StateEvaluator<bisimulation::QuotientState>;
+
+struct QuotientStateRewardEvaluator
+    : public QuotientStateEvaluator
+{
+    explicit QuotientStateRewardEvaluator(
         bisimulation::BisimilarStateSpace* bisim,
         const value_type::value_t min,
         const value_type::value_t max,
         value_type::value_t default_value = 0);
-    EvaluationResult operator()(const bisimulation::QuotientState& state) const;
+
+    EvaluationResult
+    evaluate(const bisimulation::QuotientState& state) override;
+
     bisimulation::BisimilarStateSpace* bisim_;
     const value_type::value_t min_;
     const value_type::value_t max_;

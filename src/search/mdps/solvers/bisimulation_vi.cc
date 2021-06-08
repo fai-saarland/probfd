@@ -59,7 +59,7 @@ public:
         ActionIDMap<bisimulation::QuotientAction> action_id_map;
         ApplicableActionsGenerator<bisimulation::QuotientAction> aops_gen(&bs);
         TransitionGenerator<bisimulation::QuotientAction> tgen(&bs);
-        StateEvaluator<bisimulation::QuotientState> state_reward(
+        QuotientStateRewardEvaluator state_reward(
             &bs, g_analysis_objective->min(), g_analysis_objective->max());
         ActionEvaluator<bisimulation::QuotientAction> transition_reward;
 
