@@ -73,16 +73,15 @@ public:
         EndComponentDecomposition<State, Action, ExpandGoalStates>;
     using QuotientSystem = typename Decomposer::QuotientSystem;
     using QAction = typename QuotientSystem::QAction;
-    template<typename S>
+    using ValueStore = interval_iteration::ValueStore;
+    using BoolStore = interval_iteration::BoolStore;
+
     using ValueIteration = topological_vi::TopologicalValueIteration<
         State,
         QAction,
         ExpandGoalStates,
         std::true_type,
-        BoolStore,
-        S>;
-    using ValueStore = interval_iteration::ValueStore;
-    using BoolStore = interval_iteration::BoolStore;
+        BoolStore>;
 
     explicit IntervalIteration(
         StateIDMap<State>* state_id_map,
@@ -175,6 +174,31 @@ public:
     }
 
 private:
+    struct DeadEndPruner : public StateEvaluator<State> {
+        DeadEndPruner(
+            StateIDMap<State>* state_id_map,
+            BoolStore* dead_ends)
+           : state_id_map_(state_id_map)
+           , dead_ends_(dead_ends)
+        {
+        }
+
+        EvaluationResult evaluate(const State& s) override
+        {
+            if (dead_ends_) {
+                const StateID id = state_id_map_->get_state_id(s);
+                if (dead_ends_->operator[](id)) {
+                    return EvaluationResult(true, value_type::zero);
+                }
+            }
+
+            return EvaluationResult(false, value_type::zero);
+        }
+
+        StateIDMap<State>* state_id_map_;
+        BoolStore* dead_ends_;
+    };
+
     value_type::value_t mysolve(
         const State& state,
         ValueStore* value_store,
@@ -204,42 +228,26 @@ private:
         quotient_system::DefaultQuotientActionRewardFunction<Action>
             q_action_reward(sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
-        if (extract_probability_one_states_) {
-            assert(one_states != nullptr);
-            ValueIteration<BoolStore> vi(
-                this->get_state_id_map(),
-                &q_action_id_map,
-                this->get_state_reward_function(),
-                &q_action_reward,
-                lb_,
-                ub_,
-                &q_aops_gen,
-                &q_transition_gen,
-                value_utils::IntervalValue(value_type::zero, value_type::one),
-                nullptr,
-                dead_ends,
-                one_states);
-            value_type::value_t result = vi.solve(state, *value_store);
-            tvi_statistics_ = vi.get_statistics();
-            return result;
-        } else {
-            ValueIteration<void> vi(
-                this->get_state_id_map(),
-                &q_action_id_map,
-                this->get_state_reward_function(),
-                &q_action_reward,
-                lb_,
-                ub_,
-                &q_aops_gen,
-                &q_transition_gen,
-                value_utils::IntervalValue(value_type::zero, value_type::one),
-                nullptr,
-                dead_ends,
-                static_cast<void*>(nullptr));
-            value_type::value_t result = vi.solve(state, *value_store);
-            tvi_statistics_ = vi.get_statistics();
-            return result;
-        }
+        DeadEndPruner prune(this->get_state_id_map(), dead_ends);
+
+        assert (!extract_probability_one_states_ || one_states != nullptr);
+
+        ValueIteration vi(
+            this->get_state_id_map(),
+            &q_action_id_map,
+            this->get_state_reward_function(),
+            &q_action_reward,
+            lb_,
+            ub_,
+            &q_aops_gen,
+            &q_transition_gen,
+            value_utils::IntervalValue(value_type::zero, value_type::one),
+            &prune,
+            extract_probability_one_states_ ? one_states : nullptr);
+        
+        value_type::value_t result = vi.solve(state, *value_store);
+        tvi_statistics_ = vi.get_statistics();
+        return result;
     }
 
     const value_type::value_t lb_;

@@ -64,7 +64,6 @@ template<
     typename Action,
     bool ExpandGoalStates = false,
     typename Interval = std::false_type,
-    typename ZeroStates = void,
     typename OneStates = void>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
     struct NoStore {
@@ -87,7 +86,6 @@ public:
         TransitionGenerator<Action>* transition_generator,
         ValueT init_value,
         StateEvaluator<State>* pruning_function,
-        ZeroStates* zero_states = static_cast<ZeroStates*>(nullptr),
         OneStates* one_states = static_cast<OneStates*>(nullptr))
         : MDPEngine<State, Action>(
             state_id_map,
@@ -99,7 +97,6 @@ public:
             aops_generator,
             transition_generator)
         , prune_(pruning_function)
-        , zero_states_(zero_states)
         , one_states_(one_states)
         , init_value(init_value)
         , dead_end_value_(this->get_minimal_reward())
@@ -327,9 +324,7 @@ private:
                 this->generate_applicable_ops(state_id, aops);
                 ++statistics_.expanded_states;
             }
-        } else if ((zero_states_ && contains(zero_states_, state_id)) ||
-            (prune_ && prune_->operator()(state)))
-        {
+        } else if (prune_ && prune_->operator()(state)) {
             state_value = dead_end_value_;
             ++statistics_.pruned;
         } else {
@@ -667,7 +662,6 @@ private:
 
     StateEvaluator<State>* prune_;
 
-    ZeroStates* zero_states_;
     OneStates* one_states_;
     
     const ValueT init_value;
