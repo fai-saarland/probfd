@@ -8,10 +8,16 @@
 
 namespace probabilistic {
 
-template<typename Action>
-class ActionEvaluator<quotient_system::QuotientAction<Action>> {
+template <typename Action>
+using QuotientActionEvaluator =
+    ActionEvaluator<quotient_system::QuotientAction<Action>>;
+
+template <typename Action>
+class QuotientActionRewardEvaluator
+    : public QuotientActionEvaluator<Action>
+{
 public:
-    explicit ActionEvaluator(
+    explicit QuotientActionRewardEvaluator(
         quotient_system::QuotientSystem<Action>* quotient,
         ActionEvaluator<Action>* orig)
         : quotient_(quotient)
@@ -19,9 +25,9 @@ public:
     {
     }
 
-    value_type::value_t operator()(
-        const StateID& s,
-        const quotient_system::QuotientAction<Action>& qa) const
+    virtual
+    value_type::value_t
+    evaluate(StateID s, quotient_system::QuotientAction<Action> qa) override
     {
         return eval_->operator()(
             qa.state_id, quotient_->get_original_action(s, qa));

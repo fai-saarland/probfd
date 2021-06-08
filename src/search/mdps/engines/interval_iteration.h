@@ -187,7 +187,7 @@ private:
         ecd_statistics_ = ec_decomposer.get_statistics();
         ApplicableActionsGenerator<QAction> q_aops_gen(sys);
         TransitionGenerator<QAction> q_transition_gen(sys);
-        ActionEvaluator<QAction> q_action_reward(
+        QuotientActionRewardEvaluator<Action> q_action_reward(
             sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
         if (extract_probability_one_states_) {

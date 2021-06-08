@@ -545,7 +545,6 @@ fast_downward_plugin(
         mdps/analysis_objectives/expected_cost_objective
         mdps/action_id_map
         mdps/state_id_map
-        mdps/action_evaluator
         mdps/state_evaluator
         mdps/transition_generator
         mdps/solvers/mdp_solver

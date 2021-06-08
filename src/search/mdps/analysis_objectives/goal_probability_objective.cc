@@ -23,8 +23,8 @@ protected:
 
 class ZeroRewardActionEvaluator : public ProbabilisticOperatorEvaluator {
 protected:
-    value_type::value_t evaluate(
-    const StateID&, const ProbabilisticOperator* const&) const override {
+    value_type::value_t
+    evaluate(StateID, const ProbabilisticOperator*) override {
         return value_type::zero;
     }
 };
