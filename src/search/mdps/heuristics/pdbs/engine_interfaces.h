@@ -4,6 +4,7 @@
 #include "../../engine_interfaces/action_id_map.h"
 #include "../../engine_interfaces/applicable_actions_generator.h"
 #include "../../engine_interfaces/state_evaluator.h"
+#include "../../engine_interfaces/state_reward_function.h"
 #include "../../engine_interfaces/state_id_map.h"
 #include "../../engine_interfaces/transition_generator.h"
 #include "abstract_operator.h"
@@ -113,14 +114,15 @@ private:
 
 namespace pdbs {
 
+using AbstractStateRewardFunction = StateRewardFunction<AbstractState>;
 using AbstractStateEvaluator = StateEvaluator<AbstractState>;
-using AbstractOperatorEvaluator = ActionEvaluator<const AbstractOperator*>;
+using AbstractOperatorRewardFunction = ActionRewardFunction<const AbstractOperator*>;
 
 class QualitativeResultStore;
 
-class AbstractStateInStoreEvaluator : public AbstractStateEvaluator {
+class AbstractStateDeadendStoreEvaluator : public AbstractStateEvaluator {
 public:
-    explicit AbstractStateInStoreEvaluator(
+    explicit AbstractStateDeadendStoreEvaluator(
         const QualitativeResultStore* states_,
         value_type::value_t value_in,
         value_type::value_t value_not_in);
@@ -134,9 +136,25 @@ private:
     const value_type::value_t value_not_in_;
 };
 
-class AbstractStateInSetEvaluator : public AbstractStateEvaluator {
+class AbstractStateInStoreRewardFunction : public AbstractStateRewardFunction {
 public:
-    explicit AbstractStateInSetEvaluator(
+    explicit AbstractStateInStoreRewardFunction(
+        const QualitativeResultStore* states_,
+        value_type::value_t value_in,
+        value_type::value_t value_not_in);
+
+protected:
+    EvaluationResult evaluate(const AbstractState& state) override;
+
+private:
+    const QualitativeResultStore* states_;
+    const value_type::value_t value_in_;
+    const value_type::value_t value_not_in_;
+};
+
+class AbstractStateInSetRewardFunction : public AbstractStateRewardFunction {
+public:
+    explicit AbstractStateInSetRewardFunction(
         const std::unordered_set<AbstractState>* states_,
         value_type::value_t value_in,
         value_type::value_t value_not_in);
@@ -161,19 +179,19 @@ private:
     const ::pdbs::PatternDatabase& pdb;
 };
 
-class ZeroCostActionEvaluator : public AbstractOperatorEvaluator {
+class ZeroCostActionEvaluator : public AbstractOperatorRewardFunction {
 protected:
     value_type::value_t
     evaluate(StateID, const AbstractOperator*) override;
 };
 
-class UnitCostActionEvaluator : public AbstractOperatorEvaluator {
+class UnitCostActionEvaluator : public AbstractOperatorRewardFunction {
 protected:
     value_type::value_t
     evaluate(StateID, const AbstractOperator*) override;
 };
 
-class NormalCostActionEvaluator : public AbstractOperatorEvaluator {
+class NormalCostActionEvaluator : public AbstractOperatorRewardFunction {
 protected:
     value_type::value_t
     evaluate(StateID, const AbstractOperator*) override;

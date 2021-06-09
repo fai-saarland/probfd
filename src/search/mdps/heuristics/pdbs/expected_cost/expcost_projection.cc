@@ -116,7 +116,9 @@ ExpCostProjection::dump_graphviz(
 void
 ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
 {
-    AbstractStateInSetEvaluator is_goal(
+    assert(heuristic);
+
+    AbstractStateInSetRewardFunction state_reward(
         &goal_states_,
         value_type::zero,
         value_type::zero);
@@ -136,7 +138,7 @@ ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
            heuristic,
            &state_id_map,
            &action_id_map,
-           &is_goal,
+           &state_reward,
            &action_eval,
            -value_type::inf,
            value_type::zero,
@@ -168,7 +170,7 @@ ExpCostProjection::dump_graphviz(
     const StateToString* sts,
     const ActionToString* ats) const
 {
-    AbstractStateInSetEvaluator is_goal(
+    AbstractStateInSetRewardFunction state_reward(
         &goal_states_,
         value_type::zero,
         value_type::zero);
@@ -186,7 +188,7 @@ ExpCostProjection::dump_graphviz(
         out,
         initial_state_,
         &state_id_map,
-        &is_goal,
+        &state_reward,
         &aops_gen,
         &transition_gen,
         sts,
