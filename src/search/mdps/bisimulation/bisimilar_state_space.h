@@ -8,6 +8,7 @@
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
+#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/transition_generator.h"
 
@@ -175,26 +176,56 @@ struct TransitionGenerator<bisimulation::QuotientAction> {
     bisimulation::BisimilarStateSpace* bisim_;
 };
 
-template<>
-struct StateEvaluator<bisimulation::QuotientState> {
-    explicit StateEvaluator(
+namespace bisimulation {
+
+using QuotientStateRewardFunction = StateRewardFunction<bisimulation::QuotientState>;
+using QuotientActionRewardFunction = ActionRewardFunction<bisimulation::QuotientAction>;
+using QuotientStateEvaluator = StateEvaluator<bisimulation::QuotientState>;
+
+struct DefaultQuotientStateEvaluator
+    : public QuotientStateEvaluator
+{
+    explicit DefaultQuotientStateEvaluator(
         bisimulation::BisimilarStateSpace* bisim,
         const value_type::value_t min,
         const value_type::value_t max,
         value_type::value_t default_value = 0);
-    EvaluationResult operator()(const bisimulation::QuotientState& state) const;
+
+    EvaluationResult
+    evaluate(const bisimulation::QuotientState& state) override;
+
     bisimulation::BisimilarStateSpace* bisim_;
     const value_type::value_t min_;
     const value_type::value_t max_;
     const value_type::value_t default_;
 };
 
-template<>
-struct ActionEvaluator<bisimulation::QuotientAction> {
-    value_type::value_t operator()(
-        const StateID& state,
-        const bisimulation::QuotientAction& action) const;
+struct DefaultQuotientStateRewardFunction
+    : public QuotientStateRewardFunction
+{
+    explicit DefaultQuotientStateRewardFunction(
+        bisimulation::BisimilarStateSpace* bisim,
+        const value_type::value_t min,
+        const value_type::value_t max,
+        value_type::value_t default_value = 0);
+
+    EvaluationResult
+    evaluate(const bisimulation::QuotientState& state) override;
+
+    bisimulation::BisimilarStateSpace* bisim_;
+    const value_type::value_t min_;
+    const value_type::value_t max_;
+    const value_type::value_t default_;
 };
+
+struct DefaultQuotientActionRewardFunction
+    : public QuotientActionRewardFunction
+{
+    value_type::value_t
+    evaluate(StateID state, bisimulation::QuotientAction action) override;
+};
+
+}
 
 } // namespace probabilistic
 

@@ -70,13 +70,12 @@ public:
 
     template<template<typename, typename, typename> class HS, typename... Args>
     engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
-    heuristic_search_engine_factory(Args... args)
+    heuristic_search_engine_factory(Args&&... args)
     {
         if (dual_bounds_) {
             using HeuristicSearchType =
                 HS<GlobalState, const ProbabilisticOperator*, std::true_type>;
             return engine_factory<HeuristicSearchType>(
-                args...,
                 dead_end_ident_level_,
                 dead_end_eval_.get(),
                 dead_end_listener_.get(),
@@ -86,12 +85,12 @@ public:
                 &connector_,
                 &progress_,
                 interval_comparison_,
-                stable_policy_);
+                stable_policy_,
+                std::forward<Args>(args)...);
         } else {
             using HeuristicSearchType =
                 HS<GlobalState, const ProbabilisticOperator*, std::false_type>;
             return engine_factory<HeuristicSearchType>(
-                args...,
                 dead_end_ident_level_,
                 dead_end_eval_.get(),
                 dead_end_listener_.get(),
@@ -101,7 +100,8 @@ public:
                 &connector_,
                 &progress_,
                 interval_comparison_,
-                stable_policy_);
+                stable_policy_,
+                std::forward<Args>(args)...);
         }
         return nullptr;
     }
@@ -135,10 +135,9 @@ public:
                   this->get_action_id_map(),
                   this->get_applicable_actions_generator(),
                   this->get_transition_generator()))
-        , q_action_reward_(new ActionEvaluator<quotient_system::QuotientAction<
-                               const ProbabilisticOperator*>>(
-              quotient_.get(),
-              this->get_action_reward_function()))
+        , q_action_reward_(new quotient_system::DefaultQuotientActionRewardFunction<
+              const ProbabilisticOperator*>(
+                  quotient_.get(), this->get_action_reward_function()))
         , q_action_id_map_(new ActionIDMap<quotient_system::QuotientAction<
                                const ProbabilisticOperator*>>(quotient_.get()))
         , q_aops_gen_(
@@ -309,7 +308,14 @@ private:
             GlobalState,
             quotient_system::QuotientAction<const ProbabilisticOperator*>,
             Bounds>(
-            args...,
+            this->get_state_id_map(),
+            q_action_id_map_.get(),
+            this->get_state_reward_function(),
+            q_action_reward_.get(),
+            this->get_minimal_reward(),
+            this->get_maximal_reward(),
+            q_aops_gen_.get(),
+            q_transition_gen_.get(),
             dead_end_ident_level_,
             dead_end_eval_.get(),
             q_dead_end_listener_.get(),
@@ -320,14 +326,7 @@ private:
             &progress_,
             interval_comparison_,
             stable_policy_,
-            this->get_state_id_map(),
-            q_action_id_map_.get(),
-            this->get_state_reward_function(),
-            q_action_reward_.get(),
-            this->get_minimal_reward(),
-            this->get_maximal_reward(),
-            q_aops_gen_.get(),
-            q_transition_gen_.get());
+            args...);
     }
 
     template<
@@ -354,9 +353,6 @@ private:
             quotient_system::QuotientAction<const ProbabilisticOperator*>>>(
             engine);
         return new FretVariant(
-            quotient_.get(),
-            &progress_,
-            engine,
             this->get_state_id_map(),
             this->get_action_id_map(),
             this->get_state_reward_function(),
@@ -364,14 +360,17 @@ private:
             this->get_minimal_reward(),
             this->get_maximal_reward(),
             this->get_applicable_actions_generator(),
-            this->get_transition_generator());
+            this->get_transition_generator(),
+            quotient_.get(),
+            &progress_,
+            engine);
     }
 
     std::unique_ptr<
         quotient_system::QuotientSystem<const ProbabilisticOperator*>>
         quotient_;
 
-    std::unique_ptr<ActionEvaluator<
+    std::unique_ptr<ActionRewardFunction<
         quotient_system::QuotientAction<const ProbabilisticOperator*>>>
         q_action_reward_;
     std::unique_ptr<ActionIDMap<

@@ -605,7 +605,9 @@ TransitionGenerator<bisimulation::QuotientAction>::operator()(
     }
 }
 
-StateEvaluator<bisimulation::QuotientState>::StateEvaluator(
+namespace bisimulation {
+
+DefaultQuotientStateEvaluator::DefaultQuotientStateEvaluator(
     bisimulation::BisimilarStateSpace* bisim,
     const value_type::value_t min,
     const value_type::value_t max,
@@ -618,8 +620,32 @@ StateEvaluator<bisimulation::QuotientState>::StateEvaluator(
 }
 
 EvaluationResult
-StateEvaluator<bisimulation::QuotientState>::operator()(
-    const bisimulation::QuotientState& s) const
+DefaultQuotientStateEvaluator::evaluate(const bisimulation::QuotientState& s)
+{
+    if (bisim_->is_dead_end(s)) {
+        return EvaluationResult(true, min_);
+    }
+    if (bisim_->is_goal_state(s)) {
+        return EvaluationResult(true, max_);
+    }
+    return EvaluationResult(false, default_);
+}
+
+DefaultQuotientStateRewardFunction::DefaultQuotientStateRewardFunction(
+    bisimulation::BisimilarStateSpace* bisim,
+    const value_type::value_t min,
+    const value_type::value_t max,
+    value_type::value_t def)
+    : bisim_(bisim)
+    , min_(min)
+    , max_(max)
+    , default_(def)
+{
+}
+
+EvaluationResult
+DefaultQuotientStateRewardFunction::
+evaluate(const bisimulation::QuotientState& s)
 {
     if (bisim_->is_dead_end(s)) {
         return EvaluationResult(true, min_);
@@ -631,11 +657,12 @@ StateEvaluator<bisimulation::QuotientState>::operator()(
 }
 
 value_type::value_t
-ActionEvaluator<bisimulation::QuotientAction>::operator()(
-    const StateID&,
-    const bisimulation::QuotientAction&) const
+DefaultQuotientActionRewardFunction::
+evaluate(StateID, bisimulation::QuotientAction)
 {
     return 0;
+}
+
 }
 
 } // namespace probabilistic

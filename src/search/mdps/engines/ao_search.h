@@ -80,9 +80,44 @@ public:
     using State = typename HeuristicSearchBase::State;
     using Action = typename HeuristicSearchBase::Action;
 
-    template<typename... Args>
-    AOBase(DeadEndIdentificationLevel level, Args... args)
-        : HeuristicSearchBase(level, args...)
+    AOBase(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
+        DeadEndIdentificationLevel level,
+        StateEvaluator<StateT>* dead_end_eval,
+        DeadEndListener<StateT, ActionT>* dead_end_listener,
+        PolicyPicker<ActionT>* policy_chooser,
+        NewStateHandler<StateT>* new_state_handler,
+        StateEvaluator<StateT>* value_init,
+        HeuristicSearchConnector* connector,
+        ProgressReport* report,
+        bool interval_comparison,
+        bool stable_policy)
+        : HeuristicSearchBase(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator,
+            level,
+            dead_end_eval,
+            dead_end_listener,
+            policy_chooser,
+            new_state_handler,
+            value_init,
+            connector,
+            report,
+            interval_comparison,
+            stable_policy)
         , state_infos_(this->template get_state_status_access<StateInfo>())
         , dead_end_ident_level_(level)
         , mark_dead_ends_(this)
@@ -377,7 +412,7 @@ private:
         solved = info.unsolved == 0;
         dead = solved && info.alive == 0 && !info.is_goal_state();
         const bool vc = this->async_update(state);
-        if (this->get_lower_bound(info) >= this->get_maximal_reward()) {
+        if (as_lower_bound(info.value) >= this->get_maximal_reward()) {
             solved = true;
             dead = false;
         }

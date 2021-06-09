@@ -30,9 +30,25 @@ struct Statistics {
 template<typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
 public:
-    template<typename... Args>
-    explicit AcyclicValueIteration(StateEvaluator<State>* prune, Args... args)
-        : MDPEngine<State, Action>(args...)
+    explicit AcyclicValueIteration(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
+        StateEvaluator<State>* prune = nullptr)
+        : MDPEngine<State, Action>(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator)
         , prune_(prune)
         , expanded_states_(false)
         , values_(this->get_minimal_reward())

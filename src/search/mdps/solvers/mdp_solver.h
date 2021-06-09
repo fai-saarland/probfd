@@ -29,10 +29,9 @@ public:
 
     template<typename Engine, typename... Args>
     engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
-    engine_factory(Args... args)
+    engine_factory(Args&&... args)
     {
         return new Engine(
-            args...,
             &state_id_map_,
             &action_id_map_,
             state_reward_function_,
@@ -40,7 +39,8 @@ public:
             minimal_reward_,
             maximal_reward_,
             &aops_generator_,
-            &transition_generator_);
+            &transition_generator_,
+            std::forward<Args>(args)...);
     }
 
     virtual engines::MDPEngineInterface<GlobalState>* create_engine() = 0;
@@ -60,12 +60,12 @@ protected:
         return &action_id_map_;
     }
 
-    ActionEvaluator<const ProbabilisticOperator*>* get_action_reward_function()
+    ActionRewardFunction<const ProbabilisticOperator*>* get_action_reward_function()
     {
         return action_reward_function_;
     }
 
-    StateEvaluator<GlobalState>* get_state_reward_function()
+    StateRewardFunction<GlobalState>* get_state_reward_function()
     {
         return state_reward_function_;
     }
@@ -95,8 +95,8 @@ private:
 
     StateIDMap<GlobalState> state_id_map_;
     ActionIDMap<const ProbabilisticOperator*> action_id_map_;
-    StateEvaluator<GlobalState>* state_reward_function_;
-    ActionEvaluator<const ProbabilisticOperator*>* action_reward_function_;
+    StateRewardFunction<GlobalState>* state_reward_function_;
+    ActionRewardFunction<const ProbabilisticOperator*>* action_reward_function_;
     value_type::value_t minimal_reward_;
     value_type::value_t maximal_reward_;
     TransitionGenerator<const ProbabilisticOperator*> transition_generator_;

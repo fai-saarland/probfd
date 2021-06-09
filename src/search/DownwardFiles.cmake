@@ -535,6 +535,7 @@ fast_downward_plugin(
     HELP "Core source files for supporting MDPs"
     SOURCES
         mdps/value_type
+        mdps/value_utils
         mdps/logging
         mdps/evaluation_result
         mdps/globals
@@ -544,8 +545,8 @@ fast_downward_plugin(
         mdps/analysis_objectives/expected_cost_objective
         mdps/action_id_map
         mdps/state_id_map
-        mdps/action_evaluator
         mdps/state_evaluator
+        mdps/state_reward_function
         mdps/transition_generator
         mdps/solvers/mdp_solver
         mdps/progress_report

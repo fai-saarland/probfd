@@ -3,7 +3,7 @@
 #include "../evaluation_result.h"
 #include "../types.h"
 #include "../value_type.h"
-#include "value_utils.h"
+#include "../value_utils.h"
 
 #include <cassert>
 #include <cstdint>
@@ -11,87 +11,6 @@
 namespace probabilistic {
 namespace engines {
 namespace heuristic_search {
-
-struct StatesValue {
-    inline const value_type::value_t& get_value() const { return value; }
-
-    value_type::value_t value = 0;
-};
-
-template<typename HasTwoValues = std::false_type>
-struct StatesValues : public StatesValue {
-public:
-    using DualBounds = std::false_type;
-
-    void
-    set_value(const value_utils::IncumbentSolution<std::false_type>& new_value)
-    {
-        value = new_value.first;
-    }
-
-    void set_value(const value_type::value_t& reward)
-    {
-        value = (value_type::value_t)reward;
-    }
-
-    bool update_value(
-        const bool,
-        const value_utils::IncumbentSolution<std::false_type>& new_value)
-    {
-        const bool result = !value_type::approx_equal()(value, new_value.first);
-        value = new_value.first;
-        return result;
-    }
-
-    bool bounds_equal() const { return true; }
-
-    value_type::value_t error_bound() const { return value_type::zero; }
-};
-
-template<>
-class StatesValues<std::true_type> : public StatesValue {
-public:
-    using DualBounds = std::true_type;
-
-    void set_value(const value_type::value_t& reward)
-    {
-        value = (value_type::value_t)reward;
-    }
-
-    void
-    set_value(const value_utils::IncumbentSolution<std::false_type>& new_value)
-    {
-        value = new_value.first;
-        value2 = new_value.first;
-    }
-
-    void
-    set_value(const value_utils::IncumbentSolution<std::true_type>& new_value)
-    {
-        value = new_value.first;
-        value2 = new_value.first;
-    }
-
-    bool update_value(
-        const bool x,
-        const value_utils::IncumbentSolution<std::true_type>& new_value)
-    {
-        const bool result = !value_type::approx_equal()(value, new_value.first)
-            || (x && !value_type::approx_equal()(value2, new_value.second));
-        value = new_value.first;
-        value2 = new_value.second;
-        return result;
-    }
-
-    bool bounds_equal() const
-    {
-        return value_type::approx_equal()(value, value2);
-    }
-
-    value_type::value_t error_bound() const { return value - value2; }
-
-    value_type::value_t value2;
-};
 
 template<typename StoresPolicyT = std::false_type>
 struct StatesPolicy {
@@ -184,12 +103,13 @@ struct StateFlags {
 };
 
 template<typename StoresPolicyT, typename TwoValuesT>
-struct PerStateBaseInformation : public StatesValues<TwoValuesT>,
-                                 public StatesPolicy<StoresPolicyT>,
-                                 public StateFlags {
+struct PerStateBaseInformation : public StatesPolicy<StoresPolicyT>,
+                                 public StateFlags
+{
     using StatesPolicy<StoresPolicyT>::StoresPolicy;
-    using StatesValues<TwoValuesT>::DualBounds;
+    using DualBounds = typename value_utils::IncumbentSolution<TwoValuesT>::DualBounds;
 
+    value_utils::IncumbentSolution<TwoValuesT> value;
 };
 
 class PerStateInformationLookup {

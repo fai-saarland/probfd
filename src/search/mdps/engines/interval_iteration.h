@@ -27,7 +27,7 @@ copy_lower_bounds(
         const StateID stateid(i);
         if (!filter0->operator[](stateid)
             && (filter1 == nullptr || !filter1->operator[](stateid))) {
-            target[stateid] = vs->operator[](stateid).value;
+            target[stateid] = vs->operator[](stateid).lower;
             ++res;
         }
     }
@@ -47,7 +47,7 @@ copy_upper_bounds(
         const StateID stateid(i);
         if (!filter0->operator[](stateid)
             && (filter1 == nullptr || !filter1->operator[](stateid))) {
-            target[stateid] = vs->operator[](stateid).value2;
+            target[stateid] = vs->operator[](stateid).upper;
             ++res;
         }
     }
@@ -57,13 +57,13 @@ copy_upper_bounds(
 inline value_type::value_t
 upper_bound(const ValueStore::reference b)
 {
-    return b.value2;
+    return b.upper;
 }
 
 inline value_type::value_t
 lower_bound(const ValueStore::reference b)
 {
-    return b.value;
+    return b.lower;
 }
 
 template<typename State, typename Action, bool ExpandGoalStates = false>
@@ -84,12 +84,26 @@ public:
     using ValueStore = interval_iteration::ValueStore;
     using BoolStore = interval_iteration::BoolStore;
 
-    template<typename... Args>
     explicit IntervalIteration(
+        StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
+        value_type::value_t minimal_reward,
+        value_type::value_t maximal_reward,
+        ApplicableActionsGenerator<Action>* aops_generator,
+        TransitionGenerator<Action>* transition_generator,
         StateEvaluator<State>* prune,
-        bool extract_probability_one_states,
-        Args... args)
-        : MDPEngine<State, Action>(args...)
+        bool extract_probability_one_states)
+        : MDPEngine<State, Action>(
+            state_id_map,
+            action_id_map,
+            state_reward_function,
+            action_reward_function,
+            minimal_reward,
+            maximal_reward,
+            aops_generator,
+            transition_generator)
         , lb_(this->get_minimal_reward())
         , ub_(this->get_maximal_reward())
         , prune_(prune)
@@ -187,15 +201,12 @@ private:
         ecd_statistics_ = ec_decomposer.get_statistics();
         ApplicableActionsGenerator<QAction> q_aops_gen(sys);
         TransitionGenerator<QAction> q_transition_gen(sys);
-        ActionEvaluator<QAction> q_action_reward(
-            sys, this->get_action_reward_function());
+        quotient_system::DefaultQuotientActionRewardFunction<Action>
+            q_action_reward(sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
         if (extract_probability_one_states_) {
             assert(one_states != nullptr);
             ValueIteration<BoolStore> vi(
-                nullptr,
-                dead_ends,
-                one_states,
                 this->get_state_id_map(),
                 &q_action_id_map,
                 this->get_state_reward_function(),
@@ -203,15 +214,16 @@ private:
                 lb_,
                 ub_,
                 &q_aops_gen,
-                &q_transition_gen);
+                &q_transition_gen,
+                value_utils::IntervalValue(value_type::zero, value_type::one),
+                nullptr,
+                dead_ends,
+                one_states);
             value_type::value_t result = vi.solve(state, *value_store);
             tvi_statistics_ = vi.get_statistics();
             return result;
         } else {
             ValueIteration<void> vi(
-                nullptr,
-                dead_ends,
-                static_cast<void*>(nullptr),
                 this->get_state_id_map(),
                 &q_action_id_map,
                 this->get_state_reward_function(),
@@ -219,7 +231,11 @@ private:
                 lb_,
                 ub_,
                 &q_aops_gen,
-                &q_transition_gen);
+                &q_transition_gen,
+                value_utils::IntervalValue(value_type::zero, value_type::one),
+                nullptr,
+                dead_ends,
+                static_cast<void*>(nullptr));
             value_type::value_t result = vi.solve(state, *value_store);
             tvi_statistics_ = vi.get_statistics();
             return result;

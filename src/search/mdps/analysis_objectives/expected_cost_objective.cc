@@ -9,7 +9,7 @@ namespace probabilistic {
 namespace analysis_objectives {
 
 namespace {
-class GoalCheck : public GlobalStateEvaluator {
+class GoalCheck : public GlobalStateRewardFunction {
 protected:
     EvaluationResult evaluate(const GlobalState& state) override
     {
@@ -19,8 +19,8 @@ protected:
 
 class ActionCostEvaluator : public ProbabilisticOperatorEvaluator {
 protected:
-    value_type::value_t evaluate(
-        const StateID&, const ProbabilisticOperator* const& op) const override
+    value_type::value_t
+    evaluate(StateID, const ProbabilisticOperator* op) override
     {
         return -op->get_cost();
     }
@@ -45,7 +45,7 @@ ExpectedCostObjective::max()
     return value_type::zero;
 }
 
-GlobalStateEvaluator*
+GlobalStateRewardFunction*
 ExpectedCostObjective::state_reward()
 {
     return state_eval_.get();

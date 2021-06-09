@@ -1,13 +1,14 @@
-#pragma once
+#ifndef __STATE_REWARD_FUNCTION_H__
+#define __STATE_REWARD_FUNCTION_H__
 
 #include "../evaluation_result.h"
 
 namespace probabilistic {
 
 template<typename State>
-class StateEvaluator {
+class StateRewardFunction {
 public:
-    virtual ~StateEvaluator() = default;
+    virtual ~StateRewardFunction() = default;
 
     EvaluationResult operator()(const State& state)
     {
@@ -20,5 +21,6 @@ protected:
     virtual EvaluationResult evaluate(const State& state) = 0;
 };
 
-} // namespace probabilistic
+}
 
+#endif // __STATE_REWARD_FUNCTION_H__

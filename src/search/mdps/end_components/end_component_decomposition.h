@@ -4,6 +4,7 @@
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
+#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../quotient_system/engine_interfaces.h"
@@ -258,7 +259,7 @@ public:
         StateEvaluator<State>* pruning_function,
         ActionIDMap<Action>* action_id_map,
         StateIDMap<State>* state_id_map,
-        StateEvaluator<State>* goal,
+        StateRewardFunction<State>* goal,
         ApplicableActionsGenerator<Action>* aops_gen,
         TransitionGenerator<Action>* transition_gen)
         : action_id_map_(action_id_map)
@@ -951,7 +952,7 @@ private:
     ActionIDMap<Action>* action_id_map_;
     StateIDMap<State>* state_id_map_;
     StateEvaluator<State>* pruning_function_;
-    StateEvaluator<State>* goal_;
+    StateRewardFunction<State>* goal_;
     ApplicableActionsGenerator<Action>* aops_gen_;
     TransitionGenerator<Action>* transition_gen_;
 

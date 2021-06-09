@@ -7,32 +7,41 @@
 #include "quotient_system.h"
 
 namespace probabilistic {
+namespace quotient_system {
 
-template<typename Action>
-class ActionEvaluator<quotient_system::QuotientAction<Action>> {
+template <typename Action>
+using QuotientActionRewardFunction =
+    ActionRewardFunction<quotient_system::QuotientAction<Action>>;
+
+template <typename Action>
+class DefaultQuotientActionRewardFunction
+    : public QuotientActionRewardFunction<Action>
+{
 public:
-    explicit ActionEvaluator(
+    explicit DefaultQuotientActionRewardFunction(
         quotient_system::QuotientSystem<Action>* quotient,
-        ActionEvaluator<Action>* orig)
+        ActionRewardFunction<Action>* orig)
         : quotient_(quotient)
         , eval_(orig)
     {
     }
 
-    value_type::value_t operator()(
-        const StateID& s,
-        const quotient_system::QuotientAction<Action>& qa) const
+    virtual
+    value_type::value_t
+    evaluate(StateID s, quotient_system::QuotientAction<Action> qa) override
     {
         return eval_->operator()(
             qa.state_id, quotient_->get_original_action(s, qa));
     }
 
-    ActionEvaluator<Action>* real() const { return eval_; }
+    ActionRewardFunction<Action>* real() const { return eval_; }
 
 private:
     quotient_system::QuotientSystem<Action>* quotient_;
-    ActionEvaluator<Action>* eval_;
+    ActionRewardFunction<Action>* eval_;
 };
+
+} // namespace quotient_system
 
 template<typename Action>
 class ActionIDMap<quotient_system::QuotientAction<Action>> {

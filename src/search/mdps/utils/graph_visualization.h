@@ -2,6 +2,7 @@
 
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
+#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../storage/per_state_storage.h"
@@ -18,7 +19,7 @@ template<
     typename Action,
     typename StateToString,
     typename ActionToString,
-    typename GoalCheck = StateEvaluator<State>,
+    typename GoalCheck = StateRewardFunction<State>,
     typename PruneState = StateEvaluator<State>,
     typename AOpsGen = ApplicableActionsGenerator<Action>,
     typename TGen = TransitionGenerator<Action>>
@@ -144,7 +145,7 @@ dump(
     std::ostream& out,
     const State& state,
     StateIDMap<State>* state_id_map,
-    StateEvaluator<State>* goal_check,
+    StateRewardFunction<State>* goal_check,
     ApplicableActionsGenerator<Action>* aops_gen,
     TransitionGenerator<Action>* tgen,
     StateToString* sstr,

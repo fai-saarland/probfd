@@ -4,6 +4,7 @@
 #include "../../engine_interfaces/action_id_map.h"
 #include "../../engine_interfaces/applicable_actions_generator.h"
 #include "../../engine_interfaces/state_evaluator.h"
+#include "../../engine_interfaces/state_reward_function.h"
 #include "../../engine_interfaces/state_id_map.h"
 #include "../../engine_interfaces/transition_generator.h"
 #include "abstract_operator.h"
@@ -62,33 +63,6 @@ private:
 };
 
 template<>
-class StateEvaluator<pdbs::AbstractState> {
-public:
-    virtual ~StateEvaluator() = default;
-    EvaluationResult operator()(const pdbs::AbstractState& state)
-    {
-        return evaluate(state);
-    }
-
-protected:
-    virtual EvaluationResult evaluate(const pdbs::AbstractState& state) = 0;
-};
-
-template<>
-class ActionEvaluator<const pdbs::AbstractOperator*> {
-public:
-    virtual ~ActionEvaluator() = default;
-    value_type::value_t
-    operator()(const StateID&, const pdbs::AbstractOperator* op)
-    {
-        return this->evaluate(op);
-    }
-
-protected:
-    virtual value_type::value_t evaluate(const pdbs::AbstractOperator* op) = 0;
-};
-
-template<>
 class ApplicableActionsGenerator<const pdbs::AbstractOperator*> {
 public:
     explicit ApplicableActionsGenerator(
@@ -140,17 +114,21 @@ private:
 
 namespace pdbs {
 
+using AbstractStateRewardFunction = StateRewardFunction<AbstractState>;
+using AbstractStateEvaluator = StateEvaluator<AbstractState>;
+using AbstractOperatorRewardFunction = ActionRewardFunction<const AbstractOperator*>;
+
 class QualitativeResultStore;
 
-class AbstractStateInStoreEvaluator : public StateEvaluator<AbstractState> {
+class AbstractStateDeadendStoreEvaluator : public AbstractStateEvaluator {
 public:
-    explicit AbstractStateInStoreEvaluator(
+    explicit AbstractStateDeadendStoreEvaluator(
         const QualitativeResultStore* states_,
         value_type::value_t value_in,
         value_type::value_t value_not_in);
 
 protected:
-    virtual EvaluationResult evaluate(const AbstractState& state) override;
+    EvaluationResult evaluate(const AbstractState& state) override;
 
 private:
     const QualitativeResultStore* states_;
@@ -158,15 +136,31 @@ private:
     const value_type::value_t value_not_in_;
 };
 
-class AbstractStateInSetEvaluator : public StateEvaluator<AbstractState> {
+class AbstractStateInStoreRewardFunction : public AbstractStateRewardFunction {
 public:
-    explicit AbstractStateInSetEvaluator(
+    explicit AbstractStateInStoreRewardFunction(
+        const QualitativeResultStore* states_,
+        value_type::value_t value_in,
+        value_type::value_t value_not_in);
+
+protected:
+    EvaluationResult evaluate(const AbstractState& state) override;
+
+private:
+    const QualitativeResultStore* states_;
+    const value_type::value_t value_in_;
+    const value_type::value_t value_not_in_;
+};
+
+class AbstractStateInSetRewardFunction : public AbstractStateRewardFunction {
+public:
+    explicit AbstractStateInSetRewardFunction(
         const std::unordered_set<AbstractState>* states_,
         value_type::value_t value_in,
         value_type::value_t value_not_in);
 
 protected:
-    virtual EvaluationResult evaluate(const AbstractState& state) override;
+    EvaluationResult evaluate(const AbstractState& state) override;
 
 private:
     const std::unordered_set<AbstractState>* states_;
@@ -174,38 +168,34 @@ private:
     const value_type::value_t value_not_in_;
 };
 
-class PDBEvaluator : public StateEvaluator<AbstractState> {
+class PDBEvaluator : public AbstractStateEvaluator {
 public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
 protected:
-    virtual EvaluationResult evaluate(const AbstractState& state) override;
+    EvaluationResult evaluate(const AbstractState& state) override;
 
 private:
     const ::pdbs::PatternDatabase& pdb;
 };
 
-class ZeroCostActionEvaluator
-    : public ActionEvaluator<const AbstractOperator*> {
+class ZeroCostActionEvaluator : public AbstractOperatorRewardFunction {
 protected:
-    virtual value_type::value_t evaluate(const AbstractOperator*) override;
+    value_type::value_t
+    evaluate(StateID, const AbstractOperator*) override;
 };
 
-class UnitCostActionEvaluator
-    : public ActionEvaluator<const AbstractOperator*> {
+class UnitCostActionEvaluator : public AbstractOperatorRewardFunction {
 protected:
-    virtual value_type::value_t evaluate(const AbstractOperator*) override;
+    value_type::value_t
+    evaluate(StateID, const AbstractOperator*) override;
 };
 
-class NormalCostActionEvaluator
-    : public ActionEvaluator<const AbstractOperator*> {
+class NormalCostActionEvaluator : public AbstractOperatorRewardFunction {
 protected:
-    virtual value_type::value_t evaluate(const AbstractOperator*) override;
+    value_type::value_t
+    evaluate(StateID, const AbstractOperator*) override;
 };
-
-using AbstractStateEvaluator = StateEvaluator<AbstractState>;
-
-using AbstractOperatorEvaluator = ActionEvaluator<const AbstractOperator*>;
 
 } // namespace pdbs
 } // namespace probabilistic
