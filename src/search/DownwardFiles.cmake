@@ -554,6 +554,7 @@ fast_downward_plugin(
         mdps/utils/distribution_random_sampler
         mdps/utils/distribution_uniform_sampler
         mdps/bisimulation/bisimilar_state_space
+        mdps/bisimulation/engine_interfaces
         mdps/heuristics/constant_evaluator
         mdps/heuristics/dead_end_pruning
         mdps/heuristics/budget_pruning
