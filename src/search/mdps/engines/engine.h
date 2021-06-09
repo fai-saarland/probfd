@@ -5,6 +5,7 @@
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
+#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../value_type.h"
@@ -32,8 +33,8 @@ public:
     explicit MDPEngine(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
-        StateEvaluator<State>* state_reward_function,
-        ActionEvaluator<Action>* action_reward_function,
+        StateRewardFunction<State>* state_reward_function,
+        ActionRewardFunction<Action>* action_reward_function,
         value_type::value_t minimal_reward,
         value_type::value_t maximal_reward,
         ApplicableActionsGenerator<Action>* aops_generator,
@@ -110,12 +111,12 @@ public:
 
     ActionIDMap<Action>* get_action_id_map() const { return action_id_map_; }
 
-    StateEvaluator<State>* get_state_reward_function() const
+    StateRewardFunction<State>* get_state_reward_function() const
     {
         return state_reward_function_;
     }
 
-    ActionEvaluator<Action>* get_action_reward_function() const
+    ActionRewardFunction<Action>* get_action_reward_function() const
     {
         return action_reward_function_;
     }
@@ -133,8 +134,8 @@ public:
 private:
     StateIDMap<State>* state_id_map_;
     ActionIDMap<Action>* action_id_map_;
-    StateEvaluator<State>* state_reward_function_;
-    ActionEvaluator<Action>* action_reward_function_;
+    StateRewardFunction<State>* state_reward_function_;
+    ActionRewardFunction<Action>* action_reward_function_;
     const value_type::value_t minimal_reward_;
     const value_type::value_t maximal_reward_;
     ApplicableActionsGenerator<Action>* aops_generator_;

@@ -60,12 +60,12 @@ protected:
         return &action_id_map_;
     }
 
-    ActionEvaluator<const ProbabilisticOperator*>* get_action_reward_function()
+    ActionRewardFunction<const ProbabilisticOperator*>* get_action_reward_function()
     {
         return action_reward_function_;
     }
 
-    StateEvaluator<GlobalState>* get_state_reward_function()
+    StateRewardFunction<GlobalState>* get_state_reward_function()
     {
         return state_reward_function_;
     }
@@ -95,8 +95,8 @@ private:
 
     StateIDMap<GlobalState> state_id_map_;
     ActionIDMap<const ProbabilisticOperator*> action_id_map_;
-    StateEvaluator<GlobalState>* state_reward_function_;
-    ActionEvaluator<const ProbabilisticOperator*>* action_reward_function_;
+    StateRewardFunction<GlobalState>* state_reward_function_;
+    ActionRewardFunction<const ProbabilisticOperator*>* action_reward_function_;
     value_type::value_t minimal_reward_;
     value_type::value_t maximal_reward_;
     TransitionGenerator<const ProbabilisticOperator*> transition_generator_;

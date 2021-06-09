@@ -6,8 +6,8 @@
 namespace probabilistic {
 
 template<typename Action>
-struct ActionEvaluator {
-    virtual ~ActionEvaluator() = default;
+struct ActionRewardFunction {
+    virtual ~ActionRewardFunction() = default;
 
     value_type::value_t operator()(StateID state_id, Action action)
     {

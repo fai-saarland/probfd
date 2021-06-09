@@ -128,7 +128,7 @@ TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
 
 namespace pdbs {
 
-AbstractStateInStoreEvaluator::AbstractStateInStoreEvaluator(
+AbstractStateDeadendStoreEvaluator::AbstractStateDeadendStoreEvaluator(
     const QualitativeResultStore* states,
     value_type::value_t value_in,
     value_type::value_t value_not_in)
@@ -139,14 +139,32 @@ AbstractStateInStoreEvaluator::AbstractStateInStoreEvaluator(
 }
 
 EvaluationResult
-AbstractStateInStoreEvaluator::evaluate(const AbstractState& state)
+AbstractStateDeadendStoreEvaluator::evaluate(const AbstractState& state)
 {
     const bool is_contained = states_->get(state);
     return EvaluationResult(
         is_contained, is_contained ? value_in_ : value_not_in_);
 }
 
-AbstractStateInSetEvaluator::AbstractStateInSetEvaluator(
+AbstractStateInStoreRewardFunction::AbstractStateInStoreRewardFunction(
+    const QualitativeResultStore* states,
+    value_type::value_t value_in,
+    value_type::value_t value_not_in)
+    : states_(states)
+    , value_in_(value_in)
+    , value_not_in_(value_not_in)
+{
+}
+
+EvaluationResult
+AbstractStateInStoreRewardFunction::evaluate(const AbstractState& state)
+{
+    const bool is_contained = states_->get(state);
+    return EvaluationResult(
+        is_contained, is_contained ? value_in_ : value_not_in_);
+}
+
+AbstractStateInSetRewardFunction::AbstractStateInSetRewardFunction(
     const std::unordered_set<AbstractState>* states_,
     value_type::value_t value_in,
     value_type::value_t value_not_in)
@@ -162,7 +180,7 @@ PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 }
 
 EvaluationResult
-AbstractStateInSetEvaluator::evaluate(const AbstractState& state)
+AbstractStateInSetRewardFunction::evaluate(const AbstractState& state)
 {
     const bool is_contained = states_->find(state) != states_->end();
     return EvaluationResult(

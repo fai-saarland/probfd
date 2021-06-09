@@ -8,6 +8,7 @@
 #include "../probabilistic_operator.h"
 #include "../progress_report.h"
 #include "../state_evaluator.h"
+#include "../state_reward_function.h"
 #include "../storage/per_state_storage.h"
 #include "../transition_generator.h"
 #include "../value_type.h"
@@ -62,7 +63,7 @@ private:
 
     StateRegistry state_registry_;
 
-    StateEvaluator<GlobalState>* state_reward_function_;
+    StateRewardFunction<GlobalState>* state_reward_function_;
     value_type::value_t minimal_reward_;
     value_type::value_t maximal_reward_;
     TransitionGenerator<const ProbabilisticOperator*> transition_generator_;

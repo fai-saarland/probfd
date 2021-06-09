@@ -135,7 +135,7 @@ public:
                   this->get_action_id_map(),
                   this->get_applicable_actions_generator(),
                   this->get_transition_generator()))
-        , q_action_reward_(new QuotientActionRewardEvaluator<
+        , q_action_reward_(new quotient_system::DefaultQuotientActionRewardFunction<
               const ProbabilisticOperator*>(
                   quotient_.get(), this->get_action_reward_function()))
         , q_action_id_map_(new ActionIDMap<quotient_system::QuotientAction<
@@ -370,7 +370,7 @@ private:
         quotient_system::QuotientSystem<const ProbabilisticOperator*>>
         quotient_;
 
-    std::unique_ptr<ActionEvaluator<
+    std::unique_ptr<ActionRewardFunction<
         quotient_system::QuotientAction<const ProbabilisticOperator*>>>
         q_action_reward_;
     std::unique_ptr<ActionIDMap<

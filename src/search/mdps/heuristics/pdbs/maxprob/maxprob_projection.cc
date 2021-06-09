@@ -152,7 +152,7 @@ void MaxProbProjection::precompute_dead_ends()
 void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     using namespace engines::interval_iteration;
 
-    AbstractStateInSetEvaluator is_goal(
+    AbstractStateInSetRewardFunction state_reward(
         &goal_states_,
         value_type::one,
         value_type::zero);
@@ -169,7 +169,7 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     std::unique_ptr<AbstractStateEvaluator> heuristic = nullptr;
     if (precomputed_dead_ends) {
         heuristic = std::unique_ptr<AbstractStateEvaluator>(
-            new AbstractStateInStoreEvaluator(
+            new AbstractStateDeadendStoreEvaluator(
                 &dead_ends, value_type::zero, value_type::zero));
     }
 
@@ -179,7 +179,7 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
            true,
            &state_id_map,
            &action_id_map,
-           &is_goal,
+           &state_reward,
            &no_reward,
            value_type::zero,
            value_type::one,
@@ -375,7 +375,7 @@ void MaxProbProjection::dump_graphviz(
     const StateToString *sts,
     const ActionToString *ats)
 {
-    AbstractStateInSetEvaluator is_goal(
+    AbstractStateInSetRewardFunction state_reward(
         &goal_states_,
         value_type::one,
         value_type::zero);
@@ -393,7 +393,7 @@ void MaxProbProjection::dump_graphviz(
         out,
         initial_state_,
         &state_id_map,
-        &is_goal,
+        &state_reward,
         &aops_gen,
         &transition_gen,
         sts,

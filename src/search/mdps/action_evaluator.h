@@ -6,6 +6,6 @@
 namespace probabilistic {
 
 using ProbabilisticOperatorEvaluator =
-    ActionEvaluator<const ProbabilisticOperator*>;
+    ActionRewardFunction<const ProbabilisticOperator*>;
 
 } // namespace probabilistic
