@@ -19,7 +19,7 @@ class AnalysisObjective;
 namespace pdbs {
 
 class ExpCostProjection : public ProbabilisticProjection {
-    std::vector<value_utils::SingleValue> value_table;
+    std::vector<value_type::value_t> value_table;
     unsigned int reachable_states = 0;
 
 public:

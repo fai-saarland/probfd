@@ -9,8 +9,6 @@ namespace probabilistic {
 namespace value_utils {
 
 struct IntervalValue {
-    using DualBounds = std::true_type;
-
     value_type::value_t lower;
     value_type::value_t upper;
 
@@ -55,6 +53,7 @@ struct IntervalValue {
     friend bool operator==(const IntervalValue& lhs, const IntervalValue& rhs);
 };
 
+/*
 struct SingleValue {
     using DualBounds = std::false_type;
 
@@ -93,34 +92,35 @@ struct SingleValue {
 
     friend bool operator==(const SingleValue& lhs, const SingleValue& rhs);
 };
+*/
 
 template<typename Dual>
 using IncumbentSolution = std::conditional_t<
     Dual::value,
     IntervalValue,
-    SingleValue>;
+    value_type::value_t>;
 
 // Comparisons
 
 int compare(const IntervalValue& value0, const IntervalValue& value1);
-int compare(const SingleValue& value0, const SingleValue& value1);
+int compare(const value_type::value_t& value0, const value_type::value_t& value1);
 
 // Value update (old)
 
 void update(IntervalValue& new_value, const IntervalValue& tval);
-void update(SingleValue& new_value, const SingleValue& tval);
+void update(value_type::value_t& new_value, const value_type::value_t& tval);
 
 // Value update
 
 bool update_check(IntervalValue& lhs, const IntervalValue& rhs);
 bool update_check(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper);
-bool update_check(SingleValue& lhs, const SingleValue& rhs);
+bool update_check(value_type::value_t& lhs, const value_type::value_t& rhs);
 
-value_type::value_t as_lower_bound(const value_utils::SingleValue& single);
-value_type::value_t as_lower_bound(const value_utils::IntervalValue& interval);
+value_type::value_t as_lower_bound(const value_type::value_t& single);
+value_type::value_t as_lower_bound(const IntervalValue& interval);
 
-value_type::value_t as_upper_bound(const value_utils::SingleValue& single);
-value_type::value_t as_upper_bound(const value_utils::IntervalValue& interval);
+value_type::value_t as_upper_bound(const value_type::value_t& single);
+value_type::value_t as_upper_bound(const IntervalValue& interval);
 
 } // namespace value_utils
 } // namespace probabilistic

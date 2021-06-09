@@ -42,8 +42,8 @@ protected:
 
     const value_type::value_t& lookup_value(const StateID& state_id) const
     {
-        return reinterpret_cast<const value_utils::SingleValue*>(
-            connector_->lookup(state_id))->value;
+        return *reinterpret_cast<const value_type::value_t*>(
+            connector_->lookup(state_id));
     }
 
     const value_utils::IntervalValue*

@@ -38,7 +38,7 @@ struct Statistics {
     unsigned long long pruned = 0;
 };
 
-inline bool bounds_equal(const value_utils::SingleValue&) { 
+inline bool bounds_equal(const value_type::value_t&) { 
     return true;
 }
 
@@ -118,7 +118,7 @@ public:
 
     virtual value_type::value_t get_result(const State& s) override
     {
-        return as_upper_bound(value_store_->operator[](this->get_state_id(s)));
+        return value_utils::as_upper_bound(value_store_->operator[](this->get_state_id(s)));
     }
 
     virtual void print_statistics(std::ostream& out) const override
@@ -276,7 +276,8 @@ private:
                 value_utils::update(val, info());
             }
 
-            return update_check(*value, val) || !bounds_equal(*value);
+            return value_utils::update_check(*value, val) ||
+                !bounds_equal(*value);
         }
 
         StateID state_id;
@@ -340,7 +341,7 @@ private:
                         state_value.upper =
                             static_cast<value_type::value_t>(estimate);
                     } else {
-                        state_value.value =
+                        state_value =
                             static_cast<value_type::value_t>(estimate);
                     }
                 }
@@ -431,7 +432,7 @@ private:
         StateInfo& iinfo = state_information_[init_state_id];
 
         if (iinfo.status == StateInfo::CLOSED) {
-            return as_upper_bound(value_store[init_state_id]);
+            return value_utils::as_upper_bound(value_store[init_state_id]);
         }
 
         push_state(init_state_id, iinfo, value_store, dead_end_store);
@@ -472,7 +473,7 @@ private:
             exploration_stack_.pop_back();
         }
 
-        return as_upper_bound(value_store[init_state_id]);
+        return value_utils::as_upper_bound(value_store[init_state_id]);
     }
 
     template <typename ValueStore, typename BoolStore>
@@ -593,7 +594,7 @@ private:
                     state_info.status == StateInfo::TERMINAL);
 
                 if (!ExpandGoalStates || state_info.status == StateInfo::ONSTACK) {
-                    update(*stack_info.value, stack_info.b);
+                    value_utils::update(*stack_info.value, stack_info.b);
                 }
 
                 state_info.status = StateInfo::CLOSED;
@@ -613,7 +614,7 @@ private:
                             --scc_size;
                             stack_.erase(stack_.begin() + i);
                         } else if (scc_stack_info.infos.empty()) {
-                            update(*scc_stack_info.value, scc_stack_info.b);
+                            value_utils::update(*scc_stack_info.value, scc_stack_info.b);
                             --scc_size;
                             stack_.erase(stack_.begin() + i);
                         }

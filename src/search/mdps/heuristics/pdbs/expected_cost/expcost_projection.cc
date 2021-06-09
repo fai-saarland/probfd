@@ -29,7 +29,7 @@ ExpCostProjection(const Pattern& variables, const std::vector<int> &domains)
     : ProbabilisticProjection(variables, domains)
     , value_table(
         state_mapper_->size(),
-        SingleValue(-std::numeric_limits<value_type::value_t>::infinity()))
+        -std::numeric_limits<value_type::value_t>::infinity())
 {
     ConstantValueInitializer<AbstractState> initializer(value_type::zero);
     compute_value_table(&initializer);
@@ -49,7 +49,7 @@ ExpCostProjection(
     : ProbabilisticProjection(variables, domains)
     , value_table(
         state_mapper_->size(),
-        SingleValue(-std::numeric_limits<value_type::value_t>::infinity()))
+        -std::numeric_limits<value_type::value_t>::infinity())
 {
     compute_value_table(heuristic);
 }
@@ -58,7 +58,7 @@ ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
     : ProbabilisticProjection(pdb.get_pattern(), ::g_variable_domain)
     , value_table(
         state_mapper_->size(),
-        SingleValue(-std::numeric_limits<value_type::value_t>::infinity()))
+        -std::numeric_limits<value_type::value_t>::infinity())
 {
     PDBEvaluator heuristic(pdb);
     compute_value_table(&heuristic);
@@ -89,7 +89,7 @@ ExpCostProjection::lookup(const AbstractState& s) const
 namespace {
 struct StateToString {
     explicit StateToString(
-        const std::vector<SingleValue>* value_table,
+        const std::vector<value_type::value_t>* value_table,
         std::shared_ptr<AbstractStateMapper> state_mapper)
         : value_table(value_table)
         , state_str(std::move(state_mapper))
@@ -104,7 +104,7 @@ struct StateToString {
         return out.str();
     }
 
-    const std::vector<SingleValue>* value_table;
+    const std::vector<value_type::value_t>* value_table;
     AbstractStateToString state_str;
 };
 }

@@ -232,7 +232,7 @@ public:
     virtual value_type::value_t get_result(const State& s) override
     {
         const StateInfo& info = state_infos_[this->get_state_id(s)];
-        return as_upper_bound(info.value);
+        return value_utils::as_upper_bound(info.value);
     }
 
     virtual bool supports_error_bound() const override
@@ -648,9 +648,10 @@ protected:
     bool update(StateInfo& state_info, const IncumbentSolution& other)
     {
         if constexpr (DualBounds::value) {
-            return update_check(state_info.value, other, interval_comparison_);
+            return value_utils::update_check(
+                state_info.value, other, interval_comparison_);
         } else {
-            return update_check(state_info.value, other);
+            return value_utils::update_check(state_info.value, other);
         }
     }
 
@@ -679,9 +680,9 @@ protected:
         const StateInfo& info = lookup_initialize(this->get_state_id(state));
         // this->state_infos_[this->state_id_map_->operator[](state)];
         this->add_values_to_report(&info);
-        statistics_.value = as_upper_bound(info.value);
+        statistics_.value = value_utils::as_upper_bound(info.value);
         statistics_.before_last_update = statistics_;
-        statistics_.initial_state_estimate = as_upper_bound(info.value);
+        statistics_.initial_state_estimate = value_utils::as_upper_bound(info.value);
         statistics_.initial_state_found_terminal = info.is_terminal();
 
         setup_custom_reports(state);
@@ -779,14 +780,14 @@ private:
     {
         if constexpr (DualBounds::value) {
             report_->register_value("vl", [info]() {
-                return as_lower_bound(info->value);
+                return value_utils::as_lower_bound(info->value);
             });
             report_->register_value("vu", [info]() {
-                return as_upper_bound(info->value);
+                return value_utils::as_upper_bound(info->value);
             });
         } else {
             report_->register_value("v", [info]() {
-                return as_upper_bound(info->value);
+                return value_utils::as_upper_bound(info->value);
             });
         }
     }
@@ -824,7 +825,7 @@ private:
                         state_info.value.upper =
                             static_cast<value_type::value_t>(estimate);
                     } else {
-                        state_info.value.value =
+                        state_info.value =
                             static_cast<value_type::value_t>(estimate);
                     }
 

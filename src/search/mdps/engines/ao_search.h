@@ -412,7 +412,7 @@ private:
         solved = info.unsolved == 0;
         dead = solved && info.alive == 0 && !info.is_goal_state();
         const bool vc = this->async_update(state);
-        if (as_lower_bound(info.value) >= this->get_maximal_reward()) {
+        if (value_utils::as_lower_bound(info.value) >= this->get_maximal_reward()) {
             solved = true;
             dead = false;
         }

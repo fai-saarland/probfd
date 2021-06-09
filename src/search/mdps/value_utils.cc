@@ -114,6 +114,17 @@ bool operator==(const IntervalValue& lhs, const IntervalValue& rhs)
     return lhs.lower == rhs.lower && lhs.upper == rhs.upper;
 }
 
+value_type::value_t
+as_lower_bound(const value_utils::IntervalValue& interval) {
+    return interval.lower;
+}
+
+value_type::value_t
+as_upper_bound(const value_utils::IntervalValue& interval) {
+    return interval.upper;
+}
+
+/*
 SingleValue::SingleValue(value_type::value_t val)
     : value(val)
 {
@@ -172,56 +183,56 @@ SingleValue operator/(const SingleValue& rhs, value_t val)
     return SingleValue(rhs.value / val);
 }
 
-int compare(const SingleValue& lhs, const SingleValue& rhs)
+*/
+
+int compare(const value_type::value_t& lhs, const value_type::value_t& rhs)
 {
-    if (approx_greater(eps)(lhs.value, rhs.value))
+    if (approx_greater(eps)(lhs, rhs))
         return 1;
 
-    if (approx_equal(eps)(lhs.value, rhs.value))
+    if (approx_equal(eps)(lhs, rhs))
         return 0;
     
     return -1;
 }
 
-bool update_check(SingleValue& lhs, const SingleValue& rhs)
+bool update_check(value_type::value_t& lhs, const value_type::value_t& rhs)
 {
-    const bool result = !value_type::approx_equal()(lhs.value, rhs.value);
-    lhs.value = rhs.value;
+    const bool result = !value_type::approx_equal()(lhs, rhs);
+    lhs = rhs;
     return result;
 }
+
+/*
 
 SingleValue::operator value_type::value_t() const {
     return value;
 }
 
-void update(SingleValue& new_value, const SingleValue& tval)
+*/
+
+void update(value_type::value_t& new_value, const value_type::value_t& tval)
 {
-    new_value.value = std::max(tval.value, new_value.value);
+    new_value = std::max(tval, new_value);
 }
+
+/*
 
 bool operator==(const SingleValue& lhs, const SingleValue& rhs)
 {
     return lhs.value == rhs.value;
 }
 
+*/
+
 value_type::value_t
-as_lower_bound(const value_utils::SingleValue& single) {
-    return single.value;
+as_lower_bound(const value_type::value_t& single) {
+    return single;
 }
 
 value_type::value_t
-as_lower_bound(const value_utils::IntervalValue& interval) {
-    return interval.lower;
-}
-
-value_type::value_t
-as_upper_bound(const value_utils::SingleValue& single) {
-    return single.value;
-}
-
-value_type::value_t
-as_upper_bound(const value_utils::IntervalValue& interval) {
-    return interval.upper;
+as_upper_bound(const value_type::value_t& single) {
+    return single;
 }
 
 } // namespace value_utils

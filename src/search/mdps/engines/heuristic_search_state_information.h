@@ -107,7 +107,7 @@ struct PerStateBaseInformation : public StatesPolicy<StoresPolicyT>,
                                  public StateFlags
 {
     using StatesPolicy<StoresPolicyT>::StoresPolicy;
-    using DualBounds = typename value_utils::IncumbentSolution<TwoValuesT>::DualBounds;
+    using DualBounds = TwoValuesT;
 
     value_utils::IncumbentSolution<TwoValuesT> value;
 };
