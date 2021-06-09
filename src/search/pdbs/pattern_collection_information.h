@@ -42,6 +42,10 @@ public:
     std::shared_ptr<PatternCollection> get_patterns() const;
     std::shared_ptr<PDBCollection> get_pdbs();
     std::shared_ptr<std::vector<PatternClique>> get_pattern_cliques();
+
+    std::shared_ptr<PatternCollection> move_patterns();
+    std::shared_ptr<PDBCollection> move_pdbs();
+    std::shared_ptr<std::vector<PatternClique>> move_pattern_cliques();
 };
 }
 

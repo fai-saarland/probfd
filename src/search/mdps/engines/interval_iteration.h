@@ -177,9 +177,13 @@ private:
     struct DeadEndPruner : public StateEvaluator<State> {
         DeadEndPruner(
             StateIDMap<State>* state_id_map,
-            BoolStore* dead_ends)
+            BoolStore* dead_ends,
+            value_type::value_t lb,
+            value_type::value_t ub)
            : state_id_map_(state_id_map)
            , dead_ends_(dead_ends)
+           , lb(lb)
+           , ub(ub)
         {
         }
 
@@ -188,15 +192,17 @@ private:
             if (dead_ends_) {
                 const StateID id = state_id_map_->get_state_id(s);
                 if (dead_ends_->operator[](id)) {
-                    return EvaluationResult(true, value_type::zero);
+                    return EvaluationResult(true, lb);
                 }
             }
 
-            return EvaluationResult(false, value_type::zero);
+            return EvaluationResult(false, ub);
         }
 
         StateIDMap<State>* state_id_map_;
         BoolStore* dead_ends_;
+        value_type::value_t lb;
+        value_type::value_t ub;
     };
 
     value_type::value_t mysolve(
@@ -228,7 +234,7 @@ private:
         quotient_system::DefaultQuotientActionRewardFunction<Action>
             q_action_reward(sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
-        DeadEndPruner prune(this->get_state_id_map(), dead_ends);
+        DeadEndPruner prune(this->get_state_id_map(), dead_ends, lb_, ub_);
 
         assert (!extract_probability_one_states_ || one_states != nullptr);
 
@@ -241,7 +247,6 @@ private:
             ub_,
             &q_aops_gen,
             &q_transition_gen,
-            value_utils::IntervalValue(value_type::zero, value_type::one),
             &prune,
             extract_probability_one_states_ ? one_states : nullptr);
         

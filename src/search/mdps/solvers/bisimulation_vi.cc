@@ -96,6 +96,8 @@ public:
                 nullptr,
                 false);
         } else {
+            ConstantValueInitializer<bisimulation::QuotientState>
+                initializer(value_type::zero);
             solver = new engines::topological_vi::TopologicalValueIteration<
                 bisimulation::QuotientState,
                 bisimulation::QuotientAction>(
@@ -107,8 +109,7 @@ public:
                 g_analysis_objective->max(),
                 &aops_gen,
                 &tgen,
-                value_utils::SingleValue(value_type::zero),
-                nullptr);
+                &initializer);
         }
         solver->solve(bs.get_initial_state());
         stats.extended_states = bs.num_extended_states();

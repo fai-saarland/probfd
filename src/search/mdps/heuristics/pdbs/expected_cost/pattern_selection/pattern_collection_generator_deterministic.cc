@@ -36,15 +36,28 @@ PatternCollectionGeneratorDeterministic::generate(OperatorCost cost_type)
 
     std::shared_ptr<ExpCostPDBCollection> expcost_pdbs(new ExpCostPDBCollection());
 
-    for (auto& pdb_ptr : *det_info.get_pdbs()) {
-        expcost_pdbs->emplace_back(new ExpCostProjection(*pdb_ptr));
-        pdb_ptr.reset();
+    std::shared_ptr patterns = det_info.move_patterns();
+    std::shared_ptr pdbs = det_info.move_pdbs();
+    std::shared_ptr cliques = det_info.move_pattern_cliques();
+
+    assert(patterns);
+
+    for (size_t i = 0; i != patterns->size(); ++i) {
+        const Pattern& pattern = (*patterns)[i];
+
+        if (pdbs) {
+            shared_ptr pdb = (*pdbs)[i];
+            assert(pdb);
+            expcost_pdbs->emplace_back(new ExpCostProjection(*pdb));
+        } else {
+            expcost_pdbs->emplace_back(new ExpCostProjection(pattern));
+        }
     }
 
-    PatternCollectionInformation info(det_info.get_patterns(), additivity);
+    PatternCollectionInformation info(patterns, additivity);
     
     info.set_pdbs(expcost_pdbs);
-    info.set_pattern_cliques(det_info.get_pattern_cliques());
+    info.set_pattern_cliques(cliques);
 
     return info;
 }

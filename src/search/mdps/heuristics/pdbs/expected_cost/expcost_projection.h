@@ -23,14 +23,20 @@ class ExpCostProjection : public ProbabilisticProjection {
     unsigned int reachable_states = 0;
 
 public:
+    ExpCostProjection(const Pattern& variables);
+
     ExpCostProjection(
         const Pattern& variables,
-        AbstractStateEvaluator* heuristic = nullptr);
+        const std::vector<int>& domains);
+
+    ExpCostProjection(
+        const Pattern& variables,
+        AbstractStateEvaluator* heuristic);
     
     ExpCostProjection(
         const Pattern& variables,
         const std::vector<int>& domains,
-        AbstractStateEvaluator* heuristic = nullptr);
+        AbstractStateEvaluator* heuristic);
 
     ExpCostProjection(const ::pdbs::PatternDatabase& pdb);
 

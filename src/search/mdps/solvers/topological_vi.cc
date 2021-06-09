@@ -13,15 +13,22 @@ namespace solvers {
 using TVIEngine = engines::topological_vi::
     TopologicalValueIteration<GlobalState, const ProbabilisticOperator*>;
 
+std::shared_ptr<GlobalStateEvaluator>
+get_evaluator(const options::Options& opts)
+{
+    if (opts.contains("eval")) {
+        return opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval");
+    }
+
+    return std::make_shared<ConstantValueInitializer<GlobalState>>(
+        g_analysis_objective->max());
+}
+
 class TopologicalVISolver : public MDPSolver {
 public:
     explicit TopologicalVISolver(const options::Options& opts)
         : MDPSolver(opts)
-        , prune_(
-              opts.contains("eval")
-                  ? opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval")
-                  : nullptr)
-        , init_value(g_analysis_objective->max())
+        , prune_(get_evaluator(opts))
     {
     }
 
@@ -39,13 +46,11 @@ public:
 
     virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
-        return engine_factory<TVIEngine>(
-            value_utils::SingleValue(init_value), prune_.get());
+        return engine_factory<TVIEngine>(prune_.get());
     }
 
 private:
     std::shared_ptr<GlobalStateEvaluator> prune_;
-    value_type::value_t init_value;
 };
 
 static Plugin<SolverInterface> _plugin(

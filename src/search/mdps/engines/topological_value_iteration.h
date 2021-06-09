@@ -84,8 +84,7 @@ public:
         value_type::value_t maximal_reward,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        ValueT init_value,
-        StateEvaluator<State>* pruning_function,
+        StateEvaluator<State>* value_initializer,
         OneStates* one_states = static_cast<OneStates*>(nullptr))
         : MDPEngine<State, Action>(
             state_id_map,
@@ -96,11 +95,9 @@ public:
             maximal_reward,
             aops_generator,
             transition_generator)
-        , prune_(pruning_function)
+        , value_initializer_(value_initializer)
         , one_states_(one_states)
-        , init_value(init_value)
         , dead_end_value_(this->get_minimal_reward())
-        , upper_bound_(this->get_maximal_reward())
         , one_state_reward_(this->get_maximal_reward())
         , state_information_()
         , value_store_(nullptr)
@@ -324,13 +321,30 @@ private:
                 this->generate_applicable_ops(state_id, aops);
                 ++statistics_.expanded_states;
             }
-        } else if (prune_ && prune_->operator()(state)) {
-            state_value = dead_end_value_;
-            ++statistics_.pruned;
         } else {
-            this->generate_applicable_ops(state_id, aops);
-            ++statistics_.expanded_states;
-            state_value = aops.empty() ? dead_end_value_ : init_value;
+            auto estimate = value_initializer_->operator()(state);
+            
+            if (estimate) {
+                state_value = dead_end_value_;
+                ++statistics_.pruned;
+            } else {
+                this->generate_applicable_ops(state_id, aops);
+                ++statistics_.expanded_states;
+
+                if (aops.empty()) {
+                    state_value = dead_end_value_;
+                } else {
+                    if constexpr (Interval::value) {
+                        state_value.lower =
+                            this->get_minimal_reward();
+                        state_value.upper =
+                            static_cast<value_type::value_t>(estimate);
+                    } else {
+                        state_value.value =
+                            static_cast<value_type::value_t>(estimate);
+                    }
+                }
+            }
         }
 
         if (aops.empty()) {
@@ -660,13 +674,11 @@ private:
         return num_updates;
     }
 
-    StateEvaluator<State>* prune_;
+    StateEvaluator<State>* value_initializer_;
 
     OneStates* one_states_;
     
-    const ValueT init_value;
     const ValueT dead_end_value_;
-    const ValueT upper_bound_;
     const ValueT one_state_reward_;
 
     storage::PerStateStorage<StateInfo> state_information_;

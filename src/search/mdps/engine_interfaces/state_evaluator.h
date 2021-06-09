@@ -20,5 +20,22 @@ protected:
     virtual EvaluationResult evaluate(const State& state) = 0;
 };
 
+template<typename State>
+class ConstantValueInitializer : public StateEvaluator<State>
+{
+    value_type::value_t init_value_;
+
+public:
+    ConstantValueInitializer(value_type::value_t init_value)
+        : init_value_(init_value)
+    {
+    }
+
+    EvaluationResult evaluate(const State&) override
+    {
+        return EvaluationResult(false, init_value_);
+    }
+};
+
 } // namespace probabilistic
 

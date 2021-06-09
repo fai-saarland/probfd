@@ -104,4 +104,17 @@ shared_ptr<vector<PatternClique>> PatternCollectionInformation::get_pattern_cliq
     create_pattern_cliques_if_missing();
     return pattern_cliques;
 }
+
+std::shared_ptr<PatternCollection> PatternCollectionInformation::move_patterns() {
+    return std::move(patterns);
+}
+
+shared_ptr<PDBCollection> PatternCollectionInformation::move_pdbs() {
+    return std::move(pdbs);
+}
+
+shared_ptr<vector<PatternClique>> PatternCollectionInformation::move_pattern_cliques() {
+    return std::move(pattern_cliques);
+}
+
 }

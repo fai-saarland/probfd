@@ -19,6 +19,23 @@ namespace pdbs {
 using namespace value_utils;
 
 ExpCostProjection::
+ExpCostProjection(const Pattern& variables)
+    : ExpCostProjection(variables, ::g_variable_domain)
+{
+}
+
+ExpCostProjection::
+ExpCostProjection(const Pattern& variables, const std::vector<int> &domains)
+    : ProbabilisticProjection(variables, domains)
+    , value_table(
+        state_mapper_->size(),
+        SingleValue(-std::numeric_limits<value_type::value_t>::infinity()))
+{
+    ConstantValueInitializer<AbstractState> initializer(value_type::zero);
+    compute_value_table(&initializer);
+}
+
+ExpCostProjection::
 ExpCostProjection(const Pattern& variables, AbstractStateEvaluator* heuristic)
     : ExpCostProjection(variables, ::g_variable_domain, heuristic)
 {
@@ -32,8 +49,7 @@ ExpCostProjection(
     : ProbabilisticProjection(variables, domains)
     , value_table(
         state_mapper_->size(),
-        SingleValue(
-            -std::numeric_limits<value_type::value_t>::infinity()))
+        SingleValue(-std::numeric_limits<value_type::value_t>::infinity()))
 {
     compute_value_table(heuristic);
 }
@@ -42,8 +58,7 @@ ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
     : ProbabilisticProjection(pdb.get_pattern(), ::g_variable_domain)
     , value_table(
         state_mapper_->size(),
-        SingleValue(
-            -std::numeric_limits<value_type::value_t>::infinity()))
+        SingleValue(-std::numeric_limits<value_type::value_t>::infinity()))
 {
     PDBEvaluator heuristic(pdb);
     compute_value_table(&heuristic);
@@ -142,7 +157,6 @@ ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
            value_type::zero,
            &aops_gen,
            &transition_gen,
-           SingleValue(value_type::zero),
            heuristic);
 
     vi.solve(initial_state_, value_table);
