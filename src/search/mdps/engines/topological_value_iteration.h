@@ -273,11 +273,10 @@ private:
             ValueT val = b;
 
             for (const BellmanBackupInfo& info : infos) {
-                value_utils::update(val, info());
+                value_utils::set_max(val, info());
             }
 
-            return value_utils::update_check(*value, val) ||
-                !bounds_equal(*value);
+            return value_utils::update(*value, val) || !bounds_equal(*value);
         }
 
         StateID state_id;
@@ -526,7 +525,7 @@ private:
 
             if (tinfo.finalize()) {
                 if (!ExpandGoalStates || state_info.status != StateInfo::TERMINAL) {
-                    value_utils::update(stack_info.b, tinfo.base);
+                    value_utils::set_max(stack_info.b, tinfo.base);
                 }
 
                 stack_info.infos.pop_back();
@@ -594,7 +593,7 @@ private:
                     state_info.status == StateInfo::TERMINAL);
 
                 if (!ExpandGoalStates || state_info.status == StateInfo::ONSTACK) {
-                    value_utils::update(*stack_info.value, stack_info.b);
+                    value_utils::set_max(*stack_info.value, stack_info.b);
                 }
 
                 state_info.status = StateInfo::CLOSED;
@@ -614,7 +613,7 @@ private:
                             --scc_size;
                             stack_.erase(stack_.begin() + i);
                         } else if (scc_stack_info.infos.empty()) {
-                            value_utils::update(*scc_stack_info.value, scc_stack_info.b);
+                            value_utils::set_max(*scc_stack_info.value, scc_stack_info.b);
                             --scc_size;
                             stack_.erase(stack_.begin() + i);
                         }

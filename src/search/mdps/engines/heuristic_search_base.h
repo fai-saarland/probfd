@@ -648,10 +648,10 @@ protected:
     bool update(StateInfo& state_info, const IncumbentSolution& other)
     {
         if constexpr (DualBounds::value) {
-            return value_utils::update_check(
+            return value_utils::update(
                 state_info.value, other, interval_comparison_);
         } else {
-            return value_utils::update_check(state_info.value, other);
+            return value_utils::update(state_info.value, other);
         }
     }
 
@@ -967,7 +967,7 @@ private:
                     first = false;
                     new_value = t_value;
                 } else {
-                    value_utils::update(new_value, t_value);
+                    value_utils::set_max(new_value, t_value);
                 }
                 if (non_loop_transitions != i) {
                     optimal_transitions_[i].swap(

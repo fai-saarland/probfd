@@ -774,7 +774,7 @@ private:
 
                             if constexpr (DualBounds::value) {
                                 val_changed =
-                                    update_check(
+                                    value_utils::update(
                                         info.value,
                                         IncumbentSolution(info.value.lower))
                                     || val_changed;
@@ -920,7 +920,7 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::update(new_val, val);
+                value_utils::set_max(new_val, val);
             }
             for (int i = it->successors.size() - 2; i >= 0; --i) {
                 auto& succs = it->successors[i];
@@ -965,7 +965,7 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::update(new_val, val);
+                value_utils::set_max(new_val, val);
             }
             for (unsigned i = st.successors.size() - 1;
                  i > it->successors.size();
@@ -981,9 +981,9 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::update(new_val, val);
+                value_utils::set_max(new_val, val);
             }
-            if (!value_utils::update_check(sn.value, new_val)
+            if (!value_utils::update(sn.value, new_val)
                 && only_propagate_when_changed_) {
                 return;
             }
@@ -1018,9 +1018,9 @@ private:
                     }
 
                     val *= t.self_loop;
-                    value_utils::update(new_val, val);
+                    value_utils::set_max(new_val, val);
                 }
-                value_utils::update_check(sn.value, new_val);
+                value_utils::update(sn.value, new_val);
             }
             ++statistics_.value_updates;
             --stack_index;
@@ -1050,7 +1050,7 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::update(new_val, val);
+                value_utils::set_max(new_val, val);
             }
             for (int i = it->successors.size() - 2; i >= 0; --i) {
                 auto& succs = it->successors[i];
@@ -1095,7 +1095,7 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::update(new_val, val);
+                value_utils::set_max(new_val, val);
             }
             for (unsigned i = st.successors.size() - 1;
                  i > it->successors.size();
@@ -1111,9 +1111,9 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::update(new_val, val);
+                value_utils::set_max(new_val, val);
             }
-            if (!value_utils::update_check(sn.value, new_val)
+            if (!value_utils::update(sn.value, new_val)
                 && only_propagate_when_changed_) {
                 return;
             }

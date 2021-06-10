@@ -88,22 +88,22 @@ int compare(const IntervalValue& lhs, const IntervalValue& rhs)
     return -1;
 }
 
-bool update_check(IntervalValue& lhs, const IntervalValue& rhs)
+bool update(IntervalValue& lhs, const IntervalValue& rhs)
 {
-    return update_check(lhs, rhs, true);
+    return update(lhs, rhs, true);
 }
 
-bool update_check(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper)
+bool update(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper)
 {
-    const bool result = !value_type::approx_equal()(lhs.lower, rhs.lower)
-        || (check_upper && !value_type::approx_equal()(lhs.upper, rhs.upper));
-    lhs.lower = rhs.lower;
-    lhs.upper = rhs.upper;
+    const bool result = !value_type::approx_greater()(rhs.lower, lhs.lower)
+        || (check_upper && !value_type::approx_less()(rhs.upper, lhs.upper));
+    lhs.lower = std::max(lhs.lower, rhs.lower);
+    lhs.upper = std::min(lhs.upper, rhs.upper);
     assert(!value_type::approx_less()(lhs.upper, lhs.lower));
     return result;
 }
 
-void update(IntervalValue& new_value, const IntervalValue& tval)
+void set_max(IntervalValue& new_value, const IntervalValue& tval)
 {
     new_value.lower = std::max(tval.lower, new_value.lower);
     new_value.upper = std::max(tval.upper, new_value.upper);
@@ -196,7 +196,7 @@ int compare(const value_type::value_t& lhs, const value_type::value_t& rhs)
     return -1;
 }
 
-bool update_check(value_type::value_t& lhs, const value_type::value_t& rhs)
+bool update(value_type::value_t& lhs, const value_type::value_t& rhs)
 {
     const bool result = !value_type::approx_equal()(lhs, rhs);
     lhs = rhs;
@@ -211,7 +211,7 @@ SingleValue::operator value_type::value_t() const {
 
 */
 
-void update(value_type::value_t& new_value, const value_type::value_t& tval)
+void set_max(value_type::value_t& new_value, const value_type::value_t& tval)
 {
     new_value = std::max(tval, new_value);
 }

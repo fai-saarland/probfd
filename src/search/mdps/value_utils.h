@@ -41,10 +41,10 @@ struct IntervalValue {
     compare(const IntervalValue& lhs, const IntervalValue& rhs);
 
     friend bool
-    update_check(IntervalValue& lhs, const IntervalValue& rhs);
+    update(IntervalValue& lhs, const IntervalValue& rhs);
 
     friend bool
-    update_check(IntervalValue& lhs, const IntervalValue& rhs, bool ign_upper);
+    update(IntervalValue& lhs, const IntervalValue& rhs, bool ign_upper);
 
     double error_bound() const { return upper - lower; }
 
@@ -107,14 +107,14 @@ int compare(const value_type::value_t& value0, const value_type::value_t& value1
 
 // Value update (old)
 
-void update(IntervalValue& new_value, const IntervalValue& tval);
-void update(value_type::value_t& new_value, const value_type::value_t& tval);
+void set_max(IntervalValue& new_value, const IntervalValue& tval);
+void set_max(value_type::value_t& new_value, const value_type::value_t& tval);
 
 // Value update
 
-bool update_check(IntervalValue& lhs, const IntervalValue& rhs);
-bool update_check(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper);
-bool update_check(value_type::value_t& lhs, const value_type::value_t& rhs);
+bool update(IntervalValue& lhs, const IntervalValue& rhs);
+bool update(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper);
+bool update(value_type::value_t& lhs, const value_type::value_t& rhs);
 
 value_type::value_t as_lower_bound(const value_type::value_t& single);
 value_type::value_t as_lower_bound(const IntervalValue& interval);
