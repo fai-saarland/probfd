@@ -134,7 +134,7 @@ class PatternCollectionGeneratorHillclimbing :
 public:
     explicit PatternCollectionGeneratorHillclimbing(
         const options::Options &opts);
-    virtual ~PatternCollectionGeneratorHillclimbing() = default;
+    ~PatternCollectionGeneratorHillclimbing() override = default;
 
     /*
       Runs the hill climbing algorithm. Note that the
@@ -142,8 +142,7 @@ public:
       variable) may break the maximum collection size limit, if the latter is
       set too small or if there are many goal variables with a large domain.
     */
-    virtual PatternCollectionInformation generate(
-        OperatorCost cost_type) override;
+    PatternCollectionInformation generate(OperatorCost cost_type) override;
 };
 }
 }

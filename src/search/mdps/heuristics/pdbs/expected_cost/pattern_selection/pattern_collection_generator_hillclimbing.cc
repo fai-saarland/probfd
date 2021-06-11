@@ -57,6 +57,66 @@ static std::vector<int> get_goal_variables() {
     return goal_vars;
 }
 
+// TODO move to utils
+template <typename T, typename A>
+std::vector<T, A>
+set_intersection(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
+    std::vector<T, A> intersection;
+    
+    set_intersection(
+        lhs.begin(), lhs.end(),
+        rhs.begin(), rhs.end(),
+        back_inserter(intersection));
+
+    return intersection;
+}
+
+template <typename T, typename A>
+std::vector<T, A>
+set_union(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
+    std::vector<T, A> _union;
+    
+    set_union(
+        lhs.begin(), lhs.end(),
+        rhs.begin(), rhs.end(),
+        back_inserter(_union));
+
+    return _union;
+}
+
+template <typename T, typename A>
+std::vector<T, A>
+set_difference(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
+    std::vector<T, A> _difference;
+    
+    set_difference(
+        lhs.begin(), lhs.end(),
+        rhs.begin(), rhs.end(),
+        back_inserter(_difference));
+
+    return _difference;
+}
+
+template <typename T, typename A>
+void
+insert_sorted(std::vector<T, A>& lhs, T element) {
+    auto it = std::lower_bound(lhs.begin(), lhs.end(), element);
+    lhs.insert(it, element);
+}
+
+template <typename T, typename A>
+void
+insert_set(std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
+    for (const auto& element : rhs) {
+        insert_sorted(lhs, element);
+    }
+}
+
+template <typename T>
+bool contains(const std::set<T>& set, const T& element) {
+    return set.find(element) != set.end();
+}
+
 /*
   When growing a pattern, we only want to consider successor patterns
   that are *interesting*. A pattern is interesting if the subgraph of
@@ -106,18 +166,11 @@ static std::vector<std::vector<int>> compute_relevant_neighbours() {
         const std::vector<int> &causal_graph_successors =
             causal_graph.get_successors(var_id);
 
-        std::vector<int> goal_variable_successors;
-        set_intersection(
-            causal_graph_successors.begin(), causal_graph_successors.end(),
-            goal_vars.begin(), goal_vars.end(),
-            back_inserter(goal_variable_successors));
+        std::vector<int> relevant_neighbours =
+            set_intersection(causal_graph_successors, goal_vars);
 
         // Combine relevant goal and non-goal variables.
-        std::vector<int> relevant_neighbours;
-        set_union(
-            pre_to_eff_predecessors.begin(), pre_to_eff_predecessors.end(),
-            goal_variable_successors.begin(), goal_variable_successors.end(),
-            back_inserter(relevant_neighbours));
+        insert_set(relevant_neighbours, pre_to_eff_predecessors);
 
         connected_vars_by_variable.push_back(move(relevant_neighbours));
     }
@@ -156,11 +209,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
             relevant_neighbours[pattern_var];
 
         // Only use variables which are not already in the pattern.
-        std::vector<int> relevant_vars;
-        set_difference(
-            connected_vars.begin(), connected_vars.end(),
-            pattern.begin(), pattern.end(),
-            back_inserter(relevant_vars));
+        std::vector relevant_vars = set_difference(connected_vars, pattern);
 
         for (int rel_var_id : relevant_vars) {
             int rel_var_size = g_variable_domain[rel_var_id];
@@ -168,19 +217,19 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 pdb_size, rel_var_size, pdb_max_size))
             {
                 Pattern new_pattern(pattern);
-                new_pattern.push_back(rel_var_id);
-                sort(new_pattern.begin(), new_pattern.end());
-                if (!generated_patterns.count(new_pattern)) {
+                insert_sorted(new_pattern, rel_var_id);
+
+                if (!contains(generated_patterns, new_pattern)) {
                     /*
                       If we haven't seen this pattern before, generate a PDB
                       for it and add it to candidate_pdbs if its size does not
                       surpass the size limit.
                     */
-                    generated_patterns.insert(new_pattern);
-                    candidate_pdbs.emplace_back(
+                    auto& new_pdb = candidate_pdbs.emplace_back(
                         new ExpCostProjection(pdb, rel_var_id));
+                    generated_patterns.insert(new_pattern);
                     max_pdb_size = std::max(
-                        max_pdb_size, (int)candidate_pdbs.back()->num_states());
+                        max_pdb_size, (int)new_pdb->num_states());
                 }
             } else {
                 ++num_rejected;
@@ -298,12 +347,12 @@ bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
     // h_pattern: h-value of the new pattern
     value_t h_pattern = pdb.get_value(sample);
 
-    if (h_pattern == std::numeric_limits<value_t>::max()) {
+    if (h_pattern == -value_type::inf) {
         return true;
     }
 
     // h_collection: h-value of the current collection heuristic
-    if (h_collection == std::numeric_limits<value_t>::max())
+    if (h_collection == -value_type::inf)
         return false;
 
     std::vector<value_t> h_values;
@@ -311,14 +360,14 @@ bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
 
     for (const std::shared_ptr<ExpCostProjection> &p : pdbs) {
         value_t h = p->get_value(sample);
-        if (h == std::numeric_limits<value_t>::max())
+        if (h == -value_type::inf)
             return false;
         h_values.push_back(h);
     }
 
-    for (const PatternClique &clilque : pattern_cliques) {
-        value_t h_clique = 0;
-        for (PatternID pattern_id : clilque) {
+    for (const PatternClique &clique : pattern_cliques) {
+        value_t h_clique = value_type::zero;
+        for (PatternID pattern_id : clique) {
             h_clique += h_values[pattern_id];
         }
 
@@ -335,9 +384,10 @@ bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
 }
 
 void PatternCollectionGeneratorHillclimbing::hill_climbing() {
-    hill_climbing_timer = new utils::CountdownTimer(max_time);
+    utils::CountdownTimer timer(max_time);
+    hill_climbing_timer = &timer;
 
-    const std::vector<std::vector<int>> relevant_neighbours =
+    const PatternCollection relevant_neighbours =
         compute_relevant_neighbours();
 
     // Candidate patterns generated so far (used to avoid duplicates).
@@ -398,10 +448,8 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
                 samples_h_values.push_back(current_pdbs->get_value(sample));
             }
 
-            std::pair<int, int> improvement_and_index =
+            const auto [improvement, best_pdb_index] =
                 find_best_improving_pdb(samples, samples_h_values, candidate_pdbs);
-            int improvement = improvement_and_index.first;
-            int best_pdb_index = improvement_and_index.second;
 
             if (improvement < min_improvement) {
                 if constexpr (VERBOSE) {
@@ -416,8 +464,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
 
             // Add the best PDB to the CanonicalPDBsHeuristic.
             assert(best_pdb_index != -1);
-            const std::shared_ptr<ExpCostProjection> &best_pdb =
-                candidate_pdbs[best_pdb_index];
+            const auto best_pdb = candidate_pdbs[best_pdb_index];
             const Pattern &best_pattern = best_pdb->get_pattern();
 
             if constexpr (VERBOSE) {
@@ -432,6 +479,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
             int new_max_pdb_size = generate_candidate_pdbs(
                 relevant_neighbours, *best_pdb, generated_patterns,
                 candidate_pdbs);
+
             max_pdb_size = std::max(max_pdb_size, new_max_pdb_size);
 
             // Remove the added PDB from candidate_pdbs.
@@ -454,7 +502,6 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
         << "\nHill climbing time: " << hill_climbing_timer->get_elapsed_time()
         << std::endl;
 
-    delete hill_climbing_timer;
     hill_climbing_timer = nullptr;
 }
 
