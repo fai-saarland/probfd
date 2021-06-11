@@ -9,10 +9,105 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <set>
+#include <map>
 
 namespace utils {
-template<class T>
-extern void sort_unique(std::vector<T> &vec) {
+
+template <typename T, typename A>
+std::vector<T, A>
+set_intersection(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
+    assert(std::is_sorted(lhs.begin(), lhs.end()));
+    assert(std::is_sorted(rhs.begin(), rhs.end()));
+
+    std::vector<T, A> intersection;
+    
+    set_intersection(
+        lhs.begin(), lhs.end(),
+        rhs.begin(), rhs.end(),
+        back_inserter(intersection));
+
+    return intersection;
+}
+
+template <typename T, typename A>
+std::vector<T, A>
+set_union(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
+    assert(std::is_sorted(lhs.begin(), lhs.end()));
+    assert(std::is_sorted(rhs.begin(), rhs.end()));
+
+    std::vector<T, A> _union;
+    
+    set_union(
+        lhs.begin(), lhs.end(),
+        rhs.begin(), rhs.end(),
+        back_inserter(_union));
+
+    return _union;
+}
+
+template <typename T, typename A>
+std::vector<T, A>
+set_difference(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
+    assert(std::is_sorted(lhs.begin(), lhs.end()));
+    assert(std::is_sorted(rhs.begin(), rhs.end()));
+
+    std::vector<T, A> _difference;
+    
+    set_difference(
+        lhs.begin(), lhs.end(),
+        rhs.begin(), rhs.end(),
+        back_inserter(_difference));
+
+    return _difference;
+}
+
+template <typename T, typename A>
+void
+insert_set(std::vector<T, A>& lhs, T element) {
+    assert(std::is_sorted(lhs.begin(), lhs.end()));
+    
+    auto it = std::lower_bound(lhs.begin(), lhs.end(), element);
+    if (it == lhs.end() || *it != element) {
+        lhs.insert(it, std::move(element));
+    }
+}
+
+template <typename T, typename A>
+void
+insert_set(std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
+    for (const auto& element : rhs) {
+        insert_set(lhs, element);
+    }
+}
+
+template <typename T, typename A>
+bool contains(const std::vector<T, A>& vec, const T& val) {
+    return std::find(vec.begin(), vec.end(), val) != vec.end();
+}
+
+template <typename T, typename C, typename A>
+bool contains(const std::set<T, C, A>& set, const T& val) {
+    return set.find(val) != set.end();
+}
+
+template <typename T, typename H, typename KEq, typename A>
+bool contains(const std::unordered_set<T, H, KEq, A>& set, const T& val) {
+    return set.find(val) != set.end();
+}
+
+template <typename K, typename V, typename H, typename KEq, typename A>
+bool contains_key(const std::unordered_map<K, V, H, KEq, A>& map, const K& key) {
+    return map.find(key) != map.end();
+}
+
+template <typename K, typename V, typename C, typename A>
+bool contains_key(const std::map<K, V, C, A>& map, const K& key) {
+    return map.find(key) != map.end();
+}
+
+template<class T, class A>
+extern void sort_unique(std::vector<T, A> &vec) {
     std::sort(vec.begin(), vec.end());
     vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
 }

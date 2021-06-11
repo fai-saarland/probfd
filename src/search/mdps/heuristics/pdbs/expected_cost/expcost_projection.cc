@@ -18,6 +18,13 @@ namespace pdbs {
 
 using namespace value_utils;
 
+static std::vector<int> insert(std::vector<int> pattern, int add_var) {
+    assert(!utils::contains(pattern, add_var));
+    auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
+    pattern.insert(it, add_var);
+    return pattern;
+}
+
 ExpCostProjection::
 ExpCostProjection(const Pattern& variables)
     : ExpCostProjection(variables, ::g_variable_domain)
@@ -56,12 +63,6 @@ ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
 {
     PDBEvaluator heuristic(pdb);
     compute_value_table(&heuristic);
-}
-
-std::vector<int> insert(std::vector<int> pattern, int add_var) {
-    auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
-    pattern.insert(it, add_var);
-    return pattern;
 }
 
 ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)

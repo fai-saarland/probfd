@@ -9,8 +9,6 @@
 #include "../utils/logging.h"
 #include "../utils/rng.h"
 
-#include "utils.h"
-
 #include <functional>
 #include <limits>
 #include <queue>
@@ -122,7 +120,7 @@ AbstractSolutionData::bfs_for_improving_state(
             AbstractState successor = current_node->state.get_successor(op);
             size_t successor_index = pdb->get_abstract_state_index(
                 successor.get_values());
-            if (!contains(closed, successor_index)) {
+            if (!utils::contains(closed, successor_index)) {
                 int h_succ = pdb->get_value_for_index(successor_index);
                 int op_cost = op.get_cost();
                 int g_succ = current_node->g + op_cost;
@@ -134,7 +132,7 @@ AbstractSolutionData::bfs_for_improving_state(
                     shared_ptr<SearchNode> succ_node =
                         make_shared<SearchNode>(
                             move(successor), successor_index, g_succ, op_cost, current_node);
-                    assert(!contains(closed, successor_index));
+                    assert(!utils::contains(closed, successor_index));
 
                     if (abstracted_task.is_goal_state(
                         succ_node->state.get_values()))
@@ -283,7 +281,7 @@ void AbstractSolutionData::blacklist_variable(int var)
 
 bool AbstractSolutionData::is_blacklisted(int var) const
 {
-    return contains(blacklist, var);
+    return utils::contains(blacklist, var);
 }
 
 const std::set<int>& AbstractSolutionData::get_blacklist() const

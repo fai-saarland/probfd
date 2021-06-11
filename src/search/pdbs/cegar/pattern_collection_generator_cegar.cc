@@ -9,14 +9,13 @@
 #include "../../plugin.h"
 
 
+#include "../../utils/collections.h"
 #include "../../utils/countdown_timer.h"
 #include "../../utils/logging.h"
 #include "../../utils/math.h"
 #include "../../utils/rng.h"
 #include "../../utils/rng_options.h"
 #include "../../utils/system.h"
-
-#include "utils.h"
 
 using namespace std;
 
@@ -337,8 +336,8 @@ apply_extended_plan(int solution_index, const ExplicitGState &init)
                 // available.
                 for (const auto& [goal_var, goal_value] : g_goal) {
                     if (current[goal_var] != goal_value &&
-                        !contains(global_blacklist, goal_var) &&
-                        contains(remaining_goals, goal_var))
+                        !utils::contains(global_blacklist, goal_var) &&
+                        utils::contains(remaining_goals, goal_var))
                     {
                         flaws.emplace_back(true, solution_index, goal_var);
                     }
@@ -447,7 +446,7 @@ PatternCollectionGeneratorCegar::
 handle_goal_violation(OperatorCost cost_type, const Flaw &flaw)
 {
     int var = flaw.variable;
-    assert(!contains(solution_lookup, var));
+    assert(!utils::contains_key(solution_lookup, var));
 
     if (verbosity >= Verbosity::VERBOSE) {
         cout << token << "introducing goal variable " << var << endl;

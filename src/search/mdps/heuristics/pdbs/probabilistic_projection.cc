@@ -14,25 +14,6 @@
 namespace probabilistic {
 namespace pdbs {
 
-template <typename T, typename A>
-void make_set(std::vector<T, A>& vector) {
-    std::sort(vector.begin(), vector.end());
-    auto it = std::unique(vector.begin(), vector.end());
-    vector.erase(it, vector.end());
-}
-
-// TODO move to utils
-template <typename T, typename A>
-void insert_set_sorted(std::vector<T, A>& vector, T elem) {
-    assert(std::is_sorted(vector.begin(), vector.end()));
-
-    auto it = std::lower_bound(vector.begin(), vector.end(), elem);
-
-    if (it == vector.end() || *it != elem) {
-        vector.insert(it, std::move(elem));
-    }
-}
-
 struct NoGoalVariableException : std::exception {
     const char* what() const noexcept override {
         return "Construction of a PDB without a goal "
@@ -208,7 +189,7 @@ void ProbabilisticProjection::add_abstract_operators(
 
                 if (pre_val == -1) {
                     eff_no_pre_var_indices.push_back(idx);
-                    insert_set_sorted(affected_var_indices, idx);
+                    utils::insert_set(affected_var_indices, idx);
                     info.missing_pres.push_back(idx);
                     val_change = eff_val;
                 } else {
@@ -226,7 +207,7 @@ void ProbabilisticProjection::add_abstract_operators(
         }
     }
 
-    make_set(eff_no_pre_var_indices);
+    utils::sort_unique(eff_no_pre_var_indices);
     outcomes.make_unique();
 
     if (value_type::approx_greater()(self_loop_prob, value_type::zero)) {

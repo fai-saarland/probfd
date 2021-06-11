@@ -10,13 +10,12 @@
 #include "../../option_parser.h"
 #include "../../plugin.h"
 
+#include "../utils/collections.h"
 #include "../utils/countdown_timer.h"
 #include "../utils/hash.h"
 #include "../utils/logging.h"
 #include "../utils/rng.h"
 #include "../utils/rng_options.h"
-
-#include "utils.h"
 
 #include <vector>
 
@@ -124,7 +123,7 @@ PatternCollectionGeneratorFastCegar::generate(OperatorCost cost_type) {
         // TODO: this is not very efficient since each pattern is stored twice. 
         // Needs some optimization
         const Pattern &pattern = pattern_collection->front();
-        if (!contains(pattern_set, pattern)) {
+        if (!utils::contains(pattern_set, pattern)) {
             // new pattern detected, so no stagnation
             stagnation = false;
             pattern_set.insert(pattern);

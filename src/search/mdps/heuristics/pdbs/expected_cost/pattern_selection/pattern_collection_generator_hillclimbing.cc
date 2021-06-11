@@ -57,66 +57,6 @@ static std::vector<int> get_goal_variables() {
     return goal_vars;
 }
 
-// TODO move to utils
-template <typename T, typename A>
-std::vector<T, A>
-set_intersection(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
-    std::vector<T, A> intersection;
-    
-    set_intersection(
-        lhs.begin(), lhs.end(),
-        rhs.begin(), rhs.end(),
-        back_inserter(intersection));
-
-    return intersection;
-}
-
-template <typename T, typename A>
-std::vector<T, A>
-set_union(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
-    std::vector<T, A> _union;
-    
-    set_union(
-        lhs.begin(), lhs.end(),
-        rhs.begin(), rhs.end(),
-        back_inserter(_union));
-
-    return _union;
-}
-
-template <typename T, typename A>
-std::vector<T, A>
-set_difference(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
-    std::vector<T, A> _difference;
-    
-    set_difference(
-        lhs.begin(), lhs.end(),
-        rhs.begin(), rhs.end(),
-        back_inserter(_difference));
-
-    return _difference;
-}
-
-template <typename T, typename A>
-void
-insert_sorted(std::vector<T, A>& lhs, T element) {
-    auto it = std::lower_bound(lhs.begin(), lhs.end(), element);
-    lhs.insert(it, element);
-}
-
-template <typename T, typename A>
-void
-insert_set(std::vector<T, A>& lhs, const std::vector<T, A>& rhs) {
-    for (const auto& element : rhs) {
-        insert_sorted(lhs, element);
-    }
-}
-
-template <typename T>
-bool contains(const std::set<T>& set, const T& element) {
-    return set.find(element) != set.end();
-}
-
 /*
   When growing a pattern, we only want to consider successor patterns
   that are *interesting*. A pattern is interesting if the subgraph of
@@ -167,10 +107,10 @@ static std::vector<std::vector<int>> compute_relevant_neighbours() {
             causal_graph.get_successors(var_id);
 
         std::vector<int> relevant_neighbours =
-            set_intersection(causal_graph_successors, goal_vars);
+            utils::set_intersection(causal_graph_successors, goal_vars);
 
         // Combine relevant goal and non-goal variables.
-        insert_set(relevant_neighbours, pre_to_eff_predecessors);
+        utils::insert_set(relevant_neighbours, pre_to_eff_predecessors);
 
         connected_vars_by_variable.push_back(move(relevant_neighbours));
     }
@@ -209,7 +149,8 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
             relevant_neighbours[pattern_var];
 
         // Only use variables which are not already in the pattern.
-        std::vector relevant_vars = set_difference(connected_vars, pattern);
+        std::vector relevant_vars =
+            utils::set_difference(connected_vars, pattern);
 
         for (int rel_var_id : relevant_vars) {
             int rel_var_size = g_variable_domain[rel_var_id];
@@ -217,9 +158,9 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 pdb_size, rel_var_size, pdb_max_size))
             {
                 Pattern new_pattern(pattern);
-                insert_sorted(new_pattern, rel_var_id);
+                utils::insert_set(new_pattern, rel_var_id);
 
-                if (!contains(generated_patterns, new_pattern)) {
+                if (!utils::contains(generated_patterns, new_pattern)) {
                     /*
                       If we haven't seen this pattern before, generate a PDB
                       for it and add it to candidate_pdbs if its size does not
