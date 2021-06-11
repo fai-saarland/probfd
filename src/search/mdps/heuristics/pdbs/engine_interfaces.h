@@ -119,6 +119,7 @@ using AbstractStateEvaluator = StateEvaluator<AbstractState>;
 using AbstractOperatorRewardFunction = ActionRewardFunction<const AbstractOperator*>;
 
 class QualitativeResultStore;
+class ExpCostProjection;
 
 class AbstractStateDeadendStoreEvaluator : public AbstractStateEvaluator {
 public:
@@ -177,6 +178,26 @@ protected:
 
 private:
     const ::pdbs::PatternDatabase& pdb;
+};
+
+class ExpCostPDBEvaluator : public AbstractStateEvaluator {
+    const ExpCostProjection& pdb;
+    const AbstractStateMapper* mapper;
+    int left_multiplier;
+    int right_multiplier;
+    int domain_size;
+
+public:
+    explicit ExpCostPDBEvaluator(
+        const ExpCostProjection& pdb,
+        const AbstractStateMapper* mapper,
+        int add_var);
+
+protected:
+    EvaluationResult evaluate(const AbstractState& state) override;
+
+private:
+    AbstractState to_parent_state(AbstractState state);
 };
 
 class ZeroCostActionEvaluator : public AbstractOperatorRewardFunction {

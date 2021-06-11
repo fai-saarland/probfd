@@ -218,13 +218,13 @@ AbstractStateMapper(Pattern pattern, const std::vector<int>& domains)
         throw PatternTooLargeException();
     }
 
-    size_ = multipliers_.back() * d;
+    multipliers_.push_back(multipliers_.back() * d);
 }
 
 unsigned
 AbstractStateMapper::size() const
 {
-    return size_;
+    return multipliers_.back();
 }
 
 const Pattern&
@@ -362,6 +362,32 @@ AbstractStateMapper::PartialStateEndIterator
 AbstractStateMapper::partial_states_end() const
 {
     return PartialStateEndIterator();
+}
+
+int AbstractStateMapper::get_multiplier(int var) const
+{
+    return get_multiplier(get_index(var));
+}
+
+int AbstractStateMapper::get_multiplier_raw(int idx) const
+{
+    return multipliers_[idx];
+}
+
+int AbstractStateMapper::get_domain_size(int var) const
+{
+    return domains_[get_index(var)];
+}
+
+int AbstractStateMapper::get_domain_size_raw(int idx) const
+{
+    return domains_[idx];
+}
+
+int AbstractStateMapper::get_index(int var) const
+{
+    auto it = std::find(vars_.begin(), vars_.end(), var);
+    return it != vars_.end() ? std::distance(vars_.begin(), it) : -1;
 }
 
 AbstractStateToString::AbstractStateToString(

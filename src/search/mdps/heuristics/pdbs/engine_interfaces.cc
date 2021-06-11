@@ -5,6 +5,7 @@
 #include "qualitative_result_store.h"
 
 #include "../../../pdbs/pattern_database.h"
+#include "expected_cost/expcost_projection.h"
 
 namespace probabilistic {
 
@@ -174,17 +175,17 @@ AbstractStateInSetRewardFunction::AbstractStateInSetRewardFunction(
 {
 }
 
-PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
-    : pdb(pdb)
-{
-}
-
 EvaluationResult
 AbstractStateInSetRewardFunction::evaluate(const AbstractState& state)
 {
     const bool is_contained = states_->find(state) != states_->end();
     return EvaluationResult(
         is_contained, is_contained ? value_in_ : value_not_in_);
+}
+
+PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
+    : pdb(pdb)
+{
 }
 
 EvaluationResult
@@ -195,6 +196,34 @@ PDBEvaluator::evaluate(const AbstractState& state)
     return EvaluationResult(
         deterministic_val == std::numeric_limits<int>::max(),
         static_cast<value_type::value_t>(deterministic_val));
+}
+
+ExpCostPDBEvaluator::ExpCostPDBEvaluator(
+    const ExpCostProjection& pdb, 
+    const AbstractStateMapper* mapper,
+    int add_var)
+    : pdb(pdb)
+    , mapper(mapper)
+{
+    const int idx = mapper->get_index(add_var);
+
+    this->domain_size = mapper->get_domain_size_raw(idx);
+    this->left_multiplier = mapper->get_multiplier_raw(idx);
+    this->right_multiplier = mapper->get_multiplier_raw(idx + 1);
+}
+
+EvaluationResult
+ExpCostPDBEvaluator::evaluate(const AbstractState& state)
+{
+    value_type::value_t val = pdb.lookup(to_parent_state(state));
+    return EvaluationResult(val == -value_type::inf, val);
+}
+
+AbstractState ExpCostPDBEvaluator::to_parent_state(AbstractState state)
+{
+    int left = state.id % left_multiplier;
+    int right = state.id - (state.id % right_multiplier);
+    return AbstractState(left + right / domain_size);
 }
 
 value_type::value_t

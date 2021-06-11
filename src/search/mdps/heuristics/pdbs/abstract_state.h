@@ -196,8 +196,15 @@ public:
 
     PartialStateEndIterator partial_states_end() const;
 
+    int get_multiplier(int var) const;
+    int get_multiplier_raw(int idx) const;
+
+    int get_domain_size(int var) const;
+    int get_domain_size_raw(int idx) const;
+
+    int get_index(int var) const;
+
 private:
-    unsigned size_;
     std::vector<int> vars_;
     std::vector<int> domains_;
     std::vector<int> multipliers_;

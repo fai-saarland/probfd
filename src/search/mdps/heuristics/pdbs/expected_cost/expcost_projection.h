@@ -40,6 +40,8 @@ public:
 
     ExpCostProjection(const ::pdbs::PatternDatabase& pdb);
 
+    ExpCostProjection(const ExpCostProjection& pdb, int add_var);
+
     ~ExpCostProjection() = default;
 
     value_type::value_t get_value(const GlobalState &state) const;

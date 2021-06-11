@@ -27,9 +27,7 @@ ExpCostProjection(const Pattern& variables)
 ExpCostProjection::
 ExpCostProjection(const Pattern& variables, const std::vector<int> &domains)
     : ProbabilisticProjection(variables, domains)
-    , value_table(
-        state_mapper_->size(),
-        -std::numeric_limits<value_type::value_t>::infinity())
+    , value_table(state_mapper_->size(), -value_type::inf)
 {
     ConstantValueInitializer<AbstractState> initializer(value_type::zero);
     compute_value_table(&initializer);
@@ -47,20 +45,32 @@ ExpCostProjection(
     const std::vector<int> &domains,
     AbstractStateEvaluator* heuristic)
     : ProbabilisticProjection(variables, domains)
-    , value_table(
-        state_mapper_->size(),
-        -std::numeric_limits<value_type::value_t>::infinity())
+    , value_table(state_mapper_->size(), -value_type::inf)
 {
     compute_value_table(heuristic);
 }
 
 ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
     : ProbabilisticProjection(pdb.get_pattern(), ::g_variable_domain)
-    , value_table(
-        state_mapper_->size(),
-        -std::numeric_limits<value_type::value_t>::infinity())
+    , value_table(state_mapper_->size(), -value_type::inf)
 {
     PDBEvaluator heuristic(pdb);
+    compute_value_table(&heuristic);
+}
+
+std::vector<int> insert(std::vector<int> pattern, int add_var) {
+    auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
+    pattern.insert(it, add_var);
+    return pattern;
+}
+
+ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)
+    : ProbabilisticProjection(
+        insert(pdb.get_pattern(), add_var),
+        ::g_variable_domain)
+    , value_table(state_mapper_->size(), -value_type::inf)
+{
+    ExpCostPDBEvaluator heuristic(pdb, state_mapper_.get(), add_var);
     compute_value_table(&heuristic);
 }
 

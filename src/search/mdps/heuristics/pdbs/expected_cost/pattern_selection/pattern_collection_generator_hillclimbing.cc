@@ -178,7 +178,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                     */
                     generated_patterns.insert(new_pattern);
                     candidate_pdbs.emplace_back(
-                        new ExpCostProjection(new_pattern));
+                        new ExpCostProjection(pdb, rel_var_id));
                     max_pdb_size = std::max(
                         max_pdb_size, (int)candidate_pdbs.back()->num_states());
                 }
