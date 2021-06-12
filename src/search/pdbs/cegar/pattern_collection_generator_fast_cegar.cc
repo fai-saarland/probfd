@@ -46,7 +46,9 @@ PatternCollectionGeneratorFastCegar::PatternCollectionGeneratorFastCegar(
 
 PatternCollectionInformation
 PatternCollectionGeneratorFastCegar::generate(OperatorCost cost_type) {
-    cout << "Fast CEGAR: generating patterns" << endl;
+    if (single_generator_verbosity >= Verbosity::SILENT) {
+        cout << "Fast CEGAR: generating patterns" << endl;
+    }
 
     utils::CountdownTimer timer(total_time_limit);
     shared_ptr<PatternCollection> union_patterns = 
@@ -135,8 +137,10 @@ PatternCollectionGeneratorFastCegar::generate(OperatorCost cost_type) {
                 // This happens because a single CEGAR run can violate the
                 // imposed size limit if already the given goal variable is
                 // too large.
-                cout << "Fast CEGAR: Total collection size limit reached."
-                     << endl;
+                if (single_generator_verbosity >= Verbosity::NORMAL) {
+                    cout << "Fast CEGAR: Total collection size limit reached."
+                        << endl;
+                }
                 can_generate = false;
             }
 
@@ -160,29 +164,37 @@ PatternCollectionGeneratorFastCegar::generate(OperatorCost cost_type) {
                 if (!blacklist_on_stagnation) {
                     // stagnation has been going on for too long and we are not
                     // allowed to force blacklisting, so nothing can be done.
-                    cout << "Fast CEGAR: Stagnation limit reached. "
-                         << "Stopping generation."
-                         << endl;
+                    if (single_generator_verbosity >= Verbosity::NORMAL) {
+                        cout << "Fast CEGAR: Stagnation limit reached. "
+                            << "Stopping generation."
+                            << endl;
+                    }
                 } else {
                     // stagnation in spite of blacklisting
-                    cout << "Fast CEGAR: Stagnation limit reached again. "
-                         << "Stopping generation."
-                         << endl;
+                    if (single_generator_verbosity >= Verbosity::NORMAL) {
+                        cout << "Fast CEGAR: Stagnation limit reached again. "
+                            << "Stopping generation."
+                            << endl;
+                    }
                 }
                 can_generate = false;
             } else {
                 // We want to blacklist on stagnation but have not started
                 // doing so yet.
-                cout << "Fast CEGAR: Stagnation limit reached. "
-                     << "Forcing global blacklisting."
-                     << endl;
+                if (single_generator_verbosity >= Verbosity::NORMAL) {
+                    cout << "Fast CEGAR: Stagnation limit reached. "
+                        << "Forcing global blacklisting."
+                        << endl;
+                }
                 force_blacklisting = true;
                 stagnation = false;
             }
         }
 
         if (timer.is_expired()) {
-            cout << "Fast CEGAR: time limit reached" << endl;
+            if (single_generator_verbosity >= Verbosity::NORMAL) {
+                cout << "Fast CEGAR: time limit reached" << endl;
+            }
             can_generate = false;
         }
 
@@ -192,17 +204,19 @@ PatternCollectionGeneratorFastCegar::generate(OperatorCost cost_type) {
         assert(utils::in_bounds(goal_index, goals));
     }
 
-    cout << "Fast CEGAR: computation time: " << timer.get_elapsed_time()
-         << endl;
-    cout << "Fast CEGAR: number of iterations: " << num_iterations << endl;
-    cout << "Fast CEGAR: average time per generator: "
-         << timer.get_elapsed_time() / static_cast<double>(num_iterations + 1)
-         << endl;
-    cout << "Fast CEGAR: final collection: " << *union_patterns << endl;
-    cout << "Fast CEGAR: final collection number of patterns: "
-         << union_patterns->size() << endl;
-    cout << "Fast CEGAR: final collection summed PDB size: " << collection_size 
-         << endl;
+    if (single_generator_verbosity >= Verbosity::SILENT) {
+        cout << "Fast CEGAR: computation time: " << timer.get_elapsed_time()
+            << endl;
+        cout << "Fast CEGAR: number of iterations: " << num_iterations << endl;
+        cout << "Fast CEGAR: average time per generator: "
+            << timer.get_elapsed_time() / static_cast<double>(num_iterations + 1)
+            << endl;
+        cout << "Fast CEGAR: final collection: " << *union_patterns << endl;
+        cout << "Fast CEGAR: final collection number of patterns: "
+            << union_patterns->size() << endl;
+        cout << "Fast CEGAR: final collection summed PDB size: " << collection_size 
+            << endl;
+    }
 
     PatternCollectionInformation result(cost_type, union_patterns);
     result.set_pdbs(union_pdbs);
