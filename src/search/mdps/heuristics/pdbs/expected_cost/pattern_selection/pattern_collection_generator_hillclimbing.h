@@ -36,6 +36,15 @@ namespace pattern_selection {
 class PatternCollectionGeneratorHillclimbing :
     public PatternCollectionGenerator
 {
+    enum class Verbosity {
+        NONE,
+        SILENT,
+        NORMAL,
+        VERBOSE
+    };
+
+    const Verbosity verbosity;
+
     // maximum number of states for each pdb
     const int pdb_max_size;
     // maximum added size of all pdbs

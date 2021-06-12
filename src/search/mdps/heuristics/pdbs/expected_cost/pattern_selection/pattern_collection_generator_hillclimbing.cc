@@ -27,14 +27,6 @@
 #include <iostream>
 #include <limits>
 
-#define ECHC_VERBOSE
-
-#if defined DEBUG || defined ECHC_VERBOSE
-static constexpr bool VERBOSE = true;
-#else
-static constexpr bool VERBOSE = false;
-#endif
-
 namespace probabilistic {
 
 using namespace value_type;
@@ -121,7 +113,8 @@ static std::vector<std::vector<int>> compute_relevant_neighbours() {
 
 PatternCollectionGeneratorHillclimbing::
 PatternCollectionGeneratorHillclimbing(const Options &opts)
-    : pdb_max_size(opts.get<int>("pdb_max_size")),
+    : verbosity(static_cast<Verbosity>(opts.get_enum("verbosity"))),
+      pdb_max_size(opts.get<int>("pdb_max_size")),
       collection_max_size(opts.get<int>("collection_max_size")),
       num_samples(opts.get<int>("num_samples")),
       min_improvement(opts.get<int>("min_improvement")),
@@ -266,12 +259,10 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
             best_pdb_index = i;
         }
 
-        if constexpr (VERBOSE) {
-            if (count > 0) {
-                std::cout
-                    << "pattern: " << candidate_pdbs[i]->get_pattern()
-                    << " - improvement: " << count << std::endl;
-            }
+        if (verbosity >= Verbosity::VERBOSE && count > 0) {
+            std::cout
+                << "pattern: " << candidate_pdbs[i]->get_pattern()
+                << " - improvement: " << count << std::endl;
         }
     }
 
@@ -349,7 +340,9 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
       guaranteed to be "normalized" in the sense that there are no duplicates
       and patterns are sorted.
     */
-    std::cout << "Done calculating initial candidate PDBs" << std::endl;
+    if (verbosity >= Verbosity::NORMAL) {
+        std::cout << "Done calculating initial candidate PDBs" << std::endl;
+    }
 
     int num_iterations = 0;
     StateRegistry state_registry;
@@ -364,7 +357,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
             ++num_iterations;
             value_t init_h = current_pdbs->get_value(initial_state);
 
-            if constexpr (VERBOSE) {
+            if (verbosity >= Verbosity::VERBOSE) {
                 std::cout
                     << "current collection size is "
                     << current_pdbs->get_size()
@@ -372,13 +365,13 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
             }
 
             if (current_pdbs->is_dead_end(initial_state)) {
-                if constexpr (VERBOSE) {
+                if (verbosity >= Verbosity::VERBOSE) {
                     std::cout
                         << "infinite => stopping hill climbing"
                         << std::endl;
                 }
                 break;
-            } else if constexpr (VERBOSE) {
+            } else if (verbosity >= Verbosity::VERBOSE) {
                 std::cout << init_h << std::endl;
             }
 
@@ -393,7 +386,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
                 find_best_improving_pdb(samples, samples_h_values, candidate_pdbs);
 
             if (improvement < min_improvement) {
-                if constexpr (VERBOSE) {
+                if (verbosity >= Verbosity::VERBOSE) {
                     std::cout <<
                         "Improvement below threshold."
                         "Stop hill climbing."
@@ -408,7 +401,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
             const auto best_pdb = candidate_pdbs[best_pdb_index];
             const Pattern &best_pattern = best_pdb->get_pattern();
 
-            if constexpr (VERBOSE) {
+            if (verbosity >= Verbosity::VERBOSE) {
                 std::cout << "found a better pattern with improvement "
                      << improvement << std::endl;
                 std::cout << "pattern: " << best_pattern << std::endl;
@@ -426,22 +419,28 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
             // Remove the added PDB from candidate_pdbs.
             candidate_pdbs[best_pdb_index] = nullptr;
 
-            std::cout
-                << "Hill climbing time so far: "
-                << hill_climbing_timer->get_elapsed_time()
-                << std::endl;
+            if (verbosity >= Verbosity::VERBOSE) {
+                std::cout
+                    << "Hill climbing time so far: "
+                    << hill_climbing_timer->get_elapsed_time()
+                    << std::endl;
+            }
         }
     } catch (HillClimbingTimeout &) {
-        std::cout << "Time limit reached. Abort hill climbing." << std::endl;
+        if (verbosity >= Verbosity::SILENT) {
+            std::cout << "Time limit reached. Abort hill climbing." << std::endl;
+        }
     }
 
-    std::cout
-        << "Hill climbing iterations: " << num_iterations
-        << "\nHill climbing generated patterns: " << generated_patterns.size()
-        << "\nHill climbing rejected patterns: " << num_rejected
-        << "\nHill climbing maximum PDB size: " << max_pdb_size
-        << "\nHill climbing time: " << hill_climbing_timer->get_elapsed_time()
-        << std::endl;
+    if (verbosity >= Verbosity::SILENT) {
+        std::cout
+            << "Hill climbing iterations: " << num_iterations
+            << "\nHill climbing generated patterns: " << generated_patterns.size()
+            << "\nHill climbing rejected patterns: " << num_rejected
+            << "\nHill climbing maximum PDB size: " << max_pdb_size
+            << "\nHill climbing time: " << hill_climbing_timer->get_elapsed_time()
+            << std::endl;
+    }
 
     hill_climbing_timer = nullptr;
 }
@@ -462,15 +461,18 @@ PatternCollectionGeneratorHillclimbing::generate(OperatorCost cost_type)
     this->cost_type = cost_type;
 
     utils::Timer timer;
-    std::cout
-        << "Generating patterns using the hill climbing generator..."
-        << std::endl;
+
+    if (verbosity >= Verbosity::NORMAL) {
+        std::cout
+            << "Generating patterns using the hill climbing generator..."
+            << std::endl;
+    }
 
     // Generate initial collection
     current_pdbs = std::make_unique<IncrementalCanonicalPDBs>(
         get_initial_pattern_collection());
 
-    if constexpr (VERBOSE) {
+    if (verbosity >= Verbosity::NORMAL) {
         std::cout
             << "Done calculating initial pattern collection: " << timer
             << std::endl;
@@ -488,6 +490,29 @@ PatternCollectionGeneratorHillclimbing::generate(OperatorCost cost_type)
 }
 
 void add_hillclimbing_options(OptionParser &parser) {
+    std::vector<std::string> verbosity_levels;
+    std::vector<std::string> verbosity_level_docs;
+    verbosity_levels.push_back("none");
+    verbosity_level_docs.push_back("none: no output at all");
+    verbosity_levels.push_back("silent");
+    verbosity_level_docs.push_back(
+        "silent: no output during construction, only starting and final "
+        "statistics");
+    verbosity_levels.push_back("normal");
+    verbosity_level_docs.push_back(
+        "normal: basic output during construction, starting and final "
+        "statistics");
+    verbosity_levels.push_back("verbose");
+    verbosity_level_docs.push_back(
+        "verbose: full output during construction, starting and final "
+        "statistics");
+    parser.add_enum_option(
+        "verbosity",
+        verbosity_levels,
+        "Option to specify the level of verbosity.",
+        "verbose",
+        verbosity_level_docs);
+
     parser.add_option<int>(
         "pdb_max_size",
         "maximal number of states per pattern database ",

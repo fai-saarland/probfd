@@ -249,7 +249,7 @@ pair<int, int> PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
             improvement = count;
             best_pdb_index = i;
         }
-        if (count > 0) {
+        if (verbosity >= Verbosity::VERBOSE && count > 0) {
             cout << "pattern: " << candidate_pdbs[i]->get_pattern()
                  << " - improvement: " << count << endl;
         }
@@ -324,7 +324,9 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
       guaranteed to be "normalized" in the sense that there are no duplicates
       and patterns are sorted.
     */
-    cout << "Done calculating initial candidate PDBs" << endl;
+    if (verbosity >= Verbosity::NORMAL) {
+        cout << "Done calculating initial candidate PDBs" << endl;
+    }
 
     int num_iterations = 0;
     StateRegistry state_registry;
@@ -338,14 +340,22 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
         while (true) {
             ++num_iterations;
             int init_h = current_pdbs->get_value(initial_state);
-            cout << "current collection size is "
-                 << current_pdbs->get_size() << endl;
-            cout << "current initial h value: ";
+
+            if (verbosity >= Verbosity::VERBOSE) {
+                cout << "current collection size is "
+                    << current_pdbs->get_size() << endl;
+                cout << "current initial h value: ";
+            }
+
             if (current_pdbs->is_dead_end(initial_state)) {
-                cout << "infinite => stopping hill climbing" << endl;
+                if (verbosity >= Verbosity::VERBOSE) {
+                    cout << "infinite => stopping hill climbing" << endl;
+                }
                 break;
             } else {
-                cout << init_h << endl;
+                if (verbosity >= Verbosity::VERBOSE) {
+                    cout << init_h << endl;
+                }
             }
 
             samples.clear();
@@ -361,8 +371,10 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
             int best_pdb_index = improvement_and_index.second;
 
             if (improvement < min_improvement) {
-                cout << "Improvement below threshold. Stop hill climbing."
-                     << endl;
+                if (verbosity >= Verbosity::VERBOSE) {
+                    cout << "Improvement below threshold. Stop hill climbing."
+                        << endl;
+                }
                 break;
             }
 
@@ -371,9 +383,13 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
             const shared_ptr<PatternDatabase> &best_pdb =
                 candidate_pdbs[best_pdb_index];
             const Pattern &best_pattern = best_pdb->get_pattern();
-            cout << "found a better pattern with improvement " << improvement
-                 << endl;
-            cout << "pattern: " << best_pattern << endl;
+
+            if (verbosity >= Verbosity::VERBOSE) {
+                cout << "found a better pattern with improvement " << improvement
+                    << endl;
+                cout << "pattern: " << best_pattern << endl;
+            }
+
             current_pdbs->add_pdb(best_pdb);
 
             // Generate candidate patterns and PDBs for next iteration.
@@ -385,20 +401,26 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
             // Remove the added PDB from candidate_pdbs.
             candidate_pdbs[best_pdb_index] = nullptr;
 
-            cout << "Hill climbing time so far: "
-                 << hill_climbing_timer->get_elapsed_time()
-                 << endl;
+            if (verbosity >= Verbosity::VERBOSE) {
+                cout << "Hill climbing time so far: "
+                    << hill_climbing_timer->get_elapsed_time()
+                    << endl;
+            }
         }
     } catch (HillClimbingTimeout &) {
-        cout << "Time limit reached. Abort hill climbing." << endl;
+        if (verbosity >= Verbosity::SILENT) {
+            cout << "Time limit reached. Abort hill climbing." << endl;
+        }
     }
 
-    cout << "Hill climbing iterations: " << num_iterations << endl;
-    cout << "Hill climbing generated patterns: " << generated_patterns.size() << endl;
-    cout << "Hill climbing rejected patterns: " << num_rejected << endl;
-    cout << "Hill climbing maximum PDB size: " << max_pdb_size << endl;
-    cout << "Hill climbing time: "
-         << hill_climbing_timer->get_elapsed_time() << endl;
+    if (verbosity >= Verbosity::SILENT) {
+        cout << "Hill climbing iterations: " << num_iterations << endl;
+        cout << "Hill climbing generated patterns: " << generated_patterns.size() << endl;
+        cout << "Hill climbing rejected patterns: " << num_rejected << endl;
+        cout << "Hill climbing maximum PDB size: " << max_pdb_size << endl;
+        cout << "Hill climbing time: "
+            << hill_climbing_timer->get_elapsed_time() << endl;
+    }
 
     delete hill_climbing_timer;
     hill_climbing_timer = nullptr;
@@ -433,6 +455,29 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(Op
 }
 
 void add_hillclimbing_options(OptionParser &parser) {
+    std::vector<std::string> verbosity_levels;
+    std::vector<std::string> verbosity_level_docs;
+    verbosity_levels.push_back("none");
+    verbosity_level_docs.push_back("none: no output at all");
+    verbosity_levels.push_back("silent");
+    verbosity_level_docs.push_back(
+        "silent: no output during construction, only starting and final "
+        "statistics");
+    verbosity_levels.push_back("normal");
+    verbosity_level_docs.push_back(
+        "normal: basic output during construction, starting and final "
+        "statistics");
+    verbosity_levels.push_back("verbose");
+    verbosity_level_docs.push_back(
+        "verbose: full output during construction, starting and final "
+        "statistics");
+    parser.add_enum_option(
+        "verbosity",
+        verbosity_levels,
+        "Option to specify the level of verbosity.",
+        "verbose",
+        verbosity_level_docs);
+
     parser.add_option<int>(
         "pdb_max_size",
         "maximal number of states per pattern database ",
