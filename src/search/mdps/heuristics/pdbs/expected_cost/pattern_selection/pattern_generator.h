@@ -10,6 +10,8 @@
 
 namespace probabilistic {
 namespace pdbs {
+
+/// Namespace dedicated to pattern selection techniques for probabilistic PDBs
 namespace pattern_selection {
 
 class PatternCollectionGenerator {

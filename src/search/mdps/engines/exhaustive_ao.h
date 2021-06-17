@@ -8,6 +8,8 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// I do not know this algorithm.
 namespace exhaustive_ao {
 
 namespace internal {
@@ -35,6 +37,13 @@ using AOBase = ao_search::AOBase<
 
 } // namespace internal
 
+/**
+ * @brief Exhaustive AO* search algorithm.
+ * 
+ * @tparam StateT - The state type of the underlying MDP model.
+ * @tparam ActionT - The action type of the underlying MDP model.
+ * @tparam DualBoundsT - Whether bounded value iteration is used.
+ */
 template<typename StateT, typename ActionT, typename DualBoundsT>
 class ExhaustiveAOSearch
     : public internal::AOBase<StateT, ActionT, DualBoundsT> {

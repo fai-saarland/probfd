@@ -11,6 +11,8 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// Namespace dedicated to the AO* family of MDP algorithms.
 namespace ao_search {
 
 struct Statistics {
@@ -56,6 +58,17 @@ struct PerStateInformation : public StateInfo {
     std::vector<StateID> parents;
 };
 
+/**
+ * @brief Base class for the AO* algorithm family.
+ * 
+ * @tparam StateT - The state type of the underlying MDP.
+ * @tparam ActionT - The action type of the underlying MDP.
+ * @tparam DualBounds - Determines whether bounded value iteration is performed.
+ * @tparam StorePolicy - Determines whether the optimal policy is stored.
+ * @tparam StateInfoExtension - The extended state information struct used by
+ * the derived algorithm.
+ * @tparam Greedy - ?
+ */
 template<
     typename StateT,
     typename ActionT,
@@ -71,13 +84,18 @@ class AOBase : public heuristic_search::HeuristicSearchBase<
                    StorePolicy,
                    StateInfoExtension> {
 public:
+    /// The heuristic search base class.
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         StateT,
         ActionT,
         DualBounds,
         StorePolicy,
         StateInfoExtension>;
+
+    /// The underlying state type.
     using State = typename HeuristicSearchBase::State;
+    
+    /// The underlying action type.
     using Action = typename HeuristicSearchBase::Action;
 
     AOBase(

@@ -17,6 +17,8 @@ class OptionParser;
 
 namespace probabilistic {
 class ProbabilisticOperator;
+
+/// Namespace dedicated to new state listener implementations.
 namespace new_state_handlers {
 
 class StorePreferredOperators;

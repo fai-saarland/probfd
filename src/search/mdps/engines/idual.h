@@ -10,8 +10,13 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// Namespace dedicated to the i-dual MDP engine.
 namespace idual {
 
+/**
+ * @brief I-Dual algorithm statistics.
+ */
 struct Statistics {
     unsigned long long iterations = 0;
     unsigned long long expansions = 0;
@@ -91,6 +96,12 @@ private:
     std::set<unsigned, Comparator> indices;
 };
 
+/**
+ * @brief Implementation of the I-Dual algorithm \cite trevizan:etal:ijcai-17 .
+ * 
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
+ */
 template<typename State, typename Action>
 class IDual : public MDPEngine<State, Action> {
 public:

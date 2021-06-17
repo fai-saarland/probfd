@@ -10,8 +10,13 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// Namespace dedicated to the acyclic value iteration algorithm.
 namespace acyclic_vi {
 
+/**
+ * Acyclic value iteration statistics.
+ */
 struct Statistics {
     unsigned long long state_expansions = 0;
     unsigned long long terminal_states = 0;
@@ -27,9 +32,27 @@ struct Statistics {
     }
 };
 
+/**
+ * @brief Implements acyclic Value Iteration.
+ * 
+ * Performs value iteration on acyclic MDPs using an optimal (topological)
+ * update order. Each state only needs to be updated once.
+ * 
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
+ * 
+ * @remark Does not validate that the input model is acyclic.
+ */
 template<typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
 public:
+    /**
+     * @brief Constructs an instance of acyclic value iteration.
+     * 
+     * @param prune - An optional dead-end detector
+     * 
+     * @see MDPEngine
+     */
     explicit AcyclicValueIteration(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,

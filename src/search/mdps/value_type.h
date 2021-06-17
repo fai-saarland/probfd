@@ -1,8 +1,12 @@
 #pragma once
 
+/// Namespace for classes related to search in probabilistic state space models.
 namespace probabilistic {
+
+/// Namespace dedicated to state value types.
 namespace value_type {
 
+/// Typedef for the state value type
 using value_t = double;
 
 extern const value_t one;
@@ -10,6 +14,7 @@ extern const value_t zero;
 extern const value_t inf;
 extern const value_t eps;
 
+/// The global epsilon precision value.
 extern value_t g_epsilon;
 
 

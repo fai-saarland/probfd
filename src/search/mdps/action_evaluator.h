@@ -5,6 +5,7 @@
 
 namespace probabilistic {
 
+/// Type alias for action evaluators of \ref ProbabilisticOperator.
 using ProbabilisticOperatorEvaluator =
     ActionRewardFunction<const ProbabilisticOperator*>;
 

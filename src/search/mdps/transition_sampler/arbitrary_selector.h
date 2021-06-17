@@ -3,6 +3,8 @@
 #include "../transition_sampler.h"
 
 namespace probabilistic {
+
+/// Namespace dedicated to transition sampling.
 namespace transition_sampler {
 
 class ArbitrarySuccessorSelector

@@ -8,6 +8,13 @@
 
 namespace probabilistic {
 
+/**
+ * @brief A convenience class that wraps a list of element-probability 
+ * pairs.
+ * 
+ * @tparam T The element type.
+ * 
+ */
 template<typename T>
 class Distribution {
 private:
@@ -16,17 +23,26 @@ private:
     distribution_t distribution_;
 
 public:
+    /// Iterator type.
     using const_iterator = typename distribution_t::const_iterator;
 
+    /// Constructs the empty list of element-probability pairs.
     Distribution() = default;
 
+    /**
+     * Constructs the list from a vector of element-probability pairs.
+     */
     explicit Distribution(distribution_t d)
         : distribution_(std::move(d))
     {
     }
 
+    /**
+     * Returns the current number of element-probability pairs.
+     */
     size_t size() const { return distribution_.size(); }
 
+    /// Clears the list.
     void clear() { distribution_.clear(); }
 
     void swap(Distribution<T>& other)
@@ -34,14 +50,27 @@ public:
         other.distribution_.swap(distribution_);
     }
 
+    /**
+     * Adds element-probability pair (\p t, \p prob) to the list,
+     * even if another pair with an element that compares equal to \p t is
+     * already present.
+     * 
+     * @see make_unique
+     */
     void add(T t, value_type::value_t prob)
     {
         assert(prob > 0.0);
         distribution_.emplace_back(std::move(t), prob);
     }
 
+    /** 
+     * Returns true if and only if the list is empty.
+     */
     bool empty() const { return distribution_.empty(); }
 
+    /**
+     * Multiplies each element probability with \p scale.
+     */
     void normalize(const value_type::value_t& scale)
     {
         for (auto it = distribution_.begin(); it != distribution_.end(); it++) {
@@ -49,6 +78,9 @@ public:
         }
     }
 
+    /**
+     * Normalizes the probabilities of the elements to sum up to one.
+     */
     void normalize()
     {
         if (empty()) {
@@ -61,6 +93,9 @@ public:
         normalize(value_type::value_t(1.0) / sum);
     }
 
+    /**
+     * Merges equal elements in the list by adding their probabilities. 
+     */
     void make_unique()
     {
         if (empty()) {
@@ -87,14 +122,26 @@ public:
         distribution_.erase(distribution_.begin() + i, distribution_.end());
     }
 
+    /**
+     * @brief Removes the element-probability pair pointed to by \p it.
+     * 
+     * \returns An iterator to the element-probability pair directly behind the
+     * erased pair.
+     */
     const_iterator erase(const_iterator it) { return distribution_.erase(it); }
 
     const_iterator begin() const { return distribution_.begin(); }
 
     const_iterator end() const { return distribution_.end(); }
 
+    /**
+     * @brief Obtains a reference to the internal list.
+     */
     distribution_t& data() { return distribution_; } 
 
+    /**
+     * @brief Obtains a const reference to the internal list.
+     */
     const distribution_t& data() const { return distribution_; } 
 };
 

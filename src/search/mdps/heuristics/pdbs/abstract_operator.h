@@ -10,6 +10,7 @@ namespace probabilistic {
 
 class ProbabilisticOperator;
 
+/// Namespace dedicated to probabilistic pattern databases.
 namespace pdbs {
 
 class AbstractOperator {

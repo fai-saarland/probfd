@@ -4,6 +4,14 @@
 
 namespace probabilistic {
 
+/**
+ * @brief Function object specifying the immediate reward received in a target
+ * state, independent of the source state and action taken.
+ * 
+ * @tparam State - The state type of the underlying MDP model.
+ * 
+ * @see EvaluationResult
+ */
 template<typename State>
 class StateEvaluator {
 public:

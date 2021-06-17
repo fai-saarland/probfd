@@ -22,6 +22,8 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// Namespace dedicated to the Find, Revise, Eliminate Traps (FRET) framework.
 namespace fret {
 
 template<typename State, typename Action, typename B2>

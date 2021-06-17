@@ -21,12 +21,26 @@ class OptionParser;
 } // namespace options
 
 namespace probabilistic {
+
+/// Namespace dedicated to MDP solver interfaces.
 namespace solvers {
 
+/**
+ * @brief Base interface for MDP solvers.
+ */
 class MDPSolver : public SolverInterface {
 public:
+    /**
+     * @brief Constructs the MDP solver from the given options.
+     */
     explicit MDPSolver(const options::Options& opts);
 
+    /**
+     * @brief Factory method that constructs an new MDP engine from the given 
+     * arguments.
+     * 
+     * @tparam Engine - The engine type to construct.
+     */
     template<typename Engine, typename... Args>
     engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
     engine_factory(Args&&... args)
@@ -43,11 +57,29 @@ public:
             std::forward<Args>(args)...);
     }
 
+    /**
+     * @brief Factory method a new instance of the encapsulated MDP engine.
+     */
     virtual engines::MDPEngineInterface<GlobalState>* create_engine() = 0;
+
+    /**
+     * @brief Returns the name of the encapsulated MDP engine.
+     */
     virtual std::string get_engine_name() const = 0;
+
+    /**
+     * @brief Print additional engine statistics to std::cout.
+     */
     virtual void print_additional_statistics() const { }
 
+    /**
+     * @brief Runs the encapsulated MDP on the global problem.
+     */
     virtual void solve() override;
+
+    /**
+     * @brief Checks if the MDP engine found a solution.
+     */
     virtual bool found_solution() const override { return true; }
 
     static void add_options_to_parser(options::OptionParser& parser);

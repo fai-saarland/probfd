@@ -23,6 +23,9 @@ class QuantitativeResultStore;
 class QualitativeResultStore;
 class MaxProbProjection;
 
+/**
+ * @brief Multiplicative MaxProb-PDB heuristic.
+ */
 class MaxProbPDBHeuristic : public GlobalStateEvaluator {
 private:
     enum Multiplicativity {
@@ -59,6 +62,26 @@ private:
     };
 
 public:
+    /**
+     * @brief Construct from options.
+     * 
+     * @param opts - The following options are available:
+     * + \em patterns - The generator used to generate the initial pattern
+     * collection. By default, uses a systematic pattern generation algorithm
+     * with size bound 2.
+     * + \em precompute_dead_ends - Specifies whether dead-ends should be 
+     * precomputed before solving the projections.
+     * + \em time_limit - The maximal time allowed to construct the databases 
+     * for the generated pattern collection. A value of zero disables the time 
+     * limit. by default, no time limit is imposed.
+     * + \em max_states - The maximal number of abstract states allowed. By 
+     * default, no restrictions are imposed.
+     * + \em dump_projections - If true, dump the projection with graphviz. 
+     * False by default.
+     * + \em multiplicativity - Specifies the multiplicativity criterion. 
+     * One of \em none, \em orthogonality or \em weak_orthogonality. \em none
+     * by default.
+     */
     explicit MaxProbPDBHeuristic(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 

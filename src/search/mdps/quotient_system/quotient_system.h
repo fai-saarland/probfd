@@ -20,6 +20,8 @@
 #endif
 
 namespace probabilistic {
+
+/// Namespace dedicated to the classes dealing with quotienting of an MDP.
 namespace quotient_system {
 
 template<typename ActionT>

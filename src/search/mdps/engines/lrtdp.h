@@ -13,6 +13,8 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// Namespace dedicated to labelled real-time dynamic programming (LRTDP).
 namespace lrtdp {
 
 enum class TrialTerminationCondition {
@@ -562,9 +564,20 @@ private:
 
 } // namespace internal
 
+/**
+ * @brief Template base of labelled real-time dynamic programming (LRTDP) 
+ * \cite bonet:geffner:icaps-03 with integrated FRET support.
+ */
 template<typename State, typename Action, typename B2, typename Fret>
 class LRTDP;
 
+/**
+ * @brief Implementation of LRTDP with FRET disabled.
+ * 
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
+ * @tparam B2 - Whether bounded value iteration is used.
+ */
 template<typename State, typename Action, typename B2>
 struct LRTDP<State, Action, B2, std::false_type>
     : public internal::LRTDP<heuristic_search::HeuristicSearchBase<
@@ -581,6 +594,13 @@ struct LRTDP<State, Action, B2, std::false_type>
         internal::PerStateInformation>>::LRTDP;
 };
 
+/**
+ * @brief Implementation of LRTDP with FRET enabled.
+ * 
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
+ * @tparam B2 - Whether bounded value iteration is used.
+ */
 template<typename State, typename Action, typename B2>
 struct LRTDP<State, Action, B2, std::true_type>
     : public internal::LRTDP<

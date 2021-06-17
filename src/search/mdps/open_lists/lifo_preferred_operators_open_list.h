@@ -16,6 +16,7 @@ namespace new_state_handlers {
 class StorePreferredOperators;
 }
 
+/// Namespace dedicated to open list implementations.
 namespace open_lists {
 
 class LifoPreferredOperatorsOpenList : public GlobalStateOpenList {

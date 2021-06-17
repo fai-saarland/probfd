@@ -10,6 +10,8 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// Namespace dedicated to the AO* algorithm.
 namespace ao_star {
 
 namespace internal {
@@ -25,11 +27,28 @@ using AOBase = ao_search::AOBase<
 
 }
 
+/**
+ * @brief Implementation of the AO* algorithm.
+ * 
+ * The AO* algorithm is an MDP heuristic search algorithm applicable to acyclic 
+ * MDPs.
+ *  
+ * @tparam StateT - The state type of the underlying MDP.
+ * @tparam ActionT - The action type of the underlying MDP.
+ * @tparam DualBoundsT - Whether bounded value iteration shall be used.
+ * 
+ * @remark Does not validate that the input model is acyclic.
+ */
 template<typename StateT, typename ActionT, typename DualBoundsT>
 class AOStar : public internal::AOBase<StateT, ActionT, DualBoundsT> {
 public:
+    /// Base class typedef.
     using AOBase = internal::AOBase<StateT, ActionT, DualBoundsT>;
+
+    /// The underlying state type.
     using State = typename AOBase::State;
+
+    /// The underlying action type.
     using Action = typename AOBase::Action;
 
     AOStar(

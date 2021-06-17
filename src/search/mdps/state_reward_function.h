@@ -5,6 +5,7 @@
 
 namespace probabilistic {
 
+/// Type alias for state reward functions of \ref GlobalState.
 using GlobalStateRewardFunction = StateRewardFunction<GlobalState>;
 
 } // namespace probabilistic

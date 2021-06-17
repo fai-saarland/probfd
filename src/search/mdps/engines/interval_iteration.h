@@ -9,11 +9,45 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// Namespace dedicated to interval iteration on MaxProb MDPs.
 namespace interval_iteration {
 
 using ValueStore = topological_vi::ValueStore<std::true_type>;
 using BoolStore = storage::PerStateStorage<bool>;
 
+/**
+ * @brief Implemention of interval iteration \cite haddad:etal:misc-17.
+ * 
+ * While classical value iteration algorithms converge against the optimal
+ * value function in a mathematical sense, it is not clear how a termination
+ * condition can be derived that ensures a fixed error bound on the computed
+ * value function. Interval iteration remedies this issue by performing two
+ * value iterations in parallel, starting from a lower and upper bound 
+ * respectively, and stopping when both bounds are less than epsilon
+ * away from each other.
+ * 
+ * Interval iteration consists of two steps:
+ * -# Build the MEC decomposition of the underlying MDP to ensure convergence
+ * from any initial value function.
+ * -# Performs two value iterations in parallel, one from an initial lower bound
+ * and one from an initial upper bound.
+ * 
+ * The respective sequences of value functions are adjacent sequences. Interval
+ * iteration stops when the lower and upper bounding value functions are less 
+ * than epsilon away, ensuring that any of the value functions is at most 
+ * epsilon away from the optimal value function.
+ * 
+ * @note This implementation outputs the values of the upper bounding value
+ * function.
+ * 
+ * @see EndComponentDecomposition
+ * 
+ * @tparam State The state type of the underlying MDP model.
+ * @tparam Action The action type of the underlying MDP model.
+ * @tparam ExpandGoalStates Whether goal states should be expanded to ensure
+ * all reachable states are visited.
+ */
 template<typename State, typename Action, bool ExpandGoalStates = false>
 class IntervalIteration : public MDPEngine<State, Action> {
 public:

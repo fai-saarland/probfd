@@ -12,8 +12,13 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// Namespace dedicated to Topological Value Iteration (TVI).
 namespace topological_vi {
 
+/**
+ * @brief Topological value iteration statistics.
+ */
 struct Statistics {
 
     void print(std::ostream& out) const
@@ -59,6 +64,17 @@ inline bool contains(storage::PerStateStorage<bool>* store, const StateID& s)
     return store->operator[](s);
 }
 
+/**
+ * @brief Implements topological value iteration \cite dai:etal:jair-11 .
+ * 
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
+ * @tparam ExpandGoalStates - Whether the algorithm should expand goal states 
+ * or treat them as terminal.
+ * @tparam Interval - Whether bounded value iteration is used.
+ * @tparam ZeroStates - Storage type for dead-end states??
+ * @tparam OneStates - Storage type for probability one states??
+ */
 template<
     typename State,
     typename Action,

@@ -10,6 +10,8 @@
 #include <vector>
 
 namespace probabilistic {
+
+/// Namespace dedicated to commonly used storage and container types.
 namespace storage {
 
 using size_type = std::size_t;

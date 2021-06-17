@@ -16,6 +16,9 @@ class OptionParser;
 
 namespace probabilistic {
 
+/**
+ * @brief Budget-pruning variant of \ref DeadEndPruningHeuristic.
+ */
 class BudgetPruningHeuristic : public GlobalStateEvaluator {
 public:
     BudgetPruningHeuristic(

@@ -17,6 +17,8 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// I do not know this algorithm.
 namespace heuristic_depth_first_search {
 
 enum class BacktrackingUpdateType {

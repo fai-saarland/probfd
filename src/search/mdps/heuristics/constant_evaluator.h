@@ -4,8 +4,14 @@
 
 namespace probabilistic {
 
+/**
+ * @brief Returns a constant estimate for each state.
+ */
 class ConstantEvaluator : public GlobalStateEvaluator {
 public:
+    /**
+     * @brief Construct with constant estimate \p value .
+     */
     explicit ConstantEvaluator(value_type::value_t value);
 
 protected:

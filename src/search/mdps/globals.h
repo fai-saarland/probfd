@@ -35,6 +35,7 @@ extern int g_step_bound;
 extern int g_step_var;
 extern OperatorCost g_step_cost_type;
 
+/// The global list of operators of the problem's MDP model.
 extern std::vector<ProbabilisticOperator> g_operators;
 
 extern int_packer::IntPacker* g_state_packer;

@@ -24,10 +24,15 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// Namespace dedicated to the MDP heuristic search base implementation
 namespace heuristic_search {
 
 namespace internal {
 
+/**
+ * @brief Base statistics for MDP heuristic search.
+ */
 struct CoreStatistics {
     unsigned long long backups = 0;
 
@@ -41,6 +46,9 @@ struct CoreStatistics {
     unsigned long long policy_updates = 0;
 };
 
+/**
+ * @brief Extended statistics for MDP heuristic search.
+ */
 struct Statistics : public CoreStatistics {
 
     unsigned state_info_bytes = 0;
@@ -71,6 +79,9 @@ struct Statistics : public CoreStatistics {
 #endif
     }
 
+    /**
+     * @brief Prints the statistics to the specified output stream.
+     */
     void print(std::ostream& out) const
     {
         out << "  Stored " << state_info_bytes << " bytes per state"
@@ -135,6 +146,13 @@ struct Statistics : public CoreStatistics {
     void jump() { before_last_update = *this; }
 };
 
+/**
+ * @brief The common base class for MDP heuristic search algorithms.
+ * 
+ * @tparam StateT - The state type of the underlying MDP model.
+ * @tparam ActionT - The action type of the undelying MDP model.
+ * @tparam StateInfoT - The state information container type.
+ */
 template<typename StateT, typename ActionT, typename StateInfoT>
 class HeuristicSearchBase : public MDPEngine<StateT, ActionT>,
                             public PerStateInformationLookup {
@@ -150,6 +168,11 @@ public:
 
     using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
 
+    /**
+     * @brief The state information accessor interface.
+     * 
+     * @tparam T - ?
+     */
     template<typename T>
     class StateStatusAccessor {
     public:
@@ -229,17 +252,26 @@ public:
 
     virtual ~HeuristicSearchBase() = default;
 
+    /**
+     * @copydoc MDPEngineInterface<StateT>::get_result(const State&)
+     */
     virtual value_type::value_t get_result(const State& s) override
     {
         const StateInfo& info = state_infos_[this->get_state_id(s)];
         return value_utils::as_upper_bound(info.value);
     }
 
+    /**
+     * @copydoc MDPEngineInterface<StateT>::supports_error_bound()
+     */
     virtual bool supports_error_bound() const override
     {
         return DualBounds::value;
     }
 
+    /**
+     * @copydoc MDPEngineInterface<StateT>::get_error()
+     */
     virtual value_type::value_t get_error(const State& s) override
     {
         if constexpr (DualBounds::value) {
@@ -250,11 +282,17 @@ public:
         }
     }
 
+    /**
+     * @copydoc MDPEngineInterface<StateT>::print_statistics(std::ostream&)
+     */
     virtual void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
     }
 
+    /**
+     * @copydoc PerStateInformationLookup::lookup(const StateID&)
+     */
     virtual const void* lookup(const StateID& state_id) override
     {
         return &state_infos_[state_id];
@@ -266,6 +304,17 @@ public:
         return StateStatusAccessor<T>(this);
     }
 
+    /**
+     * @brief Create a per-state storage of the specified state info element
+     * type.
+     * 
+     * @tparam T - The element type
+     * @param default_value - A default value for the state info elements
+     * if queried but not present. Defaults to a default constructed state 
+     * information element.
+     * @return storage::PerStateStorage<T>* - The newly allocated per-state 
+     * storage object.
+     */
     template<typename T>
     storage::PerStateStorage<T>*
     create_per_state_store(const T& default_value = T())
@@ -274,28 +323,49 @@ public:
             default_value, this->state_id_map_);
     }
 
+    /**
+     * @brief Checks if the state \p state_id is terminal.
+     */
     bool is_terminal(const StateID& state_id)
     {
         return state_infos_[state_id].is_terminal();
     }
 
+    /**
+     * @brief Gets the current value of the state represented by \p state_id
+     */
     value_type::value_t get_value(const StateID& state_id)
     {
         return state_infos_[state_id].get_value();
     }
 
+    /**
+     * @brief Checks if the state represented by \p state_id has the state 
+     * value of a dead-end.
+     */
     bool has_dead_end_value(const StateID& state)
     {
         const StateInfo& info = state_infos_[state];
         return info.value == dead_end_value_;
     }
 
+    /**
+     * @brief Chekcs if the state represented by \p state_id is marked as a 
+     * dead-end. 
+     * @param state 
+     * @return true 
+     * @return false 
+     */
     bool is_marked_dead_end(const StateID& state)
     {
         const StateInfo& info = state_infos_[state];
         return info.is_dead_end();
     }
 
+    /**
+     * @brief Clears the currently selected greedy action for the state 
+     * represented by \p state_id
+     */
     void clear_policy(const StateID& state_id)
     {
         static_assert(StorePolicy::value, "Policy not stored by algorithm!");
@@ -303,6 +373,10 @@ public:
         state_infos_[state_id].set_policy(ActionID::undefined);
     }
 
+    /**
+     * @brief Gets the currently selected greedy action for the state 
+     * represented by \p state_id
+     */
     Action get_policy(const StateID& state_id)
     {
         static_assert(StorePolicy::value, "Policy not stored by algorithm!");
@@ -312,6 +386,14 @@ public:
         return this->lookup_action(state_id, aid);
     }
 
+    /**
+     * @brief Generates the successor distribution referring to the application 
+     * of the current greedy action in a state 
+     * 
+     * @param[in] state - The id of the source state
+     * @param[out] result - The returned successor distribution when applying 
+     * the current greedy action in the state represented by \p state
+     */
     bool apply_policy(const StateID& state, Distribution<StateID>& result)
     {
         static_assert(StorePolicy::value, "Policy not stored by algorithm!");
@@ -326,6 +408,9 @@ public:
         }
     }
 
+    /**
+     * @brief Marks the state represented by \p state_id as a dead-end. 
+     */
     void set_dead_end(const StateID& state_id)
     {
         StateInfo& info = state_infos_[state_id];
@@ -333,6 +418,13 @@ public:
         info.value = dead_end_value_;
     }
 
+    /**
+     * @brief Marks the state represented by \p state_id as a dead-end, unless 
+     * it is a goal state. 
+     * 
+     * @return true - If the state is a goal state
+     * @return false - Otherwise
+     */
     bool conditional_set_dead_end(const StateID& state_id)
     {
         StateInfo& info = state_infos_[state_id];
@@ -344,12 +436,18 @@ public:
         return false;
     }
 
+    /**
+     * @brief Stores into \p info that the corresponding state is a dead-end
+     */
     void set_dead_end(StateInfo& info)
     {
         info.set_recognized_dead_end();
         info.value = dead_end_value_;
     }
 
+    /**
+     * @brief Notifies the attached dead-end listener of a new dead-end.
+     */
     void notify_dead_end(const StateID& state_id)
     {
         if (dead_end_listener_ != nullptr) {
@@ -357,6 +455,11 @@ public:
         }
     }
 
+    /**
+     * @brief If \p state_id has not been recognized as a dead-end before, 
+     * stores this information in \p state_info and notifies the attached 
+     * dead-end listener of this new dead-end. 
+     */
     void notify_dead_end(const StateID& state_id, StateInfo& state_info)
     {
         if (dead_end_listener_ != nullptr
@@ -385,6 +488,10 @@ public:
         return true;
     }
 
+    /**
+     * @brief Checks whether the attached dead-end evluator recognizes the 
+     * state as a dead-end. If yes, the state is marked as a dead-end.
+     */
     bool check_dead_end(const StateID& state_id)
     {
         if (dead_end_eval_ != nullptr) {
@@ -397,11 +504,27 @@ public:
         return false;
     }
 
+    /**
+     * @brief Checks if a dead-end listener is attached.
+     */
     bool is_dead_end_learning_enabled() const
     {
         return dead_end_listener_ != nullptr;
     }
 
+    /**
+     * @brief Computes the value update for a state and outputs the new greedy 
+     * action, transition, and whether the policy and value changed.
+     * 
+     * @param[in] s - The state for the value update
+     * @param[out] policy_action - Return address for the new greedy action.
+     * @param[out] policy_transition - Return address for the new greedy 
+     * transition.
+     * @param[out] policy_changed - Return address for the policy change flag.
+     * 
+     * @return true - If the value changed.
+     * @return false - Otherwise.
+     */
     bool async_update(
         const StateID& s,
         ActionID* policy_action = nullptr,
@@ -417,6 +540,22 @@ public:
             policy_changed);
     }
 
+    /**
+     * @brief Computes the value update for a state and outputs the new greedy 
+     * action, transition, and whether the policy and value changed, where ties 
+     * between optimal actions are broken by the supplied policy tiebreaker.
+     * 
+     * @param[in] s - The state for the value update
+     * @param[out] policy_tiebreaker - A pointer to a function object breaking
+     * ties between optimal actions.
+     * @param[out] policy_action - Return address for the new greedy action.
+     * @param[out] policy_transition - Return address for the new greedy 
+     * transition.
+     * @param[out] policy_changed - Return address for the policy change flag.
+     * 
+     * @return true - If the value changed.
+     * @return false - Otherwise.
+     */
     template<typename T>
     bool async_update(
         const StateID& s,
@@ -668,6 +807,9 @@ protected:
     }
 #endif
 
+    /**
+     * @brief Initializes the progress report with the given initial state.
+     */
     void initialize_report(const State& state)
     {
         initial_state_id_ = this->get_state_id(state);
@@ -688,10 +830,19 @@ protected:
         setup_custom_reports(state);
     }
 
+    /**
+     * @brief Advances the progress report.
+     */
     void report(const StateID) { this->report_->operator()(); }
 
+    /**
+     * @brief Sets up internal custom reports of a state in an implementation.
+     */
     virtual void setup_custom_reports(const State&) { }
 
+    /**
+     * @brief Get the state info storage.
+     */
     storage::PerStateStorage<StateInfo>& get_state_info_store()
     {
         return state_infos_;
@@ -711,6 +862,16 @@ protected:
         }
     }
 
+    /**
+     * @brief Dumps the search space as a graph.
+     * 
+     * State names are printed as specified by operator()(const State&) of the
+     * provided state-to-string function object.
+     * 
+     * @tparam StateToString - Type of the state-to-string function object.
+     * @param file_name - The output file name.
+     * @param sstr - A pointer to the state-to-string function object. 
+     */
     template<typename StateToString>
     void dump_search_space(const std::string& file_name, StateToString* sstr)
     {
@@ -766,6 +927,11 @@ protected:
         out.close();
     }
 
+    /**
+     * @brief Dumps the search space as a graph, without state names.
+     * 
+     * @param file_name - The output file name.
+     */
     void dump_search_space(const std::string& file_name)
     {
         struct StateToString {

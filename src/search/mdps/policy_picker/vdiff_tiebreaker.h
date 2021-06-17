@@ -9,6 +9,8 @@ class OptionParser;
 } // namespace options
 
 namespace probabilistic {
+
+/// Namespace dedicated to policy tiebreaker implementations.
 namespace policy_tiebreaking {
 
 class VDiffTiebreaker : public ProbabilisticOperatorPolicyPicker {

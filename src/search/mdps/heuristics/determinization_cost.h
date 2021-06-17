@@ -13,11 +13,30 @@ class OptionParser;
 
 namespace probabilistic {
 
+/**
+ * @brief Uses a classical heuristic on the all-outcomes-determinization to
+ * estimate the expected costs to reach the goal.
+ * 
+ * @note If the underlying classical heuristic is admissible/consistent, this 
+ * heuristic is also admissible/heuristic.
+ */
 class DeterminizationCostHeuristic : public GlobalStateEvaluator {
     std::shared_ptr<Heuristic> heuristic_;
 
 public:
+    /**
+     * @brief Construct from options.
+     * 
+     * @param opts - Only one option is available:
+     * + heuristic - Specifies the underlying classical heuristic.
+     */
     explicit DeterminizationCostHeuristic(const options::Options& opts);
+
+    /**
+     * @brief Construct from classical heuristic.
+     * 
+     * @param heuristic - The classical heuristic.
+     */
     explicit DeterminizationCostHeuristic(std::shared_ptr<Heuristic> heuristic);
 
     ~DeterminizationCostHeuristic() override;

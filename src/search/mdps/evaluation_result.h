@@ -4,6 +4,10 @@
 
 namespace probabilistic {
 
+/**
+ * @brief Holds a state value and a flag indicating whether the state is
+ * terminal. 
+ */
 class EvaluationResult {
 public:
     EvaluationResult(bool x, value_type::value_t val);
@@ -13,7 +17,10 @@ public:
     value_type::value_t operator*(const value_type::value_t& val) const;
     value_type::value_t operator/(const value_type::value_t& val) const;
 
+    /// Converts to a bool indicating whether the state is terminal.
     explicit operator bool() const;
+
+    /// Converts to a value_t representing the state value.
     explicit operator value_type::value_t() const;
 
 private:

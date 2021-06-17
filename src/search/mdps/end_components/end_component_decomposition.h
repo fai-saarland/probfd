@@ -19,8 +19,14 @@
 #include <vector>
 
 namespace probabilistic {
+
+/// Namespace dedicated to end component decomposition.
 namespace end_components {
 
+/**
+ * @brief Contains printable statistics for the end component decomposition.
+ * 
+ */
 struct Statistics {
     void print(std::ostream& out) const
     {
@@ -240,6 +246,38 @@ using Stack1 = std::vector<StackInfo1>;
 
 } // namespace internal
 
+/**
+ * @brief A builder class that implements end component decomposition.
+ * 
+ * An end component is a non-empty subgraph of an MDP which:
+ * - is strongly connected
+ * - has at least one enabled action for every state
+ * - is closed under probabilistic branching
+ * 
+ * A maximal end component (MEC) is an end component that is maximal with
+ * respect to set inclusion.
+ * 
+ * In reachability analysis (i.e. MaxProb) the MEC decomposition builds the 
+ * maximal end components of the underlying MDP and constructs a quotient 
+ * by considering each MEC as a single state. All states of an MEC have the
+ * same optimal state value, hence this transformation is sound with respect to
+ * MaxProb.
+ * 
+ * In MaxProb, the optimal value function is the least fixed point of the
+ * Bellman operator, but not necessarily unique. Hence value iteration
+ * algorithms must start from a lower bound to achieve convergence. In the MEC
+ * decomposition the fixed point is unique, thus value iteration algorithms may
+ * start from any initial value function when MEC decompostion is run as a
+ * preprocessing step.
+ * 
+ * @see IntervalIteration
+ * 
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
+ * @tparam ExpandGoalStates - Whether or not goal states should be treated as 
+ * terminal. If false, only states reachable before a goal state are 
+ * considered. If true, all reachable states are considered.
+ */
 template<typename State, typename Action, bool ExpandGoalStates = false>
 class EndComponentDecomposition {
 public:

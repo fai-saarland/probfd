@@ -7,6 +7,11 @@
 
 namespace probabilistic {
 
+/**
+ * @brief The specialiation of ActionIDMap for ProbabilisticOperator.
+ * 
+ * @see ActionIDMap
+ */
 template<>
 class ActionIDMap<const ProbabilisticOperator*> {
 public:

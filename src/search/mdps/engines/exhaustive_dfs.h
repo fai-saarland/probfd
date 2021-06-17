@@ -20,6 +20,8 @@
 
 namespace probabilistic {
 namespace engines {
+
+/// I do not know this algorithm.
 namespace exhaustive_dfs {
 
 class Statistics {
