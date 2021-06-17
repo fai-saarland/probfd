@@ -17,7 +17,10 @@ namespace probabilistic {
 namespace solvers {
 
 MDPSolver::MDPSolver(const options::Options& opts)
-    : progress_(opts.get<double>("report_epsilon"))
+    : progress_(
+          opts.get<double>("report_epsilon"),
+          std::cout,
+          opts.get<bool>("report_enabled"))
     , state_registry_(
           g_state_packer,
           ::g_axiom_evaluator,
@@ -89,6 +92,7 @@ MDPSolver::add_options_to_parser(options::OptionParser& parser)
     parser.add_list_option<std::shared_ptr<Heuristic>>(
         "path_dependent_heuristics", "", "[]");
     parser.add_option<double>("report_epsilon", "", "1e-4");
+    parser.add_option<bool>("report_enabled", "", "true");
 }
 
 } // namespace solvers
