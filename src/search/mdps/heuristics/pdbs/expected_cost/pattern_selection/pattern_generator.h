@@ -2,6 +2,7 @@
 
 #include "pattern_collection_information.h"
 #include "../../types.h"
+#include "../../../../printable.h"
 
 #include "../../../../../operator_cost.h"
 
@@ -16,6 +17,8 @@ public:
     virtual ~PatternCollectionGenerator() = default;
 
     virtual PatternCollectionInformation generate(OperatorCost cost_type) = 0;
+
+    virtual std::shared_ptr<Printable> get_report() const { return nullptr; };
 };
 
 }

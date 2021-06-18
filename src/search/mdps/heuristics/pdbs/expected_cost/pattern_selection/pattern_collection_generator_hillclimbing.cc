@@ -110,6 +110,16 @@ static std::vector<std::vector<int>> compute_relevant_neighbours() {
     return connected_vars_by_variable;
 }
 
+void PatternCollectionGeneratorHillclimbing::Statistics::
+print(std::ostream& out) const {
+    out << "\nExpected Cost Hill Climbing Generator Statistics:"
+        << "\n  Iterations: " << num_iterations
+        << "\n  Generated patterns: " << generated_patterns
+        << "\n  Rejected patterns: " << rejected_patterns
+        << "\n  Maximum candidate PDB size: " << max_pdb_size
+        << "\n  Time: " << hillclimbing_time
+        << std::endl;
+}
 
 PatternCollectionGeneratorHillclimbing::
 PatternCollectionGeneratorHillclimbing(const Options &opts)
@@ -432,14 +442,15 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
         }
     }
 
+    statistics_.reset(new Statistics(
+        num_iterations,
+        generated_patterns.size(),
+        num_rejected,
+        max_pdb_size,
+        hill_climbing_timer->get_elapsed_time()));
+
     if (verbosity >= Verbosity::SILENT) {
-        std::cout
-            << "Hill climbing iterations: " << num_iterations
-            << "\nHill climbing generated patterns: " << generated_patterns.size()
-            << "\nHill climbing rejected patterns: " << num_rejected
-            << "\nHill climbing maximum PDB size: " << max_pdb_size
-            << "\nHill climbing time: " << hill_climbing_timer->get_elapsed_time()
-            << std::endl;
+        statistics_->print(std::cout);
     }
 
     hill_climbing_timer = nullptr;
@@ -487,6 +498,11 @@ PatternCollectionGeneratorHillclimbing::generate(OperatorCost cost_type)
         current_pdbs->get_pattern_collection_information();
     
     return pci;
+}
+
+std::shared_ptr<Printable>
+PatternCollectionGeneratorHillclimbing::get_report() const {
+    return statistics_;
 }
 
 void add_hillclimbing_options(OptionParser &parser) {

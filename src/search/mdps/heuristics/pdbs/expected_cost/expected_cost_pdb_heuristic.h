@@ -2,10 +2,13 @@
 
 #include "../../../evaluation_result.h"
 #include "../../../state_evaluator.h"
+#include "../../../printable.h"
 #include "../abstract_state.h"
 #include "../types.h"
 #include "expcost_projection.h"
 #include "additive_ecpdbs.h"
+
+#include "pattern_selection/pattern_generator.h"
 
 #include <memory>
 #include <vector>
@@ -41,11 +44,18 @@ class ExpectedCostPDBHeuristic : public GlobalStateEvaluator {
     };
 
     Statistics statistics_;
+    std::shared_ptr<Printable> generator_report;
 
     AdditiveExpectedCostPDBs additive_ecpds;
 
 public:
     explicit ExpectedCostPDBHeuristic(const options::Options& opts);
+
+    ExpectedCostPDBHeuristic(
+        std::shared_ptr<
+            pattern_selection::PatternCollectionGenerator> generator,
+        double max_time_dominance_pruning);
+
     static void add_options_to_parser(options::OptionParser& parser);
 
     void print_statistics() const override;
@@ -55,7 +65,10 @@ protected:
 
 private:
     AdditiveExpectedCostPDBs
-    get_additive_ecpdbs_from_options(const options::Options &opts);
+    get_additive_ecpdbs_from_options(
+        std::shared_ptr<
+            pattern_selection::PatternCollectionGenerator> generator,
+        double max_time_dominance_pruning);
 };
 
 } // namespace pdbs

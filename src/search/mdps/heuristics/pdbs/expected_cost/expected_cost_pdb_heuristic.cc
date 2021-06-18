@@ -3,7 +3,6 @@
 #include "additive_ecpdbs.h"
 
 #include "pattern_selection/pattern_collection_information.h"
-#include "pattern_selection/pattern_generator.h"
 
 #include "../maxprob/orthogonality.h"
 #include "../utils.h"
@@ -42,34 +41,17 @@ print(std::ostream& out) const {
 
 AdditiveExpectedCostPDBs
 ExpectedCostPDBHeuristic::
-get_additive_ecpdbs_from_options(const Options &opts) {
+get_additive_ecpdbs_from_options(
+    std::shared_ptr<PatternCollectionGenerator> generator,
+    double max_time_dominance_pruning)
+{
     utils::Timer construction_timer;
 
-    std::shared_ptr pattern_generator =
-        opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns");
-
-    PatternCollectionInformation pattern_collection_info =
-        pattern_generator->generate(NORMAL);
-
+    auto pattern_collection_info = generator->generate(NORMAL);
     std::shared_ptr patterns = pattern_collection_info.get_patterns();
-    /*
-      We compute PDBs and pattern cliques here (if they have not been
-      computed before) so that their computation is not taken into account
-      for dominance pruning time.
-    */
+    
     std::shared_ptr pdbs = pattern_collection_info.get_pdbs();
-    std::shared_ptr pattern_cliques =
-        pattern_collection_info.get_pattern_cliques();
-
-    statistics_.num_patterns = pdbs->size();
-    statistics_.num_additive_subcollections = pattern_cliques->size();
-
-    auto add = [](size_t a, auto b) { return a + b->num_states(); };
-    statistics_.total_states =
-        std::accumulate(pdbs->begin(), pdbs->end(), 0, add);
-
-    double max_time_dominance_pruning =
-        opts.get<double>("max_time_dominance_pruning");
+    std::shared_ptr cliques = pattern_collection_info.get_pattern_cliques();
 
     if (max_time_dominance_pruning > 0.0) {
         utils::Timer timer;
@@ -87,20 +69,40 @@ get_additive_ecpdbs_from_options(const Options &opts) {
         ::pdbs::prune_dominated_cliques(
             *patterns,
             *pdbs,
-            *pattern_cliques,
+            *cliques,
             num_variables,
             max_time_dominance_pruning);
 
         statistics_.dominance_pruning_time = timer();
     }
 
+    statistics_.num_patterns = pdbs->size();
+    statistics_.num_additive_subcollections = cliques->size();
+
+    auto add = [](size_t a, auto b) { return a + b->num_states(); };
+    statistics_.total_states =
+        std::accumulate(pdbs->begin(), pdbs->end(), 0, add);
     statistics_.construction_time = construction_timer();
 
-    return AdditiveExpectedCostPDBs(pdbs, pattern_cliques);
+    generator_report = generator->get_report();
+
+    return AdditiveExpectedCostPDBs(pdbs, cliques);
 }
 
 ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(const options::Options& opts)
-    : additive_ecpds(get_additive_ecpdbs_from_options(opts))
+    : ExpectedCostPDBHeuristic(
+        opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
+        opts.get<double>("max_time_dominance_pruning"))
+{
+}
+
+ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
+    std::shared_ptr<PatternCollectionGenerator> generator,
+    double max_time_dominance_pruning)
+    : additive_ecpds(
+        get_additive_ecpdbs_from_options(
+            generator,
+            max_time_dominance_pruning))
 {
 }
 
@@ -120,6 +122,10 @@ ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
 
 void ExpectedCostPDBHeuristic::print_statistics() const {
     statistics_.print(logging::out);
+
+    if (generator_report) {
+        generator_report->print(logging::out);
+    }
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(
