@@ -30,8 +30,21 @@ namespace pdbs {
 
 using namespace pattern_selection;
 
-static AdditiveExpectedCostPDBs
+void ExpectedCostPDBHeuristic::Statistics::
+print(std::ostream& out) const {
+    out << "\nExpected-Cost Pattern Databases Statistics:\n"
+        << "  Number of PDBs: " << num_patterns << "\n"
+        << "  Total number of abstract states: " << total_states << "\n"
+        << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
+        << "  Total construction time: " << construction_time << "s"
+        << std::endl;
+}
+
+AdditiveExpectedCostPDBs
+ExpectedCostPDBHeuristic::
 get_additive_ecpdbs_from_options(const Options &opts) {
+    utils::Timer construction_timer;
+
     std::shared_ptr pattern_generator =
         opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns");
 
@@ -48,10 +61,19 @@ get_additive_ecpdbs_from_options(const Options &opts) {
     std::shared_ptr pattern_cliques =
         pattern_collection_info.get_pattern_cliques();
 
+    statistics_.num_patterns = pdbs->size();
+    statistics_.num_additive_subcollections = pattern_cliques->size();
+
+    auto add = [](size_t a, auto b) { return a + b->num_states(); };
+    statistics_.total_states =
+        std::accumulate(pdbs->begin(), pdbs->end(), 0, add);
+
     double max_time_dominance_pruning =
         opts.get<double>("max_time_dominance_pruning");
 
     if (max_time_dominance_pruning > 0.0) {
+        utils::Timer timer;
+
         int num_variables = g_variable_domain.size();
         /*
           NOTE: Dominance pruning could also be computed without having access
@@ -68,7 +90,11 @@ get_additive_ecpdbs_from_options(const Options &opts) {
             *pattern_cliques,
             num_variables,
             max_time_dominance_pruning);
+
+        statistics_.dominance_pruning_time = timer();
     }
+
+    statistics_.construction_time = construction_timer();
 
     return AdditiveExpectedCostPDBs(pdbs, pattern_cliques);
 }
@@ -84,10 +110,6 @@ ExpectedCostPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
     parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "patterns", "", "systematic_ec(pattern_max_size=2)");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
-    //parser.add_option<double>("time_limit", "", "0");
-    //parser.add_option<int>("max_states", "", "-1");
-    //parser.add_option<bool>("dump_projections", "", "false");
-    //parser.add_option<bool>("additive", "", "false");
 }
 
 EvaluationResult
@@ -97,39 +119,7 @@ ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
 }
 
 void ExpectedCostPDBHeuristic::print_statistics() const {
-#if 0
-    auto& out = logging::out;
-
-    // Set fp output precision to 5 digits
-    out << std::setprecision(4);
-
-    out << "\nExpected-Cost Pattern Databases Statistics:" << std::endl;
-
-    dump_init_statistics(out);
-
-    out << "  Estimate calls: " << statistics_.num_estimates << std::endl;
-    out << "  Average estimate: " << statistics_.average_estimate << std::endl;
-    out << "  Lowest estimate: " << statistics_.lowest_estimate << std::endl;
-    out << "  Highest estimate: " << statistics_.highest_estimate << std::endl;
-
-    out << "  Pattern construction time: "
-        << statistics_.pattern_construction_time << "s" << std::endl;
-    out << "  Database construction time: "
-        << statistics_.database_construction_time << "s" << std::endl;
-    out << "  Clique construction time: "
-        << statistics_.clique_computation_time << "s" << std::endl;
-    out << "  Dominance pruning time: "
-        << statistics_.dominance_pruning_time << "s" << std::endl;
-    out << "  Total construction time: "
-        << statistics_.construction_time << "s" << std::endl;
-
-#ifdef ECPDB_MEASURE_EVALUATE
-    out << "  Estimate time: " << statistics_.evaluate_time << "s" << std::endl;
-#endif
-
-    // Undo for later statistics
-    out << std::setprecision(std::numeric_limits<double>::digits10 + 1);
-#endif
+    statistics_.print(logging::out);
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(
