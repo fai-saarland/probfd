@@ -28,6 +28,7 @@ StateIDMap<pdbs::AbstractState>::seen_end() const {
 StateID
 StateIDMap<pdbs::AbstractState>::get_state_id(const pdbs::AbstractState& state)
 {
+    seen.insert(state.id);
     return StateID(state.id);
 }
 

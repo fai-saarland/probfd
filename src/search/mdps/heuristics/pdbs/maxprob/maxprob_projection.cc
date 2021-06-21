@@ -215,7 +215,7 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     n_reachable_states = state_id_map.size();
 
     for (auto it = state_id_map.seen_begin();
-         it != state_id_map.seen_begin();
+         it != state_id_map.seen_end();
          ++it)
     {
         const AbstractState s(*it);
