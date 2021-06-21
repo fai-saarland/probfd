@@ -593,7 +593,7 @@ private:
                     state_info.status == StateInfo::TERMINAL);
 
                 if (!ExpandGoalStates || state_info.status == StateInfo::ONSTACK) {
-                    value_utils::set_max(*stack_info.value, stack_info.b);
+                    value_utils::update(*stack_info.value, stack_info.b);
                 }
 
                 state_info.status = StateInfo::CLOSED;
@@ -613,7 +613,7 @@ private:
                             --scc_size;
                             stack_.erase(stack_.begin() + i);
                         } else if (scc_stack_info.infos.empty()) {
-                            value_utils::set_max(*scc_stack_info.value, scc_stack_info.b);
+                            value_utils::update(*scc_stack_info.value, scc_stack_info.b);
                             --scc_size;
                             stack_.erase(stack_.begin() + i);
                         }
