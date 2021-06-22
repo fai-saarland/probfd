@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../probabilistic_projection.h"
+#include "../../../value_utils.h"
 
 namespace successor_generator {
 template<typename T>
@@ -20,7 +21,7 @@ class MaxProbProjection : public ProbabilisticProjection {
     bool all_one = false;
     bool deterministic = false;
 
-    QuantitativeResultStore value_table;
+    std::vector<value_utils::IntervalValue> value_table;
     QualitativeResultStore one_states;
     QualitativeResultStore dead_ends;
 

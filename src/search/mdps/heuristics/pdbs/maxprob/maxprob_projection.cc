@@ -24,6 +24,7 @@ MaxProbProjection(
     const std::vector<int>& domains,
     bool precompute_dead_ends)
     : ProbabilisticProjection(pattern, domains)
+    , value_table(state_mapper_->size())
 {
     if (precompute_dead_ends) {
         this->precompute_dead_ends();
@@ -186,13 +187,12 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
            heuristic.get(),
            true);
 
-    engines::interval_iteration::ValueStore values;
     // states that cannot reach goal
     engines::interval_iteration::BoolStore deads(false);
     // states that can reach goal with absolute certainty
     engines::interval_iteration::BoolStore ones(false);
 
-    vi.solve(initial_state_, &values, &deads, &ones);
+    vi.solve(initial_state_, value_table, deads, ones);
 
 #if !defined(NDEBUG)
     {
@@ -202,12 +202,11 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
             logging::out << (i > 0 ? ", " : "")
                          << state_mapper_->get_pattern()[i];
         }
-        logging::out << "]: lb="
-                     << lower_bound(values[state_id])
-                     << ", ub="
-                     << upper_bound(values[state_id])
-                     << ", error="
-                     << (upper_bound(values[state_id]) - lower_bound(values[state_id]))
+
+        const auto value = value_table[state_id];
+
+        logging::out << "]: lb=" << value.lower << ", ub=" << value.upper
+                     << ", error=" << value.error_bound()
                      << std::endl;
     }
 #endif
@@ -227,8 +226,6 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
         } else if (ones[s.id]) {
             ++n_one_states;
             one_states.set(s, true);
-        } else {
-            value_table.set(s, upper_bound(values[s.id]));
         }
     }
 
@@ -236,6 +233,7 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     deterministic = num_one_states() + num_dead_ends() == num_reachable_states();
 
     if (is_all_one() || is_deterministic()) {
+        value_table.clear();
         one_states.clear();
     }
 }
@@ -285,7 +283,7 @@ MaxProbProjection::lookup(AbstractState s) const {
     assert(!is_dead_end(s));
     return all_one || deterministic || one_states.get(s) ?
         value_type::one :
-        value_table.get(s);
+        value_table[s.id].upper;
 }
 
 value_type::value_t
@@ -298,7 +296,7 @@ struct StateToString {
     explicit StateToString(
         bool all_one,
         bool deterministic,
-        const QuantitativeResultStore* value_table,
+        const std::vector<value_utils::IntervalValue>* value_table,
         const QualitativeResultStore* one_states,
         const QualitativeResultStore* dead_ends,
         value_type::value_t v0,
@@ -324,7 +322,7 @@ struct StateToString {
         } else if (all_one || deterministic || one_states->get(x)) {
             out << "one:" << v1;
         } else {
-            out << value_table->get(x);
+            out << value_table->operator[](x.id).upper;
         }
         out << "}";
         return out.str();
@@ -332,7 +330,7 @@ struct StateToString {
 
     bool all_one;
     bool deterministic;
-    const QuantitativeResultStore* value_table;
+    const std::vector<value_utils::IntervalValue>* value_table;
     const QualitativeResultStore* one_states;
     const QualitativeResultStore* dead_ends;
     value_type::value_t v0;

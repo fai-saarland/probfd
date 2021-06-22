@@ -14,58 +14,6 @@ namespace interval_iteration {
 using ValueStore = topological_vi::ValueStore<std::true_type>;
 using BoolStore = storage::PerStateStorage<bool>;
 
-template<typename T>
-unsigned
-copy_lower_bounds(
-    T& target,
-    ValueStore* vs,
-    BoolStore* filter0,
-    BoolStore* filter1)
-{
-    unsigned res = 0;
-    for (unsigned i = 0; i < vs->size(); ++i) {
-        const StateID stateid(i);
-        if (!filter0->operator[](stateid)
-            && (filter1 == nullptr || !filter1->operator[](stateid))) {
-            target[stateid] = vs->operator[](stateid).lower;
-            ++res;
-        }
-    }
-    return res;
-}
-
-template<typename T>
-unsigned
-copy_upper_bounds(
-    T& target,
-    ValueStore* vs,
-    BoolStore* filter0,
-    BoolStore* filter1)
-{
-    unsigned res = 0;
-    for (unsigned i = 0; i < vs->size(); ++i) {
-        const StateID stateid(i);
-        if (!filter0->operator[](stateid)
-            && (filter1 == nullptr || !filter1->operator[](stateid))) {
-            target[stateid] = vs->operator[](stateid).upper;
-            ++res;
-        }
-    }
-    return res;
-}
-
-inline value_type::value_t
-upper_bound(const ValueStore::reference b)
-{
-    return b.upper;
-}
-
-inline value_type::value_t
-lower_bound(const ValueStore::reference b)
-{
-    return b.lower;
-}
-
 template<typename State, typename Action, bool ExpandGoalStates = false>
 class IntervalIteration : public MDPEngine<State, Action> {
 public:
@@ -73,7 +21,6 @@ public:
         EndComponentDecomposition<State, Action, ExpandGoalStates>;
     using QuotientSystem = typename Decomposer::QuotientSystem;
     using QAction = typename QuotientSystem::QAction;
-    using ValueStore = interval_iteration::ValueStore;
     using BoolStore = interval_iteration::BoolStore;
 
     using ValueIteration = topological_vi::TopologicalValueIteration<
@@ -116,14 +63,14 @@ public:
         BoolStore dead(false);
         BoolStore one(false);
         QuotientSystem* sys;
-        this->mysolve(state, &value_store_, &dead, &one, sys);
+        this->mysolve(state, value_store_, dead, one, sys);
         delete (sys);
     }
 
     virtual value_type::value_t get_result(const State& s) override
     {
         const StateID state_id = this->get_state_id(s);
-        return upper_bound(value_store_[state_id]);
+        return value_utils::as_upper_bound(value_store_[state_id]);
     }
 
     virtual bool supports_error_bound() const override { return true; }
@@ -131,8 +78,7 @@ public:
     virtual value_type::value_t get_error(const State& s) override
     {
         const StateID state_id = this->get_state_id(s);
-        auto& val = value_store_[state_id];
-        return upper_bound(val) - lower_bound(val);
+        return value_store_[state_id].error_bound();
     }
 
     virtual void print_statistics(std::ostream& out) const override
@@ -141,32 +87,27 @@ public:
         ecd_statistics_.print(out);
     }
 
+    template <typename ValueStore>
     value_type::value_t solve(
         const State& state,
-        ValueStore* value_store,
-        BoolStore* dead_ends,
-        BoolStore* one_states)
+        ValueStore& value_store,
+        BoolStore& dead_ends,
+        BoolStore& one_states)
     {
         QuotientSystem* sys;
         value_type::value_t x =
             this->mysolve(state, value_store, dead_ends, one_states, sys);
-        for (auto qit = sys->begin(); qit != sys->end(); ++qit) {
-            StateID repr_id = *qit;
-            auto states_iterators = sys->quotient_iterator(repr_id);
-            auto& sit = states_iterators.first;
-            const auto& send = states_iterators.second;
+        for (StateID repr_id : *sys) {
+            auto [sit, send] = sys->quotient_iterator(repr_id);
             const StateID repr = *sit;
-            ++sit;
-            const auto value = value_store->operator[](repr);
-            const bool dead = dead_ends->operator[](repr);
-            const bool one =
-                (one_states == nullptr ? false : one_states->operator[](repr));
-            for (; sit != send; ++sit) {
-                value_store->operator[](*sit) = value;
-                dead_ends->operator[](*sit) = dead;
-                if (one_states != nullptr) {
-                    one_states->operator[](*sit) = one;
-                }
+
+            const auto value = value_store[repr];
+            const bool dead = dead_ends[repr];
+            const bool one = one_states[repr];
+            for (++sit; sit != send; ++sit) {
+                value_store[*sit] = value;
+                dead_ends[*sit] = dead;
+                one_states[*sit] = one;
             }
         }
         delete (sys);
@@ -205,14 +146,14 @@ private:
         value_type::value_t ub;
     };
 
+    template <typename ValueStore>
     value_type::value_t mysolve(
         const State& state,
-        ValueStore* value_store,
-        BoolStore* dead_ends,
-        BoolStore* one_states,
+        ValueStore& value_store,
+        BoolStore& dead_ends,
+        BoolStore& one_states,
         QuotientSystem*& sys)
     {
-        assert(dead_ends != nullptr);
         Decomposer ec_decomposer(
             prune_,
             this->get_action_id_map(),
@@ -223,10 +164,10 @@ private:
         if (extract_probability_one_states_) {
             sys = ec_decomposer
                       .template build_quotient_system<BoolStore&, BoolStore&>(
-                          state, *dead_ends, *one_states);
+                          state, dead_ends, one_states);
         } else {
             sys = ec_decomposer.template build_quotient_system<BoolStore&>(
-                state, *dead_ends);
+                state, dead_ends);
         }
         ecd_statistics_ = ec_decomposer.get_statistics();
         ApplicableActionsGenerator<QAction> q_aops_gen(sys);
@@ -234,9 +175,7 @@ private:
         quotient_system::DefaultQuotientActionRewardFunction<Action>
             q_action_reward(sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
-        DeadEndPruner prune(this->get_state_id_map(), dead_ends, lb_, ub_);
-
-        assert (!extract_probability_one_states_ || one_states != nullptr);
+        DeadEndPruner prune(this->get_state_id_map(), &dead_ends, lb_, ub_);
 
         ValueIteration vi(
             this->get_state_id_map(),
@@ -248,9 +187,9 @@ private:
             &q_aops_gen,
             &q_transition_gen,
             &prune,
-            extract_probability_one_states_ ? one_states : nullptr);
+            extract_probability_one_states_ ? &one_states : nullptr);
         
-        value_type::value_t result = vi.solve(state, *value_store);
+        value_type::value_t result = vi.solve(state, value_store);
         tvi_statistics_ = vi.get_statistics();
         return result;
     }
