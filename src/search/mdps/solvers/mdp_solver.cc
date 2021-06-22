@@ -6,7 +6,7 @@
 #include "../../option_parser.h"
 #include "../../plugin.h"
 #include "../../utils/timer.h"
-#include "../analysis_objective.h"
+#include "../analysis_objectives/analysis_objective.h"
 #include "../globals.h"
 #include "../logging.h"
 

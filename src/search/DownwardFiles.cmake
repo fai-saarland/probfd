@@ -540,7 +540,7 @@ fast_downward_plugin(
         mdps/evaluation_result
         mdps/globals
         mdps/probabilistic_operator
-        mdps/analysis_objective
+        mdps/analysis_objectives/analysis_objective
         mdps/analysis_objectives/goal_probability_objective
         mdps/analysis_objectives/expected_cost_objective
         mdps/action_id_map

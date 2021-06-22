@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../utils/timer.h"
-#include "../analysis_objective.h"
+#include "../analysis_objectives/analysis_objective.h"
 #include "../bisimulation/bisimilar_state_space.h"
 #include "../bisimulation/engine_interfaces.h"
 #include "../engine_interfaces/open_list.h"

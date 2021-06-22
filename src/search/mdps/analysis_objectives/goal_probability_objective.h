@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../analysis_objective.h"
+#include "analysis_objective.h"
 
 #include <memory>
 

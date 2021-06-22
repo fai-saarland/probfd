@@ -6,7 +6,7 @@
 #include "../../plugin.h"
 #include "../../state_registry.h"
 #include "../../utils/hash.h"
-#include "../analysis_objective.h"
+#include "../analysis_objectives/analysis_objective.h"
 #include "../globals.h"
 #include "../logging.h"
 

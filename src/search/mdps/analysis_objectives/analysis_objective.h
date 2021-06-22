@@ -1,8 +1,8 @@
 #pragma once
 
-#include "action_evaluator.h"
-#include "state_reward_function.h"
-#include "value_type.h"
+#include "../action_evaluator.h"
+#include "../state_reward_function.h"
+#include "../value_type.h"
 
 #include <memory>
 

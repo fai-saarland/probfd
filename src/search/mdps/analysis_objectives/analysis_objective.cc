@@ -1,6 +1,6 @@
 #include "analysis_objective.h"
 
-#include "../plugin.h"
+#include "../../plugin.h"
 
 namespace probabilistic {
 

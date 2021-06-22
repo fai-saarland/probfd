@@ -3,7 +3,7 @@
 #include "../../solver_interface.h"
 #include "../../state_registry.h"
 #include "../../utils/timer.h"
-#include "../analysis_objective.h"
+#include "../analysis_objectives/analysis_objective.h"
 #include "../bisimulation/bisimilar_state_space.h"
 #include "../bisimulation/engine_interfaces.h"
 #include "../engines/interval_iteration.h"

@@ -6,7 +6,7 @@
 #include "../successor_generator.h"
 #include "../utils/hash.h"
 #include "../utils/timer.h"
-#include "analysis_objective.h"
+#include "analysis_objectives/analysis_objective.h"
 
 #include <algorithm>
 #include <cassert>

@@ -2,7 +2,6 @@
 
 #include "../../../global_operator.h"
 #include "../../../successor_generator.h"
-#include "../../analysis_objective.h"
 #include "../../analysis_objectives/goal_probability_objective.h"
 #include "../../globals.h"
 

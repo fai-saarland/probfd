@@ -7,7 +7,7 @@
 #include "../../../../pdbs/pattern_generator.h"
 #include "../../../../plugin.h"
 #include "../../../../utils/countdown_timer.h"
-#include "../../../analysis_objective.h"
+#include "../../../analysis_objectives/analysis_objective.h"
 #include "../../../globals.h"
 #include "../../../logging.h"
 #include "../../../../algorithms/max_cliques.h"

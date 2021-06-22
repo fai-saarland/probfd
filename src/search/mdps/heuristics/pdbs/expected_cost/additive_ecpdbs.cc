@@ -4,7 +4,7 @@
 #include "../abstract_state.h"
 
 #include "../../../globals.h"
-#include "../../../analysis_objective.h"
+#include "../../../analysis_objectives/analysis_objective.h"
 
 namespace probabilistic {
 namespace pdbs {

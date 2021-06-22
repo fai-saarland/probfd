@@ -5,7 +5,7 @@
 #include "mdp_solver.h"
 
 #include "../globals.h"
-#include "../analysis_objective.h"
+#include "../analysis_objectives/analysis_objective.h"
 
 namespace probabilistic {
 namespace solvers {

@@ -13,7 +13,6 @@
 #include "../../../../pdbs/dominance_pruning.h"
 #include "../../../../plugin.h"
 #include "../../../../utils/countdown_timer.h"
-#include "../../../analysis_objective.h"
 #include "../../../globals.h"
 #include "../../../logging.h"
 #include "../../../analysis_objectives/expected_cost_objective.h"
