@@ -21,14 +21,14 @@ public:
         EndComponentDecomposition<State, Action, ExpandGoalStates>;
     using QuotientSystem = typename Decomposer::QuotientSystem;
     using QAction = typename QuotientSystem::QAction;
-    using BoolStore = interval_iteration::BoolStore;
 
+    template <typename BoolStoreT>
     using ValueIteration = topological_vi::TopologicalValueIteration<
         State,
         QAction,
         ExpandGoalStates,
         std::true_type,
-        BoolStore>;
+        BoolStoreT>;
 
     explicit IntervalIteration(
         StateIDMap<State>* state_id_map,
@@ -87,12 +87,12 @@ public:
         ecd_statistics_.print(out);
     }
 
-    template <typename ValueStore>
+    template <typename ValueStoreT, typename BoolStoreT>
     value_type::value_t solve(
         const State& state,
-        ValueStore& value_store,
-        BoolStore& dead_ends,
-        BoolStore& one_states)
+        ValueStoreT& value_store,
+        BoolStoreT& dead_ends,
+        BoolStoreT& one_states)
     {
         QuotientSystem* sys;
         value_type::value_t x =
@@ -115,10 +115,11 @@ public:
     }
 
 private:
+    template <typename BoolStoreT>
     struct DeadEndPruner : public StateEvaluator<State> {
         DeadEndPruner(
             StateIDMap<State>* state_id_map,
-            BoolStore* dead_ends,
+            BoolStoreT& dead_ends,
             value_type::value_t lb,
             value_type::value_t ub)
            : state_id_map_(state_id_map)
@@ -130,28 +131,27 @@ private:
 
         EvaluationResult evaluate(const State& s) override
         {
-            if (dead_ends_) {
-                const StateID id = state_id_map_->get_state_id(s);
-                if (dead_ends_->operator[](id)) {
-                    return EvaluationResult(true, lb);
-                }
+            const StateID id = state_id_map_->get_state_id(s);
+
+            if (dead_ends_[id]) {
+                return EvaluationResult(true, lb);
             }
 
             return EvaluationResult(false, ub);
         }
 
         StateIDMap<State>* state_id_map_;
-        BoolStore* dead_ends_;
+        BoolStoreT& dead_ends_;
         value_type::value_t lb;
         value_type::value_t ub;
     };
 
-    template <typename ValueStore>
+    template <typename ValueStoreT, typename BoolStoreT>
     value_type::value_t mysolve(
         const State& state,
-        ValueStore& value_store,
-        BoolStore& dead_ends,
-        BoolStore& one_states,
+        ValueStoreT& value_store,
+        BoolStoreT& dead_ends,
+        BoolStoreT& one_states,
         QuotientSystem*& sys)
     {
         Decomposer ec_decomposer(
@@ -163,10 +163,10 @@ private:
             this->get_transition_generator());
         if (extract_probability_one_states_) {
             sys = ec_decomposer
-                      .template build_quotient_system<BoolStore&, BoolStore&>(
+                      .template build_quotient_system<BoolStoreT&, BoolStoreT&>(
                           state, dead_ends, one_states);
         } else {
-            sys = ec_decomposer.template build_quotient_system<BoolStore&>(
+            sys = ec_decomposer.template build_quotient_system<BoolStoreT&>(
                 state, dead_ends);
         }
         ecd_statistics_ = ec_decomposer.get_statistics();
@@ -175,9 +175,9 @@ private:
         quotient_system::DefaultQuotientActionRewardFunction<Action>
             q_action_reward(sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
-        DeadEndPruner prune(this->get_state_id_map(), &dead_ends, lb_, ub_);
+        DeadEndPruner prune(this->get_state_id_map(), dead_ends, lb_, ub_);
 
-        ValueIteration vi(
+        ValueIteration<BoolStoreT> vi(
             this->get_state_id_map(),
             &q_action_id_map,
             this->get_state_reward_function(),
