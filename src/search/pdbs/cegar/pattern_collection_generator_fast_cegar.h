@@ -3,12 +3,13 @@
 
 #include "../pattern_generator.h"
 
+#include "../utils/logging.h"
+
 namespace options {
 class Options;
 }
 
 namespace pdbs {
-enum class Verbosity;
 
 class PatternCollectionGeneratorFastCegar : public PatternCollectionGenerator {
     const int single_generator_max_refinements;
@@ -20,7 +21,7 @@ class PatternCollectionGeneratorFastCegar : public PatternCollectionGenerator {
     const bool single_generator_local_blacklisting;
     const double single_generator_max_time; // Possibly overwritten by 
                                             // remaining total_time_limit
-    const Verbosity single_generator_verbosity;
+    const utils::Verbosity single_generator_verbosity;
 
     const int initial_random_seed;
     const int total_collection_max_size;

@@ -27,6 +27,8 @@
 #include <iostream>
 #include <limits>
 
+using namespace utils;
+
 namespace probabilistic {
 
 using namespace value_type;
@@ -506,28 +508,7 @@ PatternCollectionGeneratorHillclimbing::get_report() const {
 }
 
 void add_hillclimbing_options(OptionParser &parser) {
-    std::vector<std::string> verbosity_levels;
-    std::vector<std::string> verbosity_level_docs;
-    verbosity_levels.push_back("none");
-    verbosity_level_docs.push_back("none: no output at all");
-    verbosity_levels.push_back("silent");
-    verbosity_level_docs.push_back(
-        "silent: no output during construction, only starting and final "
-        "statistics");
-    verbosity_levels.push_back("normal");
-    verbosity_level_docs.push_back(
-        "normal: basic output during construction, starting and final "
-        "statistics");
-    verbosity_levels.push_back("verbose");
-    verbosity_level_docs.push_back(
-        "verbose: full output during construction, starting and final "
-        "statistics");
-    parser.add_enum_option(
-        "verbosity",
-        verbosity_levels,
-        "Option to specify the level of verbosity.",
-        "verbose",
-        verbosity_level_docs);
+    utils::add_verbosity_option_to_parser(parser);
 
     parser.add_option<int>(
         "pdb_max_size",

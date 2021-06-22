@@ -6,7 +6,6 @@
 #include "../global_state.h"
 
 #include "../utils/hash.h"
-#include "../utils/logging.h"
 #include "../utils/rng.h"
 
 #include <functional>
@@ -14,6 +13,7 @@
 #include <queue>
 
 using namespace std;
+using utils::Verbosity;
 
 namespace pdbs {
 

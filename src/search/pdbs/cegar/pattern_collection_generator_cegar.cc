@@ -18,6 +18,7 @@
 #include "../../utils/system.h"
 
 using namespace std;
+using utils::Verbosity;
 
 namespace pdbs {
 PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
@@ -93,9 +94,6 @@ PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
         cout << token << "Verbosity: ";
 
         switch (verbosity) {
-        case Verbosity::NONE:
-            cout << "none";
-            break;
         case Verbosity::SILENT:
             cout << "silent";
             break;
@@ -104,6 +102,9 @@ PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
             break;
         case Verbosity::VERBOSE:
             cout << "verbose";
+            break;
+        case Verbosity::DEBUG:
+            cout << "debug";
             break;
         }
 

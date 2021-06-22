@@ -30,6 +30,7 @@
 #include <limits>
 
 using namespace std;
+using utils::Verbosity;
 
 namespace pdbs {
 /* Since this exception class is only used for control flow and thus has no need

@@ -20,6 +20,7 @@
 #include <vector>
 
 using namespace std;
+using utils::Verbosity;
 
 namespace pdbs {
 

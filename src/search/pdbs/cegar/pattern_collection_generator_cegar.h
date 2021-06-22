@@ -6,6 +6,7 @@
 #include "../types.h"
 
 #include "../../utils/rng.h"
+#include "../../utils/logging.h"
 #include "../../global_state.h"
 #include "../../options/options.h"
 #include "../../globals.h"
@@ -83,14 +84,6 @@ enum class InitialCollectionType {
     ALL_GOALS
 };
 
-// TODO: copied and adapted from merge_and_shrink namespace
-enum class Verbosity {
-    NONE,
-    SILENT,
-    NORMAL,
-    VERBOSE
-};
-
 class PatternCollectionGeneratorCegar : public PatternCollectionGenerator {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
@@ -105,7 +98,7 @@ class PatternCollectionGeneratorCegar : public PatternCollectionGenerator {
     const int global_blacklist_size;
     const InitialCollectionType initial;
     const int given_goal;
-    Verbosity verbosity;
+    const utils::Verbosity verbosity;
     const double max_time;
 
     const std::string token = "CEGAR_PDBs: ";
@@ -182,7 +175,7 @@ public:
         int arg_global_blacklist_size,
         InitialCollectionType arg_initial,
         int given_goal,
-        Verbosity verbosity,
+        utils::Verbosity verbosity,
         double arg_max_time);
 
     virtual ~PatternCollectionGeneratorCegar();

@@ -4,6 +4,8 @@
 #include "pattern_generator.h"
 #include "types.h"
 
+#include "../utils/logging.h"
+
 #include <cstdlib>
 #include <memory>
 #include <set>
@@ -31,14 +33,7 @@ class PatternDatabase;
 
 // Implementation of the pattern generation algorithm by Haslum et al.
 class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator {
-    enum class Verbosity {
-        NONE,
-        SILENT,
-        NORMAL,
-        VERBOSE
-    };
-
-    Verbosity verbosity;
+    utils::Verbosity verbosity;
 
     // maximum number of states for each pdb
     const int pdb_max_size;

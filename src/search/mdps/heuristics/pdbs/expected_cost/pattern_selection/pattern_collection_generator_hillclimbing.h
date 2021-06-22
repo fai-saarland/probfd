@@ -4,6 +4,7 @@
 #include "incremental_canonical_pdbs.h"
 
 #include "../../types.h"
+#include "../../../../../utils/logging.h"
 
 #include <cstdlib>
 #include <memory>
@@ -36,13 +37,6 @@ namespace pattern_selection {
 class PatternCollectionGeneratorHillclimbing :
     public PatternCollectionGenerator
 {
-    enum class Verbosity {
-        NONE,
-        SILENT,
-        NORMAL,
-        VERBOSE
-    };
-
     struct Statistics : public Printable {
         unsigned long long int num_iterations;
         unsigned long long int generated_patterns;
@@ -67,7 +61,7 @@ class PatternCollectionGeneratorHillclimbing :
         void print(std::ostream& out) const override;
     };
 
-    const Verbosity verbosity;
+    const utils::Verbosity verbosity;
 
     std::shared_ptr<Statistics> statistics_;
 

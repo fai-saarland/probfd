@@ -6,6 +6,8 @@
 #include "tasks/pdb_abstracted_task.h"
 #include "tasks/task_proxy.h"
 
+#include "../utils/logging.h"
+
 #include <set>
 #include <utility>
 #include <ostream>
@@ -41,8 +43,6 @@ struct SearchNode {
         , predecessor(predecessor) {}
 };
 
-enum class Verbosity;
-
 class AbstractSolutionData {
     std::unique_ptr<PatternDatabase> pdb;
     tasks::PDBAbstractedTask abstracted_task;
@@ -63,11 +63,11 @@ class AbstractSolutionData {
     std::vector<AbstractState> steepest_ascent_enforced_hillclimbing(
         const successor_generator::SuccessorGenerator<int> &succ_gen,
         const std::shared_ptr<utils::RandomNumberGenerator> &rng,
-        Verbosity verbosity) const;
+        utils::Verbosity verbosity) const;
     void turn_state_sequence_into_plan(
         const successor_generator::SuccessorGenerator<int> &succ_gen,
         const std::shared_ptr<utils::RandomNumberGenerator> &rng,
-        Verbosity verbosity,
+        utils::Verbosity verbosity,
         const std::vector<AbstractState> &state_sequence);
         
 public:
@@ -77,7 +77,7 @@ public:
         std::set<int> blacklist,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool extended,
-        Verbosity verbosity);
+        utils::Verbosity verbosity);
 
     const Pattern& get_pattern() const;
 
