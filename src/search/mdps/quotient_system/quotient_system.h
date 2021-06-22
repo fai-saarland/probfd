@@ -335,7 +335,7 @@ public:
         std::vector<Action> aops;
 
         // std::cout << "new quotient [";
-        for (auto it = begin; it != end; ++it, ++ignore_actions) {
+        for (auto it = begin; it != end; ++it) {
             const typename StateIDIterator::reference state_id = *it;
             const StateID::size_type qsqid = get_masked_state_id(state_id);
             // std::cout << " " << state_id << std::flush;
@@ -354,14 +354,26 @@ public:
                     midx = states.size() - q.size;
                     aops_start = aops_merged.size();
                 }
-                filter_actions(
-                    q.size,
-                    q.states,
-                    q.naops,
-                    q.aops,
-                    *ignore_actions,
-                    naops,
-                    aops_merged);
+
+                if constexpr (std::is_same_v<IgnoreActionsIterator, const void**>) {
+                    filter_actions(
+                        q.size,
+                        q.states,
+                        q.naops,
+                        q.aops,
+                        naops,
+                        aops_merged);
+                } else {
+                    filter_actions(
+                        q.size,
+                        q.states,
+                        q.naops,
+                        q.aops,
+                        *ignore_actions,
+                        naops,
+                        aops_merged);
+                }
+
                 quotients_.erase(qit);
             } else {
                 states.push_back(state_id);
@@ -371,8 +383,16 @@ public:
                     aops_start = aops_merged.size();
                 }
                 aops_gen_->operator()(state_id, aops);
-                filter_actions(
-                    state_id, aops, *ignore_actions, naops, aops_merged);
+
+                if constexpr (std::is_same_v<IgnoreActionsIterator, const void**>) {
+                    filter_actions(
+                        state_id, aops, naops, aops_merged);
+                } else {
+                    filter_actions(
+                        state_id, aops, *ignore_actions, naops, aops_merged);
+                }
+
+
                 aops.clear();
             }
         }
@@ -465,6 +485,10 @@ public:
             }
         }
 #endif
+
+        if constexpr (!std::is_same_v<IgnoreActionsIterator, const void**>) {
+            ++ignore_actions;
+        }
     }
 
     ActionIDMap<Action>* get_action_id_map() const { return action_id_map_; }
@@ -473,7 +497,6 @@ private:
     inline void filter_actions(
         const StateID& state_id,
         const std::vector<Action>& aops,
-        const void*,
         std::vector<unsigned>& naops,
         std::vector<ActionID>& result) const
     {
@@ -489,7 +512,6 @@ private:
         const StateID*,
         const unsigned* naopsx,
         const ActionID* aops,
-        const void*,
         std::vector<unsigned>& naops,
         std::vector<ActionID>& result) const
     {
