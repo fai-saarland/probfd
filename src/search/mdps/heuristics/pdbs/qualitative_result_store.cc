@@ -14,20 +14,15 @@ QualitativeResultStore::assignable_bool_t::assignable_bool_t(
 }
 
 QualitativeResultStore::assignable_bool_t&
-QualitativeResultStore::assignable_bool_t::operator=(const bool value)
+QualitativeResultStore::assignable_bool_t::operator=(bool value)
 {
     ref_->set(state_, value);
     return *this;
 }
 
-QualitativeResultStore::assignable_bool_t::operator bool()
+QualitativeResultStore::assignable_bool_t::operator bool() const
 {
     return ref_->get(state_);
-}
-
-QualitativeResultStore::QualitativeResultStore()
-    : is_negated_(false)
-{
 }
 
 void
@@ -60,13 +55,19 @@ QualitativeResultStore::set(const AbstractState& s, bool value)
 bool
 QualitativeResultStore::get(const AbstractState& s) const
 {
-    return states_.count(s.id) ? !is_negated_ : is_negated_;
+    return states_.find(s.id) != states_.end() ? !is_negated_ : is_negated_;
 }
 
 QualitativeResultStore::assignable_bool_t
 QualitativeResultStore::operator[](const AbstractState& s)
 {
     return assignable_bool_t(s, this);
+}
+
+bool
+QualitativeResultStore::operator[](const AbstractState& s) const
+{
+    return get(s);
 }
 
 } // namespace pdbs

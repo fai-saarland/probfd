@@ -14,7 +14,7 @@ public:
     struct assignable_bool_t {
     public:
         assignable_bool_t& operator=(const bool value);
-        operator bool();
+        operator bool() const;
 
     private:
         friend class QualitativeResultStore;
@@ -24,23 +24,17 @@ public:
         const AbstractState state_;
         QualitativeResultStore* ref_;
     };
-    QualitativeResultStore();
-    virtual ~QualitativeResultStore() = default;
 
-    QualitativeResultStore(const QualitativeResultStore&) = default;
-    QualitativeResultStore(QualitativeResultStore&&) = default;
-    QualitativeResultStore& operator=(const QualitativeResultStore&) = default;
-    QualitativeResultStore& operator=(QualitativeResultStore&&) = default;
-
-    /*virtual*/ void negate_all();
-    /*virtual*/ void clear();
-    /*virtual*/ void set(const AbstractState& s, bool val);
-    /*virtual*/ bool get(const AbstractState& s) const;
+    void negate_all();
+    void clear();
+    void set(const AbstractState& s, bool val);
+    bool get(const AbstractState& s) const;
 
     assignable_bool_t operator[](const AbstractState& s);
+    bool operator[](const AbstractState& s) const;
 
 private:
-    bool is_negated_;
+    bool is_negated_ = false;
     std::unordered_set<int> states_;
 };
 
