@@ -4,9 +4,7 @@
 #include "../../option_parser.h"
 #include "../../plugin.h"
 
-namespace probabilistic::determinization_heuristic {
-
-
+namespace probabilistic {
 
 DeterminizationCostHeuristic::
 DeterminizationCostHeuristic(const options::Options &opts)

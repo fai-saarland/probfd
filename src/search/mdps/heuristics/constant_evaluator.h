@@ -3,7 +3,6 @@
 #include "../state_evaluator.h"
 
 namespace probabilistic {
-namespace const_value_evaluator {
 
 class ConstantEvaluator : public GlobalStateEvaluator {
 public:
@@ -15,5 +14,4 @@ protected:
     const value_type::value_t value_;
 };
 
-} // namespace const_value_evaluator
 } // namespace probabilistic

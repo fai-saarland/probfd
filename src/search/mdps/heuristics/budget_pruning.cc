@@ -11,7 +11,6 @@
 #include "../logging.h"
 
 namespace probabilistic {
-namespace budget_pruning {
 
 std::size_t
 BudgetPruningHeuristic::Hash::operator()(const StateID& state_id) const
@@ -120,5 +119,4 @@ static Plugin<GlobalStateEvaluator> _plugin(
     "prune_budget",
     options::parse<GlobalStateEvaluator, BudgetPruningHeuristic>);
 
-} // namespace budget_pruning
 } // namespace probabilistic

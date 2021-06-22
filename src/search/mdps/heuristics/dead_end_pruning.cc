@@ -8,7 +8,6 @@
 #include "../globals.h"
 
 namespace probabilistic {
-namespace dead_end_pruning {
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     value_type::value_t default_value,
@@ -56,5 +55,4 @@ static Plugin<GlobalStateEvaluator> _plugin(
     "prune_dead_ends",
     options::parse<GlobalStateEvaluator, DeadEndPruningHeuristic>);
 
-} // namespace dead_end_pruning
 } // namespace probabilistic

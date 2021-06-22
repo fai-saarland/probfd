@@ -11,7 +11,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic::determinization_heuristic {
+namespace probabilistic {
 
 class DeterminizationCostHeuristic : public GlobalStateEvaluator {
     std::shared_ptr<Heuristic> heuristic_;
@@ -30,5 +30,4 @@ protected:
     EvaluationResult evaluate(const GlobalState &state) override;
 };
 
-
-} // namespace probabilistic::determinization_heuristic
+} // namespace probabilistic

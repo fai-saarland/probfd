@@ -12,7 +12,6 @@ class OptionParser;
 } // namespace options
 
 namespace probabilistic {
-namespace dead_end_pruning {
 
 class DeadEndPruningHeuristic : public GlobalStateEvaluator {
 public:
@@ -35,5 +34,4 @@ protected:
     std::shared_ptr<Heuristic> pruning_function_;
 };
 
-} // namespace dead_end_pruning
 } // namespace probabilistic

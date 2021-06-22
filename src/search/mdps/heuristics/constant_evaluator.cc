@@ -8,7 +8,6 @@
 #include <memory>
 
 namespace probabilistic {
-namespace const_value_evaluator {
 
 ConstantEvaluator::ConstantEvaluator(value_type::value_t value)
     : value_(value)
@@ -39,5 +38,4 @@ _parse(options::OptionParser& parser)
 
 static Plugin<GlobalStateEvaluator> _plugin("const", _parse);
 
-} // namespace const_value_evaluator
 } // namespace probabilistic

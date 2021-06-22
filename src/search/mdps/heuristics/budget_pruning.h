@@ -15,7 +15,6 @@ class OptionParser;
 } // namespace options
 
 namespace probabilistic {
-namespace budget_pruning {
 
 class BudgetPruningHeuristic : public GlobalStateEvaluator {
 public:
@@ -64,5 +63,4 @@ protected:
         cached_estimates_ = nullptr;
 };
 
-} // namespace budget_pruning
 } // namespace probabilistic
