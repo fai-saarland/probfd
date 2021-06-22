@@ -8,7 +8,7 @@
 #include "../../engine_interfaces/state_id_map.h"
 #include "../../engine_interfaces/transition_generator.h"
 #include "abstract_operator.h"
-#include "abstract_state.h"
+#include "abstract_state_mapper.h"
 
 #include <memory>
 #include <unordered_map>

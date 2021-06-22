@@ -1,7 +1,7 @@
 #pragma once
 
 #include "abstract_operator.h"
-#include "abstract_state.h"
+#include "abstract_state_mapper.h"
 #include "engine_interfaces.h"
 #include "qualitative_result_store.h"
 #include "quantitative_result_store.h"

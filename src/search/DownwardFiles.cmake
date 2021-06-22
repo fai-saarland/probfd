@@ -685,6 +685,7 @@ fast_downward_plugin(
     SOURCES
         mdps/heuristics/pdbs/abstract_operator
         mdps/heuristics/pdbs/abstract_state
+        mdps/heuristics/pdbs/abstract_state_mapper
         mdps/heuristics/pdbs/engine_interfaces
         mdps/heuristics/pdbs/probabilistic_projection
         mdps/heuristics/pdbs/qualitative_result_store
