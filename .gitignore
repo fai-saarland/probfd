@@ -10,3 +10,4 @@ cmake-build-debug/
 *.patch
 .vs/
 .vscode/
+.clang-format
