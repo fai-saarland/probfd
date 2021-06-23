@@ -63,7 +63,7 @@ PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    if (verbosity >= Verbosity::SILENT) {
+    if (verbosity >= Verbosity::NORMAL) {
         cout << token << "options: " << endl;
         cout << token << "max refinements: " << max_refinements << endl;
         cout << token << "max pdb size: " << max_pdb_size << endl;
@@ -94,9 +94,7 @@ PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
         cout << token << "Verbosity: ";
 
         switch (verbosity) {
-        case Verbosity::SILENT:
-            cout << "silent";
-            break;
+        default:
         case Verbosity::NORMAL:
             cout << "normal";
             break;
@@ -724,7 +722,7 @@ PatternCollectionGeneratorCegar::generate(OperatorCost cost_type)
         for (size_t i = 0; i < m; ++i) {
             int var_id = nongoals[i];
 
-            if (verbosity >= Verbosity::NORMAL) {
+            if (verbosity >= Verbosity::VERBOSE) {
                 cout << token << "blacklisting var" << var_id << endl;
             }
 
@@ -752,7 +750,7 @@ PatternCollectionGeneratorCegar::generate(OperatorCost cost_type)
                 assert(global_blacklist.empty() &&
                     sol->get_blacklist().empty());
 
-                if (verbosity >= Verbosity::NORMAL) {
+                if (verbosity >= Verbosity::VERBOSE) {
                     cout << token
                          << "task solved during computation of abstract" 
                          << "solutions"
@@ -765,7 +763,7 @@ PatternCollectionGeneratorCegar::generate(OperatorCost cost_type)
                          << sol->compute_plan_cost() << endl;
                 }
             } else {
-                if (verbosity >= Verbosity::NORMAL) {
+                if (verbosity >= Verbosity::VERBOSE) {
                     cout << token
                          << "Flaw list empty."
                          << "No further refinements possible."
@@ -786,7 +784,7 @@ PatternCollectionGeneratorCegar::generate(OperatorCost cost_type)
 
         ++refinement_counter;
 
-        if (verbosity >= Verbosity::NORMAL) {
+        if (verbosity >= Verbosity::VERBOSE) {
             cout << token << "current collection size: "
                  << collection_size << endl;
             cout << token << "current collection: ";
@@ -820,7 +818,7 @@ PatternCollectionGeneratorCegar::generate(OperatorCost cost_type)
         }
     }
 
-    if (verbosity >= Verbosity::SILENT) {
+    if (verbosity >= Verbosity::NORMAL) {
         cout << token << "computation time: " << timer.get_elapsed_time()
              << endl;
         cout << token << "number of iterations: " << refinement_counter << endl;
@@ -840,6 +838,8 @@ PatternCollectionGeneratorCegar::generate(OperatorCost cost_type)
 void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser &parser)
 {
+    utils::add_verbosity_option_to_parser(parser);
+
     parser.add_option<int>(
             "max_refinements",
             "maximum allowed number of refinements",
@@ -895,28 +895,6 @@ void add_pattern_collection_generator_cegar_options_to_parser(
             "given_goal",
             "a goal variable to be used as the initial collection",
             "-1");
-    vector<string> verbosity_levels;
-    vector<string> verbosity_level_docs;
-    verbosity_levels.push_back("none");
-    verbosity_level_docs.push_back("none: no output at all");
-    verbosity_levels.push_back("silent");
-    verbosity_level_docs.push_back(
-        "silent: no output during construction, only starting and final "
-        "statistics");
-    verbosity_levels.push_back("normal");
-    verbosity_level_docs.push_back(
-        "normal: basic output during construction, starting and final "
-        "statistics");
-    verbosity_levels.push_back("verbose");
-    verbosity_level_docs.push_back(
-        "verbose: full output during construction, starting and final "
-        "statistics");
-    parser.add_enum_option(
-        "verbosity",
-        verbosity_levels,
-        "Option to specify the level of verbosity.",
-        "verbose",
-        verbosity_level_docs);
     parser.add_option<double>(
             "max_time",
             "maximum time in seconds for CEGAR pattern generation. "
