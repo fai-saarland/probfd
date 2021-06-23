@@ -377,7 +377,7 @@ AbstractStateMapper::partial_states_end() const
 
 int AbstractStateMapper::get_multiplier(int var) const
 {
-    return get_multiplier(get_index(var));
+    return get_multiplier_raw(get_index(var));
 }
 
 int AbstractStateMapper::get_multiplier_raw(int idx) const
@@ -387,7 +387,7 @@ int AbstractStateMapper::get_multiplier_raw(int idx) const
 
 int AbstractStateMapper::get_domain_size(int var) const
 {
-    return domains_[get_index(var)];
+    return get_domain_size_raw(get_index(var));
 }
 
 int AbstractStateMapper::get_domain_size_raw(int idx) const
