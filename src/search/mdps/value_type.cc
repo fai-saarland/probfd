@@ -30,18 +30,18 @@ abs(const value_t& val)
     return std::abs(val);
 }
 
-approx_equal::approx_equal(const value_t& eps)
-    : eps_(eps)
+approx_equal::approx_equal(const value_t& epsilon)
+    : eps_(epsilon)
 {
 }
 
-approx_less::approx_less(const value_t& eps)
-    : eps_(eps)
+approx_less::approx_less(const value_t& epsilon)
+    : eps_(epsilon)
 {
 }
 
-approx_greater::approx_greater(const value_t& eps)
-    : eps_(eps)
+approx_greater::approx_greater(const value_t& epsilon)
+    : eps_(epsilon)
 {
 }
 

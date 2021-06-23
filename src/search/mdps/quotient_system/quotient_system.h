@@ -279,12 +279,12 @@ public:
         } else {
             ActionID::size_type res = 0;
             const ActionID* aop = info->aops;
-            const StateID* sid = info->states;
+            const StateID* state_id = info->states;
             unsigned i = 0;
-            while (*sid != a.state_id) {
+            while (*state_id != a.state_id) {
                 res += info->naops[i];
                 aop += info->naops[i];
-                ++sid;
+                ++state_id;
                 ++i;
             }
             while (*aop != a.action_id) {
@@ -421,14 +421,14 @@ public:
             }
         } else {
             unsigned j = 0;
-            const unsigned end = aops_start + naops[midx];
-            for (unsigned i = aops_start; i < end; ++i, ++j) {
+            const unsigned aops_end = aops_start + naops[midx];
+            for (unsigned i = aops_start; i < aops_end; ++i, ++j) {
                 qinfo.aops[j] = aops_merged[i];
             }
             for (unsigned i = 0; i < aops_start; ++i, ++j) {
                 qinfo.aops[j] = aops_merged[i];
             }
-            for (unsigned i = end; i < aops_merged.size(); ++i, ++j) {
+            for (unsigned i = aops_end; i < aops_merged.size(); ++i, ++j) {
                 qinfo.aops[j] = aops_merged[i];
             }
             qinfo.states[0] = rid;
