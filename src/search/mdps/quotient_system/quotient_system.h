@@ -395,6 +395,10 @@ public:
 
                 aops.clear();
             }
+
+            if constexpr (!std::is_same_v<IgnoreActionsIterator, const void**>) {
+                ++ignore_actions;
+            }
         }
         // std::cout << " ]" << std::endl;
 
