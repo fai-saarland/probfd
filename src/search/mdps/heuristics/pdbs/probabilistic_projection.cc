@@ -129,11 +129,13 @@ struct OutcomeInfo {
     std::vector<int> missing_pres;
 
     friend bool operator<(const OutcomeInfo& a, const OutcomeInfo& b) {
-        return a.base_effect < b.base_effect;
+        return std::tie(a.base_effect, a.missing_pres) <
+            std::tie(b.base_effect, b.missing_pres);
     }
 
     friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b) {
-        return a.base_effect == b.base_effect;
+        return std::tie(a.base_effect, a.missing_pres) ==
+            std::tie(b.base_effect, b.missing_pres);
     }
 };
 
