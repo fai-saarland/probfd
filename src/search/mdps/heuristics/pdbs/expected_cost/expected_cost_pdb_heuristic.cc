@@ -109,7 +109,7 @@ void
 ExpectedCostPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
-        "patterns", "", "systematic_ec(pattern_max_size=2)");
+        "patterns", "", "det_adapter(generator=systematic(pattern_max_size=2))");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
