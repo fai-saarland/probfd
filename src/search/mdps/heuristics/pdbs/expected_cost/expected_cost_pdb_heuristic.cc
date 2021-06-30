@@ -17,6 +17,7 @@
 #include "../../../logging.h"
 #include "../../../analysis_objectives/expected_cost_objective.h"
 #include "../../../../algorithms/max_cliques.h"
+#include "../../../../utils/logging.h"
 
 #include <cassert>
 #include <string>
@@ -28,15 +29,78 @@ namespace pdbs {
 
 using namespace pattern_selection;
 
-void ExpectedCostPDBHeuristic::Statistics::
-print(std::ostream& out) const {
-    out << "\nExpected-Cost Pattern Databases Statistics:\n"
-        << "  Number of PDBs: " << num_patterns << "\n"
-        << "  Total number of abstract states: " << total_states << "\n"
+// Default Statictics
+struct ExpectedCostPDBHeuristic::Statistics
+{
+    Statistics(
+        double dominance_pruning_time,
+        double construction_time,
+        const ExpCostPDBCollection& pdbs,
+        const std::vector<PatternClique>& additive_subcollections)
+        : dominance_pruning_time(dominance_pruning_time)
+        , construction_time(construction_time)
+    {
+        this->pdbs = pdbs.size();
+
+        for (auto pdb : pdbs) {
+            size_t vars = pdb->get_pattern().size();
+            largest_pattern = std::max(largest_pattern, vars);
+            variables += vars;
+            abstract_states += pdb->num_states();
+        }
+
+        subcollections = additive_subcollections.size();
+
+        for (auto subcollection : additive_subcollections) {
+            total_subcollections_size += subcollection.size();
+        }
+    }
+
+    double dominance_pruning_time = 0.0;
+    double construction_time = 0.0;
+
+    size_t pdbs = 0;
+    size_t variables = 0;
+    size_t abstract_states = 0;
+    size_t largest_pattern = 0;
+
+    size_t subcollections = 0;
+    size_t total_subcollections_size = 0;
+
+    // Run-time statistics (expensive)
+    // TODO
+
+    void print(std::ostream& out) const {
+        const double avg_variables = (double) variables / pdbs;
+        const double avg_abstract_states = (double) abstract_states / pdbs;
+
+        const double avg_subcollection_size =
+            (double) total_subcollections_size / subcollections;
+
+        out
+        << "\nExpected-Cost Pattern Databases Statistics:\n"
+        << "  Total number of PDBs: " << pdbs << "\n"
+        << "  Total number of variables: " << variables << "\n"
+        << "  Total number of abstract states: "
+        << abstract_states << "\n"
+
+        << "  Average number of variables per PDB: " << avg_variables << "\n"
+        << "  Average number of abstract states per PDB: "
+        << avg_abstract_states << "\n"
+
+        << "  Largest pattern size: " << largest_pattern << "\n"
+
+        << "  Total number of additive subcollections: "
+        << subcollections << "\n"
+        << "  Total number of subcollections PDBs: "
+        << total_subcollections_size << "\n"
+        << "  Average size of subcollection PDB: "
+        << avg_subcollection_size << "\n"
+
         << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
-        << "  Total construction time: " << construction_time << "s"
-        << std::endl;
-}
+        << "  Total construction time: " << construction_time << "s\n";
+    }
+};
 
 AdditiveExpectedCostPDBs
 ExpectedCostPDBHeuristic::
@@ -51,6 +115,8 @@ get_additive_ecpdbs_from_options(
     
     std::shared_ptr pdbs = pattern_collection_info.get_pdbs();
     std::shared_ptr cliques = pattern_collection_info.get_pattern_cliques();
+
+    double dominance_pruning_time = 0.0;
 
     if (max_time_dominance_pruning > 0.0) {
         utils::Timer timer;
@@ -72,18 +138,20 @@ get_additive_ecpdbs_from_options(
             num_variables,
             max_time_dominance_pruning);
 
-        statistics_.dominance_pruning_time = timer();
+        dominance_pruning_time = timer();
     }
 
-    statistics_.num_patterns = pdbs->size();
-    statistics_.num_additive_subcollections = cliques->size();
+    // Gather statistics.
+    const double construction_time = construction_timer();
 
-    auto add = [](size_t a, auto b) { return a + b->num_states(); };
-    statistics_.total_states =
-        std::accumulate(pdbs->begin(), pdbs->end(), 0, add);
-    statistics_.construction_time = construction_timer();
+    this->statistics_.reset(
+        new Statistics(
+            dominance_pruning_time,
+            construction_time,
+            *pdbs,
+            *cliques));
 
-    generator_report = generator->get_report();
+    this->generator_report = generator->get_report();
 
     return AdditiveExpectedCostPDBs(pdbs, cliques);
 }
@@ -120,7 +188,7 @@ ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
 }
 
 void ExpectedCostPDBHeuristic::print_statistics() const {
-    statistics_.print(logging::out);
+    statistics_->print(logging::out);
 
     if (generator_report) {
         generator_report->print(logging::out);

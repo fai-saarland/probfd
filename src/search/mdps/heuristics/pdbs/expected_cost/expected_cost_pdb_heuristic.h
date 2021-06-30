@@ -32,18 +32,9 @@ class QualitativeResultStore;
 class ExpCostAbstractAnalysisResult;
 
 class ExpectedCostPDBHeuristic : public GlobalStateEvaluator {
-    struct Statistics {
-        size_t num_patterns = 0;
-        size_t total_states = 0;
-        size_t num_additive_subcollections = 0;
+    struct Statistics;
 
-        double dominance_pruning_time = 0.0;
-        double construction_time = 0.0;
-
-        void print(std::ostream& out) const;
-    };
-
-    Statistics statistics_;
+    std::unique_ptr<Statistics> statistics_;
     std::shared_ptr<Printable> generator_report;
 
     AdditiveExpectedCostPDBs additive_ecpds;
