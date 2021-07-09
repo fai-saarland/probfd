@@ -33,7 +33,33 @@ class PatternDatabase;
 
 // Implementation of the pattern generation algorithm by Haslum et al.
 class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator {
+    struct Statistics : public utils::Printable {
+        unsigned long long int num_iterations;
+        unsigned long long int generated_patterns;
+        unsigned long long int rejected_patterns;
+        unsigned long long int max_pdb_size;
+
+        double hillclimbing_time;
+
+        Statistics(
+            unsigned long long int num_iterations,
+            unsigned long long int generated_patterns,
+            unsigned long long int rejected_patterns,
+            unsigned long long int max_pdb_size,
+            double hillclimbing_time)
+            : num_iterations(num_iterations)
+            , generated_patterns(generated_patterns)
+            , rejected_patterns(rejected_patterns)
+            , max_pdb_size(max_pdb_size)
+            , hillclimbing_time(hillclimbing_time)
+        {}
+
+        void print(std::ostream& out) const override;
+    };
+
     utils::Verbosity verbosity;
+
+    std::shared_ptr<Statistics> statistics_;
 
     // maximum number of states for each pdb
     const int pdb_max_size;
@@ -141,6 +167,8 @@ public:
       set too small or if there are many goal variables with a large domain.
     */
     virtual PatternCollectionInformation generate(OperatorCost cost_type) override;
+
+    std::shared_ptr<utils::Printable> get_report() const override;
 };
 }
 

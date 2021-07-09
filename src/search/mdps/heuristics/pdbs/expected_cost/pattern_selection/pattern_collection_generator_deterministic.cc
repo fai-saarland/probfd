@@ -62,6 +62,12 @@ PatternCollectionGeneratorDeterministic::generate(OperatorCost cost_type)
     return info;
 }
 
+std::shared_ptr<utils::Printable>
+PatternCollectionGeneratorDeterministic::get_report() const
+{
+    return gen->get_report();
+}
+
 static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser) {
     if (parser.dry_run()) {
         return nullptr;

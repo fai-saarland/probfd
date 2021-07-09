@@ -29,6 +29,8 @@ public:
 
     virtual PatternCollectionInformation
     generate(OperatorCost cost_type) override;
+
+    std::shared_ptr<utils::Printable> get_report() const override;
 };
 
 }

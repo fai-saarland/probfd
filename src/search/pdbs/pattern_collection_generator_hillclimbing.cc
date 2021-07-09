@@ -110,9 +110,20 @@ static vector<vector<int>> compute_relevant_neighbours() {
     return connected_vars_by_variable;
 }
 
+void PatternCollectionGeneratorHillclimbing::Statistics::
+print(std::ostream& out) const {
+    out << "\nHill Climbing Generator Statistics:"
+        << "\n  Iterations: " << num_iterations
+        << "\n  Generated patterns: " << generated_patterns
+        << "\n  Rejected patterns: " << rejected_patterns
+        << "\n  Maximum candidate PDB size: " << max_pdb_size
+        << "\n  Time: " << hillclimbing_time
+        << std::endl;
+}
 
 PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(const Options &opts)
-    : pdb_max_size(opts.get<int>("pdb_max_size")),
+    : verbosity(static_cast<Verbosity>(opts.get_enum("verbosity"))),
+      pdb_max_size(opts.get<int>("pdb_max_size")),
       collection_max_size(opts.get<int>("collection_max_size")),
       num_samples(opts.get<int>("num_samples")),
       min_improvement(opts.get<int>("min_improvement")),
@@ -414,13 +425,15 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
         }
     }
 
+    statistics_.reset(new Statistics(
+        num_iterations,
+        generated_patterns.size(),
+        num_rejected,
+        max_pdb_size,
+        hill_climbing_timer->get_elapsed_time()));
+
     if (verbosity >= Verbosity::SILENT) {
-        cout << "Hill climbing iterations: " << num_iterations << endl;
-        cout << "Hill climbing generated patterns: " << generated_patterns.size() << endl;
-        cout << "Hill climbing rejected patterns: " << num_rejected << endl;
-        cout << "Hill climbing maximum PDB size: " << max_pdb_size << endl;
-        cout << "Hill climbing time: "
-            << hill_climbing_timer->get_elapsed_time() << endl;
+        statistics_->print(std::cout);
     }
 
     delete hill_climbing_timer;
@@ -431,7 +444,10 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(Op
     this->cost_type = cost_type;
 
     utils::Timer timer;
-    cout << "Generating patterns using the hill climbing generator..." << endl;
+
+    if (verbosity >= Verbosity::NORMAL) {
+        cout << "Generating patterns using the hill climbing generator..." << endl;
+    }
 
     // Generate initial collection: a pattern for each goal variable.
     PatternCollection initial_pattern_collection;
@@ -442,7 +458,10 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(Op
     current_pdbs = utils::make_unique_ptr<IncrementalCanonicalPDBs>(
         cost_type,
         initial_pattern_collection);
-    cout << "Done calculating initial pattern collection: " << timer << endl;
+
+    if (verbosity >= Verbosity::NORMAL) {
+        cout << "Done calculating initial pattern collection: " << timer << endl;
+    }
 
     GlobalState initial_state = g_initial_state();
     if (!current_pdbs->is_dead_end(initial_state) && max_time > 0) {
@@ -450,34 +469,25 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(Op
     }
 
     PatternCollectionInformation pci = current_pdbs->get_pattern_collection_information();
-    dump_pattern_collection_generation_statistics(
-        "Hill climbing generator", timer(), pci);
+
+    if (verbosity >= Verbosity::VERBOSE) {
+        dump_pattern_collection_generation_statistics(
+            "Hill climbing generator", timer(), pci);
+    }
+
     return pci;
 }
 
+std::shared_ptr<utils::Printable>
+PatternCollectionGeneratorHillclimbing::get_report() const
+{
+    return statistics_;
+}
+
+
+
 void add_hillclimbing_options(OptionParser &parser) {
-    std::vector<std::string> verbosity_levels;
-    std::vector<std::string> verbosity_level_docs;
-    verbosity_levels.push_back("none");
-    verbosity_level_docs.push_back("none: no output at all");
-    verbosity_levels.push_back("silent");
-    verbosity_level_docs.push_back(
-        "silent: no output during construction, only starting and final "
-        "statistics");
-    verbosity_levels.push_back("normal");
-    verbosity_level_docs.push_back(
-        "normal: basic output during construction, starting and final "
-        "statistics");
-    verbosity_levels.push_back("verbose");
-    verbosity_level_docs.push_back(
-        "verbose: full output during construction, starting and final "
-        "statistics");
-    parser.add_enum_option(
-        "verbosity",
-        verbosity_levels,
-        "Option to specify the level of verbosity.",
-        "verbose",
-        verbosity_level_docs);
+    utils::add_verbosity_option_to_parser(parser);
 
     parser.add_option<int>(
         "pdb_max_size",
