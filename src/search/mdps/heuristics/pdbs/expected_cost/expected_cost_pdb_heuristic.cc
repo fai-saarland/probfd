@@ -33,11 +33,13 @@ using namespace pattern_selection;
 struct ExpectedCostPDBHeuristic::Statistics
 {
     Statistics(
+        double generator_time,
         double dominance_pruning_time,
         double construction_time,
         const ExpCostPDBCollection& pdbs,
         const std::vector<PatternClique>& additive_subcollections)
-        : dominance_pruning_time(dominance_pruning_time)
+        : generator_time(generator_time)
+        , dominance_pruning_time(dominance_pruning_time)
         , construction_time(construction_time)
     {
         this->pdbs = pdbs.size();
@@ -56,6 +58,7 @@ struct ExpectedCostPDBHeuristic::Statistics
         }
     }
 
+    double generator_time = 0.0;
     double dominance_pruning_time = 0.0;
     double construction_time = 0.0;
 
@@ -97,6 +100,7 @@ struct ExpectedCostPDBHeuristic::Statistics
         << "  Average size of subcollection PDB: "
         << avg_subcollection_size << "\n"
 
+        << "  Generator time: " << generator_time << "s\n"
         << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
         << "  Total construction time: " << construction_time << "s\n";
     }
@@ -110,7 +114,10 @@ get_additive_ecpdbs_from_options(
 {
     utils::Timer construction_timer;
 
+    utils::Timer generator_timer;
     auto pattern_collection_info = generator->generate(NORMAL);
+    const double generator_time = generator_timer();
+
     std::shared_ptr patterns = pattern_collection_info.get_patterns();
     
     std::shared_ptr pdbs = pattern_collection_info.get_pdbs();
@@ -146,6 +153,7 @@ get_additive_ecpdbs_from_options(
 
     this->statistics_.reset(
         new Statistics(
+            generator_time,
             dominance_pruning_time,
             construction_time,
             *pdbs,
