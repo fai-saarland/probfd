@@ -453,7 +453,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
         max_pdb_size,
         hill_climbing_timer->get_elapsed_time()));
 
-    if (verbosity >= Verbosity::SILENT) {
+    if (verbosity >= Verbosity::NORMAL) {
         statistics_->print(std::cout);
     }
 

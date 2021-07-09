@@ -73,7 +73,7 @@ struct ExpectedCostPDBHeuristic::Statistics
     // Run-time statistics (expensive)
     // TODO
 
-    void print(std::ostream& out) const {
+    void print_construction_info(std::ostream& out) const {
         const double avg_variables = (double) variables / pdbs;
         const double avg_abstract_states = (double) abstract_states / pdbs;
 
@@ -103,6 +103,10 @@ struct ExpectedCostPDBHeuristic::Statistics
         << "  Generator time: " << generator_time << "s\n"
         << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
         << "  Total construction time: " << construction_time << "s\n";
+    }
+
+    void print(std::ostream& out) const {
+        print_construction_info(out);
     }
 };
 
@@ -159,6 +163,8 @@ get_additive_ecpdbs_from_options(
             *pdbs,
             *cliques));
 
+    this->statistics_->print_construction_info(logging::out);
+
     this->generator_report = generator->get_report();
 
     return AdditiveExpectedCostPDBs(pdbs, cliques);
@@ -196,11 +202,11 @@ ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
 }
 
 void ExpectedCostPDBHeuristic::print_statistics() const {
-    statistics_->print(logging::out);
-
     if (generator_report) {
         generator_report->print(logging::out);
     }
+
+    statistics_->print(logging::out);
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(
