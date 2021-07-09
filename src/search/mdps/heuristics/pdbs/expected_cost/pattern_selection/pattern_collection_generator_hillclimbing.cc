@@ -502,7 +502,7 @@ PatternCollectionGeneratorHillclimbing::generate(OperatorCost cost_type)
     return pci;
 }
 
-std::shared_ptr<Printable>
+std::shared_ptr<utils::Printable>
 PatternCollectionGeneratorHillclimbing::get_report() const {
     return statistics_;
 }

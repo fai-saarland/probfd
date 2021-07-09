@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-namespace probabilistic {
+namespace utils {
 
 class Printable {
 public:

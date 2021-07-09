@@ -2,7 +2,7 @@
 
 #include "../../../evaluation_result.h"
 #include "../../../state_evaluator.h"
-#include "../../../printable.h"
+#include "../../../../utils/printable.h"
 #include "../abstract_state.h"
 #include "../types.h"
 #include "expcost_projection.h"
@@ -35,7 +35,7 @@ class ExpectedCostPDBHeuristic : public GlobalStateEvaluator {
     struct Statistics;
 
     std::unique_ptr<Statistics> statistics_;
-    std::shared_ptr<Printable> generator_report;
+    std::shared_ptr<utils::Printable> generator_report;
 
     AdditiveExpectedCostPDBs additive_ecpds;
 

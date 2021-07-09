@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace probabilistic {
+namespace utils {
 
 Printables::Printables(std::vector<Printable*>&& printables)
     : printables_(std::move(printables))

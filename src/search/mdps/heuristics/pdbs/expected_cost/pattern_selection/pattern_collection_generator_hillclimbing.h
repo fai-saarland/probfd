@@ -37,7 +37,7 @@ namespace pattern_selection {
 class PatternCollectionGeneratorHillclimbing :
     public PatternCollectionGenerator
 {
-    struct Statistics : public Printable {
+    struct Statistics : public utils::Printable {
         unsigned long long int num_iterations;
         unsigned long long int generated_patterns;
         unsigned long long int rejected_patterns;
@@ -173,7 +173,7 @@ public:
     */
     PatternCollectionInformation generate(OperatorCost cost_type) override;
 
-    std::shared_ptr<Printable> get_report() const override;
+    std::shared_ptr<utils::Printable> get_report() const override;
 };
 }
 }
