@@ -29,7 +29,12 @@ class IncrementalCanonicalPDBs {
 
     void recompute_pattern_cliques();
 public:
-    IncrementalCanonicalPDBs(OperatorCost cost_type, const PatternCollection &intitial_patterns);
+    IncrementalCanonicalPDBs(
+        OperatorCost cost_type, const PatternCollection &intitial_patterns);
+
+    IncrementalCanonicalPDBs(
+        OperatorCost cost_type, PatternCollectionInformation& info);
+
     virtual ~IncrementalCanonicalPDBs() = default;
 
     // Adds a new PDB to the collection and recomputes pattern_cliques.

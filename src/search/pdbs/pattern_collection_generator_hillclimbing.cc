@@ -123,6 +123,8 @@ print(std::ostream& out) const {
 
 PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(const Options &opts)
     : verbosity(static_cast<Verbosity>(opts.get_enum("verbosity"))),
+      initial_generator(opts.get<std::shared_ptr<PatternCollectionGenerator>>(
+          "initial_generator")),
       pdb_max_size(opts.get<int>("pdb_max_size")),
       collection_max_size(opts.get<int>("collection_max_size")),
       num_samples(opts.get<int>("num_samples")),
@@ -449,15 +451,12 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(Op
         cout << "Generating patterns using the hill climbing generator..." << endl;
     }
 
-    // Generate initial collection: a pattern for each goal variable.
-    PatternCollection initial_pattern_collection;
-    for (const auto& goal : g_goal) {
-        int goal_var_id = goal.first;
-        initial_pattern_collection.emplace_back(1, goal_var_id);
-    }
-    current_pdbs = utils::make_unique_ptr<IncrementalCanonicalPDBs>(
-        cost_type,
-        initial_pattern_collection);
+    // Generate initial collection
+    assert (initial_generator);
+    
+    auto collection = initial_generator->generate(cost_type);
+    current_pdbs = std::make_unique<IncrementalCanonicalPDBs>(
+        cost_type, collection);
 
     if (verbosity >= Verbosity::NORMAL) {
         cout << "Done calculating initial pattern collection: " << timer << endl;
@@ -489,6 +488,10 @@ PatternCollectionGeneratorHillclimbing::get_report() const
 void add_hillclimbing_options(OptionParser &parser) {
     utils::add_verbosity_option_to_parser(parser);
 
+    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
+        "initial_generator",
+        "generator for the initial pattern database ",
+        "systematic(pattern_max_size=1)");
     parser.add_option<int>(
         "pdb_max_size",
         "maximal number of states per pattern database ",

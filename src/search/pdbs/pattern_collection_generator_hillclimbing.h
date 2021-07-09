@@ -61,6 +61,8 @@ class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator
 
     std::shared_ptr<Statistics> statistics_;
 
+    std::shared_ptr<PatternCollectionGenerator> initial_generator;
+
     // maximum number of states for each pdb
     const int pdb_max_size;
     // maximum added size of all pdbs

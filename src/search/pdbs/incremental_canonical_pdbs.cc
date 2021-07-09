@@ -24,6 +24,31 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
     recompute_pattern_cliques();
 }
 
+static unsigned long long compute_total_pdb_size(
+    const PDBCollection& pdbs)
+{
+    unsigned long long size = 0;
+
+    for (const auto& pdb : pdbs) {
+        size += pdb->get_size();
+    }
+
+    return size;
+}
+
+IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
+    OperatorCost cost_type,
+    PatternCollectionInformation& info)
+    : patterns(info.get_patterns())
+    , pattern_databases(info.get_pdbs())
+    , pattern_cliques(info.get_pattern_cliques())
+    , size(compute_total_pdb_size(*pattern_databases))
+    , cost_type(cost_type)
+{
+    // TODO use additivity strategy instead
+    are_additive = ::pdbs::compute_additive_vars();
+}
+
 void IncrementalCanonicalPDBs::add_pdb_for_pattern(const Pattern &pattern) {
     pattern_databases->push_back(make_shared<PatternDatabase>(pattern, cost_type));
     size += pattern_databases->back()->get_size();
