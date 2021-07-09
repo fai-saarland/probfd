@@ -23,7 +23,7 @@ class IncrementalCanonicalPDBs {
     VariableAdditivity are_additive;
 
     // The sum of all abstract state sizes of all pdbs in the collection.
-    int size;
+    long long size;
 
     // Adds a PDB for pattern but does not recompute pattern_cliques.
     void add_pdb_for_pattern(const Pattern &pattern);
@@ -32,6 +32,9 @@ class IncrementalCanonicalPDBs {
     
 public:
     IncrementalCanonicalPDBs(const PatternCollection &initial_patterns);
+
+    IncrementalCanonicalPDBs(PatternCollectionInformation &initial_patterns);
+
     virtual ~IncrementalCanonicalPDBs() = default;
 
     // Adds a new PDB to the collection and recomputes pattern_cliques.
@@ -57,7 +60,7 @@ public:
         return pattern_databases;
     }
 
-    int get_size() const {
+    long long get_size() const {
         return size;
     }
 };
