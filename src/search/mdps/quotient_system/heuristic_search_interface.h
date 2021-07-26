@@ -221,7 +221,8 @@ using DeadEndListenerBase = quotient_system::DeadEndListener<
 template <typename State, typename Action>
 struct DeadEndListener<State, quotient_system::QuotientAction<Action>>
     : public DeadEndListenerBase<State, Action> {
-    using DeadEndListenerBase<State, Action>::DeadEndListener;
+    using Base = DeadEndListenerBase<State, Action>;
+    using Base::Base;
 };
 
 template <typename Action>
@@ -232,8 +233,9 @@ using PolicyPickerBase = quotient_system::PolicyPicker<
 
 template <typename Action>
 struct PolicyPicker<quotient_system::QuotientAction<Action>>
-    : public PolicyPickerBase<Action> {
-    using PolicyPickerBase<Action>::PolicyPicker;
+    : public PolicyPickerBase<Action> {        
+    using Base = PolicyPickerBase<Action>;
+    using Base::Base;
 };
 
 template <typename Action>
@@ -244,7 +246,8 @@ using TransitionSamplerBase = quotient_system::TransitionSampler<
 template <typename Action>
 struct TransitionSampler<quotient_system::QuotientAction<Action>>
     : public TransitionSamplerBase<Action> {
-    using TransitionSamplerBase<Action>::TransitionSampler;
+    using Base = TransitionSamplerBase<Action>;
+    using Base::Base;
 };
 
 template <typename Action>
@@ -255,7 +258,8 @@ using OpenListBase = quotient_system::OpenList<
 template <typename Action>
 struct OpenList<quotient_system::QuotientAction<Action>>
     : public OpenListBase<Action> {
-    using OpenListBase<Action>::OpenList;
+    using Base = OpenListBase<Action>;
+    using Base::Base;
 };
 
 } // namespace probabilistic

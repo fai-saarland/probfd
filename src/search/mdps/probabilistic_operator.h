@@ -8,7 +8,7 @@
 #include <vector>
 
 class GlobalOperator;
-class GlobalCondition;
+struct GlobalCondition;
 class GlobalState;
 
 namespace probabilistic {

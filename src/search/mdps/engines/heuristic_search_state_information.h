@@ -103,7 +103,7 @@ template <typename StoresPolicyT, typename TwoValuesT>
 struct PerStateBaseInformation
     : public StatesPolicy<StoresPolicyT>
     , public StateFlags {
-    using StatesPolicy<StoresPolicyT>::StoresPolicy;
+    using typename StatesPolicy<StoresPolicyT>::StoresPolicy;
     using DualBounds = TwoValuesT;
 
     value_utils::IncumbentSolution<TwoValuesT> value;

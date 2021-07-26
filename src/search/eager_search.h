@@ -26,7 +26,7 @@ class EagerSearch : public SearchEngine {
     std::shared_ptr<Evaluator> f_evaluator;
 
 protected:
-    SearchStatus step();
+    SearchStatus step() override;
     std::pair<SearchNode, bool> fetch_next_node();
     void update_jump_statistic(const SearchNode &node);
     void print_heuristic_values(const std::vector<int> &values) const;
@@ -38,7 +38,7 @@ protected:
     // TODO: in the long term this
     // should disappear into the open list
 
-    virtual void initialize();
+    virtual void initialize() override;
     virtual void statistics() const override;
 
 public:

@@ -118,7 +118,7 @@ public:
         return values_[this->get_state_id(initial_state)];
     }
 
-    virtual void print_statistics(std::ostream& out) const
+    virtual void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
     }

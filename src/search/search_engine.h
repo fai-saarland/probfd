@@ -46,7 +46,7 @@ public:
     virtual ~SearchEngine();
     void set_state_registry(std::shared_ptr<StateRegistry> state_registry);
     virtual void print_statistics() const final override;
-    virtual void save_result_if_necessary() const;
+    virtual void save_result_if_necessary() const override;
     virtual bool found_solution() const override;
     virtual void solve() override;
 

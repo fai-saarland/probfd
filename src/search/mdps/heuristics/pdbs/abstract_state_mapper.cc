@@ -287,7 +287,7 @@ AbstractState AbstractStateMapper::from_values_partial(
     const std::vector<std::pair<int, int>>& sparse_values) const
 {
     AbstractState res(0);
-    for (const auto [idx, val] : sparse_values) {
+    for (const auto& [idx, val] : sparse_values) {
         assert(0 <= idx && idx < static_cast<int>(vars_.size()));
         assert(0 <= val && val < domains_[idx]);
         res.id += multipliers_[idx] * val;

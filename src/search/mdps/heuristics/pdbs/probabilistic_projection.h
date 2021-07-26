@@ -14,6 +14,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <fstream>
 
 namespace successor_generator {
 template <typename T>

@@ -18,7 +18,7 @@ namespace quotient_system {
 
 template <>
 class QuotientSystem<const ProbabilisticOperator*> {
-    friend class const_iterator;
+    friend struct const_iterator;
 
 public:
     using Action = const ProbabilisticOperator*;

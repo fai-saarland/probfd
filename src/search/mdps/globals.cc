@@ -182,10 +182,10 @@ static void reconstruct_probabilistic_operators()
         g_operators.emplace_back(
             i,
             std::move(names[i]),
-            std::move(create_probabilistic_outcomes(
+            create_probabilistic_outcomes(
                 outcome_assignment[i],
                 probabilities,
-                dummy_refs)));
+                dummy_refs));
     }
     std::cout << " introduced " << dummy_refs << " dummy outcome(s)...";
     // if (!dummy_refs) {

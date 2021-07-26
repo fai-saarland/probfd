@@ -27,7 +27,7 @@ namespace probabilistic {
 namespace solvers {
 namespace i2dual {
 
-class IDualData;
+struct IDualData;
 
 class I2Dual : public SolverInterface {
 public:

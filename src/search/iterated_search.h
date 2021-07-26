@@ -38,14 +38,14 @@ class IteratedSearch : public SearchEngine {
     std::shared_ptr<SearchEngine> create_phase(int p);
     SearchStatus step_return_value();
 
-    virtual void initialize();
-    virtual SearchStatus step();
+    virtual void initialize() override;
+    virtual SearchStatus step() override;
     virtual void statistics() const override;
 public:
     IteratedSearch(const options::Options &opts, options::Registry &registry,
                    const options::Predefinitions &predefinitions);
     virtual ~IteratedSearch();
-    virtual void save_plan_if_necessary() const;
+    virtual void save_plan_if_necessary() const override;
 };
 
 #endif

@@ -64,7 +64,7 @@ public:
 
     virtual unsigned size() const override { return size_; }
 
-    virtual void clear()
+    virtual void clear() override
     {
         size_ = 0;
         bucket_map_.clear();

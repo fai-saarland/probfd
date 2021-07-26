@@ -47,8 +47,8 @@ public:
     virtual bool dead_end_is_reliable() const override;
     virtual void get_involved_heuristics(std::set<Heuristic *> &hset) override;
 
-    int boost_preferred();
-    void boost_last_used_list();
+    int boost_preferred() override;
+    void boost_last_used_list() override;
 };
 
 class AlternationOpenListFactory : public OpenListFactory {

@@ -257,12 +257,6 @@ QuotientSystem<const ProbabilisticOperator*>::get_infos(
 const TransitionGenerator<const ProbabilisticOperator*>::CacheEntry&
 QuotientSystem<const ProbabilisticOperator*>::lookup(const StateID& sid) const
 {
-#ifndef NDEBUG
-    if (false) {
-        const QuotientInformation* info = get_infos(sid);
-        assert(info == nullptr || info->states[0] == sid);
-    }
-#endif
     const auto& entry = gen_->cache_[sid];
     assert(entry.is_initialized());
     return entry;

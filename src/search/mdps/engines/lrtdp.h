@@ -577,7 +577,7 @@ private:
  * \cite bonet:geffner:icaps-03 with integrated FRET support.
  */
 template <typename State, typename Action, typename B2, typename Fret>
-class LRTDP;
+struct LRTDP;
 
 /**
  * @brief Implementation of LRTDP with FRET disabled.

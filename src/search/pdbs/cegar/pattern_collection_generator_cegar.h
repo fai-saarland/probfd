@@ -102,14 +102,6 @@ class PatternCollectionGeneratorCegar : public PatternCollectionGenerator {
     const double max_time;
 
     const std::string token = "CEGAR_PDBs: ";
-    // The value of this constant tells the algorithm that the abstract
-    // solution has failed in the concrete state-space because some
-    // unknown goal variable was not satisfied.
-    // If this value shows up in the list of flaw variables, then it is
-    // a signal for the algorithm to randomly (or intelligently) choose
-    // a goal variable that is not yet in the pattern (collection) and
-    // use it for refinement.
-    const int RANDOM_GOAL_VARIABLE = -1;
 
     std::vector<int> remaining_goals;
     std::unordered_set<int> global_blacklist;

@@ -33,10 +33,9 @@ class TieBreakingOpenList : public OpenList<Entry> {
     bool allow_unsafe_pruning; // don't insert if main evaluator
     // says dead end, even if not reliably
 
-    const std::vector<int> &get_value(); // currently not used
     int dimension() const;
 protected:
-    Evaluator *get_evaluator() {return this; }
+    Evaluator *get_evaluator() override { return this; }
 
 public:
     TieBreakingOpenList(const options::Options &opts);
@@ -54,7 +53,7 @@ public:
     virtual void evaluate(int g, bool preferred) override;
     virtual bool is_dead_end() const override;
     virtual bool dead_end_is_reliable() const override;
-    virtual void get_involved_heuristics(std::set<Heuristic *> &hset);
+    virtual void get_involved_heuristics(std::set<Heuristic *> &hset) override;
 };
 
 class TieBreakingOpenListFactory : public FallthroughOpenListFactory<TieBreakingOpenList> {

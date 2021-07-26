@@ -10,8 +10,8 @@ class GlobalState;
 
 namespace merge_and_shrink {
 
-class Proposition;
-class UnaryOperator;
+struct Proposition;
+struct UnaryOperator;
 
 struct UnaryOperator {
     int operator_no; // -1 for axioms; index into g_operators otherwise

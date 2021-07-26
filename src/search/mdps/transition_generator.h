@@ -118,7 +118,7 @@ private:
         CacheEntry(CacheEntry&& e)
             : naops(std::move(e.naops))
             , aops(std::move(e.aops))
-            , succs(std::move(succs))
+            , succs(std::move(e.succs))
         // , offset(std::move(offset))
         {
             e.naops = 0;

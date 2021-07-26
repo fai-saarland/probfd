@@ -114,11 +114,6 @@ bool TieBreakingOpenList<Entry>::dead_end_is_reliable() const {
 }
 
 template<class Entry>
-const std::vector<int> &TieBreakingOpenList<Entry>::get_value() {
-    return last_evaluated_value;
-}
-
-template<class Entry>
 int TieBreakingOpenList<Entry>::dimension() const {
     return evaluators.size();
 }

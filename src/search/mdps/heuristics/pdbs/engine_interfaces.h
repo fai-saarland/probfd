@@ -195,7 +195,6 @@ private:
 };
 
 class IncrementalPPDBEvaluatorBase : public AbstractStateEvaluator {
-    const AbstractStateMapper* mapper;
     int left_multiplier;
     int right_multiplier;
     int domain_size;

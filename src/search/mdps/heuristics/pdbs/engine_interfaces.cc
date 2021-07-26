@@ -216,7 +216,6 @@ EvaluationResult DeadendPDBEvaluator::evaluate(const AbstractState& state) const
 IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(
     const AbstractStateMapper* mapper,
     int add_var)
-    : mapper(mapper)
 {
     const int idx = mapper->get_index(add_var);
 

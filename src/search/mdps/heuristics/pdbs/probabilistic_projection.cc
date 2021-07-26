@@ -86,14 +86,14 @@ void ProbabilisticProjection::prepare_regression()
         std::unordered_map<int, int> precondition;
         std::unordered_map<int, int> effect;
         {
-            for (const auto [pre_var, pre_val] : op.get_preconditions()) {
+            for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
                 const int idx = var_index_[pre_var];
                 if (idx != -1) {
                     precondition[idx] = pre_val;
                 }
             }
 
-            for (const auto [eff_var, eff_val, _] : op.get_effects()) {
+            for (const auto& [eff_var, eff_val, _] : op.get_effects()) {
                 const int idx = var_index_[eff_var];
                 if (idx != -1) {
                     effect[idx] = eff_val;
@@ -108,13 +108,13 @@ void ProbabilisticProjection::prepare_regression()
         AbstractState pre(0);
         AbstractState eff(0);
         {
-            for (const auto [pre_var, pre_val] : precondition) {
+            for (const auto& [pre_var, pre_val] : precondition) {
                 if (effect.find(pre_var) == effect.end()) {
                     after_effect.emplace_back(pre_var, pre_val);
                 }
             }
 
-            for (const auto [eff_var, eff_val] : effect) {
+            for (const auto& [eff_var, eff_val] : effect) {
                 after_effect.emplace_back(eff_var, eff_val);
                 eff += state_mapper_->from_value_partial(eff_var, eff_val);
                 if (precondition.find(eff_var) == precondition.end()) {
@@ -204,7 +204,7 @@ void ProbabilisticProjection::precompute_dead_ends()
             continue;
         }
 
-        for (const AbstractState eff : aops) {
+        for (const AbstractState& eff : aops) {
             const AbstractState t = s + eff;
 
             // Collect operators of t reaching s
@@ -255,7 +255,7 @@ void ProbabilisticProjection::precompute_dead_ends()
                 continue;
             }
 
-            for (const AbstractState eff : aops) {
+            for (const AbstractState& eff : aops) {
                 const AbstractState t = s + eff;
 
                 if (S_old.find(t) == S_old.end()) {
@@ -309,7 +309,7 @@ void ProbabilisticProjection::setup_abstract_goal()
     // Translate sparse goal into pdb index space
     // and collect non-goal variables aswell.
     int v = 0;
-    for (const auto [var, val] : g_goal) {
+    for (const auto& [var, val] : g_goal) {
         const int idx = var_index_[var];
         if (idx == -1) continue;
 
@@ -405,7 +405,7 @@ void ProbabilisticProjection::add_abstract_operators(
     // The precondition embedded into an abstract state vector
     std::vector<int> dense_precondition(pattern.size(), -1);
 
-    for (const auto [var, val] : op.get_preconditions()) {
+    for (const auto& [var, val] : op.get_preconditions()) {
         const int idx = var_index_[var];
         if (idx != -1) {
             dense_precondition[idx] = val;

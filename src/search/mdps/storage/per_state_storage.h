@@ -199,7 +199,7 @@ template <
 class StateHashMap
     : public internal::PerStateStorage<T, StateIdMap, Alloc, HashMap> {
 public:
-    using internal::PerStateStorage<T, StateIdMap, Alloc, HashMap>::
+    using typename internal::PerStateStorage<T, StateIdMap, Alloc, HashMap>::
         IsPersistent;
     using internal::PerStateStorage<T, StateIdMap, Alloc, HashMap>::
         PerStateStorage;

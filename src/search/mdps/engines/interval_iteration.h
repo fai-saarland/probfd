@@ -219,7 +219,7 @@ private:
         quotient_system::DefaultQuotientActionRewardFunction<Action>
             q_action_reward(sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
-        HeuristicWrapper
+        HeuristicWrapper<BoolStoreT>
             heuristic(this->get_state_id_map(), dead_ends, lb_, ub_, prune_);
 
         ValueIteration<BoolStoreT> vi(

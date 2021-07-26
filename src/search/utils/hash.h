@@ -214,21 +214,44 @@ public:
 static_assert(
     sizeof(int) == sizeof(std::uint32_t),
     "int and uint32_t have different sizes");
-inline void feed(HashState &hash_state, int value) {
-    hash_state.feed(static_cast<std::uint32_t>(value));
-}
 
 static_assert(
     sizeof(unsigned int) == sizeof(std::uint32_t),
     "unsigned int and uint32_t have different sizes");
-inline void feed(HashState &hash_state, unsigned int value) {
-    hash_state.feed(static_cast<std::uint32_t>(value));
+
+template <typename I>
+inline void feed_integer(HashState &hash_state, I value) {
+    if constexpr (sizeof(I) == sizeof(std::uint32_t)) {
+        hash_state.feed(static_cast<std::uint32_t>(value));
+    } else {
+        hash_state.feed(static_cast<std::uint32_t>(value));
+        value >>= 32;
+        hash_state.feed(static_cast<std::uint32_t>(value));
+    }
 }
 
-inline void feed(HashState &hash_state, std::uint64_t value) {
-    hash_state.feed(static_cast<std::uint32_t>(value));
-    value >>= 32;
-    hash_state.feed(static_cast<std::uint32_t>(value));
+inline void feed(HashState &hash_state, int value) {
+    feed_integer(hash_state, value);
+}
+
+inline void feed(HashState &hash_state, long int value) {
+    feed_integer(hash_state, value);
+}
+
+inline void feed(HashState &hash_state, long long int value) {
+    feed_integer(hash_state, value);
+}
+
+inline void feed(HashState &hash_state, unsigned int value) {
+    feed_integer(hash_state, value);
+}
+
+inline void feed(HashState &hash_state, unsigned long int value) {
+    feed_integer(hash_state, value);
+}
+
+inline void feed(HashState &hash_state, unsigned long long int value) {
+    feed_integer(hash_state, value);
 }
 
 template<typename T>
