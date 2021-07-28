@@ -325,7 +325,7 @@ public:
         StateIDIterator begin,
         StateIDIterator end,
         const StateID& rid,
-        IgnoreActionsIterator ignore_actions = nullptr)
+        [[maybe_unused]] IgnoreActionsIterator ignore_actions = nullptr)
     {
         unsigned midx = 0;
         unsigned aops_start = 0;
