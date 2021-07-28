@@ -22,7 +22,7 @@ using NewGlobalStateHandler = NewStateHandler<GlobalState>;
 class NewGlobalStateHandlerList : public NewGlobalStateHandler {
 public:
     NewGlobalStateHandlerList(
-        const std::vector<std::shared_ptr<NewGlobalStateHandler>>& handlers);
+        std::vector<std::shared_ptr<NewGlobalStateHandler>> handlers);
     virtual void touch(const GlobalState& s) override;
     virtual void touch_dead_end(const GlobalState& s) override;
     virtual void touch_goal(const GlobalState& s) override;

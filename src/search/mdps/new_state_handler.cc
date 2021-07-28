@@ -5,32 +5,32 @@
 namespace probabilistic {
 
 NewGlobalStateHandlerList::NewGlobalStateHandlerList(
-    const std::vector<std::shared_ptr<NewGlobalStateHandler>>& handlers)
-    : handlers_(handlers)
+    std::vector<std::shared_ptr<NewGlobalStateHandler>> handlers)
+    : handlers_(std::move(handlers))
 {
 }
 
 void
 NewGlobalStateHandlerList::touch(const GlobalState& s)
 {
-    for (unsigned i = 0; i < handlers_.size(); ++i) {
-        handlers_[i]->touch(s);
+    for (auto& handler : handlers_) {
+        handler->touch(s);
     }
 }
 
 void
 NewGlobalStateHandlerList::touch_dead_end(const GlobalState& s)
 {
-    for (unsigned i = 0; i < handlers_.size(); ++i) {
-        handlers_[i]->touch_dead_end(s);
+    for (auto& handler : handlers_) {
+        handler->touch_dead_end(s);
     }
 }
 
 void
 NewGlobalStateHandlerList::touch_goal(const GlobalState& s)
 {
-    for (unsigned i = 0; i < handlers_.size(); ++i) {
-        handlers_[i]->touch_goal(s);
+    for (auto& handler : handlers_) {
+        handler->touch_goal(s);
     }
 }
 
