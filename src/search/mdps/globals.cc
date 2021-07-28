@@ -12,6 +12,7 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -49,29 +50,6 @@ parse_operator_outcome_name(const std::string& name)
     } else {
         return std::make_pair(std::make_pair(1, 1), name);
     }
-}
-
-static int
-gcd(int a, int b)
-{
-    for (;;) {
-        if (a == 0) {
-            return b;
-        }
-        b %= a;
-        if (b == 0) {
-            return a;
-        }
-        a %= b;
-    }
-}
-
-static int
-lcm(int a, int b)
-{
-    int temp = gcd(a, b);
-
-    return temp ? (a / temp * b) : 0;
 }
 
 static void
@@ -162,7 +140,7 @@ create_probabilistic_outcomes(
     result.reserve(global_operator_refs.size());
     int denom = 1;
     for (const unsigned& j : global_operator_refs) {
-        denom = lcm(denom, probabilities[j].second);
+        denom = std::lcm(denom, probabilities[j].second);
     }
     int sum = 0;
     int cost = std::numeric_limits<int>::max();
@@ -175,13 +153,12 @@ create_probabilistic_outcomes(
     }
     assert(sum <= denom);
     if (sum < denom) {
-        g_dummy_outcomes.emplace_back();
-        g_dummy_outcomes.back().set_cost(cost);
-        g_dummy_outcomes.back().set_id(
-            ::g_operators.size() + g_dummy_outcomes.size() - 1);
-        result.emplace_back(
-            &g_dummy_outcomes.back(),
-            value_type::from_fraction(denom - sum, denom));
+        auto& dummy = g_dummy_outcomes.emplace_back();
+        dummy.set_cost(cost);
+        dummy.set_id(::g_operators.size() + g_dummy_outcomes.size() - 1);
+        
+        const auto value = value_type::from_fraction(denom - sum, denom);
+        result.emplace_back(&dummy, value);
         ++dummy_refs;
     }
     return result;
