@@ -19,11 +19,6 @@ struct ProbabilisticOutcome {
     explicit ProbabilisticOutcome(
         const GlobalOperator* op,
         value_type::value_t prob);
-    ProbabilisticOutcome(const ProbabilisticOutcome& other);
-    ProbabilisticOutcome(ProbabilisticOutcome&& other);
-    ~ProbabilisticOutcome();
-    ProbabilisticOutcome& operator=(const ProbabilisticOutcome& other);
-    ProbabilisticOutcome& operator=(ProbabilisticOutcome&& other);
 };
 
 class ProbabilisticOperator {
@@ -32,9 +27,8 @@ public:
 
     ProbabilisticOperator(
         unsigned id,
-        std::string&& name,
-        std::vector<ProbabilisticOutcome>&& outcomes);
-    ~ProbabilisticOperator();
+        std::string name,
+        std::vector<ProbabilisticOutcome> outcomes);
 
     unsigned get_id() const;
     const std::string& get_name() const;

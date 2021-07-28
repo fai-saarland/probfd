@@ -10,31 +10,15 @@ ProbabilisticOutcome::ProbabilisticOutcome(
 {
 }
 
-ProbabilisticOutcome::ProbabilisticOutcome(const ProbabilisticOutcome& other) =
-    default;
-
-ProbabilisticOutcome::ProbabilisticOutcome(ProbabilisticOutcome&& other) =
-    default;
-
-ProbabilisticOutcome::~ProbabilisticOutcome() = default;
-
-ProbabilisticOutcome&
-ProbabilisticOutcome::operator=(const ProbabilisticOutcome& other) = default;
-
-ProbabilisticOutcome&
-ProbabilisticOutcome::operator=(ProbabilisticOutcome&& other) = default;
-
 ProbabilisticOperator::ProbabilisticOperator(
     unsigned id,
-    std::string&& name,
-    std::vector<ProbabilisticOutcome>&& outcomes)
+    std::string name,
+    std::vector<ProbabilisticOutcome> outcomes)
     : id_(id)
     , outcomes_(std::move(outcomes))
     , name_(std::move(name))
 {
 }
-
-ProbabilisticOperator::~ProbabilisticOperator() = default;
 
 unsigned
 ProbabilisticOperator::get_id() const
