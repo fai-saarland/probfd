@@ -33,7 +33,9 @@ construct_generator(const std::vector<const ProbabilisticOperator*>& ops)
     }
     return std::make_shared<
         successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>(
-        g_variable_domain, preconditions, ops);
+        g_variable_domain,
+        preconditions,
+        ops);
 }
 
 CostBasedSuccessorGenerator::CostBasedSuccessorGenerator(
@@ -61,8 +63,7 @@ CostBasedSuccessorGenerator::CostBasedSuccessorGenerator(
     }
 }
 
-void
-CostBasedSuccessorGenerator::operator()(
+void CostBasedSuccessorGenerator::operator()(
     const GlobalState& s,
     std::vector<const ProbabilisticOperator*>& res) const
 {
@@ -86,8 +87,7 @@ ApplicableActionsGenerator<const ProbabilisticOperator*>::
 {
 }
 
-void
-ApplicableActionsGenerator<const ProbabilisticOperator*>::operator()(
+void ApplicableActionsGenerator<const ProbabilisticOperator*>::operator()(
     const StateID& state_id,
     std::vector<const ProbabilisticOperator*>& ops)
 {
@@ -99,13 +99,13 @@ TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     bool enable_caching,
     const std::vector<std::shared_ptr<Heuristic>>& path_dependent_heuristics)
     : TransitionGenerator(
-        g_operators,
-        g_successor_generator.get(),
-        g_step_var,
-        g_step_cost_type,
-        state_registry,
-        enable_caching,
-        path_dependent_heuristics)
+          g_operators,
+          g_successor_generator.get(),
+          g_step_var,
+          g_step_cost_type,
+          state_registry,
+          enable_caching,
+          path_dependent_heuristics)
 {
 }
 
@@ -135,8 +135,7 @@ TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     }
 }
 
-void
-TransitionGenerator<const ProbabilisticOperator*>::generate_applicable_ops(
+void TransitionGenerator<const ProbabilisticOperator*>::generate_applicable_ops(
     const StateID& state_id,
     std::vector<const ProbabilisticOperator*>& result)
 {
@@ -165,8 +164,7 @@ TransitionGenerator<const ProbabilisticOperator*>::generate_applicable_ops(
     statistics_.generated_operators += result.size();
 }
 
-void
-TransitionGenerator<const ProbabilisticOperator*>::operator()(
+void TransitionGenerator<const ProbabilisticOperator*>::operator()(
     const StateID& state_id,
     const ProbabilisticOperator* const& action,
     Distribution<StateID>& result)
@@ -213,8 +211,7 @@ TransitionGenerator<const ProbabilisticOperator*>::operator()(
     statistics_.generated_states += result.size();
 }
 
-void
-TransitionGenerator<const ProbabilisticOperator*>::operator()(
+void TransitionGenerator<const ProbabilisticOperator*>::operator()(
     const StateID& state_id,
     std::vector<const ProbabilisticOperator*>& aops,
     std::vector<Distribution<StateID>>& successors)
@@ -264,11 +261,11 @@ TransitionGenerator<const ProbabilisticOperator*>::operator()(
     statistics_.generated_operators += aops.size();
 }
 
-void
-TransitionGenerator<const ProbabilisticOperator*>::compute_successor_states(
-    const GlobalState& state,
-    const ProbabilisticOperator* op,
-    std::vector<std::pair<StateID, value_type::value_t>>& succs)
+void TransitionGenerator<const ProbabilisticOperator*>::
+    compute_successor_states(
+        const GlobalState& state,
+        const ProbabilisticOperator* op,
+        std::vector<std::pair<StateID, value_type::value_t>>& succs)
 {
     succs.reserve(op->num_outcomes());
     if (budget_var_ >= 0) {
@@ -285,7 +282,10 @@ TransitionGenerator<const ProbabilisticOperator*>::compute_successor_states(
             GlobalState succ = state_registry_->make_permanent();
 #else
             GlobalState succ = state_registry_->get_successor_state(
-                state, det_op, budget_var_, newb);
+                state,
+                det_op,
+                budget_var_,
+                newb);
 #endif
             for (int j = notify_.size() - 1; j >= 0; j--) {
                 notify_[j]->reach_state(state, det_op, succ);
@@ -308,10 +308,10 @@ TransitionGenerator<const ProbabilisticOperator*>::compute_successor_states(
     statistics_.computed_states += succs.size();
 }
 
-void
-TransitionGenerator<const ProbabilisticOperator*>::compute_applicable_operators(
-    const GlobalState& s,
-    std::vector<const ProbabilisticOperator*>& ops)
+void TransitionGenerator<const ProbabilisticOperator*>::
+    compute_applicable_operators(
+        const GlobalState& s,
+        std::vector<const ProbabilisticOperator*>& ops)
 {
 #if 0
     aops_gen_->generate_applicable_ops(s, ops);
@@ -332,8 +332,7 @@ TransitionGenerator<const ProbabilisticOperator*>::compute_applicable_operators(
     statistics_.computed_operators += ops.size();
 }
 
-bool
-TransitionGenerator<const ProbabilisticOperator*>::setup_cache(
+bool TransitionGenerator<const ProbabilisticOperator*>::setup_cache(
     const StateID& state_id,
     CacheEntry& entry)
 {
@@ -389,8 +388,7 @@ TransitionGenerator<const ProbabilisticOperator*>::lookup(
     return entry;
 }
 
-void
-TransitionGenerator<const ProbabilisticOperator*>::print_statistics(
+void TransitionGenerator<const ProbabilisticOperator*>::print_statistics(
     std::ostream& out) const
 {
     statistics_.print(out);
@@ -398,8 +396,7 @@ TransitionGenerator<const ProbabilisticOperator*>::print_statistics(
         << std::endl;
 }
 
-void
-TransitionGenerator<const ProbabilisticOperator*>::Statistics::print(
+void TransitionGenerator<const ProbabilisticOperator*>::Statistics::print(
     std::ostream& out) const
 {
     out << logging::whitespace(2)

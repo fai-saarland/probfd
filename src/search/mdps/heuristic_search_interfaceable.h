@@ -3,8 +3,8 @@
 #include "engine_interfaces/heuristic_search_connector.h"
 #include "engine_interfaces/policy_picker.h"
 
-#include "state_id_map.h"
 #include "action_id_map.h"
+#include "state_id_map.h"
 
 #include "probabilistic_operator.h"
 
@@ -23,10 +23,10 @@ public:
         StateIDMap<GlobalState>* state_id_map,
         ActionIDMap<const ProbabilisticOperator*>* op_id_map);
 
-    virtual void print_statistics(std::ostream&) const { }
+    virtual void print_statistics(std::ostream&) const {}
 
 protected:
-    virtual void initialize() { }
+    virtual void initialize() {}
 
     GlobalState lookup_state(const StateID& state_id) const;
 
@@ -55,9 +55,9 @@ protected:
 
     ActionID lookup_policy(const StateID& state_id) const
     {
-        return reinterpret_cast<
-            const engines::heuristic_search::StatesPolicy<std::true_type>*>(
-            connector_->lookup(state_id))->get_policy();
+        return reinterpret_cast<const engines::heuristic_search::StatesPolicy<
+            std::true_type>*>(connector_->lookup(state_id))
+            ->get_policy();
     }
 
 private:
@@ -67,4 +67,3 @@ private:
 };
 
 } // namespace probabilistic
-

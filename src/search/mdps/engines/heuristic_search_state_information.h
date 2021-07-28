@@ -12,14 +12,14 @@ namespace probabilistic {
 namespace engines {
 namespace heuristic_search {
 
-template<typename StoresPolicyT = std::false_type>
+template <typename StoresPolicyT = std::false_type>
 struct StatesPolicy {
     using StoresPolicy = std::false_type;
-    void set_policy(const ActionID&) const { }
+    void set_policy(const ActionID&) const {}
     ActionID get_policy() const { return ActionID::undefined; }
 };
 
-template<>
+template <>
 struct StatesPolicy<std::true_type> {
     using StoresPolicy = std::true_type;
 
@@ -60,22 +60,19 @@ struct StateFlags {
 
     inline void set_goal()
     {
-        assert(
-            !is_value_initialized());
+        assert(!is_value_initialized());
         info = (info & ~MASK) | GOAL;
     }
 
     inline void set_on_fringe()
     {
-        assert(
-            !is_value_initialized());
-            info = (info & ~MASK) | FRINGE;
+        assert(!is_value_initialized());
+        info = (info & ~MASK) | FRINGE;
     }
 
     inline void set_dead_end()
     {
-        assert(!is_goal_state()
-            && !is_recognized_dead_end());
+        assert(!is_goal_state() && !is_recognized_dead_end());
         info = (info & ~MASK) | DEAD;
     }
 
@@ -102,10 +99,10 @@ struct StateFlags {
     uint8_t info = 0;
 };
 
-template<typename StoresPolicyT, typename TwoValuesT>
-struct PerStateBaseInformation : public StatesPolicy<StoresPolicyT>,
-                                 public StateFlags
-{
+template <typename StoresPolicyT, typename TwoValuesT>
+struct PerStateBaseInformation
+    : public StatesPolicy<StoresPolicyT>
+    , public StateFlags {
     using StatesPolicy<StoresPolicyT>::StoresPolicy;
     using DualBounds = TwoValuesT;
 

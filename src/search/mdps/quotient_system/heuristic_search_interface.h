@@ -9,7 +9,7 @@
 namespace probabilistic {
 namespace quotient_system {
 
-template<typename State, typename Action, typename Passthrough>
+template <typename State, typename Action, typename Passthrough>
 struct DeadEndListener {
     using is_default_implementation = std::true_type;
 
@@ -23,7 +23,7 @@ struct DeadEndListener {
     }
 };
 
-template<typename Action, typename Passthrough>
+template <typename Action, typename Passthrough>
 struct OpenList : public probabilistic::OpenList<Action> {
     using probabilistic::OpenList<Action>::OpenList;
 
@@ -37,7 +37,7 @@ struct OpenList : public probabilistic::OpenList<Action> {
     }
 };
 
-template<typename Action, typename Passthrough>
+template <typename Action, typename Passthrough>
 struct PolicyPicker {
     using is_default_implementation = std::true_type;
 
@@ -51,7 +51,7 @@ struct PolicyPicker {
     }
 };
 
-template<typename Action, typename Passthrough>
+template <typename Action, typename Passthrough>
 struct TransitionSampler {
     using is_default_implementation = std::true_type;
 
@@ -65,7 +65,7 @@ struct TransitionSampler {
     }
 };
 
-template<typename State, typename Action>
+template <typename State, typename Action>
 class DeadEndListener<State, Action, std::false_type> {
 public:
     explicit DeadEndListener(
@@ -110,7 +110,7 @@ public:
     std::deque<StateID> component_;
 };
 
-template<typename Action>
+template <typename Action>
 class PolicyPicker<Action, std::false_type> {
 public:
     explicit PolicyPicker(
@@ -147,7 +147,7 @@ public:
     probabilistic::PolicyPicker<Action>* original_;
 };
 
-template<typename Action>
+template <typename Action>
 class TransitionSampler<Action, std::false_type> {
 public:
     explicit TransitionSampler(
@@ -173,7 +173,7 @@ public:
     probabilistic::TransitionSampler<Action>* original_;
 };
 
-template<typename Action>
+template <typename Action>
 class OpenList<Action, std::false_type> {
 public:
     explicit OpenList(
@@ -213,50 +213,46 @@ public:
 } // namespace quotient_system
 
 template <typename State, typename Action>
-using DeadEndListenerBase =
-    quotient_system::DeadEndListener<
-        State,
-        Action,
-        typename is_default_implementation<
-            DeadEndListener<State, Action>>::type>;
+using DeadEndListenerBase = quotient_system::DeadEndListener<
+    State,
+    Action,
+    typename is_default_implementation<DeadEndListener<State, Action>>::type>;
 
-template<typename State, typename Action>
+template <typename State, typename Action>
 struct DeadEndListener<State, quotient_system::QuotientAction<Action>>
     : public DeadEndListenerBase<State, Action> {
     using DeadEndListenerBase<State, Action>::DeadEndListener;
 };
 
 template <typename Action>
-using PolicyPickerBase =
-    quotient_system::PolicyPicker<
-        Action,
-        typename is_default_implementation<probabilistic::PolicyPicker<Action>>::type>;
+using PolicyPickerBase = quotient_system::PolicyPicker<
+    Action,
+    typename is_default_implementation<
+        probabilistic::PolicyPicker<Action>>::type>;
 
-template<typename Action>
+template <typename Action>
 struct PolicyPicker<quotient_system::QuotientAction<Action>>
-    : public PolicyPickerBase<Action> {        
+    : public PolicyPickerBase<Action> {
     using PolicyPickerBase<Action>::PolicyPicker;
 };
 
-template<typename Action>
-using TransitionSamplerBase =
-    quotient_system::TransitionSampler<
-        Action,
-        typename is_default_implementation<TransitionSampler<Action>>::type>;
+template <typename Action>
+using TransitionSamplerBase = quotient_system::TransitionSampler<
+    Action,
+    typename is_default_implementation<TransitionSampler<Action>>::type>;
 
-template<typename Action>
+template <typename Action>
 struct TransitionSampler<quotient_system::QuotientAction<Action>>
     : public TransitionSamplerBase<Action> {
     using TransitionSamplerBase<Action>::TransitionSampler;
 };
 
-template<typename Action>
-using OpenListBase =
-    quotient_system::OpenList<
-        Action,
-        typename is_default_implementation<OpenList<Action>>::type>;
+template <typename Action>
+using OpenListBase = quotient_system::OpenList<
+    Action,
+    typename is_default_implementation<OpenList<Action>>::type>;
 
-template<typename Action>
+template <typename Action>
 struct OpenList<quotient_system::QuotientAction<Action>>
     : public OpenListBase<Action> {
     using OpenListBase<Action>::OpenList;

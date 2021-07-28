@@ -1,8 +1,8 @@
 #pragma once
 
-#include "pattern_collection_information.h"
-#include "../../types.h"
 #include "../../../../../utils/printable.h"
+#include "../../types.h"
+#include "pattern_collection_information.h"
 
 #include "../../../../../operator_cost.h"
 
@@ -20,11 +20,12 @@ public:
 
     virtual PatternCollectionInformation generate(OperatorCost cost_type) = 0;
 
-    virtual std::shared_ptr<utils::Printable> get_report() const {
+    virtual std::shared_ptr<utils::Printable> get_report() const
+    {
         return nullptr;
     };
 };
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace probabilistic

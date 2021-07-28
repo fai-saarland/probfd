@@ -37,18 +37,19 @@ struct IntervalValue {
     friend IntervalValue
     operator/(const IntervalValue& rhs, value_type::value_t val);
 
-    friend int
-    compare(const IntervalValue& lhs, const IntervalValue& rhs);
+    friend int compare(const IntervalValue& lhs, const IntervalValue& rhs);
 
-    friend bool
-    update(IntervalValue& lhs, const IntervalValue& rhs);
+    friend bool update(IntervalValue& lhs, const IntervalValue& rhs);
 
     friend bool
     update(IntervalValue& lhs, const IntervalValue& rhs, bool ign_upper);
 
     double error_bound() const { return upper - lower; }
 
-    bool bounds_equal() const { return value_type::approx_equal()(lower, upper); }
+    bool bounds_equal() const
+    {
+        return value_type::approx_equal()(lower, upper);
+    }
 
     friend bool operator==(const IntervalValue& lhs, const IntervalValue& rhs);
 };
@@ -94,16 +95,16 @@ struct SingleValue {
 };
 */
 
-template<typename Dual>
-using IncumbentSolution = std::conditional_t<
-    Dual::value,
-    IntervalValue,
-    value_type::value_t>;
+template <typename Dual>
+using IncumbentSolution =
+    std::conditional_t<Dual::value, IntervalValue, value_type::value_t>;
 
 // Comparisons
 
 int compare(const IntervalValue& value0, const IntervalValue& value1);
-int compare(const value_type::value_t& value0, const value_type::value_t& value1);
+int compare(
+    const value_type::value_t& value0,
+    const value_type::value_t& value1);
 
 // Value update (old)
 

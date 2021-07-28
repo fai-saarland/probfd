@@ -12,14 +12,12 @@ VDiffSuccessorSampler::VDiffSuccessorSampler(const options::Options& opts)
 {
 }
 
-void
-VDiffSuccessorSampler::add_options_to_parser(options::OptionParser& parser)
+void VDiffSuccessorSampler::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<bool>("prefer_large_gaps", "", "true");
 }
 
-StateID
-VDiffSuccessorSampler::sample(
+StateID VDiffSuccessorSampler::sample(
     const StateID&,
     const ProbabilisticOperator*,
     const Distribution<StateID>& successors)
@@ -29,8 +27,9 @@ VDiffSuccessorSampler::sample(
     for (auto it = successors.begin(); it != successors.end(); ++it) {
         const value_type::value_t error =
             lookup_dual_bounds(it->first)->error_bound();
-        const value_type::value_t p = it->second
-            * (prefer_large_gaps_ ? error : (value_type::one - error));
+        const value_type::value_t p =
+            it->second *
+            (prefer_large_gaps_ ? error : (value_type::one - error));
         if (p > value_type::zero) {
             sum += p;
             biased_.add(it->first, p);

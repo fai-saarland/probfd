@@ -9,19 +9,20 @@
 
 namespace probabilistic {
 
-unsigned
-StateIDMap<pdbs::AbstractState>::size() const
+unsigned StateIDMap<pdbs::AbstractState>::size() const
 {
     return seen.size();
 }
 
 StateIDMap<pdbs::AbstractState>::seen_iterator
-StateIDMap<pdbs::AbstractState>::seen_begin() const {
+StateIDMap<pdbs::AbstractState>::seen_begin() const
+{
     return seen.cbegin();
 }
 
 StateIDMap<pdbs::AbstractState>::seen_iterator
-StateIDMap<pdbs::AbstractState>::seen_end() const {
+StateIDMap<pdbs::AbstractState>::seen_end() const
+{
     return seen.cend();
 }
 
@@ -44,8 +45,7 @@ ActionIDMap<const pdbs::AbstractOperator*>::ActionIDMap(
 {
 }
 
-ActionID
-ActionIDMap<const pdbs::AbstractOperator*>::get_action_id(
+ActionID ActionIDMap<const pdbs::AbstractOperator*>::get_action_id(
     const StateID&,
     const pdbs::AbstractOperator* op) const
 {
@@ -73,8 +73,7 @@ ApplicableActionsGenerator<const pdbs::AbstractOperator*>::
 {
 }
 
-void
-ApplicableActionsGenerator<const pdbs::AbstractOperator*>::operator()(
+void ApplicableActionsGenerator<const pdbs::AbstractOperator*>::operator()(
     const StateID& sid,
     std::vector<const pdbs::AbstractOperator*>& aops)
 {
@@ -96,8 +95,7 @@ TransitionGenerator<const pdbs::AbstractOperator*>::TransitionGenerator(
 {
 }
 
-void
-TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
+void TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
     const StateID& state,
     const pdbs::AbstractOperator* op,
     Distribution<StateID>& result)
@@ -109,8 +107,7 @@ TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
     }
 }
 
-void
-TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
+void TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
     const StateID& state,
     std::vector<const pdbs::AbstractOperator*>& aops,
     std::vector<Distribution<StateID>>& result)
@@ -145,7 +142,8 @@ AbstractStateDeadendStoreEvaluator::evaluate(const AbstractState& state)
 {
     const bool is_contained = states_->get(state);
     return EvaluationResult(
-        is_contained, is_contained ? value_in_ : value_not_in_);
+        is_contained,
+        is_contained ? value_in_ : value_not_in_);
 }
 
 AbstractStateInStoreRewardFunction::AbstractStateInStoreRewardFunction(
@@ -163,7 +161,8 @@ AbstractStateInStoreRewardFunction::evaluate(const AbstractState& state)
 {
     const bool is_contained = states_->get(state);
     return EvaluationResult(
-        is_contained, is_contained ? value_in_ : value_not_in_);
+        is_contained,
+        is_contained ? value_in_ : value_not_in_);
 }
 
 AbstractStateInSetRewardFunction::AbstractStateInSetRewardFunction(
@@ -181,7 +180,8 @@ AbstractStateInSetRewardFunction::evaluate(const AbstractState& state)
 {
     const bool is_contained = states_->find(state) != states_->end();
     return EvaluationResult(
-        is_contained, is_contained ? value_in_ : value_not_in_);
+        is_contained,
+        is_contained ? value_in_ : value_not_in_);
 }
 
 PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
@@ -189,8 +189,7 @@ PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 {
 }
 
-EvaluationResult
-PDBEvaluator::evaluate(const AbstractState& state)
+EvaluationResult PDBEvaluator::evaluate(const AbstractState& state)
 {
     int deterministic_val = pdb.get_value_for_index(state.id);
 
@@ -200,7 +199,7 @@ PDBEvaluator::evaluate(const AbstractState& state)
 }
 
 ExpCostPDBEvaluator::ExpCostPDBEvaluator(
-    const ExpCostProjection& pdb, 
+    const ExpCostProjection& pdb,
     const AbstractStateMapper* mapper,
     int add_var)
     : pdb(pdb)
@@ -213,8 +212,7 @@ ExpCostPDBEvaluator::ExpCostPDBEvaluator(
     this->right_multiplier = mapper->get_multiplier_raw(idx + 1);
 }
 
-EvaluationResult
-ExpCostPDBEvaluator::evaluate(const AbstractState& state)
+EvaluationResult ExpCostPDBEvaluator::evaluate(const AbstractState& state)
 {
     value_type::value_t val = pdb.lookup(to_parent_state(state));
     return EvaluationResult(val == -value_type::inf, val);

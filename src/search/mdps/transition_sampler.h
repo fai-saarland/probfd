@@ -7,7 +7,7 @@
 #include <utility>
 
 namespace probabilistic {
-template<>
+template <>
 class TransitionSampler<const ProbabilisticOperator*>
     : public HeuristicSearchInterfaceable {
 public:

@@ -66,7 +66,7 @@ struct EmptyStateInfo {
     uint8_t info;
 };
 
-template<typename StateInfo>
+template <typename StateInfo>
 struct PerStateInformation : public StateInfo {
     static constexpr const uint8_t MARKED_OPEN = (1 << StateInfo::BITS);
     // static constexpr const uint8_t MARKED_TRIAL = (2 << StateInfo::BITS);
@@ -98,7 +98,7 @@ struct PerStateInformation : public StateInfo {
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
 };
 
-template<
+template <
     typename HeuristicSearchBase,
     typename StateInfoT = typename HeuristicSearchBase::StateInfo>
 class LRTDP : public HeuristicSearchBase {
@@ -107,7 +107,7 @@ public:
     using Action = typename HeuristicSearchBase::Action;
     using DualBounds = typename HeuristicSearchBase::DualBounds;
 
-    template<typename... Args>
+    template <typename... Args>
     LRTDP(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
@@ -130,24 +130,24 @@ public:
         TrialTerminationCondition stop_consistent,
         TransitionSampler<Action>* succ_sampler)
         : HeuristicSearchBase(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator,
-            level,
-            dead_end_eval,
-            dead_end_listener,
-            policy_chooser,
-            new_state_handler,
-            value_init,
-            connector,
-            report,
-            interval_comparison,
-            stable_policy)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator,
+              level,
+              dead_end_eval,
+              dead_end_listener,
+              policy_chooser,
+              new_state_handler,
+              value_init,
+              connector,
+              report,
+              interval_comparison,
+              stable_policy)
         , StopConsistent(stop_consistent)
         , state_infos_(nullptr)
         , sample_(succ_sampler)
@@ -230,8 +230,7 @@ private:
                 return !lrtdp_->state_status_(state_id, lrtdp_info)
                             .is_value_initialized();
             }
-            default:
-                break;
+            default: break;
             }
             // std::cout << "expand" << std::endl;
             return false;
@@ -257,7 +256,9 @@ private:
             }
             this->statistics_.trial_bellman_backups++;
             const bool value_changed = this->async_update(
-                state_id, nullptr, &this->selected_transition_);
+                state_id,
+                nullptr,
+                &this->selected_transition_);
             if (this->selected_transition_.empty()) {
                 // terminal
                 assert(this->state_status_(state_id, state_info).is_terminal());
@@ -268,8 +269,10 @@ private:
             }
             // state_info.mark_trial();
             assert(!this->state_status_(state_id, state_info).is_terminal());
-            if ((StopConsistent == TrialTerminationCondition::Consistent && !value_changed) 
-                || (StopConsistent == TrialTerminationCondition::Inconsistent && value_changed)) {
+            if ((StopConsistent == TrialTerminationCondition::Consistent &&
+                 !value_changed) ||
+                (StopConsistent == TrialTerminationCondition::Inconsistent &&
+                 value_changed)) {
                 this->selected_transition_.clear();
                 break;
             }
@@ -284,8 +287,8 @@ private:
         while (!this->current_trial_.empty()) {
             bool solved = this->check_and_solve();
             this->current_trial_.pop_back();
-            if (this->last_check_and_solve_was_dead_
-                && !this->current_trial_.empty()) {
+            if (this->last_check_and_solve_was_dead_ &&
+                !this->current_trial_.empty()) {
                 do {
                     if (this->check_dead_end(this->current_trial_.back())) {
                         solved = false;
@@ -315,7 +318,7 @@ private:
         bool mark_solved = true;
         bool epsilon_consistent = true;
         bool all_dead = true;
-        //this->last_check_and_solve_was_dead_
+        // this->last_check_and_solve_was_dead_
         //    && (!StopConsistent
         //        || this->has_dead_end_value(this->current_trial_.back()));
         bool any_dead = false;
@@ -362,7 +365,9 @@ private:
                     elem.first = true;
                     this->statistics_.check_and_solve_bellman_backups++;
                     const bool value_changed = this->async_update(
-                        elem.second, nullptr, &this->selected_transition_);
+                        elem.second,
+                        nullptr,
+                        &this->selected_transition_);
                     if (value_changed) {
                         epsilon_consistent = false;
                         CAS_DEBUG_PRINT(
@@ -375,7 +380,8 @@ private:
                             assert(
                                 this->state_status_(elem.second).is_terminal());
                             if (this->check_goal_or_mark_dead_end(
-                                    elem.second, info)) {
+                                    elem.second,
+                                    info)) {
                                 all_dead = false;
                             } else {
                                 any_dead = true;
@@ -397,9 +403,8 @@ private:
                                  ++succ) {
                                 CAS_DEBUG_PRINT(
                                     std::cout
-                                        << (succ
-                                                    != this->selected_transition_
-                                                           .begin()
+                                        << (succ != this->selected_transition_
+                                                        .begin()
                                                 ? ", "
                                                 : "")
                                         << succ->first << " ("
@@ -407,7 +412,8 @@ private:
                                                .value
                                         << ")";)
                                 this->policy_queue_.emplace_back(
-                                    false, succ->first);
+                                    false,
+                                    succ->first);
                             }
                             CAS_DEBUG_PRINT(std::cout << "]" << std::endl;)
                         }
@@ -417,8 +423,8 @@ private:
             }
         }
 
-        if (epsilon_consistent && all_dead && any_dead
-            && this->is_dead_end_learning_enabled()) {
+        if (epsilon_consistent && all_dead && any_dead &&
+            this->is_dead_end_learning_enabled()) {
             this->last_check_and_solve_was_dead_ = true;
             for (auto it = this->visited_.begin(); it != this->visited_.end();
                  ++it) {
@@ -476,7 +482,9 @@ private:
             }
             this->statistics_.check_and_solve_bellman_backups++;
             const bool value_changed = this->async_update(
-                stateid, nullptr, &this->selected_transition_);
+                stateid,
+                nullptr,
+                &this->selected_transition_);
             if (value_changed) {
                 rv = false;
             } else if (rv || true) {
@@ -487,8 +495,8 @@ private:
                         const StateID succid = it->first;
                         auto& succ_info =
                             this->state_infos_->operator[](succid);
-                        if (!succ_info.is_solved()
-                            && !succ_info.is_marked_open()) {
+                        if (!succ_info.is_solved() &&
+                            !succ_info.is_marked_open()) {
                             succ_info.mark_open();
                             this->policy_queue_.emplace_back(false, it->first);
                         }
@@ -541,7 +549,7 @@ private:
         statistics_.state_info_bytes = sizeof(StateInfoT);
     }
 
-    void cleanup_state_info_store(std::true_type) { }
+    void cleanup_state_info_store(std::true_type) {}
 
     void cleanup_state_info_store(std::false_type) { delete (state_infos_); }
 
@@ -565,20 +573,20 @@ private:
 } // namespace internal
 
 /**
- * @brief Template base of labelled real-time dynamic programming (LRTDP) 
+ * @brief Template base of labelled real-time dynamic programming (LRTDP)
  * \cite bonet:geffner:icaps-03 with integrated FRET support.
  */
-template<typename State, typename Action, typename B2, typename Fret>
+template <typename State, typename Action, typename B2, typename Fret>
 class LRTDP;
 
 /**
  * @brief Implementation of LRTDP with FRET disabled.
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
  * @tparam B2 - Whether bounded value iteration is used.
  */
-template<typename State, typename Action, typename B2>
+template <typename State, typename Action, typename B2>
 struct LRTDP<State, Action, B2, std::false_type>
     : public internal::LRTDP<heuristic_search::HeuristicSearchBase<
           State,
@@ -596,12 +604,12 @@ struct LRTDP<State, Action, B2, std::false_type>
 
 /**
  * @brief Implementation of LRTDP with FRET enabled.
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
  * @tparam B2 - Whether bounded value iteration is used.
  */
-template<typename State, typename Action, typename B2>
+template <typename State, typename Action, typename B2>
 struct LRTDP<State, Action, B2, std::true_type>
     : public internal::LRTDP<
           heuristic_search::

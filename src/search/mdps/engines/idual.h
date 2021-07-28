@@ -98,11 +98,11 @@ private:
 
 /**
  * @brief Implementation of the I-Dual algorithm \cite trevizan:etal:ijcai-17 .
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
  */
-template<typename State, typename Action>
+template <typename State, typename Action>
 class IDual : public MDPEngine<State, Action> {
 public:
     explicit IDual(
@@ -118,14 +118,14 @@ public:
         StateEvaluator<State>* value_initializer,
         ProgressReport* report)
         : MDPEngine<State, Action>(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator)
         , report_(report)
         , value_initializer_(value_initializer)
         , dead_end_value_(this->get_minimal_reward())
@@ -157,8 +157,8 @@ public:
             lp::LPVariable var((value_type::value_t)eval, inf, 1.0);
             lp_solver_.load_problem(
                 lp::LPObjectiveSense::MINIMIZE,
-                std::vector<lp::LPVariable>({ var }),
-                std::vector<lp::LPConstraint>({ lp::LPConstraint(-inf, inf) }));
+                std::vector<lp::LPVariable>({var}),
+                std::vector<lp::LPConstraint>({lp::LPConstraint(-inf, inf)}));
             prev_state = this->get_state_id(initial_state);
             PerStateInfo& info = state_infos_[prev_state];
             info.idx = next_var_id;
@@ -187,23 +187,26 @@ public:
                 assert(state_infos_[state_id].status == PerStateInfo::CLOSED);
                 if (rew) {
                     lp_solver_.set_variable_lower_bound(
-                        var_id, (value_type::value_t)rew);
+                        var_id,
+                        (value_type::value_t)rew);
                 } else {
                     lp_solver_.set_variable_lower_bound(
-                        var_id, dead_end_value_);
+                        var_id,
+                        dead_end_value_);
                     this->generate_all_successors(state_id, aops, transitions);
                     for (unsigned j = 0; j < transitions.size(); ++j) {
                         Distribution<StateID>& transition = transitions[j];
                         transition.make_unique();
-                        if (transition.size() == 1
-                            && transition.begin()->first == state_id) {
+                        if (transition.size() == 1 &&
+                            transition.begin()->first == state_id) {
                             continue;
                         }
 
                         lp::LPConstraint c(-inf, inf);
 
-                        double base_val = (value_type::value_t)rew
-                            + this->get_action_reward(state_id, aops[j]);
+                        double base_val =
+                            (value_type::value_t)rew +
+                            this->get_action_reward(state_id, aops[j]);
                         StateID next_prev_state = prev_state;
                         double w = 1.0;
 
@@ -224,8 +227,8 @@ public:
                                     succ_info.status = PerStateInfo::TERMINAL;
                                     succ_info.idx = terminals_.get_id(
                                         (value_type::value_t)eval);
-                                    base_val += it->second
-                                        * ((value_type::value_t)eval);
+                                    base_val += it->second *
+                                                ((value_type::value_t)eval);
                                 } else {
                                     lp_solver_.add_variable(
                                         lp::LPVariable(
@@ -307,7 +310,7 @@ public:
         statistics_.open = open_states.size();
     }
 
-    virtual value_type::value_t get_result(const State& ) override
+    virtual value_type::value_t get_result(const State&) override
     {
         return objective_;
     }
@@ -329,4 +332,3 @@ private:
 } // namespace idual
 } // namespace engines
 } // namespace probabilistic
-

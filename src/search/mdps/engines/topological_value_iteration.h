@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../storage/per_state_storage.h"
-#include "engine.h"
 #include "../value_utils.h"
+#include "engine.h"
 
 #include <deque>
 #include <iostream>
@@ -43,7 +43,8 @@ struct Statistics {
     unsigned long long pruned = 0;
 };
 
-inline bool bounds_equal(const value_type::value_t&) { 
+inline bool bounds_equal(const value_type::value_t&)
+{
     return true;
 }
 
@@ -52,10 +53,12 @@ inline bool bounds_equal(const value_utils::IntervalValue& v)
     return value_type::approx_equal()(v.lower, v.upper);
 }
 
-template<typename T>
-using ValueStore = storage::PersistentPerStateStorage<value_utils::IncumbentSolution<T>>;
+template <typename T>
+using ValueStore =
+    storage::PersistentPerStateStorage<value_utils::IncumbentSolution<T>>;
 
-inline bool contains(void*, const StateID&) {
+inline bool contains(void*, const StateID&)
+{
     return false;
 }
 
@@ -66,16 +69,16 @@ inline bool contains(storage::PerStateStorage<bool>* store, const StateID& s)
 
 /**
  * @brief Implements topological value iteration \cite dai:etal:jair-11 .
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam ExpandGoalStates - Whether the algorithm should expand goal states 
+ * @tparam ExpandGoalStates - Whether the algorithm should expand goal states
  * or treat them as terminal.
  * @tparam Interval - Whether bounded value iteration is used.
  * @tparam ZeroStates - Storage type for dead-end states??
  * @tparam OneStates - Storage type for probability one states??
  */
-template<
+template <
     typename State,
     typename Action,
     bool ExpandGoalStates = false,
@@ -103,14 +106,14 @@ public:
         StateEvaluator<State>* value_initializer,
         OneStates* one_states = static_cast<OneStates*>(nullptr))
         : MDPEngine<State, Action>(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator)
         , value_initializer_(value_initializer)
         , one_states_(one_states)
         , dead_end_value_(this->get_minimal_reward())
@@ -134,7 +137,8 @@ public:
 
     virtual value_type::value_t get_result(const State& s) override
     {
-        return value_utils::as_upper_bound(value_store_->operator[](this->get_state_id(s)));
+        return value_utils::as_upper_bound(
+            value_store_->operator[](this->get_state_id(s)));
     }
 
     virtual void print_statistics(std::ostream& out) const override
@@ -144,9 +148,11 @@ public:
 
     Statistics get_statistics() const { return statistics_; }
 
-    template<typename VS, typename BoolStore = NoStore>
-    value_type::value_t
-    solve(const State& initial_state, VS& value_store, BoolStore* dead_end_store = nullptr)
+    template <typename VS, typename BoolStore = NoStore>
+    value_type::value_t solve(
+        const State& initial_state,
+        VS& value_store,
+        BoolStore* dead_end_store = nullptr)
     {
         return value_iteration(initial_state, value_store, dead_end_store);
     }
@@ -228,7 +234,7 @@ private:
     };
 
     struct BellmanBackupInfo {
-        template<typename T>
+        template <typename T>
         BellmanBackupInfo(T base)
             : has_self_loop(false)
             , self_loop_prob(value_type::zero)
@@ -239,7 +245,8 @@ private:
         bool finalize()
         {
             if (has_self_loop) {
-                self_loop_prob = (value_type::one / (value_type::one - self_loop_prob));
+                self_loop_prob =
+                    (value_type::one / (value_type::one - self_loop_prob));
 
                 if (successors.empty()) {
                     base *= self_loop_prob;
@@ -254,7 +261,7 @@ private:
             ValueT res = base;
 
             for (auto& [prob, value] : successors) {
-                res +=  prob * (*value);
+                res += prob * (*value);
             }
 
             if (has_self_loop) {
@@ -301,7 +308,7 @@ private:
         std::vector<BellmanBackupInfo> infos;
     };
 
-    template<typename ValueStore, typename BoolStore>
+    template <typename ValueStore, typename BoolStore>
     bool push_state(
         StateID state_id,
         StateInfo& state_info,
@@ -309,7 +316,7 @@ private:
         BoolStore* dead_end_store)
     {
         assert(state_info.status == StateInfo::NEW);
-        
+
         state_info.index = state_info.lowlink = index_++;
         state_info.status = StateInfo::ONSTACK;
 
@@ -339,7 +346,7 @@ private:
             }
         } else {
             auto estimate = value_initializer_->operator()(state);
-            
+
             if (estimate) {
                 state_value = dead_end_value_;
                 ++statistics_.pruned;
@@ -351,8 +358,7 @@ private:
                     state_value = dead_end_value_;
                 } else {
                     if constexpr (Interval::value) {
-                        state_value.lower =
-                            this->get_minimal_reward();
+                        state_value.lower = this->get_minimal_reward();
                         state_value.upper =
                             static_cast<value_type::value_t>(estimate);
                     } else {
@@ -400,7 +406,10 @@ private:
         const auto state_reward = static_cast<value_type::value_t>(state_eval);
 
         ExplorationInfo& einfo = exploration_stack_.emplace_back(
-            state_id, state_reward, stack_.size(), std::move(aops));
+            state_id,
+            state_reward,
+            stack_.size(),
+            std::move(aops));
 
         const Action* action = einfo.advance_non_loop_action(this, state_id);
 
@@ -437,12 +446,12 @@ private:
         return true;
     }
 
-    template<typename ValueStore, typename BoolStore>
+    template <typename ValueStore, typename BoolStore>
     value_type::value_t value_iteration(
         const State& initial_state,
         ValueStore& value_store,
         BoolStore* dead_end_store)
-    {        
+    {
         const StateID init_state_id = this->get_state_id(initial_state);
         StateInfo& iinfo = state_information_[init_state_id];
 
@@ -463,20 +472,29 @@ private:
             StateInfo& state_info = state_information_[state];
 
             assert(state == stack_info.state_id);
-            assert((state_info.status == StateInfo::ONSTACK) ||
+            assert(
+                (state_info.status == StateInfo::ONSTACK) ||
                 (ExpandGoalStates && state_info.status == StateInfo::TERMINAL));
 
             if (backtracked_state_info_ != nullptr) {
-                state_info.lowlink = std::min(state_info.lowlink, backtracked_state_info_->lowlink);
-                state_info.dead = state_info.dead && backtracked_state_info_->dead;
+                state_info.lowlink = std::min(
+                    state_info.lowlink,
+                    backtracked_state_info_->lowlink);
+                state_info.dead =
+                    state_info.dead && backtracked_state_info_->dead;
                 backtracked_state_info_ = nullptr;
             }
 
             bool recurse = successor_loop(
-                explore, stack_info, state_info, state, value_store, dead_end_store);
+                explore,
+                stack_info,
+                state_info,
+                state,
+                value_store,
+                dead_end_store);
 
             if (recurse) {
-                continue; 
+                continue;
             }
 
             // Check if an SCC was found.
@@ -507,8 +525,8 @@ private:
 
             BellmanBackupInfo& tinfo = stack_info.infos.back();
 
-            for (; explore.successor != explore.transition.end(); ++explore.successor) 
-            {
+            for (; explore.successor != explore.transition.end();
+                 ++explore.successor) {
                 const auto [succ_id, prob] = *explore.successor;
 
                 if (succ_id == state) {
@@ -520,18 +538,25 @@ private:
                 StateInfo& succ_info = state_information_[succ_id];
 
                 if (succ_info.status == StateInfo::NEW) {
-                    if (push_state(succ_id, succ_info, value_store, dead_end_store)) {
+                    if (push_state(
+                            succ_id,
+                            succ_info,
+                            value_store,
+                            dead_end_store)) {
                         return true; // recursion on new state
-                    } 
+                    }
 
                     tinfo.base += prob * (*backtracked_state_value_);
                     state_info.dead = state_info.dead && succ_info.dead;
                 } else if (succ_info.status == StateInfo::ONSTACK) {
                     tinfo.successors.emplace_back(prob, &value_store[succ_id]);
-                    state_info.lowlink = std::min(state_info.lowlink, succ_info.index);
+                    state_info.lowlink =
+                        std::min(state_info.lowlink, succ_info.index);
                 } else {
-                    if (ExpandGoalStates && succ_info.status == StateInfo::TERMINAL) {
-                        state_info.lowlink = std::min(state_info.lowlink, succ_info.index);
+                    if (ExpandGoalStates &&
+                        succ_info.status == StateInfo::TERMINAL) {
+                        state_info.lowlink =
+                            std::min(state_info.lowlink, succ_info.index);
                     }
 
                     tinfo.base += prob * value_store[succ_id];
@@ -540,7 +565,8 @@ private:
             }
 
             if (tinfo.finalize()) {
-                if (!ExpandGoalStates || state_info.status != StateInfo::TERMINAL) {
+                if (!ExpandGoalStates ||
+                    state_info.status != StateInfo::TERMINAL) {
                     value_utils::set_max(stack_info.b, tinfo.base);
                 }
 
@@ -556,7 +582,8 @@ private:
 
             explore.aops.pop_back();
 
-            const auto action_reward = this->get_action_reward(state, *next_action);
+            const auto action_reward =
+                this->get_action_reward(state, *next_action);
             stack_info.infos.emplace_back(state_reward + action_reward);
         } while (true);
     }
@@ -586,7 +613,7 @@ private:
                 }
 
                 StateInfo& scc_state_info = state_information_[it->state_id];
-                    
+
                 assert(scc_state_info.dead);
                 assert(scc_state_info.status == StateInfo::ONSTACK);
 
@@ -605,10 +632,12 @@ private:
             unsigned scc_size = stack_.size() - explore.stackidx;
 
             if (scc_size == 1) {
-                assert(state_info.status == StateInfo::ONSTACK ||
+                assert(
+                    state_info.status == StateInfo::ONSTACK ||
                     state_info.status == StateInfo::TERMINAL);
 
-                if (!ExpandGoalStates || state_info.status == StateInfo::ONSTACK) {
+                if (!ExpandGoalStates ||
+                    state_info.status == StateInfo::ONSTACK) {
                     value_utils::update(*stack_info.value, stack_info.b);
                 }
 
@@ -622,14 +651,17 @@ private:
                         StateInfo& scc_state_info =
                             state_information_[scc_stack_info.state_id];
 
-                        assert(scc_state_info.status == StateInfo::ONSTACK ||
+                        assert(
+                            scc_state_info.status == StateInfo::ONSTACK ||
                             scc_state_info.status == StateInfo::TERMINAL);
 
                         if (scc_state_info.status == StateInfo::TERMINAL) {
                             --scc_size;
                             stack_.erase(stack_.begin() + i);
                         } else if (scc_stack_info.infos.empty()) {
-                            value_utils::update(*scc_stack_info.value, scc_stack_info.b);
+                            value_utils::update(
+                                *scc_stack_info.value,
+                                scc_stack_info.b);
                             --scc_size;
                             stack_.erase(stack_.begin() + i);
                         }
@@ -642,7 +674,8 @@ private:
                     StackInfo* it = &stack_.back();
 
                     do {
-                        StateInfo& scc_state_info = state_information_[it->state_id];
+                        StateInfo& scc_state_info =
+                            state_information_[it->state_id];
 
                         assert(scc_state_info.status == StateInfo::ONSTACK);
                         assert(!it->infos.empty());
@@ -693,7 +726,7 @@ private:
     StateEvaluator<State>* value_initializer_;
 
     OneStates* one_states_;
-    
+
     const ValueT dead_end_value_;
     const ValueT one_state_reward_;
 

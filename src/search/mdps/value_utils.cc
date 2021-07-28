@@ -1,7 +1,7 @@
 #include "value_utils.h"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 
 namespace probabilistic {
 namespace value_utils {
@@ -19,32 +19,28 @@ IntervalValue::IntervalValue(value_type::value_t lb, value_type::value_t ub)
 {
 }
 
-IntervalValue&
-IntervalValue::operator+=(const IntervalValue& rhs)
+IntervalValue& IntervalValue::operator+=(const IntervalValue& rhs)
 {
     lower += rhs.lower;
     upper += rhs.upper;
     return *this;
 }
 
-IntervalValue&
-IntervalValue::operator-=(const IntervalValue& rhs)
+IntervalValue& IntervalValue::operator-=(const IntervalValue& rhs)
 {
     lower -= rhs.lower;
     upper -= rhs.upper;
     return *this;
 }
 
-IntervalValue&
-IntervalValue::operator*=(value_t prob)
+IntervalValue& IntervalValue::operator*=(value_t prob)
 {
     lower *= prob;
     upper *= prob;
     return *this;
 }
 
-IntervalValue&
-IntervalValue::operator/=(value_t prob)
+IntervalValue& IntervalValue::operator/=(value_t prob)
 {
     lower /= prob;
     upper /= prob;
@@ -79,12 +75,10 @@ IntervalValue operator/(const IntervalValue& rhs, value_t val)
 
 int compare(const IntervalValue& lhs, const IntervalValue& rhs)
 {
-    if (approx_greater(eps)(lhs.lower, rhs.lower))
-        return 1;
+    if (approx_greater(eps)(lhs.lower, rhs.lower)) return 1;
 
-    if (approx_equal(eps)(lhs.lower, rhs.lower))
-        return 0;
-    
+    if (approx_equal(eps)(lhs.lower, rhs.lower)) return 0;
+
     return -1;
 }
 
@@ -95,8 +89,9 @@ bool update(IntervalValue& lhs, const IntervalValue& rhs)
 
 bool update(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper)
 {
-    const bool result = !value_type::approx_greater()(rhs.lower, lhs.lower)
-        || (check_upper && !value_type::approx_less()(rhs.upper, lhs.upper));
+    const bool result =
+        !value_type::approx_greater()(rhs.lower, lhs.lower) ||
+        (check_upper && !value_type::approx_less()(rhs.upper, lhs.upper));
     lhs.lower = std::max(lhs.lower, rhs.lower);
     lhs.upper = std::min(lhs.upper, rhs.upper);
     assert(!value_type::approx_less()(lhs.upper, lhs.lower));
@@ -114,13 +109,13 @@ bool operator==(const IntervalValue& lhs, const IntervalValue& rhs)
     return lhs.lower == rhs.lower && lhs.upper == rhs.upper;
 }
 
-value_type::value_t
-as_lower_bound(const value_utils::IntervalValue& interval) {
+value_type::value_t as_lower_bound(const value_utils::IntervalValue& interval)
+{
     return interval.lower;
 }
 
-value_type::value_t
-as_upper_bound(const value_utils::IntervalValue& interval) {
+value_type::value_t as_upper_bound(const value_utils::IntervalValue& interval)
+{
     return interval.upper;
 }
 
@@ -187,12 +182,10 @@ SingleValue operator/(const SingleValue& rhs, value_t val)
 
 int compare(const value_type::value_t& lhs, const value_type::value_t& rhs)
 {
-    if (approx_greater(eps)(lhs, rhs))
-        return 1;
+    if (approx_greater(eps)(lhs, rhs)) return 1;
 
-    if (approx_equal(eps)(lhs, rhs))
-        return 0;
-    
+    if (approx_equal(eps)(lhs, rhs)) return 0;
+
     return -1;
 }
 
@@ -225,13 +218,13 @@ bool operator==(const SingleValue& lhs, const SingleValue& rhs)
 
 */
 
-value_type::value_t
-as_lower_bound(const value_type::value_t& single) {
+value_type::value_t as_lower_bound(const value_type::value_t& single)
+{
     return single;
 }
 
-value_type::value_t
-as_upper_bound(const value_type::value_t& single) {
+value_type::value_t as_upper_bound(const value_type::value_t& single)
+{
     return single;
 }
 

@@ -24,7 +24,7 @@ namespace probabilistic {
 /// Namespace dedicated to the classes dealing with quotienting of an MDP.
 namespace quotient_system {
 
-template<typename ActionT>
+template <typename ActionT>
 struct QuotientAction {
     using Action = ActionT;
 
@@ -85,7 +85,7 @@ struct QuotientInformation {
 
 using QuotientMap = std::unordered_map<StateID::size_type, QuotientInformation>;
 
-template<typename BaseActionT>
+template <typename BaseActionT>
 class DefaultQuotientSystem {
     friend struct const_iterator;
 
@@ -145,6 +145,7 @@ public:
         reference operator*() const { return i; }
 
         StateID::size_type i;
+
     private:
         const DefaultQuotientSystem* qs_;
     };
@@ -185,9 +186,9 @@ public:
         return result;
     }
 
-    void generate_applicable_ops(
-        const StateID& sid,
-        std::vector<QAction>& result) const
+    void
+    generate_applicable_ops(const StateID& sid, std::vector<QAction>& result)
+        const
     {
         const QuotientInformation* info = get_quotient_info(sid);
         if (info == nullptr) {
@@ -196,7 +197,8 @@ public:
             result.reserve(orig.size());
             for (unsigned i = 0; i < orig.size(); ++i) {
                 result.emplace_back(
-                    sid, action_id_map_->get_action_id(sid, orig[i]));
+                    sid,
+                    action_id_map_->get_action_id(sid, orig[i]));
             }
         } else {
             result.reserve(info->naops[info->size]);
@@ -239,7 +241,8 @@ public:
             successors.resize(orig_a.size());
             for (unsigned i = 0; i < orig_a.size(); ++i) {
                 aops.emplace_back(
-                    sid, this->action_id_map_->get_action_id(sid, orig_a[i]));
+                    sid,
+                    this->action_id_map_->get_action_id(sid, orig_a[i]));
                 this->generate_successors(sid, aops.back(), successors[i]);
             }
         } else {
@@ -320,7 +323,7 @@ public:
         }
     }
 
-    template<
+    template <
         typename StateIDIterator,
         typename IgnoreActionsIterator = const void**>
     void build_quotient(
@@ -357,7 +360,9 @@ public:
                     aops_start = aops_merged.size();
                 }
 
-                if constexpr (std::is_same_v<IgnoreActionsIterator, const void**>) {
+                if constexpr (std::is_same_v<
+                                  IgnoreActionsIterator,
+                                  const void**>) {
                     filter_actions(
                         q.size,
                         q.states,
@@ -386,19 +391,24 @@ public:
                 }
                 aops_gen_->operator()(state_id, aops);
 
-                if constexpr (std::is_same_v<IgnoreActionsIterator, const void**>) {
-                    filter_actions(
-                        state_id, aops, naops, aops_merged);
+                if constexpr (std::is_same_v<
+                                  IgnoreActionsIterator,
+                                  const void**>) {
+                    filter_actions(state_id, aops, naops, aops_merged);
                 } else {
                     filter_actions(
-                        state_id, aops, *ignore_actions, naops, aops_merged);
+                        state_id,
+                        aops,
+                        *ignore_actions,
+                        naops,
+                        aops_merged);
                 }
-
 
                 aops.clear();
             }
 
-            if constexpr (!std::is_same_v<IgnoreActionsIterator, const void**>) {
+            if constexpr (!std::
+                              is_same_v<IgnoreActionsIterator, const void**>) {
                 ++ignore_actions;
             }
         }
@@ -475,17 +485,16 @@ public:
                 assert(aops.size() == qinfo.naops[i]);
                 for (unsigned k = 0; k < qinfo.naops[i]; ++k, ++j) {
                     QUOTIENT_DEBUG_MSG(
-                        if (qinfo.aops[j]
-                            != action_id_map_->get_action_id(
-                                state_id, aops[k])) {
+                        if (qinfo.aops[j] !=
+                            action_id_map_->get_action_id(state_id, aops[k])) {
                             std::cout << "aops mismatch @j=" << j << ": i=" << i
                                       << " state=" << qinfo.states[i]
                                       << " k=" << k << "/"
                                       << (qinfo.naops[i] - 1) << std::endl;
                         })
                     assert(
-                        qinfo.aops[j]
-                        == action_id_map_->get_action_id(state_id, aops[k]));
+                        qinfo.aops[j] ==
+                        action_id_map_->get_action_id(state_id, aops[k]));
                 }
                 aops.clear();
             }
@@ -613,7 +622,7 @@ private:
     TransitionGenerator<Action>* transition_gen_;
 };
 
-template<typename ActionT>
+template <typename ActionT>
 class QuotientSystem : public DefaultQuotientSystem<ActionT> {
 public:
     using Action = ActionT;

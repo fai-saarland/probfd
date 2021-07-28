@@ -15,6 +15,6 @@ public:
     compute_additive_subcollections(const PatternCollection&) override;
 };
 
-}
-}
-}
+} // namespace additivity
+} // namespace pdbs
+} // namespace probabilistic

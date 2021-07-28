@@ -15,16 +15,14 @@
 namespace probabilistic {
 namespace new_state_handlers {
 
-bool
-PrefOpsCacheEntry::contains(const ProbabilisticOperator* ptr) const
+bool PrefOpsCacheEntry::contains(const ProbabilisticOperator* ptr) const
 {
     const ProbabilisticOperator* fp = &g_operators[0];
     const unsigned id = ptr - fp;
     return contains(id);
 }
 
-bool
-PrefOpsCacheEntry::contains(unsigned i) const
+bool PrefOpsCacheEntry::contains(unsigned i) const
 {
     if (ops_ == nullptr) {
         return false;
@@ -56,8 +54,8 @@ StorePreferredOperators::StorePreferredOperators(const options::Options& opts)
 #endif
 }
 
-void
-StorePreferredOperators::add_options_to_parser(options::OptionParser& parser)
+void StorePreferredOperators::add_options_to_parser(
+    options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<Heuristic>>("heuristic");
     parser.add_option<bool>("fetch_only", "", "false");
@@ -69,18 +67,15 @@ StorePreferredOperators::get_cached_ops(const StateID& s)
     return store_[s];
 }
 
-void
-StorePreferredOperators::touch_goal(const GlobalState&)
+void StorePreferredOperators::touch_goal(const GlobalState&)
 {
 }
 
-void
-StorePreferredOperators::touch_dead_end(const GlobalState&)
+void StorePreferredOperators::touch_dead_end(const GlobalState&)
 {
 }
 
-void
-StorePreferredOperators::touch(const GlobalState& s)
+void StorePreferredOperators::touch(const GlobalState& s)
 {
     if (!fetch_only_) {
         heuristic_->evaluate(s);
@@ -122,4 +117,3 @@ static Plugin<NewGlobalStateHandler> _plugin(
     options::parse<NewGlobalStateHandler, StorePreferredOperators>);
 } // namespace new_state_handlers
 } // namespace probabilistic
-

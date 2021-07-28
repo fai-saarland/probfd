@@ -13,22 +13,27 @@ struct AbstractState {
         : id(id)
     {
     }
+
     bool operator==(const AbstractState& x) const { return id == x.id; }
     bool operator<(const AbstractState& c) const { return id < c.id; }
     bool operator>(const AbstractState& c) const { return id > c.id; }
+
     AbstractState operator+(const AbstractState& x) const
     {
         return AbstractState(x.id + id);
     }
+
     AbstractState operator-(const AbstractState& x) const
     {
         return AbstractState(id - x.id);
     }
+
     AbstractState& operator+=(const AbstractState& x)
     {
         id += x.id;
         return *this;
     }
+
     AbstractState& operator-=(const AbstractState& x)
     {
         id -= x.id;

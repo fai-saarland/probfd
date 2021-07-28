@@ -29,8 +29,7 @@ public:
 
     virtual StateID pop() override;
 
-    virtual void
-    push(const StateID& state_id) override;
+    virtual void push(const StateID& state_id) override;
 
     virtual void push(
         const StateID& parent,
@@ -49,4 +48,3 @@ private:
 
 } // namespace open_lists
 } // namespace probabilistic
-

@@ -12,10 +12,10 @@ namespace analysis_objectives {
 
 /**
  * @brief The expected-cost anaylsis objective.
- * 
+ *
  * Implements the expected-cost analysis objective. State rewards
  * are zero. Action rewards are their negative costs.
- * 
+ *
  */
 class ExpectedCostObjective : public AnalysisObjective {
 public:

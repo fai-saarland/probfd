@@ -3,8 +3,9 @@
 namespace probabilistic {
 namespace distribution_uniform_sampler {
 
-DistributionUniformSampler::DistributionUniformSampler() {}
+DistributionUniformSampler::DistributionUniformSampler()
+{
+}
 
 } // namespace distribution_uniform_sampler
 } // namespace probabilistic
-

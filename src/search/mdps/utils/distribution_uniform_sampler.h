@@ -12,7 +12,7 @@ public:
     DistributionUniformSampler();
     ~DistributionUniformSampler() = default;
 
-    template<typename T>
+    template <typename T>
     const T& operator()(const Distribution<T>& distribution) const
     {
         assert(!distribution.empty());

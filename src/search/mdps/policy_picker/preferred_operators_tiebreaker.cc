@@ -11,20 +11,19 @@ namespace policy_tiebreaking {
 
 PreferredOperatorsTiebreaker::PreferredOperatorsTiebreaker(
     const options::Options& opts)
-    : pref_ops_(
-        std::dynamic_pointer_cast<new_state_handlers::StorePreferredOperators>(
-            opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
+    : pref_ops_(std::dynamic_pointer_cast<
+                new_state_handlers::StorePreferredOperators>(
+          opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
 {
 }
 
-void
-PreferredOperatorsTiebreaker::add_options_to_parser(options::OptionParser& p)
+void PreferredOperatorsTiebreaker::add_options_to_parser(
+    options::OptionParser& p)
 {
     p.add_option<std::shared_ptr<NewGlobalStateHandler>>("heuristic");
 }
 
-int
-PreferredOperatorsTiebreaker::pick(
+int PreferredOperatorsTiebreaker::pick(
     const StateID& state,
     const ActionID&,
     const std::vector<const ProbabilisticOperator*>& choices,
@@ -46,20 +45,18 @@ PreferredOperatorsTiebreaker::pick(
 }
 
 PreferredOperatorsSort::PreferredOperatorsSort(const options::Options& opts)
-    : pref_ops_(
-        std::dynamic_pointer_cast<new_state_handlers::StorePreferredOperators>(
-            opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
+    : pref_ops_(std::dynamic_pointer_cast<
+                new_state_handlers::StorePreferredOperators>(
+          opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
 {
 }
 
-void
-PreferredOperatorsSort::add_options_to_parser(options::OptionParser& p)
+void PreferredOperatorsSort::add_options_to_parser(options::OptionParser& p)
 {
     p.add_option<std::shared_ptr<NewGlobalStateHandler>>("heuristic");
 }
 
-void
-PreferredOperatorsSort::sort(
+void PreferredOperatorsSort::sort(
     const StateID& state,
     const std::vector<const ProbabilisticOperator*>& choices,
     std::vector<Distribution<StateID>>& successors)

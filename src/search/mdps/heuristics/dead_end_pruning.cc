@@ -21,22 +21,21 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(const options::Options& opts)
     : DeadEndPruningHeuristic(
-        opts.get<bool>("pessimistic") ? g_analysis_objective->min()
-                                      : g_analysis_objective->max(),
-        g_analysis_objective->min(),
-        opts.get<std::shared_ptr<Heuristic>>("heuristic"))
+          opts.get<bool>("pessimistic") ? g_analysis_objective->min()
+                                        : g_analysis_objective->max(),
+          g_analysis_objective->min(),
+          opts.get<std::shared_ptr<Heuristic>>("heuristic"))
 {
 }
 
-void
-DeadEndPruningHeuristic::add_options_to_parser(options::OptionParser& parser)
+void DeadEndPruningHeuristic::add_options_to_parser(
+    options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<Heuristic>>("heuristic");
     parser.add_option<bool>("pessimistic", "", "false");
 }
 
-EvaluationResult
-DeadEndPruningHeuristic::evaluate(const GlobalState& state)
+EvaluationResult DeadEndPruningHeuristic::evaluate(const GlobalState& state)
 {
     pruning_function_->evaluate(state);
     if (pruning_function_->is_dead_end()) {
@@ -45,8 +44,7 @@ DeadEndPruningHeuristic::evaluate(const GlobalState& state)
     return EvaluationResult(false, default_value_);
 }
 
-void
-DeadEndPruningHeuristic::print_statistics() const
+void DeadEndPruningHeuristic::print_statistics() const
 {
     pruning_function_->print_statistics();
 }

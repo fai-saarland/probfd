@@ -96,25 +96,21 @@ public:
         AbstractState operator*();
         AbstractState* operator->();
 
-        friend bool operator==(
-            const PartialStateIterator&,
-            const PartialStateEndIterator&);
+        friend bool
+        operator==(const PartialStateIterator&, const PartialStateEndIterator&);
 
-        friend bool operator!=(
-            const PartialStateIterator&,
-            const PartialStateEndIterator&);
+        friend bool
+        operator!=(const PartialStateIterator&, const PartialStateEndIterator&);
     };
 
     class PartialStateEndIterator {
         friend AbstractStateMapper;
 
-        friend bool operator==(
-            const PartialStateIterator&,
-            const PartialStateEndIterator&);
+        friend bool
+        operator==(const PartialStateIterator&, const PartialStateEndIterator&);
 
-        friend bool operator!=(
-            const PartialStateIterator&,
-            const PartialStateEndIterator&);
+        friend bool
+        operator!=(const PartialStateIterator&, const PartialStateEndIterator&);
     };
 
 public:
@@ -145,15 +141,14 @@ public:
     void
     to_values(AbstractState abstract_state, std::vector<int>& values) const;
 
-    CartesianSubsetIterator cartesian_subsets_begin(
-        std::vector<int> values,
-        std::vector<int> indices) const;
+    CartesianSubsetIterator
+    cartesian_subsets_begin(std::vector<int> values, std::vector<int> indices)
+        const;
 
     CartesianSubsetEndIterator cartesian_subsets_end() const;
 
-    PartialStateIterator partial_states_begin(
-        AbstractState offset,
-        std::vector<int> indices) const;
+    PartialStateIterator
+    partial_states_begin(AbstractState offset, std::vector<int> indices) const;
 
     PartialStateEndIterator partial_states_end() const;
 

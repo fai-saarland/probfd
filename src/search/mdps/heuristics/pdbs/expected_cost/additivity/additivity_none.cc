@@ -1,7 +1,7 @@
 #include "additivity_none.h"
 
-#include "../../../../../plugin.h"
 #include "../../../../../option_parser.h"
+#include "../../../../../plugin.h"
 
 namespace probabilistic {
 namespace pdbs {
@@ -22,15 +22,15 @@ AdditivityNone::compute_additive_subcollections(
     return additive_subcollections;
 }
 
-static std::shared_ptr<AdditivityNone> _parse(OptionParser &parser) {
-    if (parser.dry_run())
-        return nullptr;
+static std::shared_ptr<AdditivityNone> _parse(OptionParser& parser)
+{
+    if (parser.dry_run()) return nullptr;
 
     return std::make_shared<AdditivityNone>();
 }
 
 static Plugin<AdditivityStrategy> _plugin("none", _parse);
 
-}
-}
-}
+} // namespace additivity
+} // namespace pdbs
+} // namespace probabilistic

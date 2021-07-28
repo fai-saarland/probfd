@@ -10,24 +10,21 @@ NewGlobalStateHandlerList::NewGlobalStateHandlerList(
 {
 }
 
-void
-NewGlobalStateHandlerList::touch(const GlobalState& s)
+void NewGlobalStateHandlerList::touch(const GlobalState& s)
 {
     for (auto& handler : handlers_) {
         handler->touch(s);
     }
 }
 
-void
-NewGlobalStateHandlerList::touch_dead_end(const GlobalState& s)
+void NewGlobalStateHandlerList::touch_dead_end(const GlobalState& s)
 {
     for (auto& handler : handlers_) {
         handler->touch_dead_end(s);
     }
 }
 
-void
-NewGlobalStateHandlerList::touch_goal(const GlobalState& s)
+void NewGlobalStateHandlerList::touch_goal(const GlobalState& s)
 {
     for (auto& handler : handlers_) {
         handler->touch_goal(s);

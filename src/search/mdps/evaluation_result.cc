@@ -8,9 +8,15 @@ EvaluationResult::EvaluationResult(bool x, value_type::value_t val)
 {
 }
 
-EvaluationResult::operator bool() const { return bool_; }
+EvaluationResult::operator bool() const
+{
+    return bool_;
+}
 
-EvaluationResult::operator value_type::value_t() const { return value_; }
+EvaluationResult::operator value_type::value_t() const
+{
+    return value_;
+}
 
 value_type::value_t
 EvaluationResult::operator+(const value_type::value_t& val) const

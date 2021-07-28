@@ -9,15 +9,15 @@ namespace probabilistic {
 
 /**
  * @brief Open list used by the MDP search engine.
- * 
+ *
  * @tparam Action - The action type of the underlying MDP model.
- * 
+ *
  * @note The open list operates on state IDs, so the underlying state type
  * of the MDP model is not required.
- * 
+ *
  * @see StateIDMap
  */
-template<typename Action>
+template <typename Action>
 class OpenList {
 public:
     /// Tags the default implmentation.
@@ -49,18 +49,18 @@ public:
     }
 
     /**
-     * Returns the size of the open list, i.e. the number of states currently 
+     * Returns the size of the open list, i.e. the number of states currently
      * eligible for expansion.
      */
     unsigned size() const { return queue_.size(); }
 
     /**
-     * Checks if the open list is empty. 
+     * Checks if the open list is empty.
      */
     bool empty() const { return queue_.empty(); }
 
     /**
-     * Clears the open list. 
+     * Clears the open list.
      */
     void clear() { queue_.clear(); }
 

@@ -13,7 +13,7 @@ namespace analysis_objectives {
 
 /**
  * @brief The MDP analysis objective.
- * 
+ *
  * Configures the reward of a transition in the MDP model.
  * The reward is specified by:
  * - A \ref GlobalStateRewardFunction specifiying the immediate reward
@@ -22,10 +22,10 @@ namespace analysis_objectives {
  * - A \ref ProbabilisticOperatorEvaluator specifying the immediate
  * reward gained by applying an action in a given source state, independent
  * of possible successor states.
- * 
+ *
  * Additionally, each analysis objective specifies an upper and a lower bound
  * on the possible state values (-/+ infinity if no such bounds exist)
- * 
+ *
  */
 class AnalysisObjective {
 public:
@@ -44,5 +44,5 @@ public:
     virtual ProbabilisticOperatorEvaluator* action_reward() = 0;
 };
 
-} // analysis_objectives
+} // namespace analysis_objectives
 } // namespace probabilistic

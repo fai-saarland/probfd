@@ -17,17 +17,16 @@ class Heuristic;
 class GlobalState;
 
 namespace successor_generator {
-template<typename Op>
+template <typename Op>
 class SuccessorGenerator;
 }
 
 namespace probabilistic {
 
 namespace quotient_system {
-template<typename T>
+template <typename T>
 class QuotientSystem;
 }
-
 
 struct CostBasedSuccessorGenerator {
 public:
@@ -51,7 +50,7 @@ private:
     successor_generator::SuccessorGenerator<const ProbabilisticOperator*>* gen_;
 };
 
-template<>
+template <>
 class ApplicableActionsGenerator<const ProbabilisticOperator*> {
 public:
     explicit ApplicableActionsGenerator(
@@ -65,7 +64,7 @@ private:
     TransitionGenerator<const ProbabilisticOperator*>* tgen_;
 };
 
-template<>
+template <>
 class TransitionGenerator<const ProbabilisticOperator*> {
     friend class quotient_system::QuotientSystem<const ProbabilisticOperator*>;
 
@@ -209,4 +208,3 @@ private:
 };
 
 } // namespace probabilistic
-

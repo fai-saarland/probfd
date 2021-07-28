@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../probabilistic_projection.h"
 #include "../../../value_utils.h"
+#include "../probabilistic_projection.h"
 
 namespace successor_generator {
-template<typename T>
+template <typename T>
 class SuccessorGenerator;
 }
 
@@ -17,7 +17,7 @@ namespace pdbs {
 class MaxProbProjection : public ProbabilisticProjection {
     using RegressionSuccessorGenerator =
         successor_generator::SuccessorGenerator<AbstractState>;
-    
+
     bool all_one = false;
     bool deterministic = false;
 
@@ -64,7 +64,7 @@ private:
 
     void compute_value_table(bool precomputed_dead_ends);
 
-    template<typename StateToString, typename ActionToString>
+    template <typename StateToString, typename ActionToString>
     void dump_graphviz(
         const std::string& path,
         const StateToString* sts,

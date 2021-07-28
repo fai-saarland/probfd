@@ -36,4 +36,3 @@ protected:
 
 } // namespace transition_sampler
 } // namespace probabilistic
-

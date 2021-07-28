@@ -32,31 +32,32 @@ public:
                   "on_new_state")))
         , heuristic_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
         , dead_end_listener_(
-              opts.contains("on_dead_end") ? new DeadEndListener<
-                  GlobalState,
-                  const ProbabilisticOperator*>(
-                  opts.get<
-                      std::shared_ptr<state_component::StateComponentListener>>(
-                      "on_dead_end"),
-                  this->get_state_id_map(),
-                  this->get_transition_generator())
-                                           : nullptr)
+              opts.contains("on_dead_end")
+                  ? new DeadEndListener<
+                        GlobalState,
+                        const ProbabilisticOperator*>(
+                        opts.get<std::shared_ptr<
+                            state_component::StateComponentListener>>(
+                            "on_dead_end"),
+                        this->get_state_id_map(),
+                        this->get_transition_generator())
+                  : nullptr)
         , dead_end_eval_(
               opts.contains("dead_end_eval")
                   ? opts.get<std::shared_ptr<GlobalStateEvaluator>>(
-                      "dead_end_eval")
+                        "dead_end_eval")
                   : nullptr)
         , successor_sort_(
               opts.contains("order")
                   ? opts.get<
-                      std::shared_ptr<ProbabilisticOperatorSuccessorSorting>>(
-                      "order")
+                        std::shared_ptr<ProbabilisticOperatorSuccessorSorting>>(
+                        "order")
                   : nullptr)
         , dual_bounds_(
               opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
         , interval_comparison_(
-              opts.contains("interval_comparison")
-              && opts.get<bool>("interval_comparison"))
+              opts.contains("interval_comparison") &&
+              opts.get<bool>("interval_comparison"))
         , reevaluate_(opts.get<bool>("reevaluate"))
         , notify_s0_(opts.get<bool>("initial_state_notification"))
         , path_updates_(engines::exhaustive_dfs::BacktrackingUpdateType(
@@ -75,27 +76,41 @@ public:
     static void add_options_to_parser(options::OptionParser& parser)
     {
         parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
-            "eval", "", "const");
+            "eval",
+            "",
+            "const");
         parser.add_list_option<std::shared_ptr<NewGlobalStateHandler>>(
-            "on_new_state", "", "[]");
+            "on_new_state",
+            "",
+            "[]");
         parser.add_option<bool>("interval_comparison", "", "false");
         parser.add_option<bool>("dual_bounds", "", "false");
         parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
-            "dead_end_eval", "", options::OptionParser::NONE);
+            "dead_end_eval",
+            "",
+            options::OptionParser::NONE);
         parser.add_option<
             std::shared_ptr<state_component::StateComponentListener>>(
-            "on_dead_end", "", options::OptionParser::NONE);
+            "on_dead_end",
+            "",
+            options::OptionParser::NONE);
         parser
             .add_option<std::shared_ptr<ProbabilisticOperatorSuccessorSorting>>(
-                "order", "", options::OptionParser::NONE);
+                "order",
+                "",
+                options::OptionParser::NONE);
         parser.add_option<bool>("reevaluate", "", "true");
         parser.add_option<bool>("initial_state_notification", "", "false");
-        std::vector<std::string> t({ "disabled",
-                                     "cheap",
-                                     "updates_along_trace",
-                                     "updates_along_stack" });
+        std::vector<std::string> t(
+            {"disabled",
+             "cheap",
+             "updates_along_trace",
+             "updates_along_stack"});
         parser.add_enum_option(
-            "reverse_path_updates", t, "", "updates_along_trace");
+            "reverse_path_updates",
+            t,
+            "",
+            "updates_along_trace");
         parser.add_option<bool>("only_propagate_when_changed", "", "true");
         MDPSolver::add_options_to_parser(parser);
     }

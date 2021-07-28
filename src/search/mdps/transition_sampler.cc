@@ -3,8 +3,7 @@
 #include "../plugin.h"
 
 namespace probabilistic {
-StateID
-TransitionSampler<const ProbabilisticOperator*>::operator()(
+StateID TransitionSampler<const ProbabilisticOperator*>::operator()(
     const StateID& state,
     const ProbabilisticOperator* op,
     const Distribution<StateID>& transition)

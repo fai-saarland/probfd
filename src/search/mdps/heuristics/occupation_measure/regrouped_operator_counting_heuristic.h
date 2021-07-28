@@ -23,9 +23,9 @@ class RegroupedOperatorCountingHeuristic : public GlobalStateEvaluator {
 public:
     /**
      * @brief Construct from options.
-     * 
+     *
      * @param opts - Available options:
-     * + \em lpsolver - The LP solver that should be used internally. One of 
+     * + \em lpsolver - The LP solver that should be used internally. One of
      * \em CLP, \em CPLEX, \em GUROBI or \em SOPLEX.
      */
     explicit RegroupedOperatorCountingHeuristic(const options::Options& opts);

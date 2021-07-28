@@ -15,35 +15,30 @@ StoreHeuristic::StoreHeuristic(const options::Options& opts)
 {
 }
 
-void
-StoreHeuristic::add_options_to_parser(options::OptionParser& parser)
+void StoreHeuristic::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<Heuristic>>("heuristic");
     parser.add_option<bool>("fetch_only", "", "false");
 }
 
-int
-StoreHeuristic::get_cached_h_value(const StateID& s)
+int StoreHeuristic::get_cached_h_value(const StateID& s)
 {
     const int res = hstore_[s];
     assert(res != -2);
     return res;
 }
 
-void
-StoreHeuristic::touch_goal(const GlobalState& s)
+void StoreHeuristic::touch_goal(const GlobalState& s)
 {
     hstore_[s.get_id().hash()] = 0;
 }
 
-void
-StoreHeuristic::touch_dead_end(const GlobalState& s)
+void StoreHeuristic::touch_dead_end(const GlobalState& s)
 {
     hstore_[s.get_id().hash()] = -1;
 }
 
-void
-StoreHeuristic::touch(const GlobalState& s)
+void StoreHeuristic::touch(const GlobalState& s)
 {
     if (!fetch_only_) {
         heuristic_->evaluate(s);

@@ -17,7 +17,6 @@ extern const value_t eps;
 /// The global epsilon precision value.
 extern value_t g_epsilon;
 
-
 extern value_t from_double(double d);
 extern value_t from_fraction(int nom, int denom);
 extern value_t cap(const value_t& val, const value_t& maxval);

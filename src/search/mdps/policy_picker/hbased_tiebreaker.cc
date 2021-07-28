@@ -11,18 +11,16 @@ namespace policy_tiebreaking {
 
 HBasedTiebreaker::HBasedTiebreaker(const options::Options& opts)
     : heuristic_(std::dynamic_pointer_cast<new_state_handlers::StoreHeuristic>(
-        opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
+          opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
 {
 }
 
-void
-HBasedTiebreaker::add_options_to_parser(options::OptionParser& p)
+void HBasedTiebreaker::add_options_to_parser(options::OptionParser& p)
 {
     p.add_option<std::shared_ptr<NewGlobalStateHandler>>("heuristic");
 }
 
-int
-HBasedTiebreaker::pick(
+int HBasedTiebreaker::pick(
     const StateID&,
     const ActionID&,
     const std::vector<const ProbabilisticOperator*>&,
@@ -51,12 +49,11 @@ HBasedTiebreaker::pick(
 
 HBasedSort::HBasedSort(const options::Options& opts)
     : heuristic_(std::dynamic_pointer_cast<new_state_handlers::StoreHeuristic>(
-        opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
+          opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
 {
 }
 
-void
-HBasedSort::add_options_to_parser(options::OptionParser& p)
+void HBasedSort::add_options_to_parser(options::OptionParser& p)
 {
     p.add_option<std::shared_ptr<NewGlobalStateHandler>>("heuristic");
 }
@@ -68,13 +65,12 @@ struct SortKey {
 
     bool operator<(const SortKey& other) const
     {
-        return dead_end < other.dead_end
-            || (dead_end == other.dead_end && exp_h < other.exp_h);
+        return dead_end < other.dead_end ||
+               (dead_end == other.dead_end && exp_h < other.exp_h);
     }
 };
 
-void
-HBasedSort::sort(
+void HBasedSort::sort(
     const StateID&,
     const std::vector<const ProbabilisticOperator*>&,
     std::vector<Distribution<StateID>>& successors)

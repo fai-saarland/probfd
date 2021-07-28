@@ -5,9 +5,9 @@
 #include "../state_component_listener.h"
 
 #include "engine_interfaces/dead_end_listener.h"
+#include "probabilistic_operator.h"
 #include "state_id_map.h"
 #include "transition_generator.h"
-#include "probabilistic_operator.h"
 
 #include <memory>
 #include <unordered_set>
@@ -17,7 +17,7 @@ class Heuristic;
 
 namespace probabilistic {
 
-template<>
+template <>
 class DeadEndListener<GlobalState, const ProbabilisticOperator*> {
 public:
     explicit DeadEndListener(

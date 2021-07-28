@@ -7,9 +7,9 @@
 #include "../progress_report.h"
 #include "../storage/per_state_storage.h"
 #include "../utils/graph_visualization.h"
+#include "../value_utils.h"
 #include "engine.h"
 #include "heuristic_search_state_information.h"
-#include "../value_utils.h"
 
 #if defined(EXPENSIVE_STATISTICS)
 #include "../../utils/timer.h"
@@ -148,15 +148,16 @@ struct Statistics : public CoreStatistics {
 
 /**
  * @brief The common base class for MDP heuristic search algorithms.
- * 
+ *
  * @tparam StateT - The state type of the underlying MDP model.
  * @tparam ActionT - The action type of the undelying MDP model.
  * @tparam StateInfoT - The state information container type.
  */
-template<typename StateT, typename ActionT, typename StateInfoT>
-class HeuristicSearchBase : public MDPEngine<StateT, ActionT>,
-                            public PerStateInformationLookup {
-    template<typename T>
+template <typename StateT, typename ActionT, typename StateInfoT>
+class HeuristicSearchBase
+    : public MDPEngine<StateT, ActionT>
+    , public PerStateInformationLookup {
+    template <typename T>
     friend class StateStatusAccessor;
 
 public:
@@ -170,10 +171,10 @@ public:
 
     /**
      * @brief The state information accessor interface.
-     * 
+     *
      * @tparam T - ?
      */
-    template<typename T>
+    template <typename T>
     class StateStatusAccessor {
     public:
         StateInfo& operator()(const StateID& state_id)
@@ -227,14 +228,14 @@ public:
         bool interval_comparison,
         bool stable_policy)
         : MDPEngine<StateT, ActionT>(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator)
         , report_(report)
         , interval_comparison_(interval_comparison)
         , stable_policy_(stable_policy)
@@ -298,7 +299,7 @@ public:
         return &state_infos_[state_id];
     }
 
-    template<typename T = StateInfo>
+    template <typename T = StateInfo>
     StateStatusAccessor<T> get_state_status_access()
     {
         return StateStatusAccessor<T>(this);
@@ -307,20 +308,21 @@ public:
     /**
      * @brief Create a per-state storage of the specified state info element
      * type.
-     * 
+     *
      * @tparam T - The element type
      * @param default_value - A default value for the state info elements
-     * if queried but not present. Defaults to a default constructed state 
+     * if queried but not present. Defaults to a default constructed state
      * information element.
-     * @return storage::PerStateStorage<T>* - The newly allocated per-state 
+     * @return storage::PerStateStorage<T>* - The newly allocated per-state
      * storage object.
      */
-    template<typename T>
+    template <typename T>
     storage::PerStateStorage<T>*
     create_per_state_store(const T& default_value = T())
     {
         return new storage::PerStateStorage<T>(
-            default_value, this->state_id_map_);
+            default_value,
+            this->state_id_map_);
     }
 
     /**
@@ -340,7 +342,7 @@ public:
     }
 
     /**
-     * @brief Checks if the state represented by \p state_id has the state 
+     * @brief Checks if the state represented by \p state_id has the state
      * value of a dead-end.
      */
     bool has_dead_end_value(const StateID& state)
@@ -350,11 +352,11 @@ public:
     }
 
     /**
-     * @brief Chekcs if the state represented by \p state_id is marked as a 
-     * dead-end. 
-     * @param state 
-     * @return true 
-     * @return false 
+     * @brief Chekcs if the state represented by \p state_id is marked as a
+     * dead-end.
+     * @param state
+     * @return true
+     * @return false
      */
     bool is_marked_dead_end(const StateID& state)
     {
@@ -363,18 +365,18 @@ public:
     }
 
     /**
-     * @brief Clears the currently selected greedy action for the state 
+     * @brief Clears the currently selected greedy action for the state
      * represented by \p state_id
      */
     void clear_policy(const StateID& state_id)
     {
         static_assert(StorePolicy::value, "Policy not stored by algorithm!");
-        
+
         state_infos_[state_id].set_policy(ActionID::undefined);
     }
 
     /**
-     * @brief Gets the currently selected greedy action for the state 
+     * @brief Gets the currently selected greedy action for the state
      * represented by \p state_id
      */
     Action get_policy(const StateID& state_id)
@@ -387,11 +389,11 @@ public:
     }
 
     /**
-     * @brief Generates the successor distribution referring to the application 
-     * of the current greedy action in a state 
-     * 
+     * @brief Generates the successor distribution referring to the application
+     * of the current greedy action in a state
+     *
      * @param[in] state - The id of the source state
-     * @param[out] result - The returned successor distribution when applying 
+     * @param[out] result - The returned successor distribution when applying
      * the current greedy action in the state represented by \p state
      */
     bool apply_policy(const StateID& state, Distribution<StateID>& result)
@@ -409,7 +411,7 @@ public:
     }
 
     /**
-     * @brief Marks the state represented by \p state_id as a dead-end. 
+     * @brief Marks the state represented by \p state_id as a dead-end.
      */
     void set_dead_end(const StateID& state_id)
     {
@@ -419,9 +421,9 @@ public:
     }
 
     /**
-     * @brief Marks the state represented by \p state_id as a dead-end, unless 
-     * it is a goal state. 
-     * 
+     * @brief Marks the state represented by \p state_id as a dead-end, unless
+     * it is a goal state.
+     *
      * @return true - If the state is a goal state
      * @return false - Otherwise
      */
@@ -456,14 +458,14 @@ public:
     }
 
     /**
-     * @brief If \p state_id has not been recognized as a dead-end before, 
-     * stores this information in \p state_info and notifies the attached 
-     * dead-end listener of this new dead-end. 
+     * @brief If \p state_id has not been recognized as a dead-end before,
+     * stores this information in \p state_info and notifies the attached
+     * dead-end listener of this new dead-end.
      */
     void notify_dead_end(const StateID& state_id, StateInfo& state_info)
     {
-        if (dead_end_listener_ != nullptr
-            && !state_info.is_recognized_dead_end()) {
+        if (dead_end_listener_ != nullptr &&
+            !state_info.is_recognized_dead_end()) {
             set_dead_end(state_info);
             dead_end_listener_->operator()(state_id);
         }
@@ -480,8 +482,8 @@ public:
         if (state_info.is_goal_state()) {
             return false;
         }
-        if (dead_end_listener_ != nullptr
-            && !state_info.is_recognized_dead_end()) {
+        if (dead_end_listener_ != nullptr &&
+            !state_info.is_recognized_dead_end()) {
             set_dead_end(state_info);
             dead_end_listener_->operator()(state_id);
         }
@@ -489,7 +491,7 @@ public:
     }
 
     /**
-     * @brief Checks whether the attached dead-end evluator recognizes the 
+     * @brief Checks whether the attached dead-end evluator recognizes the
      * state as a dead-end. If yes, the state is marked as a dead-end.
      */
     bool check_dead_end(const StateID& state_id)
@@ -513,15 +515,15 @@ public:
     }
 
     /**
-     * @brief Computes the value update for a state and outputs the new greedy 
+     * @brief Computes the value update for a state and outputs the new greedy
      * action, transition, and whether the policy and value changed.
-     * 
+     *
      * @param[in] s - The state for the value update
      * @param[out] policy_action - Return address for the new greedy action.
-     * @param[out] policy_transition - Return address for the new greedy 
+     * @param[out] policy_transition - Return address for the new greedy
      * transition.
      * @param[out] policy_changed - Return address for the policy change flag.
-     * 
+     *
      * @return true - If the value changed.
      * @return false - Otherwise.
      */
@@ -541,22 +543,22 @@ public:
     }
 
     /**
-     * @brief Computes the value update for a state and outputs the new greedy 
-     * action, transition, and whether the policy and value changed, where ties 
+     * @brief Computes the value update for a state and outputs the new greedy
+     * action, transition, and whether the policy and value changed, where ties
      * between optimal actions are broken by the supplied policy tiebreaker.
-     * 
+     *
      * @param[in] s - The state for the value update
      * @param[out] policy_tiebreaker - A pointer to a function object breaking
      * ties between optimal actions.
      * @param[out] policy_action - Return address for the new greedy action.
-     * @param[out] policy_transition - Return address for the new greedy 
+     * @param[out] policy_transition - Return address for the new greedy
      * transition.
      * @param[out] policy_changed - Return address for the policy change flag.
-     * 
+     *
      * @return true - If the value changed.
      * @return false - Otherwise.
      */
-    template<typename T>
+    template <typename T>
     bool async_update(
         const StateID& s,
         T* policy_tiebreaker,
@@ -573,14 +575,14 @@ public:
             policy_changed);
     }
 
-    template<typename AlternativeCondition>
+    template <typename AlternativeCondition>
     std::pair<bool, bool>
     safe_async_update(const StateID& s, AlternativeCondition& alt_cond)
     {
         return this->safe_async_update(s, *dead_end_listener_, alt_cond);
     }
 
-    template<typename DeadEndListener, typename AlternativeCondition>
+    template <typename DeadEndListener, typename AlternativeCondition>
     std::pair<bool, bool> safe_async_update(
         const StateID& s,
         DeadEndListener& listener,
@@ -692,10 +694,12 @@ public:
                         pd.index = expansion_data.lowlink = index++;
                         pd.onstack = true;
                         this->generate_applicable_ops(
-                            expansion_data.state, expansion_data.aops);
+                            expansion_data.state,
+                            expansion_data.aops);
                         if (expansion_data.aops.empty()) {
                             state_info.set_dead_end();
-                            result.second = this->update(state_info, dead_end_value_);
+                            result.second =
+                                this->update(state_info, dead_end_value_);
                             continue;
                         }
                         stack.push_front(expansion_data.state);
@@ -711,8 +715,9 @@ public:
                                 const StateID stack_state_id = *end;
                                 auto& info = state_infos_[stack_state_id];
                                 info.set_recognized_dead_end();
-                                result.second = this->update(info, dead_end_value_)
-                                    || result.second;
+                                result.second =
+                                    this->update(info, dead_end_value_) ||
+                                    result.second;
                                 indices[stack_state_id].onstack = false;
                                 statistics_.dead_end_safe_updates_dead_ends++;
                                 // std::cout << " ---> dead: " << *end <<
@@ -761,9 +766,9 @@ public:
                     auto& expansion_data = expansion_queue.back();
                     const StateID state_id = expansion_data.state;
                     StateInfo& state_info = state_infos_[state_id];
-                    const ActionID pid =
-                        this->get_action_id(
-                            state_id, expansion_data.aops.back());
+                    const ActionID pid = this->get_action_id(
+                        state_id,
+                        expansion_data.aops.back());
                     result.second =
                         result.second || (state_info.get_policy() != pid);
                     state_info.set_policy(pid);
@@ -788,12 +793,13 @@ protected:
     {
         if constexpr (DualBounds::value) {
             return value_utils::update(
-                state_info.value, other, interval_comparison_);
+                state_info.value,
+                other,
+                interval_comparison_);
         } else {
             return value_utils::update(state_info.value, other);
         }
     }
-
 
 #if 0
     value_type::value_t create_result(const StateID& id)
@@ -815,8 +821,7 @@ protected:
         initial_state_id_ = this->get_state_id(state);
 
         static bool initialized = false;
-        if (initialized)
-            return;
+        if (initialized) return;
         initialized = true;
 
         const StateInfo& info = lookup_initialize(this->get_state_id(state));
@@ -824,7 +829,8 @@ protected:
         this->add_values_to_report(&info);
         statistics_.value = value_utils::as_upper_bound(info.value);
         statistics_.before_last_update = statistics_;
-        statistics_.initial_state_estimate = value_utils::as_upper_bound(info.value);
+        statistics_.initial_state_estimate =
+            value_utils::as_upper_bound(info.value);
         statistics_.initial_state_found_terminal = info.is_terminal();
 
         setup_custom_reports(state);
@@ -838,7 +844,7 @@ protected:
     /**
      * @brief Sets up internal custom reports of a state in an implementation.
      */
-    virtual void setup_custom_reports(const State&) { }
+    virtual void setup_custom_reports(const State&) {}
 
     /**
      * @brief Get the state info storage.
@@ -848,14 +854,15 @@ protected:
         return state_infos_;
     }
 
-    template<typename Info>
+    template <typename Info>
     bool do_bounds_disagree(const StateID& state_id, const Info& info)
     {
         if constexpr (DualBounds::value) {
             if constexpr (std::is_same_v<Info, StateInfo>) {
                 return interval_comparison_ && !info.value.bounds_equal();
             } else {
-                return interval_comparison_ && !state_infos_[state_id].value.bounds_equal();
+                return interval_comparison_ &&
+                       !state_infos_[state_id].value.bounds_equal();
             }
         } else {
             return false;
@@ -864,15 +871,15 @@ protected:
 
     /**
      * @brief Dumps the search space as a graph.
-     * 
+     *
      * State names are printed as specified by operator()(const State&) of the
      * provided state-to-string function object.
-     * 
+     *
      * @tparam StateToString - Type of the state-to-string function object.
      * @param file_name - The output file name.
-     * @param sstr - A pointer to the state-to-string function object. 
+     * @param sstr - A pointer to the state-to-string function object.
      */
-    template<typename StateToString>
+    template <typename StateToString>
     void dump_search_space(const std::string& file_name, StateToString* sstr)
     {
         struct ExpansionCondition {
@@ -929,7 +936,7 @@ protected:
 
     /**
      * @brief Dumps the search space as a graph, without state names.
-     * 
+     *
      * @param file_name - The output file name.
      */
     void dump_search_space(const std::string& file_name)
@@ -972,18 +979,17 @@ private:
             auto estimate = this->get_state_reward(state);
             if (estimate) {
                 state_info.set_goal();
-                state_info.value = IncumbentSolution((value_type::value_t)estimate);
+                state_info.value =
+                    IncumbentSolution((value_type::value_t)estimate);
                 statistics_.goal_states++;
-                if (on_new_state_)
-                    on_new_state_->touch_goal(state);
+                if (on_new_state_) on_new_state_->touch_goal(state);
             } else {
                 estimate = value_initializer_->operator()(state);
                 if (estimate) {
                     statistics_.pruned_states++;
                     state_info.set_recognized_dead_end();
                     state_info.value = dead_end_value_;
-                    if (on_new_state_)
-                        on_new_state_->touch_dead_end(state);
+                    if (on_new_state_) on_new_state_->touch_dead_end(state);
                 } else {
                     state_info.set_on_fringe();
 
@@ -995,20 +1001,16 @@ private:
                             static_cast<value_type::value_t>(estimate);
                     }
 
-                    if (on_new_state_)
-                        on_new_state_->touch(state);
+                    if (on_new_state_) on_new_state_->touch(state);
                 }
             }
         }
         return state_info;
     }
 
-    IncumbentSolution dead_end_value() const
-    {
-        return dead_end_value_;
-    }
+    IncumbentSolution dead_end_value() const { return dead_end_value_; }
 
-    template<typename T>
+    template <typename T>
     bool async_update(
         const bool stable_policy,
         const StateID& s,
@@ -1043,7 +1045,7 @@ private:
         }
     }
 
-    template<bool Policy, bool StablePolicy, typename T>
+    template <bool Policy, bool StablePolicy, typename T>
     bool compute_value_update(
         const StateID& state_id,
         [[maybe_unused]] T* choice,
@@ -1105,8 +1107,8 @@ private:
         unsigned non_loop_transitions = 0;
         for (unsigned i = 0; i < aops_.size(); ++i) {
             IncumbentSolution t_value(
-                state_info.get_state_reward()
-                + this->get_action_reward(state_id, aops_[i]));
+                state_info.get_state_reward() +
+                this->get_action_reward(state_id, aops_[i]));
             value_type::value_t self_loop = value_type::zero;
             bool non_loop = false;
             bool has_self_loop = false;
@@ -1147,7 +1149,8 @@ private:
 #if defined(EXPENSIVE_STATISTICS)
         statistics_.update_time.stop();
 #endif
-        // if (value_type::approx_equal(value_type::eps)(state_info.value, this->get_minimal_reward())) {
+        // if (value_type::approx_equal(value_type::eps)(state_info.value,
+        // this->get_minimal_reward())) {
         //     non_loop_transitions = 0;
         // }
 
@@ -1158,8 +1161,8 @@ private:
             state_info.set_dead_end();
             return result;
             // assert(is_equal_(new_value, dead_end_value_));
-        } 
-        
+        }
+
         if constexpr (Policy) {
 #if defined(EXPENSIVE_STATISTICS)
             statistics_.policy_selection_time.resume();
@@ -1174,9 +1177,9 @@ private:
                         optimal_transitions_[j].swap(optimal_transitions_[i]);
                         std::swap(aops_[j], aops_[i]);
                     }
-                    if (StablePolicy
-                        && this->get_action_id(state_id, aops_[j])
-                            == state_info.get_policy()) {
+                    if (StablePolicy &&
+                        this->get_action_id(state_id, aops_[j]) ==
+                            state_info.get_policy()) {
                         index = j++;
                         break;
                     }
@@ -1259,16 +1262,16 @@ private:
 
 } // namespace internal
 
-template<typename T>
+template <typename T>
 struct NoAdditionalStateData : public T {
 };
 
-template<
+template <
     typename State,
     typename Action,
     typename DualValueBounds = std::false_type,
     typename StorePolicy = std::false_type,
-    template<typename> class StateInfo = NoAdditionalStateData>
+    template <typename> class StateInfo = NoAdditionalStateData>
 using HeuristicSearchBase = internal::HeuristicSearchBase<
     State,
     Action,

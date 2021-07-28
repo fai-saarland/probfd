@@ -1,14 +1,15 @@
 #include "utils.h"
 #include "../../../globals.h"
 #include "../../globals.h"
-#include "maxprob/maxprob_projection.h"
 #include "expected_cost/expcost_projection.h"
+#include "maxprob/maxprob_projection.h"
 
 #include <sstream>
 
 namespace probabilistic::pdbs {
 
-void dump_pattern_vars(std::ostream& out, const Pattern& p) {
+void dump_pattern_vars(std::ostream& out, const Pattern& p)
+{
     out << "[";
     for (unsigned j = 0; j < p.size(); j++) {
         out << (j > 0 ? ", " : "") << p[j];
@@ -16,12 +17,14 @@ void dump_pattern_vars(std::ostream& out, const Pattern& p) {
     out << "]";
 }
 
-void dump_pattern_short(std::ostream& out, PatternID i, const Pattern& p) {
+void dump_pattern_short(std::ostream& out, PatternID i, const Pattern& p)
+{
     out << "pattern[" << i << "]: vars = ";
     dump_pattern_vars(out, p);
 }
 
-void dump_pattern(std::ostream& out, PatternID i, const Pattern& p) {
+void dump_pattern(std::ostream& out, PatternID i, const Pattern& p)
+{
     dump_pattern_short(out, i, p);
 
     out << " ({";
@@ -31,4 +34,4 @@ void dump_pattern(std::ostream& out, PatternID i, const Pattern& p) {
     out << "})" << std::flush;
 }
 
-}
+} // namespace probabilistic::pdbs

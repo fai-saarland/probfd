@@ -6,10 +6,10 @@ namespace probabilistic {
 
 /**
  * @brief Specified a mapping between states and integer IDs.
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  */
-template<typename State>
+template <typename State>
 struct StateIDMap {
     /**
      * Get the state id for a given state.
@@ -23,4 +23,3 @@ struct StateIDMap {
 };
 
 } // namespace probabilistic
-

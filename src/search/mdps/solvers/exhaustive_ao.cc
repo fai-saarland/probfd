@@ -9,14 +9,14 @@
 namespace probabilistic {
 namespace solvers {
 
-template<typename Bisimulation>
+template <typename Bisimulation>
 class ExhaustiveAOSolver
     : public MDPHeuristicSearch<Bisimulation, std::false_type> {
 public:
-    template<typename T>
+    template <typename T>
     using WrappedType =
         typename MDPHeuristicSearch<Bisimulation, std::false_type>::
-        template WrappedType<T>;
+            template WrappedType<T>;
 
     explicit ExhaustiveAOSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, std::false_type>(opts)
@@ -45,7 +45,9 @@ struct ExhaustiveAOOptions {
     {
         MDPHeuristicSearchBase::add_options_to_parser(parser);
         parser.add_option<std::shared_ptr<GlobalStateOpenList>>(
-            "open_list", "", "lifo_open_list");
+            "open_list",
+            "",
+            "lifo_open_list");
     }
 };
 

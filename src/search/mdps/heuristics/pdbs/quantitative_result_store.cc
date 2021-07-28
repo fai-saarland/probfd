@@ -5,16 +5,16 @@
 namespace probabilistic {
 namespace pdbs {
 
-QuantitativeResultStore::QuantitativeResultStore() { }
+QuantitativeResultStore::QuantitativeResultStore()
+{
+}
 
-bool
-QuantitativeResultStore::has_value(const AbstractState& x) const
+bool QuantitativeResultStore::has_value(const AbstractState& x) const
 {
     return values_.find(x.id) != values_.end();
 }
 
-value_type::value_t
-QuantitativeResultStore::get(const AbstractState& x) const
+value_type::value_t QuantitativeResultStore::get(const AbstractState& x) const
 {
     auto it = values_.find(x.id);
     assert(it != values_.end());
@@ -28,15 +28,15 @@ QuantitativeResultStore::operator[](const AbstractState& state)
     return x.first->second;
 }
 
-value_type::value_t&
-QuantitativeResultStore::operator[](const StateID& id)
+value_type::value_t& QuantitativeResultStore::operator[](const StateID& id)
 {
     auto x = values_.insert(std::make_pair(id, value_type::zero));
     return x.first->second;
 }
 
 std::optional<value_type::value_t>
-QuantitativeResultStore::get_optional(const AbstractState& x) const {
+QuantitativeResultStore::get_optional(const AbstractState& x) const
+{
     auto it = values_.find(x.id);
     if (it == values_.end()) {
         return std::nullopt;
@@ -44,8 +44,7 @@ QuantitativeResultStore::get_optional(const AbstractState& x) const {
     return it->second;
 }
 
-void
-QuantitativeResultStore::set(
+void QuantitativeResultStore::set(
     const AbstractState& state,
     value_type::value_t value)
 {

@@ -7,8 +7,7 @@
 
 namespace probabilistic {
 
-void
-ProbabilisticOperatorSuccessorSorting::operator()(
+void ProbabilisticOperatorSuccessorSorting::operator()(
     const StateID& state,
     const std::vector<const ProbabilisticOperator*>& action_choices,
     std::vector<Distribution<StateID>>& successors)

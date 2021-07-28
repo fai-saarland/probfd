@@ -10,15 +10,14 @@
 
 #include <deque>
 #include <fstream>
+#include <numeric>
 #include <set>
 #include <sstream>
-#include <numeric>
 
 namespace probabilistic {
 namespace pdbs {
 
-MaxProbProjection::
-MaxProbProjection(
+MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
     const std::vector<int>& domains,
     bool precompute_dead_ends)
@@ -71,7 +70,8 @@ void MaxProbProjection::prepare_regression()
                         eff_no_pre.push_back(idx);
                     } else {
                         pre += state_mapper_->from_value_partial(
-                            idx, precondition[idx]);
+                            idx,
+                            precondition[idx]);
                     }
                 }
             }
@@ -85,22 +85,25 @@ void MaxProbProjection::prepare_regression()
         std::sort(eff_no_pre.begin(), eff_no_pre.end());
 
         auto it = state_mapper_->partial_states_begin(
-            pre - eff, std::move(eff_no_pre));
+            pre - eff,
+            std::move(eff_no_pre));
         auto end = state_mapper_->partial_states_end();
 
         for (; it != end; ++it) {
             AbstractState regression = *it;
 
-            if (regression.id != 0 && operator_set.emplace(eff, regression).second) {
+            if (regression.id != 0 &&
+                operator_set.emplace(eff, regression).second) {
                 progressions.push_back(projected_eff);
                 operators.push_back(regression);
             }
         }
     }
 
-    regression_aops_generator_ =
-        std::make_shared<RegressionSuccessorGenerator>(
-            state_mapper_->get_domains(), progressions, operators);
+    regression_aops_generator_ = std::make_shared<RegressionSuccessorGenerator>(
+        state_mapper_->get_domains(),
+        progressions,
+        operators);
 }
 
 void MaxProbProjection::precompute_dead_ends()
@@ -144,12 +147,13 @@ void MaxProbProjection::precompute_dead_ends()
      *    are reached by any operator staying completely within S with all
      *    effects. If not, remove the state from from S.
      * 3. If S has changed go to 1.
-     * 
+     *
      * In the end, S contains all states with MaxProb 1.
      */
 }
 
-void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
+void MaxProbProjection::compute_value_table(bool precomputed_dead_ends)
+{
     using namespace engines::interval_iteration;
 
     AbstractStateInSetRewardFunction state_reward(
@@ -162,29 +166,35 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
 
     ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
+        state_id_map,
+        state_mapper_,
+        progression_aops_generator_);
     TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
+        state_id_map,
+        state_mapper_,
+        progression_aops_generator_);
 
     std::unique_ptr<AbstractStateEvaluator> heuristic = nullptr;
     if (precomputed_dead_ends) {
         heuristic = std::unique_ptr<AbstractStateEvaluator>(
             new AbstractStateDeadendStoreEvaluator(
-                &dead_ends, value_type::zero, value_type::zero));
+                &dead_ends,
+                value_type::zero,
+                value_type::zero));
     }
 
     engines::interval_iteration::
-    IntervalIteration<AbstractState, const AbstractOperator*, true>
-        vi(&state_id_map,
-           &action_id_map,
-           &state_reward,
-           &no_reward,
-           value_type::zero,
-           value_type::one,
-           &aops_gen,
-           &transition_gen,
-           heuristic.get(),
-           true);
+        IntervalIteration<AbstractState, const AbstractOperator*, true>
+            vi(&state_id_map,
+               &action_id_map,
+               &state_reward,
+               &no_reward,
+               value_type::zero,
+               value_type::one,
+               &aops_gen,
+               &transition_gen,
+               heuristic.get(),
+               true);
 
     // states that cannot reach goal
     engines::interval_iteration::BoolStore deads(false);
@@ -205,17 +215,14 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
         const auto value = value_table[state_id];
 
         logging::out << "]: lb=" << value.lower << ", ub=" << value.upper
-                     << ", error=" << value.error_bound()
-                     << std::endl;
+                     << ", error=" << value.error_bound() << std::endl;
     }
 #endif
 
     n_reachable_states = state_id_map.size();
 
-    for (auto it = state_id_map.seen_begin();
-         it != state_id_map.seen_end();
-         ++it)
-    {
+    for (auto it = state_id_map.seen_begin(); it != state_id_map.seen_end();
+         ++it) {
         const AbstractState s(*it);
         if (deads[s.id]) {
             ++n_dead_ends;
@@ -229,7 +236,8 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     }
 
     all_one = num_one_states() == num_reachable_states();
-    deterministic = num_one_states() + num_dead_ends() == num_reachable_states();
+    deterministic =
+        num_one_states() + num_dead_ends() == num_reachable_states();
 
     if (is_all_one() || is_deterministic()) {
         value_table.clear();
@@ -237,56 +245,56 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends) {
     }
 }
 
-AbstractState
-MaxProbProjection::get_abstract_state(const GlobalState& s) const {
+AbstractState MaxProbProjection::get_abstract_state(const GlobalState& s) const
+{
     return state_mapper_->operator()(s);
 }
 
-unsigned int
-MaxProbProjection::num_reachable_states() const {
+unsigned int MaxProbProjection::num_reachable_states() const
+{
     return n_reachable_states;
 }
 
-unsigned int
-MaxProbProjection::num_dead_ends() const {
+unsigned int MaxProbProjection::num_dead_ends() const
+{
     return n_dead_ends;
 }
 
-unsigned int
-MaxProbProjection::num_one_states() const {
+unsigned int MaxProbProjection::num_one_states() const
+{
     return n_one_states;
 }
 
-bool
-MaxProbProjection::is_all_one() const {
+bool MaxProbProjection::is_all_one() const
+{
     return all_one;
 }
 
-bool
-MaxProbProjection::is_deterministic() const {
+bool MaxProbProjection::is_deterministic() const
+{
     return deterministic;
 }
 
-bool
-MaxProbProjection::is_dead_end(AbstractState s) const {
+bool MaxProbProjection::is_dead_end(AbstractState s) const
+{
     return !is_all_one() && dead_ends.get(s);
 }
 
-bool
-MaxProbProjection::is_dead_end(const GlobalState& s) const {
+bool MaxProbProjection::is_dead_end(const GlobalState& s) const
+{
     return is_dead_end(get_abstract_state(s));
 }
 
-value_type::value_t
-MaxProbProjection::lookup(AbstractState s) const {
+value_type::value_t MaxProbProjection::lookup(AbstractState s) const
+{
     assert(!is_dead_end(s));
-    return all_one || deterministic || one_states.get(s) ?
-        value_type::one :
-        value_table[s.id].upper;
+    return all_one || deterministic || one_states.get(s)
+               ? value_type::one
+               : value_table[s.id].upper;
 }
 
-value_type::value_t
-MaxProbProjection::lookup(const GlobalState& s) const {
+value_type::value_t MaxProbProjection::lookup(const GlobalState& s) const
+{
     return lookup(get_abstract_state(s));
 }
 
@@ -336,10 +344,9 @@ struct StateToString {
     value_type::value_t v1;
     AbstractStateToString state_str;
 };
-}
+} // namespace
 
-void
-MaxProbProjection::dump_graphviz(
+void MaxProbProjection::dump_graphviz(
     const std::string& path,
     bool transition_labels,
     bool values)
@@ -366,11 +373,11 @@ MaxProbProjection::dump_graphviz(
     }
 }
 
-template<typename StateToString, typename ActionToString>
+template <typename StateToString, typename ActionToString>
 void MaxProbProjection::dump_graphviz(
-    const std::string &path,
-    const StateToString *sts,
-    const ActionToString *ats)
+    const std::string& path,
+    const StateToString* sts,
+    const ActionToString* ats)
 {
     AbstractStateInSetRewardFunction state_reward(
         &goal_states_,
@@ -380,9 +387,13 @@ void MaxProbProjection::dump_graphviz(
     StateIDMap<AbstractState> state_id_map;
 
     ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
+        state_id_map,
+        state_mapper_,
+        progression_aops_generator_);
     TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
+        state_id_map,
+        state_mapper_,
+        progression_aops_generator_);
 
     std::ofstream out(path);
 

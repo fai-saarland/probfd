@@ -16,18 +16,18 @@ namespace probabilistic {
 /**
  * @brief Uses a classical heuristic on the all-outcomes-determinization to
  * prune dead-ends.
- * 
- * @note If the underlying classical heuristic is safe, this heuristic is also 
+ *
+ * @note If the underlying classical heuristic is safe, this heuristic is also
  * safe.
  */
 class DeadEndPruningHeuristic : public GlobalStateEvaluator {
 public:
     /**
      * @brief Construct with the given clasical heuristic.
-     * 
-     * @param default_value - State estimate returned for states that are not 
+     *
+     * @param default_value - State estimate returned for states that are not
      * dead-ends according to the classical heuristic.
-     * @param dead_end_value - State estimate returned for states that are 
+     * @param dead_end_value - State estimate returned for states that are
      * dead-ends according to the classical heuristic.
      * @param pruning_function - The classical heuristic.
      */
@@ -38,9 +38,9 @@ public:
 
     /**
      * @brief Construct from options.
-     * 
+     *
      * @param opts - Available options:
-     * + \em pessimistic - If true, returns g_analysis_objective_max() for 
+     * + \em pessimistic - If true, returns g_analysis_objective_max() for
      * states that the deterministic heuristic does not recognize as dead-ends.
      * Otherwise return g_analysis_objective_min() for such states.
      * + \em heuristic - The classical heuristic.

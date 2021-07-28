@@ -14,26 +14,22 @@ ProgressReport::ProgressReport(
 {
 }
 
-void
-ProgressReport::enable()
+void ProgressReport::enable()
 {
     enabled_ = true;
 }
 
-void
-ProgressReport::disable()
+void ProgressReport::disable()
 {
     enabled_ = false;
 }
 
-void
-ProgressReport::register_print(std::function<void(std::ostream&)> f)
+void ProgressReport::register_print(std::function<void(std::ostream&)> f)
 {
     additional_informations_.push_back(f);
 }
 
-void
-ProgressReport::register_value(
+void ProgressReport::register_value(
     const std::string& val_name,
     std::function<value_type::value_t()> getter)
 {
@@ -42,8 +38,7 @@ ProgressReport::register_value(
     extracted_values_.push_back(value_type::zero);
 }
 
-void
-ProgressReport::print()
+void ProgressReport::print()
 {
     extract_values();
     if (!extracted_values_.empty()) {
@@ -51,8 +46,7 @@ ProgressReport::print()
     }
 }
 
-void
-ProgressReport::print_progress()
+void ProgressReport::print_progress()
 {
     (*out_) << "[";
     for (unsigned i = 0; i < value_names_.size(); i++) {
@@ -69,22 +63,20 @@ ProgressReport::print_progress()
             << "\n";
 }
 
-bool
-ProgressReport::extract_values()
+bool ProgressReport::extract_values()
 {
     bool print = last_printed_values_.size() != value_getters_.size();
     last_printed_values_.resize(value_getters_.size(), value_type::zero);
     for (int i = value_getters_.size() - 1; i >= 0; --i) {
         const value_type::value_t val = value_getters_[i]();
-        print = print
-            || (value_type::abs(last_printed_values_[i] - val) >= min_change_);
+        print = print ||
+                (value_type::abs(last_printed_values_[i] - val) >= min_change_);
         extracted_values_[i] = val;
     }
     return print;
 }
 
-void
-ProgressReport::operator()()
+void ProgressReport::operator()()
 {
     if (!enabled_) {
         return;

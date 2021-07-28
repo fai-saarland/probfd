@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../probabilistic_projection.h"
 #include "../../../value_utils.h"
+#include "../probabilistic_projection.h"
 
 namespace successor_generator {
-template<typename T>
+template <typename T>
 class SuccessorGenerator;
 }
 
@@ -32,7 +32,7 @@ public:
     ExpCostProjection(
         const Pattern& variables,
         AbstractStateEvaluator* heuristic);
-    
+
     ExpCostProjection(
         const Pattern& variables,
         const std::vector<int>& domains,
@@ -44,7 +44,7 @@ public:
 
     ~ExpCostProjection() = default;
 
-    value_type::value_t get_value(const GlobalState &state) const;
+    value_type::value_t get_value(const GlobalState& state) const;
 
     unsigned int num_reachable_states() const;
 
@@ -59,7 +59,7 @@ public:
 private:
     void compute_value_table(AbstractStateEvaluator* heuristic = nullptr);
 
-    template<typename StateToString, typename ActionToString>
+    template <typename StateToString, typename ActionToString>
     void dump_graphviz(
         const std::string& path,
         const StateToString* sts,

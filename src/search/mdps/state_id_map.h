@@ -7,7 +7,7 @@ class StateRegistry;
 
 namespace probabilistic {
 
-template<>
+template <>
 class StateIDMap<GlobalState> {
 public:
     explicit StateIDMap(StateRegistry* reg);
@@ -19,4 +19,3 @@ private:
 };
 
 } // namespace probabilistic
-

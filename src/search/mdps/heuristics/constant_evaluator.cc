@@ -14,8 +14,7 @@ ConstantEvaluator::ConstantEvaluator(value_type::value_t value)
 {
 }
 
-EvaluationResult
-ConstantEvaluator::evaluate(const GlobalState&)
+EvaluationResult ConstantEvaluator::evaluate(const GlobalState&)
 {
     return EvaluationResult(false, value_);
 }

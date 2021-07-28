@@ -9,12 +9,12 @@
 
 #include <iostream>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
 namespace successor_generator {
-template<typename T>
+template <typename T>
 class SuccessorGenerator;
 }
 
@@ -43,21 +43,21 @@ class ProbabilisticProjection {
             const ProgressionOperatorFootprint& a,
             const ProgressionOperatorFootprint& b)
         {
-            return std::tie(a.precondition_hash, a.successors) < 
-                std::tie(b.precondition_hash, b.successors);
+            return std::tie(a.precondition_hash, a.successors) <
+                   std::tie(b.precondition_hash, b.successors);
         }
 
         friend bool operator==(
             const ProgressionOperatorFootprint& a,
             const ProgressionOperatorFootprint& b)
         {
-            return std::tie(a.precondition_hash, a.successors) == 
-                std::tie(b.precondition_hash, b.successors);
+            return std::tie(a.precondition_hash, a.successors) ==
+                   std::tie(b.precondition_hash, b.successors);
         }
     };
 
 protected:
-    using ProgressionSuccessorGenerator = 
+    using ProgressionSuccessorGenerator =
         successor_generator::SuccessorGenerator<const AbstractOperator*>;
 
 public:
@@ -73,8 +73,8 @@ public:
 
     // Returns the pattern (i.e. all variables used) of the PDB
 
-    const Pattern &get_pattern() const;
-    
+    const Pattern& get_pattern() const;
+
 private:
     void setup_abstract_goal();
     void prepare_progression();

@@ -16,7 +16,7 @@ namespace ao_star {
 
 namespace internal {
 
-template<typename State, typename Action, typename DualBounds>
+template <typename State, typename Action, typename DualBounds>
 using AOBase = ao_search::AOBase<
     State,
     Action,
@@ -29,17 +29,17 @@ using AOBase = ao_search::AOBase<
 
 /**
  * @brief Implementation of the AO* algorithm.
- * 
- * The AO* algorithm is an MDP heuristic search algorithm applicable to acyclic 
+ *
+ * The AO* algorithm is an MDP heuristic search algorithm applicable to acyclic
  * MDPs.
- *  
+ *
  * @tparam StateT - The state type of the underlying MDP.
  * @tparam ActionT - The action type of the underlying MDP.
  * @tparam DualBoundsT - Whether bounded value iteration shall be used.
- * 
+ *
  * @remark Does not validate that the input model is acyclic.
  */
-template<typename StateT, typename ActionT, typename DualBoundsT>
+template <typename StateT, typename ActionT, typename DualBoundsT>
 class AOStar : public internal::AOBase<StateT, ActionT, DualBoundsT> {
 public:
     /// Base class typedef.
@@ -72,24 +72,24 @@ public:
         bool stable_policy,
         TransitionSampler<Action>* outcome_selection)
         : AOBase(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator,
-            level,
-            dead_end_eval,
-            dead_end_listener,
-            policy_chooser,
-            new_state_handler,
-            value_init,
-            connector,
-            report,
-            interval_comparison,
-            stable_policy)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator,
+              level,
+              dead_end_eval,
+              dead_end_listener,
+              policy_chooser,
+              new_state_handler,
+              value_init,
+              connector,
+              report,
+              interval_comparison,
+              stable_policy)
         , outcome_selection_(outcome_selection)
     {
     }
@@ -123,7 +123,12 @@ private:
                 bool terminal = false;
                 bool value_changed = false;
                 this->initialize_tip_state_value(
-                    state, info, terminal, solved, dead, value_changed);
+                    state,
+                    info,
+                    terminal,
+                    solved,
+                    dead,
+                    value_changed);
                 if (terminal) {
                     assert(info.is_solved());
                     break;
@@ -136,7 +141,9 @@ private:
                 int min_succ_order = std::numeric_limits<int>::max();
                 assert(this->aops_.empty() && this->transitions_.empty());
                 this->generate_all_successors(
-                    state, this->aops_, this->transitions_);
+                    state,
+                    this->aops_,
+                    this->transitions_);
                 for (int i = this->transitions_.size() - 1; i >= 0; --i) {
                     const auto& t = this->transitions_[i];
                     for (auto it = t.begin(); it != t.end(); ++it) {
@@ -147,17 +154,18 @@ private:
                             succ_info.mark();
                             succ_info.add_parent(state);
                             assert(
-                                succ_info.update_order >= 0
-                                && succ_info.update_order
-                                    < std::numeric_limits<int>::max());
+                                succ_info.update_order >= 0 &&
+                                succ_info.update_order <
+                                    std::numeric_limits<int>::max());
                             min_succ_order = std::min(
-                                min_succ_order, succ_info.update_order);
+                                min_succ_order,
+                                succ_info.update_order);
                         }
                     }
                 }
                 assert(
-                    min_succ_order >= 0
-                    && min_succ_order < std::numeric_limits<int>::max());
+                    min_succ_order >= 0 &&
+                    min_succ_order < std::numeric_limits<int>::max());
                 info.update_order = min_succ_order + 1;
 
                 for (int i = this->transitions_.size() - 1; i >= 0; --i) {
@@ -184,8 +192,8 @@ private:
             // std::cout << " > [";
 
             assert(
-                !info.is_tip_state() && !info.is_terminal()
-                && !info.is_solved());
+                !info.is_tip_state() && !info.is_terminal() &&
+                !info.is_solved());
 
             this->apply_policy(state, this->selected_transition_);
 
@@ -212,7 +220,9 @@ private:
             }
 
             state = this->outcome_selection_->operator()(
-                state, this->get_policy(state), this->selected_transition_);
+                state,
+                this->get_policy(state),
+                this->selected_transition_);
 
             this->selected_transition_.clear();
         } while (true);

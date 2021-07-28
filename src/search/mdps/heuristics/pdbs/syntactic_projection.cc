@@ -5,15 +5,14 @@ namespace pdbs {
 namespace syntactic_projection {
 
 value_type::value_t ProjectionOperator::get_probability(
-    const std::vector<std::pair<int, int>> &effects) const
+    const std::vector<std::pair<int, int>>& effects) const
 {
     auto it = effects_to_probs.find(effects);
     return it != effects_to_probs.end() ? it->second : value_type::zero;
 }
 
-void
-ProjectionOperator::add_effect_probability(
-    const std::vector<std::pair<int, int>> &effects,
+void ProjectionOperator::add_effect_probability(
+    const std::vector<std::pair<int, int>>& effects,
     value_type::value_t probability)
 {
     auto it = effects_to_probs.find(effects);
@@ -25,11 +24,13 @@ ProjectionOperator::add_effect_probability(
     }
 }
 
-bool ProjectionOperator::is_stochastic() const {
+bool ProjectionOperator::is_stochastic() const
+{
     return effects_to_probs.size() > 1;
 }
 
-bool ProjectionOperator::is_pseudo_deterministic() const {
+bool ProjectionOperator::is_pseudo_deterministic() const
+{
     if (effects_to_probs.size() == 2) {
         auto it = effects_to_probs.cbegin();
         if (it->first.empty() || (++it)->first.empty()) {
@@ -56,9 +57,8 @@ std::vector<std::pair<int, int>> project_effects(
     return projected_effects;
 }
 
-ProjectionOperator project_operator(
-    const Pattern& pattern,
-    const ProbabilisticOperator& op)
+ProjectionOperator
+project_operator(const Pattern& pattern, const ProbabilisticOperator& op)
 {
     ProjectionOperator abs_operator;
 
@@ -75,6 +75,6 @@ ProjectionOperator project_operator(
     return abs_operator;
 }
 
-}
-}
-}
+} // namespace syntactic_projection
+} // namespace pdbs
+} // namespace probabilistic

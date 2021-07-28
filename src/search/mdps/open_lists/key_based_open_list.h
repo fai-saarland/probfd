@@ -10,7 +10,7 @@ namespace probabilistic {
 namespace open_lists {
 
 struct LifoPop {
-    template<typename C>
+    template <typename C>
     StateID operator()(C& c) const
     {
         auto it = c.rbegin();
@@ -21,7 +21,7 @@ struct LifoPop {
 };
 
 struct FifoPop {
-    template<typename C>
+    template <typename C>
     StateID operator()(C& c) const
     {
         auto it = c.begin();
@@ -31,7 +31,7 @@ struct FifoPop {
     }
 };
 
-template<
+template <
     typename Key,
     typename Pop = LifoPop,
     typename Comparison = typename std::less<Key>>

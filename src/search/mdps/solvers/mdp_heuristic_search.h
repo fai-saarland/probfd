@@ -20,7 +20,7 @@
 namespace probabilistic {
 namespace solvers {
 
-template<typename Bisimulation, typename Fret>
+template <typename Bisimulation, typename Fret>
 class MDPHeuristicSearch;
 
 class MDPHeuristicSearchBase : public MDPSolver {
@@ -61,14 +61,17 @@ private:
     const bool stable_policy_;
 };
 
-template<typename Bisimulation>
+template <typename Bisimulation>
 class MDPHeuristicSearch<Bisimulation, std::false_type>
     : public MDPHeuristicSearchBase {
 public:
     using MDPHeuristicSearchBase::add_options_to_parser;
     using MDPHeuristicSearchBase::MDPHeuristicSearchBase;
 
-    template<template<typename, typename, typename> class HS, typename... Args>
+    template <
+        template <typename, typename, typename>
+        class HS,
+        typename... Args>
     engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
     heuristic_search_engine_factory(Args&&... args)
     {
@@ -107,24 +110,24 @@ public:
     }
 
 protected:
-    template<typename T>
+    template <typename T>
     using WrappedType =
         typename Wrapper<std::false_type, std::false_type, T>::type;
 
-    template<typename T>
+    template <typename T>
     T wrap(T t) const
     {
         return t;
     }
 
-    template<typename T>
+    template <typename T>
     T unwrap(T t) const
     {
         return t;
     }
 };
 
-template<typename Bisimulation>
+template <typename Bisimulation>
 class MDPHeuristicSearch<Bisimulation, std::true_type>
     : public MDPHeuristicSearchBase {
 public:
@@ -135,9 +138,11 @@ public:
                   this->get_action_id_map(),
                   this->get_applicable_actions_generator(),
                   this->get_transition_generator()))
-        , q_action_reward_(new quotient_system::DefaultQuotientActionRewardFunction<
-              const ProbabilisticOperator*>(
-                  quotient_.get(), this->get_action_reward_function()))
+        , q_action_reward_(
+              new quotient_system::DefaultQuotientActionRewardFunction<
+                  const ProbabilisticOperator*>(
+                  quotient_.get(),
+                  this->get_action_reward_function()))
         , q_action_id_map_(new ActionIDMap<quotient_system::QuotientAction<
                                const ProbabilisticOperator*>>(quotient_.get()))
         , q_aops_gen_(
@@ -149,27 +154,31 @@ public:
         , q_policy_tiebreaker_(
               this->policy_tiebreaker_ != nullptr
                   ? new PolicyPicker<quotient_system::QuotientAction<
-                      const ProbabilisticOperator*>>(
-                      quotient_.get(),
-                      this->policy_tiebreaker_.get())
+                        const ProbabilisticOperator*>>(
+                        quotient_.get(),
+                        this->policy_tiebreaker_.get())
                   : nullptr)
         , q_dead_end_listener_(
-              this->dead_end_listener_ != nullptr ? new DeadEndListener<
-                  GlobalState,
-                  quotient_system::QuotientAction<
-                      const ProbabilisticOperator*>>(
-                  quotient_.get(),
-                  this->dead_end_listener_.get())
-                                                  : nullptr)
+              this->dead_end_listener_ != nullptr
+                  ? new DeadEndListener<
+                        GlobalState,
+                        quotient_system::QuotientAction<
+                            const ProbabilisticOperator*>>(
+                        quotient_.get(),
+                        this->dead_end_listener_.get())
+                  : nullptr)
         , fret_on_policy_(
-              opts.contains("fret_on_policy")
-              && opts.get<bool>("fret_on_policy"))
+              opts.contains("fret_on_policy") &&
+              opts.get<bool>("fret_on_policy"))
         , opts_(opts)
         , engine_(nullptr)
     {
     }
 
-    template<template<typename, typename, typename> class HS, typename... Args>
+    template <
+        template <typename, typename, typename>
+        class HS,
+        typename... Args>
     engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
     heuristic_search_engine_factory(Args... args)
     {
@@ -200,7 +209,10 @@ public:
         }
     }
 
-    template<template<typename, typename, typename> class HS, typename... Args>
+    template <
+        template <typename, typename, typename>
+        class HS,
+        typename... Args>
     engines::MDPEngine<
         GlobalState,
         quotient_system::QuotientAction<const ProbabilisticOperator*>>*
@@ -268,18 +280,19 @@ public:
     }
 
 protected:
-    template<typename T>
+    template <typename T>
     using WrappedType =
         typename Wrapper<std::false_type, std::true_type, T>::type;
 
-    template<typename T>
+    template <typename T>
     typename Wrapper<std::false_type, std::true_type, T>::type wrap(T t) const
     {
         return Wrapper<std::false_type, std::true_type, T>()(
-            quotient_.get(), t);
+            quotient_.get(),
+            t);
     }
 
-    template<typename T>
+    template <typename T>
     typename Unwrapper<std::false_type, std::true_type, T>::type
     unwrap(T t) const
     {
@@ -293,8 +306,8 @@ protected:
     }
 
 private:
-    template<
-        template<typename, typename, typename>
+    template <
+        template <typename, typename, typename>
         class HS,
         typename Bounds,
         typename... Args>
@@ -329,11 +342,11 @@ private:
             args...);
     }
 
-    template<
-        template<typename, typename, typename>
+    template <
+        template <typename, typename, typename>
         class Fret,
         typename Bounds,
-        template<typename, typename, typename>
+        template <typename, typename, typename>
         class HS,
         typename... Args>
     engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
@@ -402,15 +415,15 @@ private:
 };
 
 struct NoAdditionalOptions {
-    void operator()(options::OptionParser&) const { }
+    void operator()(options::OptionParser&) const {}
 };
 
 struct NoOptionsPostprocessing {
-    void operator()(options::Options&) const { }
+    void operator()(options::Options&) const {}
 };
 
-template<
-    template<typename>
+template <
+    template <typename>
     class SolverClass,
     typename AddOptions = NoAdditionalOptions,
     typename OptionsPostprocessing = NoOptionsPostprocessing>
@@ -438,8 +451,8 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
     return nullptr;
 }
 
-template<
-    template<typename, typename>
+template <
+    template <typename, typename>
     class SolverClass,
     typename AddOptions = NoAdditionalOptions,
     typename OptionsPostprocessing = NoOptionsPostprocessing>
@@ -448,7 +461,7 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
 {
     MDPHeuristicSearchBase::add_options_to_parser(parser);
 
-    std::vector<std::string> fret_types({ "disabled", "policy", "value" });
+    std::vector<std::string> fret_types({"disabled", "policy", "value"});
     parser.add_enum_option("fret", fret_types, "", "disabled");
 
     parser.add_option<bool>("bisimulation", "", "false");

@@ -25,9 +25,9 @@ BudgetPruningHeuristic::Hash::operator()(const StateID& state_id) const
     return res.get_hash64();
 }
 
-bool
-BudgetPruningHeuristic::Equal::operator()(const StateID& x, const StateID& y)
-    const
+bool BudgetPruningHeuristic::Equal::operator()(
+    const StateID& x,
+    const StateID& y) const
 {
     const GlobalState s = registry_->lookup_state(::StateID(x));
     const GlobalState t = registry_->lookup_state(::StateID(y));
@@ -55,24 +55,23 @@ BudgetPruningHeuristic::BudgetPruningHeuristic(
 
 BudgetPruningHeuristic::BudgetPruningHeuristic(const options::Options& opts)
     : BudgetPruningHeuristic(
-        opts.get<bool>("pessimistic") ? g_analysis_objective->min()
-                                      : g_analysis_objective->max(),
-        g_analysis_objective->min(),
-        opts.get<std::shared_ptr<Heuristic>>("heuristic"),
-        opts.get<bool>("cache_estimates"))
+          opts.get<bool>("pessimistic") ? g_analysis_objective->min()
+                                        : g_analysis_objective->max(),
+          g_analysis_objective->min(),
+          opts.get<std::shared_ptr<Heuristic>>("heuristic"),
+          opts.get<bool>("cache_estimates"))
 {
 }
 
-void
-BudgetPruningHeuristic::add_options_to_parser(options::OptionParser& parser)
+void BudgetPruningHeuristic::add_options_to_parser(
+    options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<Heuristic>>("heuristic");
     parser.add_option<bool>("pessimistic", "", "false");
     parser.add_option<bool>("cache_estimates", "", "true");
 }
 
-EvaluationResult
-BudgetPruningHeuristic::evaluate(const GlobalState& state)
+EvaluationResult BudgetPruningHeuristic::evaluate(const GlobalState& state)
 {
     int est = 0;
     if (cache_estimates_) {
@@ -90,8 +89,8 @@ BudgetPruningHeuristic::evaluate(const GlobalState& state)
         if (res.second) {
             pruning_function_->evaluate(state);
             res.first->second = pruning_function_->is_dead_end()
-                ? -1
-                : pruning_function_->get_value();
+                                    ? -1
+                                    : pruning_function_->get_value();
         }
         est = res.first->second;
     } else {
@@ -105,8 +104,7 @@ BudgetPruningHeuristic::evaluate(const GlobalState& state)
     return EvaluationResult(false, default_value_);
 }
 
-void
-BudgetPruningHeuristic::print_statistics() const
+void BudgetPruningHeuristic::print_statistics() const
 {
     pruning_function_->print_statistics();
     logging::out << "  Cached heuristic estimates: "

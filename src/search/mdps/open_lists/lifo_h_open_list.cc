@@ -11,32 +11,28 @@ namespace open_lists {
 
 LifoHOpenList::LifoHOpenList(const options::Options& opts)
     : heuristic_(std::dynamic_pointer_cast<new_state_handlers::StoreHeuristic>(
-        opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
+          opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
     , exp_(StateID::undefined)
 {
 }
 
-void
-LifoHOpenList::add_options_to_parser(options::OptionParser& p)
+void LifoHOpenList::add_options_to_parser(options::OptionParser& p)
 {
     p.add_option<std::shared_ptr<NewGlobalStateHandler>>("heuristic");
 }
 
-unsigned
-LifoHOpenList::size() const
+unsigned LifoHOpenList::size() const
 {
     return queue_.size() + temp_.size();
 }
 
-void
-LifoHOpenList::clear()
+void LifoHOpenList::clear()
 {
     temp_.clear();
     queue_.clear();
 }
 
-StateID
-LifoHOpenList::pop()
+StateID LifoHOpenList::pop()
 {
     populate();
     StateID res = queue_.back();
@@ -44,14 +40,12 @@ LifoHOpenList::pop()
     return res;
 }
 
-void
-LifoHOpenList::push(const StateID& state_id)
+void LifoHOpenList::push(const StateID& state_id)
 {
     queue_.push_back(state_id);
 }
 
-void
-LifoHOpenList::push(
+void LifoHOpenList::push(
     const StateID& parent,
     const ProbabilisticOperator*,
     const value_type::value_t&,
@@ -64,8 +58,7 @@ LifoHOpenList::push(
     temp_.emplace_back(heuristic_->get_cached_h_value(state_id), state_id);
 }
 
-void
-LifoHOpenList::populate()
+void LifoHOpenList::populate()
 {
     if (temp_.empty()) {
         return;

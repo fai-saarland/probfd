@@ -7,13 +7,15 @@
 namespace probabilistic {
 namespace logging {
 
-struct Discard : std::streambuf, std::ostream {
+struct Discard
+    : std::streambuf
+    , std::ostream {
     Discard()
         : std::ostream(this)
     {
     }
 
-    template<typename T>
+    template <typename T>
     std::ostream& operator<<(const T&)
     {
         return *this;
@@ -42,8 +44,7 @@ private:
 extern std::ostream out;
 extern std::ostream err;
 
-void print_analysis_result(
-    const value_type::value_t);
+void print_analysis_result(const value_type::value_t);
 
 void print_analysis_result(
     const value_type::value_t,

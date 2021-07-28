@@ -26,7 +26,7 @@ namespace engines {
 /// Namespace dedicated to the Find, Revise, Eliminate Traps (FRET) framework.
 namespace fret {
 
-template<typename State, typename Action, typename B2>
+template <typename State, typename Action, typename B2>
 using HeuristicSearchEngine =
     heuristic_search::HeuristicSearchBase<State, Action, B2, std::true_type>;
 
@@ -91,7 +91,7 @@ struct TarjanStateInformation {
     bool onstack = false;
 };
 
-template<
+template <
     typename State,
     typename Action,
     typename B2,
@@ -115,14 +115,14 @@ public:
         ProgressReport* report,
         HeuristicSearchEngine<State, QAction, B2>* engine)
         : MDPEngine<State, Action>(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator)
         , greedy_graph_(std::move(greedy_graph))
         , report_(report)
         , quotient_(quotient)
@@ -321,7 +321,9 @@ private:
                             statistics_.trap_removal.resume();
 #endif
                             quotient_->build_quotient(
-                                stack.begin(), it, einfo.state_id);
+                                stack.begin(),
+                                it,
+                                einfo.state_id);
                             base_engine_->clear_policy(einfo.state_id);
 #if defined(EXPENSIVE_STATISTICS)
                             statistics_.trap_removal.stop();
@@ -376,7 +378,7 @@ private:
     unsigned unexpanded_;
 };
 
-template<typename State, typename Action, typename B2>
+template <typename State, typename Action, typename B2>
 class ValueGraph {
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
@@ -391,8 +393,9 @@ public:
     bool operator()(const StateID& qstate, std::vector<StateID>& successors)
     {
         collector_.states.clear();
-        bool result = base_engine_->async_update(
-            qstate, &collector_, nullptr, nullptr, nullptr);
+        bool result =
+            base_engine_
+                ->async_update(qstate, &collector_, nullptr, nullptr, nullptr);
         collector_.states.swap(successors);
         return result;
     }
@@ -428,7 +431,7 @@ private:
     StateCollector collector_;
 };
 
-template<typename State, typename Action, typename B2>
+template <typename State, typename Action, typename B2>
 class PolicyGraph {
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
@@ -456,19 +459,20 @@ private:
 
 } // namespace internal
 
-template<typename State, typename Action, typename B2>
-class FRETV : public internal::FRET<
-                  State,
-                  Action,
-                  B2,
-                  typename internal::ValueGraph<State, Action, B2>> {
+template <typename State, typename Action, typename B2>
+class FRETV
+    : public internal::FRET<
+          State,
+          Action,
+          B2,
+          typename internal::ValueGraph<State, Action, B2>> {
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
     using ValueGraph = typename internal::ValueGraph<State, Action, B2>;
 
-    template<typename... Args>
+    template <typename... Args>
     FRETV(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
@@ -482,28 +486,29 @@ public:
         ProgressReport* report,
         HeuristicSearchEngine<State, QAction, B2>* engine)
         : internal::FRET<State, Action, B2, ValueGraph>(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator,
-            ValueGraph(engine),
-            quotient,
-            report,
-            engine)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator,
+              ValueGraph(engine),
+              quotient,
+              report,
+              engine)
     {
     }
 };
 
-template<typename State, typename Action, typename B2>
-class FRETPi : public internal::FRET<
-                   State,
-                   Action,
-                   B2,
-                   typename internal::PolicyGraph<State, Action, B2>> {
+template <typename State, typename Action, typename B2>
+class FRETPi
+    : public internal::FRET<
+          State,
+          Action,
+          B2,
+          typename internal::PolicyGraph<State, Action, B2>> {
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
@@ -523,18 +528,18 @@ public:
         ProgressReport* report,
         HeuristicSearchEngine<State, QAction, B2>* engine)
         : internal::FRET<State, Action, B2, PolicyGraph>(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator,
-            PolicyGraph(engine),
-            quotient,
-            report,
-            engine)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator,
+              PolicyGraph(engine),
+              quotient,
+              report,
+              engine)
     {
     }
 };

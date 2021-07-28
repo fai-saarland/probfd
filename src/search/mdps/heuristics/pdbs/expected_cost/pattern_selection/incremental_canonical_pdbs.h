@@ -2,9 +2,9 @@
 
 #include "pattern_collection_information.h"
 
+#include "../../../../../operator_cost.h"
 #include "../../../../value_type.h"
 #include "../../types.h"
-#include "../../../../../operator_cost.h"
 
 #include <memory>
 
@@ -26,25 +26,25 @@ class IncrementalCanonicalPDBs {
     long long size;
 
     // Adds a PDB for pattern but does not recompute pattern_cliques.
-    void add_pdb_for_pattern(const Pattern &pattern);
+    void add_pdb_for_pattern(const Pattern& pattern);
 
     void recompute_pattern_cliques();
-    
-public:
-    IncrementalCanonicalPDBs(const PatternCollection &initial_patterns);
 
-    IncrementalCanonicalPDBs(PatternCollectionInformation &initial_patterns);
+public:
+    IncrementalCanonicalPDBs(const PatternCollection& initial_patterns);
+
+    IncrementalCanonicalPDBs(PatternCollectionInformation& initial_patterns);
 
     virtual ~IncrementalCanonicalPDBs() = default;
 
     // Adds a new PDB to the collection and recomputes pattern_cliques.
-    void add_pdb(const std::shared_ptr<ExpCostProjection> &pdb);
+    void add_pdb(const std::shared_ptr<ExpCostProjection>& pdb);
 
     /* Returns a list of pattern cliques that would be additive to the new
        pattern. Detailed documentation in max_additive_pdb_sets.h */
-    std::vector<PatternClique> get_pattern_cliques(const Pattern &new_pattern);
+    std::vector<PatternClique> get_pattern_cliques(const Pattern& new_pattern);
 
-    value_type::value_t get_value(const GlobalState &state) const;
+    value_type::value_t get_value(const GlobalState& state) const;
 
     /*
       The following method offers a quick dead-end check for the sampling
@@ -52,19 +52,18 @@ public:
       efficiently test if the canonical heuristic is infinite than
       computing the exact heuristic value.
     */
-    bool is_dead_end(const GlobalState &state) const;
+    bool is_dead_end(const GlobalState& state) const;
 
     PatternCollectionInformation get_pattern_collection_information() const;
 
-    std::shared_ptr<ExpCostPDBCollection> get_pattern_databases() const {
+    std::shared_ptr<ExpCostPDBCollection> get_pattern_databases() const
+    {
         return pattern_databases;
     }
 
-    long long get_size() const {
-        return size;
-    }
+    long long get_size() const { return size; }
 };
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace probabilistic

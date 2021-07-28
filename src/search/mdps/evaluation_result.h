@@ -6,7 +6,7 @@ namespace probabilistic {
 
 /**
  * @brief Holds a state value and a flag indicating whether the state is
- * terminal. 
+ * terminal.
  */
 class EvaluationResult {
 public:

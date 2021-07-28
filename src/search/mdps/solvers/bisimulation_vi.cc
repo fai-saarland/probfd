@@ -37,7 +37,7 @@ public:
     {
     }
 
-    static void add_options_to_parser(options::OptionParser&) { }
+    static void add_options_to_parser(options::OptionParser&) {}
 
     std::string get_engine_name() const
     {
@@ -55,13 +55,17 @@ public:
         BisimulationTimer stats;
         StateRegistry state_registry;
         bisimulation::BisimilarStateSpace bs(
-            state_registry.get_initial_state(), g_step_bound, g_step_cost_type);
+            state_registry.get_initial_state(),
+            g_step_bound,
+            g_step_cost_type);
         StateIDMap<bisimulation::QuotientState> state_id_map;
         ActionIDMap<bisimulation::QuotientAction> action_id_map;
         ApplicableActionsGenerator<bisimulation::QuotientAction> aops_gen(&bs);
         TransitionGenerator<bisimulation::QuotientAction> tgen(&bs);
         bisimulation::DefaultQuotientStateRewardFunction state_reward(
-            &bs, g_analysis_objective->min(), g_analysis_objective->max());
+            &bs,
+            g_analysis_objective->min(),
+            g_analysis_objective->max());
         bisimulation::DefaultQuotientActionRewardFunction transition_reward;
 
         stats.timer.stop();
@@ -80,8 +84,9 @@ public:
         logging::out << "Running " << get_engine_name()
                      << " on the bisimulation..." << std::endl;
         utils::Timer vi_timer;
-        engines::MDPEngine<bisimulation::QuotientState, bisimulation::QuotientAction>*
-            solver = nullptr;
+        engines::MDPEngine<
+            bisimulation::QuotientState,
+            bisimulation::QuotientAction>* solver = nullptr;
         if (interval_iteration_) {
             solver = new engines::interval_iteration::IntervalIteration<
                 bisimulation::QuotientState,
@@ -97,8 +102,8 @@ public:
                 nullptr,
                 false);
         } else {
-            ConstantValueInitializer<bisimulation::QuotientState>
-                initializer(value_type::zero);
+            ConstantValueInitializer<bisimulation::QuotientState> initializer(
+                value_type::zero);
             solver = new engines::topological_vi::TopologicalValueIteration<
                 bisimulation::QuotientState,
                 bisimulation::QuotientAction>(
@@ -142,7 +147,7 @@ public:
         : BisimulationIteration(false)
     {
     }
-    static void add_options_to_parser(options::OptionParser&) { }
+    static void add_options_to_parser(options::OptionParser&) {}
 };
 
 class BisimulationIntervalIteration : public BisimulationIteration {
@@ -151,7 +156,7 @@ public:
         : BisimulationIteration(true)
     {
     }
-    static void add_options_to_parser(options::OptionParser&) { }
+    static void add_options_to_parser(options::OptionParser&) {}
 };
 
 static Plugin<SolverInterface> _plugin(

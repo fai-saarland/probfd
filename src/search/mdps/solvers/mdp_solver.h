@@ -36,12 +36,12 @@ public:
     explicit MDPSolver(const options::Options& opts);
 
     /**
-     * @brief Factory method that constructs an new MDP engine from the given 
+     * @brief Factory method that constructs an new MDP engine from the given
      * arguments.
-     * 
+     *
      * @tparam Engine - The engine type to construct.
      */
-    template<typename Engine, typename... Args>
+    template <typename Engine, typename... Args>
     engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
     engine_factory(Args&&... args)
     {
@@ -70,7 +70,7 @@ public:
     /**
      * @brief Print additional engine statistics to std::cout.
      */
-    virtual void print_additional_statistics() const { }
+    virtual void print_additional_statistics() const {}
 
     /**
      * @brief Runs the encapsulated MDP on the global problem.
@@ -92,7 +92,8 @@ protected:
         return &action_id_map_;
     }
 
-    ActionRewardFunction<const ProbabilisticOperator*>* get_action_reward_function()
+    ActionRewardFunction<const ProbabilisticOperator*>*
+    get_action_reward_function()
     {
         return action_reward_function_;
     }

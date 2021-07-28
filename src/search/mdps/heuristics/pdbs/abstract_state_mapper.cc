@@ -17,12 +17,12 @@ struct PatternTooLargeException : utils::Exception {
     void print() const override
     {
         std::cerr << "Construction of PDB would exceed "
-            "std::numeric_limits<int>::max()" << std::endl;
+                     "std::numeric_limits<int>::max()"
+                  << std::endl;
     }
 };
 
-AbstractStateMapper::CartesianSubsetIterator::
-CartesianSubsetIterator(
+AbstractStateMapper::CartesianSubsetIterator::CartesianSubsetIterator(
     std::vector<int> values,
     std::vector<int> indices,
     const std::vector<int>& domains)
@@ -45,8 +45,7 @@ AbstractStateMapper::CartesianSubsetIterator::operator++()
 {
     assert(i >= 0);
 
-    do
-    {
+    do {
         if (static_cast<size_t>(i) == indices_.size()) {
             --i;
             break;
@@ -72,13 +71,12 @@ AbstractStateMapper::CartesianSubsetIterator::operator--()
 {
     assert(i >= 0);
 
-    do
-    {
+    do {
         if (static_cast<size_t>(i) == indices_.size()) {
             --i;
             break;
         }
-        
+
         const int idx = indices_[i];
         const int next = values_[idx] - 1;
 
@@ -120,9 +118,7 @@ bool operator!=(
     return a.i != -1;
 }
 
-
-AbstractStateMapper::PartialStateIterator::
-PartialStateIterator(
+AbstractStateMapper::PartialStateIterator::PartialStateIterator(
     AbstractState offset,
     const std::vector<int>& indices,
     const std::vector<int>& multipliers,
@@ -168,14 +164,12 @@ AbstractStateMapper::PartialStateIterator::operator++()
     return *this;
 }
 
-AbstractState
-AbstractStateMapper::PartialStateIterator::operator*()
+AbstractState AbstractStateMapper::PartialStateIterator::operator*()
 {
     return argument_states_.back();
 }
 
-AbstractState*
-AbstractStateMapper::PartialStateIterator::operator->()
+AbstractState* AbstractStateMapper::PartialStateIterator::operator->()
 {
     return &argument_states_.back();
 }
@@ -194,9 +188,9 @@ bool operator!=(
     return a.recursion_level != -1;
 }
 
-
-AbstractStateMapper::
-AbstractStateMapper(Pattern pattern, const std::vector<int>& domains)
+AbstractStateMapper::AbstractStateMapper(
+    Pattern pattern,
+    const std::vector<int>& domains)
     : vars_(std::move(pattern))
     , domains_(vars_.size())
     , multipliers_(vars_.size(), 1)
@@ -232,26 +226,22 @@ AbstractStateMapper(Pattern pattern, const std::vector<int>& domains)
     multipliers_.push_back(multipliers_.back() * d);
 }
 
-unsigned
-AbstractStateMapper::size() const
+unsigned AbstractStateMapper::size() const
 {
     return multipliers_.back();
 }
 
-const Pattern&
-AbstractStateMapper::get_pattern() const
+const Pattern& AbstractStateMapper::get_pattern() const
 {
     return vars_;
 }
 
-const std::vector<int>&
-AbstractStateMapper::get_domains() const
+const std::vector<int>& AbstractStateMapper::get_domains() const
 {
     return domains_;
 }
 
-AbstractState
-AbstractStateMapper::operator()(const GlobalState& state) const
+AbstractState AbstractStateMapper::operator()(const GlobalState& state) const
 {
     AbstractState res(0);
     for (size_t i = 0; i < vars_.size(); ++i) {
@@ -281,8 +271,7 @@ AbstractStateMapper::from_values(const std::vector<int>& values) const
     return res;
 }
 
-AbstractState
-AbstractStateMapper::from_values_partial(
+AbstractState AbstractStateMapper::from_values_partial(
     const std::vector<int>& indices,
     const std::vector<int>& values) const
 {
@@ -294,8 +283,7 @@ AbstractStateMapper::from_values_partial(
     return res;
 }
 
-AbstractState
-AbstractStateMapper::from_values_partial(
+AbstractState AbstractStateMapper::from_values_partial(
     const std::vector<std::pair<int, int>>& sparse_values) const
 {
     AbstractState res(0);
@@ -307,14 +295,12 @@ AbstractStateMapper::from_values_partial(
     return res;
 }
 
-AbstractState
-AbstractStateMapper::from_value_partial(int idx, int val) const
+AbstractState AbstractStateMapper::from_value_partial(int idx, int val) const
 {
     return AbstractState(multipliers_[idx] * val);
 }
 
-int
-AbstractStateMapper::get_unique_partial_state_id(
+int AbstractStateMapper::get_unique_partial_state_id(
     const std::vector<int>& indices,
     const std::vector<int>& values) const
 {
@@ -336,8 +322,7 @@ AbstractStateMapper::to_values(AbstractState abstract_state) const
     return values;
 }
 
-void
-AbstractStateMapper::to_values(
+void AbstractStateMapper::to_values(
     AbstractState abstract_state,
     std::vector<int>& values) const
 {
@@ -349,14 +334,14 @@ AbstractStateMapper::to_values(
 
 AbstractStateMapper::CartesianSubsetIterator
 AbstractStateMapper::cartesian_subsets_begin(
-    std::vector<int> values, 
+    std::vector<int> values,
     std::vector<int> indices) const
 {
     return CartesianSubsetIterator(values, indices, domains_);
 }
 
 AbstractStateMapper::CartesianSubsetEndIterator
-AbstractStateMapper::cartesian_subsets_end() const 
+AbstractStateMapper::cartesian_subsets_end() const
 {
     return CartesianSubsetEndIterator();
 }

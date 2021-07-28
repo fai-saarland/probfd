@@ -8,7 +8,7 @@ class GlobalState;
 
 namespace probabilistic {
 
-template<>
+template <>
 struct PolicyPicker<const ProbabilisticOperator*>
     : public HeuristicSearchInterfaceable {
 public:

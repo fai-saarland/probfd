@@ -7,22 +7,22 @@
 #include "../maxprob/orthogonality.h"
 #include "../utils.h"
 
+#include "../../../../algorithms/max_cliques.h"
 #include "../../../../globals.h"
 #include "../../../../operator_cost.h"
 #include "../../../../option_parser.h"
 #include "../../../../pdbs/dominance_pruning.h"
 #include "../../../../plugin.h"
 #include "../../../../utils/countdown_timer.h"
+#include "../../../../utils/logging.h"
+#include "../../../analysis_objectives/expected_cost_objective.h"
 #include "../../../globals.h"
 #include "../../../logging.h"
-#include "../../../analysis_objectives/expected_cost_objective.h"
-#include "../../../../algorithms/max_cliques.h"
-#include "../../../../utils/logging.h"
 
 #include <cassert>
-#include <string>
 #include <iomanip>
 #include <numeric>
+#include <string>
 
 namespace probabilistic {
 namespace pdbs {
@@ -30,8 +30,7 @@ namespace pdbs {
 using namespace pattern_selection;
 
 // Default Statictics
-struct ExpectedCostPDBHeuristic::Statistics
-{
+struct ExpectedCostPDBHeuristic::Statistics {
     Statistics(
         double generator_time,
         double dominance_pruning_time,
@@ -73,46 +72,43 @@ struct ExpectedCostPDBHeuristic::Statistics
     // Run-time statistics (expensive)
     // TODO
 
-    void print_construction_info(std::ostream& out) const {
-        const double avg_variables = (double) variables / pdbs;
-        const double avg_abstract_states = (double) abstract_states / pdbs;
+    void print_construction_info(std::ostream& out) const
+    {
+        const double avg_variables = (double)variables / pdbs;
+        const double avg_abstract_states = (double)abstract_states / pdbs;
 
         const double avg_subcollection_size =
-            (double) total_subcollections_size / subcollections;
+            (double)total_subcollections_size / subcollections;
 
-        out
-        << "\nExpected-Cost Pattern Databases Statistics:\n"
-        << "  Total number of PDBs: " << pdbs << "\n"
-        << "  Total number of variables: " << variables << "\n"
-        << "  Total number of abstract states: "
-        << abstract_states << "\n"
+        out << "\nExpected-Cost Pattern Databases Statistics:\n"
+            << "  Total number of PDBs: " << pdbs << "\n"
+            << "  Total number of variables: " << variables << "\n"
+            << "  Total number of abstract states: " << abstract_states << "\n"
 
-        << "  Average number of variables per PDB: " << avg_variables << "\n"
-        << "  Average number of abstract states per PDB: "
-        << avg_abstract_states << "\n"
+            << "  Average number of variables per PDB: " << avg_variables
+            << "\n"
+            << "  Average number of abstract states per PDB: "
+            << avg_abstract_states << "\n"
 
-        << "  Largest pattern size: " << largest_pattern << "\n"
+            << "  Largest pattern size: " << largest_pattern << "\n"
 
-        << "  Total number of additive subcollections: "
-        << subcollections << "\n"
-        << "  Total number of subcollections PDBs: "
-        << total_subcollections_size << "\n"
-        << "  Average size of subcollection PDB: "
-        << avg_subcollection_size << "\n"
+            << "  Total number of additive subcollections: " << subcollections
+            << "\n"
+            << "  Total number of subcollections PDBs: "
+            << total_subcollections_size << "\n"
+            << "  Average size of subcollection PDB: " << avg_subcollection_size
+            << "\n"
 
-        << "  Generator time: " << generator_time << "s\n"
-        << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
-        << "  Total construction time: " << construction_time << "s\n";
+            << "  Generator time: " << generator_time << "s\n"
+            << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
+            << "  Total construction time: " << construction_time << "s\n";
     }
 
-    void print(std::ostream& out) const {
-        print_construction_info(out);
-    }
+    void print(std::ostream& out) const { print_construction_info(out); }
 };
 
 AdditiveExpectedCostPDBs
-ExpectedCostPDBHeuristic::
-get_additive_ecpdbs_from_options(
+ExpectedCostPDBHeuristic::get_additive_ecpdbs_from_options(
     std::shared_ptr<PatternCollectionGenerator> generator,
     double max_time_dominance_pruning)
 {
@@ -123,7 +119,7 @@ get_additive_ecpdbs_from_options(
     const double generator_time = generator_timer();
 
     std::shared_ptr patterns = pattern_collection_info.get_patterns();
-    
+
     std::shared_ptr pdbs = pattern_collection_info.get_pdbs();
     std::shared_ptr cliques = pattern_collection_info.get_pattern_cliques();
 
@@ -155,13 +151,12 @@ get_additive_ecpdbs_from_options(
     // Gather statistics.
     const double construction_time = construction_timer();
 
-    this->statistics_.reset(
-        new Statistics(
-            generator_time,
-            dominance_pruning_time,
-            construction_time,
-            *pdbs,
-            *cliques));
+    this->statistics_.reset(new Statistics(
+        generator_time,
+        dominance_pruning_time,
+        construction_time,
+        *pdbs,
+        *cliques));
 
     this->statistics_->print_construction_info(logging::out);
 
@@ -172,36 +167,37 @@ get_additive_ecpdbs_from_options(
 
 ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(const options::Options& opts)
     : ExpectedCostPDBHeuristic(
-        opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-        opts.get<double>("max_time_dominance_pruning"))
+          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
+          opts.get<double>("max_time_dominance_pruning"))
 {
 }
 
 ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
     std::shared_ptr<PatternCollectionGenerator> generator,
     double max_time_dominance_pruning)
-    : additive_ecpds(
-        get_additive_ecpdbs_from_options(
-            generator,
-            max_time_dominance_pruning))
+    : additive_ecpds(get_additive_ecpdbs_from_options(
+          generator,
+          max_time_dominance_pruning))
 {
 }
 
-void
-ExpectedCostPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
+void ExpectedCostPDBHeuristic::add_options_to_parser(
+    options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
-        "patterns", "", "det_adapter(generator=systematic(pattern_max_size=2))");
+        "patterns",
+        "",
+        "det_adapter(generator=systematic(pattern_max_size=2))");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
-EvaluationResult
-ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
+EvaluationResult ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
 {
     return additive_ecpds.evaluate(state);
 }
 
-void ExpectedCostPDBHeuristic::print_statistics() const {
+void ExpectedCostPDBHeuristic::print_statistics() const
+{
     if (generator_report) {
         generator_report->print(logging::out);
     }

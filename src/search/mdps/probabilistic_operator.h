@@ -1,7 +1,7 @@
 #pragma once
 
-#include "value_type.h"
 #include "../global_operator.h"
+#include "value_type.h"
 
 #include <iterator>
 #include <string>
@@ -15,7 +15,7 @@ namespace probabilistic {
 
 /** \struct ProbabilisticOutcome probabilistic_operator.h
  * @brief Struct representing a probabilistic outcome.
- * 
+ *
  * A probabilistic outcome has a probability, an effect and is additionally
  * stores a reference to the deterministic action induced by its all-outcomes
  * determinization. The effect is not stored explicitly, but can be accessed
@@ -32,7 +32,7 @@ struct ProbabilisticOutcome {
 
 /** \class ProbabilisticOperator probabilistic_operator.h
  * @brief Class representing a probabilistic operator.
- * 
+ *
  * Each probabilistic operator has
  * - A unique id
  * - A name
@@ -51,20 +51,20 @@ public:
 
     /**
      * @brief Get the id of the operator
-     * 
+     *
      * @return unsigned The id of the operator
      */
     unsigned get_id() const;
 
     /**
      * @brief Get the name of the operator
-     * 
+     *
      * @return const std::string& The name of the operator
      */
     const std::string& get_name() const;
 
     /**
-     * @return True if and only if the operator has more than two possible 
+     * @return True if and only if the operator has more than two possible
      * outcomes
      */
     bool is_stochastic() const;
@@ -75,7 +75,7 @@ public:
 
     /**
      * @brief Queries a possible outcome of this operator by its index
-     * 
+     *
      * @param i Index of the outcome
      */
     const ProbabilisticOutcome& operator[](unsigned i) const;
@@ -103,6 +103,7 @@ private:
     std::string name_;
 };
 
-extern bool is_applicable(const ProbabilisticOperator* op, const GlobalState& state);
+extern bool
+is_applicable(const ProbabilisticOperator* op, const GlobalState& state);
 
 } // namespace probabilistic

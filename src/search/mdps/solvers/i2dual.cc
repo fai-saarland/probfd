@@ -85,26 +85,27 @@ I2Dual::I2Dual(const options::Options& opts)
 {
 }
 
-void
-I2Dual::add_options_to_parser(options::OptionParser& parser)
+void I2Dual::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
-        "eval", "", "const");
+        "eval",
+        "",
+        "const");
     parser.add_list_option<std::shared_ptr<Heuristic>>(
-        "path_dependent_heuristics", "", "[]");
+        "path_dependent_heuristics",
+        "",
+        "[]");
     parser.add_option<double>("report_epsilon", "", "1e-4");
     parser.add_option<bool>("disable_hpom", "", "false");
     parser.add_option<bool>("incremental_updates", "", "true");
     lp::add_lp_solver_option_to_parser(parser);
 }
 
-void
-I2Dual::print_statistics() const
+void I2Dual::print_statistics() const
 {
 }
 
-bool
-I2Dual::evaluate_state(const GlobalState& state, IDualData& data)
+bool I2Dual::evaluate_state(const GlobalState& state, IDualData& data)
 {
     assert(data.is_new());
     auto x = state_reward_function_->operator()(state);
@@ -121,8 +122,7 @@ I2Dual::evaluate_state(const GlobalState& state, IDualData& data)
     return false;
 }
 
-void
-I2Dual::solve()
+void I2Dual::solve()
 {
     using namespace analysis_objectives;
 
@@ -134,8 +134,7 @@ I2Dual::solve()
     logging::out << "Initializing I2-Dual..." << std::endl;
 
     if (std::dynamic_pointer_cast<GoalProbabilityObjective>(
-            g_analysis_objective)
-        == nullptr) {
+            g_analysis_objective) == nullptr) {
         logging::err
             << "I2-Dual currently only supports goal probability analysis"
             << std::endl;
@@ -235,7 +234,8 @@ I2Dual::solve()
                     obj_coef[var_id] -= amount;
                     assert(obj_coef[var_id] >= -value_type::g_epsilon);
                     lp_solver_.set_objective_coefficient(
-                        var_id, std::max(0.0, obj_coef[var_id]));
+                        var_id,
+                        std::max(0.0, obj_coef[var_id]));
                 }
             }
             state_data.close();
@@ -260,8 +260,8 @@ I2Dual::solve()
                         p_self += it->second;
                     } else {
                         IDualData& succ_data = idual_data[succ_id];
-                        if (succ_data.is_new()
-                            && !evaluate_state(
+                        if (succ_data.is_new() &&
+                            !evaluate_state(
                                 state_registry_.lookup_state(
                                     ::StateID(it->first)),
                                 succ_data)) {
@@ -276,7 +276,8 @@ I2Dual::solve()
                         }
                         if (succ_data.is_frontier()) {
                             succ_data.incoming.emplace_back(
-                                it->second, lp_var_id);
+                                it->second,
+                                lp_var_id);
 #ifndef NDEBUG
                             unsigned x = 0;
                             for (auto it = succ_data.incoming.begin();
@@ -289,8 +290,8 @@ I2Dual::solve()
                             assert(x == 1);
 #endif
                         }
-                        if (succ_data.is_terminal()
-                            || (!hpom_enabled_ && succ_data.is_frontier())) {
+                        if (succ_data.is_terminal() ||
+                            (!hpom_enabled_ && succ_data.is_frontier())) {
                             dummy_variable.objective_coefficient +=
                                 (it->second * succ_data.estimate);
                         }
@@ -302,14 +303,15 @@ I2Dual::solve()
 
 #ifndef NDEBUG
                 assert(
-                    (int)lp_var_id
-                    == lp_solver_.add_variable(
-                        dummy_variable,
-                        var_constraint_ids,
-                        var_constraint_coefs));
+                    (int)lp_var_id == lp_solver_.add_variable(
+                                          dummy_variable,
+                                          var_constraint_ids,
+                                          var_constraint_coefs));
 #else
                 lp_solver_.add_variable(
-                    dummy_variable, var_constraint_ids, var_constraint_coefs);
+                    dummy_variable,
+                    var_constraint_ids,
+                    var_constraint_coefs);
 #endif
                 dummy_variable.objective_coefficient = 0.0;
                 var_constraint_ids.clear();
@@ -320,7 +322,9 @@ I2Dual::solve()
         frontier.clear();
 
         update_hpom_constraints_frontier(
-            idual_data, frontier_candidates, start_new_states);
+            idual_data,
+            frontier_candidates,
+            start_new_states);
 
         lp_solver_timer_.resume();
         lp_solver_.solve();
@@ -337,8 +341,8 @@ I2Dual::solve()
             for (unsigned j = state_data.incoming.size() - 1;
                  j < state_data.incoming.size();
                  j--) {
-                if (solution[state_data.incoming[j].second]
-                    > value_type::g_epsilon) {
+                if (solution[state_data.incoming[j].second] >
+                    value_type::g_epsilon) {
                     visited = true;
                     break;
                 }
@@ -381,8 +385,7 @@ I2Dual::solve()
     report_statistics();
 }
 
-void
-I2Dual::prepare_hpom(
+void I2Dual::prepare_hpom(
     std::vector<lp::LPVariable>& vars,
     std::vector<lp::LPConstraint>&)
 {
@@ -400,8 +403,7 @@ I2Dual::prepare_hpom(
     hpom_timer_.stop();
 }
 
-void
-I2Dual::add_fringe_state_to_hpom(
+void I2Dual::add_fringe_state_to_hpom(
     const GlobalState& state,
     const IDualData& var_infos,
     std::vector<lp::LPConstraint>& constraints) const
@@ -417,8 +419,7 @@ I2Dual::add_fringe_state_to_hpom(
     }
 }
 
-void
-I2Dual::remove_fringe_state_from_hpom(
+void I2Dual::remove_fringe_state_from_hpom(
     const GlobalState& state,
     const IDualData& var_infos,
     std::vector<lp::LPConstraint>& constraints) const
@@ -439,8 +440,7 @@ I2Dual::remove_fringe_state_from_hpom(
     }
 }
 
-void
-I2Dual::update_hpom_constraints_expanded(
+void I2Dual::update_hpom_constraints_expanded(
     storage::PerStateStorage<IDualData>& data,
     const std::vector<StateID>& expanded)
 {
@@ -454,16 +454,14 @@ I2Dual::update_hpom_constraints_expanded(
             const IDualData& var_infos = data[state_id];
             GlobalState state =
                 state_registry_.lookup_state(::StateID(state_id));
-            remove_fringe_state_from_hpom(
-                state, var_infos, hpom_constraints_);
+            remove_fringe_state_from_hpom(state, var_infos, hpom_constraints_);
         }
         hpom_timer_.stop();
     }
     hpom_initialized_ = true;
 }
 
-void
-I2Dual::update_hpom_constraints_frontier(
+void I2Dual::update_hpom_constraints_frontier(
     storage::PerStateStorage<IDualData>& data,
     const std::vector<StateID>& frontier,
     const int start)
@@ -478,8 +476,7 @@ I2Dual::update_hpom_constraints_frontier(
             const IDualData& var_infos = data[state_id];
             GlobalState state =
                 state_registry_.lookup_state(::StateID(state_id));
-            add_fringe_state_to_hpom(
-                state, var_infos, hpom_constraints_);
+            add_fringe_state_to_hpom(state, var_infos, hpom_constraints_);
         }
         lp_solver_.add_temporary_constraints(hpom_constraints_);
     } else {
@@ -498,8 +495,7 @@ I2Dual::update_hpom_constraints_frontier(
     hpom_timer_.stop();
 }
 
-void
-I2Dual::prepare_lp()
+void I2Dual::prepare_lp()
 {
     // setup empty LP
     std::vector<lp::LPVariable> vars;

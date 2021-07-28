@@ -13,9 +13,10 @@ class AdditivityStrategy {
 public:
     virtual ~AdditivityStrategy() = default;
 
-    virtual std::shared_ptr<std::vector<PatternClique>> compute_additive_subcollections(const PatternCollection&) = 0;
+    virtual std::shared_ptr<std::vector<PatternClique>>
+    compute_additive_subcollections(const PatternCollection&) = 0;
 };
 
-}
-}
-}
+} // namespace additivity
+} // namespace pdbs
+} // namespace probabilistic

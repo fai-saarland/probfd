@@ -2,8 +2,8 @@
 
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
-#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/state_id_map.h"
+#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../storage/per_state_storage.h"
 
@@ -14,7 +14,7 @@
 namespace probabilistic {
 namespace graphviz {
 
-template<
+template <
     typename State,
     typename Action,
     typename StateToString,
@@ -79,8 +79,8 @@ public:
             if (rew) {
                 out << ", peripheries=2";
             } else if (
-                expand
-                && (prune_ != nullptr && (bool)prune_->operator()(s.second))) {
+                expand &&
+                (prune_ != nullptr && (bool)prune_->operator()(s.second))) {
                 expand = false;
                 out << ", peripheries=3";
             }
@@ -107,7 +107,8 @@ public:
                         if (!drawn[succid]) {
                             drawn[succid] = true;
                             open.emplace_back(
-                                succid, id_map_->get_state(it->first));
+                                succid,
+                                id_map_->get_state(it->first));
                         }
                         if (print_transitions) {
                             out << "transition" << transitions << " -> state"
@@ -135,13 +136,12 @@ private:
     PruneState* prune_;
 };
 
-template<
+template <
     typename State,
     typename Action,
     typename StateToString,
     typename ActionToString>
-void
-dump(
+void dump(
     std::ostream& out,
     const State& state,
     StateIDMap<State>* state_id_map,

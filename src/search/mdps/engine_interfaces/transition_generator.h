@@ -10,10 +10,10 @@ namespace probabilistic {
 /**
  * @brief Function object used to generate the successor distribution for the
  * given source state and applied action.
- * 
+ *
  * @tparam Action - The action type of the underlying MDP model.
  */
-template<typename Action>
+template <typename Action>
 struct TransitionGenerator {
     void operator()(
         const StateID& state,
@@ -26,4 +26,3 @@ struct TransitionGenerator {
 };
 
 } // namespace probabilistic
-

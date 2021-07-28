@@ -7,21 +7,23 @@
 
 #include <algorithm>
 #include <deque>
-#include <set>
 #include <numeric>
+#include <set>
 
 namespace probabilistic {
 namespace pdbs {
 
 struct NoGoalVariableException : std::exception {
-    const char* what() const noexcept override {
+    const char* what() const noexcept override
+    {
         return "Construction of a PDB without a goal "
-            "variable is intentionally disallowed!";
+               "variable is intentionally disallowed!";
     }
 };
 
-ProbabilisticProjection::
-ProbabilisticProjection(const Pattern& pattern, const std::vector<int>& domains)
+ProbabilisticProjection::ProbabilisticProjection(
+    const Pattern& pattern,
+    const std::vector<int>& domains)
     : var_index_(domains.size(), -1)
     , state_mapper_(new AbstractStateMapper(pattern, domains))
     , initial_state_((*state_mapper_)(::g_initial_state_data))
@@ -46,11 +48,13 @@ ProbabilisticProjection::get_abstract_goal_states()
     return goal_states_;
 }
 
-unsigned int ProbabilisticProjection::num_states() const {
+unsigned int ProbabilisticProjection::num_states() const
+{
     return state_mapper_->size();
 }
 
-const Pattern& ProbabilisticProjection::get_pattern() const {
+const Pattern& ProbabilisticProjection::get_pattern() const
+{
     return state_mapper_->get_pattern();
 }
 
@@ -83,11 +87,12 @@ void ProbabilisticProjection::setup_abstract_goal()
     if (sparse_goal_.empty()) {
         throw NoGoalVariableException();
     }
-    
+
     AbstractState base_goal = state_mapper_->from_values_partial(sparse_goal_);
 
     auto it = state_mapper_->partial_states_begin(
-        base_goal, std::move(non_goal_vars));
+        base_goal,
+        std::move(non_goal_vars));
     auto end = state_mapper_->partial_states_end();
 
     for (; it != end; ++it) {
@@ -95,8 +100,7 @@ void ProbabilisticProjection::setup_abstract_goal()
     }
 }
 
-void
-ProbabilisticProjection::prepare_progression()
+void ProbabilisticProjection::prepare_progression()
 {
     abstract_operators_.reserve(g_operators.size());
 
@@ -121,21 +125,25 @@ ProbabilisticProjection::prepare_progression()
 
     progression_aops_generator_ =
         std::make_shared<ProgressionSuccessorGenerator>(
-            state_mapper_->get_domains(), preconditions, opptrs);
+            state_mapper_->get_domains(),
+            preconditions,
+            opptrs);
 }
 
 struct OutcomeInfo {
     AbstractState base_effect = AbstractState(0);
     std::vector<int> missing_pres;
 
-    friend bool operator<(const OutcomeInfo& a, const OutcomeInfo& b) {
+    friend bool operator<(const OutcomeInfo& a, const OutcomeInfo& b)
+    {
         return std::tie(a.base_effect, a.missing_pres) <
-            std::tie(b.base_effect, b.missing_pres);
+               std::tie(b.base_effect, b.missing_pres);
     }
 
-    friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b) {
+    friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b)
+    {
         return std::tie(a.base_effect, a.missing_pres) ==
-            std::tie(b.base_effect, b.missing_pres);
+               std::tie(b.base_effect, b.missing_pres);
     }
 };
 
@@ -153,7 +161,7 @@ void ProbabilisticProjection::add_abstract_operators(
 
     // The precondition embedded into an abstract state vector
     std::vector<int> dense_precondition(pattern.size(), -1);
-    
+
     for (const auto [var, val] : op.get_preconditions()) {
         const int idx = var_index_[var];
         if (idx != -1) {
@@ -197,7 +205,8 @@ void ProbabilisticProjection::add_abstract_operators(
                     val_change = eff_val - pre_val;
                 }
 
-                info.base_effect += state_mapper_->from_value_partial(idx, val_change);
+                info.base_effect +=
+                    state_mapper_->from_value_partial(idx, val_change);
             }
         }
 
@@ -224,11 +233,11 @@ void ProbabilisticProjection::add_abstract_operators(
     // change is always effect value minus precondition value.
 
     auto it = state_mapper_->cartesian_subsets_begin(
-        std::move(dense_precondition), std::move(eff_no_pre_var_indices));
+        std::move(dense_precondition),
+        std::move(eff_no_pre_var_indices));
     auto end = state_mapper_->cartesian_subsets_end();
 
-    for (; it != end; ++it)
-    {
+    for (; it != end; ++it) {
         const std::vector<int>& values = *it;
 
         AbstractOperator new_op(operator_id, cost);
@@ -250,11 +259,13 @@ void ProbabilisticProjection::add_abstract_operators(
         new_op.outcomes.make_unique();
 
         int pre_hash = state_mapper_->get_unique_partial_state_id(
-            affected_var_indices, values);
+            affected_var_indices,
+            values);
 
         if (duplicate_set.emplace(pre_hash, new_op).second) {
             abstract_operators_.emplace_back(std::move(new_op));
-            auto& precons = preconditions.emplace_back(affected_var_indices.size());
+            auto& precons =
+                preconditions.emplace_back(affected_var_indices.size());
 
             for (size_t j = 0; j < affected_var_indices.size(); ++j) {
                 const int idx = affected_var_indices[j];

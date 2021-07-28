@@ -4,20 +4,20 @@
 #include "../../engine_interfaces/action_id_map.h"
 #include "../../engine_interfaces/applicable_actions_generator.h"
 #include "../../engine_interfaces/state_evaluator.h"
-#include "../../engine_interfaces/state_reward_function.h"
 #include "../../engine_interfaces/state_id_map.h"
+#include "../../engine_interfaces/state_reward_function.h"
 #include "../../engine_interfaces/transition_generator.h"
 #include "abstract_operator.h"
 #include "abstract_state_mapper.h"
 
 #include <memory>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <set>
 
 namespace successor_generator {
-template<typename T>
+template <typename T>
 class SuccessorGenerator;
 }
 
@@ -27,7 +27,7 @@ class PatternDatabase;
 
 namespace probabilistic {
 
-template<>
+template <>
 class StateIDMap<pdbs::AbstractState> {
 public:
     using seen_iterator = std::set<int>::const_iterator;
@@ -46,14 +46,14 @@ private:
     std::set<int> seen;
 };
 
-template<>
+template <>
 class ActionIDMap<const pdbs::AbstractOperator*> {
 public:
     explicit ActionIDMap(const std::vector<pdbs::AbstractOperator>& ops);
 
-    ActionID get_action_id(
-        const StateID& state_id,
-        const pdbs::AbstractOperator* action) const;
+    ActionID
+    get_action_id(const StateID& state_id, const pdbs::AbstractOperator* action)
+        const;
 
     const pdbs::AbstractOperator*
     get_action(const StateID& state_id, const ActionID& action_id) const;
@@ -62,7 +62,7 @@ private:
     const std::vector<pdbs::AbstractOperator>& ops_;
 };
 
-template<>
+template <>
 class ApplicableActionsGenerator<const pdbs::AbstractOperator*> {
 public:
     explicit ApplicableActionsGenerator(
@@ -84,7 +84,7 @@ private:
         aops_gen_;
 };
 
-template<>
+template <>
 class TransitionGenerator<const pdbs::AbstractOperator*> {
 public:
     explicit TransitionGenerator(
@@ -116,7 +116,8 @@ namespace pdbs {
 
 using AbstractStateRewardFunction = StateRewardFunction<AbstractState>;
 using AbstractStateEvaluator = StateEvaluator<AbstractState>;
-using AbstractOperatorRewardFunction = ActionRewardFunction<const AbstractOperator*>;
+using AbstractOperatorRewardFunction =
+    ActionRewardFunction<const AbstractOperator*>;
 
 class QualitativeResultStore;
 class ExpCostProjection;
@@ -202,20 +203,17 @@ private:
 
 class ZeroCostActionEvaluator : public AbstractOperatorRewardFunction {
 protected:
-    value_type::value_t
-    evaluate(StateID, const AbstractOperator*) override;
+    value_type::value_t evaluate(StateID, const AbstractOperator*) override;
 };
 
 class UnitCostActionEvaluator : public AbstractOperatorRewardFunction {
 protected:
-    value_type::value_t
-    evaluate(StateID, const AbstractOperator*) override;
+    value_type::value_t evaluate(StateID, const AbstractOperator*) override;
 };
 
 class NormalCostActionEvaluator : public AbstractOperatorRewardFunction {
 protected:
-    value_type::value_t
-    evaluate(StateID, const AbstractOperator*) override;
+    value_type::value_t evaluate(StateID, const AbstractOperator*) override;
 };
 
 } // namespace pdbs

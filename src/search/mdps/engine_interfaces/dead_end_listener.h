@@ -8,12 +8,12 @@ namespace probabilistic {
 
 /**
  * @brief Enumeration describing the dead end identification level.
- * 
+ *
  * - Disabled : Disables dead-end identification.
  * - Policy : ?
  * - Visited : ?
  * - Complete : ?
- * 
+ *
  */
 enum class DeadEndIdentificationLevel {
     Disabled,
@@ -24,11 +24,11 @@ enum class DeadEndIdentificationLevel {
 
 /**
  * @brief Function object doing what exactly? TODO
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
  */
-template<typename State, typename Action>
+template <typename State, typename Action>
 class DeadEndListener {
 public:
     /// Tags the default implementation of this template

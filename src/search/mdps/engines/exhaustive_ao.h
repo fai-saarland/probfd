@@ -14,7 +14,7 @@ namespace exhaustive_ao {
 
 namespace internal {
 
-template<typename StateInfo>
+template <typename StateInfo>
 struct PerStateInformation : public ao_search::PerStateInformation<StateInfo> {
     PerStateInformation()
         : ao_search::PerStateInformation<StateInfo>()
@@ -26,7 +26,7 @@ struct PerStateInformation : public ao_search::PerStateInformation<StateInfo> {
     unsigned alive : 1;
 };
 
-template<typename State, typename Action, typename DualBounds>
+template <typename State, typename Action, typename DualBounds>
 using AOBase = ao_search::AOBase<
     State,
     Action,
@@ -39,12 +39,12 @@ using AOBase = ao_search::AOBase<
 
 /**
  * @brief Exhaustive AO* search algorithm.
- * 
+ *
  * @tparam StateT - The state type of the underlying MDP model.
  * @tparam ActionT - The action type of the underlying MDP model.
  * @tparam DualBoundsT - Whether bounded value iteration is used.
  */
-template<typename StateT, typename ActionT, typename DualBoundsT>
+template <typename StateT, typename ActionT, typename DualBoundsT>
 class ExhaustiveAOSearch
     : public internal::AOBase<StateT, ActionT, DualBoundsT> {
 public:
@@ -73,24 +73,24 @@ public:
         bool stable_policy,
         OpenList<Action>* open_list)
         : AOBase(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator,
-            level,
-            dead_end_eval,
-            dead_end_listener,
-            policy_chooser,
-            new_state_handler,
-            value_init,
-            connector,
-            report,
-            interval_comparison,
-            stable_policy)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator,
+              level,
+              dead_end_eval,
+              dead_end_listener,
+              policy_chooser,
+              new_state_handler,
+              value_init,
+              connector,
+              report,
+              interval_comparison,
+              stable_policy)
         , open_list_(open_list)
     {
     }
@@ -153,7 +153,12 @@ private:
         bool terminal = false;
         bool value_changed = false;
         this->initialize_tip_state_value(
-            stateid, info, terminal, solved, dead, value_changed);
+            stateid,
+            info,
+            terminal,
+            solved,
+            dead,
+            value_changed);
         if (terminal) {
             assert(info.is_solved());
         } else {
@@ -162,7 +167,9 @@ private:
             int min_succ_order = std::numeric_limits<int>::max();
             assert(this->aops_.empty() && this->transitions_.empty());
             this->generate_all_successors(
-                stateid, this->aops_, this->transitions_);
+                stateid,
+                this->aops_,
+                this->transitions_);
             for (int i = this->aops_.size() - 1; i >= 0; i--) {
                 const auto& t = this->transitions_[i];
                 for (auto it = t.begin(); it != t.end(); ++it) {
@@ -173,11 +180,12 @@ private:
                             succ_info.mark();
                             succ_info.add_parent(stateid);
                             min_succ_order = std::min(
-                                min_succ_order, succ_info.update_order);
+                                min_succ_order,
+                                succ_info.update_order);
                             ++unsolved;
                         }
-                        this->open_list_->push(
-                            stateid, this->aops_[i], it->second, succid);
+                        this->open_list_
+                            ->push(stateid, this->aops_[i], it->second, succid);
                     } else if (!succ_info.is_dead_end()) {
                         ++alive;
                     }
@@ -191,8 +199,8 @@ private:
                 this->backpropagate_tip_value();
             } else {
                 assert(
-                    min_succ_order >= 0
-                    && min_succ_order < std::numeric_limits<int>::max());
+                    min_succ_order >= 0 &&
+                    min_succ_order < std::numeric_limits<int>::max());
                 info.update_order = min_succ_order + 1;
                 info.unsolved = unsolved;
 

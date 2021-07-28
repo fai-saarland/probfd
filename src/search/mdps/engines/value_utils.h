@@ -11,10 +11,10 @@ namespace engines {
 /// Namespace dedicated to utility involving state values.
 namespace value_utils {
 
-template<typename Dual>
+template <typename Dual>
 struct IncumbentSolution;
 
-template<>
+template <>
 struct IncumbentSolution<std::true_type>
     : public std::pair<value_type::value_t, value_type::value_t> {
     using std::pair<value_type::value_t, value_type::value_t>::pair;
@@ -30,7 +30,7 @@ struct IncumbentSolution<std::true_type>
     }
 };
 
-template<>
+template <>
 struct IncumbentSolution<std::false_type> {
     explicit IncumbentSolution()
         : first(value_type::zero)
@@ -49,38 +49,37 @@ struct IncumbentSolution<std::false_type> {
     value_type::value_t first;
 };
 
-template<typename Dual>
-inline int
-compare(
+template <typename Dual>
+inline int compare(
     const IncumbentSolution<Dual>& value0,
     const IncumbentSolution<Dual>& value1)
 {
-    return value_type::approx_greater(value_type::eps)(
-               value0.first, value1.first)
-        ? 1
-        : (value_type::approx_equal(value_type::eps)(value0.first, value1.first)
-               ? 0
-               : -1);
+    return value_type::approx_greater(
+               value_type::eps)(value0.first, value1.first)
+               ? 1
+               : (value_type::approx_equal(
+                      value_type::eps)(value0.first, value1.first)
+                      ? 0
+                      : -1);
 }
 
-template<typename Dual>
+template <typename Dual>
 inline int update_incumbent(
     IncumbentSolution<Dual>& new_value,
     const IncumbentSolution<Dual>& tval);
 
-template<>
-inline int
-update_incumbent<std::true_type>(
+template <>
+inline int update_incumbent<std::true_type>(
     IncumbentSolution<std::true_type>& new_value,
     const IncumbentSolution<std::true_type>& tval)
 {
     const int r =
         value_type::approx_greater(value_type::eps)(tval.first, new_value.first)
-        ? 1
-        : (value_type::approx_equal(value_type::eps)(
-               tval.first, new_value.first)
-               ? 0
-               : -1);
+            ? 1
+            : (value_type::approx_equal(
+                   value_type::eps)(tval.first, new_value.first)
+                   ? 0
+                   : -1);
     if (tval.first > new_value.first) {
         new_value.first = tval.first;
     }
@@ -90,19 +89,18 @@ update_incumbent<std::true_type>(
     return r;
 }
 
-template<>
-inline int
-update_incumbent<std::false_type>(
+template <>
+inline int update_incumbent<std::false_type>(
     IncumbentSolution<std::false_type>& new_value,
     const IncumbentSolution<std::false_type>& tval)
 {
     const int r =
         value_type::approx_greater(value_type::eps)(tval.first, new_value.first)
-        ? 1
-        : (value_type::approx_equal(value_type::eps)(
-               tval.first, new_value.first)
-               ? 0
-               : -1);
+            ? 1
+            : (value_type::approx_equal(
+                   value_type::eps)(tval.first, new_value.first)
+                   ? 0
+                   : -1);
     if (tval.first > new_value.first) {
         new_value.first = tval.first;
     }
@@ -126,7 +124,7 @@ add(IncumbentSolution<std::true_type>& res,
     res.second += prob * val.second;
 }
 
-template<typename StateInfo>
+template <typename StateInfo>
 inline void
 add(IncumbentSolution<std::true_type>& res,
     const value_type::value_t& prob,
@@ -136,7 +134,7 @@ add(IncumbentSolution<std::true_type>& res,
     res.second += prob * succ_info.value2;
 }
 
-template<typename StateInfo>
+template <typename StateInfo>
 inline void
 add(IncumbentSolution<std::false_type>& res,
     const value_type::value_t& prob,
@@ -145,7 +143,7 @@ add(IncumbentSolution<std::false_type>& res,
     res.first += prob * succ_info.value;
 }
 
-template<>
+template <>
 inline void
 add(IncumbentSolution<std::false_type>& res,
     const value_type::value_t& prob,
@@ -154,12 +152,11 @@ add(IncumbentSolution<std::false_type>& res,
     res.first += prob * val;
 }
 
-template<typename Dual>
+template <typename Dual>
 inline void mult(IncumbentSolution<Dual>& res, const value_type::value_t& prob);
 
-template<>
-inline void
-mult<std::true_type>(
+template <>
+inline void mult<std::true_type>(
     IncumbentSolution<std::true_type>& res,
     const value_type::value_t& prob)
 {
@@ -167,9 +164,8 @@ mult<std::true_type>(
     res.second *= prob;
 }
 
-template<>
-inline void
-mult<std::false_type>(
+template <>
+inline void mult<std::false_type>(
     IncumbentSolution<std::false_type>& res,
     const value_type::value_t& prob)
 {

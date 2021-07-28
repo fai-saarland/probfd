@@ -9,13 +9,13 @@
 namespace probabilistic {
 
 /**
- * @brief A convenience class that wraps a list of element-probability 
+ * @brief A convenience class that wraps a list of element-probability
  * pairs.
- * 
+ *
  * @tparam T The element type.
- * 
+ *
  */
-template<typename T>
+template <typename T>
 class Distribution {
 private:
     using distribution_t =
@@ -54,7 +54,7 @@ public:
      * Adds element-probability pair (\p t, \p prob) to the list,
      * even if another pair with an element that compares equal to \p t is
      * already present.
-     * 
+     *
      * @see make_unique
      */
     void add(T t, value_type::value_t prob)
@@ -63,7 +63,7 @@ public:
         distribution_.emplace_back(std::move(t), prob);
     }
 
-    /** 
+    /**
      * Returns true if and only if the list is empty.
      */
     bool empty() const { return distribution_.empty(); }
@@ -94,7 +94,7 @@ public:
     }
 
     /**
-     * Merges equal elements in the list by adding their probabilities. 
+     * Merges equal elements in the list by adding their probabilities.
      */
     void make_unique()
     {
@@ -124,7 +124,7 @@ public:
 
     /**
      * @brief Removes the element-probability pair pointed to by \p it.
-     * 
+     *
      * \returns An iterator to the element-probability pair directly behind the
      * erased pair.
      */
@@ -137,12 +137,12 @@ public:
     /**
      * @brief Obtains a reference to the internal list.
      */
-    distribution_t& data() { return distribution_; } 
+    distribution_t& data() { return distribution_; }
 
     /**
      * @brief Obtains a const reference to the internal list.
      */
-    const distribution_t& data() const { return distribution_; } 
+    const distribution_t& data() const { return distribution_; }
 };
 
 } // namespace probabilistic

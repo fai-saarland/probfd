@@ -5,7 +5,7 @@
 namespace pdbs {
 class PatternCollectionGenerator;
 class PatternCollectionInformation;
-}
+} // namespace pdbs
 
 namespace probabilistic::pdbs {
 
@@ -22,6 +22,5 @@ using VariableAdditivity = std::vector<std::vector<bool>>;
 
 using ExpCostPDBCollection = std::vector<std::shared_ptr<ExpCostProjection>>;
 using MaxProbPDBCollection = std::vector<std::shared_ptr<MaxProbProjection>>;
-
 
 } // namespace probabilistic::pdbs

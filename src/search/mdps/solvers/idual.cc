@@ -10,7 +10,8 @@
 namespace probabilistic {
 namespace solvers {
 
-using IDualEngine = engines::idual::IDual<GlobalState, const ProbabilisticOperator*>;
+using IDualEngine =
+    engines::idual::IDual<GlobalState, const ProbabilisticOperator*>;
 
 class IDualSolver : public MDPSolver {
 public:
@@ -24,7 +25,9 @@ public:
     static void add_options_to_parser(options::OptionParser& parser)
     {
         parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
-            "eval", "", "const");
+            "eval",
+            "",
+            "const");
         lp::add_lp_solver_option_to_parser(parser);
         MDPSolver::add_options_to_parser(parser);
     }
@@ -34,7 +37,9 @@ public:
     virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         return engine_factory<IDualEngine>(
-            solver_type_, eval_.get(), &progress_);
+            solver_type_,
+            eval_.get(),
+            &progress_);
     }
 
 private:

@@ -1,8 +1,8 @@
 #include "pattern_collection_information.h"
 
-#include "../expcost_projection.h"
-#include "../additivity/additivity_strategy.h"
 #include "../additivity/additivity_none.h"
+#include "../additivity/additivity_strategy.h"
+#include "../expcost_projection.h"
 
 #include "../../../../../pdbs/pattern_cliques.h"
 
@@ -26,7 +26,8 @@ namespace pattern_selection {
 PatternCollectionInformation::PatternCollectionInformation(
     shared_ptr<PatternCollection> patterns)
     : PatternCollectionInformation(
-        std::move(patterns), make_shared<AdditivityNone>())
+          std::move(patterns),
+          make_shared<AdditivityNone>())
 {
 }
 
@@ -38,10 +39,11 @@ PatternCollectionInformation::PatternCollectionInformation(
 {
     assert(this->patterns);
     assert(this->additivity_strategy);
-    //validate_and_normalize_patterns(*patterns);
+    // validate_and_normalize_patterns(*patterns);
 }
 
-bool PatternCollectionInformation::information_is_valid() const {
+bool PatternCollectionInformation::information_is_valid() const
+{
     if (!patterns) {
         return false;
     }
@@ -57,7 +59,7 @@ bool PatternCollectionInformation::information_is_valid() const {
         }
     }
     if (pattern_cliques) {
-        for (const PatternClique &clique : *pattern_cliques) {
+        for (const PatternClique& clique : *pattern_cliques) {
             for (PatternID pattern_id : clique) {
                 if (!utils::in_bounds(pattern_id, *patterns)) {
                     return false;
@@ -68,13 +70,14 @@ bool PatternCollectionInformation::information_is_valid() const {
     return true;
 }
 
-void PatternCollectionInformation::create_pdbs_if_missing() {
+void PatternCollectionInformation::create_pdbs_if_missing()
+{
     assert(patterns);
     if (!pdbs) {
         utils::Timer timer;
         cout << "Computing PDBs for pattern collection..." << endl;
         pdbs = make_shared<ExpCostPDBCollection>();
-        for (const Pattern &pattern : *patterns) {
+        for (const Pattern& pattern : *patterns) {
             shared_ptr<ExpCostProjection> pdb(new ExpCostProjection(pattern));
             pdbs->push_back(pdb);
         }
@@ -82,7 +85,8 @@ void PatternCollectionInformation::create_pdbs_if_missing() {
     }
 }
 
-void PatternCollectionInformation::create_pattern_cliques_if_missing() {
+void PatternCollectionInformation::create_pattern_cliques_if_missing()
+{
     if (!pattern_cliques) {
         utils::Timer timer;
         cout << "Computing pattern cliques for pattern collection..." << endl;
@@ -94,34 +98,37 @@ void PatternCollectionInformation::create_pattern_cliques_if_missing() {
 }
 
 void PatternCollectionInformation::set_pdbs(
-    const shared_ptr<ExpCostPDBCollection> &pdbs_)
+    const shared_ptr<ExpCostPDBCollection>& pdbs_)
 {
     pdbs = pdbs_;
     assert(information_is_valid());
 }
 
 void PatternCollectionInformation::set_pattern_cliques(
-    const shared_ptr<vector<PatternClique>> &pattern_cliques_)
+    const shared_ptr<vector<PatternClique>>& pattern_cliques_)
 {
     pattern_cliques = pattern_cliques_;
     assert(information_is_valid());
 }
 
-shared_ptr<PatternCollection>
-PatternCollectionInformation::get_patterns() const {
+shared_ptr<PatternCollection> PatternCollectionInformation::get_patterns() const
+{
     assert(patterns);
     return patterns;
 }
 
-shared_ptr<ExpCostPDBCollection> PatternCollectionInformation::get_pdbs() {
+shared_ptr<ExpCostPDBCollection> PatternCollectionInformation::get_pdbs()
+{
     create_pdbs_if_missing();
     return pdbs;
 }
 
-shared_ptr<vector<PatternClique>> PatternCollectionInformation::get_pattern_cliques() {
+shared_ptr<vector<PatternClique>>
+PatternCollectionInformation::get_pattern_cliques()
+{
     create_pattern_cliques_if_missing();
     return pattern_cliques;
 }
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace probabilistic

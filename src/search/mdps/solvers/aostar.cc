@@ -8,13 +8,13 @@
 namespace probabilistic {
 namespace solvers {
 
-template<typename Bisimulation>
+template <typename Bisimulation>
 class AOStarSolver : public MDPHeuristicSearch<Bisimulation, std::false_type> {
 public:
-    template<typename T>
+    template <typename T>
     using WrappedType =
         typename MDPHeuristicSearch<Bisimulation, std::false_type>::
-        template WrappedType<T>;
+            template WrappedType<T>;
 
     explicit AOStarSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, std::false_type>(opts)
@@ -57,7 +57,9 @@ struct AOStarOptions {
     {
         parser.add_option<
             std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
-            "successor_sampler", "", "arbitrary_successor_selector");
+            "successor_sampler",
+            "",
+            "arbitrary_successor_selector");
     }
 };
 

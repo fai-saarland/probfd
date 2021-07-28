@@ -12,15 +12,13 @@ DeadEndListener<GlobalState, const ProbabilisticOperator*>::DeadEndListener(
 {
 }
 
-bool
-DeadEndListener<GlobalState, const ProbabilisticOperator*>::requires_neighbors()
-    const
+bool DeadEndListener<GlobalState, const ProbabilisticOperator*>::
+    requires_neighbors() const
 {
     return listener_->requires_recognized_neighbors_explicitly();
 }
 
-bool
-DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
+bool DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
     const StateID& state)
 {
     component_.insert(state_id_map_->get_state(state));
@@ -30,8 +28,7 @@ DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
     return r;
 }
 
-bool
-DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
+bool DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
     typename std::deque<StateID>::const_iterator begin,
     typename std::deque<StateID>::const_iterator end)
 {
@@ -44,8 +41,7 @@ DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
     return r;
 }
 
-bool
-DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
+bool DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
     typename std::deque<StateID>::const_iterator begin,
     typename std::deque<StateID>::const_iterator end,
     typename std::deque<StateID>::const_iterator rn_begin,
@@ -59,37 +55,43 @@ DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
     }
     using iterator = std::unordered_set<GlobalState>::const_iterator;
     state_component::StateComponentIterator<iterator> component(
-        component_.begin(), component_.end());
+        component_.begin(),
+        component_.end());
     state_component::StateComponentIterator<iterator> neighbors(
-        successors_.begin(), successors_.end());
-    const bool r = listener_->notify_new_component(component, neighbors)
-        != state_component::StateComponentListener::Status::StopListening;
+        successors_.begin(),
+        successors_.end());
+    const bool r =
+        listener_->notify_new_component(component, neighbors) !=
+        state_component::StateComponentListener::Status::StopListening;
     component_.clear();
     successors_.clear();
     return r;
 }
 
-bool
-DeadEndListener<GlobalState, const ProbabilisticOperator*>::notify()
+bool DeadEndListener<GlobalState, const ProbabilisticOperator*>::notify()
 {
     if (listener_->requires_recognized_neighbors_explicitly()) {
         feed_neighbors();
     }
     using iterator = std::unordered_set<GlobalState>::const_iterator;
     state_component::StateComponentIterator<iterator> component(
-        component_.begin(), component_.end());
+        component_.begin(),
+        component_.end());
     state_component::StateComponentIterator<iterator> neighbors(
-        successors_.begin(), successors_.end());
-    return listener_->notify_new_component(component, neighbors)
-        != state_component::StateComponentListener::Status::StopListening;
+        successors_.begin(),
+        successors_.end());
+    return listener_->notify_new_component(component, neighbors) !=
+           state_component::StateComponentListener::Status::StopListening;
 }
 
-void
-DeadEndListener<GlobalState, const ProbabilisticOperator*>::feed_neighbors()
+void DeadEndListener<GlobalState, const ProbabilisticOperator*>::
+    feed_neighbors()
 {
     for (auto it = component_.begin(); it != component_.end(); ++it) {
         transition_gen_->operator()(
-            state_id_map_->get_state_id(*it), aops_, transitions_);
+            state_id_map_->get_state_id(*it),
+            aops_,
+            transitions_);
         aops_.clear();
         for (int i = transitions_.size() - 1; i >= 0; --i) {
             const auto& t = transitions_[i];
@@ -104,11 +106,10 @@ DeadEndListener<GlobalState, const ProbabilisticOperator*>::feed_neighbors()
     }
 }
 
-void
-DeadEndListener<GlobalState, const ProbabilisticOperator*>::print_statistics(
-    std::ostream& out) const
+void DeadEndListener<GlobalState, const ProbabilisticOperator*>::
+    print_statistics(std::ostream& out) const
 {
-    out << std::endl << "Dead End Learning Statistics:" << std::endl; 
+    out << std::endl << "Dead End Learning Statistics:" << std::endl;
     listener_->print_statistics();
 }
 

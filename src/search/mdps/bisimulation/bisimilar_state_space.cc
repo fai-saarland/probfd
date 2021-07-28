@@ -34,26 +34,22 @@ namespace bisimulation {
 
 static constexpr const int BUCKET_SIZE = 1024 * 64;
 
-static bool
-is_dummy_outcome(const GlobalOperator* op)
+static bool is_dummy_outcome(const GlobalOperator* op)
 {
     return op->get_id() >= ::g_operators.size();
 }
 
-static unsigned
-get_global_operator_id(const GlobalOperator* op)
+static unsigned get_global_operator_id(const GlobalOperator* op)
 {
     return op->get_id();
 }
 
-std::size_t
-BisimilarStateSpace::Hash::operator()(unsigned i) const
+std::size_t BisimilarStateSpace::Hash::operator()(unsigned i) const
 {
     return utils::get_hash<elem_type>(extended_->operator[](i));
 }
 
-bool
-BisimilarStateSpace::Equal::operator()(int i, int j) const
+bool BisimilarStateSpace::Equal::operator()(int i, int j) const
 {
     return extended_->operator[](i) == extended_->operator[](j);
 }
@@ -80,7 +76,8 @@ BisimilarStateSpace::BisimilarStateSpace(
     options::Options opts_bisim;
     opts_bisim.set<int>("max_states", std::numeric_limits<int>::max());
     opts_bisim.set<int>(
-        "max_states_before_merge", std::numeric_limits<int>::max());
+        "max_states_before_merge",
+        std::numeric_limits<int>::max());
     opts_bisim.set<int>("greedy", 0);
     opts_bisim.set<int>("threshold", 1);
     opts_bisim.set<bool>("initialize_by_h", true);
@@ -93,7 +90,8 @@ BisimilarStateSpace::BisimilarStateSpace(
         options::Options opts;
         opts.set<int>("max_states", std::numeric_limits<int>::max());
         opts.set<int>(
-            "max_states_before_merge", std::numeric_limits<int>::max());
+            "max_states_before_merge",
+            std::numeric_limits<int>::max());
         opts.set<int>("budget", budget);
         std::shared_ptr<ShrinkStrategy> bs =
             std::make_shared<BudgetShrink>(opts);
@@ -112,7 +110,8 @@ BisimilarStateSpace::BisimilarStateSpace(
     opts.set<int>("merge_order", LEVEL);
     opts.set<std::shared_ptr<ShrinkStrategy>>("shrink_strategy", bisim);
     opts.set<std::vector<std::shared_ptr<MergeCriterion>>>(
-        "merge_criteria", std::vector<std::shared_ptr<MergeCriterion>>());
+        "merge_criteria",
+        std::vector<std::shared_ptr<MergeCriterion>>());
     opts.set<bool>("reduce_labels", false);
     opts.set<bool>("prune_unreachable", true);
     opts.set<bool>("prune_irrelevant", true);
@@ -140,7 +139,8 @@ BisimilarStateSpace::BisimilarStateSpace(
         abstraction_ = ms->get_abstractions()[0];
 
         transitions_.resize(
-            abstraction_->size(), std::vector<CachedTransition>());
+            abstraction_->size(),
+            std::vector<CachedTransition>());
 
         std::vector<std::vector<std::pair<unsigned, unsigned>>> g_to_p(
             ::g_operators.size());
@@ -150,7 +150,8 @@ BisimilarStateSpace::BisimilarStateSpace(
             for (unsigned i = 0; i < op.num_outcomes(); ++i) {
                 if (!is_dummy_outcome(op[i].op)) {
                     g_to_p[get_global_operator_id(op[i].op)].emplace_back(
-                        p_op_id, i);
+                        p_op_id,
+                        i);
                 } else {
                     dummys[p_op_id].push_back(i);
                 }
@@ -182,8 +183,8 @@ BisimilarStateSpace::BisimilarStateSpace(
             for (int i = op_transitions.size() - 1; i >= 0; --i) {
                 const AbstractTransition& trans = op_transitions[i];
                 std::vector<CachedTransition>& ts = transitions_[trans.src];
-                if (trans.target != Abstraction::PRUNED_STATE
-                    && trans.target != trans.src) {
+                if (trans.target != Abstraction::PRUNED_STATE &&
+                    trans.target != trans.src) {
                     for (const auto& op : g_to_p[g_op_id]) {
                         CachedTransition* t = nullptr;
                         for (int j = ts.size() - 1; j >= 0; --j) {
@@ -224,7 +225,8 @@ BisimilarStateSpace::BisimilarStateSpace(
                 unsigned g_op_id = get_global_operator_id(op[i].op);
                 for (const auto& trans :
                      abstraction_->get_transitions_for_op(g_op_id)) {
-                    if (trans.target == Abstraction::PRUNED_STATE || trans.target == trans.src) {
+                    if (trans.target == Abstraction::PRUNED_STATE ||
+                        trans.target == trans.src) {
                         continue;
                     }
                     assert((unsigned)trans.src < transitions_.size());
@@ -238,14 +240,13 @@ BisimilarStateSpace::BisimilarStateSpace(
                         //     t.successors[j] = Abstraction::PRUNED_STATE;
                         // }
                         const unsigned size = op.num_outcomes();
-                            t.successors = allocate(size);
-                            for (int j = size - 1; j >= 0; --j) {
-                                t.successors[j] = Abstraction::PRUNED_STATE;
-                            }
-                            for (int j = dummys[p_op_id].size() - 1; j >= 0;
-                                 --j) {
-                                t.successors[dummys[p_op_id][j]] = trans.src;
-                            }
+                        t.successors = allocate(size);
+                        for (int j = size - 1; j >= 0; --j) {
+                            t.successors[j] = Abstraction::PRUNED_STATE;
+                        }
+                        for (int j = dummys[p_op_id].size() - 1; j >= 0; --j) {
+                            t.successors[dummys[p_op_id][j]] = trans.src;
+                        }
                         ++num_cached_transitions_;
                     }
                     ts.back().successors[i] = trans.target;
@@ -299,7 +300,8 @@ BisimilarStateSpace::BisimilarStateSpace(
 
         if (limited_budget_) {
             extended_.push_back(std::pair<int, int>(
-                budget, abstraction_->get_abstract_state(initial_state)));
+                budget,
+                abstraction_->get_abstract_state(initial_state)));
             ids_.insert(0);
             initial_state_ = QuotientState(0);
             extended_.push_back(
@@ -310,7 +312,8 @@ BisimilarStateSpace::BisimilarStateSpace(
             operator_cost_.resize(g_operators.size(), 0);
             for (int i = g_operators.size() - 1; i >= 0; --i) {
                 operator_cost_[i] = ::get_adjusted_action_cost(
-                    *g_operators[i].get(0).op, cost_type_);
+                    *g_operators[i].get(0).op,
+                    cost_type_);
             }
         } else {
             initial_state_ =
@@ -337,20 +340,17 @@ BisimilarStateSpace::~BisimilarStateSpace()
     }
 }
 
-QuotientState
-BisimilarStateSpace::get_initial_state() const
+QuotientState BisimilarStateSpace::get_initial_state() const
 {
     return initial_state_;
 }
 
-bool
-BisimilarStateSpace::has_limited_budget() const
+bool BisimilarStateSpace::has_limited_budget() const
 {
     return limited_budget_;
 }
 
-bool
-BisimilarStateSpace::is_goal_state(const QuotientState& s) const
+bool BisimilarStateSpace::is_goal_state(const QuotientState& s) const
 {
     if (s == dead_end_state_) {
         return false;
@@ -362,14 +362,12 @@ BisimilarStateSpace::is_goal_state(const QuotientState& s) const
     }
 }
 
-bool
-BisimilarStateSpace::is_dead_end(const QuotientState& s) const
+bool BisimilarStateSpace::is_dead_end(const QuotientState& s) const
 {
     return s == dead_end_state_;
 }
 
-void
-BisimilarStateSpace::get_applicable_actions(
+void BisimilarStateSpace::get_applicable_actions(
     const StateID& s,
     std::vector<QuotientAction>& result) const
 {
@@ -396,8 +394,7 @@ BisimilarStateSpace::get_applicable_actions(
     }
 }
 
-void
-BisimilarStateSpace::get_successors(
+void BisimilarStateSpace::get_successors(
     const StateID& s,
     const QuotientAction& a,
     Distribution<StateID>& result)
@@ -413,8 +410,8 @@ BisimilarStateSpace::get_successors(
         const int new_b = orig.first - operator_cost_[t.op];
         assert(new_b >= 0);
         for (unsigned i = 0; i < op.num_outcomes(); ++i) {
-            if (t.successors[i] == Abstraction::PRUNED_STATE
-                || new_b < abstraction_->get_goal_distance(t.successors[i])) {
+            if (t.successors[i] == Abstraction::PRUNED_STATE ||
+                new_b < abstraction_->get_goal_distance(t.successors[i])) {
                 result.add(StateID(dead_end_state_.hash()), op[i].prob);
             } else {
                 result.add(
@@ -437,8 +434,7 @@ BisimilarStateSpace::get_successors(
     }
 }
 
-QuotientState
-BisimilarStateSpace::get_budget_extended_state(
+QuotientState BisimilarStateSpace::get_budget_extended_state(
     const int& ref,
     const int& budget)
 {
@@ -453,26 +449,22 @@ BisimilarStateSpace::get_budget_extended_state(
     return QuotientState(*inserted.first);
 }
 
-unsigned
-BisimilarStateSpace::num_bisimilar_states() const
+unsigned BisimilarStateSpace::num_bisimilar_states() const
 {
     return abstraction_ != nullptr ? abstraction_->size() : 1;
 }
 
-unsigned
-BisimilarStateSpace::num_extended_states() const
+unsigned BisimilarStateSpace::num_extended_states() const
 {
     return limited_budget_ ? extended_.size() : num_bisimilar_states();
 }
 
-unsigned
-BisimilarStateSpace::num_transitions() const
+unsigned BisimilarStateSpace::num_transitions() const
 {
     return num_cached_transitions_;
 }
 
-void
-BisimilarStateSpace::dump(std::ostream& out) const
+void BisimilarStateSpace::dump(std::ostream& out) const
 {
     out << "digraph {"
         << "\n";
@@ -570,9 +562,8 @@ DefaultQuotientStateRewardFunction::DefaultQuotientStateRewardFunction(
 {
 }
 
-EvaluationResult
-DefaultQuotientStateRewardFunction::
-evaluate(const bisimulation::QuotientState& s)
+EvaluationResult DefaultQuotientStateRewardFunction::evaluate(
+    const bisimulation::QuotientState& s)
 {
     if (bisim_->is_dead_end(s)) {
         return EvaluationResult(true, min_);
@@ -583,9 +574,9 @@ evaluate(const bisimulation::QuotientState& s)
     return EvaluationResult(false, default_);
 }
 
-value_type::value_t
-DefaultQuotientActionRewardFunction::
-evaluate(StateID, bisimulation::QuotientAction)
+value_type::value_t DefaultQuotientActionRewardFunction::evaluate(
+    StateID,
+    bisimulation::QuotientAction)
 {
     return 0;
 }

@@ -1,25 +1,25 @@
 #ifndef __ENGINE_INTERFACES_H__
 #define __ENGINE_INTERFACES_H__
 
-#include "../engine_interfaces/state_id_map.h"
+#include "../engine_interfaces/action_evaluator.h"
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/applicable_actions_generator.h"
-#include "../engine_interfaces/transition_generator.h"
-#include "../engine_interfaces/state_reward_function.h"
-#include "../engine_interfaces/action_evaluator.h"
 #include "../engine_interfaces/state_evaluator.h"
+#include "../engine_interfaces/state_id_map.h"
+#include "../engine_interfaces/state_reward_function.h"
+#include "../engine_interfaces/transition_generator.h"
 
 #include "bisimilar_state_space.h"
 
 namespace probabilistic {
 
-template<>
+template <>
 struct StateIDMap<bisimulation::QuotientState> {
     StateID get_state_id(const bisimulation::QuotientState& state) const;
     bisimulation::QuotientState get_state(const StateID& state_id) const;
 };
 
-template<>
+template <>
 struct ActionIDMap<bisimulation::QuotientAction> {
     ActionID get_action_id(
         const StateID& state_id,
@@ -28,7 +28,7 @@ struct ActionIDMap<bisimulation::QuotientAction> {
     get_action(const StateID& state_id, const ActionID& action) const;
 };
 
-template<>
+template <>
 struct ApplicableActionsGenerator<bisimulation::QuotientAction> {
     explicit ApplicableActionsGenerator(
         bisimulation::BisimilarStateSpace* bisim);
@@ -38,7 +38,7 @@ struct ApplicableActionsGenerator<bisimulation::QuotientAction> {
     bisimulation::BisimilarStateSpace* bisim_;
 };
 
-template<>
+template <>
 struct TransitionGenerator<bisimulation::QuotientAction> {
     explicit TransitionGenerator(bisimulation::BisimilarStateSpace* bisim);
     void operator()(
@@ -54,13 +54,13 @@ struct TransitionGenerator<bisimulation::QuotientAction> {
 
 namespace bisimulation {
 
-using QuotientStateRewardFunction = StateRewardFunction<bisimulation::QuotientState>;
-using QuotientActionRewardFunction = ActionRewardFunction<bisimulation::QuotientAction>;
+using QuotientStateRewardFunction =
+    StateRewardFunction<bisimulation::QuotientState>;
+using QuotientActionRewardFunction =
+    ActionRewardFunction<bisimulation::QuotientAction>;
 using QuotientStateEvaluator = StateEvaluator<bisimulation::QuotientState>;
 
-struct DefaultQuotientStateEvaluator
-    : public QuotientStateEvaluator
-{
+struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
     explicit DefaultQuotientStateEvaluator(
         bisimulation::BisimilarStateSpace* bisim,
         const value_type::value_t min,
@@ -76,9 +76,7 @@ struct DefaultQuotientStateEvaluator
     const value_type::value_t default_;
 };
 
-struct DefaultQuotientStateRewardFunction
-    : public QuotientStateRewardFunction
-{
+struct DefaultQuotientStateRewardFunction : public QuotientStateRewardFunction {
     explicit DefaultQuotientStateRewardFunction(
         bisimulation::BisimilarStateSpace* bisim,
         const value_type::value_t min,
@@ -95,13 +93,12 @@ struct DefaultQuotientStateRewardFunction
 };
 
 struct DefaultQuotientActionRewardFunction
-    : public QuotientActionRewardFunction
-{
+    : public QuotientActionRewardFunction {
     value_type::value_t
     evaluate(StateID state, bisimulation::QuotientAction action) override;
 };
 
-}
-}
+} // namespace bisimulation
+} // namespace probabilistic
 
 #endif // __ENGINE_INTERFACES_H__

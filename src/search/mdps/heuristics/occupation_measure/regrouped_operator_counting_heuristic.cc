@@ -6,8 +6,8 @@
 #include "../../../plugin.h"
 #include "../../../utils/system.h"
 #include "../../../utils/timer.h"
-#include "../../analysis_objectives/goal_probability_objective.h"
 #include "../../analysis_objectives/expected_cost_objective.h"
+#include "../../analysis_objectives/goal_probability_objective.h"
 #include "../../globals.h"
 #include "../../probabilistic_operator.h"
 
@@ -21,10 +21,11 @@ namespace occupation_measure_heuristic {
 namespace {
 
 template <typename T>
-std::vector<int> make_explicit(const std::vector<T>& partial_state) {
+std::vector<int> make_explicit(const std::vector<T>& partial_state)
+{
     std::vector<int> pre(g_variable_domain.size(), -1);
 
-    for (const auto&[var, val] : partial_state) {
+    for (const auto& [var, val] : partial_state) {
         pre[var] = val;
     }
 
@@ -32,20 +33,23 @@ std::vector<int> make_explicit(const std::vector<T>& partial_state) {
 }
 
 // Explicit precondition values (-1 if no precondition for variable)
-std::vector<int> get_precondition_explicit(const ProbabilisticOperator &op) {
+std::vector<int> get_precondition_explicit(const ProbabilisticOperator& op)
+{
     return make_explicit(op.get_preconditions());
 }
 
 // Explicit goal values (-1 if not a goal variable)
-std::vector<int> get_goal_explicit() {
+std::vector<int> get_goal_explicit()
+{
     return make_explicit(g_goal);
 }
 
 std::pair<int, int> compute_pnc(
-    const std::vector<int> &goal_explicit,
-    const GlobalState &state,
+    const std::vector<int>& goal_explicit,
+    const GlobalState& state,
     int var,
-    int d) {
+    int d)
+{
     if (goal_explicit[var] == -1) {
         if (state[var] != d) {
             return {0, 1};
@@ -60,7 +64,7 @@ std::pair<int, int> compute_pnc(
 
     return {0, 0};
 }
-}
+} // namespace
 
 RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     const options::Options& opts)
@@ -90,7 +94,7 @@ EvaluationResult
 RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state)
 {
     using namespace analysis_objectives;
-    
+
     if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())) {
         for (unsigned i = 0; i < g_goal.size(); ++i) {
             if (state[g_goal[i].first] == g_goal[i].second) {
@@ -99,7 +103,8 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state)
         }
         for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
             lp_solver_.set_constraint_lower_bound(
-                constraint_offsets_[var] + state[var], -1);
+                constraint_offsets_[var] + state[var],
+                -1);
         }
         lp_solver_.solve();
         EvaluationResult res(true, 0.0);
@@ -114,7 +119,8 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state)
         }
         for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
             lp_solver_.set_constraint_lower_bound(
-                constraint_offsets_[var] + state[var], 0);
+                constraint_offsets_[var] + state[var],
+                0);
         }
         return res;
     } else {
@@ -123,20 +129,22 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state)
 
         const auto goal_explicit = get_goal_explicit();
 
-        for (int var = 0; var < (int) g_variable_domain.size(); ++var) {
+        for (int var = 0; var < (int)g_variable_domain.size(); ++var) {
             for (int d = 0; d < g_variable_domain[var]; ++d) {
                 const auto& [pnc_min, pnc_max] =
-                compute_pnc(goal_explicit, state, var, d);
+                    compute_pnc(goal_explicit, state, var, d);
 
                 lp_solver_.set_constraint_lower_bound(
-                    constraint_offsets_[var] + 2 * d, pnc_min);
+                    constraint_offsets_[var] + 2 * d,
+                    pnc_min);
                 lp_solver_.set_constraint_upper_bound(
-                    constraint_offsets_[var] + 2 * d + 1, pnc_max);
+                    constraint_offsets_[var] + 2 * d + 1,
+                    pnc_max);
             }
         }
 
         lp_solver_.solve();
-        assert (lp_solver_.has_optimal_solution());
+        assert(lp_solver_.has_optimal_solution());
         const double v = -lp_solver_.get_objective_value();
         EvaluationResult res(false, v);
 
@@ -144,14 +152,14 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state)
     }
 }
 
-void
-RegroupedOperatorCountingHeuristic::add_options_to_parser(
+void RegroupedOperatorCountingHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
     lp::add_lp_solver_option_to_parser(parser);
 }
 
-void RegroupedOperatorCountingHeuristic::load_maxprob_lp() {
+void RegroupedOperatorCountingHeuristic::load_maxprob_lp()
+{
     const double inf = lp_solver_.get_infinity();
     std::vector<lp::LPVariable> lp_vars;
     std::vector<lp::LPConstraint> constraints;
@@ -189,7 +197,8 @@ void RegroupedOperatorCountingHeuristic::load_maxprob_lp() {
             for (unsigned i = 0; i < outcome.get_effects().size(); ++i) {
                 const auto& eff = outcome.get_effects()[i];
                 constraints[constraint_offsets_[eff.var] + eff.val].insert(
-                    lp_var, 1);
+                    lp_var,
+                    1);
                 if (pre[eff.var] != -1) {
                     constraints[constraint_offsets_[eff.var] + pre[eff.var]]
                         .insert(lp_var, -1);
@@ -215,10 +224,13 @@ void RegroupedOperatorCountingHeuristic::load_maxprob_lp() {
     }
 
     lp_solver_.load_problem(
-        lp::LPObjectiveSense::MAXIMIZE, lp_vars, constraints);
+        lp::LPObjectiveSense::MAXIMIZE,
+        lp_vars,
+        constraints);
 }
 
-void RegroupedOperatorCountingHeuristic::load_expcost_lp() {
+void RegroupedOperatorCountingHeuristic::load_expcost_lp()
+{
     const double inf = lp_solver_.get_infinity();
     std::vector<lp::LPVariable> lp_vars;
     std::vector<lp::LPConstraint> constraints;
@@ -250,16 +262,19 @@ void RegroupedOperatorCountingHeuristic::load_expcost_lp() {
 
                 if (pre[var] != -1) {
                     // Always consumes
-                    constraints[constraint_offsets_[var] + 2 * pre[var]]
-                        .insert(lp_var, -1);
+                    constraints[constraint_offsets_[var] + 2 * pre[var]].insert(
+                        lp_var,
+                        -1);
                     constraints[constraint_offsets_[var] + 2 * pre[var] + 1]
                         .insert(lp_var, -1);
 
                     // Always produces
-                    constraints[constraint_offsets_[var] + 2 * val]
-                        .insert(lp_var, 1);
-                    constraints[constraint_offsets_[var] + 2 * val + 1]
-                        .insert(lp_var, 1);
+                    constraints[constraint_offsets_[var] + 2 * val].insert(
+                        lp_var,
+                        1);
+                    constraints[constraint_offsets_[var] + 2 * val + 1].insert(
+                        lp_var,
+                        1);
                 } else {
                     // Sometimes consumes
                     for (int val2 = 0; val2 < g_variable_domain[var]; ++val2) {
@@ -270,16 +285,16 @@ void RegroupedOperatorCountingHeuristic::load_expcost_lp() {
                     }
 
                     // Sometimes produces
-                    constraints[constraint_offsets_[var] + 2 * val]
-                        .insert(lp_var, 1);
+                    constraints[constraint_offsets_[var] + 2 * val].insert(
+                        lp_var,
+                        1);
                 }
             }
         }
 
         // Regrouping contraints
-        for (int lp_var = lp_var_start + 1; lp_var < (int) lp_vars.size();
-             ++lp_var)
-        {
+        for (int lp_var = lp_var_start + 1; lp_var < (int)lp_vars.size();
+             ++lp_var) {
             int i = lp_var - lp_var_start;
 
             lp::LPConstraint& regroup = constraints.emplace_back(0, 0);
@@ -289,7 +304,9 @@ void RegroupedOperatorCountingHeuristic::load_expcost_lp() {
     }
 
     lp_solver_.load_problem(
-        lp::LPObjectiveSense::MINIMIZE, lp_vars, constraints);
+        lp::LPObjectiveSense::MINIMIZE,
+        lp_vars,
+        constraints);
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(
@@ -298,4 +315,3 @@ static Plugin<GlobalStateEvaluator> _plugin(
 
 } // namespace occupation_measure_heuristic
 } // namespace probabilistic
-

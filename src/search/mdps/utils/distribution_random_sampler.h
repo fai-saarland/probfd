@@ -13,7 +13,7 @@ public:
     DistributionRandomSampler();
     ~DistributionRandomSampler() = default;
 
-    template<typename T>
+    template <typename T>
     const T& operator()(const Distribution<T>& distribution) const
     {
         assert(!distribution.empty());
@@ -21,8 +21,8 @@ public:
             value_type::cap(value_type::from_double(g_rng()), value_type::one);
         assert(!value_type::approx_greater()(p, value_type::one));
         assert(
-            value_type::approx_greater()(p, value_type::zero)
-            || value_type::approx_equal()(p, value_type::zero));
+            value_type::approx_greater()(p, value_type::zero) ||
+            value_type::approx_equal()(p, value_type::zero));
         auto it = distribution.begin();
         while (true) {
             assert(it != distribution.end());
@@ -40,4 +40,3 @@ private:
 
 } // namespace distribution_random_sampler
 } // namespace probabilistic
-

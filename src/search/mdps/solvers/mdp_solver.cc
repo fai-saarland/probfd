@@ -48,13 +48,13 @@ MDPSolver::MDPSolver(const options::Options& opts)
     });
 }
 
-void
-MDPSolver::solve()
+void MDPSolver::solve()
 {
     logging::out << "Running MDP engine " << get_engine_name() << "..."
                  << std::endl;
     utils::Timer total_timer;
-    std::unique_ptr<engines::MDPEngineInterface<GlobalState>> engine(create_engine());
+    std::unique_ptr<engines::MDPEngineInterface<GlobalState>> engine(
+        create_engine());
 
     const GlobalState initial_state = state_registry_.get_initial_state();
 
@@ -85,12 +85,13 @@ MDPSolver::solve()
     print_additional_statistics();
 }
 
-void
-MDPSolver::add_options_to_parser(options::OptionParser& parser)
+void MDPSolver::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<bool>("cache", "", "false");
     parser.add_list_option<std::shared_ptr<Heuristic>>(
-        "path_dependent_heuristics", "", "[]");
+        "path_dependent_heuristics",
+        "",
+        "[]");
     parser.add_option<double>("report_epsilon", "", "1e-4");
     parser.add_option<bool>("report_enabled", "", "true");
 }

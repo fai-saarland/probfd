@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../types.h"
 #include "../../../../../operator_cost.h"
+#include "../../types.h"
 
 #include <memory>
 
@@ -45,14 +45,14 @@ public:
         std::shared_ptr<additivity::AdditivityStrategy> additivity_strategy);
     ~PatternCollectionInformation() = default;
 
-    void set_pdbs(const std::shared_ptr<ExpCostPDBCollection> &pdbs);
+    void set_pdbs(const std::shared_ptr<ExpCostPDBCollection>& pdbs);
     void set_pattern_cliques(
-        const std::shared_ptr<std::vector<PatternClique>> &pattern_cliques);
+        const std::shared_ptr<std::vector<PatternClique>>& pattern_cliques);
 
     std::shared_ptr<PatternCollection> get_patterns() const;
     std::shared_ptr<ExpCostPDBCollection> get_pdbs();
     std::shared_ptr<std::vector<PatternClique>> get_pattern_cliques();
 };
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace probabilistic

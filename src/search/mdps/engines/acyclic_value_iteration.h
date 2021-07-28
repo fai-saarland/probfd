@@ -4,9 +4,9 @@
 #include "../storage/per_state_storage.h"
 #include "engine.h"
 
-#include <stack>
 #include <iostream>
 #include <memory>
+#include <stack>
 
 namespace probabilistic {
 namespace engines {
@@ -34,23 +34,23 @@ struct Statistics {
 
 /**
  * @brief Implements acyclic Value Iteration.
- * 
+ *
  * Performs value iteration on acyclic MDPs using an optimal (topological)
  * update order. Each state only needs to be updated once.
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * 
+ *
  * @remark Does not validate that the input model is acyclic.
  */
-template<typename State, typename Action>
+template <typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
 public:
     /**
      * @brief Constructs an instance of acyclic value iteration.
-     * 
+     *
      * @param prune - An optional dead-end detector
-     * 
+     *
      * @see MDPEngine
      */
     explicit AcyclicValueIteration(
@@ -64,14 +64,14 @@ public:
         TransitionGenerator<Action>* transition_generator,
         StateEvaluator<State>* prune = nullptr)
         : MDPEngine<State, Action>(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator)
         , prune_(prune)
         , expanded_states_(false)
         , values_(this->get_minimal_reward())
@@ -86,7 +86,7 @@ public:
             IncrementalExpansionInfo& e = expansion_stack_.top();
 
             do {
-                // Topological order: Push all successors, recurse on stack if 
+                // Topological order: Push all successors, recurse on stack if
                 // one has not been expanded before
                 for (; e.successor != e.transition.end(); ++e.successor) {
                     if (push_state(e.successor->first, &e)) {
@@ -99,7 +99,7 @@ public:
                     e.value = e.t_value;
                 }
 
-                // If no operators are remaining, we are done. Otherwise set up 
+                // If no operators are remaining, we are done. Otherwise set up
                 // the next transition to handle.
                 if (e.remaining_aops.empty()) {
                     values_[e.state] = e.value;
@@ -109,7 +109,7 @@ public:
 
                 setup_next(e);
             } while (true);
-break_outer:;
+        break_outer:;
         }
     }
 
@@ -152,20 +152,23 @@ private:
         value_type::value_t t_value;
     };
 
-    void setup_next(IncrementalExpansionInfo& e) {
-        e.t_value = e.reward + 
-            this->get_action_reward(e.state, e.remaining_aops.back());
+    void setup_next(IncrementalExpansionInfo& e)
+    {
+        e.t_value = e.reward +
+                    this->get_action_reward(e.state, e.remaining_aops.back());
         e.transition.clear();
         this->generate_successors(
-            e.state, e.remaining_aops.back(), e.transition);
+            e.state,
+            e.remaining_aops.back(),
+            e.transition);
         e.remaining_aops.pop_back();
         e.successor = e.transition.begin();
     }
 
-    template<bool Update = true>
+    template <bool Update = true>
     bool push_state(const StateID& state_ref, IncrementalExpansionInfo* in)
     {
-        (void) in;
+        (void)in;
 
         if (expanded_states_[state_ref]) {
             if constexpr (Update) {

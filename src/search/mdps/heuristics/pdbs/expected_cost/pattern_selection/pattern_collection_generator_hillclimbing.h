@@ -1,10 +1,10 @@
 #pragma once
 
-#include "pattern_generator.h"
 #include "incremental_canonical_pdbs.h"
+#include "pattern_generator.h"
 
-#include "../../types.h"
 #include "../../../../../utils/logging.h"
+#include "../../types.h"
 
 #include <cstdlib>
 #include <memory>
@@ -20,7 +20,7 @@ class Options;
 namespace utils {
 class CountdownTimer;
 class RandomNumberGenerator;
-}
+} // namespace utils
 
 namespace sampling {
 class RandomWalkSampler;
@@ -34,9 +34,8 @@ class ExpCostProjection;
 namespace pattern_selection {
 
 // Implementation of the pattern generation algorithm by Haslum et al.
-class PatternCollectionGeneratorHillclimbing :
-    public PatternCollectionGenerator
-{
+class PatternCollectionGeneratorHillclimbing
+    : public PatternCollectionGenerator {
     struct Statistics : public utils::Printable {
         unsigned long long int num_iterations;
         unsigned long long int generated_patterns;
@@ -56,7 +55,8 @@ class PatternCollectionGeneratorHillclimbing :
             , rejected_patterns(rejected_patterns)
             , max_pdb_size(max_pdb_size)
             , hillclimbing_time(hillclimbing_time)
-        {}
+        {
+        }
 
         void print(std::ostream& out) const override;
     };
@@ -94,10 +94,10 @@ class PatternCollectionGeneratorHillclimbing :
       The method returns the size of the largest PDB added to candidate_pdbs.
     */
     int generate_candidate_pdbs(
-        const std::vector<std::vector<int>> &relevant_neighbours,
-        const ExpCostProjection &pdb,
-        std::set<Pattern> &generated_patterns,
-        ExpCostPDBCollection &candidate_pdbs);
+        const std::vector<std::vector<int>>& relevant_neighbours,
+        const ExpCostProjection& pdb,
+        std::set<Pattern>& generated_patterns,
+        ExpCostPDBCollection& candidate_pdbs);
 
     /*
       Performs num_samples random walks with a length (different for each
@@ -113,7 +113,7 @@ class PatternCollectionGeneratorHillclimbing :
         utils::CountdownTimer &hill_climbing_timer,
         const sampling::RandomWalkSampler &sampler,
         value_type::value_t init_h,
-        std::vector<GlobalState> &samples);
+        std::vector<GlobalState>& samples);
 
     /*
       Searches for the best improving pdb in candidate_pdbs according to the
@@ -133,11 +133,11 @@ class PatternCollectionGeneratorHillclimbing :
       the h-value of the current pattern collection.
     */
     bool is_heuristic_improved(
-        const ExpCostProjection &pdb,
-        const GlobalState &sample,
+        const ExpCostProjection& pdb,
+        const GlobalState& sample,
         value_type::value_t h_collection,
-        const ExpCostPDBCollection &pdbs,
-        const std::vector<PatternClique> &pattern_cliques);
+        const ExpCostPDBCollection& pdbs,
+        const std::vector<PatternClique>& pattern_cliques);
 
     /*
       This is the core algorithm of this class. The initial PDB collection
@@ -165,7 +165,7 @@ class PatternCollectionGeneratorHillclimbing :
 
 public:
     explicit PatternCollectionGeneratorHillclimbing(
-        const options::Options &opts);
+        const options::Options& opts);
     ~PatternCollectionGeneratorHillclimbing() override = default;
 
     /*
@@ -178,6 +178,6 @@ public:
 
     std::shared_ptr<utils::Printable> get_report() const override;
 };
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace probabilistic

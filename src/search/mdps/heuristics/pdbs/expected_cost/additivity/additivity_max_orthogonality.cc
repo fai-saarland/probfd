@@ -4,8 +4,8 @@
 
 #include "../../../../../algorithms/max_cliques.h"
 
-#include "../../../../../plugin.h"
 #include "../../../../../option_parser.h"
+#include "../../../../../plugin.h"
 
 namespace probabilistic {
 namespace pdbs {
@@ -26,15 +26,15 @@ AdditivityMaxOrthogonality::compute_additive_subcollections(
     return additive_subcollections;
 }
 
-static std::shared_ptr<AdditivityMaxOrthogonality> _parse(OptionParser &parser) {
-    if (parser.dry_run())
-        return nullptr;
+static std::shared_ptr<AdditivityMaxOrthogonality> _parse(OptionParser& parser)
+{
+    if (parser.dry_run()) return nullptr;
 
     return std::make_shared<AdditivityMaxOrthogonality>();
 }
 
 static Plugin<AdditivityStrategy> _plugin("max_orthogonality", _parse);
 
-}
-}
-}
+} // namespace additivity
+} // namespace pdbs
+} // namespace probabilistic

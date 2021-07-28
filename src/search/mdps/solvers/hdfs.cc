@@ -10,15 +10,15 @@
 namespace probabilistic {
 namespace solvers {
 
-template<typename Bisimulation, typename Fret>
+template <typename Bisimulation, typename Fret>
 class HDFSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
 public:
-    template<typename T>
+    template <typename T>
     using WrappedType =
-        typename MDPHeuristicSearch<Bisimulation, Fret>::
-        template WrappedType<T>;
+        typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
+            T>;
 
-    template<typename State, typename Action, typename Bounds>
+    template <typename State, typename Action, typename Bounds>
     using Engine = engines::heuristic_depth_first_search::
         HeuristicDepthFirstSearch<State, Action, Bounds, Fret>;
 
@@ -65,27 +65,24 @@ public:
                           << std::endl;
                 valid = false;
             }
-            if (backward_updates_
-                == engines::heuristic_depth_first_search::
-                    BacktrackingUpdateType::OnDemand) {
+            if (backward_updates_ == engines::heuristic_depth_first_search::
+                                         BacktrackingUpdateType::OnDemand) {
                 error_msg
                     << "ondemand backward updates required forward updates!"
                     << std::endl;
                 valid = false;
             }
-            if (!value_iteration_
-                && backward_updates_
-                    == engines::heuristic_depth_first_search::
-                        BacktrackingUpdateType::Disabled) {
+            if (!value_iteration_ && backward_updates_ ==
+                                         engines::heuristic_depth_first_search::
+                                             BacktrackingUpdateType::Disabled) {
                 error_msg << "either value_iteration, forward_updates, or "
                              "backward_updates must be enabled!"
                           << std::endl;
                 valid = false;
             }
-            if (expand_tip_states_
-                && backward_updates_
-                    == engines::heuristic_depth_first_search::
-                        BacktrackingUpdateType::OnDemand) {
+            if (expand_tip_states_ &&
+                backward_updates_ == engines::heuristic_depth_first_search::
+                                         BacktrackingUpdateType::OnDemand) {
                 error_msg
                     << "ondemand backward updates require forward updates or "
                        "expand_tip=true!"
@@ -93,8 +90,8 @@ public:
                 valid = false;
             }
         }
-        if (partial_exploration_ && expand_tip_states_
-            && !cutoff_inconsistent_) {
+        if (partial_exploration_ && expand_tip_states_ &&
+            !cutoff_inconsistent_) {
             error_msg
                 << "greedy exploration requires either expand_tip=false or "
                    "cutoff_inconsistent=true"
@@ -132,7 +129,7 @@ struct HDFSOptions {
         parser.add_option<bool>("fwup", "", "true");
         {
             std::vector<std::string> bwups(
-                { "disabled", "ondemand", "single", "convergence" });
+                {"disabled", "ondemand", "single", "convergence"});
             parser.add_enum_option("bwup", bwups, "", "ondemand");
         }
         parser.add_option<bool>("cutoff_inconsistent", "", "true");

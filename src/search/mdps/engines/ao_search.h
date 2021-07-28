@@ -30,7 +30,7 @@ struct Statistics {
     }
 };
 
-template<typename StateInfo>
+template <typename StateInfo>
 struct PerStateInformation : public StateInfo {
     static constexpr const uint8_t MARK = 1 << StateInfo::BITS;
     static constexpr const uint8_t SOLVED = 2 << StateInfo::BITS;
@@ -60,7 +60,7 @@ struct PerStateInformation : public StateInfo {
 
 /**
  * @brief Base class for the AO* algorithm family.
- * 
+ *
  * @tparam StateT - The state type of the underlying MDP.
  * @tparam ActionT - The action type of the underlying MDP.
  * @tparam DualBounds - Determines whether bounded value iteration is performed.
@@ -69,20 +69,21 @@ struct PerStateInformation : public StateInfo {
  * the derived algorithm.
  * @tparam Greedy - ?
  */
-template<
+template <
     typename StateT,
     typename ActionT,
     typename DualBounds,
     typename StorePolicy,
-    template<typename>
+    template <typename>
     class StateInfoExtension,
     bool Greedy>
-class AOBase : public heuristic_search::HeuristicSearchBase<
-                   StateT,
-                   ActionT,
-                   DualBounds,
-                   StorePolicy,
-                   StateInfoExtension> {
+class AOBase
+    : public heuristic_search::HeuristicSearchBase<
+          StateT,
+          ActionT,
+          DualBounds,
+          StorePolicy,
+          StateInfoExtension> {
 public:
     /// The heuristic search base class.
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
@@ -94,7 +95,7 @@ public:
 
     /// The underlying state type.
     using State = typename HeuristicSearchBase::State;
-    
+
     /// The underlying action type.
     using Action = typename HeuristicSearchBase::Action;
 
@@ -118,24 +119,24 @@ public:
         bool interval_comparison,
         bool stable_policy)
         : HeuristicSearchBase(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator,
-            level,
-            dead_end_eval,
-            dead_end_listener,
-            policy_chooser,
-            new_state_handler,
-            value_init,
-            connector,
-            report,
-            interval_comparison,
-            stable_policy)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator,
+              level,
+              dead_end_eval,
+              dead_end_listener,
+              policy_chooser,
+              new_state_handler,
+              value_init,
+              connector,
+              report,
+              interval_comparison,
+              stable_policy)
         , state_infos_(this->template get_state_status_access<StateInfo>())
         , dead_end_ident_level_(level)
         , mark_dead_ends_(this)
@@ -178,7 +179,11 @@ protected:
             bool solved = false;
             bool dead = false;
             bool value_changed = update_value_check_solved(
-                IsGreedy(), elem.second, info, solved, dead);
+                IsGreedy(),
+                elem.second,
+                info,
+                solved,
+                dead);
             if (solved) {
                 mark_solved_push_parents(IsGreedy(), elem.second, info, dead);
             } else if (value_changed) {
@@ -292,7 +297,7 @@ private:
         }
 
 #if !defined(NDEBUG)
-        template<typename T>
+        template <typename T>
         bool operator()(T begin, T end)
         {
             this->operator()(*begin);
@@ -300,7 +305,7 @@ private:
             return true;
         }
 #else
-        template<typename T>
+        template <typename T>
         bool operator()(T begin, T)
         {
             this->operator()(*begin);
@@ -329,15 +334,11 @@ private:
                 return true;
             }
             switch (level_) {
-            case (DeadEndIdentificationLevel::Policy):
-                assert(false);
-                break;
+            case (DeadEndIdentificationLevel::Policy): assert(false); break;
             case (DeadEndIdentificationLevel::Visited):
                 return !state_info.is_value_initialized();
-            case (DeadEndIdentificationLevel::Complete):
-                return false;
-            default:
-                break;
+            case (DeadEndIdentificationLevel::Complete): return false;
+            default: break;
             }
             return false;
         }
@@ -430,7 +431,8 @@ private:
         solved = info.unsolved == 0;
         dead = solved && info.alive == 0 && !info.is_goal_state();
         const bool vc = this->async_update(state);
-        if (value_utils::as_lower_bound(info.value) >= this->get_maximal_reward()) {
+        if (value_utils::as_lower_bound(info.value) >=
+            this->get_maximal_reward()) {
             solved = true;
             dead = false;
         }
@@ -446,7 +448,9 @@ private:
         assert(!info.is_terminal());
         if (dead && this->is_dead_end_learning_enabled()) {
             std::pair<bool, bool> exploration_result = this->safe_async_update(
-                state, mark_dead_ends_, expansion_condition_);
+                state,
+                mark_dead_ends_,
+                expansion_condition_);
             assert(exploration_result.first || info.is_solved());
             if (exploration_result.first) {
                 info.set_solved();

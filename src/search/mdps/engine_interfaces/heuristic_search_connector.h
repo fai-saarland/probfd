@@ -6,8 +6,7 @@ namespace probabilistic {
 
 class HeuristicSearchConnector {
 public:
-    void
-    set_lookup_function(
+    void set_lookup_function(
         engines::heuristic_search::PerStateInformationLookup* lookup)
     {
         lookup_ = lookup;

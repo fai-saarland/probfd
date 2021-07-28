@@ -13,7 +13,7 @@ class GoalCheck : public GlobalStateRewardFunction {
 protected:
     EvaluationResult evaluate(const GlobalState& state) override
     {
-        return { ::test_goal(state), value_type::zero };
+        return {::test_goal(state), value_type::zero};
     }
 };
 
@@ -25,7 +25,7 @@ protected:
         return -op->get_cost();
     }
 };
-}
+} // namespace
 
 ExpectedCostObjective::ExpectedCostObjective()
     : state_eval_(new GoalCheck())
@@ -33,26 +33,22 @@ ExpectedCostObjective::ExpectedCostObjective()
 {
 }
 
-value_type::value_t
-ExpectedCostObjective::min()
+value_type::value_t ExpectedCostObjective::min()
 {
     return -value_type::inf;
 }
 
-value_type::value_t
-ExpectedCostObjective::max()
+value_type::value_t ExpectedCostObjective::max()
 {
     return value_type::zero;
 }
 
-GlobalStateRewardFunction*
-ExpectedCostObjective::state_reward()
+GlobalStateRewardFunction* ExpectedCostObjective::state_reward()
 {
     return state_eval_.get();
 }
 
-ProbabilisticOperatorEvaluator*
-ExpectedCostObjective::action_reward()
+ProbabilisticOperatorEvaluator* ExpectedCostObjective::action_reward()
 {
     return action_eval_.get();
 }

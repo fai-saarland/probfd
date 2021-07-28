@@ -4,7 +4,7 @@
 #include "../syntactic_projection.h"
 
 namespace probabilistic {
-namespace pdbs{
+namespace pdbs {
 namespace multiplicativity {
 
 using namespace syntactic_projection;
@@ -32,7 +32,8 @@ struct Permutation {
 
     ~Permutation() = default;
 
-    bool get_next() {
+    bool get_next()
+    {
         for (std::size_t i = 0; i != values.size(); ++i) {
             if (values[i] != end_values[i]) {
                 // If this dimension can handle another increment... then done.
@@ -40,24 +41,20 @@ struct Permutation {
                 return true;
             }
 
-            // Otherwise, reset this dimension and bubble up to the next dimension
-            // to take a look
+            // Otherwise, reset this dimension and bubble up to the next
+            // dimension to take a look
             values[i] = begin_values[i];
         }
 
         return false;
     }
 
-    T& operator[](int i) {
-        return values[i];
-    }
+    T& operator[](int i) { return values[i]; }
 
-    const T& operator[](int i) const {
-        return values[i];
-    }
+    const T& operator[](int i) const { return values[i]; }
 };
 
-}
+} // namespace
 
 bool is_independent_operator(
     const PatternCollection& patterns,
@@ -88,7 +85,9 @@ bool is_independent_operator(
     }
 
     Permutation<ProjectionOutcomeIterator> proj_outcomes_permutation(
-        proj_outcomes_begins, proj_outcomes_ends, proj_outcomes_begins);
+        proj_outcomes_begins,
+        proj_outcomes_ends,
+        proj_outcomes_begins);
 
     // Check if every permutation of outcomes has the same probability
     // in the union.
@@ -101,7 +100,9 @@ bool is_independent_operator(
 
             // NOTE: This assumes patterns are disjoint!
             union_effects.insert(
-                union_effects.end(), effects.begin(), effects.end());
+                union_effects.end(),
+                effects.begin(),
+                effects.end());
             indep_prob *= prob;
         }
 
@@ -116,14 +117,17 @@ bool is_independent_operator(
     return true;
 }
 
-bool is_independent_collection(const PatternCollection& patterns) {
+bool is_independent_collection(const PatternCollection& patterns)
+{
     // Construct union pattern here
     Pattern union_pattern;
     {
-        for (const Pattern &pattern : patterns) {
+        for (const Pattern& pattern : patterns) {
             for (int var : pattern) {
                 auto it = std::lower_bound(
-                    union_pattern.begin(), union_pattern.end(), var);
+                    union_pattern.begin(),
+                    union_pattern.end(),
+                    var);
 
                 // Duplicate variable -> not disjoint
                 if (*it == var) {
@@ -144,6 +148,6 @@ bool is_independent_collection(const PatternCollection& patterns) {
     return true;
 }
 
-}
-}
-}
+} // namespace multiplicativity
+} // namespace pdbs
+} // namespace probabilistic

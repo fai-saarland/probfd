@@ -6,15 +6,15 @@
 namespace probabilistic {
 namespace transition_sampler {
 
-VBiasedSuccessorSampler::VBiasedSuccessorSampler(const options::Options&) { }
-
-void
-VBiasedSuccessorSampler::add_options_to_parser(options::OptionParser&)
+VBiasedSuccessorSampler::VBiasedSuccessorSampler(const options::Options&)
 {
 }
 
-StateID
-VBiasedSuccessorSampler::sample(
+void VBiasedSuccessorSampler::add_options_to_parser(options::OptionParser&)
+{
+}
+
+StateID VBiasedSuccessorSampler::sample(
     const StateID&,
     const ProbabilisticOperator*,
     const Distribution<StateID>& successors)

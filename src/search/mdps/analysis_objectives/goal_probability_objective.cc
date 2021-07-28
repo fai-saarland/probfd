@@ -23,12 +23,12 @@ protected:
 
 class ZeroRewardActionEvaluator : public ProbabilisticOperatorEvaluator {
 protected:
-    value_type::value_t
-    evaluate(StateID, const ProbabilisticOperator*) override {
+    value_type::value_t evaluate(StateID, const ProbabilisticOperator*) override
+    {
         return value_type::zero;
     }
 };
-}
+} // namespace
 
 GoalProbabilityObjective::GoalProbabilityObjective()
     : state_eval_(new GoalCheck())
@@ -36,26 +36,22 @@ GoalProbabilityObjective::GoalProbabilityObjective()
 {
 }
 
-value_type::value_t
-GoalProbabilityObjective::min()
+value_type::value_t GoalProbabilityObjective::min()
 {
     return value_type::zero;
 }
 
-value_type::value_t
-GoalProbabilityObjective::max()
+value_type::value_t GoalProbabilityObjective::max()
 {
     return value_type::one;
 }
 
-GlobalStateRewardFunction*
-GoalProbabilityObjective::state_reward()
+GlobalStateRewardFunction* GoalProbabilityObjective::state_reward()
 {
     return state_eval_.get();
 }
 
-ProbabilisticOperatorEvaluator*
-GoalProbabilityObjective::action_reward()
+ProbabilisticOperatorEvaluator* GoalProbabilityObjective::action_reward()
 {
     return action_eval_.get();
 }

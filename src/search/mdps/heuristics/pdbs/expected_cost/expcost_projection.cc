@@ -2,37 +2,38 @@
 
 #include "../../../../global_operator.h"
 #include "../../../engines/interval_iteration.h"
-#include "../../../logging.h"
 #include "../../../globals.h"
+#include "../../../logging.h"
 #include "../../../utils/graph_visualization.h"
 
 #include "../../../../pdbs/pattern_database.h"
 
 #include <deque>
-#include <sstream>
-#include <numeric>
 #include <fstream>
+#include <numeric>
+#include <sstream>
 
 namespace probabilistic {
 namespace pdbs {
 
 using namespace value_utils;
 
-static std::vector<int> insert(std::vector<int> pattern, int add_var) {
+static std::vector<int> insert(std::vector<int> pattern, int add_var)
+{
     assert(!utils::contains(pattern, add_var));
     auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
     pattern.insert(it, add_var);
     return pattern;
 }
 
-ExpCostProjection::
-ExpCostProjection(const Pattern& variables)
+ExpCostProjection::ExpCostProjection(const Pattern& variables)
     : ExpCostProjection(variables, ::g_variable_domain)
 {
 }
 
-ExpCostProjection::
-ExpCostProjection(const Pattern& variables, const std::vector<int> &domains)
+ExpCostProjection::ExpCostProjection(
+    const Pattern& variables,
+    const std::vector<int>& domains)
     : ProbabilisticProjection(variables, domains)
     , value_table(state_mapper_->size(), -value_type::inf)
 {
@@ -40,16 +41,16 @@ ExpCostProjection(const Pattern& variables, const std::vector<int> &domains)
     compute_value_table(&initializer);
 }
 
-ExpCostProjection::
-ExpCostProjection(const Pattern& variables, AbstractStateEvaluator* heuristic)
+ExpCostProjection::ExpCostProjection(
+    const Pattern& variables,
+    AbstractStateEvaluator* heuristic)
     : ExpCostProjection(variables, ::g_variable_domain, heuristic)
 {
 }
 
-ExpCostProjection::
-ExpCostProjection(
+ExpCostProjection::ExpCostProjection(
     const Pattern& variables,
-    const std::vector<int> &domains,
+    const std::vector<int>& domains,
     AbstractStateEvaluator* heuristic)
     : ProbabilisticProjection(variables, domains)
     , value_table(state_mapper_->size(), -value_type::inf)
@@ -67,32 +68,31 @@ ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
 
 ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)
     : ProbabilisticProjection(
-        insert(pdb.get_pattern(), add_var),
-        ::g_variable_domain)
+          insert(pdb.get_pattern(), add_var),
+          ::g_variable_domain)
     , value_table(state_mapper_->size(), -value_type::inf)
 {
     ExpCostPDBEvaluator heuristic(pdb, state_mapper_.get(), add_var);
     compute_value_table(&heuristic);
 }
 
-value_type::value_t
-ExpCostProjection::get_value(const GlobalState &state) const {
+value_type::value_t ExpCostProjection::get_value(const GlobalState& state) const
+{
     auto abstract_state = state_mapper_->operator()(state);
     return lookup(abstract_state);
 }
 
-unsigned int ExpCostProjection::num_reachable_states() const {
+unsigned int ExpCostProjection::num_reachable_states() const
+{
     return reachable_states;
 }
 
-value_type::value_t
-ExpCostProjection::lookup(const GlobalState& s) const
+value_type::value_t ExpCostProjection::lookup(const GlobalState& s) const
 {
     return lookup(state_mapper_->operator()(s));
 }
 
-value_type::value_t
-ExpCostProjection::lookup(const AbstractState& s) const
+value_type::value_t ExpCostProjection::lookup(const AbstractState& s) const
 {
     return value_table[s.id];
 }
@@ -110,18 +110,17 @@ struct StateToString {
     std::string operator()(const AbstractState& x) const
     {
         std::ostringstream out;
-        out << state_str(x) << " {"
-            << as_upper_bound((*value_table)[x.id]) << "}";
+        out << state_str(x) << " {" << as_upper_bound((*value_table)[x.id])
+            << "}";
         return out.str();
     }
 
     const std::vector<value_type::value_t>* value_table;
     AbstractStateToString state_str;
 };
-}
+} // namespace
 
-void
-ExpCostProjection::dump_graphviz(
+void ExpCostProjection::dump_graphviz(
     const std::string& path,
     bool transition_labels,
     bool values) const
@@ -139,8 +138,7 @@ ExpCostProjection::dump_graphviz(
     }
 }
 
-void
-ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
+void ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
 {
     assert(heuristic);
 
@@ -154,21 +152,25 @@ ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
     ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
 
     ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
+        state_id_map,
+        state_mapper_,
+        progression_aops_generator_);
     TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
+        state_id_map,
+        state_mapper_,
+        progression_aops_generator_);
 
-    engines::topological_vi::TopologicalValueIteration
-        <AbstractState, const AbstractOperator*, true>
-        vi(&state_id_map,
-           &action_id_map,
-           &state_reward,
-           &action_eval,
-           -value_type::inf,
-           value_type::zero,
-           &aops_gen,
-           &transition_gen,
-           heuristic);
+    engines::topological_vi::
+        TopologicalValueIteration<AbstractState, const AbstractOperator*, true>
+            vi(&state_id_map,
+               &action_id_map,
+               &state_reward,
+               &action_eval,
+               -value_type::inf,
+               value_type::zero,
+               &aops_gen,
+               &transition_gen,
+               heuristic);
 
     vi.solve(initial_state_, value_table);
 
@@ -188,9 +190,8 @@ ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
 #endif
 }
 
-template<typename StateToString, typename ActionToString>
-void
-ExpCostProjection::dump_graphviz(
+template <typename StateToString, typename ActionToString>
+void ExpCostProjection::dump_graphviz(
     const std::string& path,
     const StateToString* sts,
     const ActionToString* ats) const
@@ -203,9 +204,13 @@ ExpCostProjection::dump_graphviz(
     StateIDMap<AbstractState> state_id_map;
 
     ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
+        state_id_map,
+        state_mapper_,
+        progression_aops_generator_);
     TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_id_map, state_mapper_, progression_aops_generator_);
+        state_id_map,
+        state_mapper_,
+        progression_aops_generator_);
 
     std::ofstream out(path);
 

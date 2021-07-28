@@ -7,8 +7,7 @@
 
 namespace probabilistic {
 
-int
-ProbabilisticOperatorPolicyPicker::operator()(
+int ProbabilisticOperatorPolicyPicker::operator()(
     const StateID& state,
     const ActionID& prev_policy,
     const std::vector<const ProbabilisticOperator*>& action_choices,

@@ -1,10 +1,10 @@
 #include "additive_ecpdbs.h"
 
-#include "expcost_projection.h"
 #include "../abstract_state.h"
+#include "expcost_projection.h"
 
-#include "../../../globals.h"
 #include "../../../analysis_objectives/analysis_objective.h"
+#include "../../../globals.h"
 
 namespace probabilistic {
 namespace pdbs {
@@ -17,8 +17,7 @@ AdditiveExpectedCostPDBs::AdditiveExpectedCostPDBs(
 {
 }
 
-EvaluationResult
-AdditiveExpectedCostPDBs::evaluate(const GlobalState& state)
+EvaluationResult AdditiveExpectedCostPDBs::evaluate(const GlobalState& state)
 {
     value_type::value_t result = g_analysis_objective->max();
 
@@ -30,7 +29,7 @@ AdditiveExpectedCostPDBs::evaluate(const GlobalState& state)
         }
 
         // Get lowest additive subcollection value
-        for (const auto &additive_collection : *additive_patterns_) {
+        for (const auto& additive_collection : *additive_patterns_) {
             value_type::value_t val = value_type::zero;
 
             for (PatternID id : additive_collection) {

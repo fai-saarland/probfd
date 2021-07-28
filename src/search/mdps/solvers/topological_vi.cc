@@ -4,8 +4,8 @@
 #include "../state_evaluator.h"
 #include "mdp_solver.h"
 
-#include "../globals.h"
 #include "../analysis_objectives/analysis_objective.h"
+#include "../globals.h"
 
 namespace probabilistic {
 namespace solvers {
@@ -35,7 +35,9 @@ public:
     static void add_options_to_parser(options::OptionParser& parser)
     {
         parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
-            "eval", "", options::OptionParser::NONE);
+            "eval",
+            "",
+            options::OptionParser::NONE);
         MDPSolver::add_options_to_parser(parser);
     }
 

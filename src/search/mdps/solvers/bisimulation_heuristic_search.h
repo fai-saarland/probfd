@@ -31,8 +31,8 @@ struct BisimulationTimer {
 class BisimulationBasedHeuristicSearchEngine
     : public engines::MDPEngineInterface<GlobalState> {
 public:
-    template<
-        template<typename, typename, typename>
+    template <
+        template <typename, typename, typename>
         class HS,
         typename DualValues,
         typename... Args>
@@ -48,7 +48,8 @@ public:
     {
         BisimulationBasedHeuristicSearchEngine* res =
             new BisimulationBasedHeuristicSearchEngine(
-                engine_name, state_registry);
+                engine_name,
+                state_registry);
 
         using HeuristicSearchType =
             HS<bisimulation::QuotientState,
@@ -82,8 +83,8 @@ public:
         return res;
     }
 
-    template<
-        template<typename, typename, typename>
+    template <
+        template <typename, typename, typename>
         class HS,
         typename DualValues,
         typename... Args>
@@ -99,7 +100,9 @@ public:
     {
         BisimulationBasedHeuristicSearchEngine* res =
             new BisimulationBasedHeuristicSearchEngine(
-                engine_name, state_registry, true);
+                engine_name,
+                state_registry,
+                true);
 
         res->engine_ = std::unique_ptr<
             MDPEngineInterface<bisimulation::QuotientState>>(
@@ -131,10 +134,10 @@ public:
         return res;
     }
 
-    template<
-        template<typename, typename, typename>
+    template <
+        template <typename, typename, typename>
         class Fret,
-        template<typename, typename, typename>
+        template <typename, typename, typename>
         class HS,
         typename DualValues,
         typename... Args>
@@ -150,7 +153,9 @@ public:
     {
         BisimulationBasedHeuristicSearchEngine* res =
             new BisimulationBasedHeuristicSearchEngine(
-                engine_name, state_registry, true);
+                engine_name,
+                state_registry,
+                true);
 
         using FretVariant = Fret<
             bisimulation::QuotientState,
@@ -185,9 +190,8 @@ public:
                 stable_policy,
                 args...);
 
-        res->engine2_ =
-            std::unique_ptr<engines::MDPEngineInterface<
-                bisimulation::QuotientState>>(engine);
+        res->engine2_ = std::unique_ptr<
+            engines::MDPEngineInterface<bisimulation::QuotientState>>(engine);
 
         res->engine_ =
             std::unique_ptr<MDPEngineInterface<bisimulation::QuotientState>>(
@@ -292,11 +296,14 @@ private:
         quotient_ = std::unique_ptr<
             quotient_system::QuotientSystem<bisimulation::QuotientAction>>(
             new quotient_system::QuotientSystem<bisimulation::QuotientAction>(
-                &action_id_map, aops_gen.get(), tgen.get()));
+                &action_id_map,
+                aops_gen.get(),
+                tgen.get()));
         q_action_reward_ = std::unique_ptr<ActionRewardFunction<
             quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
             new quotient_system::DefaultQuotientActionRewardFunction(
-                    quotient_.get(), &transition_reward));
+                quotient_.get(),
+                &transition_reward));
         q_action_id_map_ = std::unique_ptr<ActionIDMap<
             quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
             new ActionIDMap<
@@ -331,7 +338,7 @@ private:
         aops_gen = nullptr;
     std::unique_ptr<TransitionGenerator<bisimulation::QuotientAction>> tgen =
         nullptr;
-    std::unique_ptr<StateRewardFunction<bisimulation::QuotientState>> 
+    std::unique_ptr<StateRewardFunction<bisimulation::QuotientState>>
         state_reward = nullptr;
     bisimulation::DefaultQuotientActionRewardFunction transition_reward;
     DeadEndListener<bisimulation::QuotientState, bisimulation::QuotientAction>
@@ -373,7 +380,7 @@ private:
         nullptr;
 };
 
-template<>
+template <>
 class MDPHeuristicSearch<std::true_type, std::false_type>
     : public MDPHeuristicSearchBase {
 public:
@@ -385,7 +392,10 @@ public:
         return get_heuristic_search_name() + "(bisimulation)";
     }
 
-    template<template<typename, typename, typename> class HS, typename... Args>
+    template <
+        template <typename, typename, typename>
+        class HS,
+        typename... Args>
     engines::MDPEngineInterface<GlobalState>*
     heuristic_search_engine_factory(Args... args)
     {
@@ -415,17 +425,17 @@ public:
     }
 
 protected:
-    template<typename T>
+    template <typename T>
     using WrappedType =
         typename Wrapper<std::true_type, std::false_type, T>::type;
 
-    template<typename T>
+    template <typename T>
     typename Wrapper<std::true_type, std::false_type, T>::type wrap(T t) const
     {
         return Wrapper<std::true_type, std::false_type, T>()(t);
     }
 
-    template<typename T>
+    template <typename T>
     typename Unwrapper<std::true_type, std::false_type, T>::type
     unwrap(T t) const
     {
@@ -433,7 +443,7 @@ protected:
     }
 };
 
-template<>
+template <>
 class MDPHeuristicSearch<std::true_type, std::true_type>
     : public MDPHeuristicSearchBase {
 public:
@@ -445,7 +455,10 @@ public:
 
     using MDPHeuristicSearchBase::add_options_to_parser;
 
-    template<template<typename, typename, typename> class HS, typename... Args>
+    template <
+        template <typename, typename, typename>
+        class HS,
+        typename... Args>
     engines::MDPEngineInterface<GlobalState>*
     heuristic_search_engine_factory(Args... args)
     {
@@ -476,7 +489,10 @@ public:
         }
     }
 
-    template<template<typename, typename, typename> class HS, typename... Args>
+    template <
+        template <typename, typename, typename>
+        class HS,
+        typename... Args>
     engines::MDPEngineInterface<GlobalState>*
     quotient_heuristic_search_factory(Args... args)
     {
@@ -515,17 +531,17 @@ public:
     }
 
 protected:
-    template<typename T>
+    template <typename T>
     using WrappedType =
         typename Wrapper<std::true_type, std::true_type, T>::type;
 
-    template<typename T>
+    template <typename T>
     typename Wrapper<std::true_type, std::true_type, T>::type wrap(T t) const
     {
         return Wrapper<std::true_type, std::true_type, T>()(t);
     }
 
-    template<typename T>
+    template <typename T>
     typename Unwrapper<std::true_type, std::true_type, T>::type
     unwrap(T t) const
     {
@@ -533,11 +549,11 @@ protected:
     }
 
 private:
-    template<
-        template<typename, typename, typename>
+    template <
+        template <typename, typename, typename>
         class Fret,
         typename DualValues,
-        template<typename, typename, typename>
+        template <typename, typename, typename>
         class HS,
         typename... Args>
     engines::MDPEngineInterface<GlobalState>*

@@ -2,8 +2,7 @@
 
 namespace probabilistic {
 
-StateID
-StateIDMap<bisimulation::QuotientState>::get_state_id(
+StateID StateIDMap<bisimulation::QuotientState>::get_state_id(
     const bisimulation::QuotientState& s) const
 {
     return s.hash();
@@ -15,8 +14,7 @@ StateIDMap<bisimulation::QuotientState>::get_state(const StateID& s) const
     return bisimulation::QuotientState(s);
 }
 
-ActionID
-ActionIDMap<bisimulation::QuotientAction>::get_action_id(
+ActionID ActionIDMap<bisimulation::QuotientAction>::get_action_id(
     const StateID&,
     const bisimulation::QuotientAction& action) const
 {
@@ -37,8 +35,7 @@ ApplicableActionsGenerator<bisimulation::QuotientAction>::
 {
 }
 
-void
-ApplicableActionsGenerator<bisimulation::QuotientAction>::operator()(
+void ApplicableActionsGenerator<bisimulation::QuotientAction>::operator()(
     const StateID& s,
     std::vector<bisimulation::QuotientAction>& res) const
 {
@@ -51,8 +48,7 @@ TransitionGenerator<bisimulation::QuotientAction>::TransitionGenerator(
 {
 }
 
-void
-TransitionGenerator<bisimulation::QuotientAction>::operator()(
+void TransitionGenerator<bisimulation::QuotientAction>::operator()(
     const StateID& s,
     const bisimulation::QuotientAction& a,
     Distribution<StateID>& res) const
@@ -60,8 +56,7 @@ TransitionGenerator<bisimulation::QuotientAction>::operator()(
     bisim_->get_successors(s, a, res);
 }
 
-void
-TransitionGenerator<bisimulation::QuotientAction>::operator()(
+void TransitionGenerator<bisimulation::QuotientAction>::operator()(
     const StateID& state,
     std::vector<bisimulation::QuotientAction>& aops,
     std::vector<Distribution<StateID>>& result) const
@@ -73,4 +68,4 @@ TransitionGenerator<bisimulation::QuotientAction>::operator()(
     }
 }
 
-}
+} // namespace probabilistic

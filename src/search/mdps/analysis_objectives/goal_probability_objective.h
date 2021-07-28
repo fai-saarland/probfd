@@ -12,10 +12,10 @@ namespace analysis_objectives {
 
 /**
  * @brief The MaxProb analysis objective.
- * 
+ *
  * Implements the MaxProb anaylsis objective. State reward is one
  * for goal states and zero otherwise. Actions have no reward.
- *  
+ *
  */
 class GoalProbabilityObjective : public AnalysisObjective {
 public:

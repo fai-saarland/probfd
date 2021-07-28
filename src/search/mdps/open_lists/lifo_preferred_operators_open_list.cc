@@ -9,33 +9,30 @@ namespace open_lists {
 
 LifoPreferredOperatorsOpenList::LifoPreferredOperatorsOpenList(
     const options::Options& opts)
-    : pref_ops_(
-        std::dynamic_pointer_cast<new_state_handlers::StorePreferredOperators>(
-            opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
+    : pref_ops_(std::dynamic_pointer_cast<
+                new_state_handlers::StorePreferredOperators>(
+          opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
 {
 }
 
-void
-LifoPreferredOperatorsOpenList::add_options_to_parser(options::OptionParser& p)
+void LifoPreferredOperatorsOpenList::add_options_to_parser(
+    options::OptionParser& p)
 {
     p.add_option<std::shared_ptr<NewGlobalStateHandler>>("heuristic");
 }
 
-unsigned
-LifoPreferredOperatorsOpenList::size() const
+unsigned LifoPreferredOperatorsOpenList::size() const
 {
     return queue0_.size() + queue1_.size();
 }
 
-void
-LifoPreferredOperatorsOpenList::clear()
+void LifoPreferredOperatorsOpenList::clear()
 {
     queue0_.clear();
     queue1_.clear();
 }
 
-StateID
-LifoPreferredOperatorsOpenList::pop()
+StateID LifoPreferredOperatorsOpenList::pop()
 {
     if (queue1_.empty()) {
         StateID res = queue0_.back();
@@ -47,14 +44,12 @@ LifoPreferredOperatorsOpenList::pop()
     return res;
 }
 
-void
-LifoPreferredOperatorsOpenList::push(const StateID& state_id)
+void LifoPreferredOperatorsOpenList::push(const StateID& state_id)
 {
     queue1_.push_back(state_id);
 }
 
-void
-LifoPreferredOperatorsOpenList::push(
+void LifoPreferredOperatorsOpenList::push(
     const StateID& parent,
     const ProbabilisticOperator* op,
     const value_type::value_t&,

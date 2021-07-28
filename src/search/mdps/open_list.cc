@@ -4,14 +4,12 @@
 
 namespace probabilistic {
 
-bool
-GlobalStateOpenList::empty() const
+bool GlobalStateOpenList::empty() const
 {
     return size() == 0;
 }
 
-void
-GlobalStateOpenList::push(
+void GlobalStateOpenList::push(
     const StateID&,
     const ProbabilisticOperator*,
     const value_type::value_t&,
@@ -20,14 +18,13 @@ GlobalStateOpenList::push(
     push(state_id);
 }
 
-void
-GlobalStateOpenList::set_state_id_map(StateIDMap<GlobalState>* state_id_map)
+void GlobalStateOpenList::set_state_id_map(
+    StateIDMap<GlobalState>* state_id_map)
 {
     this->state_id_map_ = state_id_map;
 }
 
-GlobalState
-GlobalStateOpenList::lookup_state(const StateID& state_id)
+GlobalState GlobalStateOpenList::lookup_state(const StateID& state_id)
 {
     return this->state_id_map_->get_state(state_id);
 }

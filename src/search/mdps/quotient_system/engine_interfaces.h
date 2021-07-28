@@ -15,8 +15,7 @@ using QuotientActionRewardFunction =
 
 template <typename Action>
 class DefaultQuotientActionRewardFunction
-    : public QuotientActionRewardFunction<Action>
-{
+    : public QuotientActionRewardFunction<Action> {
 public:
     explicit DefaultQuotientActionRewardFunction(
         quotient_system::QuotientSystem<Action>* quotient,
@@ -26,12 +25,12 @@ public:
     {
     }
 
-    virtual
-    value_type::value_t
+    virtual value_type::value_t
     evaluate(StateID s, quotient_system::QuotientAction<Action> qa) override
     {
         return eval_->operator()(
-            qa.state_id, quotient_->get_original_action(s, qa));
+            qa.state_id,
+            quotient_->get_original_action(s, qa));
     }
 
     ActionRewardFunction<Action>* real() const { return eval_; }
@@ -43,7 +42,7 @@ private:
 
 } // namespace quotient_system
 
-template<typename Action>
+template <typename Action>
 class ActionIDMap<quotient_system::QuotientAction<Action>> {
 public:
     explicit ActionIDMap(quotient_system::QuotientSystem<Action>* quotient)
@@ -68,7 +67,7 @@ private:
     quotient_system::QuotientSystem<Action>* quotient_;
 };
 
-template<typename Action>
+template <typename Action>
 class ApplicableActionsGenerator<quotient_system::QuotientAction<Action>> {
 public:
     explicit ApplicableActionsGenerator(
@@ -88,7 +87,7 @@ private:
     quotient_system::QuotientSystem<Action>* quotient_;
 };
 
-template<typename Action>
+template <typename Action>
 class TransitionGenerator<quotient_system::QuotientAction<Action>> {
 public:
     explicit TransitionGenerator(

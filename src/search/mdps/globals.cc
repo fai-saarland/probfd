@@ -35,25 +35,24 @@ parse_operator_outcome_name(const std::string& name)
             int numerator, denominator;
             std::istringstream(tmp.substr(0, weight_num_pos)) >> numerator;
             std::istringstream(
-                tmp.substr(weight_num_pos + 1, std::string::npos))
-                >> denominator;
+                tmp.substr(weight_num_pos + 1, std::string::npos)) >>
+                denominator;
             return std::make_pair(
                 std::make_pair((int)numerator, (int)denominator),
-                name.substr(0, det_pos)
-                    + name.substr(name.find(" "), std::string::npos));
+                name.substr(0, det_pos) +
+                    name.substr(name.find(" "), std::string::npos));
         } else {
             return std::make_pair(
                 std::make_pair(1, 1),
-                name.substr(0, det_pos)
-                    + name.substr(name.find(" "), std::string::npos));
+                name.substr(0, det_pos) +
+                    name.substr(name.find(" "), std::string::npos));
         }
     } else {
         return std::make_pair(std::make_pair(1, 1), name);
     }
 }
 
-static void
-assign_global_operators_to_probabilistic_operators(
+static void assign_global_operators_to_probabilistic_operators(
     std::vector<std::string>& prob_operator_names,
     std::vector<std::vector<unsigned>>& outcomes,
     std::vector<std::pair<int, int>>& probabilities)
@@ -85,7 +84,9 @@ assign_global_operators_to_probabilistic_operators(
         const std::vector<std::vector<std::pair<int, int>>>& preconditions;
     };
     std::unordered_set<unsigned, PreHash, PreEqual> precond_set(
-        ::g_operators.size(), PreHash(preconditions), PreEqual(preconditions));
+        ::g_operators.size(),
+        PreHash(preconditions),
+        PreEqual(preconditions));
     std::map<std::pair<unsigned, std::string>, unsigned> name_to_i;
     unsigned cur_i = 0;
     for (unsigned j = 0; j < ::g_operators.size(); j++) {
@@ -97,7 +98,7 @@ assign_global_operators_to_probabilistic_operators(
 
         if (data.first.first == data.first.second) {
             prob_operator_names.push_back(std::move(data.second));
-            outcomes.push_back({ j });
+            outcomes.push_back({j});
             ++cur_i;
             continue;
         }
@@ -130,8 +131,7 @@ assign_global_operators_to_probabilistic_operators(
     }
 }
 
-static std::vector<ProbabilisticOutcome>
-create_probabilistic_outcomes(
+static std::vector<ProbabilisticOutcome> create_probabilistic_outcomes(
     const std::vector<unsigned>& global_operator_refs,
     const std::vector<std::pair<int, int>>& probabilities,
     unsigned& dummy_refs)
@@ -147,7 +147,8 @@ create_probabilistic_outcomes(
     for (const unsigned& j : global_operator_refs) {
         int nom = (denom / probabilities[j].second) * probabilities[j].first;
         result.emplace_back(
-            &::g_operators[j], value_type::from_fraction(nom, denom));
+            &::g_operators[j],
+            value_type::from_fraction(nom, denom));
         sum += nom;
         cost = std::min(::g_operators[j].get_cost(), cost);
     }
@@ -156,7 +157,7 @@ create_probabilistic_outcomes(
         auto& dummy = g_dummy_outcomes.emplace_back();
         dummy.set_cost(cost);
         dummy.set_id(::g_operators.size() + g_dummy_outcomes.size() - 1);
-        
+
         const auto value = value_type::from_fraction(denom - sum, denom);
         result.emplace_back(&dummy, value);
         ++dummy_refs;
@@ -164,15 +165,16 @@ create_probabilistic_outcomes(
     return result;
 }
 
-static void
-reconstruct_probabilistic_operators()
+static void reconstruct_probabilistic_operators()
 {
     assert(g_operators.empty());
     std::vector<std::string> names;
     std::vector<std::vector<unsigned>> outcome_assignment;
     std::vector<std::pair<int, int>> probabilities;
     assign_global_operators_to_probabilistic_operators(
-        names, outcome_assignment, probabilities);
+        names,
+        outcome_assignment,
+        probabilities);
     g_operators.reserve(names.size());
     unsigned dummy_refs = 0;
     g_dummy_outcomes.reserve(names.size());
@@ -181,7 +183,9 @@ reconstruct_probabilistic_operators()
             i,
             std::move(names[i]),
             std::move(create_probabilistic_outcomes(
-                outcome_assignment[i], probabilities, dummy_refs)));
+                outcome_assignment[i],
+                probabilities,
+                dummy_refs)));
     }
     std::cout << " introduced " << dummy_refs << " dummy outcome(s)...";
     // if (!dummy_refs) {
@@ -189,8 +193,7 @@ reconstruct_probabilistic_operators()
     // }
 }
 
-void
-prepare_globals(
+void prepare_globals(
     std::shared_ptr<analysis_objectives::AnalysisObjective> objective)
 {
     g_analysis_objective = objective;
@@ -248,8 +251,7 @@ prepare_globals(
     }
 }
 
-void
-print_task_info()
+void print_task_info()
 {
     unsigned prob_ops = 0;
     unsigned outcomes = 0;
@@ -274,8 +276,8 @@ print_task_info()
     std::cout << "  State variable values: " << values << " (" << orig_values
               << " excluding step variable)" << std::endl;
     std::cout << "  State size: "
-              << (g_state_packer->get_num_bins()
-                  * g_state_packer->get_bin_size_in_bytes())
+              << (g_state_packer->get_num_bins() *
+                  g_state_packer->get_bin_size_in_bytes())
               << " bytes" << std::endl;
     std::cout << "  Operators: " << g_operators.size() << std::endl;
     std::cout << "  Operators with stochastic effects: " << prob_ops

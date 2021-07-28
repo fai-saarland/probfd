@@ -3,9 +3,9 @@
 #include "../../value_type.h"
 #include "abstract_state.h"
 
-#include <unordered_map>
-#include <optional>
 #include "../../types.h"
+#include <optional>
+#include <unordered_map>
 
 namespace probabilistic {
 namespace pdbs {

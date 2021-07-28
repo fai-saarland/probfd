@@ -1,8 +1,8 @@
 #include "pattern_collection_generator_deterministic.h"
 
 #include "../../../../../option_parser.h"
-#include "../../../../../plugin.h"
 #include "../../../../../pdbs/pattern_database.h"
+#include "../../../../../plugin.h"
 
 #include "../expcost_projection.h"
 
@@ -13,20 +13,21 @@ namespace pdbs {
 namespace pattern_selection {
 
 PatternCollectionGeneratorDeterministic::
-PatternCollectionGeneratorDeterministic(
-    shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-    shared_ptr<additivity::AdditivityStrategy> additivity)
+    PatternCollectionGeneratorDeterministic(
+        shared_ptr<::pdbs::PatternCollectionGenerator> gen,
+        shared_ptr<additivity::AdditivityStrategy> additivity)
     : gen(gen)
-    , additivity(additivity) { }
+    , additivity(additivity)
+{
+}
 
 PatternCollectionGeneratorDeterministic::
-PatternCollectionGeneratorDeterministic(options::Options& opts)
+    PatternCollectionGeneratorDeterministic(options::Options& opts)
     : PatternCollectionGeneratorDeterministic(
-        opts.get<shared_ptr<::pdbs::PatternCollectionGenerator>>("generator"),
-        opts.get<shared_ptr<additivity::AdditivityStrategy>>(
-            "additivity_strategy"))
+          opts.get<shared_ptr<::pdbs::PatternCollectionGenerator>>("generator"),
+          opts.get<shared_ptr<additivity::AdditivityStrategy>>(
+              "additivity_strategy"))
 {
-
 }
 
 PatternCollectionInformation
@@ -34,7 +35,8 @@ PatternCollectionGeneratorDeterministic::generate(OperatorCost cost_type)
 {
     ::pdbs::PatternCollectionInformation det_info = gen->generate(cost_type);
 
-    std::shared_ptr<ExpCostPDBCollection> expcost_pdbs(new ExpCostPDBCollection());
+    std::shared_ptr<ExpCostPDBCollection> expcost_pdbs(
+        new ExpCostPDBCollection());
 
     std::shared_ptr patterns = det_info.move_patterns();
     std::shared_ptr pdbs = det_info.move_pdbs();
@@ -55,7 +57,7 @@ PatternCollectionGeneratorDeterministic::generate(OperatorCost cost_type)
     }
 
     PatternCollectionInformation info(patterns, additivity);
-    
+
     info.set_pdbs(expcost_pdbs);
     info.set_pattern_cliques(cliques);
 
@@ -68,14 +70,15 @@ PatternCollectionGeneratorDeterministic::get_report() const
     return gen->get_report();
 }
 
-static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser) {
+static shared_ptr<PatternCollectionGenerator> _parse(OptionParser& parser)
+{
     if (parser.dry_run()) {
         return nullptr;
     }
 
     parser.document_synopsis(
         "Pattern Generator Adapter for the Determinization",
-        "Generates all the pattern collection according to the underlying " 
+        "Generates all the pattern collection according to the underlying "
         "generator for the deterministic problem.");
 
     parser.add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
@@ -89,14 +92,13 @@ static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser) {
         "max_orthogonality");
 
     Options opts = parser.parse();
-    if (parser.dry_run())
-        return nullptr;
+    if (parser.dry_run()) return nullptr;
 
     return make_shared<PatternCollectionGeneratorDeterministic>(opts);
 }
 
 static Plugin<PatternCollectionGenerator> _plugin("det_adapter", _parse);
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace probabilistic

@@ -7,7 +7,7 @@
 
 namespace probabilistic {
 
-template<>
+template <>
 class OpenList<const ProbabilisticOperator*> {
 public:
     virtual ~OpenList() = default;

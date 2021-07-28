@@ -3,8 +3,8 @@
 #include "../../algorithms/segmented_vector.h"
 #include "../../operator_cost.h"
 #include "../../state_id.h"
-#include "../types.h"
 #include "../distribution.h"
+#include "../types.h"
 
 #include <cassert>
 #include <unordered_set>
@@ -71,11 +71,11 @@ struct CachedTransition {
 class BisimilarStateSpace {
 public:
     /**
-     * @brief Construct the probabilistic bisimulation with the given initial 
+     * @brief Construct the probabilistic bisimulation with the given initial
      * state, budget and operator cost type.
-     * 
+     *
      * @param initial_state - The initial state of the original MDP.
-     * @param budget - The considered budget. Action costs may not exceed this 
+     * @param budget - The considered budget. Action costs may not exceed this
      * value. An unlimited budget can be specified with \ref g_unlimited_budget.
      * @param cost_type - The operator cost type.
      */
@@ -114,13 +114,13 @@ public:
     QuotientState get_budget_extended_state(const int& ref, const int& budget);
 
     /**
-     * @brief Returns the number of states in the probabilistic bisimulation, 
+     * @brief Returns the number of states in the probabilistic bisimulation,
      * not considering the remaining budget.
      */
     unsigned num_bisimilar_states() const;
 
-    /** 
-     * @brief Returns the number of states in the probabilistic bisimulation 
+    /**
+     * @brief Returns the number of states in the probabilistic bisimulation
      * where states are extended with their finite budget.
      */
     unsigned num_extended_states() const;
@@ -171,7 +171,7 @@ private:
     segmented_vector::SegmentedVector<std::vector<CachedTransition>>
         transitions_;
     std::vector<int> operator_cost_;
-    
+
     std::vector<int*> store_;
 
     segmented_vector::SegmentedVector<std::pair<int, int>> extended_;
@@ -182,7 +182,7 @@ private:
 } // namespace probabilistic
 
 namespace std {
-template<>
+template <>
 struct hash<probabilistic::bisimulation::QuotientState> {
     size_t operator()(const probabilistic::bisimulation::QuotientState& s) const
     {

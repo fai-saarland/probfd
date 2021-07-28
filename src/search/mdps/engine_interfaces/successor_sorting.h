@@ -10,13 +10,13 @@ namespace probabilistic {
 /**
  * @brief Function object used to sort the possible successors of a transition
  * in the MDP model.
- * 
+ *
  * @tparam Action - The action type of the underlying MDP model.
- * 
+ *
  * @note The successor sorting operates on state IDs, so the underlying state
  * type of the MDP model is not required.
  */
-template<typename Action>
+template <typename Action>
 struct SuccessorSorting {
     void operator()(
         const StateID& state,

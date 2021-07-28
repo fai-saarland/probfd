@@ -20,26 +20,22 @@ ProbabilisticOperator::ProbabilisticOperator(
 {
 }
 
-unsigned
-ProbabilisticOperator::get_id() const
+unsigned ProbabilisticOperator::get_id() const
 {
     return id_;
 }
 
-const std::string&
-ProbabilisticOperator::get_name() const
+const std::string& ProbabilisticOperator::get_name() const
 {
     return name_;
 }
 
-bool
-ProbabilisticOperator::is_stochastic() const
+bool ProbabilisticOperator::is_stochastic() const
 {
     return outcomes_.size() > 1;
 }
 
-std::size_t
-ProbabilisticOperator::num_outcomes() const
+std::size_t ProbabilisticOperator::num_outcomes() const
 {
     return outcomes_.size();
 }
@@ -50,20 +46,17 @@ ProbabilisticOperator::operator[](unsigned outcome) const
     return outcomes_[outcome];
 }
 
-const ProbabilisticOutcome&
-ProbabilisticOperator::get(unsigned outcome) const
+const ProbabilisticOutcome& ProbabilisticOperator::get(unsigned outcome) const
 {
     return outcomes_[outcome];
 }
 
-ProbabilisticOperator::const_iterator
-ProbabilisticOperator::begin() const
+ProbabilisticOperator::const_iterator ProbabilisticOperator::begin() const
 {
     return outcomes_.begin();
 }
 
-ProbabilisticOperator::const_iterator
-ProbabilisticOperator::end() const
+ProbabilisticOperator::const_iterator ProbabilisticOperator::end() const
 {
     return outcomes_.end();
 }
@@ -74,14 +67,12 @@ ProbabilisticOperator::get_preconditions() const
     return outcomes_.front().op->get_preconditions();
 }
 
-int
-ProbabilisticOperator::get_cost() const
+int ProbabilisticOperator::get_cost() const
 {
     return outcomes_.front().op->get_cost();
 }
 
-bool
-is_applicable(const ProbabilisticOperator* op, const GlobalState& state)
+bool is_applicable(const ProbabilisticOperator* op, const GlobalState& state)
 {
     const auto& pres = op->get_preconditions();
     for (int i = pres.size() - 1; i >= 0; --i) {

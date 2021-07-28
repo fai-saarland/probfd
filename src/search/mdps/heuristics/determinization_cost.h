@@ -16,8 +16,8 @@ namespace probabilistic {
 /**
  * @brief Uses a classical heuristic on the all-outcomes-determinization to
  * estimate the expected costs to reach the goal.
- * 
- * @note If the underlying classical heuristic is admissible/consistent, this 
+ *
+ * @note If the underlying classical heuristic is admissible/consistent, this
  * heuristic is also admissible/heuristic.
  */
 class DeterminizationCostHeuristic : public GlobalStateEvaluator {
@@ -26,7 +26,7 @@ class DeterminizationCostHeuristic : public GlobalStateEvaluator {
 public:
     /**
      * @brief Construct from options.
-     * 
+     *
      * @param opts - Only one option is available:
      * + heuristic - Specifies the underlying classical heuristic.
      */
@@ -34,7 +34,7 @@ public:
 
     /**
      * @brief Construct from classical heuristic.
-     * 
+     *
      * @param heuristic - The classical heuristic.
      */
     explicit DeterminizationCostHeuristic(std::shared_ptr<Heuristic> heuristic);
@@ -46,7 +46,7 @@ public:
     void print_statistics() const override;
 
 protected:
-    EvaluationResult evaluate(const GlobalState &state) override;
+    EvaluationResult evaluate(const GlobalState& state) override;
 };
 
 } // namespace probabilistic

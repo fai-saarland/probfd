@@ -9,18 +9,16 @@ namespace transition_sampler {
 
 HBiasedSuccessorSampler::HBiasedSuccessorSampler(const options::Options& opts)
     : heuristic_(std::dynamic_pointer_cast<new_state_handlers::StoreHeuristic>(
-        opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
+          opts.get<std::shared_ptr<NewGlobalStateHandler>>("heuristic")))
 {
 }
 
-void
-HBiasedSuccessorSampler::add_options_to_parser(options::OptionParser& p)
+void HBiasedSuccessorSampler::add_options_to_parser(options::OptionParser& p)
 {
     p.add_option<std::shared_ptr<NewGlobalStateHandler>>("heuristic");
 }
 
-StateID
-HBiasedSuccessorSampler::sample(
+StateID HBiasedSuccessorSampler::sample(
     const StateID&,
     const ProbabilisticOperator*,
     const Distribution<StateID>& successors)

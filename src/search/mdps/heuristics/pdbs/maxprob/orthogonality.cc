@@ -1,33 +1,37 @@
 #include "orthogonality.h"
 
+#include "../../../../pdbs/pattern_cliques.h"
 #include "../../../globals.h"
 #include "../../../probabilistic_operator.h"
-#include "../../../../pdbs/pattern_cliques.h"
 #include "../syntactic_projection.h"
 
 namespace probabilistic {
-namespace pdbs{
+namespace pdbs {
 namespace multiplicativity {
 
 namespace {
 template <typename T>
-bool are_disjoint(const std::vector<T>& A, const std::vector<T>& B) {
+bool are_disjoint(const std::vector<T>& A, const std::vector<T>& B)
+{
     std::vector<T> intersection;
 
     std::set_intersection(
-        A.cbegin(), A.cend(), B.cbegin(), B.cend(),
+        A.cbegin(),
+        A.cend(),
+        B.cbegin(),
+        B.cend(),
         std::back_inserter(intersection));
 
     return intersection.empty();
 }
-}
+} // namespace
 
 using namespace syntactic_projection;
 
 using VariableOrthogonality = std::vector<std::vector<bool>>;
 
-std::vector<std::vector<int>> build_compatibility_graph_weak_orthogonality(
-    const PatternCollection& patterns)
+std::vector<std::vector<int>>
+build_compatibility_graph_weak_orthogonality(const PatternCollection& patterns)
 {
     using namespace syntactic_projection;
     using OperatorID = std::size_t;
@@ -79,9 +83,9 @@ std::vector<std::vector<int>> build_compatibility_graph_weak_orthogonality(
     return cgraph;
 }
 
-
 template <bool ignore_deterministic>
-std::vector<int> get_affected_vars(const ProbabilisticOperator& op) {
+std::vector<int> get_affected_vars(const ProbabilisticOperator& op)
+{
     std::vector<int> affected_vars;
 
     if constexpr (ignore_deterministic) {
@@ -103,11 +107,13 @@ std::vector<int> get_affected_vars(const ProbabilisticOperator& op) {
 }
 
 template <bool ignore_deterministic>
-VariableOrthogonality compute_prob_orthogonal_vars() {
+VariableOrthogonality compute_prob_orthogonal_vars()
+{
     const std::size_t num_vars = g_variable_domain.size();
 
     VariableOrthogonality are_orthogonal(
-        num_vars, std::vector<bool>(num_vars, true));
+        num_vars,
+        std::vector<bool>(num_vars, true));
 
     for (const ProbabilisticOperator& op : g_operators) {
         const std::vector<int> affected_vars =
@@ -128,8 +134,8 @@ VariableOrthogonality compute_prob_orthogonal_vars() {
 }
 
 template <bool ignore_deterministic>
-std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
-    const PatternCollection& patterns)
+std::vector<std::vector<int>>
+build_compatibility_graph_orthogonality(const PatternCollection& patterns)
 {
     using ::pdbs::are_patterns_additive;
 
@@ -162,6 +168,6 @@ template std::vector<std::vector<int>>
 build_compatibility_graph_orthogonality<false>(
     const PatternCollection& patterns);
 
-}
-}
-}
+} // namespace multiplicativity
+} // namespace pdbs
+} // namespace probabilistic

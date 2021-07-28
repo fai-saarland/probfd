@@ -14,18 +14,16 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(const options::Options& opts)
 {
 }
 
-void
-OperatorIdTiebreaker::add_options_to_parser(options::OptionParser& p)
+void OperatorIdTiebreaker::add_options_to_parser(options::OptionParser& p)
 {
     p.add_option<bool>("prefer_smaller", "", "true");
 }
 
-int
-OperatorIdTiebreaker::pick(
-        const StateID& ,
-        const ActionID& ,
-        const std::vector<const ProbabilisticOperator*>& choices,
-        const std::vector<Distribution<StateID>>& )
+int OperatorIdTiebreaker::pick(
+    const StateID&,
+    const ActionID&,
+    const std::vector<const ProbabilisticOperator*>& choices,
+    const std::vector<Distribution<StateID>>&)
 {
     int min_id = std::numeric_limits<int>::max();
     unsigned min_idx = -1;

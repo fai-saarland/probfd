@@ -18,8 +18,7 @@ ActionIDMap<const ProbabilisticOperator*>::ActionIDMap(
 #endif
 }
 
-ActionID
-ActionIDMap<const ProbabilisticOperator*>::get_action_id(
+ActionID ActionIDMap<const ProbabilisticOperator*>::get_action_id(
     const StateID&,
     const ProbabilisticOperator* const& op)
 {

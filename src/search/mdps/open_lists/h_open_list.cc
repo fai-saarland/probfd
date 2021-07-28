@@ -14,14 +14,12 @@ GoalDistanceOpenList::GoalDistanceOpenList(const options::Options& opts)
 {
 }
 
-void
-GoalDistanceOpenList::add_options_to_parser(options::OptionParser& p)
+void GoalDistanceOpenList::add_options_to_parser(options::OptionParser& p)
 {
     p.add_option<std::shared_ptr<NewGlobalStateHandler>>("heuristic");
 }
 
-int
-GoalDistanceOpenList::get_key(const StateID& state_id)
+int GoalDistanceOpenList::get_key(const StateID& state_id)
 {
     return heuristic_->get_cached_h_value(state_id);
 }

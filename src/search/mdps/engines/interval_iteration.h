@@ -18,37 +18,37 @@ using BoolStore = storage::PerStateStorage<bool>;
 
 /**
  * @brief Implemention of interval iteration \cite haddad:etal:misc-17.
- * 
+ *
  * While classical value iteration algorithms converge against the optimal
  * value function in a mathematical sense, it is not clear how a termination
  * condition can be derived that ensures a fixed error bound on the computed
  * value function. Interval iteration remedies this issue by performing two
- * value iterations in parallel, starting from a lower and upper bound 
+ * value iterations in parallel, starting from a lower and upper bound
  * respectively, and stopping when both bounds are less than epsilon
  * away from each other.
- * 
+ *
  * Interval iteration consists of two steps:
  * -# Build the MEC decomposition of the underlying MDP to ensure convergence
  * from any initial value function.
  * -# Performs two value iterations in parallel, one from an initial lower bound
  * and one from an initial upper bound.
- * 
+ *
  * The respective sequences of value functions are adjacent sequences. Interval
- * iteration stops when the lower and upper bounding value functions are less 
- * than epsilon away, ensuring that any of the value functions is at most 
+ * iteration stops when the lower and upper bounding value functions are less
+ * than epsilon away, ensuring that any of the value functions is at most
  * epsilon away from the optimal value function.
- * 
+ *
  * @note This implementation outputs the values of the upper bounding value
  * function.
- * 
+ *
  * @see EndComponentDecomposition
- * 
+ *
  * @tparam State The state type of the underlying MDP model.
  * @tparam Action The action type of the underlying MDP model.
  * @tparam ExpandGoalStates Whether goal states should be expanded to ensure
  * all reachable states are visited.
  */
-template<typename State, typename Action, bool ExpandGoalStates = false>
+template <typename State, typename Action, bool ExpandGoalStates = false>
 class IntervalIteration : public MDPEngine<State, Action> {
 public:
     using Decomposer = end_components::
@@ -76,14 +76,14 @@ public:
         StateEvaluator<State>* prune,
         bool extract_probability_one_states)
         : MDPEngine<State, Action>(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator)
         , lb_(this->get_minimal_reward())
         , ub_(this->get_maximal_reward())
         , prune_(prune)
@@ -156,10 +156,10 @@ private:
             BoolStoreT& dead_ends,
             value_type::value_t lb,
             value_type::value_t ub)
-           : state_id_map_(state_id_map)
-           , dead_ends_(dead_ends)
-           , lb(lb)
-           , ub(ub)
+            : state_id_map_(state_id_map)
+            , dead_ends_(dead_ends)
+            , lb(lb)
+            , ub(ub)
         {
         }
 
@@ -198,10 +198,13 @@ private:
         if (extract_probability_one_states_) {
             sys = ec_decomposer
                       .template build_quotient_system<BoolStoreT&, BoolStoreT&>(
-                          state, dead_ends, one_states);
+                          state,
+                          dead_ends,
+                          one_states);
         } else {
             sys = ec_decomposer.template build_quotient_system<BoolStoreT&>(
-                state, dead_ends);
+                state,
+                dead_ends);
         }
         ecd_statistics_ = ec_decomposer.get_statistics();
         ApplicableActionsGenerator<QAction> q_aops_gen(sys);
@@ -222,7 +225,7 @@ private:
             &q_transition_gen,
             &prune,
             extract_probability_one_states_ ? &one_states : nullptr);
-        
+
         value_type::value_t result = vi.solve(state, value_store);
         tvi_statistics_ = vi.get_statistics();
         return result;

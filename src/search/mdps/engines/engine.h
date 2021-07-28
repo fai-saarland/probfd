@@ -5,8 +5,8 @@
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
-#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/state_id_map.h"
+#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../value_type.h"
 
@@ -19,14 +19,14 @@ namespace engines {
 
 /**
  * @brief Interface for MDP algorithm implementations.
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  */
-template<typename State>
+template <typename State>
 class MDPEngineInterface {
 public:
     virtual ~MDPEngineInterface() = default;
-    virtual void reset_solver_state() { }
+    virtual void reset_solver_state() {}
 
     /**
      * @brief Runs the MDP algorithm with the initial state \p state .
@@ -35,7 +35,7 @@ public:
 
     /**
      * @brief Returns the value computed for state \p state .
-     * 
+     *
      * @remark Requires a prior call to solve(const State&).
      */
     virtual value_type::value_t get_result(const State& state) = 0;
@@ -47,32 +47,32 @@ public:
     virtual bool supports_error_bound() const { return false; }
 
     /**
-     * @brief Returns the error bound on the value computed for a state, if the 
-     * underlying engine supports it. It is an error to call this function if 
+     * @brief Returns the error bound on the value computed for a state, if the
+     * underlying engine supports it. It is an error to call this function if
      * supports_error_bound() returns false.
-     * 
+     *
      * @see supports_error_bound()
      */
-    virtual value_type::value_t get_error(const State& ) { return 0; }
+    virtual value_type::value_t get_error(const State&) { return 0; }
 
     /**
      * @brief Prints algorithm statistics to the specified std::ostream.
      */
-    virtual void print_statistics(std::ostream&) const { }
+    virtual void print_statistics(std::ostream&) const {}
 };
 
 /**
  * @brief Common base class for MDP algorithm implementations.
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
  */
-template<typename State, typename Action>
+template <typename State, typename Action>
 class MDPEngine : public MDPEngineInterface<State> {
 public:
     /**
      * @brief Construct the MDP engine from the given MDP model interfaces.
-     * 
+     *
      * @param state_id_map - The state id mapping (populated by the engine).
      * @param action_id_map - The action id mapping (populated by the engine).
      * @param state_reward_function - The state reward interface.
@@ -103,7 +103,7 @@ public:
     }
 
     /**
-     * @brief Looks up the state id of state \p s in the state id mapping. 
+     * @brief Looks up the state id of state \p s in the state id mapping.
      */
     StateID get_state_id(const State& s) const
     {
@@ -112,7 +112,7 @@ public:
 
     /**
      * @brief Looks up the state corresponding to id \p sid in the state id
-     * mapping. 
+     * mapping.
      */
     State lookup_state(const StateID& sid) const
     {
@@ -120,8 +120,8 @@ public:
     }
 
     /**
-     * @brief Looks up the action id of action \p a when applied in the state 
-     * with id \p sid in the action id mapping. 
+     * @brief Looks up the action id of action \p a when applied in the state
+     * with id \p sid in the action id mapping.
      */
     ActionID get_action_id(const StateID& sid, const Action& a) const
     {
@@ -129,8 +129,8 @@ public:
     }
 
     /**
-     * @brief Lookup the action corresponding to action id \p aid when applied 
-     * in the state with id \p sid in the action id mapping. 
+     * @brief Lookup the action corresponding to action id \p aid when applied
+     * in the state with id \p sid in the action id mapping.
      */
     Action lookup_action(const StateID& sid, const ActionID& aid) const
     {
@@ -146,7 +146,7 @@ public:
     }
 
     /**
-     * @brief Get the action reward for action \p a when applied in the state 
+     * @brief Get the action reward for action \p a when applied in the state
      * with id \p sid .
      */
     value_type::value_t
@@ -166,7 +166,7 @@ public:
     value_type::value_t get_maximal_reward() const { return maximal_reward_; }
 
     /**
-     * @brief Output the list of applicable operators in the state with id 
+     * @brief Output the list of applicable operators in the state with id
      * \p sid via \p ops.
      */
     void
@@ -176,7 +176,7 @@ public:
     }
 
     /**
-     * @brief Output the successor distribution for the state with id \p sid 
+     * @brief Output the successor distribution for the state with id \p sid
      * and applicable action \p a in \p successors .
      */
     void generate_successors(
@@ -189,10 +189,10 @@ public:
 
     /**
      * @brief Output all applicable actions and successor distributions.
-     * 
+     *
      * @param[in] sid - The source state.
      * @param[out] aops - The list of applicable actions.
-     * @param[out] successors - The ordered list of successor distributions for 
+     * @param[out] successors - The ordered list of successor distributions for
      * all applicable actions.
      */
     void generate_all_successors(

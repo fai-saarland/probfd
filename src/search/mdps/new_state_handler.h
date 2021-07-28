@@ -8,13 +8,13 @@
 
 namespace probabilistic {
 
-template<>
+template <>
 class NewStateHandler<GlobalState> {
 public:
     virtual ~NewStateHandler() = default;
-    virtual void touch(const GlobalState&) { }
-    virtual void touch_dead_end(const GlobalState&) { }
-    virtual void touch_goal(const GlobalState&) { }
+    virtual void touch(const GlobalState&) {}
+    virtual void touch_dead_end(const GlobalState&) {}
+    virtual void touch_goal(const GlobalState&) {}
 };
 
 using NewGlobalStateHandler = NewStateHandler<GlobalState>;
@@ -32,4 +32,3 @@ private:
 };
 
 } // namespace probabilistic
-

@@ -8,7 +8,7 @@ class GlobalState;
 
 namespace probabilistic {
 
-template<>
+template <>
 struct SuccessorSorting<const ProbabilisticOperator*>
     : public HeuristicSearchInterfaceable {
 public:

@@ -12,14 +12,12 @@ VDiffTiebreaker::VDiffTiebreaker(const options::Options& opts)
 {
 }
 
-void
-VDiffTiebreaker::add_options_to_parser(options::OptionParser& parser)
+void VDiffTiebreaker::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<bool>("prefer_large_gaps", "", "true");
 }
 
-int
-VDiffTiebreaker::pick(
+int VDiffTiebreaker::pick(
     const StateID&,
     const ActionID&,
     const std::vector<const ProbabilisticOperator*>&,
@@ -46,14 +44,12 @@ VDiffSort::VDiffSort(const options::Options& opts)
 {
 }
 
-void
-VDiffSort::add_options_to_parser(options::OptionParser& parser)
+void VDiffSort::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<bool>("prefer_large_gaps", "", "true");
 }
 
-void
-VDiffSort::sort(
+void VDiffSort::sort(
     const StateID&,
     const std::vector<const ProbabilisticOperator*>&,
     std::vector<Distribution<StateID>>& successors)
@@ -69,8 +65,8 @@ VDiffSort::sort(
             const auto& suc = t[j];
             k1.emplace_back(
                 std::abs(
-                    favor_large_gaps_
-                    * lookup_dual_bounds(suc.first)->error_bound()),
+                    favor_large_gaps_ *
+                    lookup_dual_bounds(suc.first)->error_bound()),
                 j);
             sum += suc.second * k1.back().first;
         }

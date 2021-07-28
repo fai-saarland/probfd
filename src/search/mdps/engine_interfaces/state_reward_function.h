@@ -5,7 +5,7 @@
 
 namespace probabilistic {
 
-template<typename State>
+template <typename State>
 class StateRewardFunction {
 public:
     virtual ~StateRewardFunction() = default;
@@ -21,6 +21,6 @@ protected:
     virtual EvaluationResult evaluate(const State& state) = 0;
 };
 
-}
+} // namespace probabilistic
 
 #endif // __STATE_REWARD_FUNCTION_H__

@@ -2,8 +2,7 @@
 
 namespace probabilistic {
 
-void
-HeuristicSearchInterfaceable::initialize(
+void HeuristicSearchInterfaceable::initialize(
     HeuristicSearchConnector* connector,
     StateIDMap<GlobalState>* state_id_map,
     ActionIDMap<const ProbabilisticOperator*>* op_id_map)
@@ -20,8 +19,7 @@ HeuristicSearchInterfaceable::lookup_state(const StateID& state_id) const
     return state_id_map_->get_state(state_id);
 }
 
-const ProbabilisticOperator*
-HeuristicSearchInterfaceable::lookup_operator(
+const ProbabilisticOperator* HeuristicSearchInterfaceable::lookup_operator(
     const StateID& state_id,
     const ActionID& action_id) const
 {
@@ -29,4 +27,3 @@ HeuristicSearchInterfaceable::lookup_operator(
 }
 
 } // namespace probabilistic
-

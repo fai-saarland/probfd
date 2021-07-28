@@ -1,8 +1,8 @@
 #ifndef PATTERN_COLLECTION_GENERATOR_DETERMINISTIC_H_
 #define PATTERN_COLLECTION_GENERATOR_DETERMINISTIC_H_
 
-#include "pattern_generator.h"
 #include "../../../../../pdbs/pattern_generator.h"
+#include "pattern_generator.h"
 
 #include "../../../../../options/options.h"
 
@@ -13,8 +13,7 @@ namespace pdbs {
 namespace pattern_selection {
 
 class PatternCollectionGeneratorDeterministic
-    : public PatternCollectionGenerator
-{
+    : public PatternCollectionGenerator {
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen;
     std::shared_ptr<additivity::AdditivityStrategy> additivity;
 
@@ -24,7 +23,7 @@ class PatternCollectionGeneratorDeterministic
 
 public:
     PatternCollectionGeneratorDeterministic(options::Options& opts);
-    
+
     virtual ~PatternCollectionGeneratorDeterministic() override = default;
 
     virtual PatternCollectionInformation
@@ -33,8 +32,8 @@ public:
     std::shared_ptr<utils::Printable> get_report() const override;
 };
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace probabilistic
 
 #endif // PATTERN_COLLECTION_GENERATOR_DETERMINISTIC_H_

@@ -6,17 +6,19 @@
 namespace probabilistic {
 namespace policy_tiebreaking {
 
-ArbitraryTiebreaker::ArbitraryTiebreaker() { }
-
-ArbitraryTiebreaker::ArbitraryTiebreaker(const options::Options&) { }
-
-void
-ArbitraryTiebreaker::add_options_to_parser(options::OptionParser&)
+ArbitraryTiebreaker::ArbitraryTiebreaker()
 {
 }
 
-int
-ArbitraryTiebreaker::pick(
+ArbitraryTiebreaker::ArbitraryTiebreaker(const options::Options&)
+{
+}
+
+void ArbitraryTiebreaker::add_options_to_parser(options::OptionParser&)
+{
+}
+
+int ArbitraryTiebreaker::pick(
     const StateID&,
     const ActionID&,
     const std::vector<const ProbabilisticOperator*>&,

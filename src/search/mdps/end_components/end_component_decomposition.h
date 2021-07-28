@@ -4,8 +4,8 @@
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
-#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/state_id_map.h"
+#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../quotient_system/engine_interfaces.h"
 #include "../quotient_system/quotient_system.h"
@@ -25,7 +25,7 @@ namespace end_components {
 
 /**
  * @brief Contains printable statistics for the end component decomposition.
- * 
+ *
  */
 struct Statistics {
     void print(std::ostream& out) const
@@ -94,7 +94,7 @@ struct StateInfo {
     unsigned stackid_ : 30;
 };
 
-template<typename Action>
+template <typename Action>
 struct ExpansionInfo {
     explicit ExpansionInfo(unsigned stck)
         : stck(stck)
@@ -113,7 +113,7 @@ struct ExpansionInfo {
     std::vector<std::vector<StateID>> successors;
 };
 
-template<typename Action>
+template <typename Action>
 struct StackInfo {
     explicit StackInfo(const StateID& sid)
         : stateid(sid)
@@ -151,7 +151,7 @@ struct StackInfo1 {
     std::vector<std::pair<unsigned, unsigned>> parents;
 };
 
-template<typename Action>
+template <typename Action>
 class StackStateIDIterator {
 public:
     using iterator_category = std::forward_iterator_tag;
@@ -194,7 +194,7 @@ protected:
     const StackInfo<Action>* ptr_;
 };
 
-template<typename Action>
+template <typename Action>
 class StackAopsIterator {
 public:
     using iterator_category = std::forward_iterator_tag;
@@ -238,9 +238,9 @@ protected:
 };
 
 using StateInfoStore = storage::PerStateStorage<StateInfo>;
-template<typename Action>
+template <typename Action>
 using ExpansionQueue = std::deque<ExpansionInfo<Action>>;
-template<typename Action>
+template <typename Action>
 using Stack = std::vector<StackInfo<Action>>;
 using Stack1 = std::vector<StackInfo1>;
 
@@ -248,37 +248,37 @@ using Stack1 = std::vector<StackInfo1>;
 
 /**
  * @brief A builder class that implements end component decomposition.
- * 
+ *
  * An end component is a non-empty subgraph of an MDP which:
  * - is strongly connected
  * - has at least one enabled action for every state
  * - is closed under probabilistic branching
- * 
+ *
  * A maximal end component (MEC) is an end component that is maximal with
  * respect to set inclusion.
- * 
- * In reachability analysis (i.e. MaxProb) the MEC decomposition builds the 
- * maximal end components of the underlying MDP and constructs a quotient 
+ *
+ * In reachability analysis (i.e. MaxProb) the MEC decomposition builds the
+ * maximal end components of the underlying MDP and constructs a quotient
  * by considering each MEC as a single state. All states of an MEC have the
  * same optimal state value, hence this transformation is sound with respect to
  * MaxProb.
- * 
+ *
  * In MaxProb, the optimal value function is the least fixed point of the
  * Bellman operator, but not necessarily unique. Hence value iteration
  * algorithms must start from a lower bound to achieve convergence. In the MEC
  * decomposition the fixed point is unique, thus value iteration algorithms may
  * start from any initial value function when MEC decompostion is run as a
  * preprocessing step.
- * 
+ *
  * @see IntervalIteration
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam ExpandGoalStates - Whether or not goal states should be treated as 
- * terminal. If false, only states reachable before a goal state are 
+ * @tparam ExpandGoalStates - Whether or not goal states should be treated as
+ * terminal. If false, only states reachable before a goal state are
  * considered. If true, all reachable states are considered.
  */
-template<typename State, typename Action, bool ExpandGoalStates = false>
+template <typename State, typename Action, bool ExpandGoalStates = false>
 class EndComponentDecomposition {
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
@@ -315,7 +315,7 @@ public:
     {
     }
 
-    template<
+    template <
         typename ZeroStateIDSet = const void*,
         typename OneStateIDSet = const void*>
     QuotientSystem* build_quotient_system(
@@ -332,15 +332,26 @@ public:
                 quotient_system::QuotientAction<Action>>(sys_);
         }
         push_state<ZeroStateIDSet, OneStateIDSet>(
-            initial_state, zero_states, one_states);
+            initial_state,
+            zero_states,
+            one_states);
         GetSuccID get_succ_id;
         auto pushf = [this, &zero_states, &one_states](
-                         const StateID& state_id, StateInfo& state_info) {
+                         const StateID& state_id,
+                         StateInfo& state_info) {
             return push<ZeroStateIDSet, OneStateIDSet>(
-                state_id, state_info, zero_states, one_states);
+                state_id,
+                state_info,
+                zero_states,
+                one_states);
         };
         find_and_decompose_sccs<true, ZeroStateIDSet, OneStateIDSet>(
-            0, pushf, state_infos_, get_succ_id, zero_states, one_states);
+            0,
+            pushf,
+            state_infos_,
+            get_succ_id,
+            zero_states,
+            one_states);
         assert(stack_.empty());
         assert(expansion_queue_.empty());
         stats_.time.stop();
@@ -356,7 +367,7 @@ public:
     Statistics get_statistics() const { return stats_; }
 
 private:
-    template<typename ZeroStateIDSet, typename OneStateIDSet>
+    template <typename ZeroStateIDSet, typename OneStateIDSet>
     bool push_state(
         const State& s,
         ZeroStateIDSet zero_states,
@@ -367,7 +378,7 @@ private:
         return push(state_id, state_info, zero_states, one_states);
     }
 
-    template<typename ZeroStateIDSet, typename OneStateIDSet>
+    template <typename ZeroStateIDSet, typename OneStateIDSet>
     bool push(
         const StateID& state_id,
         StateInfo& state_info,
@@ -386,8 +397,8 @@ private:
                 return false;
             }
             state_info.flag = 1;
-        } else if ((pruning_function_ != nullptr
-                    && pruning_function_->operator()(state))) {
+        } else if ((pruning_function_ != nullptr &&
+                    pruning_function_->operator()(state))) {
             ++stats_.terminals;
             insert(zero_states, state_id);
             state_info.stackid_ = StateInfo::ZERO;
@@ -531,11 +542,11 @@ private:
         const unsigned start_;
     };
 
-    template<typename T>
+    template <typename T>
     using Store =
         std::integral_constant<bool, !std::is_same<T, const void*>::value>;
 
-    template<
+    template <
         bool RootIteration,
         typename ZeroStateIDSet,
         typename OneStateIDSet,
@@ -608,11 +619,12 @@ private:
                             break;
                         } else {
                             assert(!succ_info.onstack());
-                            e.recurse = e.recurse
-                                || (e.flag && s.successors.back().size() > 1);
+                            e.recurse =
+                                e.recurse ||
+                                (e.flag && s.successors.back().size() > 1);
                             e.flag = false;
-                            if (Store<ZeroStateIDSet>::value
-                                && succ_info.one()) {
+                            if (Store<ZeroStateIDSet>::value &&
+                                succ_info.one()) {
                                 e.dead = false;
                             }
                         }
@@ -621,8 +633,8 @@ private:
                         e.lstck = std::min(e.lstck, succ_info.stackid());
                         s.successors.back().emplace_back(succ_info.stackid());
                     } else {
-                        e.recurse = e.recurse
-                            || (e.flag && !s.successors.back().empty());
+                        e.recurse = e.recurse ||
+                                    (e.flag && !s.successors.back().empty());
                         e.flag = false;
                         if (Store<ZeroStateIDSet>::value && !succ_info.zero()) {
                             e.dead = false;
@@ -697,8 +709,8 @@ private:
                                 for (unsigned i = scc_size; i > 0;
                                      --i, --scc_elem) {
                                     assert(
-                                        scc_elem->successors.size()
-                                        == scc_elem->aops.size());
+                                        scc_elem->successors.size() ==
+                                        scc_elem->aops.size());
                                     StateInfo& info =
                                         get_state_info[scc_elem->stateid];
                                     if (info.flag) {
@@ -717,8 +729,8 @@ private:
                                 for (unsigned i = scc_size; i > 0;
                                      --i, --scc_elem) {
                                     assert(
-                                        scc_elem->successors.size()
-                                        == scc_elem->aops.size());
+                                        scc_elem->successors.size() ==
+                                        scc_elem->aops.size());
                                     StateInfo& info =
                                         get_state_info[scc_elem->stateid];
                                     info.stackid_ = StateInfo::UNDEF;
@@ -730,8 +742,8 @@ private:
                                 for (unsigned i = scc_size; i > 0;
                                      --i, --scc_elem) {
                                     assert(
-                                        scc_elem->successors.size()
-                                        == scc_elem->aops.size());
+                                        scc_elem->successors.size() ==
+                                        scc_elem->aops.size());
                                     StateInfo& info =
                                         get_state_info[scc_elem->stateid];
                                     info.stackid_ = StateInfo::UNDEF;
@@ -744,7 +756,10 @@ private:
                                 StackStateIDIterator end((&stack_.back()) + 1);
                                 StackAopsIterator abegin(&stack_[e.stck]);
                                 sys_->build_quotient(
-                                    begin, end, scc_repr_id, abegin);
+                                    begin,
+                                    end,
+                                    scc_repr_id,
+                                    abegin);
                                 stack_.resize(e.stck);
                                 ++stats_.eck;
                                 stats_.ec_transitions += transitions;
@@ -755,7 +770,8 @@ private:
                         }
                         if (Store<OneStateIDSet>::value) {
                             collect_one_states<OneStateIDSet>(
-                                one_states, scc_repr_id);
+                                one_states,
+                                scc_repr_id);
                         }
                     }
                     assert(stack_.size() == e.stck);
@@ -766,7 +782,7 @@ private:
         }
     }
 
-    template<bool ResetExplored = false>
+    template <bool ResetExplored = false>
     void decompose(const unsigned start)
     {
         const unsigned scc_size = stack_.size() - start;
@@ -842,7 +858,7 @@ private:
         }
     }
 
-    template<typename OneStateIDSet>
+    template <typename OneStateIDSet>
     void
     collect_one_states(OneStateIDSet one_states, const StateID& source_state)
     {
@@ -862,7 +878,8 @@ private:
                     e.recurse = true;
                     if (!ExpandGoalStates || e.dead) {
                         backtracked_from->parents.emplace_back(
-                            e.stck, s.active.size());
+                            e.stck,
+                            s.active.size());
                     }
                 } else {
                     e.flag = e.flag && one;
@@ -896,7 +913,8 @@ private:
                         e.lstck = std::min(e.lstck, succ_info.stackid_);
                         if (!ExpandGoalStates || e.dead) {
                             stack1_[succ_info.stackid_].parents.emplace_back(
-                                e.stck, s.active.size());
+                                e.stck,
+                                s.active.size());
                         }
                     } else if (!succ_info.one()) {
                         e.flag = false;
@@ -928,8 +946,8 @@ private:
                     {
                         StackInfo1* scc_elem = &stack1_.back();
                         for (int i = scc_size; i > 0; --i, --scc_elem) {
-                            if (!scc_elem->one && !scc_elem->scc_transitions
-                                && !scc_elem->parents.empty()) {
+                            if (!scc_elem->one && !scc_elem->scc_transitions &&
+                                !scc_elem->parents.empty()) {
                                 non_one.push_back(scc_elem);
                             }
                         }
@@ -944,8 +962,8 @@ private:
                             StackInfo1& pinfo = stack1_[parent->first];
                             if (!pinfo.one && pinfo.active[parent->second]) {
                                 pinfo.active[parent->second] = false;
-                                if (--pinfo.scc_transitions == 0
-                                    && !pinfo.parents.empty()) {
+                                if (--pinfo.scc_transitions == 0 &&
+                                    !pinfo.parents.empty()) {
                                     non_one.push_back(&pinfo);
                                 }
                             }
@@ -977,7 +995,7 @@ private:
         }
     }
 
-    inline void insert(const void*, const StateID&) { }
+    inline void insert(const void*, const StateID&) {}
     inline void insert(storage::PerStateStorage<bool>& x, const StateID& y)
     {
         x[y] = true;

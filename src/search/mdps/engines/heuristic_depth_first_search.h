@@ -79,7 +79,7 @@ struct PerStateInformationBase {
     uint8_t info;
 };
 
-template<typename StateInfo>
+template <typename StateInfo>
 struct PerStateInformation : public StateInfo {
     static constexpr const uint8_t INITIALIZED = (1 << StateInfo::BITS);
     static constexpr const uint8_t SOLVED = (2 << StateInfo::BITS);
@@ -98,7 +98,7 @@ struct PerStateInformation : public StateInfo {
 using StandalonePerStateInformation =
     PerStateInformation<PerStateInformationBase>;
 
-template<
+template <
     typename HeuristicSearchBase,
     typename AdditionalPerStateInformation =
         typename HeuristicSearchBase::StateInfo>
@@ -136,24 +136,24 @@ public:
         bool PerformValueIteration,
         bool ExpandTipStates)
         : HeuristicSearchBase(
-            state_id_map,
-            action_id_map,
-            state_reward_function,
-            action_reward_function,
-            minimal_reward,
-            maximal_reward,
-            aops_generator,
-            transition_generator,
-            level,
-            dead_end_eval,
-            dead_end_listener,
-            policy_chooser,
-            new_state_handler,
-            value_init,
-            connector,
-            report,
-            interval_comparison,
-            stable_policy)
+              state_id_map,
+              action_id_map,
+              state_reward_function,
+              action_reward_function,
+              minimal_reward,
+              maximal_reward,
+              aops_generator,
+              transition_generator,
+              level,
+              dead_end_eval,
+              dead_end_listener,
+              policy_chooser,
+              new_state_handler,
+              value_init,
+              connector,
+              report,
+              interval_comparison,
+              stable_policy)
         , LabelSolved(LabelSolved)
         , ForwardUpdates(ForwardUpdates)
         , BackwardUpdates(BackwardUpdates)
@@ -295,10 +295,8 @@ private:
                 return !state_status_(stateid, dohs_info)
                             .is_value_initialized();
             }
-            case (DeadEndIdentificationLevel::Complete):
-                return false;
-            default:
-                break;
+            case (DeadEndIdentificationLevel::Complete): return false;
+            default: break;
             }
             assert(false);
             return false;
@@ -358,7 +356,7 @@ private:
         } while (!terminate);
     }
 
-    template<bool GetVisited>
+    template <bool GetVisited>
     bool policy_exploration(const StateID& state)
     {
         assert(state_infos_.empty());
@@ -447,8 +445,8 @@ private:
                                                << einfo.unsolved_successor
                                                << " | dead=" << einfo.dead
                                                << std::endl;)
-                                if (GreedyExploration
-                                    && einfo.unsolved_successor) {
+                                if (GreedyExploration &&
+                                    einfo.unsolved_successor) {
                                     keep_expanding = false;
                                     break;
                                 }
@@ -459,12 +457,13 @@ private:
                                 (const unsigned&)sinfo.lowlink,
                                 succ_info.index);
                         } else {
-                            einfo.unsolved_successor = einfo.unsolved_successor
-                                || succ_info.status == LocalStateInfo::UNSOLVED;
+                            einfo.unsolved_successor =
+                                einfo.unsolved_successor ||
+                                succ_info.status == LocalStateInfo::UNSOLVED;
                             einfo.leaf = false;
-                            einfo.dead = einfo.dead
-                                && succ_info.status
-                                    == LocalStateInfo::CLOSED_DEAD;
+                            einfo.dead =
+                                einfo.dead &&
+                                succ_info.status == LocalStateInfo::CLOSED_DEAD;
                         }
                     } else {
                         if (!this->is_marked_dead_end(succid)) {
@@ -484,14 +483,16 @@ private:
 
                 DMSG(std::cout << "backtracking out of " << einfo.stateid
                                << std::endl;)
-                if (BackwardUpdates == BacktrackingUpdateType::Single
-                    || (last_value_changed
-                        && BackwardUpdates
-                            == BacktrackingUpdateType::OnDemand)) {
+                if (BackwardUpdates == BacktrackingUpdateType::Single ||
+                    (last_value_changed &&
+                     BackwardUpdates == BacktrackingUpdateType::OnDemand)) {
                     statistics_.backtracking_updates++;
                     bool policy_changed = false;
                     last_value_changed = this->async_update(
-                        einfo.stateid, nullptr, nullptr, &policy_changed);
+                        einfo.stateid,
+                        nullptr,
+                        nullptr,
+                        &policy_changed);
                     last_unsolved_successors =
                         last_unsolved_successors || policy_changed;
                 }
@@ -515,17 +516,17 @@ private:
                     DMSG(std::cout << " ] -> " << last_unsolved_successors
                                    << "|" << last_dead << std::endl;)
 
-                    if (GetVisited
-                        && (!last_unsolved_successors && !last_value_changed)) {
+                    if (GetVisited &&
+                        (!last_unsolved_successors && !last_value_changed)) {
                         visited_.reserve(visited_.size() + scc_size);
                         for (auto it = stack_.begin(); it != end; ++it) {
                             visited_.push_back(*it);
                         }
                     }
 
-                    if (BackwardUpdates
-                            == BacktrackingUpdateType::UntilConvergence
-                        && last_unsolved_successors) {
+                    if (BackwardUpdates ==
+                            BacktrackingUpdateType::UntilConvergence &&
+                        last_unsolved_successors) {
                         auto result =
                             value_iteration<true>(stack_.begin(), end);
                         last_value_changed = result.first;
@@ -533,9 +534,9 @@ private:
                             result.second || last_unsolved_successors;
                     }
 
-                    if (this->is_dead_end_learning_enabled()
-                        && !last_unsolved_successors && last_dead
-                        && (scc_size == 1 || !einfo.leaf)) {
+                    if (this->is_dead_end_learning_enabled() &&
+                        !last_unsolved_successors && last_dead &&
+                        (scc_size == 1 || !einfo.leaf)) {
                         // std::cout << "-> checking for dead ends! <-" <<
                         // std::endl;
                         std::pair<bool, bool> updated;
@@ -543,7 +544,8 @@ private:
                         // << std::endl;
                         // assert(this->has_dead_end_value(state));
                         updated = this->safe_async_update(
-                            einfo.stateid, expansion_condition_);
+                            einfo.stateid,
+                            expansion_condition_);
                         last_unsolved_successors = updated.second;
                         last_dead = !updated.first;
                         // std::cout << "------> result: " <<
@@ -558,8 +560,8 @@ private:
 
                     if (!last_unsolved_successors) {
                         const uint8_t closed = last_dead
-                            ? LocalStateInfo::CLOSED_DEAD
-                            : LocalStateInfo::CLOSED;
+                                                   ? LocalStateInfo::CLOSED_DEAD
+                                                   : LocalStateInfo::CLOSED;
                         if (LabelSolved) {
                             for (auto it = stack_.begin(); it != end; ++it) {
                                 state_infos_[*it].status = closed;
@@ -604,11 +606,13 @@ private:
             einfo.value_changed = updated;
 
             if constexpr (DualBounds::value) {
-                parent_value_changed = parent_value_changed || einfo.value_changed
-                || (this->interval_comparison_
-                    && !state_status_(stateid, sinfo).value.bounds_equal());
+                parent_value_changed =
+                    parent_value_changed || einfo.value_changed ||
+                    (this->interval_comparison_ &&
+                     !state_status_(stateid, sinfo).value.bounds_equal());
             } else {
-                parent_value_changed = parent_value_changed || einfo.value_changed;
+                parent_value_changed =
+                    parent_value_changed || einfo.value_changed;
             }
 
             DMSG(std::cout << "TIP " << stateid << " -> " << einfo.value_changed
@@ -623,8 +627,8 @@ private:
                 }
                 return updated ? LocalStateInfo::UNSOLVED : closed;
             } else if (
-                (!ExpandTipStates && is_tip_state)
-                || (CutoffInconsistent && einfo.value_changed)) {
+                (!ExpandTipStates && is_tip_state) ||
+                (CutoffInconsistent && einfo.value_changed)) {
                 transition_.clear();
                 expansion_queue_.pop_back();
                 parent_unsolved_successors = true;
@@ -646,7 +650,7 @@ private:
         return LocalStateInfo::ONSTACK;
     }
 
-    template<bool UntilConvergence, typename Iterator>
+    template <bool UntilConvergence, typename Iterator>
     std::pair<bool, bool> value_iteration(Iterator begin, Iterator end)
     {
         std::pair<bool, bool> updated_all(false, false);
@@ -657,18 +661,21 @@ private:
             bool policy_graph_changed = false;
             for (auto it = begin; it != end; ++it) {
                 statistics_.backtracking_updates++;
-                DMSG(StateID id = *it; std::cout
-                     << "updating " << id << " "
-                     << (state_status_(id).get_value()) << " ... ";)
+                DMSG(StateID id = *it;
+                     std::cout << "updating " << id << " "
+                               << (state_status_(id).get_value()) << " ... ";)
                 bool policy_changed = false;
-                value_changed =
-                    this->async_update(*it, nullptr, nullptr, &policy_changed)
-                    || value_changed;
+                value_changed = this->async_update(
+                                    *it,
+                                    nullptr,
+                                    nullptr,
+                                    &policy_changed) ||
+                                value_changed;
 
                 if constexpr (DualBounds::value) {
                     all_converged = all_converged &&
-                        (!this->interval_comparison_ ||
-                            state_status_(*it).value.bounds_equal());
+                                    (!this->interval_comparison_ ||
+                                     state_status_(*it).value.bounds_equal());
                 }
 
                 policy_graph_changed = policy_graph_changed || policy_changed;
@@ -711,10 +718,10 @@ private:
 
 } // namespace internal
 
-template<typename State, typename Action, typename B2, typename Fret>
+template <typename State, typename Action, typename B2, typename Fret>
 class HeuristicDepthFirstSearch;
 
-template<typename State, typename Action, typename B2>
+template <typename State, typename Action, typename B2>
 class HeuristicDepthFirstSearch<State, Action, B2, std::false_type>
     : public internal::HeuristicDepthFirstSearch<
           heuristic_search::HeuristicSearchBase<
@@ -733,7 +740,7 @@ public:
             internal::PerStateInformation>>::HeuristicDepthFirstSearch;
 };
 
-template<typename State, typename Action, typename B2>
+template <typename State, typename Action, typename B2>
 class HeuristicDepthFirstSearch<State, Action, B2, std::true_type>
     : public internal::HeuristicDepthFirstSearch<
           heuristic_search::

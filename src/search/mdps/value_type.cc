@@ -6,26 +6,22 @@
 namespace probabilistic {
 namespace value_type {
 
-value_t
-from_double(double d)
+value_t from_double(double d)
 {
     return d;
 }
 
-value_t
-from_fraction(int nom, int denom)
+value_t from_fraction(int nom, int denom)
 {
     return (((value_t)nom) / (value_t)denom);
 }
 
-value_t
-cap(const value_t& val, const value_t& maxval)
+value_t cap(const value_t& val, const value_t& maxval)
 {
     return val < maxval ? val : maxval;
 }
 
-value_t
-abs(const value_t& val)
+value_t abs(const value_t& val)
 {
     return std::abs(val);
 }
@@ -45,20 +41,17 @@ approx_greater::approx_greater(const value_t& epsilon)
 {
 }
 
-bool
-approx_equal::operator()(const value_t& v1, const value_t& v2) const
+bool approx_equal::operator()(const value_t& v1, const value_t& v2) const
 {
     return std::abs(v1 - v2) <= eps_;
 }
 
-bool
-approx_less::operator()(const value_t& v1, const value_t& v2) const
+bool approx_less::operator()(const value_t& v1, const value_t& v2) const
 {
     return v1 + eps_ <= v2;
 }
 
-bool
-approx_greater::operator()(const value_t& v1, const value_t& v2) const
+bool approx_greater::operator()(const value_t& v1, const value_t& v2) const
 {
     return v1 - eps_ >= v2;
 }

@@ -8,8 +8,7 @@
 namespace probabilistic {
 namespace transition_sampler {
 
-StateID
-ArbitrarySuccessorSelector::sample(
+StateID ArbitrarySuccessorSelector::sample(
     const StateID&,
     const ProbabilisticOperator*,
     const Distribution<StateID>& successors)
@@ -26,4 +25,3 @@ static Plugin<ProbabilisticOperatorTransitionSampler> _plugin(
 
 } // namespace transition_sampler
 } // namespace probabilistic
-

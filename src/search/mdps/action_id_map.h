@@ -9,10 +9,10 @@ namespace probabilistic {
 
 /**
  * @brief The specialiation of ActionIDMap for ProbabilisticOperator.
- * 
+ *
  * @see ActionIDMap
  */
-template<>
+template <>
 class ActionIDMap<const ProbabilisticOperator*> {
 public:
     explicit ActionIDMap(const std::vector<ProbabilisticOperator>& operators);

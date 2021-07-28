@@ -9,14 +9,15 @@
 namespace probabilistic {
 namespace solvers {
 
-template<typename Bisimulation, typename Fret>
+template <typename Bisimulation, typename Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
 public:
-    template<typename T>
+    template <typename T>
     using WrappedType =
-        typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<T>;
+        typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
+            T>;
 
-    template<typename State, typename Action, typename Bounds>
+    template <typename State, typename Action, typename Bounds>
     using LRTDP = engines::lrtdp::LRTDP<State, Action, Bounds, Fret>;
 
     explicit LRTDPSolver(const options::Options& opts)
@@ -27,9 +28,9 @@ public:
               opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
                   "successor_sampler")))
     {
-        if (Fret::value
-            && stop_consistent_
-                != engines::lrtdp::TrialTerminationCondition::Consistent) {
+        if (Fret::value &&
+            stop_consistent_ !=
+                engines::lrtdp::TrialTerminationCondition::Consistent) {
             logging::out << std::endl;
             logging::out << "Warning: LRTDP is run within FRET without "
                             "stop_consistent being enabled! LRTDP's trials may "
@@ -47,7 +48,8 @@ public:
     virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
         return this->template heuristic_search_engine_factory<LRTDP>(
-            stop_consistent_, successor_sampler_.get());
+            stop_consistent_,
+            successor_sampler_.get());
     }
 
 protected:
@@ -70,10 +72,12 @@ struct LRTDPOptions {
     {
         parser.add_option<
             std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
-            "successor_sampler", "", "random_successor_sampler");
+            "successor_sampler",
+            "",
+            "random_successor_sampler");
         {
             std::vector<std::string> opts(
-                { "false", "consistent", "inconsistent" });
+                {"false", "consistent", "inconsistent"});
             parser.add_enum_option("terminate_trial", opts, "", "false");
         }
     }

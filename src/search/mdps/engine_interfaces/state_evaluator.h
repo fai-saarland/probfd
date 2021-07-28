@@ -7,12 +7,12 @@ namespace probabilistic {
 /**
  * @brief Function object specifying the immediate reward received in a target
  * state, independent of the source state and action taken.
- * 
+ *
  * @tparam State - The state type of the underlying MDP model.
- * 
+ *
  * @see EvaluationResult
  */
-template<typename State>
+template <typename State>
 class StateEvaluator {
 public:
     virtual ~StateEvaluator() = default;
@@ -28,9 +28,8 @@ protected:
     virtual EvaluationResult evaluate(const State& state) = 0;
 };
 
-template<typename State>
-class ConstantValueInitializer : public StateEvaluator<State>
-{
+template <typename State>
+class ConstantValueInitializer : public StateEvaluator<State> {
     value_type::value_t init_value_;
 
 public:
@@ -46,4 +45,3 @@ public:
 };
 
 } // namespace probabilistic
-

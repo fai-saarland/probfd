@@ -16,7 +16,7 @@
 namespace probabilistic {
 namespace quotient_system {
 
-template<>
+template <>
 class QuotientSystem<const ProbabilisticOperator*> {
     friend class const_iterator;
 
@@ -34,7 +34,8 @@ public:
 
         explicit const_iterator(
             const QuotientSystem* qs,
-            DefaultQuotientSystem<const ProbabilisticOperator*>::const_iterator x)
+            DefaultQuotientSystem<const ProbabilisticOperator*>::const_iterator
+                x)
             : qs_(qs)
             , i(x)
         {
@@ -116,7 +117,7 @@ public:
     ActionID
     get_original_action_id(const StateID& sid, const ActionID& a) const;
 
-    template<
+    template <
         typename StateIDIterator,
         typename IgnoreActionsIterator = const void**>
     void build_quotient(
@@ -159,12 +160,16 @@ public:
                 assert(info.states[0] == state_id);
 
                 parents.insert(
-                    parents.end(), info.parents.begin(), info.parents.end());
+                    parents.end(),
+                    info.parents.begin(),
+                    info.parents.end());
                 info.parents.clear();
                 info.parents.shrink_to_fit();
 
                 states.insert(
-                    states.end(), info.states.begin(), info.states.end());
+                    states.end(),
+                    info.states.begin(),
+                    info.states.end());
 
                 assert(std::count(states.begin(), states.end(), state_id));
             }
@@ -242,7 +247,8 @@ public:
             parents.resize(i);
             std::sort(parents.begin(), parents.end());
             parents.erase(
-                std::unique(parents.begin(), parents.end()), parents.end());
+                std::unique(parents.begin(), parents.end()),
+                parents.end());
             parents.shrink_to_fit();
         }
         for (int i = parents.size() - 1; i >= 0; --i) {
@@ -365,7 +371,7 @@ private:
         std::vector<StateID> parents;
         std::vector<StateID> states;
         explicit QuotientInformation(const StateID& s)
-            : states({ s })
+            : states({s})
         {
         }
     };
