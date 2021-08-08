@@ -1,318 +1,208 @@
 #include "maxprob_pdb_heuristic.h"
 
+#include "pattern_selection/pattern_collection_information.h"
+
+#include "../orthogonality.h"
+#include "../utils.h"
+
 #include "../../../../algorithms/max_cliques.h"
 #include "../../../../globals.h"
 #include "../../../../operator_cost.h"
 #include "../../../../option_parser.h"
-#include "../../../../pdbs/pattern_collection_information.h"
-#include "../../../../pdbs/pattern_generator.h"
+#include "../../../../pdbs/dominance_pruning.h"
 #include "../../../../plugin.h"
 #include "../../../../utils/countdown_timer.h"
-#include "../../../analysis_objectives/analysis_objective.h"
+#include "../../../../utils/logging.h"
+#include "../../../analysis_objectives/expected_cost_objective.h"
 #include "../../../globals.h"
 #include "../../../logging.h"
-#include "../orthogonality.h"
-#include "../qualitative_result_store.h"
-#include "../quantitative_result_store.h"
-#include "../utils.h"
-#include "maxprob_projection.h"
 
 #include <cassert>
-#include <iostream>
+#include <iomanip>
+#include <numeric>
 #include <string>
 
 namespace probabilistic {
 namespace pdbs {
 namespace maxprob {
 
-using ::pdbs::PatternCollectionGenerator;
-using ::pdbs::PatternCollectionInformation;
+using namespace pattern_selection;
 
-MaxProbPDBHeuristic::MaxProbPDBHeuristic(const options::Options& opts)
-{
-    ::verify_no_axioms_no_conditional_effects();
+// Default Statictics
+struct MaxProbPDBHeuristic::Statistics {
+    Statistics(
+        double generator_time,
+        double dominance_pruning_time,
+        double construction_time,
+        const MaxProbPDBCollection& pdbs,
+        const std::vector<PatternClique>& additive_subcollections)
+        : generator_time(generator_time)
+        , dominance_pruning_time(dominance_pruning_time)
+        , construction_time(construction_time)
+    {
+        this->pdbs = pdbs.size();
 
-    // 1. Construct pattern collection
-    auto patterns = construct_patterns(opts);
+        for (auto pdb : pdbs) {
+            size_t vars = pdb->get_pattern().size();
+            largest_pattern = std::max(largest_pattern, vars);
+            variables += vars;
+            abstract_states += pdb->num_states();
+        }
 
-    // 2. Construct database
-    auto clique_patterns = construct_database(opts, *patterns);
+        subcollections = additive_subcollections.size();
 
-    // 3. Construct multiplicative cliques
-    construct_cliques(opts, clique_patterns);
-
-    // Statistics.
-    statistics_.construction_time = statistics_.pattern_construction_time +
-                                    statistics_.database_construction_time +
-                                    statistics_.clique_computation_time;
-
-    statistics_.constructed_patterns = patterns->size();
-    statistics_.dead_end_patterns = dead_end_database_.size();
-    statistics_.clique_patterns = clique_database_.size();
-    statistics_.discarded_patterns = statistics_.constructed_patterns -
-                                     statistics_.dead_end_patterns -
-                                     statistics_.clique_patterns;
-
-    std::size_t total = 0;
-    std::size_t largest = 0;
-
-    for (auto& subcollection : multiplicative_subcollections) {
-        total += subcollection.size();
-        largest = std::max(largest, subcollection.size());
+        for (auto subcollection : additive_subcollections) {
+            total_subcollections_size += subcollection.size();
+        }
     }
 
-    statistics_.num_multiplicative_subcollections =
-        multiplicative_subcollections.size();
-    statistics_.largest_multiplicative_subcollection_size = largest;
-    statistics_.average_multiplicative_subcollection_size =
-        (double)total / multiplicative_subcollections.size();
+    double generator_time = 0.0;
+    double dominance_pruning_time = 0.0;
+    double construction_time = 0.0;
 
-    std::cout << "\nMaxProb Pattern Databases Initialization:" << std::endl;
-    dump_construction_statistics(std::cout);
+    size_t pdbs = 0;
+    size_t variables = 0;
+    size_t abstract_states = 0;
+    size_t largest_pattern = 0;
+
+    size_t subcollections = 0;
+    size_t total_subcollections_size = 0;
+
+    // Run-time statistics (expensive)
+    // TODO
+
+    void print_construction_info(std::ostream& out) const
+    {
+        const double avg_variables = (double)variables / pdbs;
+        const double avg_abstract_states = (double)abstract_states / pdbs;
+
+        const double avg_subcollection_size =
+            (double)total_subcollections_size / subcollections;
+
+        out << "\nMaxProb Pattern Databases Statistics:\n"
+            << "  Total number of PDBs: " << pdbs << "\n"
+            << "  Total number of variables: " << variables << "\n"
+            << "  Total number of abstract states: " << abstract_states << "\n"
+
+            << "  Average number of variables per PDB: " << avg_variables
+            << "\n"
+            << "  Average number of abstract states per PDB: "
+            << avg_abstract_states << "\n"
+
+            << "  Largest pattern size: " << largest_pattern << "\n"
+
+            << "  Total number of multiplicative subcollections: "
+            << subcollections << "\n"
+            << "  Total number of subcollections PDBs: "
+            << total_subcollections_size << "\n"
+            << "  Average size of subcollection PDB: " << avg_subcollection_size
+            << "\n"
+
+            << "  Generator time: " << generator_time << "s\n"
+            << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
+            << "  Total construction time: " << construction_time << "s\n";
+    }
+
+    void print(std::ostream& out) const { print_construction_info(out); }
+};
+
+MultiplicativeMaxProbPDBs
+MaxProbPDBHeuristic::get_multiplicative_mppdbs_from_options(
+    std::shared_ptr<PatternCollectionGenerator> generator,
+    double max_time_dominance_pruning)
+{
+    utils::Timer construction_timer;
+
+    utils::Timer generator_timer;
+    auto pattern_collection_info = generator->generate(NORMAL);
+    const double generator_time = generator_timer();
+
+    std::shared_ptr patterns = pattern_collection_info.get_patterns();
+
+    std::shared_ptr pdbs = pattern_collection_info.get_pdbs();
+    std::shared_ptr cliques = pattern_collection_info.get_pattern_cliques();
+
+    double dominance_pruning_time = 0.0;
+
+    if (max_time_dominance_pruning > 0.0) {
+        utils::Timer timer;
+
+        int num_variables = g_variable_domain.size();
+        /*
+          NOTE: Dominance pruning could also be computed without having access
+          to the PDBs, but since we want to delete patterns, we also want to
+          update the list of corresponding PDBs so they are synchronized.
+
+          In the long term, we plan to have patterns and their PDBs live
+          together, in which case we would only need to pass their container
+          and the pattern cliques.
+        */
+        ::pdbs::prune_dominated_cliques(
+            *patterns,
+            *pdbs,
+            *cliques,
+            num_variables,
+            max_time_dominance_pruning);
+
+        dominance_pruning_time = timer();
+    }
+
+    // Gather statistics.
+    const double construction_time = construction_timer();
+
+    this->statistics_.reset(new Statistics(
+        generator_time,
+        dominance_pruning_time,
+        construction_time,
+        *pdbs,
+        *cliques));
+
+    this->statistics_->print_construction_info(logging::out);
+
+    this->generator_report = generator->get_report();
+
+    return MultiplicativeMaxProbPDBs(pdbs, cliques);
+}
+
+MaxProbPDBHeuristic::MaxProbPDBHeuristic(const options::Options& opts)
+    : MaxProbPDBHeuristic(
+          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
+          opts.get<double>("max_time_dominance_pruning"))
+{
+}
+
+MaxProbPDBHeuristic::MaxProbPDBHeuristic(
+    std::shared_ptr<PatternCollectionGenerator> generator,
+    double max_time_dominance_pruning)
+    : multiplicative_mppdbs(get_multiplicative_mppdbs_from_options(
+          generator,
+          max_time_dominance_pruning))
+{
+}
+
+MaxProbPDBHeuristic::~MaxProbPDBHeuristic() = default;
+
+void MaxProbPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
+{
+    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
+        "patterns",
+        "",
+        "det_adapter(generator=systematic(pattern_max_size=2))");
+    parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
 EvaluationResult MaxProbPDBHeuristic::evaluate(const GlobalState& state)
 {
-    if (initial_state_is_dead_end_) {
-        return EvaluationResult(true, g_analysis_objective->min());
-    }
-
-    value_type::value_t result = g_analysis_objective->max();
-    for (const auto& store : dead_end_database_) {
-        const AbstractState x = store.get_abstract_state(state);
-        if (store.is_dead_end(x)) {
-            return EvaluationResult(true, g_analysis_objective->min());
-        }
-        result = std::min(result, store.lookup(x));
-    }
-
-    std::vector<value_type::value_t> estimates(clique_database_.size());
-    for (unsigned i = 0; i != clique_database_.size(); ++i) {
-        const auto& store = clique_database_[i];
-        const AbstractState x = store.get_abstract_state(state);
-        if (store.is_dead_end(x)) {
-            return EvaluationResult(true, g_analysis_objective->min());
-        }
-        estimates[i] = store.lookup(x);
-    }
-
-    for (const PatternClique& clique : multiplicative_subcollections) {
-        value_type::value_t multiplicative = value_type::one;
-        for (const PatternID i : clique) {
-            multiplicative *= estimates[i];
-        }
-        result = std::min(result, multiplicative);
-    }
-
-    return EvaluationResult(false, result);
-}
-
-static const char* const as_string[] = {
-    "None",
-    "Orthogonality",
-    "Weak Orthogonality"};
-
-void MaxProbPDBHeuristic::dump_construction_statistics(std::ostream& out) const
-{
-    out << "  Multiplicativity: " << as_string[statistics_.multiplicativity]
-        << "\n";
-
-    out << "  Constructed Projections: " << statistics_.constructed_patterns
-        << "\n";
-    out << "  Discarded Projections: " << statistics_.discarded_patterns
-        << "\n";
-    out << "  Dead-End Projections: " << statistics_.dead_end_patterns << "\n";
-    out << "  Clique Projections: " << statistics_.clique_patterns << "\n";
-
-    out << "  Abstract states: " << statistics_.abstract_states << "\n";
-    out << "  Reachable abstract states: "
-        << statistics_.abstract_reachable_states << "\n";
-    out << "  Abstract dead ends: " << statistics_.abstract_dead_ends << "\n";
-    out << "  Abstract probability one states: "
-        << statistics_.abstract_one_states << "\n";
-
-    out << "  Pattern construction time: "
-        << statistics_.pattern_construction_time << "s"
-        << "\n";
-    out << "  Database construction time: "
-        << statistics_.database_construction_time << "s"
-        << "\n";
-    out << "  Clique construction time: " << statistics_.clique_computation_time
-        << "s"
-        << "\n";
-    out << "  Total construction time: " << statistics_.construction_time << "s"
-        << "\n";
-
-    out << "  Multiplicative sub-collections: "
-        << statistics_.num_multiplicative_subcollections << std::endl;
-    out << "  Largest multiplicative sub-collection size: "
-        << statistics_.largest_multiplicative_subcollection_size << std::endl;
-    out << "  Average multiplicative sub-collection size: "
-        << statistics_.average_multiplicative_subcollection_size << std::endl;
+    return multiplicative_mppdbs.evaluate(state);
 }
 
 void MaxProbPDBHeuristic::print_statistics() const
 {
-    std::cout << "\nMaxProb Pattern Databases Statistics:" << std::endl;
-    dump_construction_statistics(std::cout);
-}
-
-std::shared_ptr<PatternCollection>
-MaxProbPDBHeuristic::construct_patterns(const options::Options& opts)
-{
-    utils::Timer t;
-
-    auto patterns_generator =
-        opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns");
-    auto patterns_info = patterns_generator->generate(NORMAL);
-    auto patterns = patterns_info.get_patterns();
-
-    statistics_.pattern_construction_time = t();
-
-    return patterns;
-}
-
-std::vector<Pattern> MaxProbPDBHeuristic::construct_database(
-    const options::Options& opts,
-    const PatternCollection& patterns)
-{
-    utils::Timer t;
-
-    std::vector<Pattern> clique_patterns_;
-
-    const bool countdown_enabled = opts.get<double>("time_limit") > 0;
-    const unsigned max_states = opts.get<int>("max_states");
-    utils::CountdownTimer countdown(opts.get<double>("time_limit"));
-
-    bool terminate = false;
-
-    const bool pre_dead_ends = opts.get<bool>("precompute_dead_ends");
-
-    for (unsigned i = 0; i < patterns.size() && !terminate; ++i) {
-        const Pattern& p = patterns[i];
-
-        if (countdown_enabled && countdown.is_expired()) {
-            break;
-        }
-
-        MaxProbProjection projection(p, ::g_variable_domain, pre_dead_ends);
-        auto state_mapper = projection.get_abstract_state_mapper();
-
-        if (max_states - state_mapper->size() < statistics_.abstract_states) {
-            terminate = true;
-        }
-
-        statistics_.abstract_states += state_mapper->size();
-
-        if (opts.get<bool>("dump_projections")) {
-            std::ostringstream path;
-            path << "pattern" << i << ".dot";
-            projection.dump_graphviz(path.str());
-        }
-
-        initial_state_is_dead_end_ = projection.is_dead_end(g_initial_state());
-
-#ifndef NDEBUG
-        dump_pattern(logging::out, i, p);
-#endif
-
-        if (initial_state_is_dead_end_) {
-            clique_patterns_.clear();
-            clique_database_.clear();
-            dead_end_database_.clear();
-#if defined(NDEBUG)
-            dump_pattern_short(logging::out, i, p);
-#endif
-            logging::out << " identifies initial state as dead-end!"
-                         << std::endl;
-            break;
-        }
-
-        if (projection.is_all_one()) {
-#ifndef NDEBUG
-            logging::out << " **trivial projection** ~~> estimate(s0) = "
-                         << value_type::one << std::endl;
-#endif
-            continue;
-        }
-
-        statistics_.abstract_reachable_states +=
-            projection.num_reachable_states();
-        statistics_.abstract_dead_ends += projection.num_dead_ends();
-        statistics_.abstract_one_states += projection.num_one_states();
-
-#ifndef NDEBUG
-        {
-            logging::out << " ~~> estimate(s0) = "
-                         << projection.lookup(g_initial_state()) << std::endl;
-        }
-#endif
-
-        if (projection.is_deterministic()) {
-#ifndef NDEBUG
-            logging::out << " **deterministic projection**";
-#endif
-            dead_end_database_.emplace_back(std::move(projection));
-        } else {
-            clique_patterns_.push_back(p);
-            clique_database_.emplace_back(std::move(projection));
-        }
+    if (generator_report) {
+        generator_report->print(logging::out);
     }
 
-    statistics_.database_construction_time = t();
-
-    return clique_patterns_;
-}
-
-void MaxProbPDBHeuristic::construct_cliques(
-    const options::Options& opts,
-    std::vector<Pattern>& clique_patterns)
-{
-    utils::Timer t;
-
-    const int m_type = opts.get_enum("multiplicativity");
-    statistics_.multiplicativity = (Multiplicativity)m_type;
-
-    switch (m_type) {
-    default:
-    case NONE: {
-        const int size = (int)clique_patterns.size();
-
-        for (int i = 0; i < size; ++i) {
-            multiplicative_subcollections.push_back({i});
-        }
-        break;
-    }
-    case ORTHOGONALITY:
-        max_cliques::compute_max_cliques(
-            build_compatibility_graph_orthogonality(clique_patterns),
-            multiplicative_subcollections);
-        break;
-    case WEAK_ORTHOGONALITY:
-        max_cliques::compute_max_cliques(
-            build_compatibility_graph_weak_orthogonality(clique_patterns),
-            multiplicative_subcollections);
-        break;
-    }
-
-    statistics_.clique_computation_time = t();
-}
-
-void MaxProbPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
-{
-    parser.add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
-        "patterns",
-        "",
-        "systematic(pattern_max_size=2)");
-    parser.add_option<bool>("precompute_dead_ends", "", "false");
-    parser.add_option<double>("time_limit", "", "0");
-    parser.add_option<int>("max_states", "", "-1");
-    parser.add_option<bool>("dump_projections", "", "false");
-    parser.add_enum_option(
-        "multiplicativity",
-        {"none", "orthogonality", "weak_orthogonality"},
-        "",
-        "none");
+    statistics_->print(logging::out);
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(

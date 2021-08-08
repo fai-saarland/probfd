@@ -1,11 +1,17 @@
 #pragma once
 
+#include "../../../../utils/printable.h"
 #include "../../../evaluation_result.h"
 #include "../../../state_evaluator.h"
 #include "../abstract_state.h"
 #include "../types.h"
+#include "maxprob_projection.h"
+#include "multiplicative_mppdbs.h"
+
+#include "pattern_selection/pattern_generator.h"
 
 #include <memory>
+#include <ostream>
 #include <vector>
 
 class GlobalState;
@@ -19,50 +25,16 @@ namespace probabilistic {
 namespace pdbs {
 namespace maxprob {
 
-class ProbabilisticProjection;
-class QuantitativeResultStore;
-class QualitativeResultStore;
-class MaxProbProjection;
-
 /**
- * @brief Multiplicative MaxProb-PDB heuristic.
+ * @brief Additive Expected-Cost PDB heuristic.
  */
 class MaxProbPDBHeuristic : public GlobalStateEvaluator {
-private:
-    enum Multiplicativity {
-        NONE = 0,
-        ORTHOGONALITY = 1,
-        WEAK_ORTHOGONALITY = 2
-    };
+    struct Statistics;
 
-    struct Statistics {
-        Multiplicativity multiplicativity = NONE;
+    std::unique_ptr<Statistics> statistics_;
+    std::shared_ptr<utils::Printable> generator_report;
 
-        // Database statistics.
-        unsigned int abstract_states = 0;
-        unsigned int abstract_reachable_states = 0;
-        unsigned int abstract_dead_ends = 0;
-        unsigned int abstract_one_states = 0;
-
-        unsigned int constructed_patterns = 0;
-        unsigned int discarded_patterns = 0;
-        unsigned int dead_end_patterns = 0;
-        unsigned int clique_patterns = 0;
-
-        // Clique statistics.
-        unsigned int num_multiplicative_subcollections = 0;
-        double average_multiplicative_subcollection_size = 0;
-        std::size_t largest_multiplicative_subcollection_size = 0;
-
-        // Initialization statistics.
-        double pattern_construction_time = 0.0;
-        double database_construction_time = 0.0;
-        double clique_computation_time = 0.0;
-        double construction_time = 0.0;
-
-        // Runtime statistics.
-        // double evaluate_time = 0.0;
-    };
+    MultiplicativeMaxProbPDBs multiplicative_mppdbs;
 
 public:
     /**
@@ -72,8 +44,9 @@ public:
      * + \em patterns - The generator used to generate the initial pattern
      * collection. By default, uses a systematic pattern generation algorithm
      * with size bound 2.
-     * + \em precompute_dead_ends - Specifies whether dead-ends should be
-     * precomputed before solving the projections.
+     * + \em max_time_dominance_pruning - The maximum time allowed for
+     * dominance pruning. A value of zero disables dominance pruning. By
+     * default, this option is disabled.
      * + \em time_limit - The maximal time allowed to construct the databases
      * for the generated pattern collection. A value of zero disables the time
      * limit. by default, no time limit is imposed.
@@ -81,40 +54,30 @@ public:
      * default, no restrictions are imposed.
      * + \em dump_projections - If true, dump the projection with graphviz.
      * False by default.
-     * + \em multiplicativity - Specifies the multiplicativity criterion.
-     * One of \em none, \em orthogonality or \em weak_orthogonality. \em none
-     * by default.
+     * + \em additive - Specifies whether the additivity criterion should be
+     * used. True by default.
      */
     explicit MaxProbPDBHeuristic(const options::Options& opts);
+
+    MaxProbPDBHeuristic(
+        std::shared_ptr<pattern_selection::PatternCollectionGenerator>
+            generator,
+        double max_time_dominance_pruning);
+
+    ~MaxProbPDBHeuristic();
+
     static void add_options_to_parser(options::OptionParser& parser);
+
+    void print_statistics() const override;
 
 protected:
     EvaluationResult evaluate(const GlobalState& state) override;
 
 private:
-    void dump_construction_statistics(std::ostream& out) const;
-    void print_statistics() const override;
-
-    std::shared_ptr<PatternCollection>
-    construct_patterns(const options::Options& opts);
-
-    std::vector<Pattern> construct_database(
-        const options::Options& opts,
-        const PatternCollection& patterns);
-
-    void construct_cliques(
-        const options::Options& opts,
-        std::vector<Pattern>& clique_patterns);
-
-private:
-    bool initial_state_is_dead_end_ = false;
-
-    std::vector<MaxProbProjection> dead_end_database_;
-    std::vector<MaxProbProjection> clique_database_;
-
-    std::vector<PatternClique> multiplicative_subcollections;
-
-    Statistics statistics_;
+    MultiplicativeMaxProbPDBs get_multiplicative_mppdbs_from_options(
+        std::shared_ptr<pattern_selection::PatternCollectionGenerator>
+            generator,
+        double max_time_dominance_pruning);
 };
 
 } // namespace maxprob

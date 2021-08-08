@@ -1,8 +1,9 @@
 #include "incremental_canonical_pdbs.h"
 
-#include "../additive_ecpdbs.h"
-#include "../expcost_projection.h"
+#include "../maxprob_projection.h"
+#include "../multiplicative_mppdbs.h"
 #include "pattern_collection_information.h"
+
 
 #include "../../../../../global_state.h"
 #include "../../../../../pdbs/pattern_cliques.h"
@@ -14,7 +15,7 @@ using namespace std;
 
 namespace probabilistic {
 namespace pdbs {
-namespace expected_cost {
+namespace maxprob {
 namespace pattern_selection {
 
 IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
@@ -22,7 +23,7 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
     : patterns(new PatternCollection(
           initial_patterns.begin(),
           initial_patterns.end()))
-    , pattern_databases(make_shared<ExpCostPDBCollection>())
+    , pattern_databases(make_shared<MaxProbPDBCollection>())
     , pattern_cliques(nullptr)
     , size(0)
 {
@@ -34,7 +35,7 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
 }
 
 static unsigned long long
-compute_total_pdb_size(const ExpCostPDBCollection& pdbs)
+compute_total_pdb_size(const MaxProbPDBCollection& pdbs)
 {
     unsigned long long size = 0;
 
@@ -58,11 +59,11 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
 
 void IncrementalCanonicalPDBs::add_pdb_for_pattern(const Pattern& pattern)
 {
-    pattern_databases->emplace_back(new ExpCostProjection(pattern));
+    pattern_databases->emplace_back(new MaxProbProjection(pattern));
     size += pattern_databases->back()->num_states();
 }
 
-void IncrementalCanonicalPDBs::add_pdb(const shared_ptr<ExpCostProjection>& pdb)
+void IncrementalCanonicalPDBs::add_pdb(const shared_ptr<MaxProbProjection>& pdb)
 {
     patterns->push_back(pdb->get_pattern());
     pattern_databases->push_back(pdb);
@@ -88,14 +89,16 @@ IncrementalCanonicalPDBs::get_pattern_cliques(const Pattern& new_pattern)
 value_type::value_t
 IncrementalCanonicalPDBs::get_value(const GlobalState& state) const
 {
-    AdditiveExpectedCostPDBs canonical_pdbs(pattern_databases, pattern_cliques);
+    MultiplicativeMaxProbPDBs canonical_pdbs(
+        pattern_databases,
+        pattern_cliques);
     return static_cast<value_type::value_t>(canonical_pdbs.evaluate(state));
 }
 
 bool IncrementalCanonicalPDBs::is_dead_end(const GlobalState& state) const
 {
-    for (const shared_ptr<ExpCostProjection>& pdb : *pattern_databases)
-        if (pdb->lookup(state) == numeric_limits<value_type::value_t>::max())
+    for (const shared_ptr<MaxProbProjection>& pdb : *pattern_databases)
+        if (pdb->is_dead_end(state))
             return true;
     return false;
 }
@@ -110,6 +113,6 @@ IncrementalCanonicalPDBs::get_pattern_collection_information() const
 }
 
 } // namespace pattern_selection
-} // namespace expected_cost
+} // namespace maxprob
 } // namespace pdbs
 } // namespace probabilistic

@@ -9,9 +9,6 @@ class SuccessorGenerator;
 }
 
 namespace probabilistic {
-
-class AnalysisObjective;
-
 namespace pdbs {
 namespace maxprob {
 
@@ -19,14 +16,14 @@ class MaxProbProjection : public pdbs::ProbabilisticProjection {
     using RegressionSuccessorGenerator =
         successor_generator::SuccessorGenerator<AbstractState>;
 
+    std::vector<value_utils::IntervalValue> value_table;
+
     bool all_one = false;
     bool deterministic = false;
 
-    std::vector<value_utils::IntervalValue> value_table;
     pdbs::QualitativeResultStore one_states;
     pdbs::QualitativeResultStore dead_ends;
 
-    unsigned int n_reachable_states = 0;
     unsigned int n_dead_ends = 0;
     unsigned int n_one_states = 0;
 
@@ -35,14 +32,16 @@ class MaxProbProjection : public pdbs::ProbabilisticProjection {
 public:
     MaxProbProjection(
         const Pattern& pattern,
+        bool precompute_dead_ends = false);
+
+    MaxProbProjection(
+        const Pattern& pattern,
         const std::vector<int>& domains,
         bool precompute_dead_ends = false);
 
-    ~MaxProbProjection() = default;
+    // TODO
+    // MaxProbProjection(const MaxProbProjection& pdb, int add_var);
 
-    AbstractState get_abstract_state(const GlobalState& s) const;
-
-    unsigned int num_reachable_states() const;
     unsigned int num_dead_ends() const;
     unsigned int num_one_states() const;
 
@@ -51,6 +50,7 @@ public:
 
     bool is_dead_end(AbstractState s) const;
     bool is_dead_end(const GlobalState& s) const;
+
     [[nodiscard]] value_type::value_t lookup(AbstractState s) const;
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
 

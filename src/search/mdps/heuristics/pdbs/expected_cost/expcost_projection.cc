@@ -77,17 +77,6 @@ ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)
     compute_value_table(&heuristic);
 }
 
-value_type::value_t ExpCostProjection::get_value(const GlobalState& state) const
-{
-    auto abstract_state = state_mapper_->operator()(state);
-    return lookup(abstract_state);
-}
-
-unsigned int ExpCostProjection::num_reachable_states() const
-{
-    return reachable_states;
-}
-
 value_type::value_t ExpCostProjection::lookup(const GlobalState& s) const
 {
     return lookup(state_mapper_->operator()(s));

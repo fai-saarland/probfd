@@ -6,8 +6,6 @@
 #include <memory>
 #include <vector>
 
-//#define ECPDB_MEASURE_EVALUATE
-
 class GlobalState;
 
 namespace options {
@@ -18,11 +16,6 @@ class OptionParser;
 namespace probabilistic {
 namespace pdbs {
 namespace expected_cost {
-
-class ProbabilisticProjection;
-class QuantitativeResultStore;
-class QualitativeResultStore;
-class ExpCostAbstractAnalysisResult;
 
 class AdditiveExpectedCostPDBs {
     std::shared_ptr<ExpCostPDBCollection> database_;

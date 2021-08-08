@@ -53,9 +53,20 @@ unsigned int ProbabilisticProjection::num_states() const
     return state_mapper_->size();
 }
 
+AbstractState
+ProbabilisticProjection::get_abstract_state(const GlobalState& s) const
+{
+    return state_mapper_->operator()(s);
+}
+
 const Pattern& ProbabilisticProjection::get_pattern() const
 {
     return state_mapper_->get_pattern();
+}
+
+unsigned int ProbabilisticProjection::num_reachable_states() const
+{
+    return reachable_states;
 }
 
 void ProbabilisticProjection::setup_abstract_goal()

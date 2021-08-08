@@ -182,6 +182,8 @@ ExpectedCostPDBHeuristic::ExpectedCostPDBHeuristic(
 {
 }
 
+ExpectedCostPDBHeuristic::~ExpectedCostPDBHeuristic() = default;
+
 void ExpectedCostPDBHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {

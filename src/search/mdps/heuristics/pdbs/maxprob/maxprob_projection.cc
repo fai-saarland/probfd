@@ -20,6 +20,13 @@ namespace maxprob {
 
 MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
+    bool precompute_dead_ends)
+    : MaxProbProjection(pattern, g_variable_domain, precompute_dead_ends)
+{
+}
+
+MaxProbProjection::MaxProbProjection(
+    const Pattern& pattern,
     const std::vector<int>& domains,
     bool precompute_dead_ends)
     : ProbabilisticProjection(pattern, domains)
@@ -220,7 +227,7 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends)
     }
 #endif
 
-    n_reachable_states = state_id_map.size();
+    reachable_states = state_id_map.size();
 
     for (auto it = state_id_map.seen_begin(); it != state_id_map.seen_end();
          ++it) {
@@ -244,16 +251,6 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends)
         value_table.clear();
         one_states.clear();
     }
-}
-
-AbstractState MaxProbProjection::get_abstract_state(const GlobalState& s) const
-{
-    return state_mapper_->operator()(s);
-}
-
-unsigned int MaxProbProjection::num_reachable_states() const
-{
-    return n_reachable_states;
 }
 
 unsigned int MaxProbProjection::num_dead_ends() const

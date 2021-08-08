@@ -702,9 +702,20 @@ fast_downward_plugin(
     NAME MAXPROB_PDBS
     HELP "Probabilistic PDBS for MaxProb"
     SOURCES
-        mdps/heuristics/pdbs/maxprob/multiplicativity/independence
+        mdps/heuristics/pdbs/maxprob/multiplicative_mppdbs
         mdps/heuristics/pdbs/maxprob/maxprob_projection
         mdps/heuristics/pdbs/maxprob/maxprob_pdb_heuristic
+
+        mdps/heuristics/pdbs/maxprob/multiplicativity/multiplicativity_strategy
+        mdps/heuristics/pdbs/maxprob/multiplicativity/multiplicativity_none
+        mdps/heuristics/pdbs/maxprob/multiplicativity/multiplicativity_max_orthogonality
+        mdps/heuristics/pdbs/maxprob/multiplicativity/independence
+
+        mdps/heuristics/pdbs/maxprob/pattern_selection/incremental_canonical_pdbs
+        mdps/heuristics/pdbs/maxprob/pattern_selection/pattern_collection_generator_deterministic
+        mdps/heuristics/pdbs/maxprob/pattern_selection/pattern_collection_generator_hillclimbing
+        mdps/heuristics/pdbs/maxprob/pattern_selection/pattern_collection_information
+        mdps/heuristics/pdbs/maxprob/pattern_selection/pattern_generator
     DEPENDS PROBABILISTIC_PDBS
     )
 

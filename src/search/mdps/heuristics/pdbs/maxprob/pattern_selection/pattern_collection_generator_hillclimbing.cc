@@ -1,6 +1,6 @@
 #include "pattern_collection_generator_hillclimbing.h"
 
-#include "../expcost_projection.h"
+#include "../maxprob_projection.h"
 #include "incremental_canonical_pdbs.h"
 
 #include "../../../../../option_parser.h"
@@ -34,7 +34,7 @@ namespace probabilistic {
 using namespace value_type;
 
 namespace pdbs {
-namespace expected_cost {
+namespace maxprob {
 namespace pattern_selection {
 
 /* Since this exception class is only used for control flow and thus has no need
@@ -144,9 +144,9 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
 
 int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     const std::vector<std::vector<int>>& relevant_neighbours,
-    const ExpCostProjection& pdb,
+    const MaxProbProjection& pdb,
     std::set<Pattern>& generated_patterns,
-    ExpCostPDBCollection& candidate_pdbs)
+    MaxProbPDBCollection& candidate_pdbs)
 {
     const Pattern& pattern = pdb.get_pattern();
     int pdb_size = pdb.num_states();
@@ -177,7 +177,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                       surpass the size limit.
                     */
                     auto& new_pdb = candidate_pdbs.emplace_back(
-                        new ExpCostProjection(pdb, rel_var_id));
+                        new MaxProbProjection(new_pattern));
                     generated_patterns.insert(new_pattern);
                     max_pdb_size =
                         std::max(max_pdb_size, (int)new_pdb->num_states());
@@ -216,7 +216,7 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
     utils::CountdownTimer& hill_climbing_timer,
     const std::vector<GlobalState>& samples,
     const std::vector<value_t>& samples_h_values,
-    ExpCostPDBCollection& candidate_pdbs)
+    MaxProbPDBCollection& candidate_pdbs)
 {
     /*
       TODO: The original implementation by Haslum et al. uses A* to compute
@@ -232,7 +232,7 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
     for (size_t i = 0; i < candidate_pdbs.size(); ++i) {
         if (hill_climbing_timer.is_expired()) throw HillClimbingTimeout();
 
-        const std::shared_ptr<ExpCostProjection>& pdb = candidate_pdbs[i];
+        const std::shared_ptr<MaxProbProjection>& pdb = candidate_pdbs[i];
         if (!pdb) {
             /* candidate pattern is too large or has already been added to
                the canonical heuristic. */
@@ -290,38 +290,37 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
 }
 
 bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
-    const ExpCostProjection& pdb,
+    const MaxProbProjection& pdb,
     const GlobalState& sample,
     value_t h_collection,
-    const ExpCostPDBCollection& pdbs,
+    const MaxProbPDBCollection& pdbs,
     const std::vector<PatternClique>& pattern_cliques)
 {
-    // h_pattern: h-value of the new pattern
-    value_t h_pattern = pdb.lookup(sample);
-
-    if (h_pattern == -value_type::inf) {
+    if (pdb.is_dead_end(sample)) {
         return true;
     }
 
+    // h_pattern: h-value of the new pattern
+    value_t h_pattern = pdb.lookup(sample);
+
     // h_collection: h-value of the current collection heuristic
-    if (h_collection == -value_type::inf) return false;
+    if (h_collection == value_type::zero) return false;
 
     std::vector<value_t> h_values;
     h_values.reserve(pdbs.size());
 
-    for (const std::shared_ptr<ExpCostProjection>& p : pdbs) {
-        value_t h = p->lookup(sample);
-        if (h == -value_type::inf) return false;
-        h_values.push_back(h);
+    for (const std::shared_ptr<MaxProbProjection>& p : pdbs) {
+        if (p->is_dead_end(sample)) return false;
+        h_values.push_back(p->lookup(sample));
     }
 
     for (const PatternClique& clique : pattern_cliques) {
-        value_t h_clique = value_type::zero;
+        value_t h_clique = value_type::one;
         for (PatternID pattern_id : clique) {
-            h_clique += h_values[pattern_id];
+            h_clique *= h_values[pattern_id];
         }
 
-        if (h_pattern + h_clique < h_collection) {
+        if (h_pattern * h_clique < h_collection) {
             /*
               return true if a pattern clique is found for
               which the condition is met
@@ -343,7 +342,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing()
     std::set<Pattern> generated_patterns;
     // The PDBs for the patterns in generated_patterns that satisfy the size
     // limit to avoid recomputation.
-    ExpCostPDBCollection candidate_pdbs;
+    MaxProbPDBCollection candidate_pdbs;
     // The maximum size over all PDBs in candidate_pdbs.
     int max_pdb_size = 0;
     for (const auto& current_pdb : *current_pdbs->get_pattern_databases()) {

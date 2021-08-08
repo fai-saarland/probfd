@@ -13,15 +13,11 @@ class PatternDatabase;
 }
 
 namespace probabilistic {
-
-class AnalysisObjective;
-
 namespace pdbs {
 namespace expected_cost {
 
 class ExpCostProjection : public pdbs::ProbabilisticProjection {
     std::vector<value_type::value_t> value_table;
-    unsigned int reachable_states = 0;
 
 public:
     ExpCostProjection(const Pattern& variables);
@@ -42,12 +38,6 @@ public:
     ExpCostProjection(const ::pdbs::PatternDatabase& pdb);
 
     ExpCostProjection(const ExpCostProjection& pdb, int add_var);
-
-    ~ExpCostProjection() = default;
-
-    value_type::value_t get_value(const GlobalState& state) const;
-
-    unsigned int num_reachable_states() const;
 
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
     [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;

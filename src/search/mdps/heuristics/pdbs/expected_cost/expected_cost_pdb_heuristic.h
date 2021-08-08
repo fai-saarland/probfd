@@ -27,11 +27,6 @@ namespace probabilistic {
 namespace pdbs {
 namespace expected_cost {
 
-class ProbabilisticProjection;
-class QuantitativeResultStore;
-class QualitativeResultStore;
-class ExpCostAbstractAnalysisResult;
-
 /**
  * @brief Additive Expected-Cost PDB heuristic.
  */
@@ -70,6 +65,8 @@ public:
         std::shared_ptr<pattern_selection::PatternCollectionGenerator>
             generator,
         double max_time_dominance_pruning);
+
+    ~ExpectedCostPDBHeuristic();
 
     static void add_options_to_parser(options::OptionParser& parser);
 
