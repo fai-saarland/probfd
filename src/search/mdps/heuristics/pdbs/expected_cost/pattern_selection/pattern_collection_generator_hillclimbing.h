@@ -110,8 +110,8 @@ class PatternCollectionGeneratorHillclimbing
       a sample state, thus totalling exactly num_samples of sample states.
     */
     void sample_states(
-        utils::CountdownTimer &hill_climbing_timer,
-        const sampling::RandomWalkSampler &sampler,
+        utils::CountdownTimer& hill_climbing_timer,
+        const sampling::RandomWalkSampler& sampler,
         value_type::value_t init_h,
         std::vector<GlobalState>& samples);
 
@@ -121,10 +121,10 @@ class PatternCollectionGeneratorHillclimbing
       the index of the best pdb in candidate_pdbs.
     */
     std::pair<int, int> find_best_improving_pdb(
-        utils::CountdownTimer &hill_climbing_timer,
-        const std::vector<GlobalState> &samples,
-        const std::vector<value_type::value_t> &samples_h_values,
-        ExpCostPDBCollection &candidate_pdbs);
+        utils::CountdownTimer& hill_climbing_timer,
+        const std::vector<GlobalState>& samples,
+        const std::vector<value_type::value_t>& samples_h_values,
+        ExpCostPDBCollection& candidate_pdbs);
 
     /*
       Returns true iff the h-value of the new pattern (from pdb) plus the
