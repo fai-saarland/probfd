@@ -10,6 +10,7 @@
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 
 /// Namespace dedicated to pattern selection techniques for probabilistic PDBs
 namespace pattern_selection {
@@ -27,5 +28,6 @@ public:
 };
 
 } // namespace pattern_selection
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

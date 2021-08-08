@@ -17,6 +17,7 @@ class OptionParser;
 
 namespace probabilistic {
 namespace pdbs {
+namespace maxprob {
 
 class ProbabilisticProjection;
 class QuantitativeResultStore;
@@ -116,5 +117,6 @@ private:
     Statistics statistics_;
 };
 
+} // namespace maxprob
 } // namespace pdbs
 } // namespace probabilistic

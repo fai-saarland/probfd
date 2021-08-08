@@ -199,7 +199,7 @@ EvaluationResult PDBEvaluator::evaluate(const AbstractState& state)
 }
 
 ExpCostPDBEvaluator::ExpCostPDBEvaluator(
-    const ExpCostProjection& pdb,
+    const expected_cost::ExpCostProjection& pdb,
     const AbstractStateMapper* mapper,
     int add_var)
     : pdb(pdb)

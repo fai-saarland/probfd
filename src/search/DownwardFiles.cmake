@@ -688,6 +688,7 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/abstract_state
         mdps/heuristics/pdbs/abstract_state_mapper
         mdps/heuristics/pdbs/engine_interfaces
+        mdps/heuristics/pdbs/orthogonality
         mdps/heuristics/pdbs/probabilistic_projection
         mdps/heuristics/pdbs/qualitative_result_store
         mdps/heuristics/pdbs/quantitative_result_store
@@ -701,10 +702,9 @@ fast_downward_plugin(
     NAME MAXPROB_PDBS
     HELP "Probabilistic PDBS for MaxProb"
     SOURCES
-        mdps/heuristics/pdbs/maxprob/independence
+        mdps/heuristics/pdbs/maxprob/multiplicativity/independence
         mdps/heuristics/pdbs/maxprob/maxprob_projection
         mdps/heuristics/pdbs/maxprob/maxprob_pdb_heuristic
-        mdps/heuristics/pdbs/maxprob/orthogonality
     DEPENDS PROBABILISTIC_PDBS
     )
 

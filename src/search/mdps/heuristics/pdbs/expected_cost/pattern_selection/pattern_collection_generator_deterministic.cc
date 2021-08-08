@@ -10,6 +10,7 @@ using namespace std;
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 namespace pattern_selection {
 
 PatternCollectionGeneratorDeterministic::
@@ -100,5 +101,6 @@ static shared_ptr<PatternCollectionGenerator> _parse(OptionParser& parser)
 static Plugin<PatternCollectionGenerator> _plugin("det_adapter", _parse);
 
 } // namespace pattern_selection
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

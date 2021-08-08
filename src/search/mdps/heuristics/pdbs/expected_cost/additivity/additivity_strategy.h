@@ -7,6 +7,7 @@
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 namespace additivity {
 
 class AdditivityStrategy {
@@ -18,5 +19,6 @@ public:
 };
 
 } // namespace additivity
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

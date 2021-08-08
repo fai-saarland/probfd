@@ -8,6 +8,7 @@
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 
 AdditiveExpectedCostPDBs::AdditiveExpectedCostPDBs(
     std::shared_ptr<ExpCostPDBCollection> database_,
@@ -43,5 +44,6 @@ EvaluationResult AdditiveExpectedCostPDBs::evaluate(const GlobalState& state)
     return {false, result};
 }
 
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

@@ -1,6 +1,6 @@
 #include "additivity_max_orthogonality.h"
 
-#include "../../maxprob/orthogonality.h"
+#include "../../orthogonality.h"
 
 #include "../../../../../algorithms/max_cliques.h"
 
@@ -9,6 +9,7 @@
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 namespace additivity {
 
 std::shared_ptr<std::vector<PatternClique>>
@@ -16,7 +17,7 @@ AdditivityMaxOrthogonality::compute_additive_subcollections(
     const PatternCollection& patterns)
 {
     std::vector<std::vector<int>> c_graph =
-        multiplicativity::build_compatibility_graph_orthogonality(patterns);
+        build_compatibility_graph_orthogonality(patterns);
 
     std::shared_ptr<std::vector<PatternClique>> additive_subcollections(
         new std::vector<PatternClique>());
@@ -36,5 +37,6 @@ static std::shared_ptr<AdditivityMaxOrthogonality> _parse(OptionParser& parser)
 static Plugin<AdditivityStrategy> _plugin("max_orthogonality", _parse);
 
 } // namespace additivity
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

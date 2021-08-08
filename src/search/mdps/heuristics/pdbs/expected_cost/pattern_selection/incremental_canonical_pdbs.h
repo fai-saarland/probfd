@@ -12,6 +12,7 @@ class GlobalState;
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 namespace pattern_selection {
 
 class IncrementalCanonicalPDBs {
@@ -65,5 +66,6 @@ public:
 };
 
 } // namespace pattern_selection
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

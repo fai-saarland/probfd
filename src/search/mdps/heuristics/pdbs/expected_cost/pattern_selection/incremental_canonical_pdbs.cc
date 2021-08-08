@@ -14,6 +14,7 @@ using namespace std;
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 namespace pattern_selection {
 
 IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
@@ -109,5 +110,6 @@ IncrementalCanonicalPDBs::get_pattern_collection_information() const
 }
 
 } // namespace pattern_selection
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

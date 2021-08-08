@@ -1,13 +1,12 @@
 #include "orthogonality.h"
 
-#include "../../../../pdbs/pattern_cliques.h"
-#include "../../../globals.h"
-#include "../../../probabilistic_operator.h"
-#include "../syntactic_projection.h"
+#include "../../../pdbs/pattern_cliques.h"
+#include "../../globals.h"
+#include "../../probabilistic_operator.h"
+#include "syntactic_projection.h"
 
 namespace probabilistic {
 namespace pdbs {
-namespace multiplicativity {
 
 namespace {
 template <typename T>
@@ -168,6 +167,5 @@ template std::vector<std::vector<int>>
 build_compatibility_graph_orthogonality<false>(
     const PatternCollection& patterns);
 
-} // namespace multiplicativity
 } // namespace pdbs
 } // namespace probabilistic

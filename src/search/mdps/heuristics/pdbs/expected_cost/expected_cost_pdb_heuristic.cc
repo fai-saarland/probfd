@@ -4,7 +4,7 @@
 
 #include "pattern_selection/pattern_collection_information.h"
 
-#include "../maxprob/orthogonality.h"
+#include "../orthogonality.h"
 #include "../utils.h"
 
 #include "../../../../algorithms/max_cliques.h"
@@ -26,6 +26,7 @@
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 
 using namespace pattern_selection;
 
@@ -209,5 +210,6 @@ static Plugin<GlobalStateEvaluator> _plugin(
     "ecpdb",
     options::parse<GlobalStateEvaluator, ExpectedCostPDBHeuristic>);
 
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

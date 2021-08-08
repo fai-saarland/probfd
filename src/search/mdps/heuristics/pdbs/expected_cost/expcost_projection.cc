@@ -15,6 +15,7 @@
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 
 using namespace value_utils;
 
@@ -226,5 +227,6 @@ void ExpCostProjection::dump_graphviz(
         true);
 }
 
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

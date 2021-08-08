@@ -4,6 +4,7 @@
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 namespace additivity {
 
 class AdditivityMaxOrthogonality : public AdditivityStrategy {
@@ -16,5 +17,6 @@ public:
 };
 
 } // namespace additivity
+}
 } // namespace pdbs
 } // namespace probabilistic

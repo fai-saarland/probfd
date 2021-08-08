@@ -18,6 +18,7 @@ using namespace std;
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 
 using namespace additivity;
 
@@ -130,5 +131,6 @@ PatternCollectionInformation::get_pattern_cliques()
     return pattern_cliques;
 }
 } // namespace pattern_selection
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

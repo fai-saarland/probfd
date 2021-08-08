@@ -120,7 +120,10 @@ using AbstractOperatorRewardFunction =
     ActionRewardFunction<const AbstractOperator*>;
 
 class QualitativeResultStore;
+
+namespace expected_cost {
 class ExpCostProjection;
+}
 
 class AbstractStateDeadendStoreEvaluator : public AbstractStateEvaluator {
 public:
@@ -182,7 +185,7 @@ private:
 };
 
 class ExpCostPDBEvaluator : public AbstractStateEvaluator {
-    const ExpCostProjection& pdb;
+    const expected_cost::ExpCostProjection& pdb;
     const AbstractStateMapper* mapper;
     int left_multiplier;
     int right_multiplier;
@@ -190,7 +193,7 @@ class ExpCostPDBEvaluator : public AbstractStateEvaluator {
 
 public:
     explicit ExpCostPDBEvaluator(
-        const ExpCostProjection& pdb,
+        const expected_cost::ExpCostProjection& pdb,
         const AbstractStateMapper* mapper,
         int add_var);
 

@@ -17,8 +17,9 @@ namespace probabilistic {
 class AnalysisObjective;
 
 namespace pdbs {
+namespace expected_cost {
 
-class ExpCostProjection : public ProbabilisticProjection {
+class ExpCostProjection : public pdbs::ProbabilisticProjection {
     std::vector<value_type::value_t> value_table;
     unsigned int reachable_states = 0;
 
@@ -66,5 +67,6 @@ private:
         const ActionToString* ats) const;
 };
 
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

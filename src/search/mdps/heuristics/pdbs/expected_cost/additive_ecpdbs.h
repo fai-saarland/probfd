@@ -17,6 +17,7 @@ class OptionParser;
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 
 class ProbabilisticProjection;
 class QuantitativeResultStore;
@@ -35,5 +36,6 @@ public:
     EvaluationResult evaluate(const GlobalState& state);
 };
 
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

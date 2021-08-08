@@ -34,6 +34,7 @@ namespace probabilistic {
 using namespace value_type;
 
 namespace pdbs {
+namespace expected_cost {
 namespace pattern_selection {
 
 /* Since this exception class is only used for control flow and thus has no need
@@ -571,5 +572,6 @@ static std::shared_ptr<PatternCollectionGenerator> _parse(OptionParser& parser)
 static Plugin<PatternCollectionGenerator> _plugin("hillclimbing_ec", _parse);
 
 } // namespace pattern_selection
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

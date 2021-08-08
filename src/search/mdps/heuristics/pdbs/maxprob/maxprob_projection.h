@@ -13,8 +13,9 @@ namespace probabilistic {
 class AnalysisObjective;
 
 namespace pdbs {
+namespace maxprob {
 
-class MaxProbProjection : public ProbabilisticProjection {
+class MaxProbProjection : public pdbs::ProbabilisticProjection {
     using RegressionSuccessorGenerator =
         successor_generator::SuccessorGenerator<AbstractState>;
 
@@ -22,8 +23,8 @@ class MaxProbProjection : public ProbabilisticProjection {
     bool deterministic = false;
 
     std::vector<value_utils::IntervalValue> value_table;
-    QualitativeResultStore one_states;
-    QualitativeResultStore dead_ends;
+    pdbs::QualitativeResultStore one_states;
+    pdbs::QualitativeResultStore dead_ends;
 
     unsigned int n_reachable_states = 0;
     unsigned int n_dead_ends = 0;
@@ -71,5 +72,6 @@ private:
         const ActionToString* ats);
 };
 
+} // namespace maxprob
 } // namespace pdbs
 } // namespace probabilistic

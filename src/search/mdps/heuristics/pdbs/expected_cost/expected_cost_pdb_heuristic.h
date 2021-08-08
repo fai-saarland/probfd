@@ -25,6 +25,7 @@ class OptionParser;
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 
 class ProbabilisticProjection;
 class QuantitativeResultStore;
@@ -84,5 +85,6 @@ private:
         double max_time_dominance_pruning);
 };
 
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

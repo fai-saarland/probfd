@@ -28,6 +28,7 @@ class RandomWalkSampler;
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 
 class ExpCostProjection;
 
@@ -179,5 +180,6 @@ public:
     std::shared_ptr<utils::Printable> get_report() const override;
 };
 } // namespace pattern_selection
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

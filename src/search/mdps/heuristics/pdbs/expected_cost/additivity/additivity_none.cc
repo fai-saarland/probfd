@@ -5,6 +5,7 @@
 
 namespace probabilistic {
 namespace pdbs {
+namespace expected_cost {
 namespace additivity {
 
 std::shared_ptr<std::vector<PatternClique>>
@@ -32,5 +33,6 @@ static std::shared_ptr<AdditivityNone> _parse(OptionParser& parser)
 static Plugin<AdditivityStrategy> _plugin("none", _parse);
 
 } // namespace additivity
+} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

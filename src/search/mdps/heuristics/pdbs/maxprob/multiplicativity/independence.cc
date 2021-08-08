@@ -1,7 +1,7 @@
 #include "independence.h"
 
-#include "../../../globals.h"
-#include "../syntactic_projection.h"
+#include "../../../../globals.h"
+#include "../../syntactic_projection.h"
 
 namespace probabilistic {
 namespace pdbs {

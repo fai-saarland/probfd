@@ -16,6 +16,7 @@
 
 namespace probabilistic {
 namespace pdbs {
+namespace maxprob {
 
 MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
@@ -409,5 +410,6 @@ void MaxProbProjection::dump_graphviz(
         true);
 }
 
+} // namespace maxprob
 } // namespace pdbs
 } // namespace probabilistic
