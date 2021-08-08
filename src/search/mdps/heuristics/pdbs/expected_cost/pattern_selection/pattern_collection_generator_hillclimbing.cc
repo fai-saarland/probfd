@@ -135,7 +135,6 @@ PatternCollectionGeneratorHillclimbing(const Options &opts)
       max_time(opts.get<double>("max_time")),
       rng(utils::parse_rng_from_options(opts)),
       num_rejected(0),
-      hill_climbing_timer(0),
       cost_type(OperatorCost(opts.get_enum("cost_type")))
 {
 }
@@ -189,6 +188,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
 }
 
 void PatternCollectionGeneratorHillclimbing::sample_states(
+    utils::CountdownTimer& hill_climbing_timer,
     const sampling::RandomWalkSampler &sampler,
     value_t init_h,
     std::vector<GlobalState> &samples)
@@ -201,7 +201,7 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
             return current_pdbs->is_dead_end(state);
         };
         samples.push_back(sampler.sample_state(init_h, f));
-        if (hill_climbing_timer->is_expired()) {
+        if (hill_climbing_timer.is_expired()) {
             throw HillClimbingTimeout();
         }
     }
@@ -209,6 +209,7 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
 
 std::pair<int, int>
 PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
+    utils::CountdownTimer& hill_climbing_timer,
     const std::vector<GlobalState> &samples,
     const std::vector<value_t> &samples_h_values,
     ExpCostPDBCollection &candidate_pdbs)
@@ -225,7 +226,7 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
 
     // Iterate over all candidates and search for the best improving pattern/pdb
     for (size_t i = 0; i < candidate_pdbs.size(); ++i) {
-        if (hill_climbing_timer->is_expired())
+        if (hill_climbing_timer.is_expired())
             throw HillClimbingTimeout();
 
         const std::shared_ptr<ExpCostProjection> &pdb = candidate_pdbs[i];
@@ -330,8 +331,7 @@ bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
 }
 
 void PatternCollectionGeneratorHillclimbing::hill_climbing() {
-    utils::CountdownTimer timer(max_time);
-    hill_climbing_timer = &timer;
+    utils::CountdownTimer hill_climbing_timer(max_time);
 
     const PatternCollection relevant_neighbours =
         compute_relevant_neighbours();
@@ -391,13 +391,14 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
 
             samples.clear();
             samples_h_values.clear();
-            sample_states(sampler, init_h, samples);
+            sample_states(hill_climbing_timer, sampler, init_h, samples);
             for (const GlobalState &sample : samples) {
                 samples_h_values.push_back(current_pdbs->get_value(sample));
             }
 
             const auto [improvement, best_pdb_index] =
-                find_best_improving_pdb(samples, samples_h_values, candidate_pdbs);
+                find_best_improving_pdb(
+                    hill_climbing_timer, samples, samples_h_values, candidate_pdbs);
 
             if (improvement < min_improvement) {
                 if (verbosity >= Verbosity::VERBOSE) {
@@ -436,7 +437,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
             if (verbosity >= Verbosity::VERBOSE) {
                 std::cout
                     << "Hill climbing time so far: "
-                    << hill_climbing_timer->get_elapsed_time()
+                    << hill_climbing_timer.get_elapsed_time()
                     << std::endl;
             }
         }
@@ -451,13 +452,11 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
         generated_patterns.size(),
         num_rejected,
         max_pdb_size,
-        hill_climbing_timer->get_elapsed_time()));
+        hill_climbing_timer.get_elapsed_time()));
 
     if (verbosity >= Verbosity::NORMAL) {
         statistics_->print(std::cout);
     }
-
-    hill_climbing_timer = nullptr;
 }
 
 PatternCollectionInformation
