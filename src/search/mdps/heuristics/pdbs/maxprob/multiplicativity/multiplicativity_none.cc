@@ -30,7 +30,8 @@ static std::shared_ptr<MultiplicativityNone> _parse(OptionParser& parser)
     return std::make_shared<MultiplicativityNone>();
 }
 
-static Plugin<MultiplicativityStrategy> _plugin("none", _parse);
+static Plugin<MultiplicativityStrategy>
+    _plugin("multiplicativity_none", _parse);
 
 } // namespace multiplicativity
 } // namespace maxprob

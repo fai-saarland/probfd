@@ -40,22 +40,12 @@ PatternCollectionGeneratorDeterministic::generate(OperatorCost cost_type)
         new MaxProbPDBCollection());
 
     std::shared_ptr patterns = det_info.move_patterns();
-    std::shared_ptr pdbs = det_info.move_pdbs();
     std::shared_ptr cliques = det_info.move_pattern_cliques();
 
     assert(patterns);
 
-    for (size_t i = 0; i != patterns->size(); ++i) {
-        const Pattern& pattern = (*patterns)[i];
-
-        if (pdbs) {
-            shared_ptr pdb = (*pdbs)[i];
-            assert(pdb);
-            maxprob_pdbs->emplace_back(
-                new MaxProbProjection(pdb->get_pattern()));
-        } else {
-            maxprob_pdbs->emplace_back(new MaxProbProjection(pattern));
-        }
+    for (const Pattern& pattern : *patterns) {
+        maxprob_pdbs->emplace_back(new MaxProbProjection(pattern));
     }
 
     PatternCollectionInformation info(patterns, multiplicativity);
@@ -92,7 +82,7 @@ static shared_ptr<PatternCollectionGenerator> _parse(OptionParser& parser)
         std::shared_ptr<multiplicativity::MultiplicativityStrategy>>(
         "multiplicativity_strategy",
         "The multiplicativity strategy.",
-        "max_orthogonality");
+        "multiplicativity_orthogonality");
 
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
@@ -100,7 +90,7 @@ static shared_ptr<PatternCollectionGenerator> _parse(OptionParser& parser)
     return make_shared<PatternCollectionGeneratorDeterministic>(opts);
 }
 
-static Plugin<PatternCollectionGenerator> _plugin("det_adapter", _parse);
+static Plugin<PatternCollectionGenerator> _plugin("det_adapter_mp", _parse);
 
 } // namespace pattern_selection
 } // namespace maxprob

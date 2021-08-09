@@ -35,7 +35,8 @@ _parse(OptionParser& parser)
     return std::make_shared<MultiplicativityMaxOrthogonality>();
 }
 
-static Plugin<MultiplicativityStrategy> _plugin("max_orthogonality", _parse);
+static Plugin<MultiplicativityStrategy>
+    _plugin("multiplicativity_orthogonality", _parse);
 
 } // namespace multiplicativity
 } // namespace maxprob

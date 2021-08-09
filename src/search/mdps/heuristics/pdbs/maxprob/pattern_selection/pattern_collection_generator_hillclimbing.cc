@@ -511,7 +511,7 @@ void add_hillclimbing_options(OptionParser& parser)
     parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "initial_generator",
         "generator for the initial pattern database ",
-        "det_adapter(generator=systematic(pattern_max_size=1))");
+        "det_adapter_mp(generator=systematic(pattern_max_size=1))");
     parser.add_option<int>(
         "pdb_max_size",
         "maximal number of states per pattern database ",
@@ -568,7 +568,7 @@ static std::shared_ptr<PatternCollectionGenerator> _parse(OptionParser& parser)
     return std::make_shared<PatternCollectionGeneratorHillclimbing>(opts);
 }
 
-static Plugin<PatternCollectionGenerator> _plugin("hillclimbing_ec", _parse);
+static Plugin<PatternCollectionGenerator> _plugin("hillclimbing_mp", _parse);
 
 } // namespace pattern_selection
 } // namespace expected_cost
