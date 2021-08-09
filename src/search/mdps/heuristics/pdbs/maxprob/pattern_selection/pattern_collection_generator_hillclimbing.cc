@@ -118,7 +118,7 @@ static std::vector<std::vector<int>> compute_relevant_neighbours()
 void PatternCollectionGeneratorHillclimbing::Statistics::print(
     std::ostream& out) const
 {
-    out << "\nExpected Cost Hill Climbing Generator Statistics:"
+    out << "\nMaxProb Hill Climbing Generator Statistics:"
         << "\n  Iterations: " << num_iterations
         << "\n  Generated patterns: " << generated_patterns
         << "\n  Rejected patterns: " << rejected_patterns
