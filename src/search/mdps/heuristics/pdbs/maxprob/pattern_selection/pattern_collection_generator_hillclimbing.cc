@@ -177,7 +177,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                       surpass the size limit.
                     */
                     auto& new_pdb = candidate_pdbs.emplace_back(
-                        new MaxProbProjection(new_pattern));
+                        new MaxProbProjection(pdb, rel_var_id));
                     generated_patterns.insert(new_pattern);
                     max_pdb_size =
                         std::max(max_pdb_size, (int)new_pdb->num_states());

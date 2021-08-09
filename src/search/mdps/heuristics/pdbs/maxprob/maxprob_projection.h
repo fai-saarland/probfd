@@ -37,7 +37,7 @@ public:
         const Pattern& pattern,
         const std::vector<int>& domains = ::g_variable_domain,
         const AbstractStateEvaluator& heuristic =
-            ConstantEvaluator<AbstractState>(value_type::zero),
+            ConstantEvaluator<AbstractState>(value_type::one),
         bool precompute_dead_ends = false);
 
     MaxProbProjection(
@@ -63,6 +63,10 @@ public:
         bool values = true);
 
 private:
+    void initialize(
+        const AbstractStateEvaluator& heuristic,
+        bool precompute_dead_ends);
+
     void prepare_regression();
     void precompute_dead_ends();
 

@@ -150,16 +150,18 @@ public:
 
 private:
     template <typename BoolStoreT>
-    struct DeadEndPruner : public StateEvaluator<State> {
-        DeadEndPruner(
+    struct HeuristicWrapper : public StateEvaluator<State> {
+        HeuristicWrapper(
             StateIDMap<State>* state_id_map,
             BoolStoreT& dead_ends,
             value_type::value_t lb,
-            value_type::value_t ub)
+            value_type::value_t ub,
+            const StateEvaluator<State>* fallback)
             : state_id_map_(state_id_map)
             , dead_ends_(dead_ends)
             , lb(lb)
             , ub(ub)
+            , fallback(fallback)
         {
         }
 
@@ -171,6 +173,10 @@ private:
                 return EvaluationResult(true, lb);
             }
 
+            if (fallback) {
+                return fallback->operator()(s);
+            }
+
             return EvaluationResult(false, ub);
         }
 
@@ -178,6 +184,7 @@ private:
         BoolStoreT& dead_ends_;
         value_type::value_t lb;
         value_type::value_t ub;
+        const StateEvaluator<State>* fallback;
     };
 
     template <typename ValueStoreT, typename BoolStoreT>
@@ -212,7 +219,8 @@ private:
         quotient_system::DefaultQuotientActionRewardFunction<Action>
             q_action_reward(sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
-        DeadEndPruner prune(this->get_state_id_map(), dead_ends, lb_, ub_);
+        HeuristicWrapper
+            heuristic(this->get_state_id_map(), dead_ends, lb_, ub_, prune_);
 
         ValueIteration<BoolStoreT> vi(
             this->get_state_id_map(),
@@ -223,7 +231,7 @@ private:
             ub_,
             &q_aops_gen,
             &q_transition_gen,
-            &prune,
+            &heuristic,
             extract_probability_one_states_ ? &one_states : nullptr);
 
         value_type::value_t result = vi.solve(state, value_store);

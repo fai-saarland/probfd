@@ -46,11 +46,12 @@ ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
 }
 
 ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)
-    : ExpCostProjection(
+    : ProbabilisticProjection(
           insert(pdb.get_pattern(), add_var),
-          ::g_variable_domain,
-          ExpCostPDBEvaluator(pdb, state_mapper_.get(), add_var))
+          ::g_variable_domain)
+    , value_table(state_mapper_->size(), -value_type::inf)
 {
+    compute_value_table(ExpCostPDBEvaluator(pdb, state_mapper_.get(), add_var));
 }
 
 value_type::value_t ExpCostProjection::lookup(const GlobalState& s) const

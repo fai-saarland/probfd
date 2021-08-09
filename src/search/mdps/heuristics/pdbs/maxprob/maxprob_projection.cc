@@ -25,6 +25,7 @@ static std::vector<int> insert(std::vector<int> pattern, int add_var)
     return pattern;
 }
 
+namespace {
 class WrapperHeuristic : public AbstractStateEvaluator {
     const QualitativeResultStore* dead_ends;
     const AbstractStateEvaluator& parent;
@@ -47,6 +48,7 @@ public:
         return parent(state);
     }
 };
+} // namespace
 
 MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
@@ -56,26 +58,35 @@ MaxProbProjection::MaxProbProjection(
     : ProbabilisticProjection(pattern, domains)
     , value_table(state_mapper_->size())
 {
-    if (precompute_dead_ends) {
-        this->precompute_dead_ends();
-        if (!is_dead_end(initial_state_)) {
-            compute_value_table(WrapperHeuristic(&dead_ends, heuristic), false);
-        }
-    } else {
-        compute_value_table(WrapperHeuristic(nullptr, heuristic), true);
-    }
+    initialize(heuristic, precompute_dead_ends);
 }
 
 MaxProbProjection::MaxProbProjection(
     const MaxProbProjection& pdb,
     int add_var,
     bool precompute_dead_ends)
-    : MaxProbProjection(
+    : ProbabilisticProjection(
           insert(pdb.get_pattern(), add_var),
-          ::g_variable_domain,
-          MaxProbPDBEvaluator(pdb, state_mapper_.get(), add_var),
-          precompute_dead_ends)
+          ::g_variable_domain)
+    , value_table(state_mapper_->size())
 {
+    initialize(
+        MaxProbPDBEvaluator(pdb, state_mapper_.get(), add_var),
+        precompute_dead_ends);
+}
+
+void MaxProbProjection::initialize(
+    const AbstractStateEvaluator& heuristic,
+    bool precompute_dead_ends)
+{
+    if (precompute_dead_ends) {
+        this->precompute_dead_ends();
+        if (!is_dead_end(initial_state_)) {
+            compute_value_table(WrapperHeuristic(&dead_ends, heuristic), false);
+        }
+    } else {
+        compute_value_table(heuristic, true);
+    }
 }
 
 void MaxProbProjection::prepare_regression()
