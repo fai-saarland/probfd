@@ -125,6 +125,10 @@ namespace expected_cost {
 class ExpCostProjection;
 }
 
+namespace maxprob {
+class MaxProbProjection;
+}
+
 class AbstractStateDeadendStoreEvaluator : public AbstractStateEvaluator {
 public:
     explicit AbstractStateDeadendStoreEvaluator(
@@ -133,7 +137,7 @@ public:
         value_type::value_t value_not_in);
 
 protected:
-    EvaluationResult evaluate(const AbstractState& state) override;
+    EvaluationResult evaluate(const AbstractState& state) const override;
 
 private:
     const QualitativeResultStore* states_;
@@ -178,18 +182,29 @@ public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
 protected:
-    EvaluationResult evaluate(const AbstractState& state) override;
+    EvaluationResult evaluate(const AbstractState& state) const override;
 
 private:
     const ::pdbs::PatternDatabase& pdb;
 };
 
-class ExpCostPDBEvaluator : public AbstractStateEvaluator {
-    const expected_cost::ExpCostProjection& pdb;
+class IncrementalPDBEvaluator : public AbstractStateEvaluator {
     const AbstractStateMapper* mapper;
     int left_multiplier;
     int right_multiplier;
     int domain_size;
+
+public:
+    explicit IncrementalPDBEvaluator(
+        const AbstractStateMapper* mapper,
+        int add_var);
+
+protected:
+    AbstractState to_parent_state(AbstractState state) const;
+};
+
+class ExpCostPDBEvaluator : public IncrementalPDBEvaluator {
+    const expected_cost::ExpCostProjection& pdb;
 
 public:
     explicit ExpCostPDBEvaluator(
@@ -198,10 +213,20 @@ public:
         int add_var);
 
 protected:
-    EvaluationResult evaluate(const AbstractState& state) override;
+    EvaluationResult evaluate(const AbstractState& state) const override;
+};
 
-private:
-    AbstractState to_parent_state(AbstractState state);
+class MaxProbPDBEvaluator : public IncrementalPDBEvaluator {
+    const maxprob::MaxProbProjection& pdb;
+
+public:
+    explicit MaxProbPDBEvaluator(
+        const maxprob::MaxProbProjection& pdb,
+        const AbstractStateMapper* mapper,
+        int add_var);
+
+protected:
+    EvaluationResult evaluate(const AbstractState& state) const override;
 };
 
 class ZeroCostActionEvaluator : public AbstractOperatorRewardFunction {

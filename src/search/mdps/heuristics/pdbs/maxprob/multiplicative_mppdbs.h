@@ -26,7 +26,7 @@ public:
         std::shared_ptr<MaxProbPDBCollection> database_,
         std::shared_ptr<std::vector<PatternClique>> multiplicative_patterns_);
 
-    EvaluationResult evaluate(const GlobalState& state);
+    EvaluationResult evaluate(const GlobalState& state) const;
 };
 
 } // namespace maxprob

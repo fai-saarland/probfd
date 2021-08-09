@@ -73,7 +73,7 @@ public:
         value_type::value_t maximal_reward,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        StateEvaluator<State>* prune,
+        const StateEvaluator<State>* prune,
         bool extract_probability_one_states)
         : MDPEngine<State, Action>(
               state_id_map,
@@ -163,7 +163,7 @@ private:
         {
         }
 
-        EvaluationResult evaluate(const State& s) override
+        EvaluationResult evaluate(const State& s) const override
         {
             const StateID id = state_id_map_->get_state_id(s);
 
@@ -233,7 +233,7 @@ private:
 
     const value_type::value_t lb_;
     const value_type::value_t ub_;
-    StateEvaluator<State>* prune_;
+    const StateEvaluator<State>* prune_;
     const bool extract_probability_one_states_;
     const value_type::value_t probability_one_state_reward_;
 

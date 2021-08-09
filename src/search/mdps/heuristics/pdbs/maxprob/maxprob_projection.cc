@@ -4,7 +4,6 @@
 #include "../../../../successor_generator.h"
 #include "../../../analysis_objectives/goal_probability_objective.h"
 #include "../../../engines/interval_iteration.h"
-#include "../../../globals.h"
 #include "../../../logging.h"
 #include "../../../utils/graph_visualization.h"
 
@@ -18,16 +17,41 @@ namespace probabilistic {
 namespace pdbs {
 namespace maxprob {
 
-MaxProbProjection::MaxProbProjection(
-    const Pattern& pattern,
-    bool precompute_dead_ends)
-    : MaxProbProjection(pattern, g_variable_domain, precompute_dead_ends)
+static std::vector<int> insert(std::vector<int> pattern, int add_var)
 {
+    assert(!utils::contains(pattern, add_var));
+    auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
+    pattern.insert(it, add_var);
+    return pattern;
 }
+
+class WrapperHeuristic : public AbstractStateEvaluator {
+    const QualitativeResultStore* dead_ends;
+    const AbstractStateEvaluator& parent;
+
+public:
+    WrapperHeuristic(
+        const QualitativeResultStore* dead_ends,
+        const AbstractStateEvaluator& parent)
+        : dead_ends(dead_ends)
+        , parent(parent)
+    {
+    }
+
+    virtual EvaluationResult evaluate(const AbstractState& state) const
+    {
+        if (dead_ends && dead_ends->operator[](state)) {
+            return EvaluationResult{false, value_type::zero};
+        }
+
+        return parent(state);
+    }
+};
 
 MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
     const std::vector<int>& domains,
+    const AbstractStateEvaluator& heuristic,
     bool precompute_dead_ends)
     : ProbabilisticProjection(pattern, domains)
     , value_table(state_mapper_->size())
@@ -35,11 +59,23 @@ MaxProbProjection::MaxProbProjection(
     if (precompute_dead_ends) {
         this->precompute_dead_ends();
         if (!is_dead_end(initial_state_)) {
-            compute_value_table(true);
+            compute_value_table(WrapperHeuristic(&dead_ends, heuristic), false);
         }
     } else {
-        compute_value_table(false);
+        compute_value_table(WrapperHeuristic(nullptr, heuristic), true);
     }
+}
+
+MaxProbProjection::MaxProbProjection(
+    const MaxProbProjection& pdb,
+    int add_var,
+    bool precompute_dead_ends)
+    : MaxProbProjection(
+          insert(pdb.get_pattern(), add_var),
+          ::g_variable_domain,
+          MaxProbPDBEvaluator(pdb, state_mapper_.get(), add_var),
+          precompute_dead_ends)
+{
 }
 
 void MaxProbProjection::prepare_regression()
@@ -160,7 +196,9 @@ void MaxProbProjection::precompute_dead_ends()
      */
 }
 
-void MaxProbProjection::compute_value_table(bool precomputed_dead_ends)
+void MaxProbProjection::compute_value_table(
+    const AbstractStateEvaluator& heuristic,
+    bool store_dead_ends)
 {
     using namespace engines::interval_iteration;
 
@@ -182,15 +220,6 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends)
         state_mapper_,
         progression_aops_generator_);
 
-    std::unique_ptr<AbstractStateEvaluator> heuristic = nullptr;
-    if (precomputed_dead_ends) {
-        heuristic = std::unique_ptr<AbstractStateEvaluator>(
-            new AbstractStateDeadendStoreEvaluator(
-                &dead_ends,
-                value_type::zero,
-                value_type::zero));
-    }
-
     engines::interval_iteration::
         IntervalIteration<AbstractState, const AbstractOperator*, true>
             vi(&state_id_map,
@@ -201,7 +230,7 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends)
                value_type::one,
                &aops_gen,
                &transition_gen,
-               heuristic.get(),
+               &heuristic,
                true);
 
     // states that cannot reach goal
@@ -234,7 +263,7 @@ void MaxProbProjection::compute_value_table(bool precomputed_dead_ends)
         const AbstractState s(*it);
         if (deads[s.id]) {
             ++n_dead_ends;
-            if (!precomputed_dead_ends) {
+            if (!store_dead_ends) {
                 dead_ends.set(s, true);
             }
         } else if (ones[s.id]) {
@@ -354,7 +383,7 @@ void MaxProbProjection::dump_graphviz(
         transition_labels ? &op_to_string : nullptr;
 
     if (values) {
-        StateToString state_to_string(
+        StateToString sts(
             all_one,
             deterministic,
             &value_table,
@@ -364,47 +393,19 @@ void MaxProbProjection::dump_graphviz(
             value_type::one,
             state_mapper_);
 
-        dump_graphviz(path, &state_to_string, op_to_string_ptr);
+        ProbabilisticProjection::dump_graphviz(
+            path,
+            &sts,
+            op_to_string_ptr,
+            value_type::one);
     } else {
-        AbstractStateToString state_to_string(state_mapper_);
-        dump_graphviz(path, &state_to_string, op_to_string_ptr);
+        AbstractStateToString sts(state_mapper_);
+        ProbabilisticProjection::dump_graphviz(
+            path,
+            &sts,
+            op_to_string_ptr,
+            value_type::one);
     }
-}
-
-template <typename StateToString, typename ActionToString>
-void MaxProbProjection::dump_graphviz(
-    const std::string& path,
-    const StateToString* sts,
-    const ActionToString* ats)
-{
-    AbstractStateInSetRewardFunction state_reward(
-        &goal_states_,
-        value_type::one,
-        value_type::zero);
-
-    StateIDMap<AbstractState> state_id_map;
-
-    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map,
-        state_mapper_,
-        progression_aops_generator_);
-    TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_id_map,
-        state_mapper_,
-        progression_aops_generator_);
-
-    std::ofstream out(path);
-
-    graphviz::dump(
-        out,
-        initial_state_,
-        &state_id_map,
-        &state_reward,
-        &aops_gen,
-        &transition_gen,
-        sts,
-        ats,
-        true);
 }
 
 } // namespace maxprob

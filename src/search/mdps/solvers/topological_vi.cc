@@ -6,6 +6,7 @@
 
 #include "../analysis_objectives/analysis_objective.h"
 #include "../globals.h"
+#include "../heuristics/constant_evaluator.h"
 
 namespace probabilistic {
 namespace solvers {
@@ -20,7 +21,7 @@ get_evaluator(const options::Options& opts)
         return opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval");
     }
 
-    return std::make_shared<ConstantValueInitializer<GlobalState>>(
+    return std::make_shared<ConstantEvaluator<GlobalState>>(
         g_analysis_objective->max());
 }
 

@@ -194,7 +194,8 @@ void ExpectedCostPDBHeuristic::add_options_to_parser(
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
-EvaluationResult ExpectedCostPDBHeuristic::evaluate(const GlobalState& state)
+EvaluationResult
+ExpectedCostPDBHeuristic::evaluate(const GlobalState& state) const
 {
     return additive_ecpds.evaluate(state);
 }

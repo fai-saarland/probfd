@@ -191,7 +191,7 @@ void MaxProbPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
-EvaluationResult MaxProbPDBHeuristic::evaluate(const GlobalState& state)
+EvaluationResult MaxProbPDBHeuristic::evaluate(const GlobalState& state) const
 {
     return multiplicative_mppdbs.evaluate(state);
 }

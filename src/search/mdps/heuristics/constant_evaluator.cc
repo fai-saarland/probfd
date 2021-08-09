@@ -9,16 +9,6 @@
 
 namespace probabilistic {
 
-ConstantEvaluator::ConstantEvaluator(value_type::value_t value)
-    : value_(value)
-{
-}
-
-EvaluationResult ConstantEvaluator::evaluate(const GlobalState&)
-{
-    return EvaluationResult(false, value_);
-}
-
 static std::shared_ptr<GlobalStateEvaluator>
 _parse(options::OptionParser& parser)
 {
@@ -28,10 +18,11 @@ _parse(options::OptionParser& parser)
         return nullptr;
     }
     if (opts.contains("value")) {
-        return std::make_shared<ConstantEvaluator>(
+        return std::make_shared<ConstantEvaluator<GlobalState>>(
             value_type::from_double(opts.get<double>("value")));
     } else {
-        return std::make_shared<ConstantEvaluator>(g_analysis_objective->max());
+        return std::make_shared<ConstantEvaluator<GlobalState>>(
+            g_analysis_objective->max());
     }
 }
 

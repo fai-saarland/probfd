@@ -9,6 +9,7 @@
 #include "../engines/interval_iteration.h"
 #include "../engines/topological_value_iteration.h"
 #include "../globals.h"
+#include "../heuristics/constant_evaluator.h"
 #include "../logging.h"
 
 #include <iomanip>
@@ -102,7 +103,7 @@ public:
                 nullptr,
                 false);
         } else {
-            ConstantValueInitializer<bisimulation::QuotientState> initializer(
+            ConstantEvaluator<bisimulation::QuotientState> initializer(
                 value_type::zero);
             solver = new engines::topological_vi::TopologicalValueIteration<
                 bisimulation::QuotientState,

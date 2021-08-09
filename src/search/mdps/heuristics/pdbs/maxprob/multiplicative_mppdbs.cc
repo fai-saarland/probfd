@@ -18,7 +18,8 @@ MultiplicativeMaxProbPDBs::MultiplicativeMaxProbPDBs(
 {
 }
 
-EvaluationResult MultiplicativeMaxProbPDBs::evaluate(const GlobalState& state)
+EvaluationResult
+MultiplicativeMaxProbPDBs::evaluate(const GlobalState& state) const
 {
     value_type::value_t result = g_analysis_objective->max();
 

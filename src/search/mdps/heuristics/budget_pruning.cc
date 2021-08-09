@@ -71,7 +71,8 @@ void BudgetPruningHeuristic::add_options_to_parser(
     parser.add_option<bool>("cache_estimates", "", "true");
 }
 
-EvaluationResult BudgetPruningHeuristic::evaluate(const GlobalState& state)
+EvaluationResult
+BudgetPruningHeuristic::evaluate(const GlobalState& state) const
 {
     int est = 0;
     if (cache_estimates_) {

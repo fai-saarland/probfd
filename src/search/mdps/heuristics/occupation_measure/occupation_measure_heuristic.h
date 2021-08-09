@@ -44,9 +44,9 @@ public:
         std::vector<int>& offsets);
 
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) override;
+    virtual EvaluationResult evaluate(const GlobalState& state) const override;
 
-    lp::LPSolver lp_solver_;
+    mutable lp::LPSolver lp_solver_;
     std::vector<int> offset_;
 };
 

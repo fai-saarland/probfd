@@ -18,7 +18,8 @@ AdditiveExpectedCostPDBs::AdditiveExpectedCostPDBs(
 {
 }
 
-EvaluationResult AdditiveExpectedCostPDBs::evaluate(const GlobalState& state)
+EvaluationResult
+AdditiveExpectedCostPDBs::evaluate(const GlobalState& state) const
 {
     value_type::value_t result = g_analysis_objective->max();
 

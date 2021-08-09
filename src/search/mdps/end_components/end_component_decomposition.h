@@ -294,7 +294,7 @@ public:
     using Stack1 = internal::Stack1;
 
     EndComponentDecomposition(
-        StateEvaluator<State>* pruning_function,
+        const StateEvaluator<State>* pruning_function,
         ActionIDMap<Action>* action_id_map,
         StateIDMap<State>* state_id_map,
         StateRewardFunction<State>* goal,
@@ -1007,7 +1007,7 @@ private:
 
     ActionIDMap<Action>* action_id_map_;
     StateIDMap<State>* state_id_map_;
-    StateEvaluator<State>* pruning_function_;
+    const StateEvaluator<State>* pruning_function_;
     StateRewardFunction<State>* goal_;
     ApplicableActionsGenerator<Action>* aops_gen_;
     TransitionGenerator<Action>* transition_gen_;

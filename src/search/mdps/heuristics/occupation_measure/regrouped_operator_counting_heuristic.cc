@@ -91,7 +91,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 }
 
 EvaluationResult
-RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state)
+RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
 {
     using namespace analysis_objectives;
 

@@ -52,7 +52,7 @@ public:
     virtual void print_statistics() const override;
 
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) override;
+    virtual EvaluationResult evaluate(const GlobalState& state) const override;
 
     const value_type::value_t default_value_;
     const value_type::value_t dead_end_value_;

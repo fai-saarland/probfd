@@ -26,7 +26,7 @@ public:
         std::shared_ptr<ExpCostPDBCollection> database_,
         std::shared_ptr<std::vector<PatternClique>> additive_patterns_);
 
-    EvaluationResult evaluate(const GlobalState& state);
+    EvaluationResult evaluate(const GlobalState& state) const;
 };
 
 } // namespace expected_cost

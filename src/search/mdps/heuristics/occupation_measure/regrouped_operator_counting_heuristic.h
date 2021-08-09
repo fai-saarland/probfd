@@ -32,9 +32,9 @@ public:
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) override;
+    virtual EvaluationResult evaluate(const GlobalState& state) const override;
 
-    lp::LPSolver lp_solver_;
+    mutable lp::LPSolver lp_solver_;
     std::vector<int> constraint_offsets_;
 
 private:

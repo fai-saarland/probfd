@@ -103,7 +103,7 @@ public:
         value_type::value_t maximal_reward,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        StateEvaluator<State>* value_initializer,
+        const StateEvaluator<State>* value_initializer,
         OneStates* one_states = static_cast<OneStates*>(nullptr))
         : MDPEngine<State, Action>(
               state_id_map,
@@ -723,7 +723,7 @@ private:
         return num_updates;
     }
 
-    StateEvaluator<State>* value_initializer_;
+    const StateEvaluator<State>* value_initializer_;
 
     OneStates* one_states_;
 

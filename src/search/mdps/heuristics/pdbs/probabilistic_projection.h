@@ -77,6 +77,44 @@ public:
 
     unsigned int num_reachable_states() const;
 
+protected:
+    template <typename StateToString, typename ActionToString>
+    void dump_graphviz(
+        const std::string& path,
+        const StateToString* sts,
+        const ActionToString* ats,
+        value_type::value_t goal_value) const
+    {
+        AbstractStateInSetRewardFunction state_reward(
+            &goal_states_,
+            goal_value,
+            value_type::zero);
+
+        StateIDMap<AbstractState> state_id_map;
+
+        ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
+            state_id_map,
+            state_mapper_,
+            progression_aops_generator_);
+        TransitionGenerator<const AbstractOperator*> transition_gen(
+            state_id_map,
+            state_mapper_,
+            progression_aops_generator_);
+
+        std::ofstream out(path);
+
+        graphviz::dump(
+            out,
+            initial_state_,
+            &state_id_map,
+            &state_reward,
+            &aops_gen,
+            &transition_gen,
+            sts,
+            ats,
+            true);
+    }
+
 private:
     void setup_abstract_goal();
     void prepare_progression();

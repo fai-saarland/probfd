@@ -22,7 +22,7 @@ DeterminizationCostHeuristic::DeterminizationCostHeuristic(
 DeterminizationCostHeuristic::~DeterminizationCostHeuristic() = default;
 
 EvaluationResult
-DeterminizationCostHeuristic::evaluate(const GlobalState& state)
+DeterminizationCostHeuristic::evaluate(const GlobalState& state) const
 {
     heuristic_->evaluate(state);
 

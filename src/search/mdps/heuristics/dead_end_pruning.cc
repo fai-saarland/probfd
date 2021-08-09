@@ -35,7 +35,8 @@ void DeadEndPruningHeuristic::add_options_to_parser(
     parser.add_option<bool>("pessimistic", "", "false");
 }
 
-EvaluationResult DeadEndPruningHeuristic::evaluate(const GlobalState& state)
+EvaluationResult
+DeadEndPruningHeuristic::evaluate(const GlobalState& state) const
 {
     pruning_function_->evaluate(state);
     if (pruning_function_->is_dead_end()) {

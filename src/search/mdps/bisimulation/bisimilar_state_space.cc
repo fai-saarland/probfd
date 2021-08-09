@@ -538,8 +538,8 @@ DefaultQuotientStateEvaluator::DefaultQuotientStateEvaluator(
 {
 }
 
-EvaluationResult
-DefaultQuotientStateEvaluator::evaluate(const bisimulation::QuotientState& s)
+EvaluationResult DefaultQuotientStateEvaluator::evaluate(
+    const bisimulation::QuotientState& s) const
 {
     if (bisim_->is_dead_end(s)) {
         return EvaluationResult(true, min_);

@@ -372,7 +372,7 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
 }
 
 EvaluationResult
-ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state)
+ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state) const
 {
     using namespace analysis_objectives;
 

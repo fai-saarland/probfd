@@ -27,32 +27,10 @@ static std::vector<int> insert(std::vector<int> pattern, int add_var)
     return pattern;
 }
 
-ExpCostProjection::ExpCostProjection(const Pattern& variables)
-    : ExpCostProjection(variables, ::g_variable_domain)
-{
-}
-
-ExpCostProjection::ExpCostProjection(
-    const Pattern& variables,
-    const std::vector<int>& domains)
-    : ProbabilisticProjection(variables, domains)
-    , value_table(state_mapper_->size(), -value_type::inf)
-{
-    ConstantValueInitializer<AbstractState> initializer(value_type::zero);
-    compute_value_table(&initializer);
-}
-
-ExpCostProjection::ExpCostProjection(
-    const Pattern& variables,
-    AbstractStateEvaluator* heuristic)
-    : ExpCostProjection(variables, ::g_variable_domain, heuristic)
-{
-}
-
 ExpCostProjection::ExpCostProjection(
     const Pattern& variables,
     const std::vector<int>& domains,
-    AbstractStateEvaluator* heuristic)
+    const AbstractStateEvaluator& heuristic)
     : ProbabilisticProjection(variables, domains)
     , value_table(state_mapper_->size(), -value_type::inf)
 {
@@ -60,21 +38,19 @@ ExpCostProjection::ExpCostProjection(
 }
 
 ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
-    : ProbabilisticProjection(pdb.get_pattern(), ::g_variable_domain)
-    , value_table(state_mapper_->size(), -value_type::inf)
+    : ExpCostProjection(
+          pdb.get_pattern(),
+          ::g_variable_domain,
+          PDBEvaluator(pdb))
 {
-    PDBEvaluator heuristic(pdb);
-    compute_value_table(&heuristic);
 }
 
 ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)
-    : ProbabilisticProjection(
+    : ExpCostProjection(
           insert(pdb.get_pattern(), add_var),
-          ::g_variable_domain)
-    , value_table(state_mapper_->size(), -value_type::inf)
+          ::g_variable_domain,
+          ExpCostPDBEvaluator(pdb, state_mapper_.get(), add_var))
 {
-    ExpCostPDBEvaluator heuristic(pdb, state_mapper_.get(), add_var);
-    compute_value_table(&heuristic);
 }
 
 value_type::value_t ExpCostProjection::lookup(const GlobalState& s) const
@@ -121,17 +97,24 @@ void ExpCostProjection::dump_graphviz(
 
     if (values) {
         StateToString sts(&value_table, state_mapper_);
-        dump_graphviz(path, &sts, op_to_string_ptr);
+        ProbabilisticProjection::dump_graphviz(
+            path,
+            &sts,
+            op_to_string_ptr,
+            value_type::zero);
     } else {
         AbstractStateToString sts(state_mapper_);
-        dump_graphviz(path, &sts, op_to_string_ptr);
+        ProbabilisticProjection::dump_graphviz(
+            path,
+            &sts,
+            op_to_string_ptr,
+            value_type::zero);
     }
 }
 
-void ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
+void ExpCostProjection::compute_value_table(
+    const AbstractStateEvaluator& heuristic)
 {
-    assert(heuristic);
-
     AbstractStateInSetRewardFunction state_reward(
         &goal_states_,
         value_type::zero,
@@ -160,7 +143,7 @@ void ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
                value_type::zero,
                &aops_gen,
                &transition_gen,
-               heuristic);
+               &heuristic);
 
     vi.solve(initial_state_, value_table);
 
@@ -178,42 +161,6 @@ void ExpCostProjection::compute_value_table(AbstractStateEvaluator* heuristic)
                      << std::endl;
     }
 #endif
-}
-
-template <typename StateToString, typename ActionToString>
-void ExpCostProjection::dump_graphviz(
-    const std::string& path,
-    const StateToString* sts,
-    const ActionToString* ats) const
-{
-    AbstractStateInSetRewardFunction state_reward(
-        &goal_states_,
-        value_type::zero,
-        value_type::zero);
-
-    StateIDMap<AbstractState> state_id_map;
-
-    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map,
-        state_mapper_,
-        progression_aops_generator_);
-    TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_id_map,
-        state_mapper_,
-        progression_aops_generator_);
-
-    std::ofstream out(path);
-
-    graphviz::dump(
-        out,
-        initial_state_,
-        &state_id_map,
-        &state_reward,
-        &aops_gen,
-        &transition_gen,
-        sts,
-        ats,
-        true);
 }
 
 } // namespace expected_cost

@@ -1,6 +1,9 @@
 #pragma once
 
+#include "../../../globals.h"
 #include "../../../value_utils.h"
+
+#include "../../constant_evaluator.h"
 #include "../probabilistic_projection.h"
 
 namespace successor_generator {
@@ -32,15 +35,15 @@ class MaxProbProjection : public pdbs::ProbabilisticProjection {
 public:
     MaxProbProjection(
         const Pattern& pattern,
+        const std::vector<int>& domains = ::g_variable_domain,
+        const AbstractStateEvaluator& heuristic =
+            ConstantEvaluator<AbstractState>(value_type::zero),
         bool precompute_dead_ends = false);
 
     MaxProbProjection(
-        const Pattern& pattern,
-        const std::vector<int>& domains,
+        const MaxProbProjection& pdb,
+        int add_var,
         bool precompute_dead_ends = false);
-
-    // TODO
-    // MaxProbProjection(const MaxProbProjection& pdb, int add_var);
 
     unsigned int num_dead_ends() const;
     unsigned int num_one_states() const;
@@ -63,13 +66,9 @@ private:
     void prepare_regression();
     void precompute_dead_ends();
 
-    void compute_value_table(bool precomputed_dead_ends);
-
-    template <typename StateToString, typename ActionToString>
-    void dump_graphviz(
-        const std::string& path,
-        const StateToString* sts,
-        const ActionToString* ats);
+    void compute_value_table(
+        const AbstractStateEvaluator& heuristic,
+        bool store_dead_ends);
 };
 
 } // namespace maxprob

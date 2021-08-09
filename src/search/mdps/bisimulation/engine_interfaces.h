@@ -68,7 +68,7 @@ struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
         value_type::value_t default_value = 0);
 
     EvaluationResult
-    evaluate(const bisimulation::QuotientState& state) override;
+    evaluate(const bisimulation::QuotientState& state) const override;
 
     bisimulation::BisimilarStateSpace* bisim_;
     const value_type::value_t min_;

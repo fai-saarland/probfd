@@ -54,14 +54,14 @@ public:
     };
 
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) override;
+    virtual EvaluationResult evaluate(const GlobalState& state) const override;
 
     const value_type::value_t default_value_;
     const value_type::value_t dead_end_value_;
     std::shared_ptr<Heuristic> pruning_function_;
 
     const bool cache_estimates_;
-    std::unique_ptr<
+    mutable std::unique_ptr<
         std::unordered_map<probabilistic::StateID, int, Hash, Equal>>
         cached_estimates_ = nullptr;
 };

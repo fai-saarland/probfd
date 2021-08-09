@@ -1,7 +1,10 @@
 #pragma once
 
+#include "../../../globals.h"
 #include "../../../value_utils.h"
+#include "../../constant_evaluator.h"
 #include "../probabilistic_projection.h"
+
 
 namespace successor_generator {
 template <typename T>
@@ -20,20 +23,11 @@ class ExpCostProjection : public pdbs::ProbabilisticProjection {
     std::vector<value_type::value_t> value_table;
 
 public:
-    ExpCostProjection(const Pattern& variables);
-
     ExpCostProjection(
         const Pattern& variables,
-        const std::vector<int>& domains);
-
-    ExpCostProjection(
-        const Pattern& variables,
-        AbstractStateEvaluator* heuristic);
-
-    ExpCostProjection(
-        const Pattern& variables,
-        const std::vector<int>& domains,
-        AbstractStateEvaluator* heuristic);
+        const std::vector<int>& domains = ::g_variable_domain,
+        const AbstractStateEvaluator& heuristic =
+            ConstantEvaluator<AbstractState>(value_type::zero));
 
     ExpCostProjection(const ::pdbs::PatternDatabase& pdb);
 
@@ -48,13 +42,7 @@ public:
         bool values = true) const;
 
 private:
-    void compute_value_table(AbstractStateEvaluator* heuristic = nullptr);
-
-    template <typename StateToString, typename ActionToString>
-    void dump_graphviz(
-        const std::string& path,
-        const StateToString* sts,
-        const ActionToString* ats) const;
+    void compute_value_table(const AbstractStateEvaluator& heuristic);
 };
 
 } // namespace expected_cost

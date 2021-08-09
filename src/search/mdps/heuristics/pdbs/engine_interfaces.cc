@@ -6,6 +6,7 @@
 
 #include "../../../pdbs/pattern_database.h"
 #include "expected_cost/expcost_projection.h"
+#include "maxprob/maxprob_projection.h"
 
 namespace probabilistic {
 
@@ -138,7 +139,7 @@ AbstractStateDeadendStoreEvaluator::AbstractStateDeadendStoreEvaluator(
 }
 
 EvaluationResult
-AbstractStateDeadendStoreEvaluator::evaluate(const AbstractState& state)
+AbstractStateDeadendStoreEvaluator::evaluate(const AbstractState& state) const
 {
     const bool is_contained = states_->get(state);
     return EvaluationResult(
@@ -189,7 +190,7 @@ PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 {
 }
 
-EvaluationResult PDBEvaluator::evaluate(const AbstractState& state)
+EvaluationResult PDBEvaluator::evaluate(const AbstractState& state) const
 {
     int deterministic_val = pdb.get_value_for_index(state.id);
 
@@ -198,12 +199,10 @@ EvaluationResult PDBEvaluator::evaluate(const AbstractState& state)
         static_cast<value_type::value_t>(deterministic_val));
 }
 
-ExpCostPDBEvaluator::ExpCostPDBEvaluator(
-    const expected_cost::ExpCostProjection& pdb,
+IncrementalPDBEvaluator::IncrementalPDBEvaluator(
     const AbstractStateMapper* mapper,
     int add_var)
-    : pdb(pdb)
-    , mapper(mapper)
+    : mapper(mapper)
 {
     const int idx = mapper->get_index(add_var);
 
@@ -212,17 +211,45 @@ ExpCostPDBEvaluator::ExpCostPDBEvaluator(
     this->right_multiplier = mapper->get_multiplier_raw(idx + 1);
 }
 
-EvaluationResult ExpCostPDBEvaluator::evaluate(const AbstractState& state)
+AbstractState
+IncrementalPDBEvaluator::to_parent_state(AbstractState state) const
+{
+    int left = state.id % left_multiplier;
+    int right = state.id - (state.id % right_multiplier);
+    return AbstractState(left + right / domain_size);
+}
+
+ExpCostPDBEvaluator::ExpCostPDBEvaluator(
+    const expected_cost::ExpCostProjection& pdb,
+    const AbstractStateMapper* mapper,
+    int add_var)
+    : IncrementalPDBEvaluator(mapper, add_var)
+    , pdb(pdb)
+{
+}
+
+EvaluationResult ExpCostPDBEvaluator::evaluate(const AbstractState& state) const
 {
     value_type::value_t val = pdb.lookup(to_parent_state(state));
     return EvaluationResult(val == -value_type::inf, val);
 }
 
-AbstractState ExpCostPDBEvaluator::to_parent_state(AbstractState state)
+MaxProbPDBEvaluator::MaxProbPDBEvaluator(
+    const maxprob::MaxProbProjection& pdb,
+    const AbstractStateMapper* mapper,
+    int add_var)
+    : IncrementalPDBEvaluator(mapper, add_var)
+    , pdb(pdb)
 {
-    int left = state.id % left_multiplier;
-    int right = state.id - (state.id % right_multiplier);
-    return AbstractState(left + right / domain_size);
+}
+
+EvaluationResult MaxProbPDBEvaluator::evaluate(const AbstractState& state) const
+{
+    if (pdb.is_dead_end(state)) {
+        return EvaluationResult(true, value_type::zero);
+    }
+
+    return EvaluationResult(false, pdb.lookup(to_parent_state(state)));
 }
 
 value_type::value_t

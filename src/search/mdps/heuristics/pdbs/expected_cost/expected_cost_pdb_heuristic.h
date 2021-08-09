@@ -73,7 +73,7 @@ public:
     void print_statistics() const override;
 
 protected:
-    EvaluationResult evaluate(const GlobalState& state) override;
+    EvaluationResult evaluate(const GlobalState& state) const override;
 
 private:
     AdditiveExpectedCostPDBs get_additive_ecpdbs_from_options(
