@@ -188,6 +188,17 @@ private:
     const ::pdbs::PatternDatabase& pdb;
 };
 
+class DeadendPDBEvaluator : public AbstractStateEvaluator {
+public:
+    explicit DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb);
+
+protected:
+    EvaluationResult evaluate(const AbstractState& state) const override;
+
+private:
+    const ::pdbs::PatternDatabase& pdb;
+};
+
 class IncrementalPDBEvaluator : public AbstractStateEvaluator {
     const AbstractStateMapper* mapper;
     int left_multiplier;

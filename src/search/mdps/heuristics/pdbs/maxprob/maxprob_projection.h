@@ -11,6 +11,10 @@ template <typename T>
 class SuccessorGenerator;
 }
 
+namespace pdbs {
+class PatternDatabase;
+}
+
 namespace probabilistic {
 namespace pdbs {
 namespace maxprob {
@@ -38,6 +42,10 @@ public:
         const std::vector<int>& domains = ::g_variable_domain,
         const AbstractStateEvaluator& heuristic =
             ConstantEvaluator<AbstractState>(value_type::one),
+        bool precompute_dead_ends = false);
+
+    MaxProbProjection(
+        const ::pdbs::PatternDatabase& pdb,
         bool precompute_dead_ends = false);
 
     MaxProbProjection(

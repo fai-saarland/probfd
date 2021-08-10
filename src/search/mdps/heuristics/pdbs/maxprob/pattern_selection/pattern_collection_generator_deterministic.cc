@@ -40,12 +40,21 @@ PatternCollectionGeneratorDeterministic::generate(OperatorCost cost_type)
         new MaxProbPDBCollection());
 
     std::shared_ptr patterns = det_info.move_patterns();
+    std::shared_ptr pdbs = det_info.move_pdbs();
     std::shared_ptr cliques = det_info.move_pattern_cliques();
 
     assert(patterns);
 
-    for (const Pattern& pattern : *patterns) {
-        maxprob_pdbs->emplace_back(new MaxProbProjection(pattern));
+    for (size_t i = 0; i != patterns->size(); ++i) {
+        const Pattern& pattern = (*patterns)[i];
+
+        if (pdbs) {
+            shared_ptr pdb = (*pdbs)[i];
+            assert(pdb);
+            maxprob_pdbs->emplace_back(new MaxProbProjection(*pdb));
+        } else {
+            maxprob_pdbs->emplace_back(new MaxProbProjection(pattern));
+        }
     }
 
     PatternCollectionInformation info(patterns, multiplicativity);

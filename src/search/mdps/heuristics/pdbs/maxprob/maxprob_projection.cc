@@ -7,6 +7,8 @@
 #include "../../../logging.h"
 #include "../../../utils/graph_visualization.h"
 
+#include "../../../../pdbs/pattern_database.h"
+
 #include <deque>
 #include <fstream>
 #include <numeric>
@@ -59,6 +61,17 @@ MaxProbProjection::MaxProbProjection(
     , value_table(state_mapper_->size())
 {
     initialize(heuristic, precompute_dead_ends);
+}
+
+MaxProbProjection::MaxProbProjection(
+    const ::pdbs::PatternDatabase& pdb,
+    bool precompute_dead_ends = false)
+    : MaxProbProjection(
+          pdb.get_pattern(),
+          ::g_variable_domain,
+          DeadendPDBEvaluator(pdb),
+          precompute_dead_ends)
+{
 }
 
 MaxProbProjection::MaxProbProjection(

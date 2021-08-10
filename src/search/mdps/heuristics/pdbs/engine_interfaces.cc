@@ -199,6 +199,20 @@ EvaluationResult PDBEvaluator::evaluate(const AbstractState& state) const
         static_cast<value_type::value_t>(deterministic_val));
 }
 
+DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)
+    : pdb(pdb)
+{
+}
+
+EvaluationResult DeadendPDBEvaluator::evaluate(const AbstractState& state) const
+{
+    bool dead =
+        pdb.get_value_for_index(state.id) == std::numeric_limits<int>::max();
+
+    return dead ? EvaluationResult(true, value_type::zero)
+                : EvaluationResult(false, value_type::one);
+}
+
 IncrementalPDBEvaluator::IncrementalPDBEvaluator(
     const AbstractStateMapper* mapper,
     int add_var)
