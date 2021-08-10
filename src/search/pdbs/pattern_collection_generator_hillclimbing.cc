@@ -117,8 +117,7 @@ print(std::ostream& out) const {
         << "\n  Generated patterns: " << generated_patterns
         << "\n  Rejected patterns: " << rejected_patterns
         << "\n  Maximum candidate PDB size: " << max_pdb_size
-        << "\n  Time: " << hillclimbing_time
-        << std::endl;
+        << "\n  Time: " << hillclimbing_time << "s" << std::endl;
 }
 
 PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(const Options &opts)
