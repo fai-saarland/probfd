@@ -27,7 +27,13 @@ AdditiveExpectedCostPDBs::evaluate(const GlobalState& state) const
         // Get pattern estimates
         std::vector<value_type::value_t> estimates(database_->size());
         for (std::size_t i = 0; i != database_->size(); ++i) {
-            estimates[i] = (*database_)[i]->lookup(state);
+            auto eval_result = (*database_)[i]->evaluate(state);
+
+            if (eval_result) {
+                return eval_result;
+            }
+
+            estimates[i] = static_cast<value_type::value_t>(eval_result);
         }
 
         // Get lowest additive subcollection value
