@@ -187,7 +187,7 @@ void MaxProbPDBHeuristic::add_options_to_parser(options::OptionParser& parser)
     parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "patterns",
         "",
-        "det_adapter(generator=systematic(pattern_max_size=2))");
+        "det_adapter_mp(generator=systematic(pattern_max_size=2))");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
