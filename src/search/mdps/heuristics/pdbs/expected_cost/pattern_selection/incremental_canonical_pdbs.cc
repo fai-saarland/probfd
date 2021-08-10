@@ -95,8 +95,7 @@ IncrementalCanonicalPDBs::get_value(const GlobalState& state) const
 bool IncrementalCanonicalPDBs::is_dead_end(const GlobalState& state) const
 {
     for (const shared_ptr<ExpCostProjection>& pdb : *pattern_databases)
-        if (pdb->lookup(state) == numeric_limits<value_type::value_t>::max())
-            return true;
+        if (pdb->lookup(state) == -value_type::inf) return true;
     return false;
 }
 
