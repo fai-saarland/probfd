@@ -21,15 +21,15 @@ class MaxProbProjection;
 using PatternCollection = ::pdbs::PatternCollection;
 using Pattern = ::pdbs::Pattern;
 using PatternID = ::pdbs::PatternID;
-using PatternClique = ::pdbs::PatternClique;
+using PatternSubCollection = ::pdbs::PatternClique;
 
-// TODO change this to an action 2d matrix type?
-using VariableAdditivity = std::vector<std::vector<bool>>;
+using VariableOrthogonality = std::vector<std::vector<bool>>;
 
-using ExpCostPDBCollection =
-    std::vector<std::shared_ptr<expected_cost::ExpCostProjection>>;
-using MaxProbPDBCollection =
-    std::vector<std::shared_ptr<maxprob::MaxProbProjection>>;
+template <class PDBType>
+using PPDBCollection = std::vector<std::shared_ptr<PDBType>>;
+
+using ExpCostPDBCollection = PPDBCollection<expected_cost::ExpCostProjection>;
+using MaxProbPDBCollection = PPDBCollection<maxprob::MaxProbProjection>;
 
 } // namespace pdbs
 } // namespace probabilistic

@@ -695,47 +695,40 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/syntactic_projection
         mdps/heuristics/pdbs/types
         mdps/heuristics/pdbs/utils
+
+        mdps/heuristics/pdbs/probabilistic_pdb_heuristic
+
+        mdps/heuristics/pdbs/combination/combination_strategy
+        mdps/heuristics/pdbs/combination/reduction_strategy
+
+        mdps/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs
+        mdps/heuristics/pdbs/pattern_selection/pattern_collection_generator_deterministic
+        mdps/heuristics/pdbs/pattern_selection/pattern_collection_generator_hillclimbing
+        mdps/heuristics/pdbs/pattern_selection/pattern_collection_information
+        mdps/heuristics/pdbs/pattern_selection/pattern_generator
+
+        mdps/heuristics/pdbs/subcollections/subcollection_finder
+        mdps/heuristics/pdbs/subcollections/max_orthogonal_finder
+        mdps/heuristics/pdbs/subcollections/trivial_finder
+        mdps/heuristics/pdbs/subcollections/orthogonality
+        mdps/heuristics/pdbs/subcollections/weak_orthogonality
     DEPENDS MDP SUCCESSOR_GENERATOR
     )
 
 fast_downward_plugin(
     NAME MAXPROB_PDBS
-    HELP "Probabilistic PDBS for MaxProb"
+    HELP "Probabilistic PDBs for MaxProb"
     SOURCES
-        mdps/heuristics/pdbs/maxprob/multiplicative_mppdbs
         mdps/heuristics/pdbs/maxprob/maxprob_projection
-        mdps/heuristics/pdbs/maxprob/maxprob_pdb_heuristic
-
-        mdps/heuristics/pdbs/maxprob/multiplicativity/multiplicativity_strategy
-        mdps/heuristics/pdbs/maxprob/multiplicativity/multiplicativity_none
-        mdps/heuristics/pdbs/maxprob/multiplicativity/multiplicativity_max_orthogonality
         mdps/heuristics/pdbs/maxprob/multiplicativity/independence
-
-        mdps/heuristics/pdbs/maxprob/pattern_selection/incremental_canonical_pdbs
-        mdps/heuristics/pdbs/maxprob/pattern_selection/pattern_collection_generator_deterministic
-        mdps/heuristics/pdbs/maxprob/pattern_selection/pattern_collection_generator_hillclimbing
-        mdps/heuristics/pdbs/maxprob/pattern_selection/pattern_collection_information
-        mdps/heuristics/pdbs/maxprob/pattern_selection/pattern_generator
     DEPENDS PROBABILISTIC_PDBS
     )
 
 fast_downward_plugin(
     NAME EXPECTED_COST_PDBS
-    HELP "Probabilistic PDBS for Expected Cost"
+    HELP "Probabilistic PDBs for Expected Cost"
     SOURCES
-        mdps/heuristics/pdbs/expected_cost/additive_ecpdbs
         mdps/heuristics/pdbs/expected_cost/expcost_projection
-        mdps/heuristics/pdbs/expected_cost/expected_cost_pdb_heuristic
-
-        mdps/heuristics/pdbs/expected_cost/additivity/additivity_strategy
-        mdps/heuristics/pdbs/expected_cost/additivity/additivity_none
-        mdps/heuristics/pdbs/expected_cost/additivity/additivity_max_orthogonality
-
-        mdps/heuristics/pdbs/expected_cost/pattern_selection/incremental_canonical_pdbs
-        mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_generator_deterministic
-        mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_generator_hillclimbing
-        mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_collection_information
-        mdps/heuristics/pdbs/expected_cost/pattern_selection/pattern_generator
     DEPENDS PROBABILISTIC_PDBS
     )
 
