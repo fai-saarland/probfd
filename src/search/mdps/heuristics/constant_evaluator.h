@@ -13,13 +13,13 @@ public:
     /**
      * @brief Construct with constant estimate \p value .
      */
-    ConstantEvaluator::ConstantEvaluator(value_type::value_t value)
+    ConstantEvaluator(value_type::value_t value)
         : value_(value)
     {
     }
 
 protected:
-    virtual EvaluationResult evaluate(const State& state) const override
+    virtual EvaluationResult evaluate(const State&) const override
     {
         return EvaluationResult(false, value_);
     }

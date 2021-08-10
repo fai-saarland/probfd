@@ -7,6 +7,8 @@
 #include "quantitative_result_store.h"
 #include "types.h"
 
+#include "../../utils/graph_visualization.h"
+
 #include <iostream>
 #include <memory>
 #include <set>
