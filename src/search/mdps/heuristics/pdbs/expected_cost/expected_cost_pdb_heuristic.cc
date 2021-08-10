@@ -93,12 +93,11 @@ struct ExpectedCostPDBHeuristic::Statistics {
 
             << "  Largest pattern size: " << largest_pattern << "\n"
 
-            << "  Total number of additive subcollections: " << subcollections
-            << "\n"
-            << "  Total number of subcollections PDBs: "
+            << "  Total number of subcollections: " << subcollections << "\n"
+            << "  Total number of subcollection PDBs: "
             << total_subcollections_size << "\n"
-            << "  Average size of subcollection PDB: " << avg_subcollection_size
-            << "\n"
+            << "  Average size of subcollection PDBs: "
+            << avg_subcollection_size << "\n"
 
             << "  Generator time: " << generator_time << "s\n"
             << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
