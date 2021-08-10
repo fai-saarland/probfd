@@ -64,6 +64,12 @@ value_type::value_t ExpCostProjection::lookup(const AbstractState& s) const
     return value_table[s.id];
 }
 
+EvaluationResult ExpCostProjection::evaluate(const GlobalState& s) const
+{
+    const auto v = this->lookup(s);
+    return {v == -value_type::inf, v};
+}
+
 namespace {
 struct StateToString {
     explicit StateToString(

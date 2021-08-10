@@ -336,6 +336,16 @@ value_type::value_t MaxProbProjection::lookup(const GlobalState& s) const
     return lookup(get_abstract_state(s));
 }
 
+EvaluationResult MaxProbProjection::evaluate(const GlobalState& s) const
+{
+    if (is_dead_end(s)) {
+        return {true, value_type::zero};
+    }
+
+    const auto v = this->lookup(s);
+    return {false, v};
+}
+
 namespace {
 struct StateToString {
     explicit StateToString(

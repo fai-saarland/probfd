@@ -57,6 +57,8 @@ public:
     [[nodiscard]] value_type::value_t lookup(AbstractState s) const;
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
 
+    [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
+
     void dump_graphviz(
         const std::string& path,
         bool transition_labels = true,
