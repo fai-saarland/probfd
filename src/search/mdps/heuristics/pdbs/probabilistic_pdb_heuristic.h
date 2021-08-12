@@ -23,8 +23,6 @@ class OptionParser;
 namespace probabilistic {
 namespace pdbs {
 
-class CombinationStrategy;
-
 /**
  * @brief Additive Expected-Cost PDB heuristic.
  */
@@ -53,8 +51,6 @@ class ProbabilisticPDBHeuristic : public GlobalStateEvaluator {
     Statistics statistics_;
 
     std::shared_ptr<utils::Printable> generator_report;
-
-    std::shared_ptr<CombinationStrategy> strategy;
 
     std::shared_ptr<std::vector<Pattern>> patterns;
     std::shared_ptr<PPDBCollection<PDBType>> pdbs;
@@ -86,7 +82,6 @@ public:
     ProbabilisticPDBHeuristic(
         std::shared_ptr<pattern_selection::PatternCollectionGenerator<PDBType>>
             generator,
-        std::shared_ptr<CombinationStrategy> strategy,
         double max_time_dominance_pruning);
 
     void print_statistics() const override;

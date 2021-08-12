@@ -3,11 +3,12 @@
 #include "../../../../global_state.h"
 #include "../../../../pdbs/pattern_collection_information.h"
 
-#include "../combination/combination_strategy.h"
 #include "../subcollections/max_orthogonal_finder.h"
 
 #include "../expected_cost/expcost_projection.h"
 #include "../maxprob/maxprob_projection.h"
+
+#include "../utils.h"
 
 #include "pattern_collection_information.h"
 
@@ -96,20 +97,17 @@ IncrementalPPDBs<PDBType>::get_pattern_subcollections(
 }
 
 template <class PDBType>
-value_type::value_t IncrementalPPDBs<PDBType>::get_value(
-    const GlobalState& state,
-    const CombinationStrategy& combination_strategy) const
+value_type::value_t
+IncrementalPPDBs<PDBType>::get_value(const GlobalState& state) const
 {
-    return static_cast<value_type::value_t>(
-        evaluate(state, combination_strategy));
+    return static_cast<value_type::value_t>(evaluate(state));
 }
 
 template <class PDBType>
-EvaluationResult IncrementalPPDBs<PDBType>::evaluate(
-    const GlobalState& state,
-    const CombinationStrategy& combination_strategy) const
+EvaluationResult
+IncrementalPPDBs<PDBType>::evaluate(const GlobalState& state) const
 {
-    return combination_strategy.evaluate<PDBType>(
+    return probabilistic::pdbs::evaluate<PDBType>(
         *pattern_databases,
         *pattern_subcollections,
         state);

@@ -24,6 +24,8 @@
 #include "../expected_cost/expcost_projection.h"
 #include "../maxprob/maxprob_projection.h"
 
+#include "../utils.h"
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -140,8 +142,6 @@ PatternCollectionGeneratorHillclimbing<
     , initial_generator(
           opts.get<std::shared_ptr<PatternCollectionGenerator<PDBType>>>(
               "initial_generator"))
-    , combination_strategy(opts.get<std::shared_ptr<CombinationStrategy>>(
-          "combination_strategy"))
     , subcollection_finder(opts.get<std::shared_ptr<SubCollectionFinder>>(
           "subcollection_finder"))
     , pdb_max_size(opts.get<int>("pdb_max_size"))
@@ -337,10 +337,9 @@ bool PatternCollectionGeneratorHillclimbing<PDBType>::is_heuristic_improved(
 
     for (const PatternSubCollection& subcollection : pattern_subcollections) {
         value_t h_subcollection =
-            combination_strategy->combine(h_values, subcollection);
+            pdbs::evaluate_subcollection<PDBType>(h_values, subcollection);
 
-        if (combination_strategy->combine(h_subcollection, h_pattern) <
-            h_collection) {
+        if (pdbs::combine<PDBType>(h_subcollection, h_pattern) < h_collection) {
             /*
               return true if a pattern clique is found for
               which the condition is met
@@ -394,8 +393,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing()
     try {
         while (true) {
             ++num_iterations;
-            value_t init_h =
-                current_pdbs->get_value(initial_state, *combination_strategy);
+            value_t init_h = current_pdbs->get_value(initial_state);
 
             if (verbosity >= Verbosity::VERBOSE) {
                 std::cout << "current collection size is "
@@ -417,8 +415,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing()
             samples_h_values.clear();
             sample_states(hill_climbing_timer, sampler, init_h, samples);
             for (const GlobalState& sample : samples) {
-                samples_h_values.push_back(
-                    current_pdbs->evaluate(sample, *combination_strategy));
+                samples_h_values.push_back(current_pdbs->evaluate(sample));
             }
 
             const auto [improvement, best_pdb_index] = find_best_improving_pdb(
@@ -544,11 +541,6 @@ void add_hillclimbing_initial_generator_option<
         "initial_generator",
         "generator for the initial pattern database ",
         "det_adapter_ec(generator=systematic(pattern_max_size=1))");
-
-    parser.add_option<std::shared_ptr<CombinationStrategy>>(
-        "combination_strategy",
-        "Combination strategy for subcollection estimates.",
-        "combinator_additivity()");
 }
 
 template <>
@@ -560,11 +552,6 @@ void add_hillclimbing_initial_generator_option<maxprob::MaxProbProjection>(
         "initial_generator",
         "generator for the initial pattern database ",
         "det_adapter_mp(generator=systematic(pattern_max_size=1))");
-
-    parser.add_option<std::shared_ptr<CombinationStrategy>>(
-        "combination_strategy",
-        "Combination strategy for subcollection estimates.",
-        "combinator_multiplicativity()");
 }
 
 void add_hillclimbing_common_options(OptionParser& parser)

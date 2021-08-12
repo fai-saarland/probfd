@@ -2,7 +2,6 @@
 
 #include "../../../../utils/logging.h"
 #include "../../../evaluation_result.h"
-#include "../combination/combination_strategy.h"
 #include "../types.h"
 
 #include "incremental_canonical_pdbs.h"
@@ -78,7 +77,6 @@ class PatternCollectionGeneratorHillclimbing
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     std::unique_ptr<IncrementalPPDBs<PDBType>> current_pdbs;
-    std::shared_ptr<CombinationStrategy> combination_strategy;
     std::shared_ptr<SubCollectionFinder> subcollection_finder;
 
     // for stats only

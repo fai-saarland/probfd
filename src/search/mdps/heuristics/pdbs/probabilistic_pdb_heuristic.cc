@@ -10,7 +10,6 @@
 
 #include "utils.h"
 
-#include "combination/combination_strategy.h"
 #include "expected_cost/expcost_projection.h"
 #include "maxprob/maxprob_projection.h"
 #include "pattern_selection/pattern_collection_information.h"
@@ -75,8 +74,6 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
     : ProbabilisticPDBHeuristic(
           opts.get<std::shared_ptr<PatternCollectionGenerator<PDBType>>>(
               "patterns"),
-          opts.get<std::shared_ptr<CombinationStrategy>>(
-              "combination_strategy"),
           opts.get<double>("max_time_dominance_pruning"))
 {
 }
@@ -84,9 +81,7 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
 template <typename PDBType>
 ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
     std::shared_ptr<PatternCollectionGenerator<PDBType>> generator,
-    std::shared_ptr<CombinationStrategy> strategy,
     double max_time_dominance_pruning)
-    : strategy(std::move(strategy))
 {
     utils::Timer construction_timer;
 
@@ -141,7 +136,7 @@ template <typename PDBType>
 EvaluationResult
 ProbabilisticPDBHeuristic<PDBType>::evaluate(const GlobalState& state) const
 {
-    return strategy->evaluate(*pdbs, *subcollections, state);
+    return pdbs::evaluate<PDBType>(*pdbs, *subcollections, state);
 }
 
 template <typename PDBType>
@@ -163,10 +158,6 @@ void ProbabilisticPDBHeuristic<expected_cost::ExpCostProjection>::
         "patterns",
         "",
         "det_adapter_ec(generator=systematic(pattern_max_size=2))");
-    parser.add_option<std::shared_ptr<CombinationStrategy>>(
-        "combination_strategy",
-        "",
-        "combinator_additivity()");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
@@ -179,10 +170,6 @@ void ProbabilisticPDBHeuristic<maxprob::MaxProbProjection>::
         "patterns",
         "",
         "det_adapter_mp(generator=systematic(pattern_max_size=2))");
-    parser.add_option<std::shared_ptr<CombinationStrategy>>(
-        "combination_strategy",
-        "",
-        "combinator_multiplicativity()");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 

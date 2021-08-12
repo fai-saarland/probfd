@@ -51,13 +51,9 @@ public:
     std::vector<PatternSubCollection>
     get_pattern_subcollections(const Pattern& new_pattern);
 
-    value_type::value_t get_value(
-        const GlobalState& state,
-        const CombinationStrategy& combination_strategy) const;
+    value_type::value_t get_value(const GlobalState& state) const;
 
-    EvaluationResult evaluate(
-        const GlobalState& state,
-        const CombinationStrategy& combination_strategy) const;
+    EvaluationResult evaluate(const GlobalState& state) const;
 
     /*
       The following method offers a quick dead-end check for the sampling
