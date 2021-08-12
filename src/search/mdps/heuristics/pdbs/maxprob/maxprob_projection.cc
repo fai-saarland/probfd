@@ -65,7 +65,7 @@ MaxProbProjection::MaxProbProjection(
 
 MaxProbProjection::MaxProbProjection(
     const ::pdbs::PatternDatabase& pdb,
-    bool precompute_dead_ends = false)
+    bool precompute_dead_ends)
     : MaxProbProjection(
           pdb.get_pattern(),
           ::g_variable_domain,
