@@ -51,7 +51,7 @@ void ProbabilisticPDBHeuristic<PDBType>::Statistics::print_construction_info(
 
         << "  Largest pattern size: " << largest_pattern << "\n"
 
-        << "  Total number of subcollection: " << num_subcollections << "\n"
+        << "  Total number of subcollections: " << num_subcollections << "\n"
         << "  Total number of subcollection PDBs: " << total_subcollections_size
         << "\n"
         << "  Average size of subcollection PDBs: " << avg_subcollection_size
