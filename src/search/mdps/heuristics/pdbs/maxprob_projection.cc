@@ -1,13 +1,13 @@
 #include "maxprob_projection.h"
 
-#include "../../../../global_operator.h"
-#include "../../../../successor_generator.h"
-#include "../../../analysis_objectives/goal_probability_objective.h"
-#include "../../../engines/interval_iteration.h"
-#include "../../../logging.h"
-#include "../../../utils/graph_visualization.h"
+#include "../../../global_operator.h"
+#include "../../../successor_generator.h"
+#include "../../analysis_objectives/goal_probability_objective.h"
+#include "../../engines/interval_iteration.h"
+#include "../../logging.h"
+#include "../../utils/graph_visualization.h"
 
-#include "../../../../pdbs/pattern_database.h"
+#include "../../../pdbs/pattern_database.h"
 
 #include <deque>
 #include <fstream>
@@ -17,7 +17,6 @@
 
 namespace probabilistic {
 namespace pdbs {
-namespace maxprob {
 
 static std::vector<int> insert(std::vector<int> pattern, int add_var)
 {
@@ -84,7 +83,7 @@ MaxProbProjection::MaxProbProjection(
     , value_table(state_mapper_->size())
 {
     initialize(
-        MaxProbPDBEvaluator(pdb, state_mapper_.get(), add_var),
+        IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var),
         precompute_dead_ends);
 }
 
@@ -326,22 +325,14 @@ bool MaxProbProjection::is_deterministic() const
     return deterministic;
 }
 
-bool MaxProbProjection::is_dead_end(AbstractState s) const
-{
-    return !is_all_one() && dead_ends.get(s);
-}
-
 bool MaxProbProjection::is_dead_end(const GlobalState& s) const
 {
     return is_dead_end(get_abstract_state(s));
 }
 
-value_type::value_t MaxProbProjection::lookup(AbstractState s) const
+bool MaxProbProjection::is_dead_end(const AbstractState& s) const
 {
-    assert(!is_dead_end(s));
-    return all_one || deterministic || one_states.get(s)
-               ? value_type::one
-               : value_table[s.id].upper;
+    return !is_all_one() && dead_ends.get(s);
 }
 
 value_type::value_t MaxProbProjection::lookup(const GlobalState& s) const
@@ -349,7 +340,20 @@ value_type::value_t MaxProbProjection::lookup(const GlobalState& s) const
     return lookup(get_abstract_state(s));
 }
 
+value_type::value_t MaxProbProjection::lookup(const AbstractState& s) const
+{
+    assert(!is_dead_end(s));
+    return all_one || deterministic || one_states.get(s)
+               ? value_type::one
+               : value_table[s.id].upper;
+}
+
 EvaluationResult MaxProbProjection::evaluate(const GlobalState& s) const
+{
+    return evaluate(get_abstract_state(s));
+}
+
+EvaluationResult MaxProbProjection::evaluate(const AbstractState& s) const
 {
     if (is_dead_end(s)) {
         return {true, value_type::zero};
@@ -442,6 +446,5 @@ void MaxProbProjection::dump_graphviz(
     }
 }
 
-} // namespace maxprob
 } // namespace pdbs
 } // namespace probabilistic

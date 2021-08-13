@@ -1,15 +1,12 @@
 #include "independence.h"
 
-#include "../../../../globals.h"
-#include "../../syntactic_projection.h"
+#include "../../../globals.h"
+#include "../syntactic_projection.h"
 
 namespace probabilistic {
 namespace pdbs {
-namespace multiplicativity {
 
 using namespace syntactic_projection;
-
-using VariableOrthogonality = std::vector<std::vector<bool>>;
 
 namespace {
 
@@ -29,8 +26,6 @@ struct Permutation {
         , values(std::move(values))
     {
     }
-
-    ~Permutation() = default;
 
     bool get_next()
     {
@@ -148,6 +143,5 @@ bool is_independent_collection(const PatternCollection& patterns)
     return true;
 }
 
-} // namespace multiplicativity
 } // namespace pdbs
 } // namespace probabilistic

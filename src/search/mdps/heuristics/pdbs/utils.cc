@@ -2,8 +2,8 @@
 #include "../../../globals.h"
 #include "../../globals.h"
 
-#include "expected_cost/expcost_projection.h"
-#include "maxprob/maxprob_projection.h"
+#include "expcost_projection.h"
+#include "maxprob_projection.h"
 
 #include <sstream>
 
@@ -37,29 +37,29 @@ void dump_pattern(std::ostream& out, PatternID i, const Pattern& p)
 }
 
 template value_type::value_t
-evaluate_subcollection<expected_cost::ExpCostProjection>(
+evaluate_subcollection<ExpCostProjection>(
     const std::vector<value_type::value_t>& pdb_estimates,
     const std::vector<int>& subcollection);
 
-template value_type::value_t evaluate_subcollection<maxprob::MaxProbProjection>(
+template value_type::value_t evaluate_subcollection<MaxProbProjection>(
     const std::vector<value_type::value_t>& pdb_estimates,
     const std::vector<int>& subcollection);
 
-template value_type::value_t combine<expected_cost::ExpCostProjection>(
+template value_type::value_t combine<ExpCostProjection>(
     value_type::value_t left,
     value_type::value_t right);
 
-template value_type::value_t combine<maxprob::MaxProbProjection>(
+template value_type::value_t combine<MaxProbProjection>(
     value_type::value_t left,
     value_type::value_t right);
 
-template EvaluationResult evaluate<expected_cost::ExpCostProjection>(
-    const PPDBCollection<expected_cost::ExpCostProjection>& database,
+template EvaluationResult evaluate<ExpCostProjection>(
+    const PPDBCollection<ExpCostProjection>& database,
     const std::vector<PatternSubCollection>& subcollections,
     const GlobalState& state);
 
-template EvaluationResult evaluate<maxprob::MaxProbProjection>(
-    const PPDBCollection<maxprob::MaxProbProjection>& database,
+template EvaluationResult evaluate<MaxProbProjection>(
+    const PPDBCollection<MaxProbProjection>& database,
     const std::vector<PatternSubCollection>& subcollections,
     const GlobalState& state);
 

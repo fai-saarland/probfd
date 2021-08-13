@@ -5,8 +5,8 @@
 
 #include "../subcollections/max_orthogonal_finder.h"
 
-#include "../expected_cost/expcost_projection.h"
-#include "../maxprob/maxprob_projection.h"
+#include "../expcost_projection.h"
+#include "../maxprob_projection.h"
 
 #include "../utils.h"
 
@@ -148,8 +148,8 @@ long long IncrementalPPDBs<PDBType>::get_size() const
     return size;
 }
 
-template class IncrementalPPDBs<maxprob::MaxProbProjection>;
-template class IncrementalPPDBs<expected_cost::ExpCostProjection>;
+template class IncrementalPPDBs<MaxProbProjection>;
+template class IncrementalPPDBs<ExpCostProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs

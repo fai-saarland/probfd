@@ -5,8 +5,8 @@
 #include "qualitative_result_store.h"
 
 #include "../../../pdbs/pattern_database.h"
-#include "expected_cost/expcost_projection.h"
-#include "maxprob/maxprob_projection.h"
+#include "expcost_projection.h"
+#include "maxprob_projection.h"
 
 namespace probabilistic {
 
@@ -213,7 +213,7 @@ EvaluationResult DeadendPDBEvaluator::evaluate(const AbstractState& state) const
                 : EvaluationResult(false, value_type::one);
 }
 
-IncrementalPDBEvaluator::IncrementalPDBEvaluator(
+IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(
     const AbstractStateMapper* mapper,
     int add_var)
     : mapper(mapper)
@@ -226,45 +226,32 @@ IncrementalPDBEvaluator::IncrementalPDBEvaluator(
 }
 
 AbstractState
-IncrementalPDBEvaluator::to_parent_state(AbstractState state) const
+IncrementalPPDBEvaluatorBase::to_parent_state(AbstractState state) const
 {
     int left = state.id % left_multiplier;
     int right = state.id - (state.id % right_multiplier);
     return AbstractState(left + right / domain_size);
 }
 
-ExpCostPDBEvaluator::ExpCostPDBEvaluator(
-    const expected_cost::ExpCostProjection& pdb,
+template <typename PDBType>
+IncrementalPPDBEvaluator<PDBType>::IncrementalPPDBEvaluator(
+    const PDBType& pdb,
     const AbstractStateMapper* mapper,
     int add_var)
-    : IncrementalPDBEvaluator(mapper, add_var)
+    : IncrementalPPDBEvaluatorBase(mapper, add_var)
     , pdb(pdb)
 {
 }
 
-EvaluationResult ExpCostPDBEvaluator::evaluate(const AbstractState& state) const
+template <typename PDBType>
+EvaluationResult
+IncrementalPPDBEvaluator<PDBType>::evaluate(const AbstractState& state) const
 {
-    value_type::value_t val = pdb.lookup(to_parent_state(state));
-    return EvaluationResult(val == -value_type::inf, val);
+    return pdb.evaluate(to_parent_state(state));
 }
 
-MaxProbPDBEvaluator::MaxProbPDBEvaluator(
-    const maxprob::MaxProbProjection& pdb,
-    const AbstractStateMapper* mapper,
-    int add_var)
-    : IncrementalPDBEvaluator(mapper, add_var)
-    , pdb(pdb)
-{
-}
-
-EvaluationResult MaxProbPDBEvaluator::evaluate(const AbstractState& state) const
-{
-    if (pdb.is_dead_end(state)) {
-        return EvaluationResult(true, value_type::zero);
-    }
-
-    return EvaluationResult(false, pdb.lookup(to_parent_state(state)));
-}
+template class IncrementalPPDBEvaluator<ExpCostProjection>;
+template class IncrementalPPDBEvaluator<MaxProbProjection>;
 
 value_type::value_t
 ZeroCostActionEvaluator::evaluate(StateID, const AbstractOperator*)

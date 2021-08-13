@@ -37,10 +37,10 @@ public:
 };
 
 using ExpCostPatternCollectionGeneratorDeterministic =
-    PatternCollectionGeneratorDeterministic<expected_cost::ExpCostProjection>;
+    PatternCollectionGeneratorDeterministic<ExpCostProjection>;
 
 using MaxProbPatternCollectionGeneratorDeterministic =
-    PatternCollectionGeneratorDeterministic<maxprob::MaxProbProjection>;
+    PatternCollectionGeneratorDeterministic<MaxProbProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs

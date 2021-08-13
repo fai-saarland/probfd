@@ -181,10 +181,10 @@ public:
 };
 
 using ExpCostPatternCollectionGeneratorHillclimbing =
-    PatternCollectionGeneratorHillclimbing<expected_cost::ExpCostProjection>;
+    PatternCollectionGeneratorHillclimbing<ExpCostProjection>;
 
 using MaxProbPatternCollectionGeneratorHillclimbing =
-    PatternCollectionGeneratorHillclimbing<maxprob::MaxProbProjection>;
+    PatternCollectionGeneratorHillclimbing<MaxProbProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs

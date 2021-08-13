@@ -53,10 +53,10 @@ public:
 };
 
 using ExpCostPatternCollectionInformation =
-    PatternCollectionInformation<expected_cost::ExpCostProjection>;
+    PatternCollectionInformation<ExpCostProjection>;
 
 using MaxProbPatternCollectionInformation =
-    PatternCollectionInformation<maxprob::MaxProbProjection>;
+    PatternCollectionInformation<MaxProbProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs

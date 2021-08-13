@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../../../globals.h"
-#include "../../../value_utils.h"
+#include "../../globals.h"
+#include "../../value_utils.h"
 
-#include "../../constant_evaluator.h"
-#include "../probabilistic_projection.h"
+#include "../constant_evaluator.h"
+#include "probabilistic_projection.h"
 
 namespace successor_generator {
 template <typename T>
@@ -17,7 +17,6 @@ class PatternDatabase;
 
 namespace probabilistic {
 namespace pdbs {
-namespace maxprob {
 
 class MaxProbProjection : public pdbs::ProbabilisticProjection {
     using RegressionSuccessorGenerator =
@@ -59,13 +58,14 @@ public:
     bool is_all_one() const;
     bool is_deterministic() const;
 
-    bool is_dead_end(AbstractState s) const;
     bool is_dead_end(const GlobalState& s) const;
+    bool is_dead_end(const AbstractState& s) const;
 
-    [[nodiscard]] value_type::value_t lookup(AbstractState s) const;
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
+    [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
 
     [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
+    [[nodiscard]] EvaluationResult evaluate(const AbstractState& s) const;
 
     void dump_graphviz(
         const std::string& path,
@@ -85,6 +85,5 @@ private:
         bool store_dead_ends);
 };
 
-} // namespace maxprob
 } // namespace pdbs
 } // namespace probabilistic

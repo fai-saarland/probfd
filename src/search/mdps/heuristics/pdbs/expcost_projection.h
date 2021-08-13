@@ -1,10 +1,9 @@
 #pragma once
 
-#include "../../../globals.h"
-#include "../../../value_utils.h"
-#include "../../constant_evaluator.h"
-#include "../probabilistic_projection.h"
-
+#include "../../globals.h"
+#include "../../value_utils.h"
+#include "../constant_evaluator.h"
+#include "probabilistic_projection.h"
 
 namespace successor_generator {
 template <typename T>
@@ -17,7 +16,6 @@ class PatternDatabase;
 
 namespace probabilistic {
 namespace pdbs {
-namespace expected_cost {
 
 class ExpCostProjection : public pdbs::ProbabilisticProjection {
     std::vector<value_type::value_t> value_table;
@@ -37,6 +35,7 @@ public:
     [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
 
     [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
+    [[nodiscard]] EvaluationResult evaluate(const AbstractState& s) const;
 
     void dump_graphviz(
         const std::string& path,
@@ -47,6 +46,5 @@ private:
     void compute_value_table(const AbstractStateEvaluator& heuristic);
 };
 
-} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic

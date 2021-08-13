@@ -26,10 +26,10 @@ public:
 };
 
 using ExpCostPatternCollectionGenerator =
-    PatternCollectionGenerator<expected_cost::ExpCostProjection>;
+    PatternCollectionGenerator<ExpCostProjection>;
 
 using MaxProbPatternCollectionGenerator =
-    PatternCollectionGenerator<maxprob::MaxProbProjection>;
+    PatternCollectionGenerator<MaxProbProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs

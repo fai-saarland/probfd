@@ -21,8 +21,8 @@
 #include "../../../../utils/rng_options.h"
 #include "../../../../utils/timer.h"
 
-#include "../expected_cost/expcost_projection.h"
-#include "../maxprob/maxprob_projection.h"
+#include "../expcost_projection.h"
+#include "../maxprob_projection.h"
 
 #include "../utils.h"
 
@@ -122,7 +122,7 @@ template <typename PDBType>
 void PatternCollectionGeneratorHillclimbing<PDBType>::Statistics::print(
     std::ostream& out) const
 {
-    constexpr auto prefix = std::is_same_v<PDBType, maxprob::MaxProbProjection>
+    constexpr auto prefix = std::is_same_v<PDBType, MaxProbProjection>
                                 ? "MaxProb"
                                 : "Expected Cost";
 
@@ -533,22 +533,22 @@ template <typename PDBType>
 void add_hillclimbing_initial_generator_option(OptionParser& parser);
 
 template <>
-void add_hillclimbing_initial_generator_option<
-    expected_cost::ExpCostProjection>(OptionParser& parser)
+void add_hillclimbing_initial_generator_option<ExpCostProjection>(
+    OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<
-        PatternCollectionGenerator<expected_cost::ExpCostProjection>>>(
+    parser.add_option<
+        std::shared_ptr<PatternCollectionGenerator<ExpCostProjection>>>(
         "initial_generator",
         "generator for the initial pattern database ",
         "det_adapter_ec(generator=systematic(pattern_max_size=1))");
 }
 
 template <>
-void add_hillclimbing_initial_generator_option<maxprob::MaxProbProjection>(
+void add_hillclimbing_initial_generator_option<MaxProbProjection>(
     OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<
-        PatternCollectionGenerator<maxprob::MaxProbProjection>>>(
+    parser.add_option<
+        std::shared_ptr<PatternCollectionGenerator<MaxProbProjection>>>(
         "initial_generator",
         "generator for the initial pattern database ",
         "det_adapter_mp(generator=systematic(pattern_max_size=1))");
@@ -623,15 +623,13 @@ _parse(OptionParser& parser)
         opts);
 }
 
-template class PatternCollectionGeneratorHillclimbing<
-    expected_cost::ExpCostProjection>;
-template class PatternCollectionGeneratorHillclimbing<
-    maxprob::MaxProbProjection>;
+template class PatternCollectionGeneratorHillclimbing<ExpCostProjection>;
+template class PatternCollectionGeneratorHillclimbing<MaxProbProjection>;
 
-static Plugin<PatternCollectionGenerator<expected_cost::ExpCostProjection>>
-    _plugin_ec("hillclimbing_ec", _parse<expected_cost::ExpCostProjection>);
-static Plugin<PatternCollectionGenerator<maxprob::MaxProbProjection>>
-    _plugin_mp("hillclimbing_mp", _parse<maxprob::MaxProbProjection>);
+static Plugin<PatternCollectionGenerator<ExpCostProjection>>
+    _plugin_ec("hillclimbing_ec", _parse<ExpCostProjection>);
+static Plugin<PatternCollectionGenerator<MaxProbProjection>>
+    _plugin_mp("hillclimbing_mp", _parse<MaxProbProjection>);
 
 } // namespace pattern_selection
 } // namespace pdbs

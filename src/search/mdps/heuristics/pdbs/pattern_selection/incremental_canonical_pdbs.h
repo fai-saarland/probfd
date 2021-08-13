@@ -71,9 +71,8 @@ public:
     long long get_size() const;
 };
 
-using IncrementalExpCostPDBs =
-    IncrementalPPDBs<expected_cost::ExpCostProjection>;
-using IncrementalMaxProbPDBs = IncrementalPPDBs<maxprob::MaxProbProjection>;
+using IncrementalExpCostPDBs = IncrementalPPDBs<ExpCostProjection>;
+using IncrementalMaxProbPDBs = IncrementalPPDBs<MaxProbProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs

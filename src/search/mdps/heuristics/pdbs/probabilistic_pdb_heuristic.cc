@@ -10,8 +10,8 @@
 
 #include "utils.h"
 
-#include "expected_cost/expcost_projection.h"
-#include "maxprob/maxprob_projection.h"
+#include "expcost_projection.h"
+#include "maxprob_projection.h"
 #include "pattern_selection/pattern_collection_information.h"
 
 #include <cassert>
@@ -34,7 +34,7 @@ void ProbabilisticPDBHeuristic<PDBType>::Statistics::print_construction_info(
     const double avg_subcollection_size =
         (double)total_subcollections_size / num_subcollections;
 
-    constexpr auto prefix = std::is_same_v<PDBType, maxprob::MaxProbProjection>
+    constexpr auto prefix = std::is_same_v<PDBType, MaxProbProjection>
                                 ? "MaxProb"
                                 : "Expected Cost";
 
@@ -150,11 +150,11 @@ void ProbabilisticPDBHeuristic<PDBType>::print_statistics() const
 }
 
 template <>
-void ProbabilisticPDBHeuristic<expected_cost::ExpCostProjection>::
-    add_options_to_parser(options::OptionParser& parser)
+void ProbabilisticPDBHeuristic<ExpCostProjection>::add_options_to_parser(
+    options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<
-        PatternCollectionGenerator<expected_cost::ExpCostProjection>>>(
+    parser.add_option<
+        std::shared_ptr<PatternCollectionGenerator<ExpCostProjection>>>(
         "patterns",
         "",
         "det_adapter_ec(generator=systematic(pattern_max_size=2))");
@@ -162,19 +162,19 @@ void ProbabilisticPDBHeuristic<expected_cost::ExpCostProjection>::
 }
 
 template <>
-void ProbabilisticPDBHeuristic<maxprob::MaxProbProjection>::
-    add_options_to_parser(options::OptionParser& parser)
+void ProbabilisticPDBHeuristic<MaxProbProjection>::add_options_to_parser(
+    options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<
-        PatternCollectionGenerator<maxprob::MaxProbProjection>>>(
+    parser.add_option<
+        std::shared_ptr<PatternCollectionGenerator<MaxProbProjection>>>(
         "patterns",
         "",
         "det_adapter_mp(generator=systematic(pattern_max_size=2))");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
-template class ProbabilisticPDBHeuristic<expected_cost::ExpCostProjection>;
-template class ProbabilisticPDBHeuristic<maxprob::MaxProbProjection>;
+template class ProbabilisticPDBHeuristic<ExpCostProjection>;
+template class ProbabilisticPDBHeuristic<MaxProbProjection>;
 
 static Plugin<GlobalStateEvaluator> _plugin_ec(
     "ecpdb",

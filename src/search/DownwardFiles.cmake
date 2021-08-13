@@ -712,24 +712,11 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/subcollections/trivial_finder
         mdps/heuristics/pdbs/subcollections/orthogonality
         mdps/heuristics/pdbs/subcollections/weak_orthogonality
+        mdps/heuristics/pdbs/subcollections/independence
+
+        mdps/heuristics/pdbs/maxprob_projection
+        mdps/heuristics/pdbs/expcost_projection
     DEPENDS MDP SUCCESSOR_GENERATOR
-    )
-
-fast_downward_plugin(
-    NAME MAXPROB_PDBS
-    HELP "Probabilistic PDBs for MaxProb"
-    SOURCES
-        mdps/heuristics/pdbs/maxprob/maxprob_projection
-        mdps/heuristics/pdbs/maxprob/multiplicativity/independence
-    DEPENDS PROBABILISTIC_PDBS
-    )
-
-fast_downward_plugin(
-    NAME EXPECTED_COST_PDBS
-    HELP "Probabilistic PDBs for Expected Cost"
-    SOURCES
-        mdps/heuristics/pdbs/expected_cost/expcost_projection
-    DEPENDS PROBABILISTIC_PDBS
     )
 
 fast_downward_add_plugin_sources(PLANNER_SOURCES)

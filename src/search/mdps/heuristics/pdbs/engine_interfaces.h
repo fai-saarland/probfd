@@ -121,13 +121,8 @@ using AbstractOperatorRewardFunction =
 
 class QualitativeResultStore;
 
-namespace expected_cost {
 class ExpCostProjection;
-}
-
-namespace maxprob {
 class MaxProbProjection;
-}
 
 class AbstractStateDeadendStoreEvaluator : public AbstractStateEvaluator {
 public:
@@ -199,14 +194,14 @@ private:
     const ::pdbs::PatternDatabase& pdb;
 };
 
-class IncrementalPDBEvaluator : public AbstractStateEvaluator {
+class IncrementalPPDBEvaluatorBase : public AbstractStateEvaluator {
     const AbstractStateMapper* mapper;
     int left_multiplier;
     int right_multiplier;
     int domain_size;
 
 public:
-    explicit IncrementalPDBEvaluator(
+    explicit IncrementalPPDBEvaluatorBase(
         const AbstractStateMapper* mapper,
         int add_var);
 
@@ -214,25 +209,13 @@ protected:
     AbstractState to_parent_state(AbstractState state) const;
 };
 
-class ExpCostPDBEvaluator : public IncrementalPDBEvaluator {
-    const expected_cost::ExpCostProjection& pdb;
+template <typename PDBType>
+class IncrementalPPDBEvaluator : public IncrementalPPDBEvaluatorBase {
+    const PDBType& pdb;
 
 public:
-    explicit ExpCostPDBEvaluator(
-        const expected_cost::ExpCostProjection& pdb,
-        const AbstractStateMapper* mapper,
-        int add_var);
-
-protected:
-    EvaluationResult evaluate(const AbstractState& state) const override;
-};
-
-class MaxProbPDBEvaluator : public IncrementalPDBEvaluator {
-    const maxprob::MaxProbProjection& pdb;
-
-public:
-    explicit MaxProbPDBEvaluator(
-        const maxprob::MaxProbProjection& pdb,
+    explicit IncrementalPPDBEvaluator(
+        const PDBType& pdb,
         const AbstractStateMapper* mapper,
         int add_var);
 

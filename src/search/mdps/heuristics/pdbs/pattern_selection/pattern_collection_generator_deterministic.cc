@@ -5,8 +5,8 @@
 #include "../../../../pdbs/pattern_database.h"
 #include "../../../../plugin.h"
 
-#include "../expected_cost/expcost_projection.h"
-#include "../maxprob/maxprob_projection.h"
+#include "../expcost_projection.h"
+#include "../maxprob_projection.h"
 
 namespace probabilistic {
 namespace pdbs {
@@ -106,16 +106,14 @@ _parse(OptionParser& parser)
         opts);
 }
 
-template class PatternCollectionGeneratorDeterministic<
-    maxprob::MaxProbProjection>;
-template class PatternCollectionGeneratorDeterministic<
-    expected_cost::ExpCostProjection>;
+template class PatternCollectionGeneratorDeterministic<MaxProbProjection>;
+template class PatternCollectionGeneratorDeterministic<ExpCostProjection>;
 
-static Plugin<PatternCollectionGenerator<maxprob::MaxProbProjection>>
-    _plugin_mp("det_adapter_mp", _parse<maxprob::MaxProbProjection>);
+static Plugin<PatternCollectionGenerator<MaxProbProjection>>
+    _plugin_mp("det_adapter_mp", _parse<MaxProbProjection>);
 
-static Plugin<PatternCollectionGenerator<expected_cost::ExpCostProjection>>
-    _plugin_ec("det_adapter_ec", _parse<expected_cost::ExpCostProjection>);
+static Plugin<PatternCollectionGenerator<ExpCostProjection>>
+    _plugin_ec("det_adapter_ec", _parse<ExpCostProjection>);
 
 } // namespace pattern_selection
 } // namespace pdbs

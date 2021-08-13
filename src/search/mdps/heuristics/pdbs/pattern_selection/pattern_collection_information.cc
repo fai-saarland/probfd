@@ -7,8 +7,8 @@
 #include "../../../../utils/collections.h"
 #include "../../../../utils/timer.h"
 
-#include "../expected_cost/expcost_projection.h"
-#include "../maxprob/maxprob_projection.h"
+#include "../expcost_projection.h"
+#include "../maxprob_projection.h"
 
 #include <algorithm>
 #include <cassert>
@@ -139,8 +139,8 @@ PatternCollectionInformation<PDBType>::get_subcollections()
     return subcollections_;
 }
 
-template class PatternCollectionInformation<maxprob::MaxProbProjection>;
-template class PatternCollectionInformation<expected_cost::ExpCostProjection>;
+template class PatternCollectionInformation<MaxProbProjection>;
+template class PatternCollectionInformation<ExpCostProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs

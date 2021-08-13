@@ -1,12 +1,12 @@
 #include "expcost_projection.h"
 
-#include "../../../../global_operator.h"
-#include "../../../engines/interval_iteration.h"
-#include "../../../globals.h"
-#include "../../../logging.h"
-#include "../../../utils/graph_visualization.h"
+#include "../../../global_operator.h"
+#include "../../engines/interval_iteration.h"
+#include "../../globals.h"
+#include "../../logging.h"
+#include "../../utils/graph_visualization.h"
 
-#include "../../../../pdbs/pattern_database.h"
+#include "../../../pdbs/pattern_database.h"
 
 #include <deque>
 #include <fstream>
@@ -15,7 +15,6 @@
 
 namespace probabilistic {
 namespace pdbs {
-namespace expected_cost {
 
 using namespace value_utils;
 
@@ -51,12 +50,13 @@ ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)
           ::g_variable_domain)
     , value_table(state_mapper_->size(), -value_type::inf)
 {
-    compute_value_table(ExpCostPDBEvaluator(pdb, state_mapper_.get(), add_var));
+    compute_value_table(
+        IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
 }
 
 value_type::value_t ExpCostProjection::lookup(const GlobalState& s) const
 {
-    return lookup(state_mapper_->operator()(s));
+    return lookup(get_abstract_state(s));
 }
 
 value_type::value_t ExpCostProjection::lookup(const AbstractState& s) const
@@ -65,6 +65,11 @@ value_type::value_t ExpCostProjection::lookup(const AbstractState& s) const
 }
 
 EvaluationResult ExpCostProjection::evaluate(const GlobalState& s) const
+{
+    return evaluate(get_abstract_state(s));
+}
+
+EvaluationResult ExpCostProjection::evaluate(const AbstractState& s) const
 {
     const auto v = this->lookup(s);
     return {v == -value_type::inf, v};
@@ -170,6 +175,5 @@ void ExpCostProjection::compute_value_table(
 #endif
 }
 
-} // namespace expected_cost
 } // namespace pdbs
 } // namespace probabilistic
