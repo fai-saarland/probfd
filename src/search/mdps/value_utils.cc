@@ -90,8 +90,8 @@ bool update(IntervalValue& lhs, const IntervalValue& rhs)
 bool update(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper)
 {
     const bool result =
-        !value_type::approx_greater()(rhs.lower, lhs.lower) ||
-        (check_upper && !value_type::approx_less()(rhs.upper, lhs.upper));
+        value_type::approx_greater()(rhs.lower, lhs.lower) ||
+        (check_upper && value_type::approx_less()(rhs.upper, lhs.upper));
     lhs.lower = std::max(lhs.lower, rhs.lower);
     lhs.upper = std::min(lhs.upper, rhs.upper);
     assert(!value_type::approx_less()(lhs.upper, lhs.lower));
