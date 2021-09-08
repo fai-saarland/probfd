@@ -13,6 +13,14 @@ QualitativeResultStore::assignable_bool_t::assignable_bool_t(
 {
 }
 
+QualitativeResultStore::QualitativeResultStore(
+    bool is_negated,
+    std::unordered_set<AbstractState> states)
+    : is_negated_(is_negated)
+    , states_(std::move(states))
+{
+}
+
 QualitativeResultStore::assignable_bool_t&
 QualitativeResultStore::assignable_bool_t::operator=(bool value)
 {
@@ -40,9 +48,9 @@ void QualitativeResultStore::set(const AbstractState& s, bool value)
 {
     value = is_negated_ ? !value : value;
     if (value) {
-        states_.insert(s.id);
+        states_.insert(s);
     } else {
-        auto it = states_.find(s.id);
+        auto it = states_.find(s);
         if (it != states_.end()) {
             states_.erase(it);
         }
@@ -51,7 +59,7 @@ void QualitativeResultStore::set(const AbstractState& s, bool value)
 
 bool QualitativeResultStore::get(const AbstractState& s) const
 {
-    return states_.find(s.id) != states_.end() ? !is_negated_ : is_negated_;
+    return states_.find(s) != states_.end() ? !is_negated_ : is_negated_;
 }
 
 QualitativeResultStore::assignable_bool_t

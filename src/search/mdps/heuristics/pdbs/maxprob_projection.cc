@@ -173,12 +173,50 @@ void MaxProbProjection::prepare_regression()
         operators);
 }
 
+bool is_closed(
+    AbstractState state,
+    const AbstractOperator* op,
+    const std::unordered_set<AbstractState>& closure)
+{
+    for (auto outcome : op->outcomes) {
+        auto successor = state + outcome.first;
+        if (closure.find(successor) == closure.end()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void remove_non_closed_operators(
+    AbstractState state,
+    std::set<const probabilistic::pdbs::AbstractOperator*>& operators,
+    const std::unordered_set<AbstractState>& closure)
+{
+    for (auto it = operators.begin(), end = operators.end(); it != end;) {
+        if (is_closed(state, *it, closure)) {
+            ++it;
+        } else {
+            it = operators.erase(it);
+        }
+    }
+}
+
 void MaxProbProjection::precompute_dead_ends()
 {
     prepare_regression();
 
     // Initialize open list with goal states.
     std::deque<AbstractState> open(goal_states_.begin(), goal_states_.end());
+
+    std::unordered_set<AbstractState> non_dead_ends(
+        goal_states_.begin(),
+        goal_states_.end());
+
+    std::unordered_map<
+        AbstractState,
+        std::set<const probabilistic::pdbs::AbstractOperator*>>
+        states_to_goal_ops;
 
     // Regress from goal states to find all states with MaxProb > 0.
     while (!open.empty()) {
@@ -196,27 +234,73 @@ void MaxProbProjection::precompute_dead_ends()
 
         for (const AbstractState eff : aops) {
             const AbstractState t = s + eff;
-            if (!dead_ends.get(t)) {
-                dead_ends.set(t, true);
+
+            // Collect operators of t reaching s
+            std::vector<int> facts = state_mapper_->to_values(t);
+            std::vector<const probabilistic::pdbs::AbstractOperator*> aops;
+            progression_aops_generator_->generate_applicable_ops(facts, aops);
+
+            if (non_dead_ends.find(t) == non_dead_ends.end()) {
+                states_to_goal_ops[t] = {};
+                non_dead_ends.insert(t);
                 open.push_back(t);
+            }
+
+            for (const auto* op : aops) {
+                for (auto out : op->outcomes) {
+                    if (t + out.first == s) {
+                        states_to_goal_ops[t].insert(op);
+                        break;
+                    }
+                }
             }
         }
     }
 
-    dead_ends.negate_all();
+    dead_ends = QualitativeResultStore(true, non_dead_ends);
 
     /*
-     * TODO: Having the dead-ends, one could continue to compute the states
-     * with MaxProb = 1. A simple fixed-point iteration achieves this:
+     * Having the dead-ends, continue to compute the states with MaxProb = 1.
+     * A simple fixed-point iteration achieves this:
      *
      * 1. Initialize S with non-dead-ends computed above.
-     * 2. Regress from goal states and check for the states in S whether they
-     *    are reached by any operator staying completely within S with all
-     *    effects. If not, remove the state from from S.
-     * 3. If S has changed go to 1.
+     * 2. Check if there is an operator on the way to the goal (collected above)
+     *    which stays completely within S with all effects. If not, ignore the
+     *    operator in the future. If no operators are left, remove S.
+     * 3. If S has changed, repeat.
      *
-     * In the end, S contains all states with MaxProb 1.
+     * In the end, S contains all states with MaxProb = 1.
+     *
+     * Question: Do the remaining operators induce a proper policy for these
+     * states?
      */
+    auto& one_states = non_dead_ends;
+    size_t old_size;
+
+    do {
+        old_size = one_states.size();
+
+        for (auto it = one_states.begin(), end = one_states.end(); it != end;) {
+            AbstractState s = AbstractState(*it);
+
+            // Goal states always have MaxProb = 1
+            if (goal_states_.find(s) != goal_states_.end()) {
+                ++it;
+                continue;
+            }
+
+            remove_non_closed_operators(s, states_to_goal_ops[s], one_states);
+
+            // Remove state if there are no operators left
+            if (states_to_goal_ops[s].empty()) {
+                it = one_states.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    } while (old_size != one_states.size());
+
+    this->one_states = QualitativeResultStore(false, one_states);
 }
 
 void MaxProbProjection::compute_value_table(

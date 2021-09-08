@@ -25,6 +25,11 @@ public:
         QualitativeResultStore* ref_;
     };
 
+    QualitativeResultStore() = default;
+    QualitativeResultStore(
+        bool is_negated,
+        std::unordered_set<AbstractState> states);
+
     void negate_all();
     void clear();
     void set(const AbstractState& s, bool val);
@@ -35,7 +40,7 @@ public:
 
 private:
     bool is_negated_ = false;
-    std::unordered_set<int> states_;
+    std::unordered_set<AbstractState> states_;
 };
 
 } // namespace pdbs
