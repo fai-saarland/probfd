@@ -196,18 +196,11 @@ private:
         {
         }
 
-        template <bool do_while = true>
         const Action* advance_non_loop_action(
             TopologicalValueIteration* base,
             unsigned int state_id)
         {
-            if constexpr (!do_while) {
-                if (aops.empty()) {
-                    return nullptr;
-                }
-            }
-
-            do {
+            while (!aops.empty()) {
                 transition.clear();
                 const Action& action = aops.back();
                 base->generate_successors(state_id, action, transition);
@@ -219,7 +212,7 @@ private:
                 }
 
                 aops.pop_back();
-            } while (!aops.empty());
+            }
 
             return nullptr;
         }
@@ -245,11 +238,11 @@ private:
         bool finalize()
         {
             if (has_self_loop) {
-                self_loop_prob =
+                const auto normalization =
                     (value_type::one / (value_type::one - self_loop_prob));
 
                 if (successors.empty()) {
-                    base *= self_loop_prob;
+                    base *= normalization;
                 }
             }
 
@@ -574,7 +567,7 @@ private:
             }
 
             const Action* next_action =
-                explore.template advance_non_loop_action<false>(this, state);
+                explore.advance_non_loop_action(this, state);
 
             if (!next_action) {
                 return false;
