@@ -16,6 +16,31 @@
 namespace probabilistic {
 namespace pdbs {
 
+namespace {
+class WrapperHeuristic : public AbstractStateEvaluator {
+    const QualitativeResultStore& one_states;
+    const AbstractStateEvaluator& parent;
+
+public:
+    WrapperHeuristic(
+        const QualitativeResultStore& one_states,
+        const AbstractStateEvaluator& parent)
+        : one_states(one_states)
+        , parent(parent)
+    {
+    }
+
+    virtual EvaluationResult evaluate(const AbstractState& state) const
+    {
+        if (one_states[state]) {
+            return parent(state);
+        }
+
+        return EvaluationResult{true, -value_type::inf};
+    }
+};
+} // namespace
+
 using namespace value_utils;
 
 static std::vector<int> insert(std::vector<int> pattern, int add_var)
@@ -127,6 +152,11 @@ void ExpCostProjection::dump_graphviz(
 void ExpCostProjection::compute_value_table(
     const AbstractStateEvaluator& heuristic)
 {
+    prepare_regression();
+    precompute_dead_ends();
+
+    WrapperHeuristic h(one_states, heuristic);
+
     AbstractStateInSetRewardFunction state_reward(
         &goal_states_,
         value_type::zero,
@@ -155,7 +185,7 @@ void ExpCostProjection::compute_value_table(
                value_type::zero,
                &aops_gen,
                &transition_gen,
-               &heuristic);
+               &h);
 
     vi.solve(initial_state_, value_table);
 
