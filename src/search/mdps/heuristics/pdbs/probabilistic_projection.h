@@ -62,6 +62,9 @@ protected:
     using ProgressionSuccessorGenerator =
         successor_generator::SuccessorGenerator<const AbstractOperator*>;
 
+    using RegressionSuccessorGenerator =
+        successor_generator::SuccessorGenerator<AbstractState>;
+
 public:
     ProbabilisticProjection(
         const Pattern& pattern,
@@ -80,6 +83,9 @@ public:
     unsigned int num_reachable_states() const;
 
 protected:
+    void prepare_regression();
+    void precompute_dead_ends();
+
     template <typename StateToString, typename ActionToString>
     void dump_graphviz(
         const std::string& path,
@@ -135,8 +141,12 @@ protected:
 
     std::vector<AbstractOperator> abstract_operators_;
     std::shared_ptr<ProgressionSuccessorGenerator> progression_aops_generator_;
+    std::shared_ptr<RegressionSuccessorGenerator> regression_aops_generator_;
 
     unsigned int reachable_states = 0;
+
+    pdbs::QualitativeResultStore one_states;
+    pdbs::QualitativeResultStore dead_ends;
 };
 
 } // namespace pdbs

@@ -19,21 +19,13 @@ namespace probabilistic {
 namespace pdbs {
 
 class MaxProbProjection : public pdbs::ProbabilisticProjection {
-    using RegressionSuccessorGenerator =
-        successor_generator::SuccessorGenerator<AbstractState>;
-
     std::vector<value_utils::IntervalValue> value_table;
 
     bool all_one = false;
     bool deterministic = false;
 
-    pdbs::QualitativeResultStore one_states;
-    pdbs::QualitativeResultStore dead_ends;
-
     unsigned int n_dead_ends = 0;
     unsigned int n_one_states = 0;
-
-    std::shared_ptr<RegressionSuccessorGenerator> regression_aops_generator_;
 
 public:
     MaxProbProjection(
@@ -76,9 +68,6 @@ private:
     void initialize(
         const AbstractStateEvaluator& heuristic,
         bool precompute_dead_ends);
-
-    void prepare_regression();
-    void precompute_dead_ends();
 
     void compute_value_table(
         const AbstractStateEvaluator& heuristic,

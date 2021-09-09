@@ -69,6 +69,232 @@ unsigned int ProbabilisticProjection::num_reachable_states() const
     return reachable_states;
 }
 
+void ProbabilisticProjection::prepare_regression()
+{
+    std::vector<std::vector<std::pair<int, int>>> progressions;
+    progressions.reserve(::g_operators.size());
+    std::vector<AbstractState> operators;
+
+    using footprint_t =
+        std::pair<std::vector<std::pair<int, int>>, AbstractState>;
+    utils::HashSet<footprint_t> operator_set;
+
+    for (const auto& op : ::g_operators) {
+        std::vector<std::pair<int, int>> after_effect;
+        std::vector<int> eff_no_pre;
+
+        std::unordered_map<int, int> precondition;
+        std::unordered_map<int, int> effect;
+        {
+            for (const auto [pre_var, pre_val] : op.get_preconditions()) {
+                const int idx = var_index_[pre_var];
+                if (idx != -1) {
+                    precondition[idx] = pre_val;
+                }
+            }
+
+            for (const auto [eff_var, eff_val, _] : op.get_effects()) {
+                const int idx = var_index_[eff_var];
+                if (idx != -1) {
+                    effect[idx] = eff_val;
+                }
+            }
+        }
+
+        if (effect.empty()) {
+            continue;
+        }
+
+        AbstractState pre(0);
+        AbstractState eff(0);
+        {
+            for (const auto [pre_var, pre_val] : precondition) {
+                if (effect.find(pre_var) == effect.end()) {
+                    after_effect.emplace_back(pre_var, pre_val);
+                }
+            }
+
+            for (const auto [eff_var, eff_val] : effect) {
+                after_effect.emplace_back(eff_var, eff_val);
+                eff += state_mapper_->from_value_partial(eff_var, eff_val);
+                if (precondition.find(eff_var) == precondition.end()) {
+                    eff_no_pre.push_back(eff_var);
+                } else {
+                    pre += state_mapper_->from_value_partial(
+                        eff_var,
+                        precondition[eff_var]);
+                }
+            }
+        }
+
+        std::sort(after_effect.begin(), after_effect.end());
+        std::sort(eff_no_pre.begin(), eff_no_pre.end());
+
+        auto it = state_mapper_->partial_states_begin(
+            pre - eff,
+            std::move(eff_no_pre));
+        auto end = state_mapper_->partial_states_end();
+
+        for (; it != end; ++it) {
+            AbstractState regression = *it;
+
+            if (regression.id != 0 &&
+                operator_set.emplace(after_effect, regression).second) {
+                progressions.push_back(after_effect);
+                operators.push_back(regression);
+            }
+        }
+    }
+
+    regression_aops_generator_ = std::make_shared<RegressionSuccessorGenerator>(
+        state_mapper_->get_domains(),
+        progressions,
+        operators);
+}
+
+bool is_closed(
+    AbstractState state,
+    const AbstractOperator* op,
+    const std::unordered_set<AbstractState>& closure)
+{
+    for (auto outcome : op->outcomes) {
+        auto successor = state + outcome.first;
+        if (closure.find(successor) == closure.end()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool has_closed_operator(
+    AbstractState state,
+    std::set<const probabilistic::pdbs::AbstractOperator*>& operators,
+    const std::unordered_set<AbstractState>& closure)
+{
+    for (const auto* op : operators) {
+        if (is_closed(state, op, closure)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void ProbabilisticProjection::precompute_dead_ends()
+{
+    // Initialize open list with goal states.
+    std::deque<AbstractState> open(goal_states_.begin(), goal_states_.end());
+
+    std::unordered_set<AbstractState> non_dead_ends(
+        goal_states_.begin(),
+        goal_states_.end());
+
+    // Regress from goal states to find all states with MaxProb > 0.
+    while (!open.empty()) {
+        const AbstractState s = open.front();
+        open.pop_front();
+
+        std::vector<int> state_values;
+        state_mapper_->to_values(s, state_values);
+
+        std::vector<AbstractState> aops;
+        regression_aops_generator_->generate_applicable_ops(state_values, aops);
+        if (aops.empty()) {
+            continue;
+        }
+
+        for (const AbstractState eff : aops) {
+            const AbstractState t = s + eff;
+
+            // Collect operators of t reaching s
+            std::vector<int> facts = state_mapper_->to_values(t);
+            std::vector<const probabilistic::pdbs::AbstractOperator*> aops;
+            progression_aops_generator_->generate_applicable_ops(facts, aops);
+
+            if (non_dead_ends.find(t) == non_dead_ends.end()) {
+                non_dead_ends.insert(t);
+                open.push_back(t);
+            }
+        }
+    }
+
+    dead_ends = QualitativeResultStore(true, non_dead_ends);
+
+    // Compute probability one states.
+    class std::unordered_set<probabilistic::pdbs::AbstractState>& S_new =
+        non_dead_ends;
+    class std::unordered_set<probabilistic::pdbs::AbstractState> S_old;
+
+    do {
+        S_old = std::move(S_new);
+        S_new.insert(goal_states_.begin(), goal_states_.end());
+
+        std::deque<AbstractState> open(
+            goal_states_.begin(),
+            goal_states_.end());
+
+        while (!open.empty()) {
+            const AbstractState s = open.front();
+            open.pop_front();
+
+            std::vector<int> state_values;
+            state_mapper_->to_values(s, state_values);
+
+            std::vector<AbstractState> aops;
+            regression_aops_generator_->generate_applicable_ops(
+                state_values,
+                aops);
+
+            if (aops.empty()) {
+                continue;
+            }
+
+            for (const AbstractState eff : aops) {
+                const AbstractState t = s + eff;
+
+                if (S_old.find(t) == S_old.end()) {
+                    continue;
+                }
+
+                // Collect operators of t reaching s
+                std::vector<int> facts = state_mapper_->to_values(t);
+                std::vector<const probabilistic::pdbs::AbstractOperator*> aops;
+                progression_aops_generator_->generate_applicable_ops(
+                    facts,
+                    aops);
+
+                // Check if there is an inverse operator that reaches s from t
+                // and stays within the current set. If yes, add t.
+                for (const auto* op : aops) {
+                    bool inverse = false;
+                    bool closed = true;
+
+                    for (auto out : op->outcomes) {
+                        auto succ = t + out.first;
+                        if (succ == s) {
+                            inverse = true;
+                        }
+
+                        if (S_old.find(succ) == S_old.end()) {
+                            closed = false;
+                            break;
+                        }
+                    }
+
+                    if (inverse && closed && S_new.find(t) == S_new.end()) {
+                        S_new.insert(t);
+                        open.push_back(t);
+                        break;
+                    }
+                }
+            }
+        }
+    } while (S_old.size() != S_new.size()); // Size check is enough here
+
+    this->one_states = QualitativeResultStore(false, S_old);
+}
+
 void ProbabilisticProjection::setup_abstract_goal()
 {
     const Pattern& variables = state_mapper_->get_pattern();
