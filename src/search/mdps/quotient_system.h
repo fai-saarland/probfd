@@ -83,9 +83,24 @@ public:
     };
 
     explicit QuotientSystem(
-        ActionIDMap<Action>*,
-        ApplicableActionsGenerator<Action>*,
-        TransitionGenerator<Action>* transition_gen);
+        ActionIDMap<Action>* aid,
+        ApplicableActionsGenerator<Action>* aops,
+        TransitionGenerator<Action>* transition_gen)
+        : cache_(transition_gen->caching_)
+        , gen_(transition_gen)
+        , fallback_(nullptr)
+    {
+        if (!cache_) {
+            fallback_ = std::unique_ptr<
+                DefaultQuotientSystem<const ProbabilisticOperator*>>(
+                new DefaultQuotientSystem<const ProbabilisticOperator*>(
+                    aid,
+                    aops,
+                    transition_gen));
+        } else {
+            state_infos_.push_back(QuotientInformation(0));
+        }
+    }
 
     unsigned quotient_size(const StateID& state_id) const;
 

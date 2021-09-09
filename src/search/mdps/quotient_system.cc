@@ -7,26 +7,6 @@
 namespace probabilistic {
 namespace quotient_system {
 
-QuotientSystem<const ProbabilisticOperator*>::QuotientSystem(
-    ActionIDMap<const ProbabilisticOperator*>* aid,
-    ApplicableActionsGenerator<const ProbabilisticOperator*>* aops,
-    TransitionGenerator<const ProbabilisticOperator*>* transition_gen)
-    : cache_(transition_gen->caching_)
-    , gen_(transition_gen)
-    , fallback_(nullptr)
-{
-    if (!cache_) {
-        fallback_ = std::unique_ptr<
-            DefaultQuotientSystem<const ProbabilisticOperator*>>(
-            new DefaultQuotientSystem<const ProbabilisticOperator*>(
-                aid,
-                aops,
-                transition_gen));
-    } else {
-        state_infos_.push_back(QuotientInformation(0));
-    }
-}
-
 unsigned QuotientSystem<const ProbabilisticOperator*>::quotient_size(
     const StateID& state_id) const
 {
