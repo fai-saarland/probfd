@@ -54,6 +54,13 @@ void exit_with(ExitCode exitcode) {
     exit(static_cast<int>(exitcode));
 }
 
+// Out-of-memory variant which only uses stack memory.
+void oom_exit_with(ExitCode exitcode)
+{
+    report_exit_code_reentrant(exitcode);
+    exit(static_cast<int>(exitcode));
+}
+
 void exit_after_receiving_signal(ExitCode exitcode) {
     /*
       In signal handlers, we have to use the "safe function" _Exit() rather

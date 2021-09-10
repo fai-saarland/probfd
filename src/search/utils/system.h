@@ -54,6 +54,7 @@ enum class ExitCode {
 };
 
 NO_RETURN extern void exit_with(ExitCode returncode);
+NO_RETURN extern void oom_exit_with(ExitCode exitcode);
 NO_RETURN extern void exit_after_receiving_signal(ExitCode returncode);
 
 int get_peak_memory_in_kb();
