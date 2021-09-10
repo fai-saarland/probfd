@@ -1,5 +1,8 @@
 #include "system.h"
 
+#include "logging.h"
+#include "timer.h"
+
 #include <cstdlib>
 
 using namespace std;
@@ -46,6 +49,8 @@ bool is_exit_code_error_reentrant(ExitCode exitcode) {
 
 void exit_with(ExitCode exitcode) {
     report_exit_code_reentrant(exitcode);
+    utils::g_log << "Search time: " << utils::g_search_timer << endl;
+    utils::g_log << "Total time: " << utils::g_timer << endl;
     exit(static_cast<int>(exitcode));
 }
 

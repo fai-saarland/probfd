@@ -46,7 +46,7 @@ class Timer {
 
     double current_clock() const;
 public:
-    Timer();
+    Timer(bool stopped = false);
     ~Timer() = default;
     Duration operator()() const;
     Duration stop();
@@ -56,6 +56,7 @@ public:
 
 std::ostream &operator<<(std::ostream &os, const Timer &timer);
 
+extern Timer g_search_timer;
 extern Timer g_timer;
 }
 

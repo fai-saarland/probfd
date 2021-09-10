@@ -46,14 +46,14 @@ int main(int argc, const char **argv) {
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    utils::Timer search_timer;
+    utils::g_search_timer.resume();
     engine->solve();
-    search_timer.stop();
+    utils::g_search_timer.stop();
     utils::g_timer.stop();
 
     engine->save_result_if_necessary();
     engine->print_statistics();
-    utils::g_log << "Search time: " << search_timer << endl;
+    utils::g_log << "Search time: " << utils::g_search_timer << endl;
     utils::g_log << "Total time: " << utils::g_timer << endl;
 
     ExitCode exitcode = engine->found_solution()
