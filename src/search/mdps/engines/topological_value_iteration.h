@@ -377,25 +377,6 @@ private:
             return false;
         }
 
-#if 0 
-        exploration_stack_.emplace_back(
-            state,
-            (value_type::value_t)x,
-            stack_.size() - 1,
-            std::move(aops));
-        exploration_stack_.back().transition = transition_gen_->operator()(state, exploration_stack_.back().aops.back());
-
-        // std::cout << state_id << " " << aops.back()->get_name() << std::endl;
-        // std::cout << "===> #" << exploration_stack_.back().transition.size() << ":";
-        // for (auto it = exploration_stack_.back().transition.begin(); it != exploration_stack_.back().transition.end(); ++it) {
-        //     std::cout << " " << state_id_map_->operator[](it->first);
-        // }
-        // std::cout << std::endl;
-
-        exploration_stack_.back().successor = exploration_stack_.back().transition.begin();
-        exploration_stack_.back().aops.pop_back();
-#endif
-
         const auto state_reward = static_cast<value_type::value_t>(state_eval);
 
         ExplorationInfo& einfo = exploration_stack_.emplace_back(
@@ -588,130 +569,98 @@ private:
         StateInfo& state_info,
         BoolStore* dead_end_store)
     {
+        assert(explore.stackidx < stack_.size());
+
         ++statistics_.sccs;
 
-        if (explore.stackidx + 1 == stack_.size()) {
+        const unsigned scc_size = stack_.size() - explore.stackidx;
+
+        if (scc_size == 1) {
             ++statistics_.singleton_sccs;
         }
 
         if (state_info.dead) {
-            const StackInfo* scc_start = &stack_[explore.stackidx];
-            StackInfo* it = &stack_.back();
+            auto it = stack_.begin() + explore.stackidx;
+            auto end = stack_.end();
 
             do {
-                *it->value = dead_end_value_;
+                StackInfo& stack_it = *it++;
+                StateInfo& state_it = state_information_[stack_it.state_id];
+
+                assert(state_it.dead);
+                assert(state_it.status == StateInfo::ONSTACK);
+
+                *stack_it.value = dead_end_value_;
 
                 if (dead_end_store) {
-                    dead_end_store->operator[](it->state_id) = true;
+                    dead_end_store->operator[](stack_it.state_id) = true;
                 }
 
-                StateInfo& scc_state_info = state_information_[it->state_id];
+                state_it.status = StateInfo::CLOSED;
+            } while (it != end);
 
-                assert(scc_state_info.dead);
-                assert(scc_state_info.status == StateInfo::ONSTACK);
+            statistics_.dead_ends += scc_size;
+        } else if (scc_size == 1) {
+            assert(
+                state_info.status == StateInfo::ONSTACK ||
+                state_info.status == StateInfo::TERMINAL);
 
-                scc_state_info.status = StateInfo::CLOSED;
+            if (!ExpandGoalStates || state_info.status == StateInfo::ONSTACK) {
+                value_utils::update(*stack_info.value, stack_info.b);
+            }
 
-                if (scc_start == it) {
-                    break;
-                }
-
-                --it;
-            } while (true);
-
-            statistics_.dead_ends += (stack_.size() - explore.stackidx);
+            state_info.status = StateInfo::CLOSED;
         } else {
-            assert(explore.stackidx < stack_.size());
-            unsigned scc_size = stack_.size() - explore.stackidx;
+            auto it = stack_.rbegin();
+            std::reverse_iterator end(stack_.begin() + explore.stackidx);
 
-            if (scc_size == 1) {
+            do {
+                StackInfo& stack_it = *it++;
+                StateInfo& state_it = state_information_[stack_it.state_id];
+
                 assert(
-                    state_info.status == StateInfo::ONSTACK ||
-                    state_info.status == StateInfo::TERMINAL);
+                    state_it.status == StateInfo::ONSTACK ||
+                    (ExpandGoalStates &&
+                     state_it.status == StateInfo::TERMINAL));
+                assert(ExpandGoalStates || !stack_it.infos.empty());
 
-                if (!ExpandGoalStates ||
-                    state_info.status == StateInfo::ONSTACK) {
-                    value_utils::update(*stack_info.value, stack_info.b);
-                }
-
-                state_info.status = StateInfo::CLOSED;
-            } else {
                 if constexpr (ExpandGoalStates) {
-                    const int scc_start = explore.stackidx;
-
-                    for (int i = stack_.size() - 1; i >= scc_start; --i) {
-                        StackInfo& scc_stack_info = stack_[i];
-                        StateInfo& scc_state_info =
-                            state_information_[scc_stack_info.state_id];
-
-                        assert(
-                            scc_state_info.status == StateInfo::ONSTACK ||
-                            scc_state_info.status == StateInfo::TERMINAL);
-
-                        if (scc_state_info.status == StateInfo::TERMINAL) {
-                            --scc_size;
-                            stack_.erase(stack_.begin() + i);
-                        } else if (scc_stack_info.infos.empty()) {
-                            value_utils::update(
-                                *scc_stack_info.value,
-                                scc_stack_info.b);
-                            --scc_size;
-                            stack_.erase(stack_.begin() + i);
-                        }
-
-                        scc_state_info.dead = 0;
-                        scc_state_info.status = StateInfo::CLOSED;
+                    if (state_it.status == StateInfo::TERMINAL) {
+                        it = std::reverse_iterator(stack_.erase(it.base()));
+                    } else if (stack_it.infos.empty()) {
+                        value_utils::update(*stack_it.value, stack_it.b);
+                        it = std::reverse_iterator(stack_.erase(it.base()));
                     }
-                } else {
-                    const StackInfo* scc_start = &stack_[explore.stackidx];
-                    StackInfo* it = &stack_.back();
-
-                    do {
-                        StateInfo& scc_state_info =
-                            state_information_[it->state_id];
-
-                        assert(scc_state_info.status == StateInfo::ONSTACK);
-                        assert(!it->infos.empty());
-
-                        scc_state_info.status = StateInfo::CLOSED;
-                        scc_state_info.dead = 0;
-
-                        if (scc_start == it) {
-                            break;
-                        }
-
-                        --it;
-                    } while (true);
                 }
 
-                if (scc_size > 0) {
-                    const unsigned n = bellman_backup(stack_, explore.stackidx);
-                    statistics_.bellman_backups += n;
-                }
+                state_it.status = StateInfo::CLOSED;
+                state_it.dead = 0;
+            } while (it != end);
+
+            if (stack_.size() > explore.stackidx) {
+                const auto begin = stack_.begin() + explore.stackidx;
+                const unsigned n = bellman_backup(begin, stack_.end());
+                statistics_.bellman_backups += n;
             }
         }
 
-        while (stack_.size() > explore.stackidx) {
-            stack_.pop_back();
-        }
+        stack_.erase(stack_.begin() + explore.stackidx, stack_.end());
     }
 
+    template <typename StackInfoIterator>
     unsigned
-    bellman_backup(std::vector<StackInfo>& stack, int start_index) const
+    bellman_backup(StackInfoIterator begin, StackInfoIterator end) const
     {
-        assert(start_index < static_cast<int>(stack.size()));
-        bool changed = true;
+        bool changed;
         unsigned num_updates = 0;
 
-        while (changed) {
+        do {
             changed = false;
-            StackInfo* it = &stack[start_index];
-            for (int i = stack.size() - start_index; i > 0; --i) {
-                ++num_updates;
-                changed = it->update_value() || changed;
-                ++it;
+
+            for (auto it = begin; it != end; ++it, ++num_updates) {
+                changed |= it->update_value();
             }
-        }
+        } while (changed);
 
         return num_updates;
     }
