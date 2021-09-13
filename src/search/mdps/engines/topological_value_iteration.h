@@ -238,11 +238,11 @@ private:
         bool finalize()
         {
             if (has_self_loop) {
-                const auto normalization =
+                self_loop_prob =
                     (value_type::one / (value_type::one - self_loop_prob));
 
                 if (successors.empty()) {
-                    base *= normalization;
+                    base *= self_loop_prob;
                 }
             }
 
