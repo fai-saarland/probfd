@@ -44,26 +44,6 @@ std::vector<int> get_goal_explicit()
     return make_explicit(g_goal);
 }
 
-std::pair<int, int> compute_pnc(
-    const std::vector<int>& goal_explicit,
-    const GlobalState& state,
-    int var,
-    int d)
-{
-    if (goal_explicit[var] == -1) {
-        if (state[var] != d) {
-            return {0, 1};
-        } else {
-            return {-1, 0};
-        }
-    } else if (goal_explicit[var] == d && state[var] != d) {
-        return {1, 1};
-    } else if (goal_explicit[var] != d && state[var] == d) {
-        return {-1, -1};
-    }
-
-    return {0, 0};
-}
 } // namespace
 
 RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
@@ -129,17 +109,22 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
 
         const auto goal_explicit = get_goal_explicit();
 
-        for (int var = 0; var < (int)g_variable_domain.size(); ++var) {
-            for (int d = 0; d < g_variable_domain[var]; ++d) {
-                const auto& [pnc_min, pnc_max] =
-                    compute_pnc(goal_explicit, state, var, d);
+        std::vector<int> reset;
+        reset.reserve(2 * g_variable_domain.size());
 
-                lp_solver_.set_constraint_lower_bound(
-                    constraint_offsets_[var] + 2 * d,
-                    pnc_min);
-                lp_solver_.set_constraint_upper_bound(
-                    constraint_offsets_[var] + 2 * d + 1,
-                    pnc_max);
+        for (size_t var = 0; var < g_variable_domain.size(); ++var) {
+            const int g_val = goal_explicit[var];
+            if (g_val == -1) {
+                const int idx_state_val = constraint_offsets_[var] + state[var];
+                lp_solver_.set_constraint_lower_bound(idx_state_val, -1);
+                reset.push_back(idx_state_val);
+            } else if (state[var] != goal_explicit[var]) {
+                const int idx_state_val = constraint_offsets_[var] + state[var];
+                const int idx_g_val = constraint_offsets_[var] + g_val;
+                lp_solver_.set_constraint_lower_bound(idx_state_val, -1);
+                lp_solver_.set_constraint_lower_bound(idx_g_val, 1);
+                reset.push_back(idx_state_val);
+                reset.push_back(idx_g_val);
             }
         }
 
@@ -147,6 +132,10 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
         assert(lp_solver_.has_optimal_solution());
         const double v = -lp_solver_.get_objective_value();
         EvaluationResult res(false, v);
+
+        for (int idx : reset) {
+            lp_solver_.set_constraint_lower_bound(idx, 0.0);
+        }
 
         return res;
     }
@@ -239,12 +228,12 @@ void RegroupedOperatorCountingHeuristic::load_expcost_lp()
     constraint_offsets_.resize(g_variable_domain.size(), 0);
     for (unsigned var = 1; var < g_variable_domain.size(); ++var) {
         constraint_offsets_[var] =
-            constraint_offsets_[var - 1] + 2 * g_variable_domain[var - 1];
+            constraint_offsets_[var - 1] + g_variable_domain[var - 1];
     }
 
     constraints.resize(
-        constraint_offsets_.back() + 2 * g_variable_domain.back(),
-        lp::LPConstraint(-inf, inf));
+        constraint_offsets_.back() + g_variable_domain.back(),
+        lp::LPConstraint(0.0, inf));
 
     for (const ProbabilisticOperator& op : g_operators) {
         const int cost = op.get_cost();
@@ -260,34 +249,14 @@ void RegroupedOperatorCountingHeuristic::load_expcost_lp()
                 const int var = eff.var;
                 const int val = eff.val;
 
+                const int offset = constraint_offsets_[var];
+
+                // Always produces / Sometimes produces
+                constraints[offset + val].insert(lp_var, 1);
+
                 if (pre[var] != -1) {
                     // Always consumes
-                    constraints[constraint_offsets_[var] + 2 * pre[var]].insert(
-                        lp_var,
-                        -1);
-                    constraints[constraint_offsets_[var] + 2 * pre[var] + 1]
-                        .insert(lp_var, -1);
-
-                    // Always produces
-                    constraints[constraint_offsets_[var] + 2 * val].insert(
-                        lp_var,
-                        1);
-                    constraints[constraint_offsets_[var] + 2 * val + 1].insert(
-                        lp_var,
-                        1);
-                } else {
-                    // Sometimes consumes
-                    for (int val2 = 0; val2 < g_variable_domain[var]; ++val2) {
-                        if (val != val2) {
-                            constraints[constraint_offsets_[var] + 2 * val2 + 1]
-                                .insert(lp_var, -1);
-                        }
-                    }
-
-                    // Sometimes produces
-                    constraints[constraint_offsets_[var] + 2 * val].insert(
-                        lp_var,
-                        1);
+                    constraints[offset + pre[var]].insert(lp_var, -1);
                 }
             }
         }

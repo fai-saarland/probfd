@@ -26,7 +26,7 @@ if os.name == "posix":
     except NotImplementedError:
         pass
     else:
-        DEFAULT_MAKE_PARAMETERS.append('-j{}'.format((int)(num_cpus * 1.5)))
+        DEFAULT_MAKE_PARAMETERS.append('-j{}'.format(num_cpus))
     CMAKE_GENERATOR = "Unix Makefiles"
 elif os.name == "nt":
     MAKE = "nmake"
