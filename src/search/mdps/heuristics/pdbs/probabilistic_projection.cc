@@ -221,6 +221,11 @@ void ProbabilisticProjection::precompute_dead_ends()
 
     dead_ends = QualitativeResultStore(true, non_dead_ends);
 
+    if (non_dead_ends.size() == this->state_mapper_->size()) {
+        one_states = QualitativeResultStore(false, std::move(non_dead_ends));
+        return;
+    }
+
     // Compute probability one states.
     class std::unordered_set<probabilistic::pdbs::AbstractState>& S_new =
         non_dead_ends;
@@ -291,8 +296,9 @@ void ProbabilisticProjection::precompute_dead_ends()
             }
         }
     } while (S_old.size() != S_new.size()); // Size check is enough here
+                                            // (monotically decreasing)
 
-    this->one_states = QualitativeResultStore(false, S_old);
+    this->one_states = QualitativeResultStore(false, std::move(S_old));
 }
 
 void ProbabilisticProjection::setup_abstract_goal()
