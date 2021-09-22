@@ -111,6 +111,10 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
     // Gather statistics.
     const double construction_time = construction_timer();
 
+    statistics_.generator_time = generator_time;
+    statistics_.dominance_pruning_time = dominance_pruning_time;
+    statistics_.construction_time = construction_time;
+
     statistics_.pdbs = pdbs->size();
 
     for (auto pdb : *pdbs) {
