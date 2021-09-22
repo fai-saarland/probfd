@@ -5,6 +5,8 @@
 #include "../../value_utils.h"
 
 #include "../constant_evaluator.h"
+
+#include "abstract_policy.h"
 #include "probabilistic_projection.h"
 
 namespace successor_generator {
@@ -38,6 +40,8 @@ public:
 
     [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
     [[nodiscard]] EvaluationResult evaluate(const AbstractState& s) const;
+
+    AbstractPolicy get_optimal_abstract_policy() const;
 
     void dump_graphviz(
         const std::string& path,

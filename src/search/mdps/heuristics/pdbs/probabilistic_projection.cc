@@ -139,6 +139,10 @@ bool has_closed_operator(
 
 void ProbabilisticProjection::compute_dead_ends()
 {
+    if (dead_ends) {
+        return;
+    }
+
     // Initialize open list with goal states.
     std::deque<AbstractState> open(goal_states_.begin(), goal_states_.end());
 
@@ -146,7 +150,15 @@ void ProbabilisticProjection::compute_dead_ends()
         goal_states_.begin(),
         goal_states_.end());
 
-    // Regress from goal states to find all states with MaxProb > 0.
+    // Goal distance for every state
+    std::vector<int> goal_distances(state_mapper_->size(), -1);
+
+    for (AbstractState goal : goal_states_) {
+        goal_distances[goal.id] = 0;
+    }
+
+    // Regression breadth-first search from goal states to find all states with
+    // MaxProb > 0. While we are at it, we can compute the goal distances.
     while (!open.empty()) {
         const AbstractState s = open.front();
         open.pop_front();
@@ -175,17 +187,15 @@ void ProbabilisticProjection::compute_dead_ends()
 
 void ProbabilisticProjection::compute_proper_states()
 {
-    if (!dead_ends) {
-        compute_dead_ends();
+    if (proper_states) {
+        return;
     }
+
+    compute_dead_ends();
 
     // Compute probability one states.
-    std::unordered_set<AbstractState> S_new;
-    std::unordered_set<AbstractState> S_old;
-
-    for (const AbstractState& s : dead_ends->get_storage()) {
-        S_new.insert(s);
-    }
+    class std::unordered_set<AbstractState> S_new = dead_ends->get_storage();
+    class std::unordered_set<AbstractState> S_old;
 
     if (S_new.size() == this->state_mapper_->size()) {
         proper_states.reset(
@@ -258,7 +268,7 @@ void ProbabilisticProjection::compute_proper_states()
             }
         }
     } while (S_old.size() != S_new.size()); // Size check is enough here
-                                            // (monotically decreasing)
+                                            // (monotonically decreasing)
 
     proper_states.reset(new QualitativeResultStore(false, std::move(S_old)));
 }

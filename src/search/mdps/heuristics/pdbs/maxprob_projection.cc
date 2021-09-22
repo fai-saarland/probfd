@@ -161,6 +161,83 @@ EvaluationResult MaxProbProjection::evaluate(const AbstractState& s) const
     return {false, v};
 }
 
+AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
+{
+    using PredecessorList =
+        std::vector<std::pair<AbstractState, const AbstractOperator*>>;
+
+    AbstractPolicy policy;
+
+    std::map<AbstractState, PredecessorList> predecessors;
+
+    std::deque<AbstractState> open;
+    std::unordered_set<AbstractState> closed;
+    open.push_back(initial_state_);
+    closed.insert(initial_state_);
+
+    // Build the greedy policy graph
+    while (!open.empty()) {
+        AbstractState s = open.front();
+        open.pop_front();
+
+        const value_type::value_t value = value_table[s.id].upper;
+
+        // Generate operators...
+        auto facts = state_mapper_->to_values(s);
+
+        std::vector<const AbstractOperator*> aops;
+        progression_aops_generator_->generate_applicable_ops(facts, aops);
+
+        // Select the greedy operators and add their successors
+        for (const AbstractOperator* op : aops) {
+            value_type::value_t op_value = value_type::zero;
+
+            std::vector<AbstractState> successors;
+
+            for (const auto& [eff, prob] : op->outcomes) {
+                AbstractState t = s + eff;
+                op_value += prob * value_table[t.id].upper;
+                successors.push_back(t);
+            }
+
+            if (value_type::approx_equal()(value, op_value)) {
+                for (const AbstractState& succ : successors) {
+                    if (!utils::contains(closed, succ)) {
+                        closed.insert(succ);
+                        open.push_back(succ);
+                        predecessors[succ] = PredecessorList();
+                    }
+
+                    predecessors[succ].emplace_back(s, op);
+                }
+            }
+        }
+    }
+
+    // Do regression search to select the optimal policy
+    assert(open.empty());
+    open.insert(open.end(), goal_states_.begin(), goal_states_.end());
+    closed.clear();
+    closed.insert(goal_states_.begin(), goal_states_.end());
+
+    while (!open.empty()) {
+        AbstractState s = open.front();
+        open.pop_front();
+
+        for (const auto& [pstate, op] : predecessors[s]) {
+            if (!utils::contains(closed, pstate)) {
+                closed.insert(pstate);
+                open.push_back(pstate);
+
+                // op is a greedy operator with min goal distance
+                policy[pstate] = op;
+            }
+        }
+    }
+
+    return policy;
+}
+
 namespace {
 struct StateToString {
     explicit StateToString(

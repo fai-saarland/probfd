@@ -713,6 +713,7 @@ fast_downward_plugin(
 
         mdps/heuristics/pdbs/maxprob_projection
         mdps/heuristics/pdbs/expcost_projection
+        mdps/heuristics/pdbs/abstract_policy
     DEPENDS MDP SUCCESSOR_GENERATOR
     )
 
