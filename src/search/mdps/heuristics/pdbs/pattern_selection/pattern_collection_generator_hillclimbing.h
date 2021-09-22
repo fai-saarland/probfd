@@ -65,6 +65,7 @@ class PatternCollectionGeneratorHillclimbing
     std::shared_ptr<Statistics> statistics_;
 
     std::shared_ptr<PatternCollectionGenerator<PDBType>> initial_generator;
+    std::shared_ptr<SubCollectionFinder> subcollection_finder;
 
     // maximum number of states for each pdb
     const int pdb_max_size;
@@ -77,7 +78,6 @@ class PatternCollectionGeneratorHillclimbing
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     std::unique_ptr<IncrementalPPDBs<PDBType>> current_pdbs;
-    std::shared_ptr<SubCollectionFinder> subcollection_finder;
 
     // for stats only
     int num_rejected;
