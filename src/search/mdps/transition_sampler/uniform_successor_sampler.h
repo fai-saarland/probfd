@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_TRANSITION_SAMPLER_UNIFORM_SUCCESSOR_SAMPLER_H
+#define MDPS_TRANSITION_SAMPLER_UNIFORM_SUCCESSOR_SAMPLER_H
 
 #include "../probabilistic_operator.h"
 #include "../transition_sampler.h"
@@ -19,3 +20,5 @@ protected:
 
 } // namespace transition_sampler
 } // namespace probabilistic
+
+#endif // __UNIFORM_SUCCESSOR_SAMPLER_H__

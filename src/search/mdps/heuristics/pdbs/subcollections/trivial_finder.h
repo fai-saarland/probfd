@@ -1,3 +1,6 @@
+#ifndef MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_TRIVIAL_FINDER_H
+#define MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_TRIVIAL_FINDER_H
+
 #include "subcollection_finder.h"
 
 namespace probabilistic {
@@ -17,3 +20,5 @@ public:
 
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __TRIVIAL_FINDER_H__

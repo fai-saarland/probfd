@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
+#define MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
 
 #include "abstract_state.h"
 #include "types.h"
@@ -179,3 +180,4 @@ private:
 
 } // namespace pdbs
 } // namespace probabilistic
+#endif // __ABSTRACT_STATE_MAPPER_H__

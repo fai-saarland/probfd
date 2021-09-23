@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
+#define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
 
 #include "../../../../utils/logging.h"
 #include "../../../evaluation_result.h"
@@ -189,3 +190,5 @@ using MaxProbPatternCollectionGeneratorHillclimbing =
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H__

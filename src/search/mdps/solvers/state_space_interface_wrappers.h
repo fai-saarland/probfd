@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_SOLVERS_STATE_SPACE_INTERFACE_WRAPPERS_H
+#define MDPS_SOLVERS_STATE_SPACE_INTERFACE_WRAPPERS_H
 
 #include "../bisimulation/bisimilar_state_space.h"
 #include "../engine_interfaces/open_list.h"
@@ -187,3 +188,5 @@ struct Unwrapper<
 
 } // namespace solvers
 } // namespace probabilistic
+
+#endif // __STATE_SPACE_INTERFACE_WRAPPERS_H__

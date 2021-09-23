@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_OPEN_LISTS_H_OPEN_LIST_H
+#define MDPS_OPEN_LISTS_H_OPEN_LIST_H
 
 #include "key_based_open_list.h"
 
@@ -30,3 +31,5 @@ protected:
 
 } // namespace open_lists
 } // namespace probabilistic
+
+#endif // __H_OPEN_LIST_H__

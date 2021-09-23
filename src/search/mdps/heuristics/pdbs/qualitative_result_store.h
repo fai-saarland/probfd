@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_QUALITATIVE_RESULT_STORE_H
+#define MDPS_HEURISTICS_PDBS_QUALITATIVE_RESULT_STORE_H
 
 #include "abstract_state.h"
 
@@ -45,3 +46,5 @@ private:
 
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif

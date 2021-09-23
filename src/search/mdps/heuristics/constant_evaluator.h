@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_CONSTANT_EVALUATOR_H
+#define MDPS_HEURISTICS_CONSTANT_EVALUATOR_H
 
 #include "../state_evaluator.h"
 
@@ -28,3 +29,5 @@ protected:
 };
 
 } // namespace probabilistic
+
+#endif // __CONSTANT_EVALUATOR_H__

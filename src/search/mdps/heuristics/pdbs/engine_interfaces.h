@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
+#define MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 
 #include "../../engine_interfaces/action_evaluator.h"
 #include "../../engine_interfaces/action_id_map.h"
@@ -239,3 +240,5 @@ protected:
 
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __ENGINE_INTERFACES_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_EXHAUSTIVE_AO_H
+#define MDPS_ENGINES_EXHAUSTIVE_AO_H
 
 #include "../engine_interfaces/open_list.h"
 #include "ao_search.h"
@@ -232,3 +233,5 @@ private:
 } // namespace exhaustive_ao
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __EXHAUSTIVE_AO_H__

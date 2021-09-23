@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_ACTION_ID_MAP_H
+#define MDPS_ENGINE_INTERACES_ACTION_ID_MAP_H
 
 #include "../types.h"
 
@@ -32,3 +33,5 @@ struct ActionIDMap {
 };
 
 } // namespace probabilistic
+
+#endif // __ACTION_ID_MAP_H__

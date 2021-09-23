@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_TRANSITION_SAMPLER_H
+#define MDPS_ENGINE_INTERACES_TRANSITION_SAMPLER_H
 
 #include "../distribution.h"
 #include "../types.h"
@@ -27,3 +28,5 @@ struct TransitionSampler {
 };
 
 } // namespace probabilistic
+
+#endif // __TRANSITION_SAMPLER_H__

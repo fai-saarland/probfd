@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_QUOTIENT_SYSTEM_H
+#define MDPS_QUOTIENT_SYSTEM_H
 
 #include "../algorithms/segmented_vector.h"
 #include "probabilistic_operator.h"
@@ -476,3 +477,5 @@ private:
 
 } // namespace quotient_system
 } // namespace probabilistic
+
+#endif // __QUOTIENT_SYSTEM_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_POLICY_PICKER_OPERATOR_ID_TIEBREAKER_H
+#define MDPS_POLICY_PICKER_OPERATOR_ID_TIEBREAKER_H
 
 #include "../policy_picker.h"
 
@@ -28,3 +29,5 @@ private:
 
 } // namespace policy_tiebreaking
 } // namespace probabilistic
+
+#endif // __OPERATOR_ID_TIEBREAKER_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_SYNTACTIC_PROJECTION_H
+#define MDPS_HEURISTICS_PDBS_SYNTACTIC_PROJECTION_H
 
 #include <map>
 #include <vector>
@@ -50,3 +51,5 @@ project_operator(const Pattern& pattern, const ProbabilisticOperator& op);
 } // namespace syntactic_projection
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __SYNTACTIC_PROJECTION_H__

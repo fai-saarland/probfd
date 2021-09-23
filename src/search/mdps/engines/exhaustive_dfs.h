@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_EXHAUSTIVE_DFS_H
+#define MDPS_ENGINES_EXHAUSTIVE_DFS_H
 
 #include "../../utils/timer.h"
 #include "../engine_interfaces/dead_end_listener.h"
@@ -1230,3 +1231,5 @@ private:
 } // namespace probabilistic
 
 #undef TIMER_STATISTICS_ENABLED
+
+#endif // __EXHAUSTIVE_DFS_H__

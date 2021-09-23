@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_INTERVAL_ITERATION_H
+#define MDPS_ENGINES_INTERVAL_ITERATION_H
 
 #include "../end_components/end_component_decomposition.h"
 #include "../quotient_system/engine_interfaces.h"
@@ -254,3 +255,5 @@ private:
 } // namespace interval_iteration
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __INTERVAL_ITERATION_H__

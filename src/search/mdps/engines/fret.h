@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_FRET_H
+#define MDPS_ENGINES_FRET_H
 
 #include "../progress_report.h"
 #include "../quotient_system/quotient_system.h"
@@ -549,3 +550,5 @@ public:
 } // namespace probabilistic
 
 #undef FRET_DEBUG_MSG
+
+#endif // __FRET_H__

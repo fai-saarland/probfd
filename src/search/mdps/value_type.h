@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_VALUE_TYPE_H
+#define MDPS_VALUE_TYPE_H
 
 /// Namespace for classes related to search in probabilistic state space models.
 namespace probabilistic {
@@ -42,3 +43,5 @@ struct approx_greater {
 
 } // namespace value_type
 } // namespace probabilistic
+
+#endif // __VALUE_TYPE_H__

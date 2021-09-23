@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_TYPES_H
+#define MDPS_TYPES_H
 
 #include <cstdint>
 #include <functional>
@@ -87,3 +88,5 @@ struct hash<probabilistic::ActionID> {
 };
 
 } // namespace std
+
+#endif // __TYPES_H__

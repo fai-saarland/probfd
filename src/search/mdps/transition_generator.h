@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_TRANSITION_GENERATOR_H
+#define MDPS_TRANSITION_GENERATOR_H
 
 #include "../algorithms/segmented_array_store.h"
 #include "../algorithms/segmented_vector.h"
@@ -208,3 +209,5 @@ private:
 };
 
 } // namespace probabilistic
+
+#endif // __TRANSITION_GENERATOR_H__

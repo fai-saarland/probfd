@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_AO_SEARCH_H
+#define MDPS_ENGINES_AO_SEARCH_H
 
 #include "../engine_interfaces/dead_end_listener.h"
 #include "../storage/per_state_storage.h"
@@ -497,3 +498,5 @@ private:
 } // namespace ao_search
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __AO_SEARCH_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
+#define MDPS_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
 
 #include "../../../lp/lp_solver.h"
 #include "../../state_evaluator.h"
@@ -52,3 +53,5 @@ protected:
 
 } // namespace occupation_measure_heuristic
 } // namespace probabilistic
+
+#endif // __OCCUPATION_MEASURE_HEURISTIC_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_HEURISTIC_DEPTH_FIRST_SEARCH_H
+#define MDPS_ENGINES_HEURISTIC_DEPTH_FIRST_SEARCH_H
 
 #include "heuristic_search_base.h"
 
@@ -758,3 +759,5 @@ public:
 } // namespace probabilistic
 
 #undef DMSG
+
+#endif // __HEURISTIC_DEPTH_FIRST_SEARCH_H__

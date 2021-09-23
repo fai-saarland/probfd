@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_TRANSITION_SAMPLER_RANDOM_SUCCESSOR_SAMPLER_H
+#define MDPS_TRANSITION_SAMPLER_RANDOM_SUCCESSOR_SAMPLER_H
 
 #include "../transition_sampler.h"
 #include "../utils/distribution_random_sampler.h"
@@ -18,3 +19,5 @@ protected:
 
 } // namespace transition_sampler
 } // namespace probabilistic
+
+#endif // __RANDOM_SUCCESSOR_SAMPLER_H__

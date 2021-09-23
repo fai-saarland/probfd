@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_BUDGET_PRUNING_H
+#define MDPS_HEURISTICS_BUDGET_PRUNING_H
 
 #include "../state_evaluator.h"
 #include "../types.h"
@@ -67,3 +68,5 @@ protected:
 };
 
 } // namespace probabilistic
+
+#endif // __BUDGET_PRUNING_H__

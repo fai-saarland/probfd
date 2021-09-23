@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_SUBCOLLECTION_FINDER_H
+#define MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_SUBCOLLECTION_FINDER_H
 
 #include "../types.h"
 
@@ -24,3 +25,4 @@ public:
 
 } // namespace pdbs
 } // namespace probabilistic
+#endif // __SUBCOLLECTION_FINDER_H__

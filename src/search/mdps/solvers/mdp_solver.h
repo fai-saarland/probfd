@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_SOLVERS_MDP_SOLVER_H
+#define MDPS_SOLVERS_MDP_SOLVER_H
 
 #include "../../global_state.h"
 #include "../../solver_interface.h"
@@ -138,3 +139,5 @@ private:
 
 } // namespace solvers
 } // namespace probabilistic
+
+#endif // __MDP_SOLVER_H__

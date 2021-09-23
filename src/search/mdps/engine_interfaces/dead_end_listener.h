@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_DEAD_END_LISTENER_H
+#define MDPS_ENGINE_INTERACES_DEAD_END_LISTENER_H
 
 #include "../types.h"
 
@@ -45,3 +46,5 @@ public:
 };
 
 } // namespace probabilistic
+
+#endif // __DEAD_END_LISTENER_H__

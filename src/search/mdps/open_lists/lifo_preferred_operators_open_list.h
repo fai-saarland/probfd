@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_OPEN_LISTS_LIFO_PREFERRED_OPERATORS_OPEN_LIST_H
+#define MDPS_OPEN_LISTS_LIFO_PREFERRED_OPERATORS_OPEN_LIST_H
 
 #include "../open_list.h"
 
@@ -42,3 +43,5 @@ private:
 
 } // namespace open_lists
 } // namespace probabilistic
+
+#endif // __LIFO_PREFERRED_OPERATORS_OPEN_LIST_H__

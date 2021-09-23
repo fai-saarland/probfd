@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_UTILS_H
+#define MDPS_HEURISTICS_PDBS_UTILS_H
 
 #include "../../evaluation_result.h"
 #include "../../value_type.h"
@@ -95,3 +96,4 @@ void dump_pattern(std::ostream& out, PatternID i, const Pattern& p);
 
 } // namespace pdbs
 } // namespace probabilistic
+#endif // __UTILS_H__

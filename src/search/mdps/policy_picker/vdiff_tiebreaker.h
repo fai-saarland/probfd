@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_POLICY_PICKER_VDIFF_TIEBREAKER_H
+#define MDPS_POLICY_PICKER_VDIFF_TIEBREAKER_H
 
 #include "../policy_picker.h"
 #include "../successor_sort.h"
@@ -44,3 +45,5 @@ protected:
 
 } // namespace policy_tiebreaking
 } // namespace probabilistic
+
+#endif // __VDIFF_TIEBREAKER_H__

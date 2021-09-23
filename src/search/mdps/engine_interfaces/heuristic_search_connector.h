@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_HEURISTIC_SEARCH_CONNECTOR_H
+#define MDPS_ENGINE_INTERACES_HEURISTIC_SEARCH_CONNECTOR_H
 
 #include "../engines/heuristic_search_state_information.h"
 
@@ -22,3 +23,5 @@ private:
 };
 
 } // namespace probabilistic
+
+#endif // __HEURISTIC_SEARCH_CONNECTOR_H__

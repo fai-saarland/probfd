@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_LOGGING_H
+#define MDPS_LOGGING_H
 
 #include "value_type.h"
 
@@ -63,3 +64,5 @@ operator<<(ostream& out, const probabilistic::logging::whitespace& ws)
     return ws.print(out);
 }
 } // namespace std
+
+#endif // __LOGGING_H__

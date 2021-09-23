@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_ACTION_EVALUATOR_H
+#define MDPS_ENGINE_INTERACES_ACTION_EVALUATOR_H
 
 #include "../types.h"
 #include "../value_type.h"
@@ -29,3 +30,5 @@ protected:
 };
 
 } // namespace probabilistic
+
+#endif // __ACTION_EVALUATOR_H__

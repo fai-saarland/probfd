@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_SOLVERS_BISIMULATION_HEURISTIC_SEARCH_H
+#define MDPS_SOLVERS_BISIMULATION_HEURISTIC_SEARCH_H
 
 #include "../../utils/timer.h"
 #include "../analysis_objectives/analysis_objective.h"
@@ -576,3 +577,5 @@ private:
 
 } // namespace solvers
 } // namespace probabilistic
+
+#endif // __BISIMULATION_HEURISTIC_SEARCH_H__

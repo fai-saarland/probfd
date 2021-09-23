@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ANALYSIS_OBJECTIVES_ANALYSIS_OBJECTIVE_H
+#define MDPS_ANALYSIS_OBJECTIVES_ANALYSIS_OBJECTIVE_H
 
 #include "../action_evaluator.h"
 #include "../state_reward_function.h"
@@ -46,3 +47,5 @@ public:
 
 } // namespace analysis_objectives
 } // namespace probabilistic
+
+#endif // ANALYSIS_OBJECTIVE_H

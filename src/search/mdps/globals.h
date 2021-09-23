@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_GLOBALS_H
+#define MDPS_GLOBALS_H
 
 #include "../operator_cost.h"
 #include "probabilistic_operator.h"
@@ -48,3 +49,5 @@ extern std::shared_ptr<analysis_objectives::AnalysisObjective>
     g_analysis_objective;
 
 } // namespace probabilistic
+
+#endif // __GLOBALS_H__

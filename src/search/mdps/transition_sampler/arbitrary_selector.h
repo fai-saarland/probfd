@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_TRANSITION_SAMPLER_ARBITRARY_SELECTOR_H
+#define MDPS_TRANSITION_SAMPLER_ARBITRARY_SELECTOR_H
 
 #include "../transition_sampler.h"
 
@@ -18,3 +19,5 @@ protected:
 
 } // namespace transition_sampler
 } // namespace probabilistic
+
+#endif // __ARBITRARY_SELECTOR_H__

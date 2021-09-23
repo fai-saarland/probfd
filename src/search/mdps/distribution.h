@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_DISTRIBUTION_H
+#define MDPS_DISTRIBUTION_H
 
 #include "value_type.h"
 
@@ -146,3 +147,5 @@ public:
 };
 
 } // namespace probabilistic
+
+#endif // __DISTRIBUTION_H__

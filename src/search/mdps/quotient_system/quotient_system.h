@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_QUOTIENT_SYSTEM_QUOTIENT_SYSTEM_H
+#define MDPS_QUOTIENT_SYSTEM_QUOTIENT_SYSTEM_H
 
 #include "../../algorithms/segmented_vector.h"
 #include "../engine_interfaces/action_id_map.h"
@@ -636,3 +637,5 @@ public:
 } // namespace probabilistic
 
 #undef QUOTIENT_DEBUG_MSG
+
+#endif // __QUOTIENT_SYSTEM_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_STATE_ID_MAP_H
+#define MDPS_ENGINE_INTERACES_STATE_ID_MAP_H
 
 #include "../types.h"
 
@@ -23,3 +24,5 @@ struct StateIDMap {
 };
 
 } // namespace probabilistic
+
+#endif // __STATE_ID_MAP_H__

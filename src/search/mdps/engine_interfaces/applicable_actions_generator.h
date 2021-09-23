@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_APPLICABLE_ACTIONS_GENERATOR_H
+#define MDPS_ENGINE_INTERACES_APPLICABLE_ACTIONS_GENERATOR_H
 
 #include "../types.h"
 
@@ -22,3 +23,5 @@ struct ApplicableActionsGenerator {
 };
 
 } // namespace probabilistic
+
+#endif // __APPLICABLE_ACTIONS_GENERATOR_H__

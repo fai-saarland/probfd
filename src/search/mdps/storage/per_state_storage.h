@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_STORAGE_PER_STATE_STORAGE_H
+#define MDPS_STORAGE_PER_STATE_STORAGE_H
 
 #include "../../algorithms/segmented_vector.h"
 #include "../types.h"
@@ -221,3 +222,5 @@ using StateIDHashSet = std::unordered_set<StateID>;
 
 } // namespace storage
 } // namespace probabilistic
+
+#endif 

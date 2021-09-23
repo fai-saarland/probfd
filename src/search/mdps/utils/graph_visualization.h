@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_UTILS_GRAPH_VISUALIZATION_H
+#define MDPS_UTILS_GRAPH_VISUALIZATION_H
 
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
@@ -167,3 +168,5 @@ void dump(
 
 } // namespace graphviz
 } // namespace probabilistic
+
+#endif // __GRAPH_VISUALIZATION_H__

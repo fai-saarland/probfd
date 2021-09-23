@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTIC_SEARCH_INTERFACEABLE_H
+#define MDPS_HEURISTIC_SEARCH_INTERFACEABLE_H
 
 #include "engine_interfaces/heuristic_search_connector.h"
 #include "engine_interfaces/policy_picker.h"
@@ -67,3 +68,5 @@ private:
 };
 
 } // namespace probabilistic
+
+#endif // __HEURISTIC_SEARCH_INTERFACEABLE_H__

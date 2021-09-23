@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_MAXPROB_PROJECTION_H
+#define MDPS_HEURISTICS_PDBS_MAXPROB_PROJECTION_H
 
 #include "../../globals.h"
 #include "../../value_utils.h"
@@ -76,3 +77,5 @@ private:
 
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __MAXPROB_PROJECTION_H__

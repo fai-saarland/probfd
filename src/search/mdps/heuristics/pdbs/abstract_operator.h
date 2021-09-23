@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_ABSTRACT_OPERATOR_H
+#define MDPS_HEURISTICS_PDBS_ABSTRACT_OPERATOR_H
 
 #include "../../distribution.h"
 #include "abstract_state.h"
@@ -33,3 +34,5 @@ private:
 
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __ABSTRACT_OPERATOR_H__

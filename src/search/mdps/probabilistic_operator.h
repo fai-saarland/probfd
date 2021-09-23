@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_PROBABILISTIC_OPERATOR_H
+#define MDPS_PROBABILISTIC_OPERATOR_H
 
 #include "../global_operator.h"
 #include "value_type.h"
@@ -107,3 +108,5 @@ extern bool
 is_applicable(const ProbabilisticOperator* op, const GlobalState& state);
 
 } // namespace probabilistic
+
+#endif // __PROBABILISTIC_OPERATOR_H__

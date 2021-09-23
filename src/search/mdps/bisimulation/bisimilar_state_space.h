@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_BISIMULATION_BISIMILAR_STATE_SPACE_H
+#define MDPS_BISIMULATION_BISIMILAR_STATE_SPACE_H
 
 #include "../../algorithms/segmented_vector.h"
 #include "../../operator_cost.h"
@@ -190,3 +191,5 @@ struct hash<probabilistic::bisimulation::QuotientState> {
     }
 };
 } // namespace std
+
+#endif // __BISIMILAR_STATE_SPACE_H__

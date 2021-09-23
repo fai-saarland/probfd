@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_SOLVERS_MDP_HEURISTIC_SEARCH_H
+#define MDPS_SOLVERS_MDP_HEURISTIC_SEARCH_H
 
 #include "../../option_parser.h"
 #include "../dead_end_listener.h"
@@ -502,3 +503,5 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
 } // namespace probabilistic
 
 #include "bisimulation_heuristic_search.h"
+
+#endif // __MDP_HEURISTIC_SEARCH_H__

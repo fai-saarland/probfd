@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_POLICY_PICKER_H
+#define MDPS_ENGINE_INTERACES_POLICY_PICKER_H
 
 #include "../distribution.h"
 #include "../types.h"
@@ -21,3 +22,5 @@ struct PolicyPicker {
 };
 
 } // namespace probabilistic
+
+#endif // __POLICY_PICKER_H__

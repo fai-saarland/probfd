@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_HEURISTIC_SEARCH_BASE_H
+#define MDPS_ENGINES_HEURISTIC_SEARCH_BASE_H
 
 #include "../engine_interfaces/dead_end_listener.h"
 #include "../engine_interfaces/heuristic_search_connector.h"
@@ -1281,3 +1282,5 @@ using HeuristicSearchBase = internal::HeuristicSearchBase<
 } // namespace heuristic_search
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __HEURISTIC_SEARCH_BASE_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ACTION_ID_MAP_H
+#define MDPS_ACTION_ID_MAP_H
 
 #include "engine_interfaces/action_id_map.h"
 #include "probabilistic_operator.h"
@@ -33,3 +34,5 @@ private:
 };
 
 } // namespace probabilistic
+
+#endif // __ACTION_ID_MAP_H__

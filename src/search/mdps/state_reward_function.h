@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_STATE_REWARD_FUNCTION_H
+#define MDPS_STATE_REWARD_FUNCTION_H
 
 #include "../global_state.h"
 #include "engine_interfaces/state_reward_function.h"
@@ -9,3 +10,5 @@ namespace probabilistic {
 using GlobalStateRewardFunction = StateRewardFunction<GlobalState>;
 
 } // namespace probabilistic
+
+#endif // __STATE_REWARD_FUNCTION_H__

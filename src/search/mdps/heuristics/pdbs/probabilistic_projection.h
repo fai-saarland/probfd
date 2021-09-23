@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_PROBABILISTIC_PROJECTION_H
+#define MDPS_HEURISTICS_PDBS_PROBABILISTIC_PROJECTION_H
 
 #include "abstract_operator.h"
 #include "abstract_state_mapper.h"
@@ -151,3 +152,5 @@ protected:
 
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __PROBABILISTIC_PROJECTION_H__

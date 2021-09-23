@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_IDUAL_H
+#define MDPS_ENGINES_IDUAL_H
 
 #include "../../lp/lp_solver.h"
 #include "../progress_report.h"
@@ -332,3 +333,5 @@ private:
 } // namespace idual
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __IDUAL_H__

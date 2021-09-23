@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_ORTHOGONALITY_H
+#define MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_ORTHOGONALITY_H
 
 #include "../types.h"
 
@@ -26,3 +27,5 @@ std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
 
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __ORTHOGONALITY_H__

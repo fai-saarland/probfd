@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_PROGRESS_REPORT_H
+#define MDPS_PROGRESS_REPORT_H
 
 #include "value_type.h"
 
@@ -45,3 +46,5 @@ private:
 };
 
 } // namespace probabilistic
+
+#endif // __PROGRESS_REPORT_H__

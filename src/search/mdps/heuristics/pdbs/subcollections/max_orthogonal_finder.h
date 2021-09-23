@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_MAX_ORTHOGONAL_FINDER_H
+#define MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_MAX_ORTHOGONAL_FINDER_H
 
 #include "../types.h"
 #include "subcollection_finder.h"
@@ -24,3 +25,4 @@ public:
 
 } // namespace pdbs
 } // namespace probabilistic
+#endif // __MAX_ORTHOGONAL_FINDER_H__

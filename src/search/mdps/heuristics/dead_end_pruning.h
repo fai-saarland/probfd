@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_DEAD_END_PRUNING_H
+#define MDPS_HEURISTICS_DEAD_END_PRUNING_H
 
 #include "../state_evaluator.h"
 
@@ -60,3 +61,5 @@ protected:
 };
 
 } // namespace probabilistic
+
+#endif // __DEAD_END_PRUNING_H__

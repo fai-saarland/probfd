@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_EVALUATION_RESULT_H
+#define MDPS_EVALUATION_RESULT_H
 
 #include "value_type.h"
 
@@ -41,3 +42,5 @@ value_type::value_t
 operator/(const value_type::value_t& x, const EvaluationResult& y);
 
 } // namespace probabilistic
+
+#endif // __EVALUATION_RESULT_H__

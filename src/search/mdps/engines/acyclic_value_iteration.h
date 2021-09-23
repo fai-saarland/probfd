@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_ACYCLIC_VALUE_ITERATION_H
+#define MDPS_ENGINES_ACYCLIC_VALUE_ITERATION_H
 
 #include "../engine_interfaces/state_evaluator.h"
 #include "../storage/per_state_storage.h"
@@ -229,3 +230,5 @@ private:
 } // namespace acyclic_vi
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __ACYCLIC_VALUE_ITERATION_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_END_COMPONENT_DECOMPOSITION_END_COMPONENT_DECOMPOSITION_H
+#define MDPS_END_COMPONENT_DECOMPOSITION_END_COMPONENT_DECOMPOSITION_H
 
 #include "../../utils/timer.h"
 #include "../engine_interfaces/action_id_map.h"
@@ -1028,3 +1029,5 @@ private:
 
 } // namespace end_components
 } // namespace probabilistic
+
+#endif // __END_COMPONENT_DECOMPOSITION_H__

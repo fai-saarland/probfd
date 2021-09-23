@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_INCREMENTAL_CANONICAL_PDBS_H
+#define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_INCREMENTAL_CANONICAL_PDBS_H
 
 #include "pattern_collection_information.h"
 
@@ -77,3 +78,4 @@ using IncrementalMaxProbPDBs = IncrementalPPDBs<MaxProbProjection>;
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace probabilistic
+#endif // __INCREMENTAL_CANONICAL_PDBS_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_NEW_STATE_HANDLER_H
+#define MDPS_NEW_STATE_HANDLER_H
 
 #include "../global_state.h"
 #include "engine_interfaces/new_state_handler.h"
@@ -32,3 +33,5 @@ private:
 };
 
 } // namespace probabilistic
+
+#endif // __NEW_STATE_HANDLER_H__

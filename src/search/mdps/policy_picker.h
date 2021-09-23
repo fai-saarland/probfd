@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_POLICY_PICKER_H
+#define MDPS_POLICY_PICKER_H
 
 #include "engine_interfaces/policy_picker.h"
 #include "heuristic_search_interfaceable.h"
@@ -30,3 +31,5 @@ using ProbabilisticOperatorPolicyPicker =
     PolicyPicker<const ProbabilisticOperator*>;
 
 } // namespace probabilistic
+
+#endif // __POLICY_PICKER_H__

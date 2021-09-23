@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
+#define MDPS_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
 
 #include "../../../utils/printable.h"
 #include "../../evaluation_result.h"
@@ -98,3 +99,5 @@ using ExpCostPDBHeuristic = ProbabilisticPDBHeuristic<ExpCostProjection>;
 
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __PROBABILISTIC_PDB_HEURISTIC_H__

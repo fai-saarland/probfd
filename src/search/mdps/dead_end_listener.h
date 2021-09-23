@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_DEAD_END_LISTENER_H
+#define MDPS_DEAD_END_LISTENER_H
 
 #include "../global_state.h"
 #include "../state_component.h"
@@ -57,3 +58,5 @@ private:
 };
 
 } // namespace probabilistic
+
+#endif // __DEAD_END_LISTENER_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_AO_STAR_H
+#define MDPS_ENGINES_AO_STAR_H
 
 #include "../engine_interfaces/transition_sampler.h"
 #include "ao_search.h"
@@ -235,3 +236,5 @@ private:
 } // namespace ao_star
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __AO_STAR_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_SUCCESSOR_SORT_H
+#define MDPS_SUCCESSOR_SORT_H
 
 #include "engine_interfaces/successor_sorting.h"
 #include "heuristic_search_interfaceable.h"
@@ -28,3 +29,5 @@ using ProbabilisticOperatorSuccessorSorting =
     SuccessorSorting<const ProbabilisticOperator*>;
 
 } // namespace probabilistic
+
+#endif // __SUCCESSOR_SORT_H__

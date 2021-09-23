@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_NEW_STATE_HANDLER_H
+#define MDPS_ENGINE_INTERACES_NEW_STATE_HANDLER_H
 
 namespace probabilistic {
 
@@ -32,3 +33,5 @@ struct NewStateHandler {
 };
 
 } // namespace probabilistic
+
+#endif // __NEW_STATE_HANDLER_H__

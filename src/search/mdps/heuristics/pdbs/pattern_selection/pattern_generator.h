@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_GENERATOR_H
+#define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_GENERATOR_H
 
 #include "../../../../operator_cost.h"
 #include "../../../../utils/printable.h"
@@ -34,3 +35,4 @@ using MaxProbPatternCollectionGenerator =
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace probabilistic
+#endif // __PATTERN_GENERATOR_H__

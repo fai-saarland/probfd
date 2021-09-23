@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_SOLVERS_I2DUAL_H
+#define MDPS_SOLVERS_I2DUAL_H
 
 #include "../../global_state.h"
 #include "../../lp/lp_solver.h"
@@ -92,3 +93,5 @@ private:
 } // namespace i2dual
 } // namespace solvers
 } // namespace probabilistic
+
+#endif // __I2DUAL_H__

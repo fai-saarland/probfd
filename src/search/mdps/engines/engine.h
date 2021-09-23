@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_ENGINE_H
+#define MDPS_ENGINES_ENGINE_H
 
 #include "../distribution.h"
 #include "../engine_interfaces/action_evaluator.h"
@@ -258,3 +259,5 @@ private:
 
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __ENGINE_H__

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_UTILS_DISTRIBUTION_UNIFORM_SAMPLER_H
+#define MDPS_UTILS_DISTRIBUTION_UNIFORM_SAMPLER_H
 
 #include "../../globals.h"
 #include "../../utils/rng.h"
@@ -29,3 +30,5 @@ public:
 
 } // namespace distribution_uniform_sampler
 } // namespace probabilistic
+
+#endif // __DISTRIBUTION_UNIFORM_SAMPLER_H__

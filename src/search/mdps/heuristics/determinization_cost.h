@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_DETERMINIZATION_COST_H
+#define MDPS_HEURISTICS_DETERMINIZATION_COST_H
 
 #include "../state_evaluator.h"
 
@@ -50,3 +51,5 @@ protected:
 };
 
 } // namespace probabilistic
+
+#endif // __DETERMINIZATION_COST_H__

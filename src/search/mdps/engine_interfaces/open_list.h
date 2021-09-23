@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_OPEN_LIST_H
+#define MDPS_ENGINE_INTERACES_OPEN_LIST_H
 
 #include "../types.h"
 #include "../value_type.h"
@@ -69,3 +70,5 @@ private:
 };
 
 } // namespace probabilistic
+
+#endif // __OPEN_LIST_H__

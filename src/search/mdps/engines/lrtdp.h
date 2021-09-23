@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_LRTDP_H
+#define MDPS_ENGINES_LRTDP_H
 
 #include "../engine_interfaces/transition_sampler.h"
 #include "heuristic_search_base.h"
@@ -626,3 +627,5 @@ struct LRTDP<State, Action, B2, std::true_type>
 } // namespace probabilistic
 
 #undef CAS_DEBUG_PRINT
+
+#endif // __LRTDP_H__

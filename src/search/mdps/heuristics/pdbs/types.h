@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_PDBS_TYPES_H
+#define MDPS_HEURISTICS_PDBS_TYPES_H
 
 #include "../../../pdbs/types.h"
 
@@ -28,3 +29,5 @@ using MaxProbPDBCollection = PPDBCollection<MaxProbProjection>;
 
 } // namespace pdbs
 } // namespace probabilistic
+
+#endif // __TYPES_H__

@@ -1,5 +1,5 @@
-#ifndef __ENGINE_INTERFACES_H__
-#define __ENGINE_INTERFACES_H__
+#ifndef MDPS_BISIMULATION_ENGINE_INTERFACES_H
+#define MDPS_BISIMULATION_ENGINE_INTERFACES_H
 
 #include "../engine_interfaces/action_evaluator.h"
 #include "../engine_interfaces/action_id_map.h"

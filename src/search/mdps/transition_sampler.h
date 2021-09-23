@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_TRANSITION_SAMPLER_H
+#define MDPS_TRANSITION_SAMPLER_H
 
 #include "engine_interfaces/transition_sampler.h"
 #include "heuristic_search_interfaceable.h"
@@ -27,3 +28,5 @@ using ProbabilisticOperatorTransitionSampler =
     TransitionSampler<const ProbabilisticOperator*>;
 
 } // namespace probabilistic
+
+#endif // __TRANSITION_SAMPLER_H__

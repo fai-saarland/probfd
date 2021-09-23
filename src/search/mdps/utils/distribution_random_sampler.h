@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_UTILS_DISTRIBUTION_RANDOM_SAMPLER_H
+#define MDPS_UTILS_DISTRIBUTION_RANDOM_SAMPLER_H
 
 #include "../../globals.h"
 #include "../../utils/rng.h"
@@ -40,3 +41,5 @@ private:
 
 } // namespace distribution_random_sampler
 } // namespace probabilistic
+
+#endif // __DISTRIBUTION_RANDOM_SAMPLER_H__

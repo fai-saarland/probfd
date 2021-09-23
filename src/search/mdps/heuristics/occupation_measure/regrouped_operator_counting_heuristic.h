@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_HEURISTICS_REGROUPED_OPERATOR_COUNTING_HEURISTIC_H
+#define MDPS_HEURISTICS_REGROUPED_OPERATOR_COUNTING_HEURISTIC_H
 
 #include "../../../lp/lp_solver.h"
 #include "../../state_evaluator.h"
@@ -44,3 +45,5 @@ private:
 
 } // namespace occupation_measure_heuristic
 } // namespace probabilistic
+
+#endif // __REGROUPED_OPERATOR_COUNTING_HEURISTIC_H__

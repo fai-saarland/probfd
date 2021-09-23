@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_HEURISTIC_SEARCH_STATE_INFORMATION_H
+#define MDPS_ENGINES_HEURISTIC_SEARCH_STATE_INFORMATION_H
 
 #include "../evaluation_result.h"
 #include "../types.h"
@@ -118,3 +119,5 @@ public:
 } // namespace heuristic_search
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __HEURISTIC_SEARCH_STATE_INFORMATION_H__

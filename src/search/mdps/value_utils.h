@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_VALUE_UTILS_H
+#define MDPS_VALUE_UTILS_H
 
 #include "value_type.h"
 
@@ -125,3 +126,5 @@ value_type::value_t as_upper_bound(const IntervalValue& interval);
 
 } // namespace value_utils
 } // namespace probabilistic
+
+#endif // __VALUE_UTILS_H__

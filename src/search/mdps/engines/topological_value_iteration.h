@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINES_TOPOLOGICAL_VALUE_ITERATION_H
+#define MDPS_ENGINES_TOPOLOGICAL_VALUE_ITERATION_H
 
 #include "../storage/per_state_storage.h"
 #include "../value_utils.h"
@@ -714,3 +715,5 @@ private:
 } // namespace topological_vi
 } // namespace engines
 } // namespace probabilistic
+
+#endif // __TOPOLOGICAL_VALUE_ITERATION_H__

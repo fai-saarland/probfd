@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_OPEN_LIST_H
+#define MDPS_OPEN_LIST_H
 
 #include "../global_state.h"
 #include "engine_interfaces/open_list.h"
@@ -36,3 +37,5 @@ private:
 using GlobalStateOpenList = OpenList<const ProbabilisticOperator*>;
 
 } // namespace probabilistic
+
+#endif // __OPEN_LIST_H__

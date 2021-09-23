@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
+#define MDPS_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 
 #include "../engine_interfaces/dead_end_listener.h"
 #include "../engine_interfaces/open_list.h"
@@ -263,3 +264,5 @@ struct OpenList<quotient_system::QuotientAction<Action>>
 };
 
 } // namespace probabilistic
+
+#endif // __HEURISTIC_SEARCH_INTERFACE_H__

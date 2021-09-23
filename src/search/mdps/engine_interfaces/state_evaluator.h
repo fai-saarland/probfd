@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_STATE_EVALUATOR_H
+#define MDPS_ENGINE_INTERACES_STATE_EVALUATOR_H
 
 #include "../evaluation_result.h"
 
@@ -29,3 +30,5 @@ protected:
 };
 
 } // namespace probabilistic
+
+#endif // __STATE_EVALUATOR_H__

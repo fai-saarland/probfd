@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ENGINE_INTERACES_SUCCESSOR_SORTING_H
+#define MDPS_ENGINE_INTERACES_SUCCESSOR_SORTING_H
 
 #include "../distribution.h"
 #include "../types.h"
@@ -25,3 +26,5 @@ struct SuccessorSorting {
 };
 
 } // namespace probabilistic
+
+#endif // __SUCCESSOR_SORTING_H__

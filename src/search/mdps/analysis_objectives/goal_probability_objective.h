@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MDPS_ANALYSIS_OBJECTIVES_GOAL_PROBABILITY_OBJECTIVE_H
+#define MDPS_ANALYSIS_OBJECTIVES_GOAL_PROBABILITY_OBJECTIVE_H
 
 #include "analysis_objective.h"
 
@@ -34,3 +35,5 @@ private:
 
 } // namespace analysis_objectives
 } // namespace probabilistic
+
+#endif // __GOAL_PROBABILITY_OBJECTIVE_H__
