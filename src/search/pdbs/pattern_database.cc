@@ -7,6 +7,7 @@
 #include "../utils/collections.h"
 #include "../utils/logging.h"
 #include "../utils/math.h"
+#include "../utils/rng.h"
 #include "../utils/timer.h"
 #include "match_tree.h"
 
@@ -26,8 +27,10 @@ AbstractOperator::AbstractOperator(
     const vector<FactPair>& pre_pairs,
     const vector<FactPair>& eff_pairs,
     int cost,
-    const vector<size_t>& hash_multipliers)
-    : cost(cost)
+    const vector<size_t>& hash_multipliers,
+    int concrete_op_id)
+    : concrete_op_id(concrete_op_id)
+    , cost(cost)
     , regression_preconditions(prev_pairs)
 {
     regression_preconditions.insert(
@@ -72,24 +75,37 @@ AbstractOperator::dump(const Pattern& pattern) const
 PatternDatabase::PatternDatabase(
     const Pattern& pattern,
     OperatorCost operator_cost,
-    bool dump)
-    : PatternDatabase(pattern, dump, [](OperatorCost cost_type) {
-        if (cost_type == NORMAL) {
-            return std::vector<int>();
-        }
-        std::vector<int> res(g_operators.size(), 0);
-        for (int i = g_operators.size() - 1; i >= 0; i--) {
-            res[i] = ::get_adjusted_action_cost(g_operators[i], cost_type);
-        }
-        return res;
-    }(operator_cost))
+    bool dump,
+    bool compute_plan,
+    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    bool compute_extended_plan)
+    : PatternDatabase(
+          pattern,
+          dump,
+          [](OperatorCost cost_type) {
+              if (cost_type == NORMAL) {
+                  return std::vector<int>();
+              }
+              std::vector<int> res(g_operators.size(), 0);
+              for (int i = g_operators.size() - 1; i >= 0; i--) {
+                  res[i] =
+                      ::get_adjusted_action_cost(g_operators[i], cost_type);
+              }
+              return res;
+          }(operator_cost),
+          compute_plan,
+          rng,
+          compute_extended_plan)
 {
 }
 
 PatternDatabase::PatternDatabase(
     const Pattern& pattern,
     bool dump,
-    const vector<int>& operator_costs)
+    const vector<int>& operator_costs,
+    bool compute_plan,
+    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    bool compute_extended_plan)
     : pattern(pattern)
 {
     ::verify_no_axioms();
@@ -113,13 +129,12 @@ PatternDatabase::PatternDatabase(
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
     }
-    create_pdb(operator_costs);
+    create_pdb(operator_costs, compute_plan, rng, compute_extended_plan);
     if (dump)
         cout << "PDB construction time: " << timer << endl;
 }
 
-void
-PatternDatabase::multiply_out(
+void PatternDatabase::multiply_out(
     const vector<int>& variable_to_index,
     int pos,
     int cost,
@@ -127,13 +142,19 @@ PatternDatabase::multiply_out(
     vector<FactPair>& pre_pairs,
     vector<FactPair>& eff_pairs,
     const vector<FactPair>& effects_without_pre,
+    int concrete_op_id,
     vector<AbstractOperator>& operators)
 {
     if (pos == static_cast<int>(effects_without_pre.size())) {
         // All effects without precondition have been checked: insert op.
         if (!eff_pairs.empty()) {
             operators.push_back(AbstractOperator(
-                prev_pairs, pre_pairs, eff_pairs, cost, hash_multipliers));
+                prev_pairs,
+                pre_pairs,
+                eff_pairs,
+                cost,
+                hash_multipliers,
+                concrete_op_id));
         }
     } else {
         // For each possible value for the current variable, build an
@@ -156,6 +177,7 @@ PatternDatabase::multiply_out(
                 pre_pairs,
                 eff_pairs,
                 effects_without_pre,
+                concrete_op_id,
                 operators);
             if (i != eff) {
                 pre_pairs.pop_back();
@@ -223,11 +245,15 @@ PatternDatabase::build_abstract_operators(
         pre_pairs,
         eff_pairs,
         effects_without_pre,
+        op.get_id(),
         operators);
 }
 
-void
-PatternDatabase::create_pdb(const vector<int>& operator_costs)
+void PatternDatabase::create_pdb(
+    const vector<int>& operator_costs,
+    bool compute_plan,
+    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    bool compute_extended_plan)
 {
     vector<int> variable_to_index(g_variable_domain.size(), -1);
     for (size_t i = 0; i < pattern.size(); ++i) {
@@ -278,6 +304,22 @@ PatternDatabase::create_pdb(const vector<int>& operator_costs)
         }
     }
 
+    std::vector<int> generating_op_ids;
+
+    if (compute_plan) {
+        /*
+          If computing a plan during Dijkstra, we store, for each state,
+          an operator leading from that state to another state on a
+          strongly optimal plan of the PDB. We store the first operator
+          encountered during Dijkstra and only update it if the goal distance
+          of the state was updated. Note that in the presence of zero-cost
+          operators, this does not guarantee that we compute a strongly
+          optimal plan because we do not minimize the number of used zero-cost
+          operators.
+         */
+        generating_op_ids.resize(num_states);
+    }
+
     // Dijkstra loop
     while (!pq.empty()) {
         pair<int, size_t> node = pq.pop();
@@ -298,6 +340,63 @@ PatternDatabase::create_pdb(const vector<int>& operator_costs)
             if (alternative_cost < distances[predecessor]) {
                 distances[predecessor] = alternative_cost;
                 pq.push(alternative_cost, predecessor);
+                if (compute_plan) {
+                    generating_op_ids[predecessor] = op_id;
+                }
+            }
+        }
+    }
+
+    // Compute abstract plan
+    if (compute_plan) {
+        /*
+          Using the generating operators computed during Dijkstra, we start
+          from the initial state and follow the generating operator to the
+          next state. Then we compute all operators of the same cost inducing
+          the same abstract transition and randomly pick one of them to
+          set for the next state. We iterate until reaching a goal state.
+          Note that this kind of plan extraction does not uniformly at random
+          consider all successor of a state but rather uses the arbitrarily
+          chosen generating operator to settle on one successor state, which
+          is biased by the number of operators leading to the same successor
+          from the given state.
+        */
+        GlobalState initial_state = g_initial_state();
+        int current_state = hash_index(initial_state);
+        if (distances[current_state] != numeric_limits<int>::max()) {
+            while (!is_goal_state(current_state, abstract_goals)) {
+                int op_id = generating_op_ids[current_state];
+                assert(op_id != -1);
+                const AbstractOperator& op = operators[op_id];
+                int successor_state = current_state - op.get_hash_effect();
+
+                // Compute equivalent ops
+                vector<int> cheapest_operators;
+                vector<int> applicable_operator_ids;
+                match_tree.get_applicable_operator_ids(
+                    successor_state,
+                    applicable_operator_ids);
+                for (int applicable_op_id : applicable_operator_ids) {
+                    const AbstractOperator& applicable_op =
+                        operators[applicable_op_id];
+                    int predecessor =
+                        successor_state + applicable_op.get_hash_effect();
+                    if (predecessor == current_state &&
+                        op.get_cost() == applicable_op.get_cost()) {
+                        cheapest_operators.emplace_back(
+                            applicable_op.get_concrete_op_id());
+                    }
+                }
+                if (compute_extended_plan) {
+                    rng->shuffle(cheapest_operators);
+                    wildcard_plan.push_back(move(cheapest_operators));
+                } else {
+                    int random_op_id = *rng->choose(cheapest_operators);
+                    wildcard_plan.emplace_back();
+                    wildcard_plan.back().push_back(random_op_id);
+                }
+
+                current_state = successor_state;
             }
         }
     }

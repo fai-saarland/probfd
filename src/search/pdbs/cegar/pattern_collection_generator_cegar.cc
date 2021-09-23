@@ -1,13 +1,11 @@
 #include "pattern_collection_generator_cegar.h"
 
 #include "abstract_solution_data.h"
-#include "tasks/pdb_abstracted_task.h"
 
 #include "../pattern_database.h"
 
 #include "../../option_parser.h"
 #include "../../plugin.h"
-
 
 #include "../../utils/collections.h"
 #include "../../utils/countdown_timer.h"
@@ -238,11 +236,10 @@ apply_extended_plan(int solution_index, const ExplicitGState &init)
 
     for (const vector<int> &equivalent_ops : solution.get_plan()) {
         bool step_failed = true;
-        
-        for (int abs_op_id : equivalent_ops) {
-            // retrieve the concrete operator that corresponds to the 
+
+        for (int op_id : equivalent_ops) {
+            // retrieve the concrete operator that corresponds to the
             // abstracted one
-            int op_id = solution.convert_operator_index_to_parent(abs_op_id);
             const GlobalOperator& op = g_operators[op_id];
 
             // we do not use task_properties::is_applicable here because
@@ -343,22 +340,16 @@ apply_extended_plan(int solution_index, const ExplicitGState &init)
                 }
             } else {
                 if (verbosity >= Verbosity::VERBOSE) {
-                    if (ignore_goal_violations) {
-                        cout << "we ignore goal violations";
-                    } else {
-                        cout << "no more goals that could be "
-                             << "added to the collection";
-                    }
-                    cout << ", thus marking this pattern as solved." << endl;
+                    cout << "we ignore goal violations, thus marking this "
+                            "pattern as solved."
+                         << endl;
                 }
 
                 solution.mark_as_solved();
             }
         }
-    } else {
-        if (verbosity >= Verbosity::VERBOSE) {
-            cout << " failed." << endl;
-        }
+    } else if (verbosity >= Verbosity::VERBOSE) {
+        cout << " failed." << endl;
     }
 
     return flaws;
@@ -433,9 +424,13 @@ void
 PatternCollectionGeneratorCegar::
 add_pattern_for_var(OperatorCost cost_type, int var)
 {
-    auto& sol = solutions.emplace_back(
-        new AbstractSolutionData(
-            cost_type, {var}, {}, rng, extended_plans, verbosity));
+    auto& sol = solutions.emplace_back(new AbstractSolutionData(
+        cost_type,
+        {var},
+        {},
+        rng,
+        extended_plans,
+        verbosity));
     solution_lookup[var] = solutions.size() - 1;
     collection_size += sol->get_pdb().get_size();
 }
@@ -515,10 +510,13 @@ merge_patterns(OperatorCost cost_type, int index1, int index2)
     int pdb_size2 = solutions[index2]->get_pdb().get_size();
 
     // compute merge solution
-    unique_ptr<AbstractSolutionData> merged =
-        std::make_unique<AbstractSolutionData>(
-            cost_type, new_pattern, new_blacklist,
-            rng, extended_plans, verbosity);
+    unique_ptr<AbstractSolutionData> merged(new AbstractSolutionData(
+        cost_type,
+        new_pattern,
+        new_blacklist,
+        rng,
+        extended_plans,
+        verbosity));
 
     // update collection size
     collection_size -= pdb_size1;
@@ -557,10 +555,13 @@ add_variable_to_pattern(OperatorCost cost_type, int index, int var)
     sort(new_pattern.begin(), new_pattern.end());
 
     // compute new solution
-    unique_ptr<AbstractSolutionData> new_solution =
-        utils::make_unique_ptr<AbstractSolutionData>(
-            cost_type, new_pattern, solution.get_blacklist(),
-            rng, extended_plans, verbosity);
+    unique_ptr<AbstractSolutionData> new_solution(new AbstractSolutionData(
+        cost_type,
+        new_pattern,
+        solution.get_blacklist(),
+        rng,
+        extended_plans,
+        verbosity));
 
     // update collection size
     collection_size -= solution.get_pdb().get_size();

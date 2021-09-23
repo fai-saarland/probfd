@@ -2,9 +2,6 @@
 
 #include "pattern_collection_generator_cegar.h"
 
-#include "tasks/pdb_abstracted_task.h"
-#include "tasks/task_proxy.h"
-
 #include "../pattern_database.h"
 
 #include "../../option_parser.h"

@@ -10,6 +10,10 @@
 class GlobalState;
 class GlobalOperator;
 
+namespace utils {
+class RandomNumberGenerator;
+}
+
 namespace pdbs {
 class AbstractOperator {
     /*
@@ -20,6 +24,7 @@ class AbstractOperator {
       change (as number) the abstract operator implies on a given
       abstract state.
     */
+    int concrete_op_id;
 
     int cost;
 
@@ -41,11 +46,13 @@ public:
       meaning prevail, preconditions and effects are all related to
       progression search.
     */
-    AbstractOperator(const std::vector<FactPair> &prevail,
-                     const std::vector<FactPair> &preconditions,
-                     const std::vector<FactPair> &effects,
-                     int cost,
-                     const std::vector<std::size_t> &hash_multipliers);
+    AbstractOperator(
+        const std::vector<FactPair>& prevail,
+        const std::vector<FactPair>& preconditions,
+        const std::vector<FactPair>& effects,
+        int cost,
+        const std::vector<std::size_t>& hash_multipliers,
+        int concrete_op_id);
     ~AbstractOperator();
 
     /*
@@ -61,6 +68,8 @@ public:
       change (+ or -) to an abstract state index
     */
     std::size_t get_hash_effect() const {return hash_effect;}
+
+    int get_concrete_op_id() const { return concrete_op_id; }
 
     /*
       Returns the cost of the abstract operator (same as the cost of
@@ -83,6 +92,8 @@ class PatternDatabase {
     */
     std::vector<int> distances;
 
+    std::vector<std::vector<int>> wildcard_plan;
+
     // multipliers for each variable for perfect hash function
     std::vector<std::size_t> hash_multipliers;
 
@@ -95,12 +106,14 @@ class PatternDatabase {
     */
     void multiply_out(
         const std::vector<int>&,
-        int pos, int cost,
-        std::vector<FactPair> &prev_pairs,
-        std::vector<FactPair> &pre_pairs,
-        std::vector<FactPair> &eff_pairs,
-        const std::vector<FactPair> &effects_without_pre,
-        std::vector<AbstractOperator> &operators);
+        int pos,
+        int cost,
+        std::vector<FactPair>& prev_pairs,
+        std::vector<FactPair>& pre_pairs,
+        std::vector<FactPair>& eff_pairs,
+        const std::vector<FactPair>& effects_without_pre,
+        int concrete_op_id,
+        std::vector<AbstractOperator>& operators);
 
     /*
       Computes all abstract operators for a given concrete operator (by
@@ -121,7 +134,10 @@ class PatternDatabase {
       cost partitioning. If left empty, default operator costs are used.
     */
     void create_pdb(
-        const std::vector<int> &operator_costs = std::vector<int>());
+        const std::vector<int>& operator_costs,
+        bool compute_plan,
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        bool compute_extended_plan);
 
     /*
       For a given abstract state (given as index), the according values
@@ -156,13 +172,19 @@ public:
        empty, default operator costs are used.
     */
     PatternDatabase(
-        const Pattern &pattern,
+        const Pattern& pattern,
         OperatorCost operator_cost,
-        bool dump = false);
-    PatternDatabase(
-        const Pattern &pattern,
         bool dump = false,
-        const std::vector<int> &operator_costs = std::vector<int>());
+        bool compute_plan = false,
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng = nullptr,
+        bool compute_extended_plan = false);
+    PatternDatabase(
+        const Pattern& pattern,
+        bool dump = false,
+        const std::vector<int>& operator_costs = std::vector<int>(),
+        bool compute_plan = false,
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng = nullptr,
+        bool compute_extended_plan = false);
     ~PatternDatabase() = default;
 
     int get_value(const GlobalState &state) const;
@@ -189,6 +211,11 @@ public:
     int get_size() const {
         return num_states;
     }
+
+    std::vector<std::vector<int>>&& extract_wildcard_plan()
+    {
+        return std::move(wildcard_plan);
+    };
 
     /*
       Returns the average h-value over all states, where dead-ends are

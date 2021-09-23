@@ -3,19 +3,12 @@
 
 #include "../pattern_database.h"
 
-#include "tasks/pdb_abstracted_task.h"
-#include "tasks/task_proxy.h"
-
 #include "../utils/logging.h"
 
-#include <set>
-#include <utility>
+#include <memory>
 #include <ostream>
-
-namespace successor_generator {
-template <typename Entry>
-class SuccessorGenerator;
-}
+#include <set>
+#include <vector>
 
 namespace utils {
 class RandomNumberGenerator;
@@ -23,60 +16,21 @@ class RandomNumberGenerator;
 
 namespace pdbs {
 
-struct SearchNode {
-    AbstractState state;
-    std::size_t hash;
-    int g;
-    int cost;
-    std::shared_ptr<SearchNode> predecessor;
-
-    SearchNode(
-        AbstractState state,
-        std::size_t hash,
-        int g,
-        int cost,
-        std::shared_ptr<SearchNode> predecessor)
-        : state(std::move(state))
-        , hash(hash)
-        , g(g)
-        , cost(cost)
-        , predecessor(predecessor) {}
-};
-
 class AbstractSolutionData {
     std::unique_ptr<PatternDatabase> pdb;
-    tasks::PDBAbstractedTask abstracted_task;
-    TaskProxy abs_task_proxy;
     std::set<int> blacklist;
     std::vector<std::vector<int>> extended_plan;
-    bool generate_extended;
+
     bool is_solvable;
     bool solved;
 
-    std::vector<AbstractState> extract_state_sequence(
-        const SearchNode &goal_node) const;
-    std::vector<AbstractState> bfs_for_improving_state(
-        const successor_generator::SuccessorGenerator<int> &succ_gen,
-        const std::shared_ptr<utils::RandomNumberGenerator> &rng,
-        const int f_star,
-        std::shared_ptr<SearchNode> &current_node) const;
-    std::vector<AbstractState> steepest_ascent_enforced_hillclimbing(
-        const successor_generator::SuccessorGenerator<int> &succ_gen,
-        const std::shared_ptr<utils::RandomNumberGenerator> &rng,
-        utils::Verbosity verbosity) const;
-    void turn_state_sequence_into_plan(
-        const successor_generator::SuccessorGenerator<int> &succ_gen,
-        const std::shared_ptr<utils::RandomNumberGenerator> &rng,
-        utils::Verbosity verbosity,
-        const std::vector<AbstractState> &state_sequence);
-        
 public:
     AbstractSolutionData(
         OperatorCost cost_type,
         const Pattern& pattern,
         std::set<int> blacklist,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        bool extended,
+        bool generate_extended,
         utils::Verbosity verbosity);
 
     const Pattern& get_pattern() const;
@@ -99,18 +53,10 @@ public:
 
     const std::vector<std::vector<int>>& get_plan() const;
 
-    int convert_operator_index_to_parent(int abs_op_id) const;
-
     int compute_plan_cost() const;
 
     void print_plan(std::ostream& out) const;
 };
-}
-
-namespace utils {
-inline void feed(HashState &hash_state, const pdbs::SearchNode &search_node) {
-    feed(hash_state, search_node.state);
-}
 }
 
 #endif
