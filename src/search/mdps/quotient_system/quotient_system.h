@@ -176,13 +176,13 @@ public:
         return info == nullptr ? 1 : info->size;
     }
 
-    std::pair<QuotientStateIDIterator, QuotientStateIDIterator>
-    quotient_iterator(const StateID& state_id) const
+    utils::RangeProxy<QuotientStateIDIterator>
+    quotient_range(const StateID& state_id) const
     {
-        std::pair<QuotientStateIDIterator, QuotientStateIDIterator> result;
+        utils::RangeProxy<QuotientStateIDIterator> result;
         const QuotientInformation* info = get_quotient_info(state_id);
-        result.first = info == nullptr ? &state_id : info->states;
-        result.second =
+        result.b = info == nullptr ? &state_id : info->states;
+        result.e =
             info == nullptr ? (&state_id + 1) : (info->states + info->size);
         return result;
     }

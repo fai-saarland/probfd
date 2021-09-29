@@ -133,7 +133,7 @@ public:
         value_type::value_t x =
             this->mysolve(state, value_store, dead_ends, one_states, sys);
         for (StateID repr_id : *sys) {
-            auto [sit, send] = sys->quotient_iterator(repr_id);
+            auto [sit, send] = sys->quotient_range(repr_id);
             const StateID repr = *sit;
 
             const auto value = value_store[repr];

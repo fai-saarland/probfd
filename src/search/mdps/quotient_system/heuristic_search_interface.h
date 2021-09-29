@@ -80,9 +80,9 @@ public:
     bool operator()(const StateID& state)
     {
         component_.clear();
-        auto it_pair = quotient_->quotient_iterator(state);
-        for (; it_pair.first != it_pair.second; ++it_pair.first) {
-            component_.push_back(*it_pair.first);
+        auto it_pair = quotient_->quotient_range(state);
+        for (; it_pair.b != it_pair.e; ++it_pair.b) {
+            component_.push_back(*it_pair.b);
         }
         return original_->operator()(component_.begin(), component_.end());
     }
@@ -93,9 +93,9 @@ public:
     {
         component_.clear();
         for (; begin != end; ++begin) {
-            auto it_pair = quotient_->quotient_iterator(*begin);
-            for (; it_pair.first != it_pair.second; ++it_pair.first) {
-                component_.push_back(*it_pair.first);
+            auto it_pair = quotient_->quotient_range(*begin);
+            for (; it_pair.b != it_pair.e; ++it_pair.b) {
+                component_.push_back(*it_pair.b);
             }
         }
         return original_->operator()(component_.begin(), component_.end());

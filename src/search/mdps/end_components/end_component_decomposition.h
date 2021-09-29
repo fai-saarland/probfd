@@ -977,18 +977,18 @@ private:
                     }
                     StackInfo1* scc_elem = &stack1_.back();
                     for (int i = scc_size; i > 0; --i, --scc_elem) {
-                        auto it = sys_->quotient_iterator(scc_elem->stateid);
+                        auto it = sys_->quotient_range(scc_elem->stateid);
                         if (scc_elem->one || scc_elem->scc_transitions) {
-                            for (; it.first != it.second; ++it.first) {
-                                StateInfo& sinfo = state_infos_[*it.first];
+                            for (; it.b != it.e; ++it.b) {
+                                StateInfo& sinfo = state_infos_[*it.b];
                                 sinfo.explored = 1;
                                 sinfo.stackid_ = StateInfo::ONE;
-                                insert(one_states, *it.first);
+                                insert(one_states, *it.b);
                                 ++stats_.ones;
                             }
                         } else {
-                            for (; it.first != it.second; ++it.first) {
-                                StateInfo& sinfo = state_infos_[*it.first];
+                            for (; it.b != it.e; ++it.b) {
+                                StateInfo& sinfo = state_infos_[*it.b];
                                 sinfo.explored = 1;
                                 sinfo.stackid_ = StateInfo::UNDEF;
                             }

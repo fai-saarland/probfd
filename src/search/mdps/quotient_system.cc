@@ -47,10 +47,9 @@ QuotientSystem<const ProbabilisticOperator*>::end() const
     }
 }
 
-std::pair<
-    QuotientSystem<const ProbabilisticOperator*>::QuotientStateIDIterator,
+utils::RangeProxy<
     QuotientSystem<const ProbabilisticOperator*>::QuotientStateIDIterator>
-QuotientSystem<const ProbabilisticOperator*>::quotient_iterator(
+QuotientSystem<const ProbabilisticOperator*>::quotient_range(
     const StateID& state_id) const
 {
     if (cache_) {
@@ -64,9 +63,9 @@ QuotientSystem<const ProbabilisticOperator*>::quotient_iterator(
             start = &i->states[0];
             end = start + i->states.size();
         }
-        return std::pair<const StateID*, const StateID*>(start, end);
+        return utils::RangeProxy<const StateID*>(start, end);
     } else {
-        return this->fallback_->quotient_iterator(state_id);
+        return this->fallback_->quotient_range(state_id);
     }
 }
 

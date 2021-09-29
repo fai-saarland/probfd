@@ -108,8 +108,8 @@ public:
     const_iterator begin() const;
     const_iterator end() const;
 
-    std::pair<QuotientStateIDIterator, QuotientStateIDIterator>
-    quotient_iterator(const StateID& state_id) const;
+    utils::RangeProxy<QuotientStateIDIterator>
+    quotient_range(const StateID& state_id) const;
 
     StateID translate_state_id(const StateID& sid) const;
 
