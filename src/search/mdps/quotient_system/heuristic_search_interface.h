@@ -80,10 +80,11 @@ public:
     bool operator()(const StateID& state)
     {
         component_.clear();
-        auto it_pair = quotient_->quotient_range(state);
-        for (; it_pair.b != it_pair.e; ++it_pair.b) {
-            component_.push_back(*it_pair.b);
+
+        for (const StateID& sid : quotient_->quotient_range(state)) {
+            component_.push_back(sid);
         }
+
         return original_->operator()(component_.begin(), component_.end());
     }
 
@@ -92,12 +93,13 @@ public:
         std::deque<StateID>::const_iterator end)
     {
         component_.clear();
+
         for (; begin != end; ++begin) {
-            auto it_pair = quotient_->quotient_range(*begin);
-            for (; it_pair.b != it_pair.e; ++it_pair.b) {
-                component_.push_back(*it_pair.b);
+            for (const StateID& sid : quotient_->quotient_range(*begin)) {
+                component_.push_back(sid);
             }
         }
+
         return original_->operator()(component_.begin(), component_.end());
     }
 
@@ -234,7 +236,7 @@ using PolicyPickerBase = quotient_system::PolicyPicker<
 
 template <typename Action>
 struct PolicyPicker<quotient_system::QuotientAction<Action>>
-    : public PolicyPickerBase<Action> {        
+    : public PolicyPickerBase<Action> {
     using Base = PolicyPickerBase<Action>;
     using Base::Base;
 };
