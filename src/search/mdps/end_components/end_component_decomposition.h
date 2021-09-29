@@ -383,26 +383,23 @@ public:
     {
         sys_ = new QuotientSystem(action_id_map_, aops_gen_, transition_gen_);
         stats_ = Statistics();
-        if (Store<OneStateIDSet>::value) {
+
+        if constexpr (Store<OneStateIDSet>::value) {
             q_aops_gen_ = new ApplicableActionsGenerator<
                 quotient_system::QuotientAction<Action>>(sys_);
             q_transition_gen_ = new TransitionGenerator<
                 quotient_system::QuotientAction<Action>>(sys_);
         }
-        push_state<ZeroStateIDSet, OneStateIDSet>(
-            initial_state,
-            zero_states,
-            one_states);
+
+        push_state(initial_state, zero_states, one_states);
+
         GetSuccID get_succ_id;
         auto pushf = [this, &zero_states, &one_states](
                          const StateID& state_id,
                          StateInfo& state_info) {
-            return push<ZeroStateIDSet, OneStateIDSet>(
-                state_id,
-                state_info,
-                zero_states,
-                one_states);
+            return push(state_id, state_info, zero_states, one_states);
         };
+
         find_and_decompose_sccs<true, ZeroStateIDSet, OneStateIDSet>(
             0,
             pushf,
@@ -410,13 +407,16 @@ public:
             get_succ_id,
             zero_states,
             one_states);
+
         assert(stack_.empty());
         assert(expansion_queue_.empty());
         stats_.time.stop();
-        if (Store<OneStateIDSet>::value) {
+
+        if constexpr (Store<OneStateIDSet>::value) {
             delete (q_aops_gen_);
             delete (q_transition_gen_);
         }
+
         return sys_;
     }
 
