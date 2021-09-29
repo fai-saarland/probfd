@@ -939,14 +939,17 @@ private:
     {
         const unsigned limit = expansion_queue_.size();
         push1(source_state, state_infos_[source_state]);
+
         bool backtracked = false;
         bool one = false;
         unsigned lstck = 0;
         bool onstack = false;
         StackInfo1* backtracked_from = nullptr;
+
         while (expansion_queue_.size() > limit) {
             ExpansionInfo& e = expansion_queue_.back();
             StackInfo1& s = stack1_[e.stck];
+
             if (backtracked) {
                 if (onstack) {
                     e.lstck = std::min(e.lstck, lstck);
@@ -957,33 +960,40 @@ private:
                             s.active.size());
                     }
                 } else {
-                    e.flag = e.flag && one;
+                    e.flag &= one;
                 }
+
                 if (e.successors.back().empty()) {
                     e.successors.pop_back();
+
                     if (e.recurse) {
                         s.scc_transitions += e.flag;
                         s.active.push_back(e.flag);
                     } else if (e.flag) {
                         s.one = true;
                     }
+
                     e.flag = true;
                     e.recurse = false;
                 }
             }
+
             backtracked = true;
             while (!e.successors.empty()) {
                 std::vector<StateID>& succs = e.successors.back();
-                const StateID* succ = &succs.back();
-                for (int i = succs.size(); i > 0; --i, --succ) {
-                    StateID succ_id = *succ;
+
+                while (!succs.empty()) {
+                    StateID succ_id = succs.back();
                     succs.pop_back();
                     StateInfo& succ_info = state_infos_[succ_id];
+
                     if (!succ_info.explored) {
                         push1(succ_id, succ_info);
                         backtracked = false;
                         break;
-                    } else if (succ_info.onstack()) {
+                    }
+
+                    if (succ_info.onstack()) {
                         e.recurse = true;
                         e.lstck = std::min(e.lstck, succ_info.stackid_);
                         if (!ExpandGoalStates || e.dead) {
@@ -995,78 +1005,88 @@ private:
                         e.flag = false;
                     }
                 }
-                if (backtracked) {
-                    assert(succs.empty());
-                    e.successors.pop_back();
-                    if (e.recurse) {
-                        s.scc_transitions += e.flag;
-                        s.active.push_back(e.flag);
-                    } else if (e.flag) {
-                        s.one = true;
-                    }
-                    e.flag = true;
-                    e.recurse = false;
-                } else {
+
+                if (!backtracked) {
                     break;
                 }
-            }
-            if (backtracked) {
-                one = s.one;
-                lstck = e.lstck;
-                backtracked_from = &s;
-                onstack = e.stck != e.lstck;
-                if (!onstack) {
-                    const unsigned scc_size = stack1_.size() - e.stck;
-                    std::deque<StackInfo1*> non_one;
-                    {
-                        StackInfo1* scc_elem = &stack1_.back();
-                        for (int i = scc_size; i > 0; --i, --scc_elem) {
-                            if (!scc_elem->one && !scc_elem->scc_transitions &&
-                                !scc_elem->parents.empty()) {
-                                non_one.push_back(scc_elem);
-                            }
-                        }
-                    }
-                    while (!non_one.empty()) {
-                        StackInfo1* scc_elem = non_one.back();
-                        non_one.pop_back();
-                        std::pair<unsigned, unsigned>* parent =
-                            &scc_elem->parents[0];
-                        for (int i = scc_elem->parents.size(); i > 0;
-                             --i, ++parent) {
-                            StackInfo1& pinfo = stack1_[parent->first];
-                            if (!pinfo.one && pinfo.active[parent->second]) {
-                                pinfo.active[parent->second] = false;
-                                if (--pinfo.scc_transitions == 0 &&
-                                    !pinfo.parents.empty()) {
-                                    non_one.push_back(&pinfo);
-                                }
-                            }
-                        }
-                    }
-                    StackInfo1* scc_elem = &stack1_.back();
-                    for (int i = scc_size; i > 0; --i, --scc_elem) {
-                        auto it = sys_->quotient_range(scc_elem->stateid);
-                        if (scc_elem->one || scc_elem->scc_transitions) {
-                            for (; it.b != it.e; ++it.b) {
-                                StateInfo& sinfo = state_infos_[*it.b];
-                                sinfo.explored = 1;
-                                sinfo.stackid_ = StateInfo::ONE;
-                                insert(one_states, *it.b);
-                                ++stats_.ones;
-                            }
-                        } else {
-                            for (; it.b != it.e; ++it.b) {
-                                StateInfo& sinfo = state_infos_[*it.b];
-                                sinfo.explored = 1;
-                                sinfo.stackid_ = StateInfo::UNDEF;
-                            }
-                        }
-                    }
-                    stack1_.resize(e.stck);
+
+                assert(succs.empty());
+                e.successors.pop_back();
+
+                if (e.recurse) {
+                    s.scc_transitions += e.flag;
+                    s.active.push_back(e.flag);
+                } else if (e.flag) {
+                    s.one = true;
                 }
-                expansion_queue_.pop_back();
+
+                e.flag = true;
+                e.recurse = false;
             }
+
+            if (!backtracked) {
+                continue;
+            }
+
+            one = s.one;
+            lstck = e.lstck;
+            backtracked_from = &s;
+            onstack = e.stck != e.lstck;
+
+            if (!onstack) {
+                auto begin = stack1_.begin() + e.stck;
+                auto end = stack1_.end();
+
+                std::deque<StackInfo1*> non_one;
+                {
+                    for (auto stk_it = begin; stk_it != end; ++stk_it) {
+                        if (!stk_it->one && !stk_it->scc_transitions &&
+                            !stk_it->parents.empty()) {
+                            non_one.push_back(&*stk_it);
+                        }
+                    }
+                }
+
+                while (!non_one.empty()) {
+                    StackInfo1* scc_elem = non_one.back();
+                    non_one.pop_back();
+
+                    for (const auto& [first, second] : scc_elem->parents) {
+                        StackInfo1& pinfo = stack1_[first];
+                        if (!pinfo.one && pinfo.active[second]) {
+                            pinfo.active[second] = false;
+                            if (--pinfo.scc_transitions == 0 &&
+                                !pinfo.parents.empty()) {
+                                non_one.push_back(&pinfo);
+                            }
+                        }
+                    }
+                }
+
+                for (auto stk_it = begin; stk_it != end; ++stk_it) {
+                    auto qstates = sys_->quotient_range(stk_it->stateid);
+
+                    if (stk_it->one || stk_it->scc_transitions) {
+                        for (const StateID& sid : qstates) {
+                            StateInfo& sinfo = state_infos_[sid];
+                            sinfo.explored = 1;
+                            sinfo.stackid_ = StateInfo::ONE;
+                            insert(one_states, sid);
+                            ++stats_.ones;
+                        }
+                    } else {
+                        for (const StateID& sid : qstates) {
+                            StateInfo& sinfo = state_infos_[sid];
+                            sinfo.explored = 1;
+                            sinfo.stackid_ = StateInfo::UNDEF;
+                        }
+                    }
+                }
+
+                stack1_.erase(begin, end);
+            }
+
+            expansion_queue_.pop_back();
         }
     }
 
