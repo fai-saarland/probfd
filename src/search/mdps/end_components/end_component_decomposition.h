@@ -848,21 +848,31 @@ private:
     void decompose(const unsigned start)
     {
         const unsigned scc_size = stack_.size() - start;
+        auto scc_begin = stack_.begin() + start;
+        auto scc_end = stack_.end();
         const unsigned limit = expansion_queue_.size();
 
-        std::vector<StackInfo> scc(stack_.begin() + start, stack_.end());
-        stack_.resize(start);
+        // Move the SCC to a new vector
+        std::vector<StackInfo> scc(
+            std::make_move_iterator(scc_begin),
+            std::make_move_iterator(scc_end));
+        stack_.erase(scc_begin, scc_end);
 
+        // Define accessors for the SCC
         PushLocal push_local(&scc, &expansion_queue_, &stack_, &stats_);
         StateInfoLookup get_state_info(&scc, &state_infos_);
         SuccIDToLocal get_succ_id(start);
 
         for (unsigned i = 0; i < scc_size; ++i) {
             StateInfo& iinfo = get_state_info[i];
+
             if (iinfo.explored) {
                 continue;
             }
+
             push_local(i, iinfo);
+
+            // Recursively run decomposition
             find_and_decompose_sccs<false, const void*, const void*>(
                 limit,
                 push_local,
@@ -872,10 +882,9 @@ private:
                 nullptr);
         }
 
-        if (ResetExplored) {
-            StackInfo* it = &scc[0];
-            for (int i = scc_size; i > 0; --i, ++it) {
-                state_infos_[it->stateid].explored = 0;
+        if constexpr (ResetExplored) {
+            for (const StackInfo& info : scc) {
+                state_infos_[info.stateid].explored = 0;
             }
         }
 
