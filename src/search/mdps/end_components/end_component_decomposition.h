@@ -896,31 +896,35 @@ private:
     {
         assert(!state_info.explored);
         assert(!state_info.one() && !state_info.zero());
+
         std::vector<typename QuotientSystem::QAction> aops;
-        Distribution<StateID> transition;
         q_aops_gen_->operator()(state_id, aops);
+
         assert(!aops.empty());
-        expansion_queue_.emplace_back(stack1_.size());
-        ExpansionInfo& e = expansion_queue_.back();
+
+        ExpansionInfo& e = expansion_queue_.emplace_back(stack1_.size());
         e.dead = !state_info.flag;
-        e.successors.resize(aops.size());
-        const auto* aptr = &aops[0];
-        std::vector<StateID>* succs = &e.successors[0];
-        for (int i = aops.size(); i > 0; --i, ++aptr) {
-            q_transition_gen_->operator()(state_id, *aptr, transition);
-            for (auto it = transition.begin(); it != transition.end(); ++it) {
-                const StateID succ_id = it->first;
+        e.successors.reserve(aops.size());
+
+        for (const auto& action : aops) {
+            Distribution<StateID> transition;
+            q_transition_gen_->operator()(state_id, action, transition);
+
+            std::vector<StateID> succs;
+
+            for (const StateID succ_id : transition.elements()) {
                 if (succ_id != state_id) {
-                    succs->push_back(succ_id);
+                    succs.push_back(succ_id);
                 }
             }
-            if (!succs->empty()) {
-                ++succs;
+
+            if (!succs.empty()) {
+                e.successors.push_back(std::move(succs));
             }
-            transition.clear();
         }
-        e.successors.resize(succs - &e.successors[0]);
+
         assert(!e.successors.empty());
+
         state_info.stackid_ = stack1_.size();
         state_info.explored = 1;
         stack1_.emplace_back(state_id);
