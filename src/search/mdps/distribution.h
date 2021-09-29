@@ -3,6 +3,9 @@
 
 #include "value_type.h"
 
+#include "../utils/iterators.h"
+#include "../utils/range_proxy.h"
+
 #include <algorithm>
 #include <cassert>
 #include <vector>
@@ -26,6 +29,13 @@ private:
 public:
     /// Iterator type.
     using const_iterator = typename distribution_t::const_iterator;
+
+    using element_iterator = utils::sub_iterator<const_iterator, T>;
+    using probability_iterator =
+        utils::sub_iterator<const_iterator, value_type::value_t>;
+
+    using element_range = utils::RangeProxy<element_iterator>;
+    using probability_range = utils::RangeProxy<probability_iterator>;
 
     /// Constructs the empty list of element-probability pairs.
     Distribution() = default;
@@ -134,6 +144,44 @@ public:
     const_iterator begin() const { return distribution_.begin(); }
 
     const_iterator end() const { return distribution_.end(); }
+
+    element_iterator elem_begin() const
+    {
+        return element_iterator(
+            distribution_.begin(),
+            &std::pair<T, value_type::value_t>::first);
+    }
+
+    element_iterator elem_end() const
+    {
+        return element_iterator(
+            distribution_.end(),
+            &std::pair<T, value_type::value_t>::first);
+    }
+
+    element_range elements() const
+    {
+        return element_range(elem_begin(), elem_end());
+    }
+
+    probability_iterator prob_begin() const
+    {
+        return probability_iterator(
+            distribution_.begin(),
+            &std::pair<T, value_type::value_t>::second);
+    }
+
+    probability_iterator prob_end() const
+    {
+        return probability_iterator(
+            distribution_.end(),
+            &std::pair<T, value_type::value_t>::second);
+    }
+
+    probability_range probablities() const
+    {
+        return probability_range(elem_begin(), elem_end());
+    }
 
     /**
      * @brief Obtains a reference to the internal list.
