@@ -162,38 +162,66 @@ public:
     using pointer = const StateID*;
     using reference = const StateID&;
 
-    explicit StackStateIDIterator(const StackInfo<Action>* start)
-        : ptr_(start)
+    explicit StackStateIDIterator(
+        typename std::vector<StackInfo<Action>>::const_iterator it)
+        : it(std::move(it))
     {
     }
 
     StackStateIDIterator& operator++()
     {
-        ++ptr_;
+        ++it;
         return *this;
     }
 
     StackStateIDIterator operator++(int)
     {
         StackStateIDIterator res = *this;
-        ++ptr_;
+        ++it;
         return res;
+    }
+
+    friend StackStateIDIterator operator+(
+        const StackStateIDIterator& sit,
+        int n)
+    {
+        return StackStateIDIterator(sit.it + n);
+    }
+
+    friend StackStateIDIterator operator-(
+        const StackStateIDIterator& sit,
+        int n)
+    {
+        return StackStateIDIterator(sit.it - n);
+    }
+
+    friend difference_type operator-(
+        const StackStateIDIterator& a,
+        const StackStateIDIterator& b)
+    {
+        return a.it - b.it;
+    }
+
+    reference operator[](int n)
+    {
+        return it[n].stateid;
     }
 
     bool operator==(const StackStateIDIterator& other) const
     {
-        return ptr_ == other.ptr_;
+        return it == other.it;
     }
 
     bool operator!=(const StackStateIDIterator& other) const
     {
-        return ptr_ != other.ptr_;
+        return it != other.it;
     }
 
-    reference operator*() const { return ptr_->stateid; }
+    reference operator*() const { return it->stateid; }
+    pointer operator->() const { return &it->stateid; }
 
 protected:
-    const StackInfo<Action>* ptr_;
+    typename std::vector<StackInfo<Action>>::const_iterator it;
 };
 
 template <typename Action>
@@ -205,38 +233,66 @@ public:
     using pointer = const std::vector<Action>*;
     using reference = const std::vector<Action>&;
 
-    explicit StackAopsIterator(const StackInfo<Action>* start)
-        : ptr_(start)
+    explicit StackAopsIterator(
+        typename std::vector<StackInfo<Action>>::const_iterator it)
+        : it(std::move(it))
     {
     }
 
     StackAopsIterator& operator++()
     {
-        ++ptr_;
+        ++it;
         return *this;
     }
 
     StackAopsIterator operator++(int)
     {
         StackAopsIterator res = *this;
-        ++ptr_;
+        ++it;
         return res;
+    }
+
+    friend StackAopsIterator operator+(
+        const StackAopsIterator& sit,
+        int n)
+    {
+        return StackAopsIterator(sit.it + n);
+    }
+
+    friend StackAopsIterator operator-(
+        const StackAopsIterator& sit,
+        int n)
+    {
+        return StackAopsIterator(sit.it - n);
+    }
+
+    friend difference_type operator-(
+        const StackAopsIterator& a,
+        const StackAopsIterator& b)
+    {
+        return a.it - b.it;
+    }
+
+    reference operator[](int n)
+    {
+        return it[n].aops;
     }
 
     bool operator==(const StackAopsIterator& other) const
     {
-        return ptr_ == other.ptr_;
+        return it == other.it;
     }
 
     bool operator!=(const StackAopsIterator& other) const
     {
-        return ptr_ != other.ptr_;
+        return it != other.it;
     }
 
-    reference operator*() const { return ptr_->aops; }
+    reference operator*() const { return it->aops; }
+    pointer operator->() const { return &it->aops; }
 
 protected:
-    const StackInfo<Action>* ptr_;
+    typename std::vector<StackInfo<Action>>::const_iterator it;
 };
 
 using StateInfoStore = storage::PerStateStorage<StateInfo>;
@@ -758,9 +814,9 @@ private:
                                     }
                                     transitions += scc_elem->aops.size();
                                 }
-                                StackStateIDIterator begin(&stack_[e.stck]);
-                                StackStateIDIterator end((&stack_.back()) + 1);
-                                StackAopsIterator abegin(&stack_[e.stck]);
+                                StackStateIDIterator begin(stack_.begin() + e.stck);
+                                StackStateIDIterator end(stack_.end());
+                                StackAopsIterator abegin(stack_.begin() + e.stck);
                                 sys_->build_quotient(
                                     begin,
                                     end,
