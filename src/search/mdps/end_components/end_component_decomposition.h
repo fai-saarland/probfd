@@ -384,7 +384,7 @@ public:
         sys_ = new QuotientSystem(action_id_map_, aops_gen_, transition_gen_);
         stats_ = Statistics();
 
-        if constexpr (Store<OneStateIDSet>::value) {
+        if constexpr (Store<OneStateIDSet>) {
             q_aops_gen_ = new ApplicableActionsGenerator<
                 quotient_system::QuotientAction<Action>>(sys_);
             q_transition_gen_ = new TransitionGenerator<
@@ -412,7 +412,7 @@ public:
         assert(expansion_queue_.empty());
         stats_.time.stop();
 
-        if constexpr (Store<OneStateIDSet>::value) {
+        if constexpr (Store<OneStateIDSet>) {
             delete (q_aops_gen_);
             delete (q_transition_gen_);
         }
@@ -624,8 +624,7 @@ private:
     };
 
     template <typename T>
-    using Store =
-        std::integral_constant<bool, !std::is_same<T, const void*>::value>;
+    static constexpr bool Store = !std::is_same_v<T, const void*>;
 
     template <
         bool RootIteration,
@@ -642,33 +641,35 @@ private:
         ZeroStateIDSet zero_states,
         OneStateIDSet one_states)
     {
+        // Whether we backtracked from a successor state
         bool backtracked = false;
-        bool recurse = false;
+
+        // Data of the backtracked successor state
         unsigned lstck = 0;
         bool dead = true;
+        bool recurse = false;
         bool is_onstack = false;
+
         while (expansion_queue_.size() > limit) {
             ExpansionInfo& e = expansion_queue_.back();
             StackInfo& s = stack_[e.stck];
-            // std::cout << s.stateid << " (" << e.stck << "/" << stack_.size()
-            // << ", " << e.lstck << ")" << " ... " << backtracked << ", " <<
-            // recurse << ", " << lstck << " >> " << (lstck <= e.stck) << " : "
-            // << std::min(e.lstck, lstck) << std::endl;
 
             if (backtracked) {
                 if (is_onstack) {
                     e.lstck = std::min(e.lstck, lstck);
-                    e.recurse = e.recurse || recurse || !e.flag;
+                    e.recurse |= recurse || !e.flag;
                 } else {
-                    e.recurse =
-                        e.recurse || (e.flag && s.successors.back().size() > 1);
+                    e.recurse |= e.flag && s.successors.back().size() > 1;
                     e.flag = false;
                 }
-                if (Store<ZeroStateIDSet>::value) {
-                    e.dead = e.dead && dead;
+
+                if constexpr (Store<ZeroStateIDSet>) {
+                    e.dead &= dead;
                 }
+
                 if (e.successors.back().empty()) {
                     e.successors.pop_back();
+
                     if (e.flag) {
                         assert(!s.successors.back().empty());
                         s.aops.push_back(e.aops.back());
@@ -681,186 +682,228 @@ private:
                 }
             }
 
-            backtracked = true;
-            while (!e.successors.empty()) {
-                std::vector<StateID>& succs = e.successors.back();
-                assert(!succs.empty());
-                StateID* ptr = &succs.back();
+            backtracked = !successor_loop<
+                ZeroStateIDSet,
+                OneStateIDSet,
+                Push,
+                GetStateInfo,
+                GetSuccID>(e, s, pushf, get_state_info, get_state_id);
 
-                for (int i = succs.size(); i > 0; --i, --ptr) {
-                    const auto succ_id =
-                        get_state_id(*ptr); // ptr->hash() - start;
-                    succs.pop_back();
-                    StateInfo& succ_info =
-                        get_state_info[succ_id]; // infos[succ_id];
-                    if (!succ_info.explored) {
-                        s.successors.back().emplace_back(stack_.size());
-                        if (pushf(succ_id, succ_info)) { // , scc[succ_id]
-                            backtracked = false;
-                            break;
-                        } else {
-                            assert(!succ_info.onstack());
-                            e.recurse =
-                                e.recurse ||
-                                (e.flag && s.successors.back().size() > 1);
-                            e.flag = false;
-                            if (Store<ZeroStateIDSet>::value &&
-                                succ_info.one()) {
-                                e.dead = false;
-                            }
-                        }
-                    } else if (succ_info.onstack()) {
-                        e.recurse = e.recurse || !e.flag;
-                        e.lstck = std::min(e.lstck, succ_info.stackid());
-                        s.successors.back().emplace_back(succ_info.stackid());
-                    } else {
-                        e.recurse = e.recurse ||
-                                    (e.flag && !s.successors.back().empty());
-                        e.flag = false;
-                        if (Store<ZeroStateIDSet>::value && !succ_info.zero()) {
-                            e.dead = false;
-                        }
-                    }
-                }
+            if (!backtracked) {
+                continue;
+            }
 
-                if (backtracked) {
-                    assert(succs.empty());
-                    e.successors.pop_back();
-                    if (e.flag) {
-                        assert(!s.successors.back().empty());
-                        s.successors.emplace_back();
-                        s.aops.push_back(e.aops.back());
-                    } else {
-                        s.successors.back().clear();
-                        e.flag = true;
+            assert(e.successors.empty());
+            assert(e.aops.empty());
+
+            recurse = e.recurse;
+            lstck = e.lstck;
+            dead = e.dead;
+            is_onstack = e.stck != e.lstck;
+
+            assert(e.stck >= e.lstck);
+
+            assert(s.successors.back().empty());
+            s.successors.pop_back();
+
+            if (e.stck == e.lstck) {
+                scc_found<
+                    RootIteration,
+                    ZeroStateIDSet,
+                    OneStateIDSet,
+                    GetStateInfo>(
+                    recurse,
+                    e,
+                    s,
+                    get_state_info,
+                    zero_states,
+                    one_states);
+            }
+
+            expansion_queue_.pop_back();
+        }
+    }
+
+    template <
+        typename ZeroStateIDSet,
+        typename OneStateIDSet,
+        typename Push,
+        typename GetStateInfo,
+        typename GetSuccID>
+    bool successor_loop(
+        ExpansionInfo& e,
+        StackInfo& s,
+        Push& pushf,
+        GetStateInfo& get_state_info,
+        GetSuccID& get_state_id)
+    {
+        while (!e.successors.empty()) {
+            std::vector<StateID>& e_succs = e.successors.back();
+            std::vector<StateID>& s_succs = s.successors.back();
+            assert(!e_succs.empty());
+
+            do {
+                const auto succ_id = get_state_id(e_succs.back());
+                e_succs.pop_back();
+                StateInfo& succ_info = get_state_info[succ_id];
+                if (!succ_info.explored) {
+                    s_succs.emplace_back(stack_.size());
+                    if (pushf(succ_id, succ_info)) {
+                        return true;
                     }
-                    e.aops.pop_back();
+
+                    assert(!succ_info.onstack());
+                    e.recurse |= e.flag && s_succs.size() > 1;
+                    e.flag = false;
+
+                    if (Store<ZeroStateIDSet> && succ_info.one()) {
+                        e.dead = false;
+                    }
+                } else if (succ_info.onstack()) {
+                    e.recurse = e.recurse || !e.flag;
+                    e.lstck = std::min(e.lstck, succ_info.stackid());
+                    s_succs.emplace_back(succ_info.stackid());
                 } else {
-                    break;
+                    e.recurse |= e.flag && !s_succs.empty();
+                    e.flag = false;
+
+                    if (Store<ZeroStateIDSet> && !succ_info.zero()) {
+                        e.dead = false;
+                    }
+                }
+            } while (!e_succs.empty());
+
+            assert(e_succs.empty());
+            e.successors.pop_back();
+
+            if (e.flag) {
+                assert(!s_succs.empty());
+                s.successors.emplace_back();
+                s.aops.push_back(e.aops.back());
+            } else {
+                s_succs.clear();
+                e.flag = true;
+            }
+
+            e.aops.pop_back();
+        }
+
+        return false;
+    }
+
+    template <
+        bool RootIteration,
+        typename ZeroStateIDSet,
+        typename OneStateIDSet,
+        typename GetStateInfo>
+    void scc_found(
+        bool& recurse,
+        ExpansionInfo& e,
+        StackInfo& s,
+        GetStateInfo& get_state_info,
+        ZeroStateIDSet zero_states,
+        OneStateIDSet one_states)
+    {
+        unsigned scc_size = stack_.size() - e.stck;
+        auto scc_begin = stack_.begin() + e.stck;
+        auto scc_end = stack_.end();
+
+        if (Store<ZeroStateIDSet> && e.dead) {
+            if constexpr (RootIteration) {
+                const bool singleton = (scc_size == 1);
+                stats_.sccs1 += singleton;
+                stats_.sccs1_dead += singleton;
+                stats_.sccsk += !singleton;
+                stats_.sccsk_dead += !singleton;
+            }
+
+            for (auto it = scc_begin; it != scc_end; ++it) {
+                StateInfo& info = get_state_info[it->stateid];
+                info.stackid_ = StateInfo::ZERO;
+                insert(zero_states, it->stateid);
+            }
+
+            stack_.resize(e.stck);
+        } else {
+            StateID scc_repr_id = s.stateid;
+            if (scc_size == 1) {
+                assert(s.aops.empty());
+                StateInfo& info = get_state_info[scc_repr_id];
+                info.stackid_ = StateInfo::UNDEF;
+
+                if constexpr (Store<OneStateIDSet>) {
+                    info.explored = 0;
+                }
+
+                stack_.pop_back();
+                ++stats_.ec1;
+
+                if constexpr (RootIteration) {
+                    ++stats_.sccs1;
+                }
+            } else {
+                if (ExpandGoalStates) {
+                    for (auto it = scc_begin; it != scc_end; ++it) {
+                        assert(it->successors.size() == it->aops.size());
+                        StateInfo& info = get_state_info[it->stateid];
+                        if (info.flag) {
+                            it->successors.clear();
+                            it->aops.clear();
+                            recurse = true;
+                        }
+                    }
+                }
+
+                if (recurse) {
+                    ++stats_.recursions;
+
+                    if constexpr (RootIteration) {
+                        ++stats_.sccsk;
+                    }
+
+                    for (auto it = scc_begin; it != scc_end; ++it) {
+                        assert(it->successors.size() == it->aops.size());
+                        StateInfo& info = get_state_info[it->stateid];
+                        info.stackid_ = StateInfo::UNDEF;
+                        info.explored = 0;
+                    }
+
+                    decompose<Store<OneStateIDSet>>(e.stck);
+                } else {
+                    unsigned transitions = 0;
+
+                    for (auto it = scc_begin; it != scc_end; ++it) {
+                        assert(it->successors.size() == it->aops.size());
+                        StateInfo& info = get_state_info[it->stateid];
+                        info.stackid_ = StateInfo::UNDEF;
+
+                        if (Store<OneStateIDSet>) {
+                            info.explored = 0;
+                        }
+
+                        transitions += it->aops.size();
+                    }
+
+                    StackStateIDIterator begin(scc_begin);
+                    StackStateIDIterator end(scc_end);
+                    StackAopsIterator abegin(scc_begin);
+                    sys_->build_quotient(begin, end, scc_repr_id, abegin);
+                    stack_.erase(scc_begin, scc_end);
+                    ++stats_.eck;
+                    stats_.ec_transitions += transitions;
+
+                    if constexpr (RootIteration) {
+                        ++stats_.sccsk;
+                    }
                 }
             }
 
-            if (backtracked) {
-                assert(e.successors.empty());
-                assert(e.aops.empty());
-
-                recurse = e.recurse;
-                lstck = e.lstck;
-                dead = e.dead;
-                is_onstack = e.stck != e.lstck;
-
-                assert(e.stck >= e.lstck);
-
-                assert(s.successors.back().empty());
-                s.successors.pop_back();
-
-                if (e.stck == e.lstck) {
-                    unsigned scc_size = stack_.size() - e.stck;
-                    StackInfo* scc_elem = &stack_.back();
-                    if (Store<ZeroStateIDSet>::value && e.dead) {
-                        if (RootIteration) {
-                            const bool singleton = (scc_size == 1);
-                            stats_.sccs1 += singleton;
-                            stats_.sccs1_dead += singleton;
-                            stats_.sccsk += !singleton;
-                            stats_.sccsk_dead += !singleton;
-                        }
-                        for (unsigned i = scc_size; i > 0; --i, --scc_elem) {
-                            StateInfo& info = get_state_info[scc_elem->stateid];
-                            info.stackid_ = StateInfo::ZERO;
-                            insert(zero_states, scc_elem->stateid);
-                        }
-                        stack_.resize(e.stck);
-                    } else {
-                        StateID scc_repr_id = s.stateid;
-                        if (scc_size == 1) {
-                            assert(s.aops.empty());
-                            StateInfo& info = get_state_info[scc_repr_id];
-                            info.stackid_ = StateInfo::UNDEF;
-                            if (Store<OneStateIDSet>::value) {
-                                info.explored = 0;
-                            }
-                            stack_.pop_back();
-                            ++stats_.ec1;
-                            if (RootIteration) {
-                                ++stats_.sccs1;
-                            }
-                        } else {
-                            if (ExpandGoalStates) {
-                                for (unsigned i = scc_size; i > 0;
-                                     --i, --scc_elem) {
-                                    assert(
-                                        scc_elem->successors.size() ==
-                                        scc_elem->aops.size());
-                                    StateInfo& info =
-                                        get_state_info[scc_elem->stateid];
-                                    if (info.flag) {
-                                        scc_elem->successors.clear();
-                                        scc_elem->aops.clear();
-                                        recurse = true;
-                                    }
-                                }
-                                scc_elem = &stack_.back();
-                            }
-                            if (recurse) {
-                                ++stats_.recursions;
-                                if (RootIteration) {
-                                    ++stats_.sccsk;
-                                }
-                                for (unsigned i = scc_size; i > 0;
-                                     --i, --scc_elem) {
-                                    assert(
-                                        scc_elem->successors.size() ==
-                                        scc_elem->aops.size());
-                                    StateInfo& info =
-                                        get_state_info[scc_elem->stateid];
-                                    info.stackid_ = StateInfo::UNDEF;
-                                    info.explored = 0;
-                                }
-                                decompose<Store<OneStateIDSet>::value>(e.stck);
-                            } else {
-                                unsigned transitions = 0;
-                                for (unsigned i = scc_size; i > 0;
-                                     --i, --scc_elem) {
-                                    assert(
-                                        scc_elem->successors.size() ==
-                                        scc_elem->aops.size());
-                                    StateInfo& info =
-                                        get_state_info[scc_elem->stateid];
-                                    info.stackid_ = StateInfo::UNDEF;
-                                    if (Store<OneStateIDSet>::value) {
-                                        info.explored = 0;
-                                    }
-                                    transitions += scc_elem->aops.size();
-                                }
-                                StackStateIDIterator begin(stack_.begin() + e.stck);
-                                StackStateIDIterator end(stack_.end());
-                                StackAopsIterator abegin(stack_.begin() + e.stck);
-                                sys_->build_quotient(
-                                    begin,
-                                    end,
-                                    scc_repr_id,
-                                    abegin);
-                                stack_.resize(e.stck);
-                                ++stats_.eck;
-                                stats_.ec_transitions += transitions;
-                                if (RootIteration) {
-                                    ++stats_.sccsk;
-                                }
-                            }
-                        }
-                        if (Store<OneStateIDSet>::value) {
-                            collect_one_states<OneStateIDSet>(
-                                one_states,
-                                scc_repr_id);
-                        }
-                    }
-                    assert(stack_.size() == e.stck);
-                }
-
-                expansion_queue_.pop_back();
+            if constexpr (Store<OneStateIDSet>) {
+                collect_one_states<OneStateIDSet>(one_states, scc_repr_id);
             }
         }
+
+        assert(stack_.size() == e.stck);
     }
 
     template <bool ResetExplored = false>
