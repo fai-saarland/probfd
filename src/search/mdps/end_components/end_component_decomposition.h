@@ -77,7 +77,7 @@ struct StateInfo {
 
     explicit StateInfo()
         : explored(0)
-        , flag(0)
+        , expandable_goal(0)
         , stackid_(UNDEF)
     {
     }
@@ -92,7 +92,7 @@ struct StateInfo {
     bool one() const { return stackid_ == ONE; }
 
     unsigned explored : 1;
-    unsigned flag : 1;
+    unsigned expandable_goal : 1; // non-terminal goal?
     unsigned stackid_ : 30;
 };
 
@@ -460,7 +460,7 @@ private:
                 return false;
             }
 
-            state_info.flag = 1;
+            state_info.expandable_goal = 1;
         } else if (
             pruning_function_ != nullptr &&
             pruning_function_->operator()(state)) {
@@ -474,8 +474,8 @@ private:
         aops_gen_->operator()(state_id, aops);
 
         if (aops.empty()) {
-            if (ExpandGoalStates && state_info.flag) {
-                state_info.flag = 0;
+            if (ExpandGoalStates && state_info.expandable_goal) {
+                state_info.expandable_goal = 0;
             } else {
                 ++stats_.terminals;
                 state_info.stackid_ = StateInfo::ZERO;
@@ -514,8 +514,8 @@ private:
 
         // only self-loops
         if (non_loop_actions == 0) {
-            if (ExpandGoalStates && state_info.flag) {
-                state_info.flag = 0;
+            if (ExpandGoalStates && state_info.expandable_goal) {
+                state_info.expandable_goal = 0;
             } else {
                 ++stats_.terminals;
                 ++stats_.selfloops;
@@ -529,9 +529,9 @@ private:
         aops.erase(aops.begin() + non_loop_actions, aops.end());
 
         ExpansionInfo& e = expansion_queue_.emplace_back(stack_.size());
-        e.dead = !state_info.flag;
+        e.dead = !state_info.expandable_goal;
         e.aops = std::move(aops);
-        e.successors = std::move(successors); // FIXME?
+        e.successors = std::move(successors);
 
         state_info.stackid_ = stack_.size();
         stack_.emplace_back(state_id);
@@ -846,7 +846,7 @@ private:
                     for (auto it = scc_begin; it != scc_end; ++it) {
                         assert(it->successors.size() == it->aops.size());
                         StateInfo& info = get_state_info[it->stateid];
-                        if (info.flag) {
+                        if (info.expandable_goal) {
                             it->successors.clear();
                             it->aops.clear();
                             recurse = true;
@@ -965,7 +965,7 @@ private:
         assert(!aops.empty());
 
         ExpansionInfo& e = expansion_queue_.emplace_back(stack1_.size());
-        e.dead = !state_info.flag;
+        e.dead = !state_info.expandable_goal;
         e.successors.reserve(aops.size());
 
         for (const auto& action : aops) {
@@ -990,7 +990,8 @@ private:
         state_info.stackid_ = stack1_.size();
         state_info.explored = 1;
         stack1_.emplace_back(state_id);
-        if (ExpandGoalStates && state_info.flag) {
+
+        if (ExpandGoalStates && state_info.expandable_goal) {
             stack1_.back().one = 1;
         }
     }
