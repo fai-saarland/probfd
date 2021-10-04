@@ -4,7 +4,6 @@
 #include "abstract_state_mapper.h"
 #include "engine_interfaces.h"
 #include "qualitative_result_store.h"
-#include "quantitative_result_store.h"
 #include "types.h"
 
 #include "../../utils/graph_visualization.h"

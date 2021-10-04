@@ -691,7 +691,6 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/orthogonality
         mdps/heuristics/pdbs/probabilistic_projection
         mdps/heuristics/pdbs/qualitative_result_store
-        mdps/heuristics/pdbs/quantitative_result_store
         mdps/heuristics/pdbs/syntactic_projection
         mdps/heuristics/pdbs/types
         mdps/heuristics/pdbs/utils
