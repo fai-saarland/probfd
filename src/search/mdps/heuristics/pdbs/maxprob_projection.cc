@@ -1,19 +1,17 @@
 #include "maxprob_projection.h"
 
-#include "../../../global_operator.h"
+#include "../../../pdbs/pattern_database.h"
 #include "../../../utils/collections.h"
 #include "../../../successor_generator.h"
-#include "../../analysis_objectives/goal_probability_objective.h"
+
 #include "../../engines/interval_iteration.h"
+#include "../../globals.h"
 #include "../../logging.h"
 #include "../../utils/graph_visualization.h"
 
-#include "../../../pdbs/pattern_database.h"
-
 #include <deque>
-#include <fstream>
-#include <numeric>
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <sstream>
 
 namespace probabilistic {

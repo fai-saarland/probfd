@@ -9,11 +9,6 @@
 #include "abstract_policy.h"
 #include "probabilistic_projection.h"
 
-namespace successor_generator {
-template <typename T>
-class SuccessorGenerator;
-}
-
 namespace pdbs {
 class PatternDatabase;
 }

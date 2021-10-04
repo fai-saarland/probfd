@@ -2,17 +2,11 @@
 #define MDPS_HEURISTICS_PDBS_EXPCOST_PROJECTION_H
 
 #include "../../globals.h"
-#include "../../value_utils.h"
 
 #include "../constant_evaluator.h"
 
 #include "abstract_policy.h"
 #include "probabilistic_projection.h"
-
-namespace successor_generator {
-template <typename T>
-class SuccessorGenerator;
-}
 
 namespace pdbs {
 class PatternDatabase;
