@@ -78,6 +78,7 @@ public:
 
     unsigned int num_dead_ends() const;
     unsigned int num_proper_states() const;
+    unsigned int num_reachable_states() const;
 
     bool has_only_proper_states() const;
     bool has_only_dead_or_proper_states() const;
@@ -90,8 +91,6 @@ public:
 
     // Returns the pattern (i.e. all variables used) of the PDB
     const Pattern& get_pattern() const;
-
-    unsigned int num_reachable_states() const;
 
 protected:
     void compute_proper_states();
@@ -134,10 +133,13 @@ protected:
     }
 
 private:
+    void compute_dead_ends();
+
     void setup_abstract_goal();
+
     void prepare_progression();
     void prepare_regression();
-    void compute_dead_ends();
+
     void add_abstract_operators(
         const Pattern& pattern,
         const ProbabilisticOperator& op,

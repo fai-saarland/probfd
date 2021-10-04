@@ -65,6 +65,11 @@ unsigned int ProbabilisticProjection::num_proper_states() const
     return proper_states->get_storage().size();
 }
 
+unsigned int ProbabilisticProjection::num_reachable_states() const
+{
+    return reachable_states;
+}
+
 bool ProbabilisticProjection::has_only_proper_states() const
 {
     return state_mapper_->size() == proper_states->get_storage().size();
@@ -101,94 +106,6 @@ ProbabilisticProjection::get_abstract_state(const std::vector<int>& s) const
 const Pattern& ProbabilisticProjection::get_pattern() const
 {
     return state_mapper_->get_pattern();
-}
-
-unsigned int ProbabilisticProjection::num_reachable_states() const
-{
-    return reachable_states;
-}
-
-void ProbabilisticProjection::prepare_regression()
-{
-    std::vector<std::vector<std::pair<int, int>>> progressions;
-    progressions.reserve(::g_operators.size());
-    std::vector<AbstractState> operators;
-
-    using footprint_t =
-        std::pair<std::vector<std::pair<int, int>>, AbstractState>;
-    utils::HashSet<footprint_t> operator_set;
-
-    for (const auto& op : ::g_operators) {
-        std::vector<std::pair<int, int>> after_effect;
-        std::vector<int> eff_no_pre;
-
-        std::unordered_map<int, int> precondition;
-        std::unordered_map<int, int> effect;
-        {
-            for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
-                const int idx = var_index_[pre_var];
-                if (idx != -1) {
-                    precondition[idx] = pre_val;
-                }
-            }
-
-            for (const auto& [eff_var, eff_val, _] : op.get_effects()) {
-                const int idx = var_index_[eff_var];
-                if (idx != -1) {
-                    effect[idx] = eff_val;
-                }
-            }
-        }
-
-        if (effect.empty()) {
-            continue;
-        }
-
-        AbstractState pre(0);
-        AbstractState eff(0);
-        {
-            for (const auto& [pre_var, pre_val] : precondition) {
-                if (effect.find(pre_var) == effect.end()) {
-                    after_effect.emplace_back(pre_var, pre_val);
-                }
-            }
-
-            for (const auto& [eff_var, eff_val] : effect) {
-                after_effect.emplace_back(eff_var, eff_val);
-                eff += state_mapper_->from_value_partial(eff_var, eff_val);
-                if (precondition.find(eff_var) == precondition.end()) {
-                    eff_no_pre.push_back(eff_var);
-                } else {
-                    pre += state_mapper_->from_value_partial(
-                        eff_var,
-                        precondition[eff_var]);
-                }
-            }
-        }
-
-        std::sort(after_effect.begin(), after_effect.end());
-        std::sort(eff_no_pre.begin(), eff_no_pre.end());
-
-        auto it = state_mapper_->partial_states_begin(
-            pre - eff,
-            std::move(eff_no_pre));
-        auto end = state_mapper_->partial_states_end();
-
-        for (; it != end; ++it) {
-            AbstractState regression = *it;
-
-            if (regression.id != 0 &&
-                operator_set.emplace(after_effect, regression).second) {
-                progressions.push_back(after_effect);
-                operators.push_back(regression);
-            }
-        }
-    }
-
-    regression_aops_generator_ = std::make_shared<RegressionSuccessorGenerator>(
-        state_mapper_->get_domains(),
-        progressions,
-        operators);
 }
 
 bool is_closed(
@@ -423,6 +340,7 @@ void ProbabilisticProjection::prepare_progression()
             opptrs);
 }
 
+namespace {
 struct OutcomeInfo {
     AbstractState base_effect = AbstractState(0);
     std::vector<int> missing_pres;
@@ -439,6 +357,90 @@ struct OutcomeInfo {
                std::tie(b.base_effect, b.missing_pres);
     }
 };
+} // namespace
+
+void ProbabilisticProjection::prepare_regression()
+{
+    std::vector<std::vector<std::pair<int, int>>> progressions;
+    progressions.reserve(::g_operators.size());
+    std::vector<AbstractState> operators;
+
+    using footprint_t =
+        std::pair<std::vector<std::pair<int, int>>, AbstractState>;
+    utils::HashSet<footprint_t> operator_set;
+
+    for (const auto& op : ::g_operators) {
+        std::vector<std::pair<int, int>> after_effect;
+        std::vector<int> eff_no_pre;
+
+        std::unordered_map<int, int> precondition;
+        std::unordered_map<int, int> effect;
+        {
+            for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
+                const int idx = var_index_[pre_var];
+                if (idx != -1) {
+                    precondition[idx] = pre_val;
+                }
+            }
+
+            for (const auto& [eff_var, eff_val, _] : op.get_effects()) {
+                const int idx = var_index_[eff_var];
+                if (idx != -1) {
+                    effect[idx] = eff_val;
+                }
+            }
+        }
+
+        if (effect.empty()) {
+            continue;
+        }
+
+        AbstractState pre(0);
+        AbstractState eff(0);
+        {
+            for (const auto& [pre_var, pre_val] : precondition) {
+                if (effect.find(pre_var) == effect.end()) {
+                    after_effect.emplace_back(pre_var, pre_val);
+                }
+            }
+
+            for (const auto& [eff_var, eff_val] : effect) {
+                after_effect.emplace_back(eff_var, eff_val);
+                eff += state_mapper_->from_value_partial(eff_var, eff_val);
+                if (precondition.find(eff_var) == precondition.end()) {
+                    eff_no_pre.push_back(eff_var);
+                } else {
+                    pre += state_mapper_->from_value_partial(
+                        eff_var,
+                        precondition[eff_var]);
+                }
+            }
+        }
+
+        std::sort(after_effect.begin(), after_effect.end());
+        std::sort(eff_no_pre.begin(), eff_no_pre.end());
+
+        auto it = state_mapper_->partial_states_begin(
+            pre - eff,
+            std::move(eff_no_pre));
+        auto end = state_mapper_->partial_states_end();
+
+        for (; it != end; ++it) {
+            AbstractState regression = *it;
+
+            if (regression.id != 0 &&
+                operator_set.emplace(after_effect, regression).second) {
+                progressions.push_back(after_effect);
+                operators.push_back(regression);
+            }
+        }
+    }
+
+    regression_aops_generator_ = std::make_shared<RegressionSuccessorGenerator>(
+        state_mapper_->get_domains(),
+        progressions,
+        operators);
+}
 
 void ProbabilisticProjection::add_abstract_operators(
     const Pattern& pattern,
