@@ -136,6 +136,14 @@ bool in_bounds(size_t index, const T &container) {
     return index < container.size();
 }
 
+inline std::vector<int> insert(std::vector<int> pattern, int add_var)
+{
+    assert(!utils::contains(pattern, add_var));
+    auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
+    pattern.insert(it, add_var);
+    return pattern;
+}
+
 template<typename T>
 T swap_and_pop_from_vector(std::vector<T> &vec, size_t pos) {
     assert(in_bounds(pos, vec));
