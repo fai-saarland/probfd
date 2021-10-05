@@ -701,8 +701,11 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs
         mdps/heuristics/pdbs/pattern_selection/pattern_collection_generator_deterministic
         mdps/heuristics/pdbs/pattern_selection/pattern_collection_generator_hillclimbing
+        mdps/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_cegar
         mdps/heuristics/pdbs/pattern_selection/pattern_collection_information
         mdps/heuristics/pdbs/pattern_selection/pattern_generator
+
+        mdps/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data
 
         mdps/heuristics/pdbs/subcollections/subcollection_finder
         mdps/heuristics/pdbs/subcollections/max_orthogonal_finder
