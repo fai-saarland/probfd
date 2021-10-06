@@ -14,9 +14,6 @@ namespace engines {
 /// Namespace dedicated to interval iteration on MaxProb MDPs.
 namespace interval_iteration {
 
-using ValueStore = topological_vi::ValueStore<std::true_type>;
-using BoolStore = storage::PerStateStorage<bool>;
-
 /**
  * @brief Implemention of interval iteration \cite haddad:etal:misc-17.
  *
@@ -56,13 +53,14 @@ public:
     using QuotientSystem = typename Decomposer::QuotientSystem;
     using QAction = typename QuotientSystem::QAction;
 
-    template <typename BoolStoreT>
     using ValueIteration = topological_vi::TopologicalValueIteration<
         State,
         QAction,
         ExpandGoalStates,
-        std::true_type,
-        BoolStoreT>;
+        std::true_type>;
+
+    using ValueStore = typename ValueIteration::Store;
+    using BoolStore = storage::PerStateStorage<bool>;
 
     explicit IntervalIteration(
         StateIDMap<State>* state_id_map,
@@ -243,8 +241,8 @@ private:
             dead_ends,
             prune_);
 
-        if (extract_probability_one_states_) {
-            ValueIteration<BoolStoreT> vi(
+        if (!extract_probability_one_states_) {
+            ValueIteration vi(
                 this->get_state_id_map(),
                 &q_action_id_map,
                 this->get_state_reward_function(),
@@ -261,7 +259,7 @@ private:
         } else {
             OneStateRewardFunction reward(this->get_state_id_map(), one_states);
 
-            ValueIteration<BoolStoreT> vi(
+            ValueIteration vi(
                 this->get_state_id_map(),
                 &q_action_id_map,
                 &reward,

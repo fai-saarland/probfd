@@ -21,7 +21,6 @@ namespace topological_vi {
  * @brief Topological value iteration statistics.
  */
 struct Statistics {
-
     void print(std::ostream& out) const
     {
         out << "  Expanded state(s): " << expanded_states << std::endl;
@@ -44,30 +43,6 @@ struct Statistics {
     unsigned long long pruned = 0;
 };
 
-inline bool bounds_equal(const value_type::value_t&)
-{
-    return true;
-}
-
-inline bool bounds_equal(const value_utils::IntervalValue& v)
-{
-    return value_type::approx_equal()(v.lower, v.upper);
-}
-
-template <typename T>
-using ValueStore =
-    storage::PersistentPerStateStorage<value_utils::IncumbentSolution<T>>;
-
-inline bool contains(void*, const StateID&)
-{
-    return false;
-}
-
-inline bool contains(storage::PerStateStorage<bool>* store, const StateID& s)
-{
-    return store->operator[](s);
-}
-
 /**
  * @brief Implements topological value iteration \cite dai:etal:jair-11 .
  *
@@ -76,15 +51,12 @@ inline bool contains(storage::PerStateStorage<bool>* store, const StateID& s)
  * @tparam ExpandGoals - Whether the algorithm should expand goal states
  * or treat them as terminal.
  * @tparam Interval - Whether bounded value iteration is used.
- * @tparam ZeroStates - Storage type for dead-end states??
- * @tparam OneStates - Storage type for probability one states??
  */
 template <
     typename State,
     typename Action,
     bool ExpandGoals = false,
-    typename Interval = std::false_type,
-    typename OneStates = void>
+    typename Interval = std::false_type>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
     struct NoStore {
         bool dummy;
@@ -93,7 +65,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
 public:
     using ValueT = value_utils::IncumbentSolution<Interval>;
-    using Store = ValueStore<Interval>;
+    using Store = storage::PersistentPerStateStorage<ValueT>;
 
     explicit TopologicalValueIteration(
         StateIDMap<State>* state_id_map,
@@ -287,7 +259,12 @@ private:
                 value_utils::set_max(val, info());
             }
 
-            return value_utils::update(*value, val) || !bounds_equal(*value);
+            if constexpr (Interval::value) {
+                return value_utils::update(*value, val) ||
+                       !value->bounds_equal();
+            } else {
+                return value_utils::update(*value, val);
+            }
         }
 
         StateID state_id;
