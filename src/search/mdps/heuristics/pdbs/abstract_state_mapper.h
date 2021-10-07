@@ -1,6 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
 #define MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
 
+#include "../../../utils/range_proxy.h"
 #include "abstract_state.h"
 #include "types.h"
 
@@ -148,10 +149,16 @@ public:
 
     CartesianSubsetEndIterator cartesian_subsets_end() const;
 
+    utils::RangeProxy<CartesianSubsetIterator, CartesianSubsetEndIterator>
+    cartesian_subsets(std::vector<int> values, std::vector<int> indices) const;
+
     PartialStateIterator
     partial_states_begin(AbstractState offset, std::vector<int> indices) const;
 
     PartialStateEndIterator partial_states_end() const;
+
+    utils::RangeProxy<PartialStateIterator, PartialStateEndIterator>
+    partial_states(AbstractState offset, std::vector<int> indices) const;
 
     int get_multiplier(int var) const;
     int get_multiplier_raw(int idx) const;

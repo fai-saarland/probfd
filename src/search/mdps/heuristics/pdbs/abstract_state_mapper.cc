@@ -346,6 +346,19 @@ AbstractStateMapper::cartesian_subsets_end() const
     return CartesianSubsetEndIterator();
 }
 
+utils::RangeProxy<
+    AbstractStateMapper::CartesianSubsetIterator,
+    AbstractStateMapper::CartesianSubsetEndIterator>
+AbstractStateMapper::cartesian_subsets(
+    std::vector<int> values,
+    std::vector<int> indices) const
+{
+    return utils::
+        RangeProxy<CartesianSubsetIterator, CartesianSubsetEndIterator>(
+            cartesian_subsets_begin(values, indices),
+            cartesian_subsets_end());
+}
+
 AbstractStateMapper::PartialStateIterator
 AbstractStateMapper::partial_states_begin(
     AbstractState offset,
@@ -358,6 +371,18 @@ AbstractStateMapper::PartialStateEndIterator
 AbstractStateMapper::partial_states_end() const
 {
     return PartialStateEndIterator();
+}
+
+utils::RangeProxy<
+    AbstractStateMapper::PartialStateIterator,
+    AbstractStateMapper::PartialStateEndIterator>
+AbstractStateMapper::partial_states(
+    AbstractState offset,
+    std::vector<int> indices) const
+{
+    return utils::RangeProxy<PartialStateIterator, PartialStateEndIterator>(
+        partial_states_begin(offset, indices),
+        partial_states_end());
 }
 
 int AbstractStateMapper::get_multiplier(int var) const
