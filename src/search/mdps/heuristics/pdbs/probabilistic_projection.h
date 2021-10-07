@@ -64,7 +64,7 @@ protected:
         successor_generator::SuccessorGenerator<const AbstractOperator*>;
 
     using RegressionSuccessorGenerator =
-        successor_generator::SuccessorGenerator<AbstractState>;
+        successor_generator::SuccessorGenerator<AbstractRegressionOperator>;
 
 public:
     ProbabilisticProjection(
@@ -136,15 +136,16 @@ private:
     void compute_dead_ends();
 
     void setup_abstract_goal();
-
-    void prepare_progression();
-    void prepare_regression();
-
+    void build_operators();
+    
     void add_abstract_operators(
-        const Pattern& pattern,
         const ProbabilisticOperator& op,
         std::set<ProgressionOperatorFootprint>& duplicate_set,
-        std::vector<std::vector<std::pair<int, int>>>& preconditions);
+        std::vector<AbstractRegressionOperator>& regression_operators,
+        std::vector<std::vector<std::pair<int, int>>>&
+            progression_preconditions,
+        std::vector<std::vector<std::pair<int, int>>>&
+            regression_preconditions);
 
 protected:
     std::vector<int> var_index_;
