@@ -22,6 +22,13 @@ public:
     Distribution<AbstractState> outcomes;
 };
 
+class AbstractRegressionOperator {
+public:
+    explicit AbstractRegressionOperator(unsigned id, AbstractState effect);
+    unsigned abstract_operator_id;
+    AbstractState effect;
+};
+
 class AbstractOperatorToString {
 public:
     explicit AbstractOperatorToString(
