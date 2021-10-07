@@ -28,14 +28,22 @@ private:
 
 public:
     /// Iterator type.
+    using iterator = typename distribution_t::iterator;
     using const_iterator = typename distribution_t::const_iterator;
 
-    using element_iterator = utils::sub_iterator<const_iterator, T>;
+    using element_iterator = utils::sub_iterator<iterator, T>;
+    using const_element_iterator = utils::sub_iterator<const_iterator, T>;
+
     using probability_iterator =
+        utils::sub_iterator<iterator, value_type::value_t>;
+    using const_probability_iterator =
         utils::sub_iterator<const_iterator, value_type::value_t>;
 
     using element_range = utils::RangeProxy<element_iterator>;
+    using const_element_range = utils::RangeProxy<element_iterator>;
+
     using probability_range = utils::RangeProxy<probability_iterator>;
+    using const_probability_range = utils::RangeProxy<probability_iterator>;
 
     /// Constructs the empty list of element-probability pairs.
     Distribution() = default;
@@ -72,6 +80,11 @@ public:
     {
         assert(prob > 0.0);
         distribution_.emplace_back(std::move(t), prob);
+    }
+
+    iterator find(const T& t)
+    {
+        return std::find(elem_begin(), elem_end(), t).base;
     }
 
     /**
@@ -139,46 +152,85 @@ public:
      * \returns An iterator to the element-probability pair directly behind the
      * erased pair.
      */
-    const_iterator erase(const_iterator it) { return distribution_.erase(it); }
+    iterator erase(iterator it) { return distribution_.erase(it); }
+
+    iterator begin() { return distribution_.begin(); }
+
+    iterator end() { return distribution_.end(); }
 
     const_iterator begin() const { return distribution_.begin(); }
 
     const_iterator end() const { return distribution_.end(); }
 
-    element_iterator elem_begin() const
+    element_iterator elem_begin()
     {
         return element_iterator(
             distribution_.begin(),
             &std::pair<T, value_type::value_t>::first);
     }
 
-    element_iterator elem_end() const
+    element_iterator elem_end()
     {
         return element_iterator(
             distribution_.end(),
             &std::pair<T, value_type::value_t>::first);
     }
 
-    element_range elements() const
+    const_element_iterator elem_begin() const
+    {
+        return element_iterator(
+            distribution_.begin(),
+            &std::pair<T, value_type::value_t>::first);
+    }
+
+    const_element_iterator elem_end() const
+    {
+        return element_iterator(
+            distribution_.end(),
+            &std::pair<T, value_type::value_t>::first);
+    }
+
+    element_range elements() { return element_range(elem_begin(), elem_end()); }
+
+    const_element_range elements() const
     {
         return element_range(elem_begin(), elem_end());
     }
 
-    probability_iterator prob_begin() const
+    probability_iterator prob_begin()
     {
         return probability_iterator(
             distribution_.begin(),
             &std::pair<T, value_type::value_t>::second);
     }
 
-    probability_iterator prob_end() const
+    probability_iterator prob_end()
     {
         return probability_iterator(
             distribution_.end(),
             &std::pair<T, value_type::value_t>::second);
     }
 
-    probability_range probablities() const
+    probability_range probablities()
+    {
+        return probability_range(elem_begin(), elem_end());
+    }
+
+    const_probability_iterator prob_begin() const
+    {
+        return probability_iterator(
+            distribution_.begin(),
+            &std::pair<T, value_type::value_t>::second);
+    }
+
+    const_probability_iterator prob_end() const
+    {
+        return probability_iterator(
+            distribution_.end(),
+            &std::pair<T, value_type::value_t>::second);
+    }
+
+    const_probability_range probablities() const
     {
         return probability_range(elem_begin(), elem_end());
     }
