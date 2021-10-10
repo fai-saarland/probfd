@@ -26,20 +26,21 @@
   different implementations in and out.
  */
 namespace priority_queues {
-template<typename Value>
+template <typename Key, typename Value>
 class AbstractQueue {
 public:
-    typedef std::pair<int, Value> Entry;
+    typedef std::pair<Key, Value> Entry;
 
     AbstractQueue() {}
     virtual ~AbstractQueue() {}
 
-    virtual void push(int key, const Value &value) = 0;
+    virtual void push(const Key& key, const Value& value) = 0;
     virtual Entry pop() = 0;
     virtual bool empty() const = 0;
     virtual void clear() = 0;
 
-    virtual AbstractQueue<Value> *convert_if_necessary(int /*key*/) {
+    virtual AbstractQueue<Key, Value>* convert_if_necessary(const Key&)
+    {
         /* Determine if this queue would still offer adequate
            performance after pushing another element with the given
            key.
@@ -64,13 +65,13 @@ public:
     virtual void add_virtual_pushes(int num_extra_pushes) = 0;
 };
 
-
-template<typename Value>
-class HeapQueue : public AbstractQueue<Value> {
-    typedef typename AbstractQueue<Value>::Entry Entry;
+template <typename Key, typename Value>
+class HeapQueue : public AbstractQueue<Key, Value> {
+    typedef typename AbstractQueue<Key, Value>::Entry Entry;
 
     struct compare_func {
-        bool operator()(const Entry &lhs, const Entry &rhs) const {
+        bool operator()(const Entry& lhs, const Entry& rhs) const
+        {
             return lhs.first > rhs.first;
         }
     };
@@ -83,53 +84,49 @@ class HeapQueue : public AbstractQueue<Value> {
     };
 
     Heap heap;
+
 public:
-    HeapQueue() {
-    }
+    HeapQueue() {}
 
-    virtual ~HeapQueue() {
-    }
+    virtual ~HeapQueue() {}
 
-    virtual void push(int key, const Value &value) {
+    virtual void push(const Key& key, const Value& value)
+    {
         heap.push(std::make_pair(key, value));
     }
 
-    virtual Entry pop() {
+    virtual Entry pop()
+    {
         assert(!heap.empty());
         Entry result = heap.top();
         heap.pop();
         return result;
     }
 
-    virtual bool empty() const {
-        return heap.empty();
-    }
+    virtual bool empty() const { return heap.empty(); }
 
-    virtual void clear() {
-        heap.c.clear();
-    }
+    virtual void clear() { heap.c.clear(); }
 
-    static HeapQueue<Value> *create_from_sorted_entries_destructively(
-        std::vector<Entry> &entries) {
+    static HeapQueue<Key, Value>*
+    create_from_sorted_entries_destructively(std::vector<Entry>& entries)
+    {
         // Create a new heap from the entries, which must be sorted.
         // The passed-in vector is cleared as a side effect.
-        HeapQueue<Value> *result = new HeapQueue<Value>;
+        HeapQueue<Key, Value>* result = new HeapQueue<Key, Value>;
         result->heap.c.swap(entries);
         // Since the entries are sorted, we do not need to heapify.
         return result;
     }
 
-    virtual void add_virtual_pushes(int /*num_extra_pushes*/) {
-    }
+    virtual void add_virtual_pushes(int /*num_extra_pushes*/) {}
 };
 
-
-template<typename Value>
-class BucketQueue : public AbstractQueue<Value> {
+template <typename Value>
+class BucketQueue : public AbstractQueue<int, Value> {
     static const int MIN_BUCKETS_BEFORE_SWITCH = 100;
     static const bool DEBUG = false;
 
-    typedef typename AbstractQueue<Value>::Entry Entry;
+    typedef typename AbstractQueue<int, Value>::Entry Entry;
 
     typedef std::vector<Value> Bucket;
     std::vector<Bucket> buckets;
@@ -137,20 +134,22 @@ class BucketQueue : public AbstractQueue<Value> {
     int num_entries;
     int num_pushes;
 
-    void update_current_bucket_no() const {
+    void update_current_bucket_no() const
+    {
         int num_buckets = buckets.size();
         while (current_bucket_no < num_buckets &&
                buckets[current_bucket_no].empty())
             ++current_bucket_no;
     }
 
-    void extract_sorted_entries(std::vector<Entry> &result) {
+    void extract_sorted_entries(std::vector<Entry>& result)
+    {
         // Generate vector with the entries of the queue in sorted
         // order, removing them from this queue as a side effect.
         assert(result.empty());
         result.reserve(num_entries);
         for (int key = current_bucket_no; num_entries != 0; ++key) {
-            Bucket &bucket = buckets[key];
+            Bucket& bucket = buckets[key];
             for (size_t i = 0; i < bucket.size(); ++i)
                 result.push_back(std::make_pair(key, bucket[i]));
             num_entries -= bucket.size();
@@ -159,14 +158,19 @@ class BucketQueue : public AbstractQueue<Value> {
         }
         current_bucket_no = 0;
     }
+
 public:
-    BucketQueue() : current_bucket_no(0), num_entries(0), num_pushes(0) {
+    BucketQueue()
+        : current_bucket_no(0)
+        , num_entries(0)
+        , num_pushes(0)
+    {
     }
 
-    virtual ~BucketQueue() {
-    }
+    virtual ~BucketQueue() {}
 
-    virtual void push(int key, const Value &value) {
+    virtual void push(const int& key, const Value& value)
+    {
         ++num_entries;
         ++num_pushes;
         assert(num_pushes > 0); // Check against overflow.
@@ -178,21 +182,21 @@ public:
         buckets[key].push_back(value);
     }
 
-    virtual Entry pop() {
+    virtual Entry pop()
+    {
         assert(num_entries > 0);
         --num_entries;
         update_current_bucket_no();
-        Bucket &current_bucket = buckets[current_bucket_no];
+        Bucket& current_bucket = buckets[current_bucket_no];
         Value top_element = current_bucket.back();
         current_bucket.pop_back();
         return std::make_pair(current_bucket_no, top_element);
     }
 
-    virtual bool empty() const {
-        return num_entries == 0;
-    }
+    virtual bool empty() const { return num_entries == 0; }
 
-    virtual void clear() {
+    virtual void clear()
+    {
         for (int i = current_bucket_no; num_entries != 0; ++i) {
             assert(utils::in_bounds(i, buckets));
             int bucket_size = buckets[i].size();
@@ -205,7 +209,8 @@ public:
         num_pushes = 0;
     }
 
-    virtual AbstractQueue<Value> *convert_if_necessary(int key) {
+    virtual AbstractQueue<int, Value>* convert_if_necessary(const int& key)
+    {
         if (key >= MIN_BUCKETS_BEFORE_SWITCH && key > num_pushes) {
             if (DEBUG) {
                 std::cout << "Switch from bucket-based to heap-based queue "
@@ -214,21 +219,21 @@ public:
             }
             std::vector<Entry> entries;
             extract_sorted_entries(entries);
-            return HeapQueue<Value>::create_from_sorted_entries_destructively(
-                entries);
+            return HeapQueue<int, Value>::
+                create_from_sorted_entries_destructively(entries);
         }
         return this;
     }
 
-    virtual void add_virtual_pushes(int num_extra_pushes) {
+    virtual void add_virtual_pushes(int num_extra_pushes)
+    {
         num_pushes += num_extra_pushes;
     }
 };
 
-
-template<typename Value>
+template <typename Value>
 class AdaptiveQueue {
-    AbstractQueue<Value> *wrapped_queue;
+    AbstractQueue<int, Value>* wrapped_queue;
     // Forbid assigning or copying -- would need to implement them properly.
     AdaptiveQueue &operator=(const AdaptiveQueue<Value> &);
     AdaptiveQueue(const AdaptiveQueue<Value> &);
@@ -243,7 +248,7 @@ public:
     }
 
     void push(int key, const Value &value) {
-        AbstractQueue<Value> *q = wrapped_queue->convert_if_necessary(key);
+        AbstractQueue<int, Value>* q = wrapped_queue->convert_if_necessary(key);
         if (q != wrapped_queue) {
             delete wrapped_queue;
             wrapped_queue = q;
