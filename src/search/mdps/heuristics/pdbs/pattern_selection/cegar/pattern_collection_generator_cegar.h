@@ -54,11 +54,20 @@ struct ExplicitGState {
     {
     }
 
+    size_t get_hash() const
+    {
+        std::size_t res = 0;
+        for (size_t i = 0; i < values.size(); ++i) {
+            res += g_variable_domain[i] * values[i];
+        }
+        return res;
+    }
+
     int& operator[](int i) { return values[i]; }
 
     const int& operator[](int i) const { return values[i]; }
 
-    ExplicitGState get_successor(const GlobalOperator& op)
+    ExplicitGState get_successor(const GlobalOperator& op) const
     {
         assert(!op.is_axiom());
 
@@ -89,12 +98,53 @@ struct ExplicitGState {
     }
 };
 
+enum class FlawFinderEnum { PGBFS, BFS, SAMPLING };
 enum class InitialCollectionType { GIVEN_GOAL, RANDOM_GOAL, ALL_GOALS };
 
 template <typename PDBType>
 class PatternCollectionGeneratorCegar
     : public PatternCollectionGenerator<PDBType> {
+    class FlawFindingStrategy {
+    protected:
+        PatternCollectionGeneratorCegar<PDBType>& base;
+
+    public:
+        FlawFindingStrategy(PatternCollectionGeneratorCegar<PDBType>& base);
+        virtual ~FlawFindingStrategy() = default;
+        virtual FlawList
+        apply_policy(int solution_index, const ExplicitGState& init) = 0;
+    };
+
+    class ProbabilityGBFS : public FlawFindingStrategy {
+    public:
+        ProbabilityGBFS(PatternCollectionGeneratorCegar<PDBType>& base);
+        ~ProbabilityGBFS() override = default;
+
+        virtual FlawList
+        apply_policy(int solution_index, const ExplicitGState& init) override;
+    };
+
+    class BFS : public FlawFindingStrategy {
+    public:
+        BFS(PatternCollectionGeneratorCegar<PDBType>& base);
+        ~BFS() override = default;
+
+        virtual FlawList
+        apply_policy(int solution_index, const ExplicitGState& init) override;
+    };
+
+    class SamplingStrategy : public FlawFindingStrategy {
+    public:
+        SamplingStrategy(PatternCollectionGeneratorCegar<PDBType>& base);
+        ~SamplingStrategy() override = default;
+
+        virtual FlawList
+        apply_policy(int solution_index, const ExplicitGState& init) override;
+    };
+
     std::shared_ptr<utils::RandomNumberGenerator> rng;
+
+    std::unique_ptr<FlawFindingStrategy> flaw_strategy;
 
     // behavior defining parameters
     const int max_refinements;
@@ -137,6 +187,7 @@ public:
 
     PatternCollectionGeneratorCegar(
         const std::shared_ptr<utils::RandomNumberGenerator>& arg_rng,
+        FlawFinderEnum flaw_finder_val,
         int arg_max_refinements,
         int arg_max_pdb_size,
         int arg_max_collection_size,
