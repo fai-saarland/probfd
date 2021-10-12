@@ -4,6 +4,7 @@
 #include "../storage/per_state_storage.h"
 #include "heuristic_search_base.h"
 
+#include <limits>
 #include <queue>
 #include <string>
 #include <type_traits>

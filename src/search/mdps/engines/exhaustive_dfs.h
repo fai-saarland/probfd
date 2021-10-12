@@ -14,6 +14,7 @@
 
 #include <cassert>
 #include <deque>
+#include <limits>
 #include <memory>
 
 #define TIMER_STATISTICS_ENABLED(x)

@@ -1,6 +1,7 @@
 #ifndef LANDMARKS_UTIL_H
 #define LANDMARKS_UTIL_H
 
+#include <cstddef>
 #include <vector>
 #include <unordered_map>
 

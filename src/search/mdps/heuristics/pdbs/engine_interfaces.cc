@@ -8,6 +8,8 @@
 #include "expcost_projection.h"
 #include "maxprob_projection.h"
 
+#include <limits>
+
 namespace probabilistic {
 
 unsigned StateIDMap<pdbs::AbstractState>::size() const
