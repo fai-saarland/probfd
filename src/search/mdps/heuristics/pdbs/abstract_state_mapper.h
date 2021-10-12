@@ -95,8 +95,8 @@ public:
         PartialStateIterator operator++(int) = delete;
         PartialStateIterator operator--(int) = delete;
 
-        AbstractState operator*();
-        AbstractState* operator->();
+        const AbstractState& operator*();
+        const AbstractState* operator->();
 
         friend bool
         operator==(const PartialStateIterator&, const PartialStateEndIterator&);

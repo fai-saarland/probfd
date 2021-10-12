@@ -164,12 +164,12 @@ AbstractStateMapper::PartialStateIterator::operator++()
     return *this;
 }
 
-AbstractState AbstractStateMapper::PartialStateIterator::operator*()
+const AbstractState& AbstractStateMapper::PartialStateIterator::operator*()
 {
     return argument_states_.back();
 }
 
-AbstractState* AbstractStateMapper::PartialStateIterator::operator->()
+const AbstractState* AbstractStateMapper::PartialStateIterator::operator->()
 {
     return &argument_states_.back();
 }
