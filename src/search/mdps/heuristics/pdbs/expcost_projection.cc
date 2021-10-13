@@ -97,6 +97,11 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
 {
     AbstractPolicy policy;
 
+    // return empty policy indicating unsolvable
+    if (lookup(initial_state_) == -value_type::inf) {
+        return policy;
+    }
+
     std::deque<AbstractState> open;
     std::unordered_set<AbstractState> closed;
     open.push_back(initial_state_);

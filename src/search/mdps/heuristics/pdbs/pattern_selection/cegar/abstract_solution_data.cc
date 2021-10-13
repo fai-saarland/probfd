@@ -91,6 +91,12 @@ void AbstractSolutionData<PDBType>::mark_as_solved()
     solved = true;
 }
 
+template <typename PDBType>
+bool AbstractSolutionData<PDBType>::solution_exists() const
+{
+    return !static_cast<bool>(pdb->evaluate(g_initial_state()));
+}
+
 template class AbstractSolutionData<MaxProbProjection>;
 template class AbstractSolutionData<ExpCostProjection>;
 

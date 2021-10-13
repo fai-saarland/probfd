@@ -676,10 +676,10 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::get_flaws()
         // AbstractSolutionData<PDBType>& solution = *solutions[sol_idx];
 
         // abort here if no abstract solution could be found
-        // if (!solution.solution_exists()) {
-        //    cout << token << "Problem unsolvable" << endl;
-        //    utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
-        // }
+        if (!sol->solution_exists()) {
+            cout << token << "Problem unsolvable" << endl;
+            utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
+        }
 
         // find out if and why the abstract solution
         // would not work for the concrete task.

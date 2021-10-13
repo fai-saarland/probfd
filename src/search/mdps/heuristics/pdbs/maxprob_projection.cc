@@ -169,6 +169,11 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
 
     AbstractPolicy policy;
 
+    // return empty policy indicating unsolvable
+    if (is_dead_end(initial_state_)) {
+        return policy;
+    }
+
     std::map<AbstractState, PredecessorList> predecessors;
 
     std::deque<AbstractState> open;

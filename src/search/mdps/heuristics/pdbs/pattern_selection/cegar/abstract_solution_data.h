@@ -48,6 +48,8 @@ public:
     bool is_solved() const;
 
     void mark_as_solved();
+
+    bool solution_exists() const;
 };
 
 using ExpCostAbstractSolutionData = AbstractSolutionData<ExpCostProjection>;
