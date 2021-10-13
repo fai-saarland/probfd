@@ -5,6 +5,7 @@
 
 #include "../utils/iterators.h"
 #include "../utils/range_proxy.h"
+#include "../utils/rng.h"
 
 #include <algorithm>
 #include <cassert>
@@ -82,6 +83,20 @@ public:
         distribution_.emplace_back(std::move(t), prob);
     }
 
+    void add_unique(T t, value_type::value_t prob)
+    {
+        assert(prob > 0.0);
+
+        for (auto it = distribution_.begin(); it != distribution_.end(); ++it) {
+            if (it->first == t) {
+                it->second += prob;
+                return;
+            }
+        }
+
+        distribution_.emplace_back(std::move(t), prob);
+    }
+
     iterator find(const T& t)
     {
         return std::find(elem_begin(), elem_end(), t).base;
@@ -144,6 +159,21 @@ public:
             }
         }
         distribution_.erase(distribution_.begin() + i, distribution_.end());
+    }
+
+    iterator sample(utils::RandomNumberGenerator& rng) {
+        assert(!empty());
+
+        const value_type::value_t r = rng();
+
+        auto it = distribution_.begin();
+        value_type::value_t sum = it->second;
+
+        while (sum <= r) {
+            sum += (++it)->second;
+        }
+
+        return it;
     }
 
     /**
