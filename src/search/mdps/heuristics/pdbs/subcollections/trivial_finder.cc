@@ -22,9 +22,9 @@ TrivialFinder::compute_subcollections(const PatternCollection& patterns)
 
 std::vector<PatternSubCollection>
 TrivialFinder::compute_subcollections_with_pattern(
-    const PatternCollection& patterns,
-    const std::vector<PatternSubCollection>& known_pattern_cliques,
-    const Pattern& new_pattern)
+    const PatternCollection&,
+    const std::vector<PatternSubCollection>&,
+    const Pattern&)
 {
     return {}; // There are no cliques.
 }
