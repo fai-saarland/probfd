@@ -1,6 +1,7 @@
 #ifndef MDPS_ENGINES_TOPOLOGICAL_VALUE_ITERATION_H
 #define MDPS_ENGINES_TOPOLOGICAL_VALUE_ITERATION_H
 
+#include "../../utils/iterators.h"
 #include "../storage/per_state_storage.h"
 #include "../value_utils.h"
 #include "engine.h"
@@ -58,11 +59,6 @@ template <
     bool ExpandGoals = false,
     typename Interval = std::false_type>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
-    struct NoStore {
-        bool dummy;
-        bool& operator[](StateID) { return dummy; }
-    };
-
 public:
     using ValueT = value_utils::IncumbentSolution<Interval>;
     using Store = storage::PersistentPerStateStorage<ValueT>;
@@ -116,11 +112,13 @@ public:
 
     Statistics get_statistics() const { return statistics_; }
 
-    template <typename VS, typename BoolStore = NoStore>
+    template <
+        typename ValueStore,
+        typename DeadendOutputIt = utils::discarding_output_iterator>
     value_type::value_t solve(
         const State& initial_state,
-        VS& value_store,
-        BoolStore* dead_end_store = nullptr)
+        ValueStore& value_store,
+        DeadendOutputIt dead_end_store = DeadendOutputIt{})
     {
         return value_iteration(initial_state, value_store, dead_end_store);
     }
@@ -273,12 +271,12 @@ private:
         std::vector<BellmanBackupInfo> infos;
     };
 
-    template <typename ValueStore, typename BoolStore>
+    template <typename ValueStore, typename DeadendOutputIt>
     bool push_state(
         StateID state_id,
         StateInfo& state_info,
         ValueStore& value_store,
-        BoolStore* dead_end_store)
+        DeadendOutputIt dead_end_out)
     {
         assert(state_info.status == StateInfo::NEW);
 
@@ -331,9 +329,7 @@ private:
 
             if (state_info.dead) {
                 ++statistics_.dead_ends;
-                if (dead_end_store) {
-                    dead_end_store->operator[](state_id) = true;
-                }
+                *dead_end_out = state_id;
             }
 
             return false;
@@ -355,10 +351,7 @@ private:
             if (!ExpandGoals || state_info.status != StateInfo::TERMINAL) {
                 ++statistics_.dead_ends;
                 state_value = dead_end_value_;
-
-                if (dead_end_store) {
-                    dead_end_store->operator[](state_id) = true;
-                }
+                *dead_end_out = state_id;
             }
 
             state_info.status = StateInfo::CLOSED;
@@ -381,11 +374,11 @@ private:
         return true;
     }
 
-    template <typename ValueStore, typename BoolStore>
+    template <typename ValueStore, typename DeadendOutputIt>
     value_type::value_t value_iteration(
         const State& initial_state,
         ValueStore& value_store,
-        BoolStore* dead_end_store)
+        DeadendOutputIt dead_end_out)
     {
         const StateID init_state_id = this->get_state_id(initial_state);
         StateInfo& iinfo = state_information_[init_state_id];
@@ -394,7 +387,7 @@ private:
             return value_utils::as_upper_bound(value_store[init_state_id]);
         }
 
-        push_state(init_state_id, iinfo, value_store, dead_end_store);
+        push_state(init_state_id, iinfo, value_store, dead_end_out);
 
         StateInfo* backtracked_state_info_ = nullptr;
 
@@ -425,7 +418,7 @@ private:
                 state_info,
                 state,
                 value_store,
-                dead_end_store);
+                dead_end_out);
 
             if (recurse) {
                 continue;
@@ -433,7 +426,7 @@ private:
 
             // Check if an SCC was found.
             if (state_info.dfs_index == state_info.lowlink) {
-                scc_found(explore, stack_info, state_info, dead_end_store);
+                scc_found(explore, stack_info, state_info, dead_end_out);
             }
 
             backtracked_state_info_ = &state_info;
@@ -443,14 +436,14 @@ private:
         return value_utils::as_upper_bound(value_store[init_state_id]);
     }
 
-    template <typename ValueStore, typename BoolStore>
+    template <typename ValueStore, typename DeadendOutputIt>
     bool successor_loop(
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateInfo& state_info,
         const unsigned int state,
         ValueStore& value_store,
-        BoolStore* dead_end_store)
+        DeadendOutputIt dead_end_out)
     {
         const value_type::value_t state_reward = explore.state_reward;
 
@@ -482,7 +475,7 @@ private:
                                 succ_id,
                                 succ_info,
                                 value_store,
-                                dead_end_store)) {
+                                dead_end_out)) {
                             return true; // recursion on new state
                         }
                     } else if (ExpandGoals && status == StateInfo::TERMINAL) {
@@ -516,12 +509,12 @@ private:
         } while (true);
     }
 
-    template <typename BoolStore>
+    template <typename DeadendOutputIt>
     void scc_found(
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateInfo& state_info,
-        BoolStore* dead_end_store)
+        DeadendOutputIt dead_end_out)
     {
         assert(explore.stackidx < stack_.size());
 
@@ -545,10 +538,7 @@ private:
                 assert(state_it.status == StateInfo::ONSTACK);
 
                 *stack_it.value = dead_end_value_;
-
-                if (dead_end_store) {
-                    dead_end_store->operator[](stack_it.state_id) = true;
-                }
+                *dead_end_out = stack_it.state_id;
 
                 state_it.status = StateInfo::CLOSED;
             } while (it != end);
