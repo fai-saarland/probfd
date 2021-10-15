@@ -449,6 +449,7 @@ private:
     {
         state_info.explored = 1;
         State state = state_id_map_->get_state(state_id);
+
         if (goal_->operator()(state)) {
             ++stats_.terminals;
             ++stats_.goals;
@@ -458,16 +459,20 @@ private:
             if (!ExpandGoalStates) {
                 return false;
             }
+
             state_info.flag = 1;
-        } else if ((pruning_function_ != nullptr &&
-                    pruning_function_->operator()(state))) {
+        } else if (
+            pruning_function_ != nullptr &&
+            pruning_function_->operator()(state)) {
             ++stats_.terminals;
             insert(zero_states, state_id);
             state_info.stackid_ = StateInfo::ZERO;
             return false;
         }
+
         std::vector<Action> aops;
         aops_gen_->operator()(state_id, aops);
+
         if (aops.empty()) {
             if (ExpandGoalStates && state_info.flag) {
                 state_info.flag = 0;
@@ -476,30 +481,39 @@ private:
                 state_info.stackid_ = StateInfo::ZERO;
                 insert(zero_states, state_id);
             }
+
             return false;
         }
+
         std::vector<std::vector<StateID>> successors;
         successors.reserve(aops.size());
-        unsigned n = 0;
+
+        unsigned non_loop_actions = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
             transition_gen_->operator()(state_id, aops[i], transition_);
             std::vector<StateID> succ_ids;
-            for (auto it = transition_.begin(); it != transition_.end(); ++it) {
-                const StateID succ_id = it->first;
+
+            for (const StateID& succ_id : transition_.elements()) {
                 if (succ_id != state_id) {
                     succ_ids.push_back(succ_id);
                 }
             }
+
             if (!succ_ids.empty()) {
                 successors.emplace_back(std::move(succ_ids));
-                if (i != n) {
-                    aops[n] = aops[i];
+
+                if (i != non_loop_actions) {
+                    aops[non_loop_actions] = aops[i];
                 }
-                ++n;
+
+                ++non_loop_actions;
             }
+
             transition_.clear();
         }
-        if (n == 0) {
+
+        // only self-loops
+        if (non_loop_actions == 0) {
             if (ExpandGoalStates && state_info.flag) {
                 state_info.flag = 0;
             } else {
@@ -508,17 +522,20 @@ private:
                 state_info.stackid_ = StateInfo::ZERO;
                 insert(zero_states, state_id);
             }
+
             return false;
         }
-        while (aops.size() > n)
-            aops.pop_back();
-        expansion_queue_.emplace_back(stack_.size());
-        ExpansionInfo& e = expansion_queue_.back();
+
+        aops.erase(aops.begin() + non_loop_actions, aops.end());
+
+        ExpansionInfo& e = expansion_queue_.emplace_back(stack_.size());
         e.dead = !state_info.flag;
-        e.aops.swap(aops);
-        e.successors.swap(successors);
+        e.aops = std::move(aops);
+        e.successors = std::move(successors); // FIXME?
+
         state_info.stackid_ = stack_.size();
         stack_.emplace_back(state_id);
+
         return true;
     }
 
@@ -540,16 +557,18 @@ private:
             assert(!info.explored);
             info.explored = true;
             StackInfo& scc_info = scc_->operator[](i);
+
             if (scc_info.successors.empty()) {
                 ++stats_->ec1;
                 return false;
             }
+
             info.stackid_ = stack_->size();
-            expansion_queue_->emplace_back(stack_->size());
-            ExpansionInfo& e = expansion_queue_->back();
+            ExpansionInfo& e = expansion_queue_->emplace_back(stack_->size());
             e.successors.swap(scc_info.successors);
             e.aops.swap(scc_info.aops);
             stack_->emplace_back(scc_info.stateid);
+
             return true;
         }
 
@@ -912,7 +931,7 @@ private:
 
             std::vector<StateID> succs;
 
-            for (const StateID succ_id : transition.elements()) {
+            for (const StateID& succ_id : transition.elements()) {
                 if (succ_id != state_id) {
                     succs.push_back(succ_id);
                 }
