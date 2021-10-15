@@ -373,46 +373,44 @@ public:
     {
     }
 
-    template <
-        typename ZeroStateIDSet = const void*,
-        typename OneStateIDSet = const void*>
+    template <typename ZeroOutputIt, typename OneOutputIt>
     QuotientSystem* build_quotient_system(
         const State& initial_state,
-        ZeroStateIDSet zero_states = nullptr,
-        OneStateIDSet one_states = nullptr)
+        ZeroOutputIt zero_states_out = utils::discarding_output_iterator{},
+        OneOutputIt one_states_out = utils::discarding_output_iterator{})
     {
         sys_ = new QuotientSystem(action_id_map_, aops_gen_, transition_gen_);
         stats_ = Statistics();
 
-        if constexpr (Store<OneStateIDSet>) {
+        if constexpr (Store<OneOutputIt>) {
             q_aops_gen_ = new ApplicableActionsGenerator<
                 quotient_system::QuotientAction<Action>>(sys_);
             q_transition_gen_ = new TransitionGenerator<
                 quotient_system::QuotientAction<Action>>(sys_);
         }
 
-        push_state(initial_state, zero_states, one_states);
+        push_state(initial_state, zero_states_out, one_states_out);
 
         GetSuccID get_succ_id;
-        auto pushf = [this, &zero_states, &one_states](
+        auto pushf = [this, zero_states_out, one_states_out](
                          const StateID& state_id,
                          StateInfo& state_info) {
-            return push(state_id, state_info, zero_states, one_states);
+            return push(state_id, state_info, zero_states_out, one_states_out);
         };
 
-        find_and_decompose_sccs<true, ZeroStateIDSet, OneStateIDSet>(
+        find_and_decompose_sccs<true>(
             0,
             pushf,
             state_infos_,
             get_succ_id,
-            zero_states,
-            one_states);
+            zero_states_out,
+            one_states_out);
 
         assert(stack_.empty());
         assert(expansion_queue_.empty());
         stats_.time.stop();
 
-        if constexpr (Store<OneStateIDSet>) {
+        if constexpr (Store<OneOutputIt>) {
             delete (q_aops_gen_);
             delete (q_transition_gen_);
         }
@@ -425,27 +423,23 @@ public:
     Statistics get_statistics() const { return stats_; }
 
 private:
-    template <typename ZeroStateIDSet, typename OneStateIDSet>
+    template <typename ZeroOutputIt, typename OneOutputIt>
     bool push_state(
         const State& s,
-        ZeroStateIDSet zero_states,
-        OneStateIDSet one_states)
+        ZeroOutputIt zero_states_out,
+        OneOutputIt one_states_out)
     {
         const StateID state_id = this->state_id_map_->get_state_id(s);
         StateInfo& state_info = state_infos_[state_id];
-        return push<ZeroStateIDSet, OneStateIDSet>(
-            state_id,
-            state_info,
-            zero_states,
-            one_states);
+        return push(state_id, state_info, zero_states_out, one_states_out);
     }
 
-    template <typename ZeroStateIDSet, typename OneStateIDSet>
+    template <typename ZeroOutputIt, typename OneOutputIt>
     bool push(
         const StateID& state_id,
         StateInfo& state_info,
-        ZeroStateIDSet zero_states,
-        OneStateIDSet one_states)
+        ZeroOutputIt zero_states_out,
+        OneOutputIt one_states_out)
     {
         state_info.explored = 1;
         State state = state_id_map_->get_state(state_id);
@@ -454,7 +448,7 @@ private:
             ++stats_.terminals;
             ++stats_.goals;
             ++stats_.ones;
-            insert(one_states, state_id);
+            *one_states_out = state_id;
             state_info.stackid_ = StateInfo::ONE;
             if (!ExpandGoalStates) {
                 return false;
@@ -465,7 +459,7 @@ private:
             pruning_function_ != nullptr &&
             pruning_function_->operator()(state)) {
             ++stats_.terminals;
-            insert(zero_states, state_id);
+            *zero_states_out = state_id;
             state_info.stackid_ = StateInfo::ZERO;
             return false;
         }
@@ -479,7 +473,7 @@ private:
             } else {
                 ++stats_.terminals;
                 state_info.stackid_ = StateInfo::ZERO;
-                insert(zero_states, state_id);
+                *zero_states_out = state_id;
             }
 
             return false;
@@ -520,7 +514,7 @@ private:
                 ++stats_.terminals;
                 ++stats_.selfloops;
                 state_info.stackid_ = StateInfo::ZERO;
-                insert(zero_states, state_id);
+                *zero_states_out = state_id;
             }
 
             return false;
@@ -624,12 +618,13 @@ private:
     };
 
     template <typename T>
-    static constexpr bool Store = !std::is_same_v<T, const void*>;
+    static constexpr bool Store =
+        !std::is_same_v<T, utils::discarding_output_iterator>;
 
     template <
         bool RootIteration,
-        typename ZeroStateIDSet,
-        typename OneStateIDSet,
+        typename ZeroOutputIt,
+        typename OneOutputIt,
         typename Push,
         typename GetStateInfo,
         typename GetSuccID>
@@ -638,8 +633,8 @@ private:
         Push& pushf,
         GetStateInfo& get_state_info,
         GetSuccID& get_state_id,
-        ZeroStateIDSet zero_states,
-        OneStateIDSet one_states)
+        ZeroOutputIt zero_states_out,
+        OneOutputIt one_states_out)
     {
         // Whether we backtracked from a successor state
         bool backtracked = false;
@@ -663,7 +658,7 @@ private:
                     e.flag = false;
                 }
 
-                if constexpr (Store<ZeroStateIDSet>) {
+                if constexpr (Store<ZeroOutputIt>) {
                     e.dead &= dead;
                 }
 
@@ -682,12 +677,12 @@ private:
                 }
             }
 
-            backtracked = !successor_loop<
-                ZeroStateIDSet,
-                OneStateIDSet,
-                Push,
-                GetStateInfo,
-                GetSuccID>(e, s, pushf, get_state_info, get_state_id);
+            backtracked = !successor_loop<ZeroOutputIt, OneOutputIt>(
+                e,
+                s,
+                pushf,
+                get_state_info,
+                get_state_id);
 
             if (!backtracked) {
                 continue;
@@ -707,17 +702,13 @@ private:
             s.successors.pop_back();
 
             if (e.stck == e.lstck) {
-                scc_found<
-                    RootIteration,
-                    ZeroStateIDSet,
-                    OneStateIDSet,
-                    GetStateInfo>(
+                scc_found<RootIteration>(
                     recurse,
                     e,
                     s,
                     get_state_info,
-                    zero_states,
-                    one_states);
+                    zero_states_out,
+                    one_states_out);
             }
 
             expansion_queue_.pop_back();
@@ -725,8 +716,8 @@ private:
     }
 
     template <
-        typename ZeroStateIDSet,
-        typename OneStateIDSet,
+        typename ZeroOutputIt,
+        typename OneOutputIt,
         typename Push,
         typename GetStateInfo,
         typename GetSuccID>
@@ -756,7 +747,7 @@ private:
                     e.recurse |= e.flag && s_succs.size() > 1;
                     e.flag = false;
 
-                    if (Store<ZeroStateIDSet> && succ_info.one()) {
+                    if (Store<OneOutputIt> && succ_info.one()) {
                         e.dead = false;
                     }
                 } else if (succ_info.onstack()) {
@@ -767,7 +758,7 @@ private:
                     e.recurse |= e.flag && !s_succs.empty();
                     e.flag = false;
 
-                    if (Store<ZeroStateIDSet> && !succ_info.zero()) {
+                    if (Store<ZeroOutputIt> && !succ_info.zero()) {
                         e.dead = false;
                     }
                 }
@@ -793,22 +784,22 @@ private:
 
     template <
         bool RootIteration,
-        typename ZeroStateIDSet,
-        typename OneStateIDSet,
+        typename ZeroOutputIt,
+        typename OneOutputIt,
         typename GetStateInfo>
     void scc_found(
         bool& recurse,
         ExpansionInfo& e,
         StackInfo& s,
         GetStateInfo& get_state_info,
-        ZeroStateIDSet zero_states,
-        OneStateIDSet one_states)
+        ZeroOutputIt zero_states_out,
+        OneOutputIt one_states_out)
     {
         unsigned scc_size = stack_.size() - e.stck;
         auto scc_begin = stack_.begin() + e.stck;
         auto scc_end = stack_.end();
 
-        if (Store<ZeroStateIDSet> && e.dead) {
+        if (Store<ZeroOutputIt> && e.dead) {
             if constexpr (RootIteration) {
                 const bool singleton = (scc_size == 1);
                 stats_.sccs1 += singleton;
@@ -820,7 +811,7 @@ private:
             for (auto it = scc_begin; it != scc_end; ++it) {
                 StateInfo& info = get_state_info[it->stateid];
                 info.stackid_ = StateInfo::ZERO;
-                insert(zero_states, it->stateid);
+                *zero_states_out = it->stateid;
             }
 
             stack_.resize(e.stck);
@@ -831,7 +822,7 @@ private:
                 StateInfo& info = get_state_info[scc_repr_id];
                 info.stackid_ = StateInfo::UNDEF;
 
-                if constexpr (Store<OneStateIDSet>) {
+                if constexpr (Store<OneOutputIt>) {
                     info.explored = 0;
                 }
 
@@ -868,7 +859,7 @@ private:
                         info.explored = 0;
                     }
 
-                    decompose<Store<OneStateIDSet>>(e.stck);
+                    decompose<Store<OneOutputIt>>(e.stck);
                 } else {
                     unsigned transitions = 0;
 
@@ -877,7 +868,7 @@ private:
                         StateInfo& info = get_state_info[it->stateid];
                         info.stackid_ = StateInfo::UNDEF;
 
-                        if (Store<OneStateIDSet>) {
+                        if (Store<OneOutputIt>) {
                             info.explored = 0;
                         }
 
@@ -898,8 +889,8 @@ private:
                 }
             }
 
-            if constexpr (Store<OneStateIDSet>) {
-                collect_one_states<OneStateIDSet>(one_states, scc_repr_id);
+            if constexpr (Store<OneOutputIt>) {
+                collect_one_states<OneOutputIt>(one_states_out, scc_repr_id);
             }
         }
 
@@ -935,13 +926,13 @@ private:
             push_local(i, iinfo);
 
             // Recursively run decomposition
-            find_and_decompose_sccs<false, const void*, const void*>(
+            find_and_decompose_sccs<false>(
                 limit,
                 push_local,
                 get_state_info,
                 get_succ_id,
-                nullptr,
-                nullptr);
+                utils::discarding_output_iterator{},
+                utils::discarding_output_iterator{});
         }
 
         if constexpr (ResetExplored) {
@@ -996,9 +987,9 @@ private:
         }
     }
 
-    template <typename OneStateIDSet>
+    template <typename OneOutputIt>
     void
-    collect_one_states(OneStateIDSet one_states, const StateID& source_state)
+    collect_one_states(OneOutputIt one_states_out, const StateID& source_state)
     {
         const unsigned limit = expansion_queue_.size();
         push1(source_state, state_infos_[source_state]);
@@ -1134,7 +1125,7 @@ private:
                             StateInfo& sinfo = state_infos_[sid];
                             sinfo.explored = 1;
                             sinfo.stackid_ = StateInfo::ONE;
-                            insert(one_states, sid);
+                            *one_states_out = sid;
                             ++stats_.ones;
                         }
                     } else {
@@ -1151,20 +1142,6 @@ private:
 
             expansion_queue_.pop_back();
         }
-    }
-
-    inline void insert(const void*, const StateID&) {}
-    inline void insert(storage::PerStateStorage<bool>& x, const StateID& y)
-    {
-        x[y] = true;
-    }
-    inline void insert(storage::StateIDHashSet& x, const StateID& y)
-    {
-        x.insert(y);
-    }
-    inline void insert(pdbs::QualitativeResultStore& x, const StateID& y)
-    {
-        x[y] = true;
     }
 
     ActionIDMap<Action>* action_id_map_;

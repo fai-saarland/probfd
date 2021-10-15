@@ -204,17 +204,17 @@ private:
             this->get_applicable_actions_generator(),
             this->get_transition_generator());
         if (extract_probability_one_states_) {
-            sys =
-                ec_decomposer
-                    .template build_quotient_system<BoolStoreT&, BoolStoreT2&>(
-                        state,
-                        dead_ends,
-                        one_states);
-        } else {
-            sys = ec_decomposer.template build_quotient_system<BoolStoreT&>(
+            sys = ec_decomposer.build_quotient_system(
                 state,
-                dead_ends);
+                utils::set_output_iterator(dead_ends),
+                utils::set_output_iterator(one_states));
+        } else {
+            sys = ec_decomposer.build_quotient_system(
+                state,
+                utils::set_output_iterator(dead_ends),
+                utils::discarding_output_iterator());
         }
+
         ecd_statistics_ = ec_decomposer.get_statistics();
         ApplicableActionsGenerator<QAction> q_aops_gen(sys);
         TransitionGenerator<QAction> q_transition_gen(sys);
