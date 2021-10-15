@@ -104,8 +104,7 @@ public:
         value_type::value_t maximal_reward,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        const StateEvaluator<State>* value_initializer,
-        OneStates* one_states = static_cast<OneStates*>(nullptr))
+        const StateEvaluator<State>* value_initializer)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
@@ -116,9 +115,7 @@ public:
               aops_generator,
               transition_generator)
         , value_initializer_(value_initializer)
-        , one_states_(one_states)
         , dead_end_value_(this->get_minimal_reward())
-        , one_state_reward_(this->get_maximal_reward())
         , state_information_()
         , value_store_(nullptr)
         , index_(0)
@@ -320,15 +317,6 @@ private:
             state_value = ValueT(static_cast<value_type::value_t>(state_eval));
             state_info.dead = false;
             ++statistics_.goal_states;
-
-            if constexpr (ExpandGoals) {
-                state_info.status = StateInfo::TERMINAL;
-                this->generate_applicable_ops(state_id, aops);
-                ++statistics_.expanded_states;
-            }
-        } else if (one_states_ && contains(one_states_, state_id)) {
-            state_value = one_state_reward_;
-            state_info.dead = false;
 
             if constexpr (ExpandGoals) {
                 state_info.status = StateInfo::TERMINAL;
@@ -681,10 +669,7 @@ private:
 
     const StateEvaluator<State>* value_initializer_;
 
-    OneStates* one_states_;
-
     const ValueT dead_end_value_;
-    const ValueT one_state_reward_;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::unique_ptr<Store> value_store_;

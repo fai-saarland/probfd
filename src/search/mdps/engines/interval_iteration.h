@@ -84,11 +84,8 @@ public:
               maximal_reward,
               aops_generator,
               transition_generator)
-        , lb_(this->get_minimal_reward())
-        , ub_(this->get_maximal_reward())
         , prune_(prune)
         , extract_probability_one_states_(extract_probability_one_states)
-        , probability_one_state_reward_(ub_)
     {
     }
 
@@ -150,17 +147,38 @@ public:
 
 private:
     template <typename BoolStoreT>
+    struct OneStateRewardFunction : public StateRewardFunction<State> {
+        StateIDMap<State>* state_id_map_;
+        BoolStoreT& one_states_;
+
+        OneStateRewardFunction(
+            StateIDMap<State>* state_id_map,
+            BoolStoreT& one_states)
+            : state_id_map_(state_id_map)
+            , one_states_(one_states)
+        {
+        }
+
+        virtual EvaluationResult evaluate(const State& s) override
+        {
+            const StateID id = state_id_map_->get_state_id(s);
+
+            if (one_states_[id]) {
+                return EvaluationResult(true, value_type::one);
+            }
+
+            return EvaluationResult(false, value_type::zero);
+        }
+    };
+
+    template <typename BoolStoreT>
     struct HeuristicWrapper : public StateEvaluator<State> {
         HeuristicWrapper(
             StateIDMap<State>* state_id_map,
             BoolStoreT& dead_ends,
-            value_type::value_t lb,
-            value_type::value_t ub,
             const StateEvaluator<State>* fallback)
             : state_id_map_(state_id_map)
             , dead_ends_(dead_ends)
-            , lb(lb)
-            , ub(ub)
             , fallback(fallback)
         {
         }
@@ -170,20 +188,18 @@ private:
             const StateID id = state_id_map_->get_state_id(s);
 
             if (dead_ends_[id]) {
-                return EvaluationResult(true, lb);
+                return EvaluationResult(true, value_type::zero);
             }
 
             if (fallback) {
                 return fallback->operator()(s);
             }
 
-            return EvaluationResult(false, ub);
+            return EvaluationResult(false, value_type::one);
         }
 
         StateIDMap<State>* state_id_map_;
         BoolStoreT& dead_ends_;
-        value_type::value_t lb;
-        value_type::value_t ub;
         const StateEvaluator<State>* fallback;
     };
 
@@ -222,31 +238,48 @@ private:
         quotient_system::DefaultQuotientActionRewardFunction<Action>
             q_action_reward(sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
-        HeuristicWrapper<BoolStoreT>
-            heuristic(this->get_state_id_map(), dead_ends, lb_, ub_, prune_);
-
-        ValueIteration<BoolStoreT> vi(
+        HeuristicWrapper<BoolStoreT> heuristic(
             this->get_state_id_map(),
-            &q_action_id_map,
-            this->get_state_reward_function(),
-            &q_action_reward,
-            lb_,
-            ub_,
-            &q_aops_gen,
-            &q_transition_gen,
-            &heuristic,
-            extract_probability_one_states_ ? &one_states : nullptr);
+            dead_ends,
+            prune_);
 
-        value_type::value_t result = vi.solve(state, value_store);
-        tvi_statistics_ = vi.get_statistics();
-        return result;
+        if (extract_probability_one_states_) {
+            ValueIteration<BoolStoreT> vi(
+                this->get_state_id_map(),
+                &q_action_id_map,
+                this->get_state_reward_function(),
+                &q_action_reward,
+                value_type::zero,
+                value_type::one,
+                &q_aops_gen,
+                &q_transition_gen,
+                &heuristic);
+
+            value_type::value_t result = vi.solve(state, value_store);
+            tvi_statistics_ = vi.get_statistics();
+            return result;
+        } else {
+            OneStateRewardFunction reward(this->get_state_id_map(), one_states);
+
+            ValueIteration<BoolStoreT> vi(
+                this->get_state_id_map(),
+                &q_action_id_map,
+                &reward,
+                &q_action_reward,
+                value_type::zero,
+                value_type::one,
+                &q_aops_gen,
+                &q_transition_gen,
+                &heuristic);
+
+            value_type::value_t result = vi.solve(state, value_store);
+            tvi_statistics_ = vi.get_statistics();
+            return result;
+        }
     }
 
-    const value_type::value_t lb_;
-    const value_type::value_t ub_;
     const StateEvaluator<State>* prune_;
     const bool extract_probability_one_states_;
-    const value_type::value_t probability_one_state_reward_;
 
     end_components::Statistics ecd_statistics_;
     topological_vi::Statistics tvi_statistics_;
