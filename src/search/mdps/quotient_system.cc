@@ -1,6 +1,7 @@
 #include "quotient_system.h"
 
 #include "../state_registry.h"
+#include "../utils/range_proxy.h"
 
 #define DEBUG(x)
 
@@ -11,26 +12,23 @@ unsigned QuotientSystem<const ProbabilisticOperator*>::quotient_size(
     const StateID& state_id) const
 {
     if (cache_) {
-        const QuotientInformation* i = get_infos(state_id);
-        assert(i == nullptr || i->states[0] == state_id);
-        return i == nullptr ? 1 : static_cast<int>(i->states.size());
-    } else {
-        return fallback_->quotient_size(state_id);
+        const QuotientInformation* info = get_infos(state_id);
+        assert(info || info->states[0] == state_id);
+        return info ? static_cast<int>(info->states.size()) : 1;
     }
+
+    return fallback_->quotient_size(state_id);
 }
 
 QuotientSystem<const ProbabilisticOperator*>::const_iterator
 QuotientSystem<const ProbabilisticOperator*>::begin() const
 {
     if (cache_) {
-        return const_iterator(
-            this,
-            DefaultQuotientSystem<const ProbabilisticOperator*>::const_iterator(
-                nullptr,
-                0));
-    } else {
-        return const_iterator(this, fallback_->begin());
+        using Default = DefaultQuotientSystem<const ProbabilisticOperator*>;
+        return const_iterator(this, Default::const_iterator(nullptr, 0));
     }
+
+    return const_iterator(this, fallback_->begin());
 }
 
 QuotientSystem<const ProbabilisticOperator*>::const_iterator
@@ -42,9 +40,9 @@ QuotientSystem<const ProbabilisticOperator*>::end() const
             DefaultQuotientSystem<const ProbabilisticOperator*>::const_iterator(
                 nullptr,
                 state_infos_.size()));
-    } else {
-        return const_iterator(this, fallback_->end());
     }
+
+    return const_iterator(this, fallback_->end());
 }
 
 utils::RangeProxy<
@@ -55,18 +53,22 @@ QuotientSystem<const ProbabilisticOperator*>::quotient_range(
     if (cache_) {
         const StateID* start = nullptr;
         const StateID* end = nullptr;
-        const QuotientInformation* i = get_infos(state_id);
-        if (i == nullptr) {
+        const QuotientInformation* info = get_infos(state_id);
+
+        if (info) {
+            start = info->states.data();
+            end = start + info->states.size();
+        } else {
             start = &state_id;
             end = start + 1;
-        } else {
-            start = &i->states[0];
-            end = start + i->states.size();
         }
-        return utils::RangeProxy<const StateID*>(start, end);
-    } else {
-        return this->fallback_->quotient_range(state_id);
+
+        return utils::RangeProxy<QuotientStateIDIterator>(
+            QuotientStateIDIterator(start),
+            QuotientStateIDIterator(end));
     }
+
+    return this->fallback_->quotient_range(state_id);
 }
 
 StateID QuotientSystem<const ProbabilisticOperator*>::translate_state_id(
@@ -74,15 +76,15 @@ StateID QuotientSystem<const ProbabilisticOperator*>::translate_state_id(
 {
     if (cache_) {
         const QuotientInformation* i = get_infos(sid);
-        return (i == nullptr ? sid : i->states[0]);
-    } else {
-        return this->fallback_->translate_state_id(sid);
+        return i ? i->states[0] : sid;
     }
+
+    return this->fallback_->translate_state_id(sid);
 }
 
 void QuotientSystem<const ProbabilisticOperator*>::generate_applicable_ops(
     const StateID& sid,
-    std::vector<QuotientAction<const ProbabilisticOperator*>>& result)
+    std::vector<QAction>& result)
 {
     if (cache_) {
         const auto& qstates = get_infos(sid)->states;
@@ -102,7 +104,7 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_applicable_ops(
 
 void QuotientSystem<const ProbabilisticOperator*>::generate_successors(
     const StateID& sid,
-    const QuotientAction<const ProbabilisticOperator*>& a,
+    const QAction& a,
     Distribution<StateID>& result)
 {
     if (cache_) {
@@ -111,15 +113,19 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_successors(
         assert(a.action_id < cached.naops);
         const uint32_t* succ = cached.succs;
         const uint32_t* aop = cached.aops;
-        for (int i = a.action_id - 1; i >= 0; --i, ++aop) {
-            succ += (gen_->first_op_ + *aop)->num_outcomes();
+
+        auto aop_end = aop + a.action_id;
+        for (; aop != aop_end; ++aop) {
+            succ += gen_->first_op_[*aop].num_outcomes();
         }
-        const ProbabilisticOperator* op = (gen_->first_op_ + *aop);
-        for (unsigned i = 0; i < op->num_outcomes(); ++i, ++succ) {
-            result.add(*succ, op->get(i).prob);
+
+        const ProbabilisticOperator& op = gen_->first_op_[*aop];
+        for (auto out = op.begin(); out != op.end(); ++out, ++succ) {
+            result.add(*succ, out->prob);
             assert(state_infos_[*succ].states[0] == *succ);
         }
-        ++(gen_->statistics_.single_transition_generator_calls);
+
+        ++gen_->statistics_.single_transition_generator_calls;
         gen_->statistics_.generated_states += result.size();
     } else {
         fallback_->generate_successors(sid, a, result);
@@ -128,7 +134,7 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_successors(
 
 void QuotientSystem<const ProbabilisticOperator*>::generate_all_successors(
     const StateID& sid,
-    std::vector<QuotientAction<const ProbabilisticOperator*>>& aops,
+    std::vector<QAction>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
     if (cache_) {
@@ -152,12 +158,12 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_all_successors(
         }
         ++(gen_->statistics_.all_transitions_generator_calls);
         gen_->statistics_.generated_operators += aops.size();
-    } else {
-        fallback_->generate_all_successors(sid, aops, successors);
     }
+
+    fallback_->generate_all_successors(sid, aops, successors);
 }
 
-QuotientAction<const ProbabilisticOperator*>
+QuotientSystem<const ProbabilisticOperator*>::QAction
 QuotientSystem<const ProbabilisticOperator*>::get_action(
     const StateID& sid,
     const ActionID& aid) const
@@ -169,22 +175,20 @@ QuotientSystem<const ProbabilisticOperator*>::get_action(
         for (unsigned i = 0; i < qstates.size(); ++i) {
             const auto& cached = lookup(qstates[i]);
             if (offset < cached.naops) {
-                return QuotientAction<const ProbabilisticOperator*>(
-                    qstates[i],
-                    offset);
+                return QAction(qstates[i], offset);
             }
             offset -= cached.naops;
         }
-        assert(false);
-        return QuotientAction<const ProbabilisticOperator*>(sid, aid);
-    } else {
-        return fallback_->get_action(sid, aid);
+
+        abort();
     }
+
+    return fallback_->get_action(sid, aid);
 }
 
 ActionID QuotientSystem<const ProbabilisticOperator*>::get_action_id(
     const StateID& sid,
-    const QuotientAction<const ProbabilisticOperator*>& a) const
+    const QAction& a) const
 {
     if (cache_) {
         const auto& qstates = get_infos(sid)->states;
@@ -199,15 +203,15 @@ ActionID QuotientSystem<const ProbabilisticOperator*>::get_action_id(
             offset += cached.naops;
         }
         return offset;
-    } else {
-        return fallback_->get_action_id(sid, a);
     }
+
+    return fallback_->get_action_id(sid, a);
 }
 
 const ProbabilisticOperator*
 QuotientSystem<const ProbabilisticOperator*>::get_original_action(
     const StateID& sid,
-    const QuotientAction<const ProbabilisticOperator*>& a) const
+    const QAction& a) const
 {
     if (cache_) {
         assert(
@@ -219,9 +223,9 @@ QuotientSystem<const ProbabilisticOperator*>::get_original_action(
         const auto& entry = lookup(a.state_id);
         assert(a.action_id < entry.naops);
         return (gen_->first_op_ + entry.aops[a.action_id]);
-    } else {
-        return fallback_->get_original_action(sid, a);
     }
+
+    return fallback_->get_original_action(sid, a);
 }
 
 ActionID QuotientSystem<const ProbabilisticOperator*>::get_original_action_id(
@@ -231,18 +235,18 @@ ActionID QuotientSystem<const ProbabilisticOperator*>::get_original_action_id(
     if (cache_) {
         const auto& qstates = get_infos(sid)->states;
         unsigned offset = a;
-        for (unsigned i = 0; i < qstates.size(); ++i) {
-            const auto& cached = lookup(qstates[i]);
+        for (const StateID& qstate : qstates) {
+            const auto& cached = lookup(qstate);
             if (offset < cached.naops) {
                 return cached.aops[offset];
             }
             offset -= cached.naops;
         }
-        assert(false);
-        return ActionID(-1);
-    } else {
-        return fallback_->get_original_action_id(sid, a);
+
+        abort();
     }
+
+    return fallback_->get_original_action_id(sid, a);
 }
 
 const QuotientSystem<const ProbabilisticOperator*>::QuotientInformation*
@@ -261,11 +265,12 @@ QuotientSystem<const ProbabilisticOperator*>::lookup(const StateID& sid) const
     return entry;
 }
 
-const TransitionGenerator<const ProbabilisticOperator*>::CacheEntry&
+TransitionGenerator<const ProbabilisticOperator*>::CacheEntry&
 QuotientSystem<const ProbabilisticOperator*>::lookup(const StateID& sid)
 {
     bool cache_setup = false;
     auto& entry = gen_->lookup(sid, cache_setup);
+
     if (cache_setup) {
         DEBUG(std::cout << "cache for " << sid
                         << " has been initialized -> applying abstraction ..."
@@ -275,13 +280,15 @@ QuotientSystem<const ProbabilisticOperator*>::lookup(const StateID& sid)
              ++i) {
             state_infos_.push_back(QuotientInformation(StateID(i)));
         }
+
         const uint32_t* aop = entry.aops;
+        const uint32_t* aop_end = entry.aops + entry.naops;
         uint32_t* succ = entry.succs;
         std::unordered_set<StateID> unique_successors;
         DEBUG(std::cout << "   ";);
-        for (int i = entry.naops - 1; i >= 0; --i, ++aop) {
-            for (int j = (gen_->first_op_ + *aop)->num_outcomes() - 1; j >= 0;
-                 --j, ++succ) {
+        for (; aop != aop_end; ++aop) {
+            auto succ_end = succ + gen_->first_op_[*aop].num_outcomes();
+            for (; succ != succ_end; ++succ) {
                 const StateID x = state_infos_[*succ].states[0];
                 DEBUG(std::cout << " " << *succ << ":=" << x);
                 *succ = x;
@@ -296,30 +303,26 @@ QuotientSystem<const ProbabilisticOperator*>::lookup(const StateID& sid)
         }
         DEBUG(std::cout << std::endl;)
 #if 1
-        for (auto it = unique_successors.begin(); it != unique_successors.end();
-             ++it) {
-            if (*it != sid) {
-                assert(!std::count(
-                    state_infos_[*it].parents.begin(),
-                    state_infos_[*it].parents.end(),
-                    sid));
-                state_infos_[*it].parents.push_back(sid);
+        for (const StateID& succ : unique_successors) {
+            if (succ != sid) {
+                assert(!utils::contains(state_infos_[succ].parents, sid));
+                state_infos_[succ].parents.push_back(sid);
             }
         }
 #endif
     }
 #ifndef NDEBUG
     {
-        DEBUG(std::cout << "looked up " << sid << std::endl;)
+        std::cout << "looked up " << sid << std::endl;
         verify_cache_consistency();
     }
 #endif
     return entry;
 }
 
+#ifndef NDEBUG
 void QuotientSystem<const ProbabilisticOperator*>::verify_cache_consistency()
 {
-#ifndef NDEBUG
     DEBUG(std::cout << "  current cache size: " << gen_->cache_.size()
                     << std::endl;)
     for (unsigned i = 0; i < gen_->cache_.size(); ++i) {
@@ -356,8 +359,8 @@ void QuotientSystem<const ProbabilisticOperator*>::verify_cache_consistency()
             DEBUG(std::cout << std::endl;)
         }
     }
-#endif
 }
+#endif
 
 } // namespace quotient_system
 } // namespace probabilistic

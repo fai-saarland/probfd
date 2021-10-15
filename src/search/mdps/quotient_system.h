@@ -24,7 +24,8 @@ class QuotientSystem<const ProbabilisticOperator*> {
 public:
     using Action = const ProbabilisticOperator*;
     using QAction = QuotientAction<Action>;
-    using QuotientStateIDIterator = const StateID*;
+    using QuotientStateIDIterator = DefaultQuotientSystem<
+        const ProbabilisticOperator*>::QuotientStateIDIterator;
 
     struct const_iterator {
         using iterator_type = std::forward_iterator_tag;
@@ -35,8 +36,7 @@ public:
 
         explicit const_iterator(
             const QuotientSystem* qs,
-            DefaultQuotientSystem<const ProbabilisticOperator*>::const_iterator
-                x)
+            DefaultQuotientSystem<Action>::const_iterator x)
             : qs_(qs)
             , i(x)
         {
@@ -80,7 +80,7 @@ public:
 
     private:
         const QuotientSystem* qs_;
-        DefaultQuotientSystem<const ProbabilisticOperator*>::const_iterator i;
+        DefaultQuotientSystem<Action>::const_iterator i;
     };
 
     explicit QuotientSystem(
@@ -92,12 +92,8 @@ public:
         , fallback_(nullptr)
     {
         if (!cache_) {
-            fallback_ = std::unique_ptr<
-                DefaultQuotientSystem<const ProbabilisticOperator*>>(
-                new DefaultQuotientSystem<const ProbabilisticOperator*>(
-                    aid,
-                    aops,
-                    transition_gen));
+            fallback_.reset(
+                new DefaultQuotientSystem<Action>(aid, aops, transition_gen));
         } else {
             state_infos_.push_back(QuotientInformation(0));
         }
@@ -133,22 +129,30 @@ public:
     ActionID
     get_original_action_id(const StateID& sid, const ActionID& a) const;
 
-    template <
-        typename StateIDIterator,
-        typename IgnoreActionsIterator = const void**>
+    template <typename StateIDIterator>
+    void build_quotient(
+        StateIDIterator begin,
+        StateIDIterator end,
+        const StateID& rid)
+    {
+        this->build_quotient(
+            begin,
+            end,
+            rid,
+            utils::infinite_iterator<std::vector<Action>>());
+    }
+
+    template <typename StateIDIterator, typename ActionFilterIterator>
     void build_quotient(
         StateIDIterator begin,
         StateIDIterator end,
         const StateID& rid,
-        IgnoreActionsIterator ignore_actions = nullptr)
+        ActionFilterIterator filter_it)
     {
         if (!cache_) {
-            fallback_->build_quotient(begin, end, rid, ignore_actions);
+            fallback_->build_quotient(begin, end, rid, filter_it);
             return;
         }
-
-        // std::cout << "Building new quotient represented by " << rid <<
-        // std::endl;
 
         QuotientInformation& dest_info = state_infos_[rid];
         std::vector<StateID>& parents = dest_info.parents;
@@ -187,25 +191,28 @@ public:
                     info.states.begin(),
                     info.states.end());
 
-                assert(std::count(states.begin(), states.end(), state_id));
+                assert(utils::contains(states, state_id));
             }
+
             assert(rid_is_in_range);
 
             states_set.insert(states.begin(), states.end());
 
-            for (auto it = begin; it != end; ++it, ++ignore_actions) {
+            for (auto it = begin; it != end; ++it, ++filter_it) {
                 const StateID state_id = *it;
                 QuotientInformation& info = state_infos_[state_id];
-                int i =
-                    (state_id != rid ? info.states.size() : old_qstates) - 1;
-                for (; i >= 0; --i) {
+                int e = (state_id != rid ? info.states.size() : old_qstates);
+
+                for (int i = 0; i < e; ++i) {
+                    auto state = info.states[i];
                     update_cache(
-                        *ignore_actions,
-                        gen_->lookup(info.states[i]),
+                        *filter_it,
+                        gen_->lookup(state),
                         rid,
                         states_set);
-                    state_infos_[info.states[i]].states[0] = rid;
+                    state_infos_[state].states[0] = rid;
                 }
+
                 if (state_id != rid) {
                     info.states.resize(1);
                     info.states[0] = rid;
@@ -254,34 +261,33 @@ public:
 
         {
             unsigned i = 0;
-            for (unsigned j = 0; j < parents.size(); ++j) {
-                const StateID new_id = state_infos_[parents[j]].states[0];
+            for (const StateID& parent : parents) {
+                const StateID new_id = state_infos_[parent].states[0];
                 if (new_id != rid) {
                     parents[i++] = new_id;
                 }
             }
             parents.resize(i);
-            std::sort(parents.begin(), parents.end());
-            parents.erase(
-                std::unique(parents.begin(), parents.end()),
-                parents.end());
+            utils::sort_unique(parents);
             parents.shrink_to_fit();
         }
-        for (int i = parents.size() - 1; i >= 0; --i) {
-            const StateID parent = parents[i];
+
+        for (const StateID& parent : parents) {
             assert(parent != rid);
             assert(state_infos_[parent].states[0] == parent);
-            const std::vector<StateID>& parent_states =
-                state_infos_[parent].states;
-            for (int j = parent_states.size() - 1; j >= 0; --j) {
-                auto& entry = gen_->lookup(parent_states[j]);
+
+            const auto& parent_states = state_infos_[parent].states;
+
+            for (const StateID& parent_state : parent_states) {
+                auto& entry = gen_->lookup(parent_state);
                 const uint32_t* aop = entry.aops;
+                const uint32_t* aop_end = entry.aops + entry.naops;
                 uint32_t* succ = entry.succs;
-                for (int k = entry.naops - 1; k >= 0; --k, ++aop) {
-                    for (int l = (gen_->first_op_ + *aop)->num_outcomes() - 1;
-                         l >= 0;
-                         --l, ++succ) {
-                        if (states_set.count(*succ)) {
+
+                for (; aop != aop_end; ++aop) {
+                    auto succ_e = succ + gen_->first_op_[*aop].num_outcomes();
+                    for (; succ != succ_e; ++succ) {
+                        if (utils::contains(states_set, *succ)) {
                             *succ = rid;
                         }
                         // *succ = state_infos_[*succ].states[0];
@@ -393,7 +399,7 @@ private:
     };
 
     void update_cache(
-        const void*,
+        const std::vector<Action>& exclude,
         TransitionGenerator<Action>::CacheEntry& entry,
         const uint32_t rid,
         const std::unordered_set<uint32_t>& quotient_states)
@@ -403,51 +409,24 @@ private:
         uint32_t* aops_dest = entry.aops;
         uint32_t* succ_src = entry.succs;
         uint32_t* succ_dest = entry.succs;
-        for (int i = entry.naops - 1; i >= 0; --i, ++aops_src) {
-            bool self_loop = true;
-            uint32_t* k = succ_dest;
-            for (int j = (gen_->first_op_ + *aops_src)->num_outcomes() - 1;
-                 j >= 0;
-                 --j, ++succ_dest, ++succ_src) {
-                *succ_dest =
-                    (quotient_states.count(*succ_src) ? rid : *succ_src);
-                self_loop = self_loop && (*succ_dest == rid);
-            }
-            if (self_loop) {
-                succ_dest = k;
-            } else {
-                *aops_dest = *aops_src;
-                ++aops_dest;
-                ++new_size;
-            }
-        }
-        entry.naops = new_size;
-    }
 
-    void update_cache(
-        const std::vector<const ProbabilisticOperator*>& exclude,
-        TransitionGenerator<Action>::CacheEntry& entry,
-        const uint32_t rid,
-        const std::unordered_set<uint32_t>& quotient_states)
-    {
-        unsigned new_size = 0;
-        uint32_t* aops_src = entry.aops;
-        uint32_t* aops_dest = entry.aops;
-        uint32_t* succ_src = entry.succs;
-        uint32_t* succ_dest = entry.succs;
-        for (int i = entry.naops - 1; i >= 0; --i, ++aops_src) {
-            bool self_loop = true;
-            uint32_t* k = succ_dest;
-            const ProbabilisticOperator* op = (gen_->first_op_ + *aops_src);
-            if (std::count(exclude.begin(), exclude.end(), op)) {
+        auto aops_src_end = aops_src + entry.naops;
+        for (; aops_src != aops_src_end; ++aops_src) {
+            const ProbabilisticOperator* op = gen_->first_op_ + *aops_src;
+            if (utils::contains(exclude, op)) {
                 continue;
             }
-            for (int j = op->num_outcomes() - 1; j >= 0;
-                 --j, ++succ_dest, ++succ_src) {
-                *succ_dest =
-                    (quotient_states.count(*succ_src) ? rid : *succ_src);
+
+            bool self_loop = true;
+            uint32_t* k = succ_dest;
+
+            auto succ_src_end = succ_src + op->num_outcomes();
+            for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {
+                bool member = utils::contains(quotient_states, *succ_src);
+                *succ_dest = member ? rid : *succ_src;
                 self_loop = self_loop && (*succ_dest == rid);
             }
+
             if (self_loop) {
                 succ_dest = k;
             } else {
@@ -456,13 +435,16 @@ private:
                 ++new_size;
             }
         }
+
         entry.naops = new_size;
     }
 
+#ifndef NDEBUG
     void verify_cache_consistency();
+#endif
 
     const QuotientInformation* get_infos(const StateID& sid) const;
-    const TransitionGenerator<Action>::CacheEntry& lookup(const StateID& sid);
+    TransitionGenerator<Action>::CacheEntry& lookup(const StateID& sid);
     const TransitionGenerator<Action>::CacheEntry&
     lookup(const StateID& sid) const;
 
@@ -471,8 +453,7 @@ private:
     segmented_vector::SegmentedVector<QuotientInformation> state_infos_;
     TransitionGenerator<Action>* gen_;
 
-    std::unique_ptr<DefaultQuotientSystem<const ProbabilisticOperator*>>
-        fallback_;
+    std::unique_ptr<DefaultQuotientSystem<Action>> fallback_;
 };
 
 } // namespace quotient_system
