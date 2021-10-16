@@ -122,12 +122,12 @@ public:
         ecd_statistics_.print(out);
     }
 
-    template <typename ValueStoreT, typename BoolStoreT>
+    template <typename ValueStoreT, typename BoolStoreT, typename BoolStoreT2>
     value_type::value_t solve(
         const State& state,
         ValueStoreT& value_store,
         BoolStoreT& dead_ends,
-        BoolStoreT& one_states)
+        BoolStoreT2& one_states)
     {
         QuotientSystem* sys;
         value_type::value_t x =
@@ -188,12 +188,12 @@ private:
         const StateEvaluator<State>* fallback;
     };
 
-    template <typename ValueStoreT, typename BoolStoreT>
+    template <typename ValueStoreT, typename BoolStoreT, typename BoolStoreT2>
     value_type::value_t mysolve(
         const State& state,
         ValueStoreT& value_store,
         BoolStoreT& dead_ends,
-        BoolStoreT& one_states,
+        BoolStoreT2& one_states,
         QuotientSystem*& sys)
     {
         Decomposer ec_decomposer(
@@ -204,11 +204,12 @@ private:
             this->get_applicable_actions_generator(),
             this->get_transition_generator());
         if (extract_probability_one_states_) {
-            sys = ec_decomposer
-                      .template build_quotient_system<BoolStoreT&, BoolStoreT&>(
-                          state,
-                          dead_ends,
-                          one_states);
+            sys =
+                ec_decomposer
+                    .template build_quotient_system<BoolStoreT&, BoolStoreT2&>(
+                        state,
+                        dead_ends,
+                        one_states);
         } else {
             sys = ec_decomposer.template build_quotient_system<BoolStoreT&>(
                 state,

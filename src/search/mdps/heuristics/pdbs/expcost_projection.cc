@@ -1,6 +1,7 @@
 #include "expcost_projection.h"
 
 #include "../../../global_operator.h"
+#include "../../../utils/collections.h"
 #include "../../engines/interval_iteration.h"
 #include "../../globals.h"
 #include "../../logging.h"
@@ -43,14 +44,6 @@ public:
 
 using namespace value_utils;
 
-static std::vector<int> insert(std::vector<int> pattern, int add_var)
-{
-    assert(!utils::contains(pattern, add_var));
-    auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
-    pattern.insert(it, add_var);
-    return pattern;
-}
-
 ExpCostProjection::ExpCostProjection(
     const Pattern& variables,
     const std::vector<int>& domains,
@@ -71,7 +64,7 @@ ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
 
 ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)
     : ProbabilisticProjection(
-          insert(pdb.get_pattern(), add_var),
+          utils::insert(pdb.get_pattern(), add_var),
           ::g_variable_domain)
     , value_table(state_mapper_->size(), -value_type::inf)
 {
@@ -152,10 +145,9 @@ void ExpCostProjection::dump_graphviz(
 void ExpCostProjection::compute_value_table(
     const AbstractStateEvaluator& heuristic)
 {
-    prepare_regression();
-    precompute_dead_ends();
+    compute_proper_states();
 
-    WrapperHeuristic h(one_states, heuristic);
+    WrapperHeuristic h(*proper_states, heuristic);
 
     AbstractStateInSetRewardFunction state_reward(
         &goal_states_,

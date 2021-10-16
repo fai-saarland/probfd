@@ -44,6 +44,9 @@ public:
     assignable_bool_t operator[](int s);
     bool operator[](int s) const;
 
+    std::unordered_set<AbstractState>& get_storage();
+    const std::unordered_set<AbstractState>& get_storage() const;
+
 private:
     bool is_negated_ = false;
     std::unordered_set<AbstractState> states_;

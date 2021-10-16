@@ -76,7 +76,17 @@ public:
 
     unsigned int num_states() const;
 
+    unsigned int num_dead_ends() const;
+    unsigned int num_proper_states() const;
+
+    bool has_only_proper_states() const;
+    bool has_only_dead_or_proper_states() const;
+
+    bool is_dead_end(const GlobalState& s) const;
+    bool is_dead_end(const AbstractState& s) const;
+
     AbstractState get_abstract_state(const GlobalState& s) const;
+    AbstractState get_abstract_state(const std::vector<int>& s) const;
 
     // Returns the pattern (i.e. all variables used) of the PDB
     const Pattern& get_pattern() const;
@@ -84,8 +94,7 @@ public:
     unsigned int num_reachable_states() const;
 
 protected:
-    void prepare_regression();
-    void precompute_dead_ends();
+    void compute_proper_states();
 
     template <typename StateToString, typename ActionToString>
     void dump_graphviz(
@@ -127,6 +136,8 @@ protected:
 private:
     void setup_abstract_goal();
     void prepare_progression();
+    void prepare_regression();
+    void compute_dead_ends();
     void add_abstract_operators(
         const Pattern& pattern,
         const ProbabilisticOperator& op,
@@ -146,8 +157,8 @@ protected:
 
     unsigned int reachable_states = 0;
 
-    pdbs::QualitativeResultStore one_states;
-    pdbs::QualitativeResultStore dead_ends;
+    std::unique_ptr<QualitativeResultStore> dead_ends;
+    std::unique_ptr<QualitativeResultStore> proper_states;
 };
 
 } // namespace pdbs

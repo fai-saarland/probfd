@@ -34,6 +34,7 @@ ProbabilisticProjection::ProbabilisticProjection(
 
     setup_abstract_goal();
     prepare_progression();
+    prepare_regression();
 }
 
 std::shared_ptr<AbstractStateMapper>
@@ -53,8 +54,46 @@ unsigned int ProbabilisticProjection::num_states() const
     return state_mapper_->size();
 }
 
+unsigned int ProbabilisticProjection::num_dead_ends() const
+{
+    return state_mapper_->size() - dead_ends->get_storage().size();
+}
+
+unsigned int ProbabilisticProjection::num_proper_states() const
+{
+    assert(proper_states);
+    return proper_states->get_storage().size();
+}
+
+bool ProbabilisticProjection::has_only_proper_states() const
+{
+    return state_mapper_->size() == proper_states->get_storage().size();
+}
+
+bool ProbabilisticProjection::has_only_dead_or_proper_states() const
+{
+    return dead_ends->get_storage().size() ==
+           proper_states->get_storage().size();
+}
+
+bool ProbabilisticProjection::is_dead_end(const GlobalState& s) const
+{
+    return is_dead_end(get_abstract_state(s));
+}
+
+bool ProbabilisticProjection::is_dead_end(const AbstractState& s) const
+{
+    return dead_ends->get(s);
+}
+
 AbstractState
 ProbabilisticProjection::get_abstract_state(const GlobalState& s) const
+{
+    return state_mapper_->operator()(s);
+}
+
+AbstractState
+ProbabilisticProjection::get_abstract_state(const std::vector<int>& s) const
 {
     return state_mapper_->operator()(s);
 }
@@ -181,12 +220,12 @@ bool has_closed_operator(
     return false;
 }
 
-void ProbabilisticProjection::precompute_dead_ends()
+void ProbabilisticProjection::compute_dead_ends()
 {
     // Initialize open list with goal states.
     std::deque<AbstractState> open(goal_states_.begin(), goal_states_.end());
 
-    std::unordered_set<AbstractState> non_dead_ends(
+    std::unordered_set<AbstractState> closed(
         goal_states_.begin(),
         goal_states_.end());
 
@@ -212,24 +251,35 @@ void ProbabilisticProjection::precompute_dead_ends()
             std::vector<const probabilistic::pdbs::AbstractOperator*> aops;
             progression_aops_generator_->generate_applicable_ops(facts, aops);
 
-            if (non_dead_ends.find(t) == non_dead_ends.end()) {
-                non_dead_ends.insert(t);
+            if (closed.find(t) == closed.end()) {
+                closed.insert(t);
                 open.push_back(t);
             }
         }
     }
 
-    dead_ends = QualitativeResultStore(true, non_dead_ends);
+    dead_ends.reset(new QualitativeResultStore(true, std::move(closed)));
+}
 
-    if (non_dead_ends.size() == this->state_mapper_->size()) {
-        one_states = QualitativeResultStore(false, std::move(non_dead_ends));
-        return;
+void ProbabilisticProjection::compute_proper_states()
+{
+    if (!dead_ends) {
+        compute_dead_ends();
     }
 
     // Compute probability one states.
-    class std::unordered_set<probabilistic::pdbs::AbstractState>& S_new =
-        non_dead_ends;
-    class std::unordered_set<probabilistic::pdbs::AbstractState> S_old;
+    std::unordered_set<AbstractState> S_new;
+    std::unordered_set<AbstractState> S_old;
+
+    for (const AbstractState& s : dead_ends->get_storage()) {
+        S_new.insert(s);
+    }
+
+    if (S_new.size() == this->state_mapper_->size()) {
+        proper_states.reset(
+            new QualitativeResultStore(false, std::move(S_new)));
+        return;
+    }
 
     do {
         S_old = std::move(S_new);
@@ -298,7 +348,7 @@ void ProbabilisticProjection::precompute_dead_ends()
     } while (S_old.size() != S_new.size()); // Size check is enough here
                                             // (monotically decreasing)
 
-    this->one_states = QualitativeResultStore(false, std::move(S_old));
+    proper_states.reset(new QualitativeResultStore(false, std::move(S_old)));
 }
 
 void ProbabilisticProjection::setup_abstract_goal()

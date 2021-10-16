@@ -84,5 +84,13 @@ bool QualitativeResultStore::operator[](int s) const
     return get(AbstractState(s));
 }
 
+std::unordered_set<AbstractState>& QualitativeResultStore::get_storage() {
+    return states_;
+}
+
+const std::unordered_set<AbstractState>& QualitativeResultStore::get_storage() const {
+    return states_;
+}
+
 } // namespace pdbs
 } // namespace probabilistic
