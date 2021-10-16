@@ -73,5 +73,16 @@ bool QualitativeResultStore::operator[](const AbstractState& s) const
     return get(s);
 }
 
+QualitativeResultStore::assignable_bool_t
+QualitativeResultStore::operator[](int s)
+{
+    return assignable_bool_t(AbstractState(s), this);
+}
+
+bool QualitativeResultStore::operator[](int s) const
+{
+    return get(AbstractState(s));
+}
+
 } // namespace pdbs
 } // namespace probabilistic

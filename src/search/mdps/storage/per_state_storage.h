@@ -2,6 +2,7 @@
 #define MDPS_STORAGE_PER_STATE_STORAGE_H
 
 #include "../../algorithms/segmented_vector.h"
+#include "../../utils/iterators.h"
 #include "../types.h"
 #include "../value_type.h"
 
@@ -223,4 +224,29 @@ using StateIDHashSet = std::unordered_set<StateID>;
 } // namespace storage
 } // namespace probabilistic
 
-#endif 
+namespace utils {
+template <>
+class set_output_iterator<probabilistic::storage::PerStateStorage<bool>> {
+    probabilistic::storage::PerStateStorage<bool>& store;
+
+public:
+    set_output_iterator(probabilistic::storage::PerStateStorage<bool>& store)
+        : store(store)
+    {
+    }
+
+    probabilistic::storage::PerStateStorage<bool>::reference
+    operator=(const ::probabilistic::StateID& id)
+    {
+        return store[id] = true;
+    }
+
+    set_output_iterator& operator++() { return *this; }
+
+    set_output_iterator operator++(int) { return *this; }
+
+    set_output_iterator& operator*() { return *this; }
+};
+} // namespace utils
+
+#endif

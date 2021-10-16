@@ -1,6 +1,8 @@
 #ifndef MDPS_HEURISTICS_PDBS_QUALITATIVE_RESULT_STORE_H
 #define MDPS_HEURISTICS_PDBS_QUALITATIVE_RESULT_STORE_H
 
+#include "../../../utils/iterators.h"
+#include "../../types.h"
 #include "abstract_state.h"
 
 #include <unordered_set>
@@ -39,6 +41,9 @@ public:
     assignable_bool_t operator[](const AbstractState& s);
     bool operator[](const AbstractState& s) const;
 
+    assignable_bool_t operator[](int s);
+    bool operator[](int s) const;
+
 private:
     bool is_negated_ = false;
     std::unordered_set<AbstractState> states_;
@@ -46,5 +51,29 @@ private:
 
 } // namespace pdbs
 } // namespace probabilistic
+
+namespace utils {
+template <>
+class set_output_iterator<probabilistic::pdbs::QualitativeResultStore> {
+    probabilistic::pdbs::QualitativeResultStore& store;
+
+public:
+    set_output_iterator(probabilistic::pdbs::QualitativeResultStore& store)
+        : store(store)
+    {
+    }
+
+    decltype(auto) operator=(const ::probabilistic::StateID& id)
+    {
+        return store[id.id] = true;
+    }
+
+    set_output_iterator& operator++() { return *this; }
+
+    set_output_iterator operator++(int) { return *this; }
+
+    set_output_iterator& operator*() { return *this; }
+};
+} // namespace utils
 
 #endif
