@@ -611,11 +611,12 @@ private:
 
             state_info.status = StateInfo::CLOSED;
         } else {
-            auto it = stack_.rbegin();
-            std::reverse_iterator end(stack_.begin() + explore.stackidx);
+            auto swap_it = stack_.begin() + explore.stackidx;
+            auto end = stack_.end();
 
+            // First loop iterates until a stack obbject to remove is found
             do {
-                StackInfo& stack_it = *it++;
+                StackInfo& stack_it = *swap_it;
                 StateInfo& state_it = state_information_[stack_it.state_id];
 
                 assert(
@@ -626,16 +627,41 @@ private:
 
                 if constexpr (ExpandGoalStates) {
                     if (state_it.status == StateInfo::TERMINAL) {
-                        it = std::reverse_iterator(stack_.erase(it.base()));
+                        break;
                     } else if (stack_it.infos.empty()) {
                         value_utils::update(*stack_it.value, stack_it.b);
-                        it = std::reverse_iterator(stack_.erase(it.base()));
+                        break;
                     }
                 }
 
                 state_it.status = StateInfo::CLOSED;
                 state_it.dead = 0;
-            } while (it != end);
+            } while (++swap_it != end);
+
+            // If there is something to remove, shift elements that remain to
+            // the beginning, i.e. copy std::remove_if
+            if (swap_it != end) {
+                assert(ExpandGoalStates);
+
+                for (auto it = swap_it; ++it != end;) {
+                    StackInfo& stack_it = *it;
+                    StateInfo& state_it = state_information_[stack_it.state_id];
+
+                    if (state_it.status != StateInfo::TERMINAL) {
+                        assert(state_it.status == StateInfo::ONSTACK);
+                        if (stack_it.infos.empty()) {
+                            value_utils::update(*stack_it.value, stack_it.b);
+                        } else {
+                            *swap_it++ = std::move(*it);
+                        }
+                    }
+
+                    state_it.status = StateInfo::CLOSED;
+                    state_it.dead = 0;
+                }
+
+                stack_.erase(swap_it, end);
+            }
 
             if (stack_.size() > explore.stackidx) {
                 const auto begin = stack_.begin() + explore.stackidx;
