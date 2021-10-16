@@ -8,6 +8,7 @@
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
+#include "../heuristics/pdbs/qualitative_result_store.h"
 #include "../quotient_system/engine_interfaces.h"
 #include "../quotient_system/quotient_system.h"
 #include "../storage/per_state_storage.h"
@@ -376,7 +377,11 @@ private:
     {
         const StateID state_id = this->state_id_map_->get_state_id(s);
         StateInfo& state_info = state_infos_[state_id];
-        return push(state_id, state_info, zero_states, one_states);
+        return push<ZeroStateIDSet, OneStateIDSet>(
+            state_id,
+            state_info,
+            zero_states,
+            one_states);
     }
 
     template <typename ZeroStateIDSet, typename OneStateIDSet>
@@ -1004,6 +1009,10 @@ private:
     inline void insert(storage::StateIDHashSet& x, const StateID& y)
     {
         x.insert(y);
+    }
+    inline void insert(pdbs::QualitativeResultStore& x, const StateID& y)
+    {
+        x[y] = true;
     }
 
     ActionIDMap<Action>* action_id_map_;

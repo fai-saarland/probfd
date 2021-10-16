@@ -64,7 +64,7 @@ protected:
         successor_generator::SuccessorGenerator<const AbstractOperator*>;
 
     using RegressionSuccessorGenerator =
-        successor_generator::SuccessorGenerator<AbstractState>;
+        successor_generator::SuccessorGenerator<AbstractRegressionOperator>;
 
 public:
     ProbabilisticProjection(
@@ -76,16 +76,24 @@ public:
 
     unsigned int num_states() const;
 
+    unsigned int num_dead_ends() const;
+    unsigned int num_proper_states() const;
+    unsigned int num_reachable_states() const;
+
+    bool has_only_proper_states() const;
+    bool has_only_dead_or_proper_states() const;
+
+    bool is_dead_end(const GlobalState& s) const;
+    bool is_dead_end(const AbstractState& s) const;
+
     AbstractState get_abstract_state(const GlobalState& s) const;
+    AbstractState get_abstract_state(const std::vector<int>& s) const;
 
     // Returns the pattern (i.e. all variables used) of the PDB
     const Pattern& get_pattern() const;
 
-    unsigned int num_reachable_states() const;
-
 protected:
-    void prepare_regression();
-    void precompute_dead_ends();
+    void compute_proper_states();
 
     template <typename StateToString, typename ActionToString>
     void dump_graphviz(
@@ -125,13 +133,19 @@ protected:
     }
 
 private:
+    void compute_dead_ends();
+
     void setup_abstract_goal();
-    void prepare_progression();
+    void build_operators();
+    
     void add_abstract_operators(
-        const Pattern& pattern,
         const ProbabilisticOperator& op,
         std::set<ProgressionOperatorFootprint>& duplicate_set,
-        std::vector<std::vector<std::pair<int, int>>>& preconditions);
+        std::vector<AbstractRegressionOperator>& regression_operators,
+        std::vector<std::vector<std::pair<int, int>>>&
+            progression_preconditions,
+        std::vector<std::vector<std::pair<int, int>>>&
+            regression_preconditions);
 
 protected:
     std::vector<int> var_index_;
@@ -146,8 +160,8 @@ protected:
 
     unsigned int reachable_states = 0;
 
-    pdbs::QualitativeResultStore one_states;
-    pdbs::QualitativeResultStore dead_ends;
+    std::unique_ptr<QualitativeResultStore> dead_ends;
+    std::unique_ptr<QualitativeResultStore> proper_states;
 };
 
 } // namespace pdbs

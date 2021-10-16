@@ -11,6 +11,14 @@ AbstractOperator::AbstractOperator(unsigned id, int cost)
 {
 }
 
+AbstractRegressionOperator::AbstractRegressionOperator(
+    unsigned id,
+    AbstractState effect)
+    : abstract_operator_id(id)
+    , effect(effect)
+{
+}
+
 AbstractOperatorToString::AbstractOperatorToString(
     const std::vector<ProbabilisticOperator>* ops)
     : ops_(ops)

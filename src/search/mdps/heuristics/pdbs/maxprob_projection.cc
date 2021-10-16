@@ -1,48 +1,41 @@
 #include "maxprob_projection.h"
 
-#include "../../../global_operator.h"
+#include "../../../pdbs/pattern_database.h"
+#include "../../../utils/collections.h"
 #include "../../../successor_generator.h"
-#include "../../analysis_objectives/goal_probability_objective.h"
+
 #include "../../engines/interval_iteration.h"
+#include "../../globals.h"
 #include "../../logging.h"
 #include "../../utils/graph_visualization.h"
 
-#include "../../../pdbs/pattern_database.h"
-
 #include <deque>
-#include <fstream>
-#include <numeric>
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <sstream>
 
 namespace probabilistic {
 namespace pdbs {
 
-static std::vector<int> insert(std::vector<int> pattern, int add_var)
-{
-    assert(!utils::contains(pattern, add_var));
-    auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
-    pattern.insert(it, add_var);
-    return pattern;
-}
-
 namespace {
 class WrapperHeuristic : public AbstractStateEvaluator {
-    const QualitativeResultStore* dead_ends;
+    const std::unordered_map<AbstractState, int>& goal_distances;
     const AbstractStateEvaluator& parent;
 
 public:
     WrapperHeuristic(
-        const QualitativeResultStore* dead_ends,
+        const std::unordered_map<AbstractState, int>& goal_distances,
         const AbstractStateEvaluator& parent)
-        : dead_ends(dead_ends)
+        : goal_distances(goal_distances)
         , parent(parent)
     {
     }
 
     virtual EvaluationResult evaluate(const AbstractState& state) const
     {
-        if (dead_ends && dead_ends->operator[](state)) {
+        auto it = goal_distances.find(state);
+
+        if (it != goal_distances.end()) {
             return EvaluationResult{false, value_type::zero};
         }
 
@@ -54,56 +47,34 @@ public:
 MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
     const std::vector<int>& domains,
-    const AbstractStateEvaluator& heuristic,
-    bool precompute_dead_ends)
+    const AbstractStateEvaluator& heuristic)
     : ProbabilisticProjection(pattern, domains)
     , value_table(state_mapper_->size())
 {
-    initialize(heuristic, precompute_dead_ends);
+
+    compute_value_table(heuristic);
 }
 
-MaxProbProjection::MaxProbProjection(
-    const ::pdbs::PatternDatabase& pdb,
-    bool precompute_dead_ends)
+MaxProbProjection::MaxProbProjection(const ::pdbs::PatternDatabase& pdb)
     : MaxProbProjection(
           pdb.get_pattern(),
           ::g_variable_domain,
-          DeadendPDBEvaluator(pdb),
-          precompute_dead_ends)
+          DeadendPDBEvaluator(pdb))
 {
 }
 
-MaxProbProjection::MaxProbProjection(
-    const MaxProbProjection& pdb,
-    int add_var,
-    bool precompute_dead_ends)
+MaxProbProjection::MaxProbProjection(const MaxProbProjection& pdb, int add_var)
     : ProbabilisticProjection(
-          insert(pdb.get_pattern(), add_var),
+          utils::insert(pdb.get_pattern(), add_var),
           ::g_variable_domain)
     , value_table(state_mapper_->size())
 {
-    initialize(
-        IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var),
-        precompute_dead_ends);
-}
-
-void MaxProbProjection::initialize(
-    const AbstractStateEvaluator& heuristic,
-    bool precompute_dead_ends)
-{
-    if (precompute_dead_ends) {
-        this->precompute_dead_ends();
-        if (!is_dead_end(initial_state_)) {
-            compute_value_table(WrapperHeuristic(&dead_ends, heuristic), false);
-        }
-    } else {
-        compute_value_table(heuristic, true);
-    }
+    compute_value_table(
+        IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
 }
 
 void MaxProbProjection::compute_value_table(
-    const AbstractStateEvaluator& heuristic,
-    bool store_dead_ends)
+    const AbstractStateEvaluator& heuristic)
 {
     using namespace engines::interval_iteration;
 
@@ -138,12 +109,10 @@ void MaxProbProjection::compute_value_table(
                &heuristic,
                true);
 
-    // states that cannot reach goal
-    engines::interval_iteration::BoolStore deads(false);
-    // states that can reach goal with absolute certainty
-    engines::interval_iteration::BoolStore ones(false);
+    dead_ends.reset(new QualitativeResultStore());
+    proper_states.reset(new QualitativeResultStore());
 
-    vi.solve(initial_state_, value_table, deads, ones);
+    vi.solve(initial_state_, value_table, *dead_ends, *proper_states);
 
 #if !defined(NDEBUG)
     {
@@ -162,58 +131,6 @@ void MaxProbProjection::compute_value_table(
 #endif
 
     reachable_states = state_id_map.size();
-
-    for (const int id : state_id_map.visited()) {
-        const AbstractState s(id);
-        if (deads[s.id]) {
-            ++n_dead_ends;
-            if (!store_dead_ends) {
-                dead_ends.set(s, true);
-            }
-        } else if (ones[s.id]) {
-            ++n_one_states;
-            one_states.set(s, true);
-        }
-    }
-
-    all_one = num_one_states() == num_reachable_states();
-    deterministic =
-        num_one_states() + num_dead_ends() == num_reachable_states();
-
-    if (is_all_one() || is_deterministic()) {
-        value_table.clear();
-        one_states.clear();
-    }
-}
-
-unsigned int MaxProbProjection::num_dead_ends() const
-{
-    return n_dead_ends;
-}
-
-unsigned int MaxProbProjection::num_one_states() const
-{
-    return n_one_states;
-}
-
-bool MaxProbProjection::is_all_one() const
-{
-    return all_one;
-}
-
-bool MaxProbProjection::is_deterministic() const
-{
-    return deterministic;
-}
-
-bool MaxProbProjection::is_dead_end(const GlobalState& s) const
-{
-    return is_dead_end(get_abstract_state(s));
-}
-
-bool MaxProbProjection::is_dead_end(const AbstractState& s) const
-{
-    return !is_all_one() && dead_ends.get(s);
 }
 
 value_type::value_t MaxProbProjection::lookup(const GlobalState& s) const
@@ -224,9 +141,7 @@ value_type::value_t MaxProbProjection::lookup(const GlobalState& s) const
 value_type::value_t MaxProbProjection::lookup(const AbstractState& s) const
 {
     assert(!is_dead_end(s));
-    return all_one || deterministic || one_states.get(s)
-               ? value_type::one
-               : value_table[s.id].upper;
+    return value_table[s.id].upper;
 }
 
 EvaluationResult MaxProbProjection::evaluate(const GlobalState& s) const
@@ -244,24 +159,93 @@ EvaluationResult MaxProbProjection::evaluate(const AbstractState& s) const
     return {false, v};
 }
 
+AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
+{
+    using PredecessorList =
+        std::vector<std::pair<AbstractState, const AbstractOperator*>>;
+
+    AbstractPolicy policy;
+
+    std::map<AbstractState, PredecessorList> predecessors;
+
+    std::deque<AbstractState> open;
+    std::unordered_set<AbstractState> closed;
+    open.push_back(initial_state_);
+    closed.insert(initial_state_);
+
+    // Build the greedy policy graph
+    while (!open.empty()) {
+        AbstractState s = open.front();
+        open.pop_front();
+
+        const value_type::value_t value = value_table[s.id].upper;
+
+        // Generate operators...
+        auto facts = state_mapper_->to_values(s);
+
+        std::vector<const AbstractOperator*> aops;
+        progression_aops_generator_->generate_applicable_ops(facts, aops);
+
+        // Select the greedy operators and add their successors
+        for (const AbstractOperator* op : aops) {
+            value_type::value_t op_value = value_type::zero;
+
+            std::vector<AbstractState> successors;
+
+            for (const auto& [eff, prob] : op->outcomes) {
+                AbstractState t = s + eff;
+                op_value += prob * value_table[t.id].upper;
+                successors.push_back(t);
+            }
+
+            if (value_type::approx_equal()(value, op_value)) {
+                for (const AbstractState& succ : successors) {
+                    if (!utils::contains(closed, succ)) {
+                        closed.insert(succ);
+                        open.push_back(succ);
+                        predecessors[succ] = PredecessorList();
+                    }
+
+                    predecessors[succ].emplace_back(s, op);
+                }
+            }
+        }
+    }
+
+    // Do regression search to select the optimal policy
+    assert(open.empty());
+    open.insert(open.end(), goal_states_.begin(), goal_states_.end());
+    closed.clear();
+    closed.insert(goal_states_.begin(), goal_states_.end());
+
+    while (!open.empty()) {
+        AbstractState s = open.front();
+        open.pop_front();
+
+        for (const auto& [pstate, op] : predecessors[s]) {
+            if (!utils::contains(closed, pstate)) {
+                closed.insert(pstate);
+                open.push_back(pstate);
+
+                // op is a greedy operator with min goal distance
+                policy[pstate] = op;
+            }
+        }
+    }
+
+    return policy;
+}
+
 namespace {
 struct StateToString {
     explicit StateToString(
-        bool all_one,
-        bool deterministic,
         const std::vector<value_utils::IntervalValue>* value_table,
-        const QualitativeResultStore* one_states,
         const QualitativeResultStore* dead_ends,
-        value_type::value_t v0,
-        value_type::value_t v1,
+        const QualitativeResultStore* one_states,
         std::shared_ptr<AbstractStateMapper> state_mapper)
-        : all_one(all_one)
-        , deterministic(deterministic)
-        , value_table(value_table)
-        , one_states(one_states)
+        : value_table(value_table)
         , dead_ends(dead_ends)
-        , v0(v0)
-        , v1(v1)
+        , one_states(one_states)
         , state_str(std::move(state_mapper))
     {
     }
@@ -270,10 +254,10 @@ struct StateToString {
     {
         std::ostringstream out;
         out << state_str(x) << " {";
-        if (!all_one && dead_ends->get(x)) {
-            out << "dead:" << v0;
-        } else if (all_one || deterministic || one_states->get(x)) {
-            out << "one:" << v1;
+        if (dead_ends->get(x)) {
+            out << "dead:" << value_type::zero;
+        } else if (one_states->get(x)) {
+            out << "one:" << value_type::one;
         } else {
             out << value_table->operator[](x.id).upper;
         }
@@ -281,13 +265,9 @@ struct StateToString {
         return out.str();
     }
 
-    bool all_one;
-    bool deterministic;
     const std::vector<value_utils::IntervalValue>* value_table;
-    const QualitativeResultStore* one_states;
     const QualitativeResultStore* dead_ends;
-    value_type::value_t v0;
-    value_type::value_t v1;
+    const QualitativeResultStore* one_states;
     AbstractStateToString state_str;
 };
 } // namespace
@@ -303,13 +283,9 @@ void MaxProbProjection::dump_graphviz(
 
     if (values) {
         StateToString sts(
-            all_one,
-            deterministic,
             &value_table,
-            &one_states,
-            &dead_ends,
-            value_type::zero,
-            value_type::one,
+            dead_ends.get(),
+            proper_states.get(),
             state_mapper_);
 
         ProbabilisticProjection::dump_graphviz(

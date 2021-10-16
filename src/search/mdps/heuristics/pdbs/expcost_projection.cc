@@ -1,17 +1,18 @@
 #include "expcost_projection.h"
 
-#include "../../../global_operator.h"
-#include "../../engines/interval_iteration.h"
+#include "../../../pdbs/pattern_database.h"
+#include "../../../successor_generator.h"
+#include "../../../utils/collections.h"
+
+#include "../../engines/topological_value_iteration.h"
 #include "../../globals.h"
 #include "../../logging.h"
 #include "../../utils/graph_visualization.h"
 
-#include "../../../pdbs/pattern_database.h"
-
 #include <deque>
-#include <fstream>
-#include <numeric>
 #include <sstream>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace probabilistic {
 namespace pdbs {
@@ -43,14 +44,6 @@ public:
 
 using namespace value_utils;
 
-static std::vector<int> insert(std::vector<int> pattern, int add_var)
-{
-    assert(!utils::contains(pattern, add_var));
-    auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
-    pattern.insert(it, add_var);
-    return pattern;
-}
-
 ExpCostProjection::ExpCostProjection(
     const Pattern& variables,
     const std::vector<int>& domains,
@@ -71,7 +64,7 @@ ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
 
 ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)
     : ProbabilisticProjection(
-          insert(pdb.get_pattern(), add_var),
+          utils::insert(pdb.get_pattern(), add_var),
           ::g_variable_domain)
     , value_table(state_mapper_->size(), -value_type::inf)
 {
@@ -98,6 +91,59 @@ EvaluationResult ExpCostProjection::evaluate(const AbstractState& s) const
 {
     const auto v = this->lookup(s);
     return {v == -value_type::inf, v};
+}
+
+AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
+{
+    AbstractPolicy policy;
+
+    std::deque<AbstractState> open;
+    std::unordered_set<AbstractState> closed;
+    open.push_back(initial_state_);
+    closed.insert(initial_state_);
+
+    // Build the greedy policy graph
+    while (!open.empty()) {
+    explore_start:
+        AbstractState s = open.front();
+        open.pop_front();
+
+        const value_type::value_t value = value_table[s.id];
+
+        // Generate operators...
+        auto facts = state_mapper_->to_values(s);
+
+        std::vector<const AbstractOperator*> aops;
+        progression_aops_generator_->generate_applicable_ops(facts, aops);
+
+        // Select a greedy operators and add its successors
+        for (const AbstractOperator* op : aops) {
+            value_type::value_t op_value = value_type::zero;
+
+            std::vector<AbstractState> successors;
+
+            for (const auto& [eff, prob] : op->outcomes) {
+                AbstractState t = s + eff;
+                op_value += prob * value_table[t.id];
+                successors.push_back(t);
+            }
+
+            if (value_type::approx_equal()(value, op_value)) {
+                policy[s] = op;
+
+                for (const AbstractState& succ : successors) {
+                    if (!utils::contains(closed, succ)) {
+                        closed.insert(succ);
+                        open.push_back(succ);
+                    }
+                }
+
+                goto explore_start;
+            }
+        }
+    }
+
+    return policy;
 }
 
 namespace {
@@ -152,10 +198,9 @@ void ExpCostProjection::dump_graphviz(
 void ExpCostProjection::compute_value_table(
     const AbstractStateEvaluator& heuristic)
 {
-    prepare_regression();
-    precompute_dead_ends();
+    compute_proper_states();
 
-    WrapperHeuristic h(one_states, heuristic);
+    WrapperHeuristic h(*proper_states, heuristic);
 
     AbstractStateInSetRewardFunction state_reward(
         &goal_states_,
