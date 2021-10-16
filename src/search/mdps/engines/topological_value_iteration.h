@@ -49,15 +49,9 @@ struct Statistics {
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam ExpandGoals - Whether the algorithm should expand goal states
- * or treat them as terminal.
  * @tparam Interval - Whether bounded value iteration is used.
  */
-template <
-    typename State,
-    typename Action,
-    bool ExpandGoals = false,
-    typename Interval = std::false_type>
+template <typename State, typename Action, typename Interval = std::false_type>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
 public:
     using ValueT = value_utils::IncumbentSolution<Interval>;
@@ -72,7 +66,8 @@ public:
         value_type::value_t maximal_reward,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        const StateEvaluator<State>* value_initializer)
+        const StateEvaluator<State>* value_initializer,
+        bool expand_goals)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
@@ -83,6 +78,7 @@ public:
               aops_generator,
               transition_generator)
         , value_initializer_(value_initializer)
+        , expand_goals_(expand_goals)
         , dead_end_value_(this->get_minimal_reward())
         , state_information_()
         , value_store_(nullptr)
@@ -293,7 +289,7 @@ private:
             state_info.dead = false;
             ++statistics_.goal_states;
 
-            if constexpr (ExpandGoals) {
+            if (expand_goals_) {
                 state_info.status = StateInfo::TERMINAL;
                 this->generate_applicable_ops(state_id, aops);
                 ++statistics_.expanded_states;
@@ -348,7 +344,7 @@ private:
         if (!action) {
             exploration_stack_.pop_back();
 
-            if (!ExpandGoals || state_info.status != StateInfo::TERMINAL) {
+            if (!expand_goals_ || state_info.status != StateInfo::TERMINAL) {
                 ++statistics_.dead_ends;
                 state_value = dead_end_value_;
                 *dead_end_out = state_id;
@@ -402,7 +398,7 @@ private:
             assert(state == stack_info.state_id);
             assert(
                 (state_info.status == StateInfo::ONSTACK) ||
-                (ExpandGoals && state_info.status == StateInfo::TERMINAL));
+                (expand_goals_ && state_info.status == StateInfo::TERMINAL));
 
             if (backtracked_state_info_ != nullptr) {
                 state_info.lowlink = std::min(
@@ -478,7 +474,7 @@ private:
                                 dead_end_out)) {
                             return true; // recursion on new state
                         }
-                    } else if (ExpandGoals && status == StateInfo::TERMINAL) {
+                    } else if (expand_goals_ && status == StateInfo::TERMINAL) {
                         state_info.lowlink =
                             std::min(state_info.lowlink, succ_info.dfs_index);
                     }
@@ -489,7 +485,8 @@ private:
             }
 
             if (tinfo.finalize()) {
-                if (!ExpandGoals || state_info.status != StateInfo::TERMINAL) {
+                if (!expand_goals_ ||
+                    state_info.status != StateInfo::TERMINAL) {
                     value_utils::set_max(stack_info.b, tinfo.base);
                 }
 
@@ -549,7 +546,7 @@ private:
                 state_info.status == StateInfo::ONSTACK ||
                 state_info.status == StateInfo::TERMINAL);
 
-            if (!ExpandGoals || state_info.status == StateInfo::ONSTACK) {
+            if (!expand_goals_ || state_info.status == StateInfo::ONSTACK) {
                 value_utils::update(*stack_info.value, stack_info.b);
             }
 
@@ -565,10 +562,10 @@ private:
 
                 assert(
                     state_it.status == StateInfo::ONSTACK ||
-                    (ExpandGoals && state_it.status == StateInfo::TERMINAL));
-                assert(ExpandGoals || !stack_it.infos.empty());
+                    (expand_goals_ && state_it.status == StateInfo::TERMINAL));
+                assert(expand_goals_ || !stack_it.infos.empty());
 
-                if constexpr (ExpandGoals) {
+                if (expand_goals_) {
                     if (state_it.status == StateInfo::TERMINAL) {
                         break;
                     } else if (stack_it.infos.empty()) {
@@ -584,7 +581,7 @@ private:
             // If there is something to remove, shift elements that remain to
             // the beginning, i.e. copy std::remove_if
             if (swap_it != end) {
-                assert(ExpandGoals);
+                assert(expand_goals_);
 
                 for (auto it = swap_it; ++it != end;) {
                     StackInfo& stack_it = *it;
@@ -635,6 +632,8 @@ private:
     }
 
     const StateEvaluator<State>* value_initializer_;
+
+    const bool expand_goals_;
 
     const ValueT dead_end_value_;
 

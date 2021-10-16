@@ -221,7 +221,7 @@ void ExpCostProjection::compute_value_table(
         progression_aops_generator_);
 
     engines::topological_vi::
-        TopologicalValueIteration<AbstractState, const AbstractOperator*, true>
+        TopologicalValueIteration<AbstractState, const AbstractOperator*>
             vi(&state_id_map,
                &action_id_map,
                &state_reward,
@@ -230,7 +230,8 @@ void ExpCostProjection::compute_value_table(
                value_type::zero,
                &aops_gen,
                &transition_gen,
-               &h);
+               &h,
+               true);
 
     vi.solve(initial_state_, value_table);
 

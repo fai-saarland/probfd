@@ -43,21 +43,16 @@ namespace interval_iteration {
  *
  * @tparam State The state type of the underlying MDP model.
  * @tparam Action The action type of the underlying MDP model.
- * @tparam ExpandGoalStates Whether goal states should be expanded to ensure
- * all reachable states are visited.
  */
-template <typename State, typename Action, bool ExpandGoalStates = false>
+template <typename State, typename Action>
 class IntervalIteration : public MDPEngine<State, Action> {
 public:
     using Decomposer = end_components::EndComponentDecomposition<State, Action>;
     using QuotientSystem = typename Decomposer::QuotientSystem;
     using QAction = typename QuotientSystem::QAction;
 
-    using ValueIteration = topological_vi::TopologicalValueIteration<
-        State,
-        QAction,
-        ExpandGoalStates,
-        std::true_type>;
+    using ValueIteration = topological_vi::
+        TopologicalValueIteration<State, QAction, std::true_type>;
 
     using ValueStore = typename ValueIteration::Store;
     using BoolStore = storage::PerStateStorage<bool>;
@@ -72,7 +67,8 @@ public:
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         const StateEvaluator<State>* prune,
-        bool extract_probability_one_states)
+        bool extract_probability_one_states,
+        bool expand_goals)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
@@ -84,6 +80,7 @@ public:
               transition_generator)
         , prune_(prune)
         , extract_probability_one_states_(extract_probability_one_states)
+        , expand_goals_(expand_goals)
     {
     }
 
@@ -216,7 +213,7 @@ private:
             this->get_state_reward_function(),
             this->get_applicable_actions_generator(),
             this->get_transition_generator(),
-            ExpandGoalStates);
+            expand_goals_);
 
         if (extract_probability_one_states_) {
             sys = ec_decomposer.build_quotient_system(
@@ -251,7 +248,8 @@ private:
                 value_type::one,
                 &q_aops_gen,
                 &q_transition_gen,
-                &heuristic);
+                &heuristic,
+                expand_goals_);
 
             value_type::value_t result = vi.solve(state, value_store);
             tvi_statistics_ = vi.get_statistics();
@@ -268,7 +266,8 @@ private:
                 value_type::one,
                 &q_aops_gen,
                 &q_transition_gen,
-                &heuristic);
+                &heuristic,
+                expand_goals_);
 
             value_type::value_t result = vi.solve(state, value_store);
             tvi_statistics_ = vi.get_statistics();
@@ -278,6 +277,7 @@ private:
 
     const StateEvaluator<State>* prune_;
     const bool extract_probability_one_states_;
+    const bool expand_goals_;
 
     end_components::Statistics ecd_statistics_;
     topological_vi::Statistics tvi_statistics_;

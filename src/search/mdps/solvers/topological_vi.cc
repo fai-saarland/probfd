@@ -49,7 +49,7 @@ public:
 
     virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
     {
-        return engine_factory<TVIEngine>(prune_.get());
+        return engine_factory<TVIEngine>(prune_.get(), false);
     }
 
 private:
