@@ -101,6 +101,7 @@ public:
                 &aops_gen,
                 &tgen,
                 nullptr,
+                false,
                 false);
         } else {
             ConstantEvaluator<bisimulation::QuotientState> initializer(
@@ -116,7 +117,8 @@ public:
                 g_analysis_objective->max(),
                 &aops_gen,
                 &tgen,
-                &initializer);
+                &initializer,
+                false);
         }
         solver->solve(bs.get_initial_state());
         stats.extended_states = bs.num_extended_states();

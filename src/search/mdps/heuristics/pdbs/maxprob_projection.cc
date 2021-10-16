@@ -96,18 +96,21 @@ void MaxProbProjection::compute_value_table(
         state_mapper_,
         progression_aops_generator_);
 
-    engines::interval_iteration::
-        IntervalIteration<AbstractState, const AbstractOperator*, true>
-            vi(&state_id_map,
-               &action_id_map,
-               &state_reward,
-               &no_reward,
-               value_type::zero,
-               value_type::one,
-               &aops_gen,
-               &transition_gen,
-               &heuristic,
-               true);
+    using IntervalIteration = engines::interval_iteration::
+        IntervalIteration<AbstractState, const AbstractOperator*>;
+
+    IntervalIteration vi(
+        &state_id_map,
+        &action_id_map,
+        &state_reward,
+        &no_reward,
+        value_type::zero,
+        value_type::one,
+        &aops_gen,
+        &transition_gen,
+        &heuristic,
+        true,
+        true);
 
     dead_ends.reset(new QualitativeResultStore());
     proper_states.reset(new QualitativeResultStore());

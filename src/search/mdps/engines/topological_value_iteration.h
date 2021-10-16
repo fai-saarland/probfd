@@ -1,6 +1,7 @@
 #ifndef MDPS_ENGINES_TOPOLOGICAL_VALUE_ITERATION_H
 #define MDPS_ENGINES_TOPOLOGICAL_VALUE_ITERATION_H
 
+#include "../../utils/iterators.h"
 #include "../storage/per_state_storage.h"
 #include "../value_utils.h"
 #include "engine.h"
@@ -21,7 +22,6 @@ namespace topological_vi {
  * @brief Topological value iteration statistics.
  */
 struct Statistics {
-
     void print(std::ostream& out) const
     {
         out << "  Expanded state(s): " << expanded_states << std::endl;
@@ -44,56 +44,18 @@ struct Statistics {
     unsigned long long pruned = 0;
 };
 
-inline bool bounds_equal(const value_type::value_t&)
-{
-    return true;
-}
-
-inline bool bounds_equal(const value_utils::IntervalValue& v)
-{
-    return value_type::approx_equal()(v.lower, v.upper);
-}
-
-template <typename T>
-using ValueStore =
-    storage::PersistentPerStateStorage<value_utils::IncumbentSolution<T>>;
-
-inline bool contains(void*, const StateID&)
-{
-    return false;
-}
-
-inline bool contains(storage::PerStateStorage<bool>* store, const StateID& s)
-{
-    return store->operator[](s);
-}
-
 /**
  * @brief Implements topological value iteration \cite dai:etal:jair-11 .
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam ExpandGoalStates - Whether the algorithm should expand goal states
- * or treat them as terminal.
  * @tparam Interval - Whether bounded value iteration is used.
- * @tparam ZeroStates - Storage type for dead-end states??
- * @tparam OneStates - Storage type for probability one states??
  */
-template <
-    typename State,
-    typename Action,
-    bool ExpandGoalStates = false,
-    typename Interval = std::false_type,
-    typename OneStates = void>
+template <typename State, typename Action, typename Interval = std::false_type>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
-    struct NoStore {
-        bool dummy;
-        bool& operator[](StateID) { return dummy; }
-    };
-
 public:
     using ValueT = value_utils::IncumbentSolution<Interval>;
-    using Store = ValueStore<Interval>;
+    using Store = storage::PersistentPerStateStorage<ValueT>;
 
     explicit TopologicalValueIteration(
         StateIDMap<State>* state_id_map,
@@ -105,7 +67,7 @@ public:
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         const StateEvaluator<State>* value_initializer,
-        OneStates* one_states = static_cast<OneStates*>(nullptr))
+        bool expand_goals)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
@@ -116,16 +78,13 @@ public:
               aops_generator,
               transition_generator)
         , value_initializer_(value_initializer)
-        , one_states_(one_states)
+        , expand_goals_(expand_goals)
         , dead_end_value_(this->get_minimal_reward())
-        , one_state_reward_(this->get_maximal_reward())
         , state_information_()
         , value_store_(nullptr)
         , index_(0)
         , exploration_stack_()
         , stack_()
-        , backtracked_state_info_(nullptr)
-        , backtracked_state_value_(nullptr)
         , statistics_()
     {
     }
@@ -149,11 +108,13 @@ public:
 
     Statistics get_statistics() const { return statistics_; }
 
-    template <typename VS, typename BoolStore = NoStore>
+    template <
+        typename ValueStore,
+        typename DeadendOutputIt = utils::discarding_output_iterator>
     value_type::value_t solve(
         const State& initial_state,
-        VS& value_store,
-        BoolStore* dead_end_store = nullptr)
+        ValueStore& value_store,
+        DeadendOutputIt dead_end_store = DeadendOutputIt{})
     {
         return value_iteration(initial_state, value_store, dead_end_store);
     }
@@ -169,14 +130,14 @@ private:
         StateInfo()
             : status(NEW)
             , dead(true)
-            , index(0)
+            , dfs_index(0)
             , lowlink(0)
         {
         }
 
         unsigned status : 31;
         unsigned dead : 1;
-        unsigned index;
+        unsigned dfs_index;
         unsigned lowlink;
     };
 
@@ -197,9 +158,8 @@ private:
         {
         }
 
-        const Action* advance_non_loop_action(
-            TopologicalValueIteration* base,
-            unsigned int state_id)
+        const Action*
+        next_action(TopologicalValueIteration* base, unsigned int state_id)
         {
             while (!aops.empty()) {
                 transition.clear();
@@ -293,7 +253,12 @@ private:
                 value_utils::set_max(val, info());
             }
 
-            return value_utils::update(*value, val) || !bounds_equal(*value);
+            if constexpr (Interval::value) {
+                return value_utils::update(*value, val) ||
+                       !value->bounds_equal();
+            } else {
+                return value_utils::update(*value, val);
+            }
         }
 
         StateID state_id;
@@ -302,16 +267,16 @@ private:
         std::vector<BellmanBackupInfo> infos;
     };
 
-    template <typename ValueStore, typename BoolStore>
+    template <typename ValueStore, typename DeadendOutputIt>
     bool push_state(
         StateID state_id,
         StateInfo& state_info,
         ValueStore& value_store,
-        BoolStore* dead_end_store)
+        DeadendOutputIt dead_end_out)
     {
         assert(state_info.status == StateInfo::NEW);
 
-        state_info.index = state_info.lowlink = index_++;
+        state_info.dfs_index = state_info.lowlink = index_++;
         state_info.status = StateInfo::ONSTACK;
 
         ValueT& state_value = value_store[state_id];
@@ -324,16 +289,7 @@ private:
             state_info.dead = false;
             ++statistics_.goal_states;
 
-            if constexpr (ExpandGoalStates) {
-                state_info.status = StateInfo::TERMINAL;
-                this->generate_applicable_ops(state_id, aops);
-                ++statistics_.expanded_states;
-            }
-        } else if (one_states_ && contains(one_states_, state_id)) {
-            state_value = one_state_reward_;
-            state_info.dead = false;
-
-            if constexpr (ExpandGoalStates) {
+            if (expand_goals_) {
                 state_info.status = StateInfo::TERMINAL;
                 this->generate_applicable_ops(state_id, aops);
                 ++statistics_.expanded_states;
@@ -369,12 +325,9 @@ private:
 
             if (state_info.dead) {
                 ++statistics_.dead_ends;
-                if (dead_end_store) {
-                    dead_end_store->operator[](state_id) = true;
-                }
+                *dead_end_out = state_id;
             }
 
-            backtracked_state_value_ = &state_value;
             return false;
         }
 
@@ -386,22 +339,18 @@ private:
             stack_.size(),
             std::move(aops));
 
-        const Action* action = einfo.advance_non_loop_action(this, state_id);
+        const Action* action = einfo.next_action(this, state_id);
 
         if (!action) {
             exploration_stack_.pop_back();
 
-            if (!ExpandGoalStates || state_info.status != StateInfo::TERMINAL) {
+            if (!expand_goals_ || state_info.status != StateInfo::TERMINAL) {
                 ++statistics_.dead_ends;
                 state_value = dead_end_value_;
-
-                if (dead_end_store) {
-                    dead_end_store->operator[](state_id) = true;
-                }
+                *dead_end_out = state_id;
             }
 
             state_info.status = StateInfo::CLOSED;
-            backtracked_state_value_ = &state_value;
 
             return false;
         }
@@ -421,11 +370,11 @@ private:
         return true;
     }
 
-    template <typename ValueStore, typename BoolStore>
+    template <typename ValueStore, typename DeadendOutputIt>
     value_type::value_t value_iteration(
         const State& initial_state,
         ValueStore& value_store,
-        BoolStore* dead_end_store)
+        DeadendOutputIt dead_end_out)
     {
         const StateID init_state_id = this->get_state_id(initial_state);
         StateInfo& iinfo = state_information_[init_state_id];
@@ -434,9 +383,9 @@ private:
             return value_utils::as_upper_bound(value_store[init_state_id]);
         }
 
-        push_state(init_state_id, iinfo, value_store, dead_end_store);
+        push_state(init_state_id, iinfo, value_store, dead_end_out);
 
-        backtracked_state_info_ = nullptr;
+        StateInfo* backtracked_state_info_ = nullptr;
 
         while (!exploration_stack_.empty()) {
             ExplorationInfo& explore = exploration_stack_.back();
@@ -449,14 +398,13 @@ private:
             assert(state == stack_info.state_id);
             assert(
                 (state_info.status == StateInfo::ONSTACK) ||
-                (ExpandGoalStates && state_info.status == StateInfo::TERMINAL));
+                (expand_goals_ && state_info.status == StateInfo::TERMINAL));
 
             if (backtracked_state_info_ != nullptr) {
                 state_info.lowlink = std::min(
                     state_info.lowlink,
                     backtracked_state_info_->lowlink);
-                state_info.dead =
-                    state_info.dead && backtracked_state_info_->dead;
+                state_info.dead &= backtracked_state_info_->dead;
                 backtracked_state_info_ = nullptr;
             }
 
@@ -466,15 +414,15 @@ private:
                 state_info,
                 state,
                 value_store,
-                dead_end_store);
+                dead_end_out);
 
             if (recurse) {
                 continue;
             }
 
             // Check if an SCC was found.
-            if (state_info.index == state_info.lowlink) {
-                scc_found(explore, stack_info, state_info, dead_end_store);
+            if (state_info.dfs_index == state_info.lowlink) {
+                scc_found(explore, stack_info, state_info, dead_end_out);
             }
 
             backtracked_state_info_ = &state_info;
@@ -484,14 +432,14 @@ private:
         return value_utils::as_upper_bound(value_store[init_state_id]);
     }
 
-    template <typename ValueStore, typename BoolStore>
+    template <typename ValueStore, typename DeadendOutputIt>
     bool successor_loop(
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateInfo& state_info,
         const unsigned int state,
         ValueStore& value_store,
-        BoolStore* dead_end_store)
+        DeadendOutputIt dead_end_out)
     {
         const value_type::value_t state_reward = explore.state_reward;
 
@@ -511,27 +459,24 @@ private:
                 }
 
                 StateInfo& succ_info = state_information_[succ_id];
+                int status = succ_info.status;
 
-                if (succ_info.status == StateInfo::NEW) {
-                    if (push_state(
-                            succ_id,
-                            succ_info,
-                            value_store,
-                            dead_end_store)) {
-                        return true; // recursion on new state
-                    }
-
-                    tinfo.base += prob * (*backtracked_state_value_);
-                    state_info.dead = state_info.dead && succ_info.dead;
-                } else if (succ_info.status == StateInfo::ONSTACK) {
+                if (status == StateInfo::ONSTACK) {
                     tinfo.successors.emplace_back(prob, &value_store[succ_id]);
                     state_info.lowlink =
-                        std::min(state_info.lowlink, succ_info.index);
+                        std::min(state_info.lowlink, succ_info.dfs_index);
                 } else {
-                    if (ExpandGoalStates &&
-                        succ_info.status == StateInfo::TERMINAL) {
+                    if (status == StateInfo::NEW) {
+                        if (push_state(
+                                succ_id,
+                                succ_info,
+                                value_store,
+                                dead_end_out)) {
+                            return true; // recursion on new state
+                        }
+                    } else if (expand_goals_ && status == StateInfo::TERMINAL) {
                         state_info.lowlink =
-                            std::min(state_info.lowlink, succ_info.index);
+                            std::min(state_info.lowlink, succ_info.dfs_index);
                     }
 
                     tinfo.base += prob * value_store[succ_id];
@@ -540,7 +485,7 @@ private:
             }
 
             if (tinfo.finalize()) {
-                if (!ExpandGoalStates ||
+                if (!expand_goals_ ||
                     state_info.status != StateInfo::TERMINAL) {
                     value_utils::set_max(stack_info.b, tinfo.base);
                 }
@@ -548,8 +493,7 @@ private:
                 stack_info.infos.pop_back();
             }
 
-            const Action* next_action =
-                explore.advance_non_loop_action(this, state);
+            const Action* next_action = explore.next_action(this, state);
 
             if (!next_action) {
                 return false;
@@ -557,18 +501,17 @@ private:
 
             explore.aops.pop_back();
 
-            const auto action_reward =
-                this->get_action_reward(state, *next_action);
+            const auto action_reward = get_action_reward(state, *next_action);
             stack_info.infos.emplace_back(state_reward + action_reward);
         } while (true);
     }
 
-    template <typename BoolStore>
+    template <typename DeadendOutputIt>
     void scc_found(
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateInfo& state_info,
-        BoolStore* dead_end_store)
+        DeadendOutputIt dead_end_out)
     {
         assert(explore.stackidx < stack_.size());
 
@@ -592,10 +535,7 @@ private:
                 assert(state_it.status == StateInfo::ONSTACK);
 
                 *stack_it.value = dead_end_value_;
-
-                if (dead_end_store) {
-                    dead_end_store->operator[](stack_it.state_id) = true;
-                }
+                *dead_end_out = stack_it.state_id;
 
                 state_it.status = StateInfo::CLOSED;
             } while (it != end);
@@ -606,7 +546,7 @@ private:
                 state_info.status == StateInfo::ONSTACK ||
                 state_info.status == StateInfo::TERMINAL);
 
-            if (!ExpandGoalStates || state_info.status == StateInfo::ONSTACK) {
+            if (!expand_goals_ || state_info.status == StateInfo::ONSTACK) {
                 value_utils::update(*stack_info.value, stack_info.b);
             }
 
@@ -622,11 +562,10 @@ private:
 
                 assert(
                     state_it.status == StateInfo::ONSTACK ||
-                    (ExpandGoalStates &&
-                     state_it.status == StateInfo::TERMINAL));
-                assert(ExpandGoalStates || !stack_it.infos.empty());
+                    (expand_goals_ && state_it.status == StateInfo::TERMINAL));
+                assert(expand_goals_ || !stack_it.infos.empty());
 
-                if constexpr (ExpandGoalStates) {
+                if (expand_goals_) {
                     if (state_it.status == StateInfo::TERMINAL) {
                         break;
                     } else if (stack_it.infos.empty()) {
@@ -642,7 +581,7 @@ private:
             // If there is something to remove, shift elements that remain to
             // the beginning, i.e. copy std::remove_if
             if (swap_it != end) {
-                assert(ExpandGoalStates);
+                assert(expand_goals_);
 
                 for (auto it = swap_it; ++it != end;) {
                     StackInfo& stack_it = *it;
@@ -694,10 +633,9 @@ private:
 
     const StateEvaluator<State>* value_initializer_;
 
-    OneStates* one_states_;
+    const bool expand_goals_;
 
     const ValueT dead_end_value_;
-    const ValueT one_state_reward_;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::unique_ptr<Store> value_store_;
@@ -705,9 +643,6 @@ private:
     unsigned index_;
     std::deque<ExplorationInfo> exploration_stack_;
     std::vector<StackInfo> stack_;
-
-    StateInfo* backtracked_state_info_;
-    ValueT* backtracked_state_value_;
 
     Statistics statistics_;
 };
