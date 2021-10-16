@@ -448,8 +448,7 @@ private:
 
             BellmanBackupInfo& tinfo = stack_info.infos.back();
 
-            for (; explore.successor != explore.transition.end();
-                 ++explore.successor) {
+            do {
                 const auto [succ_id, prob] = *explore.successor;
 
                 if (succ_id == state) {
@@ -482,7 +481,7 @@ private:
                     tinfo.base += prob * value_store[succ_id];
                     state_info.dead = state_info.dead && succ_info.dead;
                 }
-            }
+            } while (++explore.successor != explore.transition.end());
 
             if (tinfo.finalize()) {
                 if (!expand_goals_ ||
@@ -517,18 +516,18 @@ private:
 
         ++statistics_.sccs;
 
-        const unsigned scc_size = stack_.size() - explore.stackidx;
+        const auto begin = stack_.begin() + explore.stackidx;
+        const auto end = stack_.end();
+        const auto scc_size = end - begin;
 
         if (scc_size == 1) {
             ++statistics_.singleton_sccs;
         }
 
         if (state_info.dead) {
-            auto it = stack_.begin() + explore.stackidx;
-            auto end = stack_.end();
-
+            auto it = begin;
             do {
-                StackInfo& stack_it = *it++;
+                StackInfo& stack_it = *it;
                 StateInfo& state_it = state_information_[stack_it.state_id];
 
                 assert(state_it.dead);
@@ -538,7 +537,7 @@ private:
                 *dead_end_out = stack_it.state_id;
 
                 state_it.status = StateInfo::CLOSED;
-            } while (it != end);
+            } while (++it != end);
 
             statistics_.dead_ends += scc_size;
         } else if (scc_size == 1) {
@@ -552,10 +551,8 @@ private:
 
             state_info.status = StateInfo::CLOSED;
         } else {
-            auto swap_it = stack_.begin() + explore.stackidx;
-            auto end = stack_.end();
-
-            // First loop iterates until a stack obbject to remove is found
+            // First loop iterates until a stack object to remove is found
+            auto swap_it = begin;
             do {
                 StackInfo& stack_it = *swap_it;
                 StateInfo& state_it = state_information_[stack_it.state_id];
@@ -579,7 +576,7 @@ private:
             } while (++swap_it != end);
 
             // If there is something to remove, shift elements that remain to
-            // the beginning, i.e. copy std::remove_if
+            // the beginning, like std::remove_if
             if (swap_it != end) {
                 assert(expand_goals_);
 
@@ -599,33 +596,33 @@ private:
                     state_it.status = StateInfo::CLOSED;
                     state_it.dead = 0;
                 }
-
-                stack_.erase(swap_it, end);
             }
 
-            if (stack_.size() > explore.stackidx) {
-                const auto begin = stack_.begin() + explore.stackidx;
-                const unsigned n = bellman_backup(begin, stack_.end());
-                statistics_.bellman_backups += n;
+            // Update remaining scc states
+            if (swap_it != begin) {
+                statistics_.bellman_backups += bellman_backup(begin, swap_it);
             }
         }
 
-        stack_.erase(stack_.begin() + explore.stackidx, stack_.end());
+        stack_.erase(begin, end);
     }
 
     template <typename StackInfoIterator>
     unsigned
     bellman_backup(StackInfoIterator begin, StackInfoIterator end) const
     {
+        assert(begin != end);
+
         bool changed;
         unsigned num_updates = 0;
 
         do {
             changed = false;
 
-            for (auto it = begin; it != end; ++it, ++num_updates) {
-                changed |= it->update_value();
-            }
+            do {
+                changed |= begin->update_value();
+                ++num_updates;
+            } while (++begin != end);
         } while (changed);
 
         return num_updates;
