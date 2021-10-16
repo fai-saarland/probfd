@@ -52,8 +52,7 @@ using BoolStore = storage::PerStateStorage<bool>;
 template <typename State, typename Action, bool ExpandGoalStates = false>
 class IntervalIteration : public MDPEngine<State, Action> {
 public:
-    using Decomposer = end_components::
-        EndComponentDecomposition<State, Action, ExpandGoalStates>;
+    using Decomposer = end_components::EndComponentDecomposition<State, Action>;
     using QuotientSystem = typename Decomposer::QuotientSystem;
     using QAction = typename QuotientSystem::QAction;
 
@@ -202,7 +201,9 @@ private:
             this->get_state_id_map(),
             this->get_state_reward_function(),
             this->get_applicable_actions_generator(),
-            this->get_transition_generator());
+            this->get_transition_generator(),
+            ExpandGoalStates);
+
         if (extract_probability_one_states_) {
             sys = ec_decomposer.build_quotient_system(
                 state,

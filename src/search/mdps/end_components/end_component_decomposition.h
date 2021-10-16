@@ -332,11 +332,8 @@ using Stack1 = std::vector<StackInfo1>;
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam ExpandGoalStates - Whether or not goal states should be treated as
- * terminal. If false, only states reachable before a goal state are
- * considered. If true, all reachable states are considered.
  */
-template <typename State, typename Action, bool ExpandGoalStates = false>
+template <typename State, typename Action>
 class EndComponentDecomposition {
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
@@ -357,13 +354,15 @@ public:
         StateIDMap<State>* state_id_map,
         StateRewardFunction<State>* goal,
         ApplicableActionsGenerator<Action>* aops_gen,
-        TransitionGenerator<Action>* transition_gen)
+        TransitionGenerator<Action>* transition_gen,
+        bool expand_goals)
         : action_id_map_(action_id_map)
         , state_id_map_(state_id_map)
         , pruning_function_(pruning_function)
         , goal_(goal)
         , aops_gen_(aops_gen)
         , transition_gen_(transition_gen)
+        , expand_goals_(expand_goals)
         , sys_(nullptr)
         , state_infos_()
         , expansion_queue_()
@@ -450,7 +449,8 @@ private:
             ++stats_.ones;
             *one_states_out = state_id;
             state_info.stackid_ = StateInfo::ONE;
-            if (!ExpandGoalStates) {
+
+            if (!expand_goals_) {
                 return false;
             }
 
@@ -468,7 +468,7 @@ private:
         aops_gen_->operator()(state_id, aops);
 
         if (aops.empty()) {
-            if (ExpandGoalStates && state_info.expandable_goal) {
+            if (expand_goals_ && state_info.expandable_goal) {
                 state_info.expandable_goal = 0;
             } else {
                 ++stats_.terminals;
@@ -508,7 +508,7 @@ private:
 
         // only self-loops
         if (non_loop_actions == 0) {
-            if (ExpandGoalStates && state_info.expandable_goal) {
+            if (expand_goals_ && state_info.expandable_goal) {
                 state_info.expandable_goal = 0;
             } else {
                 ++stats_.terminals;
@@ -833,7 +833,7 @@ private:
                     ++stats_.sccs1;
                 }
             } else {
-                if (ExpandGoalStates) {
+                if (expand_goals_) {
                     for (auto it = scc_begin; it != scc_end; ++it) {
                         assert(it->successors.size() == it->aops.size());
                         StateInfo& info = get_state_info[it->stateid];
@@ -982,7 +982,7 @@ private:
         state_info.explored = 1;
         stack1_.emplace_back(state_id);
 
-        if (ExpandGoalStates && state_info.expandable_goal) {
+        if (expand_goals_ && state_info.expandable_goal) {
             stack1_.back().one = 1;
         }
     }
@@ -1008,7 +1008,7 @@ private:
                 if (onstack) {
                     e.lstck = std::min(e.lstck, lstck);
                     e.recurse = true;
-                    if (!ExpandGoalStates || e.dead) {
+                    if (!expand_goals_ || e.dead) {
                         backtracked_from->parents.emplace_back(
                             e.stck,
                             s.active.size());
@@ -1050,7 +1050,7 @@ private:
                     if (succ_info.onstack()) {
                         e.recurse = true;
                         e.lstck = std::min(e.lstck, succ_info.stackid_);
-                        if (!ExpandGoalStates || e.dead) {
+                        if (!expand_goals_ || e.dead) {
                             stack1_[succ_info.stackid_].parents.emplace_back(
                                 e.stck,
                                 s.active.size());
@@ -1150,6 +1150,8 @@ private:
     StateRewardFunction<State>* goal_;
     ApplicableActionsGenerator<Action>* aops_gen_;
     TransitionGenerator<Action>* transition_gen_;
+
+    bool expand_goals_;
 
     QuotientSystem* sys_;
     ApplicableActionsGenerator<typename QuotientSystem::QAction>* q_aops_gen_;
