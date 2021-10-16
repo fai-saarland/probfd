@@ -1,6 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 #define MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 
+#include "../../../utils/range_proxy.h"
 #include "../../engine_interfaces/action_evaluator.h"
 #include "../../engine_interfaces/action_id_map.h"
 #include "../../engine_interfaces/applicable_actions_generator.h"
@@ -31,7 +32,8 @@ namespace probabilistic {
 template <>
 class StateIDMap<pdbs::AbstractState> {
 public:
-    using seen_iterator = std::set<int>::const_iterator;
+    using visited_iterator = std::set<int>::const_iterator;
+    using visited_range = utils::RangeProxy<visited_iterator>;
 
     explicit StateIDMap() = default;
 
@@ -40,8 +42,10 @@ public:
 
     unsigned size() const;
 
-    seen_iterator seen_begin() const;
-    seen_iterator seen_end() const;
+    visited_iterator visited_begin() const;
+    visited_iterator visited_end() const;
+
+    visited_range visited() const;
 
 private:
     std::set<int> seen;

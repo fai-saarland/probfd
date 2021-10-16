@@ -17,16 +17,22 @@ unsigned StateIDMap<pdbs::AbstractState>::size() const
     return seen.size();
 }
 
-StateIDMap<pdbs::AbstractState>::seen_iterator
-StateIDMap<pdbs::AbstractState>::seen_begin() const
+StateIDMap<pdbs::AbstractState>::visited_iterator
+StateIDMap<pdbs::AbstractState>::visited_begin() const
 {
     return seen.cbegin();
 }
 
-StateIDMap<pdbs::AbstractState>::seen_iterator
-StateIDMap<pdbs::AbstractState>::seen_end() const
+StateIDMap<pdbs::AbstractState>::visited_iterator
+StateIDMap<pdbs::AbstractState>::visited_end() const
 {
     return seen.cend();
+}
+
+StateIDMap<pdbs::AbstractState>::visited_range
+StateIDMap<pdbs::AbstractState>::visited() const
+{
+    return visited_range(visited_begin(), visited_end());
 }
 
 StateID
