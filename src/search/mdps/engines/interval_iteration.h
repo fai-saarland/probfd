@@ -255,7 +255,8 @@ private:
             tvi_statistics_ = vi.get_statistics();
             return result;
         } else {
-            OneStateRewardFunction reward(this->get_state_id_map(), one_states);
+            OneStateRewardFunction<BoolStoreT2> reward(
+                this->get_state_id_map(), one_states);
 
             ValueIteration vi(
                 this->get_state_id_map(),

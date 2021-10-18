@@ -125,7 +125,7 @@ public:
 
     const T& operator[](int) { return value; }
 
-    const reference operator*() const { return value; }
+    reference operator*() const { return value; }
     const pointer operator->() const { return &value; }
 };
 
@@ -184,13 +184,13 @@ public:
     friend sub_iterator<IteratorT, T>
     operator+(const sub_iterator<IteratorT, T>& a, int n)
     {
-        return sub_iterator<IteratorT, T>(a.base + n, member);
+        return sub_iterator<IteratorT, T>(a.base + n, a.member);
     }
 
     friend sub_iterator<IteratorT, T>
     operator-(const sub_iterator<IteratorT, T>& a, int n)
     {
-        return sub_iterator<IteratorT, T>(a.base - n, member);
+        return sub_iterator<IteratorT, T>(a.base - n, a.member);
     }
 
     friend difference_type operator-(
@@ -219,46 +219,58 @@ public:
     };
 };
 
+template <typename T>
+using first_base_t = sub_iterator<T, decltype(std::declval<T>()->first)>;
+
+template <typename T>
+using cfirst_base_t = sub_iterator<T, const decltype(std::declval<T>()->first)>;
+
+template <typename T>
+using second_base_t = sub_iterator<T, decltype(std::declval<T>()->second)>;
+
+template <typename T>
+using csecond_base_t = sub_iterator<T, const decltype(std::declval<T>()->second)>;
+
 template <typename IteratorT>
 struct key_iterator
-    : public sub_iterator<
-          IteratorT,
-          decltype(std::declval<IteratorT>()->first)> {
+    : public first_base_t<IteratorT> {
+    using Base = first_base_t<IteratorT>;
+
     key_iterator(IteratorT base)
-        : sub_iterator<IteratorT, value_type>(base, &base_value::first)
+        : Base(base, &Base::base_value::first)
     {
     }
 };
 
 template <typename IteratorT>
 struct const_key_iterator
-    : public sub_iterator<
-          IteratorT,
-          const decltype(std::declval<IteratorT>()->first)> {
+    : public cfirst_base_t<IteratorT> {
+    using Base = cfirst_base_t<IteratorT>;
+
     const_key_iterator(IteratorT base)
-        : sub_iterator<IteratorT, value_type>(base, &base_value::first)
+        : Base(base, &Base::base_value::first)
     {
     }
 };
 
 template <typename IteratorT>
 struct val_iterator
-    : public sub_iterator<
-          IteratorT,
-          decltype(std::declval<IteratorT>()->second)> {
+    : public second_base_t<IteratorT> {
+    using Base = second_base_t<IteratorT>;
+
     val_iterator(IteratorT base)
-        : sub_iterator<IteratorT, value_type>(base, &base_value::second)
+        : Base(base, &Base::base_value::second)
     {
     }
 };
 
 template <typename IteratorT>
 struct const_val_iterator
-    : public sub_iterator<
-          IteratorT,
-          const decltype(std::declval<IteratorT>()->second)> {
+    : public csecond_base_t<IteratorT> {
+    using Base = csecond_base_t<IteratorT>;
+
     const_val_iterator(IteratorT base)
-        : sub_iterator<IteratorT, value_type>(base, &base_value::second)
+        : Base(base, &Base::base_value::second)
     {
     }
 };

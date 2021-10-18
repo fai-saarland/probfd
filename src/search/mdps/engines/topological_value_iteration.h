@@ -500,7 +500,7 @@ private:
 
             explore.aops.pop_back();
 
-            const auto action_reward = get_action_reward(state, *next_action);
+            const auto action_reward = this->get_action_reward(state, *next_action);
             stack_info.infos.emplace_back(state_reward + action_reward);
         } while (true);
     }

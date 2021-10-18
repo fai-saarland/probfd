@@ -482,7 +482,7 @@ private:
 
     StateID::size_type get_masked_state_id(const StateID& sid) const
     {
-        return sid < quotient_ids_.size() ? quotient_ids_[sid] : sid;
+        return sid < quotient_ids_.size() ? quotient_ids_[sid] : sid.id;
     }
 
     void set_masked_state_id(const StateID& sid, const StateID::size_type& qsid)

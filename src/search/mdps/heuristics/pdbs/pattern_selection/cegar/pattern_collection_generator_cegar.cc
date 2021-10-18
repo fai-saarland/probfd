@@ -303,7 +303,7 @@ PatternCollectionGeneratorCegar<PDBType>::ProbabilityGBFS::apply_policy(
     int solution_index,
     const ExplicitGState& init)
 {
-    AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
+    AbstractSolutionData<PDBType>& solution = *this->base.solutions[solution_index];
     const AbstractPolicy& policy = solution.get_policy();
     const PDBType& pdb = solution.get_pdb();
 
@@ -328,19 +328,19 @@ PatternCollectionGeneratorCegar<PDBType>::ProbabilityGBFS::apply_policy(
         // goal
         if (!abs_op) {
             if (!current.is_goal()) {
-                if (base.verbosity >= Verbosity::VERBOSE) {
+                if (this->base.verbosity >= Verbosity::VERBOSE) {
                     cout << token << "Policy of pattern "
                          << solution.get_pattern()
                          << "failed with goal violation." << std::endl;
                 }
 
-                if (!base.ignore_goal_violations) {
+                if (!this->base.ignore_goal_violations) {
                     // Collect all non-satisfied goal variables that are
                     // still available.
                     for (const auto& [goal_var, goal_value] : g_goal) {
                         if (current[goal_var] != goal_value &&
-                            !utils::contains(base.global_blacklist, goal_var) &&
-                            utils::contains(base.remaining_goals, goal_var)) {
+                            !utils::contains(this->base.global_blacklist, goal_var) &&
+                            utils::contains(this->base.remaining_goals, goal_var)) {
                             flaws.emplace_back(true, solution_index, goal_var);
                         }
                     }
@@ -348,7 +348,7 @@ PatternCollectionGeneratorCegar<PDBType>::ProbabilityGBFS::apply_policy(
                     return flaws;
                 }
 
-                if (base.verbosity >= Verbosity::VERBOSE) {
+                if (this->base.verbosity >= Verbosity::VERBOSE) {
                     cout << "We ignore goal violations, thus we continue."
                          << endl;
                 }
@@ -410,7 +410,7 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::BFS::apply_policy(
     int solution_index,
     const ExplicitGState& init)
 {
-    AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
+    AbstractSolutionData<PDBType>& solution = *this->base.solutions[solution_index];
     const AbstractPolicy& policy = solution.get_policy();
     const PDBType& pdb = solution.get_pdb();
 
@@ -432,19 +432,19 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::BFS::apply_policy(
         // We reached an abstract goal, check if the concrete state is a goal
         if (!abs_op) {
             if (!current.is_goal()) {
-                if (base.verbosity >= Verbosity::VERBOSE) {
+                if (this->base.verbosity >= Verbosity::VERBOSE) {
                     cout << token << "Policy of pattern "
                          << solution.get_pattern()
                          << "failed with goal violation." << std::endl;
                 }
 
-                if (!base.ignore_goal_violations) {
+                if (!this->base.ignore_goal_violations) {
                     // Collect all non-satisfied goal variables that are still
                     // available.
                     for (const auto& [goal_var, goal_value] : g_goal) {
                         if (current[goal_var] != goal_value &&
-                            !utils::contains(base.global_blacklist, goal_var) &&
-                            utils::contains(base.remaining_goals, goal_var)) {
+                            !utils::contains(this->base.global_blacklist, goal_var) &&
+                            utils::contains(this->base.remaining_goals, goal_var)) {
                             flaws.emplace_back(true, solution_index, goal_var);
                         }
                     }
@@ -452,7 +452,7 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::BFS::apply_policy(
                     return flaws;
                 }
 
-                if (base.verbosity >= Verbosity::VERBOSE) {
+                if (this->base.verbosity >= Verbosity::VERBOSE) {
                     cout << "We ignore goal violations, thus we continue."
                          << endl;
                 }
@@ -504,22 +504,22 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::BFS::apply_policy(
         }
     }
 
-    if (base.verbosity >= Verbosity::VERBOSE) {
+    if (this->base.verbosity >= Verbosity::VERBOSE) {
         cout << token << "Policy of pattern " << solution.get_pattern()
              << " successfully executed.";
     }
 
-    if (base.global_blacklist.empty() && solution.get_blacklist().empty() &&
-        !base.ignore_goal_violations) {
-        if (base.verbosity >= Verbosity::VERBOSE) {
+    if (this->base.global_blacklist.empty() && solution.get_blacklist().empty() &&
+        !this->base.ignore_goal_violations) {
+        if (this->base.verbosity >= Verbosity::VERBOSE) {
             cout << "There are no blacklisted variables and there were no goal "
                     "violations, hence the concrete task is solved."
                  << endl;
         }
 
-        base.concrete_solution_index = solution_index;
+        this->base.concrete_solution_index = solution_index;
     } else {
-        if (base.verbosity >= Verbosity::VERBOSE) {
+        if (this->base.verbosity >= Verbosity::VERBOSE) {
             cout << "Since there are blacklisted variables, the policy "
                     "is not guaranteed to work in the concrete state "
                     "space. Marking this solution as solved."
