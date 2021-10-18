@@ -126,7 +126,7 @@ public:
     const T& operator[](int) { return value; }
 
     reference operator*() const { return value; }
-    const pointer operator->() const { return &value; }
+    pointer operator->() const { return &value; }
 };
 
 template <typename IteratorT, typename T>
@@ -208,15 +208,47 @@ public:
     std::add_const_t<reference> operator*() const { return (*base).*member; }
     std::add_const_t<pointer> operator->() const { return &(*base).*member; }
 
-    friend bool operator==(const sub_iterator& a, const sub_iterator& b)
+    friend bool operator==(
+        const sub_iterator<IteratorT, T>& a,
+	const sub_iterator<IteratorT, T>& b)
     {
         return a.base == b.base;
-    };
+    }
 
-    friend bool operator!=(const sub_iterator& a, const sub_iterator& b)
+    friend bool operator!=(
+        const sub_iterator<IteratorT, T>& a,
+        const sub_iterator<IteratorT, T>& b)
     {
         return a.base != b.base;
-    };
+    }
+    
+    friend bool operator<(
+        const sub_iterator<IteratorT, T>& a,
+	const sub_iterator<IteratorT, T>& b)
+    {
+        return a.base < b.base;
+    }
+
+    friend bool operator>(
+        const sub_iterator<IteratorT, T>& a,
+        const sub_iterator<IteratorT, T>& b)
+    {
+        return a.base > b.base;
+    }
+    
+    friend bool operator<=(
+        const sub_iterator<IteratorT, T>& a,
+	const sub_iterator<IteratorT, T>& b)
+    {
+        return a.base <= b.base;
+    }
+
+    friend bool operator>=(
+        const sub_iterator<IteratorT, T>& a,
+        const sub_iterator<IteratorT, T>& b)
+    {
+        return a.base >= b.base;
+    }
 };
 
 template <typename T>
