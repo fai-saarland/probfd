@@ -618,11 +618,12 @@ private:
 
         do {
             changed = false;
+            auto it = begin;
 
             do {
-                changed |= begin->update_value();
+                changed |= it->update_value();
                 ++num_updates;
-            } while (++begin != end);
+            } while (++it != end);
         } while (changed);
 
         return num_updates;
