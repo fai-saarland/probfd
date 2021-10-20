@@ -142,6 +142,8 @@ class PatternCollectionGeneratorCegar
         apply_policy(int solution_index, const ExplicitGState& init) override;
     };
 
+    std::shared_ptr<SubCollectionFinder> subcollection_finder;
+
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     std::unique_ptr<FlawFindingStrategy> flaw_strategy;
@@ -186,6 +188,7 @@ public:
     explicit PatternCollectionGeneratorCegar(const options::Options& opts);
 
     PatternCollectionGeneratorCegar(
+        std::shared_ptr<SubCollectionFinder> subcollection_finder,
         const std::shared_ptr<utils::RandomNumberGenerator>& arg_rng,
         FlawFinderEnum flaw_finder_val,
         int arg_max_refinements,

@@ -47,6 +47,7 @@ static const std::string token = "CEGAR_PDBs: ";
 
 template <typename PDBType>
 PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
+    std::shared_ptr<SubCollectionFinder> subcollection_finder,
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
     FlawFinderEnum flaw_finder_val,
     int arg_max_refinements,
@@ -60,7 +61,8 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     int given_goal,
     Verbosity verbosity,
     double arg_max_time)
-    : rng(arg_rng)
+    : subcollection_finder(subcollection_finder)
+    , rng(arg_rng)
     , max_refinements(arg_max_refinements)
     , max_pdb_size(arg_max_pdb_size)
     , max_collection_size(arg_max_collection_size)
@@ -155,6 +157,7 @@ template <typename PDBType>
 PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     const options::Options& opts)
     : PatternCollectionGeneratorCegar(
+          opts.get<std::shared_ptr<SubCollectionFinder>>("subcollection_finder"),
           utils::parse_rng_from_options(opts),
           static_cast<FlawFinderEnum>(opts.get_enum("flaw_strategy")),
           opts.get<int>("max_refinements"),
@@ -1130,7 +1133,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
     }
 
     PatternCollectionInformation<PDBType> pattern_collection_information(
-        patterns);
+        patterns, subcollection_finder);
     pattern_collection_information.set_pdbs(pdbs);
     return pattern_collection_information;
 }
@@ -1210,6 +1213,10 @@ void add_pattern_collection_generator_cegar_options_to_parser(
         "thus added to the pattern in question or merging two patterns if "
         "already in the collection.",
         "true");
+    parser.add_option<std::shared_ptr<SubCollectionFinder>>(
+        "subcollection_finder",
+        "The subcollection finder.",
+        "finder_max_orthogonality()");
 }
 
 template <typename PDBType>
