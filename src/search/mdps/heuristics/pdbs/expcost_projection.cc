@@ -109,7 +109,6 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
 
     // Build the greedy policy graph
     while (!open.empty()) {
-    explore_start:
         AbstractState s = open.front();
         open.pop_front();
 
@@ -143,9 +142,11 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
                     }
                 }
 
-                goto explore_start;
+                goto continue_exploring;
             }
         }
+
+        continue_exploring:;
     }
 
     return policy;
