@@ -397,11 +397,17 @@ PatternCollectionGeneratorCegar<PDBType>::ProbabilityGBFS::apply_policy(
             const value_type::value_t succ_prob = priority * prob;
             auto successor = current.get_successor(*det_op);
 
-            auto it = probabilities.find(successor);
+            auto [it, inserted] = probabilities.emplace(successor, succ_prob);
 
-            if (it == probabilities.end() || succ_prob > it->second) {
-                pq.push(succ_prob, std::move(successor));
+            if (!inserted) {
+                if (succ_prob <= it->second) {
+                    continue;
+                }
+
+                it->second = succ_prob;
             }
+
+            pq.push(succ_prob, std::move(successor));
         }
     }
 
