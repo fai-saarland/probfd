@@ -150,13 +150,6 @@ void ProbabilisticProjection::compute_dead_ends()
         goal_states_.begin(),
         goal_states_.end());
 
-    // Goal distance for every state
-    std::vector<int> goal_distances(state_mapper_->size(), -1);
-
-    for (AbstractState goal : goal_states_) {
-        goal_distances[goal.id] = 0;
-    }
-
     // Regression breadth-first search from goal states to find all states with
     // MaxProb > 0. While we are at it, we can compute the goal distances.
     while (!open.empty()) {
