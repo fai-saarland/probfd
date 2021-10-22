@@ -3,6 +3,7 @@
 #include "../../../global_state.h"
 #include "../../../globals.h"
 
+#include "../../../utils/collections.h"
 #include "../../../utils/exceptions.h"
 
 #include <algorithm>
@@ -29,13 +30,12 @@ AbstractStateMapper::CartesianSubsetIterator::CartesianSubsetIterator(
     : values_(std::move(values))
     , indices_(std::move(indices))
     , domains_(domains)
-    , i(indices_.size())
+    , done(false)
 {
     assert(values_.size() >= indices_.size());
 
     for (size_t i = 0; i < indices_.size(); ++i) {
-        assert(0 <= indices_[i]);
-        assert(static_cast<size_t>(indices_[i]) < values_.size());
+        assert(utils::in_bounds(static_cast<size_t>(indices_[i]), values_));
         values_[indices_[i]] = 0;
     }
 }
@@ -43,25 +43,19 @@ AbstractStateMapper::CartesianSubsetIterator::CartesianSubsetIterator(
 AbstractStateMapper::CartesianSubsetIterator&
 AbstractStateMapper::CartesianSubsetIterator::operator++()
 {
-    assert(i >= 0);
-
-    do {
-        if (static_cast<size_t>(i) == indices_.size()) {
-            --i;
-            break;
-        }
-
+    for (int i = indices_.size() - 1; i >= 0; --i) {
         const int idx = indices_[i];
         const int next = values_[idx] + 1;
 
         if (next < domains_[idx]) {
             values_[idx] = next;
-            ++i;
-        } else {
-            values_[idx] = -1;
-            --i;
+            return *this;
         }
-    } while (i >= 0);
+
+        values_[idx] = 0;
+    }
+
+    done = true;
 
     return *this;
 }
@@ -69,25 +63,19 @@ AbstractStateMapper::CartesianSubsetIterator::operator++()
 AbstractStateMapper::CartesianSubsetIterator&
 AbstractStateMapper::CartesianSubsetIterator::operator--()
 {
-    assert(i >= 0);
-
-    do {
-        if (static_cast<size_t>(i) == indices_.size()) {
-            --i;
-            break;
-        }
-
+    for (int i = indices_.size() - 1; i >= 0; --i) {
         const int idx = indices_[i];
         const int next = values_[idx] - 1;
 
         if (next >= 0) {
             values_[idx] = next;
-            ++i;
-        } else {
-            values_[idx] = domains_[idx];
-            --i;
+            return *this;
         }
-    } while (i >= 0);
+
+        values_[idx] = domains_[idx] - 1;
+    }
+
+    done = true;
 
     return *this;
 }
@@ -108,14 +96,14 @@ bool operator==(
     const AbstractStateMapper::CartesianSubsetIterator& a,
     const AbstractStateMapper::CartesianSubsetSentinel&)
 {
-    return a.i == -1;
+    return a.done;
 }
 
 bool operator!=(
     const AbstractStateMapper::CartesianSubsetIterator& a,
     const AbstractStateMapper::CartesianSubsetSentinel&)
 {
-    return a.i != -1;
+    return !a.done;
 }
 
 AbstractStateMapper::PartialStateIterator::PartialStateIterator(
@@ -123,69 +111,62 @@ AbstractStateMapper::PartialStateIterator::PartialStateIterator(
     const std::vector<int>& indices,
     const std::vector<int>& multipliers,
     const std::vector<int>& domains)
-    : index_multipliers_(indices.size())
-    , local_counters_(indices.size() + 1, 1)
-    , argument_states_(indices.size() + 1, offset)
+    : values_(indices.size(), 0)
     , domains_(indices.size())
-    , recursion_level(indices.size())
+    , multipliers_(indices.size())
+    , state_(offset)
+    , done(false)
 {
     for (size_t i = 0; i != indices.size(); ++i) {
         const int index = indices[i];
-        index_multipliers_[i] = multipliers[index];
+        multipliers_[i] = multipliers[index];
         domains_[i] = domains[index];
-        argument_states_[i] = AbstractState(offset.id + multipliers[index]);
     }
 }
 
 AbstractStateMapper::PartialStateIterator&
 AbstractStateMapper::PartialStateIterator::operator++()
 {
-    assert(recursion_level >= 0);
+    for (int idx = values_.size() - 1; idx >= 0; --idx) {
+        const int next = values_[idx] + 1;
 
-    --recursion_level;
-
-    int max_rec_depth = static_cast<int>(domains_.size());
-    while (recursion_level >= 0 && recursion_level < max_rec_depth) {
-        // Recursive call
-        if (local_counters_[recursion_level] < domains_[recursion_level]) {
-            int this_level = recursion_level++;
-
-            // Pass arguments
-            argument_states_[recursion_level] = argument_states_[this_level];
-            local_counters_[recursion_level] = 0;
-
-            argument_states_[this_level].id += index_multipliers_[this_level];
-            ++local_counters_[this_level];
-        } else {
-            --recursion_level;
+        if (next < domains_[idx]) {
+            values_[idx] = next;
+            state_.id += multipliers_[idx];
+            return *this;
         }
+
+        state_.id -= (values_[idx] * multipliers_[idx]);
+        values_[idx] = 0;
     }
+
+    done = true;
 
     return *this;
 }
 
 const AbstractState& AbstractStateMapper::PartialStateIterator::operator*()
 {
-    return argument_states_.back();
+    return state_;
 }
 
 const AbstractState* AbstractStateMapper::PartialStateIterator::operator->()
 {
-    return &argument_states_.back();
+    return &state_;
 }
 
 bool operator==(
     const AbstractStateMapper::PartialStateIterator& a,
     const AbstractStateMapper::PartialStateSentinel&)
 {
-    return a.recursion_level == -1;
+    return a.done;
 }
 
 bool operator!=(
     const AbstractStateMapper::PartialStateIterator& a,
     const AbstractStateMapper::PartialStateSentinel&)
 {
-    return a.recursion_level != -1;
+    return !a.done;
 }
 
 AbstractStateMapper::AbstractStateMapper(

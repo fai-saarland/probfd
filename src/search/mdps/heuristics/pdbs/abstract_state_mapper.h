@@ -35,7 +35,7 @@ public:
         std::vector<int> indices_;
         const std::vector<int>& domains_;
 
-        int i;
+        bool done;
 
     public:
         CartesianSubsetIterator(
@@ -45,9 +45,6 @@ public:
 
         CartesianSubsetIterator& operator++();
         CartesianSubsetIterator& operator--();
-
-        CartesianSubsetIterator operator++(int) = delete;
-        CartesianSubsetIterator operator--(int) = delete;
 
         reference operator*();
         pointer operator->();
@@ -68,12 +65,12 @@ public:
         using reference = const AbstractState&;
         using iterator_category = std::forward_iterator_tag;
 
-        std::vector<int> index_multipliers_;
-        std::vector<int> local_counters_;
-        std::vector<AbstractState> argument_states_;
+        std::vector<int> values_;
         std::vector<int> domains_;
+        std::vector<int> multipliers_;
+        AbstractState state_;
 
-        int recursion_level;
+        bool done;
 
     public:
         PartialStateIterator(
@@ -83,10 +80,6 @@ public:
             const std::vector<int>& domains);
 
         PartialStateIterator& operator++();
-        PartialStateIterator& operator--() = delete;
-
-        PartialStateIterator operator++(int) = delete;
-        PartialStateIterator operator--(int) = delete;
 
         reference operator*();
         pointer operator->();
