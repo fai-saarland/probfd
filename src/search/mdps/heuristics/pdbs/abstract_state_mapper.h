@@ -26,21 +26,19 @@ public:
 
     class CartesianSubsetIterator {
         using difference_type = void;
-        using value_type = std::vector<int>;
-        using pointer = std::vector<int>*;
-        using reference = std::vector<int>&;
+        using value_type = std::vector<std::pair<int, int>>;
+        using pointer = std::vector<std::pair<int, int>>*;
+        using reference = std::vector<std::pair<int, int>>&;
         using iterator_category = std::forward_iterator_tag;
 
-        std::vector<int> values_;
-        std::vector<int> indices_;
+        std::vector<std::pair<int, int>> partial_state_;
         const std::vector<int>& domains_;
 
         bool done;
 
     public:
         CartesianSubsetIterator(
-            std::vector<int> values,
-            std::vector<int> indices,
+            std::vector<std::pair<int, int>> partial_state,
             const std::vector<int>& domains);
 
         CartesianSubsetIterator& operator++();
@@ -108,25 +106,30 @@ public:
         const std::vector<int>& values) const;
     AbstractState from_values_partial(
         const std::vector<std::pair<int, int>>& sparse_values) const;
+    AbstractState from_values_partial(
+        const std::vector<int>& indices,
+        const std::vector<std::pair<int, int>>& sparse_values) const;
     AbstractState from_value_partial(int idx, int val) const;
 
     int get_unique_partial_state_id(
         const std::vector<int>& indices,
         const std::vector<int>& values) const;
 
+    int get_unique_partial_state_id(
+        const std::vector<std::pair<int, int>>& pstate) const;
+
     std::vector<int> to_values(AbstractState abstract_state) const;
 
     void
     to_values(AbstractState abstract_state, std::vector<int>& values) const;
 
-    CartesianSubsetIterator
-    cartesian_subsets_begin(std::vector<int> values, std::vector<int> indices)
-        const;
+    CartesianSubsetIterator cartesian_subsets_begin(
+        std::vector<std::pair<int, int>> partial_state) const;
 
     CartesianSubsetSentinel cartesian_subsets_end() const;
 
     utils::RangeProxy<CartesianSubsetIterator, CartesianSubsetSentinel>
-    cartesian_subsets(std::vector<int> values, std::vector<int> indices) const;
+    cartesian_subsets(std::vector<std::pair<int, int>> partial_state) const;
 
     PartialStateIterator
     partial_states_begin(AbstractState offset, std::vector<int> indices) const;

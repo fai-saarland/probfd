@@ -374,6 +374,39 @@ struct OutcomeInfo {
 };
 } // namespace
 
+namespace {
+auto find_sorted(const std::vector<std::pair<int, int>>& p, int idx)
+{
+    auto it =
+        std::lower_bound(p.begin(), p.end(), idx, [](const auto& a, int i) {
+            return a.first < i;
+        });
+    return it != p.end() && it->first == idx ? it : p.end();
+}
+
+void apply(
+    std::vector<std::pair<int, int>>& pstate,
+    const std::vector<std::pair<int, int>>& effect)
+{
+    auto it = effect.begin();
+    auto end = effect.end();
+
+    auto pit = pstate.begin();
+    auto pend = pstate.end();
+
+    for (; it != end; ++it, ++pit) {
+        const auto& [idx, val] = *it;
+
+        pit = std::find_if(pit, pend, [=](const auto& p) {
+            return p.first == idx;
+        });
+
+        assert(pit != pend);
+        pit->second = val;
+    }
+}
+} // namespace
+
 void ProbabilisticProjection::add_abstract_operators(
     const ProbabilisticOperator& op,
     std::set<ProgressionOperatorFootprint>& duplicate_set,
@@ -384,30 +417,20 @@ void ProbabilisticProjection::add_abstract_operators(
     const int operator_id = op.get_id();
     const int cost = op.get_cost();
 
-    // The affected variables (pre + eff)
-    std::vector<int> affected_var_indices;
-
-    // The precondition embedded into an abstract state vector
-    std::vector<int> dense_precondition(
-        state_mapper_->get_pattern().size(),
-        -1);
+    // Precondition partial state and partial state to enumerate
+    // effect values not appearing in precondition
+    std::vector<std::pair<int, int>> local_precondition;
+    std::vector<std::pair<int, int>> effects_not_in_pre;
 
     for (const auto& [var, val] : op.get_preconditions()) {
         const int idx = var_index_[var];
         if (idx != -1) {
-            dense_precondition[idx] = val;
-            affected_var_indices.push_back(idx);
+            local_precondition.emplace_back(idx, val);
         }
     }
 
     // Info about each probabilistic outcome
     Distribution<OutcomeInfo> outcomes;
-
-    // Probability for no effect
-    value_type::value_t self_loop_prob = value_type::zero;
-
-    // Variables that appear in effects but not in the precondition
-    std::vector<int> eff_no_pre_var_indices;
 
     // Collect info about the outcomes
     for (const ProbabilisticOutcome& out : op) {
@@ -422,16 +445,15 @@ void ProbabilisticProjection::add_abstract_operators(
             if (idx != -1) {
                 info.effects.emplace_back(idx, eff_val);
 
-                const int pre_val = dense_precondition[idx];
+                auto pre_it = find_sorted(local_precondition, idx);
                 int val_change;
 
-                if (pre_val == -1) {
-                    eff_no_pre_var_indices.push_back(idx);
-                    utils::insert_set(affected_var_indices, idx);
+                if (pre_it == local_precondition.end()) {
+                    effects_not_in_pre.emplace_back(idx, 0);
                     info.missing_pres.push_back(idx);
                     val_change = eff_val;
                 } else {
-                    val_change = eff_val - pre_val;
+                    val_change = eff_val - pre_it->second;
                 }
 
                 info.base_effect +=
@@ -439,101 +461,73 @@ void ProbabilisticProjection::add_abstract_operators(
             }
         }
 
-        if (info.effects.empty()) {
-            self_loop_prob += prob;
-        } else {
-            outcomes.add(std::move(info), prob);
-        }
+        outcomes.add_unique(std::move(info), prob);
     }
 
-    utils::sort_unique(eff_no_pre_var_indices);
-    outcomes.make_unique();
+    utils::sort_unique(effects_not_in_pre);
 
-    if (value_type::approx_greater()(self_loop_prob, value_type::zero)) {
-        outcomes.add(OutcomeInfo(), self_loop_prob);
-    }
-
-    // We need to enumerate all values for variables that are not part of
+    // We enumerate all values for variables that are not part of
     // the precondition but in an effect. Depending on the value of the
     // variable, the value change caused by the abstract operator would be
     // different, hence we generate on operator for each state where enabled.
+    auto ran = state_mapper_->cartesian_subsets(std::move(effects_not_in_pre));
 
-    // Variables in the precondition need not be enumerated, their value
-    // change is always effect value minus precondition value.
-
-    auto ran = state_mapper_->cartesian_subsets(
-        std::move(dense_precondition),
-        std::move(eff_no_pre_var_indices));
-
-    for (const std::vector<int>& values : ran) {
+    for (const std::vector<std::pair<int, int>>& values : ran) {
+        // Generate the progression operator
         AbstractOperator new_op(operator_id, cost);
-        std::vector<AbstractRegressionOperator> reg_ops;
 
+        // Effects are cached for the regression operator generation
         std::vector<std::vector<std::pair<int, int>>> effects;
 
         for (const auto& [info, prob] : outcomes) {
             const auto& [base_effect, missing_pres, effect] = info;
             auto a = state_mapper_->from_values_partial(missing_pres, values);
             const AbstractState change = base_effect - a;
-            auto it = new_op.outcomes.find(change);
 
-            if (it != new_op.outcomes.end()) {
-                it->second += prob;
-            } else {
-                new_op.outcomes.add(change, prob);
+            if (new_op.outcomes.add_unique(change, prob).second) {
                 effects.push_back(effect);
             }
         }
 
-        // new_op.outcomes.make_unique();
+        // Construct the precondition by merging the original precondition
+        // partial state with the partial state for the non-precondition effects
+        // of this iteration
+        std::vector<std::pair<int, int>> precondition;
+        precondition.reserve(local_precondition.size() + values.size());
 
-        int pre_hash = state_mapper_->get_unique_partial_state_id(
-            affected_var_indices,
-            values);
+        std::merge(
+            local_precondition.begin(),
+            local_precondition.end(),
+            values.begin(),
+            values.end(),
+            std::back_inserter(precondition));
 
-        // Duplicate pruning
+        // Generate a hash for the precondition to check for duplicates
+        int pre_hash = state_mapper_->get_unique_partial_state_id(precondition);
+
         if (!duplicate_set.emplace(pre_hash, new_op).second) {
             continue;
         }
 
-        // Add the progression and regression operator
+        // Generate and add the regression operators
         const size_t pid = progression_preconditions.size();
 
-        auto& abs_op = abstract_operators_.emplace_back(std::move(new_op));
-        auto& precondition =
-            progression_preconditions.emplace_back(affected_var_indices.size());
-
-        for (size_t j = 0; j < affected_var_indices.size(); ++j) {
-            const int idx = affected_var_indices[j];
-            precondition[j] = std::make_pair(idx, values[idx]);
-        }
-
-        // Generate regression operators
-        for (size_t i = 0; i != abs_op.outcomes.size(); ++i) {
-            const AbstractState change = abs_op.outcomes.data()[i].first;
+        for (size_t i = 0; i != new_op.outcomes.size(); ++i) {
+            const AbstractState change = new_op.outcomes.data()[i].first;
             const auto& effect = effects[i];
 
-            // Apply effect to progression precondition to get regression
-            // precondition
-            std::vector<std::pair<int, int>> regression_precondition =
-                precondition;
+            // Apply effect to progression precondition. The result is the
+            // regression precondition
+            apply(regression_preconditions.emplace_back(precondition), effect);
 
-            for (const auto& [eff_var, eff_val] : effect) {
-                int i = 0;
-
-                while (regression_precondition[i].first != eff_var) {
-                    ++i;
-                }
-
-                regression_precondition[i].second = eff_val;
-            }
-
-            // Add regression operators
-            regression_preconditions.push_back(
-                std::move(regression_precondition));
-
+            // Effect is inverted
             regression_operators.emplace_back(pid, AbstractState(-change.id));
         }
+
+        // Now add the progression operators. In this order, we can move
+        // construct
+        progression_preconditions.push_back(std::move(precondition));
+        abstract_operators_.push_back(std::move(new_op));
     };
 }
 

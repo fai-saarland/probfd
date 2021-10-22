@@ -24,35 +24,27 @@ struct PatternTooLargeException : utils::Exception {
 };
 
 AbstractStateMapper::CartesianSubsetIterator::CartesianSubsetIterator(
-    std::vector<int> values,
-    std::vector<int> indices,
+    std::vector<std::pair<int, int>> partial_state,
     const std::vector<int>& domains)
-    : values_(std::move(values))
-    , indices_(std::move(indices))
+    : partial_state_(std::move(partial_state))
     , domains_(domains)
     , done(false)
 {
-    assert(values_.size() >= indices_.size());
-
-    for (size_t i = 0; i < indices_.size(); ++i) {
-        assert(utils::in_bounds(static_cast<size_t>(indices_[i]), values_));
-        values_[indices_[i]] = 0;
-    }
 }
 
 AbstractStateMapper::CartesianSubsetIterator&
 AbstractStateMapper::CartesianSubsetIterator::operator++()
 {
-    for (int i = indices_.size() - 1; i >= 0; --i) {
-        const int idx = indices_[i];
-        const int next = values_[idx] + 1;
+    for (int i = partial_state_.size() - 1; i >= 0; --i) {
+        auto& [var, val] = partial_state_[i];
+        const int next = val + 1;
 
-        if (next < domains_[idx]) {
-            values_[idx] = next;
+        if (next < domains_[var]) {
+            val = next;
             return *this;
         }
 
-        values_[idx] = 0;
+        val = 0;
     }
 
     done = true;
@@ -63,16 +55,16 @@ AbstractStateMapper::CartesianSubsetIterator::operator++()
 AbstractStateMapper::CartesianSubsetIterator&
 AbstractStateMapper::CartesianSubsetIterator::operator--()
 {
-    for (int i = indices_.size() - 1; i >= 0; --i) {
-        const int idx = indices_[i];
-        const int next = values_[idx] - 1;
+    for (int i = partial_state_.size() - 1; i >= 0; --i) {
+        auto& [var, val] = partial_state_[i];
+        const int next = val - 1;
 
         if (next >= 0) {
-            values_[idx] = next;
+            val = next;
             return *this;
         }
 
-        values_[idx] = domains_[idx] - 1;
+        val = domains_[var] - 1;
     }
 
     done = true;
@@ -83,13 +75,13 @@ AbstractStateMapper::CartesianSubsetIterator::operator--()
 AbstractStateMapper::CartesianSubsetIterator::reference
 AbstractStateMapper::CartesianSubsetIterator::operator*()
 {
-    return values_;
+    return partial_state_;
 }
 
 AbstractStateMapper::CartesianSubsetIterator::pointer
 AbstractStateMapper::CartesianSubsetIterator::operator->()
 {
-    return &values_;
+    return &partial_state_;
 }
 
 bool operator==(
@@ -276,6 +268,30 @@ AbstractState AbstractStateMapper::from_values_partial(
     return res;
 }
 
+AbstractState AbstractStateMapper::from_values_partial(
+    const std::vector<int>& indices,
+    const std::vector<std::pair<int, int>>& sparse_values) const
+{
+    AbstractState res(0);
+
+    auto ind_it = indices.begin();
+    auto ind_end = indices.end();
+
+    auto it = sparse_values.begin();
+    auto end = sparse_values.end();
+
+    for (; ind_it != ind_end; ++it, ++ind_it) {
+        const int idx = *ind_it;
+
+        it = std::find_if(it, end, [=](auto a) { return a.first == idx; });
+        assert(it != end);
+
+        res.id += multipliers_[idx] * it->second;
+    }
+
+    return res;
+}
+
 AbstractState AbstractStateMapper::from_value_partial(int idx, int val) const
 {
     return AbstractState(multipliers_[idx] * val);
@@ -289,6 +305,16 @@ int AbstractStateMapper::get_unique_partial_state_id(
     int id = 0;
     for (int j : indices) {
         id += partial_multipliers_[j] * (values[j] + 1);
+    }
+    return id;
+}
+
+int AbstractStateMapper::get_unique_partial_state_id(
+    const std::vector<std::pair<int, int>>& pstate) const
+{
+    int id = 0;
+    for (const auto& [var, val] : pstate) {
+        id += partial_multipliers_[var] * (val + 1);
     }
     return id;
 }
@@ -315,10 +341,9 @@ void AbstractStateMapper::to_values(
 
 AbstractStateMapper::CartesianSubsetIterator
 AbstractStateMapper::cartesian_subsets_begin(
-    std::vector<int> values,
-    std::vector<int> indices) const
+    std::vector<std::pair<int, int>> partial_state) const
 {
-    return CartesianSubsetIterator(values, indices, domains_);
+    return CartesianSubsetIterator(std::move(partial_state), domains_);
 }
 
 AbstractStateMapper::CartesianSubsetSentinel
@@ -331,13 +356,11 @@ utils::RangeProxy<
     AbstractStateMapper::CartesianSubsetIterator,
     AbstractStateMapper::CartesianSubsetSentinel>
 AbstractStateMapper::cartesian_subsets(
-    std::vector<int> values,
-    std::vector<int> indices) const
+    std::vector<std::pair<int, int>> partial_state) const
 {
-    return utils::
-        RangeProxy<CartesianSubsetIterator, CartesianSubsetSentinel>(
-            cartesian_subsets_begin(values, indices),
-            cartesian_subsets_end());
+    return utils::RangeProxy<CartesianSubsetIterator, CartesianSubsetSentinel>(
+        cartesian_subsets_begin(std::move(partial_state)),
+        cartesian_subsets_end());
 }
 
 AbstractStateMapper::PartialStateIterator
