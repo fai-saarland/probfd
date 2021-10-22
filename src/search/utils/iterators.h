@@ -251,58 +251,63 @@ public:
     }
 };
 
-template <typename T>
-using first_base_t = sub_iterator<T, decltype(std::declval<T>()->first)>;
-
-template <typename T>
-using cfirst_base_t = sub_iterator<T, const decltype(std::declval<T>()->first)>;
-
-template <typename T>
-using second_base_t = sub_iterator<T, decltype(std::declval<T>()->second)>;
-
-template <typename T>
-using csecond_base_t = sub_iterator<T, const decltype(std::declval<T>()->second)>;
-
 template <typename IteratorT>
 struct key_iterator
-    : public first_base_t<IteratorT> {
-    using Base = first_base_t<IteratorT>;
+    : public sub_iterator<
+          IteratorT,
+          typename std::iterator_traits<IteratorT>::value_type::first_type> {
+    using pair = typename std::iterator_traits<IteratorT>::value_type;
+    using Base = sub_iterator<IteratorT, typename pair::first_type>;
 
     key_iterator(IteratorT base)
-        : Base(base, &Base::base_value::first)
+        : Base(base, &pair::first)
     {
     }
 };
 
 template <typename IteratorT>
 struct const_key_iterator
-    : public cfirst_base_t<IteratorT> {
-    using Base = cfirst_base_t<IteratorT>;
+    : public sub_iterator<
+          IteratorT,
+          std::add_const_t<typename std::iterator_traits<
+              IteratorT>::value_type::first_type>> {
+
+    using pair = typename std::iterator_traits<IteratorT>::value_type;
+    using Base =
+        sub_iterator<IteratorT, std::add_const_t<typename pair::first_type>>;
 
     const_key_iterator(IteratorT base)
-        : Base(base, &Base::base_value::first)
+        : Base(base, &pair::first)
     {
     }
 };
 
 template <typename IteratorT>
 struct val_iterator
-    : public second_base_t<IteratorT> {
-    using Base = second_base_t<IteratorT>;
+    : public sub_iterator<
+          IteratorT,
+          typename std::iterator_traits<IteratorT>::value_type::second_type> {
+    using pair = typename std::iterator_traits<IteratorT>::value_type;
+    using Base = sub_iterator<IteratorT, typename pair::second_type>;
 
     val_iterator(IteratorT base)
-        : Base(base, &Base::base_value::second)
+        : Base(base, &pair::second)
     {
     }
 };
 
 template <typename IteratorT>
 struct const_val_iterator
-    : public csecond_base_t<IteratorT> {
-    using Base = csecond_base_t<IteratorT>;
+    : public sub_iterator<
+          IteratorT,
+          std::add_const_t<typename std::iterator_traits<
+              IteratorT>::value_type::second_type>> {
+    using pair = typename std::iterator_traits<IteratorT>::value_type;
+    using Base =
+        sub_iterator<IteratorT, std::add_const_t<typename pair::second_type>>;
 
     const_val_iterator(IteratorT base)
-        : Base(base, &Base::base_value::second)
+        : Base(base, &pair::second)
     {
     }
 };
