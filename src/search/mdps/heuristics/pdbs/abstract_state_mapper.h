@@ -17,21 +17,22 @@ namespace pdbs {
 
 class AbstractStateMapper {
 public:
-    class CartesianSubsetIterator;
-    class CartesianSubsetEndIterator;
+    // Empty sentinel types
+    class CartesianSubsetSentinel {
+    };
 
-    class PartialStateIterator;
-    class PartialStateEndIterator;
+    class PartialStateSentinel {
+    };
 
     class CartesianSubsetIterator {
-        friend AbstractStateMapper;
-
-        using reference = std::vector<int>&;
+        using difference_type = void;
+        using value_type = std::vector<int>;
         using pointer = std::vector<int>*;
+        using reference = std::vector<int>&;
+        using iterator_category = std::forward_iterator_tag;
 
         std::vector<int> values_;
         std::vector<int> indices_;
-
         const std::vector<int>& domains_;
 
         int i;
@@ -53,27 +54,19 @@ public:
 
         friend bool operator==(
             const CartesianSubsetIterator&,
-            const CartesianSubsetEndIterator&);
+            const CartesianSubsetSentinel&);
 
         friend bool operator!=(
             const CartesianSubsetIterator&,
-            const CartesianSubsetEndIterator&);
-    };
-
-    class CartesianSubsetEndIterator {
-        friend AbstractStateMapper;
-
-        friend bool operator==(
-            const CartesianSubsetIterator&,
-            const CartesianSubsetEndIterator&);
-
-        friend bool operator!=(
-            const CartesianSubsetIterator&,
-            const CartesianSubsetEndIterator&);
+            const CartesianSubsetSentinel&);
     };
 
     class PartialStateIterator {
-        friend AbstractStateMapper;
+        using difference_type = void;
+        using value_type = const AbstractState;
+        using pointer = const AbstractState*;
+        using reference = const AbstractState&;
+        using iterator_category = std::forward_iterator_tag;
 
         std::vector<int> index_multipliers_;
         std::vector<int> local_counters_;
@@ -95,24 +88,14 @@ public:
         PartialStateIterator operator++(int) = delete;
         PartialStateIterator operator--(int) = delete;
 
-        const AbstractState& operator*();
-        const AbstractState* operator->();
+        reference operator*();
+        pointer operator->();
 
         friend bool
-        operator==(const PartialStateIterator&, const PartialStateEndIterator&);
+        operator==(const PartialStateIterator&, const PartialStateSentinel&);
 
         friend bool
-        operator!=(const PartialStateIterator&, const PartialStateEndIterator&);
-    };
-
-    class PartialStateEndIterator {
-        friend AbstractStateMapper;
-
-        friend bool
-        operator==(const PartialStateIterator&, const PartialStateEndIterator&);
-
-        friend bool
-        operator!=(const PartialStateIterator&, const PartialStateEndIterator&);
+        operator!=(const PartialStateIterator&, const PartialStateSentinel&);
     };
 
 public:
@@ -147,17 +130,17 @@ public:
     cartesian_subsets_begin(std::vector<int> values, std::vector<int> indices)
         const;
 
-    CartesianSubsetEndIterator cartesian_subsets_end() const;
+    CartesianSubsetSentinel cartesian_subsets_end() const;
 
-    utils::RangeProxy<CartesianSubsetIterator, CartesianSubsetEndIterator>
+    utils::RangeProxy<CartesianSubsetIterator, CartesianSubsetSentinel>
     cartesian_subsets(std::vector<int> values, std::vector<int> indices) const;
 
     PartialStateIterator
     partial_states_begin(AbstractState offset, std::vector<int> indices) const;
 
-    PartialStateEndIterator partial_states_end() const;
+    PartialStateSentinel partial_states_end() const;
 
-    utils::RangeProxy<PartialStateIterator, PartialStateEndIterator>
+    utils::RangeProxy<PartialStateIterator, PartialStateSentinel>
     partial_states(AbstractState offset, std::vector<int> indices) const;
 
     int get_multiplier(int var) const;

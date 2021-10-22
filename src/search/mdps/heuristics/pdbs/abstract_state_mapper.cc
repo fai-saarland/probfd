@@ -106,14 +106,14 @@ AbstractStateMapper::CartesianSubsetIterator::operator->()
 
 bool operator==(
     const AbstractStateMapper::CartesianSubsetIterator& a,
-    const AbstractStateMapper::CartesianSubsetEndIterator&)
+    const AbstractStateMapper::CartesianSubsetSentinel&)
 {
     return a.i == -1;
 }
 
 bool operator!=(
     const AbstractStateMapper::CartesianSubsetIterator& a,
-    const AbstractStateMapper::CartesianSubsetEndIterator&)
+    const AbstractStateMapper::CartesianSubsetSentinel&)
 {
     return a.i != -1;
 }
@@ -176,14 +176,14 @@ const AbstractState* AbstractStateMapper::PartialStateIterator::operator->()
 
 bool operator==(
     const AbstractStateMapper::PartialStateIterator& a,
-    const AbstractStateMapper::PartialStateEndIterator&)
+    const AbstractStateMapper::PartialStateSentinel&)
 {
     return a.recursion_level == -1;
 }
 
 bool operator!=(
     const AbstractStateMapper::PartialStateIterator& a,
-    const AbstractStateMapper::PartialStateEndIterator&)
+    const AbstractStateMapper::PartialStateSentinel&)
 {
     return a.recursion_level != -1;
 }
@@ -340,21 +340,21 @@ AbstractStateMapper::cartesian_subsets_begin(
     return CartesianSubsetIterator(values, indices, domains_);
 }
 
-AbstractStateMapper::CartesianSubsetEndIterator
+AbstractStateMapper::CartesianSubsetSentinel
 AbstractStateMapper::cartesian_subsets_end() const
 {
-    return CartesianSubsetEndIterator();
+    return CartesianSubsetSentinel();
 }
 
 utils::RangeProxy<
     AbstractStateMapper::CartesianSubsetIterator,
-    AbstractStateMapper::CartesianSubsetEndIterator>
+    AbstractStateMapper::CartesianSubsetSentinel>
 AbstractStateMapper::cartesian_subsets(
     std::vector<int> values,
     std::vector<int> indices) const
 {
     return utils::
-        RangeProxy<CartesianSubsetIterator, CartesianSubsetEndIterator>(
+        RangeProxy<CartesianSubsetIterator, CartesianSubsetSentinel>(
             cartesian_subsets_begin(values, indices),
             cartesian_subsets_end());
 }
@@ -367,20 +367,20 @@ AbstractStateMapper::partial_states_begin(
     return PartialStateIterator(offset, indices, multipliers_, domains_);
 }
 
-AbstractStateMapper::PartialStateEndIterator
+AbstractStateMapper::PartialStateSentinel
 AbstractStateMapper::partial_states_end() const
 {
-    return PartialStateEndIterator();
+    return PartialStateSentinel();
 }
 
 utils::RangeProxy<
     AbstractStateMapper::PartialStateIterator,
-    AbstractStateMapper::PartialStateEndIterator>
+    AbstractStateMapper::PartialStateSentinel>
 AbstractStateMapper::partial_states(
     AbstractState offset,
     std::vector<int> indices) const
 {
-    return utils::RangeProxy<PartialStateIterator, PartialStateEndIterator>(
+    return utils::RangeProxy<PartialStateIterator, PartialStateSentinel>(
         partial_states_begin(offset, indices),
         partial_states_end());
 }
