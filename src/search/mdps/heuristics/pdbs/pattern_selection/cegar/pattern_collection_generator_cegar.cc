@@ -1243,8 +1243,8 @@ static Plugin<PatternCollectionGenerator<MaxProbProjection>>
 static Plugin<PatternCollectionGenerator<ExpCostProjection>>
     _plugin_expcost("cegar_ecpdbs", _parse<ExpCostProjection>);
 
-template class PatternCollectionGenerator<MaxProbProjection>;
-template class PatternCollectionGenerator<ExpCostProjection>;
+template class PatternCollectionGeneratorCegar<MaxProbProjection>;
+template class PatternCollectionGeneratorCegar<ExpCostProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs
