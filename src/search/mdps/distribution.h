@@ -83,18 +83,18 @@ public:
         distribution_.emplace_back(std::move(t), prob);
     }
 
-    void add_unique(T t, value_type::value_t prob)
+    std::pair<iterator, bool> add_unique(T t, value_type::value_t prob)
     {
         assert(prob > 0.0);
 
-        for (auto it = distribution_.begin(); it != distribution_.end(); ++it) {
-            if (it->first == t) {
-                it->second += prob;
-                return;
-            }
+        auto it = this->find(t);
+
+        if (it != end()) {
+            it->second += prob;
+            return {it, false};
         }
 
-        distribution_.emplace_back(std::move(t), prob);
+        return {distribution_.emplace(it, std::move(t), prob), true};
     }
 
     iterator find(const T& t)
