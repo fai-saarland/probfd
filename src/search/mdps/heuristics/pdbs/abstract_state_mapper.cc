@@ -204,6 +204,11 @@ unsigned AbstractStateMapper::size() const
     return multipliers_.back();
 }
 
+unsigned AbstractStateMapper::num_vars() const
+{
+    return vars_.size();
+}
+
 const Pattern& AbstractStateMapper::get_pattern() const
 {
     return vars_;
@@ -335,8 +340,43 @@ void AbstractStateMapper::to_values(
 {
     values.resize(vars_.size());
     for (size_t i = 0; i < vars_.size(); ++i) {
-        values[i] = ((int)(abstract_state.id / multipliers_[i])) % domains_[i];
+        values[i] = (abstract_state.id / multipliers_[i]) % domains_[i];
     }
+}
+
+AbstractState AbstractStateMapper::convert(
+    AbstractState abstract_state,
+    const Pattern& pattern) const
+{
+    assert(std::includes(
+        vars_.begin(),
+        vars_.end(),
+        pattern.begin(),
+        pattern.end()));
+
+    assert(!pattern.empty());
+
+    AbstractState converted_state(0);
+
+    auto pattern_it = pattern.begin();
+    auto pattern_end = pattern.end();
+
+    if (vars_[0] == *pattern_it) {
+        converted_state.id += abstract_state.id % domains_[0];
+        ++pattern_it;
+    }
+
+    for (int i = 1; pattern_it != pattern_end; ++pattern_it, ++i) {
+        while (vars_[i] != *pattern_it) {
+            abstract_state.id /= domains_[i - 1];
+            ++i;
+        }
+
+        abstract_state.id /= domains_[i - 1];
+        converted_state.id += abstract_state.id % domains_[i];
+    }
+
+    return converted_state;
 }
 
 AbstractStateMapper::CartesianSubsetIterator

@@ -95,6 +95,8 @@ public:
 
     unsigned int size() const;
 
+    unsigned int num_vars() const;
+
     const Pattern& get_pattern() const;
     const std::vector<int>& get_domains() const;
 
@@ -119,6 +121,9 @@ public:
         const std::vector<std::pair<int, int>>& pstate) const;
 
     std::vector<int> to_values(AbstractState abstract_state) const;
+
+    AbstractState
+    convert(AbstractState abstract_state, const Pattern& values) const;
 
     void
     to_values(AbstractState abstract_state, std::vector<int>& values) const;
