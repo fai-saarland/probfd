@@ -5,6 +5,7 @@
 #include "../../../../../utils/hash.h"
 #include "../../../../../utils/rng.h"
 
+#include "../../abstract_state_mapper.h"
 #include "../../expcost_projection.h"
 #include "../../maxprob_projection.h"
 
@@ -19,11 +20,106 @@ namespace probabilistic {
 namespace pdbs {
 namespace pattern_selection {
 
+namespace {
+template <typename PDBType>
+class MergeEvaluator : public StateEvaluator<AbstractState> {
+    const AbstractStateMapper* mapper;
+    const PDBType& left;
+    const PDBType& right;
+
+public:
+    explicit MergeEvaluator(
+        const AbstractStateMapper* mapper,
+        const PDBType& left,
+        const PDBType& right)
+        : mapper(mapper)
+        , left(left)
+        , right(right)
+    {
+    }
+
+protected:
+    EvaluationResult evaluate(const AbstractState& state) const override
+    {
+        AbstractState lstate = mapper->convert(state, left.get_pattern());
+
+        auto leval = left.evaluate(lstate);
+
+        if (leval) {
+            return leval;
+        }
+
+        AbstractState rstate = mapper->convert(state, right.get_pattern());
+
+        auto reval = right.evaluate(rstate);
+
+        if (reval) {
+            return reval;
+        }
+
+        return {
+            false,
+            std::min(
+                static_cast<value_type::value_t>(leval),
+                static_cast<value_type::value_t>(reval))};
+    }
+};
+} // namespace
+
 template <typename PDBType>
 AbstractSolutionData<PDBType>::AbstractSolutionData(
     const Pattern& pattern,
     set<int> blacklist)
     : pdb(new PDBType(pattern))
+    , blacklist(std::move(blacklist))
+    , policy(pdb->get_optimal_abstract_policy())
+    , solved(false)
+{
+}
+
+template <typename PDBType>
+AbstractSolutionData<PDBType>::AbstractSolutionData(
+    const PDBType& previous,
+    int add_var,
+    std::set<int> blacklist)
+    : pdb(new PDBType(previous, add_var))
+    , blacklist(std::move(blacklist))
+    , policy(pdb->get_optimal_abstract_policy())
+    , solved(false)
+{
+}
+
+template <typename PDBType>
+PDBType*
+construct_merge_pdb(const PDBType& merge_left, const PDBType& merge_right)
+{
+    const Pattern& left_pattern = merge_left.get_pattern();
+    const Pattern& right_pattern = merge_right.get_pattern();
+
+    Pattern merge_pattern;
+    merge_pattern.reserve(left_pattern.size() + right_pattern.size());
+
+    std::merge(
+        left_pattern.begin(),
+        left_pattern.end(),
+        right_pattern.begin(),
+        right_pattern.end(),
+        std::back_inserter(merge_pattern));
+
+    AbstractStateMapper* mapper =
+        new AbstractStateMapper(merge_pattern, ::g_variable_domain);
+
+    return new PDBType(
+        mapper,
+        MergeEvaluator<PDBType>(mapper, merge_left, merge_right));
+}
+
+template <typename PDBType>
+AbstractSolutionData<PDBType>::AbstractSolutionData(
+    const PDBType& merge_left,
+    const PDBType& merge_right,
+    std::set<int> blacklist)
+    : pdb(construct_merge_pdb(merge_left, merge_right))
     , blacklist(std::move(blacklist))
     , policy(pdb->get_optimal_abstract_policy())
     , solved(false)

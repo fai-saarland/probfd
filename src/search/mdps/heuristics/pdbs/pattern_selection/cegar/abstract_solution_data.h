@@ -29,6 +29,16 @@ class AbstractSolutionData {
 public:
     AbstractSolutionData(const Pattern& pattern, std::set<int> blacklist);
 
+    AbstractSolutionData(
+        const PDBType& previous,
+        int add_var,
+        std::set<int> blacklist);
+
+    AbstractSolutionData(
+        const PDBType& merge_left,
+        const PDBType& merge_right,
+        std::set<int> blacklist);
+
     const Pattern& get_pattern() const;
 
     void blacklist_variable(int var);

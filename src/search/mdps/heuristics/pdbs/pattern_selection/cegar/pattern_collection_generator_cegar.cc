@@ -799,10 +799,11 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
     AbstractSolutionData<PDBType>& solution1 = *solutions[index1];
     AbstractSolutionData<PDBType>& solution2 = *solutions[index2];
 
-    const Pattern& pattern2 = solution2.get_pattern();
+    const PDBType& pdb1 = solution1.get_pdb();
+    const PDBType& pdb2 = solution2.get_pdb();
 
     // update look-up table
-    for (int var : pattern2) {
+    for (int var : solution2.get_pattern()) {
         solution_lookup[var] = index1;
     }
 
@@ -812,20 +813,13 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
     set<int> new_blacklist(blacklist1);
     new_blacklist.insert(blacklist2.begin(), blacklist2.end());
 
-    // compute merged pattern
-    Pattern new_pattern = solution1.get_pattern();
-    new_pattern.insert(new_pattern.end(), pattern2.begin(), pattern2.end());
-    sort(new_pattern.begin(), new_pattern.end());
-
     // store old pdb sizes
-    int pdb_size1 = solutions[index1]->get_pdb().num_states();
-    int pdb_size2 = solutions[index2]->get_pdb().num_states();
+    int pdb_size1 = pdb1.num_states();
+    int pdb_size2 = pdb2.num_states();
 
     // compute merge solution
     unique_ptr<AbstractSolutionData<PDBType>> merged(
-        new AbstractSolutionData<PDBType>(
-            new_pattern,
-            new_blacklist));
+        new AbstractSolutionData<PDBType>(pdb1, pdb2, new_blacklist));
 
     // update collection size
     collection_size -= pdb_size1;
@@ -860,15 +854,11 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
 {
     AbstractSolutionData<PDBType>& solution = *solutions[index];
 
-    // compute new pattern
-    Pattern new_pattern(solution.get_pattern());
-    new_pattern.push_back(var);
-    sort(new_pattern.begin(), new_pattern.end());
-
     // compute new solution
     unique_ptr<AbstractSolutionData<PDBType>> new_solution(
         new AbstractSolutionData<PDBType>(
-            new_pattern,
+            solution.get_pdb(),
+            var,
             solution.get_blacklist()));
 
     // update collection size
