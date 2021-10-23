@@ -48,10 +48,17 @@ MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
     const std::vector<int>& domains,
     const AbstractStateEvaluator& heuristic)
-    : ProbabilisticProjection(pattern, domains)
+    : MaxProbProjection(new AbstractStateMapper(pattern, domains), heuristic)
+{
+    compute_value_table(heuristic);
+}
+
+MaxProbProjection::MaxProbProjection(
+    AbstractStateMapper* mapper,
+    const AbstractStateEvaluator& heuristic)
+    : ProbabilisticProjection(mapper)
     , value_table(state_mapper_->size())
 {
-
     compute_value_table(heuristic);
 }
 

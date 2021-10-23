@@ -25,6 +25,11 @@ public:
         const AbstractStateEvaluator& heuristic =
             ConstantEvaluator<AbstractState>(value_type::zero));
 
+    ExpCostProjection(
+        AbstractStateMapper* mapper,
+        const AbstractStateEvaluator& heuristic =
+            ConstantEvaluator<AbstractState>(value_type::zero));
+
     ExpCostProjection(const ::pdbs::PatternDatabase& pdb);
 
     ExpCostProjection(const ExpCostProjection& pdb, int add_var);

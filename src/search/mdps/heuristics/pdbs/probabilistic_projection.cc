@@ -24,12 +24,17 @@ struct NoGoalVariableException : std::exception {
 ProbabilisticProjection::ProbabilisticProjection(
     const Pattern& pattern,
     const std::vector<int>& domains)
-    : var_index_(domains.size(), -1)
-    , state_mapper_(new AbstractStateMapper(pattern, domains))
+    : ProbabilisticProjection(new AbstractStateMapper(pattern, domains))
+{
+}
+
+ProbabilisticProjection::ProbabilisticProjection(AbstractStateMapper* mapper)
+    : var_index_(::g_variable_domain.size(), -1)
+    , state_mapper_(mapper)
     , initial_state_((*state_mapper_)(::g_initial_state_data))
 {
-    for (size_t i = 0; i < pattern.size(); ++i) {
-        var_index_[pattern[i]] = i;
+    for (size_t i = 0; i < mapper->get_pattern().size(); ++i) {
+        var_index_[mapper->get_pattern()[i]] = i;
     }
 
     setup_abstract_goal();

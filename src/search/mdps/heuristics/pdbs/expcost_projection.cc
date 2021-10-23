@@ -48,7 +48,14 @@ ExpCostProjection::ExpCostProjection(
     const Pattern& variables,
     const std::vector<int>& domains,
     const AbstractStateEvaluator& heuristic)
-    : ProbabilisticProjection(variables, domains)
+    : ExpCostProjection(new AbstractStateMapper(variables, domains), heuristic)
+{
+}
+
+ExpCostProjection::ExpCostProjection(
+    AbstractStateMapper* mapper,
+    const AbstractStateEvaluator& heuristic)
+    : ProbabilisticProjection(mapper)
     , value_table(state_mapper_->size(), -value_type::inf)
 {
     compute_value_table(heuristic);

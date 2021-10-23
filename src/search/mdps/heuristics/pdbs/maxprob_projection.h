@@ -26,6 +26,11 @@ public:
         const AbstractStateEvaluator& heuristic =
             ConstantEvaluator<AbstractState>(value_type::one));
 
+    MaxProbProjection(
+        AbstractStateMapper* mapper,
+        const AbstractStateEvaluator& heuristic =
+            ConstantEvaluator<AbstractState>(value_type::one));
+
     MaxProbProjection(const ::pdbs::PatternDatabase& pdb);
 
     MaxProbProjection(const MaxProbProjection& pdb, int add_var);
