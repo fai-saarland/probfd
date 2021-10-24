@@ -7,6 +7,11 @@
 
 namespace utils {
 
+struct default_sentinel_t {
+};
+
+inline constexpr default_sentinel_t default_sentinel{};
+
 struct discarding_output_iterator {
     using difference_type = void;
     using value_type = void;
