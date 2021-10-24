@@ -209,7 +209,7 @@ AbstractStateMapper::AbstractStateMapper(
     num_partial_states_ = last_info.partial_multiplier * (d + 1);
 }
 
-unsigned AbstractStateMapper::size() const
+unsigned AbstractStateMapper::num_states() const
 {
     return num_states_;
 }

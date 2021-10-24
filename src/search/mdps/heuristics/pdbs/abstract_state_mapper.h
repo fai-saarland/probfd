@@ -95,7 +95,7 @@ public:
     AbstractStateMapper(Pattern pattern, const std::vector<int>& domains);
     ~AbstractStateMapper() = default;
 
-    unsigned int size() const;
+    unsigned int num_states() const;
 
     unsigned int num_vars() const;
 

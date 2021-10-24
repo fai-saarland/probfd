@@ -56,12 +56,12 @@ ProbabilisticProjection::get_abstract_goal_states()
 
 unsigned int ProbabilisticProjection::num_states() const
 {
-    return state_mapper_->size();
+    return state_mapper_->num_states();
 }
 
 unsigned int ProbabilisticProjection::num_dead_ends() const
 {
-    return state_mapper_->size() - dead_ends->get_storage().size();
+    return state_mapper_->num_states() - dead_ends->get_storage().size();
 }
 
 unsigned int ProbabilisticProjection::num_proper_states() const
@@ -77,7 +77,7 @@ unsigned int ProbabilisticProjection::num_reachable_states() const
 
 bool ProbabilisticProjection::has_only_proper_states() const
 {
-    return state_mapper_->size() == proper_states->get_storage().size();
+    return state_mapper_->num_states() == proper_states->get_storage().size();
 }
 
 bool ProbabilisticProjection::has_only_dead_or_proper_states() const
@@ -195,7 +195,7 @@ void ProbabilisticProjection::compute_proper_states()
     class std::unordered_set<AbstractState> S_new = dead_ends->get_storage();
     class std::unordered_set<AbstractState> S_old;
 
-    if (S_new.size() == this->state_mapper_->size()) {
+    if (S_new.size() == this->state_mapper_->num_states()) {
         proper_states.reset(
             new QualitativeResultStore(false, std::move(S_new)));
         return;
