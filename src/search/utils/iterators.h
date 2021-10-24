@@ -321,11 +321,26 @@ template <typename T1, typename T2>
 struct common_iterator {
     std::variant<T1, T2> var;
 
+    using difference_type1 = typename std::iterator_traits<T1>::difference_type;
+    using value_type1 = typename std::iterator_traits<T1>::value_type;
+    using pointer1 = typename std::iterator_traits<T1>::pointer;
+    using reference1 = typename std::iterator_traits<T1>::reference;
+
+    using difference_type2 = typename std::iterator_traits<T2>::difference_type;
+    using value_type2 = typename std::iterator_traits<T2>::value_type;
+    using pointer2 = typename std::iterator_traits<T2>::pointer;
+    using reference2 = typename std::iterator_traits<T2>::reference;
+
+    static_assert(std::is_same_v<difference_type1, difference_type2>);
+    static_assert(std::is_same_v<value_type1, value_type2>);
+    static_assert(std::is_same_v<pointer1, pointer2>);
+    static_assert(std::is_same_v<reference1, reference2>);
+
 public:
-    using difference_type = typename std::iterator_traits<T1>::difference_type;
-    using value_type = typename std::iterator_traits<T1>::value_type;
-    using pointer = typename std::iterator_traits<T1>::pointer;
-    using reference = typename std::iterator_traits<T1>::reference;
+    using difference_type = difference_type1;
+    using value_type = value_type1;
+    using pointer = pointer1;
+    using reference = reference1;
     using iterator_category = std::forward_iterator_tag;
 
     common_iterator() = default;
@@ -355,7 +370,7 @@ public:
             var);
     }
 
-    reference operator*() const
+    reference operator*()
     {
         return std::visit([](auto&& arg) -> reference { return *arg; }, var);
     }
