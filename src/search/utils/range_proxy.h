@@ -20,6 +20,12 @@ struct RangeProxy {
     auto end() { return e; }
 };
 
+template <typename IteratorT, typename SentinelT = IteratorT>
+auto make_range(IteratorT b, SentinelT e)
+{
+    return RangeProxy<IteratorT, SentinelT>(b, e);
+}
+
 } // namespace utils
 
 #endif // __RANGE_PROXY_H__
