@@ -46,23 +46,17 @@ class DefaultQuotientSystem {
         using state_iterator = utils::key_iterator<iterator>;
         using const_state_iterator = utils::key_iterator<const_iterator>;
 
-        iterator begin() { return states_naops.begin(); }
-        iterator end() { return states_naops.end(); }
+        auto begin() { return states_naops.begin(); }
+        auto end() { return states_naops.end(); }
 
-        const_iterator begin() const { return states_naops.begin(); }
-        const_iterator end() const { return states_naops.end(); }
+        auto begin() const { return states_naops.begin(); }
+        auto end() const { return states_naops.end(); }
 
-        state_iterator state_begin() { return state_iterator(begin()); }
-        state_iterator state_end() { return state_iterator(end()); }
+        auto state_begin() { return utils::make_key_iterator(begin()); }
+        auto state_end() { return utils::make_key_iterator(end()); }
 
-        const_state_iterator state_begin() const
-        {
-            return const_state_iterator(begin());
-        }
-        const_state_iterator state_end() const
-        {
-            return const_state_iterator(end());
-        }
+        auto state_begin() const { return utils::make_key_iterator(begin()); }
+        auto state_end() const { return utils::make_key_iterator(end()); }
     };
 
     using QuotientMap =
@@ -158,18 +152,17 @@ public:
         return info ? info->states_naops.size() : 1;
     }
 
-    utils::RangeProxy<QuotientStateIDIterator>
-    quotient_range(const StateID& state_id) const
+    auto quotient_range(const StateID& state_id) const
     {
         const QuotientInformation* info = this->get_quotient_info(state_id);
 
         if (info) {
-            return utils::RangeProxy<QuotientStateIDIterator>(
+            return utils::make_range(
                 QuotientStateIDIterator(info->state_begin()),
                 QuotientStateIDIterator(info->state_end()));
         }
 
-        return utils::RangeProxy<QuotientStateIDIterator>(
+        return utils::make_range(
             QuotientStateIDIterator(&state_id),
             QuotientStateIDIterator(&state_id + 1));
     }
