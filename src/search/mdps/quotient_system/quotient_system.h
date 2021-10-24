@@ -44,7 +44,7 @@ class DefaultQuotientSystem {
         using const_iterator = decltype(std::as_const(states_naops).begin());
 
         using state_iterator = utils::key_iterator<iterator>;
-        using const_state_iterator = utils::const_key_iterator<const_iterator>;
+        using const_state_iterator = utils::key_iterator<const_iterator>;
 
         iterator begin() { return states_naops.begin(); }
         iterator end() { return states_naops.end(); }

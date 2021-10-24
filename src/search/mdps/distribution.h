@@ -32,13 +32,11 @@ public:
     using iterator = typename distribution_t::iterator;
     using const_iterator = typename distribution_t::const_iterator;
 
-    using element_iterator = utils::sub_iterator<iterator, T>;
-    using const_element_iterator = utils::sub_iterator<const_iterator, T>;
+    using element_iterator = utils::key_iterator<iterator>;
+    using const_element_iterator = utils::key_iterator<const_iterator>;
 
-    using probability_iterator =
-        utils::sub_iterator<iterator, value_type::value_t>;
-    using const_probability_iterator =
-        utils::sub_iterator<const_iterator, value_type::value_t>;
+    using probability_iterator = utils::val_iterator<iterator>;
+    using const_probability_iterator = utils::val_iterator<const_iterator>;
 
     using element_range = utils::RangeProxy<element_iterator>;
     using const_element_range = utils::RangeProxy<element_iterator>;

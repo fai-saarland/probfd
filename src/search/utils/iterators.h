@@ -134,188 +134,164 @@ public:
     pointer operator->() const { return &value; }
 };
 
-template <typename IteratorT, typename T>
-class sub_iterator {
+template <typename IteratorT, typename Invocable>
+class transform_iterator {
 public:
-    using base_value = typename std::iterator_traits<IteratorT>::value_type;
+    using reference = std::invoke_result_t<
+        Invocable,
+        typename std::iterator_traits<IteratorT>::reference>;
+
+    static_assert(
+        std::is_reference_v<reference>,
+        "Invocable needs to return a reference when invoked on the reference "
+        "type of the iterator!");
 
     using difference_type =
         typename std::iterator_traits<IteratorT>::difference_type;
-    using value_type = T;
-    using pointer = T*;
-    using reference = T&;
+    using value_type = std::remove_cv_t<std::remove_reference_t<reference>>;
+    using pointer = std::add_pointer_t<std::remove_reference_t<reference>>;
     using iterator_category =
         typename std::iterator_traits<IteratorT>::iterator_category;
 
     IteratorT base;
-    T base_value::*member;
+    Invocable invocable;
 
-    sub_iterator(IteratorT base, T base_value::*member)
+    transform_iterator(IteratorT base, Invocable invocable = Invocable())
         : base(std::move(base))
-        , member(member)
+        , invocable(invocable)
     {
     }
 
     // Prefix increment
-    sub_iterator& operator++()
+    transform_iterator& operator++()
     {
         ++base;
         return *this;
     }
 
     // Postfix increment
-    sub_iterator operator++(int)
+    transform_iterator operator++(int)
     {
-        sub_iterator tmp = *this;
+        auto tmp = *this;
         ++(*this);
         return tmp;
     }
 
     // Prefix decrement
-    sub_iterator& operator--()
+    transform_iterator& operator--()
     {
         --base;
         return *this;
     }
 
     // Postfix increment
-    sub_iterator operator--(int)
+    transform_iterator operator--(int)
     {
-        sub_iterator tmp = *this;
+        transform_iterator tmp = *this;
         --(*this);
         return tmp;
     }
 
-    friend sub_iterator<IteratorT, T>
-    operator+(const sub_iterator<IteratorT, T>& a, int n)
+    friend transform_iterator<IteratorT, Invocable>
+    operator+(const transform_iterator<IteratorT, Invocable>& a, int n)
     {
-        return sub_iterator<IteratorT, T>(a.base + n, a.member);
+        return transform_iterator<IteratorT, Invocable>(
+            a.base + n,
+            a.invocable);
     }
 
-    friend sub_iterator<IteratorT, T>
-    operator-(const sub_iterator<IteratorT, T>& a, int n)
+    friend transform_iterator<IteratorT, Invocable>
+    operator-(const transform_iterator<IteratorT, Invocable>& a, int n)
     {
-        return sub_iterator<IteratorT, T>(a.base - n, a.member);
+        return transform_iterator<IteratorT, Invocable>(
+            a.base - n,
+            a.invocable);
     }
 
     friend difference_type operator-(
-        const sub_iterator<IteratorT, T>& a,
-        const sub_iterator<IteratorT, T>& b)
+        const transform_iterator<IteratorT, Invocable>& a,
+        const transform_iterator<IteratorT, Invocable>& b)
     {
         return a.base - b.base;
     }
 
-    reference operator[](int n) { return (base[n]).*member; }
+    reference operator[](int n) { return std::invoke(invocable, base[n]); }
 
-    reference operator*() { return (*base).*member; }
-    pointer operator->() { return &(*base).*member; }
-
-    std::add_const_t<reference> operator*() const { return (*base).*member; }
-    std::add_const_t<pointer> operator->() const { return &(*base).*member; }
+    reference operator*() { return std::invoke(invocable, *base); }
+    pointer operator->() { return &std::invoke(invocable, *base); }
 
     friend bool operator==(
-        const sub_iterator<IteratorT, T>& a,
-	const sub_iterator<IteratorT, T>& b)
+        const transform_iterator<IteratorT, Invocable>& a,
+        const transform_iterator<IteratorT, Invocable>& b)
     {
         return a.base == b.base;
     }
 
     friend bool operator!=(
-        const sub_iterator<IteratorT, T>& a,
-        const sub_iterator<IteratorT, T>& b)
+        const transform_iterator<IteratorT, Invocable>& a,
+        const transform_iterator<IteratorT, Invocable>& b)
     {
         return a.base != b.base;
     }
-    
+
     friend bool operator<(
-        const sub_iterator<IteratorT, T>& a,
-	const sub_iterator<IteratorT, T>& b)
+        const transform_iterator<IteratorT, Invocable>& a,
+        const transform_iterator<IteratorT, Invocable>& b)
     {
         return a.base < b.base;
     }
 
     friend bool operator>(
-        const sub_iterator<IteratorT, T>& a,
-        const sub_iterator<IteratorT, T>& b)
+        const transform_iterator<IteratorT, Invocable>& a,
+        const transform_iterator<IteratorT, Invocable>& b)
     {
         return a.base > b.base;
     }
-    
+
     friend bool operator<=(
-        const sub_iterator<IteratorT, T>& a,
-	const sub_iterator<IteratorT, T>& b)
+        const transform_iterator<IteratorT, Invocable>& a,
+        const transform_iterator<IteratorT, Invocable>& b)
     {
         return a.base <= b.base;
     }
 
     friend bool operator>=(
-        const sub_iterator<IteratorT, T>& a,
-        const sub_iterator<IteratorT, T>& b)
+        const transform_iterator<IteratorT, Invocable>& a,
+        const transform_iterator<IteratorT, Invocable>& b)
     {
         return a.base >= b.base;
     }
 };
 
 template <typename IteratorT>
-struct key_iterator
-    : public sub_iterator<
-          IteratorT,
-          typename std::iterator_traits<IteratorT>::value_type::first_type> {
-    using pair = typename std::iterator_traits<IteratorT>::value_type;
-    using Base = sub_iterator<IteratorT, typename pair::first_type>;
-
-    key_iterator(IteratorT base)
-        : Base(base, &pair::first)
-    {
-    }
-};
+using key_iterator = transform_iterator<
+    IteratorT,
+    decltype(&std::iterator_traits<IteratorT>::value_type::first)>;
 
 template <typename IteratorT>
-struct const_key_iterator
-    : public sub_iterator<
-          IteratorT,
-          std::add_const_t<typename std::iterator_traits<
-              IteratorT>::value_type::first_type>> {
+using val_iterator = transform_iterator<
+    IteratorT,
+    decltype(&std::iterator_traits<IteratorT>::value_type::second)>;
 
-    using pair = typename std::iterator_traits<IteratorT>::value_type;
-    using Base =
-        sub_iterator<IteratorT, std::add_const_t<typename pair::first_type>>;
-
-    const_key_iterator(IteratorT base)
-        : Base(base, &pair::first)
-    {
-    }
-};
+template <typename IteratorT, typename Invocable>
+auto make_transform_iterator(IteratorT base, Invocable f)
+{
+    return transform_iterator<IteratorT, Invocable>(base, f);
+}
 
 template <typename IteratorT>
-struct val_iterator
-    : public sub_iterator<
-          IteratorT,
-          typename std::iterator_traits<IteratorT>::value_type::second_type> {
-    using pair = typename std::iterator_traits<IteratorT>::value_type;
-    using Base = sub_iterator<IteratorT, typename pair::second_type>;
-
-    val_iterator(IteratorT base)
-        : Base(base, &pair::second)
-    {
-    }
-};
+auto make_key_iterator(IteratorT base)
+{
+    using ref = std::iterator_traits<IteratorT>::reference;
+    return make_transform_iterator(base, &std::remove_reference_t<ref>::first);
+}
 
 template <typename IteratorT>
-struct const_val_iterator
-    : public sub_iterator<
-          IteratorT,
-          std::add_const_t<typename std::iterator_traits<
-              IteratorT>::value_type::second_type>> {
-    using pair = typename std::iterator_traits<IteratorT>::value_type;
-    using Base =
-        sub_iterator<IteratorT, std::add_const_t<typename pair::second_type>>;
-
-    const_val_iterator(IteratorT base)
-        : Base(base, &pair::second)
-    {
-    }
-};
+auto make_val_iterator(IteratorT base)
+{
+    using ref = std::iterator_traits<IteratorT>::reference;
+    return make_transform_iterator(base, &std::remove_reference_t<ref>::second);
+}
 
 template <typename T1, typename T2>
 struct common_iterator {
