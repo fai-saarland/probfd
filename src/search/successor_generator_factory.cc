@@ -214,10 +214,9 @@ construct_leaf(
     }
 }
 
-template <typename Entry>
-static GeneratorPtr<Entry>
-construct_switch(
-    const std::vector<int>& domains,
+template <typename Entry, typename RandomAccessIterator>
+static GeneratorPtr<Entry> construct_switch(
+    RandomAccessIterator domains,
     int switch_var_id,
     ValuesAndGenerators<Entry> values_and_generators)
 {
@@ -253,11 +252,10 @@ construct_switch(
     }
 }
 
-template <typename Entry>
-static GeneratorPtr<Entry>
-construct_recursive(
-    const std::vector<int>& domains,
-    const std::vector<SuccessorGeneratorFactoryInfo<Entry> >& infos,
+template <typename Entry, typename RandomAccessIterator>
+static GeneratorPtr<Entry> construct_recursive(
+    RandomAccessIterator domains,
+    const std::vector<SuccessorGeneratorFactoryInfo<Entry>>& infos,
     int depth,
     Range range)
 {
@@ -310,11 +308,10 @@ build_sorted_precondition(const OperatorProxy& op)
 }
 #endif
 
-template <typename Entry>
-GeneratorPtr<Entry>
-create(
-    const std::vector<int>& domains,
-    std::vector<SuccessorGeneratorFactoryInfo<Entry> >& infos)
+template <typename Entry, typename RandomAccessIterator>
+GeneratorPtr<Entry> create(
+    RandomAccessIterator domains,
+    std::vector<SuccessorGeneratorFactoryInfo<Entry>>& infos)
 {
 #if 0
     OperatorsProxy operators = task_proxy.geterators();

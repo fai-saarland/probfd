@@ -19,10 +19,12 @@ class SuccessorGenerator {
     explicit SuccessorGenerator(std::unique_ptr<GeneratorBase<Entry> > root);
 public:
     explicit SuccessorGenerator();
+
+    template <typename RandomAccessIterator>
     explicit SuccessorGenerator(
-            const std::vector<int>& domains,
-            const std::vector<std::vector<std::pair<int, int>>>& conditions,
-            const std::vector<Entry>& values);
+        RandomAccessIterator domains,
+        const std::vector<std::vector<std::pair<int, int>>>& conditions,
+        const std::vector<Entry>& values);
     /*
       We cannot use the default destructor (implicitly or explicitly)
       here because GeneratorBase is a forward declaration and the

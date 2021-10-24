@@ -44,9 +44,10 @@ SuccessorGenerator<Entry>::generate_applicable_ops(
     root->generate_applicable_ops(0, facts, applicable_ops);
 }
 
-template<typename Entry>
+template <typename Entry>
+template <typename RandomAccessIterator>
 SuccessorGenerator<Entry>::SuccessorGenerator(
-    const std::vector<int>& domains,
+    RandomAccessIterator domains,
     const std::vector<std::vector<std::pair<int, int>>>& conditions,
     const std::vector<Entry>& values)
 {

@@ -27,9 +27,9 @@ private:
     std::vector<SuccessorGeneratorFactoryKey> precondition;
 };
 
-template <typename Entry>
+template <typename Entry, typename RandomAccessIterator>
 std::unique_ptr<GeneratorBase<Entry> > create(
-    const std::vector<int>& domains,
+    RandomAccessIterator domains,
     std::vector<SuccessorGeneratorFactoryInfo<Entry> >& infos);
 
 } // namespace successor_generator
