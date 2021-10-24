@@ -1,6 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
 #define MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
 
+#include "../../../utils/iterators.h"
 #include "../../../utils/range_proxy.h"
 #include "abstract_state.h"
 #include "types.h"
@@ -17,13 +18,6 @@ namespace pdbs {
 
 class AbstractStateMapper {
 public:
-    // Empty sentinel types
-    class CartesianSubsetSentinel {
-    };
-
-    class PartialStateSentinel {
-    };
-
     class CartesianSubsetIterator {
         using difference_type = void;
         using value_type = std::vector<std::pair<int, int>>;
@@ -48,12 +42,12 @@ public:
         pointer operator->();
 
         friend bool operator==(
-            const CartesianSubsetIterator&,
-            const CartesianSubsetSentinel&);
+            const CartesianSubsetIterator& a,
+            const utils::default_sentinel_t&);
 
         friend bool operator!=(
-            const CartesianSubsetIterator&,
-            const CartesianSubsetSentinel&);
+            const CartesianSubsetIterator& a,
+            const utils::default_sentinel_t&);
     };
 
     class PartialStateIterator {
@@ -82,11 +76,13 @@ public:
         reference operator*();
         pointer operator->();
 
-        friend bool
-        operator==(const PartialStateIterator&, const PartialStateSentinel&);
+        friend bool operator==(
+            const PartialStateIterator&,
+            const utils::default_sentinel_t&);
 
-        friend bool
-        operator!=(const PartialStateIterator&, const PartialStateSentinel&);
+        friend bool operator!=(
+            const PartialStateIterator&,
+            const utils::default_sentinel_t&);
     };
 
 public:
@@ -131,17 +127,17 @@ public:
     CartesianSubsetIterator cartesian_subsets_begin(
         std::vector<std::pair<int, int>> partial_state) const;
 
-    CartesianSubsetSentinel cartesian_subsets_end() const;
+    utils::default_sentinel_t cartesian_subsets_end() const;
 
-    utils::RangeProxy<CartesianSubsetIterator, CartesianSubsetSentinel>
+    utils::RangeProxy<CartesianSubsetIterator, utils::default_sentinel_t>
     cartesian_subsets(std::vector<std::pair<int, int>> partial_state) const;
 
     PartialStateIterator
     partial_states_begin(AbstractState offset, std::vector<int> indices) const;
 
-    PartialStateSentinel partial_states_end() const;
+    utils::default_sentinel_t partial_states_end() const;
 
-    utils::RangeProxy<PartialStateIterator, PartialStateSentinel>
+    utils::RangeProxy<PartialStateIterator, utils::default_sentinel_t>
     partial_states(AbstractState offset, std::vector<int> indices) const;
 
     int get_multiplier(int var) const;

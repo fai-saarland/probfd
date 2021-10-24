@@ -86,14 +86,14 @@ AbstractStateMapper::CartesianSubsetIterator::operator->()
 
 bool operator==(
     const AbstractStateMapper::CartesianSubsetIterator& a,
-    const AbstractStateMapper::CartesianSubsetSentinel&)
+    const utils::default_sentinel_t&)
 {
     return a.done;
 }
 
 bool operator!=(
     const AbstractStateMapper::CartesianSubsetIterator& a,
-    const AbstractStateMapper::CartesianSubsetSentinel&)
+    const utils::default_sentinel_t&)
 {
     return !a.done;
 }
@@ -149,14 +149,14 @@ const AbstractState* AbstractStateMapper::PartialStateIterator::operator->()
 
 bool operator==(
     const AbstractStateMapper::PartialStateIterator& a,
-    const AbstractStateMapper::PartialStateSentinel&)
+    const utils::default_sentinel_t&)
 {
     return a.done;
 }
 
 bool operator!=(
     const AbstractStateMapper::PartialStateIterator& a,
-    const AbstractStateMapper::PartialStateSentinel&)
+    const utils::default_sentinel_t&)
 {
     return !a.done;
 }
@@ -386,21 +386,21 @@ AbstractStateMapper::cartesian_subsets_begin(
     return CartesianSubsetIterator(std::move(partial_state), domains_);
 }
 
-AbstractStateMapper::CartesianSubsetSentinel
-AbstractStateMapper::cartesian_subsets_end() const
+utils::default_sentinel_t AbstractStateMapper::cartesian_subsets_end() const
 {
-    return CartesianSubsetSentinel();
+    return utils::default_sentinel_t();
 }
 
 utils::RangeProxy<
     AbstractStateMapper::CartesianSubsetIterator,
-    AbstractStateMapper::CartesianSubsetSentinel>
+    utils::default_sentinel_t>
 AbstractStateMapper::cartesian_subsets(
     std::vector<std::pair<int, int>> partial_state) const
 {
-    return utils::RangeProxy<CartesianSubsetIterator, CartesianSubsetSentinel>(
-        cartesian_subsets_begin(std::move(partial_state)),
-        cartesian_subsets_end());
+    return utils::
+        RangeProxy<CartesianSubsetIterator, utils::default_sentinel_t>(
+            cartesian_subsets_begin(std::move(partial_state)),
+            cartesian_subsets_end());
 }
 
 AbstractStateMapper::PartialStateIterator
@@ -411,20 +411,19 @@ AbstractStateMapper::partial_states_begin(
     return PartialStateIterator(offset, indices, multipliers_, domains_);
 }
 
-AbstractStateMapper::PartialStateSentinel
-AbstractStateMapper::partial_states_end() const
+utils::default_sentinel_t AbstractStateMapper::partial_states_end() const
 {
-    return PartialStateSentinel();
+    return utils::default_sentinel_t();
 }
 
 utils::RangeProxy<
     AbstractStateMapper::PartialStateIterator,
-    AbstractStateMapper::PartialStateSentinel>
+    utils::default_sentinel_t>
 AbstractStateMapper::partial_states(
     AbstractState offset,
     std::vector<int> indices) const
 {
-    return utils::RangeProxy<PartialStateIterator, PartialStateSentinel>(
+    return utils::RangeProxy<PartialStateIterator, utils::default_sentinel_t>(
         partial_states_begin(offset, indices),
         partial_states_end());
 }
