@@ -25,9 +25,9 @@ struct PatternTooLargeException : utils::Exception {
 
 AbstractStateMapper::CartesianSubsetIterator::CartesianSubsetIterator(
     std::vector<std::pair<int, int>> partial_state,
-    const std::vector<int>& domains)
+    const std::vector<VariableInfo>& var_infos)
     : partial_state_(std::move(partial_state))
-    , domains_(domains)
+    , var_infos_(var_infos)
     , done(false)
 {
 }
@@ -39,7 +39,7 @@ AbstractStateMapper::CartesianSubsetIterator::operator++()
         auto& [var, val] = partial_state_[i];
         const int next = val + 1;
 
-        if (next < domains_[var]) {
+        if (next < var_infos_[var].domain) {
             val = next;
             return *this;
         }
@@ -64,7 +64,7 @@ AbstractStateMapper::CartesianSubsetIterator::operator--()
             return *this;
         }
 
-        val = domains_[var] - 1;
+        val = var_infos_[var].domain - 1;
     }
 
     done = true;
@@ -101,8 +101,7 @@ bool operator!=(
 AbstractStateMapper::PartialStateIterator::PartialStateIterator(
     AbstractState offset,
     const std::vector<int>& indices,
-    const std::vector<int>& multipliers,
-    const std::vector<int>& domains)
+    const std::vector<VariableInfo>& var_infos)
     : values_(indices.size(), 0)
     , domains_(indices.size())
     , multipliers_(indices.size())
@@ -110,9 +109,9 @@ AbstractStateMapper::PartialStateIterator::PartialStateIterator(
     , done(false)
 {
     for (size_t i = 0; i != indices.size(); ++i) {
-        const int index = indices[i];
-        multipliers_[i] = multipliers[index];
-        domains_[i] = domains[index];
+        const VariableInfo& info = var_infos[indices[i]];
+        multipliers_[i] = info.multiplier;
+        domains_[i] = info.domain;
     }
 }
 
@@ -164,66 +163,72 @@ bool operator!=(
 AbstractStateMapper::AbstractStateMapper(
     Pattern pattern,
     const std::vector<int>& domains)
-    : vars_(std::move(pattern))
-    , domains_(vars_.size())
-    , multipliers_(vars_.size(), 1)
-    , partial_multipliers_(vars_.size(), 1)
+    : pattern_(std::move(pattern))
+    , var_infos_(pattern_.size())
 {
-    assert(!vars_.empty());
-    assert(std::is_sorted(vars_.begin(), vars_.end()));
+    assert(!pattern_.empty());
+    assert(std::is_sorted(pattern_.begin(), pattern_.end()));
 
     constexpr int maxint = std::numeric_limits<int>::max();
 
-    for (unsigned i = 1; i < vars_.size(); i++) {
-        assert(vars_[i - 1] < static_cast<int>(domains.size()));
-        const int d = domains[vars_[i - 1]];
-        domains_[i - 1] = d;
+    {
+        VariableInfo& first_info = var_infos_[0];
+        first_info.var = pattern_[0];
+        first_info.multiplier = 1;
+        first_info.partial_multiplier = 1;
+    }
 
-        if (partial_multipliers_[i - 1] > maxint / (d + 1)) {
+    for (unsigned i = 1; i < var_infos_.size(); ++i) {
+        VariableInfo& prev_info = var_infos_[i - 1];
+        VariableInfo& cur_info = var_infos_[i];
+
+        assert(prev_info.var < static_cast<int>(domains.size()));
+        const int d = domains[prev_info.var];
+        prev_info.domain = d;
+
+        if (prev_info.partial_multiplier > maxint / (d + 1)) {
             throw PatternTooLargeException();
         }
 
-        multipliers_[i] = multipliers_[i - 1] * d;
-        partial_multipliers_[i] = partial_multipliers_[i - 1] * (d + 1);
+        cur_info.var = pattern_[i];
+        cur_info.multiplier = prev_info.multiplier * d;
+        cur_info.partial_multiplier = prev_info.partial_multiplier * (d + 1);
     }
 
-    assert(vars_.back() < static_cast<int>(domains.size()));
+    VariableInfo& last_info = var_infos_.back();
+    assert(last_info.var < static_cast<int>(domains.size()));
 
-    const int d = domains[vars_.back()];
-    domains_.back() = d;
+    const int d = domains[last_info.var];
+    last_info.domain = d;
 
-    if (multipliers_.back() > maxint / d) {
+    if (last_info.partial_multiplier > maxint / (d + 1)) {
         throw PatternTooLargeException();
     }
 
-    multipliers_.push_back(multipliers_.back() * d);
+    num_states_ = last_info.multiplier * d;
+    num_partial_states_ = last_info.partial_multiplier * (d + 1);
 }
 
 unsigned AbstractStateMapper::size() const
 {
-    return multipliers_.back();
+    return num_states_;
 }
 
 unsigned AbstractStateMapper::num_vars() const
 {
-    return vars_.size();
+    return var_infos_.size();
 }
 
 const Pattern& AbstractStateMapper::get_pattern() const
 {
-    return vars_;
-}
-
-const std::vector<int>& AbstractStateMapper::get_domains() const
-{
-    return domains_;
+    return pattern_;
 }
 
 AbstractState AbstractStateMapper::operator()(const GlobalState& state) const
 {
     AbstractState res(0);
-    for (size_t i = 0; i < vars_.size(); ++i) {
-        res.id += multipliers_[i] * state[vars_[i]];
+    for (const VariableInfo& info : var_infos_) {
+        res.id += info.multiplier * state[info.var];
     }
     return res;
 }
@@ -232,8 +237,8 @@ AbstractState
 AbstractStateMapper::operator()(const std::vector<int>& state) const
 {
     AbstractState res(0);
-    for (size_t i = 0; i < vars_.size(); ++i) {
-        res.id += multipliers_[i] * state[vars_[i]];
+    for (const VariableInfo& info : var_infos_) {
+        res.id += info.multiplier * state[info.var];
     }
     return res;
 }
@@ -241,10 +246,11 @@ AbstractStateMapper::operator()(const std::vector<int>& state) const
 AbstractState
 AbstractStateMapper::from_values(const std::vector<int>& values) const
 {
-    assert(values.size() == vars_.size());
+    assert(values.size() == var_infos_.size());
     AbstractState res(0);
-    for (size_t i = 0; i < vars_.size(); ++i) {
-        res.id += multipliers_[i] * values[i];
+    auto it = values.begin();
+    for (const VariableInfo& info : var_infos_) {
+        res.id += info.multiplier * (*it++);
     }
     return res;
 }
@@ -253,10 +259,10 @@ AbstractState AbstractStateMapper::from_values_partial(
     const std::vector<int>& indices,
     const std::vector<int>& values) const
 {
-    assert(values.size() == vars_.size());
+    assert(values.size() == var_infos_.size());
     AbstractState res(0);
     for (int j : indices) {
-        res.id += multipliers_[j] * values[j];
+        res.id += var_infos_[j].multiplier * values[j];
     }
     return res;
 }
@@ -266,9 +272,9 @@ AbstractState AbstractStateMapper::from_values_partial(
 {
     AbstractState res(0);
     for (const auto& [idx, val] : sparse_values) {
-        assert(0 <= idx && idx < static_cast<int>(vars_.size()));
-        assert(0 <= val && val < domains_[idx]);
-        res.id += multipliers_[idx] * val;
+        assert(utils::in_bounds(idx, var_infos_));
+        assert(0 <= val && val < var_infos_[idx].domain);
+        res.id += var_infos_[idx].multiplier * val;
     }
     return res;
 }
@@ -291,7 +297,7 @@ AbstractState AbstractStateMapper::from_values_partial(
         it = std::find_if(it, end, [=](auto a) { return a.first == idx; });
         assert(it != end);
 
-        res.id += multipliers_[idx] * it->second;
+        res.id += var_infos_[idx].multiplier * it->second;
     }
 
     return res;
@@ -299,17 +305,17 @@ AbstractState AbstractStateMapper::from_values_partial(
 
 AbstractState AbstractStateMapper::from_value_partial(int idx, int val) const
 {
-    return AbstractState(multipliers_[idx] * val);
+    return AbstractState(var_infos_[idx].multiplier * val);
 }
 
 int AbstractStateMapper::get_unique_partial_state_id(
     const std::vector<int>& indices,
     const std::vector<int>& values) const
 {
-    assert(values.size() == vars_.size());
+    assert(values.size() == var_infos_.size());
     int id = 0;
     for (int j : indices) {
-        id += partial_multipliers_[j] * (values[j] + 1);
+        id += var_infos_[j].partial_multiplier * (values[j] + 1);
     }
     return id;
 }
@@ -319,7 +325,7 @@ int AbstractStateMapper::get_unique_partial_state_id(
 {
     int id = 0;
     for (const auto& [var, val] : pstate) {
-        id += partial_multipliers_[var] * (val + 1);
+        id += var_infos_[var].partial_multiplier * (val + 1);
     }
     return id;
 }
@@ -327,9 +333,10 @@ int AbstractStateMapper::get_unique_partial_state_id(
 std::vector<int>
 AbstractStateMapper::to_values(AbstractState abstract_state) const
 {
-    std::vector<int> values(vars_.size(), -1);
-    for (size_t i = 0; i < vars_.size(); ++i) {
-        values[i] = ((int)(abstract_state.id / multipliers_[i])) % domains_[i];
+    std::vector<int> values(var_infos_.size());
+    for (size_t i = 0; i != var_infos_.size(); ++i) {
+        const VariableInfo& info = var_infos_[i];
+        values[i] = (abstract_state.id / info.multiplier) % info.domain;
     }
     return values;
 }
@@ -338,9 +345,10 @@ void AbstractStateMapper::to_values(
     AbstractState abstract_state,
     std::vector<int>& values) const
 {
-    values.resize(vars_.size());
-    for (size_t i = 0; i < vars_.size(); ++i) {
-        values[i] = (abstract_state.id / multipliers_[i]) % domains_[i];
+    values.resize(var_infos_.size());
+    for (size_t i = 0; i != var_infos_.size(); ++i) {
+        const VariableInfo& info = var_infos_[i];
+        values[i] = (abstract_state.id / info.multiplier) % info.domain;
     }
 }
 
@@ -349,8 +357,8 @@ AbstractState AbstractStateMapper::convert(
     const Pattern& pattern) const
 {
     assert(std::includes(
-        vars_.begin(),
-        vars_.end(),
+        pattern_.begin(),
+        pattern_.end(),
         pattern.begin(),
         pattern.end()));
 
@@ -361,19 +369,20 @@ AbstractState AbstractStateMapper::convert(
     auto pattern_it = pattern.begin();
     auto pattern_end = pattern.end();
 
-    if (vars_[0] == *pattern_it) {
-        converted_state.id += abstract_state.id % domains_[0];
+    const VariableInfo& first_info = var_infos_[0];
+    if (first_info.var == *pattern_it) {
+        converted_state.id += abstract_state.id % first_info.domain;
         ++pattern_it;
     }
 
     for (int i = 1; pattern_it != pattern_end; ++pattern_it, ++i) {
-        while (vars_[i] != *pattern_it) {
-            abstract_state.id /= domains_[i - 1];
+        while (var_infos_[i].var != *pattern_it) {
+            abstract_state.id /= var_infos_[i - 1].domain;
             ++i;
         }
 
-        abstract_state.id /= domains_[i - 1];
-        converted_state.id += abstract_state.id % domains_[i];
+        abstract_state.id /= var_infos_[i - 1].domain;
+        converted_state.id += abstract_state.id % var_infos_[i].domain;
     }
 
     return converted_state;
@@ -383,7 +392,7 @@ AbstractStateMapper::CartesianSubsetIterator
 AbstractStateMapper::cartesian_subsets_begin(
     std::vector<std::pair<int, int>> partial_state) const
 {
-    return CartesianSubsetIterator(std::move(partial_state), domains_);
+    return CartesianSubsetIterator(std::move(partial_state), var_infos_);
 }
 
 utils::default_sentinel_t AbstractStateMapper::cartesian_subsets_end() const
@@ -408,7 +417,7 @@ AbstractStateMapper::partial_states_begin(
     AbstractState offset,
     std::vector<int> indices) const
 {
-    return PartialStateIterator(offset, indices, multipliers_, domains_);
+    return PartialStateIterator(offset, indices, var_infos_);
 }
 
 utils::default_sentinel_t AbstractStateMapper::partial_states_end() const
@@ -435,7 +444,7 @@ int AbstractStateMapper::get_multiplier(int var) const
 
 int AbstractStateMapper::get_multiplier_raw(int idx) const
 {
-    return multipliers_[idx];
+    return var_infos_[idx].multiplier;
 }
 
 int AbstractStateMapper::get_domain_size(int var) const
@@ -445,13 +454,13 @@ int AbstractStateMapper::get_domain_size(int var) const
 
 int AbstractStateMapper::get_domain_size_raw(int idx) const
 {
-    return domains_[idx];
+    return var_infos_[idx].domain;
 }
 
 int AbstractStateMapper::get_index(int var) const
 {
-    auto it = std::find(vars_.begin(), vars_.end(), var);
-    return it != vars_.end() ? std::distance(vars_.begin(), it) : -1;
+    auto it = std::find(pattern_.begin(), pattern_.end(), var);
+    return it != pattern_.end() ? std::distance(pattern_.begin(), it) : -1;
 }
 
 AbstractStateToString::AbstractStateToString(

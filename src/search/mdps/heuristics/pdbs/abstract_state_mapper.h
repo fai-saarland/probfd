@@ -18,6 +18,13 @@ namespace pdbs {
 
 class AbstractStateMapper {
 public:
+    struct VariableInfo {
+        int var;
+        int domain;
+        int multiplier;
+        int partial_multiplier;
+    };
+
     class CartesianSubsetIterator {
         using difference_type = void;
         using value_type = std::vector<std::pair<int, int>>;
@@ -26,14 +33,14 @@ public:
         using iterator_category = std::forward_iterator_tag;
 
         std::vector<std::pair<int, int>> partial_state_;
-        const std::vector<int>& domains_;
+        const std::vector<VariableInfo>& var_infos_;
 
         bool done;
 
     public:
         CartesianSubsetIterator(
             std::vector<std::pair<int, int>> partial_state,
-            const std::vector<int>& domains);
+            const std::vector<VariableInfo>& var_infos);
 
         CartesianSubsetIterator& operator++();
         CartesianSubsetIterator& operator--();
@@ -68,8 +75,7 @@ public:
         PartialStateIterator(
             AbstractState state,
             const std::vector<int>& indices,
-            const std::vector<int>& multipliers,
-            const std::vector<int>& domains);
+            const std::vector<VariableInfo>& var_infos);
 
         PartialStateIterator& operator++();
 
@@ -94,7 +100,30 @@ public:
     unsigned int num_vars() const;
 
     const Pattern& get_pattern() const;
-    const std::vector<int>& get_domains() const;
+
+    const std::vector<VariableInfo>& get_variable_infos() const
+    {
+        return var_infos_;
+    }
+
+    auto domains_begin() const
+    {
+        return utils::make_transform_iterator(
+            var_infos_.begin(),
+            &VariableInfo::domain);
+    }
+
+    auto domains_end() const
+    {
+        return utils::make_transform_iterator(
+            var_infos_.end(),
+            &VariableInfo::domain);
+    }
+
+    auto domains() const
+    {
+        return utils::make_range(domains_begin(), domains_end());
+    }
 
     AbstractState operator()(const GlobalState& state) const;
     AbstractState operator()(const std::vector<int>& state) const;
@@ -149,10 +178,10 @@ public:
     int get_index(int var) const;
 
 private:
-    std::vector<int> vars_;
-    std::vector<int> domains_;
-    std::vector<int> multipliers_;
-    std::vector<int> partial_multipliers_;
+    Pattern pattern_;
+    std::vector<VariableInfo> var_infos_;
+    int num_states_;
+    int num_partial_states_;
 };
 
 class AbstractStateToString {

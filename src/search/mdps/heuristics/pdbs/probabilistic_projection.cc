@@ -349,12 +349,12 @@ void ProbabilisticProjection::build_operators()
     // Build applicable operator generators
     progression_aops_generator_ =
         std::make_shared<ProgressionSuccessorGenerator>(
-            state_mapper_->get_domains(),
+            state_mapper_->domains_begin(),
             progression_preconditions,
             opptrs);
 
     regression_aops_generator_ = std::make_shared<RegressionSuccessorGenerator>(
-        state_mapper_->get_domains(),
+        state_mapper_->domains_begin(),
         regression_preconditions,
         std::move(abstract_regression_operators));
 }
