@@ -365,12 +365,6 @@ struct OutcomeInfo {
     std::vector<int> missing_pres;
     std::vector<std::pair<int, int>> effects;
 
-    friend bool operator<(const OutcomeInfo& a, const OutcomeInfo& b)
-    {
-        return std::tie(a.base_effect, a.missing_pres) <
-               std::tie(b.base_effect, b.missing_pres);
-    }
-
     friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b)
     {
         return std::tie(a.base_effect, a.missing_pres) ==
