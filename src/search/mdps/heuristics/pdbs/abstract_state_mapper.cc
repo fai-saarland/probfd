@@ -365,6 +365,7 @@ AbstractState AbstractStateMapper::convert(
     assert(!pattern.empty());
 
     AbstractState converted_state(0);
+    int multiplier = 1;
 
     auto pattern_it = pattern.begin();
     auto pattern_end = pattern.end();
@@ -372,17 +373,20 @@ AbstractState AbstractStateMapper::convert(
     const VariableInfo& first_info = var_infos_[0];
     if (first_info.var == *pattern_it) {
         converted_state.id += abstract_state.id % first_info.domain;
+        multiplier *= first_info.domain;
         ++pattern_it;
     }
 
     for (int i = 1; pattern_it != pattern_end; ++pattern_it, ++i) {
         while (var_infos_[i].var != *pattern_it) {
-            abstract_state.id /= var_infos_[i - 1].domain;
             ++i;
         }
 
-        abstract_state.id /= var_infos_[i - 1].domain;
-        converted_state.id += abstract_state.id % var_infos_[i].domain;
+        const VariableInfo& cur_info = var_infos_[i];
+
+        int value = (abstract_state.id / cur_info.multiplier) % cur_info.domain;
+        converted_state.id += multiplier * value;
+        multiplier *= cur_info.domain;
     }
 
     return converted_state;
