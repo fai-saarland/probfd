@@ -282,14 +282,14 @@ auto make_transform_iterator(IteratorT base, Invocable f)
 template <typename IteratorT>
 auto make_key_iterator(IteratorT base)
 {
-    using ref = std::iterator_traits<IteratorT>::reference;
+    using ref = typename std::iterator_traits<IteratorT>::reference;
     return make_transform_iterator(base, &std::remove_reference_t<ref>::first);
 }
 
 template <typename IteratorT>
 auto make_val_iterator(IteratorT base)
 {
-    using ref = std::iterator_traits<IteratorT>::reference;
+    using ref = typename std::iterator_traits<IteratorT>::reference;
     return make_transform_iterator(base, &std::remove_reference_t<ref>::second);
 }
 
