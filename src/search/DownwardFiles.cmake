@@ -706,6 +706,10 @@ fast_downward_plugin(
         mdps/heuristics/pdbs/pattern_selection/pattern_generator
 
         mdps/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data
+        mdps/heuristics/pdbs/pattern_selection/cegar/bfs_flaw_finder
+        mdps/heuristics/pdbs/pattern_selection/cegar/pucs_flaw_finder
+        mdps/heuristics/pdbs/pattern_selection/cegar/sampling_flaw_finder
+        mdps/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy
 
         mdps/heuristics/pdbs/subcollections/subcollection_finder
         mdps/heuristics/pdbs/subcollections/max_orthogonal_finder

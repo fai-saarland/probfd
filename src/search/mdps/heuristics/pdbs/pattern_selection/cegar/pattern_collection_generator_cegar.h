@@ -12,6 +12,8 @@
 #include "../../../../globals.h"
 #include "../../../../probabilistic_operator.h"
 
+#include "types.h"
+
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -31,122 +33,26 @@ namespace pattern_selection {
 template <typename PDBType>
 class AbstractSolutionData;
 
-struct Flaw {
-    bool is_goal_violation;
-    int solution_index;
-    int variable;
+template <typename PDBType>
+class FlawFindingStrategy;
 
-    Flaw(bool is_goal_violation, int solution_index, int variable)
-        : is_goal_violation(is_goal_violation)
-        , solution_index(solution_index)
-        , variable(variable)
-    {
-    }
-};
-
-using FlawList = std::vector<Flaw>;
-
-struct ExplicitGState {
-    std::vector<int> values;
-
-    ExplicitGState(std::vector<int> values)
-        : values(std::move(values))
-    {
-    }
-
-    size_t get_hash() const
-    {
-        std::size_t res = 0;
-        for (size_t i = 0; i < values.size(); ++i) {
-            res += g_variable_domain[i] * values[i];
-        }
-        return res;
-    }
-
-    int& operator[](int i) { return values[i]; }
-
-    const int& operator[](int i) const { return values[i]; }
-
-    ExplicitGState get_successor(const GlobalOperator& op) const
-    {
-        assert(!op.is_axiom());
-
-        ExplicitGState s(*this);
-
-        for (auto& eff : op.get_effects()) {
-            assert(eff.conditions.empty());
-            s[eff.var] = eff.val;
-        }
-
-        return s;
-    }
-
-    bool is_goal() const
-    {
-        for (auto& [goal_var, goal_val] : g_goal) {
-            if (values[goal_var] != goal_val) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    friend bool operator==(const ExplicitGState& a, const ExplicitGState& b)
-    {
-        return a.values == b.values;
-    }
-};
-
-enum class FlawFinderEnum { PGBFS, BFS, SAMPLING };
 enum class InitialCollectionType { GIVEN_GOAL, RANDOM_GOAL, ALL_GOALS };
 
 template <typename PDBType>
 class PatternCollectionGeneratorCegar
     : public PatternCollectionGenerator<PDBType> {
-    class FlawFindingStrategy {
-    protected:
-        PatternCollectionGeneratorCegar<PDBType>& base;
+    template <typename> friend class BFSFlawFinder;
+    template <typename> friend class PUCSFlawFinder;
+    template <typename> friend class SamplingFlawFinder;
 
-    public:
-        FlawFindingStrategy(PatternCollectionGeneratorCegar<PDBType>& base);
-        virtual ~FlawFindingStrategy() = default;
-        virtual FlawList
-        apply_policy(int solution_index, const ExplicitGState& init) = 0;
-    };
-
-    class ProbabilityGBFS : public FlawFindingStrategy {
-    public:
-        ProbabilityGBFS(PatternCollectionGeneratorCegar<PDBType>& base);
-        ~ProbabilityGBFS() override = default;
-
-        virtual FlawList
-        apply_policy(int solution_index, const ExplicitGState& init) override;
-    };
-
-    class BFS : public FlawFindingStrategy {
-    public:
-        BFS(PatternCollectionGeneratorCegar<PDBType>& base);
-        ~BFS() override = default;
-
-        virtual FlawList
-        apply_policy(int solution_index, const ExplicitGState& init) override;
-    };
-
-    class SamplingStrategy : public FlawFindingStrategy {
-    public:
-        SamplingStrategy(PatternCollectionGeneratorCegar<PDBType>& base);
-        ~SamplingStrategy() override = default;
-
-        virtual FlawList
-        apply_policy(int solution_index, const ExplicitGState& init) override;
-    };
-
-    std::shared_ptr<SubCollectionFinder> subcollection_finder;
-
+    // Random number generator
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
-    std::unique_ptr<FlawFindingStrategy> flaw_strategy;
+    // Subcollection finder
+    std::shared_ptr<SubCollectionFinder> subcollection_finder;
+
+    // Flaw finding strategy
+    std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy;
 
     // behavior defining parameters
     const int max_refinements;
@@ -188,9 +94,9 @@ public:
     explicit PatternCollectionGeneratorCegar(const options::Options& opts);
 
     PatternCollectionGeneratorCegar(
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         std::shared_ptr<SubCollectionFinder> subcollection_finder,
-        const std::shared_ptr<utils::RandomNumberGenerator>& arg_rng,
-        FlawFinderEnum flaw_finder_val,
+        std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_finder,
         int arg_max_refinements,
         int arg_max_pdb_size,
         int arg_max_collection_size,
@@ -203,7 +109,7 @@ public:
         utils::Verbosity verbosity,
         double arg_max_time);
 
-    virtual ~PatternCollectionGeneratorCegar();
+    virtual ~PatternCollectionGeneratorCegar() = default;
 
     PatternCollectionInformation<PDBType>
     generate(OperatorCost cost_type) override;

@@ -1,6 +1,7 @@
 #include "pattern_collection_generator_cegar.h"
 
 #include "abstract_solution_data.h"
+#include "flaw_finding_strategy.h"
 
 #include "../../expcost_projection.h"
 #include "../../maxprob_projection.h"
@@ -25,18 +26,6 @@
 using namespace std;
 using utils::Verbosity;
 
-namespace std {
-template <>
-struct hash<probabilistic::pdbs::pattern_selection::ExplicitGState> {
-    size_t
-    operator()(const probabilistic::pdbs::pattern_selection::ExplicitGState&
-                   state) const
-    {
-        return state.get_hash();
-    }
-};
-} // namespace std
-
 namespace probabilistic {
 namespace pdbs {
 namespace pattern_selection {
@@ -47,9 +36,9 @@ static const std::string token = "CEGAR_PDBs: ";
 
 template <typename PDBType>
 PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
-    std::shared_ptr<SubCollectionFinder> subcollection_finder,
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
-    FlawFinderEnum flaw_finder_val,
+    std::shared_ptr<SubCollectionFinder> subcollection_finder,
+    std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy,
     int arg_max_refinements,
     int arg_max_pdb_size,
     int arg_max_collection_size,
@@ -61,8 +50,9 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     int given_goal,
     Verbosity verbosity,
     double arg_max_time)
-    : subcollection_finder(subcollection_finder)
-    , rng(arg_rng)
+    : rng(arg_rng)
+    , subcollection_finder(subcollection_finder)
+    , flaw_strategy(flaw_strategy)
     , max_refinements(arg_max_refinements)
     , max_pdb_size(arg_max_pdb_size)
     , max_collection_size(arg_max_collection_size)
@@ -77,14 +67,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     , collection_size(0)
     , concrete_solution_index(-1)
 {
-    switch (flaw_finder_val) {
-    case FlawFinderEnum::PGBFS:
-        flaw_strategy.reset(new ProbabilityGBFS(*this));
-        break;
-    case FlawFinderEnum::BFS: flaw_strategy.reset(new BFS(*this)); break;
-    case FlawFinderEnum::SAMPLING: flaw_strategy.reset(new SamplingStrategy(*this)); break;
-    }
-
     if (initial == InitialCollectionType::GIVEN_GOAL && given_goal == -1) {
         cerr << "Initial collection type 'given goal', but no goal specified"
              << endl;
@@ -100,15 +82,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     if (verbosity >= Verbosity::NORMAL) {
         cout << token << "options: " << endl;
 
-        cout << token << "flaw strategy: ";
-
-        switch (flaw_finder_val) {
-        case FlawFinderEnum::PGBFS:
-            cout << "probability greedy best-first search" << endl;
-            break;
-        case FlawFinderEnum::BFS: cout << "breadth-first search" << endl; break;
-        case FlawFinderEnum::SAMPLING: cout << "successor sampling" << endl; break;
-        }
+        cout << token << "flaw strategy: " << flaw_strategy->get_name() << endl;
 
         cout << token << "max refinements: " << max_refinements << endl;
         cout << token << "max pdb size: " << max_pdb_size << endl;
@@ -157,9 +131,9 @@ template <typename PDBType>
 PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     const options::Options& opts)
     : PatternCollectionGeneratorCegar(
-          opts.get<std::shared_ptr<SubCollectionFinder>>("subcollection_finder"),
           utils::parse_rng_from_options(opts),
-          static_cast<FlawFinderEnum>(opts.get_enum("flaw_strategy")),
+          opts.get<std::shared_ptr<SubCollectionFinder>>("subcollection_finder"),
+          opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>("flaw_strategy"),
           opts.get<int>("max_refinements"),
           opts.get<int>("max_pdb_size"),
           opts.get<int>("max_collection_size"),
@@ -173,10 +147,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
           opts.get<double>("max_time"))
 {
 }
-
-template <typename PDBType>
-PatternCollectionGeneratorCegar<PDBType>::~PatternCollectionGeneratorCegar() =
-    default;
 
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::print_collection() const
@@ -273,399 +243,11 @@ bool PatternCollectionGeneratorCegar<PDBType>::termination_conditions_met(
 }
 
 template <typename PDBType>
-PatternCollectionGeneratorCegar<PDBType>::FlawFindingStrategy::
-    FlawFindingStrategy(PatternCollectionGeneratorCegar<PDBType>& base)
-    : base(base)
-{
-}
-
-template <typename PDBType>
-PatternCollectionGeneratorCegar<PDBType>::ProbabilityGBFS::ProbabilityGBFS(
-    PatternCollectionGeneratorCegar<PDBType>& base)
-    : FlawFindingStrategy(base)
-{
-}
-
-template <typename PDBType>
-PatternCollectionGeneratorCegar<PDBType>::BFS::BFS(
-    PatternCollectionGeneratorCegar<PDBType>& base)
-    : FlawFindingStrategy(base)
-{
-}
-
-template <typename PDBType>
-PatternCollectionGeneratorCegar<PDBType>::SamplingStrategy::SamplingStrategy(
-    PatternCollectionGeneratorCegar<PDBType>& base)
-    : FlawFindingStrategy(base)
-{
-}
-
-template <typename PDBType>
-FlawList
-PatternCollectionGeneratorCegar<PDBType>::ProbabilityGBFS::apply_policy(
-    int solution_index,
-    const ExplicitGState& init)
-{
-    AbstractSolutionData<PDBType>& solution = *this->base.solutions[solution_index];
-    const AbstractPolicy& policy = solution.get_policy();
-    const PDBType& pdb = solution.get_pdb();
-
-    FlawList flaws;
-    priority_queues::HeapQueue<value_type::value_t, ExplicitGState> pq;
-    pq.push(1.0, init);
-
-    std::unordered_map<ExplicitGState, value_type::value_t> probabilities;
-
-    while (!pq.empty()) {
-        const auto& [priority, current] = pq.pop();
-
-        // TODO remove this once we have a real priority queue...
-        if (priority < probabilities[current]) {
-            continue;
-        }
-
-        const AbstractState abs = pdb.get_abstract_state(current.values);
-        const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
-
-        // We reached an abstract goal, check if the concrete state is a
-        // goal
-        if (!abs_op) {
-            if (!current.is_goal()) {
-                if (this->base.verbosity >= Verbosity::VERBOSE) {
-                    cout << token << "Policy of pattern "
-                         << solution.get_pattern()
-                         << "failed with goal violation." << std::endl;
-                }
-
-                if (!this->base.ignore_goal_violations) {
-                    // Collect all non-satisfied goal variables that are
-                    // still available.
-                    for (const auto& [goal_var, goal_value] : g_goal) {
-                        if (current[goal_var] != goal_value &&
-                            !utils::contains(this->base.global_blacklist, goal_var) &&
-                            utils::contains(this->base.remaining_goals, goal_var)) {
-                            flaws.emplace_back(true, solution_index, goal_var);
-                        }
-                    }
-
-                    return flaws;
-                }
-
-                if (this->base.verbosity >= Verbosity::VERBOSE) {
-                    cout << "We ignore goal violations, thus we continue."
-                         << endl;
-                }
-            }
-
-            continue;
-        }
-
-        int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperator& op = g_operators[original_id];
-
-        // Check whether all preconditions are fulfilled
-        for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
-            // We ignore blacklisted variables
-            const bool is_blacklist_var =
-                utils::contains(this->base.global_blacklist, pre_var);
-
-            if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
-                assert(
-                    !solution.is_blacklisted(pre_var) ||
-                    this->base.local_blacklisting);
-                continue;
-            }
-
-            if (current[pre_var] != pre_val) {
-                flaws.emplace_back(false, solution_index, pre_var);
-            }
-        }
-
-        if (!flaws.empty()) {
-            if (this->base.verbosity >= Verbosity::VERBOSE) {
-                cout << token << "Policy of pattern "
-                        << solution.get_pattern()
-                        << "failed with precondition violation."
-                        << std::endl;
-            }
-
-            return flaws;
-        }
-
-        // Generate the successors and add them to the queue
-        for (const auto& [det_op, prob] : op) {
-            const value_type::value_t succ_prob = priority * prob;
-            auto successor = current.get_successor(*det_op);
-
-            auto [it, inserted] = probabilities.emplace(successor, succ_prob);
-
-            if (!inserted) {
-                if (succ_prob <= it->second) {
-                    continue;
-                }
-
-                it->second = succ_prob;
-            }
-
-            pq.push(succ_prob, std::move(successor));
-        }
-    }
-
-    return flaws;
-}
-
-template <typename PDBType>
-FlawList PatternCollectionGeneratorCegar<PDBType>::BFS::apply_policy(
-    int solution_index,
-    const ExplicitGState& init)
-{
-    AbstractSolutionData<PDBType>& solution = *this->base.solutions[solution_index];
-    const AbstractPolicy& policy = solution.get_policy();
-    const PDBType& pdb = solution.get_pdb();
-
-    FlawList flaws;
-    ExplicitGState current(init);
-
-    std::deque<ExplicitGState> open;
-    open.push_back(init);
-    std::unordered_set<ExplicitGState> closed;
-    closed.insert(init.values);
-
-    while (!open.empty()) {
-        ExplicitGState current = open.front();
-        open.pop_front();
-
-        const AbstractState abs = pdb.get_abstract_state(current.values);
-        const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
-
-        // We reached an abstract goal, check if the concrete state is a goal
-        if (!abs_op) {
-            if (!current.is_goal()) {
-                if (this->base.verbosity >= Verbosity::VERBOSE) {
-                    cout << token << "Policy of pattern "
-                         << solution.get_pattern()
-                         << "failed with goal violation." << std::endl;
-                }
-
-                if (!this->base.ignore_goal_violations) {
-                    // Collect all non-satisfied goal variables that are still
-                    // available.
-                    for (const auto& [goal_var, goal_value] : g_goal) {
-                        if (current[goal_var] != goal_value &&
-                            !utils::contains(this->base.global_blacklist, goal_var) &&
-                            utils::contains(this->base.remaining_goals, goal_var)) {
-                            flaws.emplace_back(true, solution_index, goal_var);
-                        }
-                    }
-
-                    return flaws;
-                }
-
-                if (this->base.verbosity >= Verbosity::VERBOSE) {
-                    cout << "We ignore goal violations, thus we continue."
-                         << endl;
-                }
-            }
-
-            continue;
-        }
-
-        int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperator& op = g_operators[original_id];
-
-        // Check whether all preconditions are fulfilled
-        for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
-            // We ignore blacklisted variables
-            const bool is_blacklist_var =
-                utils::contains(this->base.global_blacklist, pre_var);
-
-            if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
-                assert(
-                    !solution.is_blacklisted(pre_var) ||
-                    this->base.local_blacklisting);
-                continue;
-            }
-
-            if (current[pre_var] != pre_val) {
-                flaws.emplace_back(false, solution_index, pre_var);
-            }
-        }
-
-        if (!flaws.empty()) {
-            if (this->base.verbosity >= Verbosity::VERBOSE) {
-                cout << token << "Policy of pattern "
-                        << solution.get_pattern()
-                        << "failed with precondition violation."
-                        << std::endl;
-            }
-
-            return flaws;
-        }
-
-        // Generate the successors and add them to the open list
-        for (const auto& outcome : op) {
-            ExplicitGState successor = current.get_successor(*outcome.op);
-
-            if (!utils::contains(closed, successor)) {
-                closed.insert(successor);
-                open.push_back(successor);
-            }
-        }
-    }
-
-    if (this->base.verbosity >= Verbosity::VERBOSE) {
-        cout << token << "Policy of pattern " << solution.get_pattern()
-             << " successfully executed.";
-    }
-
-    if (this->base.global_blacklist.empty() && solution.get_blacklist().empty() &&
-        !this->base.ignore_goal_violations) {
-        if (this->base.verbosity >= Verbosity::VERBOSE) {
-            cout << "There are no blacklisted variables and there were no goal "
-                    "violations, hence the concrete task is solved."
-                 << endl;
-        }
-
-        this->base.concrete_solution_index = solution_index;
-    } else {
-        if (this->base.verbosity >= Verbosity::VERBOSE) {
-            cout << "Since there are blacklisted variables, the policy "
-                    "is not guaranteed to work in the concrete state "
-                    "space. Marking this solution as solved."
-                 << endl;
-        }
-
-        solution.mark_as_solved();
-    }
-
-    return flaws;
-}
-
-template <typename PDBType>
-FlawList
-PatternCollectionGeneratorCegar<PDBType>::SamplingStrategy::apply_policy(
-    int solution_index,
-    const ExplicitGState& init)
-{
-    AbstractSolutionData<PDBType>& solution =
-        *this->base.solutions[solution_index];
-    const AbstractPolicy& policy = solution.get_policy();
-    const PDBType& pdb = solution.get_pdb();
-
-    FlawList flaws;
-    std::stack<ExplicitGState> stk;
-    stk.push(init);
-
-    struct ExplorationInfo {
-        Distribution<ExplicitGState> successors;
-    };
-
-    std::unordered_map<ExplicitGState, ExplorationInfo> einfos;
-
-    while (!stk.empty()) {
-        const ExplicitGState& current = stk.top();
-
-        auto p = einfos.try_emplace(current);
-        ExplorationInfo& einfo = p.first->second;
-
-        // Already explored
-        if (!p.second) {
-            stk.pop();
-            continue;
-        }
-
-        // Check flaws, generate successors
-        const AbstractState abs = pdb.get_abstract_state(current.values);
-        const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
-
-        // We reached an abstract goal, check if the concrete state is a
-        // goal
-        if (!abs_op) {
-            if (!current.is_goal()) {
-                if (this->base.verbosity >= Verbosity::VERBOSE) {
-                    cout << token << "Policy of pattern "
-                         << solution.get_pattern()
-                         << "failed with goal violation." << std::endl;
-                }
-
-                if (!this->base.ignore_goal_violations) {
-                    // Collect all non-satisfied goal variables that are
-                    // still available.
-                    for (const auto& [goal_var, goal_value] : g_goal) {
-                        if (current[goal_var] != goal_value &&
-                            !utils::contains(this->base.global_blacklist, goal_var) &&
-                            utils::contains(this->base.remaining_goals, goal_var)) {
-                            flaws.emplace_back(true, solution_index, goal_var);
-                        }
-                    }
-
-                    return flaws;
-                }
-
-                if (this->base.verbosity >= Verbosity::VERBOSE) {
-                    cout << "We ignore goal violations, thus we continue."
-                         << endl;
-                }
-            }
-
-            stk.pop();
-            continue;
-        }
-
-        int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperator& op = g_operators[original_id];
-
-        // Check whether precondition flaws occur
-        for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
-            // We ignore blacklisted variables
-            const bool is_blacklist_var =
-                utils::contains(this->base.global_blacklist, pre_var);
-
-            if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
-                assert(
-                    !solution.is_blacklisted(pre_var) ||
-                    this->base.local_blacklisting);
-                continue;
-            }
-
-            if (current[pre_var] != pre_val) {
-                flaws.emplace_back(false, solution_index, pre_var);
-            }
-        }
-
-        // Flaws occured.
-        if (!flaws.empty()) {
-            if (this->base.verbosity >= Verbosity::VERBOSE) {
-                cout << token << "Policy of pattern "
-                        << solution.get_pattern()
-                        << "failed with precondition violation."
-                        << std::endl;
-            }
-
-            return flaws;
-        }
-
-        // Generate the successors
-        for (const auto& [det_op, prob] : op) {
-            einfo.successors.add_unique(current.get_successor(*det_op), prob);
-        }
-
-        // Sample successor and recurse
-        auto it = einfo.successors.sample(*this->base.rng);
-        stk.push(std::move(it->first));
-        einfo.successors.erase(it);
-    }
-
-    assert (flaws.empty());
-    return flaws;
-}
-
-template <typename PDBType>
 FlawList PatternCollectionGeneratorCegar<PDBType>::apply_policy(
     int solution_index,
     const ExplicitGState& init)
 {
-    return flaw_strategy->apply_policy(solution_index, init);
+    return flaw_strategy->apply_policy(*this, solution_index, init);
 }
 
 template <typename PDBType>
@@ -1134,20 +716,34 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
     return pattern_collection_information;
 }
 
+template <typename PDBType>
+void add_flaw_finder_options_to_parser(options::OptionParser& parser);
+
+template <>
+void add_flaw_finder_options_to_parser<ExpCostProjection>(
+    options::OptionParser& parser)
+{
+    parser.add_option<std::shared_ptr<FlawFindingStrategy<ExpCostProjection>>>(
+        "flaw_strategy",
+        "strategy used to find flaws in a policy",
+        "pucs_ec()");
+}
+
+template <>
+void add_flaw_finder_options_to_parser<MaxProbProjection>(
+    options::OptionParser& parser)
+{
+    parser.add_option<std::shared_ptr<FlawFindingStrategy<MaxProbProjection>>>(
+        "flaw_strategy",
+        "strategy used to find flaws in a policy",
+        "pucs_mp()");
+}
+
 void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser& parser)
 {
     utils::add_verbosity_option_to_parser(parser);
 
-    std::vector<std::string> flaw_finder_options;
-    flaw_finder_options.emplace_back("pgbfs");
-    flaw_finder_options.emplace_back("bfs");
-    flaw_finder_options.emplace_back("sampling");
-    parser.add_enum_option(
-        "flaw_strategy",
-        flaw_finder_options,
-        "strategy used to find flaws in a policy",
-        "pgbfs");
     parser.add_option<int>(
         "max_refinements",
         "maximum allowed number of refinements",
@@ -1220,6 +816,7 @@ static shared_ptr<PatternCollectionGenerator<PDBType>>
 _parse(options::OptionParser& parser)
 {
     add_pattern_collection_generator_cegar_options_to_parser(parser);
+    add_flaw_finder_options_to_parser<PDBType>(parser);
     utils::add_rng_options(parser);
 
     Options opts = parser.parse();
