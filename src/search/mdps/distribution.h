@@ -101,28 +101,6 @@ public:
             std::forward_as_tuple(prob));
     }
 
-    template <typename... Args>
-    std::pair<iterator, bool>
-    emplace_unique(std::tuple<Args...> args, value_type::value_t prob)
-    {
-        assert(prob > 0.0);
-
-        auto it = this->find(t);
-
-        if (it != end()) {
-            it->second += prob;
-            return {it, false};
-        }
-
-        return {
-            distribution_.emplace(
-                it,
-                std::piecewise_construct,
-                args...,
-                std::forward_as_tuple(prob)),
-            true};
-    }
-
     iterator find(const T& t)
     {
         return std::find(elem_begin(), elem_end(), t).base;
