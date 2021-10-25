@@ -402,7 +402,7 @@ void apply(
     for (; it != end; ++it, ++pit) {
         const auto& [idx, val] = *it;
 
-        pit = std::find_if(pit, pend, [=](const auto& p) {
+        pit = std::find_if(pit, pend, [idx=idx](const auto& p) {
             return p.first == idx;
         });
 
