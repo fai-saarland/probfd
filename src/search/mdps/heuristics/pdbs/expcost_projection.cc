@@ -129,6 +129,11 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
         std::vector<const AbstractOperator*> aops;
         progression_aops_generator_->generate_applicable_ops(facts, aops);
 
+        if (aops.empty()) {
+            assert(value == -value_type::inf);
+            continue;
+        }
+
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
             value_type::value_t op_value = -op->cost;
@@ -265,8 +270,53 @@ void ExpCostProjection::compute_value_table(
                      << as_upper_bound(value_table[initial_state_.id])
                      << std::endl;
     }
+
+    verify(state_id_map);
 #endif
 }
+
+#ifndef NDEBUG
+void ExpCostProjection::verify(const StateIDMap<AbstractState>& state_id_map) {
+    for (const int id : state_id_map.visited()) {
+        AbstractState s(id);
+        const value_type::value_t value = value_table[s.id];
+
+        if (utils::contains(goal_states_, s)) {
+            assert(value == value_type::zero);
+            continue;
+        }
+
+        // Generate operators...
+        auto facts = state_mapper_->to_values(s);
+
+        std::vector<const AbstractOperator*> aops;
+        progression_aops_generator_->generate_applicable_ops(facts, aops);
+
+        // Select a greedy operators and add its successors
+        for (const AbstractOperator* op : aops) {
+            value_type::value_t op_value = -op->cost;
+
+            std::vector<AbstractState> successors;
+
+            for (const auto& [eff, prob] : op->outcomes) {
+                AbstractState t = s + eff;
+                op_value += prob * value_table[t.id];
+                successors.push_back(t);
+            }
+
+            if (value_type::approx_equal()(value, op_value)) {
+                goto continue_exploring;
+            }
+        }
+
+        std::cerr << "Could not find greedy operator for abstract state " << s
+                  << "!" << std::endl;
+        abort();
+
+        continue_exploring:;
+    }
+}
+#endif
 
 } // namespace pdbs
 } // namespace probabilistic

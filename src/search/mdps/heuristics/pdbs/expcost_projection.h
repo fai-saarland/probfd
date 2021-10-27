@@ -49,6 +49,10 @@ public:
 
 private:
     void compute_value_table(const AbstractStateEvaluator& heuristic);
+
+#ifndef NDEBUG
+    void verify(const StateIDMap<AbstractState>& state_id_map);
+#endif
 };
 
 } // namespace pdbs
