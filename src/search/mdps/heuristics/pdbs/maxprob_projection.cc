@@ -174,10 +174,12 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
     using PredecessorList =
         std::vector<std::pair<AbstractState, const AbstractOperator*>>;
 
+    assert(!is_dead_end(initial_state_));
+
     AbstractPolicy policy;
 
     // return empty policy indicating unsolvable
-    if (is_dead_end(initial_state_)) {
+    if (utils::contains(goal_states_, initial_state_)) {
         return policy;
     }
 
@@ -187,6 +189,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
     std::unordered_set<AbstractState> closed;
     open.push_back(initial_state_);
     closed.insert(initial_state_);
+    closed.insert(goal_states_.begin(), goal_states_.end());
 
     // Build the greedy policy graph
     while (!open.empty()) {
@@ -224,6 +227,8 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
                     predecessors[succ].emplace_back(s, op);
                 }
             }
+
+            abort();
         }
     }
 

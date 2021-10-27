@@ -104,8 +104,9 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
 {
     AbstractPolicy policy;
 
-    // return empty policy indicating unsolvable
-    if (lookup(initial_state_) == -value_type::inf) {
+    assert(lookup(initial_state_) != -value_type::inf);
+
+    if (utils::contains(goal_states_, initial_state_)) {
         return policy;
     }
 
@@ -113,6 +114,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
     std::unordered_set<AbstractState> closed;
     open.push_back(initial_state_);
     closed.insert(initial_state_);
+    closed.insert(goal_states_.begin(), goal_states_.end());
 
     // Build the greedy policy graph
     while (!open.empty()) {
@@ -129,7 +131,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
-            value_type::value_t op_value = value_type::zero;
+            value_type::value_t op_value = -op->cost;
 
             std::vector<AbstractState> successors;
 
@@ -152,6 +154,8 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
                 goto continue_exploring;
             }
         }
+
+        abort();
 
         continue_exploring:;
     }
