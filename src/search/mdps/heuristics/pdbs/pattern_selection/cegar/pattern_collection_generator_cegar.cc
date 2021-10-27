@@ -247,7 +247,28 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::apply_policy(
     int solution_index,
     const ExplicitGState& init)
 {
-    return flaw_strategy->apply_policy(*this, solution_index, init);
+    auto p = flaw_strategy->apply_policy(*this, solution_index, init);
+
+    auto& solution = *solutions[solution_index];
+
+    if (p.first.empty()) {
+        // No goal violations occured
+        if (!p.second) {
+            /*
+              If there are no flaws, this does not guarantee that the plan
+              is valid in the concrete state space because we might have
+              ignored variables that have been blacklisted. Hence the tests
+              for empty blacklists.
+            */
+            if (global_blacklist.empty() && solution.get_blacklist().empty()) {
+                concrete_solution_index = solution_index;
+            }
+        }
+
+        solution.mark_as_solved();
+    }
+
+    return p.first;
 }
 
 template <typename PDBType>
@@ -278,10 +299,8 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::get_flaws()
         FlawList new_flaws = apply_policy(sol_idx, concrete_init);
 
         if (concrete_solution_index != -1) {
-            // We solved the concrete task. Return empty flaws to signal
-            // terminating.
-            assert(concrete_solution_index == sol_idx);
             assert(new_flaws.empty());
+            assert(sol_idx == concrete_solution_index);
             flaws.clear();
             return flaws;
         }

@@ -12,7 +12,7 @@ class BFSFlawFinder : public FlawFindingStrategy<PDBType> {
 public:
     ~BFSFlawFinder() override = default;
 
-    virtual FlawList apply_policy(
+    virtual std::pair<FlawList, bool> apply_policy(
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,
         const ExplicitGState& init) override;

@@ -21,7 +21,8 @@ class FlawFindingStrategy {
 public:
     virtual ~FlawFindingStrategy() = default;
     
-    virtual FlawList apply_policy(
+    // Second return value specified if there was a goal violation
+    virtual std::pair<FlawList, bool> apply_policy(
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,
         const ExplicitGState& init) = 0;

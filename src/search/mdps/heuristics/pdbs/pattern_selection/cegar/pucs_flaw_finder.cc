@@ -12,37 +12,26 @@
 
 #include "../../../../../utils/collections.h"
 
-#include "../../../../../algorithms/priority_queues.h"
-
-#include <stack>
-
 using namespace std;
 using namespace utils;
-
-namespace {
-static const std::string token = "CEGAR_PDBs: ";
-}
 
 namespace probabilistic {
 namespace pdbs {
 namespace pattern_selection {
 
 template <typename PDBType>
-FlawList PUCSFlawFinder<PDBType>::apply_policy(
+std::pair<FlawList, bool> PUCSFlawFinder<PDBType>::apply_policy(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
     const ExplicitGState& init)
 {
-    AbstractSolutionData<PDBType>& solution =
-        *base.solutions[solution_index];
-    const AbstractPolicy& policy = solution.get_policy();
-    const PDBType& pdb = solution.get_pdb();
+    assert(pq.empty() && probabilities.empty());
 
-    FlawList flaws;
-    priority_queues::HeapQueue<value_type::value_t, ExplicitGState> pq;
+    // Push initial state for expansion
     pq.push(1.0, init);
+    probabilities[init] = 1.0;
 
-    std::unordered_map<ExplicitGState, value_type::value_t> probabilities;
+    FlawList flaw_list;
 
     while (!pq.empty()) {
         const auto& [priority, current] = pq.pop();
@@ -52,96 +41,112 @@ FlawList PUCSFlawFinder<PDBType>::apply_policy(
             continue;
         }
 
-        const AbstractState abs = pdb.get_abstract_state(current.values);
-        const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
+        unsigned int status = expand(
+            base,
+            solution_index,
+            current,
+            priority,
+            flaw_list);
 
-        // We reached an abstract goal, check if the concrete state is a
-        // goal
-        if (!abs_op) {
-            if (!current.is_goal()) {
-                if (base.verbosity >= Verbosity::VERBOSE) {
-                    cout << token << "Policy of pattern "
-                         << solution.get_pattern()
-                         << "failed with goal violation." << std::endl;
-                }
-
-                if (!base.ignore_goal_violations) {
-                    // Collect all non-satisfied goal variables that are
-                    // still available.
-                    for (const auto& [goal_var, goal_value] : g_goal) {
-                        if (current[goal_var] != goal_value &&
-                            !utils::contains(
-                                base.global_blacklist, goal_var) &&
-                            utils::contains(
-                                base.remaining_goals, goal_var)) {
-                            flaws.emplace_back(true, solution_index, goal_var);
-                        }
-                    }
-
-                    return flaws;
-                }
-
-                if (base.verbosity >= Verbosity::VERBOSE) {
-                    cout << "We ignore goal violations, thus we continue."
-                         << endl;
-                }
-            }
-
-            continue;
-        }
-
-        int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperator& op = g_operators[original_id];
-
-        // Check whether all preconditions are fulfilled
-        for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
-            // We ignore blacklisted variables
-            const bool is_blacklist_var =
-                utils::contains(base.global_blacklist, pre_var);
-
-            if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
-                assert(
-                    !solution.is_blacklisted(pre_var) ||
-                    base.local_blacklisting);
-                continue;
-            }
-
-            if (current[pre_var] != pre_val) {
-                flaws.emplace_back(false, solution_index, pre_var);
-            }
-        }
-
-        if (!flaws.empty()) {
-            if (base.verbosity >= Verbosity::VERBOSE) {
-                cout << token << "Policy of pattern "
-                        << solution.get_pattern()
-                        << "failed with precondition violation."
-                        << std::endl;
-            }
-
-            return flaws;
-        }
-
-        // Generate the successors and add them to the queue
-        for (const auto& [det_op, prob] : op) {
-            const value_type::value_t succ_prob = priority * prob;
-            auto successor = current.get_successor(*det_op);
-
-            auto [it, inserted] = probabilities.emplace(successor, succ_prob);
-
-            if (!inserted) {
-                if (succ_prob <= it->second) {
-                    continue;
-                }
-
-                it->second = succ_prob;
-            }
-
-            pq.push(succ_prob, std::move(successor));
+        if ((status & SUCCESSFULLY_EXPANDED) == 0) {
+            // A flaw occured.
+            assert(!flaw_list.empty() || status & GOAL_VIOLATED);
+            pq.clear();
+            probabilities.clear();
+            return { flaw_list, status & GOAL_VIOLATED };
         }
     }
 
-    return flaws;
+    assert(flaw_list.empty());
+
+    pq.clear();
+    probabilities.clear();
+    return { flaw_list, false };
+}
+
+template <typename PDBType>
+unsigned int PUCSFlawFinder<PDBType>::expand(
+    PatternCollectionGeneratorCegar<PDBType>& base,
+    int solution_index,
+    ExplicitGState state,
+    value_type::value_t priority,
+    FlawList& flaw_list)
+{
+    AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
+    const AbstractPolicy& policy = solution.get_policy();
+    const PDBType& pdb = solution.get_pdb();
+
+    // Check flaws, generate successors
+    const AbstractState abs = pdb.get_abstract_state(state.values);
+    const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
+
+    // We reached an abstract goal, check if the concrete state is a
+    // goal
+    if (!abs_op) {
+        if (!state.is_goal()) {
+            if (!base.ignore_goal_violations) {
+                // Collect all non-satisfied goal variables that are
+                // still available.
+                for (const auto& [goal_var, goal_value] : g_goal) {
+                    if (state[goal_var] != goal_value &&
+                        !utils::contains(base.global_blacklist, goal_var) &&
+                        utils::contains(base.remaining_goals, goal_var)) {
+                        flaw_list.emplace_back(true, solution_index, goal_var);
+                    }
+                }
+            }
+
+            return GOAL_VIOLATED;
+        }
+
+        return SUCCESSFULLY_EXPANDED;
+    }
+
+    int original_id = abs_op->original_operator_id;
+    const ProbabilisticOperator& op = g_operators[original_id];
+
+    // Check whether precondition flaws occur
+    for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
+        // We ignore blacklisted variables
+        const bool is_blacklist_var =
+            utils::contains(base.global_blacklist, pre_var);
+
+        if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
+            assert(
+                !solution.is_blacklisted(pre_var) ||
+                base.local_blacklisting);
+            continue;
+        }
+
+        if (state[pre_var] != pre_val) {
+            flaw_list.emplace_back(false, solution_index, pre_var);
+        }
+    }
+
+    // Flaws occured.
+    if (!flaw_list.empty()) {
+        return 0;
+    }
+
+    // Generate the successors and add them to the queue
+    for (const auto& [det_op, prob] : op) {
+        const value_type::value_t succ_prob = priority * prob;
+        auto successor = state.get_successor(*det_op);
+
+        auto [it, inserted] = probabilities.emplace(successor, succ_prob);
+
+        if (!inserted) {
+            if (succ_prob <= it->second) {
+                continue;
+            }
+
+            it->second = succ_prob;
+        }
+
+        pq.push(succ_prob, std::move(successor));
+    }
+
+    return SUCCESSFULLY_EXPANDED;
 }
 
 template <typename PDBType>

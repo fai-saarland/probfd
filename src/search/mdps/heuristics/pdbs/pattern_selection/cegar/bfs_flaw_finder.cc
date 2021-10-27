@@ -26,7 +26,7 @@ namespace pdbs {
 namespace pattern_selection {
 
 template <typename PDBType>
-FlawList BFSFlawFinder<PDBType>::apply_policy(
+std::pair<FlawList, bool> BFSFlawFinder<PDBType>::apply_policy(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
     const ExplicitGState& init)
@@ -43,6 +43,8 @@ FlawList BFSFlawFinder<PDBType>::apply_policy(
     std::unordered_set<ExplicitGState> closed;
     closed.insert(init.values);
 
+    bool goal_violation = false;
+
     while (!open.empty()) {
         ExplicitGState current = open.front();
         open.pop_front();
@@ -53,11 +55,7 @@ FlawList BFSFlawFinder<PDBType>::apply_policy(
         // We reached an abstract goal, check if the concrete state is a goal
         if (!abs_op) {
             if (!current.is_goal()) {
-                if (base.verbosity >= Verbosity::VERBOSE) {
-                    cout << token << "Policy of pattern "
-                         << solution.get_pattern()
-                         << "failed with goal violation." << std::endl;
-                }
+                goal_violation = true;
 
                 if (!base.ignore_goal_violations) {
                     // Collect all non-satisfied goal variables that are still
@@ -70,12 +68,7 @@ FlawList BFSFlawFinder<PDBType>::apply_policy(
                         }
                     }
 
-                    return flaws;
-                }
-
-                if (base.verbosity >= Verbosity::VERBOSE) {
-                    cout << "We ignore goal violations, thus we continue."
-                         << endl;
+                    return {flaws, goal_violation};
                 }
             }
 
@@ -104,14 +97,7 @@ FlawList BFSFlawFinder<PDBType>::apply_policy(
         }
 
         if (!flaws.empty()) {
-            if (base.verbosity >= Verbosity::VERBOSE) {
-                cout << token << "Policy of pattern "
-                        << solution.get_pattern()
-                        << "failed with precondition violation."
-                        << std::endl;
-            }
-
-            return flaws;
+            return {flaws, goal_violation};
         }
 
         // Generate the successors and add them to the open list
@@ -125,32 +111,8 @@ FlawList BFSFlawFinder<PDBType>::apply_policy(
         }
     }
 
-    if (base.verbosity >= Verbosity::VERBOSE) {
-        cout << token << "Policy of pattern " << solution.get_pattern()
-             << " successfully executed.";
-    }
-
-    if (base.global_blacklist.empty() && solution.get_blacklist().empty() &&
-        !base.ignore_goal_violations) {
-        if (base.verbosity >= Verbosity::VERBOSE) {
-            cout << "There are no blacklisted variables and there were no goal "
-                    "violations, hence the concrete task is solved."
-                 << endl;
-        }
-
-        base.concrete_solution_index = solution_index;
-    } else {
-        if (base.verbosity >= Verbosity::VERBOSE) {
-            cout << "Since there are blacklisted variables, the policy "
-                    "is not guaranteed to work in the concrete state "
-                    "space. Marking this solution as solved."
-                 << endl;
-        }
-
-        solution.mark_as_solved();
-    }
-
-    return flaws;
+    assert(flaws.empty());
+    return {flaws, goal_violation};
 }
 
 template <typename PDBType>
