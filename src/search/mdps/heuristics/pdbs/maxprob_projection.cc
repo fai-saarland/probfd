@@ -229,8 +229,6 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
                     predecessors[succ].emplace_back(s, op);
                 }
             }
-
-            abort();
         }
     }
 
