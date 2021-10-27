@@ -1,6 +1,7 @@
 #ifndef __ITERATORS_H__
 #define __ITERATORS_H__
 
+#include <functional>
 #include <iterator>
 #include <utility>
 #include <variant>
