@@ -25,6 +25,18 @@ namespace pdbs {
 namespace pattern_selection {
 
 template <typename PDBType>
+SamplingFlawFinder<PDBType>::SamplingFlawFinder(options::Options& opts)
+    : SamplingFlawFinder<PDBType>(opts.get<int>("violation_threshold"))
+{
+}
+
+template <typename PDBType>
+SamplingFlawFinder<PDBType>::SamplingFlawFinder(unsigned int violation_threshold)
+    : violation_threshold(violation_threshold)
+{
+}
+
+template <typename PDBType>
 std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
@@ -33,11 +45,13 @@ std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
     assert (stk.empty() && einfos.empty());
 
     FlawList flaw_list;
+    bool executable = true;
+    unsigned int violation = 0;
 
     int status = push_state(base, solution_index, init, flaw_list);
     if ((status & STATE_PUSHED) == 0) {
         assert(stk.empty() && einfos.empty());
-        return { flaw_list, status & GOAL_VIOLATED };
+        return { flaw_list, (status & FLAW_OCCURED) == 0 };
     }
 
     assert (!stk.empty());
@@ -56,7 +70,7 @@ std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
                 unsigned int status = push_state(
                     base,
                     solution_index,
-                    std::move(succ),
+                    succ,
                     flaw_list);
 
                 // Recurse if the state was pushed
@@ -67,10 +81,11 @@ std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
 
                 // Otherwise, check if the state was not pushed due to a flaw
                 if (status & FLAW_OCCURED) {
-                    assert(!flaw_list.empty() || status & GOAL_VIOLATED);
-                    std::stack<ExplicitGState>().swap(stk); // Clear stack 
-                    einfos.clear();
-                    return { flaw_list, status & GOAL_VIOLATED };
+                    executable = false;
+
+                    if (++violation >= violation_threshold) {
+                        goto break_exploration;
+                    }
                 }
             }
 
@@ -83,17 +98,18 @@ std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
         continue_exploration:;
     } while (!stk.empty());
 
-    assert (stk.empty());
+    break_exploration:;
 
+    std::stack<ExplicitGState>().swap(stk); // Clear stack 
     einfos.clear();
-    return { flaw_list, false };
+    return { flaw_list, executable };
 }
 
 template <typename PDBType>
 unsigned int SamplingFlawFinder<PDBType>::push_state(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
-    ExplicitGState state,
+    const ExplicitGState& state,
     FlawList& flaw_list)
 {
     AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
@@ -104,10 +120,11 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
     const AbstractState abs = pdb.get_abstract_state(state.values);
     const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
 
-    // We reached an abstract goal, check if the concrete state is a
-    // goal
+    // We reached a terminal state, check if it is a goal
     if (!abs_op) {
-        if (!state.is_goal()) {
+        assert(pdb.is_goal(abs) || pdb.is_dead_end(abs));
+
+        if (pdb.is_goal(abs) && !state.is_goal()) {
             if (!base.ignore_goal_violations) {
                 // Collect all non-satisfied goal variables that are
                 // still available.
@@ -120,7 +137,7 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
                 }
             }
 
-            return GOAL_VIOLATED;
+            return FLAW_OCCURED;
         }
 
         return 0;
@@ -149,16 +166,17 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
 
     // Flaws occured.
     if (!flaw_list.empty()) {
-        return PRECONDITION_VIOLATED;
+        return FLAW_OCCURED;
     }
 
     // Generate the successors
+    assert(einfos.find(state) == einfos.end());
     ExplorationInfo& einfo = einfos[state];
     for (const auto& [det_op, prob] : op) {
         einfo.successors.add_unique(state.get_successor(*det_op), prob);
     }
 
-    stk.push(std::move(state));
+    stk.push(state);
 
     return STATE_PUSHED;
 }
@@ -167,10 +185,17 @@ template <typename PDBType>
 static std::shared_ptr<FlawFindingStrategy<PDBType>>
 _parse(options::OptionParser& parser)
 {
+    parser.add_option<int>(
+        "violation_threshold",
+        "Maximal number of states for which a flaw is tolerated before aborting"
+        "the search.",
+        "1",
+        options::Bounds("0", "infinity"));
+    
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
 
-    return make_shared<SamplingFlawFinder<PDBType>>();
+    return make_shared<SamplingFlawFinder<PDBType>>(opts);
 }
 
 static Plugin<FlawFindingStrategy<MaxProbProjection>>

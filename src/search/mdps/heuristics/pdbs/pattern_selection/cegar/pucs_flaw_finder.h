@@ -10,6 +10,10 @@
 #include <stack>
 #include <unordered_map>
 
+namespace options {
+class Options;
+}
+
 namespace probabilistic {
 namespace pdbs {
 namespace pattern_selection {
@@ -19,10 +23,12 @@ class PUCSFlawFinder : public FlawFindingStrategy<PDBType> {
     priority_queues::HeapQueue<value_type::value_t, ExplicitGState> pq;
     std::unordered_map<ExplicitGState, value_type::value_t> probabilities;
 
-    static constexpr unsigned int SUCCESSFULLY_EXPANDED = 1;
-    static constexpr unsigned int GOAL_VIOLATED = 1 << 1;
+    unsigned int violation_threshold;
 
 public:
+    PUCSFlawFinder(options::Options& parser);
+
+    PUCSFlawFinder(unsigned int violation_threshold = 1);
     ~PUCSFlawFinder() override = default;
 
     virtual std::pair<FlawList, bool> apply_policy(
@@ -35,7 +41,7 @@ public:
     }
 
 private:
-    unsigned int expand(
+    bool expand(
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,
         ExplicitGState state,

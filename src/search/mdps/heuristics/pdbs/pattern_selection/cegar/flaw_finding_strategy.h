@@ -21,7 +21,9 @@ class FlawFindingStrategy {
 public:
     virtual ~FlawFindingStrategy() = default;
     
-    // Second return value specified if there was a goal violation
+    // Second value returns whether policy is executable (modulo blacklisting)
+    // Note that the flaw list might be empty regardless since only remaining
+    // goals are added to the list for goal violations.
     virtual std::pair<FlawList, bool> apply_policy(
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,

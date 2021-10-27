@@ -7,6 +7,10 @@
 #include <stack>
 #include <unordered_map>
 
+namespace options {
+class Options;
+}
+
 namespace probabilistic {
 namespace pdbs {
 namespace pattern_selection {
@@ -20,13 +24,15 @@ class SamplingFlawFinder : public FlawFindingStrategy<PDBType> {
     std::stack<ExplicitGState> stk;
     std::unordered_map<ExplicitGState, ExplorationInfo> einfos;
 
+    unsigned int violation_threshold;
+
     static constexpr unsigned int STATE_PUSHED = 1;
-    static constexpr unsigned int GOAL_VIOLATED = 1 << 1;
-    static constexpr unsigned int PRECONDITION_VIOLATED = 1 << 2;
-    static constexpr unsigned int FLAW_OCCURED =
-        GOAL_VIOLATED | PRECONDITION_VIOLATED;
+    static constexpr unsigned int FLAW_OCCURED = 1 << 1;
 
 public:
+    SamplingFlawFinder(options::Options& parser);
+
+    SamplingFlawFinder(unsigned int violation_threshold = 1);
     ~SamplingFlawFinder() override = default;
 
     virtual std::pair<FlawList, bool> apply_policy(
@@ -42,7 +48,7 @@ private:
     unsigned int push_state(
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,
-        ExplicitGState state,
+        const ExplicitGState& state,
         FlawList& flaw_list);
 };
 

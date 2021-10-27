@@ -12,8 +12,6 @@
 
 #include "../../../../../utils/collections.h"
 
-#include <stack>
-
 using namespace std;
 using namespace utils;
 
@@ -26,103 +24,142 @@ namespace pdbs {
 namespace pattern_selection {
 
 template <typename PDBType>
+BFSFlawFinder<PDBType>::BFSFlawFinder(options::Options& opts)
+    : BFSFlawFinder<PDBType>(opts.get<int>("violation_threshold"))
+{
+}
+
+template <typename PDBType>
+BFSFlawFinder<PDBType>::BFSFlawFinder(unsigned int violation_threshold)
+    : violation_threshold(violation_threshold)
+{
+}
+
+template <typename PDBType>
 std::pair<FlawList, bool> BFSFlawFinder<PDBType>::apply_policy(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
     const ExplicitGState& init)
 {
-    AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
-    const AbstractPolicy& policy = solution.get_policy();
-    const PDBType& pdb = solution.get_pdb();
+    assert(open.empty() && closed.empty());
 
-    FlawList flaws;
-    ExplicitGState current(init);
+    FlawList flaw_list;
+    bool executable = true;
+    unsigned int violations = 0;
 
-    std::deque<ExplicitGState> open;
     open.push_back(init);
-    std::unordered_set<ExplicitGState> closed;
     closed.insert(init.values);
-
-    bool goal_violation = false;
 
     while (!open.empty()) {
         ExplicitGState current = open.front();
         open.pop_front();
 
-        const AbstractState abs = pdb.get_abstract_state(current.values);
-        const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
+        bool successful = expand(base, solution_index, current, flaw_list);
+        executable = executable && successful;
 
-        // We reached an abstract goal, check if the concrete state is a goal
-        if (!abs_op) {
-            if (!current.is_goal()) {
-                goal_violation = true;
-
-                if (!base.ignore_goal_violations) {
-                    // Collect all non-satisfied goal variables that are still
-                    // available.
-                    for (const auto& [goal_var, goal_value] : g_goal) {
-                        if (current[goal_var] != goal_value &&
-                            !utils::contains(base.global_blacklist, goal_var) &&
-                            utils::contains(base.remaining_goals, goal_var)) {
-                            flaws.emplace_back(true, solution_index, goal_var);
-                        }
-                    }
-
-                    return {flaws, goal_violation};
-                }
-            }
-
-            continue;
-        }
-
-        int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperator& op = g_operators[original_id];
-
-        // Check whether all preconditions are fulfilled
-        for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
-            // We ignore blacklisted variables
-            const bool is_blacklist_var =
-                utils::contains(base.global_blacklist, pre_var);
-
-            if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
-                assert(
-                    !solution.is_blacklisted(pre_var) ||
-                    base.local_blacklisting);
-                continue;
-            }
-
-            if (current[pre_var] != pre_val) {
-                flaws.emplace_back(false, solution_index, pre_var);
-            }
-        }
-
-        if (!flaws.empty()) {
-            return {flaws, goal_violation};
-        }
-
-        // Generate the successors and add them to the open list
-        for (const auto& outcome : op) {
-            ExplicitGState successor = current.get_successor(*outcome.op);
-
-            if (!utils::contains(closed, successor)) {
-                closed.insert(successor);
-                open.push_back(successor);
-            }
+        if (!successful && ++violations >= violation_threshold) {
+            break;
         }
     }
 
-    assert(flaws.empty());
-    return {flaws, goal_violation};
+    open.clear();
+    closed.clear();
+    return {flaw_list, executable};
+}
+
+template <typename PDBType>
+bool BFSFlawFinder<PDBType>::expand(
+    PatternCollectionGeneratorCegar<PDBType>& base,
+    int solution_index,
+    ExplicitGState state,
+    FlawList& flaw_list)
+{
+    AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
+    const AbstractPolicy& policy = solution.get_policy();
+    const PDBType& pdb = solution.get_pdb();
+
+    const AbstractState abs = pdb.get_abstract_state(state.values);
+    const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
+
+    // We reached a terminal state, check if it is a goal
+    if (!abs_op) {
+        assert(pdb.is_goal(abs) || pdb.is_dead_end(abs));
+
+        if (pdb.is_goal(abs) && !state.is_goal()) {
+            if (!base.ignore_goal_violations) {
+                // Collect all non-satisfied goal variables that are still
+                // available.
+                for (const auto& [goal_var, goal_value] : g_goal) {
+                    if (state[goal_var] != goal_value &&
+                        !utils::contains(base.global_blacklist, goal_var) &&
+                        utils::contains(base.remaining_goals, goal_var)) {
+                        flaw_list.emplace_back(true, solution_index, goal_var);
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    int original_id = abs_op->original_operator_id;
+    const ProbabilisticOperator& op = g_operators[original_id];
+
+    // Check whether all preconditions are fulfilled
+    bool preconditions_ok = true;
+
+    for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
+        // We ignore blacklisted variables
+        const bool is_blacklist_var =
+            utils::contains(base.global_blacklist, pre_var);
+
+        if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
+            assert(
+                !solution.is_blacklisted(pre_var) ||
+                base.local_blacklisting);
+            continue;
+        }
+
+        if (state[pre_var] != pre_val) {
+            preconditions_ok = false;
+            flaw_list.emplace_back(false, solution_index, pre_var);
+        }
+    }
+
+    if (!preconditions_ok) {
+        return false;
+    }
+
+    // Generate the successors and add them to the open list
+    for (const auto& outcome : op) {
+        ExplicitGState successor = state.get_successor(*outcome.op);
+
+        if (!utils::contains(closed, successor)) {
+            closed.insert(successor);
+            open.push_back(successor);
+        }
+    }
+
+    return true;
 }
 
 template <typename PDBType>
 static std::shared_ptr<FlawFindingStrategy<PDBType>>
 _parse(options::OptionParser& parser)
 {
+    parser.add_option<int>(
+        "violation_threshold",
+        "Maximal number of states for which a flaw is tolerated before aborting"
+        "the search.",
+        "1",
+        options::Bounds("0", "infinity"));
+
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
-
-    return make_shared<BFSFlawFinder<PDBType>>();
+    
+    return make_shared<BFSFlawFinder<PDBType>>(opts);
 }
 
 static Plugin<FlawFindingStrategy<MaxProbProjection>>
