@@ -174,6 +174,9 @@ public:
     {
         assert(!empty());
 
+        // Important!
+        normalize();
+
         const value_type::value_t r = rng();
 
         auto it = distribution_.begin();
