@@ -88,6 +88,8 @@ public:
     bool is_dead_end(const GlobalState& s) const;
     bool is_dead_end(const AbstractState& s) const;
 
+    bool is_goal(const AbstractState& s) const;
+
     AbstractState get_abstract_state(const GlobalState& s) const;
     AbstractState get_abstract_state(const std::vector<int>& s) const;
 

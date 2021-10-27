@@ -96,6 +96,11 @@ bool ProbabilisticProjection::is_dead_end(const AbstractState& s) const
     return dead_ends->get(s);
 }
 
+bool ProbabilisticProjection::is_goal(const AbstractState& s) const
+{
+    return goal_states_.find(s) != goal_states_.end();
+}
+
 AbstractState
 ProbabilisticProjection::get_abstract_state(const GlobalState& s) const
 {
