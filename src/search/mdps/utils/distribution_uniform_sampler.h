@@ -8,11 +8,7 @@
 namespace probabilistic {
 namespace distribution_uniform_sampler {
 
-class DistributionUniformSampler {
-public:
-    DistributionUniformSampler();
-    ~DistributionUniformSampler() = default;
-
+struct DistributionUniformSampler {
     template <typename T>
     const T& operator()(const Distribution<T>& distribution) const
     {

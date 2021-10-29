@@ -9,11 +9,7 @@
 namespace probabilistic {
 namespace distribution_random_sampler {
 
-class DistributionRandomSampler {
-public:
-    DistributionRandomSampler();
-    ~DistributionRandomSampler() = default;
-
+struct DistributionRandomSampler {
     template <typename T>
     const T& operator()(const Distribution<T>& distribution) const
     {
@@ -35,8 +31,6 @@ public:
         }
         return it->first;
     }
-
-private:
 };
 
 } // namespace distribution_random_sampler
