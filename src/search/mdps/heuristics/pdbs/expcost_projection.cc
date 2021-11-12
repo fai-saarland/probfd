@@ -100,7 +100,8 @@ EvaluationResult ExpCostProjection::evaluate(const AbstractState& s) const
     return {v == -value_type::inf, v};
 }
 
-AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
+AbstractPolicy
+ExpCostProjection::get_optimal_abstract_policy(bool wildcard) const
 {
     AbstractPolicy policy;
 
@@ -134,7 +135,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
             continue;
         }
 
-        // Select a greedy operators and add its successors
+        // Select greedy operators and add successors
         for (const AbstractOperator* op : aops) {
             value_type::value_t op_value = -op->cost;
 
@@ -147,7 +148,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
             }
 
             if (value_type::approx_equal()(value, op_value)) {
-                policy[s] = op;
+                policy[s].push_back(op);
 
                 for (const AbstractState& succ : successors) {
                     if (!utils::contains(closed, succ)) {
@@ -156,13 +157,13 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy() const
                     }
                 }
 
-                goto continue_exploring;
+                if (!wildcard) {
+                    break;
+                }
             }
         }
 
-        abort();
-
-        continue_exploring:;
+        assert(!policy[s].empty());
     }
 
     return policy;

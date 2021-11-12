@@ -8,6 +8,7 @@
 
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace probabilistic {
@@ -15,90 +16,28 @@ namespace pdbs {
 
 class AbstractOperator;
 
-struct Transition {
-    const AbstractOperator* label;
-    value_type::value_t probability;
-    AbstractState target;
-
-    Transition(
-        const AbstractOperator* label,
-        value_type::value_t probability,
-        AbstractState target)
-        : label(label)
-        , probability(probability)
-        , target(target)
-    {
-    }
-};
-
-class AbstractTrace {
-    const AbstractState start;
-    std::vector<Transition> trace;
-    value_type::value_t total_probability;
-
-public:
-    using transition_iterator = decltype(trace)::iterator;
-    using transition_const_iterator = decltype(trace)::const_iterator;
-
-    explicit AbstractTrace(AbstractState start);
-
-    unsigned int length() const;
-
-    AbstractState get_start() const;
-
-    Transition& get_transition(int i);
-    const Transition& get_transition(int i) const;
-
-    void push_back(const Transition& transition);
-
-    Transition& emplace_back(
-        const AbstractOperator* label,
-        value_type::value_t probability,
-        AbstractState target);
-
-    value_type::value_t get_total_probability() const;
-
-    transition_iterator begin();
-    transition_iterator end();
-
-    transition_const_iterator cbegin() const;
-    transition_const_iterator cend() const;
-};
-
 class AbstractPolicy {
-    std::unordered_map<AbstractState, const AbstractOperator*> policy;
+public:
+    using OperatorList = std::vector<const AbstractOperator*>;
+
+private:
+    mutable bool is_wildcard;
+    std::unordered_map<AbstractState, OperatorList> optimal_operators;
 
 public:
-    using iterator = decltype(policy)::iterator;
-    using const_iterator = decltype(policy)::const_iterator;
+    using iterator = decltype(optimal_operators)::iterator;
+    using const_iterator = decltype(optimal_operators)::const_iterator;
 
     using state_iterator = utils::key_iterator<iterator>;
     using const_state_iterator = utils::key_iterator<const_iterator>;
 
-    using operator_iterator = utils::val_iterator<iterator>;
-    using const_operator_iterator = utils::val_iterator<const_iterator>;
+    using operators_iterator = utils::val_iterator<iterator>;
+    using const_operators_iterator = utils::val_iterator<const_iterator>;
 
-    AbstractPolicy() = default;
+    const_iterator find(const AbstractState& state) const;
 
-    AbstractPolicy(
-        std::unordered_map<AbstractState, const AbstractOperator*> policy);
-    AbstractPolicy(
-        const std::map<AbstractState, const AbstractOperator*>& policy);
-    AbstractPolicy(
-        const std::vector<std::pair<AbstractState, const AbstractOperator*>>&
-            policy);
-
-    template <typename Iterator>
-    AbstractPolicy(Iterator begin, Iterator end)
-        : policy(begin, end)
-    {
-    }
-
-    const AbstractOperator*
-    get_operator_if_present(const AbstractState& state) const;
-
-    const AbstractOperator*& operator[](const AbstractState& state);
-    const AbstractOperator* const& operator[](const AbstractState& state) const;
+    OperatorList& operator[](const AbstractState& state);
+    const OperatorList& operator[](const AbstractState& state) const;
 
     iterator begin();
     iterator end();
@@ -112,11 +51,11 @@ public:
     const_state_iterator state_begin() const;
     const_state_iterator state_end() const;
 
-    operator_iterator operator_begin();
-    operator_iterator operator_end();
+    operators_iterator operator_begin();
+    operators_iterator operator_end();
 
-    const_operator_iterator operator_begin() const;
-    const_operator_iterator operator_end() const;
+    const_operators_iterator operator_begin() const;
+    const_operators_iterator operator_end() const;
 
     // AbstractTrace sample_trace(const AbstractState& state);
 

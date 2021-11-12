@@ -248,7 +248,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
                 open.push_back(pstate);
 
                 // op is a greedy operator with min goal distance
-                policy[pstate] = op;
+                policy[pstate].push_back(op);
             }
         }
     }

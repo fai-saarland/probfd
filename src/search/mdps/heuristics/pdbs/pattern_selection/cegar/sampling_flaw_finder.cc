@@ -118,10 +118,10 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
 
     // Check flaws, generate successors
     const AbstractState abs = pdb.get_abstract_state(state.values);
-    const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
+    const auto abs_op_it = policy.find(abs);
 
     // We reached a terminal state, check if it is a goal
-    if (!abs_op) {
+    if (abs_op_it == policy.end()) {
         assert(pdb.is_goal(abs) || pdb.is_dead_end(abs));
 
         if (pdb.is_goal(abs) && !state.is_goal()) {
@@ -143,42 +143,54 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
         return 0;
     }
 
-    int original_id = abs_op->original_operator_id;
-    const ProbabilisticOperator& op = g_operators[original_id];
+    const AbstractPolicy::OperatorList& abs_operators = abs_op_it->second;
+    FlawList local_flaws;
 
-    // Check whether precondition flaws occur
-    for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
-        // We ignore blacklisted variables
-        const bool is_blacklist_var =
-            utils::contains(base.global_blacklist, pre_var);
+    for (const AbstractOperator* abs_op : abs_operators) {
+        int original_id = abs_op->original_operator_id;
+        const ProbabilisticOperator& op = g_operators[original_id];
 
-        if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
-            assert(
-                !solution.is_blacklisted(pre_var) ||
-                base.local_blacklisting);
-            continue;
+        // Check whether precondition flaws occur
+        bool preconditions_ok = true;
+
+        for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
+            // We ignore blacklisted variables
+            const bool is_blacklist_var =
+                utils::contains(base.global_blacklist, pre_var);
+
+            if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
+                assert(
+                    !solution.is_blacklisted(pre_var) ||
+                    base.local_blacklisting);
+                continue;
+            }
+
+            if (state[pre_var] != pre_val) {
+                preconditions_ok = false;
+                local_flaws.emplace_back(false, solution_index, pre_var);
+            }
         }
 
-        if (state[pre_var] != pre_val) {
-            flaw_list.emplace_back(false, solution_index, pre_var);
+        // Flaws occured.
+        if (!preconditions_ok) {
+            continue; // Try next operator
         }
+
+        // Generate the successors
+        assert(einfos.find(state) == einfos.end());
+        ExplorationInfo& einfo = einfos[state];
+        for (const auto& [det_op, prob] : op) {
+            einfo.successors.add_unique(state.get_successor(*det_op), prob);
+        }
+
+        stk.push(state);
+        return STATE_PUSHED;
     }
 
-    // Flaws occured.
-    if (!flaw_list.empty()) {
-        return FLAW_OCCURED;
-    }
+    // Insert all flaws of all operators
+    flaw_list.insert(flaw_list.end(), local_flaws.begin(), local_flaws.end());
 
-    // Generate the successors
-    assert(einfos.find(state) == einfos.end());
-    ExplorationInfo& einfo = einfos[state];
-    for (const auto& [det_op, prob] : op) {
-        einfo.successors.add_unique(state.get_successor(*det_op), prob);
-    }
-
-    stk.push(state);
-
-    return STATE_PUSHED;
+    return FLAW_OCCURED;
 }
 
 template <typename PDBType>

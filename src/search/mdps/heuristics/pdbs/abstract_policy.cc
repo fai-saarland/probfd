@@ -3,172 +3,82 @@
 namespace probabilistic {
 namespace pdbs {
 
-AbstractTrace::AbstractTrace(AbstractState start)
-    : start(start)
-    , total_probability(value_type::zero)
+AbstractPolicy::const_iterator
+AbstractPolicy::find(const AbstractState& state) const
 {
+    return optimal_operators.find(state);
 }
 
-unsigned int AbstractTrace::length() const
+AbstractPolicy::OperatorList&
+AbstractPolicy::operator[](const AbstractState& state)
 {
-    return trace.size();
+    return optimal_operators[state];
 }
 
-AbstractState AbstractTrace::get_start() const
-{
-    return start;
-}
-
-Transition& AbstractTrace::get_transition(int i)
-{
-    return trace[i];
-}
-
-const Transition& AbstractTrace::get_transition(int i) const
-{
-    return trace[i];
-}
-
-void AbstractTrace::push_back(const Transition& transition)
-{
-    trace.push_back(transition);
-    total_probability += transition.probability;
-}
-
-Transition& AbstractTrace::emplace_back(
-    const AbstractOperator* label,
-    value_type::value_t probability,
-    AbstractState target)
-{
-    total_probability += probability;
-    return trace.emplace_back(label, probability, target);
-}
-
-value_type::value_t AbstractTrace::get_total_probability() const
-{
-    return total_probability;
-}
-
-AbstractTrace::transition_iterator AbstractTrace::begin()
-{
-    return trace.begin();
-}
-
-AbstractTrace::transition_iterator AbstractTrace::end()
-{
-    return trace.end();
-}
-
-AbstractTrace::transition_const_iterator AbstractTrace::cbegin() const
-{
-    return trace.cbegin();
-}
-
-AbstractTrace::transition_const_iterator AbstractTrace::cend() const
-{
-    return trace.cend();
-}
-
-AbstractPolicy::AbstractPolicy(
-    std::unordered_map<AbstractState, const AbstractOperator*> policy)
-    : policy(std::move(policy))
-{
-}
-
-AbstractPolicy::AbstractPolicy(
-    const std::map<AbstractState, const AbstractOperator*>& policy)
-    : policy(policy.begin(), policy.end())
-{
-}
-
-AbstractPolicy::AbstractPolicy(
-    const std::vector<std::pair<AbstractState, const AbstractOperator*>>&
-        policy)
-    : policy(policy.begin(), policy.end())
-{
-}
-
-const AbstractOperator*
-AbstractPolicy::get_operator_if_present(const AbstractState& state) const
-{
-    auto it = policy.find(state);
-
-    if (it != policy.end()) {
-        return it->second;
-    }
-
-    return nullptr;
-}
-
-const AbstractOperator*& AbstractPolicy::operator[](const AbstractState& state)
-{
-    return policy[state];
-}
-
-const AbstractOperator* const&
+const AbstractPolicy::OperatorList&
 AbstractPolicy::operator[](const AbstractState& state) const
 {
-    return policy.find(state)->second;
+    return optimal_operators.find(state)->second;
 }
 
 AbstractPolicy::iterator AbstractPolicy::begin()
 {
-    return policy.begin();
+    return optimal_operators.begin();
 }
 
 AbstractPolicy::iterator AbstractPolicy::end()
 {
-    return policy.end();
+    return optimal_operators.end();
 }
 
 AbstractPolicy::const_iterator AbstractPolicy::begin() const
 {
-    return policy.begin();
+    return optimal_operators.begin();
 }
 
 AbstractPolicy::const_iterator AbstractPolicy::end() const
 {
-    return policy.end();
+    return optimal_operators.end();
 }
 
 AbstractPolicy::state_iterator AbstractPolicy::state_begin()
 {
-    return state_iterator(policy.begin());
+    return state_iterator(optimal_operators.begin());
 }
 
 AbstractPolicy::state_iterator AbstractPolicy::state_end()
 {
-    return state_iterator(policy.end());
+    return state_iterator(optimal_operators.end());
 }
 
 AbstractPolicy::const_state_iterator AbstractPolicy::state_begin() const
 {
-    return const_state_iterator(policy.begin());
+    return const_state_iterator(optimal_operators.begin());
 }
 
 AbstractPolicy::const_state_iterator AbstractPolicy::state_end() const
 {
-    return const_state_iterator(policy.end());
+    return const_state_iterator(optimal_operators.end());
 }
 
-AbstractPolicy::operator_iterator AbstractPolicy::operator_begin()
+AbstractPolicy::operators_iterator AbstractPolicy::operator_begin()
 {
-    return operator_iterator(policy.begin());
+    return operators_iterator(optimal_operators.begin());
 }
 
-AbstractPolicy::operator_iterator AbstractPolicy::operator_end()
+AbstractPolicy::operators_iterator AbstractPolicy::operator_end()
 {
-    return operator_iterator(policy.end());
+    return operators_iterator(optimal_operators.end());
 }
 
-AbstractPolicy::const_operator_iterator AbstractPolicy::operator_begin() const
+AbstractPolicy::const_operators_iterator AbstractPolicy::operator_begin() const
 {
-    return const_operator_iterator(policy.begin());
+    return const_operators_iterator(optimal_operators.begin());
 }
 
-AbstractPolicy::const_operator_iterator AbstractPolicy::operator_end() const
+AbstractPolicy::const_operators_iterator AbstractPolicy::operator_end() const
 {
-    return const_operator_iterator(policy.end());
+    return const_operators_iterator(optimal_operators.end());
 }
 
 } // namespace pdbs

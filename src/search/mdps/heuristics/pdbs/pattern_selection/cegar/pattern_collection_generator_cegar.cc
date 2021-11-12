@@ -132,8 +132,10 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     const options::Options& opts)
     : PatternCollectionGeneratorCegar(
           utils::parse_rng_from_options(opts),
-          opts.get<std::shared_ptr<SubCollectionFinder>>("subcollection_finder"),
-          opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>("flaw_strategy"),
+          opts.get<std::shared_ptr<SubCollectionFinder>>(
+              "subcollection_finder"),
+          opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
+              "flaw_strategy"),
           opts.get<int>("max_refinements"),
           opts.get<int>("max_pdb_size"),
           opts.get<int>("max_collection_size"),
@@ -268,7 +270,7 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::apply_policy(
                 concrete_solution_index = solution_index;
             }
         }
-        
+
         solution.mark_as_solved();
     }
 
@@ -344,8 +346,8 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_singleton_pattern(
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::add_pattern_for_var(int var)
 {
-    auto& sol = solutions.emplace_back(
-        new AbstractSolutionData<PDBType>({var}, {}));
+    auto& sol =
+        solutions.emplace_back(new AbstractSolutionData<PDBType>({var}, {}));
     solution_lookup[var] = solutions.size() - 1;
     collection_size += sol->get_pdb().num_states();
 }
@@ -549,8 +551,7 @@ void PatternCollectionGeneratorCegar<PDBType>::handle_precondition_violation(
 }
 
 template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::refine(
-    const FlawList& flaws)
+void PatternCollectionGeneratorCegar<PDBType>::refine(const FlawList& flaws)
 {
     assert(!flaws.empty());
 
@@ -734,7 +735,8 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
     }
 
     PatternCollectionInformation<PDBType> pattern_collection_information(
-        patterns, subcollection_finder);
+        patterns,
+        subcollection_finder);
     pattern_collection_information.set_pdbs(pdbs);
     return pattern_collection_information;
 }

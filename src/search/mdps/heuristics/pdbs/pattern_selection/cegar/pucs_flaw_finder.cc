@@ -89,10 +89,10 @@ bool PUCSFlawFinder<PDBType>::expand(
 
     // Check flaws, generate successors
     const AbstractState abs = pdb.get_abstract_state(state.values);
-    const AbstractOperator* abs_op = policy.get_operator_if_present(abs);
+    const auto abs_op_it = policy.find(abs);
 
     // We reached a terminal state, check if it is a goal
-    if (!abs_op) {
+    if (abs_op_it == policy.end()) {
         assert(pdb.is_goal(abs) || pdb.is_dead_end(abs));
 
         if (pdb.is_goal(abs) && !state.is_goal()) {
@@ -114,53 +114,64 @@ bool PUCSFlawFinder<PDBType>::expand(
         return true;
     }
 
-    int original_id = abs_op->original_operator_id;
-    const ProbabilisticOperator& op = g_operators[original_id];
+    const AbstractPolicy::OperatorList& abs_operators = abs_op_it->second;
+    FlawList local_flaws;
 
-    // Check whether precondition flaws occur
-    bool preconditions_ok = true;
-    for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
-        // We ignore blacklisted variables
-        const bool is_blacklist_var =
-            utils::contains(base.global_blacklist, pre_var);
+    for (const AbstractOperator* abs_op : abs_operators) {
+        int original_id = abs_op->original_operator_id;
+        const ProbabilisticOperator& op = g_operators[original_id];
 
-        if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
-            assert(
-                !solution.is_blacklisted(pre_var) ||
-                base.local_blacklisting);
-            continue;
-        }
+        // Check whether precondition flaws occur
+        bool preconditions_ok = true;
 
-        if (state[pre_var] != pre_val) {
-            preconditions_ok = false;
-            flaw_list.emplace_back(false, solution_index, pre_var);
-        }
-    }
+        for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
+            // We ignore blacklisted variables
+            const bool is_blacklist_var =
+                utils::contains(base.global_blacklist, pre_var);
 
-    // Flaws occured.
-    if (!preconditions_ok) {
-        return false;
-    }
-
-    // Generate the successors and add them to the queue
-    for (const auto& [det_op, prob] : op) {
-        const value_type::value_t succ_prob = priority * prob;
-        auto successor = state.get_successor(*det_op);
-
-        auto [it, inserted] = probabilities.emplace(successor, succ_prob);
-
-        if (!inserted) {
-            if (succ_prob <= it->second) {
+            if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
+                assert(
+                    !solution.is_blacklisted(pre_var) ||
+                    base.local_blacklisting);
                 continue;
             }
 
-            it->second = succ_prob;
+            if (state[pre_var] != pre_val) {
+                preconditions_ok = false;
+                local_flaws.emplace_back(false, solution_index, pre_var);
+            }
         }
 
-        pq.push(succ_prob, std::move(successor));
+        // Flaws occured.
+        if (!preconditions_ok) {
+            continue; // Try next operator
+        }
+
+        // Generate the successors and add them to the queue
+        for (const auto& [det_op, prob] : op) {
+            const value_type::value_t succ_prob = priority * prob;
+            auto successor = state.get_successor(*det_op);
+
+            auto [it, inserted] = probabilities.emplace(successor, succ_prob);
+
+            if (!inserted) {
+                if (succ_prob <= it->second) {
+                    continue;
+                }
+
+                it->second = succ_prob;
+            }
+
+            pq.push(succ_prob, std::move(successor));
+        }
+
+        return true;
     }
 
-    return true;
+    // Insert all flaws of all operators
+    flaw_list.insert(flaw_list.end(), local_flaws.begin(), local_flaws.end());
+
+    return false;
 }
 
 template <typename PDBType>

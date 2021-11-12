@@ -40,7 +40,7 @@ public:
     [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
     [[nodiscard]] EvaluationResult evaluate(const AbstractState& s) const;
 
-    AbstractPolicy get_optimal_abstract_policy() const;
+    AbstractPolicy get_optimal_abstract_policy(bool wildcard = false) const;
 
     void dump_graphviz(
         const std::string& path,
