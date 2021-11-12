@@ -21,7 +21,6 @@ public:
     using OperatorList = std::vector<const AbstractOperator*>;
 
 private:
-    mutable bool is_wildcard;
     std::unordered_map<AbstractState, OperatorList> optimal_operators;
 
 public:
