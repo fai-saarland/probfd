@@ -52,6 +52,18 @@ public:
     }
 
     template<typename T>
+    typename T::const_iterator choose(const T& container)
+    {
+        return container.begin() + operator()(container.size());
+    }
+
+    template<typename T>
+    typename T::iterator choose(T& container)
+    {
+        return container.begin() + operator()(container.size());
+    }
+
+    template<typename T>
     typename std::vector<T>::const_iterator choose(const std::vector<T>& vec)
     {
         return vec.begin() + operator()(vec.size());

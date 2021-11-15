@@ -251,15 +251,20 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
         }
     }
 
-    // Do regression BFS to select an optimal policy
+    // Do regression search with duplicate checking through the constructed graph,
+    // expanding predecessors randomly to select an optimal policy
     assert(open.empty());
     open.insert(open.end(), goal_states_.begin(), goal_states_.end());
     closed.clear();
     closed.insert(goal_states_.begin(), goal_states_.end());
 
     while (!open.empty()) {
-        AbstractState s = open.front();
-        open.pop_front();
+        // Choose a random successor
+        auto it = rng->choose(open);
+        AbstractState s = *it;
+
+        std::swap(*it, open.back());
+        open.pop_back();
 
         // Consider predecessors in random order
         rng->shuffle(predecessors[s]);
