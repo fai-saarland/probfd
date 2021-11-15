@@ -55,6 +55,8 @@ class PatternCollectionGeneratorCegar
     std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy;
 
     // behavior defining parameters
+    const bool wildcard;
+
     const int max_refinements;
     const int max_pdb_size;
     const int max_collection_size;
@@ -97,6 +99,7 @@ public:
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         std::shared_ptr<SubCollectionFinder> subcollection_finder,
         std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_finder,
+        bool wildcard,
         int arg_max_refinements,
         int arg_max_pdb_size,
         int arg_max_collection_size,

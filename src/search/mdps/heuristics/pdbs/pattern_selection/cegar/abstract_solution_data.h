@@ -27,17 +27,25 @@ class AbstractSolutionData {
     bool solved;
 
 public:
-    AbstractSolutionData(const Pattern& pattern, std::set<int> blacklist);
+    AbstractSolutionData(
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        const Pattern& pattern,
+        std::set<int> blacklist,
+        bool wildcard);
 
     AbstractSolutionData(
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& previous,
         int add_var,
-        std::set<int> blacklist);
+        std::set<int> blacklist,
+        bool wildcard);
 
     AbstractSolutionData(
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& merge_left,
         const PDBType& merge_right,
-        std::set<int> blacklist);
+        std::set<int> blacklist,
+        bool wildcard);
 
     const Pattern& get_pattern() const;
 

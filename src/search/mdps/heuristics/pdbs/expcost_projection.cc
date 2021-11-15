@@ -47,32 +47,44 @@ using namespace value_utils;
 ExpCostProjection::ExpCostProjection(
     const Pattern& variables,
     const std::vector<int>& domains,
+    bool operator_pruning,
     const AbstractStateEvaluator& heuristic)
-    : ExpCostProjection(new AbstractStateMapper(variables, domains), heuristic)
+    : ExpCostProjection(
+        new AbstractStateMapper(variables, domains),
+        operator_pruning,
+        heuristic)
 {
 }
 
 ExpCostProjection::ExpCostProjection(
     AbstractStateMapper* mapper,
+    bool operator_pruning,
     const AbstractStateEvaluator& heuristic)
-    : ProbabilisticProjection(mapper)
+    : ProbabilisticProjection(mapper, operator_pruning)
     , value_table(state_mapper_->num_states(), -value_type::inf)
 {
     compute_value_table(heuristic);
 }
 
-ExpCostProjection::ExpCostProjection(const ::pdbs::PatternDatabase& pdb)
+ExpCostProjection::ExpCostProjection(
+    const ::pdbs::PatternDatabase& pdb,
+    bool operator_pruning)
     : ExpCostProjection(
           pdb.get_pattern(),
           ::g_variable_domain,
+          operator_pruning,
           PDBEvaluator(pdb))
 {
 }
 
-ExpCostProjection::ExpCostProjection(const ExpCostProjection& pdb, int add_var)
+ExpCostProjection::ExpCostProjection(
+    const ExpCostProjection& pdb,
+    int add_var,
+    bool operator_pruning)
     : ProbabilisticProjection(
           utils::insert(pdb.get_pattern(), add_var),
-          ::g_variable_domain)
+          ::g_variable_domain,
+          operator_pruning)
     , value_table(state_mapper_->num_states(), -value_type::inf)
 {
     compute_value_table(
@@ -101,7 +113,9 @@ EvaluationResult ExpCostProjection::evaluate(const AbstractState& s) const
 }
 
 AbstractPolicy
-ExpCostProjection::get_optimal_abstract_policy(bool wildcard) const
+ExpCostProjection::get_optimal_abstract_policy(
+    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    bool wildcard) const
 {
     AbstractPolicy policy;
 
@@ -135,7 +149,13 @@ ExpCostProjection::get_optimal_abstract_policy(bool wildcard) const
             continue;
         }
 
-        // Select greedy operators and add successors
+        // Look at the (greedy) operators in random order.
+        rng->shuffle(aops);
+
+        const AbstractOperator* greedy_operator = nullptr;
+        std::vector<AbstractState> greedy_successors;
+
+        // Select first greedy operator
         for (const AbstractOperator* op : aops) {
             value_type::value_t op_value = -op->cost;
 
@@ -148,19 +168,39 @@ ExpCostProjection::get_optimal_abstract_policy(bool wildcard) const
             }
 
             if (value_type::approx_equal()(value, op_value)) {
-                policy[s].push_back(op);
-
-                for (const AbstractState& succ : successors) {
-                    if (!utils::contains(closed, succ)) {
-                        closed.insert(succ);
-                        open.push_back(succ);
-                    }
-                }
-
-                if (!wildcard) {
-                    break;
-                }
+                greedy_operator = op;
+                greedy_successors = std::move(successors);
+                break;
             }
+        }
+
+        assert(greedy_operator != nullptr);
+
+        // Generate successors
+        for (const AbstractState& succ : greedy_successors) {
+            if (!utils::contains(closed, succ)) {
+                closed.insert(succ);
+                open.push_back(succ);
+            }
+        }
+
+        // Collect all equivalent greedy operators
+        std::vector<const AbstractOperator*> equivalent_operators;
+
+        for (const AbstractOperator* op : aops) {
+            if (op->outcomes.data() == greedy_operator->outcomes.data()) {
+                equivalent_operators.push_back(op);
+            }
+        }
+
+        // If wildcard consider all, else randomly pick one
+        if (wildcard) {
+            policy[s].insert(
+                policy[s].end(),
+                equivalent_operators.begin(),
+                equivalent_operators.end());
+        } else {
+            policy[s].push_back(*rng->choose(equivalent_operators));
         }
 
         assert(!policy[s].empty());
@@ -284,6 +324,11 @@ void ExpCostProjection::verify(const StateIDMap<AbstractState>& state_id_map) {
 
         if (utils::contains(goal_states_, s)) {
             assert(value == value_type::zero);
+            continue;
+        }
+
+        if (this->dead_ends->get(s)) {
+            assert(value == -value_type::inf);
             continue;
         }
 

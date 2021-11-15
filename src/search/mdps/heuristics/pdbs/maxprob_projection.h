@@ -20,20 +20,27 @@ class MaxProbProjection : public pdbs::ProbabilisticProjection {
     std::vector<value_utils::IntervalValue> value_table;
 
 public:
-    MaxProbProjection(
+    explicit MaxProbProjection(
         const Pattern& pattern,
         const std::vector<int>& domains = ::g_variable_domain,
+        bool operator_pruning = true,
         const AbstractStateEvaluator& heuristic =
             ConstantEvaluator<AbstractState>(value_type::one));
 
-    MaxProbProjection(
+    explicit MaxProbProjection(
         AbstractStateMapper* mapper,
+        bool operator_pruning = true,
         const AbstractStateEvaluator& heuristic =
             ConstantEvaluator<AbstractState>(value_type::one));
 
-    MaxProbProjection(const ::pdbs::PatternDatabase& pdb);
+    explicit MaxProbProjection(
+        const ::pdbs::PatternDatabase& pdb,
+        bool operator_pruning = true);
 
-    MaxProbProjection(const MaxProbProjection& pdb, int add_var);
+    explicit MaxProbProjection(
+        const MaxProbProjection& pdb,
+        int add_var,
+        bool operator_pruning = true);
 
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
     [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
@@ -41,7 +48,9 @@ public:
     [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
     [[nodiscard]] EvaluationResult evaluate(const AbstractState& s) const;
 
-    AbstractPolicy get_optimal_abstract_policy() const;
+    AbstractPolicy get_optimal_abstract_policy(
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        bool wildcard = false) const;
 
     void dump_graphviz(
         const std::string& path,

@@ -19,20 +19,27 @@ class ExpCostProjection : public pdbs::ProbabilisticProjection {
     std::vector<value_type::value_t> value_table;
 
 public:
-    ExpCostProjection(
+    explicit ExpCostProjection(
         const Pattern& variables,
         const std::vector<int>& domains = ::g_variable_domain,
+        bool operator_pruning = true,
         const AbstractStateEvaluator& heuristic =
             ConstantEvaluator<AbstractState>(value_type::zero));
 
-    ExpCostProjection(
+    explicit ExpCostProjection(
         AbstractStateMapper* mapper,
+        bool operator_pruning = true,
         const AbstractStateEvaluator& heuristic =
             ConstantEvaluator<AbstractState>(value_type::zero));
 
-    ExpCostProjection(const ::pdbs::PatternDatabase& pdb);
+    explicit ExpCostProjection(
+        const ::pdbs::PatternDatabase& pdb,
+        bool operator_pruning = true);
 
-    ExpCostProjection(const ExpCostProjection& pdb, int add_var);
+    explicit ExpCostProjection(
+        const ExpCostProjection& pdb,
+        int add_var,
+        bool operator_pruning = true);
 
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
     [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
@@ -40,7 +47,9 @@ public:
     [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
     [[nodiscard]] EvaluationResult evaluate(const AbstractState& s) const;
 
-    AbstractPolicy get_optimal_abstract_policy(bool wildcard = false) const;
+    AbstractPolicy get_optimal_abstract_policy(
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        bool wildcard = false) const;
 
     void dump_graphviz(
         const std::string& path,

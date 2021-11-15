@@ -68,30 +68,36 @@ protected:
 
 template <typename PDBType>
 AbstractSolutionData<PDBType>::AbstractSolutionData(
+    const shared_ptr<utils::RandomNumberGenerator>& rng,
     const Pattern& pattern,
-    set<int> blacklist)
-    : pdb(new PDBType(pattern))
+    set<int> blacklist,
+    bool wildcard)
+    : pdb(new PDBType(pattern, ::g_variable_domain, !wildcard))
     , blacklist(std::move(blacklist))
-    , policy(pdb->get_optimal_abstract_policy())
+    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
     , solved(false)
 {
 }
 
 template <typename PDBType>
 AbstractSolutionData<PDBType>::AbstractSolutionData(
+    const shared_ptr<utils::RandomNumberGenerator>& rng,
     const PDBType& previous,
     int add_var,
-    std::set<int> blacklist)
-    : pdb(new PDBType(previous, add_var))
+    std::set<int> blacklist,
+    bool wildcard)
+    : pdb(new PDBType(previous, add_var, !wildcard))
     , blacklist(std::move(blacklist))
-    , policy(pdb->get_optimal_abstract_policy())
+    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
     , solved(false)
 {
 }
 
 template <typename PDBType>
-PDBType*
-construct_merge_pdb(const PDBType& merge_left, const PDBType& merge_right)
+PDBType* construct_merge_pdb(
+    const PDBType& merge_left,
+    const PDBType& merge_right,
+    bool operator_pruning)
 {
     const Pattern& left_pattern = merge_left.get_pattern();
     const Pattern& right_pattern = merge_right.get_pattern();
@@ -111,17 +117,20 @@ construct_merge_pdb(const PDBType& merge_left, const PDBType& merge_right)
 
     return new PDBType(
         mapper,
+        operator_pruning,
         MergeEvaluator<PDBType>(mapper, merge_left, merge_right));
 }
 
 template <typename PDBType>
 AbstractSolutionData<PDBType>::AbstractSolutionData(
+    const shared_ptr<utils::RandomNumberGenerator>& rng,
     const PDBType& merge_left,
     const PDBType& merge_right,
-    std::set<int> blacklist)
-    : pdb(construct_merge_pdb(merge_left, merge_right))
+    std::set<int> blacklist,
+    bool wildcard)
+    : pdb(construct_merge_pdb(merge_left, merge_right, !wildcard))
     , blacklist(std::move(blacklist))
-    , policy(pdb->get_optimal_abstract_policy())
+    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
     , solved(false)
 {
 }

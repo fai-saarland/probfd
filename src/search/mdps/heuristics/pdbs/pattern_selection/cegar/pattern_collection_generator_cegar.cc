@@ -39,6 +39,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
     std::shared_ptr<SubCollectionFinder> subcollection_finder,
     std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy,
+    bool wildcard,
     int arg_max_refinements,
     int arg_max_pdb_size,
     int arg_max_collection_size,
@@ -53,6 +54,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     : rng(arg_rng)
     , subcollection_finder(subcollection_finder)
     , flaw_strategy(flaw_strategy)
+    , wildcard(wildcard)
     , max_refinements(arg_max_refinements)
     , max_pdb_size(arg_max_pdb_size)
     , max_collection_size(arg_max_collection_size)
@@ -136,6 +138,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
               "subcollection_finder"),
           opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
               "flaw_strategy"),
+          opts.get<bool>("wildcard"),
           opts.get<int>("max_refinements"),
           opts.get<int>("max_pdb_size"),
           opts.get<int>("max_collection_size"),
@@ -346,8 +349,8 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_singleton_pattern(
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::add_pattern_for_var(int var)
 {
-    auto& sol =
-        solutions.emplace_back(new AbstractSolutionData<PDBType>({var}, {}));
+    auto& sol = solutions.emplace_back(
+        new AbstractSolutionData<PDBType>(rng, {var}, {}, wildcard));
     solution_lookup[var] = solutions.size() - 1;
     collection_size += sol->get_pdb().num_states();
 }
@@ -426,7 +429,8 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
 
     // compute merge solution
     unique_ptr<AbstractSolutionData<PDBType>> merged(
-        new AbstractSolutionData<PDBType>(pdb1, pdb2, new_blacklist));
+        new AbstractSolutionData<PDBType>(
+            rng, pdb1, pdb2, new_blacklist, wildcard));
 
     // update collection size
     collection_size -= pdb_size1;
@@ -464,9 +468,11 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
     // compute new solution
     unique_ptr<AbstractSolutionData<PDBType>> new_solution(
         new AbstractSolutionData<PDBType>(
+            rng,
             solution.get_pdb(),
             var,
-            solution.get_blacklist()));
+            solution.get_blacklist(),
+            wildcard));
 
     // update collection size
     collection_size -= solution.get_pdb().num_states();
@@ -769,6 +775,10 @@ void add_pattern_collection_generator_cegar_options_to_parser(
 {
     utils::add_verbosity_option_to_parser(parser);
 
+    parser.add_option<bool>(
+        "wildcard",
+        "whether to compute a wildcard policy",
+        "false");
     parser.add_option<int>(
         "max_refinements",
         "maximum allowed number of refinements",

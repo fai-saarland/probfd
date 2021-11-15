@@ -47,33 +47,45 @@ public:
 MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
     const std::vector<int>& domains,
+    bool operator_pruning,
     const AbstractStateEvaluator& heuristic)
-    : MaxProbProjection(new AbstractStateMapper(pattern, domains), heuristic)
+    : MaxProbProjection(
+        new AbstractStateMapper(pattern, domains),
+        operator_pruning,
+        heuristic)
 {
     compute_value_table(heuristic);
 }
 
 MaxProbProjection::MaxProbProjection(
     AbstractStateMapper* mapper,
+    bool operator_pruning,
     const AbstractStateEvaluator& heuristic)
-    : ProbabilisticProjection(mapper)
+    : ProbabilisticProjection(mapper, operator_pruning)
     , value_table(state_mapper_->num_states())
 {
     compute_value_table(heuristic);
 }
 
-MaxProbProjection::MaxProbProjection(const ::pdbs::PatternDatabase& pdb)
+MaxProbProjection::MaxProbProjection(
+    const ::pdbs::PatternDatabase& pdb,
+    bool operator_pruning)
     : MaxProbProjection(
           pdb.get_pattern(),
           ::g_variable_domain,
+          operator_pruning,
           DeadendPDBEvaluator(pdb))
 {
 }
 
-MaxProbProjection::MaxProbProjection(const MaxProbProjection& pdb, int add_var)
+MaxProbProjection::MaxProbProjection(
+    const MaxProbProjection& pdb,
+    int add_var,
+    bool operator_pruning)
     : ProbabilisticProjection(
           utils::insert(pdb.get_pattern(), add_var),
-          ::g_variable_domain)
+          ::g_variable_domain,
+          operator_pruning)
     , value_table(state_mapper_->num_states())
 {
     compute_value_table(
@@ -171,7 +183,9 @@ EvaluationResult MaxProbProjection::evaluate(const AbstractState& s) const
     return {false, v};
 }
 
-AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
+AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
+    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    bool wildcard) const
 {
     using PredecessorList =
         std::vector<std::pair<AbstractState, const AbstractOperator*>>;
@@ -232,7 +246,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
         }
     }
 
-    // Do regression search to select the optimal policy
+    // Do regression BFS to select an optimal policy
     assert(open.empty());
     open.insert(open.end(), goal_states_.begin(), goal_states_.end());
     closed.clear();
@@ -242,13 +256,37 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy() const
         AbstractState s = open.front();
         open.pop_front();
 
-        for (const auto& [pstate, op] : predecessors[s]) {
+        // Consider predecessors in random order
+        rng->shuffle(predecessors[s]);
+
+        for (const auto& [pstate, sel_op] : predecessors[s]) {
             if (!utils::contains(closed, pstate)) {
                 closed.insert(pstate);
                 open.push_back(pstate);
 
-                // op is a greedy operator with min goal distance
-                policy[pstate].push_back(op);
+                // Collect all equivalent greedy operators
+                auto facts = state_mapper_->to_values(pstate);
+
+                std::vector<const AbstractOperator*> aops;
+                progression_aops_generator_->generate_applicable_ops(facts, aops);
+
+                std::vector<const AbstractOperator*> equivalent_operators;
+
+                for (const AbstractOperator* op : aops) {
+                    if (op->outcomes.data() == sel_op->outcomes.data()) {
+                        equivalent_operators.push_back(op);
+                    }
+                }
+
+                // If wildcard consider all, else randomly pick one
+                if (wildcard) {
+                    policy[s].insert(
+                        policy[s].end(),
+                        equivalent_operators.begin(),
+                        equivalent_operators.end());
+                } else {
+                    policy[s].push_back(*rng->choose(equivalent_operators));
+                }
             }
         }
     }
