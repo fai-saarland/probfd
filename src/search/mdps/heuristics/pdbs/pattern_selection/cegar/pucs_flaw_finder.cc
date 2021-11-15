@@ -89,11 +89,17 @@ bool PUCSFlawFinder<PDBType>::expand(
 
     // Check flaws, generate successors
     const AbstractState abs = pdb.get_abstract_state(state.values);
+
+    // We reached a dead-end, the operator is irrelevant.
+    if (pdb.is_dead_end(abs)) {
+        return true;
+    }
+
     const auto abs_op_it = policy.find(abs);
 
     // We reached a terminal state, check if it is a goal
     if (abs_op_it == policy.end()) {
-        assert(pdb.is_goal(abs) || pdb.is_dead_end(abs));
+        assert(pdb.is_goal(abs));
 
         if (pdb.is_goal(abs) && !state.is_goal()) {
             if (!base.ignore_goal_violations) {

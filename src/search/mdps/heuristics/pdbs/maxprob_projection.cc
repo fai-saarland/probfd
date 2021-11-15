@@ -212,6 +212,11 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
         AbstractState s = open.front();
         open.pop_front();
 
+        // Skip dead-ends, the operator is irrelevant
+        if (is_dead_end(s)) {
+            continue;
+        }
+
         const value_type::value_t value = value_table[s.id].upper;
 
         // Generate operators...
