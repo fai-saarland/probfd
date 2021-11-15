@@ -280,12 +280,12 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
                 // If wildcard consider all, else randomly pick one
                 if (wildcard) {
-                    policy[s].insert(
-                        policy[s].end(),
+                    policy[pstate].insert(
+                        policy[pstate].end(),
                         equivalent_operators.begin(),
                         equivalent_operators.end());
                 } else {
-                    policy[s].push_back(*rng->choose(equivalent_operators));
+                    policy[pstate].push_back(*rng->choose(equivalent_operators));
                 }
             }
         }
