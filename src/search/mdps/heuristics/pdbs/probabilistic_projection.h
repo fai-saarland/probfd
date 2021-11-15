@@ -69,9 +69,12 @@ protected:
 public:
     ProbabilisticProjection(
         const Pattern& pattern,
-        const std::vector<int>& domains);
+        const std::vector<int>& domains,
+        bool operator_pruning = true);
 
-    ProbabilisticProjection(AbstractStateMapper* mapper);
+    ProbabilisticProjection(
+        AbstractStateMapper* mapper,
+        bool operator_pruning = true);
 
     std::shared_ptr<AbstractStateMapper> get_abstract_state_mapper() const;
     std::unordered_set<AbstractState>& get_abstract_goal_states();
@@ -140,7 +143,7 @@ private:
     void compute_dead_ends();
 
     void setup_abstract_goal();
-    void build_operators();
+    void build_operators(bool operator_pruning);
     
     void add_abstract_operators(
         const ProbabilisticOperator& op,
@@ -149,7 +152,8 @@ private:
         std::vector<std::vector<std::pair<int, int>>>&
             progression_preconditions,
         std::vector<std::vector<std::pair<int, int>>>&
-            regression_preconditions);
+            regression_preconditions,
+        bool operator_pruining);
 
 protected:
     std::vector<int> var_index_;

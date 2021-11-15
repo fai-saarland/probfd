@@ -23,12 +23,17 @@ struct NoGoalVariableException : std::exception {
 
 ProbabilisticProjection::ProbabilisticProjection(
     const Pattern& pattern,
-    const std::vector<int>& domains)
-    : ProbabilisticProjection(new AbstractStateMapper(pattern, domains))
+    const std::vector<int>& domains,
+    bool operator_pruning)
+    : ProbabilisticProjection(
+        new AbstractStateMapper(pattern, domains),
+        operator_pruning)
 {
 }
 
-ProbabilisticProjection::ProbabilisticProjection(AbstractStateMapper* mapper)
+ProbabilisticProjection::ProbabilisticProjection(
+    AbstractStateMapper* mapper,
+    bool operator_pruning)
     : var_index_(::g_variable_domain.size(), -1)
     , state_mapper_(mapper)
     , initial_state_((*state_mapper_)(::g_initial_state_data))
@@ -38,7 +43,7 @@ ProbabilisticProjection::ProbabilisticProjection(AbstractStateMapper* mapper)
     }
 
     setup_abstract_goal();
-    build_operators();
+    build_operators(operator_pruning);
     compute_dead_ends();
 }
 
@@ -316,7 +321,7 @@ void ProbabilisticProjection::setup_abstract_goal()
     }
 }
 
-void ProbabilisticProjection::build_operators()
+void ProbabilisticProjection::build_operators(bool operator_pruning)
 {
     abstract_operators_.reserve(g_operators.size());
 
@@ -338,7 +343,8 @@ void ProbabilisticProjection::build_operators()
             duplicate_set,
             abstract_regression_operators,
             progression_preconditions,
-            regression_preconditions);
+            regression_preconditions,
+            operator_pruning);
     }
 
     std::vector<const AbstractOperator*> opptrs(abstract_operators_.size());
@@ -416,7 +422,8 @@ void ProbabilisticProjection::add_abstract_operators(
     std::set<ProgressionOperatorFootprint>& duplicate_set,
     std::vector<AbstractRegressionOperator>& regression_operators,
     std::vector<std::vector<std::pair<int, int>>>& progression_preconditions,
-    std::vector<std::vector<std::pair<int, int>>>& regression_preconditions)
+    std::vector<std::vector<std::pair<int, int>>>& regression_preconditions,
+    bool pruning)
 {
     const int operator_id = op.get_id();
     const int cost = op.get_cost();
@@ -509,7 +516,7 @@ void ProbabilisticProjection::add_abstract_operators(
         // Generate a hash for the precondition to check for duplicates
         int pre_hash = state_mapper_->get_unique_partial_state_id(precondition);
 
-        if (!duplicate_set.emplace(pre_hash, new_op).second) {
+        if (pruning && !duplicate_set.emplace(pre_hash, new_op).second) {
             continue;
         }
 
