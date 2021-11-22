@@ -226,10 +226,14 @@ IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(
     int add_var)
 {
     const int idx = mapper->get_index(add_var);
+    assert(idx != -1);
 
     this->domain_size = mapper->get_domain_size_raw(idx);
     this->left_multiplier = mapper->get_multiplier_raw(idx);
-    this->right_multiplier = mapper->get_multiplier_raw(idx + 1);
+    this->right_multiplier =
+        (idx + 1) < mapper->num_vars() ?
+        mapper->get_multiplier_raw(idx + 1) :
+        mapper->num_states();
 }
 
 AbstractState
