@@ -231,7 +231,7 @@ IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(
     this->domain_size = mapper->get_domain_size_raw(idx);
     this->left_multiplier = mapper->get_multiplier_raw(idx);
     this->right_multiplier =
-        (idx + 1) < mapper->num_vars() ?
+        static_cast<unsigned int>(idx + 1) < mapper->num_vars() ?
         mapper->get_multiplier_raw(idx + 1) :
         mapper->num_states();
 }
