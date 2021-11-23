@@ -219,7 +219,11 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::sample_states(
         auto f = [this](const GlobalState& state) {
             return current_pdbs->is_dead_end(state);
         };
-        samples.push_back(sampler.sample_state(init_h, f));
+
+        // TODO Hack for MaxProb
+        int absval = std::is_same_v<PDBType, MaxProbProjection> ? 100 : static_cast<int>(std::abs(init_h));
+
+        samples.push_back(sampler.sample_state(absval, f));
         if (hill_climbing_timer.is_expired()) {
             throw HillClimbingTimeout();
         }
