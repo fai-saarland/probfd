@@ -770,6 +770,7 @@ void add_flaw_finder_options_to_parser<MaxProbProjection>(
         "pucs_mp()");
 }
 
+template <typename PDBType>
 void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser& parser)
 {
@@ -844,14 +845,22 @@ void add_pattern_collection_generator_cegar_options_to_parser(
         "subcollection_finder",
         "The subcollection finder.",
         "finder_max_orthogonality()");
+
+    add_flaw_finder_options_to_parser<PDBType>(parser);
 }
+
+template void
+add_pattern_collection_generator_cegar_options_to_parser<MaxProbProjection>(
+    options::OptionParser& parser);
+template void
+add_pattern_collection_generator_cegar_options_to_parser<ExpCostProjection>(
+    options::OptionParser& parser);
 
 template <typename PDBType>
 static shared_ptr<PatternCollectionGenerator<PDBType>>
 _parse(options::OptionParser& parser)
 {
-    add_pattern_collection_generator_cegar_options_to_parser(parser);
-    add_flaw_finder_options_to_parser<PDBType>(parser);
+    add_pattern_collection_generator_cegar_options_to_parser<PDBType>(parser);
     utils::add_rng_options(parser);
 
     Options opts = parser.parse();

@@ -151,7 +151,8 @@ private:
     void refine(const FlawList& flaws);
 };
 
-extern void add_pattern_collection_generator_cegar_options_to_parser(
+template <typename PDBType>
+void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser& parser);
 
 using ExpCostPatternCollectionGeneratorCegar =

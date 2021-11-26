@@ -804,6 +804,14 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME POLICY_FAST_CEGAR_GENERATOR
+    HELP "Policy CEGAR pattern collection generator"
+    SOURCES
+        mdps/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_fast_cegar
+    DEPENDS POLICY_CEGAR_GENERATOR
+)
+
+fast_downward_plugin(
     NAME PROBABILISTIC_PDB_HEURISTIC
     HELP "Probabilistic PDB heuristic"
     SOURCES
