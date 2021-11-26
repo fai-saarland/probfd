@@ -327,7 +327,7 @@ void ExpCostProjection::verify(const StateIDMap<AbstractState>& state_id_map) {
             continue;
         }
 
-        if (this->dead_ends->get(s)) {
+        if (!this->proper_states->get(s)) {
             assert(value == -value_type::inf);
             continue;
         }
