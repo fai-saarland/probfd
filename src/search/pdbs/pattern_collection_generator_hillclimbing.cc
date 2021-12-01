@@ -136,10 +136,11 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(c
 }
 
 int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
-    const vector<vector<int>> &relevant_neighbours,
-    const PatternDatabase &pdb,
-    set<Pattern> &generated_patterns,
-    PDBCollection &candidate_pdbs) {
+    const vector<vector<int>>& relevant_neighbours,
+    const PatternDatabase& pdb,
+    set<Pattern>& generated_patterns,
+    PDBCollection& candidate_pdbs)
+{
     const Pattern &pattern = pdb.get_pattern();
     int pdb_size = pdb.get_size();
     int max_pdb_size = 0;
@@ -155,6 +156,11 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
             back_inserter(relevant_vars));
 
         for (int rel_var_id : relevant_vars) {
+            if (hill_climbing_timer->is_expired()) {
+                std::cout << "Abort candidate generation." << std::endl;
+                throw HillClimbingTimeout();
+            }
+
             int rel_var_size = g_variable_domain[rel_var_id];
             if (utils::is_product_within_limit(pdb_size, rel_var_size,
                                                pdb_max_size)) {
@@ -325,31 +331,34 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
     PDBCollection candidate_pdbs;
     // The maximum size over all PDBs in candidate_pdbs.
     int max_pdb_size = 0;
-    for (const shared_ptr<PatternDatabase> &current_pdb :
-         *(current_pdbs->get_pattern_databases())) {
-        int new_max_pdb_size = generate_candidate_pdbs(
-            relevant_neighbours, *current_pdb, generated_patterns,
-            candidate_pdbs);
-        max_pdb_size = max(max_pdb_size, new_max_pdb_size);
-    }
-    /*
-      NOTE: The initial set of candidate patterns (in generated_patterns) is
-      guaranteed to be "normalized" in the sense that there are no duplicates
-      and patterns are sorted.
-    */
-    if (verbosity >= Verbosity::NORMAL) {
-        cout << "Done calculating initial candidate PDBs" << endl;
-    }
-
     int num_iterations = 0;
-    StateRegistry state_registry;
-    GlobalState initial_state = state_registry.get_initial_state();
-
-    sampling::RandomWalkSampler sampler(state_registry, *rng);
-    vector<GlobalState> samples;
-    vector<int> samples_h_values;
 
     try {
+        for (const shared_ptr<PatternDatabase>& current_pdb :
+             *(current_pdbs->get_pattern_databases())) {
+            int new_max_pdb_size = generate_candidate_pdbs(
+                relevant_neighbours,
+                *current_pdb,
+                generated_patterns,
+                candidate_pdbs);
+            max_pdb_size = max(max_pdb_size, new_max_pdb_size);
+        }
+        /*
+          NOTE: The initial set of candidate patterns (in generated_patterns) is
+          guaranteed to be "normalized" in the sense that there are no
+          duplicates and patterns are sorted.
+        */
+        if (verbosity >= Verbosity::NORMAL) {
+            cout << "Done calculating initial candidate PDBs" << endl;
+        }
+
+        StateRegistry state_registry;
+        GlobalState initial_state = state_registry.get_initial_state();
+
+        sampling::RandomWalkSampler sampler(state_registry, *rng);
+        vector<GlobalState> samples;
+        vector<int> samples_h_values;
+
         while (true) {
             ++num_iterations;
             int init_h = current_pdbs->get_value(initial_state);
@@ -420,7 +429,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing() {
                     << endl;
             }
         }
-    } catch (HillClimbingTimeout &) {
+    } catch (HillClimbingTimeout&) {
         if (verbosity >= Verbosity::SILENT) {
             cout << "Time limit reached. Abort hill climbing." << endl;
         }
