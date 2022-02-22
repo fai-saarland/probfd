@@ -707,7 +707,9 @@ def main():
             sys.exit(TRANSLATE_ERROR)
         budget_compilation.augment_task_by_budget(sas_task, options.budget)
     dump_statistics(sas_task)
-
+    if options.give_up_cost != None:
+        op = sas_tasks.SASOperator("(GIVE-UP)", [], [(var, -1, post, []) for (var, post) in sas_task.goal.pairs], options.give_up_cost)
+        sas_task.operators.append(op)
     with timers.timing("Writing output"):
         with open(options.sas_file, "w") as output_file:
             sas_task.output(output_file)

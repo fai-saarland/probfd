@@ -64,6 +64,8 @@ def parse_args():
         "--budget", type=int, default=None, help="Buget compilation with given initial budget")
     argparser.add_argument(
         "--budget-cost-type", default="cost", choices=["cost", "one", "plus_one", "min_one"], help="How actions affect the budget")
+    argparser.add_argument(
+        "--give-up-cost", default=None, type=int)
     return argparser.parse_args()
 
 
