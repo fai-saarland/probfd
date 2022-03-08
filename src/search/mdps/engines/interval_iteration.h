@@ -209,6 +209,7 @@ private:
             this->get_action_id_map(),
             this->get_state_id_map(),
             this->get_state_reward_function(),
+            this->get_action_reward_function(),
             this->get_applicable_actions_generator(),
             this->get_transition_generator(),
             expand_goals_);

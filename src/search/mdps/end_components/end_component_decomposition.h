@@ -393,6 +393,7 @@ public:
         ActionIDMap<Action>* action_id_map,
         StateIDMap<State>* state_id_map,
         StateRewardFunction<State>* goal,
+        ActionRewardFunction<Action>* action_rewards,
         ApplicableActionsGenerator<Action>* aops_gen,
         TransitionGenerator<Action>* transition_gen,
         bool expand_goals)
@@ -400,6 +401,7 @@ public:
         , state_id_map_(state_id_map)
         , pruning_function_(pruning_function)
         , goal_(goal)
+        , action_rewards_(action_rewards)
         , aops_gen_(aops_gen)
         , transition_gen_(transition_gen)
         , expand_goals_(expand_goals)
@@ -727,9 +729,13 @@ private:
 
             // We returned from a recursive DFS call. Update the parent.
 
+            const auto action_reward =
+                (*action_rewards_)(get_state_id(s->stateid), e->aops.back());
+
             if (is_onstack) {
                 e->lstck = std::min(e->lstck, lstck);
-                e->recurse = e->recurse || recurse || !e->remains_in_scc;
+                e->recurse = e->recurse || recurse || !e->remains_in_scc ||
+                             action_reward != value_type::zero;
             } else {
                 e->recurse = e->recurse || (e->remains_in_scc &&
                                             s->successors.back().size() > 1);
@@ -741,7 +747,7 @@ private:
             }
 
             if (e->successors.back().empty()) {
-                if (e->remains_in_scc) {
+                if (e->remains_in_scc && action_reward == value_type::zero) {
                     assert(!s->successors.back().empty());
                     s->aops.push_back(e->aops.back());
                     s->successors.emplace_back();
@@ -774,6 +780,9 @@ private:
             std::vector<StateID>& s_succs = s.successors.back();
             assert(!e_succs.empty());
 
+            const auto action_reward =
+                (*action_rewards_)(get_state_id(s.stateid), e.aops.back());
+
             do {
                 const auto succ_id = get_state_id(e_succs.back());
                 e_succs.pop_back();
@@ -796,7 +805,8 @@ private:
                 } else if (succ_info.onstack()) {
                     s_succs.emplace_back(succ_info.stackid());
                     e.lstck = std::min(e.lstck, succ_info.stackid());
-                    e.recurse = e.recurse || !e.remains_in_scc;
+                    e.recurse = e.recurse || !e.remains_in_scc ||
+                                action_reward != value_type::zero;
                 } else {
                     e.recurse =
                         e.recurse || (e.remains_in_scc && !s_succs.empty());
@@ -810,7 +820,7 @@ private:
 
             assert(e_succs.empty());
 
-            if (e.remains_in_scc) {
+            if (e.remains_in_scc && action_reward == value_type::zero) {
                 assert(!s_succs.empty());
                 s.successors.emplace_back();
                 s.aops.push_back(e.aops.back());
@@ -1219,6 +1229,7 @@ private:
     StateIDMap<State>* state_id_map_;
     const StateEvaluator<State>* pruning_function_;
     StateRewardFunction<State>* goal_;
+    ActionRewardFunction<Action>* action_rewards_;
     ApplicableActionsGenerator<Action>* aops_gen_;
     TransitionGenerator<Action>* transition_gen_;
 
