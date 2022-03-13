@@ -86,9 +86,8 @@ public:
     {
         BoolStore dead(false);
         BoolStore one(false);
-        QuotientSystem* sys;
-        this->mysolve(state, value_store_, dead, one, sys);
-        delete (sys);
+        std::unique_ptr<QuotientSystem> sys = get_quotient(state, dead, one);
+        this->mysolve(state, value_store_, dead, one, sys.get());
     }
 
     virtual value_type::value_t get_result(const State& s) override
@@ -118,9 +117,10 @@ public:
         BoolStoreT& dead_ends,
         BoolStoreT2& one_states)
     {
-        QuotientSystem* sys;
+        auto sys = get_quotient(state, dead_ends, one_states);
+
         value_type::value_t x =
-            this->mysolve(state, value_store, dead_ends, one_states, sys);
+            this->mysolve(state, value_store, dead_ends, one_states, sys.get());
         for (StateID repr_id : *sys) {
             auto [sit, send] = sys->quotient_range(repr_id);
             const StateID repr = *sit;
@@ -134,7 +134,7 @@ public:
                 one_states[*sit] = one;
             }
         }
-        delete (sys);
+
         return x;
     }
 
@@ -196,13 +196,11 @@ private:
         const StateEvaluator<State>* fallback;
     };
 
-    template <typename ValueStoreT, typename BoolStoreT, typename BoolStoreT2>
-    value_type::value_t mysolve(
+    template <typename BoolStoreT, typename BoolStoreT2>
+    std::unique_ptr<QuotientSystem> get_quotient(
         const State& state,
-        ValueStoreT& value_store,
         BoolStoreT& dead_ends,
-        BoolStoreT2& one_states,
-        QuotientSystem*& sys)
+        BoolStoreT2& one_states)
     {
         Decomposer ec_decomposer(
             prune_,
@@ -213,6 +211,8 @@ private:
             this->get_applicable_actions_generator(),
             this->get_transition_generator(),
             expand_goals_);
+
+        std::unique_ptr<QuotientSystem> sys;
 
         if (extract_probability_one_states_) {
             sys = ec_decomposer.build_quotient_system(
@@ -227,6 +227,18 @@ private:
         }
 
         ecd_statistics_ = ec_decomposer.get_statistics();
+
+        return std::move(sys);
+    }
+
+    template <typename ValueStoreT, typename BoolStoreT, typename BoolStoreT2>
+    value_type::value_t mysolve(
+        const State& state,
+        ValueStoreT& value_store,
+        BoolStoreT& dead_ends,
+        BoolStoreT2& one_states,
+        QuotientSystem* sys)
+    {
         ApplicableActionsGenerator<QAction> q_aops_gen(sys);
         TransitionGenerator<QAction> q_transition_gen(sys);
         quotient_system::DefaultQuotientActionRewardFunction<Action>
@@ -254,7 +266,8 @@ private:
             return result;
         } else {
             OneStateRewardFunction<BoolStoreT2> reward(
-                this->get_state_id_map(), one_states);
+                this->get_state_id_map(),
+                one_states);
 
             ValueIteration vi(
                 this->get_state_id_map(),

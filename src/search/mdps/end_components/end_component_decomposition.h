@@ -1,6 +1,7 @@
 #ifndef MDPS_END_COMPONENT_DECOMPOSITION_END_COMPONENT_DECOMPOSITION_H
 #define MDPS_END_COMPONENT_DECOMPOSITION_END_COMPONENT_DECOMPOSITION_H
 
+#include "../../utils/iterators.h"
 #include "../../utils/timer.h"
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/applicable_actions_generator.h"
@@ -101,9 +102,6 @@ struct ExpansionInfo {
     explicit ExpansionInfo(unsigned stck)
         : stck(stck)
         , lstck(stck)
-        , dead(true)
-        , remains_in_scc(true)
-        , recurse(false)
     {
     }
 
@@ -112,16 +110,16 @@ struct ExpansionInfo {
     unsigned lstck;
 
     // Dead-End flag
-    bool dead;
+    bool dead = true;
 
     // whether the current transition remains in the scc
-    bool remains_in_scc;
+    bool remains_in_scc = true;
 
     // recursive decomposition flag
     // Recurse if there is a transition that can leave and remain in the scc
     // If a always remains in the SCC, then a does not violate the EC condition
     // If a always goes out of the SCC, then no edge of a was part of it
-    bool recurse;
+    bool recurse = false;
 
     std::vector<Action> aops;
     std::vector<std::vector<StateID>> successors;
@@ -133,8 +131,6 @@ struct ExpansionInfo1 {
         : stck(stck)
         , lstck(stck)
         , non_expandable_goal(non_expandable_goal)
-        , exits_only_proper(true)
-        , transitions_in_scc(false)
     {
     }
 
@@ -144,8 +140,8 @@ struct ExpansionInfo1 {
 
     const bool non_expandable_goal;
 
-    bool exits_only_proper;
-    bool transitions_in_scc;
+    bool exits_only_proper = true;
+    bool transitions_in_scc = false;
 
     std::vector<Action> aops;
     std::vector<std::vector<StateID>> successors;
@@ -159,11 +155,6 @@ struct StackInfo {
     {
     }
 
-    explicit StackInfo()
-        : stateid(StateID::undefined)
-    {
-    }
-
     StateID stateid;
     std::vector<Action> aops;
     std::vector<std::vector<StateID>> successors;
@@ -172,163 +163,16 @@ struct StackInfo {
 struct StackInfo1 {
     explicit StackInfo1(const StateID& sid)
         : stateid(sid)
-        , one(false)
-        , scc_transitions(0)
-    {
-    }
-
-    explicit StackInfo1()
-        : stateid(StateID::undefined)
     {
     }
 
     StateID stateid;
-    bool one;
-    unsigned scc_transitions;
+
+    bool one = false;
+    unsigned scc_transitions = 0;
+
     std::vector<bool> active;
     std::vector<std::pair<unsigned, unsigned>> parents;
-};
-
-template <typename Action>
-class StackStateIDIterator {
-public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = StateID;
-    using difference_type = int;
-    using pointer = const StateID*;
-    using reference = const StateID&;
-
-    explicit StackStateIDIterator(
-        typename std::vector<StackInfo<Action>>::const_iterator it)
-        : it(std::move(it))
-    {
-    }
-
-    StackStateIDIterator& operator++()
-    {
-        ++it;
-        return *this;
-    }
-
-    StackStateIDIterator operator++(int)
-    {
-        StackStateIDIterator res = *this;
-        ++it;
-        return res;
-    }
-
-    friend StackStateIDIterator operator+(
-        const StackStateIDIterator& sit,
-        int n)
-    {
-        return StackStateIDIterator(sit.it + n);
-    }
-
-    friend StackStateIDIterator operator-(
-        const StackStateIDIterator& sit,
-        int n)
-    {
-        return StackStateIDIterator(sit.it - n);
-    }
-
-    friend difference_type operator-(
-        const StackStateIDIterator& a,
-        const StackStateIDIterator& b)
-    {
-        return a.it - b.it;
-    }
-
-    reference operator[](int n)
-    {
-        return it[n].stateid;
-    }
-
-    bool operator==(const StackStateIDIterator& other) const
-    {
-        return it == other.it;
-    }
-
-    bool operator!=(const StackStateIDIterator& other) const
-    {
-        return it != other.it;
-    }
-
-    reference operator*() const { return it->stateid; }
-    pointer operator->() const { return &it->stateid; }
-
-protected:
-    typename std::vector<StackInfo<Action>>::const_iterator it;
-};
-
-template <typename Action>
-class StackAopsIterator {
-public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = std::vector<Action>;
-    using difference_type = int;
-    using pointer = const std::vector<Action>*;
-    using reference = const std::vector<Action>&;
-
-    explicit StackAopsIterator(
-        typename std::vector<StackInfo<Action>>::const_iterator it)
-        : it(std::move(it))
-    {
-    }
-
-    StackAopsIterator& operator++()
-    {
-        ++it;
-        return *this;
-    }
-
-    StackAopsIterator operator++(int)
-    {
-        StackAopsIterator res = *this;
-        ++it;
-        return res;
-    }
-
-    friend StackAopsIterator operator+(
-        const StackAopsIterator& sit,
-        int n)
-    {
-        return StackAopsIterator(sit.it + n);
-    }
-
-    friend StackAopsIterator operator-(
-        const StackAopsIterator& sit,
-        int n)
-    {
-        return StackAopsIterator(sit.it - n);
-    }
-
-    friend difference_type operator-(
-        const StackAopsIterator& a,
-        const StackAopsIterator& b)
-    {
-        return a.it - b.it;
-    }
-
-    reference operator[](int n)
-    {
-        return it[n].aops;
-    }
-
-    bool operator==(const StackAopsIterator& other) const
-    {
-        return it == other.it;
-    }
-
-    bool operator!=(const StackAopsIterator& other) const
-    {
-        return it != other.it;
-    }
-
-    reference operator*() const { return it->aops; }
-    pointer operator->() const { return &it->aops; }
-
-protected:
-    typename std::vector<StackInfo<Action>>::const_iterator it;
 };
 
 using StateInfoStore = storage::PerStateStorage<StateInfo>;
@@ -382,8 +226,6 @@ public:
     using ExpansionQueue = internal::ExpansionQueue<Action>;
     using ExpansionQueue1 = internal::ExpansionQueue1<Action>;
     using Stack = internal::Stack<Action>;
-    using StackStateIDIterator = internal::StackStateIDIterator<Action>;
-    using StackAopsIterator = internal::StackAopsIterator<Action>;
     using StackInfo1 = internal::StackInfo1;
     using ExpansionInfo1 = internal::ExpansionInfo1<Action>;
     using Stack1 = internal::Stack1;
@@ -397,42 +239,36 @@ public:
         ApplicableActionsGenerator<Action>* aops_gen,
         TransitionGenerator<Action>* transition_gen,
         bool expand_goals)
-        : action_id_map_(action_id_map)
+        : pruning_function_(pruning_function)
+        , action_id_map_(action_id_map)
         , state_id_map_(state_id_map)
-        , pruning_function_(pruning_function)
         , goal_(goal)
         , action_rewards_(action_rewards)
         , aops_gen_(aops_gen)
         , transition_gen_(transition_gen)
         , expand_goals_(expand_goals)
-        , sys_(nullptr)
-        , state_infos_()
-        , expansion_queue_()
-        , stack_()
-        , transition_()
-        , stats_()
+        , sys_(new QuotientSystem(action_id_map_, aops_gen_, transition_gen_))
     {
     }
 
     template <typename ZeroOutputIt, typename OneOutputIt>
-    QuotientSystem* build_quotient_system(
+    std::unique_ptr<QuotientSystem> build_quotient_system(
         const State& initial_state,
         ZeroOutputIt zero_states_out = utils::discarding_output_iterator{},
         OneOutputIt one_states_out = utils::discarding_output_iterator{})
     {
-        sys_ = new QuotientSystem(action_id_map_, aops_gen_, transition_gen_);
         stats_ = Statistics();
 
         if constexpr (Store<OneOutputIt>) {
             q_aops_gen_ = new ApplicableActionsGenerator<
-                quotient_system::QuotientAction<Action>>(sys_);
+                quotient_system::QuotientAction<Action>>(sys_.get());
             q_transition_gen_ = new TransitionGenerator<
-                quotient_system::QuotientAction<Action>>(sys_);
+                quotient_system::QuotientAction<Action>>(sys_.get());
         }
 
         push_state(initial_state, zero_states_out, one_states_out);
 
-        GetSuccID get_succ_id;
+        auto get_succ_id = [](const StateID& id) { return id; };
         auto pushf = [this, zero_states_out, one_states_out](
                          const StateID& state_id,
                          StateInfo& state_info) {
@@ -456,7 +292,7 @@ public:
             delete (q_transition_gen_);
         }
 
-        return sys_;
+        return std::move(sys_);
     }
 
     void print_statistics(std::ostream& out) const { stats_.print(out); }
@@ -526,10 +362,12 @@ private:
 
         unsigned non_loop_actions = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
-            transition_gen_->operator()(state_id, aops[i], transition_);
+            Distribution<StateID> transition;
+            transition_gen_->operator()(state_id, aops[i], transition);
+
             std::vector<StateID> succ_ids;
 
-            for (const StateID& succ_id : transition_.elements()) {
+            for (const StateID& succ_id : transition.elements()) {
                 if (succ_id != state_id) {
                     succ_ids.push_back(succ_id);
                 }
@@ -544,8 +382,6 @@ private:
 
                 ++non_loop_actions;
             }
-
-            transition_.clear();
         }
 
         // only self-loops
@@ -635,28 +471,6 @@ private:
 
         std::vector<StackInfo>* s_;
         StateInfoStore* i_;
-    };
-
-    struct GetSuccID {
-        StateID operator()(const StateID& id) const { return id; }
-        StateID operator()(const StackInfo& sinfo) const
-        {
-            return sinfo.stateid;
-        }
-    };
-
-    struct SuccIDToLocal {
-        explicit SuccIDToLocal(const unsigned start)
-            : start_(start)
-        {
-        }
-
-        unsigned operator()(const StateID& state_id) const
-        {
-            return state_id - start_;
-        }
-
-        const unsigned start_;
     };
 
     template <typename T>
@@ -931,9 +745,15 @@ private:
                         transitions += it->aops.size();
                     }
 
-                    StackStateIDIterator begin(scc_begin);
-                    StackStateIDIterator end(scc_end);
-                    StackAopsIterator abegin(scc_begin);
+                    auto begin = utils::make_transform_iterator(
+                        scc_begin,
+                        &StackInfo::stateid);
+                    auto end = utils::make_transform_iterator(
+                        scc_end,
+                        &StackInfo::stateid);
+                    auto abegin = utils::make_transform_iterator(
+                        scc_begin,
+                        &StackInfo::aops);
                     sys_->build_quotient(begin, end, scc_repr_id, abegin);
                     stack_.erase(scc_begin, scc_end);
 
@@ -972,10 +792,10 @@ private:
         // Define accessors for the SCC
         PushLocal push_local(&scc, &expansion_queue_, &stack_, &stats_);
         StateInfoLookup get_state_info(&scc, &state_infos_);
-        SuccIDToLocal get_succ_id(start);
+        auto get_succ_id = [start](const StateID& id) { return id - start; };
 
         for (unsigned i = 0; i < scc_size; ++i) {
-            StateInfo& iinfo = get_state_info[i];
+            StateInfo& iinfo = get_state_info[scc[i].stateid];
 
             if (iinfo.explored) {
                 continue;
@@ -1225,9 +1045,9 @@ private:
         stack1_.erase(begin, end);
     }
 
+    const StateEvaluator<State>* pruning_function_;
     ActionIDMap<Action>* action_id_map_;
     StateIDMap<State>* state_id_map_;
-    const StateEvaluator<State>* pruning_function_;
     StateRewardFunction<State>* goal_;
     ActionRewardFunction<Action>* action_rewards_;
     ApplicableActionsGenerator<Action>* aops_gen_;
@@ -1235,17 +1055,16 @@ private:
 
     bool expand_goals_;
 
-    QuotientSystem* sys_;
+    std::unique_ptr<QuotientSystem> sys_;
     ApplicableActionsGenerator<typename QuotientSystem::QAction>* q_aops_gen_;
     TransitionGenerator<typename QuotientSystem::QAction>* q_transition_gen_;
 
     StateInfoStore state_infos_;
     ExpansionQueue expansion_queue_;
-    ExpansionQueue1 expansion_queue1_;
     Stack stack_;
-    Stack1 stack1_;
 
-    Distribution<StateID> transition_;
+    ExpansionQueue1 expansion_queue1_;
+    Stack1 stack1_;
 
     Statistics stats_;
 };
