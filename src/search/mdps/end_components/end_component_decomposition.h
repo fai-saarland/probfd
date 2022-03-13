@@ -45,8 +45,6 @@ struct Statistics {
         out << "  End-component transitions: " << ec_transitions << std::endl;
         out << "  Recursive calls: " << recursions << std::endl;
         out << "  End component computation: " << time << std::endl;
-        out << "  " << ones << " state(s) can reach the goal with certainty"
-            << std::endl;
     }
 
     unsigned long long goals = 0;
@@ -57,7 +55,6 @@ struct Statistics {
     unsigned long long sccsk = 0;
     unsigned long long sccs1_dead = 0;
     unsigned long long sccsk_dead = 0;
-    unsigned long long ones = 0;
 
     unsigned long long ec1 = 0;
     unsigned long long eck = 0;
@@ -89,8 +86,6 @@ struct StateInfo {
         return stackid_;
     }
     bool onstack() const { return stackid_ < UNDEF; }
-    bool zero() const { return stackid_ == ZERO; }
-    bool one() const { return stackid_ == ONE; }
 
     unsigned explored : 1;
     unsigned expandable_goal : 1; // non-terminal goal?
@@ -109,9 +104,6 @@ struct ExpansionInfo {
     const unsigned stck;
     unsigned lstck;
 
-    // Dead-End flag
-    bool dead = true;
-
     // whether the current transition remains in the scc
     bool remains_in_scc = true;
 
@@ -120,28 +112,6 @@ struct ExpansionInfo {
     // If a always remains in the SCC, then a does not violate the EC condition
     // If a always goes out of the SCC, then no edge of a was part of it
     bool recurse = false;
-
-    std::vector<Action> aops;
-    std::vector<std::vector<StateID>> successors;
-};
-
-template <typename Action>
-struct ExpansionInfo1 {
-    explicit ExpansionInfo1(unsigned stck, bool non_expandable_goal)
-        : stck(stck)
-        , lstck(stck)
-        , non_expandable_goal(non_expandable_goal)
-    {
-    }
-
-    // Tarjan's SCC algorithm: stack id and lowlink
-    const unsigned stck;
-    unsigned lstck;
-
-    const bool non_expandable_goal;
-
-    bool exits_only_proper = true;
-    bool transitions_in_scc = false;
 
     std::vector<Action> aops;
     std::vector<std::vector<StateID>> successors;
@@ -160,48 +130,36 @@ struct StackInfo {
     std::vector<std::vector<StateID>> successors;
 };
 
-struct StackInfo1 {
-    explicit StackInfo1(const StateID& sid)
-        : stateid(sid)
-    {
-    }
-
-    StateID stateid;
-
-    bool one = false;
-    unsigned scc_transitions = 0;
-
-    std::vector<bool> active;
-    std::vector<std::pair<unsigned, unsigned>> parents;
-};
-
 } // namespace internal
 
 /**
  * @brief A builder class that implements end component decomposition.
  *
- * An end component is a non-empty subgraph of an MDP which:
- * - is strongly connected
- * - has at least one enabled action for every state
- * - is closed under probabilistic branching
+ * An end component is a sub-MDP \f$M = (S, E)\f$ where \f$S\f$ is a subset
+ * of states and \f$E : S \to 2^A \f$ is a mapping from states to (enabled)
+ * actions. \f$M\f$ must satisfy:
+ * 1. The directed graph induced by \f$M\f$ is strongly connected.
+ * 2. \f$E(s) \subseteq A(s)\f$ for every state \f$s \in S\f$.
+ * 3. \f$M\f$ is closed under probabilistic branching. If \f$s \in S\f$, \f$a
+ * \in E(s)\f$ and \f$\Pr(t \mid s, a) > 0\f$, then \f$t \in S\f$.
  *
- * A maximal end component (MEC) is an end component that is maximal with
- * respect to set inclusion.
+ * An end component is trivial if it contains a single state \f$S = \{s\}\f$
+ * and \f$E(s) = \emptyset\f$. Furthermore, a maximal end component (MEC) is an
+ * end component that is maximal with respect to set inclusion.
  *
- * In reachability analysis (i.e. MaxProb) the MEC decomposition builds the
- * maximal end components of the underlying MDP and constructs a quotient
- * by considering each MEC as a single state. All states of an MEC have the
- * same optimal state value, hence this transformation is sound with respect to
- * MaxProb.
+ * This algorithm computes the maximal end components of an MDP and builds the
+ * MDP quotient in which every maximal end component \f$M\f$ is collapsed into
+ * a single state.
  *
- * In MaxProb, the optimal value function is the least fixed point of the
- * Bellman operator, but not necessarily unique. Hence value iteration
- * algorithms must start from a lower bound to achieve convergence. In the MEC
- * decomposition the fixed point is unique, thus value iteration algorithms may
- * start from any initial value function when MEC decompostion is run as a
- * preprocessing step.
+ * In MaxProb analysis, the existence of non-trivial end components prevents
+ * algorithms based on value iteration from converging against the optimal value
+ * function when started with a non-admissible value function.
+ * However, the end component decomposition quotient has only trivial end
+ * components, therefore standard value iteration algorithms converge from any
+ * initial value function. Every state in a maximal end component has the same
+ * MaxProb value, which makes it easy to extract the optimal value function.
  *
- * @see IntervalIteration
+ * @see engines::interval_iteration::IntervalIteration
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
@@ -210,82 +168,60 @@ template <typename State, typename Action>
 class EndComponentDecomposition {
     using StateInfo = internal::StateInfo;
     using ExpansionInfo = internal::ExpansionInfo<Action>;
-    using ExpansionInfo1 = internal::ExpansionInfo1<Action>;
     using StackInfo = internal::StackInfo<Action>;
-    using StackInfo1 = internal::StackInfo1;
 
     using StateInfoStore = storage::PerStateStorage<StateInfo>;
-
     using ExpansionQueue = std::deque<ExpansionInfo>;
-    using ExpansionQueue1 = std::deque<ExpansionInfo1>;
     using Stack = std::vector<StackInfo>;
-    using Stack1 = std::vector<StackInfo1>;
 
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
 
     EndComponentDecomposition(
-        const StateEvaluator<State>* pruning_function,
-        ActionIDMap<Action>* action_id_map,
         StateIDMap<State>* state_id_map,
+        ActionIDMap<Action>* action_id_map,
         StateRewardFunction<State>* goal,
         ActionRewardFunction<Action>* action_rewards,
         ApplicableActionsGenerator<Action>* aops_gen,
         TransitionGenerator<Action>* transition_gen,
-        bool expand_goals)
-        : pruning_function_(pruning_function)
-        , action_id_map_(action_id_map)
-        , state_id_map_(state_id_map)
+        bool expand_goals,
+        const StateEvaluator<State>* pruning_function = nullptr)
+        : state_id_map_(state_id_map)
         , goal_(goal)
         , action_rewards_(action_rewards)
         , aops_gen_(aops_gen)
         , transition_gen_(transition_gen)
         , expand_goals_(expand_goals)
-        , sys_(new QuotientSystem(action_id_map_, aops_gen_, transition_gen_))
+        , sys_(new QuotientSystem(action_id_map, aops_gen_, transition_gen_))
+        , pruning_function_(pruning_function)
     {
     }
 
-    template <typename ZeroOutputIt, typename OneOutputIt>
-    std::unique_ptr<QuotientSystem> build_quotient_system(
-        const State& initial_state,
-        ZeroOutputIt zero_states_out = utils::discarding_output_iterator{},
-        OneOutputIt one_states_out = utils::discarding_output_iterator{})
+    /**
+     * @brief Build the quotient of the MDP with respect to the maximal end
+     * components.
+     *
+     * Only the fragment of the MDP that is reachable from the given initial
+     * state is considered.
+     */
+    std::unique_ptr<QuotientSystem>
+    build_quotient_system(const State& initial_state)
     {
         stats_ = Statistics();
 
-        if constexpr (Store<OneOutputIt>) {
-            q_aops_gen_ = new ApplicableActionsGenerator<
-                quotient_system::QuotientAction<Action>>(sys_.get());
-            q_transition_gen_ = new TransitionGenerator<
-                quotient_system::QuotientAction<Action>>(sys_.get());
-        }
-
         auto init_id = state_id_map_->get_state_id(initial_state);
-        push(init_id, state_infos_[init_id], zero_states_out, one_states_out);
+        push(init_id, state_infos_[init_id]);
 
         auto get_succ_id = [](const StateID& id) { return id; };
-        auto pushf = [this, zero_states_out, one_states_out](
-                         const StateID& state_id,
-                         StateInfo& state_info) {
-            return push(state_id, state_info, zero_states_out, one_states_out);
+        auto pushf = [this](const StateID& state_id, StateInfo& state_info) {
+            return push(state_id, state_info);
         };
 
-        find_and_decompose_sccs<true>(
-            0,
-            pushf,
-            state_infos_,
-            get_succ_id,
-            zero_states_out,
-            one_states_out);
+        find_and_decompose_sccs<true>(0, pushf, state_infos_, get_succ_id);
 
         assert(stack_.empty());
         assert(expansion_queue_.empty());
         stats_.time.stop();
-
-        if constexpr (Store<OneOutputIt>) {
-            delete (q_aops_gen_);
-            delete (q_transition_gen_);
-        }
 
         return std::move(sys_);
     }
@@ -295,12 +231,7 @@ public:
     Statistics get_statistics() const { return stats_; }
 
 private:
-    template <typename ZeroOutputIt, typename OneOutputIt>
-    bool push(
-        const StateID& state_id,
-        StateInfo& state_info,
-        ZeroOutputIt zero_states_out,
-        OneOutputIt one_states_out)
+    bool push(const StateID& state_id, StateInfo& state_info)
     {
         state_info.explored = 1;
         State state = state_id_map_->get_state(state_id);
@@ -308,8 +239,6 @@ private:
         if (goal_->operator()(state)) {
             ++stats_.terminals;
             ++stats_.goals;
-            ++stats_.ones;
-            *one_states_out = state_id;
             state_info.stackid_ = StateInfo::ONE;
 
             if (!expand_goals_) {
@@ -321,7 +250,6 @@ private:
             pruning_function_ != nullptr &&
             pruning_function_->operator()(state)) {
             ++stats_.terminals;
-            *zero_states_out = state_id;
             state_info.stackid_ = StateInfo::ZERO;
             return false;
         }
@@ -335,7 +263,6 @@ private:
             } else {
                 ++stats_.terminals;
                 state_info.stackid_ = StateInfo::ZERO;
-                *zero_states_out = state_id;
             }
 
             return false;
@@ -376,7 +303,6 @@ private:
                 ++stats_.terminals;
                 ++stats_.selfloops;
                 state_info.stackid_ = StateInfo::ZERO;
-                *zero_states_out = state_id;
             }
 
             return false;
@@ -385,7 +311,6 @@ private:
         aops.erase(aops.begin() + non_loop_actions, aops.end());
 
         ExpansionInfo& e = expansion_queue_.emplace_back(stack_.size());
-        e.dead = !state_info.expandable_goal;
         e.aops = std::move(aops);
         e.successors = std::move(successors);
 
@@ -457,14 +382,8 @@ private:
         StateInfoStore* i_;
     };
 
-    template <typename T>
-    static constexpr bool Store =
-        !std::is_same_v<T, utils::discarding_output_iterator>;
-
     template <
         bool RootIteration,
-        typename ZeroOutputIt,
-        typename OneOutputIt,
         typename Push,
         typename GetStateInfo,
         typename GetSuccID>
@@ -472,9 +391,7 @@ private:
         const unsigned limit,
         Push& pushf,
         GetStateInfo& get_state_info,
-        GetSuccID& get_state_id,
-        ZeroOutputIt zero_states_out,
-        OneOutputIt one_states_out)
+        GetSuccID& get_state_id)
     {
         if (expansion_queue_.size() <= limit) {
             return;
@@ -485,12 +402,8 @@ private:
 
         for (;;) {
             // DFS recursion
-            while (push_successor<ZeroOutputIt, OneOutputIt>(
-                *e,
-                *s,
-                pushf,
-                get_state_info,
-                get_state_id)) {
+            while (
+                push_successor(*e, *s, pushf, get_state_info, get_state_id)) {
                 e = &expansion_queue_.back();
                 s = &stack_[e->stck];
             }
@@ -503,16 +416,10 @@ private:
 
             bool recurse = e->recurse;
             unsigned int lstck = e->lstck;
-            bool dead = e->dead;
             bool is_onstack = e->stck != e->lstck;
 
             if (e->stck == e->lstck) {
-                scc_found<RootIteration>(
-                    *e,
-                    *s,
-                    get_state_info,
-                    zero_states_out,
-                    one_states_out);
+                scc_found<RootIteration>(*e, *s, get_state_info);
             }
 
             expansion_queue_.pop_back();
@@ -539,10 +446,6 @@ private:
                 e->remains_in_scc = false;
             }
 
-            if constexpr (Store<ZeroOutputIt>) {
-                e->dead &= dead;
-            }
-
             if (e->successors.back().empty()) {
                 if (e->remains_in_scc && action_reward == value_type::zero) {
                     assert(!s->successors.back().empty());
@@ -559,12 +462,7 @@ private:
         }
     }
 
-    template <
-        typename ZeroOutputIt,
-        typename OneOutputIt,
-        typename Push,
-        typename GetStateInfo,
-        typename GetSuccID>
+    template <typename Push, typename GetStateInfo, typename GetSuccID>
     bool push_successor(
         ExpansionInfo& e,
         StackInfo& s,
@@ -595,10 +493,6 @@ private:
                     e.recurse =
                         e.recurse || (e.remains_in_scc && s_succs.size() > 1);
                     e.remains_in_scc = false;
-
-                    if (Store<OneOutputIt> && succ_info.one()) {
-                        e.dead = false;
-                    }
                 } else if (succ_info.onstack()) {
                     s_succs.emplace_back(succ_info.stackid());
                     e.lstck = std::min(e.lstck, succ_info.stackid());
@@ -608,10 +502,6 @@ private:
                     e.recurse =
                         e.recurse || (e.remains_in_scc && !s_succs.empty());
                     e.remains_in_scc = false;
-
-                    if (Store<ZeroOutputIt> && !succ_info.zero()) {
-                        e.dead = false;
-                    }
                 }
             } while (!e_succs.empty());
 
@@ -633,131 +523,90 @@ private:
         return false;
     }
 
-    template <
-        bool RootIteration,
-        typename ZeroOutputIt,
-        typename OneOutputIt,
-        typename GetStateInfo>
-    void scc_found(
-        ExpansionInfo& e,
-        StackInfo& s,
-        GetStateInfo& get_state_info,
-        ZeroOutputIt zero_states_out,
-        OneOutputIt one_states_out)
+    template <bool RootIteration, typename GetStateInfo>
+    void scc_found(ExpansionInfo& e, StackInfo& s, GetStateInfo& get_state_info)
     {
         unsigned scc_size = stack_.size() - e.stck;
         auto scc_begin = stack_.begin() + e.stck;
         auto scc_end = stack_.end();
 
-        if (Store<ZeroOutputIt> && e.dead) {
+        StateID scc_repr_id = s.stateid;
+        if (scc_size == 1) {
+            assert(s.aops.empty());
+            StateInfo& info = get_state_info[scc_repr_id];
+            info.stackid_ = StateInfo::UNDEF;
+
+            stack_.pop_back();
+
+            // Update stats
+            ++stats_.ec1;
+
             if constexpr (RootIteration) {
-                const bool singleton = (scc_size == 1);
-                stats_.sccs1 += singleton;
-                stats_.sccs1_dead += singleton;
-                stats_.sccsk += !singleton;
-                stats_.sccsk_dead += !singleton;
+                ++stats_.sccs1;
             }
-
-            for (auto it = scc_begin; it != scc_end; ++it) {
-                StateInfo& info = get_state_info[it->stateid];
-                info.stackid_ = StateInfo::ZERO;
-                *zero_states_out = it->stateid;
-            }
-
-            stack_.erase(scc_begin, scc_end);
         } else {
-            StateID scc_repr_id = s.stateid;
-            if (scc_size == 1) {
-                assert(s.aops.empty());
-                StateInfo& info = get_state_info[scc_repr_id];
-                info.stackid_ = StateInfo::UNDEF;
+            if (expand_goals_) {
+                for (auto it = scc_begin; it != scc_end; ++it) {
+                    assert(it->successors.size() == it->aops.size());
+                    StateInfo& info = get_state_info[it->stateid];
+                    if (info.expandable_goal) {
+                        it->successors.clear();
+                        it->aops.clear();
+                        e.recurse = true;
+                    }
+                }
+            }
 
-                if constexpr (Store<OneOutputIt>) {
+            if (e.recurse) {
+                ++stats_.recursions;
+
+                if constexpr (RootIteration) {
+                    ++stats_.sccsk;
+                }
+
+                for (auto it = scc_begin; it != scc_end; ++it) {
+                    assert(it->successors.size() == it->aops.size());
+                    StateInfo& info = get_state_info[it->stateid];
+                    info.stackid_ = StateInfo::UNDEF;
                     info.explored = 0;
                 }
 
-                stack_.pop_back();
+                decompose(e.stck);
+            } else {
+                unsigned transitions = 0;
+
+                for (auto it = scc_begin; it != scc_end; ++it) {
+                    assert(it->successors.size() == it->aops.size());
+                    StateInfo& info = get_state_info[it->stateid];
+                    info.stackid_ = StateInfo::UNDEF;
+
+                    transitions += it->aops.size();
+                }
+
+                auto begin = utils::make_transform_iterator(
+                    scc_begin,
+                    &StackInfo::stateid);
+                auto end = utils::make_transform_iterator(
+                    scc_end,
+                    &StackInfo::stateid);
+                auto abegin =
+                    utils::make_transform_iterator(scc_begin, &StackInfo::aops);
+                sys_->build_quotient(begin, end, scc_repr_id, abegin);
+                stack_.erase(scc_begin, scc_end);
 
                 // Update stats
-                ++stats_.ec1;
+                ++stats_.eck;
+                stats_.ec_transitions += transitions;
 
                 if constexpr (RootIteration) {
-                    ++stats_.sccs1;
+                    ++stats_.sccsk;
                 }
-            } else {
-                if (expand_goals_) {
-                    for (auto it = scc_begin; it != scc_end; ++it) {
-                        assert(it->successors.size() == it->aops.size());
-                        StateInfo& info = get_state_info[it->stateid];
-                        if (info.expandable_goal) {
-                            it->successors.clear();
-                            it->aops.clear();
-                            e.recurse = true;
-                        }
-                    }
-                }
-
-                if (e.recurse) {
-                    ++stats_.recursions;
-
-                    if constexpr (RootIteration) {
-                        ++stats_.sccsk;
-                    }
-
-                    for (auto it = scc_begin; it != scc_end; ++it) {
-                        assert(it->successors.size() == it->aops.size());
-                        StateInfo& info = get_state_info[it->stateid];
-                        info.stackid_ = StateInfo::UNDEF;
-                        info.explored = 0;
-                    }
-
-                    decompose<Store<OneOutputIt>>(e.stck);
-                } else {
-                    unsigned transitions = 0;
-
-                    for (auto it = scc_begin; it != scc_end; ++it) {
-                        assert(it->successors.size() == it->aops.size());
-                        StateInfo& info = get_state_info[it->stateid];
-                        info.stackid_ = StateInfo::UNDEF;
-
-                        if (Store<OneOutputIt>) {
-                            info.explored = 0;
-                        }
-
-                        transitions += it->aops.size();
-                    }
-
-                    auto begin = utils::make_transform_iterator(
-                        scc_begin,
-                        &StackInfo::stateid);
-                    auto end = utils::make_transform_iterator(
-                        scc_end,
-                        &StackInfo::stateid);
-                    auto abegin = utils::make_transform_iterator(
-                        scc_begin,
-                        &StackInfo::aops);
-                    sys_->build_quotient(begin, end, scc_repr_id, abegin);
-                    stack_.erase(scc_begin, scc_end);
-
-                    // Update stats
-                    ++stats_.eck;
-                    stats_.ec_transitions += transitions;
-
-                    if constexpr (RootIteration) {
-                        ++stats_.sccsk;
-                    }
-                }
-            }
-
-            if constexpr (Store<OneOutputIt>) {
-                collect_one_states(scc_repr_id, one_states_out);
             }
         }
 
         assert(stack_.size() == e.stck);
     }
 
-    template <bool ResetExplored = false>
     void decompose(const unsigned start)
     {
         const unsigned scc_size = stack_.size() - start;
@@ -790,245 +639,14 @@ private:
                 limit,
                 push_local,
                 get_state_info,
-                get_succ_id,
-                utils::discarding_output_iterator{},
-                utils::discarding_output_iterator{});
-        }
-
-        if constexpr (ResetExplored) {
-            for (const StackInfo& info : scc) {
-                state_infos_[info.stateid].explored = 0;
-            }
+                get_succ_id);
         }
 
         assert(stack_.size() == start);
         assert(expansion_queue_.size() == limit);
     }
 
-    void push1(const StateID& state_id, StateInfo& state_info)
-    {
-        assert(!state_info.explored);
-        assert(!state_info.one() && !state_info.zero());
-
-        std::vector<typename QuotientSystem::QAction> aops;
-        q_aops_gen_->operator()(state_id, aops);
-
-        assert(!aops.empty());
-
-        ExpansionInfo1& e = expansion_queue1_.emplace_back(
-            stack1_.size(),
-            !state_info.expandable_goal);
-
-        e.successors.reserve(aops.size());
-
-        for (const auto& action : aops) {
-            Distribution<StateID> transition;
-            q_transition_gen_->operator()(state_id, action, transition);
-
-            std::vector<StateID> succs;
-
-            for (const StateID& succ_id : transition.elements()) {
-                if (succ_id != state_id) {
-                    succs.push_back(succ_id);
-                }
-            }
-
-            if (!succs.empty()) {
-                e.successors.push_back(std::move(succs));
-            }
-        }
-
-        assert(!e.successors.empty());
-
-        state_info.stackid_ = stack1_.size();
-        state_info.explored = 1;
-
-        StackInfo1& info = stack1_.emplace_back(state_id);
-        info.one = expand_goals_ && state_info.expandable_goal;
-    }
-
-    template <typename OneOutputIt>
-    void
-    collect_one_states(const StateID& source_state, OneOutputIt one_states_out)
-    {
-        assert(expansion_queue1_.empty());
-
-        push1(source_state, state_infos_[source_state]);
-
-        assert(!expansion_queue1_.empty());
-
-        ExpansionInfo1* e = &expansion_queue1_.back();
-        StackInfo1* s = &stack1_[e->stck];
-
-        for (;;) {
-            // DFS recursion
-            while (push_successor1(*e, *s)) {
-                e = &expansion_queue1_.back();
-                s = &stack1_[e->stck];
-            }
-
-            bool one = s->one;
-            unsigned lstck = e->lstck;
-            StackInfo1* backtracked_from = s;
-            bool onstack = e->stck != e->lstck;
-
-            if (!onstack) {
-                scc_found1(
-                    stack1_.begin() + e->stck,
-                    stack1_.end(),
-                    one_states_out);
-            }
-
-            expansion_queue1_.pop_back();
-
-            if (expansion_queue1_.empty()) {
-                break;
-            }
-
-            e = &expansion_queue1_.back();
-            s = &stack1_[e->stck];
-
-            // We returned from a recursive DFS call. Update the parent.
-
-            if (onstack) {
-                e->lstck = std::min(e->lstck, lstck);
-                e->transitions_in_scc = true;
-
-                if (!expand_goals_ || e->non_expandable_goal) {
-                    auto& parents = backtracked_from->parents;
-                    parents.emplace_back(e->stck, s->active.size());
-                }
-            } else {
-                e->exits_only_proper = e->exits_only_proper && one;
-            }
-
-            if (e->successors.back().empty()) {
-                e->successors.pop_back();
-
-                if (e->transitions_in_scc) {
-                    if (e->exits_only_proper) ++s->scc_transitions;
-                    s->active.push_back(e->exits_only_proper);
-                } else if (e->exits_only_proper) {
-                    s->one = true;
-                }
-
-                // Reset transition flags
-                e->exits_only_proper = true;
-                e->transitions_in_scc = false;
-            }
-        }
-    }
-
-    bool push_successor1(ExpansionInfo1& e, StackInfo1& s)
-    {
-        while (!e.successors.empty()) {
-            std::vector<StateID>& succs = e.successors.back();
-
-            while (!succs.empty()) {
-                StateID succ_id = succs.back();
-                succs.pop_back();
-                StateInfo& succ_info = state_infos_[succ_id];
-
-                if (!succ_info.explored) {
-                    push1(succ_id, succ_info);
-                    return true;
-                }
-
-                if (succ_info.onstack()) {
-                    unsigned succ_stack_id = succ_info.stackid_;
-                    e.transitions_in_scc = true;
-                    e.lstck = std::min(e.lstck, succ_stack_id);
-
-                    if (!expand_goals_ || e.non_expandable_goal) {
-                        auto& parents = stack1_[succ_stack_id].parents;
-                        parents.emplace_back(e.stck, s.active.size());
-                    }
-                } else if (!succ_info.one()) {
-                    e.exits_only_proper = false;
-                }
-            }
-
-            assert(succs.empty());
-
-            if (e.transitions_in_scc) {
-                if (e.exits_only_proper) ++s.scc_transitions;
-                s.active.push_back(e.exits_only_proper);
-            } else if (e.exits_only_proper) {
-                s.one = true;
-            }
-
-            // Reset transition flags
-            e.exits_only_proper = true;
-            e.transitions_in_scc = false;
-
-            e.successors.pop_back();
-        }
-
-        return false;
-    }
-
-    template <typename OneOutputIt>
-    void scc_found1(
-        decltype(std::declval<Stack1>().begin()) begin,
-        decltype(std::declval<Stack1>().begin()) end,
-        OneOutputIt one_states_out)
-    {
-        // Collect non-proper states
-        std::deque<StackInfo1*> non_one;
-        {
-            for (auto stk_it = begin; stk_it != end; ++stk_it) {
-                if (!stk_it->one && stk_it->scc_transitions == 0 &&
-                    !stk_it->parents.empty()) {
-                    non_one.push_back(&*stk_it);
-                }
-            }
-        }
-
-        // Fix-point iteration to throw out actions which do not
-        // uniformly lead to proper states. If no action remains the state
-        // is not proper.
-        while (!non_one.empty()) {
-            StackInfo1* scc_elem = non_one.back();
-            non_one.pop_back();
-
-            for (const auto& [first, second] : scc_elem->parents) {
-                StackInfo1& pinfo = stack1_[first];
-                if (!pinfo.one && pinfo.active[second]) {
-                    pinfo.active[second] = false;
-                    if (--pinfo.scc_transitions == 0 &&
-                        !pinfo.parents.empty()) {
-                        non_one.push_back(&pinfo);
-                    }
-                }
-            }
-        }
-
-        // Report the proper states
-        for (auto stk_it = begin; stk_it != end; ++stk_it) {
-            auto qstates = sys_->quotient_range(stk_it->stateid);
-
-            if (stk_it->one || stk_it->scc_transitions) {
-                for (const StateID& sid : qstates) {
-                    StateInfo& sinfo = state_infos_[sid];
-                    sinfo.explored = 1;
-                    sinfo.stackid_ = StateInfo::ONE;
-                    *one_states_out = sid;
-                    ++stats_.ones;
-                }
-            } else {
-                for (const StateID& sid : qstates) {
-                    StateInfo& sinfo = state_infos_[sid];
-                    sinfo.explored = 1;
-                    sinfo.stackid_ = StateInfo::UNDEF;
-                }
-            }
-        }
-
-        stack1_.erase(begin, end);
-    }
-
     const StateEvaluator<State>* pruning_function_;
-    ActionIDMap<Action>* action_id_map_;
     StateIDMap<State>* state_id_map_;
     StateRewardFunction<State>* goal_;
     ActionRewardFunction<Action>* action_rewards_;
@@ -1038,15 +656,10 @@ private:
     bool expand_goals_;
 
     std::unique_ptr<QuotientSystem> sys_;
-    ApplicableActionsGenerator<typename QuotientSystem::QAction>* q_aops_gen_;
-    TransitionGenerator<typename QuotientSystem::QAction>* q_transition_gen_;
 
     StateInfoStore state_infos_;
     ExpansionQueue expansion_queue_;
     Stack stack_;
-
-    ExpansionQueue1 expansion_queue1_;
-    Stack1 stack1_;
 
     Statistics stats_;
 };
