@@ -266,7 +266,8 @@ public:
                 quotient_system::QuotientAction<Action>>(sys_.get());
         }
 
-        push_state(initial_state, zero_states_out, one_states_out);
+        auto init_id = state_id_map_->get_state_id(initial_state);
+        push(init_id, state_infos_[init_id], zero_states_out, one_states_out);
 
         auto get_succ_id = [](const StateID& id) { return id; };
         auto pushf = [this, zero_states_out, one_states_out](
@@ -300,17 +301,6 @@ public:
     Statistics get_statistics() const { return stats_; }
 
 private:
-    template <typename ZeroOutputIt, typename OneOutputIt>
-    bool push_state(
-        const State& s,
-        ZeroOutputIt zero_states_out,
-        OneOutputIt one_states_out)
-    {
-        const StateID state_id = this->state_id_map_->get_state_id(s);
-        StateInfo& state_info = state_infos_[state_id];
-        return push(state_id, state_info, zero_states_out, one_states_out);
-    }
-
     template <typename ZeroOutputIt, typename OneOutputIt>
     bool push(
         const StateID& state_id,
