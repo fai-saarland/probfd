@@ -514,7 +514,6 @@ private:
 
             if (e->stck == e->lstck) {
                 scc_found<RootIteration>(
-                    recurse,
                     *e,
                     *s,
                     get_state_info,
@@ -646,7 +645,6 @@ private:
         typename OneOutputIt,
         typename GetStateInfo>
     void scc_found(
-        bool& recurse,
         ExpansionInfo& e,
         StackInfo& s,
         GetStateInfo& get_state_info,
@@ -700,12 +698,12 @@ private:
                         if (info.expandable_goal) {
                             it->successors.clear();
                             it->aops.clear();
-                            recurse = true;
+                            e->recurse = true;
                         }
                     }
                 }
 
-                if (recurse) {
+                if (e->recurse) {
                     ++stats_.recursions;
 
                     if constexpr (RootIteration) {
@@ -758,7 +756,7 @@ private:
             }
 
             if constexpr (Store<OneOutputIt>) {
-                collect_one_states<OneOutputIt>(one_states_out, scc_repr_id);
+                collect_one_states(scc_repr_id, one_states_out);
             }
         }
 
@@ -857,7 +855,7 @@ private:
 
     template <typename OneOutputIt>
     void
-    collect_one_states(OneOutputIt one_states_out, const StateID& source_state)
+    collect_one_states(const StateID& source_state, OneOutputIt one_states_out)
     {
         assert(expansion_queue1_.empty());
 
