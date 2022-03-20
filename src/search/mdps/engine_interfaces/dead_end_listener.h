@@ -38,8 +38,8 @@ public:
     bool operator()(const StateID&) { return false; }
 
     bool operator()(
-        std::deque<StateID>::const_iterator,
-        std::deque<StateID>::const_iterator)
+        std::vector<StateID>::const_iterator,
+        std::vector<StateID>::const_iterator)
     {
         return false;
     }

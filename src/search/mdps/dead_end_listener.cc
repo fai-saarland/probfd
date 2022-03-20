@@ -29,8 +29,8 @@ bool DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
 }
 
 bool DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
-    typename std::deque<StateID>::const_iterator begin,
-    typename std::deque<StateID>::const_iterator end)
+    typename std::vector<StateID>::const_iterator begin,
+    typename std::vector<StateID>::const_iterator end)
 {
     for (auto it = begin; it != end; ++it) {
         component_.insert(state_id_map_->get_state(*it));
@@ -42,10 +42,10 @@ bool DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
 }
 
 bool DeadEndListener<GlobalState, const ProbabilisticOperator*>::operator()(
-    typename std::deque<StateID>::const_iterator begin,
-    typename std::deque<StateID>::const_iterator end,
-    typename std::deque<StateID>::const_iterator rn_begin,
-    typename std::deque<StateID>::const_iterator rn_end)
+    typename std::vector<StateID>::const_iterator begin,
+    typename std::vector<StateID>::const_iterator end,
+    typename std::vector<StateID>::const_iterator rn_begin,
+    typename std::vector<StateID>::const_iterator rn_end)
 {
     for (auto it = begin; it != end; ++it) {
         component_.insert(state_id_map_->get_state(*it));

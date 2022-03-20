@@ -17,8 +17,8 @@ struct DeadEndListener {
     bool operator()(const StateID&) { return false; }
 
     bool operator()(
-        std::deque<StateID>::const_iterator,
-        std::deque<StateID>::const_iterator)
+        std::vector<StateID>::const_iterator,
+        std::vector<StateID>::const_iterator)
     {
         return false;
     }
@@ -89,8 +89,8 @@ public:
     }
 
     bool operator()(
-        std::deque<StateID>::const_iterator begin,
-        std::deque<StateID>::const_iterator end)
+        std::vector<StateID>::const_iterator begin,
+        std::vector<StateID>::const_iterator end)
     {
         component_.clear();
 
@@ -110,7 +110,7 @@ public:
 
     QuotientSystem<Action>* quotient_;
     probabilistic::DeadEndListener<State, Action>* original_;
-    std::deque<StateID> component_;
+    std::vector<StateID> component_;
 };
 
 template <typename Action>

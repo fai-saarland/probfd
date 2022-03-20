@@ -703,7 +703,7 @@ private:
                          expansion_infos_.size() > 1)) {
                         statistics_.notification_started(scc_size);
 
-                        std::deque<StateID> component;
+                        std::vector<StateID> component;
                         for (auto sit = stack_infos_.rbegin(); sit != rend;
                              ++sit) {
                             component.push_back(sit->state_ref);
@@ -722,7 +722,7 @@ private:
                         } else {
                             notify_dead_ends_ = false;
                             store_neighbors_ = false;
-                            std::deque<StateID>().swap(neighbors_);
+                            std::vector<StateID>().swap(neighbors_);
                         }
 
                         statistics_.notification_finished();
@@ -1163,7 +1163,7 @@ private:
 
     std::deque<ExpansionInformation> expansion_infos_;
     std::deque<StackInformation> stack_infos_;
-    std::deque<StateID> neighbors_;
+    std::vector<StateID> neighbors_;
 
     bool last_all_dead_ = true;
     bool last_all_marked_dead_ = true;

@@ -37,7 +37,6 @@ namespace internal {
  */
 struct CoreStatistics {
     unsigned long long backups = 0;
-
     unsigned long long backed_up_states = 0;
     unsigned long long evaluated_states = 0;
     unsigned long long pruned_states = 0;
@@ -52,7 +51,6 @@ struct CoreStatistics {
  * @brief Extended statistics for MDP heuristic search.
  */
 struct Statistics : public CoreStatistics {
-
     unsigned state_info_bytes = 0;
     value_type::value_t initial_state_estimate = 0;
     bool initial_state_found_terminal = 0;
@@ -151,8 +149,8 @@ struct Statistics : public CoreStatistics {
 /**
  * @brief The common base class for MDP heuristic search algorithms.
  *
- * @tparam StateT - The state type of the underlying MDP model.
- * @tparam ActionT - The action type of the undelying MDP model.
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the undelying MDP model.
  * @tparam StateInfoT - The state information container type.
  */
 template <typename StateT, typename ActionT, typename StateInfoT>
@@ -186,7 +184,11 @@ public:
 
         StateInfo& operator()(const StateID id, T& info)
         {
-            return this->operator()(std::is_same<T, StateInfo>(), id, info);
+            if constexpr (std::is_same_v<T, StateInfo>) {
+                return info;
+            } else {
+                return infos_->state_infos_[id];
+            }
         }
 
     private:
@@ -195,16 +197,6 @@ public:
         StateStatusAccessor(HeuristicSearchBase* infos)
             : infos_(infos)
         {
-        }
-
-        StateInfo& operator()(const std::true_type&, const StateID, T& info)
-        {
-            return info;
-        }
-
-        StateInfo& operator()(const std::false_type&, const StateID id, T&)
-        {
-            return infos_->state_infos_[id];
         }
 
         HeuristicSearchBase* infos_;
@@ -228,7 +220,7 @@ public:
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy)
-        : MDPEngine<StateT, ActionT>(
+        : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
               state_reward_function,
@@ -245,7 +237,6 @@ public:
         , dead_end_listener_(dead_end_listener)
         , dead_end_eval_(dead_end_eval)
         , dead_end_value_(this->get_minimal_reward())
-        , initial_state_id_(StateID::undefined)
     {
         statistics_.state_info_bytes = sizeof(StateInfo);
         connector->set_lookup_function(this);
@@ -254,7 +245,7 @@ public:
     virtual ~HeuristicSearchBase() = default;
 
     /**
-     * @copydoc MDPEngineInterface<StateT>::get_result(const State&)
+     * @copydoc MDPEngineInterface<State>::get_result(const State&)
      */
     virtual value_type::value_t get_result(const State& s) override
     {
@@ -263,7 +254,7 @@ public:
     }
 
     /**
-     * @copydoc MDPEngineInterface<StateT>::supports_error_bound()
+     * @copydoc MDPEngineInterface<State>::supports_error_bound()
      */
     virtual bool supports_error_bound() const override
     {
@@ -271,7 +262,7 @@ public:
     }
 
     /**
-     * @copydoc MDPEngineInterface<StateT>::get_error()
+     * @copydoc MDPEngineInterface<State>::get_error()
      */
     virtual value_type::value_t get_error(const State& s) override
     {
@@ -284,7 +275,7 @@ public:
     }
 
     /**
-     * @copydoc MDPEngineInterface<StateT>::print_statistics(std::ostream&)
+     * @copydoc MDPEngineInterface<State>::print_statistics(std::ostream&)
      */
     virtual void print_statistics(std::ostream& out) const override
     {
@@ -354,9 +345,6 @@ public:
     /**
      * @brief Chekcs if the state represented by \p state_id is marked as a
      * dead-end.
-     * @param state
-     * @return true
-     * @return false
      */
     bool is_marked_dead_end(const StateID& state)
     {
@@ -403,11 +391,11 @@ public:
         const StateInfo& info = state_infos_[state];
         if (info.policy == ActionID::undefined) {
             return async_update(state, nullptr, &result);
-        } else {
-            Action action = this->lookup_action(state, info.policy);
-            this->generate_successors(state, action, result);
-            return false;
         }
+
+        Action action = this->lookup_action(state, info.policy);
+        this->generate_successors(state, action, result);
+        return false;
     }
 
     /**
@@ -482,11 +470,13 @@ public:
         if (state_info.is_goal_state()) {
             return false;
         }
+
         if (dead_end_listener_ != nullptr &&
             !state_info.is_recognized_dead_end()) {
             set_dead_end(state_info);
             dead_end_listener_->operator()(state_id);
         }
+
         return true;
     }
 
@@ -503,6 +493,7 @@ public:
                 return true;
             }
         }
+
         return false;
     }
 
@@ -593,58 +584,57 @@ public:
         //           << std::endl;
 
         struct ExpansionData {
-            ExpansionData(const StateID& s, int pidx)
+            ExpansionData(const StateID& s, unsigned pidx)
                 : state(s)
                 , pidx(pidx)
-                , root(true)
-                , lowlink(-1)
             {
             }
-            ExpansionData(ExpansionData&& other) = default;
+
             void update_lowlink(int lk)
             {
                 if (lk < lowlink) {
                     lowlink = lk;
-                    root = false;
+                    scc_root = false;
                 }
             }
-            StateID state;
+
+            StateID state; // effectively const (need vector::erase)
+            unsigned pidx; // effectively const (need vector::erase)
+
             std::vector<Action> aops;
-            unsigned pidx;
-            bool root;
-            int lowlink;
+
+            bool scc_root = true;
+            int lowlink = -1;
         };
 
         struct PersistentStateData {
-            PersistentStateData()
-                : onstack(false)
-                , index(-1)
-            {
-            }
-            bool onstack;
-            int index;
+            bool onstack = false;
+            int index = -1;
         };
 
         statistics_.safe_updates_non_dead_end_value += !has_dead_end_value(s);
         statistics_.dead_end_safe_updates++;
-        std::pair<bool, bool> result = std::pair<bool, bool>(false, false);
+        std::pair<bool, bool> result(false, false);
 
         int index = 0;
         storage::StateHashMap<PersistentStateData> indices;
-        std::deque<ExpansionData> expansion_queue;
-        std::deque<StateID> stack;
+        std::vector<ExpansionData> expansion_queue;
+        std::vector<StateID> stack;
         expansion_queue.emplace_back(s, 0);
+
         while (!expansion_queue.empty()) {
             assert(!result.first);
             auto& expansion_data = expansion_queue.back();
             const StateID state_id = expansion_data.state;
             auto& state_info = state_infos_[state_id];
+
             // std::cout << state_id << " -> I"
             //           << state_info.is_value_initialized() << "|G"
             //           << state_info.is_goal_state() << "|D"
             //           << state_info.is_dead_end() << "|R"
             //           << state_info.is_recognized_dead_end() << "|T"
             //           << state_info.is_terminal() << std::endl;
+
             if (state_info.is_recognized_dead_end()) {
                 expansion_queue.pop_back();
             } else if (state_info.is_dead_end()) {
@@ -656,9 +646,10 @@ public:
                 expansion_queue.pop_back();
             } else if (state_info.is_goal_state()) {
                 result.first = true;
-                const unsigned size = expansion_data.pidx;
-                while (expansion_queue.size() != size)
-                    expansion_queue.pop_back();
+                expansion_queue.erase(
+                    expansion_queue.begin() + expansion_data.pidx,
+                    expansion_queue.end());
+
                 break;
             } else {
                 // std::cout
@@ -666,19 +657,22 @@ public:
                 //     <<
                 //     (state_infos_->operator[](expansion_data.state).get_value())
                 //     << ")" << std::endl;
+
                 if (expansion_data.aops.empty()) {
                     statistics_.dead_end_safe_updates_states++;
                     if (alt_cond(expansion_data.state)) {
                         result.first = true;
-                        const unsigned size = expansion_data.pidx;
-                        while (expansion_queue.size() != size)
-                            expansion_queue.pop_back();
+                        expansion_queue.erase(
+                            expansion_queue.begin() + expansion_data.pidx,
+                            expansion_queue.end());
+
                         break;
                     } else {
                         if (!state_info.is_value_initialized()) {
-                            lookup_initialize(expansion_data.state, state_info);
+                            initialize(expansion_data.state, state_info);
                             continue;
                         }
+
                         // std::cout << ">" << state_id << " -> I"
                         //           << state_info.is_value_initialized() <<
                         //           "|G"
@@ -687,8 +681,10 @@ public:
                         //           << state_info.is_recognized_dead_end() <<
                         //           "|T"
                         //           << state_info.is_terminal() << std::endl;
+
                         assert(state_info.is_value_initialized());
                         assert(!state_info.is_terminal());
+
                         PersistentStateData& pd = indices[state_id];
                         assert(pd.index == -1);
                         pd.index = expansion_data.lowlink = index++;
@@ -696,23 +692,27 @@ public:
                         this->generate_applicable_ops(
                             expansion_data.state,
                             expansion_data.aops);
+
                         if (expansion_data.aops.empty()) {
                             state_info.set_dead_end();
                             result.second =
                                 this->update(state_info, dead_end_value_);
                             continue;
                         }
-                        stack.push_front(expansion_data.state);
+
+                        stack.push_back(expansion_data.state);
                     }
                 } else {
                     expansion_data.aops.pop_back();
                     if (expansion_data.aops.empty()) {
-                        ExpansionData copy(std::move(expansion_data));
+                        ExpansionData copy = std::move(expansion_data);
                         expansion_queue.pop_back();
-                        if (copy.root) {
-                            auto end = stack.begin();
+
+                        if (copy.scc_root) {
+                            auto it = stack.rbegin();
+                            StateID stack_state_id;
                             do {
-                                const StateID stack_state_id = *end;
+                                stack_state_id = *it;
                                 auto& info = state_infos_[stack_state_id];
                                 info.set_recognized_dead_end();
                                 result.second =
@@ -720,46 +720,46 @@ public:
                                     result.second;
                                 indices[stack_state_id].onstack = false;
                                 statistics_.dead_end_safe_updates_dead_ends++;
-                                // std::cout << " ---> dead: " << *end <<
+
+                                // std::cout << " ---> dead: " << *it <<
                                 // std::endl;
-                                ++end;
-                                if (stack_state_id == state_id) {
-                                    break;
-                                }
-                            } while (true);
-                            listener(stack.begin(), end);
-                            stack.erase(stack.begin(), end);
+
+                                ++it;
+                            } while (stack_state_id != state_id);
+
+                            listener(it.base(), stack.end());
+                            stack.erase(it.base(), stack.end());
                         } else {
                             assert(!expansion_queue.empty());
                             expansion_queue.back().update_lowlink(copy.lowlink);
                         }
+
                         continue;
                     }
                 }
-                // assert(is_equal_(state_info.get_value(), dead_end_value_));
+
                 assert(!expansion_data.aops.empty());
-                Distribution<StateID> transition_;
+
+                Distribution<StateID> transition;
                 this->generate_successors(
                     expansion_data.state,
                     expansion_data.aops.back(),
-                    transition_);
+                    transition);
+
                 const int pidx = expansion_queue.size();
-                // std::cout << " next successors = [";
-                for (auto it = transition_.begin(); it != transition_.end();
-                     ++it) {
-                    StateID succ_id = it->first;
+
+                for (StateID succ_id : transition.elements()) {
                     const auto& d = indices[succ_id];
-                    // std::cout << " " << it->first << "(" << d.index << ")";
+
                     if (d.onstack) {
                         expansion_data.update_lowlink(d.index);
                     } else if (d.index == -1) {
-                        expansion_queue.emplace_back(it->first, pidx);
+                        expansion_queue.emplace_back(succ_id, pidx);
                     }
                 }
-                // std::cout << " ]" << std::endl;
-                transition_.clear();
             }
         }
+
         if constexpr (StorePolicy::value) {
             if (result.first) {
                 while (!expansion_queue.empty()) {
@@ -772,12 +772,13 @@ public:
                     result.second =
                         result.second || (state_info.get_policy() != pid);
                     state_info.set_policy(pid);
-                    const unsigned size = expansion_data.pidx;
-                    while (expansion_queue.size() != size)
-                        expansion_queue.pop_back();
+                    expansion_queue.erase(
+                        expansion_queue.begin() + expansion_data.pidx,
+                        expansion_queue.end());
                 }
             }
         }
+
         if (result.first) {
             ++statistics_.wrongly_classified_dead_ends;
         }
@@ -821,11 +822,12 @@ protected:
         initial_state_id_ = this->get_state_id(state);
 
         static bool initialized = false;
-        if (initialized) return;
+        if (initialized) {
+            return;
+        }
         initialized = true;
 
         const StateInfo& info = lookup_initialize(this->get_state_id(state));
-        // this->state_infos_[this->state_id_map_->operator[](state)];
         this->add_values_to_report(&info);
         statistics_.value = value_utils::as_upper_bound(info.value);
         statistics_.before_last_update = statistics_;
@@ -941,10 +943,11 @@ private:
     StateInfo& lookup_initialize(const StateID& state_id)
     {
         StateInfo& info = state_infos_[state_id];
-        return lookup_initialize(state_id, info);
+        initialize(state_id, info);
+        return info;
     }
 
-    StateInfo& lookup_initialize(const StateID& state_id, StateInfo& state_info)
+    void initialize(const StateID& state_id, StateInfo& state_info)
     {
         if (!state_info.is_value_initialized()) {
             statistics_.evaluated_states++;
@@ -978,7 +981,6 @@ private:
                 }
             }
         }
-        return state_info;
     }
 
     IncumbentSolution dead_end_value() const { return dead_end_value_; }
@@ -1034,8 +1036,7 @@ private:
         assert(!Policy || choice != nullptr);
         assert(greedy_transition == nullptr || greedy_transition->empty());
 
-        StateInfo& state_info =
-            lookup_initialize(state_id, state_infos_[state_id]);
+        StateInfo& state_info = lookup_initialize(state_id);
 
         if (state_info.is_terminal()) {
 #if defined(EXPENSIVE_STATISTICS)
@@ -1076,7 +1077,6 @@ private:
         std::vector<IncumbentSolution> values;
         values.reserve(aops_.size());
 
-        // for (int i = aops_.size() - 1; i >= 0; i--) {
         unsigned non_loop_transitions = 0;
         for (unsigned i = 0; i < aops_.size(); ++i) {
             IncumbentSolution t_value(
@@ -1086,35 +1086,38 @@ private:
             bool non_loop = false;
             bool has_self_loop = false;
             const Distribution<StateID>& transition = optimal_transitions_[i];
-            for (auto it = transition.begin(); it != transition.end(); ++it) {
-                const StateID succ_id = it->first;
+
+            for (const auto& [succ_id, prob] : transition) {
                 if (succ_id == state_id) {
                     has_self_loop = true;
-                    self_loop += it->second;
+                    self_loop += prob;
                 } else {
-                    const StateInfo& succ_info =
-                        lookup_initialize(succ_id, state_infos_[succ_id]);
-                    t_value += it->second * succ_info.value;
+                    const StateInfo& succ_info = lookup_initialize(succ_id);
+                    t_value += prob * succ_info.value;
                     non_loop = true;
                 }
             }
+
             if (non_loop) {
                 if (has_self_loop) {
                     t_value *= value_type::one / (value_type::one - self_loop);
                 }
 
                 values.push_back(t_value);
+
                 if (first) {
                     first = false;
                     new_value = t_value;
                 } else {
                     value_utils::set_max(new_value, t_value);
                 }
+
                 if (non_loop_transitions != i) {
                     optimal_transitions_[i].swap(
                         optimal_transitions_[non_loop_transitions]);
                     std::swap(aops_[i], aops_[non_loop_transitions]);
                 }
+
                 ++non_loop_transitions;
             }
         }
@@ -1122,10 +1125,6 @@ private:
 #if defined(EXPENSIVE_STATISTICS)
         statistics_.update_time.stop();
 #endif
-        // if (value_type::approx_equal(value_type::eps)(state_info.value,
-        // this->get_minimal_reward())) {
-        //     non_loop_transitions = 0;
-        // }
 
         if (non_loop_transitions == 0) {
             statistics_.self_loop_states++;
@@ -1133,7 +1132,6 @@ private:
             state_info.set_policy(ActionID::undefined);
             state_info.set_dead_end();
             return result;
-            // assert(is_equal_(new_value, dead_end_value_));
         }
 
         if constexpr (Policy) {
@@ -1209,6 +1207,7 @@ private:
             }
             return true;
         }
+
         return false;
     }
 
@@ -1230,7 +1229,7 @@ private:
 
     Statistics statistics_;
 
-    StateID initial_state_id_;
+    StateID initial_state_id_ = StateID::undefined;
 };
 
 } // namespace internal

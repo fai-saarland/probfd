@@ -100,14 +100,29 @@ using StandalonePerStateInformation =
     PerStateInformation<PerStateInformationBase>;
 
 template <
-    typename HeuristicSearchBase,
+    typename State,
+    typename Action,
+    typename DualBounds,
+    typename StorePolicy,
+    template <typename>
+    class StateInfoT,
     typename AdditionalPerStateInformation =
-        typename HeuristicSearchBase::StateInfo>
-class HeuristicDepthFirstSearch : public HeuristicSearchBase {
-public:
-    using State = typename HeuristicSearchBase::State;
-    using Action = typename HeuristicSearchBase::Action;
-    using DualBounds = typename HeuristicSearchBase::DualBounds;
+        typename heuristic_search::HeuristicSearchBase<
+            State,
+            Action,
+            DualBounds,
+            StorePolicy,
+            StateInfoT>::StateInfo>
+class HeuristicDepthFirstSearch
+    : public heuristic_search::HeuristicSearchBase<
+          State,
+          Action,
+          DualBounds,
+          StorePolicy,
+          StateInfoT> {
+
+    using HeuristicSearchBase = heuristic_search::
+        HeuristicSearchBase<State, Action, DualBounds, StorePolicy, StateInfoT>;
 
 public:
     HeuristicDepthFirstSearch(
@@ -175,10 +190,9 @@ public:
         , stack_()
         , statistics_()
     {
-        initialize_persistent_state_storage(
-            std::is_same<
-                AdditionalPerStateInformation,
-                typename HeuristicSearchBase::StateInfo>());
+        initialize_persistent_state_storage(std::is_same<
+                                            AdditionalPerStateInformation,
+                                            HeuristicSearchBase::StateInfo>());
         expansion_condition_.state_flags_ = state_flags_;
     }
 
@@ -186,7 +200,7 @@ public:
     {
         if (!std::is_same<
                 AdditionalPerStateInformation,
-                typename HeuristicSearchBase::StateInfo>::value) {
+                HeuristicSearchBase::StateInfo>::value) {
             delete (this->state_flags_);
         }
     }
@@ -723,32 +737,36 @@ class HeuristicDepthFirstSearch;
 template <typename State, typename Action, typename B2>
 class HeuristicDepthFirstSearch<State, Action, B2, std::false_type>
     : public internal::HeuristicDepthFirstSearch<
-          heuristic_search::HeuristicSearchBase<
-              State,
-              Action,
-              B2,
-              std::true_type,
-              internal::PerStateInformation>> {
+          State,
+          Action,
+          B2,
+          std::true_type,
+          internal::PerStateInformation> {
 public:
     using internal::HeuristicDepthFirstSearch<
-        heuristic_search::HeuristicSearchBase<
-            State,
-            Action,
-            B2,
-            std::true_type,
-            internal::PerStateInformation>>::HeuristicDepthFirstSearch;
+        State,
+        Action,
+        B2,
+        std::true_type,
+        internal::PerStateInformation>::HeuristicDepthFirstSearch;
 };
 
 template <typename State, typename Action, typename B2>
 class HeuristicDepthFirstSearch<State, Action, B2, std::true_type>
     : public internal::HeuristicDepthFirstSearch<
-          heuristic_search::
-              HeuristicSearchBase<State, Action, B2, std::true_type>,
+          State,
+          Action,
+          B2,
+          std::true_type,
+          heuristic_search::NoAdditionalStateData,
           internal::StandalonePerStateInformation> {
 public:
     using internal::HeuristicDepthFirstSearch<
-        heuristic_search::
-            HeuristicSearchBase<State, Action, B2, std::true_type>,
+        State,
+        Action,
+        B2,
+        std::true_type,
+        heuristic_search::NoAdditionalStateData,
         internal::StandalonePerStateInformation>::HeuristicDepthFirstSearch;
 };
 

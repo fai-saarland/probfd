@@ -29,14 +29,14 @@ public:
     bool operator()(const StateID& state);
 
     bool operator()(
-        std::deque<StateID>::const_iterator begin,
-        std::deque<StateID>::const_iterator end,
-        std::deque<StateID>::const_iterator rn_begin,
-        std::deque<StateID>::const_iterator rn_end);
+        std::vector<StateID>::const_iterator begin,
+        std::vector<StateID>::const_iterator end,
+        std::vector<StateID>::const_iterator rn_begin,
+        std::vector<StateID>::const_iterator rn_end);
 
     bool operator()(
-        std::deque<StateID>::const_iterator begin,
-        std::deque<StateID>::const_iterator end);
+        std::vector<StateID>::const_iterator begin,
+        std::vector<StateID>::const_iterator end);
 
     void print_statistics(std::ostream& out) const;
 
