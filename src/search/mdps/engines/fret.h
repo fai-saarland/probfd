@@ -34,27 +34,15 @@ using HeuristicSearchEngine =
 namespace internal {
 
 struct Statistics {
-    unsigned long long iterations;
-    unsigned long long traps;
-    unsigned long long traps_dead;
+    unsigned long long iterations = 0;
+    unsigned long long traps = 0;
+    unsigned long long traps_dead = 0;
 
 #if defined(EXPENSIVE_STATISTICS)
-    utils::Timer heuristic_search;
-    utils::Timer trap_identification;
-    utils::Timer trap_removal;
+    utils::Timer heuristic_search = utils::Timer(true);
+    utils::Timer trap_identification = utils::Timer(true);
+    utils::Timer trap_removal = utils::Timer(true);
 #endif
-
-    Statistics()
-        : iterations(0)
-        , traps(0)
-        , traps_dead(0)
-    {
-#if defined(EXPENSIVE_STATISTICS)
-        heuristic_search.stop();
-        trap_identification.stop();
-        trap_removal.stop();
-#endif
-    }
 
     void print(std::ostream& out) const
     {
@@ -68,28 +56,6 @@ struct Statistics {
         out << "  Trap removal: " << trap_removal << std::endl;
 #endif
     }
-
-    void register_report(ProgressReport* report)
-    {
-        report->register_print([this](std::ostream& out) {
-            out << "fret=" << iterations << ", traps=" << traps;
-        });
-    }
-};
-
-struct TarjanStateInformation {
-    constexpr static const unsigned UNDEF = -1;
-
-    void open(const unsigned x)
-    {
-        onstack = true;
-        index = x;
-        lowlink = x;
-    }
-
-    unsigned index = UNDEF;
-    unsigned lowlink = UNDEF;
-    bool onstack = false;
 };
 
 template <
@@ -98,11 +64,37 @@ template <
     typename B2,
     typename GreedyGraphGenerator>
 class FRET : public MDPEngine<State, Action> {
+    struct TarjanStateInformation {
+        static constexpr unsigned UNDEF = -1;
+
+        void open(const unsigned x)
+        {
+            onstack = true;
+            index = x;
+            lowlink = x;
+        }
+
+        unsigned index = UNDEF;
+        unsigned lowlink = UNDEF;
+        bool onstack = false;
+    };
+
+    struct ExplorationInfo {
+        ExplorationInfo(const StateID& state_id)
+            : state_id(state_id)
+        {
+        }
+
+        StateID state_id;
+        std::vector<StateID> successors;
+        bool is_leaf = true;
+    };
+
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
-    FRET(
+    explicit FRET(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
         StateRewardFunction<State>* state_reward_function,
@@ -110,7 +102,6 @@ public:
         value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        GreedyGraphGenerator&& greedy_graph,
         QuotientSystem* quotient,
         ProgressReport* report,
         HeuristicSearchEngine<State, QAction, B2>* engine)
@@ -122,7 +113,7 @@ public:
               reward_bound,
               aops_generator,
               transition_generator)
-        , greedy_graph_(std::move(greedy_graph))
+        , greedy_graph_(engine)
         , report_(report)
         , quotient_(quotient)
         , base_engine_(engine)
@@ -131,35 +122,35 @@ public:
 
     virtual void solve(const State& state) override
     {
-        statistics_.register_report(this->report_);
+        report_->register_print([&](std::ostream& out) {
+            out << "fret=" << statistics_.iterations
+                << ", traps=" << statistics_.traps;
+        });
+
         do {
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.heuristic_search.resume();
-#endif
-            base_engine_->solve(state);
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.heuristic_search.stop();
-            statistics_.trap_identification.resume();
-#endif
-            FRET_DEBUG_MSG(std::cout << "................. find&remove traps"
-                                     << std::endl;)
+            heuristic_search(state);
+
             find_and_remove_traps(state);
 
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.trap_identification.stop();
-#endif
-            FRET_DEBUG_MSG(
-                std::cout << "................. -> traps = " << trap_counter_
-                          << " unexpanded = " << unexpanded_ << std::endl;)
-            statistics_.iterations++;
-            // std::cout << "fret#" << statistics_.iterations << " -> traps=" <<
-            // trap_counter_ << ", unexpanded=" << unexpanded_ << std::endl;
-            // dump_quotient_system(s);
+            ++statistics_.iterations;
+
             if (trap_counter_ + unexpanded_ == 0) {
                 break;
             }
+
             base_engine_->reset_solver_state();
         } while (true);
+    }
+
+    void heuristic_search(const State& state)
+    {
+#if defined(EXPENSIVE_STATISTICS)
+        statistics_.heuristic_search.resume();
+#endif
+        base_engine_->solve(state);
+#if defined(EXPENSIVE_STATISTICS)
+        statistics_.heuristic_search.stop();
+#endif
     }
 
     virtual value_type::value_t get_result(const State& state) override
@@ -240,19 +231,14 @@ public:
 #endif
 
 private:
-    struct ExplorationInfo {
-        ExplorationInfo(const StateID& state_id)
-            : state_id(state_id)
-            , is_leaf(true)
-        {
-        }
-        StateID state_id;
-        std::vector<StateID> successors;
-        bool is_leaf;
-    };
-
     void find_and_remove_traps(const State& state)
     {
+#if defined(EXPENSIVE_STATISTICS)
+        statistics_.trap_identification.resume();
+#endif
+        FRET_DEBUG_MSG(std::cout << "................. find&remove traps"
+                                 << std::endl;)
+
         trap_counter_ = 0;
         unexpanded_ = 0;
 
@@ -263,51 +249,58 @@ private:
 
         {
             StateID stateid = this->get_state_id(state);
-            push(stateid, exploration_queue);
+            push(exploration_queue, stateid);
             stack.push_back(stateid);
             state_infos[stateid].open(current_index);
         }
 
         bool backtracked = false;
         unsigned last_lowlink = TarjanStateInformation::UNDEF;
+
         while (!exploration_queue.empty()) {
             ExplorationInfo& einfo = exploration_queue.back();
             TarjanStateInformation& sinfo = state_infos[einfo.state_id];
             sinfo.lowlink = std::min(sinfo.lowlink, last_lowlink);
             einfo.is_leaf = einfo.is_leaf && !backtracked;
             bool fully_explored = true;
+
             while (!einfo.successors.empty()) {
                 StateID succid = einfo.successors.back();
                 einfo.successors.pop_back();
                 TarjanStateInformation& succ_info = state_infos[succid];
+
                 if (succ_info.index == TarjanStateInformation::UNDEF) {
-                    if (push(succid, exploration_queue)) {
+                    if (push(exploration_queue, succid)) {
                         succ_info.open(++current_index);
                         stack.push_front(succid);
                         backtracked = false;
                         last_lowlink = TarjanStateInformation::UNDEF;
                         fully_explored = false;
                         break;
-                    } else {
-                        einfo.is_leaf = false;
                     }
+
+                    einfo.is_leaf = false;
                 } else if (succ_info.onstack) {
                     sinfo.lowlink = std::min(sinfo.lowlink, succ_info.index);
                 } else {
                     einfo.is_leaf = false;
                 }
             }
+
             if (fully_explored) {
                 backtracked = !einfo.is_leaf;
                 last_lowlink = sinfo.lowlink;
+
                 if (sinfo.lowlink == sinfo.index) {
                     backtracked = true;
                     unsigned scc_size = 0;
+
                     auto it = stack.begin();
                     do {
                         state_infos[*it].onstack = false;
                         ++scc_size;
                     } while (*(it++) != einfo.state_id);
+
                     if (einfo.is_leaf) {
                         if (scc_size > 1) {
                             FRET_DEBUG_MSG(
@@ -331,38 +324,50 @@ private:
                                                      << einfo.state_id
                                                      << std::endl;)
                             base_engine_->async_update(einfo.state_id);
+
                             if (base_engine_->is_marked_dead_end(
                                     einfo.state_id)) {
                                 base_engine_->notify_dead_end(einfo.state_id);
                             }
+
                             statistics_.traps++;
                         } else {
                             base_engine_->notify_dead_end_ifnot_goal(
                                 einfo.state_id);
                         }
                     }
+
                     stack.erase(stack.begin(), it);
                 }
+
                 exploration_queue.pop_back();
             }
         }
+
+#if defined(EXPENSIVE_STATISTICS)
+        statistics_.trap_identification.stop();
+#endif
+        FRET_DEBUG_MSG(std::cout
+                           << "................. -> traps = " << trap_counter_
+                           << " unexpanded = " << unexpanded_ << std::endl;)
     }
 
-    bool push(const StateID& state_id, std::deque<ExplorationInfo>& queue)
+    bool push(std::deque<ExplorationInfo>& queue, const StateID& state_id)
     {
         if (base_engine_->is_terminal(state_id)) {
             return false;
         }
+
         std::vector<StateID> succs;
-        bool sth = greedy_graph_(state_id, succs);
-        if (sth) {
+        if (greedy_graph_(state_id, succs)) {
             ++unexpanded_;
         }
+
         if (succs.empty()) {
             return false;
         }
-        queue.emplace_back(state_id);
-        queue.back().successors.swap(succs);
+
+        queue.emplace_back(state_id).successors.swap(succs);
         return true;
     }
 
@@ -385,7 +390,6 @@ public:
 
     explicit ValueGraph(HeuristicSearchEngine<State, QAction, B2>* hs)
         : base_engine_(hs)
-        , collector_()
     {
     }
 
@@ -399,19 +403,19 @@ public:
     }
 
 private:
+    // TODO Find a better way to access the states
     class StateCollector {
     public:
         int operator()(
             const StateID,
             const ActionID,
             const std::vector<QAction>&,
-            const std::vector<Distribution<StateID>>& transisions)
+            const std::vector<Distribution<StateID>>& transitions)
         {
-            for (int i = transisions.size() - 1; i >= 0; --i) {
-                const Distribution<StateID>& t = transisions[i];
-                for (auto it = t.begin(); it != t.end(); ++it) {
-                    if (ids.insert(it->first).second) {
-                        states.push_back(it->first);
+            for (const auto& transition : transitions) {
+                for (const StateID& sid : transition.elements()) {
+                    if (ids.insert(sid).second) {
+                        states.push_back(sid);
                     }
                 }
             }
@@ -444,8 +448,8 @@ public:
     {
         t_.clear();
         bool result = base_engine_->apply_policy(qstate, t_);
-        for (auto it = t_.begin(); it != t_.end(); ++it) {
-            successors.push_back(it->first);
+        for (const StateID& sid : t_.elements()) {
+            successors.push_back(sid);
         }
         return result;
     }
@@ -458,85 +462,12 @@ private:
 } // namespace internal
 
 template <typename State, typename Action, typename B2>
-class FRETV
-    : public internal::FRET<
-          State,
-          Action,
-          B2,
-          typename internal::ValueGraph<State, Action, B2>> {
-public:
-    using QuotientSystem = quotient_system::QuotientSystem<Action>;
-    using QAction = typename QuotientSystem::QAction;
-
-    using ValueGraph = typename internal::ValueGraph<State, Action, B2>;
-
-    template <typename... Args>
-    FRETV(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        StateRewardFunction<State>* state_reward_function,
-        ActionRewardFunction<Action>* action_reward_function,
-        value_utils::IntervalValue reward_bound,
-        ApplicableActionsGenerator<Action>* aops_generator,
-        TransitionGenerator<Action>* transition_generator,
-        QuotientSystem* quotient,
-        ProgressReport* report,
-        HeuristicSearchEngine<State, QAction, B2>* engine)
-        : internal::FRET<State, Action, B2, ValueGraph>(
-              state_id_map,
-              action_id_map,
-              state_reward_function,
-              action_reward_function,
-              reward_bound,
-              aops_generator,
-              transition_generator,
-              ValueGraph(engine),
-              quotient,
-              report,
-              engine)
-    {
-    }
-};
+using FRETV = internal::
+    FRET<State, Action, B2, typename internal::ValueGraph<State, Action, B2>>;
 
 template <typename State, typename Action, typename B2>
-class FRETPi
-    : public internal::FRET<
-          State,
-          Action,
-          B2,
-          typename internal::PolicyGraph<State, Action, B2>> {
-public:
-    using QuotientSystem = quotient_system::QuotientSystem<Action>;
-    using QAction = typename QuotientSystem::QAction;
-
-    using PolicyGraph = typename internal::PolicyGraph<State, Action, B2>;
-
-    FRETPi(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        StateRewardFunction<State>* state_reward_function,
-        ActionRewardFunction<Action>* action_reward_function,
-        value_utils::IntervalValue reward_bound,
-        ApplicableActionsGenerator<Action>* aops_generator,
-        TransitionGenerator<Action>* transition_generator,
-        QuotientSystem* quotient,
-        ProgressReport* report,
-        HeuristicSearchEngine<State, QAction, B2>* engine)
-        : internal::FRET<State, Action, B2, PolicyGraph>(
-              state_id_map,
-              action_id_map,
-              state_reward_function,
-              action_reward_function,
-              reward_bound,
-              aops_generator,
-              transition_generator,
-              PolicyGraph(engine),
-              quotient,
-              report,
-              engine)
-    {
-    }
-};
+using FRETPi = internal::
+    FRET<State, Action, B2, typename internal::PolicyGraph<State, Action, B2>>;
 
 } // namespace fret
 } // namespace engines
