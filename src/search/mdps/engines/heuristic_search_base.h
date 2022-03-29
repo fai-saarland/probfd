@@ -390,7 +390,7 @@ public:
 
         const StateInfo& info = state_infos_[state];
         if (info.policy == ActionID::undefined) {
-            return async_update(state, nullptr, &result);
+            return async_update(state, nullptr, &result, nullptr);
         }
 
         Action action = this->lookup_action(state, info.policy);
@@ -459,11 +459,21 @@ public:
         }
     }
 
+    /**
+     * @brief Calls conditional_notify_dead_end(const StateID&, StateInfo&) for
+     * the internal state info object of \p state_id.
+     */
     bool conditional_notify_dead_end(const StateID& state_id)
     {
         return conditional_notify_dead_end(state_id, state_infos_[state_id]);
     }
 
+    /**
+     * @brief If \p state_id is not a goal state, calls
+     * notify_dead_end(const StateID&, StateInfo&)
+     *
+     * Returns true if the state is not a goal state.
+     */
     bool
     conditional_notify_dead_end(const StateID& state_id, StateInfo& state_info)
     {
@@ -471,11 +481,7 @@ public:
             return false;
         }
 
-        if (dead_end_listener_ != nullptr &&
-            !state_info.is_recognized_dead_end()) {
-            set_dead_end(state_info);
-            dead_end_listener_->operator()(state_id);
-        }
+        notify_dead_end(state_id, state_info);
 
         return true;
     }
@@ -506,8 +512,27 @@ public:
     }
 
     /**
+     * @brief Computes the value update for a state and returns whether the
+     * value changed.
+     *
+     * If the policy is stored, the greedy action for s is also updated using
+     * the internal policy tiebreaking settings.
+     */
+    bool async_update(const StateID& s)
+    {
+        if constexpr (!StorePolicy::value) {
+            return compute_value_update(s);
+        } else {
+            return async_update(s, nullptr, nullptr, nullptr);
+        }
+    }
+
+    /**
      * @brief Computes the value update for a state and outputs the new greedy
-     * action, transition, and whether the policy and value changed.
+     * action, transition, and whether the policy and value changed. Output
+     * parameters may be nullptr.
+     *
+     * Only applicable if the policy is stored.
      *
      * @param[in] s - The state for the value update
      * @param[out] policy_action - Return address for the new greedy action.
@@ -520,13 +545,13 @@ public:
      */
     bool async_update(
         const StateID& s,
-        ActionID* policy_action = nullptr,
-        Distribution<StateID>* policy_transition = nullptr,
-        bool* policy_changed = nullptr)
+        ActionID* policy_action,
+        Distribution<StateID>* policy_transition,
+        bool* policy_changed)
     {
         return async_update(
-            stable_policy_,
             s,
+            stable_policy_,
             this->policy_chooser_,
             policy_action,
             policy_transition,
@@ -537,6 +562,9 @@ public:
      * @brief Computes the value update for a state and outputs the new greedy
      * action, transition, and whether the policy and value changed, where ties
      * between optimal actions are broken by the supplied policy tiebreaker.
+     * The policy tiebreaker may not be nullptr.
+     *
+     * Only applicable if the policy is stored.
      *
      * @param[in] s - The state for the value update
      * @param[out] policy_tiebreaker - A pointer to a function object breaking
@@ -558,8 +586,8 @@ public:
         bool* policy_changed)
     {
         return async_update(
-            false,
             s,
+            false,
             policy_tiebreaker,
             policy_action,
             policy_transition,
@@ -987,56 +1015,56 @@ private:
 
     template <typename T>
     bool async_update(
-        const bool stable_policy,
         const StateID& s,
+        const bool stable_policy,
         T* policy_tiebreaker,
         ActionID* greedy_action,
         Distribution<StateID>* greedy_transition,
         bool* action_changed)
     {
+        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+
         if (policy_tiebreaker == nullptr) {
-            return compute_value_update<false, false>(
+            return compute_value_update(s);
+        } else {
+            return compute_value_update(
                 s,
-                policy_tiebreaker,
+                stable_policy,
+                *policy_tiebreaker,
                 greedy_action,
                 greedy_transition,
                 action_changed);
-        } else {
-            if (stable_policy) {
-                return compute_value_update<true, true>(
-                    s,
-                    policy_tiebreaker,
-                    greedy_action,
-                    greedy_transition,
-                    action_changed);
-            } else {
-                return compute_value_update<true, false>(
-                    s,
-                    policy_tiebreaker,
-                    greedy_action,
-                    greedy_transition,
-                    action_changed);
-            }
         }
     }
 
-    template <bool Policy, bool StablePolicy, typename T>
+    bool compute_value_update(const StateID& state_id)
+    {
+        std::vector<Action> aops;
+        std::vector<Distribution<StateID>> transitions;
+        IncumbentSolution new_value;
+        std::vector<IncumbentSolution> values;
+
+        return compute_value_update(
+            state_id,
+            lookup_initialize(state_id),
+            aops,
+            transitions,
+            new_value,
+            values);
+    }
+
     bool compute_value_update(
         const StateID& state_id,
-        [[maybe_unused]] T* choice,
-        [[maybe_unused]] ActionID* greedy_action,
-        [[maybe_unused]] Distribution<StateID>* greedy_transition,
-        [[maybe_unused]] bool* action_changed)
+        StateInfo& state_info,
+        std::vector<Action>& aops,
+        std::vector<Distribution<StateID>>& transitions,
+        IncumbentSolution& new_value,
+        std::vector<IncumbentSolution>& values)
     {
 #if defined(EXPENSIVE_STATISTICS)
         statistics_.update_time.resume();
 #endif
         statistics_.backups++;
-
-        assert(!Policy || choice != nullptr);
-        assert(greedy_transition == nullptr || greedy_transition->empty());
-
-        StateInfo& state_info = lookup_initialize(state_id);
 
         if (state_info.is_terminal()) {
 #if defined(EXPENSIVE_STATISTICS)
@@ -1050,16 +1078,13 @@ private:
             state_info.removed_from_fringe();
         }
 
-        std::vector<Action> aops_;
-        std::vector<Distribution<StateID>> optimal_transitions_;
-        this->generate_all_successors(state_id, aops_, optimal_transitions_);
-        assert(aops_.size() == optimal_transitions_.size());
+        this->generate_all_successors(state_id, aops, transitions);
+        assert(aops.size() == transitions.size());
 
-        if (aops_.empty()) {
+        if (aops.empty()) {
             statistics_.terminal_states++;
             bool result = this->update(state_info, dead_end_value_);
             state_info.set_dead_end();
-            state_info.set_policy(ActionID::undefined);
 #if defined(EXPENSIVE_STATISTICS)
             statistics_.update_time.stop();
 #endif
@@ -1072,24 +1097,22 @@ private:
             return result;
         }
 
-        bool first = true;
-        IncumbentSolution new_value = dead_end_value();
-        std::vector<IncumbentSolution> values;
-        values.reserve(aops_.size());
+        new_value = IncumbentSolution(this->get_minimal_reward());
+        values.reserve(aops.size());
 
-        unsigned non_loop_transitions = 0;
-        for (unsigned i = 0; i < aops_.size(); ++i) {
+        unsigned non_loop_end = 0;
+        for (unsigned i = 0; i < aops.size(); ++i) {
+            Action& op = aops[i];
+            Distribution<StateID>& transition = transitions[i];
+
             IncumbentSolution t_value(
                 state_info.get_state_reward() +
-                this->get_action_reward(state_id, aops_[i]));
+                this->get_action_reward(state_id, op));
             value_type::value_t self_loop = value_type::zero;
             bool non_loop = false;
-            bool has_self_loop = false;
-            const Distribution<StateID>& transition = optimal_transitions_[i];
 
             for (const auto& [succ_id, prob] : transition) {
                 if (succ_id == state_id) {
-                    has_self_loop = true;
                     self_loop += prob;
                 } else {
                     const StateInfo& succ_info = lookup_initialize(succ_id);
@@ -1099,105 +1122,36 @@ private:
             }
 
             if (non_loop) {
-                if (has_self_loop) {
+                if (self_loop > value_type::zero) {
                     t_value *= value_type::one / (value_type::one - self_loop);
                 }
 
                 values.push_back(t_value);
+                value_utils::set_max(new_value, t_value);
 
-                if (first) {
-                    first = false;
-                    new_value = t_value;
-                } else {
-                    value_utils::set_max(new_value, t_value);
+                if (non_loop_end != i) {
+                    aops[non_loop_end] = std::move(op);
+                    transitions[non_loop_end] = std::move(transition);
                 }
 
-                if (non_loop_transitions != i) {
-                    optimal_transitions_[i].swap(
-                        optimal_transitions_[non_loop_transitions]);
-                    std::swap(aops_[i], aops_[non_loop_transitions]);
-                }
-
-                ++non_loop_transitions;
+                ++non_loop_end;
             }
         }
+
+        aops.erase(aops.begin() + non_loop_end, aops.end());
+        transitions.erase(
+            transitions.begin() + non_loop_end,
+            transitions.end());
 
 #if defined(EXPENSIVE_STATISTICS)
         statistics_.update_time.stop();
 #endif
 
-        if (non_loop_transitions == 0) {
+        if (aops.empty()) {
             statistics_.self_loop_states++;
             const bool result = this->update(state_info, dead_end_value_);
-            state_info.set_policy(ActionID::undefined);
             state_info.set_dead_end();
             return result;
-        }
-
-        if constexpr (Policy) {
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.policy_selection_time.resume();
-#endif
-
-            int index = -1;
-
-            unsigned j = 0;
-            for (unsigned i = 0; i < non_loop_transitions; ++i) {
-                if (value_utils::compare(values[i], new_value) >= 0) {
-                    if (i != j) {
-                        optimal_transitions_[j].swap(optimal_transitions_[i]);
-                        std::swap(aops_[j], aops_[i]);
-                    }
-                    if (StablePolicy &&
-                        this->get_action_id(state_id, aops_[j]) ==
-                            state_info.get_policy()) {
-                        index = j++;
-                        break;
-                    }
-                    ++j;
-                }
-            }
-
-            if (j < optimal_transitions_.size()) {
-                aops_.erase(aops_.begin() + j, aops_.end());
-                optimal_transitions_.erase(
-                    optimal_transitions_.begin() + j,
-                    optimal_transitions_.end());
-            }
-
-            if (index == -1) {
-                ++statistics_.policy_updates;
-                assert(!optimal_transitions_.empty());
-                index = choice->operator()(
-                    state_id,
-                    state_info.get_policy(),
-                    aops_,
-                    optimal_transitions_);
-                assert(index < 0 || index < static_cast<int>(aops_.size()));
-            }
-
-            if (index >= 0) {
-                const ActionID action_id =
-                    this->get_action_id(state_id, aops_[index]);
-
-                if (action_changed != nullptr) {
-                    *action_changed = (action_id != state_info.get_policy());
-                }
-
-                if (greedy_action != nullptr) {
-                    (*greedy_action) = action_id;
-                }
-
-                if (greedy_transition != nullptr) {
-                    greedy_transition->swap(optimal_transitions_[index]);
-                }
-
-                state_info.set_policy(action_id);
-            }
-
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.policy_selection_time.stop();
-#endif
         }
 
         if (this->update(state_info, new_value)) {
@@ -1209,6 +1163,133 @@ private:
         }
 
         return false;
+    }
+
+    template <typename T>
+    bool compute_value_update(
+        const StateID& state_id,
+        bool stable_policy,
+        T& choice,
+        ActionID* greedy_action,
+        Distribution<StateID>* greedy_transition,
+        bool* action_changed)
+    {
+        std::vector<Action> aops;
+        std::vector<Distribution<StateID>> transitions;
+        IncumbentSolution new_value;
+        std::vector<IncumbentSolution> values;
+
+        StateInfo& state_info = lookup_initialize(state_id);
+
+        bool b = compute_value_update(
+            state_id,
+            state_info,
+            aops,
+            transitions,
+            new_value,
+            values);
+
+        if (aops.empty()) {
+            state_info.set_policy(ActionID::undefined);
+        } else {
+            select_policy(
+                state_id,
+                state_info,
+                stable_policy,
+                choice,
+                greedy_action,
+                greedy_transition,
+                action_changed,
+                aops,
+                transitions,
+                new_value,
+                values);
+        }
+
+        return b;
+    }
+
+    template <typename T>
+    void select_policy(
+        const StateID& state_id,
+        StateInfo& state_info,
+        bool stable,
+        T& choice,
+        ActionID* greedy_action,
+        Distribution<StateID>* greedy_transition,
+        bool* action_changed,
+        std::vector<Action>& aops,
+        std::vector<Distribution<StateID>>& transitions,
+        const IncumbentSolution& new_value,
+        const std::vector<IncumbentSolution>& values)
+    {
+#if defined(EXPENSIVE_STATISTICS)
+        statistics_.policy_selection_time.resume();
+#endif
+        auto previous_greedy = state_info.get_policy();
+
+        unsigned optimal_end = 0;
+        for (unsigned i = 0; i < aops.size(); ++i) {
+            if (value_utils::compare(values[i], new_value) >= 0) {
+                if (stable) {
+                    const auto aid = this->get_action_id(state_id, aops[i]);
+                    if (aid == previous_greedy) {
+                        if (action_changed != nullptr) {
+                            *action_changed = false;
+                        }
+
+                        if (greedy_action != nullptr) {
+                            (*greedy_action) = aid;
+                        }
+
+                        if (greedy_transition != nullptr) {
+                            (*greedy_transition) = std::move(transitions[i]);
+                        }
+
+                        return;
+                    }
+                }
+
+                if (i != optimal_end) {
+                    transitions[optimal_end] = std::move(transitions[i]);
+                    aops[optimal_end] = std::move(aops[i]);
+                }
+
+                ++optimal_end;
+            }
+        }
+
+        aops.erase(aops.begin() + optimal_end, aops.end());
+        transitions.erase(transitions.begin() + optimal_end, transitions.end());
+
+        assert(!aops.empty() && !transitions.empty());
+
+        ++statistics_.policy_updates;
+
+        int index = choice(state_id, previous_greedy, aops, transitions);
+        assert(index < 0 || index < static_cast<int>(aops.size()));
+
+        if (index >= 0) {
+            const ActionID aid = this->get_action_id(state_id, aops[index]);
+
+            if (action_changed != nullptr) {
+                *action_changed = (aid != state_info.get_policy());
+            }
+
+            if (greedy_action != nullptr) {
+                (*greedy_action) = aid;
+            }
+
+            if (greedy_transition != nullptr) {
+                (*greedy_transition) = std::move(transitions[index]);
+            }
+
+            state_info.set_policy(aid);
+        }
+
+#if defined(EXPENSIVE_STATISTICS)
+        statistics_.policy_selection_time.stop();
+#endif
     }
 
 protected:

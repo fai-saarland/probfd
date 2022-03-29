@@ -15,25 +15,15 @@ namespace heuristic_search {
 
 template <typename StoresPolicyT = std::false_type>
 struct StatesPolicy {
-    using StoresPolicy = std::false_type;
-    void set_policy(const ActionID&) const {}
-    ActionID get_policy() const { return ActionID::undefined; }
 };
 
 template <>
 struct StatesPolicy<std::true_type> {
-    using StoresPolicy = std::true_type;
-
-    StatesPolicy()
-        : policy(ActionID::undefined)
-    {
-    }
-
     void set_policy(const ActionID& aid) { policy = aid; }
 
     ActionID get_policy() const { return policy; }
 
-    ActionID policy;
+    ActionID policy = ActionID::undefined;
 };
 
 struct StateFlags {
@@ -104,7 +94,7 @@ template <typename StoresPolicyT, typename TwoValuesT>
 struct PerStateBaseInformation
     : public StatesPolicy<StoresPolicyT>
     , public StateFlags {
-    using typename StatesPolicy<StoresPolicyT>::StoresPolicy;
+    using StoresPolicy = StoresPolicyT;
     using DualBounds = TwoValuesT;
 
     value_utils::IncumbentSolution<TwoValuesT> value;

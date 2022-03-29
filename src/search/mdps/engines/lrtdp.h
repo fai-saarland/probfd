@@ -257,7 +257,8 @@ private:
             const bool value_changed = this->async_update(
                 state_id,
                 nullptr,
-                &this->selected_transition_);
+                &this->selected_transition_,
+                nullptr);
             if (this->selected_transition_.empty()) {
                 // terminal
                 assert(this->state_status_(state_id, state_info).is_terminal());
@@ -366,7 +367,8 @@ private:
                     const bool value_changed = this->async_update(
                         elem.second,
                         nullptr,
-                        &this->selected_transition_);
+                        &this->selected_transition_,
+                        nullptr);
                     if (value_changed) {
                         epsilon_consistent = false;
                         CAS_DEBUG_PRINT(

@@ -615,7 +615,7 @@ private:
             sinfo.set_policy_initialized();
             statistics_.forward_updates++;
             const bool updated =
-                this->async_update(stateid, nullptr, &transition_);
+                this->async_update(stateid, nullptr, &transition_, nullptr);
             einfo.value_changed = updated;
 
             if constexpr (DualBounds::value) {
