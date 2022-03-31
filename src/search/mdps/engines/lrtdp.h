@@ -280,7 +280,17 @@ private:
         bool any_dead = false;
         this->last_check_and_solve_was_dead_ = false;
 
-        this->policy_queue_.emplace_back(false, init_state_id);
+        {
+            auto& init_info = get_state_info(init_state_id);
+
+            if (init_info.is_solved()) {
+                auto& stinfo = this->get_state_info(init_state_id, init_info);
+                any_dead = all_dead = stinfo.is_dead_end();
+            } else {
+                init_info.mark_open();
+                this->policy_queue_.emplace_back(false, init_state_id);
+            }
+        }
 
         while (!this->policy_queue_.empty()) {
             auto& elem = this->policy_queue_.back();
@@ -293,37 +303,14 @@ private:
             }
 
             auto& info = get_lrtdp_state_info(state_id);
+            assert(info.is_marked_open() && !info.is_solved());
 
             CAS_DEBUG_PRINT(std::cout << "(C&S) queue.top() = " << state_id
-                                      << " ~> "
+                                      << " ~> " << info.is_solved() << "|"
                                       << this->is_marked_dead_end(state_id)
                                       << " value=" << this->get_value(state_id)
                                       << std::endl;)
 
-            if (info.is_marked_open()) {
-                this->policy_queue_.pop_back();
-                continue;
-            }
-
-            if (info.is_solved()) {
-                const auto& state_info = this->get_state_info(state_id, info);
-                any_dead = any_dead || state_info.is_dead_end();
-                all_dead = all_dead && state_info.is_dead_end();
-
-                // if (this->dead_end_identification_level_
-                //     != DeadEndIdentificationLevel::Off) {
-                //     assert(
-                //         !state_info.is_dead_end()
-                //         || state_info.is_recognized_dead_end());
-                //     all_dead = all_dead
-                //         && state_info.is_dead_end();
-                // }
-
-                this->policy_queue_.pop_back();
-                continue;
-            }
-
-            info.mark_open();
             elem.first = true;
             this->statistics_.check_and_solve_bellman_backups++;
 
@@ -357,21 +344,17 @@ private:
                     mark_solved = false;
                 }
 
-                CAS_DEBUG_PRINT(std::cout << "  --> [";)
-
-                for (const auto& succ : this->selected_transition_) {
-                    CAS_DEBUG_PRINT(
-                        std::cout
-                            << (succ != *this->selected_transition_.begin()
-                                    ? ", "
-                                    : "")
-                            << succ.first << " ("
-                            << this->get_state_info(succ.first).value << ")";)
-
-                    this->policy_queue_.emplace_back(false, succ.first);
+                for (const StateID& succ_id : selected_transition_.elements()) {
+                    auto& succ_info = get_state_info(succ_id);
+                    if (succ_info.is_solved()) {
+                        auto& succsi = this->get_state_info(succ_id, succ_info);
+                        any_dead = any_dead || succsi.is_dead_end();
+                        all_dead = all_dead && succsi.is_dead_end();
+                    } else if (!succ_info.is_marked_open()) {
+                        succ_info.mark_open();
+                        this->policy_queue_.emplace_back(false, succ_id);
+                    }
                 }
-
-                CAS_DEBUG_PRINT(std::cout << "]" << std::endl;)
             }
 
             this->selected_transition_.clear();
