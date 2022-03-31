@@ -281,37 +281,30 @@ private:
         this->last_check_and_solve_was_dead_ = false;
 
         {
-            auto& init_info = get_state_info(init_state_id);
+            auto& init_info = get_lrtdp_state_info(init_state_id);
 
             if (init_info.is_solved()) {
                 auto& stinfo = this->get_state_info(init_state_id, init_info);
                 any_dead = all_dead = stinfo.is_dead_end();
             } else {
                 init_info.mark_open();
-                this->policy_queue_.emplace_back(false, init_state_id);
+                this->policy_queue_.emplace_back(init_state_id);
             }
         }
 
         while (!this->policy_queue_.empty()) {
-            auto& elem = this->policy_queue_.back();
-            const auto [flag, state_id] = elem;
-
-            if (flag) {
-                this->visited_.push_back(state_id);
-                this->policy_queue_.pop_back();
-                continue;
-            }
+            const auto state_id = this->policy_queue_.back();
+            policy_queue_.pop_back();
 
             auto& info = get_lrtdp_state_info(state_id);
             assert(info.is_marked_open() && !info.is_solved());
 
             CAS_DEBUG_PRINT(std::cout << "(C&S) queue.top() = " << state_id
-                                      << " ~> " << info.is_solved() << "|"
+                                      << " ~> "
                                       << this->is_marked_dead_end(state_id)
                                       << " value=" << this->get_value(state_id)
                                       << std::endl;)
 
-            elem.first = true;
             this->statistics_.check_and_solve_bellman_backups++;
 
             const bool value_changed = this->async_update(
@@ -322,6 +315,8 @@ private:
 
             if (value_changed) {
                 epsilon_consistent = false;
+                this->visited_.push_front(state_id);
+
                 CAS_DEBUG_PRINT(std::cout << "     => value has changed: "
                                           << this->get_value(state_id)
                                           << std::endl;)
@@ -335,24 +330,26 @@ private:
                 }
 
                 info.set_solved();
-                policy_queue_.pop_back();
+
                 CAS_DEBUG_PRINT(std::cout << "     => marking as solved (dead= "
                                           << this->is_marked_dead_end(state_id)
                                           << ")" << std::endl;)
             } else {
+                this->visited_.push_front(state_id);
+
                 if (this->do_bounds_disagree(state_id, info)) {
                     mark_solved = false;
                 }
 
                 for (const StateID& succ_id : selected_transition_.elements()) {
-                    auto& succ_info = get_state_info(succ_id);
+                    auto& succ_info = get_lrtdp_state_info(succ_id);
                     if (succ_info.is_solved()) {
                         auto& succsi = this->get_state_info(succ_id, succ_info);
                         any_dead = any_dead || succsi.is_dead_end();
                         all_dead = all_dead && succsi.is_dead_end();
                     } else if (!succ_info.is_marked_open()) {
                         succ_info.mark_open();
-                        this->policy_queue_.emplace_back(false, succ_id);
+                        this->policy_queue_.emplace_back(succ_id);
                     }
                 }
             }
@@ -389,7 +386,7 @@ private:
         bool rv = true;
 
         get_lrtdp_state_info(init_state_id).mark_open();
-        this->policy_queue_.emplace_back(false, init_state_id);
+        this->policy_queue_.emplace_back(init_state_id);
 
         do {
             const StateID stateid = this->policy_queue_.back().second;
@@ -414,7 +411,7 @@ private:
                     auto& succ_info = get_lrtdp_state_info(succid);
                     if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
                         succ_info.mark_open();
-                        this->policy_queue_.emplace_back(false, succid);
+                        this->policy_queue_.emplace_back(succid);
                     }
                 }
             }
@@ -481,8 +478,8 @@ private:
 
     std::vector<StateID> current_trial_;
     Distribution<StateID> selected_transition_;
-    std::vector<std::pair<bool, StateID>> policy_queue_;
-    std::vector<StateID> visited_;
+    std::vector<StateID> policy_queue_;
+    std::deque<StateID> visited_;
 
     Statistics statistics_;
 
