@@ -93,15 +93,79 @@ struct PerStateInformation : public StateInfo {
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
 };
 
-template <
-    typename HeuristicSearchBase,
-    typename StateInfoT = typename HeuristicSearchBase::StateInfo>
-class LRTDP : public HeuristicSearchBase {
-    using State = typename HeuristicSearchBase::State;
-    using Action = typename HeuristicSearchBase::Action;
-    using DualBounds = typename HeuristicSearchBase::DualBounds;
+// When FRET is enabled, store the LRTDP-specific state information seperately
+// so it can be easily reset between FRET iterations. Otherwise, store the
+// LRTDP-specific state information with the basic state information.
+template <typename State, typename Action, typename DualBounds, bool Fret>
+using LRTDPBase = std::conditional_t<
+    Fret,
+    heuristic_search::
+        HeuristicSearchBase<State, Action, DualBounds, std::true_type>,
+    heuristic_search::HeuristicSearchBase<
+        State,
+        Action,
+        DualBounds,
+        std::true_type,
+        internal::PerStateInformation>>;
+
+template <typename State, typename Action, typename DualBounds, bool Fret>
+using LRTDPStateInfo = std::conditional_t<
+    Fret,
+    internal::PerStateInformation<internal::EmptyStateInfo>,
+    typename LRTDPBase<State, Action, DualBounds, Fret>::StateInfo>;
+
+} // namespace internal
+
+/**
+ * @brief Implements the labelled real-time dynamic programming (LRTDP)
+ * algorithm \cite bonet:geffner:icaps-03.
+ *
+ * This algorithm extends the trial-based real-time dynamic programming (RTDP)
+ * algorithm \cite barto:etal:ai-95. A trial is a simulation of the greedy
+ * policy which starts in the initial state and runs until a goal state
+ * is reached, which results in a path from the initial to the goal state.
+ * All states along this path are then asynchronously updated in a forward
+ * manner. In the limit, repeated trials will lead to an optimal state value for
+ * the initial state.
+ *
+ * LRTDP extends RTDP with a labelling procedure that marks parts of the state
+ * space where the value function is epsilon-consistent. This labelling
+ * procedure traverses the greedy policy graph starting from a specific state
+ * and updates every reachable state it encounters once. If none of the
+ * reachable states changed its value by more than epsilon, all states are
+ * labelled as solved as they are epsilon-consistent. Solved states are treated
+ * as stopping points for future trials. The labelling procedure is called on
+ * every state of a trial, in reverse order. If the initial state is marked as
+ * solved, the algorithm terminates.
+ *
+ * \remark This implementation can also be used with interval value bounds.
+ * Here, epsilon-consistency of the value updates can be replaced with
+ * epsilon-closeness of the resulting state interval bounds.
+ *
+ * \remark For MaxProb problems, trials may get stuck in cycles. To deal with
+ * this, alternative trial termination conditions can be selected, which ensure
+ * that LRTDP works even in presence of dead-ends.
+ *
+ * @tparam State - The state type of the MDP model.
+ * @tparam Action - The action type of the MDP model.
+ * @tparam DualBounds - Whether intervals or real values are used as state
+ * values.
+ * @tparam Fret - Specifies whether the algorithm should be usable within FRET.
+ */
+template <typename State, typename Action, typename DualBounds, typename Fret>
+class LRTDP
+    : public internal::LRTDPBase<State, Action, DualBounds, Fret::value> {
+    using HeuristicSearchBase =
+        internal::LRTDPBase<State, Action, DualBounds, Fret::value>;
+    using StateInfoT =
+        internal::LRTDPStateInfo<State, Action, DualBounds, Fret::value>;
+
+    using Statistics = internal::Statistics;
 
 public:
+    /**
+     * @brief Constructs an LRTDP solver object.
+     */
     LRTDP(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
@@ -144,6 +208,9 @@ public:
         this->setup_state_info_store();
     }
 
+    /**
+     * @copydoc MDPEngineInterface::solve(const State& state)
+     */
     virtual void solve(const State& state) override
     {
         this->initialize_report(state);
@@ -162,15 +229,26 @@ public:
         }
     }
 
+    /**
+     * @copydoc MDPEngineInterface::print_statistics(std::ostream& out)
+     */
     virtual void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
         HeuristicSearchBase::print_statistics(out);
     }
 
+    /**
+     * @copydoc MDPEngineInterface::reset_solver_state()
+     */
     virtual void reset_solver_state() override
     {
-        this->state_infos_.reset(new storage::PerStateStorage<StateInfoT>());
+        using HSBInfo = typename HeuristicSearchBase::StateInfo;
+
+        if constexpr (!std::is_same_v<StateInfoT, HSBInfo>) {
+            this->state_infos_.reset(
+                new storage::PerStateStorage<StateInfoT>());
+        }
     }
 
 protected:
@@ -484,57 +562,6 @@ private:
     Statistics statistics_;
 
     bool last_check_and_solve_was_dead_;
-};
-
-} // namespace internal
-
-/**
- * @brief Template base of labelled real-time dynamic programming (LRTDP)
- * \cite bonet:geffner:icaps-03 with integrated FRET support.
- */
-template <typename State, typename Action, typename B2, typename Fret>
-struct LRTDP;
-
-/**
- * @brief Implementation of LRTDP with FRET disabled.
- *
- * @tparam State - The state type of the underlying MDP model.
- * @tparam Action - The action type of the underlying MDP model.
- * @tparam B2 - Whether bounded value iteration is used.
- */
-template <typename StateT, typename ActionT, typename B2>
-struct LRTDP<StateT, ActionT, B2, std::false_type>
-    : public internal::LRTDP<heuristic_search::HeuristicSearchBase<
-          StateT,
-          ActionT,
-          B2,
-          std::true_type,
-          internal::PerStateInformation>> {
-    using internal::LRTDP<heuristic_search::HeuristicSearchBase<
-        StateT,
-        ActionT,
-        B2,
-        std::true_type,
-        internal::PerStateInformation>>::LRTDP;
-};
-
-/**
- * @brief Implementation of LRTDP with FRET enabled.
- *
- * @tparam State - The state type of the underlying MDP model.
- * @tparam Action - The action type of the underlying MDP model.
- * @tparam B2 - Whether bounded value iteration is used.
- */
-template <typename StateT, typename ActionT, typename B2>
-struct LRTDP<StateT, ActionT, B2, std::true_type>
-    : public internal::LRTDP<
-          heuristic_search::
-              HeuristicSearchBase<StateT, ActionT, B2, std::true_type>,
-          internal::PerStateInformation<internal::EmptyStateInfo>> {
-    using internal::LRTDP<
-        heuristic_search::
-            HeuristicSearchBase<StateT, ActionT, B2, std::true_type>,
-        internal::PerStateInformation<internal::EmptyStateInfo>>::LRTDP;
 };
 
 } // namespace lrtdp
