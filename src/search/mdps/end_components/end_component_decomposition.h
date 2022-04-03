@@ -175,15 +175,6 @@ struct StackInfo1 {
     std::vector<std::pair<unsigned, unsigned>> parents;
 };
 
-using StateInfoStore = storage::PerStateStorage<StateInfo>;
-template <typename Action>
-using ExpansionQueue = std::deque<ExpansionInfo<Action>>;
-template <typename Action>
-using ExpansionQueue1 = std::deque<ExpansionInfo1<Action>>;
-template <typename Action>
-using Stack = std::vector<StackInfo<Action>>;
-using Stack1 = std::vector<StackInfo1>;
-
 } // namespace internal
 
 /**
@@ -217,18 +208,21 @@ using Stack1 = std::vector<StackInfo1>;
  */
 template <typename State, typename Action>
 class EndComponentDecomposition {
-public:
-    using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using StateInfo = internal::StateInfo;
     using ExpansionInfo = internal::ExpansionInfo<Action>;
-    using StackInfo = internal::StackInfo<Action>;
-    using StateInfoStore = internal::StateInfoStore;
-    using ExpansionQueue = internal::ExpansionQueue<Action>;
-    using ExpansionQueue1 = internal::ExpansionQueue1<Action>;
-    using Stack = internal::Stack<Action>;
-    using StackInfo1 = internal::StackInfo1;
     using ExpansionInfo1 = internal::ExpansionInfo1<Action>;
-    using Stack1 = internal::Stack1;
+    using StackInfo = internal::StackInfo<Action>;
+    using StackInfo1 = internal::StackInfo1;
+
+    using StateInfoStore = storage::PerStateStorage<StateInfo>;
+
+    using ExpansionQueue = std::deque<ExpansionInfo>;
+    using ExpansionQueue1 = std::deque<ExpansionInfo1>;
+    using Stack = std::vector<StackInfo>;
+    using Stack1 = std::vector<StackInfo1>;
+
+public:
+    using QuotientSystem = quotient_system::QuotientSystem<Action>;
 
     EndComponentDecomposition(
         const StateEvaluator<State>* pruning_function,
@@ -698,12 +692,12 @@ private:
                         if (info.expandable_goal) {
                             it->successors.clear();
                             it->aops.clear();
-                            e->recurse = true;
+                            e.recurse = true;
                         }
                     }
                 }
 
-                if (e->recurse) {
+                if (e.recurse) {
                     ++stats_.recursions;
 
                     if constexpr (RootIteration) {
