@@ -117,7 +117,6 @@ public:
         value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        DeadEndIdentificationLevel level,
         StateEvaluator<State>* dead_end_eval,
         DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
@@ -137,7 +136,6 @@ public:
               reward_bound,
               aops_generator,
               transition_generator,
-              level,
               dead_end_eval,
               dead_end_listener,
               policy_chooser,
@@ -150,7 +148,6 @@ public:
         , StopConsistent(stop_consistent)
         , state_infos_(nullptr)
         , sample_(succ_sampler)
-        , expansion_condition_(this, level)
         , state_status_(this->template get_state_status_access<StateInfoT>())
     {
         this->setup_state_info_store(
@@ -201,44 +198,6 @@ protected:
     }
 
 private:
-    struct ExpandInDeadEndCheck {
-
-        explicit ExpandInDeadEndCheck(
-            LRTDP* lrtdp,
-            DeadEndIdentificationLevel level)
-            : lrtdp_(lrtdp)
-            , level_(level)
-        {
-        }
-
-        bool operator()(const StateID& state_id) const
-        {
-            auto& lrtdp_info = lrtdp_->state_infos_->operator[](state_id);
-            // std::cout << "visit " << state_id << " ==> ";
-            if (lrtdp_info.is_solved()) {
-                // std::cout << "solved!!!" << std::endl;
-                return true;
-            }
-            switch (level_) {
-            case (DeadEndIdentificationLevel::Policy):
-                // std::cout << lrtdp_info.is_marked_open() << std::endl;
-                return !lrtdp_info.is_marked_open();
-            case (DeadEndIdentificationLevel::Visited): {
-                // std::cout << lrtdp_->state_status_(state_id, lrtdp_info)
-                //             .is_value_initialized() << std::endl;
-                return !lrtdp_->state_status_(state_id, lrtdp_info)
-                            .is_value_initialized();
-            }
-            default: break;
-            }
-            // std::cout << "expand" << std::endl;
-            return false;
-        }
-
-        LRTDP* lrtdp_;
-        const DeadEndIdentificationLevel level_;
-    };
-
     void trial(const StateID& initial_state)
     {
         assert(
@@ -427,19 +386,6 @@ private:
         if (epsilon_consistent && all_dead && any_dead &&
             this->is_dead_end_learning_enabled()) {
             this->last_check_and_solve_was_dead_ = true;
-            for (auto it = this->visited_.begin(); it != this->visited_.end();
-                 ++it) {
-                CAS_DEBUG_PRINT(std::cout << "(C&S) checking dead-end " << *it
-                                          << "..." << std::endl;)
-                std::pair<bool, bool> updated =
-                    this->safe_async_update(*it, this->expansion_condition_);
-                epsilon_consistent = epsilon_consistent && !updated.second;
-                if (updated.first) {
-                    this->last_check_and_solve_was_dead_ = false;
-                    break;
-                }
-                assert(this->state_status_(*it).is_dead_end());
-            }
         }
 
         if (epsilon_consistent && mark_solved) {
@@ -557,7 +503,6 @@ private:
     const TrialTerminationCondition StopConsistent;
     storage::PerStateStorage<StateInfoT>* state_infos_;
     TransitionSampler<Action>* sample_;
-    const ExpandInDeadEndCheck expansion_condition_;
     typename HeuristicSearchBase::template StateStatusAccessor<StateInfoT>
         state_status_;
 

@@ -133,7 +133,6 @@ public:
         value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        DeadEndIdentificationLevel level,
         StateEvaluator<State>* dead_end_eval,
         DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
@@ -158,7 +157,6 @@ public:
               reward_bound,
               aops_generator,
               transition_generator,
-              level,
               dead_end_eval,
               dead_end_listener,
               policy_chooser,
@@ -178,22 +176,16 @@ public:
         , state_flags_(nullptr)
         , state_status_(this->template get_state_status_access<
                         AdditionalPerStateInformation>())
-        , dead_end_ident_level_(level)
-        , expansion_condition_(
-              this->state_flags_,
-              this->state_status_,
-              &this->state_infos_,
-              level)
         , state_infos_()
         , visited_()
         , expansion_queue_()
         , stack_()
         , statistics_()
     {
-        initialize_persistent_state_storage(std::is_same<
-                                            AdditionalPerStateInformation,
-                                            HeuristicSearchBase::StateInfo>());
-        expansion_condition_.state_flags_ = state_flags_;
+        initialize_persistent_state_storage(
+            std::is_same<
+                AdditionalPerStateInformation,
+                typename HeuristicSearchBase::StateInfo>());
     }
 
     ~HeuristicDepthFirstSearch()
@@ -210,7 +202,6 @@ public:
         delete (this->state_flags_);
         state_flags_ =
             new storage::PerStateStorage<AdditionalPerStateInformation>();
-        expansion_condition_.state_flags_ = state_flags_;
     }
 
     virtual void solve(const State& state) override
@@ -277,50 +268,6 @@ private:
         bool unsolved_successor = false;
         bool value_changed = false;
         bool leaf = true;
-    };
-
-    struct ExpansionCondition {
-        explicit ExpansionCondition(
-            storage::PerStateStorage<AdditionalPerStateInformation>*
-                state_flags,
-            typename HeuristicSearchBase::template StateStatusAccessor<
-                AdditionalPerStateInformation>& state_status,
-            storage::StateHashMap<LocalStateInfo>* state_infos,
-            const DeadEndIdentificationLevel level)
-            : state_flags_(state_flags)
-            , state_status_(state_status)
-            , state_infos_(state_infos)
-            , level_(level)
-        {
-        }
-
-        bool operator()(const StateID& stateid)
-        {
-            auto& dohs_info = state_flags_->operator[](stateid);
-            if (dohs_info.is_solved()) {
-                return true;
-            }
-            switch (level_) {
-            case (DeadEndIdentificationLevel::Policy): {
-                return !state_infos_->contains(stateid);
-            }
-            case (DeadEndIdentificationLevel::Visited): {
-                return !state_status_(stateid, dohs_info)
-                            .is_value_initialized();
-            }
-            case (DeadEndIdentificationLevel::Complete): return false;
-            default: break;
-            }
-            assert(false);
-            return false;
-        }
-
-        storage::PerStateStorage<AdditionalPerStateInformation>* state_flags_;
-        typename HeuristicSearchBase::template StateStatusAccessor<
-            AdditionalPerStateInformation>
-            state_status_;
-        storage::StateHashMap<LocalStateInfo>* state_infos_;
-        const DeadEndIdentificationLevel level_;
     };
 
     void initialize_persistent_state_storage(const std::true_type&)
@@ -547,24 +494,9 @@ private:
                             result.second || last_unsolved_successors;
                     }
 
-                    if (this->is_dead_end_learning_enabled() &&
-                        !last_unsolved_successors && last_dead &&
-                        (scc_size == 1 || !einfo.leaf)) {
-                        // std::cout << "-> checking for dead ends! <-" <<
-                        // std::endl;
-                        std::pair<bool, bool> updated;
-                        // std::cout << state_status_(einfo.stateid).get_value()
-                        // << std::endl;
-                        // assert(this->has_dead_end_value(state));
-                        updated = this->safe_async_update(
-                            einfo.stateid,
-                            expansion_condition_);
-                        last_unsolved_successors = updated.second;
-                        last_dead = !updated.first;
-                        // std::cout << "------> result: " <<
-                        // last_unsolved_successors << "|" << last_dead <<
-                        // std::endl;
-                    } else {
+                    if (!this->is_dead_end_learning_enabled() ||
+                        last_unsolved_successors ||
+                        (scc_size != 1 && einfo.leaf)) {
                         last_dead = false;
                     }
 
@@ -717,8 +649,6 @@ private:
     typename HeuristicSearchBase::template StateStatusAccessor<
         AdditionalPerStateInformation>
         state_status_;
-    const DeadEndIdentificationLevel dead_end_ident_level_;
-    ExpansionCondition expansion_condition_;
 
     storage::StateHashMap<LocalStateInfo> state_infos_;
     std::vector<StateID> visited_;

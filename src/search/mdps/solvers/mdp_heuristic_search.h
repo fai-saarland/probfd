@@ -56,7 +56,6 @@ private:
         dead_end_listener_;
     std::shared_ptr<GlobalStateEvaluator> dead_end_eval_;
 
-    const DeadEndIdentificationLevel dead_end_ident_level_;
     const bool dual_bounds_;
     const bool interval_comparison_;
     const bool stable_policy_;
@@ -80,7 +79,6 @@ public:
             using HeuristicSearchType =
                 HS<GlobalState, const ProbabilisticOperator*, std::true_type>;
             return engine_factory<HeuristicSearchType>(
-                dead_end_ident_level_,
                 dead_end_eval_.get(),
                 dead_end_listener_.get(),
                 policy_tiebreaker_.get(),
@@ -95,7 +93,6 @@ public:
             using HeuristicSearchType =
                 HS<GlobalState, const ProbabilisticOperator*, std::false_type>;
             return engine_factory<HeuristicSearchType>(
-                dead_end_ident_level_,
                 dead_end_eval_.get(),
                 dead_end_listener_.get(),
                 policy_tiebreaker_.get(),
@@ -226,7 +223,6 @@ public:
                 std::true_type>(
                 args...,
                 this->quotient_.get(),
-                dead_end_ident_level_,
                 dead_end_eval_.get(),
                 q_dead_end_listener_.get(),
                 q_policy_tiebreaker_.get(),
@@ -250,7 +246,6 @@ public:
                 std::false_type>(
                 args...,
                 this->quotient_.get(),
-                dead_end_ident_level_,
                 dead_end_eval_.get(),
                 q_dead_end_listener_.get(),
                 q_policy_tiebreaker_.get(),
@@ -327,7 +322,6 @@ private:
             this->get_reward_bound(),
             q_aops_gen_.get(),
             q_transition_gen_.get(),
-            dead_end_ident_level_,
             dead_end_eval_.get(),
             q_dead_end_listener_.get(),
             q_policy_tiebreaker_.get(),

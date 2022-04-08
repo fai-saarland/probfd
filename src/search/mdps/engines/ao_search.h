@@ -109,7 +109,6 @@ public:
         value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        DeadEndIdentificationLevel level,
         StateEvaluator<StateT>* dead_end_eval,
         DeadEndListener<StateT, ActionT>* dead_end_listener,
         PolicyPicker<ActionT>* policy_chooser,
@@ -127,7 +126,6 @@ public:
               reward_bound,
               aops_generator,
               transition_generator,
-              level,
               dead_end_eval,
               dead_end_listener,
               policy_chooser,
@@ -138,9 +136,6 @@ public:
               interval_comparison,
               stable_policy)
         , state_infos_(this->template get_state_status_access<StateInfo>())
-        , dead_end_ident_level_(level)
-        , mark_dead_ends_(this)
-        , expansion_condition_(state_infos_, level)
     {
     }
 
@@ -185,7 +180,7 @@ protected:
                 solved,
                 dead);
             if (solved) {
-                mark_solved_push_parents(IsGreedy(), elem.second, info, dead);
+                mark_solved_push_parents(elem.second, info, dead);
             } else if (value_changed) {
                 push_parents_to_queue(info);
             }
@@ -261,7 +256,16 @@ protected:
         StateInfo& info,
         const bool dead)
     {
-        mark_solved_push_parents(IsGreedy(), state, info, dead);
+        assert(!info.is_terminal());
+
+        if (dead && this->is_dead_end_learning_enabled()) {
+            assert(!info.is_solved() && !info.is_goal_state());
+            info.set_dead_end();
+            notify_dead_end(state);
+        }
+
+        info.set_solved();
+        push_parents_to_queue(info);
     }
 
 private:
@@ -272,79 +276,6 @@ private:
         {
             return s.first > t.first;
         }
-    };
-
-    class MarkDeadEnds;
-    friend class MarkDeadEnds;
-    class MarkDeadEnds {
-    public:
-        explicit MarkDeadEnds(AOBase* ao)
-            : ao_(ao)
-            , state_infos_(ao->state_infos_)
-        {
-        }
-
-        bool operator()(const StateID& s)
-        {
-            auto& info = state_infos_(s);
-            assert(!info.is_solved());
-            assert(!info.is_goal_state());
-            assert(info.is_recognized_dead_end());
-            info.set_solved();
-            ao_->push_parents_to_queue(info);
-            ao_->notify_dead_end(s);
-            return true;
-        }
-
-#if !defined(NDEBUG)
-        template <typename T>
-        bool operator()(T begin, T end)
-        {
-            this->operator()(*begin);
-            assert(++begin == end);
-            return true;
-        }
-#else
-        template <typename T>
-        bool operator()(T begin, T)
-        {
-            this->operator()(*begin);
-            return true;
-        }
-#endif
-
-    private:
-        AOBase* ao_;
-        StateStatusAccessor state_infos_;
-    };
-
-    struct ExpansionCondition {
-        explicit ExpansionCondition(
-            StateStatusAccessor& state_infos,
-            DeadEndIdentificationLevel level)
-            : state_infos_(state_infos)
-            , level_(level)
-        {
-        }
-
-        bool operator()(const StateID& state)
-        {
-            const auto& state_info = state_infos_(state);
-            if (state_info.is_solved()) {
-                return true;
-            }
-            switch (level_) {
-            case (DeadEndIdentificationLevel::Policy): assert(false); break;
-            case (DeadEndIdentificationLevel::Visited):
-                return !state_info.is_value_initialized();
-            case (DeadEndIdentificationLevel::Complete): return false;
-            default: break;
-            }
-            return false;
-        }
-
-        StateStatusAccessor state_infos_;
-        const DeadEndIdentificationLevel level_;
     };
 
     using IsGreedy = std::integral_constant<bool, Greedy>;
@@ -439,48 +370,8 @@ private:
         return vc;
     }
 
-    void mark_solved_push_parents(
-        const std::true_type&,
-        const StateID& state,
-        StateInfo& info,
-        const bool dead)
-    {
-        assert(!info.is_terminal());
-        if (dead && this->is_dead_end_learning_enabled()) {
-            std::pair<bool, bool> exploration_result = this->safe_async_update(
-                state,
-                mark_dead_ends_,
-                expansion_condition_);
-            assert(exploration_result.first || info.is_solved());
-            if (exploration_result.first) {
-                info.set_solved();
-                push_parents_to_queue(info);
-            }
-        } else {
-            info.set_solved();
-            push_parents_to_queue(std::true_type(), info);
-        }
-    }
-
-    void mark_solved_push_parents(
-        const std::false_type&,
-        const StateID& state,
-        StateInfo& info,
-        const bool dead)
-    {
-        assert(!info.is_terminal());
-        if (dead && this->is_dead_end_learning_enabled()) {
-            info.set_recognized_dead_end();
-            mark_dead_ends_(state);
-        } else {
-            info.set_solved();
-            push_parents_to_queue(std::false_type(), info);
-        }
-    }
-
 protected:
     StateStatusAccessor state_infos_;
-    const DeadEndIdentificationLevel dead_end_ident_level_;
 
     std::vector<Action> aops_;
     Distribution<StateID> selected_transition_;
@@ -489,8 +380,6 @@ protected:
 
 private:
     TopoQueue queue_;
-    MarkDeadEnds mark_dead_ends_;
-    ExpansionCondition expansion_condition_;
 };
 
 } // namespace ao_search

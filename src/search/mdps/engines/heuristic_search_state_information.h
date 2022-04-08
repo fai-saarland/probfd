@@ -29,7 +29,6 @@ struct StatesPolicy<std::true_type> {
 struct StateFlags {
     static constexpr const uint8_t INITIALIZED = 1;
     static constexpr const uint8_t DEAD = 2;
-    static constexpr const uint8_t RECOGNIZED_DEAD = 3;
     static constexpr const uint8_t GOAL = 4;
     static constexpr const uint8_t FRINGE = 5;
     static constexpr const uint8_t MASK = 7;
@@ -39,11 +38,7 @@ struct StateFlags {
     inline bool is_dead_end() const
     {
         const uint8_t masked = info & MASK;
-        return masked == DEAD || masked == RECOGNIZED_DEAD;
-    }
-    inline bool is_recognized_dead_end() const
-    {
-        return (info & MASK) == RECOGNIZED_DEAD;
+        return masked == DEAD;
     }
     inline bool is_goal_state() const { return (MASK & info) == GOAL; }
     inline bool is_terminal() const { return is_dead_end() || is_goal_state(); }
@@ -63,14 +58,8 @@ struct StateFlags {
 
     inline void set_dead_end()
     {
-        assert(!is_goal_state() && !is_recognized_dead_end());
+        assert(!is_goal_state() && !is_dead_end());
         info = (info & ~MASK) | DEAD;
-    }
-
-    inline void set_recognized_dead_end()
-    {
-        assert(!is_goal_state());
-        info = (info & ~MASK) | RECOGNIZED_DEAD;
     }
 
     inline void removed_from_fringe()

@@ -210,7 +210,6 @@ public:
         value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        DeadEndIdentificationLevel,
         StateEvaluator<State>* dead_end_eval,
         DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
@@ -404,7 +403,7 @@ public:
     void set_dead_end(const StateID& state_id)
     {
         StateInfo& info = state_infos_[state_id];
-        info.set_recognized_dead_end();
+        info.set_dead_end();
         info.value = dead_end_value_;
     }
 
@@ -419,7 +418,7 @@ public:
     {
         StateInfo& info = state_infos_[state_id];
         if (!info.is_goal_state()) {
-            info.set_recognized_dead_end();
+            info.set_dead_end();
             info.set_value(dead_end_value_);
             return true;
         }
@@ -431,7 +430,7 @@ public:
      */
     void set_dead_end(StateInfo& info)
     {
-        info.set_recognized_dead_end();
+        info.set_dead_end();
         info.value = dead_end_value_;
     }
 
@@ -452,8 +451,7 @@ public:
      */
     void notify_dead_end(const StateID& state_id, StateInfo& state_info)
     {
-        if (dead_end_listener_ != nullptr &&
-            !state_info.is_recognized_dead_end()) {
+        if (dead_end_listener_ != nullptr && !state_info.is_dead_end()) {
             set_dead_end(state_info);
             dead_end_listener_->operator()(state_id);
         }
@@ -592,259 +590,6 @@ public:
             policy_action,
             policy_transition,
             policy_changed);
-    }
-
-    /**
-     * Calls safe_async_update with the internal dead-end listener.
-     */
-    template <typename AlternativeCondition>
-    std::pair<bool, bool>
-    safe_async_update(const StateID& s, AlternativeCondition& alt_cond)
-    {
-        return this->safe_async_update(s, *dead_end_listener_, alt_cond);
-    }
-
-    /**
-     * @brief Updates a potential dead-end state by exhaustively checking if it
-     * can reach a goal state or a state satisfiying the supplied alternative
-     * condition. All states for which this is not the case encountered during
-     * the search are reported to the input dead-end listener and are updated
-     * as dead-ends.
-     *
-     * If a path to such a state is found and a greedy policy is stored, also
-     * updates the policy action for each state along this path with the
-     * corresponding action.
-     *
-     * The first return value is true if the state was incorrectly assumed to
-     * be a dead-end, false otherwise. The second return value is true if the
-     * value or policy action of a reachable state changed.
-     */
-    template <typename DeadEndListener, typename AlternativeCondition>
-    std::pair<bool, bool> safe_async_update(
-        const StateID& s,
-        DeadEndListener& listener,
-        AlternativeCondition& alt_cond)
-    {
-        // std::cout << "safe_async_update(" << state_id_map_->operator[](s) <<
-        // ")"
-        //           << std::endl;
-
-        struct ExpansionData {
-            ExpansionData(const StateID& s, unsigned pidx)
-                : state(s)
-                , pidx(pidx)
-            {
-            }
-
-            void update_lowlink(int lk)
-            {
-                if (lk < lowlink) {
-                    lowlink = lk;
-                    scc_root = false;
-                }
-            }
-
-            StateID state; // effectively const
-            unsigned pidx; // effectively const, queue index of parent state
-
-            std::vector<Action> aops;
-
-            bool scc_root = true;
-            int lowlink = -1;
-        };
-
-        struct PersistentStateData {
-            bool onstack = false;
-            int dfs_index = -1;
-        };
-
-        statistics_.safe_updates_non_dead_end_value += !has_dead_end_value(s);
-        statistics_.dead_end_safe_updates++;
-
-        int dfs_index = 0;
-        std::pair<bool, bool> result(false, false);
-
-        storage::StateHashMap<PersistentStateData> indices;
-        std::vector<ExpansionData> expansion_queue;
-        std::vector<StateID> stack;
-
-        expansion_queue.emplace_back(s, 0);
-
-        while (!expansion_queue.empty()) {
-            assert(!result.first);
-
-            auto& expansion_data = expansion_queue.back();
-            const StateID state_id = expansion_data.state;
-            auto& state_info = state_infos_[state_id];
-
-            // std::cout << state_id << " -> I"
-            //           << state_info.is_value_initialized() << "|G"
-            //           << state_info.is_goal_state() << "|D"
-            //           << state_info.is_dead_end() << "|R"
-            //           << state_info.is_recognized_dead_end() << "|T"
-            //           << state_info.is_terminal() << std::endl;
-
-            if (state_info.is_recognized_dead_end()) {
-                expansion_queue.pop_back();
-            } else if (state_info.is_dead_end()) {
-                statistics_.dead_end_safe_updates_states++;
-                statistics_.dead_end_safe_updates_dead_ends++;
-
-                state_info.value = dead_end_value_;
-                state_info.set_recognized_dead_end();
-                listener(expansion_data.state);
-
-                expansion_queue.pop_back();
-            } else if (state_info.is_goal_state()) {
-                result.first = true;
-
-                expansion_queue.erase(
-                    expansion_queue.begin() + expansion_data.pidx,
-                    expansion_queue.end());
-
-                break;
-            } else {
-                // std::cout
-                //     << "Top() = " << expansion_data.state << " ("
-                //     <<
-                //     (state_infos_->operator[](expansion_data.state).get_value())
-                //     << ")" << std::endl;
-
-                if (expansion_data.aops.empty()) {
-                    statistics_.dead_end_safe_updates_states++;
-
-                    if (alt_cond(expansion_data.state)) {
-                        result.first = true;
-
-                        expansion_queue.erase(
-                            expansion_queue.begin() + expansion_data.pidx,
-                            expansion_queue.end());
-
-                        break;
-                    } else {
-                        if (!state_info.is_value_initialized()) {
-                            initialize(expansion_data.state, state_info);
-                            continue;
-                        }
-
-                        // std::cout << ">" << state_id << " -> I"
-                        //           << state_info.is_value_initialized() <<
-                        //           "|G"
-                        //           << state_info.is_goal_state() << "|D"
-                        //           << state_info.is_dead_end() << "|R"
-                        //           << state_info.is_recognized_dead_end() <<
-                        //           "|T"
-                        //           << state_info.is_terminal() << std::endl;
-
-                        assert(state_info.is_value_initialized());
-                        assert(!state_info.is_terminal());
-
-                        PersistentStateData& pd = indices[state_id];
-                        assert(pd.dfs_index == -1);
-                        pd.dfs_index = expansion_data.lowlink = dfs_index++;
-                        pd.onstack = true;
-
-                        this->generate_applicable_ops(
-                            expansion_data.state,
-                            expansion_data.aops);
-
-                        if (expansion_data.aops.empty()) {
-                            state_info.set_dead_end();
-                            result.second =
-                                this->update(state_info, dead_end_value_);
-                            continue;
-                        }
-
-                        stack.push_back(expansion_data.state);
-                    }
-                } else {
-                    expansion_data.aops.pop_back();
-
-                    if (expansion_data.aops.empty()) {
-                        ExpansionData copy = std::move(expansion_data);
-                        expansion_queue.pop_back();
-
-                        if (copy.scc_root) {
-                            auto it = stack.rbegin();
-                            StateID stack_state_id;
-                            do {
-                                stack_state_id = *it;
-                                auto& info = state_infos_[stack_state_id];
-                                info.set_recognized_dead_end();
-                                result.second =
-                                    this->update(info, dead_end_value_) ||
-                                    result.second;
-                                indices[stack_state_id].onstack = false;
-
-                                statistics_.dead_end_safe_updates_dead_ends++;
-
-                                // std::cout << " ---> dead: " << *it <<
-                                // std::endl;
-
-                                ++it;
-                            } while (stack_state_id != state_id);
-
-                            listener(it.base(), stack.end());
-                            stack.erase(it.base(), stack.end());
-                        } else {
-                            assert(!expansion_queue.empty());
-                            expansion_queue.back().update_lowlink(copy.lowlink);
-                        }
-
-                        continue;
-                    }
-                }
-
-                assert(!expansion_data.aops.empty());
-
-                Distribution<StateID> transition;
-                this->generate_successors(
-                    expansion_data.state,
-                    expansion_data.aops.back(),
-                    transition);
-
-                const int pidx = expansion_queue.size();
-
-                for (StateID succ_id : transition.elements()) {
-                    const auto& d = indices[succ_id];
-
-                    if (d.onstack) {
-                        expansion_data.update_lowlink(d.dfs_index);
-                    } else if (d.dfs_index == -1) {
-                        expansion_queue.emplace_back(succ_id, pidx);
-                    }
-                }
-            }
-        }
-
-        if constexpr (StorePolicy::value) {
-            if (result.first) {
-                while (!expansion_queue.empty()) {
-                    auto& expansion_data = expansion_queue.back();
-                    const StateID state_id = expansion_data.state;
-                    StateInfo& state_info = state_infos_[state_id];
-                    const ActionID pid = this->get_action_id(
-                        state_id,
-                        expansion_data.aops.back());
-                    result.second =
-                        result.second || (state_info.get_policy() != pid);
-                    state_info.set_policy(pid);
-
-                    expansion_queue.erase(
-                        expansion_queue.begin() + expansion_data.pidx,
-                        expansion_queue.end());
-                }
-            }
-        }
-
-        if (result.first) {
-            ++statistics_.wrongly_classified_dead_ends;
-        }
-
-        // std::cout << "==> result: " << result.first << ", " << result.second
-        //           << std::endl;
-
-        return result;
     }
 
 protected:
@@ -1021,7 +766,7 @@ private:
                 estimate = value_initializer_->operator()(state);
                 if (estimate) {
                     statistics_.pruned_states++;
-                    state_info.set_recognized_dead_end();
+                    state_info.set_dead_end();
                     state_info.value = dead_end_value_;
                     if (on_new_state_) on_new_state_->touch_dead_end(state);
                 } else {
