@@ -174,8 +174,6 @@ public:
         , PerformValueIteration(PerformValueIteration)
         , ExpandTipStates(ExpandTipStates)
         , state_flags_(nullptr)
-        , state_status_(this->template get_state_status_access<
-                        AdditionalPerStateInformation>())
         , state_infos_()
         , visited_()
         , expansion_queue_()
@@ -554,7 +552,7 @@ private:
                 parent_value_changed =
                     parent_value_changed || einfo.value_changed ||
                     (this->interval_comparison_ &&
-                     !state_status_(stateid, sinfo).value.bounds_equal());
+                     !get_state_info(stateid, sinfo).value.bounds_equal());
             } else {
                 parent_value_changed =
                     parent_value_changed || einfo.value_changed;
@@ -567,7 +565,7 @@ private:
                 expansion_queue_.pop_back();
                 sinfo.set_solved();
                 uint8_t closed = LocalStateInfo::CLOSED;
-                if (this->conditional_notify_dead_end(stateid)) {
+                if (this->notify_dead_end_ifnot_goal(stateid)) {
                     closed = LocalStateInfo::CLOSED_DEAD;
                 }
                 return updated ? LocalStateInfo::UNSOLVED : closed;
@@ -582,7 +580,7 @@ private:
             einfo.set_successors(transition_);
             transition_.clear();
         } else {
-            const auto& i = state_status_(stateid, sinfo);
+            const auto& i = get_state_info(stateid, sinfo);
             if (i.is_dead_end()) {
                 sinfo.set_solved();
                 return LocalStateInfo::CLOSED_DEAD;
@@ -608,7 +606,7 @@ private:
                 statistics_.backtracking_updates++;
                 DMSG(StateID id = *it;
                      std::cout << "updating " << id << " "
-                               << (state_status_(id).get_value()) << " ... ";)
+                               << (get_state_info(id).get_value()) << " ... ";)
                 bool policy_changed = false;
                 value_changed = this->async_update(
                                     *it,
@@ -620,11 +618,11 @@ private:
                 if constexpr (DualBounds::value) {
                     all_converged = all_converged &&
                                     (!this->interval_comparison_ ||
-                                     state_status_(*it).value.bounds_equal());
+                                     get_state_info(*it).value.bounds_equal());
                 }
 
                 policy_graph_changed = policy_graph_changed || policy_changed;
-                DMSG(std::cout << (state_status_(id).get_value()) << " ["
+                DMSG(std::cout << (get_state_info(id).get_value()) << " ["
                                << valupd << "|" << policy_changed << std::endl;)
             }
             updated_all.first =
@@ -646,9 +644,6 @@ private:
     const bool ExpandTipStates;
 
     storage::PerStateStorage<AdditionalPerStateInformation>* state_flags_;
-    typename HeuristicSearchBase::template StateStatusAccessor<
-        AdditionalPerStateInformation>
-        state_status_;
 
     storage::StateHashMap<LocalStateInfo> state_infos_;
     std::vector<StateID> visited_;

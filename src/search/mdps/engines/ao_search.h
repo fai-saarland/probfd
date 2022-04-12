@@ -135,7 +135,6 @@ public:
               report,
               interval_comparison,
               stable_policy)
-        , state_infos_(this->template get_state_status_access<StateInfo>())
     {
     }
 
@@ -147,8 +146,6 @@ public:
 
 protected:
     using StateInfo = typename HeuristicSearchBase::StateInfo;
-    using StateStatusAccessor =
-        typename HeuristicSearchBase::template StateStatusAccessor<StateInfo>;
 
     virtual void setup_custom_reports(const State&) override
     {
@@ -161,7 +158,7 @@ protected:
             auto elem = queue_.top();
             queue_.pop();
 
-            auto& info = state_infos_(elem.second);
+            auto& info = get_state_info(elem.second);
             assert(!info.is_goal_state());
             assert(!info.is_terminal() || info.is_solved());
             if (info.is_solved()) {
@@ -189,18 +186,18 @@ protected:
 
     void backpropagate_update_order(const StateID& tip)
     {
-        queue_.emplace(state_infos_(tip).update_order, tip);
+        queue_.emplace(get_state_info(tip).update_order, tip);
         while (!queue_.empty()) {
             auto elem = queue_.top();
             queue_.pop();
-            auto& info = state_infos_(elem.second);
+            auto& info = get_state_info(elem.second);
             if (info.update_order > elem.first) {
                 continue;
             }
             auto& parents = info.get_parents();
             auto it = parents.begin();
             while (it != parents.end()) {
-                auto& pinfo = state_infos_(*it);
+                auto& pinfo = get_state_info(*it);
                 if (pinfo.is_solved()) {
                     it = parents.erase(it);
                     continue;
@@ -289,7 +286,7 @@ private:
     {
         auto& parents = info.get_parents();
         for (auto it = parents.begin(); it != parents.end(); ++it) {
-            auto& pinfo = state_infos_(*it);
+            auto& pinfo = get_state_info(*it);
             assert(!pinfo.is_dead_end() || pinfo.is_solved());
             if (pinfo.is_unflagged()) {
                 pinfo.mark();
@@ -306,7 +303,7 @@ private:
     {
         auto& parents = info.get_parents();
         for (auto it = parents.begin(); it != parents.end(); ++it) {
-            auto& pinfo = state_infos_(*it);
+            auto& pinfo = get_state_info(*it);
             assert(!pinfo.is_dead_end() || pinfo.is_solved());
             if (info.is_solved()) {
                 assert(pinfo.unsolved > 0 || pinfo.is_solved());
@@ -343,7 +340,7 @@ private:
              it != selected_transition_.end();
              ++it) {
             // std::cout << " " << this->state_id_map_->operator[](it->first);
-            const auto& succ_info = state_infos_(it->first);
+            const auto& succ_info = get_state_info(it->first);
             solved = solved && succ_info.is_solved();
             dead = dead && succ_info.is_dead_end();
         }
@@ -371,8 +368,6 @@ private:
     }
 
 protected:
-    StateStatusAccessor state_infos_;
-
     std::vector<Action> aops_;
     Distribution<StateID> selected_transition_;
 

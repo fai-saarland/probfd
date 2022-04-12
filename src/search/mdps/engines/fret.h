@@ -337,7 +337,7 @@ private:
                             }
                             statistics_.traps++;
                         } else {
-                            base_engine_->conditional_notify_dead_end(
+                            base_engine_->notify_dead_end_ifnot_goal(
                                 einfo.state_id);
                         }
                     }

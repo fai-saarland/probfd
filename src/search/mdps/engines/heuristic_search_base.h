@@ -157,9 +157,6 @@ template <typename StateT, typename ActionT, typename StateInfoT>
 class HeuristicSearchBase
     : public MDPEngine<StateT, ActionT>
     , public PerStateInformationLookup {
-    template <typename T>
-    friend class StateStatusAccessor;
-
 public:
     using State = StateT;
     using Action = ActionT;
@@ -168,39 +165,6 @@ public:
     using DualBounds = typename StateInfo::DualBounds;
 
     using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
-
-    /**
-     * @brief The state information accessor interface.
-     *
-     * @tparam T - ?
-     */
-    template <typename T>
-    class StateStatusAccessor {
-    public:
-        StateInfo& operator()(const StateID& state_id)
-        {
-            return infos_->state_infos_[state_id];
-        }
-
-        StateInfo& operator()(const StateID id, T& info)
-        {
-            if constexpr (std::is_same_v<T, StateInfo>) {
-                return info;
-            } else {
-                return infos_->state_infos_[id];
-            }
-        }
-
-    private:
-        friend class HeuristicSearchBase;
-
-        StateStatusAccessor(HeuristicSearchBase* infos)
-            : infos_(infos)
-        {
-        }
-
-        HeuristicSearchBase* infos_;
-    };
 
     explicit HeuristicSearchBase(
         StateIDMap<State>* state_id_map,
@@ -289,32 +253,6 @@ public:
         return &state_infos_[state_id];
     }
 
-    template <typename T = StateInfo>
-    StateStatusAccessor<T> get_state_status_access()
-    {
-        return StateStatusAccessor<T>(this);
-    }
-
-    /**
-     * @brief Create a per-state storage of the specified state info element
-     * type.
-     *
-     * @tparam T - The element type
-     * @param default_value - A default value for the state info elements
-     * if queried but not present. Defaults to a default constructed state
-     * information element.
-     * @return storage::PerStateStorage<T>* - The newly allocated per-state
-     * storage object.
-     */
-    template <typename T>
-    storage::PerStateStorage<T>*
-    create_per_state_store(const T& default_value = T())
-    {
-        return new storage::PerStateStorage<T>(
-            default_value,
-            this->state_id_map_);
-    }
-
     /**
      * @brief Checks if the state \p state_id is terminal.
      */
@@ -326,19 +264,9 @@ public:
     /**
      * @brief Gets the current value of the state represented by \p state_id
      */
-    value_type::value_t get_value(const StateID& state_id)
+    value_type::value_t get_value(const StateID& state_id) const
     {
         return state_infos_[state_id].get_value();
-    }
-
-    /**
-     * @brief Checks if the state represented by \p state_id has the state
-     * value of a dead-end.
-     */
-    bool has_dead_end_value(const StateID& state)
-    {
-        const StateInfo& info = state_infos_[state];
-        return info.value == dead_end_value_;
     }
 
     /**
@@ -347,8 +275,7 @@ public:
      */
     bool is_marked_dead_end(const StateID& state)
     {
-        const StateInfo& info = state_infos_[state];
-        return info.is_dead_end();
+        return state_infos_[state].is_dead_end();
     }
 
     /**
@@ -402,7 +329,14 @@ public:
      */
     void set_dead_end(const StateID& state_id)
     {
-        StateInfo& info = state_infos_[state_id];
+        set_dead_end(state_infos_[state_id]);
+    }
+
+    /**
+     * @brief Stores into \p info that the corresponding state is a dead-end
+     */
+    void set_dead_end(StateInfo& info)
+    {
         info.set_dead_end();
         info.value = dead_end_value_;
     }
@@ -414,24 +348,15 @@ public:
      * @return true - If the state is a goal state
      * @return false - Otherwise
      */
-    bool conditional_set_dead_end(const StateID& state_id)
+    bool set_dead_end_ifnot_goal(const StateID& state_id)
     {
         StateInfo& info = state_infos_[state_id];
         if (!info.is_goal_state()) {
-            info.set_dead_end();
-            info.set_value(dead_end_value_);
+            set_dead_end(info);
             return true;
         }
-        return false;
-    }
 
-    /**
-     * @brief Stores into \p info that the corresponding state is a dead-end
-     */
-    void set_dead_end(StateInfo& info)
-    {
-        info.set_dead_end();
-        info.value = dead_end_value_;
+        return false;
     }
 
     /**
@@ -458,12 +383,12 @@ public:
     }
 
     /**
-     * @brief Calls conditional_notify_dead_end(const StateID&, StateInfo&) for
+     * @brief Calls notify_dead_end_ifnot_goal(const StateID&, StateInfo&) for
      * the internal state info object of \p state_id.
      */
-    bool conditional_notify_dead_end(const StateID& state_id)
+    bool notify_dead_end_ifnot_goal(const StateID& state_id)
     {
-        return conditional_notify_dead_end(state_id, state_infos_[state_id]);
+        return notify_dead_end_ifnot_goal(state_id, state_infos_[state_id]);
     }
 
     /**
@@ -473,7 +398,7 @@ public:
      * Returns true if the state is not a goal state.
      */
     bool
-    conditional_notify_dead_end(const StateID& state_id, StateInfo& state_info)
+    notify_dead_end_ifnot_goal(const StateID& state_id, StateInfo& state_info)
     {
         if (state_info.is_goal_state()) {
             return false;
@@ -485,7 +410,7 @@ public:
     }
 
     /**
-     * @brief Checks whether the attached dead-end evluator recognizes the
+     * @brief Checks whether the attached dead-end evaluator recognizes the
      * state as a dead-end. If yes, the state is marked as a dead-end.
      */
     bool check_dead_end(const StateID& state_id)
@@ -605,18 +530,6 @@ protected:
         }
     }
 
-#if 0
-    value_type::value_t create_result(const StateID& id)
-    {
-        const StateInfo& info = state_infos_[id];
-        if constexpr (DualBounds::value) {
-            statistics_.print_error = true;
-            statistics_.error = info.error_bound();
-        }
-        return info.get_value();
-    }
-#endif
-
     /**
      * @brief Initializes the progress report with the given initial state.
      */
@@ -657,6 +570,72 @@ protected:
     storage::PerStateStorage<StateInfo>& get_state_info_store()
     {
         return state_infos_;
+    }
+
+    /**
+     * @brief Get the state info storage.
+     */
+    const storage::PerStateStorage<StateInfo>& get_state_info_store() const
+    {
+        return state_infos_;
+    }
+
+    /**
+     * @brief Get the state info object of a state.
+     */
+    StateInfo& get_state_info(const StateID& id) { return state_infos_[id]; }
+
+    /**
+     * @brief Get the state info object of a state.
+     */
+    StateInfo& get_state_info(const StateID& id) const
+    {
+        return state_infos_[id];
+    }
+
+    /**
+     * @brief Get the state info object of a state, if needed.
+     *
+     * This method is used as a selection mechanism to obtain the correct
+     * state information object for a state. Algorithms like LRTDP may or
+     * may not store their algorithm specific state information separately
+     * from the base state information stored in this class. This method
+     * checks if the provided state info object is the required base state
+     * information object by checking for type equality and returns it if that
+     * is the case. Otherwise, the base state information object for this state
+     * is retrieved and returned.
+     */
+    template <typename AlgStateInfo>
+    StateInfo& get_state_info(const StateID id, AlgStateInfo& info)
+    {
+        if constexpr (std::is_same_v<AlgStateInfo, StateInfo>) {
+            return info;
+        } else {
+            return get_state_info(id);
+        }
+    }
+
+    /**
+     * @brief Get the state info object of a state, if needed.
+     *
+     * This method is used as a selection mechanism to obtain the correct
+     * state information object for a state. Algorithms like LRTDP may or
+     * may not store their algorithm specific state information separately
+     * from the base state information stored in this class. This method
+     * checks if the provided state info object is the required base state
+     * information object by checking for type equality and returns it if that
+     * is the case. Otherwise, the base state information object for this state
+     * is retrieved and returned.
+     */
+    template <typename AlgStateInfo>
+    const StateInfo&
+    get_state_info(const StateID id, const AlgStateInfo& info) const
+    {
+        if constexpr (std::is_same_v<AlgStateInfo, StateInfo>) {
+            return info;
+        } else {
+            return get_state_info(id);
+        }
     }
 
     template <typename Info>

@@ -148,7 +148,6 @@ public:
         , StopConsistent(stop_consistent)
         , state_infos_(nullptr)
         , sample_(succ_sampler)
-        , state_status_(this->template get_state_status_access<StateInfoT>())
     {
         this->setup_state_info_store(
             typename std::is_same<
@@ -220,14 +219,15 @@ private:
                 nullptr);
             if (this->selected_transition_.empty()) {
                 // terminal
-                assert(this->state_status_(state_id, state_info).is_terminal());
+                assert(
+                    this->get_state_info(state_id, state_info).is_terminal());
                 this->check_goal_or_mark_dead_end(state_id, state_info);
                 state_info.set_solved();
                 this->current_trial_.pop_back();
                 break;
             }
             // state_info.mark_trial();
-            assert(!this->state_status_(state_id, state_info).is_terminal());
+            assert(!this->get_state_info(state_id, state_info).is_terminal());
             if ((StopConsistent == TrialTerminationCondition::Consistent &&
                  !value_changed) ||
                 (StopConsistent == TrialTerminationCondition::Inconsistent &&
@@ -297,25 +297,25 @@ private:
                         << "(C&S) queue.top() = " << elem.second << " ~> "
                         << info.is_marked_open() << "|" << (info.is_solved())
                         << "|"
-                        << (this->state_status_(elem.second).is_dead_end())
+                        << (this->get_state_info(elem.second).is_dead_end())
                         << " value="
-                        << (this->state_status_(elem.second).get_value())
+                        << (this->get_state_info(elem.second).get_value())
                         << std::endl;)
                 if (info.is_marked_open()) {
                     this->policy_queue_.pop_back();
                 } else if (info.is_solved()) {
                     const auto& state_info =
-                        this->state_status_(state_id, info);
+                        this->get_state_info(state_id, info);
                     any_dead = any_dead || state_info.is_dead_end();
                     all_dead = all_dead && state_info.is_dead_end();
                     // if (this->dead_end_identification_level_
                     //     != DeadEndIdentificationLevel::Off) {
                     //     assert(
-                    //         !this->state_status_(elem.second).is_dead_end()
-                    //         || this->state_status_(elem.second)
+                    //         !this->get_state_info(elem.second).is_dead_end()
+                    //         || this->get_state_info(elem.second)
                     //                .is_recognized_dead_end());
                     //     all_dead = all_dead
-                    //         && this->state_status_(state_id, info)
+                    //         && this->get_state_info(state_id, info)
                     //                .is_dead_end();
                     // }
                     this->policy_queue_.pop_back();
@@ -333,12 +333,12 @@ private:
                         CAS_DEBUG_PRINT(
                             std::cout
                                 << "     => value has changed: "
-                                << this->state_status_(elem.second).get_value()
+                                << this->get_state_info(elem.second).get_value()
                                 << std::endl;)
                     } else {
                         if (this->selected_transition_.empty()) {
-                            assert(
-                                this->state_status_(elem.second).is_terminal());
+                            assert(this->get_state_info(elem.second)
+                                       .is_terminal());
                             if (this->check_goal_or_mark_dead_end(
                                     elem.second,
                                     info)) {
@@ -350,7 +350,7 @@ private:
                             policy_queue_.pop_back();
                             CAS_DEBUG_PRINT(
                                 std::cout << "     => marking as solved (dead= "
-                                          << this->state_status_(elem.second)
+                                          << this->get_state_info(elem.second)
                                                  .is_dead_end()
                                           << ")" << std::endl;)
                         } else {
@@ -368,7 +368,7 @@ private:
                                                 ? ", "
                                                 : "")
                                         << succ->first << " ("
-                                        << this->state_status_(succ->first)
+                                        << this->get_state_info(succ->first)
                                                .value
                                         << ")";)
                                 this->policy_queue_.emplace_back(
@@ -476,7 +476,7 @@ private:
 
     bool check_goal_or_mark_dead_end(const StateID& state_id, StateInfoT& info)
     {
-        auto& state_info = this->state_status_(state_id, info);
+        auto& state_info = this->get_state_info(state_id, info);
         if (state_info.is_goal_state()) {
             return true;
         } else {
@@ -503,8 +503,6 @@ private:
     const TrialTerminationCondition StopConsistent;
     storage::PerStateStorage<StateInfoT>* state_infos_;
     TransitionSampler<Action>* sample_;
-    typename HeuristicSearchBase::template StateStatusAccessor<StateInfoT>
-        state_status_;
 
     std::deque<StateID> current_trial_;
     Distribution<StateID> selected_transition_;

@@ -95,7 +95,7 @@ public:
     {
         this->initialize_report(state);
         const StateID stateid = this->get_state_id(state);
-        auto& iinfo = this->state_infos_(stateid);
+        auto& iinfo = this->get_state_info(stateid);
         iinfo.update_order = 0;
         while (!iinfo.is_solved()) {
             greedy_forward_exploration(stateid);
@@ -110,7 +110,7 @@ private:
     void greedy_forward_exploration(StateID state)
     {
         do {
-            auto& info = this->state_infos_(state);
+            auto& info = this->get_state_info(state);
             // std::cout << " --> " << stateid << "... ";
             assert(!info.is_solved());
             if (info.is_tip_state()) {
@@ -145,7 +145,7 @@ private:
                     const auto& t = this->transitions_[i];
                     for (auto it = t.begin(); it != t.end(); ++it) {
                         const StateID succ_id = it->first;
-                        auto& succ_info = this->state_infos_(succ_id);
+                        auto& succ_info = this->get_state_info(succ_id);
                         if (succ_info.is_unflagged()) {
                             assert(!succ_info.is_solved());
                             succ_info.mark();
@@ -169,7 +169,7 @@ private:
                     const auto& t = this->transitions_[i];
                     for (auto it = t.begin(); it != t.end(); ++it) {
                         const StateID succ_id = it->first;
-                        auto& succ_info = this->state_infos_(succ_id);
+                        auto& succ_info = this->get_state_info(succ_id);
                         succ_info.unmark();
                     }
                 }
@@ -197,7 +197,7 @@ private:
             value_type::value_t normalize_factor = 0;
             auto succ = this->selected_transition_.begin();
             while (succ != this->selected_transition_.end()) {
-                if (this->state_infos_(succ->first).is_solved()) {
+                if (this->get_state_info(succ->first).is_solved()) {
                     // std::cout << "-" <<
                     // this->state_id_map_->operator[](succ->first);
                     normalize_factor += succ->second;
