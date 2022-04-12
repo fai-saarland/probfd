@@ -255,9 +255,8 @@ protected:
     {
         assert(!info.is_terminal());
 
-        if (dead && this->is_dead_end_learning_enabled()) {
+        if (dead) {
             assert(!info.is_solved() && !info.is_goal_state());
-            info.set_dead_end();
             notify_dead_end(state);
         }
 

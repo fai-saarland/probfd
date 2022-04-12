@@ -325,61 +325,34 @@ public:
     }
 
     /**
-     * @brief Marks the state represented by \p state_id as a dead-end.
+     * @brief Calls notify_dead_end(const StateID&, StateInfo&) with the
+     * respective state info object
      */
-    void set_dead_end(const StateID& state_id)
+    bool notify_dead_end(const StateID& state_id)
     {
-        set_dead_end(state_infos_[state_id]);
-    }
-
-    /**
-     * @brief Stores into \p info that the corresponding state is a dead-end
-     */
-    void set_dead_end(StateInfo& info)
-    {
-        info.set_dead_end();
-        info.value = dead_end_value_;
-    }
-
-    /**
-     * @brief Marks the state represented by \p state_id as a dead-end, unless
-     * it is a goal state.
-     *
-     * @return true - If the state is a goal state
-     * @return false - Otherwise
-     */
-    bool set_dead_end_ifnot_goal(const StateID& state_id)
-    {
-        StateInfo& info = state_infos_[state_id];
-        if (!info.is_goal_state()) {
-            set_dead_end(info);
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @brief Notifies the attached dead-end listener of a new dead-end.
-     */
-    void notify_dead_end(const StateID& state_id)
-    {
-        if (dead_end_listener_ != nullptr) {
-            notify_dead_end(state_id, state_infos_[state_id]);
-        }
+        return notify_dead_end(state_id, state_infos_[state_id]);
     }
 
     /**
      * @brief If \p state_id has not been recognized as a dead-end before,
-     * stores this information in \p state_info and notifies the attached
-     * dead-end listener of this new dead-end.
+     * stores this information in \p state_info, notifies the attached
+     * dead-end listener of this new dead-end, and returns true.
+     * Otherwise returns false.
      */
-    void notify_dead_end(const StateID& state_id, StateInfo& state_info)
+    bool notify_dead_end(const StateID& state_id, StateInfo& state_info)
     {
-        if (dead_end_listener_ != nullptr && !state_info.is_dead_end()) {
-            set_dead_end(state_info);
-            dead_end_listener_->operator()(state_id);
+        if (!state_info.is_dead_end()) {
+            state_info.set_dead_end();
+            state_info.value = dead_end_value_;
+
+            if (dead_end_listener_ != nullptr) {
+                dead_end_listener_->operator()(state_id);
+            }
+
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -411,14 +384,15 @@ public:
 
     /**
      * @brief Checks whether the attached dead-end evaluator recognizes the
-     * state as a dead-end. If yes, the state is marked as a dead-end.
+     * state as a dead-end. If yes and the state has not been recognized before,
+     * the state is marked as a dead-end and the dead end listener is notified.
      */
     bool check_dead_end(const StateID& state_id)
     {
         if (dead_end_eval_ != nullptr) {
             State state = this->lookup_state(state_id);
             if (dead_end_eval_->operator()(state)) {
-                set_dead_end(state_id);
+                notify_dead_end(state_id);
                 return true;
             }
         }
@@ -745,8 +719,7 @@ private:
                 estimate = value_initializer_->operator()(state);
                 if (estimate) {
                     statistics_.pruned_states++;
-                    state_info.set_dead_end();
-                    state_info.value = dead_end_value_;
+                    notify_dead_end(state_id, state_info);
                     if (on_new_state_) on_new_state_->touch_dead_end(state);
                 } else {
                     state_info.set_on_fringe();
@@ -837,8 +810,7 @@ private:
 
         if (aops.empty()) {
             statistics_.terminal_states++;
-            bool result = this->update(state_info, dead_end_value_);
-            state_info.set_dead_end();
+            bool result = notify_dead_end(state_id, state_info);
 #if defined(EXPENSIVE_STATISTICS)
             statistics_.update_time.stop();
 #endif
@@ -903,9 +875,7 @@ private:
 
         if (aops.empty()) {
             statistics_.self_loop_states++;
-            const bool result = this->update(state_info, dead_end_value_);
-            state_info.set_dead_end();
-            return result;
+            return notify_dead_end(state_id, state_info);
         }
 
         if (this->update(state_info, new_value)) {
