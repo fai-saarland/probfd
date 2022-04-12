@@ -492,6 +492,14 @@ public:
     }
 
 protected:
+    /**
+     * @brief Updates the value of a state in its info object.
+     *
+     * @return true if the single state value changed by more than epsilon, the
+     * lower bounding state value changed by more than epslon (interval bounds
+     * without interval comparison) or either value bound changed by more than
+     * epsilon (interval bounds with interval comparison). False otherwise.
+     */
     bool update(StateInfo& state_info, const IncumbentSolution& other)
     {
         if constexpr (DualBounds::value) {
@@ -612,6 +620,12 @@ protected:
         }
     }
 
+    /**
+     * @brief Checks if the value bounds of the state are epsilon-close.
+     *
+     * @return false if interval bounds or interval comparison are not used.
+     * Otherwise returns true if and only if the value bounds are epsilon-close.
+     */
     template <typename Info>
     bool do_bounds_disagree(const StateID& state_id, const Info& info)
     {
