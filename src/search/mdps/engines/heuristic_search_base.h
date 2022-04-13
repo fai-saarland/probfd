@@ -444,7 +444,7 @@ public:
         ActionID* policy_action,
         Distribution<StateID>* policy_transition)
     {
-        return async_update(
+        return compute_value_policy_update(
             s,
             *this->policy_chooser_,
             stable_policy_,
@@ -469,9 +469,6 @@ public:
      * @param[out] policy_action - Return address for the new greedy action.
      * @param[out] policy_transition - Return address for the new greedy
      * transition.
-     *
-     * @return true - If the value changed.
-     * @return false - Otherwise.
      */
     template <typename T>
     std::pair<bool, bool> async_update(
@@ -480,7 +477,7 @@ public:
         ActionID* policy_action,
         Distribution<StateID>* policy_transition)
     {
-        return async_update(
+        return compute_value_policy_update(
             s,
             greedy_picker,
             false,
@@ -751,24 +748,6 @@ private:
 
     IncumbentSolution dead_end_value() const { return dead_end_value_; }
 
-    template <typename T>
-    std::pair<bool, bool> async_update(
-        const StateID& s,
-        T& policy_tiebreaker,
-        bool stable_policy,
-        ActionID* greedy_action,
-        Distribution<StateID>* greedy_transition)
-    {
-        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
-
-        return compute_value_policy_update(
-            s,
-            policy_tiebreaker,
-            stable_policy,
-            greedy_action,
-            greedy_transition);
-    }
-
     bool compute_value_update(const StateID& state_id)
     {
         std::vector<Action> aops;
@@ -902,6 +881,8 @@ private:
         ActionID* greedy_action,
         Distribution<StateID>* greedy_transition)
     {
+        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> transitions;
         std::vector<IncumbentSolution> values;
