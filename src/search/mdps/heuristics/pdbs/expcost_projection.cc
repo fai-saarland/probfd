@@ -209,53 +209,29 @@ ExpCostProjection::get_optimal_abstract_policy(
     return policy;
 }
 
-namespace {
-struct StateToString {
-    explicit StateToString(
-        const std::vector<value_type::value_t>* value_table,
-        std::shared_ptr<AbstractStateMapper> state_mapper)
-        : value_table(value_table)
-        , state_str(std::move(state_mapper))
-    {
-    }
-
-    std::string operator()(const AbstractState& x) const
-    {
-        std::ostringstream out;
-        out << state_str(x) << " {" << as_upper_bound((*value_table)[x.id])
-            << "}";
-        return out.str();
-    }
-
-    const std::vector<value_type::value_t>* value_table;
-    AbstractStateToString state_str;
-};
-} // namespace
-
 void ExpCostProjection::dump_graphviz(
     const std::string& path,
     bool transition_labels,
     bool values) const
 {
-    AbstractOperatorToString op_to_string(&g_operators);
-    AbstractOperatorToString* op_to_string_ptr =
-        transition_labels ? &op_to_string : nullptr;
+    AbstractStateToString state_str(state_mapper_);
 
-    if (values) {
-        StateToString sts(&value_table, state_mapper_);
-        ProbabilisticProjection::dump_graphviz(
-            path,
-            &sts,
-            op_to_string_ptr,
-            value_type::zero);
-    } else {
-        AbstractStateToString sts(state_mapper_);
-        ProbabilisticProjection::dump_graphviz(
-            path,
-            &sts,
-            op_to_string_ptr,
-            value_type::zero);
-    }
+    auto s2str = [&, this](const StateID& id, const AbstractState& x) {
+        std::ostringstream out;
+        out << state_str(id, x);
+
+        if (values) {
+            out << " (" << value_table[x.id] << ")";
+        }
+
+        return out.str();
+    };
+
+    ProbabilisticProjection::dump_graphviz(
+        path,
+        s2str,
+        transition_labels,
+        value_type::zero);
 }
 
 void ExpCostProjection::compute_value_table(

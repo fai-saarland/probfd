@@ -3,6 +3,8 @@
 
 #include "../../../utils/iterators.h"
 #include "../../../utils/range_proxy.h"
+#include "../../types.h"
+
 #include "abstract_state.h"
 #include "types.h"
 
@@ -188,7 +190,7 @@ class AbstractStateToString {
 public:
     explicit AbstractStateToString(
         std::shared_ptr<AbstractStateMapper> state_mapper);
-    std::string operator()(AbstractState state) const;
+    std::string operator()(const StateID& id, AbstractState state) const;
 
 private:
     std::shared_ptr<AbstractStateMapper> state_mapper_;

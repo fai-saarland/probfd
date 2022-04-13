@@ -304,71 +304,38 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
     return policy;
 }
 
-namespace {
-struct StateToString {
-    explicit StateToString(
-        const std::vector<value_utils::IntervalValue>* value_table,
-        const QualitativeResultStore* dead_ends,
-        const QualitativeResultStore* one_states,
-        std::shared_ptr<AbstractStateMapper> state_mapper)
-        : value_table(value_table)
-        , dead_ends(dead_ends)
-        , one_states(one_states)
-        , state_str(std::move(state_mapper))
-    {
-    }
-
-    std::string operator()(const AbstractState& x) const
-    {
-        std::ostringstream out;
-        out << state_str(x) << " {";
-        if (dead_ends->get(x)) {
-            out << "dead:" << value_type::zero;
-        } else if (one_states->get(x)) {
-            out << "one:" << value_type::one;
-        } else {
-            out << value_table->operator[](x.id).upper;
-        }
-        out << "}";
-        return out.str();
-    }
-
-    const std::vector<value_utils::IntervalValue>* value_table;
-    const QualitativeResultStore* dead_ends;
-    const QualitativeResultStore* one_states;
-    AbstractStateToString state_str;
-};
-} // namespace
-
 void MaxProbProjection::dump_graphviz(
     const std::string& path,
     bool transition_labels,
     bool values)
 {
-    AbstractOperatorToString op_to_string(&g_operators);
-    AbstractOperatorToString* op_to_string_ptr =
-        transition_labels ? &op_to_string : nullptr;
+    AbstractStateToString state_str(state_mapper_);
 
-    if (values) {
-        StateToString sts(
-            &value_table,
-            dead_ends.get(),
-            proper_states.get(),
-            state_mapper_);
+    auto s2str = [&, this](const StateID& id, const AbstractState& x) {
+        std::ostringstream out;
+        out << state_str(id, x);
 
-        ProbabilisticProjection::dump_graphviz(
-            path,
-            &sts,
-            op_to_string_ptr,
-            value_type::one);
-    } else {
-        AbstractStateToString sts(state_mapper_);
-        ProbabilisticProjection::dump_graphviz(
-            path,
-            &sts,
-            op_to_string_ptr,
-            value_type::one);
-    }
+        if (values) {
+            out << " (";
+            if (dead_ends->get(x)) {
+                out << "dead";
+            } else if (proper_states->get(x)) {
+                out << "one";
+            } else {
+                auto bounds = value_table[x.id];
+                out << "[" << bounds.lower << ", " << bounds.upper << "]";
+            }
+            out << ")";
+        }
+
+        return out.str();
+    };
+
+    ProbabilisticProjection::dump_graphviz(
+        path,
+        s2str,
+        transition_labels,
+        value_type::one);
 }
 
 #ifndef NDEBUG

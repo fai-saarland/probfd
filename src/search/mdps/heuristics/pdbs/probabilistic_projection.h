@@ -102,13 +102,19 @@ public:
 protected:
     void compute_proper_states();
 
-    template <typename StateToString, typename ActionToString>
+    template <typename StateToString>
     void dump_graphviz(
         const std::string& path,
-        const StateToString* sts,
-        const ActionToString* ats,
+        const StateToString& sts,
+        bool transition_labels,
         value_type::value_t goal_value) const
     {
+        AbstractOperatorToString op_names(&g_operators);
+
+        auto ats = [=](const AbstractOperator* op) {
+            return transition_labels ? op_names(op) : "";
+        };
+
         AbstractStateInSetRewardFunction state_reward(
             &goal_states_,
             goal_value,
@@ -127,7 +133,7 @@ protected:
 
         std::ofstream out(path);
 
-        graphviz::dump(
+        graphviz::dump<AbstractState>(
             out,
             initial_state_,
             &state_id_map,
@@ -136,6 +142,7 @@ protected:
             &transition_gen,
             sts,
             ats,
+            nullptr,
             true);
     }
 

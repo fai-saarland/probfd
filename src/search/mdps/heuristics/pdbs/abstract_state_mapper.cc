@@ -473,11 +473,11 @@ AbstractStateToString::AbstractStateToString(
 {
 }
 
-std::string AbstractStateToString::operator()(AbstractState state) const
+std::string
+AbstractStateToString::operator()(const StateID& id, AbstractState state) const
 {
     std::ostringstream out;
     std::vector<int> values = state_mapper_->to_values(state);
-    out << "#" << state.id << ": ";
     for (unsigned i = 0; i < values.size(); i++) {
         const int var = state_mapper_->get_pattern()[i];
         out << (i > 0 ? ", " : "") << ::g_fact_names[var][values[i]];

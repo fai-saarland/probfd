@@ -874,17 +874,19 @@ protected:
     /**
      * @brief Dumps the search space as a graph.
      *
-     * State names are printed as specified by operator()(const State&) of the
-     * provided state-to-string function object.
+     * State names are printed as specified by the state-to-string lambda
+     * function object.
      *
      * @tparam StateToString - Type of the state-to-string function object.
      * @param file_name - The output file name.
-     * @param sstr - A pointer to the state-to-string function object.
+     * @param sstr -The state-to-string lambda function.
      */
     template <typename StateToString>
-    void dump_search_space(const std::string& file_name, StateToString* sstr)
+    void dump_search_space(
+        const std::string& file_name,
+        const StateToString& sstr = graphviz::DefaultSTS())
     {
-        struct ExpansionCondition {
+        struct ExpansionCondition : public StateEvaluator<State> {
             explicit ExpansionCondition(
                 const MDPEngine<State, Action>* hs,
                 storage::PerStateStorage<StateInfo>* infos)
@@ -893,7 +895,7 @@ protected:
             {
             }
 
-            EvaluationResult operator()(const State& state) const
+            EvaluationResult operator()(const State& state) const override
             {
                 const StateID sid = hs_->get_state_id(state);
                 const StateInfo& info = infos_->operator[](sid);
@@ -904,50 +906,21 @@ protected:
             storage::PerStateStorage<StateInfo>* infos_;
         };
 
-        struct ActionToString {
-            std::string operator()(const Action&) const { return ""; }
-        };
-
         ExpansionCondition prune(this, &state_infos_);
 
-        std::ofstream out;
-        out.open(file_name);
+        std::ofstream out(file_name);
 
-        graphviz::GraphVisualization<
-            State,
-            Action,
-            StateToString,
-            ActionToString,
-            StateEvaluator<State>,
-            ExpansionCondition,
-            ApplicableActionsGenerator<Action>,
-            TransitionGenerator<Action>>
-            gv(out,
-               this->get_state_id_map(),
-               this->get_state_reward_function(),
-               this->get_applicable_actions_generator(),
-               this->get_transition_generator(),
-               sstr,
-               nullptr,
-               false,
-               &prune);
-        gv(this->lookup_state(initial_state_id_));
-
-        out.close();
-    }
-
-    /**
-     * @brief Dumps the search space as a graph, without state names.
-     *
-     * @param file_name - The output file name.
-     */
-    void dump_search_space(const std::string& file_name)
-    {
-        struct StateToString {
-            std::string operator()(const State&) const { return ""; }
-        };
-
-        this->dump_search_space<StateToString>(file_name, nullptr);
+        graphviz::dump<State>(
+            out,
+            this->lookup_state(initial_state_id_),
+            this->get_state_id_map(),
+            this->get_state_reward_function(),
+            this->get_applicable_actions_generator(),
+            this->get_transition_generator(),
+            sstr,
+            graphviz::DefaultATS(),
+            &prune,
+            false);
     }
 
 private:
