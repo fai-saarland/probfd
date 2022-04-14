@@ -50,7 +50,7 @@ private:
     HeuristicSearchConnector connector_;
 
     std::shared_ptr<ProbabilisticOperatorPolicyPicker> policy_tiebreaker_;
-    std::shared_ptr<NewGlobalStateHandlerList> new_state_handler_;
+    std::shared_ptr<NewGlobalStateHandler> new_state_handler_;
     std::shared_ptr<GlobalStateEvaluator> heuristic_;
     std::shared_ptr<DeadEndListener<GlobalState, const ProbabilisticOperator*>>
         dead_end_listener_;

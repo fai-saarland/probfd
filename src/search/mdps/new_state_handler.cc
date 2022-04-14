@@ -4,33 +4,6 @@
 
 namespace probabilistic {
 
-NewGlobalStateHandlerList::NewGlobalStateHandlerList(
-    std::vector<std::shared_ptr<NewGlobalStateHandler>> handlers)
-    : handlers_(std::move(handlers))
-{
-}
-
-void NewGlobalStateHandlerList::touch(const GlobalState& s)
-{
-    for (auto& handler : handlers_) {
-        handler->touch(s);
-    }
-}
-
-void NewGlobalStateHandlerList::touch_dead_end(const GlobalState& s)
-{
-    for (auto& handler : handlers_) {
-        handler->touch_dead_end(s);
-    }
-}
-
-void NewGlobalStateHandlerList::touch_goal(const GlobalState& s)
-{
-    for (auto& handler : handlers_) {
-        handler->touch_goal(s);
-    }
-}
-
 static PluginTypePlugin<NewGlobalStateHandler>
     _plugin("NewStateHandler", "", "on-new-state");
 

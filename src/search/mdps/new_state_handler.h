@@ -9,28 +9,8 @@
 
 namespace probabilistic {
 
-template <>
-class NewStateHandler<GlobalState> {
-public:
-    virtual ~NewStateHandler() = default;
-    virtual void touch(const GlobalState&) {}
-    virtual void touch_dead_end(const GlobalState&) {}
-    virtual void touch_goal(const GlobalState&) {}
-};
-
 using NewGlobalStateHandler = NewStateHandler<GlobalState>;
-
-class NewGlobalStateHandlerList : public NewGlobalStateHandler {
-public:
-    NewGlobalStateHandlerList(
-        std::vector<std::shared_ptr<NewGlobalStateHandler>> handlers);
-    virtual void touch(const GlobalState& s) override;
-    virtual void touch_dead_end(const GlobalState& s) override;
-    virtual void touch_goal(const GlobalState& s) override;
-
-private:
-    std::vector<std::shared_ptr<NewGlobalStateHandler>> handlers_;
-};
+using NewGlobalStateHandlerList = NewStateHandlerList<GlobalState>;
 
 } // namespace probabilistic
 
