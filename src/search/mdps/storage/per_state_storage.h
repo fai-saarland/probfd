@@ -105,7 +105,6 @@ namespace internal {
 
 template <
     typename T,
-    typename StateIdMap,
     typename Alloc,
     template <typename, typename>
     class Container>
@@ -141,72 +140,49 @@ protected:
 
 } // namespace internal
 
-template <
-    typename T,
-    typename StateIdMap = void,
-    typename Alloc = std::allocator<T>>
-using PersistentPerStateStorage = internal::PerStateStorage<
-    T,
-    StateIdMap,
-    Alloc,
-    segmented_vector::DynamicSegmentedVector>;
+template <typename T, typename Alloc = std::allocator<T>>
+using PersistentPerStateStorage = internal::
+    PerStateStorage<T, Alloc, segmented_vector::DynamicSegmentedVector>;
 
-template <
-    typename T,
-    typename StateIdMap = void,
-    typename Alloc = std::allocator<T>>
-class PerStateStorage : public PersistentPerStateStorage<T, StateIdMap, Alloc> {
+template <typename T, typename Alloc = std::allocator<T>>
+class PerStateStorage : public PersistentPerStateStorage<T, Alloc> {
 public:
-    using
-        typename PersistentPerStateStorage<T, StateIdMap, Alloc>::IsPersistent;
-    using PersistentPerStateStorage<T, StateIdMap, Alloc>::
-        PersistentPerStateStorage;
+    using typename PersistentPerStateStorage<T, Alloc>::IsPersistent;
+    using PersistentPerStateStorage<T, Alloc>::PersistentPerStateStorage;
 };
 
-template <typename StateIdMap, typename Alloc>
-class PerStateStorage<bool, StateIdMap, Alloc>
-    : public internal::
-          PerStateStorage<bool, StateIdMap, Alloc, resizing_vector> {
+template <typename Alloc>
+class PerStateStorage<bool, Alloc>
+    : public internal::PerStateStorage<bool, Alloc, resizing_vector> {
 public:
-    using typename internal::
-        PerStateStorage<bool, StateIdMap, Alloc, resizing_vector>::IsPersistent;
-    using internal::PerStateStorage<bool, StateIdMap, Alloc, resizing_vector>::
+    using typename internal::PerStateStorage<bool, Alloc, resizing_vector>::
+        IsPersistent;
+    using internal::PerStateStorage<bool, Alloc, resizing_vector>::
         PerStateStorage;
 };
 
-template <typename StateIdMap, typename Alloc>
-class PerStateStorage<value_type::value_t, StateIdMap, Alloc>
-    : public internal::PerStateStorage<
-          value_type::value_t,
-          StateIdMap,
-          Alloc,
-          resizing_vector> {
+template <typename Alloc>
+class PerStateStorage<value_type::value_t, Alloc>
+    : public internal::
+          PerStateStorage<value_type::value_t, Alloc, resizing_vector> {
 public:
     using typename internal::PerStateStorage<
         value_type::value_t,
-        StateIdMap,
         Alloc,
         resizing_vector>::IsPersistent;
     using internal::PerStateStorage<
         value_type::value_t,
-        StateIdMap,
         Alloc,
         resizing_vector>::PerStateStorage;
 };
 
-template <
-    typename T,
-    typename StateIdMap = void,
-    typename Alloc = std::allocator<T>>
-class StateHashMap
-    : public internal::PerStateStorage<T, StateIdMap, Alloc, HashMap> {
+template <typename T, typename Alloc = std::allocator<T>>
+class StateHashMap : public internal::PerStateStorage<T, Alloc, HashMap> {
 public:
-    using typename internal::PerStateStorage<T, StateIdMap, Alloc, HashMap>::
-        IsPersistent;
-    using internal::PerStateStorage<T, StateIdMap, Alloc, HashMap>::
-        PerStateStorage;
-    using internal_hash_map = typename internal::
-        PerStateStorage<T, StateIdMap, Alloc, HashMap>::internal_storage;
+    using typename internal::PerStateStorage<T, Alloc, HashMap>::IsPersistent;
+    using internal::PerStateStorage<T, Alloc, HashMap>::PerStateStorage;
+    using internal_hash_map =
+        typename internal::PerStateStorage<T, Alloc, HashMap>::internal_storage;
     using iterator = typename internal_hash_map::iterator;
 
     iterator begin() { return this->store_.begin(); }
