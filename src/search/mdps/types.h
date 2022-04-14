@@ -10,14 +10,9 @@ namespace probabilistic {
 struct StateID {
 public:
     using size_type = uint32_t;
-    constexpr static const size_type undefined = -1;
+    static constexpr size_type undefined = -1;
 
-    StateID()
-        : id(undefined)
-    {
-    }
-
-    StateID(const size_type& id)
+    StateID(const size_type& id = StateID::undefined)
         : id(id)
     {
     }
@@ -35,19 +30,14 @@ public:
 
 struct ActionID {
     using size_type = uint32_t;
-    constexpr static const size_type undefined = -1;
+    static constexpr size_type undefined = -1;
 
-    ActionID()
-        : id(undefined)
-    {
-    }
-
-    ActionID(const size_type& id)
+    ActionID(size_type id = ActionID::undefined)
         : id(id)
     {
     }
 
-    ActionID& operator=(const size_type& sid)
+    ActionID& operator=(size_type sid)
     {
         id = sid;
         return *this;
