@@ -87,8 +87,6 @@ public:
         const std::vector<std::shared_ptr<Heuristic>>&
             path_dependent_heuristics);
 
-    ~TransitionGenerator() = default;
-
     void generate_applicable_ops(
         const StateID& state_id,
         std::vector<const ProbabilisticOperator*>& result);
@@ -107,52 +105,14 @@ public:
 
 private:
     struct CacheEntry {
-
-        explicit CacheEntry()
-            : naops(-1)
-            , aops(nullptr)
-            , succs(nullptr)
-        // , offset(nullptr)
+        bool is_initialized() const
         {
+            return naops != std::numeric_limits<unsigned>::max();
         }
 
-        CacheEntry(CacheEntry&& e)
-            : naops(std::move(e.naops))
-            , aops(std::move(e.aops))
-            , succs(std::move(e.succs))
-        // , offset(std::move(offset))
-        {
-            e.naops = 0;
-        }
-
-#if !defined(NDEBUG)
-        CacheEntry(const CacheEntry& e)
-            : CacheEntry()
-        {
-            assert(!e.is_initialized());
-        }
-#else
-        CacheEntry(const CacheEntry&)
-            : CacheEntry()
-        {
-        }
-#endif
-        ~CacheEntry()
-        {
-            // if (is_initialized() && naops) {
-            //     delete[](succs);
-            //     delete[](aops);
-            //     // delete[](offset);
-            // }
-            naops = 0;
-        }
-
-        bool is_initialized() const { return naops != (unsigned)-1; }
-
-        unsigned naops;
-        uint32_t* aops;
-        uint32_t* succs;
-        // uint32_t* offset;
+        unsigned naops = std::numeric_limits<unsigned>::max();
+        uint32_t* aops = nullptr;
+        uint32_t* succs = nullptr;
     };
 
     struct Statistics {

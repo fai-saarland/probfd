@@ -24,13 +24,14 @@ static std::shared_ptr<
 construct_generator(const std::vector<const ProbabilisticOperator*>& ops)
 {
     std::vector<std::vector<std::pair<int, int>>> preconditions(ops.size());
-    for (int i = ops.size() - 1; i >= 0; --i) {
+    for (size_t i = 0; i != ops.size(); ++i) {
         std::vector<std::pair<int, int>>& pre = preconditions[i];
-        for (const auto& p : ops[i]->get_preconditions()) {
-            pre.emplace_back(p.var, p.val);
+        for (const auto [var, val] : ops[i]->get_preconditions()) {
+            pre.emplace_back(var, val);
         }
         std::sort(pre.begin(), pre.end());
     }
+
     return std::make_shared<
         successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>(
         g_variable_domain,
@@ -48,18 +49,18 @@ CostBasedSuccessorGenerator::CostBasedSuccessorGenerator(
 {
     if (bvar >= 0) {
         std::map<int, std::vector<const ProbabilisticOperator*>> grouped;
-        for (unsigned i = 0; i < ops.size(); ++i) {
-            const int cost =
-                get_adjusted_action_cost(*ops[i].get(0).op, cost_type);
-            grouped[cost].push_back(&ops[i]);
+        for (const auto& op : ops) {
+            const int cost = get_adjusted_action_cost(op.get_cost(), cost_type);
+            grouped[cost].push_back(&op);
         }
+
         cost_.reserve(grouped.size());
         gens_.reserve(grouped.size());
-        for (auto it = grouped.begin(); it != grouped.end(); ++it) {
-            cost_.push_back(it->first);
-            gens_.push_back(construct_generator(it->second));
+
+        for (const auto [i, gops] : grouped) {
+            cost_.push_back(i);
+            gens_.push_back(construct_generator(gops));
         }
-    } else {
     }
 }
 
@@ -69,11 +70,10 @@ void CostBasedSuccessorGenerator::operator()(
 {
     if (bvar_ >= 0) {
         const int budget = s[bvar_];
-        for (unsigned i = 0; i < cost_.size(); ++i) {
-            if (cost_[i] > budget) {
-                break;
+        for (std::size_t i = 0; i < cost_.size(); ++i) {
+            if (cost_[i] <= budget) {
+                gens_[i]->generate_applicable_ops(s, res);
             }
-            gens_[i]->generate_applicable_ops(s, res);
         }
     } else {
         gen_->generate_applicable_ops(s, res);
@@ -127,10 +127,10 @@ TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     , state_registry_(state_registry)
 {
     if (budget_var >= 0) {
-        cost_.resize(ops.size(), 0);
-        for (int i = ops.size() - 1; i >= 0; --i) {
-            cost_[i] =
-                ::get_adjusted_action_cost(*ops[i].get(0).op, budget_cost_type);
+        cost_.reserve(ops.size());
+        for (const ProbabilisticOperator& op : ops) {
+            cost_.push_back(
+                get_adjusted_action_cost(op.get_cost(), budget_cost_type));
         }
     }
 }
@@ -140,19 +140,19 @@ void TransitionGenerator<const ProbabilisticOperator*>::generate_applicable_ops(
     std::vector<const ProbabilisticOperator*>& result)
 {
     if (caching_) {
-        CacheEntry& entry = cache_[state_id];
-        setup_cache(state_id, entry);
+        CacheEntry& entry = lookup(state_id);
         result.resize(entry.naops, nullptr);
-        for (int i = entry.naops - 1; i >= 0; --i) {
-            result[i] = (first_op_ + entry.aops[i]);
+        for (size_t i = 0; i != entry.naops; ++i) {
+            result[i] = first_op_ + entry.aops[i];
         }
+
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
         GlobalState state =
             this->state_registry_->lookup_state(::StateID(state_id));
         std::vector<const ProbabilisticOperator*> test;
         this->compute_applicable_operators(state, test);
         assert(test.size() == result.size());
-        for (unsigned i = 0; i < test.size(); ++i) {
+        for (size_t i = 0; i < test.size(); ++i) {
             assert(test[i] == result[i]);
         }
 #endif
@@ -160,6 +160,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::generate_applicable_ops(
         GlobalState state = state_registry_->lookup_state(::StateID(state_id));
         compute_applicable_operators(state, result);
     }
+
     ++statistics_.aops_generator_calls;
     statistics_.generated_operators += result.size();
 }
@@ -173,18 +174,22 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
     {
         GlobalState state =
             this->state_registry_->lookup_state(::StateID(state_id));
-        for (const auto& pre : action->get_preconditions()) {
-            assert(state[pre.var] == pre.val);
+        for (const auto [var, val] : action->get_preconditions()) {
+            assert(state[var] == val);
         }
     }
 #endif
+
     if (caching_) {
         const CacheEntry& entry = cache_[state_id];
         assert(entry.is_initialized());
-        const uint32_t idx = (action - first_op_);
+        const uint32_t idx = action - first_op_;
         const uint32_t* succs = entry.succs;
-        for (unsigned i = 0; i < entry.naops; ++i) {
-            if (entry.aops[i] == idx) {
+
+        for (size_t i = 0; i < entry.naops; ++i) {
+            uint32_t op_idx = entry.aops[i];
+
+            if (op_idx == idx) {
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
                 GlobalState state =
                     this->state_registry_->lookup_state(::StateID(state_id));
@@ -197,9 +202,12 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
                     assert(test[j].second == action->get(j).prob);
                     result.add(*succs, action->get(j).prob);
                 }
+
                 break;
             }
-            succs += (first_op_ + entry.aops[i])->num_outcomes();
+
+            const ProbabilisticOperator* op = first_op_ + op_idx;
+            succs += op->num_outcomes();
         }
     } else {
         GlobalState state = state_registry_->lookup_state(::StateID(state_id));
@@ -207,6 +215,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
         compute_successor_states(state, action, temp);
         result = Distribution<StateID>(std::move(temp));
     }
+
     ++statistics_.single_transition_generator_calls;
     statistics_.generated_states += result.size();
 }
@@ -217,11 +226,11 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
     std::vector<Distribution<StateID>>& successors)
 {
     if (caching_) {
-        CacheEntry& entry = cache_[state_id];
-        setup_cache(state_id, entry);
+        CacheEntry& entry = lookup(state_id);
         const uint32_t* succs = entry.succs;
         aops.resize(entry.naops, nullptr);
         successors.resize(entry.naops);
+
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
         GlobalState state =
             this->state_registry_->lookup_state(::StateID(state_id));
@@ -229,34 +238,40 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
         this->compute_applicable_operators(state, test_aops);
         assert(test_aops.size() == entry.naops);
 #endif
+
         for (unsigned i = 0; i < entry.naops; ++i) {
-            const ProbabilisticOperator* op = (first_op_ + entry.aops[i]);
+            const ProbabilisticOperator* op = first_op_ + entry.aops[i];
             aops[i] = op;
+
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
             assert(aops[i] == test_aops[i]);
             std::vector<std::pair<StateID, value_type::value_t>> test;
             this->compute_successor_states(state, aops[i], test);
 #endif
+
             Distribution<StateID>& result = successors[i];
             for (unsigned j = 0; j < op->num_outcomes(); ++j, ++succs) {
                 assert(test[j].first == *succs);
                 assert(test[j].second == op->get(j).prob);
                 result.add(*succs, op->get(j).prob);
             }
+
             statistics_.generated_states += result.size();
         }
     } else {
         GlobalState state = state_registry_->lookup_state(::StateID(state_id));
         compute_applicable_operators(state, aops);
         successors.reserve(aops.size());
+
         std::vector<std::pair<StateID, value_type::value_t>> temp;
-        for (unsigned i = 0; i < aops.size(); ++i) {
-            compute_successor_states(state, aops[i], temp);
-            successors.emplace_back(std::move(temp));
+        for (const auto& op : aops) {
+            compute_successor_states(state, op, temp);
+            const auto& new_dist = successors.emplace_back(std::move(temp));
+            statistics_.generated_states += new_dist.size();
             temp.clear();
-            statistics_.generated_states += successors.back().size();
         }
     }
+
     ++statistics_.all_transitions_generator_calls;
     statistics_.generated_operators += aops.size();
 }
@@ -268,42 +283,37 @@ void TransitionGenerator<const ProbabilisticOperator*>::
         std::vector<std::pair<StateID, value_type::value_t>>& succs)
 {
     succs.reserve(op->num_outcomes());
+
     if (budget_var_ >= 0) {
-        // const int_packer::IntPacker* packer =
-        //     state_registry_->get_state_packer();
         const int newb = state[budget_var_] - cost_[op->get_id()];
         assert(newb >= 0);
-        for (unsigned i = 0; i < op->num_outcomes(); ++i) {
-            const GlobalOperator& det_op = *(op->get(i).op);
-#if 0
-            PackedStateBin* succ_data =
-                state_registry_->get_temporary_successor_state(state, det_op);
-            packer->set(succ_data, budget_var_, newb);
-            GlobalState succ = state_registry_->make_permanent();
-#else
+
+        for (const auto [det_op, prob] : *op) {
             GlobalState succ = state_registry_->get_successor_state(
                 state,
-                det_op,
+                *det_op,
                 budget_var_,
                 newb);
-#endif
-            for (int j = notify_.size() - 1; j >= 0; j--) {
-                notify_[j]->reach_state(state, det_op, succ);
+
+            for (const auto h : notify_) {
+                h->reach_state(state, *det_op, succ);
             }
-            succs.emplace_back(succ.get_id().hash(), op->get(i).prob);
+
+            succs.emplace_back(succ.get_id().hash(), prob);
         }
     } else {
-        for (unsigned i = 0; i < op->num_outcomes(); ++i) {
-            const auto& out = op->get(i);
-            const GlobalOperator& det_op = *(out.op);
+        for (const auto [det_op, prob] : *op) {
             GlobalState succ =
-                state_registry_->get_successor_state(state, det_op);
-            for (int j = notify_.size() - 1; j >= 0; j--) {
-                notify_[j]->reach_state(state, det_op, succ);
+                state_registry_->get_successor_state(state, *det_op);
+
+            for (const auto h : notify_) {
+                h->reach_state(state, *det_op, succ);
             }
-            succs.emplace_back(succ.get_id().hash(), out.prob);
+
+            succs.emplace_back(succ.get_id().hash(), prob);
         }
     }
+
     ++statistics_.transition_computations;
     statistics_.computed_states += succs.size();
 }
@@ -328,6 +338,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::
 #else
     aops_gen_(s, ops);
 #endif
+
     ++statistics_.aops_computations;
     statistics_.computed_operators += ops.size();
 }
@@ -341,32 +352,37 @@ bool TransitionGenerator<const ProbabilisticOperator*>::setup_cache(
         assert(aops_.empty() && successors_.empty());
         compute_applicable_operators(state, aops_);
         entry.naops = aops_.size();
+
         if (entry.naops > 0) {
-            entry.aops = cache_data_.allocate(
-                aops_.size()); // new uint32_t[aops_.size()];
-            // entry.offset = new uint32_t[result.size()];
+            entry.aops = cache_data_.allocate(aops_.size());
+
             std::vector<std::pair<StateID, value_type::value_t>> succs;
-            for (unsigned i = 0; i < aops_.size(); ++i) {
-                // entry.offset[i] = successors_.size();
+            for (size_t i = 0; i < aops_.size(); ++i) {
                 const ProbabilisticOperator* op = aops_[i];
-                entry.aops[i] = (op - first_op_);
+
+                entry.aops[i] = op - first_op_;
                 compute_successor_states(state, op, succs);
-                for (unsigned j = 0; j < succs.size(); ++j) {
-                    successors_.push_back(succs[j].first);
+
+                for (const auto& s : succs) {
+                    successors_.push_back(s.first);
                 }
+
                 succs.clear();
             }
-            entry.succs = cache_data_.allocate(
-                successors_.size()); // new uint32_t[successors_.size()];
-            for (int i = successors_.size() - 1; i >= 0; --i) {
+
+            entry.succs = cache_data_.allocate(successors_.size());
+
+            for (size_t i = 0; i != successors_.size(); ++i) {
                 entry.succs[i] = successors_[i];
             }
+
             aops_.clear();
             successors_.clear();
         }
-        // std::cout << "generated cache for " << state_id << std::endl;
+
         return true;
     }
+
     return false;
 }
 
