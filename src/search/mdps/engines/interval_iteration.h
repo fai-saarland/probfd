@@ -2,6 +2,7 @@
 #define MDPS_ENGINES_INTERVAL_ITERATION_H
 
 #include "../end_components/end_component_decomposition.h"
+#include "../end_components/qualitative_reachability_analysis.h"
 #include "../quotient_system/engine_interfaces.h"
 #include "../quotient_system/quotient_system.h"
 #include "../storage/per_state_storage.h"
@@ -86,9 +87,8 @@ public:
     {
         BoolStore dead(false);
         BoolStore one(false);
-        QuotientSystem* sys;
-        this->mysolve(state, value_store_, dead, one, sys);
-        delete (sys);
+        std::unique_ptr<QuotientSystem> sys = get_quotient(state, dead, one);
+        this->mysolve(state, value_store_, dead, one, sys.get());
     }
 
     virtual value_type::value_t get_result(const State& s) override
@@ -118,9 +118,10 @@ public:
         BoolStoreT& dead_ends,
         BoolStoreT2& one_states)
     {
-        QuotientSystem* sys;
+        auto sys = get_quotient(state, dead_ends, one_states);
+
         value_type::value_t x =
-            this->mysolve(state, value_store, dead_ends, one_states, sys);
+            this->mysolve(state, value_store, dead_ends, one_states, sys.get());
         for (StateID repr_id : *sys) {
             auto [sit, send] = sys->quotient_range(repr_id);
             const StateID repr = *sit;
@@ -134,7 +135,7 @@ public:
                 one_states[*sit] = one;
             }
         }
-        delete (sys);
+
         return x;
     }
 
@@ -196,41 +197,64 @@ private:
         const StateEvaluator<State>* fallback;
     };
 
+    template <typename BoolStoreT, typename BoolStoreT2>
+    std::unique_ptr<QuotientSystem> get_quotient(
+        const State& state,
+        BoolStoreT& dead_ends,
+        BoolStoreT2& one_states)
+    {
+        Decomposer ec_decomposer(
+            this->get_state_id_map(),
+            this->get_action_id_map(),
+            this->get_state_reward_function(),
+            this->get_action_reward_function(),
+            this->get_applicable_actions_generator(),
+            this->get_transition_generator(),
+            expand_goals_,
+            prune_);
+
+        auto sys = ec_decomposer.build_quotient_system(state);
+
+        ecd_statistics_ = ec_decomposer.get_statistics();
+
+        return std::move(sys);
+    }
+
     template <typename ValueStoreT, typename BoolStoreT, typename BoolStoreT2>
     value_type::value_t mysolve(
         const State& state,
         ValueStoreT& value_store,
         BoolStoreT& dead_ends,
         BoolStoreT2& one_states,
-        QuotientSystem*& sys)
+        QuotientSystem* sys)
     {
-        Decomposer ec_decomposer(
-            prune_,
-            this->get_action_id_map(),
-            this->get_state_id_map(),
-            this->get_state_reward_function(),
-            this->get_applicable_actions_generator(),
-            this->get_transition_generator(),
-            expand_goals_);
-
-        if (extract_probability_one_states_) {
-            sys = ec_decomposer.build_quotient_system(
-                state,
-                utils::set_output_iterator(dead_ends),
-                utils::set_output_iterator(one_states));
-        } else {
-            sys = ec_decomposer.build_quotient_system(
-                state,
-                utils::set_output_iterator(dead_ends),
-                utils::discarding_output_iterator());
-        }
-
-        ecd_statistics_ = ec_decomposer.get_statistics();
         ApplicableActionsGenerator<QAction> q_aops_gen(sys);
         TransitionGenerator<QAction> q_transition_gen(sys);
         quotient_system::DefaultQuotientActionRewardFunction<Action>
             q_action_reward(sys, this->get_action_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
+
+        reachability::QualitativeReachabilityAnalysis<State, QAction> analysis(
+            this->get_state_id_map(),
+            &q_action_id_map,
+            this->get_state_reward_function(),
+            &q_action_reward,
+            &q_aops_gen,
+            &q_transition_gen,
+            expand_goals_);
+
+        if (extract_probability_one_states_) {
+            analysis.run_analysis(
+                state,
+                utils::set_output_iterator(dead_ends),
+                utils::set_output_iterator(one_states));
+        } else {
+            analysis.run_analysis(
+                state,
+                utils::set_output_iterator(dead_ends),
+                utils::discarding_output_iterator());
+        }
+
         HeuristicWrapper<BoolStoreT> heuristic(
             this->get_state_id_map(),
             dead_ends,
@@ -253,7 +277,8 @@ private:
             return result;
         } else {
             OneStateRewardFunction<BoolStoreT2> reward(
-                this->get_state_id_map(), one_states);
+                this->get_state_id_map(),
+                one_states);
 
             ValueIteration vi(
                 this->get_state_id_map(),
