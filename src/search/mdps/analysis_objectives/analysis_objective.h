@@ -1,7 +1,7 @@
 #ifndef MDPS_ANALYSIS_OBJECTIVES_ANALYSIS_OBJECTIVE_H
 #define MDPS_ANALYSIS_OBJECTIVES_ANALYSIS_OBJECTIVE_H
 
-#include "../action_evaluator.h"
+#include "../action_reward_function.h"
 #include "../state_reward_function.h"
 #include "../value_utils.h"
 
@@ -20,7 +20,7 @@ namespace analysis_objectives {
  * - A \ref GlobalStateRewardFunction specifiying the immediate reward
  * when transitioning to some successor state, independent of source
  * and action.
- * - A \ref ProbabilisticOperatorEvaluator specifying the immediate
+ * - A \ref ProbabilisticOperatorRewardFunction specifying the immediate
  * reward gained by applying an action in a given source state, independent
  * of possible successor states.
  *
@@ -39,7 +39,7 @@ public:
     virtual GlobalStateRewardFunction* state_reward() = 0;
 
     /// Returns a ProbabilisticOperatorEvaluator specifying the action rewards.
-    virtual ProbabilisticOperatorEvaluator* action_reward() = 0;
+    virtual ProbabilisticOperatorRewardFunction* action_reward() = 0;
 };
 
 } // namespace analysis_objectives

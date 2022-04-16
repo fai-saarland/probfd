@@ -25,11 +25,11 @@ public:
 
     virtual value_utils::IntervalValue reward_bound() override;
     virtual GlobalStateRewardFunction* state_reward() override;
-    virtual ProbabilisticOperatorEvaluator* action_reward() override;
+    virtual ProbabilisticOperatorRewardFunction* action_reward() override;
 
 private:
     std::unique_ptr<GlobalStateRewardFunction> state_eval_;
-    std::unique_ptr<ProbabilisticOperatorEvaluator> action_eval_;
+    std::unique_ptr<ProbabilisticOperatorRewardFunction> action_eval_;
 };
 
 } // namespace analysis_objectives

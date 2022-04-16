@@ -17,7 +17,7 @@ protected:
     }
 };
 
-class ActionCostEvaluator : public ProbabilisticOperatorEvaluator {
+class ActionCostEvaluator : public ProbabilisticOperatorRewardFunction {
 protected:
     value_type::value_t
     evaluate(StateID, const ProbabilisticOperator* op) override
@@ -43,7 +43,7 @@ GlobalStateRewardFunction* ExpectedCostObjective::state_reward()
     return state_eval_.get();
 }
 
-ProbabilisticOperatorEvaluator* ExpectedCostObjective::action_reward()
+ProbabilisticOperatorRewardFunction* ExpectedCostObjective::action_reward()
 {
     return action_eval_.get();
 }

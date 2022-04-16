@@ -1,7 +1,7 @@
 #ifndef MDPS_BISIMULATION_ENGINE_INTERFACES_H
 #define MDPS_BISIMULATION_ENGINE_INTERFACES_H
 
-#include "../engine_interfaces/action_evaluator.h"
+#include "../engine_interfaces/action_reward_function.h"
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"

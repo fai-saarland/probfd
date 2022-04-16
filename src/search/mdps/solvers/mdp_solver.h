@@ -4,7 +4,7 @@
 #include "../../global_state.h"
 #include "../../solver_interface.h"
 #include "../../state_registry.h"
-#include "../action_evaluator.h"
+#include "../action_reward_function.h"
 #include "../action_id_map.h"
 #include "../engines/engine.h"
 #include "../probabilistic_operator.h"

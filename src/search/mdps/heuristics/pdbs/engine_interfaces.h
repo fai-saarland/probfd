@@ -2,8 +2,8 @@
 #define MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 
 #include "../../../utils/range_proxy.h"
-#include "../../engine_interfaces/action_evaluator.h"
 #include "../../engine_interfaces/action_id_map.h"
+#include "../../engine_interfaces/action_reward_function.h"
 #include "../../engine_interfaces/applicable_actions_generator.h"
 #include "../../engine_interfaces/state_evaluator.h"
 #include "../../engine_interfaces/state_id_map.h"
@@ -11,6 +11,7 @@
 #include "../../engine_interfaces/transition_generator.h"
 #include "abstract_operator.h"
 #include "abstract_state_mapper.h"
+
 
 #include <memory>
 #include <set>

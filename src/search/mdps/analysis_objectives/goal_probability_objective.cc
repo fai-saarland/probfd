@@ -21,7 +21,7 @@ protected:
     }
 };
 
-class ZeroRewardActionEvaluator : public ProbabilisticOperatorEvaluator {
+class ZeroRewardActionEvaluator : public ProbabilisticOperatorRewardFunction {
 protected:
     value_type::value_t evaluate(StateID, const ProbabilisticOperator*) override
     {
@@ -46,7 +46,7 @@ GlobalStateRewardFunction* GoalProbabilityObjective::state_reward()
     return state_eval_.get();
 }
 
-ProbabilisticOperatorEvaluator* GoalProbabilityObjective::action_reward()
+ProbabilisticOperatorRewardFunction* GoalProbabilityObjective::action_reward()
 {
     return action_eval_.get();
 }

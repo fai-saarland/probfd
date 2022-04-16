@@ -2,7 +2,7 @@
 #define MDPS_ENGINES_ENGINE_H
 
 #include "../distribution.h"
-#include "../engine_interfaces/action_evaluator.h"
+#include "../engine_interfaces/action_reward_function.h"
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
