@@ -22,7 +22,7 @@ _parse(options::OptionParser& parser)
             value_type::from_double(opts.get<double>("value")));
     } else {
         return std::make_shared<ConstantEvaluator<GlobalState>>(
-            g_analysis_objective->max());
+            g_analysis_objective->reward_bound().upper);
     }
 }
 

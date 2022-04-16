@@ -528,12 +528,10 @@ void BisimilarStateSpace::dump(std::ostream& out) const
 
 DefaultQuotientStateEvaluator::DefaultQuotientStateEvaluator(
     bisimulation::BisimilarStateSpace* bisim,
-    const value_type::value_t min,
-    const value_type::value_t max,
+    const value_utils::IntervalValue bound,
     value_type::value_t def)
     : bisim_(bisim)
-    , min_(min)
-    , max_(max)
+    , bound_(bound)
     , default_(def)
 {
 }
@@ -542,22 +540,20 @@ EvaluationResult DefaultQuotientStateEvaluator::evaluate(
     const bisimulation::QuotientState& s) const
 {
     if (bisim_->is_dead_end(s)) {
-        return EvaluationResult(true, min_);
+        return EvaluationResult(true, bound_.lower);
     }
     if (bisim_->is_goal_state(s)) {
-        return EvaluationResult(true, max_);
+        return EvaluationResult(true, bound_.upper);
     }
     return EvaluationResult(false, default_);
 }
 
 DefaultQuotientStateRewardFunction::DefaultQuotientStateRewardFunction(
     bisimulation::BisimilarStateSpace* bisim,
-    const value_type::value_t min,
-    const value_type::value_t max,
+    const value_utils::IntervalValue bound,
     value_type::value_t def)
     : bisim_(bisim)
-    , min_(min)
-    , max_(max)
+    , bound_(bound)
     , default_(def)
 {
 }
@@ -566,10 +562,10 @@ EvaluationResult DefaultQuotientStateRewardFunction::evaluate(
     const bisimulation::QuotientState& s)
 {
     if (bisim_->is_dead_end(s)) {
-        return EvaluationResult(true, min_);
+        return EvaluationResult(true, bound_.lower);
     }
     if (bisim_->is_goal_state(s)) {
-        return EvaluationResult(true, max_);
+        return EvaluationResult(true, bound_.upper);
     }
     return EvaluationResult(false, default_);
 }

@@ -51,8 +51,7 @@ public:
             &action_id_map_,
             state_reward_function_,
             action_reward_function_,
-            minimal_reward_,
-            maximal_reward_,
+            reward_bound_,
             &aops_generator_,
             &transition_generator_,
             std::forward<Args>(args)...);
@@ -116,9 +115,20 @@ protected:
         return &transition_generator_;
     }
 
-    value_type::value_t get_minimal_reward() const { return minimal_reward_; }
+    value_type::value_t get_minimal_reward() const
+    {
+        return reward_bound_.lower;
+    }
 
-    value_type::value_t get_maximal_reward() const { return maximal_reward_; }
+    value_type::value_t get_maximal_reward() const
+    {
+        return reward_bound_.upper;
+    }
+
+    value_utils::IntervalValue get_reward_bound() const
+    {
+        return reward_bound_;
+    }
 
     StateRegistry* get_state_registry() { return &state_registry_; }
 
@@ -131,8 +141,7 @@ private:
     ActionIDMap<const ProbabilisticOperator*> action_id_map_;
     StateRewardFunction<GlobalState>* state_reward_function_;
     ActionRewardFunction<const ProbabilisticOperator*>* action_reward_function_;
-    value_type::value_t minimal_reward_;
-    value_type::value_t maximal_reward_;
+    const value_utils::IntervalValue reward_bound_;
     TransitionGenerator<const ProbabilisticOperator*> transition_generator_;
     ApplicableActionsGenerator<const ProbabilisticOperator*> aops_generator_;
 };

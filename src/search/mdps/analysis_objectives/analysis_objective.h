@@ -3,7 +3,7 @@
 
 #include "../action_evaluator.h"
 #include "../state_reward_function.h"
-#include "../value_type.h"
+#include "../value_utils.h"
 
 #include <memory>
 
@@ -33,10 +33,7 @@ public:
     virtual ~AnalysisObjective() = default;
 
     /// Returns a lower bound on the state values for this analysis objective.
-    virtual value_type::value_t min() = 0;
-
-    /// Returns an upper bound on the state values for this analysis objective.
-    virtual value_type::value_t max() = 0;
+    virtual value_utils::IntervalValue reward_bound() = 0;
 
     /// Returns a GlobalStateRewardFunction specifying the state rewards.
     virtual GlobalStateRewardFunction* state_reward() = 0;

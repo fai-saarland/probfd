@@ -33,14 +33,9 @@ ExpectedCostObjective::ExpectedCostObjective()
 {
 }
 
-value_type::value_t ExpectedCostObjective::min()
+value_utils::IntervalValue ExpectedCostObjective::reward_bound()
 {
-    return -value_type::inf;
-}
-
-value_type::value_t ExpectedCostObjective::max()
-{
-    return value_type::zero;
+    return value_utils::IntervalValue(-value_type::inf, value_type::zero);
 }
 
 GlobalStateRewardFunction* ExpectedCostObjective::state_reward()

@@ -240,8 +240,7 @@ public:
                 q_action_id_map_.get(),
                 this->get_state_reward_function(),
                 q_action_reward_.get(),
-                this->get_minimal_reward(),
-                this->get_maximal_reward(),
+                this->get_reward_bound(),
                 q_aops_gen_.get(),
                 q_transition_gen_.get());
         } else {
@@ -265,8 +264,7 @@ public:
                 q_action_id_map_.get(),
                 this->get_state_reward_function(),
                 q_action_reward_.get(),
-                this->get_minimal_reward(),
-                this->get_maximal_reward(),
+                this->get_reward_bound(),
                 q_aops_gen_.get(),
                 q_transition_gen_.get());
         }
@@ -326,8 +324,7 @@ private:
             q_action_id_map_.get(),
             this->get_state_reward_function(),
             q_action_reward_.get(),
-            this->get_minimal_reward(),
-            this->get_maximal_reward(),
+            this->get_reward_bound(),
             q_aops_gen_.get(),
             q_transition_gen_.get(),
             dead_end_ident_level_,
@@ -371,8 +368,7 @@ private:
             this->get_action_id_map(),
             this->get_state_reward_function(),
             this->get_action_reward_function(),
-            this->get_minimal_reward(),
-            this->get_maximal_reward(),
+            this->get_reward_bound(),
             this->get_applicable_actions_generator(),
             this->get_transition_generator(),
             quotient_.get(),

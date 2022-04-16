@@ -29,8 +29,7 @@ MDPSolver::MDPSolver(const options::Options& opts)
     , action_id_map_(g_operators)
     , state_reward_function_(g_analysis_objective->state_reward())
     , action_reward_function_(g_analysis_objective->action_reward())
-    , minimal_reward_(g_analysis_objective->min())
-    , maximal_reward_(g_analysis_objective->max())
+    , reward_bound_(g_analysis_objective->reward_bound())
     , transition_generator_(
           g_operators,
           g_successor_generator.get(),

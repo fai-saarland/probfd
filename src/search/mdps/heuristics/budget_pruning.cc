@@ -55,9 +55,10 @@ BudgetPruningHeuristic::BudgetPruningHeuristic(
 
 BudgetPruningHeuristic::BudgetPruningHeuristic(const options::Options& opts)
     : BudgetPruningHeuristic(
-          opts.get<bool>("pessimistic") ? g_analysis_objective->min()
-                                        : g_analysis_objective->max(),
-          g_analysis_objective->min(),
+          opts.get<bool>("pessimistic")
+              ? g_analysis_objective->reward_bound().lower
+              : g_analysis_objective->reward_bound().upper,
+          g_analysis_objective->reward_bound().lower,
           opts.get<std::shared_ptr<Heuristic>>("heuristic"),
           opts.get<bool>("cache_estimates"))
 {

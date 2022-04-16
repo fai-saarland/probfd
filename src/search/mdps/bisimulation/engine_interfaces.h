@@ -11,6 +11,8 @@
 
 #include "bisimilar_state_space.h"
 
+#include "../value_utils.h"
+
 namespace probabilistic {
 
 template <>
@@ -63,32 +65,28 @@ using QuotientStateEvaluator = StateEvaluator<bisimulation::QuotientState>;
 struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
     explicit DefaultQuotientStateEvaluator(
         bisimulation::BisimilarStateSpace* bisim,
-        const value_type::value_t min,
-        const value_type::value_t max,
+        const value_utils::IntervalValue bound,
         value_type::value_t default_value = 0);
 
     EvaluationResult
     evaluate(const bisimulation::QuotientState& state) const override;
 
     bisimulation::BisimilarStateSpace* bisim_;
-    const value_type::value_t min_;
-    const value_type::value_t max_;
+    const value_utils::IntervalValue bound_;
     const value_type::value_t default_;
 };
 
 struct DefaultQuotientStateRewardFunction : public QuotientStateRewardFunction {
     explicit DefaultQuotientStateRewardFunction(
         bisimulation::BisimilarStateSpace* bisim,
-        const value_type::value_t min,
-        const value_type::value_t max,
+        const value_utils::IntervalValue bound,
         value_type::value_t default_value = 0);
 
     EvaluationResult
     evaluate(const bisimulation::QuotientState& state) override;
 
     bisimulation::BisimilarStateSpace* bisim_;
-    const value_type::value_t min_;
-    const value_type::value_t max_;
+    const value_utils::IntervalValue bound_;
     const value_type::value_t default_;
 };
 

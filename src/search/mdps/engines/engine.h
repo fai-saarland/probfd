@@ -9,7 +9,7 @@
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
-#include "../value_type.h"
+#include "../value_utils.h"
 
 #include <vector>
 
@@ -78,7 +78,7 @@ public:
      * @param action_id_map - The action id mapping (populated by the engine).
      * @param state_reward_function - The state reward interface.
      * @param action_reward_function - The action reward interface.
-     * @param minimal_reward - A lower bound on reward values.
+     * @param reward_bound - A bound on reward values.
      * @param maximal_reward - An upper bound on reward values.
      * @param aops_generator - The applicable action generator.
      * @param transition_generator - The transition generator.
@@ -88,16 +88,14 @@ public:
         ActionIDMap<Action>* action_id_map,
         StateRewardFunction<State>* state_reward_function,
         ActionRewardFunction<Action>* action_reward_function,
-        value_type::value_t minimal_reward,
-        value_type::value_t maximal_reward,
+        value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
         , state_reward_function_(state_reward_function)
         , action_reward_function_(action_reward_function)
-        , minimal_reward_(minimal_reward)
-        , maximal_reward_(maximal_reward)
+        , reward_bound_(reward_bound)
         , aops_generator_(aops_generator)
         , transition_generator_(transition_generator)
     {
@@ -159,12 +157,18 @@ public:
     /**
      * @brief Get the lower bound on reward values.
      */
-    value_type::value_t get_minimal_reward() const { return minimal_reward_; }
+    value_type::value_t get_minimal_reward() const
+    {
+        return reward_bound_.lower;
+    }
 
     /**
      * @brief Get the upper bound on reward values.
      */
-    value_type::value_t get_maximal_reward() const { return maximal_reward_; }
+    value_type::value_t get_maximal_reward() const
+    {
+        return reward_bound_.upper;
+    }
 
     /**
      * @brief Output the list of applicable operators in the state with id
@@ -251,8 +255,7 @@ private:
     ActionIDMap<Action>* action_id_map_;
     StateRewardFunction<State>* state_reward_function_;
     ActionRewardFunction<Action>* action_reward_function_;
-    const value_type::value_t minimal_reward_;
-    const value_type::value_t maximal_reward_;
+    const value_utils::IntervalValue reward_bound_;
     ApplicableActionsGenerator<Action>* aops_generator_;
     TransitionGenerator<Action>* transition_generator_;
 };

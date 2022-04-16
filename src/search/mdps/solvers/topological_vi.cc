@@ -22,7 +22,7 @@ get_evaluator(const options::Options& opts)
     }
 
     return std::make_shared<ConstantEvaluator<GlobalState>>(
-        g_analysis_objective->max());
+        g_analysis_objective->reward_bound().upper);
 }
 
 class TopologicalVISolver : public MDPSolver {

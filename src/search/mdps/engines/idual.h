@@ -111,8 +111,7 @@ public:
         ActionIDMap<Action>* action_id_map,
         StateRewardFunction<State>* state_reward_function,
         ActionRewardFunction<Action>* action_reward_function,
-        value_type::value_t minimal_reward,
-        value_type::value_t maximal_reward,
+        value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         lp::LPSolverType solver_type,
@@ -123,8 +122,7 @@ public:
               action_id_map,
               state_reward_function,
               action_reward_function,
-              minimal_reward,
-              maximal_reward,
+              reward_bound,
               aops_generator,
               transition_generator)
         , report_(report)

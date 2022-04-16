@@ -65,8 +65,7 @@ public:
         TransitionGenerator<bisimulation::QuotientAction> tgen(&bs);
         bisimulation::DefaultQuotientStateRewardFunction state_reward(
             &bs,
-            g_analysis_objective->min(),
-            g_analysis_objective->max());
+            g_analysis_objective->reward_bound());
         bisimulation::DefaultQuotientActionRewardFunction transition_reward;
 
         stats.timer.stop();
@@ -96,8 +95,7 @@ public:
                 &action_id_map,
                 &state_reward,
                 &transition_reward,
-                g_analysis_objective->min(),
-                g_analysis_objective->max(),
+                g_analysis_objective->reward_bound(),
                 &aops_gen,
                 &tgen,
                 nullptr,
@@ -113,8 +111,7 @@ public:
                 &action_id_map,
                 &state_reward,
                 &transition_reward,
-                g_analysis_objective->min(),
-                g_analysis_objective->max(),
+                g_analysis_objective->reward_bound(),
                 &aops_gen,
                 &tgen,
                 &initializer,

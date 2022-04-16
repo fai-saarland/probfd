@@ -66,8 +66,7 @@ I2Dual::I2Dual(const options::Options& opts)
           ::g_axiom_evaluator,
           g_initial_state_values)
     , state_reward_function_(g_analysis_objective->state_reward())
-    , minimal_reward_(g_analysis_objective->min())
-    , maximal_reward_(g_analysis_objective->max())
+    , reward_bound_(g_analysis_objective->reward_bound())
     , transition_generator_(
           g_operators,
           g_successor_generator.get(),

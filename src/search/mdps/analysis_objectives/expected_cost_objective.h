@@ -23,8 +23,7 @@ public:
     /// Default constructor.
     explicit ExpectedCostObjective();
 
-    virtual value_type::value_t min() override;
-    virtual value_type::value_t max() override;
+    virtual value_utils::IntervalValue reward_bound() override;
     virtual GlobalStateRewardFunction* state_reward() override;
     virtual ProbabilisticOperatorEvaluator* action_reward() override;
 

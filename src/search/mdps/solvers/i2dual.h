@@ -12,7 +12,7 @@
 #include "../state_reward_function.h"
 #include "../storage/per_state_storage.h"
 #include "../transition_generator.h"
-#include "../value_type.h"
+#include "../value_utils.h"
 
 #include <memory>
 #include <vector>
@@ -65,8 +65,7 @@ private:
     StateRegistry state_registry_;
 
     StateRewardFunction<GlobalState>* state_reward_function_;
-    value_type::value_t minimal_reward_;
-    value_type::value_t maximal_reward_;
+    value_utils::IntervalValue reward_bound_;
     TransitionGenerator<const ProbabilisticOperator*> transition_generator_;
     ApplicableActionsGenerator<const ProbabilisticOperator*> aops_generator_;
 

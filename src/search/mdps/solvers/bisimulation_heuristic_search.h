@@ -65,8 +65,7 @@ public:
                 &res->action_id_map,
                 res->state_reward.get(),
                 &res->transition_reward,
-                g_analysis_objective->min(),
-                g_analysis_objective->max(),
+                g_analysis_objective->reward_bound(),
                 res->aops_gen.get(),
                 res->tgen.get(),
                 DeadEndIdentificationLevel::Disabled,
@@ -127,8 +126,7 @@ public:
                 res->q_action_id_map_.get(),
                 res->state_reward.get(),
                 res->q_action_reward_.get(),
-                g_analysis_objective->min(),
-                g_analysis_objective->max(),
+                g_analysis_objective->reward_bound(),
                 res->q_aops_gen_.get(),
                 res->q_transition_gen_.get()));
 
@@ -175,8 +173,7 @@ public:
                 res->q_action_id_map_.get(),
                 res->state_reward.get(),
                 res->q_action_reward_.get(),
-                g_analysis_objective->min(),
-                g_analysis_objective->max(),
+                g_analysis_objective->reward_bound(),
                 res->q_aops_gen_.get(),
                 res->q_transition_gen_.get(),
                 DeadEndIdentificationLevel::Disabled,
@@ -201,8 +198,7 @@ public:
                     &res->action_id_map,
                     res->state_reward.get(),
                     &res->transition_reward,
-                    g_analysis_objective->min(),
-                    g_analysis_objective->max(),
+                    g_analysis_objective->reward_bound(),
                     res->aops_gen.get(),
                     res->tgen.get(),
                     res->quotient_.get(),
@@ -267,15 +263,13 @@ private:
             std::unique_ptr<bisimulation::QuotientStateRewardFunction>(
                 new bisimulation::DefaultQuotientStateRewardFunction(
                     bs.get(),
-                    g_analysis_objective->min(),
-                    g_analysis_objective->max()));
+                    g_analysis_objective->reward_bound()));
         heuristic_ =
             std::unique_ptr<StateEvaluator<bisimulation::QuotientState>>(
                 new bisimulation::DefaultQuotientStateEvaluator(
                     bs.get(),
-                    g_analysis_objective->min(),
-                    g_analysis_objective->max(),
-                    g_analysis_objective->max()));
+                    g_analysis_objective->reward_bound(),
+                    g_analysis_objective->reward_bound().upper));
 
         stats.timer.stop();
         stats.states = bs->num_bisimilar_states();

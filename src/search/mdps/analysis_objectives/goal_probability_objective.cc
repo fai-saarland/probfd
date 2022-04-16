@@ -36,14 +36,9 @@ GoalProbabilityObjective::GoalProbabilityObjective()
 {
 }
 
-value_type::value_t GoalProbabilityObjective::min()
+value_utils::IntervalValue GoalProbabilityObjective::reward_bound()
 {
-    return value_type::zero;
-}
-
-value_type::value_t GoalProbabilityObjective::max()
-{
-    return value_type::one;
+    return value_utils::IntervalValue(value_type::zero, value_type::one);
 }
 
 GlobalStateRewardFunction* GoalProbabilityObjective::state_reward()

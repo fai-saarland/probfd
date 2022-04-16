@@ -21,9 +21,10 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(const options::Options& opts)
     : DeadEndPruningHeuristic(
-          opts.get<bool>("pessimistic") ? g_analysis_objective->min()
-                                        : g_analysis_objective->max(),
-          g_analysis_objective->min(),
+          opts.get<bool>("pessimistic")
+              ? g_analysis_objective->reward_bound().lower
+              : g_analysis_objective->reward_bound().upper,
+          g_analysis_objective->reward_bound().lower,
           opts.get<std::shared_ptr<Heuristic>>("heuristic"))
 {
 }
