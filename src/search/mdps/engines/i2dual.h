@@ -31,46 +31,41 @@ namespace engines {
 namespace i2dual {
 
 struct IDualData {
-    enum class IDualStateStatus {
-        NEW = 0,
-        FRONTIER = 1,
-        TERMINAL = 2,
-        CLOSED = 3,
-    };
+    enum IDualStateStatus : uint8_t { NEW, FRONTIER, TERMINAL, CLOSED };
 
     std::vector<std::pair<double, unsigned>> incoming;
     double estimate = -1;
     unsigned constraint = -1;
-    IDualStateStatus status = IDualStateStatus::NEW;
+    IDualStateStatus status = NEW;
 
-    bool is_new() const { return status == IDualStateStatus::NEW; }
-    bool is_terminal() const { return status == IDualStateStatus::TERMINAL; }
-    bool is_frontier() const { return status == IDualStateStatus::FRONTIER; }
+    bool is_new() const { return status == NEW; }
+    bool is_terminal() const { return status == TERMINAL; }
+    bool is_frontier() const { return status == FRONTIER; }
 
     void open(unsigned c, double est)
     {
-        status = IDualStateStatus::FRONTIER;
+        status = FRONTIER;
         constraint = c;
         estimate = est;
     }
 
     void set_terminal(double val)
     {
-        status = IDualStateStatus::TERMINAL;
+        status = TERMINAL;
         estimate = val;
     }
 
     void close()
     {
-        status = IDualStateStatus::CLOSED;
+        status = CLOSED;
         std::vector<std::pair<double, unsigned>>().swap(incoming);
     }
 };
 
 struct Statistics {
-    utils::Timer idual_timer_;
-    utils::Timer lp_solver_timer_;
-    utils::Timer hpom_timer_;
+    utils::Timer idual_timer_ = utils::Timer(true);
+    utils::Timer lp_solver_timer_ = utils::Timer(true);
+    utils::Timer hpom_timer_ = utils::Timer(true);
 
     unsigned long long iterations_ = 0;
     unsigned long long expansions_ = 0;
@@ -79,13 +74,6 @@ struct Statistics {
     unsigned long long num_lp_constraints_ = 0;
     unsigned long long hpom_num_vars_ = 0;
     unsigned long long hpom_num_constraints_ = 0;
-
-    Statistics()
-    {
-        idual_timer_.stop();
-        lp_solver_timer_.stop();
-        hpom_timer_.stop();
-    }
 
     void print(std::ostream& out) const
     {

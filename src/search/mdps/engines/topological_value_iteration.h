@@ -22,6 +22,15 @@ namespace topological_vi {
  * @brief Topological value iteration statistics.
  */
 struct Statistics {
+    unsigned long long expanded_states = 0;
+    unsigned long long terminal_states = 0;
+    unsigned long long goal_states = 0;
+    unsigned long long dead_ends = 0;
+    unsigned long long sccs = 0;
+    unsigned long long singleton_sccs = 0;
+    unsigned long long bellman_backups = 0;
+    unsigned long long pruned = 0;
+
     void print(std::ostream& out) const
     {
         out << "  Expanded state(s): " << expanded_states << std::endl;
@@ -33,15 +42,6 @@ struct Statistics {
             << " are singleton)" << std::endl;
         out << "  Bellman backups: " << bellman_backups << std::endl;
     }
-
-    unsigned long long expanded_states = 0;
-    unsigned long long terminal_states = 0;
-    unsigned long long goal_states = 0;
-    unsigned long long dead_ends = 0;
-    unsigned long long sccs = 0;
-    unsigned long long singleton_sccs = 0;
-    unsigned long long bellman_backups = 0;
-    unsigned long long pruned = 0;
 };
 
 /**

@@ -18,7 +18,7 @@
 #include <limits>
 #include <memory>
 
-#define TIMER_STATISTICS_ENABLED(x)
+#define TIMERS_ENABLED(x)
 
 namespace probabilistic {
 namespace engines {
@@ -26,67 +26,7 @@ namespace engines {
 /// I do not know this algorithm.
 namespace exhaustive_dfs {
 
-class Statistics {
-public:
-    Statistics()
-    {
-        TIMER_STATISTICS_ENABLED(notification_time.stop();)
-        TIMER_STATISTICS_ENABLED(evaluation_time.stop();)
-    }
-
-    void print(std::ostream& out) const
-    {
-        out << "  Expanded " << expanded << " state(s)." << std::endl;
-        out << "  Evaluated " << evaluated << " state(s)." << std::endl;
-        out << "  Evaluations: " << evaluations << std::endl;
-        out << "  Terminal states: " << terminal << std::endl;
-        out << "  Pure self-loop states: " << self_loop << std::endl;
-        out << "  Goal states: " << goal_states << " state(s)." << std::endl;
-        out << "  Dead ends: " << dead_ends << " state(s)." << std::endl;
-        out << "  State value updates: " << value_updates << std::endl;
-        out << "  Backtracked from " << backtracks << " state(s)." << std::endl;
-        out << "  Found " << sccs << " SCC(s)." << std::endl;
-        out << "  Found " << dead_end_sccs << " dead-end SCC(s)." << std::endl;
-        out << "  Partially pruned " << pruned_dead_end_sccs
-            << " dead-end SCC(s)." << std::endl;
-        TIMER_STATISTICS_ENABLED(out << "  Dead end evaluator time: "
-                                     << evaluation_time << std::endl;)
-        out << "  Dead end notifications: " << notifications << std::endl;
-        TIMER_STATISTICS_ENABLED(out << "  Total dead end nofication time: "
-                                     << (notification_time) << std::endl;)
-        out << "  Average dead-end SCC size: "
-            << (static_cast<double>(summed_dead_end_scc_sizes) /
-                static_cast<int>(dead_end_sccs))
-            << std::endl;
-        out << "  Average dead-end SCC size for notifications: "
-            << (static_cast<double>(summed_notified_scc_sizes) /
-                static_cast<int>(notifications))
-            << std::endl;
-    }
-
-    void evaluation_started()
-    {
-        evaluations++;
-        TIMER_STATISTICS_ENABLED(evaluation_time.resume();)
-    }
-
-    void evaluation_finished()
-    {
-        TIMER_STATISTICS_ENABLED(evaluation_time.stop();)
-    }
-
-    void notification_started(unsigned scc_size)
-    {
-        notifications++;
-        TIMER_STATISTICS_ENABLED(notification_time.resume();)
-        summed_notified_scc_sizes += scc_size;
-    }
-
-    void notification_finished()
-    {
-        TIMER_STATISTICS_ENABLED(notification_time.stop();)
-    }
-
+struct Statistics {
     unsigned long long expanded = 0;
     unsigned long long evaluations = 0;
     unsigned long long evaluated = 0;
@@ -105,8 +45,55 @@ public:
     unsigned long long summed_dead_end_scc_sizes = 0;
     unsigned long long summed_notified_scc_sizes = 0;
 
-    TIMER_STATISTICS_ENABLED(::utils::Timer evaluation_time;)
-    TIMER_STATISTICS_ENABLED(::utils::Timer notification_time;)
+    TIMERS_ENABLED(utils::Timer evaluation_time = utils::Timer(true);)
+    TIMERS_ENABLED(utils::Timer notification_time = utils::Timer(true);)
+
+    void print(std::ostream& out) const
+    {
+        out << "  Expanded " << expanded << " state(s)." << std::endl;
+        out << "  Evaluated " << evaluated << " state(s)." << std::endl;
+        out << "  Evaluations: " << evaluations << std::endl;
+        out << "  Terminal states: " << terminal << std::endl;
+        out << "  Pure self-loop states: " << self_loop << std::endl;
+        out << "  Goal states: " << goal_states << " state(s)." << std::endl;
+        out << "  Dead ends: " << dead_ends << " state(s)." << std::endl;
+        out << "  State value updates: " << value_updates << std::endl;
+        out << "  Backtracked from " << backtracks << " state(s)." << std::endl;
+        out << "  Found " << sccs << " SCC(s)." << std::endl;
+        out << "  Found " << dead_end_sccs << " dead-end SCC(s)." << std::endl;
+        out << "  Partially pruned " << pruned_dead_end_sccs
+            << " dead-end SCC(s)." << std::endl;
+        TIMERS_ENABLED(out << "  Dead end evaluator time: " << evaluation_time
+                           << std::endl;)
+        out << "  Dead end notifications: " << notifications << std::endl;
+        TIMERS_ENABLED(out << "  Total dead end nofication time: "
+                           << (notification_time) << std::endl;)
+        out << "  Average dead-end SCC size: "
+            << (static_cast<double>(summed_dead_end_scc_sizes) /
+                static_cast<int>(dead_end_sccs))
+            << std::endl;
+        out << "  Average dead-end SCC size for notifications: "
+            << (static_cast<double>(summed_notified_scc_sizes) /
+                static_cast<int>(notifications))
+            << std::endl;
+    }
+
+    void evaluation_started()
+    {
+        evaluations++;
+        TIMERS_ENABLED(evaluation_time.resume();)
+    }
+
+    void evaluation_finished() { TIMERS_ENABLED(evaluation_time.stop();) }
+
+    void notification_started(unsigned scc_size)
+    {
+        notifications++;
+        TIMERS_ENABLED(notification_time.resume();)
+        summed_notified_scc_sizes += scc_size;
+    }
+
+    void notification_finished() { TIMERS_ENABLED(notification_time.stop();) }
 };
 
 enum class BacktrackingUpdateType {
@@ -304,9 +291,9 @@ private:
 
     EvaluationResult evaluate(const State& state)
     {
-        TIMER_STATISTICS_ENABLED(statistics_.evaluation_started();)
+        TIMERS_ENABLED(statistics_.evaluation_started();)
         const EvaluationResult res = evaluator_->operator()(state);
-        TIMER_STATISTICS_ENABLED(statistics_.evaluation_finished();)
+        TIMERS_ENABLED(statistics_.evaluation_finished();)
         return res;
     }
 
@@ -318,12 +305,12 @@ private:
 
     bool is_dead_end(const State& state)
     {
-        TIMER_STATISTICS_ENABLED(statistics_.evaluation_started();)
+        TIMERS_ENABLED(statistics_.evaluation_started();)
         bool result = false;
         if (dead_end_evaluator_ != nullptr) {
             result = (bool)dead_end_evaluator_->operator()(state);
         }
-        TIMER_STATISTICS_ENABLED(statistics_.evaluation_finished();)
+        TIMERS_ENABLED(statistics_.evaluation_finished();)
         return result;
     }
 
@@ -1177,6 +1164,6 @@ private:
 } // namespace engines
 } // namespace probabilistic
 
-#undef TIMER_STATISTICS_ENABLED
+#undef TIMERS_ENABLED
 
 #endif // __EXHAUSTIVE_DFS_H__

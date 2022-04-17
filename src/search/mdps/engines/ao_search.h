@@ -24,20 +24,14 @@ struct Statistics {
     {
         out << "  Iterations: " << iterations << std::endl;
     }
-
-    void register_report(ProgressReport& report)
-    {
-        report.register_print(
-            [this](std::ostream& out) { out << "i=" << iterations; });
-    }
 };
 
 template <typename StateInfo>
 struct PerStateInformation : public StateInfo {
-    static constexpr const uint8_t MARK = 1 << StateInfo::BITS;
-    static constexpr const uint8_t SOLVED = 2 << StateInfo::BITS;
-    static constexpr const uint8_t MASK = 3 << StateInfo::BITS;
-    static constexpr const uint8_t BITS = StateInfo::BITS + 2;
+    static constexpr uint8_t MARK = 1 << StateInfo::BITS;
+    static constexpr uint8_t SOLVED = 2 << StateInfo::BITS;
+    static constexpr uint8_t MASK = 3 << StateInfo::BITS;
+    static constexpr uint8_t BITS = StateInfo::BITS + 2;
 
     bool is_tip_state() const { return update_order == 0; }
     bool is_marked() const { return this->info & MARK; }
@@ -158,7 +152,8 @@ public:
 protected:
     virtual void setup_custom_reports(const State&) override
     {
-        this->statistics_.register_report(*this->report_);
+        this->report_->register_print(
+            [&](std::ostream& out) { out << "i=" << statistics_.iterations; });
     }
 
     void backpropagate_tip_value()

@@ -18,8 +18,7 @@ namespace internal {
 template <typename StateInfo>
 struct PerStateInformation : public ao_search::PerStateInformation<StateInfo> {
     PerStateInformation()
-        : ao_search::PerStateInformation<StateInfo>()
-        , unsolved(0)
+        : unsolved(0)
         , alive(0)
     {
     }

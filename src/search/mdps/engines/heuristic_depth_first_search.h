@@ -51,25 +51,19 @@ struct Statistics {
         out << "  Bellman backups (convergence): " << convergence_updates
             << std::endl;
     }
-
-    void register_report(ProgressReport* report)
-    {
-        report->register_print(
-            [this](std::ostream& out) { out << "dohs=" << iterations; });
-    }
 };
 
 struct PerStateInformationBase {
-    static constexpr const uint8_t BITS = 0;
+    static constexpr uint8_t BITS = 0;
     uint8_t info = 0;
 };
 
 template <typename StateInfo>
 struct PerStateInformation : public StateInfo {
-    static constexpr const uint8_t INITIALIZED = (1 << StateInfo::BITS);
-    static constexpr const uint8_t SOLVED = (2 << StateInfo::BITS);
-    static constexpr const uint8_t BITS = StateInfo::BITS + 2;
-    static constexpr const uint8_t MASK = (3 << StateInfo::BITS);
+    static constexpr uint8_t INITIALIZED = 1 << StateInfo::BITS;
+    static constexpr uint8_t SOLVED = 2 << StateInfo::BITS;
+    static constexpr uint8_t MASK = 3 << StateInfo::BITS;
+    static constexpr uint8_t BITS = StateInfo::BITS + 2;
 
     bool is_policy_initialized() const { return (this->info & MASK) != 0; }
     bool is_solved() const { return this->info & SOLVED; }

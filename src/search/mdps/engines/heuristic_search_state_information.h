@@ -27,20 +27,16 @@ struct StatesPolicy<std::true_type> {
 };
 
 struct StateFlags {
-    static constexpr const uint8_t INITIALIZED = 1;
-    static constexpr const uint8_t DEAD = 2;
-    static constexpr const uint8_t GOAL = 4;
-    static constexpr const uint8_t FRINGE = 5;
-    static constexpr const uint8_t MASK = 7;
-    static constexpr const uint8_t BITS = 3;
+    static constexpr uint8_t INITIALIZED = 1;
+    static constexpr uint8_t DEAD = 2;
+    static constexpr uint8_t GOAL = 4;
+    static constexpr uint8_t FRINGE = 5;
+    static constexpr uint8_t MASK = 7;
+    static constexpr uint8_t BITS = 3;
 
-    inline bool is_value_initialized() const { return (MASK & info) != 0; }
-    inline bool is_dead_end() const
-    {
-        const uint8_t masked = info & MASK;
-        return masked == DEAD;
-    }
-    inline bool is_goal_state() const { return (MASK & info) == GOAL; }
+    inline bool is_value_initialized() const { return (info & MASK) != 0; }
+    inline bool is_dead_end() const { return (info & MASK) == DEAD; }
+    inline bool is_goal_state() const { return (info & MASK) == GOAL; }
     inline bool is_terminal() const { return is_dead_end() || is_goal_state(); }
     inline bool is_on_fringe() const { return (info & MASK) == FRINGE; }
 

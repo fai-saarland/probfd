@@ -67,17 +67,9 @@ struct Statistics : public CoreStatistics {
     CoreStatistics before_last_update;
 
 #if defined(EXPENSIVE_STATISTICS)
-    utils::Timer update_time;
-    utils::Timer policy_selection_time;
+    utils::Timer update_time = utils::Timer(true);
+    utils::Timer policy_selection_time = utils::Timer(true);
 #endif
-
-    Statistics()
-    {
-#if defined(EXPENSIVE_STATISTICS)
-        update_time.stop();
-        policy_selection_time.stop();
-#endif
-    }
 
     /**
      * @brief Prints the statistics to the specified output stream.
