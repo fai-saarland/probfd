@@ -330,7 +330,7 @@ private:
         bool& dead)
     {
         const bool result =
-            this->async_update(state, nullptr, &selected_transition_, nullptr);
+            this->async_update(state, nullptr, &selected_transition_).first;
         solved = true;
         dead = !selected_transition_.empty() || info.is_dead_end();
         // std::cout << "update " << this->state_id_map_->operator[](state) << "

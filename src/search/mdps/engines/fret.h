@@ -392,11 +392,10 @@ public:
     bool operator()(const StateID& qstate, std::vector<StateID>& successors)
     {
         collector_.states.clear();
-        bool result =
-            base_engine_
-                ->async_update(qstate, &collector_, nullptr, nullptr, nullptr);
+        auto result =
+            base_engine_->async_update(qstate, collector_, nullptr, nullptr);
         collector_.states.swap(successors);
-        return result;
+        return result.first;
     }
 
 private:

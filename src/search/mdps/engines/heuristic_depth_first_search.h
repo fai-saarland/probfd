@@ -445,14 +445,11 @@ private:
                     (last_value_changed &&
                      BackwardUpdates == BacktrackingUpdateType::OnDemand)) {
                     statistics_.backtracking_updates++;
-                    bool policy_changed = false;
-                    last_value_changed = this->async_update(
-                        einfo.stateid,
-                        nullptr,
-                        nullptr,
-                        &policy_changed);
+                    auto result =
+                        this->async_update(einfo.stateid, nullptr, nullptr);
+                    last_value_changed = result.first;
                     last_unsolved_successors =
-                        last_unsolved_successors || policy_changed;
+                        last_unsolved_successors || result.second;
                 }
 
                 if (sinfo.index == sinfo.lowlink) {
@@ -545,7 +542,7 @@ private:
             sinfo.set_policy_initialized();
             statistics_.forward_updates++;
             const bool updated =
-                this->async_update(stateid, nullptr, &transition_, nullptr);
+                this->async_update(stateid, nullptr, &transition_).first;
             einfo.value_changed = updated;
 
             if constexpr (DualBounds::value) {
@@ -607,13 +604,10 @@ private:
                 DMSG(StateID id = *it;
                      std::cout << "updating " << id << " "
                                << (get_state_info(id).get_value()) << " ... ";)
-                bool policy_changed = false;
-                value_changed = this->async_update(
-                                    *it,
-                                    nullptr,
-                                    nullptr,
-                                    &policy_changed) ||
-                                value_changed;
+                auto result = this->async_update(*it, nullptr, nullptr);
+
+                value_changed = result.first || value_changed;
+                bool policy_changed = result.second;
 
                 if constexpr (DualBounds::value) {
                     all_converged = all_converged &&
