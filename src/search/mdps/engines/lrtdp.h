@@ -42,12 +42,6 @@ struct Statistics {
         out << "  Bellman backups (check&solved): "
             << check_and_solve_bellman_backups << std::endl;
     }
-
-    void register_report(ProgressReport& report)
-    {
-        report.register_print(
-            [this](std::ostream& out) { out << "trials=" << trials; });
-    }
 };
 
 struct EmptyStateInfo {
@@ -254,7 +248,8 @@ public:
 protected:
     virtual void setup_custom_reports(const State&) override
     {
-        this->statistics_.register_report(*this->report_);
+        this->report_->register_print(
+            [&](std::ostream& out) { out << "trials=" << statistics_.trials; });
     }
 
 private:
