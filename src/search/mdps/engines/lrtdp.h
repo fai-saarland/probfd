@@ -27,18 +27,10 @@ enum class TrialTerminationCondition {
 namespace internal {
 
 struct Statistics {
-    unsigned long long trials;
-    unsigned long long trial_bellman_backups;
-    unsigned long long check_and_solve_bellman_backups;
-    unsigned long long state_info_bytes;
-
-    Statistics()
-        : trials(0)
-        , trial_bellman_backups(0)
-        , check_and_solve_bellman_backups(0)
-        , state_info_bytes(0)
-    {
-    }
+    unsigned long long trials = 0;
+    unsigned long long trial_bellman_backups = 0;
+    unsigned long long check_and_solve_bellman_backups = 0;
+    unsigned long long state_info_bytes = 0;
 
     void print(std::ostream& out) const
     {
@@ -60,11 +52,7 @@ struct Statistics {
 
 struct EmptyStateInfo {
     static constexpr const uint8_t BITS = 0;
-    EmptyStateInfo()
-        : info(0)
-    {
-    }
-    uint8_t info;
+    uint8_t info = 0;
 };
 
 template <typename StateInfo>
@@ -76,39 +64,108 @@ struct PerStateInformation : public StateInfo {
     static constexpr const uint8_t MASK = (3 << StateInfo::BITS);
 
     bool is_marked_open() const { return (this->info & MASK) == MARKED_OPEN; }
+
     // bool is_marked_trial() const
     // {
     //     return (this->info & MASK) == MARKED_TRIAL;
     // }
+
     bool is_solved() const { return (this->info & MASK) == SOLVED; }
+
     void mark_open()
     {
         assert(!is_solved());
         this->info = (this->info & ~MASK) | MARKED_OPEN;
     }
+
     // void mark_trial()
     // {
     //     assert(!is_solved());
     //     this->info = (this->info & ~MASK) | MARKED_TRIAL;
     // }
+
     void unmark()
     {
         assert(!is_solved());
         this->info = this->info & ~MASK;
     }
+
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
 };
 
-template <
-    typename HeuristicSearchBase,
-    typename StateInfoT = typename HeuristicSearchBase::StateInfo>
-class LRTDP : public HeuristicSearchBase {
-public:
-    using State = typename HeuristicSearchBase::State;
-    using Action = typename HeuristicSearchBase::Action;
-    using DualBounds = typename HeuristicSearchBase::DualBounds;
+// When FRET is enabled, store the LRTDP-specific state information seperately
+// so it can be easily reset between FRET iterations. Otherwise, store the
+// LRTDP-specific state information with the basic state information.
+template <typename State, typename Action, typename DualBounds, bool Fret>
+using LRTDPBase = std::conditional_t<
+    Fret,
+    heuristic_search::
+        HeuristicSearchBase<State, Action, DualBounds, std::true_type>,
+    heuristic_search::HeuristicSearchBase<
+        State,
+        Action,
+        DualBounds,
+        std::true_type,
+        internal::PerStateInformation>>;
 
-    template <typename... Args>
+template <typename State, typename Action, typename DualBounds, bool Fret>
+using LRTDPStateInfo = std::conditional_t<
+    Fret,
+    internal::PerStateInformation<internal::EmptyStateInfo>,
+    typename LRTDPBase<State, Action, DualBounds, Fret>::StateInfo>;
+
+} // namespace internal
+
+/**
+ * @brief Implements the labelled real-time dynamic programming (LRTDP)
+ * algorithm \cite bonet:geffner:icaps-03.
+ *
+ * This algorithm extends the trial-based real-time dynamic programming (RTDP)
+ * algorithm \cite barto:etal:ai-95. A trial is a simulation of the greedy
+ * policy which starts in the initial state and runs until a goal state
+ * is reached, which results in a path from the initial to the goal state.
+ * All states along this path are then asynchronously updated in a forward
+ * manner. In the limit, repeated trials will lead to an optimal state value for
+ * the initial state.
+ *
+ * LRTDP extends RTDP with a labelling procedure that marks parts of the state
+ * space where the value function is epsilon-consistent. This labelling
+ * procedure traverses the greedy policy graph starting from a specific state
+ * and updates every reachable state it encounters once. If none of the
+ * reachable states changed its value by more than epsilon, all states are
+ * labelled as solved as they are epsilon-consistent. Solved states are treated
+ * as stopping points for future trials. The labelling procedure is called on
+ * every state of a trial, in reverse order. If the initial state is marked as
+ * solved, the algorithm terminates.
+ *
+ * \remark This implementation can also be used with interval value bounds.
+ * Here, epsilon-consistency of the value updates can be replaced with
+ * epsilon-closeness of the resulting state interval bounds.
+ *
+ * \remark For MaxProb problems, trials may get stuck in cycles. To deal with
+ * this, alternative trial termination conditions can be selected, which ensure
+ * that LRTDP works even in presence of dead-ends.
+ *
+ * @tparam State - The state type of the MDP model.
+ * @tparam Action - The action type of the MDP model.
+ * @tparam DualBounds - Whether intervals or real values are used as state
+ * values.
+ * @tparam Fret - Specifies whether the algorithm should be usable within FRET.
+ */
+template <typename State, typename Action, typename DualBounds, typename Fret>
+class LRTDP
+    : public internal::LRTDPBase<State, Action, DualBounds, Fret::value> {
+    using HeuristicSearchBase =
+        internal::LRTDPBase<State, Action, DualBounds, Fret::value>;
+    using StateInfoT =
+        internal::LRTDPStateInfo<State, Action, DualBounds, Fret::value>;
+
+    using Statistics = internal::Statistics;
+
+public:
+    /**
+     * @brief Constructs an LRTDP solver object.
+     */
     LRTDP(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
@@ -146,48 +203,52 @@ public:
               interval_comparison,
               stable_policy)
         , StopConsistent(stop_consistent)
-        , state_infos_(nullptr)
         , sample_(succ_sampler)
     {
-        this->setup_state_info_store(
-            typename std::is_same<
-                StateInfoT,
-                typename HeuristicSearchBase::StateInfo>::type());
+        this->setup_state_info_store();
     }
 
-    ~LRTDP()
-    {
-        this->cleanup_state_info_store(
-            typename std::is_same<
-                StateInfoT,
-                typename HeuristicSearchBase::StateInfo>::type());
-    }
-
+    /**
+     * @copydoc MDPEngineInterface::solve(const State& state)
+     */
     virtual void solve(const State& state) override
     {
         this->initialize_report(state);
         const StateID state_id = this->get_state_id(state);
-        do {
-            StateInfoT& info = this->state_infos_->operator[](state_id);
+
+        for (;;) {
+            StateInfoT& info = get_lrtdp_state_info(state_id);
+
             if (info.is_solved()) {
                 break;
             }
+
             this->trial(state_id);
             this->statistics_.trials++;
             this->report(state_id);
-        } while (true);
+        }
     }
 
+    /**
+     * @copydoc MDPEngineInterface::print_statistics(std::ostream& out)
+     */
     virtual void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
         HeuristicSearchBase::print_statistics(out);
     }
 
+    /**
+     * @copydoc MDPEngineInterface::reset_solver_state()
+     */
     virtual void reset_solver_state() override
     {
-        delete (this->state_infos_);
-        this->state_infos_ = new storage::PerStateStorage<StateInfoT>();
+        using HSBInfo = typename HeuristicSearchBase::StateInfo;
+
+        if constexpr (!std::is_same_v<StateInfoT, HSBInfo>) {
+            this->state_infos_.reset(
+                new storage::PerStateStorage<StateInfoT>());
+        }
     }
 
 protected:
@@ -202,20 +263,26 @@ private:
         assert(
             this->current_trial_.empty() && this->selected_transition_.empty());
         this->current_trial_.push_back(initial_state);
+
         // std::cout << "trial = [";
+
         while (true) {
             const StateID state_id = this->current_trial_.back();
+
             // std::cout << " " << state_id;
-            auto& state_info = state_infos_->operator[](state_id);
+
+            auto& state_info = get_lrtdp_state_info(state_id);
             if (state_info.is_solved()) {
                 this->current_trial_.pop_back();
                 break;
             }
+
             this->statistics_.trial_bellman_backups++;
             const bool value_changed = this->async_update(
-                state_id,
-                nullptr,
-                &this->selected_transition_).first;
+                                               state_id,
+                                               nullptr,
+                                               &this->selected_transition_)
+                                           .first;
             if (this->selected_transition_.empty()) {
                 // terminal
                 assert(
@@ -225,6 +292,7 @@ private:
                 this->current_trial_.pop_back();
                 break;
             }
+
             // state_info.mark_trial();
             assert(!this->get_state_info(state_id, state_info).is_terminal());
             if ((StopConsistent == TrialTerminationCondition::Consistent &&
@@ -234,36 +302,42 @@ private:
                 this->selected_transition_.clear();
                 break;
             }
+
             this->current_trial_.push_back(sample_->operator()(
                 state_id,
                 this->get_policy(state_id),
                 this->selected_transition_));
             this->selected_transition_.clear();
         }
+
         // std::cout << " ]" << std::endl;
+
         this->last_check_and_solve_was_dead_ = true;
         while (!this->current_trial_.empty()) {
-            bool solved = this->check_and_solve();
+            bool solved = this->check_and_solve(this->current_trial_.back());
             this->current_trial_.pop_back();
+
             if (this->last_check_and_solve_was_dead_ &&
                 !this->current_trial_.empty()) {
                 do {
-                    if (this->check_dead_end(this->current_trial_.back())) {
-                        solved = false;
-                        this->current_trial_.pop_back();
-                    } else {
+                    if (!this->check_dead_end(this->current_trial_.back())) {
                         break;
                     }
+
+                    solved = false;
+                    this->current_trial_.pop_back();
                 } while (!this->current_trial_.empty());
             }
+
             if (!solved) {
                 break;
             }
         }
+
         this->current_trial_.clear();
     }
 
-    bool check_and_solve()
+    bool check_and_solve(const StateID& init_state_id)
     {
         assert(!this->current_trial_.empty());
         assert(this->selected_transition_.empty());
@@ -276,109 +350,89 @@ private:
         bool mark_solved = true;
         bool epsilon_consistent = true;
         bool all_dead = true;
+
         // this->last_check_and_solve_was_dead_
         //    && (!StopConsistent
         //        || this->has_dead_end_value(this->current_trial_.back()));
+
         bool any_dead = false;
         this->last_check_and_solve_was_dead_ = false;
 
-        this->policy_queue_.emplace_back(false, this->current_trial_.back());
-        while (!this->policy_queue_.empty()) {
-            auto& elem = this->policy_queue_.back();
-            if (elem.first) {
-                this->visited_.push_back(elem.second);
-                this->policy_queue_.pop_back();
+        {
+            auto& init_info = get_lrtdp_state_info(init_state_id);
+
+            if (init_info.is_solved()) {
+                auto& stinfo = this->get_state_info(init_state_id, init_info);
+                any_dead = all_dead = stinfo.is_dead_end();
             } else {
-                const StateID state_id = elem.second;
-                auto& info = this->state_infos_->operator[](state_id);
-                CAS_DEBUG_PRINT(
-                    std::cout
-                        << "(C&S) queue.top() = " << elem.second << " ~> "
-                        << info.is_marked_open() << "|" << (info.is_solved())
-                        << "|"
-                        << (this->get_state_info(elem.second).is_dead_end())
-                        << " value="
-                        << (this->get_state_info(elem.second).get_value())
-                        << std::endl;)
-                if (info.is_marked_open()) {
-                    this->policy_queue_.pop_back();
-                } else if (info.is_solved()) {
-                    const auto& state_info =
-                        this->get_state_info(state_id, info);
-                    any_dead = any_dead || state_info.is_dead_end();
-                    all_dead = all_dead && state_info.is_dead_end();
-                    // if (this->dead_end_identification_level_
-                    //     != DeadEndIdentificationLevel::Off) {
-                    //     assert(
-                    //         !this->get_state_info(elem.second).is_dead_end()
-                    //         || this->get_state_info(elem.second)
-                    //                .is_recognized_dead_end());
-                    //     all_dead = all_dead
-                    //         && this->get_state_info(state_id, info)
-                    //                .is_dead_end();
-                    // }
-                    this->policy_queue_.pop_back();
+                init_info.mark_open();
+                this->policy_queue_.emplace_back(init_state_id);
+            }
+        }
+
+        while (!this->policy_queue_.empty()) {
+            const auto state_id = this->policy_queue_.back();
+            policy_queue_.pop_back();
+
+            auto& info = get_lrtdp_state_info(state_id);
+            assert(info.is_marked_open() && !info.is_solved());
+
+            CAS_DEBUG_PRINT(std::cout << "(C&S) queue.top() = " << state_id
+                                      << " ~> "
+                                      << this->is_marked_dead_end(state_id)
+                                      << " value=" << this->get_value(state_id)
+                                      << std::endl;)
+
+            this->statistics_.check_and_solve_bellman_backups++;
+
+            const bool value_changed = this->async_update(
+                                               state_id,
+                                               nullptr,
+                                               &this->selected_transition_)
+                                           .first;
+
+            if (value_changed) {
+                epsilon_consistent = false;
+                this->visited_.push_front(state_id);
+
+                CAS_DEBUG_PRINT(std::cout << "     => value has changed: "
+                                          << this->get_value(state_id)
+                                          << std::endl;)
+            } else if (this->selected_transition_.empty()) {
+                assert(this->get_state_info(state_id, info).is_terminal());
+
+                if (this->check_goal_or_mark_dead_end(state_id, info)) {
+                    all_dead = false;
                 } else {
-                    info.mark_open();
-                    elem.first = true;
-                    this->statistics_.check_and_solve_bellman_backups++;
-                    const bool value_changed = this->async_update(
-                        elem.second,
-                        nullptr,
-                        &this->selected_transition_).first;
-                    if (value_changed) {
-                        epsilon_consistent = false;
-                        CAS_DEBUG_PRINT(
-                            std::cout
-                                << "     => value has changed: "
-                                << this->get_state_info(elem.second).get_value()
-                                << std::endl;)
-                    } else {
-                        if (this->selected_transition_.empty()) {
-                            assert(this->get_state_info(elem.second)
-                                       .is_terminal());
-                            if (this->check_goal_or_mark_dead_end(
-                                    elem.second,
-                                    info)) {
-                                all_dead = false;
-                            } else {
-                                any_dead = true;
-                            }
-                            info.set_solved();
-                            policy_queue_.pop_back();
-                            CAS_DEBUG_PRINT(
-                                std::cout << "     => marking as solved (dead= "
-                                          << this->get_state_info(elem.second)
-                                                 .is_dead_end()
+                    any_dead = true;
+                }
+
+                info.set_solved();
+
+                CAS_DEBUG_PRINT(std::cout << "     => marking as solved (dead= "
+                                          << this->is_marked_dead_end(state_id)
                                           << ")" << std::endl;)
-                        } else {
-                            if (this->do_bounds_disagree(state_id, info)) {
-                                mark_solved = false;
-                            }
-                            CAS_DEBUG_PRINT(std::cout << "  --> [";)
-                            for (auto succ = this->selected_transition_.begin();
-                                 succ != this->selected_transition_.end();
-                                 ++succ) {
-                                CAS_DEBUG_PRINT(
-                                    std::cout
-                                        << (succ != this->selected_transition_
-                                                        .begin()
-                                                ? ", "
-                                                : "")
-                                        << succ->first << " ("
-                                        << this->get_state_info(succ->first)
-                                               .value
-                                        << ")";)
-                                this->policy_queue_.emplace_back(
-                                    false,
-                                    succ->first);
-                            }
-                            CAS_DEBUG_PRINT(std::cout << "]" << std::endl;)
-                        }
+            } else {
+                this->visited_.push_front(state_id);
+
+                if (this->do_bounds_disagree(state_id, info)) {
+                    mark_solved = false;
+                }
+
+                for (const StateID& succ_id : selected_transition_.elements()) {
+                    auto& succ_info = get_lrtdp_state_info(succ_id);
+                    if (succ_info.is_solved()) {
+                        auto& succsi = this->get_state_info(succ_id, succ_info);
+                        any_dead = any_dead || succsi.is_dead_end();
+                        all_dead = all_dead && succsi.is_dead_end();
+                    } else if (!succ_info.is_marked_open()) {
+                        succ_info.mark_open();
+                        this->policy_queue_.emplace_back(succ_id);
                     }
-                    this->selected_transition_.clear();
                 }
             }
+
+            this->selected_transition_.clear();
         }
 
         if (epsilon_consistent && all_dead && any_dead &&
@@ -387,64 +441,55 @@ private:
         }
 
         if (epsilon_consistent && mark_solved) {
-            for (auto it = this->visited_.begin(); it != this->visited_.end();
-                 ++it) {
-                StateInfoT& info = this->state_infos_->operator[](*it);
-                info.set_solved();
+            for (const StateID& sid : this->visited_) {
+                get_lrtdp_state_info(sid).set_solved();
             }
         } else {
-            for (auto it = visited_.begin(); it != visited_.end(); ++it) {
+            for (const StateID& sid : this->visited_) {
                 statistics_.check_and_solve_bellman_backups++;
-                this->async_update(*it);
-                StateInfoT& info = this->state_infos_->operator[](*it);
-                info.unmark();
+                this->async_update(sid);
+                get_lrtdp_state_info(sid).unmark();
             }
         }
+
         this->visited_.clear();
 
         return epsilon_consistent && mark_solved;
     }
 
-    bool check_and_solve_original()
+    bool check_and_solve_original(const StateID& init_state_id)
     {
         this->last_check_and_solve_was_dead_ = false;
 
         bool rv = true;
-        {
-            const StateID stateid = this->current_trial_.back();
-            auto& info = this->state_infos_->operator[](stateid);
-            info.mark_open();
-        }
-        this->policy_queue_.emplace_back(false, this->current_trial_.back());
+
+        get_lrtdp_state_info(init_state_id).mark_open();
+        this->policy_queue_.emplace_back(init_state_id);
+
         do {
             const StateID stateid = this->policy_queue_.back().second;
             this->policy_queue_.pop_back();
             this->visited_.push_back(stateid);
 
-            auto& info = this->state_infos_->operator[](stateid);
+            auto& info = get_lrtdp_state_info(stateid);
             if (info.is_solved()) {
                 continue;
             }
+
             this->statistics_.check_and_solve_bellman_backups++;
             const bool value_changed = this->async_update(
                 stateid,
                 nullptr,
                 &this->selected_transition_);
+
             if (value_changed) {
                 rv = false;
-            } else if (rv || true) {
-                if (!this->selected_transition_.empty()) {
-                    for (auto it = this->selected_transition_.begin();
-                         it != this->selected_transition_.end();
-                         ++it) {
-                        const StateID succid = it->first;
-                        auto& succ_info =
-                            this->state_infos_->operator[](succid);
-                        if (!succ_info.is_solved() &&
-                            !succ_info.is_marked_open()) {
-                            succ_info.mark_open();
-                            this->policy_queue_.emplace_back(false, it->first);
-                        }
+            } else if (rv && !this->selected_transition_.empty()) {
+                for (const StateID& succid : selected_transition_.elements()) {
+                    auto& succ_info = get_lrtdp_state_info(succid);
+                    if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
+                        succ_info.mark_open();
+                        this->policy_queue_.emplace_back(succid);
                     }
                 }
             }
@@ -454,7 +499,7 @@ private:
         if (rv) {
             while (!this->visited_.empty()) {
                 const StateID sid = this->visited_.back();
-                auto& info = this->state_infos_->operator[](sid);
+                auto& info = get_lrtdp_state_info(sid);
                 info.unmark();
                 info.set_solved();
                 this->visited_.pop_back();
@@ -462,13 +507,14 @@ private:
         } else {
             while (!this->visited_.empty()) {
                 const StateID sid = this->visited_.back();
-                auto& info = this->state_infos_->operator[](sid);
+                auto& info = get_lrtdp_state_info(sid);
                 info.unmark();
                 this->async_update(sid);
                 this->visited_.pop_back();
                 this->statistics_.check_and_solve_bellman_backups++;
             }
         }
+
         return rv;
     }
 
@@ -477,90 +523,45 @@ private:
         auto& state_info = this->get_state_info(state_id, info);
         if (state_info.is_goal_state()) {
             return true;
-        } else {
-            this->notify_dead_end(state_id, state_info);
         }
+
+        this->notify_dead_end(state_id, state_info);
         return false;
     }
 
-    void setup_state_info_store(std::true_type)
+    StateInfoT& get_lrtdp_state_info(const StateID& sid)
     {
-        state_infos_ = &this->get_state_info_store();
+        using HSBInfo = typename HeuristicSearchBase::StateInfo;
+
+        if constexpr (std::is_same_v<StateInfoT, HSBInfo>) {
+            return this->get_state_info_store()[sid];
+        } else {
+            return (*state_infos_)[sid];
+        }
     }
 
-    void setup_state_info_store(std::false_type)
+    void setup_state_info_store()
     {
-        state_infos_ = new storage::PerStateStorage<StateInfoT>();
-        statistics_.state_info_bytes = sizeof(StateInfoT);
+        using HSBInfo = typename HeuristicSearchBase::StateInfo;
+
+        if constexpr (!std::is_same_v<StateInfoT, HSBInfo>) {
+            state_infos_.reset(new storage::PerStateStorage<StateInfoT>());
+            statistics_.state_info_bytes = sizeof(StateInfoT);
+        }
     }
-
-    void cleanup_state_info_store(std::true_type) {}
-
-    void cleanup_state_info_store(std::false_type) { delete (state_infos_); }
 
     const TrialTerminationCondition StopConsistent;
-    storage::PerStateStorage<StateInfoT>* state_infos_;
+    std::unique_ptr<storage::PerStateStorage<StateInfoT>> state_infos_;
     TransitionSampler<Action>* sample_;
 
-    std::deque<StateID> current_trial_;
+    std::vector<StateID> current_trial_;
     Distribution<StateID> selected_transition_;
-    std::deque<std::pair<bool, StateID>> policy_queue_;
+    std::vector<StateID> policy_queue_;
     std::deque<StateID> visited_;
 
     Statistics statistics_;
 
     bool last_check_and_solve_was_dead_;
-};
-
-} // namespace internal
-
-/**
- * @brief Template base of labelled real-time dynamic programming (LRTDP)
- * \cite bonet:geffner:icaps-03 with integrated FRET support.
- */
-template <typename State, typename Action, typename B2, typename Fret>
-struct LRTDP;
-
-/**
- * @brief Implementation of LRTDP with FRET disabled.
- *
- * @tparam State - The state type of the underlying MDP model.
- * @tparam Action - The action type of the underlying MDP model.
- * @tparam B2 - Whether bounded value iteration is used.
- */
-template <typename State, typename Action, typename B2>
-struct LRTDP<State, Action, B2, std::false_type>
-    : public internal::LRTDP<heuristic_search::HeuristicSearchBase<
-          State,
-          Action,
-          B2,
-          std::true_type,
-          internal::PerStateInformation>> {
-    using internal::LRTDP<heuristic_search::HeuristicSearchBase<
-        State,
-        Action,
-        B2,
-        std::true_type,
-        internal::PerStateInformation>>::LRTDP;
-};
-
-/**
- * @brief Implementation of LRTDP with FRET enabled.
- *
- * @tparam State - The state type of the underlying MDP model.
- * @tparam Action - The action type of the underlying MDP model.
- * @tparam B2 - Whether bounded value iteration is used.
- */
-template <typename State, typename Action, typename B2>
-struct LRTDP<State, Action, B2, std::true_type>
-    : public internal::LRTDP<
-          heuristic_search::
-              HeuristicSearchBase<State, Action, B2, std::true_type>,
-          internal::PerStateInformation<internal::EmptyStateInfo>> {
-    using internal::LRTDP<
-        heuristic_search::
-            HeuristicSearchBase<State, Action, B2, std::true_type>,
-        internal::PerStateInformation<internal::EmptyStateInfo>>::LRTDP;
 };
 
 } // namespace lrtdp
