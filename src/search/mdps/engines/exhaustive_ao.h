@@ -41,18 +41,15 @@ using AOBase = ao_search::AOBase<
 /**
  * @brief Exhaustive AO* search algorithm.
  *
- * @tparam StateT - The state type of the underlying MDP model.
- * @tparam ActionT - The action type of the underlying MDP model.
- * @tparam DualBoundsT - Whether bounded value iteration is used.
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
+ * @tparam DualBounds - Whether bounded value iteration is used.
  */
-template <typename StateT, typename ActionT, typename DualBoundsT>
-class ExhaustiveAOSearch
-    : public internal::AOBase<StateT, ActionT, DualBoundsT> {
-public:
-    using AOBase = internal::AOBase<StateT, ActionT, DualBoundsT>;
-    using State = typename AOBase::State;
-    using Action = typename AOBase::Action;
+template <typename State, typename Action, typename DualBounds>
+class ExhaustiveAOSearch : public internal::AOBase<State, Action, DualBounds> {
+    using AOBase = internal::AOBase<State, Action, DualBounds>;
 
+public:
     ExhaustiveAOSearch(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
@@ -98,57 +95,30 @@ public:
         StateID stateid = this->get_state_id(state);
         const auto& state_info = this->get_state_info(stateid);
         open_list_->push(stateid);
+
         do {
             step();
             this->report(stateid);
         } while (!state_info.is_solved());
-        // this->dump_search_space_with_node_infos();
     }
 
 private:
-    using StateInfo = typename AOBase::StateInfo;
-
-    friend class StateInfosToString;
-
-    struct StateInfosToString {
-        explicit StateInfosToString(ExhaustiveAOSearch* s)
-            : s(s)
-        {
-        }
-
-        std::string operator()(const State& state) const
-        {
-            const StateID sid = s->get_state_id(state);
-            const auto& info = s->get_state_info(sid);
-            std::ostringstream out;
-            out << sid << ": v=" << info.get_value() << " | "
-                << info.is_tip_state() << info.is_marked() << info.is_solved()
-                << info.is_unflagged();
-            return out.str();
-        }
-
-        ExhaustiveAOSearch* s;
-    };
-
-    void dump_search_space_with_node_infos()
-    {
-        StateInfosToString sstr(this);
-        this->dump_search_space("eao_search_space.dot", &sstr);
-    }
-
     void step()
     {
         assert(!this->open_list_->empty());
-        StateID stateid = this->open_list_->pop();
+        StateID stateid = open_list_->pop();
         auto& info = this->get_state_info(stateid);
         if (!info.is_tip_state() || info.is_solved()) {
             return;
         }
+
         ++this->statistics_.iterations;
+
         bool solved = false;
         bool dead = false;
         bool terminal = false;
         bool value_changed = false;
+
         this->initialize_tip_state_value(
             stateid,
             info,
@@ -156,68 +126,69 @@ private:
             solved,
             dead,
             value_changed);
+
         if (terminal) {
             assert(info.is_solved());
-        } else {
-            unsigned alive = 0;
-            unsigned unsolved = 0;
-            int min_succ_order = std::numeric_limits<int>::max();
-            assert(this->aops_.empty() && this->transitions_.empty());
-            this->generate_all_successors(
-                stateid,
-                this->aops_,
-                this->transitions_);
-            for (int i = this->aops_.size() - 1; i >= 0; i--) {
-                const auto& t = this->transitions_[i];
-                for (auto it = t.begin(); it != t.end(); ++it) {
-                    const StateID succid = it->first;
-                    auto& succ_info = this->get_state_info(succid);
-                    if (!succ_info.is_solved()) {
-                        if (!succ_info.is_marked()) {
-                            succ_info.mark();
-                            succ_info.add_parent(stateid);
-                            min_succ_order = std::min(
-                                min_succ_order,
-                                succ_info.update_order);
-                            ++unsolved;
-                        }
-                        this->open_list_
-                            ->push(stateid, this->aops_[i], it->second, succid);
-                    } else if (!succ_info.is_dead_end()) {
-                        ++alive;
+            return;
+        }
+
+        unsigned alive = 0;
+        unsigned unsolved = 0;
+        unsigned min_succ_order = std::numeric_limits<unsigned>::max();
+
+        assert(this->aops_.empty() && this->transitions_.empty());
+
+        this->generate_all_successors(stateid, this->aops_, this->transitions_);
+
+        assert(this->aops_.size() == this->transitions_.size());
+
+        for (std::size_t i = 0; i != this->aops_.size(); ++i) {
+            auto& op = this->aops_[i];
+            for (auto& [succid, prob] : this->transitions_[i]) {
+                auto& succ_info = this->get_state_info(succid);
+                if (!succ_info.is_solved()) {
+                    if (!succ_info.is_marked()) {
+                        succ_info.mark();
+                        succ_info.add_parent(stateid);
+                        min_succ_order =
+                            std::min(min_succ_order, succ_info.update_order);
+                        ++unsolved;
                     }
+
+                    open_list_->push(stateid, op, prob, succid);
+                } else if (!succ_info.is_dead_end()) {
+                    ++alive;
                 }
             }
-            info.alive = alive > 0;
-            if (unsolved == 0) {
-                this->aops_.clear();
-                this->transitions_.clear();
-                this->mark_solved_push_parents(stateid, info, info.alive == 0);
+        }
+
+        info.alive = alive > 0;
+
+        if (unsolved == 0) {
+            this->aops_.clear();
+            this->transitions_.clear();
+
+            this->mark_solved_push_parents(stateid, info, info.alive == 0);
+            this->backpropagate_tip_value();
+        } else {
+            assert(min_succ_order < std::numeric_limits<unsigned>::max());
+            info.update_order = min_succ_order + 1;
+            info.unsolved = unsolved;
+
+            for (const auto& transition : transitions_) {
+                for (const StateID& succ_id : transition.elements()) {
+                    this->get_state_info(succ_id).unmark();
+                }
+            }
+
+            this->aops_.clear();
+            this->transitions_.clear();
+
+            this->backpropagate_update_order(stateid);
+
+            if (value_changed) {
+                this->push_parents_to_queue(info);
                 this->backpropagate_tip_value();
-            } else {
-                assert(
-                    min_succ_order >= 0 &&
-                    min_succ_order < std::numeric_limits<int>::max());
-                info.update_order = min_succ_order + 1;
-                info.unsolved = unsolved;
-
-                for (int i = this->transitions_.size() - 1; i >= 0; --i) {
-                    const auto& t = this->transitions_[i];
-                    for (auto it = t.begin(); it != t.end(); ++it) {
-                        const StateID succ_id = it->first;
-                        auto& succ_info = this->get_state_info(succ_id);
-                        succ_info.unmark();
-                    }
-                }
-
-                this->aops_.clear();
-                this->transitions_.clear();
-
-                this->backpropagate_update_order(stateid);
-                if (value_changed) {
-                    this->push_parents_to_queue(info);
-                    this->backpropagate_tip_value();
-                }
             }
         }
     }

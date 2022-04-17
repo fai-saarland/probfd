@@ -56,15 +56,15 @@ struct PerStateInformation : public StateInfo {
     std::vector<StateID>& get_parents() { return parents; }
     void add_parent(const StateID& s) { parents.push_back(s); }
 
-    int update_order = 0;
+    unsigned update_order = 0;
     std::vector<StateID> parents;
 };
 
 /**
  * @brief Base class for the AO* algorithm family.
  *
- * @tparam StateT - The state type of the underlying MDP.
- * @tparam ActionT - The action type of the underlying MDP.
+ * @tparam State - The state type of the underlying MDP.
+ * @tparam Action - The action type of the underlying MDP.
  * @tparam DualBounds - Determines whether bounded value iteration is performed.
  * @tparam StorePolicy - Determines whether the optimal policy is stored.
  * @tparam StateInfoExtension - The extended state information struct used by
@@ -72,8 +72,8 @@ struct PerStateInformation : public StateInfo {
  * @tparam Greedy - ?
  */
 template <
-    typename StateT,
-    typename ActionT,
+    typename State,
+    typename Action,
     typename DualBounds,
     typename StorePolicy,
     template <typename>
@@ -81,26 +81,37 @@ template <
     bool Greedy>
 class AOBase
     : public heuristic_search::HeuristicSearchBase<
-          StateT,
-          ActionT,
+          State,
+          Action,
           DualBounds,
           StorePolicy,
           StateInfoExtension> {
-public:
     /// The heuristic search base class.
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
-        StateT,
-        ActionT,
+        State,
+        Action,
         DualBounds,
         StorePolicy,
         StateInfoExtension>;
 
-    /// The underlying state type.
-    using State = typename HeuristicSearchBase::State;
+    struct QueueComparator {
+        bool operator()(
+            const std::pair<unsigned, StateID>& s,
+            const std::pair<unsigned, StateID>& t) const
+        {
+            return s.first > t.first;
+        }
+    };
 
-    /// The underlying action type.
-    using Action = typename HeuristicSearchBase::Action;
+    using TopoQueue = std::priority_queue<
+        std::pair<unsigned, StateID>,
+        std::vector<std::pair<unsigned, StateID>>,
+        QueueComparator>;
 
+protected:
+    using StateInfo = typename HeuristicSearchBase::StateInfo;
+
+public:
     AOBase(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
@@ -109,11 +120,11 @@ public:
         value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        StateEvaluator<StateT>* dead_end_eval,
-        DeadEndListener<StateT, ActionT>* dead_end_listener,
-        PolicyPicker<ActionT>* policy_chooser,
-        NewStateHandler<StateT>* new_state_handler,
-        StateEvaluator<StateT>* value_init,
+        StateEvaluator<State>* dead_end_eval,
+        DeadEndListener<State, Action>* dead_end_listener,
+        PolicyPicker<Action>* policy_chooser,
+        NewStateHandler<State>* new_state_handler,
+        StateEvaluator<State>* value_init,
         HeuristicSearchConnector* connector,
         ProgressReport* report,
         bool interval_comparison,
@@ -145,8 +156,6 @@ public:
     }
 
 protected:
-    using StateInfo = typename HeuristicSearchBase::StateInfo;
-
     virtual void setup_custom_reports(const State&) override
     {
         this->statistics_.register_report(*this->report_);
@@ -161,21 +170,20 @@ protected:
             auto& info = get_state_info(elem.second);
             assert(!info.is_goal_state());
             assert(!info.is_terminal() || info.is_solved());
+
             if (info.is_solved()) {
                 // has been handled already
                 continue;
             }
+
             assert(info.is_marked());
             info.unmark();
 
             bool solved = false;
             bool dead = false;
-            bool value_changed = update_value_check_solved(
-                IsGreedy(),
-                elem.second,
-                info,
-                solved,
-                dead);
+            bool value_changed =
+                update_value_check_solved(elem.second, info, solved, dead);
+
             if (solved) {
                 mark_solved_push_parents(elem.second, info, dead);
             } else if (value_changed) {
@@ -187,13 +195,16 @@ protected:
     void backpropagate_update_order(const StateID& tip)
     {
         queue_.emplace(get_state_info(tip).update_order, tip);
+
         while (!queue_.empty()) {
             auto elem = queue_.top();
             queue_.pop();
+
             auto& info = get_state_info(elem.second);
             if (info.update_order > elem.first) {
                 continue;
             }
+
             auto& parents = info.get_parents();
             auto it = parents.begin();
             while (it != parents.end()) {
@@ -201,10 +212,13 @@ protected:
                 if (pinfo.is_solved()) {
                     it = parents.erase(it);
                     continue;
-                } else if (pinfo.update_order <= elem.first) {
+                }
+
+                if (pinfo.update_order <= elem.first) {
                     pinfo.update_order = elem.first + 1;
                     queue_.emplace(elem.first + 1, *it);
                 }
+
                 ++it;
             }
         }
@@ -224,18 +238,17 @@ protected:
 
         terminal = false;
         solved = false;
-        value_changed =
-            update_value_check_solved(IsGreedy(), state, info, solved, dead);
+        value_changed = update_value_check_solved(state, info, solved, dead);
 
         if (info.is_terminal()) {
             terminal = true;
             info.set_solved();
             dead = !info.is_goal_state();
-            // std::cout << this->state_id_map_->operator[](state) << " is
-            // terminal (" << dead << ")" << std::endl;
+
             if (dead) {
                 this->notify_dead_end(state);
             }
+
             push_parents_to_queue(info);
             backpropagate_tip_value();
         }
@@ -245,7 +258,30 @@ protected:
 
     void push_parents_to_queue(StateInfo& info)
     {
-        push_parents_to_queue(IsGreedy(), info);
+        auto& parents = info.get_parents();
+        for (const StateID& parent : parents) {
+            auto& pinfo = get_state_info(parent);
+            assert(!pinfo.is_dead_end() || pinfo.is_solved());
+
+            if constexpr (!Greedy) {
+                if (info.is_solved()) {
+                    assert(pinfo.unsolved > 0 || pinfo.is_solved());
+                    --pinfo.unsolved;
+                    if (!info.is_dead_end()) {
+                        pinfo.alive = 1;
+                    }
+                }
+            }
+
+            if (pinfo.is_unflagged()) {
+                pinfo.mark();
+                queue_.emplace(pinfo.update_order, parent);
+            }
+        }
+
+        if (info.is_solved()) {
+            std::remove_reference_t<decltype(parents)>().swap(parents);
+        }
     }
 
     void mark_solved_push_parents(
@@ -265,105 +301,40 @@ protected:
     }
 
 private:
-    struct QueueComparator {
-        bool operator()(
-            const std::pair<int, StateID>& s,
-            const std::pair<int, StateID>& t) const
-        {
-            return s.first > t.first;
-        }
-    };
-
-    using IsGreedy = std::integral_constant<bool, Greedy>;
-
-    using TopoQueue = std::priority_queue<
-        std::pair<int, StateID>,
-        std::vector<std::pair<int, StateID>>,
-        QueueComparator>;
-
-    void push_parents_to_queue(const std::true_type&, StateInfo& info)
-    {
-        auto& parents = info.get_parents();
-        for (auto it = parents.begin(); it != parents.end(); ++it) {
-            auto& pinfo = get_state_info(*it);
-            assert(!pinfo.is_dead_end() || pinfo.is_solved());
-            if (pinfo.is_unflagged()) {
-                pinfo.mark();
-                queue_.emplace(pinfo.update_order, *it);
-            }
-        }
-        if (info.is_solved()) {
-            typename std::remove_reference<decltype(parents)>::type().swap(
-                parents);
-        }
-    }
-
-    void push_parents_to_queue(const std::false_type&, StateInfo& info)
-    {
-        auto& parents = info.get_parents();
-        for (auto it = parents.begin(); it != parents.end(); ++it) {
-            auto& pinfo = get_state_info(*it);
-            assert(!pinfo.is_dead_end() || pinfo.is_solved());
-            if (info.is_solved()) {
-                assert(pinfo.unsolved > 0 || pinfo.is_solved());
-                --pinfo.unsolved;
-                if (!info.is_dead_end()) {
-                    pinfo.alive = 1;
-                }
-            }
-            if (pinfo.is_unflagged()) {
-                pinfo.mark();
-                queue_.emplace(pinfo.update_order, *it);
-            }
-        }
-        if (info.is_solved()) {
-            typename std::remove_reference<decltype(parents)>::type().swap(
-                parents);
-        }
-    }
-
     bool update_value_check_solved(
-        const std::true_type&,
         const StateID& state,
         const StateInfo& info,
         bool& solved,
         bool& dead)
     {
-        const bool result =
-            this->async_update(state, nullptr, &selected_transition_).first;
-        solved = true;
-        dead = !selected_transition_.empty() || info.is_dead_end();
-        // std::cout << "update " << this->state_id_map_->operator[](state) << "
-        // ... [";
-        for (auto it = selected_transition_.begin();
-             it != selected_transition_.end();
-             ++it) {
-            // std::cout << " " << this->state_id_map_->operator[](it->first);
-            const auto& succ_info = get_state_info(it->first);
-            solved = solved && succ_info.is_solved();
-            dead = dead && succ_info.is_dead_end();
-        }
-        // std::cout << " ] => " << solved << "|" << dead << std::endl;
-        selected_transition_.clear();
-        return result;
-    }
-
-    bool update_value_check_solved(
-        const std::false_type&,
-        const StateID& state,
-        const StateInfo& info,
-        bool& solved,
-        bool& dead)
-    {
-        solved = info.unsolved == 0;
-        dead = solved && info.alive == 0 && !info.is_goal_state();
-        const bool vc = this->async_update(state);
-        if (value_utils::as_lower_bound(info.value) >=
-            this->get_maximal_reward()) {
+        if constexpr (Greedy) {
+            const bool result =
+                this->async_update(state, nullptr, &selected_transition_).first;
             solved = true;
-            dead = false;
+            dead = !selected_transition_.empty() || info.is_dead_end();
+
+            for (const StateID& succ_id : selected_transition_.elements()) {
+                const auto& succ_info = get_state_info(succ_id);
+                solved = solved && succ_info.is_solved();
+                dead = dead && succ_info.is_dead_end();
+            }
+
+            selected_transition_.clear();
+            return result;
+        } else {
+            const bool result = this->async_update(state);
+
+            solved = info.unsolved == 0;
+            dead = solved && info.alive == 0 && !info.is_goal_state();
+
+            if (value_utils::as_lower_bound(info.value) >=
+                this->get_maximal_reward()) {
+                solved = true;
+                dead = false;
+            }
+
+            return result;
         }
-        return vc;
     }
 
 protected:

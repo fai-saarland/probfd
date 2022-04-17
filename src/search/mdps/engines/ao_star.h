@@ -34,24 +34,18 @@ using AOBase = ao_search::AOBase<
  * The AO* algorithm is an MDP heuristic search algorithm applicable to acyclic
  * MDPs.
  *
- * @tparam StateT - The state type of the underlying MDP.
- * @tparam ActionT - The action type of the underlying MDP.
- * @tparam DualBoundsT - Whether bounded value iteration shall be used.
+ * @tparam State - The state type of the underlying MDP.
+ * @tparam Action - The action type of the underlying MDP.
+ * @tparam DualBounds - Whether bounded value iteration shall be used.
  *
  * @remark Does not validate that the input model is acyclic.
  */
-template <typename StateT, typename ActionT, typename DualBoundsT>
-class AOStar : public internal::AOBase<StateT, ActionT, DualBoundsT> {
+template <typename State, typename Action, typename DualBounds>
+class AOStar : public internal::AOBase<State, Action, DualBounds> {
+    using AOBase = internal::AOBase<State, Action, DualBounds>;
+    using StateInfo = typename AOBase::StateInfo;
+
 public:
-    /// Base class typedef.
-    using AOBase = internal::AOBase<StateT, ActionT, DualBoundsT>;
-
-    /// The underlying state type.
-    using State = typename AOBase::State;
-
-    /// The underlying action type.
-    using Action = typename AOBase::Action;
-
     AOStar(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
@@ -97,6 +91,7 @@ public:
         const StateID stateid = this->get_state_id(state);
         auto& iinfo = this->get_state_info(stateid);
         iinfo.update_order = 0;
+
         while (!iinfo.is_solved()) {
             greedy_forward_exploration(stateid);
             ++this->statistics_.iterations;
@@ -105,20 +100,18 @@ public:
     }
 
 private:
-    using StateInfo = typename AOBase::StateInfo;
-
     void greedy_forward_exploration(StateID state)
     {
         do {
             auto& info = this->get_state_info(state);
-            // std::cout << " --> " << stateid << "... ";
             assert(!info.is_solved());
+
             if (info.is_tip_state()) {
-                // std::cout << " *tip*";
                 bool solved = false;
                 bool dead = false;
                 bool terminal = false;
                 bool value_changed = false;
+
                 this->initialize_tip_state_value(
                     state,
                     info,
@@ -126,51 +119,52 @@ private:
                     solved,
                     dead,
                     value_changed);
+
                 if (terminal) {
                     assert(info.is_solved());
                     break;
-                } else if (solved) {
+                }
+
+                if (solved) {
                     this->mark_solved_push_parents(state, info, dead);
                     this->backpropagate_tip_value();
                     break;
                 }
 
-                int min_succ_order = std::numeric_limits<int>::max();
+                unsigned min_succ_order = std::numeric_limits<unsigned>::max();
+
                 assert(this->aops_.empty() && this->transitions_.empty());
+
                 this->generate_all_successors(
                     state,
                     this->aops_,
                     this->transitions_);
-                for (int i = this->transitions_.size() - 1; i >= 0; --i) {
-                    const auto& t = this->transitions_[i];
-                    for (auto it = t.begin(); it != t.end(); ++it) {
-                        const StateID succ_id = it->first;
+
+                for (const auto& transition : this->transitions_) {
+                    for (const StateID& succ_id : transition.elements()) {
                         auto& succ_info = this->get_state_info(succ_id);
+
                         if (succ_info.is_unflagged()) {
                             assert(!succ_info.is_solved());
                             succ_info.mark();
                             succ_info.add_parent(state);
                             assert(
-                                succ_info.update_order >= 0 &&
                                 succ_info.update_order <
-                                    std::numeric_limits<int>::max());
+                                std::numeric_limits<unsigned>::max());
                             min_succ_order = std::min(
                                 min_succ_order,
                                 succ_info.update_order);
                         }
                     }
                 }
-                assert(
-                    min_succ_order >= 0 &&
-                    min_succ_order < std::numeric_limits<int>::max());
+
+                assert(min_succ_order < std::numeric_limits<unsigned>::max());
+
                 info.update_order = min_succ_order + 1;
 
-                for (int i = this->transitions_.size() - 1; i >= 0; --i) {
-                    const auto& t = this->transitions_[i];
-                    for (auto it = t.begin(); it != t.end(); ++it) {
-                        const StateID succ_id = it->first;
-                        auto& succ_info = this->get_state_info(succ_id);
-                        succ_info.unmark();
+                for (const auto& transition : this->transitions_) {
+                    for (const StateID succ_id : transition.elements()) {
+                        this->get_state_info(succ_id).unmark();
                     }
                 }
 
@@ -180,13 +174,11 @@ private:
                 this->backpropagate_update_order(state);
 
                 if (value_changed) {
-                    // std::cout << " *value changed*" << std::endl;
                     this->push_parents_to_queue(info);
                     this->backpropagate_tip_value();
                     break;
                 }
             }
-            // std::cout << " > [";
 
             assert(
                 !info.is_tip_state() && !info.is_terminal() &&
@@ -198,17 +190,13 @@ private:
             auto succ = this->selected_transition_.begin();
             while (succ != this->selected_transition_.end()) {
                 if (this->get_state_info(succ->first).is_solved()) {
-                    // std::cout << "-" <<
-                    // this->state_id_map_->operator[](succ->first);
                     normalize_factor += succ->second;
                     succ = this->selected_transition_.erase(succ);
                 } else {
-                    // std::cout << "+" <<
-                    // this->state_id_map_->operator[](succ->first);
                     ++succ;
                 }
             }
-            // std::cout << "]" << std::endl;
+
             assert(!this->selected_transition_.empty());
 
             if (normalize_factor > 0) {
