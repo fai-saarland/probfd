@@ -64,14 +64,6 @@ struct StateFlags {
         info = (info & ~MASK) | INITIALIZED;
     }
 
-    inline value_type::value_t get_state_reward() const
-    {
-        assert(is_value_initialized());
-        // return reward;
-        return 0;
-    }
-
-    // value_type::value_t reward = 0;
     uint8_t info = 0;
 };
 

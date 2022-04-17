@@ -807,8 +807,10 @@ private:
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
+            const State state = this->lookup_state(state_id);
+
             IncumbentSolution t_value(
-                state_info.get_state_reward() +
+                this->get_state_reward(state) +
                 this->get_action_reward(state_id, op));
             value_type::value_t self_loop = value_type::zero;
             bool non_loop = false;
