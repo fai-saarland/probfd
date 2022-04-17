@@ -15,31 +15,20 @@ namespace heuristic_search {
 
 template <typename StoresPolicyT = std::false_type>
 struct StatesPolicy {
-    using StoresPolicy = std::false_type;
-    void set_policy(const ActionID&) const {}
-    ActionID get_policy() const { return ActionID::undefined; }
 };
 
 template <>
 struct StatesPolicy<std::true_type> {
-    using StoresPolicy = std::true_type;
-
-    StatesPolicy()
-        : policy(ActionID::undefined)
-    {
-    }
-
     void set_policy(const ActionID& aid) { policy = aid; }
 
     ActionID get_policy() const { return policy; }
 
-    ActionID policy;
+    ActionID policy = ActionID::undefined;
 };
 
 struct StateFlags {
     static constexpr const uint8_t INITIALIZED = 1;
     static constexpr const uint8_t DEAD = 2;
-    static constexpr const uint8_t RECOGNIZED_DEAD = 3;
     static constexpr const uint8_t GOAL = 4;
     static constexpr const uint8_t FRINGE = 5;
     static constexpr const uint8_t MASK = 7;
@@ -49,11 +38,7 @@ struct StateFlags {
     inline bool is_dead_end() const
     {
         const uint8_t masked = info & MASK;
-        return masked == DEAD || masked == RECOGNIZED_DEAD;
-    }
-    inline bool is_recognized_dead_end() const
-    {
-        return (info & MASK) == RECOGNIZED_DEAD;
+        return masked == DEAD;
     }
     inline bool is_goal_state() const { return (MASK & info) == GOAL; }
     inline bool is_terminal() const { return is_dead_end() || is_goal_state(); }
@@ -73,14 +58,8 @@ struct StateFlags {
 
     inline void set_dead_end()
     {
-        assert(!is_goal_state() && !is_recognized_dead_end());
+        assert(!is_goal_state() && !is_dead_end());
         info = (info & ~MASK) | DEAD;
-    }
-
-    inline void set_recognized_dead_end()
-    {
-        assert(!is_goal_state());
-        info = (info & ~MASK) | RECOGNIZED_DEAD;
     }
 
     inline void removed_from_fringe()
@@ -104,7 +83,7 @@ template <typename StoresPolicyT, typename TwoValuesT>
 struct PerStateBaseInformation
     : public StatesPolicy<StoresPolicyT>
     , public StateFlags {
-    using typename StatesPolicy<StoresPolicyT>::StoresPolicy;
+    using StoresPolicy = StoresPolicyT;
     using DualBounds = TwoValuesT;
 
     value_utils::IncumbentSolution<TwoValuesT> value;

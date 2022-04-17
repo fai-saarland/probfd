@@ -37,7 +37,6 @@ namespace internal {
  */
 struct CoreStatistics {
     unsigned long long backups = 0;
-
     unsigned long long backed_up_states = 0;
     unsigned long long evaluated_states = 0;
     unsigned long long pruned_states = 0;
@@ -52,7 +51,6 @@ struct CoreStatistics {
  * @brief Extended statistics for MDP heuristic search.
  */
 struct Statistics : public CoreStatistics {
-
     unsigned state_info_bytes = 0;
     value_type::value_t initial_state_estimate = 0;
     bool initial_state_found_terminal = 0;
@@ -151,17 +149,14 @@ struct Statistics : public CoreStatistics {
 /**
  * @brief The common base class for MDP heuristic search algorithms.
  *
- * @tparam StateT - The state type of the underlying MDP model.
- * @tparam ActionT - The action type of the undelying MDP model.
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the undelying MDP model.
  * @tparam StateInfoT - The state information container type.
  */
 template <typename StateT, typename ActionT, typename StateInfoT>
 class HeuristicSearchBase
     : public MDPEngine<StateT, ActionT>
     , public PerStateInformationLookup {
-    template <typename T>
-    friend class StateStatusAccessor;
-
 public:
     using State = StateT;
     using Action = ActionT;
@@ -171,45 +166,6 @@ public:
 
     using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
 
-    /**
-     * @brief The state information accessor interface.
-     *
-     * @tparam T - ?
-     */
-    template <typename T>
-    class StateStatusAccessor {
-    public:
-        StateInfo& operator()(const StateID& state_id)
-        {
-            return infos_->state_infos_[state_id];
-        }
-
-        StateInfo& operator()(const StateID id, T& info)
-        {
-            return this->operator()(std::is_same<T, StateInfo>(), id, info);
-        }
-
-    private:
-        friend class HeuristicSearchBase;
-
-        StateStatusAccessor(HeuristicSearchBase* infos)
-            : infos_(infos)
-        {
-        }
-
-        StateInfo& operator()(const std::true_type&, const StateID, T& info)
-        {
-            return info;
-        }
-
-        StateInfo& operator()(const std::false_type&, const StateID id, T&)
-        {
-            return infos_->state_infos_[id];
-        }
-
-        HeuristicSearchBase* infos_;
-    };
-
     explicit HeuristicSearchBase(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
@@ -218,7 +174,6 @@ public:
         value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        DeadEndIdentificationLevel,
         StateEvaluator<State>* dead_end_eval,
         DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
@@ -228,7 +183,7 @@ public:
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy)
-        : MDPEngine<StateT, ActionT>(
+        : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
               state_reward_function,
@@ -245,7 +200,6 @@ public:
         , dead_end_listener_(dead_end_listener)
         , dead_end_eval_(dead_end_eval)
         , dead_end_value_(this->get_minimal_reward())
-        , initial_state_id_(StateID::undefined)
     {
         statistics_.state_info_bytes = sizeof(StateInfo);
         connector->set_lookup_function(this);
@@ -254,7 +208,7 @@ public:
     virtual ~HeuristicSearchBase() = default;
 
     /**
-     * @copydoc MDPEngineInterface<StateT>::get_result(const State&)
+     * @copydoc MDPEngineInterface<State>::get_result(const State&)
      */
     virtual value_type::value_t get_result(const State& s) override
     {
@@ -263,7 +217,7 @@ public:
     }
 
     /**
-     * @copydoc MDPEngineInterface<StateT>::supports_error_bound()
+     * @copydoc MDPEngineInterface<State>::supports_error_bound()
      */
     virtual bool supports_error_bound() const override
     {
@@ -271,7 +225,7 @@ public:
     }
 
     /**
-     * @copydoc MDPEngineInterface<StateT>::get_error()
+     * @copydoc MDPEngineInterface<State>::get_error()
      */
     virtual value_type::value_t get_error(const State& s) override
     {
@@ -284,7 +238,7 @@ public:
     }
 
     /**
-     * @copydoc MDPEngineInterface<StateT>::print_statistics(std::ostream&)
+     * @copydoc MDPEngineInterface<State>::print_statistics(std::ostream&)
      */
     virtual void print_statistics(std::ostream& out) const override
     {
@@ -299,32 +253,6 @@ public:
         return &state_infos_[state_id];
     }
 
-    template <typename T = StateInfo>
-    StateStatusAccessor<T> get_state_status_access()
-    {
-        return StateStatusAccessor<T>(this);
-    }
-
-    /**
-     * @brief Create a per-state storage of the specified state info element
-     * type.
-     *
-     * @tparam T - The element type
-     * @param default_value - A default value for the state info elements
-     * if queried but not present. Defaults to a default constructed state
-     * information element.
-     * @return storage::PerStateStorage<T>* - The newly allocated per-state
-     * storage object.
-     */
-    template <typename T>
-    storage::PerStateStorage<T>*
-    create_per_state_store(const T& default_value = T())
-    {
-        return new storage::PerStateStorage<T>(
-            default_value,
-            this->state_id_map_);
-    }
-
     /**
      * @brief Checks if the state \p state_id is terminal.
      */
@@ -336,32 +264,18 @@ public:
     /**
      * @brief Gets the current value of the state represented by \p state_id
      */
-    value_type::value_t get_value(const StateID& state_id)
+    value_type::value_t get_value(const StateID& state_id) const
     {
         return state_infos_[state_id].get_value();
     }
 
     /**
-     * @brief Checks if the state represented by \p state_id has the state
-     * value of a dead-end.
-     */
-    bool has_dead_end_value(const StateID& state)
-    {
-        const StateInfo& info = state_infos_[state];
-        return info.value == dead_end_value_;
-    }
-
-    /**
      * @brief Chekcs if the state represented by \p state_id is marked as a
      * dead-end.
-     * @param state
-     * @return true
-     * @return false
      */
     bool is_marked_dead_end(const StateID& state)
     {
-        const StateInfo& info = state_infos_[state];
-        return info.is_dead_end();
+        return state_infos_[state].is_dead_end();
     }
 
     /**
@@ -402,107 +316,87 @@ public:
 
         const StateInfo& info = state_infos_[state];
         if (info.policy == ActionID::undefined) {
-            return async_update(state, nullptr, &result);
-        } else {
-            Action action = this->lookup_action(state, info.policy);
-            this->generate_successors(state, action, result);
-            return false;
+            return async_update(state, nullptr, &result).first;
         }
-    }
 
-    /**
-     * @brief Marks the state represented by \p state_id as a dead-end.
-     */
-    void set_dead_end(const StateID& state_id)
-    {
-        StateInfo& info = state_infos_[state_id];
-        info.set_recognized_dead_end();
-        info.value = dead_end_value_;
-    }
-
-    /**
-     * @brief Marks the state represented by \p state_id as a dead-end, unless
-     * it is a goal state.
-     *
-     * @return true - If the state is a goal state
-     * @return false - Otherwise
-     */
-    bool conditional_set_dead_end(const StateID& state_id)
-    {
-        StateInfo& info = state_infos_[state_id];
-        if (!info.is_goal_state()) {
-            info.set_recognized_dead_end();
-            info.set_value(dead_end_value_);
-            return true;
-        }
+        Action action = this->lookup_action(state, info.policy);
+        this->generate_successors(state, action, result);
         return false;
     }
 
     /**
-     * @brief Stores into \p info that the corresponding state is a dead-end
+     * @brief Calls notify_dead_end(const StateID&, StateInfo&) with the
+     * respective state info object
      */
-    void set_dead_end(StateInfo& info)
+    bool notify_dead_end(const StateID& state_id)
     {
-        info.set_recognized_dead_end();
-        info.value = dead_end_value_;
-    }
-
-    /**
-     * @brief Notifies the attached dead-end listener of a new dead-end.
-     */
-    void notify_dead_end(const StateID& state_id)
-    {
-        if (dead_end_listener_ != nullptr) {
-            notify_dead_end(state_id, state_infos_[state_id]);
-        }
+        return notify_dead_end(state_id, state_infos_[state_id]);
     }
 
     /**
      * @brief If \p state_id has not been recognized as a dead-end before,
-     * stores this information in \p state_info and notifies the attached
-     * dead-end listener of this new dead-end.
+     * stores this information in \p state_info, notifies the attached
+     * dead-end listener of this new dead-end, and returns true.
+     * Otherwise returns false.
      */
-    void notify_dead_end(const StateID& state_id, StateInfo& state_info)
+    bool notify_dead_end(const StateID& state_id, StateInfo& state_info)
     {
-        if (dead_end_listener_ != nullptr &&
-            !state_info.is_recognized_dead_end()) {
-            set_dead_end(state_info);
-            dead_end_listener_->operator()(state_id);
+        if (!state_info.is_dead_end()) {
+            state_info.set_dead_end();
+            state_info.value = dead_end_value_;
+
+            if (dead_end_listener_ != nullptr) {
+                dead_end_listener_->operator()(state_id);
+            }
+
+            return true;
         }
+
+        return false;
     }
 
-    bool conditional_notify_dead_end(const StateID& state_id)
+    /**
+     * @brief Calls notify_dead_end_ifnot_goal(const StateID&, StateInfo&) for
+     * the internal state info object of \p state_id.
+     */
+    bool notify_dead_end_ifnot_goal(const StateID& state_id)
     {
-        return conditional_notify_dead_end(state_id, state_infos_[state_id]);
+        return notify_dead_end_ifnot_goal(state_id, state_infos_[state_id]);
     }
 
+    /**
+     * @brief If \p state_id is not a goal state, calls
+     * notify_dead_end(const StateID&, StateInfo&)
+     *
+     * Returns true if the state is not a goal state.
+     */
     bool
-    conditional_notify_dead_end(const StateID& state_id, StateInfo& state_info)
+    notify_dead_end_ifnot_goal(const StateID& state_id, StateInfo& state_info)
     {
         if (state_info.is_goal_state()) {
             return false;
         }
-        if (dead_end_listener_ != nullptr &&
-            !state_info.is_recognized_dead_end()) {
-            set_dead_end(state_info);
-            dead_end_listener_->operator()(state_id);
-        }
+
+        notify_dead_end(state_id, state_info);
+
         return true;
     }
 
     /**
-     * @brief Checks whether the attached dead-end evluator recognizes the
-     * state as a dead-end. If yes, the state is marked as a dead-end.
+     * @brief Checks whether the attached dead-end evaluator recognizes the
+     * state as a dead-end. If yes and the state has not been recognized before,
+     * the state is marked as a dead-end and the dead end listener is notified.
      */
     bool check_dead_end(const StateID& state_id)
     {
         if (dead_end_eval_ != nullptr) {
             State state = this->lookup_state(state_id);
             if (dead_end_eval_->operator()(state)) {
-                set_dead_end(state_id);
+                notify_dead_end(state_id);
                 return true;
             }
         }
+
         return false;
     }
 
@@ -515,280 +409,91 @@ public:
     }
 
     /**
-     * @brief Computes the value update for a state and outputs the new greedy
-     * action, transition, and whether the policy and value changed.
+     * @brief Computes the value update for a state and returns whether the
+     * value changed.
+     *
+     * If the policy is stored, the greedy action for s is also updated using
+     * the internal policy tiebreaking settings.
+     */
+    bool async_update(const StateID& s)
+    {
+        if constexpr (!StorePolicy::value) {
+            return compute_value_update(s);
+        } else {
+            return async_update(s, nullptr, nullptr).first;
+        }
+    }
+
+    /**
+     * @brief Computes the value and policy update for a state and outputs the
+     * new greedy action and transition.
+     *
+     * Output parameters may be nullptr. The first returns values specifies
+     * whether the value changed. the second value specified whether the policy
+     * changed.
+     *
+     * Only applicable if the policy is stored.
      *
      * @param[in] s - The state for the value update
      * @param[out] policy_action - Return address for the new greedy action.
      * @param[out] policy_transition - Return address for the new greedy
      * transition.
-     * @param[out] policy_changed - Return address for the policy change flag.
-     *
-     * @return true - If the value changed.
-     * @return false - Otherwise.
      */
-    bool async_update(
+    std::pair<bool, bool> async_update(
         const StateID& s,
-        ActionID* policy_action = nullptr,
-        Distribution<StateID>* policy_transition = nullptr,
-        bool* policy_changed = nullptr)
+        ActionID* policy_action,
+        Distribution<StateID>* policy_transition)
     {
-        return async_update(
-            stable_policy_,
+        return compute_value_policy_update(
             s,
-            this->policy_chooser_,
+            *this->policy_chooser_,
+            stable_policy_,
             policy_action,
-            policy_transition,
-            policy_changed);
+            policy_transition);
     }
 
     /**
-     * @brief Computes the value update for a state and outputs the new greedy
-     * action, transition, and whether the policy and value changed, where ties
-     * between optimal actions are broken by the supplied policy tiebreaker.
+     * @brief Computes the value and policy update for a state and outputs the
+     * new greedy action and transition. Ties between optimal actions are
+     * broken by the supplied policy tiebreaker.
+     *
+     * Output parameters may be nullptr. The first returns values specifies
+     * whether the value changed. the second value specified whether the policy
+     * changed.
+     *
+     * Only applicable if the policy is stored.
      *
      * @param[in] s - The state for the value update
-     * @param[out] policy_tiebreaker - A pointer to a function object breaking
+     * @param[in] greedy_picker - A pointer to a function object breaking
      * ties between optimal actions.
      * @param[out] policy_action - Return address for the new greedy action.
      * @param[out] policy_transition - Return address for the new greedy
      * transition.
-     * @param[out] policy_changed - Return address for the policy change flag.
-     *
-     * @return true - If the value changed.
-     * @return false - Otherwise.
      */
     template <typename T>
-    bool async_update(
+    std::pair<bool, bool> async_update(
         const StateID& s,
-        T* policy_tiebreaker,
+        T& greedy_picker,
         ActionID* policy_action,
-        Distribution<StateID>* policy_transition,
-        bool* policy_changed)
+        Distribution<StateID>* policy_transition)
     {
-        return async_update(
-            false,
+        return compute_value_policy_update(
             s,
-            policy_tiebreaker,
+            greedy_picker,
+            false,
             policy_action,
-            policy_transition,
-            policy_changed);
-    }
-
-    template <typename AlternativeCondition>
-    std::pair<bool, bool>
-    safe_async_update(const StateID& s, AlternativeCondition& alt_cond)
-    {
-        return this->safe_async_update(s, *dead_end_listener_, alt_cond);
-    }
-
-    template <typename DeadEndListener, typename AlternativeCondition>
-    std::pair<bool, bool> safe_async_update(
-        const StateID& s,
-        DeadEndListener& listener,
-        AlternativeCondition& alt_cond)
-    {
-        // std::cout << "safe_async_update(" << state_id_map_->operator[](s) <<
-        // ")"
-        //           << std::endl;
-
-        struct ExpansionData {
-            ExpansionData(const StateID& s, int pidx)
-                : state(s)
-                , pidx(pidx)
-                , root(true)
-                , lowlink(-1)
-            {
-            }
-            ExpansionData(ExpansionData&& other) = default;
-            void update_lowlink(int lk)
-            {
-                if (lk < lowlink) {
-                    lowlink = lk;
-                    root = false;
-                }
-            }
-            StateID state;
-            std::vector<Action> aops;
-            unsigned pidx;
-            bool root;
-            int lowlink;
-        };
-
-        struct PersistentStateData {
-            PersistentStateData()
-                : onstack(false)
-                , index(-1)
-            {
-            }
-            bool onstack;
-            int index;
-        };
-
-        statistics_.safe_updates_non_dead_end_value += !has_dead_end_value(s);
-        statistics_.dead_end_safe_updates++;
-        std::pair<bool, bool> result = std::pair<bool, bool>(false, false);
-
-        int index = 0;
-        storage::StateHashMap<PersistentStateData> indices;
-        std::deque<ExpansionData> expansion_queue;
-        std::deque<StateID> stack;
-        expansion_queue.emplace_back(s, 0);
-        while (!expansion_queue.empty()) {
-            assert(!result.first);
-            auto& expansion_data = expansion_queue.back();
-            const StateID state_id = expansion_data.state;
-            auto& state_info = state_infos_[state_id];
-            // std::cout << state_id << " -> I"
-            //           << state_info.is_value_initialized() << "|G"
-            //           << state_info.is_goal_state() << "|D"
-            //           << state_info.is_dead_end() << "|R"
-            //           << state_info.is_recognized_dead_end() << "|T"
-            //           << state_info.is_terminal() << std::endl;
-            if (state_info.is_recognized_dead_end()) {
-                expansion_queue.pop_back();
-            } else if (state_info.is_dead_end()) {
-                statistics_.dead_end_safe_updates_states++;
-                statistics_.dead_end_safe_updates_dead_ends++;
-                state_info.value = dead_end_value_;
-                state_info.set_recognized_dead_end();
-                listener(expansion_data.state);
-                expansion_queue.pop_back();
-            } else if (state_info.is_goal_state()) {
-                result.first = true;
-                const unsigned size = expansion_data.pidx;
-                while (expansion_queue.size() != size)
-                    expansion_queue.pop_back();
-                break;
-            } else {
-                // std::cout
-                //     << "Top() = " << expansion_data.state << " ("
-                //     <<
-                //     (state_infos_->operator[](expansion_data.state).get_value())
-                //     << ")" << std::endl;
-                if (expansion_data.aops.empty()) {
-                    statistics_.dead_end_safe_updates_states++;
-                    if (alt_cond(expansion_data.state)) {
-                        result.first = true;
-                        const unsigned size = expansion_data.pidx;
-                        while (expansion_queue.size() != size)
-                            expansion_queue.pop_back();
-                        break;
-                    } else {
-                        if (!state_info.is_value_initialized()) {
-                            lookup_initialize(expansion_data.state, state_info);
-                            continue;
-                        }
-                        // std::cout << ">" << state_id << " -> I"
-                        //           << state_info.is_value_initialized() <<
-                        //           "|G"
-                        //           << state_info.is_goal_state() << "|D"
-                        //           << state_info.is_dead_end() << "|R"
-                        //           << state_info.is_recognized_dead_end() <<
-                        //           "|T"
-                        //           << state_info.is_terminal() << std::endl;
-                        assert(state_info.is_value_initialized());
-                        assert(!state_info.is_terminal());
-                        PersistentStateData& pd = indices[state_id];
-                        assert(pd.index == -1);
-                        pd.index = expansion_data.lowlink = index++;
-                        pd.onstack = true;
-                        this->generate_applicable_ops(
-                            expansion_data.state,
-                            expansion_data.aops);
-                        if (expansion_data.aops.empty()) {
-                            state_info.set_dead_end();
-                            result.second =
-                                this->update(state_info, dead_end_value_);
-                            continue;
-                        }
-                        stack.push_front(expansion_data.state);
-                    }
-                } else {
-                    expansion_data.aops.pop_back();
-                    if (expansion_data.aops.empty()) {
-                        ExpansionData copy(std::move(expansion_data));
-                        expansion_queue.pop_back();
-                        if (copy.root) {
-                            auto end = stack.begin();
-                            do {
-                                const StateID stack_state_id = *end;
-                                auto& info = state_infos_[stack_state_id];
-                                info.set_recognized_dead_end();
-                                result.second =
-                                    this->update(info, dead_end_value_) ||
-                                    result.second;
-                                indices[stack_state_id].onstack = false;
-                                statistics_.dead_end_safe_updates_dead_ends++;
-                                // std::cout << " ---> dead: " << *end <<
-                                // std::endl;
-                                ++end;
-                                if (stack_state_id == state_id) {
-                                    break;
-                                }
-                            } while (true);
-                            listener(stack.begin(), end);
-                            stack.erase(stack.begin(), end);
-                        } else {
-                            assert(!expansion_queue.empty());
-                            expansion_queue.back().update_lowlink(copy.lowlink);
-                        }
-                        continue;
-                    }
-                }
-                // assert(is_equal_(state_info.get_value(), dead_end_value_));
-                assert(!expansion_data.aops.empty());
-                Distribution<StateID> transition_;
-                this->generate_successors(
-                    expansion_data.state,
-                    expansion_data.aops.back(),
-                    transition_);
-                const int pidx = expansion_queue.size();
-                // std::cout << " next successors = [";
-                for (auto it = transition_.begin(); it != transition_.end();
-                     ++it) {
-                    StateID succ_id = it->first;
-                    const auto& d = indices[succ_id];
-                    // std::cout << " " << it->first << "(" << d.index << ")";
-                    if (d.onstack) {
-                        expansion_data.update_lowlink(d.index);
-                    } else if (d.index == -1) {
-                        expansion_queue.emplace_back(it->first, pidx);
-                    }
-                }
-                // std::cout << " ]" << std::endl;
-                transition_.clear();
-            }
-        }
-        if constexpr (StorePolicy::value) {
-            if (result.first) {
-                while (!expansion_queue.empty()) {
-                    auto& expansion_data = expansion_queue.back();
-                    const StateID state_id = expansion_data.state;
-                    StateInfo& state_info = state_infos_[state_id];
-                    const ActionID pid = this->get_action_id(
-                        state_id,
-                        expansion_data.aops.back());
-                    result.second =
-                        result.second || (state_info.get_policy() != pid);
-                    state_info.set_policy(pid);
-                    const unsigned size = expansion_data.pidx;
-                    while (expansion_queue.size() != size)
-                        expansion_queue.pop_back();
-                }
-            }
-        }
-        if (result.first) {
-            ++statistics_.wrongly_classified_dead_ends;
-        }
-
-        // std::cout << "==> result: " << result.first << ", " << result.second
-        //           << std::endl;
-
-        return result;
+            policy_transition);
     }
 
 protected:
+    /**
+     * @brief Updates the value of a state in its info object.
+     *
+     * @return true if the single state value changed by more than epsilon, the
+     * lower bounding state value changed by more than epslon (interval bounds
+     * without interval comparison) or either value bound changed by more than
+     * epsilon (interval bounds with interval comparison). False otherwise.
+     */
     bool update(StateInfo& state_info, const IncumbentSolution& other)
     {
         if constexpr (DualBounds::value) {
@@ -801,18 +506,6 @@ protected:
         }
     }
 
-#if 0
-    value_type::value_t create_result(const StateID& id)
-    {
-        const StateInfo& info = state_infos_[id];
-        if constexpr (DualBounds::value) {
-            statistics_.print_error = true;
-            statistics_.error = info.error_bound();
-        }
-        return info.get_value();
-    }
-#endif
-
     /**
      * @brief Initializes the progress report with the given initial state.
      */
@@ -821,11 +514,12 @@ protected:
         initial_state_id_ = this->get_state_id(state);
 
         static bool initialized = false;
-        if (initialized) return;
+        if (initialized) {
+            return;
+        }
         initialized = true;
 
         const StateInfo& info = lookup_initialize(this->get_state_id(state));
-        // this->state_infos_[this->state_id_map_->operator[](state)];
         this->add_values_to_report(&info);
         statistics_.value = value_utils::as_upper_bound(info.value);
         statistics_.before_last_update = statistics_;
@@ -854,6 +548,78 @@ protected:
         return state_infos_;
     }
 
+    /**
+     * @brief Get the state info storage.
+     */
+    const storage::PerStateStorage<StateInfo>& get_state_info_store() const
+    {
+        return state_infos_;
+    }
+
+    /**
+     * @brief Get the state info object of a state.
+     */
+    StateInfo& get_state_info(const StateID& id) { return state_infos_[id]; }
+
+    /**
+     * @brief Get the state info object of a state.
+     */
+    StateInfo& get_state_info(const StateID& id) const
+    {
+        return state_infos_[id];
+    }
+
+    /**
+     * @brief Get the state info object of a state, if needed.
+     *
+     * This method is used as a selection mechanism to obtain the correct
+     * state information object for a state. Algorithms like LRTDP may or
+     * may not store their algorithm specific state information separately
+     * from the base state information stored in this class. This method
+     * checks if the provided state info object is the required base state
+     * information object by checking for type equality and returns it if that
+     * is the case. Otherwise, the base state information object for this state
+     * is retrieved and returned.
+     */
+    template <typename AlgStateInfo>
+    StateInfo& get_state_info(const StateID id, AlgStateInfo& info)
+    {
+        if constexpr (std::is_same_v<AlgStateInfo, StateInfo>) {
+            return info;
+        } else {
+            return get_state_info(id);
+        }
+    }
+
+    /**
+     * @brief Get the state info object of a state, if needed.
+     *
+     * This method is used as a selection mechanism to obtain the correct
+     * state information object for a state. Algorithms like LRTDP may or
+     * may not store their algorithm specific state information separately
+     * from the base state information stored in this class. This method
+     * checks if the provided state info object is the required base state
+     * information object by checking for type equality and returns it if that
+     * is the case. Otherwise, the base state information object for this state
+     * is retrieved and returned.
+     */
+    template <typename AlgStateInfo>
+    const StateInfo&
+    get_state_info(const StateID id, const AlgStateInfo& info) const
+    {
+        if constexpr (std::is_same_v<AlgStateInfo, StateInfo>) {
+            return info;
+        } else {
+            return get_state_info(id);
+        }
+    }
+
+    /**
+     * @brief Checks if the value bounds of the state are epsilon-close.
+     *
+     * @return false if interval bounds or interval comparison are not used.
+     * Otherwise returns true if and only if the value bounds are epsilon-close.
+     */
     template <typename Info>
     bool do_bounds_disagree(const StateID& state_id, const Info& info)
     {
@@ -941,10 +707,11 @@ private:
     StateInfo& lookup_initialize(const StateID& state_id)
     {
         StateInfo& info = state_infos_[state_id];
-        return lookup_initialize(state_id, info);
+        initialize(state_id, info);
+        return info;
     }
 
-    StateInfo& lookup_initialize(const StateID& state_id, StateInfo& state_info)
+    void initialize(const StateID& state_id, StateInfo& state_info)
     {
         if (!state_info.is_value_initialized()) {
             statistics_.evaluated_states++;
@@ -960,8 +727,7 @@ private:
                 estimate = value_initializer_->operator()(state);
                 if (estimate) {
                     statistics_.pruned_states++;
-                    state_info.set_recognized_dead_end();
-                    state_info.value = dead_end_value_;
+                    notify_dead_end(state_id, state_info);
                     if (on_new_state_) on_new_state_->touch_dead_end(state);
                 } else {
                     state_info.set_on_fringe();
@@ -978,64 +744,38 @@ private:
                 }
             }
         }
-        return state_info;
     }
 
     IncumbentSolution dead_end_value() const { return dead_end_value_; }
 
-    template <typename T>
-    bool async_update(
-        const bool stable_policy,
-        const StateID& s,
-        T* policy_tiebreaker,
-        ActionID* greedy_action,
-        Distribution<StateID>* greedy_transition,
-        bool* action_changed)
+    bool compute_value_update(const StateID& state_id)
     {
-        if (policy_tiebreaker == nullptr) {
-            return compute_value_update<false, false>(
-                s,
-                policy_tiebreaker,
-                greedy_action,
-                greedy_transition,
-                action_changed);
-        } else {
-            if (stable_policy) {
-                return compute_value_update<true, true>(
-                    s,
-                    policy_tiebreaker,
-                    greedy_action,
-                    greedy_transition,
-                    action_changed);
-            } else {
-                return compute_value_update<true, false>(
-                    s,
-                    policy_tiebreaker,
-                    greedy_action,
-                    greedy_transition,
-                    action_changed);
-            }
-        }
+        std::vector<Action> aops;
+        std::vector<Distribution<StateID>> transitions;
+        std::vector<IncumbentSolution> values;
+        IncumbentSolution new_value;
+
+        return compute_value_update(
+            state_id,
+            lookup_initialize(state_id),
+            aops,
+            transitions,
+            values,
+            new_value);
     }
 
-    template <bool Policy, bool StablePolicy, typename T>
     bool compute_value_update(
         const StateID& state_id,
-        [[maybe_unused]] T* choice,
-        [[maybe_unused]] ActionID* greedy_action,
-        [[maybe_unused]] Distribution<StateID>* greedy_transition,
-        [[maybe_unused]] bool* action_changed)
+        StateInfo& state_info,
+        std::vector<Action>& aops,
+        std::vector<Distribution<StateID>>& transitions,
+        std::vector<IncumbentSolution>& values,
+        IncumbentSolution& new_value)
     {
 #if defined(EXPENSIVE_STATISTICS)
         statistics_.update_time.resume();
 #endif
         statistics_.backups++;
-
-        assert(!Policy || choice != nullptr);
-        assert(greedy_transition == nullptr || greedy_transition->empty());
-
-        StateInfo& state_info =
-            lookup_initialize(state_id, state_infos_[state_id]);
 
         if (state_info.is_terminal()) {
 #if defined(EXPENSIVE_STATISTICS)
@@ -1049,16 +789,12 @@ private:
             state_info.removed_from_fringe();
         }
 
-        std::vector<Action> aops_;
-        std::vector<Distribution<StateID>> optimal_transitions_;
-        this->generate_all_successors(state_id, aops_, optimal_transitions_);
-        assert(aops_.size() == optimal_transitions_.size());
+        this->generate_all_successors(state_id, aops, transitions);
+        assert(aops.size() == transitions.size());
 
-        if (aops_.empty()) {
+        if (aops.empty()) {
             statistics_.terminal_states++;
-            bool result = this->update(state_info, dead_end_value_);
-            state_info.set_dead_end();
-            state_info.set_policy(ActionID::undefined);
+            bool result = notify_dead_end(state_id, state_info);
 #if defined(EXPENSIVE_STATISTICS)
             statistics_.update_time.stop();
 #endif
@@ -1071,135 +807,59 @@ private:
             return result;
         }
 
-        bool first = true;
-        IncumbentSolution new_value = dead_end_value();
-        std::vector<IncumbentSolution> values;
-        values.reserve(aops_.size());
+        new_value = IncumbentSolution(this->get_minimal_reward());
+        values.reserve(aops.size());
 
-        // for (int i = aops_.size() - 1; i >= 0; i--) {
-        unsigned non_loop_transitions = 0;
-        for (unsigned i = 0; i < aops_.size(); ++i) {
+        unsigned non_loop_end = 0;
+        for (unsigned i = 0; i < aops.size(); ++i) {
+            Action& op = aops[i];
+            Distribution<StateID>& transition = transitions[i];
+
             IncumbentSolution t_value(
                 state_info.get_state_reward() +
-                this->get_action_reward(state_id, aops_[i]));
+                this->get_action_reward(state_id, op));
             value_type::value_t self_loop = value_type::zero;
             bool non_loop = false;
-            bool has_self_loop = false;
-            const Distribution<StateID>& transition = optimal_transitions_[i];
-            for (auto it = transition.begin(); it != transition.end(); ++it) {
-                const StateID succ_id = it->first;
+
+            for (const auto& [succ_id, prob] : transition) {
                 if (succ_id == state_id) {
-                    has_self_loop = true;
-                    self_loop += it->second;
+                    self_loop += prob;
                 } else {
-                    const StateInfo& succ_info =
-                        lookup_initialize(succ_id, state_infos_[succ_id]);
-                    t_value += it->second * succ_info.value;
+                    const StateInfo& succ_info = lookup_initialize(succ_id);
+                    t_value += prob * succ_info.value;
                     non_loop = true;
                 }
             }
+
             if (non_loop) {
-                if (has_self_loop) {
+                if (self_loop > value_type::zero) {
                     t_value *= value_type::one / (value_type::one - self_loop);
                 }
 
                 values.push_back(t_value);
-                if (first) {
-                    first = false;
-                    new_value = t_value;
-                } else {
-                    value_utils::set_max(new_value, t_value);
+                value_utils::set_max(new_value, t_value);
+
+                if (non_loop_end != i) {
+                    aops[non_loop_end] = std::move(op);
+                    transitions[non_loop_end] = std::move(transition);
                 }
-                if (non_loop_transitions != i) {
-                    optimal_transitions_[i].swap(
-                        optimal_transitions_[non_loop_transitions]);
-                    std::swap(aops_[i], aops_[non_loop_transitions]);
-                }
-                ++non_loop_transitions;
+
+                ++non_loop_end;
             }
         }
+
+        aops.erase(aops.begin() + non_loop_end, aops.end());
+        transitions.erase(
+            transitions.begin() + non_loop_end,
+            transitions.end());
 
 #if defined(EXPENSIVE_STATISTICS)
         statistics_.update_time.stop();
 #endif
-        // if (value_type::approx_equal(value_type::eps)(state_info.value,
-        // this->get_minimal_reward())) {
-        //     non_loop_transitions = 0;
-        // }
 
-        if (non_loop_transitions == 0) {
+        if (aops.empty()) {
             statistics_.self_loop_states++;
-            const bool result = this->update(state_info, dead_end_value_);
-            state_info.set_policy(ActionID::undefined);
-            state_info.set_dead_end();
-            return result;
-            // assert(is_equal_(new_value, dead_end_value_));
-        }
-
-        if constexpr (Policy) {
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.policy_selection_time.resume();
-#endif
-
-            int index = -1;
-
-            unsigned j = 0;
-            for (unsigned i = 0; i < non_loop_transitions; ++i) {
-                if (value_utils::compare(values[i], new_value) >= 0) {
-                    if (i != j) {
-                        optimal_transitions_[j].swap(optimal_transitions_[i]);
-                        std::swap(aops_[j], aops_[i]);
-                    }
-                    if (StablePolicy &&
-                        this->get_action_id(state_id, aops_[j]) ==
-                            state_info.get_policy()) {
-                        index = j++;
-                        break;
-                    }
-                    ++j;
-                }
-            }
-
-            if (j < optimal_transitions_.size()) {
-                aops_.erase(aops_.begin() + j, aops_.end());
-                optimal_transitions_.erase(
-                    optimal_transitions_.begin() + j,
-                    optimal_transitions_.end());
-            }
-
-            if (index == -1) {
-                ++statistics_.policy_updates;
-                assert(!optimal_transitions_.empty());
-                index = choice->operator()(
-                    state_id,
-                    state_info.get_policy(),
-                    aops_,
-                    optimal_transitions_);
-                assert(index < 0 || index < static_cast<int>(aops_.size()));
-            }
-
-            if (index >= 0) {
-                const ActionID action_id =
-                    this->get_action_id(state_id, aops_[index]);
-
-                if (action_changed != nullptr) {
-                    *action_changed = (action_id != state_info.get_policy());
-                }
-
-                if (greedy_action != nullptr) {
-                    (*greedy_action) = action_id;
-                }
-
-                if (greedy_transition != nullptr) {
-                    greedy_transition->swap(optimal_transitions_[index]);
-                }
-
-                state_info.set_policy(action_id);
-            }
-
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.policy_selection_time.stop();
-#endif
+            return notify_dead_end(state_id, state_info);
         }
 
         if (this->update(state_info, new_value)) {
@@ -1209,6 +869,136 @@ private:
             }
             return true;
         }
+
+        return false;
+    }
+
+    template <typename T>
+    std::pair<bool, bool> compute_value_policy_update(
+        const StateID& state_id,
+        T& greedy_picker,
+        bool stable_policy,
+        ActionID* greedy_action,
+        Distribution<StateID>* greedy_transition)
+    {
+        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+
+        std::vector<Action> aops;
+        std::vector<Distribution<StateID>> transitions;
+        std::vector<IncumbentSolution> values;
+        IncumbentSolution new_value;
+
+        StateInfo& state_info = lookup_initialize(state_id);
+
+        bool b = compute_value_update(
+            state_id,
+            state_info,
+            aops,
+            transitions,
+            values,
+            new_value);
+
+        if (aops.empty()) {
+            state_info.set_policy(ActionID::undefined);
+            return std::make_pair(b, false);
+        }
+
+        bool p = compute_policy_update(
+            state_id,
+            state_info,
+            greedy_picker,
+            stable_policy,
+            aops,
+            transitions,
+            values,
+            new_value,
+            greedy_action,
+            greedy_transition);
+
+        return std::make_pair(b, p);
+    }
+
+    template <typename T>
+    bool compute_policy_update(
+        const StateID& state_id,
+        StateInfo& state_info,
+        T& greedy_picker,
+        bool stable,
+        std::vector<Action>& aops,
+        std::vector<Distribution<StateID>>& transitions,
+        const std::vector<IncumbentSolution>& values,
+        const IncumbentSolution& new_value,
+        ActionID* greedy_action,
+        Distribution<StateID>* greedy_transition)
+    {
+#if defined(EXPENSIVE_STATISTICS)
+        statistics_.policy_selection_time.resume();
+#endif
+        auto previous_greedy = state_info.get_policy();
+
+        unsigned optimal_end = 0;
+        for (unsigned i = 0; i < aops.size(); ++i) {
+            if (value_utils::compare(values[i], new_value) >= 0) {
+                if (stable) {
+                    const auto aid = this->get_action_id(state_id, aops[i]);
+                    if (aid == previous_greedy) {
+                        if (greedy_action != nullptr) {
+                            *greedy_action = aid;
+                        }
+
+                        if (greedy_transition != nullptr) {
+                            *greedy_transition = std::move(transitions[i]);
+                        }
+
+                        return false;
+                    }
+                }
+
+                if (i != optimal_end) {
+                    transitions[optimal_end] = std::move(transitions[i]);
+                    aops[optimal_end] = std::move(aops[i]);
+                }
+
+                ++optimal_end;
+            }
+        }
+
+        aops.erase(aops.begin() + optimal_end, aops.end());
+        transitions.erase(transitions.begin() + optimal_end, transitions.end());
+
+        assert(!aops.empty() && !transitions.empty());
+
+        ++statistics_.policy_updates;
+
+        int index = greedy_picker(state_id, previous_greedy, aops, transitions);
+        assert(index < 0 || index < static_cast<int>(aops.size()));
+
+        if (index >= 0) {
+            const ActionID aid = this->get_action_id(state_id, aops[index]);
+
+            if (greedy_action != nullptr) {
+                (*greedy_action) = aid;
+            }
+
+            if (greedy_transition != nullptr) {
+                (*greedy_transition) = std::move(transitions[index]);
+            }
+
+            if (aid != state_info.get_policy()) {
+                state_info.set_policy(aid);
+                return true;
+            }
+
+#if defined(EXPENSIVE_STATISTICS)
+            statistics_.policy_selection_time.stop();
+#endif
+
+            return false;
+        }
+
+#if defined(EXPENSIVE_STATISTICS)
+        statistics_.policy_selection_time.stop();
+#endif
         return false;
     }
 
@@ -1230,7 +1020,7 @@ private:
 
     Statistics statistics_;
 
-    StateID initial_state_id_;
+    StateID initial_state_id_ = StateID::undefined;
 };
 
 } // namespace internal

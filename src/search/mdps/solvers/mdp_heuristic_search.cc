@@ -32,10 +32,6 @@ MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
           opts.contains("dead_end_eval")
               ? opts.get<std::shared_ptr<GlobalStateEvaluator>>("dead_end_eval")
               : nullptr)
-    , dead_end_ident_level_(DeadEndIdentificationLevel(
-          opts.contains("dead_end_identification")
-              ? opts.get_enum("dead_end_identification")
-              : 0))
     , dual_bounds_(
           opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
     , interval_comparison_(
@@ -111,9 +107,6 @@ void MDPHeuristicSearchBase::add_options_to_parser(
         "on_dead_end",
         "",
         options::OptionParser::NONE);
-    std::vector<std::string> levels(
-        {"disabled", "policy", "visited", "complete"});
-    parser.add_enum_option("dead_end_identification", levels, "", "disabled");
     MDPSolver::add_options_to_parser(parser);
 }
 

@@ -68,7 +68,6 @@ public:
                 g_analysis_objective->reward_bound(),
                 res->aops_gen.get(),
                 res->tgen.get(),
-                DeadEndIdentificationLevel::Disabled,
                 nullptr,
                 &res->dead_end_listener_,
                 &res->policy_,
@@ -112,7 +111,6 @@ public:
                 DualValues>(
                 args...,
                 res->quotient_.get(),
-                DeadEndIdentificationLevel::Disabled,
                 nullptr,
                 nullptr,
                 res->q_policy_tiebreaker_.get(),
@@ -176,7 +174,6 @@ public:
                 g_analysis_objective->reward_bound(),
                 res->q_aops_gen_.get(),
                 res->q_transition_gen_.get(),
-                DeadEndIdentificationLevel::Disabled,
                 nullptr,
                 nullptr,
                 res->q_policy_tiebreaker_.get(),

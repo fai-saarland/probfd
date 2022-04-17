@@ -117,7 +117,6 @@ public:
         value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        DeadEndIdentificationLevel level,
         StateEvaluator<State>* dead_end_eval,
         DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
@@ -137,7 +136,6 @@ public:
               reward_bound,
               aops_generator,
               transition_generator,
-              level,
               dead_end_eval,
               dead_end_listener,
               policy_chooser,
@@ -150,8 +148,6 @@ public:
         , StopConsistent(stop_consistent)
         , state_infos_(nullptr)
         , sample_(succ_sampler)
-        , expansion_condition_(this, level)
-        , state_status_(this->template get_state_status_access<StateInfoT>())
     {
         this->setup_state_info_store(
             typename std::is_same<
@@ -201,44 +197,6 @@ protected:
     }
 
 private:
-    struct ExpandInDeadEndCheck {
-
-        explicit ExpandInDeadEndCheck(
-            LRTDP* lrtdp,
-            DeadEndIdentificationLevel level)
-            : lrtdp_(lrtdp)
-            , level_(level)
-        {
-        }
-
-        bool operator()(const StateID& state_id) const
-        {
-            auto& lrtdp_info = lrtdp_->state_infos_->operator[](state_id);
-            // std::cout << "visit " << state_id << " ==> ";
-            if (lrtdp_info.is_solved()) {
-                // std::cout << "solved!!!" << std::endl;
-                return true;
-            }
-            switch (level_) {
-            case (DeadEndIdentificationLevel::Policy):
-                // std::cout << lrtdp_info.is_marked_open() << std::endl;
-                return !lrtdp_info.is_marked_open();
-            case (DeadEndIdentificationLevel::Visited): {
-                // std::cout << lrtdp_->state_status_(state_id, lrtdp_info)
-                //             .is_value_initialized() << std::endl;
-                return !lrtdp_->state_status_(state_id, lrtdp_info)
-                            .is_value_initialized();
-            }
-            default: break;
-            }
-            // std::cout << "expand" << std::endl;
-            return false;
-        }
-
-        LRTDP* lrtdp_;
-        const DeadEndIdentificationLevel level_;
-    };
-
     void trial(const StateID& initial_state)
     {
         assert(
@@ -257,17 +215,18 @@ private:
             const bool value_changed = this->async_update(
                 state_id,
                 nullptr,
-                &this->selected_transition_);
+                &this->selected_transition_).first;
             if (this->selected_transition_.empty()) {
                 // terminal
-                assert(this->state_status_(state_id, state_info).is_terminal());
+                assert(
+                    this->get_state_info(state_id, state_info).is_terminal());
                 this->check_goal_or_mark_dead_end(state_id, state_info);
                 state_info.set_solved();
                 this->current_trial_.pop_back();
                 break;
             }
             // state_info.mark_trial();
-            assert(!this->state_status_(state_id, state_info).is_terminal());
+            assert(!this->get_state_info(state_id, state_info).is_terminal());
             if ((StopConsistent == TrialTerminationCondition::Consistent &&
                  !value_changed) ||
                 (StopConsistent == TrialTerminationCondition::Inconsistent &&
@@ -337,25 +296,25 @@ private:
                         << "(C&S) queue.top() = " << elem.second << " ~> "
                         << info.is_marked_open() << "|" << (info.is_solved())
                         << "|"
-                        << (this->state_status_(elem.second).is_dead_end())
+                        << (this->get_state_info(elem.second).is_dead_end())
                         << " value="
-                        << (this->state_status_(elem.second).get_value())
+                        << (this->get_state_info(elem.second).get_value())
                         << std::endl;)
                 if (info.is_marked_open()) {
                     this->policy_queue_.pop_back();
                 } else if (info.is_solved()) {
                     const auto& state_info =
-                        this->state_status_(state_id, info);
+                        this->get_state_info(state_id, info);
                     any_dead = any_dead || state_info.is_dead_end();
                     all_dead = all_dead && state_info.is_dead_end();
                     // if (this->dead_end_identification_level_
                     //     != DeadEndIdentificationLevel::Off) {
                     //     assert(
-                    //         !this->state_status_(elem.second).is_dead_end()
-                    //         || this->state_status_(elem.second)
+                    //         !this->get_state_info(elem.second).is_dead_end()
+                    //         || this->get_state_info(elem.second)
                     //                .is_recognized_dead_end());
                     //     all_dead = all_dead
-                    //         && this->state_status_(state_id, info)
+                    //         && this->get_state_info(state_id, info)
                     //                .is_dead_end();
                     // }
                     this->policy_queue_.pop_back();
@@ -366,18 +325,18 @@ private:
                     const bool value_changed = this->async_update(
                         elem.second,
                         nullptr,
-                        &this->selected_transition_);
+                        &this->selected_transition_).first;
                     if (value_changed) {
                         epsilon_consistent = false;
                         CAS_DEBUG_PRINT(
                             std::cout
                                 << "     => value has changed: "
-                                << this->state_status_(elem.second).get_value()
+                                << this->get_state_info(elem.second).get_value()
                                 << std::endl;)
                     } else {
                         if (this->selected_transition_.empty()) {
-                            assert(
-                                this->state_status_(elem.second).is_terminal());
+                            assert(this->get_state_info(elem.second)
+                                       .is_terminal());
                             if (this->check_goal_or_mark_dead_end(
                                     elem.second,
                                     info)) {
@@ -389,7 +348,7 @@ private:
                             policy_queue_.pop_back();
                             CAS_DEBUG_PRINT(
                                 std::cout << "     => marking as solved (dead= "
-                                          << this->state_status_(elem.second)
+                                          << this->get_state_info(elem.second)
                                                  .is_dead_end()
                                           << ")" << std::endl;)
                         } else {
@@ -407,7 +366,7 @@ private:
                                                 ? ", "
                                                 : "")
                                         << succ->first << " ("
-                                        << this->state_status_(succ->first)
+                                        << this->get_state_info(succ->first)
                                                .value
                                         << ")";)
                                 this->policy_queue_.emplace_back(
@@ -425,19 +384,6 @@ private:
         if (epsilon_consistent && all_dead && any_dead &&
             this->is_dead_end_learning_enabled()) {
             this->last_check_and_solve_was_dead_ = true;
-            for (auto it = this->visited_.begin(); it != this->visited_.end();
-                 ++it) {
-                CAS_DEBUG_PRINT(std::cout << "(C&S) checking dead-end " << *it
-                                          << "..." << std::endl;)
-                std::pair<bool, bool> updated =
-                    this->safe_async_update(*it, this->expansion_condition_);
-                epsilon_consistent = epsilon_consistent && !updated.second;
-                if (updated.first) {
-                    this->last_check_and_solve_was_dead_ = false;
-                    break;
-                }
-                assert(this->state_status_(*it).is_dead_end());
-            }
         }
 
         if (epsilon_consistent && mark_solved) {
@@ -528,7 +474,7 @@ private:
 
     bool check_goal_or_mark_dead_end(const StateID& state_id, StateInfoT& info)
     {
-        auto& state_info = this->state_status_(state_id, info);
+        auto& state_info = this->get_state_info(state_id, info);
         if (state_info.is_goal_state()) {
             return true;
         } else {
@@ -555,9 +501,6 @@ private:
     const TrialTerminationCondition StopConsistent;
     storage::PerStateStorage<StateInfoT>* state_infos_;
     TransitionSampler<Action>* sample_;
-    const ExpandInDeadEndCheck expansion_condition_;
-    typename HeuristicSearchBase::template StateStatusAccessor<StateInfoT>
-        state_status_;
 
     std::deque<StateID> current_trial_;
     Distribution<StateID> selected_transition_;

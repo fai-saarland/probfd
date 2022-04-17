@@ -61,7 +61,6 @@ public:
         value_utils::IntervalValue reward_bound,
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
-        DeadEndIdentificationLevel level,
         StateEvaluator<State>* dead_end_eval,
         DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
@@ -80,7 +79,6 @@ public:
               reward_bound,
               aops_generator,
               transition_generator,
-              level,
               dead_end_eval,
               dead_end_listener,
               policy_chooser,
@@ -98,7 +96,7 @@ public:
     {
         this->initialize_report(state);
         StateID stateid = this->get_state_id(state);
-        const auto& state_info = this->state_infos_(stateid);
+        const auto& state_info = this->get_state_info(stateid);
         open_list_->push(stateid);
         do {
             step();
@@ -121,7 +119,7 @@ private:
         std::string operator()(const State& state) const
         {
             const StateID sid = s->get_state_id(state);
-            const auto& info = s->state_infos_(sid);
+            const auto& info = s->get_state_info(sid);
             std::ostringstream out;
             out << sid << ": v=" << info.get_value() << " | "
                 << info.is_tip_state() << info.is_marked() << info.is_solved()
@@ -142,7 +140,7 @@ private:
     {
         assert(!this->open_list_->empty());
         StateID stateid = this->open_list_->pop();
-        auto& info = this->state_infos_(stateid);
+        auto& info = this->get_state_info(stateid);
         if (!info.is_tip_state() || info.is_solved()) {
             return;
         }
@@ -173,7 +171,7 @@ private:
                 const auto& t = this->transitions_[i];
                 for (auto it = t.begin(); it != t.end(); ++it) {
                     const StateID succid = it->first;
-                    auto& succ_info = this->state_infos_(succid);
+                    auto& succ_info = this->get_state_info(succid);
                     if (!succ_info.is_solved()) {
                         if (!succ_info.is_marked()) {
                             succ_info.mark();
@@ -207,7 +205,7 @@ private:
                     const auto& t = this->transitions_[i];
                     for (auto it = t.begin(); it != t.end(); ++it) {
                         const StateID succ_id = it->first;
-                        auto& succ_info = this->state_infos_(succ_id);
+                        auto& succ_info = this->get_state_info(succ_id);
                         succ_info.unmark();
                     }
                 }
