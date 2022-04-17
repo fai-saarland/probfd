@@ -46,6 +46,37 @@ struct Statistics {
  */
 template <typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
+    struct StateInfo {
+        bool expanded;
+        value_type::value_t value;
+    };
+
+    struct IncrementalExpansionInfo {
+        IncrementalExpansionInfo(
+            const StateID& state,
+            value_type::value_t reward,
+            std::vector<Action> remaining_aops)
+            : state(state)
+            , reward(reward)
+            , remaining_aops(std::move(remaining_aops))
+        {
+            assert(!this->remaining_aops.empty());
+        }
+
+        const StateID state;
+        const value_type::value_t reward;
+
+        // Applicable operators left to expand
+        std::vector<Action> remaining_aops;
+
+        // The current transition and transition successor
+        Distribution<StateID> transition;
+        typename Distribution<StateID>::const_iterator successor;
+
+        // The current transition Q-value
+        value_type::value_t t_value;
+    };
+    
 public:
     /**
      * @brief Constructs an instance of acyclic value iteration.
@@ -72,49 +103,55 @@ public:
               aops_generator,
               transition_generator)
         , prune_(prune)
-        , expanded_states_(false)
-        , values_(this->get_minimal_reward())
-        , expansion_stack_()
+        , state_infos_(StateInfo{false, this->get_minimal_reward()})
     {
     }
 
     virtual void solve(const State& initial_state) override
     {
-        push_state<false>(this->get_state_id(initial_state), nullptr);
-        while (!expansion_stack_.empty()) {
+        if (!push_state(this->get_state_id(initial_state))) {
+            return;
+        }
+
+        do {
             IncrementalExpansionInfo& e = expansion_stack_.top();
 
             do {
-                // Topological order: Push all successors, recurse on stack if
+                // Topological order: Push all successors, recurse if
                 // one has not been expanded before
                 for (; e.successor != e.transition.end(); ++e.successor) {
-                    if (push_state(e.successor->first, &e)) {
-                        goto break_outer; // break nested loop
+                    const auto& succ_id = e.successor->first;
+                    if (push_state(succ_id)) {
+                        goto continue_outer; // DFS recursion
                     }
+
+                    // Already seen -> update transition Q-value
+                    const auto& succ_prob = e.successor->second;
+                    e.t_value += succ_prob * state_infos_[succ_id].value;
                 }
 
                 // Maximum Q-value
-                if (e.t_value > e.value) {
-                    e.value = e.t_value;
-                }
+                StateInfo& info = state_infos_[e.state];
+                info.value = std::max(e.t_value, info.value);
 
-                // If no operators are remaining, we are done. Otherwise set up
-                // the next transition to handle.
+                // If no operators are remaining, we are done.
                 if (e.remaining_aops.empty()) {
-                    values_[e.state] = e.value;
-                    expansion_stack_.pop();
                     break;
                 }
 
-                setup_next(e);
+                // Otherwise set up the next transition to handle.
+                setup_next_transition(e);
             } while (true);
-        break_outer:;
-        }
+
+            expansion_stack_.pop();
+
+        continue_outer:;
+        } while (!expansion_stack_.empty());
     }
 
     virtual value_type::value_t get_result(const State& initial_state) override
     {
-        return values_[this->get_state_id(initial_state)];
+        return state_infos_[this->get_state_id(initial_state)].value;
     }
 
     virtual void print_statistics(std::ostream& out) const override
@@ -123,96 +160,53 @@ public:
     }
 
 private:
-    struct IncrementalExpansionInfo {
-        IncrementalExpansionInfo(
-            const StateID& state,
-            value_type::value_t reward,
-            value_type::value_t value,
-            std::vector<Action>&& remaining_aops)
-            : state(state)
-            , reward(reward)
-            , value(value)
-            , remaining_aops(std::move(remaining_aops))
-        {
-            assert(!remaining_aops.empty());
-        }
-        IncrementalExpansionInfo(IncrementalExpansionInfo&& other) = default;
-
-        const StateID state;
-        const value_type::value_t reward;
-        value_type::value_t value;
-
-        // Appplicable operators left to expand
-        std::vector<Action> remaining_aops;
-
-        // The current expansion
-        Distribution<StateID> transition;
-        typename Distribution<StateID>::const_iterator successor;
-        value_type::value_t t_value;
-    };
-
-    void setup_next(IncrementalExpansionInfo& e)
+    void setup_next_transition(IncrementalExpansionInfo& e)
     {
-        e.t_value = e.reward +
-                    this->get_action_reward(e.state, e.remaining_aops.back());
+        auto& next_action = e.remaining_aops.back();
+        e.t_value = e.reward + this->get_action_reward(e.state, next_action);
         e.transition.clear();
-        this->generate_successors(
-            e.state,
-            e.remaining_aops.back(),
-            e.transition);
+        this->generate_successors(e.state, next_action, e.transition);
         e.remaining_aops.pop_back();
         e.successor = e.transition.begin();
     }
 
-    template <bool Update = true>
-    bool push_state(const StateID& state_ref, IncrementalExpansionInfo* in)
+    bool push_state(const StateID& state_id)
     {
-        (void)in;
-
-        if (expanded_states_[state_ref]) {
-            if constexpr (Update) {
-                in->t_value += in->successor->second * values_[state_ref];
-            }
+        if (state_infos_[state_id].expanded) {
             return false;
         }
-        State state = this->lookup_state(state_ref);
-        expanded_states_[state_ref] = true;
+
+        State state = this->lookup_state(state_id);
+        state_infos_[state_id].expanded = true;
         if (prune_ && bool(prune_->operator()(state))) {
             ++statistics_.pruned;
-            if constexpr (Update) {
-                in->t_value +=
-                    in->successor->second * this->get_minimal_reward();
-            }
             return false;
         }
+
         auto rew = this->get_state_reward(state);
         if (bool(rew)) {
             ++statistics_.terminal_states;
             ++statistics_.goal_states;
-            values_[state_ref] = value_type::value_t(rew);
-            if constexpr (Update) {
-                in->t_value += in->successor->second * value_type::value_t(rew);
-            }
+            state_infos_[state_id].value = value_type::value_t(rew);
             return false;
         }
+
         std::vector<Action> remaining_aops;
-        this->generate_applicable_ops(state_ref, remaining_aops);
+        this->generate_applicable_ops(state_id, remaining_aops);
         if (remaining_aops.empty()) {
             ++statistics_.terminal_states;
-            if constexpr (Update) {
-                in->t_value +=
-                    in->successor->second * this->get_minimal_reward();
-            }
             return false;
         }
+
         ++statistics_.state_expansions;
         auto& e = expansion_stack_.emplace(
-            state_ref,
+            state_id,
             value_type::value_t(rew),
-            this->get_minimal_reward(),
             std::move(remaining_aops));
 
-        setup_next(e);
+        state_infos_[state_id].value = this->get_minimal_reward();
+
+        setup_next_transition(e);
         return true;
     }
 
@@ -220,8 +214,7 @@ private:
 
     Statistics statistics_;
 
-    storage::PerStateStorage<bool> expanded_states_;
-    storage::PerStateStorage<value_type::value_t> values_;
+    storage::PerStateStorage<StateInfo> state_infos_;
     std::stack<IncrementalExpansionInfo> expansion_stack_;
 };
 
