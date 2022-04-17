@@ -116,59 +116,6 @@ enum class BacktrackingUpdateType {
     FullValueUpdatesOnStack,
 };
 
-struct SearchNodeCoreInformation {
-    static const uint8_t NEW = 0;
-    static const uint8_t CLOSED = 1;
-    static const uint8_t OPEN = 2;
-    static const uint8_t ONSTACK = 4;
-    static const uint8_t DEAD = 3;
-    static const uint8_t MARKED = 7;
-
-    bool is_new() const { return status == NEW; }
-
-    bool is_open() const { return status == OPEN; }
-
-    bool is_onstack() const { return status == ONSTACK; }
-
-    bool is_closed() const { return (status & CLOSED); }
-
-    bool is_dead_end() const { return status == DEAD || status == MARKED; }
-
-    bool is_marked_dead_end() const { return status == MARKED; }
-
-    void open()
-    {
-        assert(is_new());
-        status = OPEN;
-    }
-
-    void set_onstack(const unsigned idx)
-    {
-        assert(is_open());
-        status = ONSTACK;
-        lowlink = idx;
-    }
-
-    void close() { status = CLOSED; }
-
-    void set_dead_end()
-    {
-        assert(!is_marked_dead_end());
-        status = DEAD;
-    }
-
-    void mark_dead_end() { status = MARKED; }
-
-    // TODO store lowlink in hash map -> only required for states still on stack
-    unsigned lowlink = -1;
-    uint8_t status = NEW;
-};
-
-template <typename Dual = std::false_type>
-struct SearchNodeInformationDual : public SearchNodeCoreInformation {
-    value_utils::IncumbentSolution<Dual> value;
-};
-
 inline bool update_lower_bound(value_type::value_t& x, value_type::value_t v)
 {
     if (v > x) {
@@ -190,39 +137,63 @@ update_lower_bound(value_utils::IntervalValue& x, value_type::value_t v)
     return false;
 }
 
-inline void set_lower_bound(value_type::value_t& x, value_type::value_t v)
-{
-    x = v;
-}
-
-inline void
-set_lower_bound(value_utils::IntervalValue& x, value_type::value_t v)
-{
-    x.lower = v;
-}
-
-inline value_type::value_t
-get_lower_bound(const value_type::value_t& state_value)
-{
-    return value_utils::as_lower_bound(state_value);
-}
-
-inline value_type::value_t
-get_lower_bound(const value_utils::IntervalValue& state_value)
-{
-    return state_value.lower;
-}
-
-template <typename State, typename Action, typename DualV>
+template <typename State, typename Action, typename DualBounds>
 class ExhaustiveDepthFirstSearch
     : public MDPEngine<State, Action>
     , public heuristic_search::PerStateInformationLookup {
-public:
-    using DualBounds = DualV;
-    using SearchNodeInformation = SearchNodeInformationDual<DualBounds>;
-
     using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
 
+    struct SearchNodeInformation {
+        static constexpr uint8_t NEW = 0;
+        static constexpr uint8_t CLOSED = 1;
+        static constexpr uint8_t OPEN = 2;
+        static constexpr uint8_t ONSTACK = 4;
+        static constexpr uint8_t DEAD = 3;
+        static constexpr uint8_t MARKED = 7;
+
+        bool is_new() const { return status == NEW; }
+
+        bool is_open() const { return status == OPEN; }
+
+        bool is_onstack() const { return status == ONSTACK; }
+
+        bool is_closed() const { return status & CLOSED; }
+
+        bool is_dead_end() const { return status == DEAD || status == MARKED; }
+
+        bool is_marked_dead_end() const { return status == MARKED; }
+
+        void open()
+        {
+            assert(is_new());
+            status = OPEN;
+        }
+
+        void set_onstack(const unsigned idx)
+        {
+            assert(is_open());
+            status = ONSTACK;
+            lowlink = idx;
+        }
+
+        void close() { status = CLOSED; }
+
+        void set_dead_end()
+        {
+            assert(!is_marked_dead_end());
+            status = DEAD;
+        }
+
+        void mark_dead_end() { status = MARKED; }
+
+        // TODO store lowlink in hash map -> only required for states still on
+        // stack
+        unsigned lowlink = -1;
+        uint8_t status = NEW;
+        IncumbentSolution value;
+    };
+
+public:
     explicit ExhaustiveDepthFirstSearch(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
@@ -263,7 +234,6 @@ public:
         , evaluator_recomputation_(reevaluate)
         , notify_initial_state_(notify_initial)
         , successor_sort_(successor_sorting)
-        , search_space_()
         , notify_dead_ends_(dead_end_listener != nullptr)
         , store_neighbors_(
               dead_end_listener_ != nullptr &&
@@ -285,7 +255,7 @@ public:
         } else if (!push_state(stateid, info)) {
             logging::out << "initial state is dead end!" << std::endl;
         } else {
-            register_value_reports(DualBounds(), &info);
+            register_value_reports(&info);
             run_exploration();
         }
     }
@@ -316,23 +286,20 @@ public:
     }
 
 private:
-    void register_value_reports(
-        const std::true_type&,
-        const SearchNodeInformation* info)
+    void register_value_reports(const SearchNodeInformation* info)
     {
-        this->report_->register_value("vl", [info]() {
-            return info->value.lower;
-        });
-        this->report_->register_value("vu", [info]() {
-            return info->value.upper;
-        });
-    }
-
-    void register_value_reports(
-        const std::false_type&,
-        const SearchNodeInformation* info)
-    {
-        this->report_->register_value("v", [info]() { return info->value; });
+        if constexpr (DualBounds::value) {
+            this->report_->register_value("vl", [info]() {
+                return info->value.lower;
+            });
+            this->report_->register_value("vu", [info]() {
+                return info->value.upper;
+            });
+        } else {
+            this->report_->register_value("v", [info]() {
+                return info->value;
+            });
+        }
     }
 
     EvaluationResult evaluate(const State& state)
@@ -375,7 +342,6 @@ private:
 
 private:
     struct ExpansionInformation {
-
         explicit ExpansionInformation(
             unsigned stack_index,
             unsigned neighbors_size)
@@ -388,31 +354,21 @@ private:
         Distribution<StateID>::const_iterator succ;
         unsigned stack_index;
         unsigned neighbors_size;
+
         bool all_successors_are_dead = true;
         bool all_successors_marked_dead = true;
     };
 
     struct SCCTransition {
         Distribution<StateID> successors;
-        value_type::value_t base = 0;
-        value_type::value_t self_loop = 0;
-
-        void reset()
-        {
-            base = 0;
-            self_loop = 0;
-        }
+        value_type::value_t base = value_type::zero;
+        value_type::value_t self_loop = value_type::zero;
     };
 
     struct StackInformation {
         explicit StackInformation(const StateID& state_ref)
             : state_ref(state_ref)
         {
-        }
-
-        bool operator==(const StateID& state) const
-        {
-            return state_ref == state;
         }
 
         std::vector<SCCTransition> successors;
@@ -423,15 +379,15 @@ private:
     bool
     initialize_search_node(const StateID& state_id, SearchNodeInformation& info)
     {
-        State state = this->lookup_state(state_id);
-        return initialize_search_node(state, info);
+        return initialize_search_node(this->lookup_state(state_id), info);
     }
 
     bool initialize_search_node(const State& state, SearchNodeInformation& info)
     {
         assert(info.is_new());
-        auto reward = this->get_state_reward(state);
         info.value = trivial_bound_;
+
+        auto reward = this->get_state_reward(state);
         if (reward) {
             info.close();
             info.value = IncumbentSolution((value_type::value_t)reward);
@@ -440,35 +396,36 @@ private:
                 new_state_handler_->touch_goal(state);
             }
             return false;
-        } else {
-            reward = evaluate(state);
-            if (reward) {
-                info.value = dead_end_value_;
-                info.mark_dead_end();
-                ++statistics_.dead_ends;
-                if (new_state_handler_) {
-                    new_state_handler_->touch_dead_end(state);
-                }
-                return false;
-            } else {
-                if constexpr (DualBounds::value) {
-                    info.value.upper = static_cast<value_type::value_t>(reward);
-                }
-
-                info.open();
-                if (new_state_handler_) {
-                    new_state_handler_->touch(state);
-                }
-            }
         }
+
+        reward = evaluate(state);
+        if (reward) {
+            info.value = dead_end_value_;
+            info.mark_dead_end();
+            ++statistics_.dead_ends;
+            if (new_state_handler_) {
+                new_state_handler_->touch_dead_end(state);
+            }
+            return false;
+        }
+
+        if constexpr (DualBounds::value) {
+            info.value.upper = static_cast<value_type::value_t>(reward);
+        }
+
+        info.open();
+        if (new_state_handler_) {
+            new_state_handler_->touch(state);
+        }
+
         return true;
     }
 
-    bool push_state(const StateID& state_ref, SearchNodeInformation& info)
+    bool push_state(const StateID& state_id, SearchNodeInformation& info)
     {
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> successors;
-        this->generate_all_successors(state_ref, aops, successors);
+        this->generate_all_successors(state_id, aops, successors);
         if (successors.empty()) {
             info.value = dead_end_value_;
             info.set_dead_end();
@@ -479,74 +436,82 @@ private:
         statistics_.expanded++;
 
         if (successor_sort_ != nullptr) {
-            successor_sort_->operator()(state_ref, aops, successors);
+            successor_sort_->operator()(state_id, aops, successors);
         }
 
         expansion_infos_.emplace_back(stack_infos_.size(), neighbors_.size());
-        stack_infos_.emplace_back(state_ref);
+        stack_infos_.emplace_back(state_id);
 
         ExpansionInformation& exp = expansion_infos_.back();
         StackInformation& si = stack_infos_.back();
 
         si.successors.resize(aops.size());
 
-        const value_type::value_t reward = get_lower_bound(info.value);
+        const auto reward = value_utils::as_lower_bound(info.value);
 
         bool pure_self_loop = true;
 
         unsigned j = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
+            const auto& a = aops[i];
             auto& succs = successors[i];
             auto& t = si.successors[i];
             bool all_self_loops = true;
+
             for (auto it = succs.begin(); it != succs.end();) {
-                if (it->first == state_ref) {
-                    t.self_loop += it->second;
+                const auto [succ_id, prob] = *it;
+
+                if (succ_id == state_id) {
+                    t.self_loop += prob;
+                    it = succs.erase(it);
+                    continue;
+                }
+
+                SearchNodeInformation& succ_info = search_space_[succ_id];
+                if (succ_info.is_new()) {
+                    initialize_search_node(succ_id, succ_info);
+                }
+
+                if (succ_info.is_closed()) {
+                    t.base +=
+                        prob * value_utils::as_lower_bound(succ_info.value);
+                    exp.all_successors_are_dead =
+                        exp.all_successors_are_dead && succ_info.is_dead_end();
+                    exp.all_successors_marked_dead =
+                        exp.all_successors_marked_dead &&
+                        succ_info.is_marked_dead_end();
+
+                    if (notify_dead_ends_ && store_neighbors_ &&
+                        succ_info.is_marked_dead_end()) {
+                        neighbors_.push_back(succ_id);
+                    }
+
+                    all_self_loops = false;
+
                     it = succs.erase(it);
                 } else {
-                    SearchNodeInformation& succ_info = search_space_[it->first];
-                    if (succ_info.is_new()) {
-                        initialize_search_node(it->first, succ_info);
-                    }
-                    if (succ_info.is_closed()) {
-                        t.base += value_utils::as_lower_bound(succ_info.value) *
-                                  it->second;
-                        exp.all_successors_are_dead =
-                            exp.all_successors_are_dead &&
-                            succ_info.is_dead_end();
-                        exp.all_successors_marked_dead =
-                            exp.all_successors_marked_dead &&
-                            succ_info.is_marked_dead_end();
-                        if (notify_dead_ends_ && store_neighbors_ &&
-                            succ_info.is_marked_dead_end()) {
-                            neighbors_.push_back(it->first);
-                        }
-                        it = succs.erase(it);
-                        all_self_loops = false;
-                    } else {
-                        ++it;
-                    }
+                    ++it;
                 }
             }
+
             if (succs.empty()) {
                 if (!all_self_loops) {
                     pure_self_loop = false;
-                    t.base +=
-                        reward + this->get_action_reward(state_ref, aops[i]);
-                    update_lower_bound(
-                        info.value,
-                        t.base * value_type::one /
-                            (value_type::one - t.self_loop));
+                    t.base += reward + this->get_action_reward(state_id, a);
+                    auto non_loop = value_type::one - t.self_loop;
+                    update_lower_bound(info.value, t.base / non_loop);
                 }
             } else {
-                t.base += reward + this->get_action_reward(state_ref, aops[i]);
-                if (t.self_loop == 0) {
-                    t.self_loop = 1;
+                t.base += reward + this->get_action_reward(state_id, a);
+
+                if (t.self_loop == value_type::zero) {
+                    t.self_loop = value_type::one;
                 } else {
-                    assert(t.self_loop < 1);
-                    t.self_loop = value_type::value_t(1) /
-                                  (value_type::value_t(1) - t.self_loop);
+                    assert(t.self_loop < value_type::one);
+                    t.self_loop =
+                        value_type::one / (value_type::one - t.self_loop);
                 }
+
                 if (i != j) {
                     std::swap(si.successors[i], si.successors[j]);
                     successors[i].swap(successors[j]);
@@ -558,17 +523,18 @@ private:
         if (j == 0) {
             expansion_infos_.pop_back();
             stack_infos_.pop_back();
+
             if (pure_self_loop) {
                 info.value = dead_end_value_;
                 info.set_dead_end();
                 ++statistics_.self_loop;
-                return false;
             } else {
                 info.value =
                     IncumbentSolution(value_utils::as_lower_bound(info.value));
                 info.close();
-                return false;
             }
+
+            return false;
         }
 
         successors.resize(j);
@@ -589,10 +555,12 @@ private:
             assert(expanding.stack_index < stack_infos_.size());
             assert(!expanding.successors.empty());
             assert(expanding.succ != expanding.successors.back().end());
+
             StackInformation& stack_info = stack_infos_[expanding.stack_index];
             assert(!stack_info.successors.empty());
-            SearchNodeInformation& node_info =
-                search_space_[stack_info.state_ref];
+
+            const StateID stateid = stack_info.state_ref;
+            SearchNodeInformation& node_info = search_space_[stateid];
 
             expanding.all_successors_are_dead =
                 expanding.all_successors_are_dead && last_all_dead_;
@@ -600,40 +568,39 @@ private:
                 expanding.all_successors_marked_dead && last_all_marked_dead_;
 
             if (evaluator_recomputation_ && backtracked_from_dead_end_scc_) {
-                if (is_dead_end(stack_info.state_ref)) {
+                if (is_dead_end(stateid)) {
                     mark_current_component_dead();
                     continue;
                 }
             }
 
-            SCCTransition* inc =
-                &stack_info.successors
-                     [stack_info.successors.size() - stack_info.i - 1];
+            int t = stack_info.successors.size() - stack_info.i - 1;
+            SCCTransition* inc = &stack_info.successors[t];
             bool val_changed = false;
             bool completely_explored = false;
+
             do {
                 for (; expanding.succ != expanding.successors.back().end();
                      ++expanding.succ) {
-                    assert(expanding.succ->first != stack_info.state_ref);
-                    SearchNodeInformation& succ_info =
-                        search_space_[expanding.succ->first];
+                    const auto [succ_id, prob] = *expanding.succ;
+
+                    assert(succ_id != stateid);
+                    SearchNodeInformation& succ_info = search_space_[succ_id];
                     assert(!succ_info.is_new());
+
                     if (succ_info.is_open()) {
-                        if (is_dead_end(expanding.succ->first)) {
+                        if (is_dead_end(succ_id)) {
                             statistics_.dead_ends++;
                             succ_info.value = dead_end_value_;
                             succ_info.mark_dead_end();
-                            inc->base +=
-                                (expanding.succ->second *
-                                 value_utils::as_lower_bound(succ_info.value));
+                            inc->base += prob * value_utils::as_lower_bound(
+                                                    succ_info.value);
                             if (notify_dead_ends_ && store_neighbors_ &&
                                 succ_info.is_marked_dead_end()) {
-                                neighbors_.push_back(expanding.succ->first);
+                                neighbors_.push_back(succ_id);
                             }
-                        } else if (push_state(
-                                       expanding.succ->first,
-                                       succ_info)) {
-                            break;
+                        } else if (push_state(succ_id, succ_info)) {
+                            goto skip;
                         } else {
                             expanding.all_successors_are_dead =
                                 expanding.all_successors_are_dead &&
@@ -641,20 +608,17 @@ private:
                             expanding.all_successors_marked_dead =
                                 expanding.all_successors_are_dead &&
                                 succ_info.is_marked_dead_end();
-                            inc->base +=
-                                expanding.succ->second *
-                                value_utils::as_lower_bound(succ_info.value);
+                            inc->base += prob * value_utils::as_lower_bound(
+                                                    succ_info.value);
                             if (notify_dead_ends_ && store_neighbors_ &&
                                 succ_info.is_marked_dead_end()) {
-                                neighbors_.push_back(expanding.succ->first);
+                                neighbors_.push_back(succ_id);
                             }
                         }
                     } else if (succ_info.is_onstack()) {
                         node_info.lowlink =
                             std::min(node_info.lowlink, succ_info.lowlink);
-                        inc->successors.add(
-                            expanding.succ->first,
-                            expanding.succ->second);
+                        inc->successors.add(succ_id, prob);
                     } else {
                         assert(succ_info.is_closed());
                         expanding.all_successors_are_dead =
@@ -664,191 +628,181 @@ private:
                             expanding.all_successors_are_dead &&
                             succ_info.is_marked_dead_end();
                         inc->base +=
-                            expanding.succ->second *
-                            value_utils::as_lower_bound(succ_info.value);
+                            prob * value_utils::as_lower_bound(succ_info.value);
                         if (notify_dead_ends_ && store_neighbors_ &&
                             succ_info.is_marked_dead_end()) {
-                            neighbors_.push_back(expanding.succ->first);
+                            neighbors_.push_back(succ_id);
                         }
                     }
                 }
-                if (expanding.succ == expanding.successors.back().end()) {
-                    expanding.successors.pop_back();
-                    if (update_lower_bound(
-                            node_info.value,
-                            inc->base * inc->self_loop)) {
-                        val_changed = true;
-                        if (check_early_convergence(DualBounds(), node_info)) {
-                            expanding.successors.clear();
-                        }
+
+                expanding.successors.pop_back();
+                if (update_lower_bound(
+                        node_info.value,
+                        inc->base * inc->self_loop)) {
+                    val_changed = true;
+                    if (check_early_convergence(node_info)) {
+                        expanding.successors.clear();
                     }
-                    if (expanding.successors.empty()) {
-                        if (inc->successors.empty()) {
-                            if (stack_info.i > 0)
-                                std::swap(stack_info.successors.back(), *inc);
-                            stack_info.successors.pop_back();
-                        }
-                        completely_explored = true;
-                        break;
-                    } else {
-                        if (inc->successors.empty()) {
-                            if (stack_info.i > 0)
-                                std::swap(stack_info.successors.back(), *inc);
-                            stack_info.successors.pop_back();
-                            inc = &stack_info.successors
-                                       [stack_info.successors.size() -
-                                        stack_info.i - 1];
-                        } else {
-                            --inc;
-                            ++stack_info.i;
-                        }
-                        expanding.succ = expanding.successors.back().begin();
+                }
+
+                if (expanding.successors.empty()) {
+                    if (inc->successors.empty()) {
+                        if (stack_info.i > 0)
+                            std::swap(stack_info.successors.back(), *inc);
+                        stack_info.successors.pop_back();
                     }
-                } else {
+
                     break;
                 }
+
+                if (inc->successors.empty()) {
+                    if (stack_info.i > 0) {
+                        std::swap(stack_info.successors.back(), *inc);
+                    }
+
+                    stack_info.successors.pop_back();
+                    int t = stack_info.successors.size() - stack_info.i - 1;
+                    inc = &stack_info.successors[t];
+                } else {
+                    --inc;
+                    ++stack_info.i;
+                }
+
+                expanding.succ = expanding.successors.back().begin();
             } while (true);
 
             backtracked_from_dead_end_scc_ = false;
             last_all_dead_ = true;
             last_all_marked_dead_ = true;
-            if (completely_explored) {
-                last_all_dead_ = expanding.all_successors_are_dead;
-                last_all_marked_dead_ = expanding.all_successors_marked_dead;
-                statistics_.backtracks++;
-                if (expanding.stack_index == node_info.lowlink) {
-                    ++statistics_.sccs;
-                    auto rend = stack_infos_.rbegin();
-                    if (expanding.all_successors_are_dead) {
-                        unsigned scc_size = 0;
-                        while (true) {
-                            scc_size++;
-                            SearchNodeInformation& info =
-                                search_space_[rend->state_ref];
-                            info.value = dead_end_value_;
-                            info.set_dead_end();
-                            if ((rend++)->state_ref == stack_info.state_ref) {
-                                break;
-                            }
+
+            last_all_dead_ = expanding.all_successors_are_dead;
+            last_all_marked_dead_ = expanding.all_successors_marked_dead;
+            statistics_.backtracks++;
+
+            if (expanding.stack_index == node_info.lowlink) {
+                ++statistics_.sccs;
+
+                auto rend = stack_infos_.rbegin();
+                if (expanding.all_successors_are_dead) {
+                    unsigned scc_size = 0;
+                    do {
+                        ++scc_size;
+                        auto& info = search_space_[rend->state_ref];
+                        info.value = dead_end_value_;
+                        info.set_dead_end();
+                    } while ((rend++)->state_ref != stateid);
+
+                    statistics_.dead_end_sccs++;
+                    statistics_.summed_dead_end_scc_sizes += scc_size;
+
+                    if (notify_dead_ends_ &&
+                        (expanding.all_successors_marked_dead ||
+                         !dead_end_listener_->requires_neighbors()) &&
+                        (notify_initial_state_ ||
+                         expansion_infos_.size() > 1)) {
+                        statistics_.notification_started(scc_size);
+
+                        std::deque<StateID> component;
+                        for (auto sit = stack_infos_.rbegin(); sit != rend;
+                             ++sit) {
+                            component.push_back(sit->state_ref);
                         }
-                        statistics_.dead_end_sccs++;
-                        statistics_.summed_dead_end_scc_sizes += scc_size;
-                        if (notify_dead_ends_ &&
-                            (expanding.all_successors_marked_dead ||
-                             !dead_end_listener_->requires_neighbors()) &&
-                            (notify_initial_state_ ||
-                             expansion_infos_.size() > 1)) {
-                            statistics_.notification_started(scc_size);
 
-                            std::deque<StateID> component;
-                            for (auto sit = stack_infos_.rbegin(); sit != rend;
-                                 ++sit) {
-                                component.push_back(sit->state_ref);
+                        if (dead_end_listener_->operator()(
+                                component.begin(),
+                                component.end(),
+                                neighbors_.begin(),
+                                neighbors_.end())) {
+                            for (auto it = stack_infos_.rbegin(); it != rend;
+                                 ++it) {
+                                search_space_[it->state_ref].mark_dead_end();
                             }
-
-                            if (dead_end_listener_->operator()(
-                                    component.begin(),
-                                    component.end(),
-                                    neighbors_.begin(),
-                                    neighbors_.end())) {
-                                for (auto it = stack_infos_.rbegin();
-                                     it != rend;
-                                     ++it) {
-                                    search_space_[it->state_ref]
-                                        .mark_dead_end();
-                                }
-                                backtracked_from_dead_end_scc_ = true;
-                            } else {
-                                notify_dead_ends_ = false;
-                                store_neighbors_ = false;
-                                std::deque<StateID>().swap(neighbors_);
-                            }
-
-                            statistics_.notification_finished();
+                            backtracked_from_dead_end_scc_ = true;
+                        } else {
+                            notify_dead_ends_ = false;
+                            store_neighbors_ = false;
+                            std::deque<StateID>().swap(neighbors_);
                         }
-                    } else {
-                        unsigned scc_size = 0;
+
+                        statistics_.notification_finished();
+                    }
+                } else {
+                    unsigned scc_size = 0;
+                    do {
+                        auto& info = search_space_[rend->state_ref];
+                        info.close();
+
+                        if constexpr (DualBounds::value) {
+                            val_changed =
+                                value_utils::update(
+                                    info.value,
+                                    IncumbentSolution(info.value.lower)) ||
+                                val_changed;
+                        }
+
+                        ++scc_size;
+                    } while ((rend++)->state_ref != stateid);
+
+                    if (scc_size > 1) {
+                        unsigned iterations = 0;
+                        bool changed = true;
                         do {
-                            SearchNodeInformation& info =
-                                search_space_[rend->state_ref];
-                            info.close();
-
-                            if constexpr (DualBounds::value) {
-                                val_changed =
-                                    value_utils::update(
-                                        info.value,
-                                        IncumbentSolution(info.value.lower)) ||
-                                    val_changed;
-                            }
-
-                            ++scc_size;
-                            if (rend->state_ref == stack_info.state_ref) {
-                                ++rend;
-                                break;
-                            }
-                            ++rend;
-                        } while (true);
-
-                        if (scc_size > 1) {
-                            unsigned iterations = 0;
-                            bool changed = true;
-                            do {
-                                changed = false;
-                                for (auto it = stack_infos_.rbegin();
-                                     it != rend;
-                                     ++it) {
-                                    StackInformation& s = *it;
-                                    assert(!s.successors.empty());
-                                    value_type::value_t best =
-                                        s.successors.back().base;
-                                    for (int i = s.successors.size() - 1;
-                                         i >= 0;
-                                         --i) {
-                                        const auto& t = s.successors[i];
-                                        value_type::value_t t_first = t.base;
-                                        for (auto succ = t.successors.begin();
-                                             succ != t.successors.end();
-                                             ++succ) {
-                                            t_first +=
-                                                value_utils::as_lower_bound(
-                                                    search_space_[succ->first]
-                                                        .value) *
-                                                succ->second;
-                                        }
-                                        t_first = t_first * t.self_loop;
-                                        best = best > t_first ? best : t_first;
+                            changed = false;
+                            for (auto it = stack_infos_.rbegin(); it != rend;
+                                 ++it) {
+                                StackInformation& s = *it;
+                                assert(!s.successors.empty());
+                                value_type::value_t best =
+                                    s.successors.back().base;
+                                for (int i = s.successors.size() - 1; i >= 0;
+                                     --i) {
+                                    const auto& t = s.successors[i];
+                                    value_type::value_t t_first = t.base;
+                                    for (auto [succ_id, prob] : t.successors) {
+                                        t_first +=
+                                            prob *
+                                            value_utils::as_lower_bound(
+                                                search_space_[succ_id].value);
                                     }
-                                    SearchNodeInformation& node_info =
-                                        search_space_[s.state_ref];
-                                    if (best > value_utils::as_lower_bound(
-                                                   node_info.value)) {
-                                        changed =
-                                            changed ||
-                                            !value_type::approx_equal()(
-                                                value_utils::as_lower_bound(
-                                                    node_info.value),
-                                                best);
-                                        node_info.value =
-                                            IncumbentSolution(best);
-                                    }
+                                    t_first = t_first * t.self_loop;
+                                    best = best > t_first ? best : t_first;
                                 }
-                                ++iterations;
-                            } while (changed);
-                            val_changed = val_changed || iterations > 1;
-                        }
-                    }
 
-                    if (store_neighbors_) {
-                        neighbors_.resize(expanding.neighbors_size);
-                        if (node_info.is_marked_dead_end()) {
-                            neighbors_.push_back(stack_info.state_ref);
-                        }
-                    }
+                                SearchNodeInformation& node_info =
+                                    search_space_[s.state_ref];
+                                if (best > value_utils::as_lower_bound(
+                                               node_info.value)) {
+                                    changed = changed ||
+                                              !value_type::approx_equal()(
+                                                  value_utils::as_lower_bound(
+                                                      node_info.value),
+                                                  best);
+                                    node_info.value = IncumbentSolution(best);
+                                }
+                            }
+                            ++iterations;
+                        } while (changed);
 
-                    stack_infos_.erase((rend.base()), stack_infos_.end());
+                        val_changed = val_changed || iterations > 1;
+                    }
                 }
-                expansion_infos_.pop_back();
+
+                if (store_neighbors_) {
+                    neighbors_.resize(expanding.neighbors_size);
+                    if (node_info.is_marked_dead_end()) {
+                        neighbors_.push_back(stateid);
+                    }
+                }
+
+                stack_infos_.erase(rend.base(), stack_infos_.end());
             }
+
+            expansion_infos_.pop_back();
+
+            completely_explored = true;
+
+        skip:
 
             if (val_changed || !only_propagate_when_changed_) {
                 switch (reverse_path_updates_) {
@@ -873,20 +827,21 @@ private:
     {
         auto it = expansion_infos_.rbegin();
         if (!was_poped) {
-            ++it;
-            ++it;
+            it += 2;
         }
+
         for (; it != expansion_infos_.rend(); ++it) {
             StackInformation& st = stack_infos_[it->stack_index];
             SearchNodeInformation& sn = search_space_[st.state_ref];
             const auto& t = st.successors[st.successors.size() - st.i - 1];
             const value_type::value_t v = t.base + it->succ->second * val;
-            if (update_lower_bound(sn.value, v)) {
-                val = v;
-            } else {
+            if (!update_lower_bound(sn.value, v)) {
                 break;
             }
+
+            val = v;
         }
+
         if (it == expansion_infos_.rend()) {
             report_->operator()();
         }
@@ -900,6 +855,7 @@ private:
         // }
         for (; it != expansion_infos_.rend(); ++it) {
             ++statistics_.value_updates;
+
             StackInformation& st = stack_infos_[it->stack_index];
             SearchNodeInformation& sn = search_space_[st.state_ref];
             IncumbentSolution new_val(value_utils::as_lower_bound(sn.value));
@@ -907,17 +863,14 @@ private:
                 const int i = it->successors.size() - 1;
                 const auto& succs = it->successors[i];
                 const auto& t = st.successors[i];
+
                 IncumbentSolution val(t.base);
-                for (auto succ = t.successors.begin();
-                     succ != t.successors.end();
-                     ++succ) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
-                    val += succ->second * succ_info.value;
+                for (const auto [succ_id, prob] : t.successors) {
+                    val += prob * search_space_[succ_id].value;
                 }
+
                 for (auto succ = it->succ; succ != succs.end(); ++succ) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
+                    const auto& succ_info = search_space_[succ->first];
                     if (succ_info.is_new()) {
                         val += succ->second * trivial_bound_;
                     } else {
@@ -928,38 +881,37 @@ private:
                 val *= t.self_loop;
                 value_utils::set_max(new_val, val);
             }
+
             for (int i = it->successors.size() - 2; i >= 0; --i) {
                 auto& succs = it->successors[i];
                 auto& t = st.successors[i];
                 IncumbentSolution val(t.base);
-                for (auto succ = t.successors.begin();
-                     succ != t.successors.end();
-                     ++succ) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
-                    val += succ->second * succ_info.value;
+                for (const auto [succ_id, prob] : t.successors) {
+                    val += prob * search_space_[succ_id].value;
                 }
+
                 for (auto succ = succs.begin(); succ != succs.end();) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
+                    const auto [succ_id, prob] = *succ;
+                    const auto& succ_info = search_space_[succ_id];
+
                     if (succ_info.is_new()) {
-                        val += succ->second * trivial_bound_;
+                        val += prob * trivial_bound_;
                         ++succ;
                     } else if (succ_info.is_onstack()) {
                         sn.lowlink = std::min(sn.lowlink, succ_info.lowlink);
-                        val += succ->second * succ_info.value;
-                        t.successors.add(succ->first, succ->second);
+                        val += prob * succ_info.value;
+                        t.successors.add(succ_id, prob);
                         succ = succs.erase(succ);
                     } else if (
                         succ_info.is_marked_dead_end() && notify_dead_ends_ &&
                         store_neighbors_) {
-                        val += succ->second * succ_info.value;
+                        val += prob * succ_info.value;
                         ++succ;
                     } else {
                         assert(succ_info.is_closed());
-                        t.base += value_utils::as_lower_bound(succ_info.value) *
-                                  succ->second;
-                        val += succ->second * succ_info.value;
+                        t.base +=
+                            value_utils::as_lower_bound(succ_info.value) * prob;
+                        val += prob * succ_info.value;
                         it->all_successors_are_dead =
                             it->all_successors_are_dead &&
                             succ_info.is_dead_end();
@@ -973,27 +925,26 @@ private:
                 val *= t.self_loop;
                 value_utils::set_max(new_val, val);
             }
+
             for (unsigned i = st.successors.size() - 1;
                  i > it->successors.size();
                  --i) {
                 const auto& t = st.successors[i];
                 IncumbentSolution val(t.base);
-                for (auto succ = t.successors.begin();
-                     succ != t.successors.end();
-                     ++succ) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
-                    val += succ->second * succ_info.value;
+                for (const auto [succ_id, prob] : t.successors) {
+                    val += prob * search_space_[succ_id].value;
                 }
 
                 val *= t.self_loop;
                 value_utils::set_max(new_val, val);
             }
+
             if (!value_utils::update(sn.value, new_val) &&
                 only_propagate_when_changed_) {
                 return;
             }
         }
+
         assert(it == expansion_infos_.rend());
         report_->operator()();
     }
@@ -1009,6 +960,7 @@ private:
             assert(stack_index <= int(it->stack_index));
             for (; stack_index > int(it->stack_index); --stack_index) {
                 ++statistics_.value_updates;
+
                 StackInformation& st = stack_infos_[stack_index];
                 SearchNodeInformation& sn = search_space_[st.state_ref];
                 IncumbentSolution new_val(
@@ -1016,21 +968,20 @@ private:
                 for (int i = st.successors.size() - 1; i >= 0; --i) {
                     const auto& t = st.successors[i];
                     IncumbentSolution val(t.base);
-                    for (auto succ = t.successors.begin();
-                         succ != t.successors.end();
-                         ++succ) {
-                        const SearchNodeInformation& succ_info =
-                            search_space_[succ->first];
-                        val += succ->second * succ_info.value;
+                    for (const auto [succ_id, prob] : t.successors) {
+                        val += prob * search_space_[succ_id].value;
                     }
 
                     val *= t.self_loop;
                     value_utils::set_max(new_val, val);
                 }
+
                 value_utils::update(sn.value, new_val);
             }
+
             ++statistics_.value_updates;
             --stack_index;
+
             StackInformation& st = stack_infos_[it->stack_index];
             SearchNodeInformation& sn = search_space_[st.state_ref];
             IncumbentSolution new_val(value_utils::as_lower_bound(sn.value));
@@ -1038,17 +989,14 @@ private:
                 const int i = it->successors.size() - 1;
                 const auto& succs = it->successors[i];
                 const auto& t = st.successors[i];
+
                 IncumbentSolution val(t.base);
-                for (auto succ = t.successors.begin();
-                     succ != t.successors.end();
-                     ++succ) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
-                    val += succ->second * succ_info.value;
+                for (const auto [succ_id, prob] : t.successors) {
+                    val += prob * search_space_[succ_id].value;
                 }
+
                 for (auto succ = it->succ; succ != succs.end(); ++succ) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
+                    const auto& succ_info = search_space_[succ->first];
                     if (succ_info.is_new()) {
                         val += succ->second * trivial_bound_;
                     } else {
@@ -1059,38 +1007,38 @@ private:
                 val *= t.self_loop;
                 value_utils::set_max(new_val, val);
             }
+
             for (int i = it->successors.size() - 2; i >= 0; --i) {
                 auto& succs = it->successors[i];
                 auto& t = st.successors[i];
+
                 IncumbentSolution val(t.base);
-                for (auto succ = t.successors.begin();
-                     succ != t.successors.end();
-                     ++succ) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
-                    val += succ->second * succ_info.value;
+                for (const auto [succ_id, prob] : t.successors) {
+                    val += prob * search_space_[succ_id].value;
                 }
+
                 for (auto succ = succs.begin(); succ != succs.end();) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
+                    const auto [succ_id, prob] = *succ;
+                    const auto& succ_info = search_space_[succ_id];
+
                     if (succ_info.is_new()) {
-                        val += succ->second * trivial_bound_;
+                        val += prob * trivial_bound_;
                         ++succ;
                     } else if (succ_info.is_onstack()) {
                         sn.lowlink = std::min(sn.lowlink, succ_info.lowlink);
-                        val += succ->second * succ_info.value;
-                        t.successors.add(succ->first, succ->second);
+                        val += prob * succ_info.value;
+                        t.successors.add(succ_id, prob);
                         succ = succs.erase(succ);
                     } else if (
                         succ_info.is_marked_dead_end() && notify_dead_ends_ &&
                         store_neighbors_) {
-                        val += succ->second * succ_info.value;
+                        val += prob * succ_info.value;
                         ++succ;
                     } else {
                         assert(succ_info.is_closed());
-                        t.base += value_utils::as_lower_bound(succ_info.value) *
-                                  succ->second;
-                        val += succ->second * succ_info.value;
+                        t.base +=
+                            value_utils::as_lower_bound(succ_info.value) * prob;
+                        val += prob * succ_info.value;
                         it->all_successors_are_dead =
                             it->all_successors_are_dead &&
                             succ_info.is_dead_end();
@@ -1104,27 +1052,27 @@ private:
                 val *= t.self_loop;
                 value_utils::set_max(new_val, val);
             }
+
             for (unsigned i = st.successors.size() - 1;
                  i > it->successors.size();
                  --i) {
                 const auto& t = st.successors[i];
+
                 IncumbentSolution val(t.base);
-                for (auto succ = t.successors.begin();
-                     succ != t.successors.end();
-                     ++succ) {
-                    const SearchNodeInformation& succ_info =
-                        search_space_[succ->first];
-                    val += succ->second * succ_info.value;
+                for (const auto [succ_id, prob] : t.successors) {
+                    val += prob * search_space_[succ_id].value;
                 }
 
                 val *= t.self_loop;
                 value_utils::set_max(new_val, val);
             }
+
             if (!value_utils::update(sn.value, new_val) &&
                 only_propagate_when_changed_) {
                 return;
             }
         }
+
         assert(stack_index < 0);
         assert(it == expansion_infos_.rend());
         report_->operator()();
@@ -1135,61 +1083,62 @@ private:
         statistics_.sccs++;
         statistics_.dead_end_sccs++;
         statistics_.pruned_dead_end_sccs++;
+
         assert(!expansion_infos_.empty());
         unsigned lowlink = -1;
+
         do {
             ExpansionInformation& exp = expansion_infos_.back();
             StackInformation& stack_info = stack_infos_[exp.stack_index];
-            SearchNodeInformation& node = search_space_[stack_info.state_ref];
+            const StateID stateid = stack_info.state_ref;
+            SearchNodeInformation& node = search_space_[stateid];
             node.lowlink = std::min(node.lowlink, lowlink);
-            for (int i = exp.successors.size() - 1; i >= 0; --i) {
-                const auto& succs = exp.successors[i];
-                for (auto it = succs.begin(); it != succs.end(); ++it) {
-                    SearchNodeInformation& succ_info = search_space_[it->first];
+
+            for (const auto& successors : exp.successors) {
+                for (const StateID sid : successors.elements()) {
+                    SearchNodeInformation& succ_info = search_space_[sid];
                     succ_info.value = dead_end_value_;
+                    succ_info.mark_dead_end();
+
                     if (succ_info.is_onstack()) {
                         node.lowlink =
                             std::min(node.lowlink, succ_info.lowlink);
                     }
-                    succ_info.mark_dead_end();
                 }
             }
+
             lowlink = node.lowlink;
+
             if (exp.stack_index == lowlink) {
                 auto it = stack_infos_.rbegin();
-                while (true) {
+                do {
                     SearchNodeInformation& info = search_space_[it->state_ref];
                     info.value = dead_end_value_;
                     info.mark_dead_end();
-                    if (*(it++) == stack_info.state_ref) {
-                        break;
-                    }
-                }
+                } while ((it++)->state_ref != stateid);
+
                 if (store_neighbors_) {
                     neighbors_.resize(exp.neighbors_size);
-                    neighbors_.push_back(stack_info.state_ref);
+                    neighbors_.push_back(stateid);
                 }
-                stack_infos_.erase((it.base()), stack_infos_.end());
+
+                stack_infos_.erase(it.base(), stack_infos_.end());
                 expansion_infos_.pop_back();
                 break;
             }
+
             expansion_infos_.pop_back();
         } while (true);
     }
 
-    bool check_early_convergence(
-        const std::false_type&,
-        const SearchNodeInformation& node) const
+    bool check_early_convergence(const SearchNodeInformation& node) const
     {
-        return value_utils::as_lower_bound(node.value) >=
-               this->get_maximal_reward();
-    }
-
-    bool check_early_convergence(
-        const std::true_type&,
-        const SearchNodeInformation& node) const
-    {
-        return node.value.lower >= node.value.upper;
+        if constexpr (DualBounds::value) {
+            return node.value.lower >= node.value.upper;
+        } else {
+            return value_utils::as_lower_bound(node.value) >=
+                   this->get_maximal_reward();
+        }
     }
 
     Statistics statistics_;
