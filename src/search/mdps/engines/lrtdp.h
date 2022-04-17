@@ -51,11 +51,11 @@ struct EmptyStateInfo {
 
 template <typename StateInfo>
 struct PerStateInformation : public StateInfo {
-    static constexpr const uint8_t MARKED_OPEN = (1 << StateInfo::BITS);
-    // static constexpr const uint8_t MARKED_TRIAL = (2 << StateInfo::BITS);
-    static constexpr const uint8_t SOLVED = (3 << StateInfo::BITS);
-    static constexpr const uint8_t BITS = StateInfo::BITS + 2;
-    static constexpr const uint8_t MASK = (3 << StateInfo::BITS);
+    static constexpr uint8_t MARKED_OPEN = (1 << StateInfo::BITS);
+    // static constexpr uint8_t MARKED_TRIAL = (2 << StateInfo::BITS);
+    static constexpr uint8_t SOLVED = (3 << StateInfo::BITS);
+    static constexpr uint8_t BITS = StateInfo::BITS + 2;
+    static constexpr uint8_t MASK = (3 << StateInfo::BITS);
 
     bool is_marked_open() const { return (this->info & MASK) == MARKED_OPEN; }
 
