@@ -87,7 +87,7 @@ public:
     {
         BoolStore dead(false);
         BoolStore one(false);
-        std::unique_ptr<QuotientSystem> sys = get_quotient(state, dead, one);
+        std::unique_ptr<QuotientSystem> sys = get_quotient(state);
         this->mysolve(state, value_store_, dead, one, sys.get());
     }
 
@@ -118,7 +118,7 @@ public:
         BoolStoreT& dead_ends,
         BoolStoreT2& one_states)
     {
-        auto sys = get_quotient(state, dead_ends, one_states);
+        auto sys = get_quotient(state);
 
         value_type::value_t x =
             this->mysolve(state, value_store, dead_ends, one_states, sys.get());
@@ -197,11 +197,7 @@ private:
         const StateEvaluator<State>* fallback;
     };
 
-    template <typename BoolStoreT, typename BoolStoreT2>
-    std::unique_ptr<QuotientSystem> get_quotient(
-        const State& state,
-        BoolStoreT& dead_ends,
-        BoolStoreT2& one_states)
+    std::unique_ptr<QuotientSystem> get_quotient(const State& state)
     {
         Decomposer ec_decomposer(
             this->get_state_id_map(),

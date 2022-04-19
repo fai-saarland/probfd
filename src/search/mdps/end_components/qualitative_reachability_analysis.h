@@ -270,6 +270,7 @@ private:
             pruning_function_ != nullptr &&
             pruning_function_->operator()(state)) {
             ++stats_.terminals;
+            *zero_states_out = state_id;
             state_info.stackid_ = StateInfo::ZERO;
             return false;
         }
@@ -282,6 +283,7 @@ private:
                 state_info.expandable_goal = 0;
             } else {
                 ++stats_.terminals;
+                *zero_states_out = state_id;
                 state_info.stackid_ = StateInfo::ZERO;
             }
 

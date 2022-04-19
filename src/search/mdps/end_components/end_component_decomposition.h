@@ -192,8 +192,8 @@ public:
         , aops_gen_(aops_gen)
         , transition_gen_(transition_gen)
         , expand_goals_(expand_goals)
-        , sys_(new QuotientSystem(action_id_map, aops_gen_, transition_gen_))
         , pruning_function_(pruning_function)
+        , sys_(new QuotientSystem(action_id_map, aops_gen_, transition_gen_))
     {
     }
 
@@ -646,7 +646,6 @@ private:
         assert(expansion_queue_.size() == limit);
     }
 
-    const StateEvaluator<State>* pruning_function_;
     StateIDMap<State>* state_id_map_;
     StateRewardFunction<State>* goal_;
     ActionRewardFunction<Action>* action_rewards_;
@@ -654,6 +653,8 @@ private:
     TransitionGenerator<Action>* transition_gen_;
 
     bool expand_goals_;
+
+    const StateEvaluator<State>* pruning_function_;
 
     std::unique_ptr<QuotientSystem> sys_;
 

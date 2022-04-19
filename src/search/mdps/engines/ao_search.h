@@ -162,7 +162,7 @@ protected:
             auto elem = queue_.top();
             queue_.pop();
 
-            auto& info = get_state_info(elem.second);
+            auto& info = this->get_state_info(elem.second);
             assert(!info.is_goal_state());
             assert(!info.is_terminal() || info.is_solved());
 
@@ -189,13 +189,13 @@ protected:
 
     void backpropagate_update_order(const StateID& tip)
     {
-        queue_.emplace(get_state_info(tip).update_order, tip);
+        queue_.emplace(this->get_state_info(tip).update_order, tip);
 
         while (!queue_.empty()) {
             auto elem = queue_.top();
             queue_.pop();
 
-            auto& info = get_state_info(elem.second);
+            auto& info = this->get_state_info(elem.second);
             if (info.update_order > elem.first) {
                 continue;
             }
@@ -203,7 +203,7 @@ protected:
             auto& parents = info.get_parents();
             auto it = parents.begin();
             while (it != parents.end()) {
-                auto& pinfo = get_state_info(*it);
+                auto& pinfo = this->get_state_info(*it);
                 if (pinfo.is_solved()) {
                     it = parents.erase(it);
                     continue;
@@ -255,7 +255,7 @@ protected:
     {
         auto& parents = info.get_parents();
         for (const StateID& parent : parents) {
-            auto& pinfo = get_state_info(parent);
+            auto& pinfo = this->get_state_info(parent);
             assert(!pinfo.is_dead_end() || pinfo.is_solved());
 
             if constexpr (!Greedy) {
@@ -288,7 +288,7 @@ protected:
 
         if (dead) {
             assert(!info.is_solved() && !info.is_goal_state());
-            notify_dead_end(state);
+            this->notify_dead_end(state);
         }
 
         info.set_solved();
@@ -309,7 +309,7 @@ private:
             dead = !selected_transition_.empty() || info.is_dead_end();
 
             for (const StateID& succ_id : selected_transition_.elements()) {
-                const auto& succ_info = get_state_info(succ_id);
+                const auto& succ_info = this->get_state_info(succ_id);
                 solved = solved && succ_info.is_solved();
                 dead = dead && succ_info.is_dead_end();
             }

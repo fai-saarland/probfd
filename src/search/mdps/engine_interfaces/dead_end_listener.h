@@ -3,7 +3,7 @@
 
 #include "../types.h"
 
-#include <deque>
+#include <vector>
 
 namespace probabilistic {
 

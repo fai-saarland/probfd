@@ -1,5 +1,5 @@
 #ifndef MDPS_ENGINES_I2DUAL_H
-#define MDPS_ENGINeS_I2DUAL_H
+#define MDPS_ENGINES_I2DUAL_H
 
 #include "engine.h"
 
@@ -123,7 +123,7 @@ public:
     {
     }
 
-    virtual value_type::value_t get_result(const State& state)
+    virtual value_type::value_t get_result(const State&) override
     {
         return objective_;
     }
@@ -364,7 +364,7 @@ private:
         // setup empty LP
         std::vector<lp::LPVariable> vars;
         std::vector<lp::LPConstraint> constr;
-        prepare_hpom(vars, constr);
+        prepare_hpom(vars);
 
         next_lp_var_ = vars.size();
         next_lp_constr_id_ = constr.size();
@@ -373,9 +373,7 @@ private:
         lp_solver_.load_problem(lp::LPObjectiveSense::MAXIMIZE, vars, constr);
     }
 
-    void prepare_hpom(
-        std::vector<lp::LPVariable>& vars,
-        std::vector<lp::LPConstraint>& constraints)
+    void prepare_hpom(std::vector<lp::LPVariable>& vars)
     {
         if (!hpom_enabled_) {
             return;

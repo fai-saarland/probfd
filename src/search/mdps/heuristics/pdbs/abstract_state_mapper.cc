@@ -474,7 +474,7 @@ AbstractStateToString::AbstractStateToString(
 }
 
 std::string
-AbstractStateToString::operator()(const StateID& id, AbstractState state) const
+AbstractStateToString::operator()(const StateID&, AbstractState state) const
 {
     std::ostringstream out;
     std::vector<int> values = state_mapper_->to_values(state);

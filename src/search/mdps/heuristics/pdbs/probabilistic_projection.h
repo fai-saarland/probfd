@@ -7,6 +7,7 @@
 #include "qualitative_result_store.h"
 #include "types.h"
 
+#include "../../globals.h"
 #include "../../utils/graph_visualization.h"
 
 #include <iostream>

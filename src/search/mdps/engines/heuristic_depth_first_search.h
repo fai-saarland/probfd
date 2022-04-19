@@ -524,7 +524,7 @@ private:
                 parent_value_changed =
                     parent_value_changed || einfo.value_changed ||
                     (this->interval_comparison_ &&
-                     !get_state_info(stateid, sinfo).value.bounds_equal());
+                     !this->get_state_info(stateid, sinfo).value.bounds_equal());
             } else {
                 parent_value_changed =
                     parent_value_changed || einfo.value_changed;
@@ -557,7 +557,7 @@ private:
             einfo.set_successors(transition_);
             transition_.clear();
         } else {
-            if (get_state_info(stateid, sinfo).is_dead_end()) {
+            if (this->get_state_info(stateid, sinfo).is_dead_end()) {
                 sinfo.set_solved();
                 return LocalStateInfo::CLOSED_DEAD;
             }
@@ -599,7 +599,7 @@ private:
                 if constexpr (Interval::value) {
                     all_converged = all_converged &&
                                     (!this->interval_comparison_ ||
-                                     get_state_info(id).value.bounds_equal());
+                                     this->get_state_info(id).value.bounds_equal());
                 }
 
                 policy_graph_changed = policy_graph_changed || policy_changed;

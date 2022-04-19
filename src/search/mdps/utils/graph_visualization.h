@@ -17,7 +17,7 @@ namespace graphviz {
 
 struct DefaultSTS {
     template <typename State>
-    std::string operator()(const StateID& id, const State& state)
+    std::string operator()(const StateID& id, const State&)
     {
         return std::to_string(id);
     }
@@ -25,7 +25,7 @@ struct DefaultSTS {
 
 struct DefaultATS {
     template <typename Action>
-    std::string operator()(const Action& a)
+    std::string operator()(const Action&)
     {
         return "";
     }

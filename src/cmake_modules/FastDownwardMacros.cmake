@@ -10,11 +10,15 @@ macro(fast_downward_set_compiler_flags)
         if(CXX17_FOUND)
              set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
         else()
-            message(FATAL_ERROR "${CMAKE_CXX_COMPILER} does not support C++14, please use a different compiler")
+            message(FATAL_ERROR "${CMAKE_CXX_COMPILER} does not support C++17, please use a different compiler")
         endif()
 
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wnon-virtual-dtor")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wnon-virtual-dtor -Wno-range-loop-analysis")
+
+        if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-range-loop-analysis")
+        endif()
 
         ## Configuration-specific flags
         set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -fomit-frame-pointer")
