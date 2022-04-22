@@ -14,16 +14,14 @@ class ProbabilisticOperator;
 /// Namespace dedicated to probabilistic pattern databases.
 namespace pdbs {
 
-class AbstractOperator {
-public:
+struct AbstractOperator {
     explicit AbstractOperator(unsigned id, int cost);
     unsigned original_operator_id;
     value_type::value_t cost;
     Distribution<AbstractState> outcomes;
 };
 
-class AbstractRegressionOperator {
-public:
+struct AbstractRegressionOperator {
     explicit AbstractRegressionOperator(unsigned id, AbstractState effect);
     unsigned abstract_operator_id;
     AbstractState effect;

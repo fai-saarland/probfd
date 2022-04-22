@@ -42,7 +42,7 @@ macro(fast_downward_set_compiler_flags)
 
         # Disable warnings that currently trigger in the code until we fix them.
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4245") # initializing unsigned with signed
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4099") # struct seen as class and vice-versa
+        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4099") # struct seen as class and vice-versa
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4800") # forcing value to bool
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4512") # assignment operator could not be generated
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4706") # assignment within conditional expression (in tree.hh)

@@ -14,7 +14,7 @@
 namespace probabilistic {
 namespace pdbs {
 
-class AbstractOperator;
+struct AbstractOperator;
 
 class AbstractPolicy {
 public:
