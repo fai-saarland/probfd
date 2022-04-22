@@ -8,6 +8,10 @@
 
 #include <memory>
 
+namespace pdbs {
+class PatternCollectionInformation;
+}
+
 namespace probabilistic {
 namespace pdbs {
 namespace pattern_selection {
@@ -38,6 +42,10 @@ class PatternCollectionInformation {
     bool information_is_valid() const;
 
 public:
+    PatternCollectionInformation(
+        ::pdbs::PatternCollectionInformation det_info,
+        std::shared_ptr<SubCollectionFinder> subcollection_finder);
+
     PatternCollectionInformation(std::shared_ptr<PatternCollection> patterns);
     PatternCollectionInformation(
         std::shared_ptr<PatternCollection> patterns,

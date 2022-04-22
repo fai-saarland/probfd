@@ -10,6 +10,8 @@
 #include "../expcost_projection.h"
 #include "../maxprob_projection.h"
 
+#include "../../../../pdbs/pattern_collection_information.h"
+
 #include <algorithm>
 #include <cassert>
 #include <unordered_set>
@@ -20,6 +22,27 @@ using namespace std;
 namespace probabilistic {
 namespace pdbs {
 namespace pattern_selection {
+
+template <typename PDBType>
+PatternCollectionInformation<PDBType>::PatternCollectionInformation(
+    ::pdbs::PatternCollectionInformation det_info,
+    shared_ptr<SubCollectionFinder> subcollection_finder)
+    : patterns_(det_info.move_patterns())
+    , subcollections_(det_info.move_pattern_cliques())
+    , subcollection_finder_(std::move(subcollection_finder))
+{
+    auto pdbs = det_info.move_pdbs();
+
+    if (!pdbs) {
+        return;
+    }
+
+    pdbs_ = make_shared<PPDBCollection<PDBType>>();
+
+    for (size_t i = 0; i != pdbs->size(); ++i) {
+        pdbs_->emplace_back(new PDBType(*pdbs->operator[](i)));
+    }
+}
 
 template <typename PDBType>
 PatternCollectionInformation<PDBType>::PatternCollectionInformation(

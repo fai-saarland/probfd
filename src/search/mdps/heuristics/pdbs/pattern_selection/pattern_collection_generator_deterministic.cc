@@ -38,35 +38,9 @@ PatternCollectionInformation<PDBType>
 PatternCollectionGeneratorDeterministic<PDBType>::generate(
     OperatorCost cost_type)
 {
-    ::pdbs::PatternCollectionInformation det_info = gen->generate(cost_type);
-
-    std::shared_ptr<PPDBCollection<PDBType>> ppdbs(
-        new PPDBCollection<PDBType>());
-
-    std::shared_ptr patterns = det_info.move_patterns();
-    std::shared_ptr pdbs = det_info.move_pdbs();
-    std::shared_ptr subcollections = det_info.move_pattern_cliques();
-
-    assert(patterns);
-
-    for (size_t i = 0; i != patterns->size(); ++i) {
-        const Pattern& pattern = (*patterns)[i];
-
-        if (pdbs) {
-            std::shared_ptr pdb = (*pdbs)[i];
-            assert(pdb);
-            ppdbs->emplace_back(new PDBType(*pdb));
-        } else {
-            ppdbs->emplace_back(new PDBType(pattern));
-        }
-    }
-
-    PatternCollectionInformation<PDBType> info(patterns, finder);
-
-    info.set_pdbs(ppdbs);
-    info.set_subcollections(subcollections);
-
-    return info;
+    return PatternCollectionInformation<PDBType>(
+        gen->generate(cost_type),
+        finder);
 }
 
 template <class PDBType>
