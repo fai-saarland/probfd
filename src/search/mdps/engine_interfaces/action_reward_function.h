@@ -18,7 +18,7 @@ struct ActionRewardFunction {
 
     /**
      * Returns the reward gained by applying \p action in the state represented
-     * * by \p state_id.
+     * by \p state_id.
      */
     value_type::value_t operator()(StateID state_id, Action action)
     {
