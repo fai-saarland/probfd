@@ -18,6 +18,7 @@
 #include <deque>
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <type_traits>
 #include <vector>
 

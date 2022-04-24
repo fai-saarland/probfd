@@ -462,7 +462,7 @@ private:
         this->policy_queue_.emplace_back(init_state_id);
 
         do {
-            const StateID stateid = this->policy_queue_.back().second;
+            const StateID stateid = this->policy_queue_.back();
             this->policy_queue_.pop_back();
             this->visited_.push_back(stateid);
 
