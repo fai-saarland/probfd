@@ -12,6 +12,8 @@ endif()
 ## == Project ==
 
 project(downward)
+cmake_policy(SET CMP0074 NEW)
+
 fast_downward_set_compiler_flags()
 fast_downward_set_linker_flags()
 #add_definitions(-Wfatal-errors)
