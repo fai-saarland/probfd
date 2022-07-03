@@ -169,7 +169,6 @@ public:
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         StateEvaluator<State>* dead_end_eval,
-        DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
         NewStateHandler<State>* new_state_handler,
         StateEvaluator<State>* value_init,
@@ -188,7 +187,6 @@ public:
               aops_generator,
               transition_generator,
               dead_end_eval,
-              dead_end_listener,
               policy_chooser,
               new_state_handler,
               value_init,
@@ -428,11 +426,6 @@ private:
             }
 
             this->selected_transition_.clear();
-        }
-
-        if (epsilon_consistent && all_dead && any_dead &&
-            this->is_dead_end_learning_enabled()) {
-            this->last_check_and_solve_was_dead_ = true;
         }
 
         if (epsilon_consistent && mark_solved) {

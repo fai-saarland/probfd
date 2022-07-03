@@ -19,15 +19,6 @@ MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
           opts.get_list<std::shared_ptr<NewGlobalStateHandler>>(
               "on_new_state")))
     , heuristic_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
-    , dead_end_listener_(
-          opts.contains("on_dead_end")
-              ? new DeadEndListener<GlobalState, const ProbabilisticOperator*>(
-                    opts.get<std::shared_ptr<
-                        state_component::StateComponentListener>>(
-                        "on_dead_end"),
-                    this->get_state_id_map(),
-                    this->get_transition_generator())
-              : nullptr)
     , dead_end_eval_(
           opts.contains("dead_end_eval")
               ? opts.get<std::shared_ptr<GlobalStateEvaluator>>("dead_end_eval")
@@ -76,9 +67,6 @@ void MDPHeuristicSearchBase::print_additional_statistics() const
         policy_tiebreaker_->print_statistics(logging::out);
     }
     heuristic_->print_statistics();
-    if (dead_end_listener_ != nullptr) {
-        dead_end_listener_->print_statistics(logging::out);
-    }
 }
 
 void MDPHeuristicSearchBase::add_options_to_parser(
@@ -101,10 +89,6 @@ void MDPHeuristicSearchBase::add_options_to_parser(
     parser.add_option<bool>("dual_bounds", "", "false");
     parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
         "dead_end_eval",
-        "",
-        options::OptionParser::NONE);
-    parser.add_option<std::shared_ptr<state_component::StateComponentListener>>(
-        "on_dead_end",
         "",
         options::OptionParser::NONE);
     MDPSolver::add_options_to_parser(parser);

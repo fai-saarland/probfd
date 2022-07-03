@@ -1,7 +1,6 @@
 #ifndef MDPS_ENGINES_AO_SEARCH_H
 #define MDPS_ENGINES_AO_SEARCH_H
 
-#include "../engine_interfaces/dead_end_listener.h"
 #include "../storage/per_state_storage.h"
 #include "heuristic_search_base.h"
 
@@ -115,7 +114,6 @@ public:
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         StateEvaluator<State>* dead_end_eval,
-        DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
         NewStateHandler<State>* new_state_handler,
         StateEvaluator<State>* value_init,
@@ -132,7 +130,6 @@ public:
               aops_generator,
               transition_generator,
               dead_end_eval,
-              dead_end_listener,
               policy_chooser,
               new_state_handler,
               value_init,

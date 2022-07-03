@@ -123,7 +123,6 @@ public:
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         StateEvaluator<State>* dead_end_eval,
-        DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
         NewStateHandler<State>* new_state_handler,
         StateEvaluator<State>* value_init,
@@ -147,7 +146,6 @@ public:
               aops_generator,
               transition_generator,
               dead_end_eval,
-              dead_end_listener,
               policy_chooser,
               new_state_handler,
               value_init,
@@ -462,11 +460,7 @@ private:
                             result.second || last_unsolved_successors;
                     }
 
-                    if (!this->is_dead_end_learning_enabled() ||
-                        last_unsolved_successors ||
-                        (scc_size != 1 && einfo.leaf)) {
-                        last_dead = false;
-                    }
+                    last_dead = false;
 
                     last_unsolved_successors =
                         last_unsolved_successors || last_value_changed;

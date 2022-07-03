@@ -2,7 +2,6 @@
 #define MDPS_SOLVERS_MDP_HEURISTIC_SEARCH_H
 
 #include "../../option_parser.h"
-#include "../dead_end_listener.h"
 #include "../engine_interfaces/heuristic_search_connector.h"
 #include "../engine_interfaces/transition_sampler.h"
 #include "../engines/fret.h"
@@ -52,8 +51,6 @@ private:
     std::shared_ptr<ProbabilisticOperatorPolicyPicker> policy_tiebreaker_;
     std::shared_ptr<NewGlobalStateHandler> new_state_handler_;
     std::shared_ptr<GlobalStateEvaluator> heuristic_;
-    std::shared_ptr<DeadEndListener<GlobalState, const ProbabilisticOperator*>>
-        dead_end_listener_;
     std::shared_ptr<GlobalStateEvaluator> dead_end_eval_;
 
     const bool dual_bounds_;
@@ -80,7 +77,6 @@ public:
                 HS<GlobalState, const ProbabilisticOperator*, std::true_type>;
             return engine_factory<HeuristicSearchType>(
                 dead_end_eval_.get(),
-                dead_end_listener_.get(),
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -94,7 +90,6 @@ public:
                 HS<GlobalState, const ProbabilisticOperator*, std::false_type>;
             return engine_factory<HeuristicSearchType>(
                 dead_end_eval_.get(),
-                dead_end_listener_.get(),
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -156,15 +151,6 @@ public:
                         quotient_.get(),
                         this->policy_tiebreaker_.get())
                   : nullptr)
-        , q_dead_end_listener_(
-              this->dead_end_listener_ != nullptr
-                  ? new DeadEndListener<
-                        GlobalState,
-                        quotient_system::QuotientAction<
-                            const ProbabilisticOperator*>>(
-                        quotient_.get(),
-                        this->dead_end_listener_.get())
-                  : nullptr)
         , fret_on_policy_(
               opts.contains("fret_on_policy") &&
               opts.get<bool>("fret_on_policy"))
@@ -224,7 +210,6 @@ public:
                 args...,
                 this->quotient_.get(),
                 dead_end_eval_.get(),
-                q_dead_end_listener_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -247,7 +232,6 @@ public:
                 args...,
                 this->quotient_.get(),
                 dead_end_eval_.get(),
-                q_dead_end_listener_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -323,7 +307,6 @@ private:
             q_aops_gen_.get(),
             q_transition_gen_.get(),
             dead_end_eval_.get(),
-            q_dead_end_listener_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
             heuristic_.get(),
@@ -390,10 +373,6 @@ private:
     std::unique_ptr<PolicyPicker<
         quotient_system::QuotientAction<const ProbabilisticOperator*>>>
         q_policy_tiebreaker_;
-    std::unique_ptr<DeadEndListener<
-        GlobalState,
-        quotient_system::QuotientAction<const ProbabilisticOperator*>>>
-        q_dead_end_listener_;
 
     const bool fret_on_policy_;
 

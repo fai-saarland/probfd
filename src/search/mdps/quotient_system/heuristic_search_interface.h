@@ -1,7 +1,6 @@
 #ifndef MDPS_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 #define MDPS_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 
-#include "../engine_interfaces/dead_end_listener.h"
 #include "../engine_interfaces/open_list.h"
 #include "../engine_interfaces/policy_picker.h"
 #include "../engine_interfaces/transition_sampler.h"
@@ -9,20 +8,6 @@
 
 namespace probabilistic {
 namespace quotient_system {
-
-template <typename State, typename Action, typename Passthrough>
-struct DeadEndListener {
-    using is_default_implementation = std::true_type;
-
-    bool operator()(const StateID&) { return false; }
-
-    bool operator()(
-        std::vector<StateID>::const_iterator,
-        std::vector<StateID>::const_iterator)
-    {
-        return false;
-    }
-};
 
 template <typename Action, typename Passthrough>
 struct OpenList : public probabilistic::OpenList<Action> {
@@ -64,53 +49,6 @@ struct TransitionSampler {
         return distribution_random_sampler::DistributionRandomSampler()(
             transition);
     }
-};
-
-template <typename State, typename Action>
-class DeadEndListener<State, Action, std::false_type> {
-public:
-    explicit DeadEndListener(
-        QuotientSystem<Action>* quotient,
-        probabilistic::DeadEndListener<State, Action>* original)
-        : quotient_(quotient)
-        , original_(original)
-    {
-    }
-
-    bool operator()(const StateID& state)
-    {
-        component_.clear();
-
-        for (const StateID& sid : quotient_->quotient_range(state)) {
-            component_.push_back(sid);
-        }
-
-        return original_->operator()(component_.begin(), component_.end());
-    }
-
-    bool operator()(
-        std::vector<StateID>::const_iterator begin,
-        std::vector<StateID>::const_iterator end)
-    {
-        component_.clear();
-
-        for (; begin != end; ++begin) {
-            for (const StateID& sid : quotient_->quotient_range(*begin)) {
-                component_.push_back(sid);
-            }
-        }
-
-        return original_->operator()(component_.begin(), component_.end());
-    }
-
-    probabilistic::DeadEndListener<State, Action>* real() const
-    {
-        return original_;
-    }
-
-    QuotientSystem<Action>* quotient_;
-    probabilistic::DeadEndListener<State, Action>* original_;
-    std::vector<StateID> component_;
 };
 
 template <typename Action>
@@ -214,19 +152,6 @@ public:
 };
 
 } // namespace quotient_system
-
-template <typename State, typename Action>
-using DeadEndListenerBase = quotient_system::DeadEndListener<
-    State,
-    Action,
-    typename is_default_implementation<DeadEndListener<State, Action>>::type>;
-
-template <typename State, typename Action>
-struct DeadEndListener<State, quotient_system::QuotientAction<Action>>
-    : public DeadEndListenerBase<State, Action> {
-    using Base = DeadEndListenerBase<State, Action>;
-    using Base::Base;
-};
 
 template <typename Action>
 using PolicyPickerBase = quotient_system::PolicyPicker<

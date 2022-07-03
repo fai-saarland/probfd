@@ -69,7 +69,6 @@ public:
                 res->aops_gen.get(),
                 res->tgen.get(),
                 nullptr,
-                &res->dead_end_listener_,
                 &res->policy_,
                 &res->new_state_handler_,
                 res->heuristic_.get(),
@@ -111,7 +110,6 @@ public:
                 DualValues>(
                 args...,
                 res->quotient_.get(),
-                nullptr,
                 nullptr,
                 res->q_policy_tiebreaker_.get(),
                 &res->new_state_handler_,
@@ -174,7 +172,6 @@ public:
                 g_analysis_objective->reward_bound(),
                 res->q_aops_gen_.get(),
                 res->q_transition_gen_.get(),
-                nullptr,
                 nullptr,
                 res->q_policy_tiebreaker_.get(),
                 &res->new_state_handler_,
@@ -333,8 +330,6 @@ private:
     std::unique_ptr<StateRewardFunction<bisimulation::QuotientState>>
         state_reward = nullptr;
     bisimulation::DefaultQuotientActionRewardFunction transition_reward;
-    DeadEndListener<bisimulation::QuotientState, bisimulation::QuotientAction>
-        dead_end_listener_;
     NewStateHandler<bisimulation::QuotientState> new_state_handler_;
     std::unique_ptr<StateEvaluator<bisimulation::QuotientState>> heuristic_ =
         nullptr;
@@ -363,10 +358,6 @@ private:
     std::unique_ptr<PolicyPicker<
         quotient_system::QuotientAction<bisimulation::QuotientAction>>>
         q_policy_tiebreaker_ = nullptr;
-    std::unique_ptr<DeadEndListener<
-        GlobalState,
-        quotient_system::QuotientAction<bisimulation::QuotientAction>>>
-        q_dead_end_listener_ = nullptr;
 
     std::unique_ptr<MDPEngineInterface<bisimulation::QuotientState>> engine2_ =
         nullptr;

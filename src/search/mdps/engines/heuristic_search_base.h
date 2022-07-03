@@ -1,7 +1,6 @@
 #ifndef MDPS_ENGINES_HEURISTIC_SEARCH_BASE_H
 #define MDPS_ENGINES_HEURISTIC_SEARCH_BASE_H
 
-#include "../engine_interfaces/dead_end_listener.h"
 #include "../engine_interfaces/heuristic_search_connector.h"
 #include "../engine_interfaces/new_state_handler.h"
 #include "../engine_interfaces/policy_picker.h"
@@ -54,14 +53,6 @@ struct Statistics : public CoreStatistics {
     unsigned state_info_bytes = 0;
     value_type::value_t initial_state_estimate = 0;
     bool initial_state_found_terminal = 0;
-
-    unsigned long long externally_set_dead_ends = 0;
-    unsigned long long dead_end_safe_updates = 0;
-    unsigned long long dead_end_safe_updates_states = 0;
-    unsigned long long dead_end_safe_updates_dead_ends = 0;
-
-    unsigned long long wrongly_classified_dead_ends = 0;
-    unsigned long long safe_updates_non_dead_end_value = 0;
 
     value_type::value_t value = value_type::zero;
     CoreStatistics before_last_update;
@@ -118,21 +109,6 @@ struct Statistics : public CoreStatistics {
         out << "  Policy selection time: " << policy_selection_time
             << std::endl;
 #endif
-
-        out << "  Number of dead-end identification runs: "
-            << dead_end_safe_updates << std::endl;
-        out << "  Dead-end identification runs on states with non dead-end "
-               "value: "
-            << safe_updates_non_dead_end_value << std::endl;
-        out << "  States considered while checking dead-end property: "
-            << dead_end_safe_updates_states << std::endl;
-        out << "  Wrongly classified dead-ends: "
-            << wrongly_classified_dead_ends << std::endl;
-        out << "  Dead-ends identified: " << dead_end_safe_updates_dead_ends
-            << std::endl;
-        out << "  Externally set dead-ends: " << externally_set_dead_ends
-            << std::endl
-            << std::flush;
     }
 
     void jump() { before_last_update = *this; }
@@ -167,7 +143,6 @@ public:
         ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         StateEvaluator<State>* dead_end_eval,
-        DeadEndListener<State, Action>* dead_end_listener,
         PolicyPicker<Action>* policy_chooser,
         NewStateHandler<State>* new_state_handler,
         StateEvaluator<State>* value_init,
@@ -189,7 +164,6 @@ public:
         , value_initializer_(value_init)
         , policy_chooser_(policy_chooser)
         , on_new_state_(new_state_handler)
-        , dead_end_listener_(dead_end_listener)
         , dead_end_eval_(dead_end_eval)
         , dead_end_value_(this->get_minimal_reward())
     {
@@ -327,8 +301,7 @@ public:
 
     /**
      * @brief If \p state_id has not been recognized as a dead-end before,
-     * stores this information in \p state_info, notifies the attached
-     * dead-end listener of this new dead-end, and returns true.
+     * stores this information in \p state_info and returns true.
      * Otherwise returns false.
      */
     bool notify_dead_end(const StateID& state_id, StateInfo& state_info)
@@ -336,11 +309,6 @@ public:
         if (!state_info.is_dead_end()) {
             state_info.set_dead_end();
             state_info.value = dead_end_value_;
-
-            if (dead_end_listener_ != nullptr) {
-                dead_end_listener_->operator()(state_id);
-            }
-
             return true;
         }
 
@@ -377,7 +345,7 @@ public:
     /**
      * @brief Checks whether the attached dead-end evaluator recognizes the
      * state as a dead-end. If yes and the state has not been recognized before,
-     * the state is marked as a dead-end and the dead end listener is notified.
+     * the state is marked as a dead-end.
      */
     bool check_dead_end(const StateID& state_id)
     {
@@ -390,14 +358,6 @@ public:
         }
 
         return false;
-    }
-
-    /**
-     * @brief Checks if a dead-end listener is attached.
-     */
-    bool is_dead_end_learning_enabled() const
-    {
-        return dead_end_listener_ != nullptr;
     }
 
     /**
@@ -1005,7 +965,6 @@ private:
     StateEvaluator<State>* value_initializer_;
     PolicyPicker<Action>* policy_chooser_;
     NewStateHandler<State>* on_new_state_;
-    DeadEndListener<State, Action>* dead_end_listener_;
     StateEvaluator<State>* dead_end_eval_;
 
     const IncumbentSolution dead_end_value_;

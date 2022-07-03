@@ -2,7 +2,6 @@
 
 #include "../../option_parser.h"
 #include "../../plugin.h"
-#include "../dead_end_listener.h"
 #include "../heuristic_search_interfaceable.h"
 #include "../new_state_handler.h"
 #include "../progress_report.h"
@@ -31,17 +30,6 @@ public:
               opts.get_list<std::shared_ptr<NewGlobalStateHandler>>(
                   "on_new_state")))
         , heuristic_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
-        , dead_end_listener_(
-              opts.contains("on_dead_end")
-                  ? new DeadEndListener<
-                        GlobalState,
-                        const ProbabilisticOperator*>(
-                        opts.get<std::shared_ptr<
-                            state_component::StateComponentListener>>(
-                            "on_dead_end"),
-                        this->get_state_id_map(),
-                        this->get_transition_generator())
-                  : nullptr)
         , dead_end_eval_(
               opts.contains("dead_end_eval")
                   ? opts.get<std::shared_ptr<GlobalStateEvaluator>>(
@@ -89,11 +77,6 @@ public:
             "dead_end_eval",
             "",
             options::OptionParser::NONE);
-        parser.add_option<
-            std::shared_ptr<state_component::StateComponentListener>>(
-            "on_dead_end",
-            "",
-            options::OptionParser::NONE);
         parser
             .add_option<std::shared_ptr<ProbabilisticOperatorSuccessorSorting>>(
                 "order",
@@ -127,7 +110,6 @@ public:
                 &connector_,
                 heuristic_.get(),
                 dead_end_eval_.get(),
-                dead_end_listener_.get(),
                 reevaluate_,
                 notify_s0_,
                 successor_sort_.get(),
@@ -140,7 +122,6 @@ public:
                 &connector_,
                 heuristic_.get(),
                 dead_end_eval_.get(),
-                dead_end_listener_.get(),
                 reevaluate_,
                 notify_s0_,
                 successor_sort_.get(),
@@ -156,8 +137,6 @@ private:
 
     std::shared_ptr<NewGlobalStateHandlerList> new_state_handler_;
     std::shared_ptr<GlobalStateEvaluator> heuristic_;
-    std::shared_ptr<DeadEndListener<GlobalState, const ProbabilisticOperator*>>
-        dead_end_listener_;
     std::shared_ptr<GlobalStateEvaluator> dead_end_eval_;
     std::shared_ptr<ProbabilisticOperatorSuccessorSorting> successor_sort_;
 

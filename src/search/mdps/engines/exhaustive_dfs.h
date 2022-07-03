@@ -2,7 +2,6 @@
 #define MDPS_ENGINES_EXHAUSTIVE_DFS_H
 
 #include "../../utils/timer.h"
-#include "../engine_interfaces/dead_end_listener.h"
 #include "../engine_interfaces/heuristic_search_connector.h"
 #include "../engine_interfaces/new_state_handler.h"
 #include "../engine_interfaces/successor_sorting.h"
@@ -41,12 +40,9 @@ struct Statistics {
     unsigned long long sccs = 0;
     unsigned long long dead_end_sccs = 0;
     unsigned long long pruned_dead_end_sccs = 0;
-    unsigned long long notifications = 0;
     unsigned long long summed_dead_end_scc_sizes = 0;
-    unsigned long long summed_notified_scc_sizes = 0;
 
     TIMERS_ENABLED(utils::Timer evaluation_time = utils::Timer(true);)
-    TIMERS_ENABLED(utils::Timer notification_time = utils::Timer(true);)
 
     void print(std::ostream& out) const
     {
@@ -65,16 +61,9 @@ struct Statistics {
             << " dead-end SCC(s)." << std::endl;
         TIMERS_ENABLED(out << "  Dead end evaluator time: " << evaluation_time
                            << std::endl;)
-        out << "  Dead end notifications: " << notifications << std::endl;
-        TIMERS_ENABLED(out << "  Total dead end nofication time: "
-                           << (notification_time) << std::endl;)
         out << "  Average dead-end SCC size: "
             << (static_cast<double>(summed_dead_end_scc_sizes) /
                 static_cast<int>(dead_end_sccs))
-            << std::endl;
-        out << "  Average dead-end SCC size for notifications: "
-            << (static_cast<double>(summed_notified_scc_sizes) /
-                static_cast<int>(notifications))
             << std::endl;
     }
 
@@ -85,15 +74,6 @@ struct Statistics {
     }
 
     void evaluation_finished() { TIMERS_ENABLED(evaluation_time.stop();) }
-
-    void notification_started(unsigned scc_size)
-    {
-        notifications++;
-        TIMERS_ENABLED(notification_time.resume();)
-        summed_notified_scc_sizes += scc_size;
-    }
-
-    void notification_finished() { TIMERS_ENABLED(notification_time.stop();) }
 };
 
 enum class BacktrackingUpdateType {
@@ -192,7 +172,6 @@ public:
         HeuristicSearchConnector* connector,
         StateEvaluator<State>* evaluator,
         StateEvaluator<State>* dead_end_eval,
-        DeadEndListener<State, Action>* dead_end_listener,
         bool reevaluate,
         bool notify_initial,
         SuccessorSorting<Action>* successor_sorting,
@@ -214,17 +193,12 @@ public:
         , trivial_bound_(get_trivial_bound())
         , evaluator_(evaluator)
         , dead_end_evaluator_(dead_end_eval)
-        , dead_end_listener_(dead_end_listener)
         , new_state_handler_(new_state_handler)
         , reverse_path_updates_(path_updates)
         , only_propagate_when_changed_(only_propagate_when_changed)
         , evaluator_recomputation_(reevaluate)
         , notify_initial_state_(notify_initial)
         , successor_sort_(successor_sorting)
-        , notify_dead_ends_(dead_end_listener != nullptr)
-        , store_neighbors_(
-              dead_end_listener_ != nullptr &&
-              dead_end_listener_->requires_neighbors())
     {
         connector->set_lookup_function(this);
     }
@@ -468,11 +442,6 @@ private:
                         exp.all_successors_marked_dead &&
                         succ_info.is_marked_dead_end();
 
-                    if (notify_dead_ends_ && store_neighbors_ &&
-                        succ_info.is_marked_dead_end()) {
-                        neighbors_.push_back(succ_id);
-                    }
-
                     all_self_loops = false;
 
                     it = succs.erase(it);
@@ -582,10 +551,6 @@ private:
                             succ_info.mark_dead_end();
                             inc->base += prob * value_utils::as_lower_bound(
                                                     succ_info.value);
-                            if (notify_dead_ends_ && store_neighbors_ &&
-                                succ_info.is_marked_dead_end()) {
-                                neighbors_.push_back(succ_id);
-                            }
                         } else if (push_state(succ_id, succ_info)) {
                             goto skip;
                         } else {
@@ -597,10 +562,6 @@ private:
                                 succ_info.is_marked_dead_end();
                             inc->base += prob * value_utils::as_lower_bound(
                                                     succ_info.value);
-                            if (notify_dead_ends_ && store_neighbors_ &&
-                                succ_info.is_marked_dead_end()) {
-                                neighbors_.push_back(succ_id);
-                            }
                         }
                     } else if (succ_info.is_onstack()) {
                         node_info.lowlink =
@@ -616,10 +577,6 @@ private:
                             succ_info.is_marked_dead_end();
                         inc->base +=
                             prob * value_utils::as_lower_bound(succ_info.value);
-                        if (notify_dead_ends_ && store_neighbors_ &&
-                            succ_info.is_marked_dead_end()) {
-                            neighbors_.push_back(succ_id);
-                        }
                     }
                 }
 
@@ -682,38 +639,6 @@ private:
 
                     statistics_.dead_end_sccs++;
                     statistics_.summed_dead_end_scc_sizes += scc_size;
-
-                    if (notify_dead_ends_ &&
-                        (expanding.all_successors_marked_dead ||
-                         !dead_end_listener_->requires_neighbors()) &&
-                        (notify_initial_state_ ||
-                         expansion_infos_.size() > 1)) {
-                        statistics_.notification_started(scc_size);
-
-                        std::vector<StateID> component;
-                        for (auto sit = stack_infos_.rbegin(); sit != rend;
-                             ++sit) {
-                            component.push_back(sit->state_ref);
-                        }
-
-                        if (dead_end_listener_->operator()(
-                                component.begin(),
-                                component.end(),
-                                neighbors_.begin(),
-                                neighbors_.end())) {
-                            for (auto it = stack_infos_.rbegin(); it != rend;
-                                 ++it) {
-                                search_space_[it->state_ref].mark_dead_end();
-                            }
-                            backtracked_from_dead_end_scc_ = true;
-                        } else {
-                            notify_dead_ends_ = false;
-                            store_neighbors_ = false;
-                            std::vector<StateID>().swap(neighbors_);
-                        }
-
-                        statistics_.notification_finished();
-                    }
                 } else {
                     unsigned scc_size = 0;
                     do {
@@ -772,13 +697,6 @@ private:
                         } while (changed);
 
                         val_changed = val_changed || iterations > 1;
-                    }
-                }
-
-                if (store_neighbors_) {
-                    neighbors_.resize(expanding.neighbors_size);
-                    if (node_info.is_marked_dead_end()) {
-                        neighbors_.push_back(stateid);
                     }
                 }
 
@@ -889,11 +807,6 @@ private:
                         val += prob * succ_info.value;
                         t.successors.add(succ_id, prob);
                         succ = succs.erase(succ);
-                    } else if (
-                        succ_info.is_marked_dead_end() && notify_dead_ends_ &&
-                        store_neighbors_) {
-                        val += prob * succ_info.value;
-                        ++succ;
                     } else {
                         assert(succ_info.is_closed());
                         t.base +=
@@ -1016,11 +929,6 @@ private:
                         val += prob * succ_info.value;
                         t.successors.add(succ_id, prob);
                         succ = succs.erase(succ);
-                    } else if (
-                        succ_info.is_marked_dead_end() && notify_dead_ends_ &&
-                        store_neighbors_) {
-                        val += prob * succ_info.value;
-                        ++succ;
                     } else {
                         assert(succ_info.is_closed());
                         t.base +=
@@ -1104,11 +1012,6 @@ private:
                     info.mark_dead_end();
                 } while ((it++)->state_ref != stateid);
 
-                if (store_neighbors_) {
-                    neighbors_.resize(exp.neighbors_size);
-                    neighbors_.push_back(stateid);
-                }
-
                 stack_infos_.erase(it.base(), stack_infos_.end());
                 expansion_infos_.pop_back();
                 break;
@@ -1136,7 +1039,6 @@ private:
 
     StateEvaluator<State>* evaluator_;
     StateEvaluator<State>* dead_end_evaluator_;
-    DeadEndListener<State, Action>* dead_end_listener_;
     NewStateHandler<State>* new_state_handler_;
 
     const BacktrackingUpdateType reverse_path_updates_;
@@ -1155,9 +1057,6 @@ private:
     bool last_all_dead_ = true;
     bool last_all_marked_dead_ = true;
     bool backtracked_from_dead_end_scc_ = false;
-
-    bool notify_dead_ends_;
-    bool store_neighbors_;
 };
 
 } // namespace exhaustive_dfs
