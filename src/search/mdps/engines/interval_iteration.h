@@ -83,17 +83,14 @@ public:
     {
     }
 
-    virtual void solve(const State& state) override
+    virtual value_type::value_t solve(const State& state) override
     {
         BoolStore dead(false);
         BoolStore one(false);
         std::unique_ptr<QuotientSystem> sys = get_quotient(state);
         this->mysolve(state, value_store_, dead, one, sys.get());
-    }
 
-    virtual value_type::value_t get_result(const State& s) override
-    {
-        const StateID state_id = this->get_state_id(s);
+        const StateID state_id = this->get_state_id(state);
         return value_utils::as_upper_bound(value_store_[state_id]);
     }
 

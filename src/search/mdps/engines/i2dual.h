@@ -123,17 +123,12 @@ public:
     {
     }
 
-    virtual value_type::value_t get_result(const State&) override
-    {
-        return objective_;
-    }
-
     virtual void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
     }
 
-    virtual void solve(const State& state) override
+    virtual value_type::value_t solve(const State& state) override
     {
         statistics_ = Statistics();
 
@@ -336,6 +331,8 @@ public:
 
         statistics_.num_lp_vars_ = next_lp_var_;
         statistics_.num_lp_constraints_ = next_lp_constr_id_;
+
+        return objective_;
     }
 
 private:

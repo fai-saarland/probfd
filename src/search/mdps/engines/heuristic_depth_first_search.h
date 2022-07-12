@@ -170,7 +170,7 @@ public:
         state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();
     }
 
-    virtual void solve(const State& state) override
+    virtual value_type::value_t solve(const State& state) override
     {
         this->initialize_report(state);
         const StateID stateid = this->get_state_id(state);
@@ -179,6 +179,8 @@ public:
         } else {
             solve_without_vi_termination(stateid);
         }
+
+        return this->get_value(state);
     }
 
     virtual void print_statistics(std::ostream& out) const override

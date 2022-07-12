@@ -107,10 +107,10 @@ public:
     {
     }
 
-    virtual void solve(const State& initial_state) override
+    virtual value_type::value_t solve(const State& initial_state) override
     {
         if (!push_state(this->get_state_id(initial_state))) {
-            return;
+            return state_infos_[this->get_state_id(initial_state)].value;
         }
 
         do {
@@ -147,10 +147,7 @@ public:
 
         continue_outer:;
         } while (!expansion_stack_.empty());
-    }
 
-    virtual value_type::value_t get_result(const State& initial_state) override
-    {
         return state_infos_[this->get_state_id(initial_state)].value;
     }
 

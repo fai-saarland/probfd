@@ -86,7 +86,7 @@ public:
     {
     }
 
-    virtual void solve(const State& state) override
+    virtual value_type::value_t solve(const State& state) override
     {
         this->initialize_report(state);
         StateID stateid = this->get_state_id(state);
@@ -97,6 +97,8 @@ public:
             step();
             this->report(stateid);
         } while (!state_info.is_solved());
+
+        return this->get_value(stateid);
     }
 
 private:

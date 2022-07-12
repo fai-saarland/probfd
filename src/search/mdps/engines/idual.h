@@ -118,7 +118,7 @@ public:
     {
     }
 
-    virtual void solve(const State& initial_state) override
+    virtual value_type::value_t solve(const State& initial_state) override
     {
         const double eps = value_type::g_epsilon;
         const double inf = lp_solver_.get_infinity();
@@ -134,7 +134,7 @@ public:
             auto eval = value_initializer_->operator()(initial_state);
             if ((bool)eval) {
                 objective_ = value_type::value_t(eval);
-                return;
+                return objective_;
             }
 
             lp::LPVariable var((value_type::value_t)eval, inf, 1.0);
@@ -296,10 +296,7 @@ public:
         statistics_.lp_variables = next_var_id;
         statistics_.lp_constraints = next_constraint_id;
         statistics_.open = open_states.size();
-    }
 
-    virtual value_type::value_t get_result(const State&) override
-    {
         return objective_;
     }
 

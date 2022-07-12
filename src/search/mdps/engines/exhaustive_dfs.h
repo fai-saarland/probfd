@@ -208,7 +208,7 @@ public:
         return &search_space_[state_id];
     }
 
-    virtual void solve(const State& state) override
+    virtual value_type::value_t solve(const State& state) override
     {
         StateID stateid = this->get_state_id(state);
         SearchNodeInformation& info = search_space_[stateid];
@@ -219,12 +219,7 @@ public:
             register_value_reports(&info);
             run_exploration();
         }
-    }
 
-    virtual value_type::value_t get_result(const State& s) override
-    {
-        const SearchNodeInformation& info =
-            search_space_[this->get_state_id(s)];
         return value_utils::as_lower_bound(info.value);
     }
 

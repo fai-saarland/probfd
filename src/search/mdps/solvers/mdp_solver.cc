@@ -57,7 +57,7 @@ void MDPSolver::solve()
 
     const GlobalState initial_state = state_registry_.get_initial_state();
 
-    engine->solve(initial_state);
+    value_type::value_t val = engine->solve(initial_state);
     progress_.print();
     total_timer.stop();
 
@@ -65,7 +65,7 @@ void MDPSolver::solve()
 
     logging::out << std::endl;
     logging::print_analysis_result(
-        engine->get_result(initial_state),
+        val,
         engine->supports_error_bound(),
         engine->get_error(initial_state));
 

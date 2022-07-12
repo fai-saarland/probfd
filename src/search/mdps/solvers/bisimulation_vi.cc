@@ -117,13 +117,12 @@ public:
                 &initializer,
                 false);
         }
-        solver->solve(bs.get_initial_state());
+        value_type::value_t val = solver->solve(bs.get_initial_state());
         stats.extended_states = bs.num_extended_states();
         logging::out << "analysis done! [t=" << total_timer << "]" << std::endl;
         logging::out << std::endl;
 
-        logging::print_analysis_result(
-            solver->get_result(bs.get_initial_state()));
+        logging::print_analysis_result(val);
 
         logging::out << std::endl;
         logging::out << "Bisimulation:" << std::endl;

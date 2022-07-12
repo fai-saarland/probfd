@@ -202,16 +202,12 @@ public:
         return res;
     }
 
-    virtual void solve(const GlobalState&) override
+    virtual value_type::value_t solve(const GlobalState&) override
     {
         logging::out << "Running " << engine_name_ << "..." << std::endl;
-        engine_->solve(bs->get_initial_state());
+        const value_type::value_t val = engine_->solve(bs->get_initial_state());
         stats.extended_states = bs->num_extended_states();
-    }
-
-    virtual value_type::value_t get_result(const GlobalState&) override
-    {
-        return engine_->get_result(bs->get_initial_state());
+        return val;
     }
 
     virtual bool supports_error_bound() const override

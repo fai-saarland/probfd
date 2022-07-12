@@ -32,14 +32,7 @@ public:
     /**
      * @brief Runs the MDP algorithm with the initial state \p state .
      */
-    virtual void solve(const State& state) = 0;
-
-    /**
-     * @brief Returns the value computed for state \p state .
-     *
-     * @remark Requires a prior call to solve(const State&).
-     */
-    virtual value_type::value_t get_result(const State& state) = 0;
+    virtual value_type::value_t solve(const State& state) = 0;
 
     /**
      * @brief Checks if the algorithm enforces an error bound on the computed

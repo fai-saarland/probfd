@@ -97,19 +97,12 @@ public:
     /**
      * \copydoc MDPEngine::solve(const State&)
      */
-    virtual void solve(const State& state) override
+    virtual value_type::value_t solve(const State& state) override
     {
         this->value_store_.reset(new Store());
         this->solve(state, *this->value_store_);
-    }
-
-    /**
-     * \copydoc MDPEngine::get_result(const State&)
-     */
-    virtual value_type::value_t get_result(const State& state) override
-    {
         return value_utils::as_upper_bound(
-            value_store_->operator[](this->get_state_id(state)));
+            value_store_->operator[](this->get_state_id(state))); 
     }
 
     /**

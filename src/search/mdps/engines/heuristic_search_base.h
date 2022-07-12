@@ -174,15 +174,6 @@ public:
     virtual ~HeuristicSearchBase() = default;
 
     /**
-     * @copydoc MDPEngineInterface<State>::get_result(const State&)
-     */
-    virtual value_type::value_t get_result(const State& s) override
-    {
-        const StateInfo& info = state_infos_[this->get_state_id(s)];
-        return value_utils::as_upper_bound(info.value);
-    }
-
-    /**
      * @copydoc MDPEngineInterface<State>::supports_error_bound()
      */
     virtual bool supports_error_bound() const override
@@ -230,9 +221,9 @@ public:
     /**
      * @brief Gets the current value of the state represented by \p state_id
      */
-    value_type::value_t get_value(const StateID& state_id) const
+    value_type::value_t get_value(const StateID& state_id)
     {
-        return state_infos_[state_id].get_value();
+        return value_utils::as_upper_bound(state_infos_[state_id].value);
     }
 
     /**
@@ -438,6 +429,11 @@ public:
     }
 
 protected:
+    value_type::value_t get_value(const State& s)
+    {
+        return get_value(this->get_state_id(s));
+    }
+
     /**
      * @brief Updates the value of a state in its info object.
      *
