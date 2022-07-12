@@ -1,7 +1,7 @@
-#ifndef MDPS_POLICY_PICKER_HBASED_TIEBREAKER_H
-#define MDPS_POLICY_PICKER_HBASED_TIEBREAKER_H
+#ifndef MDPS_SUCCESSOR_SORTING_HBASED_SORTER_H
+#define MDPS_SUCCESSOR_SORTING_HBASED_SORTER_H
 
-#include "../policy_picker.h"
+#include "../successor_sort.h"
 
 #include <memory>
 
@@ -16,24 +16,23 @@ namespace new_state_handlers {
 class StoreHeuristic;
 }
 
-namespace policy_tiebreaking {
+namespace successor_sorting {
 
-class HBasedTiebreaker : public ProbabilisticOperatorPolicyPicker {
+class HBasedSorter : public ProbabilisticOperatorSuccessorSorting {
 public:
-    explicit HBasedTiebreaker(const options::Options& opts);
+    explicit HBasedSorter(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
-    virtual int pick(
+    virtual void sort(
         const StateID& state,
-        const ActionID& prev_policy,
         const std::vector<const ProbabilisticOperator*>& action_choices,
-        const std::vector<Distribution<StateID>>& successors) override;
+        std::vector<Distribution<StateID>>& successors) override;
 
     std::shared_ptr<new_state_handlers::StoreHeuristic> heuristic_;
 };
 
-} // namespace policy_tiebreaking
+} // namespace successor_sorting
 } // namespace probabilistic
 
 #endif // __HBASED_TIEBREAKER_H__

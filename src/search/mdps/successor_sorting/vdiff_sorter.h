@@ -1,7 +1,8 @@
-#ifndef MDPS_POLICY_PICKER_VDIFF_TIEBREAKER_H
-#define MDPS_POLICY_PICKER_VDIFF_TIEBREAKER_H
+#ifndef MDPS_SUCCESSOR_SORTING_VDIFF_SORTER_H
+#define MDPS_SUCCESSOR_SORTING_VDIFF_SORTER_H
 
 #include "../policy_picker.h"
+#include "../successor_sort.h"
 
 namespace options {
 class Options;
@@ -11,24 +12,23 @@ class OptionParser;
 namespace probabilistic {
 
 /// Namespace dedicated to policy tiebreaker implementations.
-namespace policy_tiebreaking {
+namespace successor_sorting {
 
-class VDiffTiebreaker : public ProbabilisticOperatorPolicyPicker {
+class VDiffSorter : public ProbabilisticOperatorSuccessorSorting {
 public:
-    explicit VDiffTiebreaker(const options::Options& opts);
+    explicit VDiffSorter(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
-    virtual int pick(
+    virtual void sort(
         const StateID& state,
-        const ActionID& prev_policy,
         const std::vector<const ProbabilisticOperator*>& action_choices,
-        const std::vector<Distribution<StateID>>& successors) override;
+        std::vector<Distribution<StateID>>& successors) override;
 
     const value_type::value_t favor_large_gaps_;
 };
 
-} // namespace policy_tiebreaking
+} // namespace successor_sorting
 } // namespace probabilistic
 
 #endif // __VDIFF_TIEBREAKER_H__

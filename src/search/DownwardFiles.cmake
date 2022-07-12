@@ -663,6 +663,11 @@ fast_downward_plugin(
         mdps/policy_picker/random_tiebreaker
         mdps/policy_picker/vdiff_tiebreaker
 
+        mdps/successor_sorting
+        mdps/successor_sorting/hbased_sorter
+        mdps/successor_sorting/preferred_operators_sorter
+        mdps/successor_sorting/vdiff_sorter
+
         mdps/solvers/mdp_heuristic_search
     DEPENDENCY_ONLY
     DEPENDS MDP
