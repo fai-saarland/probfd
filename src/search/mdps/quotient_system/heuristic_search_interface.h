@@ -4,59 +4,27 @@
 #include "../engine_interfaces/open_list.h"
 #include "../engine_interfaces/policy_picker.h"
 #include "../engine_interfaces/transition_sampler.h"
+
+#include "../open_list.h"
+#include "../policy_picker.h"
+#include "../transition_sampler.h"
+
 #include "quotient_system.h"
 
 namespace probabilistic {
-namespace quotient_system {
 
-template <typename Action, typename Passthrough>
-struct OpenList : public probabilistic::OpenList<Action> {
-    using probabilistic::OpenList<Action>::OpenList;
+template <>
+class PolicyPicker<
+    quotient_system::QuotientAction<const ProbabilisticOperator*>> {
+    using QuotientSystem =
+        quotient_system::QuotientSystem<const ProbabilisticOperator*>;
+    using QuotientAction =
+        quotient_system::QuotientAction<const ProbabilisticOperator*>;
 
-    void push(
-        const StateID&,
-        const QuotientAction<Action>&,
-        const value_type::value_t&,
-        const StateID& state_id)
-    {
-        this->push(state_id);
-    }
-};
-
-template <typename Action, typename Passthrough>
-struct PolicyPicker {
-    using is_default_implementation = std::true_type;
-
-    int operator()(
-        const StateID&,
-        const ActionID&,
-        const std::vector<QuotientAction<Action>>&,
-        const std::vector<Distribution<StateID>>&)
-    {
-        return 0;
-    }
-};
-
-template <typename Action, typename Passthrough>
-struct TransitionSampler {
-    using is_default_implementation = std::true_type;
-
-    StateID operator()(
-        const StateID&,
-        const QuotientAction<Action>&,
-        const Distribution<StateID>& transition)
-    {
-        return distribution_random_sampler::DistributionRandomSampler()(
-            transition);
-    }
-};
-
-template <typename Action>
-class PolicyPicker<Action, std::false_type> {
 public:
     explicit PolicyPicker(
-        QuotientSystem<Action>* quotient,
-        probabilistic::PolicyPicker<Action>* original)
+        QuotientSystem* quotient,
+        PolicyPicker<const ProbabilisticOperator*>* original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -65,7 +33,7 @@ public:
     int operator()(
         const StateID& state,
         const ActionID& prev_policy,
-        const std::vector<QuotientAction<Action>>& action_choices,
+        const std::vector<QuotientAction>& action_choices,
         const std::vector<Distribution<StateID>>& successors)
     {
         const ActionID oprev =
@@ -81,19 +49,29 @@ public:
         return original_->operator()(state, oprev, choices_, successors);
     }
 
-    probabilistic::PolicyPicker<Action>* real() const { return original_; }
+    PolicyPicker<const ProbabilisticOperator*>* real() const
+    {
+        return original_;
+    }
 
-    std::vector<Action> choices_;
-    QuotientSystem<Action>* quotient_;
-    probabilistic::PolicyPicker<Action>* original_;
+    std::vector<const ProbabilisticOperator*> choices_;
+    QuotientSystem* quotient_;
+    PolicyPicker<const ProbabilisticOperator*>* original_;
 };
 
-template <typename Action>
-class TransitionSampler<Action, std::false_type> {
+template <>
+class TransitionSampler<
+    quotient_system::QuotientAction<const ProbabilisticOperator*>> {
+    using QuotientSystem =
+        quotient_system::QuotientSystem<const ProbabilisticOperator*>;
+    using QuotientAction =
+        quotient_system::QuotientAction<const ProbabilisticOperator*>;
+
 public:
     explicit TransitionSampler(
-        QuotientSystem<Action>* quotient,
-        probabilistic::TransitionSampler<Action>* original)
+        QuotientSystem* quotient,
+        probabilistic::TransitionSampler<const ProbabilisticOperator*>*
+            original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -101,25 +79,33 @@ public:
 
     StateID operator()(
         const StateID& state,
-        const QuotientAction<Action>& action,
+        const QuotientAction& action,
         const Distribution<StateID>& transition)
     {
-        const Action oa = quotient_->get_original_action(state, action);
+        const auto* oa = quotient_->get_original_action(state, action);
         return original_->operator()(state, oa, transition);
     }
 
-    probabilistic::TransitionSampler<Action>* real() const { return original_; }
+    TransitionSampler<const ProbabilisticOperator*>* real() const
+    {
+        return original_;
+    }
 
-    QuotientSystem<Action>* quotient_;
-    probabilistic::TransitionSampler<Action>* original_;
+    QuotientSystem* quotient_;
+    TransitionSampler<const ProbabilisticOperator*>* original_;
 };
 
-template <typename Action>
-class OpenList<Action, std::false_type> {
+template <>
+class OpenList<quotient_system::QuotientAction<const ProbabilisticOperator*>> {
+    using QuotientSystem =
+        quotient_system::QuotientSystem<const ProbabilisticOperator*>;
+    using QuotientAction =
+        quotient_system::QuotientAction<const ProbabilisticOperator*>;
+
 public:
     explicit OpenList(
-        QuotientSystem<Action>* quotient,
-        probabilistic::OpenList<Action>* original)
+        QuotientSystem* quotient,
+        OpenList<const ProbabilisticOperator*>* original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -131,11 +117,11 @@ public:
 
     void push(
         const StateID& parent,
-        const QuotientAction<Action>& action,
+        const QuotientAction& action,
         const value_type::value_t& prob,
         const StateID& state_id)
     {
-        const Action oa = this->quotient_->get_original_action(parent, action);
+        const auto* oa = this->quotient_->get_original_action(parent, action);
         original_->push(parent, oa, prob, state_id);
     }
 
@@ -145,49 +131,10 @@ public:
 
     void clear() { original_->clear(); }
 
-    probabilistic::OpenList<Action>* real() const { return original_; }
+    OpenList<const ProbabilisticOperator*>* real() const { return original_; }
 
-    QuotientSystem<Action>* quotient_;
-    probabilistic::OpenList<Action>* original_;
-};
-
-} // namespace quotient_system
-
-template <typename Action>
-using PolicyPickerBase = quotient_system::PolicyPicker<
-    Action,
-    typename is_default_implementation<
-        probabilistic::PolicyPicker<Action>>::type>;
-
-template <typename Action>
-struct PolicyPicker<quotient_system::QuotientAction<Action>>
-    : public PolicyPickerBase<Action> {
-    using Base = PolicyPickerBase<Action>;
-    using Base::Base;
-};
-
-template <typename Action>
-using TransitionSamplerBase = quotient_system::TransitionSampler<
-    Action,
-    typename is_default_implementation<TransitionSampler<Action>>::type>;
-
-template <typename Action>
-struct TransitionSampler<quotient_system::QuotientAction<Action>>
-    : public TransitionSamplerBase<Action> {
-    using Base = TransitionSamplerBase<Action>;
-    using Base::Base;
-};
-
-template <typename Action>
-using OpenListBase = quotient_system::OpenList<
-    Action,
-    typename is_default_implementation<OpenList<Action>>::type>;
-
-template <typename Action>
-struct OpenList<quotient_system::QuotientAction<Action>>
-    : public OpenListBase<Action> {
-    using Base = OpenListBase<Action>;
-    using Base::Base;
+    QuotientSystem* quotient_;
+    OpenList<const ProbabilisticOperator*>* original_;
 };
 
 } // namespace probabilistic
