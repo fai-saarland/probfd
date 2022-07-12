@@ -14,9 +14,6 @@ namespace probabilistic {
  */
 template <typename State>
 struct NewStateHandler {
-    /// Tags the default implementation.
-    using is_default_implementation = std::true_type;
-
     virtual ~NewStateHandler() = default;
 
     /**

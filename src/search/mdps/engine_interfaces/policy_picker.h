@@ -8,9 +8,6 @@ namespace probabilistic {
 
 template <typename Action>
 struct PolicyPicker {
-    /// Tags the default implementation.
-    using is_default_implementation = std::true_type;
-
     int operator()(
         const StateID&,
         const ActionID&,

@@ -48,15 +48,6 @@ struct ActionID {
     size_type id;
 };
 
-template <typename T, typename B = std::true_type>
-struct is_default_implementation : public std::false_type {
-};
-
-template <typename T>
-struct is_default_implementation<T, typename T::is_default_implementation>
-    : public std::true_type {
-};
-
 } // namespace probabilistic
 
 namespace std {

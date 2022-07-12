@@ -21,9 +21,6 @@ namespace probabilistic {
 template <typename Action>
 class OpenList {
 public:
-    /// Tags the default implmentation.
-    using is_default_implementation = std::true_type;
-
     /**
      * Pops and returns the next state to be expanded from the open list.
      */

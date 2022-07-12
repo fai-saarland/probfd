@@ -15,8 +15,6 @@ namespace probabilistic {
  */
 template <typename Action>
 struct TransitionSampler {
-    using is_default_implementation = std::true_type;
-
     StateID operator()(
         const StateID&,
         const Action&,
