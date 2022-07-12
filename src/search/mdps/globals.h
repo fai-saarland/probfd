@@ -28,8 +28,6 @@ void prepare_globals(
     std::shared_ptr<analysis_objectives::AnalysisObjective> objective);
 void print_task_info();
 
-extern bool g_probabilistic_mode_enabled;
-
 extern const int g_unlimited_budget;
 extern bool g_steps_bounded;
 extern int g_step_bound;

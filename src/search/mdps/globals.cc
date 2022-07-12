@@ -299,8 +299,6 @@ void print_task_info()
     std::cout << "  Epsilon: " << value_type::g_epsilon << std::endl;
 }
 
-bool g_probabilistic_mode_enabled = true;
-
 bool g_steps_bounded = false;
 const int g_unlimited_budget = std::numeric_limits<int>::max();
 int g_step_bound = g_unlimited_budget;
