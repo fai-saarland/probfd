@@ -7,7 +7,6 @@
 #include "registries.h"
 
 #include "../utils/math.h"
-#include "../utils/memory.h"
 #include "../utils/strings.h"
 
 #include <cctype>
@@ -338,11 +337,16 @@ void OptionParser::add_option(
         }
     }
     std::unique_ptr<OptionParser> subparser =
-        use_default ?
-        utils::make_unique_ptr<OptionParser>(default_value, registry,
-                                             predefinitions, dry_run()) :
-        utils::make_unique_ptr<OptionParser>(subtree(parse_tree, arg), registry,
-                                             predefinitions, dry_run());
+        use_default ? std::make_unique<OptionParser>(
+                          default_value,
+                          registry,
+                          predefinitions,
+                          dry_run())
+                    : std::make_unique<OptionParser>(
+                          subtree(parse_tree, arg),
+                          registry,
+                          predefinitions,
+                          dry_run());
     T result = TokenParser<T>::parse(*subparser);
     check_bounds<T>(key, result, bounds);
     opts.set<T>(key, result);

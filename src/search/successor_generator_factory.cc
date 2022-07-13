@@ -3,7 +3,6 @@
 #include "global_operator.h"
 #include "successor_generator_internals.h"
 #include "utils/collections.h"
-#include "utils/memory.h"
 
 #include <algorithm>
 #include <cassert>
@@ -182,12 +181,13 @@ construct_fork(std::vector<GeneratorPtr<Entry> > nodes)
     if (size == 1) {
         return move(nodes.at(0));
     } else if (size == 2) {
-        return utils::make_unique_ptr<GeneratorForkBinary<Entry> >(
-            move(nodes.at(0)), move(nodes.at(1)));
+        return std::make_unique<GeneratorForkBinary<Entry>>(
+            move(nodes.at(0)),
+            move(nodes.at(1)));
     } else {
         /* This general case includes the case size == 0, which can
            (only) happen for the root for tasks with no operators. */
-        return utils::make_unique_ptr<GeneratorForkMulti<Entry> >(move(nodes));
+        return std::make_unique<GeneratorForkMulti<Entry>>(move(nodes));
     }
 }
 
@@ -206,11 +206,9 @@ construct_leaf(
     }
 
     if (operators.size() == 1) {
-        return utils::make_unique_ptr<GeneratorLeafSingle<Entry> >(
-            operators.front());
+        return std::make_unique<GeneratorLeafSingle<Entry>>(operators.front());
     } else {
-        return utils::make_unique_ptr<GeneratorLeafVector<Entry> >(
-            move(operators));
+        return std::make_unique<GeneratorLeafVector<Entry>>(move(operators));
     }
 }
 
@@ -228,8 +226,10 @@ static GeneratorPtr<Entry> construct_switch(
     if (num_children == 1) {
         int value = values_and_generators[0].first;
         GeneratorPtr<Entry> generator = move(values_and_generators[0].second);
-        return utils::make_unique_ptr<GeneratorSwitchSingle<Entry> >(
-            switch_var_id, value, move(generator));
+        return std::make_unique<GeneratorSwitchSingle<Entry>>(
+            switch_var_id,
+            value,
+            move(generator));
     }
 
     int vector_bytes =
@@ -241,14 +241,16 @@ static GeneratorPtr<Entry> construct_switch(
         std::unordered_map<int, GeneratorPtr<Entry> > generator_by_value;
         for (auto& item : values_and_generators)
             generator_by_value[item.first] = move(item.second);
-        return utils::make_unique_ptr<GeneratorSwitchHash<Entry> >(
-            switch_var_id, move(generator_by_value));
+        return std::make_unique<GeneratorSwitchHash<Entry>>(
+            switch_var_id,
+            move(generator_by_value));
     } else {
         std::vector<GeneratorPtr<Entry> > generator_by_value(var_domain);
         for (auto& item : values_and_generators)
             generator_by_value[item.first] = move(item.second);
-        return utils::make_unique_ptr<GeneratorSwitchVector<Entry> >(
-            switch_var_id, move(generator_by_value));
+        return std::make_unique<GeneratorSwitchVector<Entry>>(
+            switch_var_id,
+            move(generator_by_value));
     }
 }
 

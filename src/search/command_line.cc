@@ -104,10 +104,10 @@ static std::shared_ptr<SolverInterface> parse_cmd_line_aux(
             }
             unique_ptr<options::DocPrinter> doc_printer;
             if (txt2tags)
-                doc_printer = utils::make_unique_ptr<options::Txt2TagsPrinter>(
+                doc_printer = std::make_unique<options::Txt2TagsPrinter>(
                     cout, registry);
             else
-                doc_printer = utils::make_unique_ptr<options::PlainPrinter>(
+                doc_printer = std::make_unique<options::PlainPrinter>(
                     cout, registry);
             if (plugin_names.empty()) {
                 doc_printer->print_all();
