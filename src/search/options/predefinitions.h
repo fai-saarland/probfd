@@ -1,11 +1,11 @@
 #ifndef OPTIONS_PREDEFINITIONS_H
 #define OPTIONS_PREDEFINITIONS_H
 
-#include "any.h"
 #include "errors.h"
 
 #include "../utils/system.h"
 
+#include <any>
 #include <iostream>
 #include <string>
 #include <typeindex>
@@ -14,7 +14,9 @@
 
 namespace options {
 class Predefinitions {
-    std::unordered_map<std::string, std::pair<std::type_index, Any>> predefined;
+    std::unordered_map<std::string, std::pair<std::type_index, std::any>>
+        predefined;
+
 public:
     Predefinitions() = default;
 
@@ -33,8 +35,8 @@ public:
     template<typename T>
     T get(const std::string &key) const {
         try {
-            return any_cast<T>(predefined.at(key).second);
-        } catch (BadAnyCast &) {
+            return std::any_cast<T>(predefined.at(key).second);
+        } catch (std::bad_any_cast&) {
             throw OptionParserError(
                       "Tried to look up a predefinition with a wrong type: " +
                       key + "(type: " + typeid(T).name() + ")");

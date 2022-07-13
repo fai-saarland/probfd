@@ -4,18 +4,19 @@ using namespace std;
 
 namespace options {
 RawPluginInfo::RawPluginInfo(
-    const string &key,
-    const Any &factory,
-    const string &group,
-    const PluginTypeNameGetter &type_name_factory,
-    const DocFactory &doc_factory,
-    const type_index &type)
-    : key(key),
-      factory(factory),
-      group(group),
-      type_name_factory(type_name_factory),
-      doc_factory(doc_factory),
-      type(type) {
+    const string& key,
+    const std::any& factory,
+    const string& group,
+    const PluginTypeNameGetter& type_name_factory,
+    const DocFactory& doc_factory,
+    const type_index& type)
+    : key(key)
+    , factory(factory)
+    , group(group)
+    , type_name_factory(type_name_factory)
+    , doc_factory(doc_factory)
+    , type(type)
+{
 }
 
 void RawRegistry::insert_plugin_type_data(
@@ -32,12 +33,13 @@ void RawRegistry::insert_plugin_group_data(
 }
 
 void RawRegistry::insert_plugin_data(
-    const string &key,
-    const Any &factory,
-    const string &group,
-    PluginTypeNameGetter &type_name_factory,
-    DocFactory &doc_factory,
-    type_index &type) {
+    const string& key,
+    const std::any& factory,
+    const string& group,
+    PluginTypeNameGetter& type_name_factory,
+    DocFactory& doc_factory,
+    type_index& type)
+{
     plugins.emplace_back(key, factory, group, type_name_factory, doc_factory,
                          type);
 }

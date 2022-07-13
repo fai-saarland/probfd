@@ -1,7 +1,8 @@
 #ifndef OPTIONS_REGISTRIES_H
 #define OPTIONS_REGISTRIES_H
 
-#include "any.h"
+#include <any>
+
 #include "doc_utils.h"
 #include "raw_registry.h"
 
@@ -17,7 +18,10 @@ class OptionParser;
 class Predefinitions;
 
 class Registry {
-    std::unordered_map<std::type_index, std::unordered_map<std::string, Any>> plugin_factories;
+    std::unordered_map<
+        std::type_index,
+        std::unordered_map<std::string, std::any>>
+        plugin_factories;
     /*
       plugin_type_infos collects information about all plugin types
       in use and gives access to the underlying information. This is used,
@@ -51,10 +55,12 @@ class Registry {
     void insert_plugins(const RawRegistry &raw_registry,
                         std::vector<std::string> &errors);
 
-    void insert_plugin(const std::string &key, const Any &factory,
-                       const std::string &group,
-                       const PluginTypeNameGetter &type_name_factory,
-                       const std::type_index &type);
+    void insert_plugin(
+        const std::string& key,
+        const std::any& factory,
+        const std::string& group,
+        const PluginTypeNameGetter& type_name_factory,
+        const std::type_index& type);
     void insert_type_info(const PluginTypeInfo &info);
     void insert_group_info(const PluginGroupInfo &info);
 
@@ -64,7 +70,8 @@ public:
     template<typename T>
     std::function<T(OptionParser &)> get_factory(const std::string &key) const {
         std::type_index type(typeid(T));
-        return any_cast<std::function<T(OptionParser &)>>(plugin_factories.at(type).at(key));
+        return std::any_cast<std::function<T(OptionParser&)>>(
+            plugin_factories.at(type).at(key));
     }
 
     bool is_predefinition(const std::string &key) const;

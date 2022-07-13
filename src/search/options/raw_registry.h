@@ -1,16 +1,16 @@
 #ifndef OPTIONS_RAW_REGISTRY_H
 #define OPTIONS_RAW_REGISTRY_H
 
-#include "any.h"
 #include "doc_utils.h"
 
+#include <any>
 #include <vector>
 
 
 namespace options {
 struct RawPluginInfo {
     std::string key;
-    Any factory;
+    std::any factory;
     std::string group;
     PluginTypeNameGetter type_name_factory;
     DocFactory doc_factory;
@@ -18,7 +18,7 @@ struct RawPluginInfo {
 
     RawPluginInfo(
         const std::string &key,
-        const Any &factory,
+        const std::any &factory,
         const std::string &group,
         const PluginTypeNameGetter &type_name_factory,
         const DocFactory &doc_factory,
@@ -43,7 +43,7 @@ public:
 
     void insert_plugin_data(
         const std::string &key,
-        const Any &factory,
+        const std::any &factory,
         const std::string &group,
         PluginTypeNameGetter &type_name_factory,
         DocFactory &doc_factory,
