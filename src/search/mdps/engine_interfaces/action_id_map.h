@@ -6,7 +6,7 @@
 namespace probabilistic {
 
 /**
- * @brief Specifies a mapping between state actions and integer IDs.
+ * @brief Specifies a mapping between state-action pairs and integer IDs.
  *
  * @tparam Action - The action type of the underlying MDP model.
  */

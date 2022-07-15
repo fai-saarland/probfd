@@ -10,6 +10,41 @@
 
 namespace probabilistic {
 
+/**
+ * @brief A registry for print functions related to search progress.
+ *
+ * Example
+ * =======
+ *
+ ```
+class MyEngine : public MDPEngine<GlobalState, const ProbabilisticOperator*>
+{
+    // Constructors and other methods...
+
+    value_type::value_t solve(const GlobalState& state) {
+        int iterations = 0;
+
+        // Print the number of iterations each time the
+        // search progress is displayed.
+        report.register_print([&iterations](std::ostream& out){
+            out << "Current number of iterations: " << iterations << std::endl;
+        });
+
+        while (...) {
+            // Do some stuff...
+
+            report();
+            ++iterations;
+        }
+
+        return ...;
+    }
+
+private:
+    ProgressReport report;
+};
+ ```
+ */
 class ProgressReport {
 public:
     ProgressReport(

@@ -72,7 +72,6 @@ public:
      * @param state_reward_function - The state reward interface.
      * @param action_reward_function - The action reward interface.
      * @param reward_bound - A bound on reward values.
-     * @param maximal_reward - An upper bound on reward values.
      * @param aops_generator - The applicable action generator.
      * @param transition_generator - The transition generator.
      */

@@ -14,10 +14,10 @@ class GlobalState;
 
 namespace probabilistic {
 
-/** \struct ProbabilisticOutcome probabilistic_operator.h
+/**
  * @brief Struct representing a probabilistic outcome.
  *
- * A probabilistic outcome has a probability, an effect and is additionally
+ * A probabilistic outcome has a probability, an effect and additionally
  * stores a reference to the deterministic action induced by its all-outcomes
  * determinization. The effect is not stored explicitly, but can be accessed
  * via the this operator instead.
@@ -31,7 +31,7 @@ struct ProbabilisticOutcome {
         value_type::value_t prob);
 };
 
-/** \class ProbabilisticOperator probabilistic_operator.h
+/**
  * @brief Class representing a probabilistic operator.
  *
  * Each probabilistic operator has
@@ -51,33 +51,32 @@ public:
         std::vector<ProbabilisticOutcome> outcomes);
 
     /**
-     * @brief Get the id of the operator
-     *
-     * @return unsigned The id of the operator
+     * @brief Gets the id of the operator
      */
     unsigned get_id() const;
 
     /**
-     * @brief Get the name of the operator
-     *
-     * @return const std::string& The name of the operator
+     * @brief Gets the name of the operator
      */
     const std::string& get_name() const;
 
     /**
-     * @return True if and only if the operator has more than two possible
-     * outcomes
+     * @brief Checks if the operator has at least two outcomes.
      */
     bool is_stochastic() const;
 
+    /**
+     * @brief Returns the number of outcomes of this operator.
+     */
     std::size_t num_outcomes() const;
 
+    /**
+     * @brief Gets the cost of the operator.
+     */
     int get_cost() const;
 
     /**
-     * @brief Queries a possible outcome of this operator by its index
-     *
-     * @param i Index of the outcome
+     * @brief Accesses a possible outcome of this operator by its index.
      */
     const ProbabilisticOutcome& operator[](unsigned i) const;
 
@@ -86,6 +85,9 @@ public:
      */
     const ProbabilisticOutcome& get(unsigned i) const;
 
+    /**
+     * @brief Gets the precondition of this operator.
+     */
     const std::vector<GlobalCondition>& get_preconditions() const;
 
     /**
@@ -104,6 +106,12 @@ private:
     std::string name_;
 };
 
+/**
+ * @brief Checks if a probabilistic operator is applicable in a global state,
+ * i.e. the precondition is satisfied.
+ *
+ * \todo make friend function
+ */
 extern bool
 is_applicable(const ProbabilisticOperator* op, const GlobalState& state);
 

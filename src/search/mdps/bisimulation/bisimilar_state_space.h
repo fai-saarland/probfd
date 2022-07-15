@@ -77,7 +77,8 @@ public:
      *
      * @param initial_state - The initial state of the original MDP.
      * @param budget - The considered budget. Action costs may not exceed this
-     * value. An unlimited budget can be specified with \ref g_unlimited_budget.
+     * value. An unlimited budget can be specified by
+     * std::numeric_limits<int>::max().
      * @param cost_type - The operator cost type.
      */
     explicit BisimilarStateSpace(

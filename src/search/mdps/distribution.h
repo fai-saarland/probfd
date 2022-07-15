@@ -17,8 +17,7 @@ namespace probabilistic {
  * @brief A convenience class that wraps a list of element-probability
  * pairs.
  *
- * @tparam T The element type.
- *
+ * @tparam T - The element type.
  */
 template <typename T>
 class Distribution {
@@ -36,7 +35,7 @@ public:
     Distribution() = default;
 
     /**
-     * Constructs the list from a vector of element-probability pairs.
+     * @brief Constructs the list from a vector of element-probability pairs.
      */
     explicit Distribution(distribution_t d)
         : distribution_(std::move(d))
@@ -44,11 +43,11 @@ public:
     }
 
     /**
-     * Returns the current number of element-probability pairs.
+     * @brief Returns the current number of element-probability pairs.
      */
     size_t size() const { return distribution_.size(); }
 
-    /// Clears the list.
+    /// @brief Clears the list.
     void clear() { distribution_.clear(); }
 
     void swap(Distribution<T>& other)
@@ -84,7 +83,7 @@ public:
     }
 
     /**
-     * emplaces element-probability pair (\p T(args...), \p prob) to the list,
+     * Emplaces element-probability pair (\p T(args...), \p prob) to the list,
      * even if another pair with an element that compares equal to \p t is
      * already present.
      *
@@ -112,7 +111,7 @@ public:
     }
 
     /**
-     * Returns true if and only if the list is empty.
+     * @brief Checks if the list is empty.
      */
     bool empty() const { return distribution_.empty(); }
 
@@ -125,7 +124,7 @@ public:
     }
 
     /**
-     * Multiplies each element probability with \p scale.
+     * @brief Scales all element probablities by a common factor.
      */
     void normalize(const value_type::value_t& scale)
     {
@@ -135,7 +134,7 @@ public:
     }
 
     /**
-     * Normalizes the probabilities of the elements to sum up to one.
+     * @brief Normalizes the probabilities of the elements to sum up to one.
      */
     void normalize()
     {
@@ -150,7 +149,7 @@ public:
     }
 
     /**
-     * Merges equal elements in the list by adding their probabilities.
+     * @brief Merges equal elements in the list by adding their probabilities.
      */
     void make_unique()
     {

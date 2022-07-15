@@ -5,6 +5,12 @@
 
 namespace probabilistic {
 
+/**
+ * \todo Serves as a bridge between the global heuristic search engine and the
+ * global engine interfaces constructed by the option parser. But do we really
+ * need this? Wouldn't it be much easier to let the heuristic search engine
+ * pass itself (or an abstraction which it implements) to the interfaces?
+ */
 class HeuristicSearchConnector {
 public:
     void set_lookup_function(

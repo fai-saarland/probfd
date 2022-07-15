@@ -106,7 +106,7 @@ public:
     }
 
     /**
-     * \copydoc MDPEngine::print_statistics(std::ostream&)
+     * \copydoc MDPEngineInterface::print_statistics(std::ostream&) const
      */
     virtual void print_statistics(std::ostream& out) const override
     {

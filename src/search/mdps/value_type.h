@@ -10,9 +10,11 @@ namespace value_type {
 /// Typedef for the state value type
 using value_t = double;
 
-extern const value_t one;
-extern const value_t zero;
-extern const value_t inf;
+extern const value_t one;  ///< A constant representing state value one.
+extern const value_t zero; ///< A constant representing state value zero.
+extern const value_t inf;  ///< A constant representing state value +infinity.
+
+/// A constant representing the machine epsilon for the value type.
 extern const value_t eps;
 
 /// The global epsilon precision value.

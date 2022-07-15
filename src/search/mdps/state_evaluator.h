@@ -6,7 +6,7 @@
 
 namespace probabilistic {
 
-/// Type alias for state evaluators of \ref GlobalState.
+/// Type alias for state evaluators of GlobalState.
 using GlobalStateEvaluator = StateEvaluator<GlobalState>;
 
 } // namespace probabilistic

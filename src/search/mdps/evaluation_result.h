@@ -6,8 +6,7 @@
 namespace probabilistic {
 
 /**
- * @brief Holds a state value and a flag indicating whether the state is
- * terminal.
+ * @brief Holds a state value and a flag with varying purposes.
  */
 class EvaluationResult {
 public:
@@ -25,7 +24,7 @@ public:
     explicit operator value_type::value_t() const;
 
 private:
-    bool bool_; // terminal state flag (true -> considered terminal)
+    bool bool_;                 // state flag
     value_type::value_t value_; // value estimate
 };
 

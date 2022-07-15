@@ -224,7 +224,7 @@ public:
     }
 
     /**
-     * @copydoc MDPEngineInterface::print_statistics(std::ostream& out)
+     * @copydoc MDPEngineInterface::print_statistics(std::ostream& out) const
      */
     virtual void print_statistics(std::ostream& out) const override
     {
@@ -232,9 +232,6 @@ public:
         HeuristicSearchBase::print_statistics(out);
     }
 
-    /**
-     * @copydoc MDPEngineInterface::reset_solver_state()
-     */
     virtual void reset_solver_state() override
     {
         using HSBInfo = typename HeuristicSearchBase::StateInfo;

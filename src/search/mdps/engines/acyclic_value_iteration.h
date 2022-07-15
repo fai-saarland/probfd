@@ -81,7 +81,8 @@ public:
     /**
      * @brief Constructs an instance of acyclic value iteration.
      *
-     * @param prune - An optional dead-end detector
+     * The parameter \p prune optionally specifies an optional dead-end
+     * detector.
      *
      * @see MDPEngine
      */
