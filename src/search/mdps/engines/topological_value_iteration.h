@@ -76,7 +76,6 @@ public:
         StateRewardFunction<State>* state_reward_function,
         ActionRewardFunction<Action>* action_reward_function,
         value_utils::IntervalValue reward_bound,
-        ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         const StateEvaluator<State>* value_initializer,
         bool expand_goals)
@@ -86,7 +85,6 @@ public:
               state_reward_function,
               action_reward_function,
               reward_bound,
-              aops_generator,
               transition_generator)
         , value_initializer_(value_initializer)
         , expand_goals_(expand_goals)

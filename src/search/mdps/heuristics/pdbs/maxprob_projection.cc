@@ -105,10 +105,6 @@ void MaxProbProjection::compute_value_table(
     StateIDMap<AbstractState> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
 
-    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map,
-        state_mapper_,
-        progression_aops_generator_);
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map,
         state_mapper_,
@@ -123,7 +119,6 @@ void MaxProbProjection::compute_value_table(
         &state_reward,
         &no_reward,
         value_utils::IntervalValue(value_type::zero, value_type::one),
-        &aops_gen,
         &transition_gen,
         &heuristic,
         true,

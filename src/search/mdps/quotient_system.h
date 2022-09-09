@@ -85,7 +85,6 @@ public:
 
     explicit QuotientSystem(
         ActionIDMap<Action>* aid,
-        ApplicableActionsGenerator<Action>* aops,
         TransitionGenerator<Action>* transition_gen)
         : cache_(transition_gen->caching_)
         , gen_(transition_gen)
@@ -93,7 +92,7 @@ public:
     {
         if (!cache_) {
             fallback_.reset(
-                new DefaultQuotientSystem<Action>(aid, aops, transition_gen));
+                new DefaultQuotientSystem<Action>(aid, transition_gen));
         } else {
             state_infos_.push_back(QuotientInformation(0));
         }

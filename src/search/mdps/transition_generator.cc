@@ -80,20 +80,6 @@ void CostBasedSuccessorGenerator::operator()(
     }
 }
 
-ApplicableActionsGenerator<const ProbabilisticOperator*>::
-    ApplicableActionsGenerator(
-        TransitionGenerator<const ProbabilisticOperator*>* tgen)
-    : tgen_(tgen)
-{
-}
-
-void ApplicableActionsGenerator<const ProbabilisticOperator*>::operator()(
-    const StateID& state_id,
-    std::vector<const ProbabilisticOperator*>& ops)
-{
-    tgen_->generate_applicable_ops(state_id, ops);
-}
-
 TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     StateRegistry* state_registry,
     bool enable_caching,
@@ -123,7 +109,6 @@ TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     , budget_cost_type_(budget_cost_type)
     , notify_(path_dependent_heuristics)
     , aops_gen_(ops, budget_cost_type, budget_var, gen)
-    // , aops_gen_(gen)
     , state_registry_(state_registry)
 {
     if (budget_var >= 0) {
@@ -135,7 +120,7 @@ TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     }
 }
 
-void TransitionGenerator<const ProbabilisticOperator*>::generate_applicable_ops(
+void TransitionGenerator<const ProbabilisticOperator*>::operator()(
     const StateID& state_id,
     std::vector<const ProbabilisticOperator*>& result)
 {

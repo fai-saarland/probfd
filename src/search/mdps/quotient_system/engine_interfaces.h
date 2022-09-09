@@ -1,11 +1,11 @@
 #ifndef MDPS_QUOTIENT_SYSTEM_ENGINE_INTERFACES_H
 #define MDPS_QUOTIENT_SYSTEM_ENGINE_INTERFACES_H
 
-#include "../engine_interfaces/action_reward_function.h"
 #include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/applicable_actions_generator.h"
+#include "../engine_interfaces/action_reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "quotient_system.h"
+
 
 namespace probabilistic {
 namespace quotient_system {
@@ -69,9 +69,9 @@ private:
 };
 
 template <typename Action>
-class ApplicableActionsGenerator<quotient_system::QuotientAction<Action>> {
+class TransitionGenerator<quotient_system::QuotientAction<Action>> {
 public:
-    explicit ApplicableActionsGenerator(
+    explicit TransitionGenerator(
         quotient_system::QuotientSystem<Action>* quotient)
         : quotient_(quotient)
     {
@@ -82,19 +82,6 @@ public:
         std::vector<quotient_system::QuotientAction<Action>>& res) const
     {
         return quotient_->generate_applicable_ops(sid, res);
-    }
-
-private:
-    quotient_system::QuotientSystem<Action>* quotient_;
-};
-
-template <typename Action>
-class TransitionGenerator<quotient_system::QuotientAction<Action>> {
-public:
-    explicit TransitionGenerator(
-        quotient_system::QuotientSystem<Action>* quotient)
-        : quotient_(quotient)
-    {
     }
 
     void operator()(

@@ -100,7 +100,6 @@ public:
         StateRewardFunction<State>* state_reward_function,
         ActionRewardFunction<Action>* action_reward_function,
         value_utils::IntervalValue reward_bound,
-        ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         ProgressReport* progress,
         StateEvaluator<State>* heuristic,
@@ -113,7 +112,6 @@ public:
               state_reward_function,
               action_reward_function,
               reward_bound,
-              aops_generator,
               transition_generator)
         , progress_(progress)
         , heuristic_(heuristic)

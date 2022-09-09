@@ -4,7 +4,6 @@
 #include "../distribution.h"
 #include "../engine_interfaces/action_reward_function.h"
 #include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/state_reward_function.h"
@@ -72,7 +71,6 @@ public:
      * @param state_reward_function - The state reward interface.
      * @param action_reward_function - The action reward interface.
      * @param reward_bound - A bound on reward values.
-     * @param aops_generator - The applicable action generator.
      * @param transition_generator - The transition generator.
      */
     explicit MDPEngine(
@@ -81,14 +79,12 @@ public:
         StateRewardFunction<State>* state_reward_function,
         ActionRewardFunction<Action>* action_reward_function,
         value_utils::IntervalValue reward_bound,
-        ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
         , state_reward_function_(state_reward_function)
         , action_reward_function_(action_reward_function)
         , reward_bound_(reward_bound)
-        , aops_generator_(aops_generator)
         , transition_generator_(transition_generator)
     {
     }
@@ -169,7 +165,7 @@ public:
     void
     generate_applicable_ops(const StateID& sid, std::vector<Action>& ops) const
     {
-        aops_generator_->operator()(sid, ops);
+        transition_generator_->operator()(sid, ops);
     }
 
     /**
@@ -227,14 +223,6 @@ public:
     }
 
     /**
-     * @brief Get the applicable actions generator.
-     */
-    ApplicableActionsGenerator<Action>* get_applicable_actions_generator() const
-    {
-        return aops_generator_;
-    }
-
-    /**
      * @brief Get the transition generator.
      */
     TransitionGenerator<Action>* get_transition_generator() const
@@ -248,7 +236,6 @@ private:
     StateRewardFunction<State>* state_reward_function_;
     ActionRewardFunction<Action>* action_reward_function_;
     const value_utils::IntervalValue reward_bound_;
-    ApplicableActionsGenerator<Action>* aops_generator_;
     TransitionGenerator<Action>* transition_generator_;
 };
 

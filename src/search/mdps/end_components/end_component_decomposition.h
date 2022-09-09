@@ -4,7 +4,6 @@
 #include "../../utils/iterators.h"
 #include "../../utils/timer.h"
 #include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/state_reward_function.h"
@@ -183,18 +182,16 @@ public:
         ActionIDMap<Action>* action_id_map,
         StateRewardFunction<State>* goal,
         ActionRewardFunction<Action>* action_rewards,
-        ApplicableActionsGenerator<Action>* aops_gen,
         TransitionGenerator<Action>* transition_gen,
         bool expand_goals,
         const StateEvaluator<State>* pruning_function = nullptr)
         : state_id_map_(state_id_map)
         , goal_(goal)
         , action_rewards_(action_rewards)
-        , aops_gen_(aops_gen)
         , transition_gen_(transition_gen)
         , expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
-        , sys_(new QuotientSystem(action_id_map, aops_gen_, transition_gen_))
+        , sys_(new QuotientSystem(action_id_map, transition_gen_))
     {
     }
 
@@ -256,7 +253,7 @@ private:
         }
 
         std::vector<Action> aops;
-        aops_gen_->operator()(state_id, aops);
+        transition_gen_->operator()(state_id, aops);
 
         if (aops.empty()) {
             if (expand_goals_ && state_info.expandable_goal) {
@@ -650,7 +647,6 @@ private:
     StateIDMap<State>* state_id_map_;
     StateRewardFunction<State>* goal_;
     ActionRewardFunction<Action>* action_rewards_;
-    ApplicableActionsGenerator<Action>* aops_gen_;
     TransitionGenerator<Action>* transition_gen_;
 
     bool expand_goals_;

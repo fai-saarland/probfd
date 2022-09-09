@@ -250,10 +250,6 @@ void ExpCostProjection::compute_value_table(
     StateIDMap<AbstractState> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
 
-    ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-        state_id_map,
-        state_mapper_,
-        progression_aops_generator_);
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map,
         state_mapper_,
@@ -266,7 +262,6 @@ void ExpCostProjection::compute_value_table(
                &state_reward,
                &action_eval,
                value_utils::IntervalValue(-value_type::inf, value_type::zero),
-               &aops_gen,
                &transition_gen,
                &h,
                true);

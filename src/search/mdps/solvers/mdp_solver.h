@@ -52,7 +52,6 @@ public:
             state_reward_function_,
             action_reward_function_,
             reward_bound_,
-            &aops_generator_,
             &transition_generator_,
             std::forward<Args>(args)...);
     }
@@ -103,12 +102,6 @@ protected:
         return state_reward_function_;
     }
 
-    ApplicableActionsGenerator<const ProbabilisticOperator*>*
-    get_applicable_actions_generator()
-    {
-        return &aops_generator_;
-    }
-
     TransitionGenerator<const ProbabilisticOperator*>*
     get_transition_generator()
     {
@@ -143,7 +136,6 @@ private:
     ActionRewardFunction<const ProbabilisticOperator*>* action_reward_function_;
     const value_utils::IntervalValue reward_bound_;
     TransitionGenerator<const ProbabilisticOperator*> transition_generator_;
-    ApplicableActionsGenerator<const ProbabilisticOperator*> aops_generator_;
 };
 
 } // namespace solvers

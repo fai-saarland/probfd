@@ -66,7 +66,6 @@ public:
                 res->state_reward.get(),
                 &res->transition_reward,
                 g_analysis_objective->reward_bound(),
-                res->aops_gen.get(),
                 res->tgen.get(),
                 nullptr,
                 &res->policy_,
@@ -123,7 +122,6 @@ public:
                 res->state_reward.get(),
                 res->q_action_reward_.get(),
                 g_analysis_objective->reward_bound(),
-                res->q_aops_gen_.get(),
                 res->q_transition_gen_.get()));
 
         return res;
@@ -170,7 +168,6 @@ public:
                 res->state_reward.get(),
                 res->q_action_reward_.get(),
                 g_analysis_objective->reward_bound(),
-                res->q_aops_gen_.get(),
                 res->q_transition_gen_.get(),
                 nullptr,
                 res->q_policy_tiebreaker_.get(),
@@ -193,7 +190,6 @@ public:
                     res->state_reward.get(),
                     &res->transition_reward,
                     g_analysis_objective->reward_bound(),
-                    res->aops_gen.get(),
                     res->tgen.get(),
                     res->quotient_.get(),
                     &progress,
@@ -241,10 +237,6 @@ private:
                 state_registry->get_initial_state(),
                 g_step_bound,
                 g_step_cost_type));
-        aops_gen = std::unique_ptr<
-            ApplicableActionsGenerator<bisimulation::QuotientAction>>(
-            new ApplicableActionsGenerator<bisimulation::QuotientAction>(
-                bs.get()));
         tgen =
             std::unique_ptr<TransitionGenerator<bisimulation::QuotientAction>>(
                 new TransitionGenerator<bisimulation::QuotientAction>(
@@ -282,7 +274,6 @@ private:
             quotient_system::QuotientSystem<bisimulation::QuotientAction>>(
             new quotient_system::QuotientSystem<bisimulation::QuotientAction>(
                 &action_id_map,
-                aops_gen.get(),
                 tgen.get()));
         q_action_reward_ = std::unique_ptr<ActionRewardFunction<
             quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
@@ -292,11 +283,6 @@ private:
         q_action_id_map_ = std::unique_ptr<ActionIDMap<
             quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
             new ActionIDMap<
-                quotient_system::QuotientAction<bisimulation::QuotientAction>>(
-                quotient_.get()));
-        q_aops_gen_ = std::unique_ptr<ApplicableActionsGenerator<
-            quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
-            new ApplicableActionsGenerator<
                 quotient_system::QuotientAction<bisimulation::QuotientAction>>(
                 quotient_.get()));
         q_transition_gen_ = std::unique_ptr<TransitionGenerator<
@@ -319,8 +305,6 @@ private:
 
     StateIDMap<bisimulation::QuotientState> state_id_map;
     ActionIDMap<bisimulation::QuotientAction> action_id_map;
-    std::unique_ptr<ApplicableActionsGenerator<bisimulation::QuotientAction>>
-        aops_gen = nullptr;
     std::unique_ptr<TransitionGenerator<bisimulation::QuotientAction>> tgen =
         nullptr;
     std::unique_ptr<StateRewardFunction<bisimulation::QuotientState>>
@@ -344,9 +328,6 @@ private:
     std::unique_ptr<ActionIDMap<
         quotient_system::QuotientAction<bisimulation::QuotientAction>>>
         q_action_id_map_ = nullptr;
-    std::unique_ptr<ApplicableActionsGenerator<
-        quotient_system::QuotientAction<bisimulation::QuotientAction>>>
-        q_aops_gen_ = nullptr;
     std::unique_ptr<TransitionGenerator<
         quotient_system::QuotientAction<bisimulation::QuotientAction>>>
         q_transition_gen_ = nullptr;

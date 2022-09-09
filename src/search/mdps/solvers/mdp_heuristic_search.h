@@ -129,7 +129,6 @@ public:
         , quotient_(
               new quotient_system::QuotientSystem<const ProbabilisticOperator*>(
                   this->get_action_id_map(),
-                  this->get_applicable_actions_generator(),
                   this->get_transition_generator()))
         , q_action_reward_(
               new quotient_system::DefaultQuotientActionRewardFunction<
@@ -138,9 +137,6 @@ public:
                   this->get_action_reward_function()))
         , q_action_id_map_(new ActionIDMap<quotient_system::QuotientAction<
                                const ProbabilisticOperator*>>(quotient_.get()))
-        , q_aops_gen_(
-              new ApplicableActionsGenerator<quotient_system::QuotientAction<
-                  const ProbabilisticOperator*>>(quotient_.get()))
         , q_transition_gen_(
               new TransitionGenerator<quotient_system::QuotientAction<
                   const ProbabilisticOperator*>>(quotient_.get()))
@@ -222,7 +218,6 @@ public:
                 this->get_state_reward_function(),
                 q_action_reward_.get(),
                 this->get_reward_bound(),
-                q_aops_gen_.get(),
                 q_transition_gen_.get());
         } else {
             return new HS<
@@ -244,7 +239,6 @@ public:
                 this->get_state_reward_function(),
                 q_action_reward_.get(),
                 this->get_reward_bound(),
-                q_aops_gen_.get(),
                 q_transition_gen_.get());
         }
     }
@@ -304,7 +298,6 @@ private:
             this->get_state_reward_function(),
             q_action_reward_.get(),
             this->get_reward_bound(),
-            q_aops_gen_.get(),
             q_transition_gen_.get(),
             dead_end_eval_.get(),
             q_policy_tiebreaker_.get(),
@@ -346,7 +339,6 @@ private:
             this->get_state_reward_function(),
             this->get_action_reward_function(),
             this->get_reward_bound(),
-            this->get_applicable_actions_generator(),
             this->get_transition_generator(),
             quotient_.get(),
             &progress_,
@@ -363,9 +355,6 @@ private:
     std::unique_ptr<ActionIDMap<
         quotient_system::QuotientAction<const ProbabilisticOperator*>>>
         q_action_id_map_;
-    std::unique_ptr<ApplicableActionsGenerator<
-        quotient_system::QuotientAction<const ProbabilisticOperator*>>>
-        q_aops_gen_;
     std::unique_ptr<TransitionGenerator<
         quotient_system::QuotientAction<const ProbabilisticOperator*>>>
         q_transition_gen_;

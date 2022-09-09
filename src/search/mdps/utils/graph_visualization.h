@@ -1,7 +1,6 @@
 #ifndef MDPS_UTILS_GRAPH_VISUALIZATION_H
 #define MDPS_UTILS_GRAPH_VISUALIZATION_H
 
-#include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/state_reward_function.h"
@@ -41,7 +40,6 @@ void dump(
     const State& initial_state,
     StateIDMap<State>* state_id_map,
     StateRewardFunction<State>* goal_check,
-    ApplicableActionsGenerator<Action>* aops_gen,
     TransitionGenerator<Action>* transition_gen,
     const StateToString& sstr = DefaultSTS(),
     const ActionToString& astr = DefaultATS(),
@@ -86,7 +84,7 @@ void dump(
             << "\n";
 
         if (expand) {
-            aops_gen->operator()(s.first, aops);
+            transition_gen->operator()(s.first, aops);
 
             for (const Action& act : aops) {
                 Distribution<StateID> successors;

@@ -4,7 +4,6 @@
 #include "../../algorithms/segmented_vector.h"
 #include "../../utils/collections.h"
 #include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/transition_generator.h"
 
 #include <deque>
@@ -129,12 +128,10 @@ public:
 
     explicit DefaultQuotientSystem(
         ActionIDMap<Action>* action_id_map,
-        ApplicableActionsGenerator<Action>* aops_gen,
         TransitionGenerator<Action>* transition_gen)
         : quotients_()
         , quotient_ids_()
         , action_id_map_(action_id_map)
-        , aops_gen_(aops_gen)
         , transition_gen_(transition_gen)
     {
     }
@@ -174,7 +171,7 @@ public:
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
             std::vector<Action> orig;
-            this->aops_gen_->operator()(sid, orig);
+            this->transition_gen_->operator()(sid, orig);
 
             result.reserve(orig.size());
 
@@ -217,7 +214,7 @@ public:
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
             std::vector<Action> orig_a;
-            this->aops_gen_->operator()(sid, orig_a);
+            this->transition_gen_->operator()(sid, orig_a);
 
             aops.reserve(orig_a.size());
             successors.resize(orig_a.size());
@@ -334,7 +331,7 @@ public:
 
             // Generate the applicable actions
             std::vector<Action> gen_aops;
-            aops_gen_->operator()(rid, gen_aops);
+            transition_gen_->operator()(rid, gen_aops);
 
             // Filter actions
             filter_actions(gen_aops, ignore_actions[ridx]);
@@ -395,7 +392,7 @@ public:
 
                 // Generate the applicable actions
                 std::vector<Action> gen_aops;
-                aops_gen_->operator()(state_id, gen_aops);
+                transition_gen_->operator()(state_id, gen_aops);
 
                 // Filter actions
                 filter_actions(gen_aops, *ignore_actions);
@@ -491,7 +488,6 @@ private:
     QuotientMap quotients_;
     segmented_vector::SegmentedVector<StateID::size_type> quotient_ids_;
     ActionIDMap<Action>* action_id_map_;
-    ApplicableActionsGenerator<Action>* aops_gen_;
     TransitionGenerator<Action>* transition_gen_;
 };
 

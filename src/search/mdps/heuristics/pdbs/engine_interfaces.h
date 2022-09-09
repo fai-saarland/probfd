@@ -4,7 +4,6 @@
 #include "../../../utils/range_proxy.h"
 #include "../../engine_interfaces/action_id_map.h"
 #include "../../engine_interfaces/action_reward_function.h"
-#include "../../engine_interfaces/applicable_actions_generator.h"
 #include "../../engine_interfaces/state_evaluator.h"
 #include "../../engine_interfaces/state_id_map.h"
 #include "../../engine_interfaces/state_reward_function.h"
@@ -69,28 +68,6 @@ private:
 };
 
 template <>
-class ApplicableActionsGenerator<const pdbs::AbstractOperator*> {
-public:
-    explicit ApplicableActionsGenerator(
-        StateIDMap<pdbs::AbstractState>& id_map_,
-        std::shared_ptr<pdbs::AbstractStateMapper> state_mapper,
-        std::shared_ptr<successor_generator::SuccessorGenerator<
-            const pdbs::AbstractOperator*>> aops_gen);
-
-    void operator()(
-        const StateID& state,
-        std::vector<const pdbs::AbstractOperator*>& aops);
-
-private:
-    StateIDMap<pdbs::AbstractState>& id_map_;
-    std::shared_ptr<pdbs::AbstractStateMapper> state_mapper_;
-    std::vector<int> values_;
-    std::shared_ptr<
-        successor_generator::SuccessorGenerator<const pdbs::AbstractOperator*>>
-        aops_gen_;
-};
-
-template <>
 class TransitionGenerator<const pdbs::AbstractOperator*> {
 public:
     explicit TransitionGenerator(
@@ -98,6 +75,10 @@ public:
         std::shared_ptr<pdbs::AbstractStateMapper> state_mapper,
         std::shared_ptr<successor_generator::SuccessorGenerator<
             const pdbs::AbstractOperator*>> aops_gen);
+
+    void operator()(
+        const StateID& state,
+        std::vector<const pdbs::AbstractOperator*>& aops);
 
     void operator()(
         const StateID& state,

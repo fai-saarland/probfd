@@ -92,7 +92,6 @@ public:
         StateRewardFunction<State>* state_reward_function,
         ActionRewardFunction<Action>* action_reward_function,
         value_utils::IntervalValue reward_bound,
-        ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         StateEvaluator<State>* prune = nullptr)
         : MDPEngine<State, Action>(
@@ -101,7 +100,6 @@ public:
               state_reward_function,
               action_reward_function,
               reward_bound,
-              aops_generator,
               transition_generator)
         , prune_(prune)
         , state_infos_(StateInfo{false, this->get_minimal_reward()})

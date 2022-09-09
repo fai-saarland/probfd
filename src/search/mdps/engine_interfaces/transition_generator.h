@@ -16,6 +16,12 @@ namespace probabilistic {
  */
 template <typename Action>
 struct TransitionGenerator {
+    /**
+     * Generates all applicable actions of the state \p state and outputs them
+     * in \p result.
+     */
+    void operator()(const StateID& state, std::vector<Action>& result);
+
     void operator()(
         const StateID& state,
         const Action& action,

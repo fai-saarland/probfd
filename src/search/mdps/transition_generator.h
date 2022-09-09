@@ -4,7 +4,6 @@
 #include "../algorithms/segmented_array_store.h"
 #include "../algorithms/segmented_vector.h"
 #include "../operator_cost.h"
-#include "engine_interfaces/applicable_actions_generator.h"
 #include "engine_interfaces/transition_generator.h"
 #include "probabilistic_operator.h"
 
@@ -52,20 +51,6 @@ private:
 };
 
 template <>
-class ApplicableActionsGenerator<const ProbabilisticOperator*> {
-public:
-    explicit ApplicableActionsGenerator(
-        TransitionGenerator<const ProbabilisticOperator*>* tgen);
-
-    void operator()(
-        const StateID& state_id,
-        std::vector<const ProbabilisticOperator*>& result);
-
-private:
-    TransitionGenerator<const ProbabilisticOperator*>* tgen_;
-};
-
-template <>
 class TransitionGenerator<const ProbabilisticOperator*> {
     friend class quotient_system::QuotientSystem<const ProbabilisticOperator*>;
 
@@ -87,7 +72,7 @@ public:
         const std::vector<std::shared_ptr<Heuristic>>&
             path_dependent_heuristics);
 
-    void generate_applicable_ops(
+    void operator()(
         const StateID& state_id,
         std::vector<const ProbabilisticOperator*>& result);
 
@@ -153,8 +138,6 @@ private:
     const int budget_var_;
     const OperatorCost budget_cost_type_;
     const std::vector<std::shared_ptr<Heuristic>> notify_;
-    // successor_generator::SuccessorGenerator<const ProbabilisticOperator*>*
-    //     aops_gen_;
     CostBasedSuccessorGenerator aops_gen_;
     std::vector<int> cost_;
 

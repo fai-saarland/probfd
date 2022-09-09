@@ -61,7 +61,6 @@ public:
             g_step_cost_type);
         StateIDMap<bisimulation::QuotientState> state_id_map;
         ActionIDMap<bisimulation::QuotientAction> action_id_map;
-        ApplicableActionsGenerator<bisimulation::QuotientAction> aops_gen(&bs);
         TransitionGenerator<bisimulation::QuotientAction> tgen(&bs);
         bisimulation::DefaultQuotientStateRewardFunction state_reward(
             &bs,
@@ -96,7 +95,6 @@ public:
                 &state_reward,
                 &transition_reward,
                 g_analysis_objective->reward_bound(),
-                &aops_gen,
                 &tgen,
                 nullptr,
                 false,
@@ -112,7 +110,6 @@ public:
                 &state_reward,
                 &transition_reward,
                 g_analysis_objective->reward_bound(),
-                &aops_gen,
                 &tgen,
                 &initializer,
                 false);

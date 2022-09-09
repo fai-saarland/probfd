@@ -3,7 +3,6 @@
 
 #include "../engine_interfaces/action_reward_function.h"
 #include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/applicable_actions_generator.h"
 #include "../engine_interfaces/state_evaluator.h"
 #include "../engine_interfaces/state_id_map.h"
 #include "../engine_interfaces/state_reward_function.h"
@@ -31,18 +30,11 @@ struct ActionIDMap<bisimulation::QuotientAction> {
 };
 
 template <>
-struct ApplicableActionsGenerator<bisimulation::QuotientAction> {
-    explicit ApplicableActionsGenerator(
-        bisimulation::BisimilarStateSpace* bisim);
+struct TransitionGenerator<bisimulation::QuotientAction> {
+    explicit TransitionGenerator(bisimulation::BisimilarStateSpace* bisim);
     void operator()(
         const StateID& state,
         std::vector<bisimulation::QuotientAction>& result) const;
-    bisimulation::BisimilarStateSpace* bisim_;
-};
-
-template <>
-struct TransitionGenerator<bisimulation::QuotientAction> {
-    explicit TransitionGenerator(bisimulation::BisimilarStateSpace* bisim);
     void operator()(
         const StateID& state,
         const bisimulation::QuotientAction& action,

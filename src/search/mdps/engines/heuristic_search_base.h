@@ -140,7 +140,6 @@ public:
         StateRewardFunction<State>* state_reward_function,
         ActionRewardFunction<Action>* action_reward_function,
         value_utils::IntervalValue reward_bound,
-        ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         StateEvaluator<State>* dead_end_eval,
         PolicyPicker<Action>* policy_chooser,
@@ -156,7 +155,6 @@ public:
               state_reward_function,
               action_reward_function,
               reward_bound,
-              aops_generator,
               transition_generator)
         , report_(report)
         , interval_comparison_(interval_comparison)

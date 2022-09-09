@@ -39,7 +39,6 @@ MDPSolver::MDPSolver(const options::Options& opts)
           opts.get<bool>("cache"),
           opts.get_list<std::shared_ptr<Heuristic>>(
               "path_dependent_heuristics"))
-    , aops_generator_(&transition_generator_)
 {
     StateRegistry* state_registry = &state_registry_;
     progress_.register_print([state_registry](std::ostream& out) {

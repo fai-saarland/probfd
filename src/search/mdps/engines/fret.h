@@ -100,7 +100,6 @@ public:
         StateRewardFunction<State>* state_reward_function,
         ActionRewardFunction<Action>* action_reward_function,
         value_utils::IntervalValue reward_bound,
-        ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         QuotientSystem* quotient,
         ProgressReport* report,
@@ -111,7 +110,6 @@ public:
               state_reward_function,
               action_reward_function,
               reward_bound,
-              aops_generator,
               transition_generator)
         , greedy_graph_(engine)
         , report_(report)
@@ -180,7 +178,6 @@ public:
             out.open(filename.str());
         }
         auto idmap = quotient_->create_state_id_map();
-        auto aops = quotient_->create_aops_generator();
         auto tgen = quotient_->create_transition_generator();
         auto term = [this](const State& s) {
             StateID sid = quotient_->get_representative_id(s);

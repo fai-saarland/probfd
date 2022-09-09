@@ -29,23 +29,17 @@ ActionIDMap<bisimulation::QuotientAction>::get_action(
     return bisimulation::QuotientAction(action);
 }
 
-ApplicableActionsGenerator<bisimulation::QuotientAction>::
-    ApplicableActionsGenerator(bisimulation::BisimilarStateSpace* bisim)
-    : bisim_(bisim)
-{
-}
-
-void ApplicableActionsGenerator<bisimulation::QuotientAction>::operator()(
-    const StateID& s,
-    std::vector<bisimulation::QuotientAction>& res) const
-{
-    bisim_->get_applicable_actions(s, res);
-}
-
 TransitionGenerator<bisimulation::QuotientAction>::TransitionGenerator(
     bisimulation::BisimilarStateSpace* bisim)
     : bisim_(bisim)
 {
+}
+
+void TransitionGenerator<bisimulation::QuotientAction>::operator()(
+    const StateID& s,
+    std::vector<bisimulation::QuotientAction>& res) const
+{
+    bisim_->get_applicable_actions(s, res);
 }
 
 void TransitionGenerator<bisimulation::QuotientAction>::operator()(

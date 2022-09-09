@@ -64,7 +64,6 @@ public:
         StateRewardFunction<State>* state_reward_function,
         ActionRewardFunction<Action>* action_reward_function,
         value_utils::IntervalValue reward_bound,
-        ApplicableActionsGenerator<Action>* aops_generator,
         TransitionGenerator<Action>* transition_generator,
         const StateEvaluator<State>* prune,
         bool extract_probability_one_states,
@@ -75,7 +74,6 @@ public:
               state_reward_function,
               action_reward_function,
               reward_bound,
-              aops_generator,
               transition_generator)
         , prune_(prune)
         , extract_probability_one_states_(extract_probability_one_states)
@@ -201,7 +199,6 @@ private:
             this->get_action_id_map(),
             this->get_state_reward_function(),
             this->get_action_reward_function(),
-            this->get_applicable_actions_generator(),
             this->get_transition_generator(),
             expand_goals_,
             prune_);
@@ -221,7 +218,6 @@ private:
         BoolStoreT2& one_states,
         QuotientSystem* sys)
     {
-        ApplicableActionsGenerator<QAction> q_aops_gen(sys);
         TransitionGenerator<QAction> q_transition_gen(sys);
         quotient_system::DefaultQuotientActionRewardFunction<Action>
             q_action_reward(sys, this->get_action_reward_function());
@@ -232,7 +228,6 @@ private:
             &q_action_id_map,
             this->get_state_reward_function(),
             &q_action_reward,
-            &q_aops_gen,
             &q_transition_gen,
             expand_goals_);
 
@@ -260,7 +255,6 @@ private:
                 this->get_state_reward_function(),
                 &q_action_reward,
                 value_utils::IntervalValue(value_type::zero, value_type::one),
-                &q_aops_gen,
                 &q_transition_gen,
                 &heuristic,
                 expand_goals_);
@@ -279,7 +273,6 @@ private:
                 &reward,
                 &q_action_reward,
                 value_utils::IntervalValue(value_type::zero, value_type::one),
-                &q_aops_gen,
                 &q_transition_gen,
                 &heuristic,
                 expand_goals_);

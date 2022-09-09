@@ -69,28 +69,6 @@ ActionIDMap<const pdbs::AbstractOperator*>::get_action(
     return (&ops_[0]) + idx;
 }
 
-ApplicableActionsGenerator<const pdbs::AbstractOperator*>::
-    ApplicableActionsGenerator(
-        StateIDMap<pdbs::AbstractState>& id_map,
-        std::shared_ptr<pdbs::AbstractStateMapper> state_mapper,
-        std::shared_ptr<successor_generator::SuccessorGenerator<
-            const pdbs::AbstractOperator*>> aops_gen)
-    : id_map_(id_map)
-    , state_mapper_(state_mapper)
-    , values_(state_mapper->get_pattern().size(), 0)
-    , aops_gen_(aops_gen)
-{
-}
-
-void ApplicableActionsGenerator<const pdbs::AbstractOperator*>::operator()(
-    const StateID& sid,
-    std::vector<const pdbs::AbstractOperator*>& aops)
-{
-    pdbs::AbstractState abstract_state = id_map_.get_state(sid);
-    state_mapper_->to_values(abstract_state, values_);
-    aops_gen_->generate_applicable_ops(values_, aops);
-}
-
 TransitionGenerator<const pdbs::AbstractOperator*>::TransitionGenerator(
     StateIDMap<pdbs::AbstractState>& id_map,
     std::shared_ptr<pdbs::AbstractStateMapper> state_mapper,
@@ -102,6 +80,15 @@ TransitionGenerator<const pdbs::AbstractOperator*>::TransitionGenerator(
     , values_(state_mapper->get_pattern().size(), 0)
     , aops_gen_(aops_gen)
 {
+}
+
+void TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
+    const StateID& sid,
+    std::vector<const pdbs::AbstractOperator*>& aops)
+{
+    pdbs::AbstractState abstract_state = id_map_.get_state(sid);
+    state_mapper_->to_values(abstract_state, values_);
+    aops_gen_->generate_applicable_ops(values_, aops);
 }
 
 void TransitionGenerator<const pdbs::AbstractOperator*>::operator()(

@@ -123,10 +123,6 @@ protected:
 
         StateIDMap<AbstractState> state_id_map;
 
-        ApplicableActionsGenerator<const AbstractOperator*> aops_gen(
-            state_id_map,
-            state_mapper_,
-            progression_aops_generator_);
         TransitionGenerator<const AbstractOperator*> transition_gen(
             state_id_map,
             state_mapper_,
@@ -139,7 +135,6 @@ protected:
             initial_state_,
             &state_id_map,
             &state_reward,
-            &aops_gen,
             &transition_gen,
             sts,
             ats,
