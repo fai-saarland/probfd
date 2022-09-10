@@ -133,12 +133,13 @@ public:
     {
         const StateID init_state_id = this->get_state_id(initial_state);
         StateInfo& iinfo = state_information_[init_state_id];
+        IncumbentSolution& init_value = value_store[init_state_id];
 
         if (iinfo.status == StateInfo::CLOSED) {
-            return value_utils::as_upper_bound(value_store[init_state_id]);
+            return value_utils::as_upper_bound(init_value);
         }
 
-        push_state(init_state_id, iinfo, value_store, dead_end_out);
+        push_state(init_state_id, iinfo, init_value, dead_end_out);
 
         StateInfo* backtracked_state_info_ = nullptr;
 
@@ -151,13 +152,11 @@ public:
             StateInfo& state_info = state_information_[state_id];
 
             assert(state_id == stack_info.state_id);
-            assert(
-                (state_info.status == StateInfo::ONSTACK) ||
-                (expand_goals_ && state_info.status == StateInfo::GOAL));
+            assert(state_info.status == StateInfo::ONSTACK);
 
             if (backtracked_state_info_ != nullptr) {
                 state_info.update_lowlink(backtracked_state_info_->lowlink);
-                state_info.dead &= backtracked_state_info_->dead;
+                state_info.update_dead(backtracked_state_info_->dead);
                 backtracked_state_info_ = nullptr;
             }
 
@@ -184,13 +183,13 @@ public:
             exploration_stack_.pop_back();
         }
 
-        return value_utils::as_upper_bound(value_store[init_state_id]);
+        return value_utils::as_upper_bound(init_value);
     }
 
 private:
     struct StateInfo {
         // Status Flags
-        enum { NEW, OPEN, ONSTACK, CLOSED, GOAL };
+        enum { NEW, OPEN, ONSTACK, CLOSED };
 
         StateInfo()
             : status(NEW)
@@ -206,18 +205,23 @@ private:
         unsigned lowlink = 0;
 
         void update_lowlink(unsigned upd) { lowlink = std::min(lowlink, upd); }
+        void update_dead(unsigned d) { dead = dead && d; }
     };
 
     struct ExplorationInfo {
         ExplorationInfo(
             StateID state_id,
             unsigned stackidx,
-            std::vector<Action> aops)
+            std::vector<Action> aops,
+            Distribution<StateID> transition)
             : state_id(state_id)
             , stackidx(stackidx)
             , aops(std::move(aops))
-            , successor(transition.end())
+            , transition(std::move(transition))
+            , successor(this->transition.begin())
         {
+            // First action was handled already.
+            this->aops.pop_back();
         }
 
         /**
@@ -256,8 +260,8 @@ private:
     };
 
     struct QValueInfo {
-        QValueInfo(value_type::value_t action_reward)
-            : base(action_reward)
+        explicit QValueInfo(value_type::value_t action_reward)
+            : conv_part(action_reward)
         {
         }
 
@@ -268,20 +272,20 @@ private:
                 self_loop_prob =
                     value_type::one / (value_type::one - self_loop_prob);
 
-                if (successors.empty()) {
+                if (nconv_successors.empty()) {
                     // Apply self-loop normalization immediately
-                    base *= self_loop_prob;
+                    conv_part *= self_loop_prob;
                 }
             }
 
-            return successors.empty();
+            return nconv_successors.empty();
         }
 
         IncumbentSolution compute_q_value() const
         {
-            IncumbentSolution res = base;
+            IncumbentSolution res = conv_part;
 
-            for (auto& [prob, value] : successors) {
+            for (auto& [prob, value] : nconv_successors) {
                 res += prob * (*value);
             }
 
@@ -299,42 +303,43 @@ private:
         value_type::value_t self_loop_prob = value_type::zero;
 
         // Precomputed part of the Q-value.
-        // Sum of action reward plus expected value for successor states which
+        // Sum of action reward plus weighted values for successor states which
         // have already converged due to topological ordering.
-        IncumbentSolution base;
+        IncumbentSolution conv_part;
+
+        using WeightedValueRef =
+            std::pair<value_type::value_t, IncumbentSolution*>;
 
         // Probability and reference to values for successor states which
         // have not yet converged, self-loops excluded.
-        std::vector<std::pair<value_type::value_t, IncumbentSolution*>>
-            successors;
+        std::vector<WeightedValueRef> nconv_successors;
     };
 
     struct StackInfo {
         StackInfo(
             const StateID& state_id,
-            IncumbentSolution* value_ref,
-            IncumbentSolution base,
+            IncumbentSolution& value_ref,
+            IncumbentSolution conv_part,
             unsigned num_aops)
             : state_id(state_id)
-            , value(value_ref)
-            , base(base)
+            , value(&value_ref)
+            , conv_part(conv_part)
         {
-            infos.reserve(num_aops);
+            nconv_qs.reserve(num_aops);
         }
 
         bool update_value()
         {
-            IncumbentSolution val = base;
+            IncumbentSolution v = conv_part;
 
-            for (const QValueInfo& info : infos) {
-                value_utils::set_max(val, info.compute_q_value());
+            for (const QValueInfo& info : nconv_qs) {
+                value_utils::set_max(v, info.compute_q_value());
             }
 
             if constexpr (Interval::value) {
-                return value_utils::update(*value, val) ||
-                       !value->bounds_equal();
+                return value_utils::update(*value, v) || !value->bounds_equal();
             } else {
-                return value_utils::update(*value, val);
+                return value_utils::update(*value, v);
             }
         }
 
@@ -346,10 +351,10 @@ private:
         // Precomputed part of the max of the value update.
         // Maximum over all Q values which have already converged due to
         // topological ordering.
-        IncumbentSolution base;
+        IncumbentSolution conv_part;
 
         // Remaining Q values which have not yet converged.
-        std::vector<QValueInfo> infos;
+        std::vector<QValueInfo> nconv_qs;
     };
 
     /**
@@ -357,22 +362,19 @@ private:
      * onto the queue unless it is terminal modulo self-loops. Returns
      * true if the state was pushed.
      */
-    template <typename ValueStore, typename DeadendOutputIt>
+    template <typename DeadendOutputIt>
     bool push_state(
         StateID state_id,
         StateInfo& state_info,
-        ValueStore& value_store,
+        IncumbentSolution& state_value,
         DeadendOutputIt dead_end_out)
     {
         assert(state_info.status == StateInfo::NEW);
 
-        state_info.dfs_index = state_info.lowlink = index_++;
-        state_info.status = StateInfo::ONSTACK;
-
-        IncumbentSolution& state_value = value_store[state_id];
         State state = this->lookup_state(state_id);
         EvaluationResult state_eval = this->get_state_reward(state);
-        std::vector<Action> aops;
+
+        state_info.dfs_index = state_info.lowlink = index_++;
 
         if (state_eval) {
             state_value =
@@ -380,82 +382,90 @@ private:
             state_info.dead = false;
             ++statistics_.goal_states;
 
-            if (expand_goals_) {
-                state_info.status = StateInfo::GOAL;
-                this->generate_applicable_ops(state_id, aops);
-                ++statistics_.expanded_states;
+            if (!expand_goals_) {
+                ++statistics_.terminal_states;
+                goto fail;
             }
         } else {
             auto estimate = value_initializer_->operator()(state);
 
             if (estimate) {
-                state_value = dead_end_value_;
                 ++statistics_.pruned;
+                ++statistics_.terminal_states;
+                goto fail;
+            }
+
+            if constexpr (Interval::value) {
+                state_value.lower = this->get_minimal_reward();
+                state_value.upper = static_cast<value_type::value_t>(estimate);
             } else {
-                this->generate_applicable_ops(state_id, aops);
-                ++statistics_.expanded_states;
+                state_value = static_cast<value_type::value_t>(estimate);
+            }
+        }
 
-                if (aops.empty()) {
-                    state_value = dead_end_value_;
-                } else {
-                    if constexpr (Interval::value) {
-                        state_value.lower = this->get_minimal_reward();
-                        state_value.upper =
-                            static_cast<value_type::value_t>(estimate);
-                    } else {
-                        state_value =
-                            static_cast<value_type::value_t>(estimate);
-                    }
+        state_info.status = StateInfo::ONSTACK;
+
+        {
+            std::vector<Action> aops;
+            this->generate_applicable_ops(state_id, aops);
+            ++statistics_.expanded_states;
+
+            if (aops.empty()) {
+                ++statistics_.terminal_states;
+                goto fail;
+            }
+
+            /************** Forward to first non self loop ****************/
+            Distribution<StateID> transition;
+
+            do {
+                this->generate_successors(state_id, aops.back(), transition);
+                transition.make_unique();
+
+                assert(!transition.empty());
+
+                // Check for self loop
+                if (!transition.is_dirac(state_id)) {
+                    std::size_t stack_size = stack_.size();
+
+                    // Found non self loop action, push and return success.
+                    auto& s_info = stack_.emplace_back(
+                        state_id,
+                        state_value,
+                        state_eval
+                            ? IncumbentSolution(
+                                  static_cast<value_type::value_t>(state_eval))
+                            : dead_end_value_,
+                        aops.size());
+
+                    s_info.nconv_qs.emplace_back(
+                        this->get_action_reward(state_id, aops.back()));
+
+                    exploration_stack_.emplace_back(
+                        state_id,
+                        stack_size,
+                        std::move(aops),
+                        std::move(transition));
+
+                    return true;
                 }
-            }
+
+                aops.pop_back();
+                transition.clear();
+            } while (!aops.empty());
+            /*****************************************************************/
         }
 
-        if (aops.empty()) {
-            ++statistics_.terminal_states;
-            state_info.status = StateInfo::CLOSED;
-
-            if (state_info.dead) {
-                ++statistics_.dead_ends;
-                *dead_end_out = state_id;
-            }
-
-            return false;
+    fail:
+        if (state_info.dead) {
+            state_value = dead_end_value_;
+            ++statistics_.dead_ends;
+            *dead_end_out = state_id;
         }
 
-        const auto state_reward = static_cast<value_type::value_t>(state_eval);
+        state_info.status = StateInfo::CLOSED;
 
-        ExplorationInfo& einfo = exploration_stack_.emplace_back(
-            state_id,
-            stack_.size(),
-            std::move(aops));
-
-        const Action* action = einfo.next_action(this, state_id);
-
-        if (!action) {
-            exploration_stack_.pop_back();
-
-            if (!expand_goals_ || state_info.status != StateInfo::GOAL) {
-                ++statistics_.dead_ends;
-                state_value = dead_end_value_;
-                *dead_end_out = state_id;
-            }
-
-            state_info.status = StateInfo::CLOSED;
-
-            return false;
-        }
-
-        auto& s_info = stack_.emplace_back(
-            state_id,
-            &state_value,
-            state_eval ? IncumbentSolution(state_reward) : dead_end_value_,
-            einfo.aops.size());
-
-        einfo.aops.pop_back();
-
-        s_info.infos.emplace_back(this->get_action_reward(state_id, *action));
-
-        return true;
+        return false;
     }
 
     /**
@@ -476,9 +486,9 @@ private:
         DeadendOutputIt dead_end_out)
     {
         do {
-            assert(!stack_info.infos.empty());
+            assert(!stack_info.nconv_qs.empty());
 
-            QValueInfo& tinfo = stack_info.infos.back();
+            QValueInfo& tinfo = stack_info.nconv_qs.back();
 
             do {
                 const auto [succ_id, prob] = *explore.successor;
@@ -490,35 +500,25 @@ private:
                 }
 
                 StateInfo& succ_info = state_information_[succ_id];
+                IncumbentSolution& s_value = value_store[succ_id];
                 int status = succ_info.status;
 
                 if (status == StateInfo::ONSTACK) {
-                    tinfo.successors.emplace_back(prob, &value_store[succ_id]);
                     state_info.update_lowlink(succ_info.dfs_index);
+                    tinfo.nconv_successors.emplace_back(prob, &s_value);
+                } else if (
+                    status == StateInfo::NEW &&
+                    push_state(succ_id, succ_info, s_value, dead_end_out)) {
+                    return true; // recursion on new state
                 } else {
-                    if (status == StateInfo::NEW) {
-                        if (push_state(
-                                succ_id,
-                                succ_info,
-                                value_store,
-                                dead_end_out)) {
-                            return true; // recursion on new state
-                        }
-                    } else if (expand_goals_ && status == StateInfo::GOAL) {
-                        state_info.update_lowlink(succ_info.dfs_index);
-                    }
-
-                    tinfo.base += prob * value_store[succ_id];
-                    state_info.dead = state_info.dead && succ_info.dead;
+                    tinfo.conv_part += prob * s_value;
+                    state_info.update_dead(succ_info.dead);
                 }
             } while (++explore.successor != explore.transition.end());
 
             if (tinfo.finalize()) {
-                if (!expand_goals_ || state_info.status != StateInfo::GOAL) {
-                    value_utils::set_max(stack_info.base, tinfo.base);
-                }
-
-                stack_info.infos.pop_back();
+                value_utils::set_max(stack_info.conv_part, tinfo.conv_part);
+                stack_info.nconv_qs.pop_back();
             }
 
             const Action* next_action = explore.next_action(this, state_id);
@@ -529,9 +529,8 @@ private:
 
             explore.aops.pop_back();
 
-            const auto action_reward =
-                this->get_action_reward(state_id, *next_action);
-            stack_info.infos.emplace_back(action_reward);
+            stack_info.nconv_qs.emplace_back(
+                this->get_action_reward(state_id, *next_action));
         } while (true);
     }
 
@@ -576,57 +575,26 @@ private:
             // For singleton SCCs, we only have transitions which are
             // self-loops or go to a state that is topologically greater.
             // The state value is therefore the base value.
-            assert(
-                state_info.status == StateInfo::ONSTACK ||
-                (expand_goals_ && state_info.status == StateInfo::GOAL));
-
-            if (state_info.status == StateInfo::ONSTACK) {
-                value_utils::update(*begin->value, begin->base);
-            }
-
+            assert(state_info.status == StateInfo::ONSTACK);
+            value_utils::update(*begin->value, begin->conv_part);
             state_info.status = StateInfo::CLOSED;
         } else {
-            // Iterate over the SCC and remove goal states
-
-            // First iterate until a state to remove is found
-            auto swap_it = begin;
+            // Mark all states as closed
+            auto it = begin;
             do {
-                StackInfo& stack_it = *swap_it;
+                StackInfo& stack_it = *it;
                 StateInfo& state_it = state_information_[stack_it.state_id];
 
-                assert(
-                    state_it.status == StateInfo::ONSTACK ||
-                    (expand_goals_ && state_it.status == StateInfo::GOAL));
+                assert(state_it.status == StateInfo::ONSTACK);
+                assert(!stack_it.nconv_qs.empty());
 
-                if (state_it.status == StateInfo::GOAL) {
-                    break;
-                }
+                state_it.dead = false;
 
                 state_it.status = StateInfo::CLOSED;
-                state_it.dead = 0;
-            } while (++swap_it != end);
+            } while (++it != end);
 
-            // If there is something to remove, shift remaining states forward
-            // to fill the gaps
-            if (swap_it != end) {
-                for (auto it = swap_it; ++it != end;) {
-                    StackInfo& stack_it = *it;
-                    StateInfo& state_it = state_information_[stack_it.state_id];
-
-                    if (state_it.status != StateInfo::GOAL) {
-                        assert(state_it.status == StateInfo::ONSTACK);
-                        *swap_it++ = std::move(*it);
-                    }
-
-                    state_it.status = StateInfo::CLOSED;
-                    state_it.dead = 0;
-                }
-            }
-
-            // Now run VI on the remaining SCC states
-            if (swap_it != begin) {
-                statistics_.bellman_backups += value_iteration(begin, swap_it);
-            }
+            // Now run VI on the SCC until convergence
+            statistics_.bellman_backups += value_iteration(begin, end);
         }
 
         stack_.erase(begin, end);
