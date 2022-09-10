@@ -32,6 +32,9 @@ struct BisimulationTimer {
 };
 
 class BisimulationIteration : public SolverInterface {
+    using QState = bisimulation::QuotientState;
+    using QAction = bisimulation::QuotientAction;
+
 public:
     explicit BisimulationIteration(bool interval)
         : interval_iteration_(interval)
@@ -59,9 +62,9 @@ public:
             state_registry.get_initial_state(),
             g_step_bound,
             g_step_cost_type);
-        StateIDMap<bisimulation::QuotientState> state_id_map;
-        ActionIDMap<bisimulation::QuotientAction> action_id_map;
-        TransitionGenerator<bisimulation::QuotientAction> tgen(&bs);
+        StateIDMap<QState> state_id_map;
+        ActionIDMap<QAction> action_id_map;
+        TransitionGenerator<QAction> tgen(&bs);
         bisimulation::DefaultQuotientRewardFunction reward(
             &bs,
             g_analysis_objective->reward_bound());
@@ -82,34 +85,29 @@ public:
         logging::out << "Running " << get_engine_name()
                      << " on the bisimulation..." << std::endl;
         utils::Timer vi_timer;
-        engines::MDPEngine<
-            bisimulation::QuotientState,
-            bisimulation::QuotientAction>* solver = nullptr;
+        engines::MDPEngine<QState, QAction>* solver = nullptr;
         if (interval_iteration_) {
-            solver = new engines::interval_iteration::IntervalIteration<
-                bisimulation::QuotientState,
-                bisimulation::QuotientAction>(
-                &state_id_map,
-                &action_id_map,
-                &reward,
-                g_analysis_objective->reward_bound(),
-                &tgen,
-                nullptr,
-                false,
-                false);
+            solver = new engines::interval_iteration::
+                IntervalIteration<QState, QAction>(
+                    &state_id_map,
+                    &action_id_map,
+                    &reward,
+                    g_analysis_objective->reward_bound(),
+                    &tgen,
+                    nullptr,
+                    false,
+                    false);
         } else {
-            ConstantEvaluator<bisimulation::QuotientState> initializer(
-                value_type::zero);
-            solver = new engines::topological_vi::TopologicalValueIteration<
-                bisimulation::QuotientState,
-                bisimulation::QuotientAction>(
-                &state_id_map,
-                &action_id_map,
-                &reward,
-                g_analysis_objective->reward_bound(),
-                &tgen,
-                &initializer,
-                false);
+            ConstantEvaluator<QState> initializer(value_type::zero);
+            solver = new engines::topological_vi::
+                TopologicalValueIteration<QState, QAction>(
+                    &state_id_map,
+                    &action_id_map,
+                    &reward,
+                    g_analysis_objective->reward_bound(),
+                    &tgen,
+                    &initializer,
+                    false);
         }
         value_type::value_t val = solver->solve(bs.get_initial_state());
         stats.extended_states = bs.num_extended_states();

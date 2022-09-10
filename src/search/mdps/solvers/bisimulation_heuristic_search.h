@@ -20,6 +20,11 @@ struct BisimulationTimer {
     unsigned extended_states = 0;
     unsigned transitions = 0;
 
+    BisimulationTimer()
+    {
+        logging::out << "Building bisimulation..." << std::endl;
+    }
+
     void print(std::ostream& out) const
     {
         out << "  Bisimulation time: " << timer << std::endl;
@@ -31,6 +36,10 @@ struct BisimulationTimer {
 
 class BisimulationBasedHeuristicSearchEngine
     : public engines::MDPEngineInterface<GlobalState> {
+    using QState = bisimulation::QuotientState;
+    using QAction = bisimulation::QuotientAction;
+    using QQAction = quotient_system::QuotientAction<QAction>;
+
 public:
     template <
         template <typename, typename, typename>
@@ -47,150 +56,25 @@ public:
         bool stable_policy,
         Args... args)
     {
-        BisimulationBasedHeuristicSearchEngine* res =
-            new BisimulationBasedHeuristicSearchEngine(
-                engine_name,
-                state_registry);
+        auto* res = new BisimulationBasedHeuristicSearchEngine(
+            engine_name,
+            state_registry);
 
-        using HeuristicSearchType =
-            HS<bisimulation::QuotientState,
-               bisimulation::QuotientAction,
-               DualValues>;
-
-        res->engine_ = std::unique_ptr<engines::MDPEngine<
-            bisimulation::QuotientState,
-            bisimulation::QuotientAction>>(
-            new HeuristicSearchType(
-                &res->state_id_map,
-                &res->action_id_map,
-                res->reward.get(),
-                g_analysis_objective->reward_bound(),
-                res->tgen.get(),
-                nullptr,
-                &res->policy_,
-                &res->new_state_handler_,
-                res->heuristic_.get(),
-                &con,
-                &progress,
-                interval,
-                stable_policy,
-                args...));
-
-        return res;
-    }
-
-    template <
-        template <typename, typename, typename>
-        class HS,
-        typename DualValues,
-        typename... Args>
-    static BisimulationBasedHeuristicSearchEngine* QConstructor(
-        const DualValues&,
-        const std::string& engine_name,
-        StateRegistry* state_registry,
-        HeuristicSearchConnector& con,
-        ProgressReport& progress,
-        bool interval,
-        bool stable_policy,
-        Args... args)
-    {
-        BisimulationBasedHeuristicSearchEngine* res =
-            new BisimulationBasedHeuristicSearchEngine(
-                engine_name,
-                state_registry,
-                true);
-
-        res->engine_ = std::unique_ptr<
-            MDPEngineInterface<bisimulation::QuotientState>>(
-            new HS<
-                bisimulation::QuotientState,
-                quotient_system::QuotientAction<bisimulation::QuotientAction>,
-                DualValues>(
-                args...,
-                res->quotient_.get(),
-                nullptr,
-                res->q_policy_tiebreaker_.get(),
-                &res->new_state_handler_,
-                res->heuristic_.get(),
-                &con,
-                &progress,
-                interval,
-                stable_policy,
-                &res->state_id_map,
-                res->q_action_id_map_.get(),
-                res->reward.get(),
-                res->q_reward_.get(),
-                g_analysis_objective->reward_bound(),
-                res->q_transition_gen_.get()));
-
-        return res;
-    }
-
-    template <
-        template <typename, typename, typename>
-        class Fret,
-        template <typename, typename, typename>
-        class HS,
-        typename DualValues,
-        typename... Args>
-    static BisimulationBasedHeuristicSearchEngine* Constructor(
-        const DualValues&,
-        const std::string& engine_name,
-        StateRegistry* state_registry,
-        HeuristicSearchConnector& con,
-        ProgressReport& progress,
-        bool interval,
-        bool stable_policy,
-        Args... args)
-    {
-        BisimulationBasedHeuristicSearchEngine* res =
-            new BisimulationBasedHeuristicSearchEngine(
-                engine_name,
-                state_registry,
-                true);
-
-        using FretVariant = Fret<
-            bisimulation::QuotientState,
-            bisimulation::QuotientAction,
-            DualValues>;
-
-        engines::fret::HeuristicSearchEngine<
-            bisimulation::QuotientState,
-            quotient_system::QuotientAction<bisimulation::QuotientAction>,
-            DualValues>* engine =
-            new HS<
-                bisimulation::QuotientState,
-                quotient_system::QuotientAction<bisimulation::QuotientAction>,
-                DualValues>(
-                &res->state_id_map,
-                res->q_action_id_map_.get(),
-                res->q_reward_.get(),
-                g_analysis_objective->reward_bound(),
-                res->q_transition_gen_.get(),
-                nullptr,
-                res->q_policy_tiebreaker_.get(),
-                &res->new_state_handler_,
-                res->heuristic_.get(),
-                &con,
-                &progress,
-                interval,
-                stable_policy,
-                args...);
-
-        res->engine2_ = std::unique_ptr<
-            engines::MDPEngineInterface<bisimulation::QuotientState>>(engine);
-
-        res->engine_ =
-            std::unique_ptr<MDPEngineInterface<bisimulation::QuotientState>>(
-                new FretVariant(
-                    &res->state_id_map,
-                    &res->action_id_map,
-                    res->reward.get(),
-                    g_analysis_objective->reward_bound(),
-                    res->tgen.get(),
-                    res->quotient_.get(),
-                    &progress,
-                    engine));
+        res->engine_.reset(new HS<QState, QAction, DualValues>(
+            &res->state_id_map,
+            &res->action_id_map,
+            res->reward.get(),
+            g_analysis_objective->reward_bound(),
+            res->tgen.get(),
+            nullptr,
+            &res->policy_,
+            &res->new_state_handler_,
+            res->heuristic_.get(),
+            &con,
+            &progress,
+            interval,
+            stable_policy,
+            args...));
 
         return res;
     }
@@ -222,33 +106,24 @@ public:
         engine_->print_statistics(out);
     }
 
-private:
+protected:
     explicit BisimulationBasedHeuristicSearchEngine(
         const std::string& engine_name,
         StateRegistry* state_registry)
         : engine_name_(engine_name)
+        , bs(new bisimulation::BisimilarStateSpace(
+              state_registry->get_initial_state(),
+              g_step_bound,
+              g_step_cost_type))
+        , tgen(new TransitionGenerator<QAction>(bs.get()))
+        , reward(new bisimulation::DefaultQuotientRewardFunction(
+              bs.get(),
+              g_analysis_objective->reward_bound()))
+        , heuristic_(new bisimulation::DefaultQuotientStateEvaluator(
+              bs.get(),
+              g_analysis_objective->reward_bound(),
+              g_analysis_objective->reward_bound().upper))
     {
-        logging::out << "Building bisimulation..." << std::endl;
-        bs = std::unique_ptr<bisimulation::BisimilarStateSpace>(
-            new bisimulation::BisimilarStateSpace(
-                state_registry->get_initial_state(),
-                g_step_bound,
-                g_step_cost_type));
-        tgen =
-            std::unique_ptr<TransitionGenerator<bisimulation::QuotientAction>>(
-                new TransitionGenerator<bisimulation::QuotientAction>(
-                    bs.get()));
-        reward = std::unique_ptr<bisimulation::QuotientRewardFunction>(
-            new bisimulation::DefaultQuotientRewardFunction(
-                bs.get(),
-                g_analysis_objective->reward_bound()));
-        heuristic_ =
-            std::unique_ptr<StateEvaluator<bisimulation::QuotientState>>(
-                new bisimulation::DefaultQuotientStateEvaluator(
-                    bs.get(),
-                    g_analysis_objective->reward_bound(),
-                    g_analysis_objective->reward_bound().upper));
-
         stats.timer.stop();
         stats.states = bs->num_bisimilar_states();
         stats.transitions = bs->num_transitions();
@@ -260,80 +135,150 @@ private:
         logging::out << std::endl;
     }
 
-    explicit BisimulationBasedHeuristicSearchEngine(
-        const std::string& engine_name,
-        StateRegistry* state_registry,
-        bool)
-        : BisimulationBasedHeuristicSearchEngine(engine_name, state_registry)
-    {
-        quotient_ = std::unique_ptr<
-            quotient_system::QuotientSystem<bisimulation::QuotientAction>>(
-            new quotient_system::QuotientSystem<bisimulation::QuotientAction>(
-                &action_id_map,
-                tgen.get()));
-        q_reward_ = std::unique_ptr<RewardFunction<
-            bisimulation::QuotientState,
-            quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
-            new quotient_system::DefaultQuotientRewardFunction(
-                quotient_.get(),
-                reward.get()));
-        q_action_id_map_ = std::unique_ptr<ActionIDMap<
-            quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
-            new ActionIDMap<
-                quotient_system::QuotientAction<bisimulation::QuotientAction>>(
-                quotient_.get()));
-        q_transition_gen_ = std::unique_ptr<TransitionGenerator<
-            quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
-            new TransitionGenerator<
-                quotient_system::QuotientAction<bisimulation::QuotientAction>>(
-                quotient_.get()));
-
-        q_policy_tiebreaker_ = std::unique_ptr<PolicyPicker<
-            quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
-            new PolicyPicker<quotient_system::QuotientAction<
-                bisimulation::QuotientAction>>());
-    }
-
     const std::string engine_name_;
 
     BisimulationTimer stats;
 
-    std::unique_ptr<bisimulation::BisimilarStateSpace> bs = nullptr;
+    std::unique_ptr<bisimulation::BisimilarStateSpace> bs;
 
-    StateIDMap<bisimulation::QuotientState> state_id_map;
-    ActionIDMap<bisimulation::QuotientAction> action_id_map;
-    std::unique_ptr<TransitionGenerator<bisimulation::QuotientAction>> tgen =
-        nullptr;
+    StateIDMap<QState> state_id_map;
+    ActionIDMap<QAction> action_id_map;
+    std::unique_ptr<TransitionGenerator<QAction>> tgen;
     std::unique_ptr<bisimulation::QuotientRewardFunction> reward;
-    NewStateHandler<bisimulation::QuotientState> new_state_handler_;
-    std::unique_ptr<StateEvaluator<bisimulation::QuotientState>> heuristic_ =
-        nullptr;
-    PolicyPicker<bisimulation::QuotientAction> policy_;
+    NewStateHandler<QState> new_state_handler_;
+    std::unique_ptr<StateEvaluator<QState>> heuristic_;
+    PolicyPicker<QAction> policy_;
 
-    std::unique_ptr<MDPEngineInterface<bisimulation::QuotientState>> engine_ =
-        nullptr;
+    std::unique_ptr<MDPEngineInterface<QState>> engine_;
+};
 
-    std::unique_ptr<
-        quotient_system::QuotientSystem<bisimulation::QuotientAction>>
-        quotient_ = nullptr;
+class QBisimulationBasedHeuristicSearchEngine
+    : public BisimulationBasedHeuristicSearchEngine {
+    using QState = bisimulation::QuotientState;
+    using QAction = bisimulation::QuotientAction;
+    using QQAction = quotient_system::QuotientAction<QAction>;
 
-    std::unique_ptr<RewardFunction<
-        bisimulation::QuotientState,
-        quotient_system::QuotientAction<bisimulation::QuotientAction>>>
-        q_reward_ = nullptr;
-    std::unique_ptr<ActionIDMap<
-        quotient_system::QuotientAction<bisimulation::QuotientAction>>>
-        q_action_id_map_ = nullptr;
-    std::unique_ptr<TransitionGenerator<
-        quotient_system::QuotientAction<bisimulation::QuotientAction>>>
-        q_transition_gen_ = nullptr;
+public:
+    template <
+        template <typename, typename, typename>
+        class HS,
+        typename DualValues,
+        typename... Args>
+    static QBisimulationBasedHeuristicSearchEngine* QConstructor(
+        const DualValues&,
+        const std::string& engine_name,
+        StateRegistry* state_registry,
+        HeuristicSearchConnector& con,
+        ProgressReport& progress,
+        bool interval,
+        bool stable_policy,
+        Args... args)
+    {
+        auto* res = new QBisimulationBasedHeuristicSearchEngine(
+            engine_name,
+            state_registry);
 
-    std::unique_ptr<PolicyPicker<
-        quotient_system::QuotientAction<bisimulation::QuotientAction>>>
-        q_policy_tiebreaker_ = nullptr;
+        res->engine_ = std::unique_ptr<MDPEngineInterface<QState>>(
+            new HS<QState, QQAction, DualValues>(
+                args...,
+                res->quotient_.get(),
+                nullptr,
+                res->q_policy_tiebreaker_.get(),
+                &res->new_state_handler_,
+                res->heuristic_.get(),
+                &con,
+                &progress,
+                interval,
+                stable_policy,
+                &res->state_id_map,
+                res->q_action_id_map_.get(),
+                res->reward.get(),
+                res->q_reward_.get(),
+                g_analysis_objective->reward_bound(),
+                res->q_transition_gen_.get()));
 
-    std::unique_ptr<MDPEngineInterface<bisimulation::QuotientState>> engine2_ =
-        nullptr;
+        return res;
+    }
+
+    template <
+        template <typename, typename, typename>
+        class Fret,
+        template <typename, typename, typename>
+        class HS,
+        typename DualValues,
+        typename... Args>
+    static QBisimulationBasedHeuristicSearchEngine* Constructor(
+        const DualValues&,
+        const std::string& engine_name,
+        StateRegistry* state_registry,
+        HeuristicSearchConnector& con,
+        ProgressReport& progress,
+        bool interval,
+        bool stable_policy,
+        Args... args)
+    {
+        auto* res = new QBisimulationBasedHeuristicSearchEngine(
+            engine_name,
+            state_registry);
+
+        auto* engine = new HS<QState, QQAction, DualValues>(
+            &res->state_id_map,
+            res->q_action_id_map_.get(),
+            res->q_reward_.get(),
+            g_analysis_objective->reward_bound(),
+            res->q_transition_gen_.get(),
+            nullptr,
+            res->q_policy_tiebreaker_.get(),
+            &res->new_state_handler_,
+            res->heuristic_.get(),
+            &con,
+            &progress,
+            interval,
+            stable_policy,
+            args...);
+
+        res->engine2_.reset(engine);
+
+        res->engine_.reset(new Fret<QState, QAction, DualValues>(
+            &res->state_id_map,
+            &res->action_id_map,
+            res->reward.get(),
+            g_analysis_objective->reward_bound(),
+            res->tgen.get(),
+            res->quotient_.get(),
+            &progress,
+            engine));
+
+        return res;
+    }
+
+private:
+    explicit QBisimulationBasedHeuristicSearchEngine(
+        const std::string& engine_name,
+        StateRegistry* state_registry)
+        : BisimulationBasedHeuristicSearchEngine(engine_name, state_registry)
+        , quotient_(new quotient_system::QuotientSystem<QAction>(
+              &action_id_map,
+              tgen.get()))
+        , q_reward_(new quotient_system::DefaultQuotientRewardFunction(
+              quotient_.get(),
+              reward.get()))
+        , q_action_id_map_(new ActionIDMap<QQAction>(quotient_.get()))
+        , q_transition_gen_(new TransitionGenerator<QQAction>(quotient_.get()))
+        , q_policy_tiebreaker_(
+              new PolicyPicker<quotient_system::QuotientAction<QAction>>())
+    {
+    }
+
+    std::unique_ptr<quotient_system::QuotientSystem<QAction>> quotient_;
+
+    std::unique_ptr<RewardFunction<QState, QQAction>> q_reward_;
+    std::unique_ptr<ActionIDMap<QQAction>> q_action_id_map_;
+    std::unique_ptr<TransitionGenerator<QQAction>> q_transition_gen_;
+
+    std::unique_ptr<PolicyPicker<QQAction>> q_policy_tiebreaker_;
+
+    std::unique_ptr<MDPEngineInterface<QState>> engine2_;
 };
 
 template <>
@@ -453,7 +398,7 @@ public:
     quotient_heuristic_search_factory(Args... args)
     {
         if (dual_bounds_) {
-            return BisimulationBasedHeuristicSearchEngine::
+            return QBisimulationBasedHeuristicSearchEngine::
                 template QConstructor<HS>(
                     std::true_type(),
                     this->get_heuristic_search_name(),
@@ -464,7 +409,7 @@ public:
                     this->stable_policy_,
                     args...);
         } else {
-            return BisimulationBasedHeuristicSearchEngine::
+            return QBisimulationBasedHeuristicSearchEngine::
                 template QConstructor<HS>(
                     std::false_type(),
                     this->get_heuristic_search_name(),
@@ -515,7 +460,7 @@ private:
     engines::MDPEngineInterface<GlobalState>*
     heuristic_search_engine_factory_wrapper(Args... args)
     {
-        return BisimulationBasedHeuristicSearchEngine::
+        return QBisimulationBasedHeuristicSearchEngine::
             template Constructor<Fret, HS>(
                 DualValues(),
                 this->get_heuristic_search_name(),
