@@ -62,7 +62,7 @@ public:
         return r;
     }
 
-    set_output_iterator& operator*() { return *base; }
+    auto& operator*() { return *base; }
 };
 
 template <typename T>
