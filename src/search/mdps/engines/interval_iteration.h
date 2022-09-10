@@ -9,6 +9,8 @@
 #include "engine.h"
 #include "topological_value_iteration.h"
 
+#include "../../utils/collections.h"
+
 #include <iterator>
 
 namespace probabilistic {
@@ -58,7 +60,7 @@ public:
         TopologicalValueIteration<State, QAction, std::true_type>;
 
     using ValueStore = typename ValueIteration::Store;
-    using BoolStore = storage::PerStateStorage<bool>;
+    using BoolStore = std::vector<StateID>;
 
     explicit IntervalIteration(
         StateIDMap<State>* state_id_map,
@@ -83,9 +85,8 @@ public:
 
     virtual value_type::value_t solve(const State& state) override
     {
-        BoolStore dead(false);
-        BoolStore one(false);
         std::unique_ptr<QuotientSystem> sys = get_quotient(state);
+        BoolStore dead, one;
         this->mysolve(state, value_store_, dead, one, sys.get());
 
         const StateID state_id = this->get_state_id(state);
@@ -106,12 +107,12 @@ public:
         ecd_statistics_.print(out);
     }
 
-    template <typename ValueStoreT, typename BoolStoreT, typename BoolStoreT2>
+    template <typename ValueStoreT, typename SetLike, typename SetLike2>
     value_type::value_t solve(
         const State& state,
         ValueStoreT& value_store,
-        BoolStoreT& dead_ends,
-        BoolStoreT2& one_states)
+        SetLike& dead_ends,
+        SetLike2& one_states)
     {
         auto sys = get_quotient(state);
 
@@ -122,12 +123,12 @@ public:
             const StateID repr = *sit;
 
             const auto value = value_store[repr];
-            const bool dead = dead_ends[repr];
-            const bool one = one_states[repr];
+            const bool dead = utils::contains(dead_ends, repr);
+            const bool one = utils::contains(one_states, repr);
             for (++sit; sit != send; ++sit) {
                 value_store[*sit] = value;
-                dead_ends[*sit] = dead;
-                one_states[*sit] = one;
+                if (dead) dead_ends.push_back(*sit);
+                if (one) one_states.push_back(*sit);
             }
         }
 
@@ -135,75 +136,6 @@ public:
     }
 
 private:
-    template <typename BoolStoreT>
-    struct OneRewardFunction
-        : public RewardFunction<
-              State,
-              quotient_system::QuotientAction<Action>> {
-        using QAction = quotient_system::QuotientAction<Action>;
-        StateIDMap<State>* state_id_map_;
-        BoolStoreT& one_states_;
-        RewardFunction<State, QAction>& fallback_;
-
-        OneRewardFunction(
-            StateIDMap<State>* state_id_map,
-            BoolStoreT& one_states,
-            RewardFunction<State, QAction>& fallback)
-            : state_id_map_(state_id_map)
-            , one_states_(one_states)
-            , fallback_(fallback)
-        {
-        }
-
-        virtual EvaluationResult evaluate(const State& s) override
-        {
-            const StateID id = state_id_map_->get_state_id(s);
-
-            if (one_states_[id]) {
-                return EvaluationResult(true, value_type::one);
-            }
-
-            return EvaluationResult(false, value_type::zero);
-        }
-
-        virtual value_type::value_t evaluate(StateID id, QAction a) override
-        {
-            return fallback_(id, a);
-        }
-    };
-
-    template <typename BoolStoreT>
-    struct HeuristicWrapper : public StateEvaluator<State> {
-        HeuristicWrapper(
-            StateIDMap<State>* state_id_map,
-            BoolStoreT& dead_ends,
-            const StateEvaluator<State>* fallback)
-            : state_id_map_(state_id_map)
-            , dead_ends_(dead_ends)
-            , fallback(fallback)
-        {
-        }
-
-        EvaluationResult evaluate(const State& s) const override
-        {
-            const StateID id = state_id_map_->get_state_id(s);
-
-            if (dead_ends_[id]) {
-                return EvaluationResult(true, value_type::zero);
-            }
-
-            if (fallback) {
-                return fallback->operator()(s);
-            }
-
-            return EvaluationResult(false, value_type::one);
-        }
-
-        StateIDMap<State>* state_id_map_;
-        BoolStoreT& dead_ends_;
-        const StateEvaluator<State>* fallback;
-    };
-
     std::unique_ptr<QuotientSystem> get_quotient(const State& state)
     {
         Decomposer ec_decomposer(
@@ -221,12 +153,12 @@ private:
         return std::move(sys);
     }
 
-    template <typename ValueStoreT, typename BoolStoreT, typename BoolStoreT2>
+    template <typename ValueStoreT, typename SetLike, typename SetLike2>
     value_type::value_t mysolve(
         const State& state,
         ValueStoreT& value_store,
-        BoolStoreT& dead_ends,
-        BoolStoreT2& one_states,
+        SetLike& dead_ends,
+        SetLike2& one_states,
         QuotientSystem* sys)
     {
         TransitionGenerator<QAction> q_transition_gen(sys);
@@ -242,69 +174,40 @@ private:
             &q_transition_gen,
             expand_goals_);
 
-        std::set<StateID> gp_zero_states;
-        std::set<StateID> gp_one_states;
-
         if (extract_probability_one_states_) {
             analysis.run_analysis(
                 state,
-                std::inserter(gp_zero_states, gp_zero_states.end()),
-                std::inserter(gp_one_states, gp_one_states.end()));
+                std::back_inserter(dead_ends),
+                std::back_inserter(one_states));
+            assert(
+                this->get_state_reward(this->lookup_state(one_states.front())));
         } else {
             analysis.run_analysis(
                 state,
-                std::inserter(gp_zero_states, gp_zero_states.end()),
+                std::back_inserter(dead_ends),
                 utils::discarding_output_iterator());
         }
 
-        sys->build_quotient(gp_zero_states);
-        sys->build_quotient(gp_one_states);
+        assert(::utils::is_unique(dead_ends) && ::utils::is_unique(one_states));
 
-        for (StateID id : gp_zero_states) {
-            dead_ends[id] = true;
-        }
+        sys->build_quotient(dead_ends);
+        sys->build_quotient(one_states);
 
-        for (StateID id : gp_one_states) {
-            one_states[id] = true;
-        }
+        const auto new_init_id =
+            sys->translate_state_id(this->get_state_id(state));
 
-        HeuristicWrapper<BoolStoreT> heuristic(
+        ValueIteration vi(
             this->get_state_id_map(),
-            dead_ends,
-            prune_);
+            &q_action_id_map,
+            &q_reward,
+            value_utils::IntervalValue(value_type::zero, value_type::one),
+            &q_transition_gen,
+            prune_,
+            expand_goals_);
 
-        if (!extract_probability_one_states_) {
-            ValueIteration vi(
-                this->get_state_id_map(),
-                &q_action_id_map,
-                &q_reward,
-                value_utils::IntervalValue(value_type::zero, value_type::one),
-                &q_transition_gen,
-                &heuristic,
-                expand_goals_);
-
-            value_type::value_t result = vi.solve(state, value_store);
-            tvi_statistics_ = vi.get_statistics();
-            return result;
-        } else {
-            OneRewardFunction<BoolStoreT2> reward(
-                this->get_state_id_map(),
-                one_states,
-                q_reward);
-
-            ValueIteration vi(
-                this->get_state_id_map(),
-                &q_action_id_map,
-                &reward,
-                value_utils::IntervalValue(value_type::zero, value_type::one),
-                &q_transition_gen,
-                &heuristic,
-                expand_goals_);
-
-            value_type::value_t result = vi.solve(state, value_store);
-            tvi_statistics_ = vi.get_statistics();
-            return result;
-        }
+        value_type::value_t result = vi.solve(new_init_id, value_store);
+        tvi_statistics_ = vi.get_statistics();
+        return result;
     }
 
     const StateEvaluator<State>* prune_;
@@ -321,4 +224,4 @@ private:
 } // namespace engines
 } // namespace probabilistic
 
-#endif // __INTERVAL_ITERATION_H__
+#endif // __INTERVAL_ITERATION_H__dead_ends

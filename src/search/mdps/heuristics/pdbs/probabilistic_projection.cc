@@ -44,7 +44,6 @@ ProbabilisticProjection::ProbabilisticProjection(
 
     setup_abstract_goal();
     build_operators(operator_pruning);
-    compute_dead_ends();
 }
 
 std::shared_ptr<AbstractStateMapper>
@@ -66,13 +65,12 @@ unsigned int ProbabilisticProjection::num_states() const
 
 unsigned int ProbabilisticProjection::num_dead_ends() const
 {
-    return state_mapper_->num_states() - dead_ends->get_storage().size();
+    return state_mapper_->num_states() - dead_ends_.size();
 }
 
 unsigned int ProbabilisticProjection::num_proper_states() const
 {
-    assert(proper_states);
-    return proper_states->get_storage().size();
+    return proper_states_.size();
 }
 
 unsigned int ProbabilisticProjection::num_reachable_states() const
@@ -82,13 +80,12 @@ unsigned int ProbabilisticProjection::num_reachable_states() const
 
 bool ProbabilisticProjection::has_only_proper_states() const
 {
-    return state_mapper_->num_states() == proper_states->get_storage().size();
+    return state_mapper_->num_states() == proper_states_.size();
 }
 
 bool ProbabilisticProjection::has_only_dead_or_proper_states() const
 {
-    return dead_ends->get_storage().size() ==
-           proper_states->get_storage().size();
+    return dead_ends_.size() == proper_states_.size();
 }
 
 bool ProbabilisticProjection::is_dead_end(const GlobalState& s) const
@@ -98,12 +95,12 @@ bool ProbabilisticProjection::is_dead_end(const GlobalState& s) const
 
 bool ProbabilisticProjection::is_dead_end(const AbstractState& s) const
 {
-    return dead_ends->get(s);
+    return utils::contains(dead_ends_, StateID(s.id));
 }
 
 bool ProbabilisticProjection::is_goal(const AbstractState& s) const
 {
-    return goal_states_.find(s) != goal_states_.end();
+    return utils::contains(goal_states_, s);
 }
 
 AbstractState
@@ -150,135 +147,6 @@ bool has_closed_operator(
     }
 
     return false;
-}
-
-void ProbabilisticProjection::compute_dead_ends()
-{
-    if (dead_ends) {
-        return;
-    }
-
-    // Initialize open list with goal states.
-    std::deque<AbstractState> open(goal_states_.begin(), goal_states_.end());
-
-    std::unordered_set<AbstractState> closed(
-        goal_states_.begin(),
-        goal_states_.end());
-
-    // Regression breadth-first search from goal states to find all states with
-    // MaxProb > 0. While we are at it, we can compute the goal distances.
-    while (!open.empty()) {
-        const AbstractState s = open.front();
-        open.pop_front();
-
-        std::vector<int> state_values;
-        state_mapper_->to_values(s, state_values);
-
-        std::vector<AbstractRegressionOperator> aops;
-        regression_aops_generator_->generate_applicable_ops(state_values, aops);
-        if (aops.empty()) {
-            continue;
-        }
-
-        for (const AbstractRegressionOperator& regr_op : aops) {
-            const AbstractState t = s + regr_op.effect;
-
-            if (closed.find(t) == closed.end()) {
-                closed.insert(t);
-                open.push_back(t);
-            }
-        }
-    }
-
-    dead_ends.reset(new QualitativeResultStore(true, std::move(closed)));
-}
-
-void ProbabilisticProjection::compute_proper_states()
-{
-    if (proper_states) {
-        return;
-    }
-
-    compute_dead_ends();
-
-    // Compute probability one states.
-    class std::unordered_set<AbstractState> S_new = dead_ends->get_storage();
-    class std::unordered_set<AbstractState> S_old;
-
-    if (S_new.size() == this->state_mapper_->num_states()) {
-        proper_states.reset(
-            new QualitativeResultStore(false, std::move(S_new)));
-        return;
-    }
-
-    do {
-        S_old = std::move(S_new);
-        S_new.insert(goal_states_.begin(), goal_states_.end());
-
-        std::deque<AbstractState> open(
-            goal_states_.begin(),
-            goal_states_.end());
-
-        while (!open.empty()) {
-            const AbstractState s = open.front();
-            open.pop_front();
-
-            std::vector<int> state_values;
-            state_mapper_->to_values(s, state_values);
-
-            std::vector<AbstractRegressionOperator> aops;
-            regression_aops_generator_->generate_applicable_ops(
-                state_values,
-                aops);
-
-            if (aops.empty()) {
-                continue;
-            }
-
-            for (const AbstractRegressionOperator& regr_op : aops) {
-                const AbstractState t = s + regr_op.effect;
-
-                if (S_old.find(t) == S_old.end()) {
-                    continue;
-                }
-
-                // Collect operators of t reaching s
-                std::vector<int> facts = state_mapper_->to_values(t);
-                std::vector<const probabilistic::pdbs::AbstractOperator*> aops;
-                progression_aops_generator_->generate_applicable_ops(
-                    facts,
-                    aops);
-
-                // Check if there is an inverse operator that reaches s from t
-                // and stays within the current set. If yes, add t.
-                for (const auto* op : aops) {
-                    bool inverse = false;
-                    bool closed = true;
-
-                    for (auto out : op->outcomes) {
-                        auto succ = t + out.first;
-                        if (succ == s) {
-                            inverse = true;
-                        }
-
-                        if (S_old.find(succ) == S_old.end()) {
-                            closed = false;
-                            break;
-                        }
-                    }
-
-                    if (inverse && closed && S_new.find(t) == S_new.end()) {
-                        S_new.insert(t);
-                        open.push_back(t);
-                        break;
-                    }
-                }
-            }
-        }
-    } while (S_old.size() != S_new.size()); // Size check is enough here
-                                            // (monotonically decreasing)
-
-    proper_states.reset(new QualitativeResultStore(false, std::move(S_old)));
 }
 
 void ProbabilisticProjection::setup_abstract_goal()

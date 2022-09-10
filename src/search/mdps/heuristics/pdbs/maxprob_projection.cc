@@ -109,10 +109,7 @@ void MaxProbProjection::compute_value_table(
         state_mapper_,
         progression_aops_generator_);
 
-    using IntervalIteration = engines::interval_iteration::
-        IntervalIteration<AbstractState, const AbstractOperator*>;
-
-    IntervalIteration vi(
+    IntervalIteration<AbstractState, const AbstractOperator*> vi(
         &state_id_map,
         &action_id_map,
         &reward,
@@ -122,10 +119,7 @@ void MaxProbProjection::compute_value_table(
         true,
         true);
 
-    dead_ends.reset(new QualitativeResultStore());
-    proper_states.reset(new QualitativeResultStore());
-
-    vi.solve(initial_state_, value_table, *dead_ends, *proper_states);
+    vi.solve(initial_state_, value_table, dead_ends_, proper_states_);
 
     reachable_states = state_id_map.size();
 
@@ -301,9 +295,9 @@ void MaxProbProjection::dump_graphviz(
 
         if (values) {
             out << " (";
-            if (dead_ends->get(x)) {
+            if (utils::contains(dead_ends_, StateID(x.id))) {
                 out << "dead";
-            } else if (proper_states->get(x)) {
+            } else if (utils::contains(proper_states_, StateID(x.id))) {
                 out << "one";
             } else {
                 auto bounds = value_table[x.id];

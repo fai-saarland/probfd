@@ -4,6 +4,7 @@
 #include "../../../successor_generator.h"
 #include "../../../utils/collections.h"
 
+#include "../../end_components/qualitative_reachability_analysis.h"
 #include "../../engines/topological_value_iteration.h"
 #include "../../globals.h"
 #include "../../logging.h"
@@ -19,12 +20,12 @@ namespace pdbs {
 
 namespace {
 class WrapperHeuristic : public AbstractStateEvaluator {
-    const QualitativeResultStore& one_states;
+    const std::vector<StateID>& one_states;
     const AbstractStateEvaluator& parent;
 
 public:
     WrapperHeuristic(
-        const QualitativeResultStore& one_states,
+        const std::vector<StateID>& one_states,
         const AbstractStateEvaluator& parent)
         : one_states(one_states)
         , parent(parent)
@@ -33,7 +34,7 @@ public:
 
     virtual EvaluationResult evaluate(const AbstractState& state) const
     {
-        if (one_states[state]) {
+        if (utils::contains(one_states, StateID(state.id))) {
             return parent(state);
         }
 
@@ -237,9 +238,8 @@ void ExpCostProjection::dump_graphviz(
 void ExpCostProjection::compute_value_table(
     const AbstractStateEvaluator& heuristic)
 {
-    compute_proper_states();
-
-    WrapperHeuristic h(*proper_states, heuristic);
+    using namespace reachability;
+    using namespace engines::topological_vi;
 
     NormalCostAbstractRewardFunction reward(
         &goal_states_,
@@ -254,17 +254,29 @@ void ExpCostProjection::compute_value_table(
         state_mapper_,
         progression_aops_generator_);
 
-    engines::topological_vi::
-        TopologicalValueIteration<AbstractState, const AbstractOperator*>
-            vi(&state_id_map,
-               &action_id_map,
-               &reward,
-               value_utils::IntervalValue(-value_type::inf, value_type::zero),
-               &transition_gen,
-               &h,
-               true);
+    // TODO First compute EC quotient
+    // TODO Then aggregate all non-proper states
 
-    vi.solve(initial_state_, value_table);
+    QualitativeReachabilityAnalysis<AbstractState, const AbstractOperator*>
+        analysis(&state_id_map, &action_id_map, &reward, &transition_gen, true);
+
+    analysis.run_analysis(
+        initial_state_,
+        std::back_inserter(dead_ends_),
+        std::back_inserter(proper_states_));
+
+    WrapperHeuristic h(proper_states_, heuristic);
+
+    TopologicalValueIteration<AbstractState, const AbstractOperator*> vi(
+        &state_id_map,
+        &action_id_map,
+        &reward,
+        value_utils::IntervalValue(-value_type::inf, value_type::zero),
+        &transition_gen,
+        &h,
+        true);
+
+    vi.solve(state_id_map.get_state_id(initial_state_), value_table);
 
     reachable_states = state_id_map.size();
 
@@ -291,7 +303,7 @@ void ExpCostProjection::verify(const StateIDMap<AbstractState>& state_id_map) {
             continue;
         }
 
-        if (!this->proper_states->get(s)) {
+        if (!utils::contains(proper_states_, StateID(id))) {
             assert(value == -value_type::inf);
             continue;
         }

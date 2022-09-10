@@ -101,8 +101,6 @@ public:
     const Pattern& get_pattern() const;
 
 protected:
-    void compute_proper_states();
-
     template <typename StateToString>
     void dump_graphviz(
         const std::string& path,
@@ -143,8 +141,6 @@ protected:
     }
 
 private:
-    void compute_dead_ends();
-
     void setup_abstract_goal();
     void build_operators(bool operator_pruning);
     
@@ -171,8 +167,8 @@ protected:
 
     unsigned int reachable_states = 0;
 
-    std::unique_ptr<QualitativeResultStore> dead_ends;
-    std::unique_ptr<QualitativeResultStore> proper_states;
+    std::vector<StateID> dead_ends_;
+    std::vector<StateID> proper_states_;
 };
 
 } // namespace pdbs

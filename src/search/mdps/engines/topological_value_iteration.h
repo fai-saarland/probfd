@@ -96,7 +96,7 @@ public:
     virtual value_type::value_t solve(const State& state) override
     {
         this->value_store_.reset(new Store());
-        this->solve(state, *this->value_store_);
+        this->solve(this->get_state_id(state), *this->value_store_);
         return value_utils::as_upper_bound(
             value_store_->operator[](this->get_state_id(state))); 
     }
@@ -127,11 +127,10 @@ public:
         typename ValueStore,
         typename DeadendOutputIt = utils::discarding_output_iterator>
     value_type::value_t solve(
-        const State& initial_state,
+        StateID init_state_id,
         ValueStore& value_store,
         DeadendOutputIt dead_end_out = DeadendOutputIt{})
     {
-        const StateID init_state_id = this->get_state_id(initial_state);
         StateInfo& iinfo = state_information_[init_state_id];
         IncumbentSolution& init_value = value_store[init_state_id];
 
