@@ -54,7 +54,6 @@ MaxProbProjection::MaxProbProjection(
         operator_pruning,
         heuristic)
 {
-    compute_value_table(heuristic);
 }
 
 MaxProbProjection::MaxProbProjection(
