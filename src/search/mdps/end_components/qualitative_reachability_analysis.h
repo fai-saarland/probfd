@@ -440,11 +440,14 @@ private:
             for (auto stk_it = begin; stk_it != end; ++stk_it) {
                 auto sid = stk_it->stateid;
                 StateInfo& sinfo = state_infos_[sid];
-                sinfo.explored = 1;
 
                 if (stk_it->one || stk_it->scc_transitions) {
                     sinfo.stackid_ = StateInfo::ONE;
-                    *one_states_out = sid;
+
+                    if (!sinfo.expandable_goal) {
+                        *one_states_out = sid;
+                    }
+
                     ++stats_.ones;
                 } else {
                     sinfo.stackid_ = StateInfo::UNDEF;
