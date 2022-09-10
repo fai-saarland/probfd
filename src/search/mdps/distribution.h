@@ -117,6 +117,14 @@ public:
     bool empty() const { return distribution_.empty(); }
 
     /**
+     * @brief Checks if the distribution is a Dirac distribution wrt an element.
+     */
+    bool is_dirac(const T& t) const
+    {
+        return size() == 1 && *elem_begin() == t;
+    }
+
+    /**
      * Multiplies each element probability with \p scale.
      */
     void normalize(const value_type::value_t& scale)
