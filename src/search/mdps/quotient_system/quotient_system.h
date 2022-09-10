@@ -323,8 +323,7 @@ public:
         QuotientInformation& qinfo = quotients_[rid];
 
         auto rit = std::find(begin, end, rid);
-        auto ridx = rit - begin;
-        assert(begin + ridx != end);
+        auto ridx = std::distance(begin, rit);
 
         // We handle the representative state first so that it
         // appears first in the data structure.
