@@ -156,9 +156,7 @@ public:
                 (expand_goals_ && state_info.status == StateInfo::GOAL));
 
             if (backtracked_state_info_ != nullptr) {
-                state_info.lowlink = std::min(
-                    state_info.lowlink,
-                    backtracked_state_info_->lowlink);
+                state_info.update_lowlink(backtracked_state_info_->lowlink);
                 state_info.dead &= backtracked_state_info_->dead;
                 backtracked_state_info_ = nullptr;
             }
@@ -206,16 +204,16 @@ private:
         // Tarjan's info
         unsigned dfs_index = 0;
         unsigned lowlink = 0;
+
+        void update_lowlink(unsigned upd) { lowlink = std::min(lowlink, upd); }
     };
 
     struct ExplorationInfo {
         ExplorationInfo(
             StateID state_id,
-            value_type::value_t reward,
             unsigned stackidx,
             std::vector<Action> aops)
             : state_id(state_id)
-            , state_reward(reward)
             , stackidx(stackidx)
             , aops(std::move(aops))
             , successor(transition.end())
@@ -247,8 +245,7 @@ private:
         }
 
         // Immutable info
-        StateID state_id;                 // State this information belongs to
-        value_type::value_t state_reward; // Reward of the associated state
+        StateID state_id;  // State this information belongs to
         unsigned stackidx; // Index on the stack of the associated state
 
         // Mutable info
@@ -429,7 +426,6 @@ private:
 
         ExplorationInfo& einfo = exploration_stack_.emplace_back(
             state_id,
-            state_reward,
             stack_.size(),
             std::move(aops));
 
@@ -452,14 +448,12 @@ private:
         auto& s_info = stack_.emplace_back(
             state_id,
             &state_value,
-            dead_end_value_,
+            state_eval ? IncumbentSolution(state_reward) : dead_end_value_,
             einfo.aops.size());
 
         einfo.aops.pop_back();
 
-        const auto action_reward = this->get_action_reward(state_id, *action);
-
-        s_info.infos.emplace_back(state_reward + action_reward);
+        s_info.infos.emplace_back(this->get_action_reward(state_id, *action));
 
         return true;
     }
@@ -481,8 +475,6 @@ private:
         ValueStore& value_store,
         DeadendOutputIt dead_end_out)
     {
-        const value_type::value_t state_reward = explore.state_reward;
-
         do {
             assert(!stack_info.infos.empty());
 
@@ -502,8 +494,7 @@ private:
 
                 if (status == StateInfo::ONSTACK) {
                     tinfo.successors.emplace_back(prob, &value_store[succ_id]);
-                    state_info.lowlink =
-                        std::min(state_info.lowlink, succ_info.dfs_index);
+                    state_info.update_lowlink(succ_info.dfs_index);
                 } else {
                     if (status == StateInfo::NEW) {
                         if (push_state(
@@ -514,8 +505,7 @@ private:
                             return true; // recursion on new state
                         }
                     } else if (expand_goals_ && status == StateInfo::GOAL) {
-                        state_info.lowlink =
-                            std::min(state_info.lowlink, succ_info.dfs_index);
+                        state_info.update_lowlink(succ_info.dfs_index);
                     }
 
                     tinfo.base += prob * value_store[succ_id];
@@ -541,7 +531,7 @@ private:
 
             const auto action_reward =
                 this->get_action_reward(state_id, *next_action);
-            stack_info.infos.emplace_back(state_reward + action_reward);
+            stack_info.infos.emplace_back(action_reward);
         } while (true);
     }
 
@@ -590,14 +580,13 @@ private:
                 state_info.status == StateInfo::ONSTACK ||
                 (expand_goals_ && state_info.status == StateInfo::GOAL));
 
-            if (!expand_goals_ || state_info.status == StateInfo::ONSTACK) {
+            if (state_info.status == StateInfo::ONSTACK) {
                 value_utils::update(*begin->value, begin->base);
             }
 
             state_info.status = StateInfo::CLOSED;
         } else {
-            // Iterate over the SCC and remove goal states SCC and states which
-            // only transition to a goal state inside the SCC.
+            // Iterate over the SCC and remove goal states
 
             // First iterate until a state to remove is found
             auto swap_it = begin;
@@ -608,15 +597,9 @@ private:
                 assert(
                     state_it.status == StateInfo::ONSTACK ||
                     (expand_goals_ && state_it.status == StateInfo::GOAL));
-                assert(expand_goals_ || !stack_it.infos.empty());
 
-                if (expand_goals_) {
-                    if (state_it.status == StateInfo::GOAL) {
-                        break;
-                    } else if (stack_it.infos.empty()) {
-                        value_utils::update(*stack_it.value, stack_it.base);
-                        break;
-                    }
+                if (state_it.status == StateInfo::GOAL) {
+                    break;
                 }
 
                 state_it.status = StateInfo::CLOSED;
@@ -626,19 +609,13 @@ private:
             // If there is something to remove, shift remaining states forward
             // to fill the gaps
             if (swap_it != end) {
-                assert(expand_goals_);
-
                 for (auto it = swap_it; ++it != end;) {
                     StackInfo& stack_it = *it;
                     StateInfo& state_it = state_information_[stack_it.state_id];
 
                     if (state_it.status != StateInfo::GOAL) {
                         assert(state_it.status == StateInfo::ONSTACK);
-                        if (stack_it.infos.empty()) {
-                            value_utils::update(*stack_it.value, stack_it.base);
-                        } else {
-                            *swap_it++ = std::move(*it);
-                        }
+                        *swap_it++ = std::move(*it);
                     }
 
                     state_it.status = StateInfo::CLOSED;
