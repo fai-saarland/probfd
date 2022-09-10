@@ -9,6 +9,8 @@
 #include "engine.h"
 #include "topological_value_iteration.h"
 
+#include <iterator>
+
 namespace probabilistic {
 namespace engines {
 
@@ -240,16 +242,30 @@ private:
             &q_transition_gen,
             expand_goals_);
 
+        std::set<StateID> gp_zero_states;
+        std::set<StateID> gp_one_states;
+
         if (extract_probability_one_states_) {
             analysis.run_analysis(
                 state,
-                utils::set_output_iterator(dead_ends),
-                utils::set_output_iterator(one_states));
+                std::inserter(gp_zero_states, gp_zero_states.end()),
+                std::inserter(gp_one_states, gp_one_states.end()));
         } else {
             analysis.run_analysis(
                 state,
-                utils::set_output_iterator(dead_ends),
+                std::inserter(gp_zero_states, gp_zero_states.end()),
                 utils::discarding_output_iterator());
+        }
+
+        sys->build_quotient(gp_zero_states);
+        sys->build_quotient(gp_one_states);
+
+        for (StateID id : gp_zero_states) {
+            dead_ends[id] = true;
+        }
+
+        for (StateID id : gp_one_states) {
+            one_states[id] = true;
         }
 
         HeuristicWrapper<BoolStoreT> heuristic(

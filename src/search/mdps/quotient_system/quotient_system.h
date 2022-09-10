@@ -296,6 +296,20 @@ public:
         return QAction(qsid_naops->first, info->aops[aid]);
     }
 
+    template <typename Range>
+    void build_quotient(Range range)
+    {
+        this->build_quotient(range.begin(), range.end());
+    }
+
+    template <typename StateIDIterator>
+    void build_quotient(StateIDIterator begin, StateIDIterator end)
+    {
+        if (begin != end) {
+            this->build_quotient(begin, end, *begin);
+        }
+    }
+
     template <typename StateIDIterator>
     void build_quotient(
         StateIDIterator begin,
