@@ -154,14 +154,8 @@ void ProbabilisticProjection::build_operators(bool operator_pruning)
 {
     abstract_operators_.reserve(g_operators.size());
 
-    std::vector<AbstractRegressionOperator> abstract_regression_operators;
-    abstract_regression_operators.reserve(g_operators.size());
-
     std::vector<PartialAssignment> progression_preconditions;
-    std::vector<PartialAssignment> regression_preconditions;
-
     progression_preconditions.reserve(g_operators.size());
-    regression_preconditions.reserve(g_operators.size());
 
     std::set<ProgressionOperatorFootprint> duplicate_set;
 
@@ -170,9 +164,7 @@ void ProbabilisticProjection::build_operators(bool operator_pruning)
         add_abstract_operators(
             op,
             duplicate_set,
-            abstract_regression_operators,
             progression_preconditions,
-            regression_preconditions,
             operator_pruning);
     }
 
@@ -182,9 +174,6 @@ void ProbabilisticProjection::build_operators(bool operator_pruning)
     }
 
     assert(abstract_operators_.size() == progression_preconditions.size());
-    assert(
-        abstract_regression_operators.size() ==
-        regression_preconditions.size());
 
     // Build applicable operator generators
     progression_aops_generator_ =
@@ -192,11 +181,6 @@ void ProbabilisticProjection::build_operators(bool operator_pruning)
             state_mapper_->domains_begin(),
             progression_preconditions,
             opptrs);
-
-    regression_aops_generator_ = std::make_shared<RegressionSuccessorGenerator>(
-        state_mapper_->domains_begin(),
-        regression_preconditions,
-        std::move(abstract_regression_operators));
 }
 
 namespace {
@@ -211,28 +195,6 @@ struct OutcomeInfo {
                std::tie(b.base_effect, b.missing_pres);
     }
 };
-
-void update(
-    PartialAssignment& pstate,
-    const PartialAssignment& effect)
-{
-    auto it = effect.begin();
-    auto end = effect.end();
-
-    auto pit = pstate.begin();
-    auto pend = pstate.end();
-
-    for (; it != end; ++it, ++pit) {
-        const auto& [idx, val] = *it;
-
-        pit = std::find_if(pit, pend, [idx = idx](const auto& p) {
-            return p.first == idx;
-        });
-
-        assert(pit != pend);
-        pit->second = val;
-    }
-}
 
 template <typename PartialAssignmentRange>
 PartialAssignment sparse_from_dense(
@@ -255,9 +217,7 @@ PartialAssignment sparse_from_dense(
 void ProbabilisticProjection::add_abstract_operators(
     const ProbabilisticOperator& op,
     std::set<ProgressionOperatorFootprint>& duplicate_set,
-    std::vector<AbstractRegressionOperator>& regression_operators,
     std::vector<PartialAssignment>& progression_preconditions,
-    std::vector<PartialAssignment>& regression_preconditions,
     bool pruning)
 {
     const int operator_id = op.get_id();
@@ -318,17 +278,11 @@ void ProbabilisticProjection::add_abstract_operators(
         // Generate the progression operator
         AbstractOperator new_op(operator_id, cost);
 
-        // Effects are cached for the regression operator generation
-        std::vector<PartialAssignment> effects;
-
         for (const auto& [info, prob] : outcomes) {
             const auto& [base_effect, missing_pres, effect] = info;
             auto a = state_mapper_->from_values_partial(missing_pres, values);
-            const AbstractState change = base_effect - a;
 
-            if (new_op.outcomes.add_unique(change, prob).second) {
-                effects.push_back(effect);
-            }
+            new_op.outcomes.add_unique(base_effect - a, prob);
         }
 
         // Construct the precondition by merging the original precondition
@@ -351,23 +305,7 @@ void ProbabilisticProjection::add_abstract_operators(
             continue;
         }
 
-        // Generate and add the regression operators
-        const size_t pid = progression_preconditions.size();
-
-        for (size_t i = 0; i != new_op.outcomes.size(); ++i) {
-            const AbstractState change = new_op.outcomes.data()[i].first;
-            const auto& effect = effects[i];
-
-            // Apply effect to progression precondition. The result is the
-            // regression precondition
-            update(regression_preconditions.emplace_back(precondition), effect);
-
-            // Effect is inverted
-            regression_operators.emplace_back(pid, AbstractState(-change.id));
-        }
-
-        // Now add the progression operators. In this order, we can move
-        // construct
+        // Now add the progression operators.
         progression_preconditions.push_back(std::move(precondition));
         abstract_operators_.push_back(std::move(new_op));
     };

@@ -64,9 +64,6 @@ protected:
     using ProgressionSuccessorGenerator =
         successor_generator::SuccessorGenerator<const AbstractOperator*>;
 
-    using RegressionSuccessorGenerator =
-        successor_generator::SuccessorGenerator<AbstractRegressionOperator>;
-
 public:
     ProbabilisticProjection(
         const Pattern& pattern,
@@ -147,11 +144,8 @@ private:
     void add_abstract_operators(
         const ProbabilisticOperator& op,
         std::set<ProgressionOperatorFootprint>& duplicate_set,
-        std::vector<AbstractRegressionOperator>& regression_operators,
         std::vector<std::vector<std::pair<int, int>>>&
             progression_preconditions,
-        std::vector<std::vector<std::pair<int, int>>>&
-            regression_preconditions,
         bool operator_pruining);
 
 protected:
@@ -163,7 +157,6 @@ protected:
 
     std::vector<AbstractOperator> abstract_operators_;
     std::shared_ptr<ProgressionSuccessorGenerator> progression_aops_generator_;
-    std::shared_ptr<RegressionSuccessorGenerator> regression_aops_generator_;
 
     unsigned int reachable_states = 0;
 
