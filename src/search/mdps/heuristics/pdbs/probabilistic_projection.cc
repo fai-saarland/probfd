@@ -114,35 +114,6 @@ const Pattern& ProbabilisticProjection::get_pattern() const
     return state_mapper_->get_pattern();
 }
 
-bool is_closed(
-    AbstractState state,
-    const AbstractOperator* op,
-    const std::unordered_set<AbstractState>& closure)
-{
-    for (auto outcome : op->outcomes) {
-        auto successor = state + outcome.first;
-        if (closure.find(successor) == closure.end()) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool has_closed_operator(
-    AbstractState state,
-    std::set<const probabilistic::pdbs::AbstractOperator*>& operators,
-    const std::unordered_set<AbstractState>& closure)
-{
-    for (const auto* op : operators) {
-        if (is_closed(state, op, closure)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 void ProbabilisticProjection::setup_abstract_goal()
 {
     const Pattern& variables = state_mapper_->get_pattern();
