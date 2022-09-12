@@ -65,7 +65,7 @@ class DefaultQuotientSystem {
 public:
     using Action = BaseActionT;
     using QAction = QuotientAction<Action>;
-    using QuotientStateIDIterator = utils::common_iterator<
+    using QuotientStateIDIterator = utils::variant_iterator<
         typename QuotientInformation::const_state_iterator,
         const StateID*>;
 
