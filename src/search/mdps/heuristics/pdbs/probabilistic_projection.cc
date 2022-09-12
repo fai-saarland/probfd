@@ -233,6 +233,23 @@ void update(
         pit->second = val;
     }
 }
+
+template <typename PartialAssignmentRange>
+PartialAssignment sparse_from_dense(
+    const PartialAssignmentRange& dense,
+    const std::vector<int>& indices)
+{
+    PartialAssignment sparse;
+
+    for (const auto& [var, val] : dense) {
+        const int idx = indices[var];
+        if (idx != -1) {
+            sparse.emplace_back(idx, val);
+        }
+    }
+
+    return sparse;
+}
 } // namespace
 
 void ProbabilisticProjection::add_abstract_operators(
@@ -248,15 +265,9 @@ void ProbabilisticProjection::add_abstract_operators(
 
     // Precondition partial state and partial state to enumerate
     // effect values not appearing in precondition
-    PartialAssignment local_precondition;
+    PartialAssignment local_precondition =
+        sparse_from_dense(op.get_preconditions(), var_index_);
     PartialAssignment effects_not_in_pre;
-
-    for (const auto& [var, val] : op.get_preconditions()) {
-        const int idx = var_index_[var];
-        if (idx != -1) {
-            local_precondition.emplace_back(idx, val);
-        }
-    }
 
     // Info about each probabilistic outcome
     Distribution<OutcomeInfo> outcomes;
