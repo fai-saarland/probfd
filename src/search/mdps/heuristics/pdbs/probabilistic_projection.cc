@@ -232,8 +232,7 @@ void ProbabilisticProjection::add_abstract_operators(
                 val_change -= pre_it.base->second;
             }
 
-            info.base_effect +=
-                state_mapper_->from_value_partial(var, val_change);
+            info.base_effect += state_mapper_->from_fact(var, val_change);
         }
 
         outcomes.add_unique(std::move(info), out.prob);

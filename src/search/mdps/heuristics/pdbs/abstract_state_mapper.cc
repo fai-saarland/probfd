@@ -272,7 +272,7 @@ AbstractState AbstractStateMapper::from_values_partial(
     return res;
 }
 
-AbstractState AbstractStateMapper::from_value_partial(int idx, int val) const
+AbstractState AbstractStateMapper::from_fact(int idx, int val) const
 {
     return AbstractState(var_infos_[idx].multiplier * val);
 }
