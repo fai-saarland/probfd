@@ -144,7 +144,6 @@ private:
 protected:
     std::vector<int> var_index_;
     std::shared_ptr<AbstractStateMapper> state_mapper_;
-    std::vector<std::pair<int, int>> sparse_goal_;
     AbstractState initial_state_;
     std::unordered_set<AbstractState> goal_states_;
 
