@@ -57,31 +57,6 @@ unsigned int ProbabilisticProjection::num_states() const
     return state_mapper_->num_states();
 }
 
-unsigned int ProbabilisticProjection::num_dead_ends() const
-{
-    return state_mapper_->num_states() - dead_ends_.size();
-}
-
-unsigned int ProbabilisticProjection::num_proper_states() const
-{
-    return proper_states_.size();
-}
-
-unsigned int ProbabilisticProjection::num_reachable_states() const
-{
-    return reachable_states;
-}
-
-bool ProbabilisticProjection::has_only_proper_states() const
-{
-    return state_mapper_->num_states() == proper_states_.size();
-}
-
-bool ProbabilisticProjection::has_only_dead_or_proper_states() const
-{
-    return dead_ends_.size() == proper_states_.size();
-}
-
 bool ProbabilisticProjection::is_dead_end(const GlobalState& s) const
 {
     return is_dead_end(get_abstract_state(s));

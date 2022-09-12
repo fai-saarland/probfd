@@ -119,9 +119,9 @@ void MaxProbProjection::compute_value_table(
         true,
         true);
 
-    vi.solve(initial_state_, value_table, dead_ends_, proper_states_);
+    std::vector<StateID> proper_states;
 
-    reachable_states = state_id_map.size();
+    vi.solve(initial_state_, value_table, dead_ends_, proper_states);
 
 #if !defined(NDEBUG)
     logging::out << "(II) Pattern [";
@@ -297,8 +297,8 @@ void MaxProbProjection::dump_graphviz(
             out << " (";
             if (utils::contains(dead_ends_, StateID(x.id))) {
                 out << "dead";
-            } else if (utils::contains(proper_states_, StateID(x.id))) {
-                out << "one";
+            } else if (utils::contains(goal_states_, x)) {
+                out << "goal";
             } else {
                 auto bounds = value_table[x.id];
                 out << "[" << bounds.lower << ", " << bounds.upper << "]";

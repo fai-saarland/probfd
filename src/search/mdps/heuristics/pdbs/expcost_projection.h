@@ -60,7 +60,9 @@ private:
     void compute_value_table(const AbstractStateEvaluator& heuristic);
 
 #ifndef NDEBUG
-    void verify(const StateIDMap<AbstractState>& state_id_map);
+    void verify(
+        const StateIDMap<AbstractState>& state_id_map,
+        std::vector<StateID> proper_states);
 #endif
 };
 

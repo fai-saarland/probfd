@@ -260,12 +260,14 @@ void ExpCostProjection::compute_value_table(
     QualitativeReachabilityAnalysis<AbstractState, const AbstractOperator*>
         analysis(&state_id_map, &action_id_map, &reward, &transition_gen, true);
 
+    std::vector<StateID> proper_states;
+
     analysis.run_analysis(
         initial_state_,
         std::back_inserter(dead_ends_),
-        std::back_inserter(proper_states_));
+        std::back_inserter(proper_states));
 
-    WrapperHeuristic h(proper_states_, heuristic);
+    WrapperHeuristic h(proper_states, heuristic);
 
     TopologicalValueIteration<AbstractState, const AbstractOperator*> vi(
         &state_id_map,
@@ -278,8 +280,6 @@ void ExpCostProjection::compute_value_table(
 
     vi.solve(state_id_map.get_state_id(initial_state_), value_table);
 
-    reachable_states = state_id_map.size();
-
 #if !defined(NDEBUG)
     logging::out << "(II) Pattern [";
     for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
@@ -288,12 +288,15 @@ void ExpCostProjection::compute_value_table(
 
     logging::out << "]: value=" << value_table[initial_state_.id] << std::endl;
 
-    verify(state_id_map);
+    verify(state_id_map, proper_states);
 #endif
 }
 
 #ifndef NDEBUG
-void ExpCostProjection::verify(const StateIDMap<AbstractState>& state_id_map) {
+void ExpCostProjection::verify(
+    const StateIDMap<AbstractState>& state_id_map,
+    std::vector<StateID> proper_states)
+{
     for (const int id : state_id_map.visited()) {
         AbstractState s(id);
         const value_type::value_t value = value_table[s.id];
@@ -303,7 +306,7 @@ void ExpCostProjection::verify(const StateIDMap<AbstractState>& state_id_map) {
             continue;
         }
 
-        if (!utils::contains(proper_states_, StateID(id))) {
+        if (!utils::contains(proper_states, StateID(id))) {
             assert(value == -value_type::inf);
             continue;
         }

@@ -79,13 +79,6 @@ public:
 
     unsigned int num_states() const;
 
-    unsigned int num_dead_ends() const;
-    unsigned int num_proper_states() const;
-    unsigned int num_reachable_states() const;
-
-    bool has_only_proper_states() const;
-    bool has_only_dead_or_proper_states() const;
-
     bool is_dead_end(const GlobalState& s) const;
     bool is_dead_end(const AbstractState& s) const;
 
@@ -158,10 +151,7 @@ protected:
     std::vector<AbstractOperator> abstract_operators_;
     std::shared_ptr<ProgressionSuccessorGenerator> progression_aops_generator_;
 
-    unsigned int reachable_states = 0;
-
     std::vector<StateID> dead_ends_;
-    std::vector<StateID> proper_states_;
 };
 
 } // namespace pdbs
