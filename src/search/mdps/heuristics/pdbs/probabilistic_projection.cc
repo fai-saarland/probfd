@@ -253,14 +253,6 @@ struct OutcomeInfo {
 } // namespace
 
 namespace {
-auto find_sorted(const std::vector<std::pair<int, int>>& p, int idx)
-{
-    auto it =
-        std::lower_bound(p.begin(), p.end(), idx, [](const auto& a, int i) {
-            return a.first < i;
-        });
-    return it != p.end() && it->first == idx ? it : p.end();
-}
 
 void apply(
     std::vector<std::pair<int, int>>& pstate,
@@ -324,7 +316,9 @@ void ProbabilisticProjection::add_abstract_operators(
             if (idx != -1) {
                 info.effects.emplace_back(idx, eff_val);
 
-                auto pre_it = find_sorted(local_precondition, idx);
+                auto beg = utils::make_key_iterator(local_precondition.begin());
+                auto end = utils::make_key_iterator(local_precondition.end());
+                auto pre_it = utils::find_sorted(beg, end, idx);
                 int val_change;
 
                 if (pre_it == local_precondition.end()) {
@@ -332,7 +326,7 @@ void ProbabilisticProjection::add_abstract_operators(
                     info.missing_pres.push_back(idx);
                     val_change = eff_val;
                 } else {
-                    val_change = eff_val - pre_it->second;
+                    val_change = eff_val - pre_it.base->second;
                 }
 
                 info.base_effect +=

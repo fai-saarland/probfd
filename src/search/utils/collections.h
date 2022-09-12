@@ -162,6 +162,13 @@ bool in_bounds(size_t index, const T& container)
     return index < container.size();
 }
 
+template <typename Iterator, typename Sentinel, typename T>
+auto find_sorted(Iterator begin, Sentinel end, const T& elem)
+{
+    auto it = std::lower_bound(begin, end, elem);
+    return it != end && *it == elem ? it : end;
+}
+
 inline std::vector<int> insert(std::vector<int> pattern, int add_var)
 {
     assert(!utils::contains(pattern, add_var));
