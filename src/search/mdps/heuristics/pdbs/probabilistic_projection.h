@@ -142,11 +142,10 @@ private:
         bool operator_pruining);
 
 protected:
-    std::vector<int> var_index_;
     std::shared_ptr<AbstractStateMapper> state_mapper_;
+
     AbstractState initial_state_;
     std::unordered_set<AbstractState> goal_states_;
-
     std::vector<AbstractOperator> abstract_operators_;
     std::shared_ptr<ProgressionSuccessorGenerator> progression_aops_generator_;
 

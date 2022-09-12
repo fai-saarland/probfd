@@ -28,14 +28,9 @@ ProbabilisticProjection::ProbabilisticProjection(
 ProbabilisticProjection::ProbabilisticProjection(
     AbstractStateMapper* mapper,
     bool operator_pruning)
-    : var_index_(::g_variable_domain.size(), -1)
-    , state_mapper_(mapper)
+    : state_mapper_(mapper)
     , initial_state_((*state_mapper_)(::g_initial_state_data))
 {
-    for (size_t i = 0; i < mapper->get_pattern().size(); ++i) {
-        var_index_[mapper->get_pattern()[i]] = i;
-    }
-
     setup_abstract_goal();
     build_operators(operator_pruning);
 }
@@ -97,20 +92,21 @@ void ProbabilisticProjection::setup_abstract_goal()
 
     // Translate sparse goal into pdb index space
     // and collect non-goal variables aswell.
-    int v = 0;
-    for (const auto& [var, val] : g_goal) {
-        const int idx = var_index_[var];
-        if (idx == -1) continue;
-
-        while (v < idx) {
+    for (int v = 0, w = 0; v != static_cast<int>(variables.size());) {
+        if (variables[v] < g_goal[w].first) {
             non_goal_vars.push_back(v++);
-        }
+        } else {
+            if (variables[v] == g_goal[w].first) {
+                sparse_goal.emplace_back(v++, g_goal[w].second);
+            }
 
-        sparse_goal.emplace_back(v, val);
-        v++;
-    }
-    while (v < static_cast<int>(variables.size())) {
-        non_goal_vars.push_back(v++);
+            if (++w == static_cast<int>(g_goal.size())) {
+                while (v < static_cast<int>(variables.size())) {
+                    non_goal_vars.push_back(v++);
+                }
+                break;
+            }
+        }
     }
 
     assert(non_goal_vars.size() + sparse_goal.size() == variables.size());
@@ -199,10 +195,16 @@ void ProbabilisticProjection::add_abstract_operators(
     const int operator_id = op.get_id();
     const int cost = op.get_cost();
 
+    std::vector<int> var_index(::g_variable_domain.size(), -1);
+
+    for (size_t i = 0; i < state_mapper_->get_pattern().size(); ++i) {
+        var_index[state_mapper_->get_pattern()[i]] = i;
+    }
+
     // Precondition partial state and partial state to enumerate
     // effect values not appearing in precondition
     PartialAssignment local_precondition =
-        sparse_from_dense(op.get_preconditions(), var_index_);
+        sparse_from_dense(op.get_preconditions(), var_index);
     PartialAssignment effects_not_in_pre;
 
     // Info about each probabilistic outcome
@@ -216,7 +218,7 @@ void ProbabilisticProjection::add_abstract_operators(
         OutcomeInfo info;
 
         for (const auto& [eff_var, eff_val, _] : effects) {
-            const int idx = var_index_[eff_var];
+            const int idx = var_index[eff_var];
 
             if (idx != -1) {
                 info.effects.emplace_back(idx, eff_val);
