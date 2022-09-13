@@ -23,7 +23,7 @@ struct PatternTooLargeException : utils::Exception {
     }
 };
 
-AbstractStateMapper::CartesianSubsetIterator::CartesianSubsetIterator(
+AbstractStateMapper::PartialAssignmentIterator::PartialAssignmentIterator(
     std::vector<std::pair<int, int>> partial_state,
     const std::vector<VariableInfo>& var_infos)
     : partial_state_(std::move(partial_state))
@@ -32,8 +32,8 @@ AbstractStateMapper::CartesianSubsetIterator::CartesianSubsetIterator(
 {
 }
 
-AbstractStateMapper::CartesianSubsetIterator&
-AbstractStateMapper::CartesianSubsetIterator::operator++()
+AbstractStateMapper::PartialAssignmentIterator&
+AbstractStateMapper::PartialAssignmentIterator::operator++()
 {
     for (int i = partial_state_.size() - 1; i >= 0; --i) {
         auto& [var, val] = partial_state_[i];
@@ -52,8 +52,8 @@ AbstractStateMapper::CartesianSubsetIterator::operator++()
     return *this;
 }
 
-AbstractStateMapper::CartesianSubsetIterator&
-AbstractStateMapper::CartesianSubsetIterator::operator--()
+AbstractStateMapper::PartialAssignmentIterator&
+AbstractStateMapper::PartialAssignmentIterator::operator--()
 {
     for (int i = partial_state_.size() - 1; i >= 0; --i) {
         auto& [var, val] = partial_state_[i];
@@ -72,33 +72,33 @@ AbstractStateMapper::CartesianSubsetIterator::operator--()
     return *this;
 }
 
-AbstractStateMapper::CartesianSubsetIterator::reference
-AbstractStateMapper::CartesianSubsetIterator::operator*()
+AbstractStateMapper::PartialAssignmentIterator::reference
+AbstractStateMapper::PartialAssignmentIterator::operator*()
 {
     return partial_state_;
 }
 
-AbstractStateMapper::CartesianSubsetIterator::pointer
-AbstractStateMapper::CartesianSubsetIterator::operator->()
+AbstractStateMapper::PartialAssignmentIterator::pointer
+AbstractStateMapper::PartialAssignmentIterator::operator->()
 {
     return &partial_state_;
 }
 
 bool operator==(
-    const AbstractStateMapper::CartesianSubsetIterator& a,
+    const AbstractStateMapper::PartialAssignmentIterator& a,
     const utils::default_sentinel_t&)
 {
     return a.done;
 }
 
 bool operator!=(
-    const AbstractStateMapper::CartesianSubsetIterator& a,
+    const AbstractStateMapper::PartialAssignmentIterator& a,
     const utils::default_sentinel_t&)
 {
     return !a.done;
 }
 
-AbstractStateMapper::PartialStateIterator::PartialStateIterator(
+AbstractStateMapper::AbstractStateIterator::AbstractStateIterator(
     AbstractState offset,
     const std::vector<int>& indices,
     const std::vector<VariableInfo>& var_infos)
@@ -115,8 +115,8 @@ AbstractStateMapper::PartialStateIterator::PartialStateIterator(
     }
 }
 
-AbstractStateMapper::PartialStateIterator&
-AbstractStateMapper::PartialStateIterator::operator++()
+AbstractStateMapper::AbstractStateIterator&
+AbstractStateMapper::AbstractStateIterator::operator++()
 {
     for (int idx = values_.size() - 1; idx >= 0; --idx) {
         const int next = values_[idx] + 1;
@@ -136,25 +136,25 @@ AbstractStateMapper::PartialStateIterator::operator++()
     return *this;
 }
 
-const AbstractState& AbstractStateMapper::PartialStateIterator::operator*()
+const AbstractState& AbstractStateMapper::AbstractStateIterator::operator*()
 {
     return state_;
 }
 
-const AbstractState* AbstractStateMapper::PartialStateIterator::operator->()
+const AbstractState* AbstractStateMapper::AbstractStateIterator::operator->()
 {
     return &state_;
 }
 
 bool operator==(
-    const AbstractStateMapper::PartialStateIterator& a,
+    const AbstractStateMapper::AbstractStateIterator& a,
     const utils::default_sentinel_t&)
 {
     return a.done;
 }
 
 bool operator!=(
-    const AbstractStateMapper::PartialStateIterator& a,
+    const AbstractStateMapper::AbstractStateIterator& a,
     const utils::default_sentinel_t&)
 {
     return !a.done;
@@ -392,11 +392,11 @@ AbstractState AbstractStateMapper::convert(
     return converted_state;
 }
 
-AbstractStateMapper::CartesianSubsetIterator
+AbstractStateMapper::PartialAssignmentIterator
 AbstractStateMapper::cartesian_subsets_begin(
     std::vector<std::pair<int, int>> partial_state) const
 {
-    return CartesianSubsetIterator(std::move(partial_state), var_infos_);
+    return PartialAssignmentIterator(std::move(partial_state), var_infos_);
 }
 
 utils::default_sentinel_t AbstractStateMapper::cartesian_subsets_end() const
@@ -405,23 +405,23 @@ utils::default_sentinel_t AbstractStateMapper::cartesian_subsets_end() const
 }
 
 utils::RangeProxy<
-    AbstractStateMapper::CartesianSubsetIterator,
+    AbstractStateMapper::PartialAssignmentIterator,
     utils::default_sentinel_t>
 AbstractStateMapper::cartesian_subsets(
     std::vector<std::pair<int, int>> partial_state) const
 {
     return utils::
-        RangeProxy<CartesianSubsetIterator, utils::default_sentinel_t>(
+        RangeProxy<PartialAssignmentIterator, utils::default_sentinel_t>(
             cartesian_subsets_begin(std::move(partial_state)),
             cartesian_subsets_end());
 }
 
-AbstractStateMapper::PartialStateIterator
+AbstractStateMapper::AbstractStateIterator
 AbstractStateMapper::partial_states_begin(
     AbstractState offset,
     std::vector<int> indices) const
 {
-    return PartialStateIterator(offset, indices, var_infos_);
+    return AbstractStateIterator(offset, indices, var_infos_);
 }
 
 utils::default_sentinel_t AbstractStateMapper::partial_states_end() const
@@ -430,13 +430,13 @@ utils::default_sentinel_t AbstractStateMapper::partial_states_end() const
 }
 
 utils::RangeProxy<
-    AbstractStateMapper::PartialStateIterator,
+    AbstractStateMapper::AbstractStateIterator,
     utils::default_sentinel_t>
 AbstractStateMapper::partial_states(
     AbstractState offset,
     std::vector<int> indices) const
 {
-    return utils::RangeProxy<PartialStateIterator, utils::default_sentinel_t>(
+    return utils::RangeProxy<AbstractStateIterator, utils::default_sentinel_t>(
         partial_states_begin(offset, indices),
         partial_states_end());
 }

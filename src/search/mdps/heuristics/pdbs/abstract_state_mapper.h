@@ -27,7 +27,7 @@ public:
         int partial_multiplier;
     };
 
-    class CartesianSubsetIterator {
+    class PartialAssignmentIterator {
         using difference_type = void;
         using value_type = std::vector<std::pair<int, int>>;
         using pointer = std::vector<std::pair<int, int>>*;
@@ -40,26 +40,26 @@ public:
         bool done;
 
     public:
-        CartesianSubsetIterator(
+        PartialAssignmentIterator(
             std::vector<std::pair<int, int>> partial_state,
             const std::vector<VariableInfo>& var_infos);
 
-        CartesianSubsetIterator& operator++();
-        CartesianSubsetIterator& operator--();
+        PartialAssignmentIterator& operator++();
+        PartialAssignmentIterator& operator--();
 
         reference operator*();
         pointer operator->();
 
         friend bool operator==(
-            const CartesianSubsetIterator& a,
+            const PartialAssignmentIterator& a,
             const utils::default_sentinel_t&);
 
         friend bool operator!=(
-            const CartesianSubsetIterator& a,
+            const PartialAssignmentIterator& a,
             const utils::default_sentinel_t&);
     };
 
-    class PartialStateIterator {
+    class AbstractStateIterator {
         using difference_type = void;
         using value_type = const AbstractState;
         using pointer = const AbstractState*;
@@ -74,22 +74,22 @@ public:
         bool done;
 
     public:
-        PartialStateIterator(
+        AbstractStateIterator(
             AbstractState state,
             const std::vector<int>& indices,
             const std::vector<VariableInfo>& var_infos);
 
-        PartialStateIterator& operator++();
+        AbstractStateIterator& operator++();
 
         reference operator*();
         pointer operator->();
 
         friend bool operator==(
-            const PartialStateIterator&,
+            const AbstractStateIterator&,
             const utils::default_sentinel_t&);
 
         friend bool operator!=(
-            const PartialStateIterator&,
+            const AbstractStateIterator&,
             const utils::default_sentinel_t&);
     };
 
@@ -155,20 +155,20 @@ public:
     void
     to_values(AbstractState abstract_state, std::vector<int>& values) const;
 
-    CartesianSubsetIterator cartesian_subsets_begin(
+    PartialAssignmentIterator cartesian_subsets_begin(
         std::vector<std::pair<int, int>> partial_state) const;
 
     utils::default_sentinel_t cartesian_subsets_end() const;
 
-    utils::RangeProxy<CartesianSubsetIterator, utils::default_sentinel_t>
+    utils::RangeProxy<PartialAssignmentIterator, utils::default_sentinel_t>
     cartesian_subsets(std::vector<std::pair<int, int>> partial_state) const;
 
-    PartialStateIterator
+    AbstractStateIterator
     partial_states_begin(AbstractState offset, std::vector<int> indices) const;
 
     utils::default_sentinel_t partial_states_end() const;
 
-    utils::RangeProxy<PartialStateIterator, utils::default_sentinel_t>
+    utils::RangeProxy<AbstractStateIterator, utils::default_sentinel_t>
     partial_states(AbstractState offset, std::vector<int> indices) const;
 
     int get_multiplier(int var) const;
