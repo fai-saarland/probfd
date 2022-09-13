@@ -212,12 +212,9 @@ void ProbabilisticProjection::add_abstract_operators(
 
     // Collect info about the outcomes
     for (const ProbabilisticOutcome& out : op) {
-        const std::vector<GlobalEffect>& effects = out.op->get_effects();
-        const value_type::value_t prob = out.prob;
-
         OutcomeInfo info;
 
-        for (const auto& [eff_var, eff_val, _] : effects) {
+        for (const auto& [eff_var, eff_val, _] : out.op->get_effects()) {
             const int idx = var_index[eff_var];
 
             if (idx != -1) {
@@ -241,7 +238,7 @@ void ProbabilisticProjection::add_abstract_operators(
             }
         }
 
-        outcomes.add_unique(std::move(info), prob);
+        outcomes.add_unique(std::move(info), out.prob);
     }
 
     utils::sort_unique(effects_not_in_pre);
