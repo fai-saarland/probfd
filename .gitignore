@@ -10,6 +10,5 @@ cmake-build-debug/
 *.patch
 .vs/
 .vscode/
-.clang-format
 docs/latex/
 docs/html/
