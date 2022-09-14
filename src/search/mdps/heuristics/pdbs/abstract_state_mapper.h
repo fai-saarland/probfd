@@ -156,21 +156,21 @@ public:
     void
     to_values(AbstractState abstract_state, std::vector<int>& values) const;
 
-    PartialAssignmentIterator cartesian_subsets_begin(
+    PartialAssignmentIterator partial_assignments_begin(
         std::vector<std::pair<int, int>> partial_state) const;
 
-    utils::default_sentinel_t cartesian_subsets_end() const;
+    utils::default_sentinel_t partial_assignments_end() const;
 
     utils::RangeProxy<PartialAssignmentIterator, utils::default_sentinel_t>
-    cartesian_subsets(std::vector<std::pair<int, int>> partial_state) const;
+    partial_assignments(std::vector<std::pair<int, int>> partial_state) const;
 
     AbstractStateIterator
-    partial_states_begin(AbstractState offset, std::vector<int> indices) const;
+    abstract_states_begin(AbstractState offset, std::vector<int> indices) const;
 
-    utils::default_sentinel_t partial_states_end() const;
+    utils::default_sentinel_t abstract_states_end() const;
 
     utils::RangeProxy<AbstractStateIterator, utils::default_sentinel_t>
-    partial_states(AbstractState offset, std::vector<int> indices) const;
+    abstract_states(AbstractState offset, std::vector<int> indices) const;
 
     int get_multiplier(int var) const;
     int get_multiplier_raw(int idx) const;

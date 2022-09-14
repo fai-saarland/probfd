@@ -115,7 +115,7 @@ void ProbabilisticProjection::setup_abstract_goal()
 
     assert(non_goal_vars.size() != variables.size()); // No goal no fun.
 
-    auto goals = state_mapper_->partial_states(base, std::move(non_goal_vars));
+    auto goals = state_mapper_->abstract_states(base, std::move(non_goal_vars));
 
     for (const auto& g : goals) {
         goal_states_.insert(g);
@@ -244,8 +244,7 @@ void ProbabilisticProjection::add_abstract_operators(
     // the precondition but in an effect. Depending on the value of the
     // variable, the value change caused by the abstract operator would be
     // different, hence we generate on operator for each state where enabled.
-    auto ran =
-        state_mapper_->cartesian_subsets(std::move(vars_eff_not_pre));
+    auto ran = state_mapper_->partial_assignments(std::move(vars_eff_not_pre));
 
     for (const PartialAssignment& values : ran) {
         // Generate the progression operator

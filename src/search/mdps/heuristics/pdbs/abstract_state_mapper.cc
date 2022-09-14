@@ -350,13 +350,13 @@ AbstractState AbstractStateMapper::convert(
 }
 
 AbstractStateMapper::PartialAssignmentIterator
-AbstractStateMapper::cartesian_subsets_begin(
+AbstractStateMapper::partial_assignments_begin(
     std::vector<std::pair<int, int>> partial_state) const
 {
     return PartialAssignmentIterator(std::move(partial_state), var_infos_);
 }
 
-utils::default_sentinel_t AbstractStateMapper::cartesian_subsets_end() const
+utils::default_sentinel_t AbstractStateMapper::partial_assignments_end() const
 {
     return utils::default_sentinel_t();
 }
@@ -364,24 +364,24 @@ utils::default_sentinel_t AbstractStateMapper::cartesian_subsets_end() const
 utils::RangeProxy<
     AbstractStateMapper::PartialAssignmentIterator,
     utils::default_sentinel_t>
-AbstractStateMapper::cartesian_subsets(
+AbstractStateMapper::partial_assignments(
     std::vector<std::pair<int, int>> partial_state) const
 {
     return utils::
         RangeProxy<PartialAssignmentIterator, utils::default_sentinel_t>(
-            cartesian_subsets_begin(std::move(partial_state)),
-            cartesian_subsets_end());
+            partial_assignments_begin(std::move(partial_state)),
+            partial_assignments_end());
 }
 
 AbstractStateMapper::AbstractStateIterator
-AbstractStateMapper::partial_states_begin(
+AbstractStateMapper::abstract_states_begin(
     AbstractState offset,
     std::vector<int> indices) const
 {
     return AbstractStateIterator(offset, indices, var_infos_);
 }
 
-utils::default_sentinel_t AbstractStateMapper::partial_states_end() const
+utils::default_sentinel_t AbstractStateMapper::abstract_states_end() const
 {
     return utils::default_sentinel_t();
 }
@@ -389,13 +389,13 @@ utils::default_sentinel_t AbstractStateMapper::partial_states_end() const
 utils::RangeProxy<
     AbstractStateMapper::AbstractStateIterator,
     utils::default_sentinel_t>
-AbstractStateMapper::partial_states(
+AbstractStateMapper::abstract_states(
     AbstractState offset,
     std::vector<int> indices) const
 {
     return utils::RangeProxy<AbstractStateIterator, utils::default_sentinel_t>(
-        partial_states_begin(offset, indices),
-        partial_states_end());
+        abstract_states_begin(offset, indices),
+        abstract_states_end());
 }
 
 int AbstractStateMapper::get_multiplier(int var) const
