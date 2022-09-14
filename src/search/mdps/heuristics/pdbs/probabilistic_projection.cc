@@ -86,18 +86,22 @@ const Pattern& ProbabilisticProjection::get_pattern() const
 
 void ProbabilisticProjection::setup_abstract_goal()
 {
-    const Pattern& variables = state_mapper_->get_pattern();
     std::vector<int> non_goal_vars;
-    PartialAssignment sparse_goal;
+    AbstractState base(0);
 
     // Translate sparse goal into pdb index space
     // and collect non-goal variables aswell.
+    const Pattern& variables = state_mapper_->get_pattern();
     for (int v = 0, w = 0; v != static_cast<int>(variables.size());) {
-        if (variables[v] < g_goal[w].first) {
+        const int p_var = variables[v];
+        const int g_var = g_goal[w].first;
+
+        if (p_var < g_var) {
             non_goal_vars.push_back(v++);
         } else {
-            if (variables[v] == g_goal[w].first) {
-                sparse_goal.emplace_back(v++, g_goal[w].second);
+            if (p_var == g_var) {
+                const int g_val = g_goal[w].second;
+                base.id += state_mapper_->get_multiplier_raw(v++) * g_val;
             }
 
             if (++w == static_cast<int>(g_goal.size())) {
@@ -109,15 +113,11 @@ void ProbabilisticProjection::setup_abstract_goal()
         }
     }
 
-    assert(non_goal_vars.size() + sparse_goal.size() == variables.size());
-    assert (!sparse_goal.empty()); // No goal no fun. Don't do it.
+    assert(non_goal_vars.size() != variables.size()); // No goal no fun.
 
-    AbstractState base_goal = state_mapper_->from_values_partial(sparse_goal);
+    auto goals = state_mapper_->partial_states(base, std::move(non_goal_vars));
 
-    auto goals =
-        state_mapper_->partial_states(base_goal, std::move(non_goal_vars));
-
-    for (const AbstractState& g : goals) {
+    for (const auto& g : goals) {
         goal_states_.insert(g);
     }
 }
