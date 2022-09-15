@@ -180,8 +180,7 @@ public:
                 s = &stack_[e->stck];
             }
 
-            bool dead = s->dead;
-            bool one = s->one;
+            StateInfo& bt_info = state_infos_[s->stateid];
             unsigned lstck = e->lstck;
             StackInfo* backtracked_from = s;
             bool onstack = e->stck != e->lstck;
@@ -214,10 +213,10 @@ public:
                     parents.emplace_back(e->stck, s->active.size());
                 }
             } else {
-                e->exits_only_proper = e->exits_only_proper && one;
+                e->exits_only_proper = e->exits_only_proper && bt_info.one();
             }
 
-            s->dead = s->dead && dead;
+            s->dead = s->dead && backtracked_from->dead;
 
             if (e->successors.back().empty()) {
                 e->successors.pop_back();
