@@ -139,18 +139,11 @@ public:
     
     AbstractState from_values(const std::vector<int>& values) const;
     AbstractState from_values_partial(
-        const std::vector<int>& indices,
-        const std::vector<int>& values) const;
-    AbstractState from_values_partial(
         const std::vector<std::pair<int, int>>& sparse_values) const;
     AbstractState from_values_partial(
         const std::vector<int>& indices,
         const std::vector<std::pair<int, int>>& sparse_values) const;
     AbstractState from_value_partial(int idx, int val) const;
-
-    int get_unique_partial_state_id(
-        const std::vector<int>& indices,
-        const std::vector<int>& values) const;
 
     int get_unique_partial_state_id(
         const std::vector<std::pair<int, int>>& pstate) const;

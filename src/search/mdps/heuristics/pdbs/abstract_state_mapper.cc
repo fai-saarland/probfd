@@ -237,18 +237,6 @@ AbstractStateMapper::from_values(const std::vector<int>& values) const
 }
 
 AbstractState AbstractStateMapper::from_values_partial(
-    const std::vector<int>& indices,
-    const std::vector<int>& values) const
-{
-    assert(values.size() == var_infos_.size());
-    AbstractState res(0);
-    for (int j : indices) {
-        res.id += var_infos_[j].multiplier * values[j];
-    }
-    return res;
-}
-
-AbstractState AbstractStateMapper::from_values_partial(
     const std::vector<std::pair<int, int>>& sparse_values) const
 {
     AbstractState res(0);
@@ -287,18 +275,6 @@ AbstractState AbstractStateMapper::from_values_partial(
 AbstractState AbstractStateMapper::from_value_partial(int idx, int val) const
 {
     return AbstractState(var_infos_[idx].multiplier * val);
-}
-
-int AbstractStateMapper::get_unique_partial_state_id(
-    const std::vector<int>& indices,
-    const std::vector<int>& values) const
-{
-    assert(values.size() == var_infos_.size());
-    int id = 0;
-    for (int j : indices) {
-        id += var_infos_[j].partial_multiplier * (values[j] + 1);
-    }
-    return id;
 }
 
 int AbstractStateMapper::get_unique_partial_state_id(
