@@ -115,22 +115,6 @@ class QualitativeResultStore;
 class ExpCostProjection;
 class MaxProbProjection;
 
-class AbstractStateDeadendStoreEvaluator : public AbstractStateEvaluator {
-public:
-    explicit AbstractStateDeadendStoreEvaluator(
-        const QualitativeResultStore* states_,
-        value_type::value_t value_in,
-        value_type::value_t value_not_in);
-
-protected:
-    EvaluationResult evaluate(const AbstractState& state) const override;
-
-private:
-    const QualitativeResultStore* states_;
-    const value_type::value_t value_in_;
-    const value_type::value_t value_not_in_;
-};
-
 class PDBEvaluator : public AbstractStateEvaluator {
 public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
@@ -179,22 +163,6 @@ public:
 
 protected:
     EvaluationResult evaluate(const AbstractState& state) const override;
-};
-
-class AbstractStateInStoreRewardFunction : public AbstractRewardFunction {
-public:
-    explicit AbstractStateInStoreRewardFunction(
-        const QualitativeResultStore* states_,
-        value_type::value_t value_in,
-        value_type::value_t value_not_in);
-
-protected:
-    EvaluationResult evaluate(const AbstractState& state) override;
-
-private:
-    const QualitativeResultStore* states_;
-    const value_type::value_t value_in_;
-    const value_type::value_t value_not_in_;
 };
 
 template <typename Container>

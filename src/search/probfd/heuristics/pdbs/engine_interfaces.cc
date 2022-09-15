@@ -2,7 +2,6 @@
 
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
-#include "probfd/heuristics/pdbs/qualitative_result_store.h"
 
 #include "probfd/probabilistic_operator.h"
 
@@ -126,44 +125,6 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
 
 namespace heuristics {
 namespace pdbs {
-
-AbstractStateDeadendStoreEvaluator::AbstractStateDeadendStoreEvaluator(
-    const QualitativeResultStore* states,
-    value_type::value_t value_in,
-    value_type::value_t value_not_in)
-    : states_(states)
-    , value_in_(value_in)
-    , value_not_in_(value_not_in)
-{
-}
-
-EvaluationResult
-AbstractStateDeadendStoreEvaluator::evaluate(const AbstractState& state) const
-{
-    const bool is_contained = states_->get(state);
-    return EvaluationResult(
-        is_contained,
-        is_contained ? value_in_ : value_not_in_);
-}
-
-AbstractStateInStoreRewardFunction::AbstractStateInStoreRewardFunction(
-    const QualitativeResultStore* states,
-    value_type::value_t value_in,
-    value_type::value_t value_not_in)
-    : states_(states)
-    , value_in_(value_in)
-    , value_not_in_(value_not_in)
-{
-}
-
-EvaluationResult
-AbstractStateInStoreRewardFunction::evaluate(const AbstractState& state)
-{
-    const bool is_contained = states_->get(state);
-    return EvaluationResult(
-        is_contained,
-        is_contained ? value_in_ : value_not_in_);
-}
 
 PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
     : pdb(pdb)
