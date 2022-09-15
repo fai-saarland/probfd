@@ -29,8 +29,14 @@ if os.name == "posix":
         DEFAULT_MAKE_PARAMETERS.append('-j{}'.format(num_cpus))
     CMAKE_GENERATOR = "Unix Makefiles"
 elif os.name == "nt":
-    MAKE = "nmake"
-    CMAKE_GENERATOR = "NMake Makefiles"
+    MAKE = "ninja"
+    try:
+        num_cpus = multiprocessing.cpu_count()
+    except NotImplementedError:
+        pass
+    else:
+        DEFAULT_MAKE_PARAMETERS.append('-j{}'.format(num_cpus))
+    CMAKE_GENERATOR = "Ninja"
 else:
     print("Unsupported OS: " + os.name)
     sys.exit(1)
