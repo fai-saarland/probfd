@@ -15,14 +15,6 @@ namespace pdbs {
 
 using PartialAssignment = std::vector<std::pair<int, int>>;
 
-struct NoGoalVariableException : std::exception {
-    const char* what() const noexcept override
-    {
-        return "Construction of a PDB without a goal "
-               "variable is intentionally disallowed!";
-    }
-};
-
 ProbabilisticProjection::ProbabilisticProjection(
     const Pattern& pattern,
     const std::vector<int>& domains,
@@ -175,11 +167,7 @@ void ProbabilisticProjection::setup_abstract_goal()
     }
 
     assert(non_goal_vars.size() + sparse_goal_.size() == variables.size());
-
-    // No goal no fun. Don't do it.
-    if (sparse_goal_.empty()) {
-        throw NoGoalVariableException();
-    }
+    assert (!sparse_goal_.empty()); // No goal no fun. Don't do it.
 
     AbstractState base_goal = state_mapper_->from_values_partial(sparse_goal_);
 
