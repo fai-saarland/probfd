@@ -168,22 +168,24 @@ struct OutcomeInfo {
     }
 };
 
-template <typename PartialAssignmentRange>
-PartialAssignment sparse_from_dense(
-    const PartialAssignmentRange& dense,
-    const std::vector<int>& indices)
+// Views a global partial assignment as its projection with respect
+// to PDB variables, with variable indices mapped to the PDB index space
+template <typename FactRange>
+auto pdb_view(FactRange&& partial_state, const std::vector<int>& pdb_indices)
 {
-    PartialAssignment sparse;
+    const auto to_pdb_index = [&](const auto& p) {
+        return std::make_pair(pdb_indices[p.var], p.val);
+    };
 
-    for (const auto& [var, val] : dense) {
-        const int idx = indices[var];
-        if (idx != -1) {
-            sparse.emplace_back(idx, val);
-        }
-    }
+    const auto has_non_pdb_var = [&](const std::pair<int, int>& p) {
+        return p.first != -1;
+    };
 
-    return sparse;
+    return utils::filter(
+        utils::transform(partial_state, to_pdb_index),
+        has_non_pdb_var);
 }
+
 } // namespace
 
 void ProbabilisticProjection::add_abstract_operators(
@@ -195,16 +197,16 @@ void ProbabilisticProjection::add_abstract_operators(
     const int operator_id = op.get_id();
     const int cost = op.get_cost();
 
-    std::vector<int> var_index(::g_variable_domain.size(), -1);
+    std::vector<int> pdb_indices(::g_variable_domain.size(), -1);
 
     for (size_t i = 0; i < state_mapper_->get_pattern().size(); ++i) {
-        var_index[state_mapper_->get_pattern()[i]] = i;
+        pdb_indices[state_mapper_->get_pattern()[i]] = i;
     }
 
     // Precondition partial state and partial state to enumerate
     // effect values not appearing in precondition
-    PartialAssignment local_precondition =
-        sparse_from_dense(op.get_preconditions(), var_index);
+    auto view = utils::common(pdb_view(op.get_preconditions(), pdb_indices));
+    PartialAssignment local_precondition(view.begin(), view.end());
     PartialAssignment effects_not_in_pre;
 
     // Info about each probabilistic outcome
@@ -214,28 +216,24 @@ void ProbabilisticProjection::add_abstract_operators(
     for (const ProbabilisticOutcome& out : op) {
         OutcomeInfo info;
 
-        for (const auto& [eff_var, eff_val, _] : out.op->get_effects()) {
-            const int idx = var_index[eff_var];
+        for (const auto& [var, val] : pdb_view(out.effects(), pdb_indices)) {
+            info.effects.emplace_back(var, val);
 
-            if (idx != -1) {
-                info.effects.emplace_back(idx, eff_val);
+            auto beg = utils::make_key_iterator(local_precondition.begin());
+            auto end = utils::make_key_iterator(local_precondition.end());
+            auto pre_it = utils::find_sorted(beg, end, var);
 
-                auto beg = utils::make_key_iterator(local_precondition.begin());
-                auto end = utils::make_key_iterator(local_precondition.end());
-                auto pre_it = utils::find_sorted(beg, end, idx);
-                int val_change;
+            int val_change = val;
 
-                if (pre_it == local_precondition.end()) {
-                    effects_not_in_pre.emplace_back(idx, 0);
-                    info.missing_pres.push_back(idx);
-                    val_change = eff_val;
-                } else {
-                    val_change = eff_val - pre_it.base->second;
-                }
-
-                info.base_effect +=
-                    state_mapper_->from_value_partial(idx, val_change);
+            if (pre_it == local_precondition.end()) {
+                effects_not_in_pre.emplace_back(var, 0);
+                info.missing_pres.push_back(var);
+            } else {
+                val_change -= pre_it.base->second;
             }
+
+            info.base_effect +=
+                state_mapper_->from_value_partial(var, val_change);
         }
 
         outcomes.add_unique(std::move(info), out.prob);
