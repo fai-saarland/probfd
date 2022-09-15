@@ -24,12 +24,10 @@ public:
     explicit ExpectedCostObjective();
 
     virtual value_utils::IntervalValue reward_bound() override;
-    virtual GlobalStateRewardFunction* state_reward() override;
-    virtual ProbabilisticOperatorRewardFunction* action_reward() override;
+    virtual GlobalRewardFunction* reward() override;
 
 private:
-    std::unique_ptr<GlobalStateRewardFunction> state_eval_;
-    std::unique_ptr<ProbabilisticOperatorRewardFunction> action_eval_;
+    std::unique_ptr<GlobalRewardFunction> reward_;
 };
 
 } // namespace analysis_objectives

@@ -27,8 +27,7 @@ MDPSolver::MDPSolver(const options::Options& opts)
           g_initial_state_values)
     , state_id_map_(&state_registry_)
     , action_id_map_(g_operators)
-    , state_reward_function_(g_analysis_objective->state_reward())
-    , action_reward_function_(g_analysis_objective->action_reward())
+    , reward_function_(g_analysis_objective->reward())
     , reward_bound_(g_analysis_objective->reward_bound())
     , transition_generator_(
           g_operators,

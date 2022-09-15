@@ -9,7 +9,7 @@ namespace probabilistic {
 namespace analysis_objectives {
 
 namespace {
-class GoalCheck : public GlobalStateRewardFunction {
+class MaxProbReward : public GlobalRewardFunction {
 protected:
     virtual EvaluationResult evaluate(const GlobalState& state) override
     {
@@ -19,10 +19,7 @@ protected:
             return EvaluationResult(false, value_type::zero);
         }
     }
-};
 
-class ZeroRewardActionEvaluator : public ProbabilisticOperatorRewardFunction {
-protected:
     value_type::value_t evaluate(StateID, const ProbabilisticOperator*) override
     {
         return value_type::zero;
@@ -31,8 +28,7 @@ protected:
 } // namespace
 
 GoalProbabilityObjective::GoalProbabilityObjective()
-    : state_eval_(new GoalCheck())
-    , action_eval_(new ZeroRewardActionEvaluator())
+    : reward_(new MaxProbReward())
 {
 }
 
@@ -41,14 +37,9 @@ value_utils::IntervalValue GoalProbabilityObjective::reward_bound()
     return value_utils::IntervalValue(value_type::zero, value_type::one);
 }
 
-GlobalStateRewardFunction* GoalProbabilityObjective::state_reward()
+GlobalRewardFunction* GoalProbabilityObjective::reward()
 {
-    return state_eval_.get();
-}
-
-ProbabilisticOperatorRewardFunction* GoalProbabilityObjective::action_reward()
-{
-    return action_eval_.get();
+    return reward_.get();
 }
 
 } // namespace analysis_objectives

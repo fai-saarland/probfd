@@ -4,11 +4,11 @@
 #include "../../global_state.h"
 #include "../../solver_interface.h"
 #include "../../state_registry.h"
-#include "../action_reward_function.h"
 #include "../action_id_map.h"
 #include "../engines/engine.h"
 #include "../probabilistic_operator.h"
 #include "../progress_report.h"
+#include "../reward_function.h"
 #include "../state_evaluator.h"
 #include "../state_id_map.h"
 #include "../transition_generator.h"
@@ -49,8 +49,7 @@ public:
         return new Engine(
             &state_id_map_,
             &action_id_map_,
-            state_reward_function_,
-            action_reward_function_,
+            reward_function_,
             reward_bound_,
             &transition_generator_,
             std::forward<Args>(args)...);
@@ -91,15 +90,10 @@ protected:
         return &action_id_map_;
     }
 
-    ActionRewardFunction<const ProbabilisticOperator*>*
-    get_action_reward_function()
+    RewardFunction<GlobalState, const ProbabilisticOperator*>*
+    get_reward_function()
     {
-        return action_reward_function_;
-    }
-
-    StateRewardFunction<GlobalState>* get_state_reward_function()
-    {
-        return state_reward_function_;
+        return reward_function_;
     }
 
     TransitionGenerator<const ProbabilisticOperator*>*
@@ -132,8 +126,7 @@ private:
 
     StateIDMap<GlobalState> state_id_map_;
     ActionIDMap<const ProbabilisticOperator*> action_id_map_;
-    StateRewardFunction<GlobalState>* state_reward_function_;
-    ActionRewardFunction<const ProbabilisticOperator*>* action_reward_function_;
+    RewardFunction<GlobalState, const ProbabilisticOperator*>* reward_function_;
     const value_utils::IntervalValue reward_bound_;
     TransitionGenerator<const ProbabilisticOperator*> transition_generator_;
 };

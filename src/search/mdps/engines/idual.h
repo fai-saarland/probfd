@@ -95,8 +95,7 @@ public:
     explicit IDual(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
-        StateRewardFunction<State>* state_reward_function,
-        ActionRewardFunction<Action>* action_reward_function,
+        RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
         TransitionGenerator<Action>* transition_generator,
         lp::LPSolverType solver_type,
@@ -105,8 +104,7 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              state_reward_function,
-              action_reward_function,
+              reward_function,
               reward_bound,
               transition_generator)
         , report_(report)

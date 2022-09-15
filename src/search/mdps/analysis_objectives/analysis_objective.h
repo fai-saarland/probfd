@@ -1,8 +1,7 @@
 #ifndef MDPS_ANALYSIS_OBJECTIVES_ANALYSIS_OBJECTIVE_H
 #define MDPS_ANALYSIS_OBJECTIVES_ANALYSIS_OBJECTIVE_H
 
-#include "../action_reward_function.h"
-#include "../state_reward_function.h"
+#include "../reward_function.h"
 #include "../value_utils.h"
 
 #include <memory>
@@ -35,11 +34,8 @@ public:
     /// Returns a lower bound on the state values for this analysis objective.
     virtual value_utils::IntervalValue reward_bound() = 0;
 
-    /// Returns a GlobalStateRewardFunction specifying the state rewards.
-    virtual GlobalStateRewardFunction* state_reward() = 0;
-
-    /// Returns a ProbabilisticOperatorEvaluator specifying the action rewards.
-    virtual ProbabilisticOperatorRewardFunction* action_reward() = 0;
+    /// Returns a GlobalRewardFunction specifying the rewards.
+    virtual GlobalRewardFunction* reward() = 0;
 };
 
 } // namespace analysis_objectives

@@ -130,11 +130,11 @@ public:
               new quotient_system::QuotientSystem<const ProbabilisticOperator*>(
                   this->get_action_id_map(),
                   this->get_transition_generator()))
-        , q_action_reward_(
-              new quotient_system::DefaultQuotientActionRewardFunction<
-                  const ProbabilisticOperator*>(
-                  quotient_.get(),
-                  this->get_action_reward_function()))
+        , q_reward_(new quotient_system::DefaultQuotientRewardFunction<
+                    GlobalState,
+                    const ProbabilisticOperator*>(
+              quotient_.get(),
+              this->get_reward_function()))
         , q_action_id_map_(new ActionIDMap<quotient_system::QuotientAction<
                                const ProbabilisticOperator*>>(quotient_.get()))
         , q_transition_gen_(
@@ -216,7 +216,7 @@ public:
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
                 this->get_state_reward_function(),
-                q_action_reward_.get(),
+                q_reward_.get(),
                 this->get_reward_bound(),
                 q_transition_gen_.get());
         } else {
@@ -237,7 +237,7 @@ public:
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
                 this->get_state_reward_function(),
-                q_action_reward_.get(),
+                q_reward_.get(),
                 this->get_reward_bound(),
                 q_transition_gen_.get());
         }
@@ -295,8 +295,7 @@ private:
             Bounds>(
             this->get_state_id_map(),
             q_action_id_map_.get(),
-            this->get_state_reward_function(),
-            q_action_reward_.get(),
+            q_reward_.get(),
             this->get_reward_bound(),
             q_transition_gen_.get(),
             dead_end_eval_.get(),
@@ -336,8 +335,7 @@ private:
         return new FretVariant(
             this->get_state_id_map(),
             this->get_action_id_map(),
-            this->get_state_reward_function(),
-            this->get_action_reward_function(),
+            this->get_reward_function(),
             this->get_reward_bound(),
             this->get_transition_generator(),
             quotient_.get(),
@@ -349,9 +347,10 @@ private:
         quotient_system::QuotientSystem<const ProbabilisticOperator*>>
         quotient_;
 
-    std::unique_ptr<ActionRewardFunction<
+    std::unique_ptr<RewardFunction<
+        GlobalState,
         quotient_system::QuotientAction<const ProbabilisticOperator*>>>
-        q_action_reward_;
+        q_reward_;
     std::unique_ptr<ActionIDMap<
         quotient_system::QuotientAction<const ProbabilisticOperator*>>>
         q_action_id_map_;

@@ -94,3 +94,12 @@ const std::unordered_set<AbstractState>& QualitativeResultStore::get_storage() c
 
 } // namespace pdbs
 } // namespace probabilistic
+
+namespace utils {
+bool contains(
+    probabilistic::pdbs::QualitativeResultStore& store,
+    probabilistic::pdbs::AbstractState s)
+{
+    return store.get(s);
+}
+} // namespace utils

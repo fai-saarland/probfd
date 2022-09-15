@@ -2,13 +2,13 @@
 #define MDPS_ENGINES_ENGINE_H
 
 #include "../distribution.h"
-#include "../engine_interfaces/action_reward_function.h"
 #include "../engine_interfaces/action_id_map.h"
+#include "../engine_interfaces/reward_function.h"
 #include "../engine_interfaces/state_evaluator.h"
 #include "../engine_interfaces/state_id_map.h"
-#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../value_utils.h"
+
 
 #include <vector>
 
@@ -68,22 +68,19 @@ public:
      *
      * @param state_id_map - The state id mapping (populated by the engine).
      * @param action_id_map - The action id mapping (populated by the engine).
-     * @param state_reward_function - The state reward interface.
-     * @param action_reward_function - The action reward interface.
+     * @param reward_function - The reward interface.
      * @param reward_bound - A bound on reward values.
      * @param transition_generator - The transition generator.
      */
     explicit MDPEngine(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
-        StateRewardFunction<State>* state_reward_function,
-        ActionRewardFunction<Action>* action_reward_function,
+        RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
         TransitionGenerator<Action>* transition_generator)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
-        , state_reward_function_(state_reward_function)
-        , action_reward_function_(action_reward_function)
+        , reward_function_(reward_function)
         , reward_bound_(reward_bound)
         , transition_generator_(transition_generator)
     {
@@ -129,7 +126,7 @@ public:
      */
     EvaluationResult get_state_reward(const State& s) const
     {
-        return state_reward_function_->operator()(s);
+        return reward_function_->operator()(s);
     }
 
     /**
@@ -139,7 +136,7 @@ public:
     value_type::value_t
     get_action_reward(const StateID& sid, const Action& a) const
     {
-        return action_reward_function_->operator()(sid, a);
+        return reward_function_->operator()(sid, a);
     }
 
     /**
@@ -207,19 +204,11 @@ public:
     ActionIDMap<Action>* get_action_id_map() const { return action_id_map_; }
 
     /**
-     * @brief Get the state reward interface.
+     * @brief Get the reward interface.
      */
-    StateRewardFunction<State>* get_state_reward_function() const
+    RewardFunction<State, Action>* get_reward_function() const
     {
-        return state_reward_function_;
-    }
-
-    /**
-     * @brief Get the action reward interface.
-     */
-    ActionRewardFunction<Action>* get_action_reward_function() const
-    {
-        return action_reward_function_;
+        return reward_function_;
     }
 
     /**
@@ -233,8 +222,7 @@ public:
 private:
     StateIDMap<State>* state_id_map_;
     ActionIDMap<Action>* action_id_map_;
-    StateRewardFunction<State>* state_reward_function_;
-    ActionRewardFunction<Action>* action_reward_function_;
+    RewardFunction<State, Action>* reward_function_;
     const value_utils::IntervalValue reward_bound_;
     TransitionGenerator<Action>* transition_generator_;
 };

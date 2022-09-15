@@ -62,10 +62,9 @@ public:
         StateIDMap<bisimulation::QuotientState> state_id_map;
         ActionIDMap<bisimulation::QuotientAction> action_id_map;
         TransitionGenerator<bisimulation::QuotientAction> tgen(&bs);
-        bisimulation::DefaultQuotientStateRewardFunction state_reward(
+        bisimulation::DefaultQuotientRewardFunction reward(
             &bs,
             g_analysis_objective->reward_bound());
-        bisimulation::DefaultQuotientActionRewardFunction transition_reward;
 
         stats.timer.stop();
         stats.states = bs.num_bisimilar_states();
@@ -92,8 +91,7 @@ public:
                 bisimulation::QuotientAction>(
                 &state_id_map,
                 &action_id_map,
-                &state_reward,
-                &transition_reward,
+                &reward,
                 g_analysis_objective->reward_bound(),
                 &tgen,
                 nullptr,
@@ -107,8 +105,7 @@ public:
                 bisimulation::QuotientAction>(
                 &state_id_map,
                 &action_id_map,
-                &state_reward,
-                &transition_reward,
+                &reward,
                 g_analysis_objective->reward_bound(),
                 &tgen,
                 &initializer,

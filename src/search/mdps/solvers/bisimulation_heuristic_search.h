@@ -63,8 +63,7 @@ public:
             new HeuristicSearchType(
                 &res->state_id_map,
                 &res->action_id_map,
-                res->state_reward.get(),
-                &res->transition_reward,
+                res->reward.get(),
                 g_analysis_objective->reward_bound(),
                 res->tgen.get(),
                 nullptr,
@@ -119,8 +118,8 @@ public:
                 stable_policy,
                 &res->state_id_map,
                 res->q_action_id_map_.get(),
-                res->state_reward.get(),
-                res->q_action_reward_.get(),
+                res->reward.get(),
+                res->q_reward_.get(),
                 g_analysis_objective->reward_bound(),
                 res->q_transition_gen_.get()));
 
@@ -165,8 +164,7 @@ public:
                 DualValues>(
                 &res->state_id_map,
                 res->q_action_id_map_.get(),
-                res->state_reward.get(),
-                res->q_action_reward_.get(),
+                res->q_reward_.get(),
                 g_analysis_objective->reward_bound(),
                 res->q_transition_gen_.get(),
                 nullptr,
@@ -187,8 +185,7 @@ public:
                 new FretVariant(
                     &res->state_id_map,
                     &res->action_id_map,
-                    res->state_reward.get(),
-                    &res->transition_reward,
+                    res->reward.get(),
                     g_analysis_objective->reward_bound(),
                     res->tgen.get(),
                     res->quotient_.get(),
@@ -241,11 +238,10 @@ private:
             std::unique_ptr<TransitionGenerator<bisimulation::QuotientAction>>(
                 new TransitionGenerator<bisimulation::QuotientAction>(
                     bs.get()));
-        state_reward =
-            std::unique_ptr<bisimulation::QuotientStateRewardFunction>(
-                new bisimulation::DefaultQuotientStateRewardFunction(
-                    bs.get(),
-                    g_analysis_objective->reward_bound()));
+        reward = std::unique_ptr<bisimulation::QuotientRewardFunction>(
+            new bisimulation::DefaultQuotientRewardFunction(
+                bs.get(),
+                g_analysis_objective->reward_bound()));
         heuristic_ =
             std::unique_ptr<StateEvaluator<bisimulation::QuotientState>>(
                 new bisimulation::DefaultQuotientStateEvaluator(
@@ -275,11 +271,12 @@ private:
             new quotient_system::QuotientSystem<bisimulation::QuotientAction>(
                 &action_id_map,
                 tgen.get()));
-        q_action_reward_ = std::unique_ptr<ActionRewardFunction<
+        q_reward_ = std::unique_ptr<RewardFunction<
+            bisimulation::QuotientState,
             quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
-            new quotient_system::DefaultQuotientActionRewardFunction(
+            new quotient_system::DefaultQuotientRewardFunction(
                 quotient_.get(),
-                &transition_reward));
+                reward.get()));
         q_action_id_map_ = std::unique_ptr<ActionIDMap<
             quotient_system::QuotientAction<bisimulation::QuotientAction>>>(
             new ActionIDMap<
@@ -307,9 +304,7 @@ private:
     ActionIDMap<bisimulation::QuotientAction> action_id_map;
     std::unique_ptr<TransitionGenerator<bisimulation::QuotientAction>> tgen =
         nullptr;
-    std::unique_ptr<StateRewardFunction<bisimulation::QuotientState>>
-        state_reward = nullptr;
-    bisimulation::DefaultQuotientActionRewardFunction transition_reward;
+    std::unique_ptr<bisimulation::QuotientRewardFunction> reward;
     NewStateHandler<bisimulation::QuotientState> new_state_handler_;
     std::unique_ptr<StateEvaluator<bisimulation::QuotientState>> heuristic_ =
         nullptr;
@@ -322,9 +317,10 @@ private:
         quotient_system::QuotientSystem<bisimulation::QuotientAction>>
         quotient_ = nullptr;
 
-    std::unique_ptr<ActionRewardFunction<
+    std::unique_ptr<RewardFunction<
+        bisimulation::QuotientState,
         quotient_system::QuotientAction<bisimulation::QuotientAction>>>
-        q_action_reward_ = nullptr;
+        q_reward_ = nullptr;
     std::unique_ptr<ActionIDMap<
         quotient_system::QuotientAction<bisimulation::QuotientAction>>>
         q_action_id_map_ = nullptr;

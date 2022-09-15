@@ -73,8 +73,7 @@ public:
     explicit TopologicalValueIteration(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
-        StateRewardFunction<State>* state_reward_function,
-        ActionRewardFunction<Action>* action_reward_function,
+        RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
         TransitionGenerator<Action>* transition_generator,
         const StateEvaluator<State>* value_initializer,
@@ -82,8 +81,7 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              state_reward_function,
-              action_reward_function,
+              reward_function,
               reward_bound,
               transition_generator)
         , value_initializer_(value_initializer)

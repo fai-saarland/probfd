@@ -2,7 +2,7 @@
 #define MDPS_QUOTIENT_SYSTEM_ENGINE_INTERFACES_H
 
 #include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/action_reward_function.h"
+#include "../engine_interfaces/reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "quotient_system.h"
 
@@ -10,20 +10,25 @@
 namespace probabilistic {
 namespace quotient_system {
 
-template <typename Action>
-using QuotientActionRewardFunction =
-    ActionRewardFunction<quotient_system::QuotientAction<Action>>;
+template <typename State, typename Action>
+using QuotientRewardFunction =
+    RewardFunction<State, quotient_system::QuotientAction<Action>>;
 
-template <typename Action>
-class DefaultQuotientActionRewardFunction
-    : public QuotientActionRewardFunction<Action> {
+template <typename State, typename Action>
+class DefaultQuotientRewardFunction
+    : public QuotientRewardFunction<State, Action> {
 public:
-    explicit DefaultQuotientActionRewardFunction(
+    explicit DefaultQuotientRewardFunction(
         quotient_system::QuotientSystem<Action>* quotient,
-        ActionRewardFunction<Action>* orig)
+        RewardFunction<State, Action>* orig)
         : quotient_(quotient)
         , eval_(orig)
     {
+    }
+
+    virtual EvaluationResult evaluate(const State& s) override
+    {
+        return eval_->operator()(s);
     }
 
     virtual value_type::value_t
@@ -34,11 +39,11 @@ public:
             quotient_->get_original_action(s, qa));
     }
 
-    ActionRewardFunction<Action>* real() const { return eval_; }
+    RewardFunction<State, Action>* real() const { return eval_; }
 
 private:
     quotient_system::QuotientSystem<Action>* quotient_;
-    ActionRewardFunction<Action>* eval_;
+    RewardFunction<State, Action>* eval_;
 };
 
 } // namespace quotient_system

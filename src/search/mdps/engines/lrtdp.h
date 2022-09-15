@@ -163,8 +163,7 @@ public:
     LRTDP(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
-        StateRewardFunction<State>* state_reward_function,
-        ActionRewardFunction<Action>* action_reward_function,
+        RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
         TransitionGenerator<Action>* transition_generator,
         StateEvaluator<State>* dead_end_eval,
@@ -180,8 +179,7 @@ public:
         : HeuristicSearchBase(
               state_id_map,
               action_id_map,
-              state_reward_function,
-              action_reward_function,
+              reward_function,
               reward_bound,
               transition_generator,
               dead_end_eval,

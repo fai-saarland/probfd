@@ -96,11 +96,10 @@ void MaxProbProjection::compute_value_table(
 {
     using namespace engines::interval_iteration;
 
-    AbstractStateInSetRewardFunction state_reward(
+    ZeroCostAbstractRewardFunction reward(
         &goal_states_,
         value_type::one,
         value_type::zero);
-    ZeroCostActionEvaluator no_reward;
 
     StateIDMap<AbstractState> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
@@ -116,8 +115,7 @@ void MaxProbProjection::compute_value_table(
     IntervalIteration vi(
         &state_id_map,
         &action_id_map,
-        &state_reward,
-        &no_reward,
+        &reward,
         value_utils::IntervalValue(value_type::zero, value_type::one),
         &transition_gen,
         &heuristic,

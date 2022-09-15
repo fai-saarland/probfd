@@ -557,7 +557,7 @@ fast_downward_plugin(
         mdps/action_id_map
         mdps/state_id_map
         mdps/state_evaluator
-        mdps/state_reward_function
+        mdps/reward_function
         mdps/transition_generator
         mdps/progress_report
         mdps/quotient_system

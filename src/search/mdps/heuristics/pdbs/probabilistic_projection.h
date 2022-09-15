@@ -116,7 +116,7 @@ protected:
             return transition_labels ? op_names(op) : "";
         };
 
-        AbstractStateInSetRewardFunction state_reward(
+        ZeroCostAbstractRewardFunction reward(
             &goal_states_,
             goal_value,
             value_type::zero);
@@ -134,7 +134,7 @@ protected:
             out,
             initial_state_,
             &state_id_map,
-            &state_reward,
+            &reward,
             &transition_gen,
             sts,
             ats,

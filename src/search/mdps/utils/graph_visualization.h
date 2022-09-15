@@ -1,11 +1,12 @@
 #ifndef MDPS_UTILS_GRAPH_VISUALIZATION_H
 #define MDPS_UTILS_GRAPH_VISUALIZATION_H
 
+#include "../engine_interfaces/reward_function.h"
 #include "../engine_interfaces/state_evaluator.h"
 #include "../engine_interfaces/state_id_map.h"
-#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../storage/per_state_storage.h"
+
 
 #include <deque>
 #include <iostream>
@@ -39,7 +40,7 @@ void dump(
     std::ostream& out,
     const State& initial_state,
     StateIDMap<State>* state_id_map,
-    StateRewardFunction<State>* goal_check,
+    RewardFunction<State, Action>* goal_check,
     TransitionGenerator<Action>* transition_gen,
     const StateToString& sstr = DefaultSTS(),
     const ActionToString& astr = DefaultATS(),

@@ -61,8 +61,7 @@ public:
     explicit IntervalIteration(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
-        StateRewardFunction<State>* state_reward_function,
-        ActionRewardFunction<Action>* action_reward_function,
+        RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
         TransitionGenerator<Action>* transition_generator,
         const StateEvaluator<State>* prune,
@@ -71,8 +70,7 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              state_reward_function,
-              action_reward_function,
+              reward_function,
               reward_bound,
               transition_generator)
         , prune_(prune)
@@ -136,15 +134,22 @@ public:
 
 private:
     template <typename BoolStoreT>
-    struct OneStateRewardFunction : public StateRewardFunction<State> {
+    struct OneRewardFunction
+        : public RewardFunction<
+              State,
+              quotient_system::QuotientAction<Action>> {
+        using QAction = quotient_system::QuotientAction<Action>;
         StateIDMap<State>* state_id_map_;
         BoolStoreT& one_states_;
+        RewardFunction<State, QAction>& fallback_;
 
-        OneStateRewardFunction(
+        OneRewardFunction(
             StateIDMap<State>* state_id_map,
-            BoolStoreT& one_states)
+            BoolStoreT& one_states,
+            RewardFunction<State, QAction>& fallback)
             : state_id_map_(state_id_map)
             , one_states_(one_states)
+            , fallback_(fallback)
         {
         }
 
@@ -157,6 +162,11 @@ private:
             }
 
             return EvaluationResult(false, value_type::zero);
+        }
+
+        virtual value_type::value_t evaluate(StateID id, QAction a) override
+        {
+            return fallback_(id, a);
         }
     };
 
@@ -197,8 +207,7 @@ private:
         Decomposer ec_decomposer(
             this->get_state_id_map(),
             this->get_action_id_map(),
-            this->get_state_reward_function(),
-            this->get_action_reward_function(),
+            this->get_reward_function(),
             this->get_transition_generator(),
             expand_goals_,
             prune_);
@@ -219,15 +228,15 @@ private:
         QuotientSystem* sys)
     {
         TransitionGenerator<QAction> q_transition_gen(sys);
-        quotient_system::DefaultQuotientActionRewardFunction<Action>
-            q_action_reward(sys, this->get_action_reward_function());
+        quotient_system::DefaultQuotientRewardFunction<State, Action> q_reward(
+            sys,
+            this->get_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
 
         reachability::QualitativeReachabilityAnalysis<State, QAction> analysis(
             this->get_state_id_map(),
             &q_action_id_map,
-            this->get_state_reward_function(),
-            &q_action_reward,
+            &q_reward,
             &q_transition_gen,
             expand_goals_);
 
@@ -252,8 +261,7 @@ private:
             ValueIteration vi(
                 this->get_state_id_map(),
                 &q_action_id_map,
-                this->get_state_reward_function(),
-                &q_action_reward,
+                &q_reward,
                 value_utils::IntervalValue(value_type::zero, value_type::one),
                 &q_transition_gen,
                 &heuristic,
@@ -263,15 +271,15 @@ private:
             tvi_statistics_ = vi.get_statistics();
             return result;
         } else {
-            OneStateRewardFunction<BoolStoreT2> reward(
+            OneRewardFunction<BoolStoreT2> reward(
                 this->get_state_id_map(),
-                one_states);
+                one_states,
+                q_reward);
 
             ValueIteration vi(
                 this->get_state_id_map(),
                 &q_action_id_map,
                 &reward,
-                &q_action_reward,
                 value_utils::IntervalValue(value_type::zero, value_type::one),
                 &q_transition_gen,
                 &heuristic,

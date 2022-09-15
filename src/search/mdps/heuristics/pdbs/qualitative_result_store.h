@@ -77,6 +77,11 @@ public:
 
     set_output_iterator& operator*() { return *this; }
 };
+
+bool contains(
+    probabilistic::pdbs::QualitativeResultStore& store,
+    probabilistic::pdbs::AbstractState s);
+
 } // namespace utils
 
 #endif

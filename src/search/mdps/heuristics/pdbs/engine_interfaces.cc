@@ -161,25 +161,6 @@ AbstractStateInStoreRewardFunction::evaluate(const AbstractState& state)
         is_contained ? value_in_ : value_not_in_);
 }
 
-AbstractStateInSetRewardFunction::AbstractStateInSetRewardFunction(
-    const std::unordered_set<AbstractState>* states_,
-    value_type::value_t value_in,
-    value_type::value_t value_not_in)
-    : states_(states_)
-    , value_in_(value_in)
-    , value_not_in_(value_not_in)
-{
-}
-
-EvaluationResult
-AbstractStateInSetRewardFunction::evaluate(const AbstractState& state)
-{
-    const bool is_contained = states_->find(state) != states_->end();
-    return EvaluationResult(
-        is_contained,
-        is_contained ? value_in_ : value_not_in_);
-}
-
 PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
     : pdb(pdb)
 {
@@ -250,24 +231,6 @@ IncrementalPPDBEvaluator<PDBType>::evaluate(const AbstractState& state) const
 
 template class IncrementalPPDBEvaluator<ExpCostProjection>;
 template class IncrementalPPDBEvaluator<MaxProbProjection>;
-
-value_type::value_t
-ZeroCostActionEvaluator::evaluate(StateID, const AbstractOperator*)
-{
-    return 0;
-}
-
-value_type::value_t
-UnitCostActionEvaluator::evaluate(StateID, const AbstractOperator*)
-{
-    return -1;
-}
-
-value_type::value_t
-NormalCostActionEvaluator::evaluate(StateID, const AbstractOperator* op)
-{
-    return -op->cost;
-}
 
 } // namespace pdbs
 } // namespace probabilistic

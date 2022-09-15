@@ -6,7 +6,7 @@
 #include "../engine_interfaces/action_id_map.h"
 #include "../engine_interfaces/state_evaluator.h"
 #include "../engine_interfaces/state_id_map.h"
-#include "../engine_interfaces/state_reward_function.h"
+#include "../engine_interfaces/reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../heuristics/pdbs/qualitative_result_store.h"
 #include "../quotient_system/engine_interfaces.h"
@@ -180,14 +180,12 @@ public:
     EndComponentDecomposition(
         StateIDMap<State>* state_id_map,
         ActionIDMap<Action>* action_id_map,
-        StateRewardFunction<State>* goal,
-        ActionRewardFunction<Action>* action_rewards,
+        RewardFunction<State, Action>* rewards,
         TransitionGenerator<Action>* transition_gen,
         bool expand_goals,
         const StateEvaluator<State>* pruning_function = nullptr)
         : state_id_map_(state_id_map)
-        , goal_(goal)
-        , action_rewards_(action_rewards)
+        , rewards_(rewards)
         , transition_gen_(transition_gen)
         , expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
@@ -234,7 +232,7 @@ private:
         state_info.explored = 1;
         State state = state_id_map_->get_state(state_id);
 
-        if (goal_->operator()(state)) {
+        if (rewards_->operator()(state)) {
             ++stats_.terminals;
             ++stats_.goals;
             state_info.stackid_ = StateInfo::ONE;
@@ -432,7 +430,7 @@ private:
             // We returned from a recursive DFS call. Update the parent.
 
             const auto action_reward =
-                (*action_rewards_)(get_state_id(s->stateid), e->aops.back());
+                (*rewards_)(get_state_id(s->stateid), e->aops.back());
 
             if (is_onstack) {
                 e->lstck = std::min(e->lstck, lstck);
@@ -474,7 +472,7 @@ private:
             assert(!e_succs.empty());
 
             const auto action_reward =
-                (*action_rewards_)(get_state_id(s.stateid), e.aops.back());
+                (*rewards_)(get_state_id(s.stateid), e.aops.back());
 
             do {
                 const auto succ_id = get_state_id(e_succs.back());
@@ -645,8 +643,7 @@ private:
     }
 
     StateIDMap<State>* state_id_map_;
-    StateRewardFunction<State>* goal_;
-    ActionRewardFunction<Action>* action_rewards_;
+    RewardFunction<State, Action>* rewards_;
     TransitionGenerator<Action>* transition_gen_;
 
     bool expand_goals_;

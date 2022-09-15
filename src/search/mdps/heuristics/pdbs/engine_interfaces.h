@@ -1,16 +1,15 @@
 #ifndef MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 #define MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 
+#include "../../../utils/collections.h"
 #include "../../../utils/range_proxy.h"
 #include "../../engine_interfaces/action_id_map.h"
-#include "../../engine_interfaces/action_reward_function.h"
+#include "../../engine_interfaces/reward_function.h"
 #include "../../engine_interfaces/state_evaluator.h"
 #include "../../engine_interfaces/state_id_map.h"
-#include "../../engine_interfaces/state_reward_function.h"
 #include "../../engine_interfaces/transition_generator.h"
 #include "abstract_operator.h"
 #include "abstract_state_mapper.h"
-
 
 #include <memory>
 #include <set>
@@ -101,10 +100,9 @@ private:
 
 namespace pdbs {
 
-using AbstractStateRewardFunction = StateRewardFunction<AbstractState>;
 using AbstractStateEvaluator = StateEvaluator<AbstractState>;
-using AbstractOperatorRewardFunction =
-    ActionRewardFunction<const AbstractOperator*>;
+using AbstractRewardFunction =
+    RewardFunction<AbstractState, const AbstractOperator*>;
 
 class QualitativeResultStore;
 
@@ -123,38 +121,6 @@ protected:
 
 private:
     const QualitativeResultStore* states_;
-    const value_type::value_t value_in_;
-    const value_type::value_t value_not_in_;
-};
-
-class AbstractStateInStoreRewardFunction : public AbstractStateRewardFunction {
-public:
-    explicit AbstractStateInStoreRewardFunction(
-        const QualitativeResultStore* states_,
-        value_type::value_t value_in,
-        value_type::value_t value_not_in);
-
-protected:
-    EvaluationResult evaluate(const AbstractState& state) override;
-
-private:
-    const QualitativeResultStore* states_;
-    const value_type::value_t value_in_;
-    const value_type::value_t value_not_in_;
-};
-
-class AbstractStateInSetRewardFunction : public AbstractStateRewardFunction {
-public:
-    explicit AbstractStateInSetRewardFunction(
-        const std::unordered_set<AbstractState>* states_,
-        value_type::value_t value_in,
-        value_type::value_t value_not_in);
-
-protected:
-    EvaluationResult evaluate(const AbstractState& state) override;
-
-private:
-    const std::unordered_set<AbstractState>* states_;
     const value_type::value_t value_in_;
     const value_type::value_t value_not_in_;
 };
@@ -209,19 +175,85 @@ protected:
     EvaluationResult evaluate(const AbstractState& state) const override;
 };
 
-class ZeroCostActionEvaluator : public AbstractOperatorRewardFunction {
+class AbstractStateInStoreRewardFunction : public AbstractRewardFunction {
+public:
+    explicit AbstractStateInStoreRewardFunction(
+        const QualitativeResultStore* states_,
+        value_type::value_t value_in,
+        value_type::value_t value_not_in);
+
 protected:
-    value_type::value_t evaluate(StateID, const AbstractOperator*) override;
+    EvaluationResult evaluate(const AbstractState& state) override;
+
+private:
+    const QualitativeResultStore* states_;
+    const value_type::value_t value_in_;
+    const value_type::value_t value_not_in_;
 };
 
-class UnitCostActionEvaluator : public AbstractOperatorRewardFunction {
+template <typename Container>
+class ZeroCostAbstractRewardFunction : public AbstractRewardFunction {
+public:
+    explicit ZeroCostAbstractRewardFunction(
+        const Container* goal_states,
+        value_type::value_t value_in,
+        value_type::value_t value_not_in)
+        : goal_states_(goal_states)
+        , value_in_(value_in)
+        , value_not_in_(value_not_in)
+    {
+    }
+
 protected:
-    value_type::value_t evaluate(StateID, const AbstractOperator*) override;
+    EvaluationResult evaluate(const AbstractState& state) override
+    {
+        const bool is_contained = utils::contains(*goal_states_, state);
+        return EvaluationResult(
+            is_contained,
+            is_contained ? value_in_ : value_not_in_);
+    }
+
+    value_type::value_t evaluate(StateID, const AbstractOperator*) override {
+        return 0;
+    }
+
+private:
+    const Container* goal_states_;
+    const value_type::value_t value_in_;
+    const value_type::value_t value_not_in_;
 };
 
-class NormalCostActionEvaluator : public AbstractOperatorRewardFunction {
+template <typename Container>
+class NormalCostAbstractRewardFunction : public AbstractRewardFunction {
+public:
+    explicit NormalCostAbstractRewardFunction(
+        Container* goal_states,
+        value_type::value_t value_in,
+        value_type::value_t value_not_in)
+        : goal_states_(goal_states)
+        , value_in_(value_in)
+        , value_not_in_(value_not_in)
+    {
+    }
+
 protected:
-    value_type::value_t evaluate(StateID, const AbstractOperator*) override;
+    EvaluationResult evaluate(const AbstractState& state) override
+    {
+        const bool is_contained = ::utils::contains(*goal_states_, state);
+        return EvaluationResult(
+            is_contained,
+            is_contained ? value_in_ : value_not_in_);
+    }
+
+    value_type::value_t evaluate(StateID, const AbstractOperator* op) override
+    {
+        return -op->cost;
+    }
+
+private:
+    const Container* goal_states_;
+    const value_type::value_t value_in_;
+    const value_type::value_t value_not_in_;
 };
 
 } // namespace pdbs

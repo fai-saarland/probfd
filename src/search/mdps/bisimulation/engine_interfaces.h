@@ -1,11 +1,10 @@
 #ifndef MDPS_BISIMULATION_ENGINE_INTERFACES_H
 #define MDPS_BISIMULATION_ENGINE_INTERFACES_H
 
-#include "../engine_interfaces/action_reward_function.h"
 #include "../engine_interfaces/action_id_map.h"
+#include "../engine_interfaces/reward_function.h"
 #include "../engine_interfaces/state_evaluator.h"
 #include "../engine_interfaces/state_id_map.h"
-#include "../engine_interfaces/state_reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 
 #include "bisimilar_state_space.h"
@@ -48,10 +47,8 @@ struct TransitionGenerator<bisimulation::QuotientAction> {
 
 namespace bisimulation {
 
-using QuotientStateRewardFunction =
-    StateRewardFunction<bisimulation::QuotientState>;
-using QuotientActionRewardFunction =
-    ActionRewardFunction<bisimulation::QuotientAction>;
+using QuotientRewardFunction =
+    RewardFunction<bisimulation::QuotientState, bisimulation::QuotientAction>;
 using QuotientStateEvaluator = StateEvaluator<bisimulation::QuotientState>;
 
 struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
@@ -68,8 +65,8 @@ struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
     const value_type::value_t default_;
 };
 
-struct DefaultQuotientStateRewardFunction : public QuotientStateRewardFunction {
-    explicit DefaultQuotientStateRewardFunction(
+struct DefaultQuotientRewardFunction : public QuotientRewardFunction {
+    explicit DefaultQuotientRewardFunction(
         bisimulation::BisimilarStateSpace* bisim,
         const value_utils::IntervalValue bound,
         value_type::value_t default_value = 0);
@@ -77,15 +74,12 @@ struct DefaultQuotientStateRewardFunction : public QuotientStateRewardFunction {
     EvaluationResult
     evaluate(const bisimulation::QuotientState& state) override;
 
+    value_type::value_t
+    evaluate(StateID state, bisimulation::QuotientAction action) override;
+
     bisimulation::BisimilarStateSpace* bisim_;
     const value_utils::IntervalValue bound_;
     const value_type::value_t default_;
-};
-
-struct DefaultQuotientActionRewardFunction
-    : public QuotientActionRewardFunction {
-    value_type::value_t
-    evaluate(StateID state, bisimulation::QuotientAction action) override;
 };
 
 } // namespace bisimulation
