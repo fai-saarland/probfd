@@ -127,8 +127,16 @@ public:
         return utils::make_range(domains_begin(), domains_end());
     }
 
-    AbstractState operator()(const GlobalState& state) const;
-    AbstractState operator()(const std::vector<int>& state) const;
+    template <typename State>
+    AbstractState operator()(const State& state) const
+    {
+        AbstractState res(0);
+        for (const VariableInfo& info : var_infos_) {
+            res.id += info.multiplier * state[info.var];
+        }
+        return res;
+    }
+    
     AbstractState from_values(const std::vector<int>& values) const;
     AbstractState from_values_partial(
         const std::vector<int>& indices,

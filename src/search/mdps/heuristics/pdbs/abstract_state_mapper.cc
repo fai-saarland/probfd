@@ -224,25 +224,6 @@ const Pattern& AbstractStateMapper::get_pattern() const
     return pattern_;
 }
 
-AbstractState AbstractStateMapper::operator()(const GlobalState& state) const
-{
-    AbstractState res(0);
-    for (const VariableInfo& info : var_infos_) {
-        res.id += info.multiplier * state[info.var];
-    }
-    return res;
-}
-
-AbstractState
-AbstractStateMapper::operator()(const std::vector<int>& state) const
-{
-    AbstractState res(0);
-    for (const VariableInfo& info : var_infos_) {
-        res.id += info.multiplier * state[info.var];
-    }
-    return res;
-}
-
 AbstractState
 AbstractStateMapper::from_values(const std::vector<int>& values) const
 {
