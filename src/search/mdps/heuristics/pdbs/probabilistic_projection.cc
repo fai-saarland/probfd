@@ -13,6 +13,8 @@
 namespace probabilistic {
 namespace pdbs {
 
+using PartialAssignment = std::vector<std::pair<int, int>>;
+
 struct NoGoalVariableException : std::exception {
     const char* what() const noexcept override
     {
@@ -26,8 +28,8 @@ ProbabilisticProjection::ProbabilisticProjection(
     const std::vector<int>& domains,
     bool operator_pruning)
     : ProbabilisticProjection(
-        new AbstractStateMapper(pattern, domains),
-        operator_pruning)
+          new AbstractStateMapper(pattern, domains),
+          operator_pruning)
 {
 }
 
@@ -196,8 +198,8 @@ void ProbabilisticProjection::build_operators(bool operator_pruning)
     std::vector<AbstractRegressionOperator> abstract_regression_operators;
     abstract_regression_operators.reserve(g_operators.size());
 
-    std::vector<std::vector<std::pair<int, int>>> progression_preconditions;
-    std::vector<std::vector<std::pair<int, int>>> regression_preconditions;
+    std::vector<PartialAssignment> progression_preconditions;
+    std::vector<PartialAssignment> regression_preconditions;
 
     progression_preconditions.reserve(g_operators.size());
     regression_preconditions.reserve(g_operators.size());
@@ -242,7 +244,7 @@ namespace {
 struct OutcomeInfo {
     AbstractState base_effect = AbstractState(0);
     std::vector<int> missing_pres;
-    std::vector<std::pair<int, int>> effects;
+    PartialAssignment effects;
 
     friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b)
     {
@@ -255,8 +257,8 @@ struct OutcomeInfo {
 namespace {
 
 void apply(
-    std::vector<std::pair<int, int>>& pstate,
-    const std::vector<std::pair<int, int>>& effect)
+    PartialAssignment& pstate,
+    const PartialAssignment& effect)
 {
     auto it = effect.begin();
     auto end = effect.end();
@@ -267,7 +269,7 @@ void apply(
     for (; it != end; ++it, ++pit) {
         const auto& [idx, val] = *it;
 
-        pit = std::find_if(pit, pend, [idx=idx](const auto& p) {
+        pit = std::find_if(pit, pend, [idx = idx](const auto& p) {
             return p.first == idx;
         });
 
@@ -281,8 +283,8 @@ void ProbabilisticProjection::add_abstract_operators(
     const ProbabilisticOperator& op,
     std::set<ProgressionOperatorFootprint>& duplicate_set,
     std::vector<AbstractRegressionOperator>& regression_operators,
-    std::vector<std::vector<std::pair<int, int>>>& progression_preconditions,
-    std::vector<std::vector<std::pair<int, int>>>& regression_preconditions,
+    std::vector<PartialAssignment>& progression_preconditions,
+    std::vector<PartialAssignment>& regression_preconditions,
     bool pruning)
 {
     const int operator_id = op.get_id();
@@ -290,8 +292,8 @@ void ProbabilisticProjection::add_abstract_operators(
 
     // Precondition partial state and partial state to enumerate
     // effect values not appearing in precondition
-    std::vector<std::pair<int, int>> local_precondition;
-    std::vector<std::pair<int, int>> effects_not_in_pre;
+    PartialAssignment local_precondition;
+    PartialAssignment effects_not_in_pre;
 
     for (const auto& [var, val] : op.get_preconditions()) {
         const int idx = var_index_[var];
@@ -345,12 +347,12 @@ void ProbabilisticProjection::add_abstract_operators(
     // different, hence we generate on operator for each state where enabled.
     auto ran = state_mapper_->cartesian_subsets(std::move(effects_not_in_pre));
 
-    for (const std::vector<std::pair<int, int>>& values : ran) {
+    for (const PartialAssignment& values : ran) {
         // Generate the progression operator
         AbstractOperator new_op(operator_id, cost);
 
         // Effects are cached for the regression operator generation
-        std::vector<std::vector<std::pair<int, int>>> effects;
+        std::vector<PartialAssignment> effects;
 
         for (const auto& [info, prob] : outcomes) {
             const auto& [base_effect, missing_pres, effect] = info;
@@ -365,7 +367,7 @@ void ProbabilisticProjection::add_abstract_operators(
         // Construct the precondition by merging the original precondition
         // partial state with the partial state for the non-precondition effects
         // of this iteration
-        std::vector<std::pair<int, int>> precondition;
+        PartialAssignment precondition;
         precondition.reserve(local_precondition.size() + values.size());
 
         std::merge(
