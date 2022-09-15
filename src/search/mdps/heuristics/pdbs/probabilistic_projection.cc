@@ -207,7 +207,7 @@ void ProbabilisticProjection::add_abstract_operators(
     // effect values not appearing in precondition
     auto view = utils::common(pdb_view(op.get_preconditions(), pdb_indices));
     PartialAssignment local_precondition(view.begin(), view.end());
-    PartialAssignment effects_not_in_pre;
+    PartialAssignment vars_eff_not_pre;
 
     // Info about each probabilistic outcome
     Distribution<OutcomeInfo> outcomes;
@@ -226,7 +226,7 @@ void ProbabilisticProjection::add_abstract_operators(
             int val_change = val;
 
             if (pre_it == local_precondition.end()) {
-                effects_not_in_pre.emplace_back(var, 0);
+                vars_eff_not_pre.emplace_back(var, 0);
                 info.missing_pres.push_back(var);
             } else {
                 val_change -= pre_it.base->second;
@@ -239,13 +239,14 @@ void ProbabilisticProjection::add_abstract_operators(
         outcomes.add_unique(std::move(info), out.prob);
     }
 
-    utils::sort_unique(effects_not_in_pre);
+    utils::sort_unique(vars_eff_not_pre);
 
     // We enumerate all values for variables that are not part of
     // the precondition but in an effect. Depending on the value of the
     // variable, the value change caused by the abstract operator would be
     // different, hence we generate on operator for each state where enabled.
-    auto ran = state_mapper_->cartesian_subsets(std::move(effects_not_in_pre));
+    auto ran =
+        state_mapper_->cartesian_subsets(std::move(vars_eff_not_pre));
 
     for (const PartialAssignment& values : ran) {
         // Generate the progression operator
