@@ -515,7 +515,7 @@ private:
             return true;
         }
 
-        this->notify_dead_end(state_id, state_info);
+        this->notify_dead_end(state_info);
         return false;
     }
 

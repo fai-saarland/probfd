@@ -287,15 +287,14 @@ public:
      */
     bool notify_dead_end(const StateID& state_id)
     {
-        return notify_dead_end(state_id, state_infos_[state_id]);
+        return notify_dead_end(state_infos_[state_id]);
     }
 
     /**
-     * @brief If \p state_id has not been recognized as a dead-end before,
-     * stores this information in \p state_info and returns true.
-     * Otherwise returns false.
+     * @brief Stores dead-end information in \p state_info. Returns true on 
+     * change.
      */
-    bool notify_dead_end(const StateID& state_id, StateInfo& state_info)
+    bool notify_dead_end(StateInfo& state_info)
     {
         if (!state_info.is_dead_end()) {
             state_info.set_dead_end();
@@ -312,23 +311,22 @@ public:
      */
     bool notify_dead_end_ifnot_goal(const StateID& state_id)
     {
-        return notify_dead_end_ifnot_goal(state_id, state_infos_[state_id]);
+        return notify_dead_end_ifnot_goal(state_infos_[state_id]);
     }
 
     /**
-     * @brief If \p state_id is not a goal state, calls
-     * notify_dead_end(const StateID&, StateInfo&)
+     * @brief If no goal state flag was set, calls notify_dead_end(StateInfo&).
      *
-     * Returns true if the state is not a goal state.
+     * Returns true if the goal flag was set.
      */
     bool
-    notify_dead_end_ifnot_goal(const StateID& state_id, StateInfo& state_info)
+    notify_dead_end_ifnot_goal(StateInfo& state_info)
     {
         if (state_info.is_goal_state()) {
             return false;
         }
 
-        notify_dead_end(state_id, state_info);
+        notify_dead_end(state_info);
 
         return true;
     }
@@ -675,7 +673,7 @@ private:
                 estimate = value_initializer_->operator()(state);
                 if (estimate) {
                     statistics_.pruned_states++;
-                    notify_dead_end(state_id, state_info);
+                    notify_dead_end(state_info);
                     if (on_new_state_) on_new_state_->touch_dead_end(state);
                 } else {
                     state_info.set_on_fringe();
@@ -742,7 +740,7 @@ private:
 
         if (aops.empty()) {
             statistics_.terminal_states++;
-            bool result = notify_dead_end(state_id, state_info);
+            bool result = notify_dead_end(state_info);
 #if defined(EXPENSIVE_STATISTICS)
             statistics_.update_time.stop();
 #endif
@@ -809,7 +807,7 @@ private:
 
         if (aops.empty()) {
             statistics_.self_loop_states++;
-            return notify_dead_end(state_id, state_info);
+            return notify_dead_end(state_info);
         }
 
         if (this->update(state_info, new_value)) {
