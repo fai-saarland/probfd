@@ -3,6 +3,7 @@
 
 #include "value_type.h"
 
+#include <ostream>
 #include <type_traits>
 #include <utility>
 
@@ -53,6 +54,11 @@ struct IntervalValue {
     }
 
     friend bool operator==(const IntervalValue& lhs, const IntervalValue& rhs);
+
+    /**
+     * @brief Stream output operator.
+     */
+    friend std::ostream& operator<<(std::ostream&, const IntervalValue&);
 };
 
 /*

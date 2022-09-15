@@ -109,6 +109,11 @@ bool operator==(const IntervalValue& lhs, const IntervalValue& rhs)
     return lhs.lower == rhs.lower && lhs.upper == rhs.upper;
 }
 
+std::ostream& operator<<(std::ostream& out, const IntervalValue& value)
+{
+    return out << "[" << value.lower << ", " << value.upper << "]";
+}
+
 value_type::value_t as_lower_bound(const value_utils::IntervalValue& interval)
 {
     return interval.lower;
