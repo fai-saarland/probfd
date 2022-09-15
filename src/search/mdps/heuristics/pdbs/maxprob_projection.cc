@@ -127,25 +127,18 @@ void MaxProbProjection::compute_value_table(
 
     vi.solve(initial_state_, value_table, *dead_ends, *proper_states);
 
-#if !defined(NDEBUG)
-    {
-        const StateID state_id = state_id_map.get_state_id(initial_state_);
-        logging::out << "(II) Pattern [";
-        for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
-            logging::out << (i > 0 ? ", " : "")
-                         << state_mapper_->get_pattern()[i];
-        }
-
-        const auto value = value_table[state_id];
-
-        logging::out << "]: lb=" << value.lower << ", ub=" << value.upper
-                     << ", error=" << value.error_bound() << std::endl;
-
-        verify(state_id_map);
-    }
-#endif
-
     reachable_states = state_id_map.size();
+
+#if !defined(NDEBUG)
+    logging::out << "(II) Pattern [";
+    for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
+        logging::out << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
+    }
+
+    logging::out << "]: value=" << value_table[initial_state_.id] << std::endl;
+
+    verify(state_id_map);
+#endif
 }
 
 value_type::value_t MaxProbProjection::lookup(const GlobalState& s) const

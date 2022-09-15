@@ -269,16 +269,12 @@ void ExpCostProjection::compute_value_table(
     reachable_states = state_id_map.size();
 
 #if !defined(NDEBUG)
-    {
-        logging::out << "(II) Pattern [";
-        for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
-            logging::out << (i > 0 ? ", " : "")
-                         << state_mapper_->get_pattern()[i];
-        }
-        logging::out << "]: value="
-                     << as_upper_bound(value_table[initial_state_.id])
-                     << std::endl;
+    logging::out << "(II) Pattern [";
+    for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
+        logging::out << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
     }
+
+    logging::out << "]: value=" << value_table[initial_state_.id] << std::endl;
 
     verify(state_id_map);
 #endif
