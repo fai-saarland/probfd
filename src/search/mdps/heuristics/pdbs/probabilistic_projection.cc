@@ -252,11 +252,8 @@ struct OutcomeInfo {
                std::tie(b.base_effect, b.missing_pres);
     }
 };
-} // namespace
 
-namespace {
-
-void apply(
+void update(
     PartialAssignment& pstate,
     const PartialAssignment& effect)
 {
@@ -393,7 +390,7 @@ void ProbabilisticProjection::add_abstract_operators(
 
             // Apply effect to progression precondition. The result is the
             // regression precondition
-            apply(regression_preconditions.emplace_back(precondition), effect);
+            update(regression_preconditions.emplace_back(precondition), effect);
 
             // Effect is inverted
             regression_operators.emplace_back(pid, AbstractState(-change.id));
