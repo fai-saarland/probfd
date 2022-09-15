@@ -318,11 +318,6 @@ private:
                                                      << std::endl;)
                             base_engine_->async_update(einfo.state_id);
 
-                            if (base_engine_->is_marked_dead_end(
-                                    einfo.state_id)) {
-                                base_engine_->notify_dead_end(einfo.state_id);
-                            }
-
                             statistics_.traps++;
                         } else {
                             base_engine_->notify_dead_end_ifnot_goal(
