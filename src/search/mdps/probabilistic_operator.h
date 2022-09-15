@@ -29,6 +29,9 @@ struct ProbabilisticOutcome {
     explicit ProbabilisticOutcome(
         const GlobalOperator* op,
         value_type::value_t prob);
+
+    const auto& effects() { return op->get_effects(); }
+    const auto& effects() const { return op->get_effects(); }
 };
 
 /**
