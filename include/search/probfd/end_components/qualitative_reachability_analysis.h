@@ -10,9 +10,6 @@
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
 
-
-#include "probfd/heuristics/pdbs/qualitative_result_store.h"
-
 #include "probfd/quotient_system/engine_interfaces.h"
 #include "probfd/quotient_system/quotient_system.h"
 

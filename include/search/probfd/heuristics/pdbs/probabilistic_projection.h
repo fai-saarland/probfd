@@ -4,7 +4,6 @@
 #include "probfd/heuristics/pdbs/abstract_operator.h"
 #include "probfd/heuristics/pdbs/abstract_state_mapper.h"
 #include "probfd/heuristics/pdbs/engine_interfaces.h"
-#include "probfd/heuristics/pdbs/qualitative_result_store.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/utils/graph_visualization.h"

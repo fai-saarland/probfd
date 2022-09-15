@@ -749,7 +749,6 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/engine_interfaces
         probfd/heuristics/pdbs/orthogonality
         probfd/heuristics/pdbs/probabilistic_projection
-        probfd/heuristics/pdbs/qualitative_result_store
         probfd/heuristics/pdbs/syntactic_projection
         probfd/heuristics/pdbs/types
         probfd/heuristics/pdbs/utils
