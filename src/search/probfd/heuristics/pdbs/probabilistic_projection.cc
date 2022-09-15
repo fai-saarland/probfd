@@ -162,7 +162,6 @@ namespace {
 struct OutcomeInfo {
     AbstractState base_effect = AbstractState(0);
     std::vector<int> missing_pres;
-    PartialAssignment effects;
 
     friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b)
     {
@@ -220,8 +219,6 @@ void ProbabilisticProjection::add_abstract_operators(
         OutcomeInfo info;
 
         for (const auto& [var, val] : pdb_view(out.effects(), pdb_indices)) {
-            info.effects.emplace_back(var, val);
-
             auto beg = utils::make_key_iterator(local_precondition.begin());
             auto end = utils::make_key_iterator(local_precondition.end());
             auto pre_it = utils::find_sorted(beg, end, var);
@@ -254,7 +251,7 @@ void ProbabilisticProjection::add_abstract_operators(
         AbstractOperator new_op(operator_id, reward);
 
         for (const auto& [info, prob] : outcomes) {
-            const auto& [base_effect, missing_pres, effect] = info;
+            const auto& [base_effect, missing_pres] = info;
             auto a = state_mapper_->from_values_partial(missing_pres, values);
 
             new_op.outcomes.add_unique(base_effect - a, prob);
