@@ -136,7 +136,7 @@ public:
         }
         return res;
     }
-    
+
     AbstractState from_values(const std::vector<int>& values) const;
     AbstractState from_values_partial(
         const std::vector<std::pair<int, int>>& sparse_values) const;
@@ -173,10 +173,8 @@ public:
     abstract_states(AbstractState offset, std::vector<int> indices) const;
 
     int get_multiplier(int var) const;
-    int get_multiplier_raw(int idx) const;
 
     int get_domain_size(int var) const;
-    int get_domain_size_raw(int idx) const;
 
     int get_index(int var) const;
 

@@ -400,22 +400,12 @@ AbstractStateMapper::abstract_states(
 
 int AbstractStateMapper::get_multiplier(int var) const
 {
-    return get_multiplier_raw(get_index(var));
-}
-
-int AbstractStateMapper::get_multiplier_raw(int idx) const
-{
-    return var_infos_[idx].multiplier;
+    return var_infos_[var].multiplier;
 }
 
 int AbstractStateMapper::get_domain_size(int var) const
 {
-    return get_domain_size_raw(get_index(var));
-}
-
-int AbstractStateMapper::get_domain_size_raw(int idx) const
-{
-    return var_infos_[idx].domain;
+    return var_infos_[var].domain;
 }
 
 int AbstractStateMapper::get_index(int var) const

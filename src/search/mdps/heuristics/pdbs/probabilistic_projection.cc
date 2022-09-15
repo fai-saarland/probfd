@@ -101,7 +101,7 @@ void ProbabilisticProjection::setup_abstract_goal()
         } else {
             if (p_var == g_var) {
                 const int g_val = g_goal[w].second;
-                base.id += state_mapper_->get_multiplier_raw(v++) * g_val;
+                base.id += state_mapper_->get_multiplier(v++) * g_val;
             }
 
             if (++w == static_cast<int>(g_goal.size())) {
