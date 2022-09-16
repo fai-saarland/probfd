@@ -189,7 +189,6 @@ public:
                     lp::LPConstraint c(-inf, inf);
 
                     double base_val =
-                        (value_type::value_t)rew +
                         this->get_action_reward(state_id, aops[j]);
                     StateID next_prev_state = prev_state;
                     double w = 1.0;

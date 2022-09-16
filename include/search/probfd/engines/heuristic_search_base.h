@@ -163,7 +163,6 @@ public:
         , value_initializer_(value_init)
         , policy_chooser_(policy_chooser)
         , on_new_state_(new_state_handler)
-        , dead_end_value_(this->get_minimal_reward())
     {
         statistics_.state_info_bytes = sizeof(StateInfo);
         connector->set_lookup_function(this);
@@ -296,7 +295,7 @@ public:
     {
         if (!state_info.is_dead_end()) {
             state_info.set_dead_end();
-            state_info.value = dead_end_value_;
+            state_info.value = IncumbentSolution(state_info.state_reward);
             return true;
         }
 
@@ -679,8 +678,6 @@ private:
         }
     }
 
-    IncumbentSolution dead_end_value() const { return dead_end_value_; }
-
     bool compute_value_update(const StateID& state_id)
     {
         std::vector<Action> aops;
@@ -740,7 +737,7 @@ private:
             return result;
         }
 
-        new_value = IncumbentSolution(this->get_minimal_reward());
+        new_value = IncumbentSolution(this->get_state_reward(state_id));
         values.reserve(aops.size());
 
         unsigned non_loop_end = 0;
@@ -748,9 +745,7 @@ private:
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
-            IncumbentSolution t_value(
-                this->get_state_reward(state_id) +
-                this->get_action_reward(state_id, op));
+            IncumbentSolution t_value(this->get_action_reward(state_id, op));
             value_type::value_t self_loop = value_type::zero;
             bool non_loop = false;
 
@@ -944,8 +939,6 @@ private:
     engine_interfaces::StateEvaluator<State>* value_initializer_;
     engine_interfaces::PolicyPicker<Action>* policy_chooser_;
     engine_interfaces::NewStateHandler<State>* on_new_state_;
-
-    const IncumbentSolution dead_end_value_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
 
