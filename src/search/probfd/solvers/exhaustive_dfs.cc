@@ -34,11 +34,6 @@ public:
               opts.get_list<std::shared_ptr<NewGlobalStateHandler>>(
                   "on_new_state")))
         , heuristic_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
-        , dead_end_eval_(
-              opts.contains("dead_end_eval")
-                  ? opts.get<std::shared_ptr<GlobalStateEvaluator>>(
-                        "dead_end_eval")
-                  : nullptr)
         , successor_sort_(
               opts.contains("order")
                   ? opts.get<
@@ -77,10 +72,6 @@ public:
             "[]");
         parser.add_option<bool>("interval_comparison", "", "false");
         parser.add_option<bool>("dual_bounds", "", "false");
-        parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
-            "dead_end_eval",
-            "",
-            options::OptionParser::NONE);
         parser
             .add_option<std::shared_ptr<ProbabilisticOperatorSuccessorSorting>>(
                 "order",
@@ -113,7 +104,6 @@ public:
             return this->template engine_factory<Engine2>(
                 &connector_,
                 heuristic_.get(),
-                dead_end_eval_.get(),
                 reevaluate_,
                 notify_s0_,
                 successor_sort_.get(),
@@ -125,7 +115,6 @@ public:
             return this->template engine_factory<Engine>(
                 &connector_,
                 heuristic_.get(),
-                dead_end_eval_.get(),
                 reevaluate_,
                 notify_s0_,
                 successor_sort_.get(),
@@ -141,7 +130,6 @@ private:
 
     std::shared_ptr<NewGlobalStateHandlerList> new_state_handler_;
     std::shared_ptr<GlobalStateEvaluator> heuristic_;
-    std::shared_ptr<GlobalStateEvaluator> dead_end_eval_;
     std::shared_ptr<ProbabilisticOperatorSuccessorSorting> successor_sort_;
 
     const bool dual_bounds_;

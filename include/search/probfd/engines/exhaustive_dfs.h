@@ -65,7 +65,7 @@ struct Statistics {
         out << "  Found " << dead_end_sccs << " dead-end SCC(s)." << std::endl;
         out << "  Partially pruned " << pruned_dead_end_sccs
             << " dead-end SCC(s)." << std::endl;
-        TIMERS_ENABLED(out << "  Dead end evaluator time: " << evaluation_time
+        TIMERS_ENABLED(out << "  Evaluator time: " << evaluation_time
                            << std::endl;)
         out << "  Average dead-end SCC size: "
             << (static_cast<double>(summed_dead_end_scc_sizes) /
@@ -175,7 +175,6 @@ public:
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::HeuristicSearchConnector* connector,
         engine_interfaces::StateEvaluator<State>* evaluator,
-        engine_interfaces::StateEvaluator<State>* dead_end_eval,
         bool reevaluate,
         bool notify_initial,
         engine_interfaces::SuccessorSorting<Action>* successor_sorting,
@@ -194,7 +193,6 @@ public:
         , dead_end_value_(this->get_minimal_reward())
         , trivial_bound_(get_trivial_bound())
         , evaluator_(evaluator)
-        , dead_end_evaluator_(dead_end_eval)
         , new_state_handler_(new_state_handler)
         , reverse_path_updates_(path_updates)
         , only_propagate_when_changed_(only_propagate_when_changed)
@@ -266,23 +264,6 @@ private:
         const EvaluationResult res = evaluator_->operator()(state);
         TIMERS_ENABLED(statistics_.evaluation_finished();)
         return res;
-    }
-
-    bool is_dead_end(const StateID& state_id)
-    {
-        State state = this->lookup_state(state_id);
-        return is_dead_end(state);
-    }
-
-    bool is_dead_end(const State& state)
-    {
-        TIMERS_ENABLED(statistics_.evaluation_started();)
-        bool result = false;
-        if (dead_end_evaluator_ != nullptr) {
-            result = (bool)dead_end_evaluator_->operator()(state);
-        }
-        TIMERS_ENABLED(statistics_.evaluation_finished();)
-        return result;
     }
 
     IncumbentSolution dead_end_value() const { return dead_end_value_; }
@@ -520,13 +501,6 @@ private:
             expanding.all_successors_marked_dead =
                 expanding.all_successors_marked_dead && last_all_marked_dead_;
 
-            if (evaluator_recomputation_ && backtracked_from_dead_end_scc_) {
-                if (is_dead_end(stateid)) {
-                    mark_current_component_dead();
-                    continue;
-                }
-            }
-
             int idx = stack_info.successors.size() - stack_info.i - 1;
             SCCTransition* inc = &stack_info.successors[idx];
             bool val_changed = false;
@@ -542,13 +516,7 @@ private:
                     assert(!succ_info.is_new());
 
                     if (succ_info.is_open()) {
-                        if (is_dead_end(succ_id)) {
-                            statistics_.dead_ends++;
-                            succ_info.value = dead_end_value_;
-                            succ_info.mark_dead_end();
-                            inc->base += prob * value_utils::as_lower_bound(
-                                                    succ_info.value);
-                        } else if (push_state(succ_id, succ_info)) {
+                        if (push_state(succ_id, succ_info)) {
                             goto skip;
                         } else {
                             expanding.all_successors_are_dead =
@@ -1035,7 +1003,6 @@ private:
     const IncumbentSolution trivial_bound_;
 
     engine_interfaces::StateEvaluator<State>* evaluator_;
-    engine_interfaces::StateEvaluator<State>* dead_end_evaluator_;
     engine_interfaces::NewStateHandler<State>* new_state_handler_;
 
     const BacktrackingUpdateType reverse_path_updates_;
