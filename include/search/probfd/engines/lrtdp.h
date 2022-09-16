@@ -273,10 +273,10 @@ private:
                                                &this->selected_transition_)
                                            .first;
             if (this->selected_transition_.empty()) {
+                auto& base_info = this->get_state_info(state_id, state_info);
                 // terminal
-                assert(
-                    this->get_state_info(state_id, state_info).is_terminal());
-                this->check_goal_or_mark_dead_end(state_id, state_info);
+                assert(base_info.is_terminal());
+                this->notify_dead_end_ifnot_goal(base_info);
                 state_info.set_solved();
                 this->current_trial_.pop_back();
                 break;
@@ -388,12 +388,13 @@ private:
                                           << this->get_value(state_id)
                                           << std::endl;)
             } else if (this->selected_transition_.empty()) {
-                assert(this->get_state_info(state_id, info).is_terminal());
+                auto& base_info = this->get_state_info(state_id, info);
+                assert(base_info.is_terminal());
 
-                if (this->check_goal_or_mark_dead_end(state_id, info)) {
-                    all_dead = false;
-                } else {
+                if (this->notify_dead_end_ifnot_goal(base_info)) {
                     any_dead = true;
+                } else {
+                    all_dead = false;
                 }
 
                 info.set_solved();
@@ -500,17 +501,6 @@ private:
         }
 
         return rv;
-    }
-
-    bool check_goal_or_mark_dead_end(const StateID& state_id, StateInfoT& info)
-    {
-        auto& state_info = this->get_state_info(state_id, info);
-        if (state_info.is_goal_state()) {
-            return true;
-        }
-
-        this->notify_dead_end(state_info);
-        return false;
     }
 
     StateInfoT& get_lrtdp_state_info(const StateID& sid)
