@@ -73,7 +73,6 @@ public:
             res->reward.get(),
             g_analysis_objective->reward_bound(),
             res->tgen.get(),
-            nullptr,
             &res->policy_,
             &res->new_state_handler_,
             res->heuristic_.get(),
@@ -189,7 +188,6 @@ public:
             new HS<QState, QQAction, DualValues>(
                 args...,
                 res->quotient_.get(),
-                nullptr,
                 res->q_policy_tiebreaker_.get(),
                 &res->new_state_handler_,
                 res->heuristic_.get(),
@@ -234,7 +232,6 @@ public:
             res->q_reward_.get(),
             g_analysis_objective->reward_bound(),
             res->q_transition_gen_.get(),
-            nullptr,
             res->q_policy_tiebreaker_.get(),
             &res->new_state_handler_,
             res->heuristic_.get(),

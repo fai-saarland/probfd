@@ -59,7 +59,6 @@ private:
     std::shared_ptr<ProbabilisticOperatorPolicyPicker> policy_tiebreaker_;
     std::shared_ptr<NewGlobalStateHandler> new_state_handler_;
     std::shared_ptr<GlobalStateEvaluator> heuristic_;
-    std::shared_ptr<GlobalStateEvaluator> dead_end_eval_;
 
     const bool dual_bounds_;
     const bool interval_comparison_;
@@ -84,7 +83,6 @@ public:
             using HeuristicSearchType =
                 HS<GlobalState, const ProbabilisticOperator*, std::true_type>;
             return engine_factory<HeuristicSearchType>(
-                dead_end_eval_.get(),
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -97,7 +95,6 @@ public:
             using HeuristicSearchType =
                 HS<GlobalState, const ProbabilisticOperator*, std::false_type>;
             return engine_factory<HeuristicSearchType>(
-                dead_end_eval_.get(),
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -208,7 +205,6 @@ public:
             return new HS<GlobalState, QAction, std::true_type>(
                 args...,
                 this->quotient_.get(),
-                dead_end_eval_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -226,7 +222,6 @@ public:
             return new HS<GlobalState, QAction, std::false_type>(
                 args...,
                 this->quotient_.get(),
-                dead_end_eval_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -292,7 +287,6 @@ private:
             q_reward_.get(),
             this->get_reward_bound(),
             q_transition_gen_.get(),
-            dead_end_eval_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
             heuristic_.get(),

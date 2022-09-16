@@ -144,7 +144,6 @@ public:
         engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
-        engine_interfaces::StateEvaluator<State>* dead_end_eval,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         engine_interfaces::StateEvaluator<State>* value_init,
@@ -164,7 +163,6 @@ public:
         , value_initializer_(value_init)
         , policy_chooser_(policy_chooser)
         , on_new_state_(new_state_handler)
-        , dead_end_eval_(dead_end_eval)
         , dead_end_value_(this->get_minimal_reward())
     {
         statistics_.state_info_bytes = sizeof(StateInfo);
@@ -328,24 +326,6 @@ public:
         notify_dead_end(state_info);
 
         return true;
-    }
-
-    /**
-     * @brief Checks whether the attached dead-end evaluator recognizes the
-     * state as a dead-end. If yes and the state has not been recognized before,
-     * the state is marked as a dead-end.
-     */
-    bool check_dead_end(const StateID& state_id)
-    {
-        if (dead_end_eval_ != nullptr) {
-            State state = this->lookup_state(state_id);
-            if (dead_end_eval_->operator()(state)) {
-                notify_dead_end(state_id);
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -959,7 +939,6 @@ private:
     engine_interfaces::StateEvaluator<State>* value_initializer_;
     engine_interfaces::PolicyPicker<Action>* policy_chooser_;
     engine_interfaces::NewStateHandler<State>* on_new_state_;
-    engine_interfaces::StateEvaluator<State>* dead_end_eval_;
 
     const IncumbentSolution dead_end_value_;
 
