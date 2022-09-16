@@ -406,6 +406,11 @@ public:
     }
 
 protected:
+    value_type::value_t get_state_reward(const StateID& id)
+    {
+        return get_state_info(id).state_reward;
+    }
+
     value_type::value_t get_value(const State& s)
     {
         return get_value(this->get_state_id(s));
@@ -642,7 +647,9 @@ private:
         if (!state_info.is_value_initialized()) {
             statistics_.evaluated_states++;
             State state = this->lookup_state(state_id);
-            auto estimate = this->get_state_reward(state);
+            auto estimate = MDPEngine<StateT, ActionT>::get_state_reward(state);
+            auto val = static_cast<value_type::value_t>(estimate);
+            state_info.state_reward = val;
             if (estimate) {
                 state_info.set_goal();
                 state_info.value =
@@ -741,10 +748,8 @@ private:
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
-            const State state = this->lookup_state(state_id);
-
             IncumbentSolution t_value(
-                this->get_state_reward(state) +
+                this->get_state_reward(state_id) +
                 this->get_action_reward(state_id, op));
             value_type::value_t self_loop = value_type::zero;
             bool non_loop = false;

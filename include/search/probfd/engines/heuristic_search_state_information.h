@@ -64,6 +64,7 @@ struct StateFlags {
     }
 
     uint8_t info = 0;
+    value_type::value_t state_reward;
 };
 
 template <typename StoresPolicyT, typename TwoValuesT>
