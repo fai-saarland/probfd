@@ -321,11 +321,16 @@ void MaxProbProjection::dump_graphviz(
         return out.str();
     };
 
+    ZeroCostAbstractRewardFunction reward(
+        &goal_states_,
+        value_type::one,
+        value_type::zero);
+
     ProbabilisticProjection::dump_graphviz(
         path,
         s2str,
-        transition_labels,
-        value_type::one);
+        reward,
+        transition_labels);
 }
 
 #if !defined(NDEBUG) && defined(USE_LP)

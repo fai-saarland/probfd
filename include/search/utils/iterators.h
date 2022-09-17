@@ -1038,7 +1038,7 @@ template <typename Range>
 auto values(Range&& range)
 {
     return utils::make_range(
-        make_value_iterator(std::begin(range)),
+        make_val_iterator(std::begin(range)),
         make_transform_sentinel(std::end(range)));
 }
 

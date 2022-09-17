@@ -97,8 +97,8 @@ protected:
     void dump_graphviz(
         const std::string& path,
         const StateToString& sts,
-        bool transition_labels,
-        value_type::value_t goal_value) const
+        AbstractRewardFunction& rewards,
+        bool transition_labels) const
     {
         using namespace engine_interfaces;
 
@@ -107,11 +107,6 @@ protected:
         auto ats = [=](const AbstractOperator* op) {
             return transition_labels ? op_names(op) : "";
         };
-
-        ZeroCostAbstractRewardFunction reward(
-            &goal_states_,
-            goal_value,
-            value_type::zero);
 
         StateIDMap<AbstractState> state_id_map;
 
@@ -126,7 +121,7 @@ protected:
             out,
             initial_state_,
             &state_id_map,
-            &reward,
+            &rewards,
             &transition_gen,
             sts,
             ats,

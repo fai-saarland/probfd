@@ -235,11 +235,16 @@ void ExpCostProjection::dump_graphviz(
         return out.str();
     };
 
+    NormalCostAbstractRewardFunction reward(
+        &goal_states_,
+        value_type::zero,
+        -value_type::inf);
+
     ProbabilisticProjection::dump_graphviz(
         path,
         s2str,
-        transition_labels,
-        value_type::zero);
+        reward,
+        transition_labels);
 }
 
 void ExpCostProjection::compute_value_table(
