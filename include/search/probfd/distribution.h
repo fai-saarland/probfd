@@ -172,6 +172,11 @@ public:
     }
 
     /**
+     * @brief Checks if the distribution is a Dirac distribution.
+     */
+    bool is_dirac() const { return size() == 1; }
+
+    /**
      * @brief Scales all element probablities by a common factor.
      */
     void normalize(const value_type::value_t& scale)
