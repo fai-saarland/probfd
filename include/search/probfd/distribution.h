@@ -350,6 +350,18 @@ public:
      * @brief Obtains a const reference to the internal list.
      */
     const distribution_t& data() const { return distribution_; }
+
+    friend bool
+    operator<(const Distribution<T>& left, const Distribution<T>& right)
+    {
+        return left.distribution_ < right.distribution_;
+    }
+
+    friend bool
+    operator==(const Distribution<T>& left, const Distribution<T>& right)
+    {
+        return left.distribution_ == right.distribution_;
+    }
 };
 
 } // namespace probfd
