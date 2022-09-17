@@ -12,3 +12,6 @@ cmake-build-debug/
 .vscode/
 docs/latex/
 docs/html/
+
+# Graphviz
+*.dot
