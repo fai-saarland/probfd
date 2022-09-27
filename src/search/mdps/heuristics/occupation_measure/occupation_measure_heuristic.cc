@@ -255,7 +255,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp_expcost(
 
     // Now ordinary actions
     for (const ProbabilisticOperator& op : g_operators) {
-        const int cost = op.get_cost();
+        const int reward = -op.get_cost();
         const std::vector<int> pre = get_precondition_explicit(op);
         std::set<int> affected_vars;
         const std::vector<std::vector<value_type::value_t>> post =
@@ -328,7 +328,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp_expcost(
         if (!tying.empty()) {
             const auto& [range_b, range_e] = tying[0];
             for (int i = range_b; i < range_e; ++i) {
-                lp_vars[i].objective_coefficient = cost;
+                lp_vars[i].objective_coefficient = reward;
             }
         }
     }
@@ -353,17 +353,14 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
 
     if (is_maxprob_) {
         generate_hpom_lp(lp_solver_, lp_vars, constraints, offset_);
-        lp_solver_.load_problem(
-            lp::LPObjectiveSense::MAXIMIZE,
-            lp_vars,
-            constraints);
     } else {
         generate_hpom_lp_expcost(lp_solver_, lp_vars, constraints, offset_);
+    }
+
         lp_solver_.load_problem(
-            lp::LPObjectiveSense::MINIMIZE,
+        lp::LPObjectiveSense::MAXIMIZE,
             lp_vars,
             constraints);
-    }
 
     std::cout << "Finished POM LP setup after " << timer << std::endl;
 }
@@ -404,7 +401,7 @@ ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state) const
         assert(lp_solver_.has_optimal_solution());
 
         // Costs are negative rewards, return negative solution.
-        const double v = -lp_solver_.get_objective_value();
+        const double v = lp_solver_.get_objective_value();
         EvaluationResult res = EvaluationResult(false, v);
 
         // Undo for next evaluate
