@@ -25,14 +25,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     std::vector<lp::LPConstraint>& constraints,
     std::vector<int>& offset_)
 {
-    using namespace analysis_objectives;
-
     ::verify_no_axioms_no_conditional_effects();
-    if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get()) ==
-        nullptr) {
-        std::cerr << "hpom currently only supports MaxProb" << std::endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-    }
 
     const double inf = lp_solver_.get_infinity();
 
@@ -344,6 +337,10 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp_expcost(
 ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     const options::Options& opts)
     : lp_solver_(lp::LPSolverType(opts.get_enum("lpsolver")))
+    , is_maxprob_(
+          std::dynamic_pointer_cast<
+              analysis_objectives::GoalProbabilityObjective>(
+              g_analysis_objective) != nullptr)
 {
     using namespace analysis_objectives;
 
@@ -354,16 +351,13 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     std::vector<lp::LPVariable> lp_vars;
     std::vector<lp::LPConstraint> constraints;
 
-    if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())) {
+    if (is_maxprob_) {
         generate_hpom_lp(lp_solver_, lp_vars, constraints, offset_);
         lp_solver_.load_problem(
             lp::LPObjectiveSense::MAXIMIZE,
             lp_vars,
             constraints);
     } else {
-        assert(
-            dynamic_cast<ExpectedCostObjective*>(g_analysis_objective.get()));
-
         generate_hpom_lp_expcost(lp_solver_, lp_vars, constraints, offset_);
         lp_solver_.load_problem(
             lp::LPObjectiveSense::MINIMIZE,
@@ -379,7 +373,7 @@ ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state) const
 {
     using namespace analysis_objectives;
 
-    if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())) {
+    if (is_maxprob_) {
         for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
             lp_solver_.set_constraint_lower_bound(
                 offset_[var] + state[var],

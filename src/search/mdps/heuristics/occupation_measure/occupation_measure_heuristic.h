@@ -49,6 +49,7 @@ protected:
 
     mutable lp::LPSolver lp_solver_;
     std::vector<int> offset_;
+    bool is_maxprob_;
 };
 
 } // namespace occupation_measure_heuristic
