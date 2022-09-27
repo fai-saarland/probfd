@@ -73,64 +73,73 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 EvaluationResult
 RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
 {
+    const std::size_t num_variables = g_variable_domain.size();
+
     if (is_maxprob) {
-        for (unsigned i = 0; i < g_goal.size(); ++i) {
-            if (state[g_goal[i].first] == g_goal[i].second) {
-                lp_solver_.set_constraint_lower_bound(i, -1);
+        for (std::size_t i = 0; i < g_goal.size(); ++i) {
+            const auto& goal_fact = g_goal[i];
+            if (state[goal_fact.first] == goal_fact.second) {
+                const int c_index = num_facts_ + i;
+                lp_solver_.set_constraint_lower_bound(c_index, -1);
+                reset_indices_.push_back(c_index);
             }
         }
-        for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
-            lp_solver_.set_constraint_lower_bound(
-                constraint_offsets_[var] + state[var],
-                -1);
+
+        for (std::size_t var = 0; var < num_variables; ++var) {
+            const int c_index = ncc_offsets_[var] + state[var];
+            lp_solver_.set_constraint_lower_bound(c_index, -1);
+            reset_indices_.push_back(c_index);
         }
+
         lp_solver_.solve();
         EvaluationResult res(true, 0.0);
+
         if (lp_solver_.has_optimal_solution()) {
             const double v = lp_solver_.get_objective_value();
             res = EvaluationResult(v == 0.0, v);
         }
-        for (unsigned i = 0; i < g_goal.size(); ++i) {
-            if (state[g_goal[i].first] == g_goal[i].second) {
-                lp_solver_.set_constraint_lower_bound(i, 0);
-            }
+
+        // Reset the objective coeffieients
+        for (int idx : reset_indices_) {
+            lp_solver_.set_constraint_lower_bound(idx, 0.0);
         }
-        for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
-            lp_solver_.set_constraint_lower_bound(
-                constraint_offsets_[var] + state[var],
-                0);
-        }
+
+        reset_indices_.clear();
+
         return res;
     } else {
         const auto goal_explicit = get_goal_explicit();
 
-        std::vector<int> reset;
-        reset.reserve(2 * g_variable_domain.size());
-
-        for (size_t var = 0; var < g_variable_domain.size(); ++var) {
+        for (std::size_t var = 0; var < num_variables; ++var) {
             const int g_val = goal_explicit[var];
             if (g_val == -1) {
-                const int idx_state_val = constraint_offsets_[var] + state[var];
+                const int idx_state_val = ncc_offsets_[var] + state[var];
+
                 lp_solver_.set_constraint_lower_bound(idx_state_val, -1);
-                reset.push_back(idx_state_val);
-            } else if (state[var] != goal_explicit[var]) {
-                const int idx_state_val = constraint_offsets_[var] + state[var];
-                const int idx_g_val = constraint_offsets_[var] + g_val;
+                reset_indices_.push_back(idx_state_val);
+            } else if (state[var] != g_val) {
+                const int idx_state_val = ncc_offsets_[var] + state[var];
+                const int idx_g_val = ncc_offsets_[var] + g_val;
+
                 lp_solver_.set_constraint_lower_bound(idx_state_val, -1);
                 lp_solver_.set_constraint_lower_bound(idx_g_val, 1);
-                reset.push_back(idx_state_val);
-                reset.push_back(idx_g_val);
+
+                reset_indices_.push_back(idx_state_val);
+                reset_indices_.push_back(idx_g_val);
             }
         }
 
         lp_solver_.solve();
         assert(lp_solver_.has_optimal_solution());
-        const double v = -lp_solver_.get_objective_value();
+        const double v = lp_solver_.get_objective_value();
         EvaluationResult res(false, v);
 
-        for (int idx : reset) {
+        // Reset the objective coeffieients
+        for (int idx : reset_indices_) {
             lp_solver_.set_constraint_lower_bound(idx, 0.0);
         }
+
+        reset_indices_.clear();
 
         return res;
     }
@@ -144,66 +153,113 @@ void RegroupedOperatorCountingHeuristic::add_options_to_parser(
 
 void RegroupedOperatorCountingHeuristic::load_maxprob_lp()
 {
+    const std::size_t num_variables = g_variable_domain.size();
+
+    this->reset_indices_.reserve(2 * num_variables);
+
     const double inf = lp_solver_.get_infinity();
+
     std::vector<lp::LPVariable> lp_vars;
     std::vector<lp::LPConstraint> constraints;
-    constraint_offsets_.resize(g_variable_domain.size(), g_goal.size());
-    for (unsigned var = 1; var < g_variable_domain.size(); ++var) {
-        constraint_offsets_[var] =
-            constraint_offsets_[var - 1] + g_variable_domain[var - 1];
+
+    // Set up net change constraint offsets, one constraint per fact
+    ncc_offsets_.reserve(num_variables);
+
+    std::size_t offset = 0;
+    ncc_offsets_.push_back(offset);
+    for (std::size_t var = 0; var < num_variables - 1; ++var) {
+        offset += g_variable_domain[var];
+        ncc_offsets_.push_back(offset);
     }
-    constraints.resize(
-        g_goal.size() + constraint_offsets_.back() + g_variable_domain.back(),
-        lp::LPConstraint(0, inf));
+
+    num_facts_ = offset + g_variable_domain.back();
+
+    constraints.resize(num_facts_, lp::LPConstraint(0.0, inf));
+
+    /***** Max Prob specific *****/
+
+    // Sink variable?
     lp_vars.emplace_back(0, 1, 1);
 
-    std::vector<int> goal(g_variable_domain.size(), -1);
-    for (unsigned i = 0; i < g_goal.size(); ++i) {
-        goal[g_goal[i].first] = i;
-        constraints[i].insert(0, -1);
+    // Set up constraint indices for goal facts
+
+    // Goal variables to corresponding constraint index and goal value
+    std::map<int, std::pair<std::size_t, int>> var_to_gconstraint;
+
+    for (const auto& goal_fact : g_goal) {
+        const std::size_t cindex = constraints.size();
+        auto* constraint = &constraints.emplace_back(0.0, inf);
+        constraint->insert(0, -1);
+        var_to_gconstraint[goal_fact.first] = {cindex, goal_fact.second};
     }
 
-    std::vector<int> pre(g_variable_domain.size());
-    for (unsigned op_num = 0; op_num < g_operators.size(); ++op_num) {
-        const ProbabilisticOperator& op = g_operators[op_num];
-        int lp_var_start = lp_vars.size();
+    /****************************/
 
-        std::fill(pre.begin(), pre.end(), -1);
-        for (unsigned i = 0; i < op.get_preconditions().size(); ++i) {
-            const auto& f = op.get_preconditions()[i];
-            pre[f.var] = f.val;
-        }
+    // Set up constraint coefficients of variables Y_{a,e}
+    for (const ProbabilisticOperator& op : g_operators) {
+        assert(op.num_outcomes() >= 1);
 
-        for (unsigned out_num = 0; out_num < op.num_outcomes(); ++out_num) {
-            const GlobalOperator& outcome = *(op[out_num].op);
+        const auto first_eff_probability = op[0].prob;
+        const int first_eff_lpvar = lp_vars.size();
+
+        // Get explicit precondition
+        const std::vector<int> pre = get_precondition_explicit(op);
+
+        for (std::size_t i = 0; i < op.num_outcomes(); ++i) {
+            const ProbabilisticOutcome& o = op[i];
+            const auto probability = o.prob;
+            const auto& effects = o.effects();
+
             const int lp_var = lp_vars.size();
+
+            // introduce variable Y_{a,e}
             lp_vars.emplace_back(0, inf, 0);
-            for (unsigned i = 0; i < outcome.get_effects().size(); ++i) {
-                const auto& eff = outcome.get_effects()[i];
-                constraints[constraint_offsets_[eff.var] + eff.val].insert(
-                    lp_var,
-                    1);
-                if (pre[eff.var] != -1) {
-                    constraints[constraint_offsets_[eff.var] + pre[eff.var]]
-                        .insert(lp_var, -1);
+
+            for (const auto& eff : effects) {
+                const int var = eff.var;
+                const int val = eff.val;
+
+                auto* var_constraints = constraints.data() + ncc_offsets_[var];
+
+                // Always produces / Sometimes produces
+                var_constraints[val].insert(lp_var, 1);
+
+                const int pre_val = pre[var];
+
+                assert(pre_val != val && "Redundant effect encountered!");
+
+                if (pre_val != -1) {
+                    // Always consumes
+                    var_constraints[pre_val].insert(lp_var, -1);
                 }
-                if (goal[eff.var] != -1) {
-                    const int goal_val = g_goal[goal[eff.var]].second;
-                    if (goal_val == eff.val) {
-                        constraints[goal[eff.var]].insert(lp_var, 1);
-                    } else if (pre[eff.var] == goal_val) {
-                        constraints[goal[eff.var]].insert(lp_var, -1);
+
+                /***** Max Prob specific *****/
+
+                // Goal constraint
+                const auto gconstr_it = var_to_gconstraint.find(var);
+
+                if (gconstr_it != var_to_gconstraint.end()) {
+                    const std::size_t cindex = gconstr_it->second.first;
+                    const int goal_val = gconstr_it->second.second;
+                    if (goal_val == val) {
+                        constraints[cindex].insert(lp_var, 1);
+                    } else if (pre_val == goal_val) {
+                        constraints[cindex].insert(lp_var, -1);
                     }
                 }
-            }
-        }
 
-        for (int i = op.num_outcomes() - 1, lp_var = lp_vars.size() - 1;
-             lp_var > lp_var_start;
-             --lp_var, --i) {
-            constraints.emplace_back(0, 0);
-            constraints.back().insert(lp_var_start, 1.0 / op[0].prob);
-            constraints.back().insert(lp_var, -1.0 / op[i].prob);
+                /****************************/
+            }
+
+            // Skip first variable for regrouping constraints
+            if (i == 0) {
+                continue;
+            }
+
+            // Set up regrouping constraint coefficients
+            auto& rg_constraint = constraints.emplace_back(0, 0);
+            rg_constraint.insert(first_eff_lpvar, 1.0 / first_eff_probability);
+            rg_constraint.insert(lp_var, -1.0 / probability);
         }
     }
 
@@ -211,64 +267,92 @@ void RegroupedOperatorCountingHeuristic::load_maxprob_lp()
         lp::LPObjectiveSense::MAXIMIZE,
         lp_vars,
         constraints);
+
+    for (const auto& goal_fact : g_goal) {
+        auto& c = constraints[var_to_gconstraint[goal_fact.first].first];
+        c.dump();
+        constraints[ncc_offsets_[goal_fact.first] + goal_fact.second].dump();
+        std::cout << "------" << std::endl;
+    }
 }
 
 void RegroupedOperatorCountingHeuristic::load_expcost_lp()
 {
+    const std::size_t num_variables = g_variable_domain.size();
+
+    this->reset_indices_.reserve(2 * num_variables);
+
     const double inf = lp_solver_.get_infinity();
+
     std::vector<lp::LPVariable> lp_vars;
     std::vector<lp::LPConstraint> constraints;
 
-    // Two constraints for every projection state
-    constraint_offsets_.resize(g_variable_domain.size(), 0);
-    for (unsigned var = 1; var < g_variable_domain.size(); ++var) {
-        constraint_offsets_[var] =
-            constraint_offsets_[var - 1] + g_variable_domain[var - 1];
+    // Set up net change constraint offsets, one constraint per fact
+    ncc_offsets_.reserve(num_variables);
+
+    std::size_t offset = 0;
+    ncc_offsets_.push_back(offset);
+    for (std::size_t var = 0; var < num_variables - 1; ++var) {
+        offset += g_variable_domain[var];
+        ncc_offsets_.push_back(offset);
     }
 
-    constraints.resize(
-        constraint_offsets_.back() + g_variable_domain.back(),
-        lp::LPConstraint(0.0, inf));
+    num_facts_ = offset + g_variable_domain.back();
+
+    constraints.resize(num_facts_, lp::LPConstraint(0.0, inf));
 
     for (const ProbabilisticOperator& op : g_operators) {
-        const int cost = op.get_cost();
+        const int reward = -op.get_cost();
+
+        assert(op.num_outcomes() >= 1);
+
+        const auto first_eff_probability = op[0].prob;
+        const int first_eff_lpvar = lp_vars.size();
+
+        // Get explicit precondition
         const std::vector<int> pre = get_precondition_explicit(op);
-        const int lp_var_start = lp_vars.size();
 
-        for (const ProbabilisticOutcome& o : op) {
-            const GlobalOperator& outcome = *o.op;
+        for (std::size_t i = 0; i < op.num_outcomes(); ++i) {
+            const ProbabilisticOutcome& o = op[i];
+            const auto probability = o.prob;
+            const auto& effects = o.effects();
+
             const int lp_var = lp_vars.size();
-            lp_vars.emplace_back(0, inf, cost);
 
-            for (const auto& eff : outcome.get_effects()) {
+            // introduce variable Y_{a,e}
+            lp_vars.emplace_back(0, inf, reward);
+
+            for (const auto& eff : effects) {
                 const int var = eff.var;
                 const int val = eff.val;
 
-                const int offset = constraint_offsets_[var];
+                auto* var_constraints = constraints.data() + ncc_offsets_[var];
 
                 // Always produces / Sometimes produces
-                constraints[offset + val].insert(lp_var, 1);
+                var_constraints[val].insert(lp_var, 1);
 
-                if (pre[var] != -1) {
+                const int pre_val = pre[var];
+
+                if (pre_val != -1) {
                     // Always consumes
-                    constraints[offset + pre[var]].insert(lp_var, -1);
+                    var_constraints[pre_val].insert(lp_var, -1);
                 }
             }
-        }
 
-        // Regrouping contraints
-        for (int lp_var = lp_var_start + 1; lp_var < (int)lp_vars.size();
-             ++lp_var) {
-            int i = lp_var - lp_var_start;
+            // Skip first variable for regrouping constraints
+            if (i == 0) {
+                continue;
+            }
 
-            lp::LPConstraint& regroup = constraints.emplace_back(0, 0);
-            regroup.insert(lp_var_start, 1.0 / op[0].prob);
-            regroup.insert(lp_var, -1.0 / op[i].prob);
+            // Set up regrouping constraint coefficients
+            auto& rg_constraint = constraints.emplace_back(0, 0);
+            rg_constraint.insert(first_eff_lpvar, 1.0 / first_eff_probability);
+            rg_constraint.insert(lp_var, -1.0 / probability);
         }
     }
 
     lp_solver_.load_problem(
-        lp::LPObjectiveSense::MINIMIZE,
+        lp::LPObjectiveSense::MAXIMIZE,
         lp_vars,
         constraints);
 }
