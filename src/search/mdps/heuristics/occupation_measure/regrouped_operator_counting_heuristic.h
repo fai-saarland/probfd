@@ -37,6 +37,7 @@ protected:
 
     mutable lp::LPSolver lp_solver_;
     std::vector<int> constraint_offsets_;
+    const bool is_maxprob;
 
 private:
     void load_expcost_lp();

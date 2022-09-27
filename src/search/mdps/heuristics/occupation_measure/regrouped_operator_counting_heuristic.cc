@@ -49,9 +49,11 @@ std::vector<int> get_goal_explicit()
 RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     const options::Options& opts)
     : lp_solver_(lp::LPSolverType(opts.get_enum("lpsolver")))
+    , is_maxprob(
+          std::dynamic_pointer_cast<
+              analysis_objectives::GoalProbabilityObjective>(
+              g_analysis_objective) != nullptr)
 {
-    using namespace analysis_objectives;
-
     ::verify_no_axioms_no_conditional_effects();
 
     std::cout << "Initializing regrouped operator counting heuristic..."
@@ -59,11 +61,9 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 
     utils::Timer timer;
 
-    if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())) {
+    if (is_maxprob) {
         load_maxprob_lp();
     } else {
-        assert(
-            dynamic_cast<ExpectedCostObjective*>(g_analysis_objective.get()));
         load_expcost_lp();
     }
 
@@ -73,9 +73,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 EvaluationResult
 RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
 {
-    using namespace analysis_objectives;
-
-    if (dynamic_cast<GoalProbabilityObjective*>(g_analysis_objective.get())) {
+    if (is_maxprob) {
         for (unsigned i = 0; i < g_goal.size(); ++i) {
             if (state[g_goal[i].first] == g_goal[i].second) {
                 lp_solver_.set_constraint_lower_bound(i, -1);
@@ -104,9 +102,6 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
         }
         return res;
     } else {
-        assert(
-            dynamic_cast<ExpectedCostObjective*>(g_analysis_objective.get()));
-
         const auto goal_explicit = get_goal_explicit();
 
         std::vector<int> reset;
