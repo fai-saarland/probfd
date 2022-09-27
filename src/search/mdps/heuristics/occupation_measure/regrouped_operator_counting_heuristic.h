@@ -40,10 +40,6 @@ protected:
     const bool is_maxprob;
 
     mutable std::vector<int> reset_indices_;
-
-private:
-    void load_expcost_lp();
-    void load_maxprob_lp();
 };
 
 } // namespace occupation_measure_heuristic

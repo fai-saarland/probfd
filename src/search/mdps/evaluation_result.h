@@ -10,6 +10,7 @@ namespace probabilistic {
  */
 class EvaluationResult {
 public:
+    EvaluationResult() = default;
     EvaluationResult(bool x, value_type::value_t val);
 
     value_type::value_t operator+(const value_type::value_t& val) const;
