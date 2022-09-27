@@ -76,15 +76,6 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
     const std::size_t num_variables = g_variable_domain.size();
 
     if (is_maxprob) {
-        for (std::size_t i = 0; i < g_goal.size(); ++i) {
-            const auto& goal_fact = g_goal[i];
-            if (state[goal_fact.first] == goal_fact.second) {
-                const int c_index = num_facts_ + i;
-                lp_solver_.set_constraint_lower_bound(c_index, -1);
-                reset_indices_.push_back(c_index);
-            }
-        }
-
         for (std::size_t var = 0; var < num_variables; ++var) {
             const int c_index = ncc_offsets_[var] + state[var];
             lp_solver_.set_constraint_lower_bound(c_index, -1);
@@ -172,25 +163,18 @@ void RegroupedOperatorCountingHeuristic::load_maxprob_lp()
         ncc_offsets_.push_back(offset);
     }
 
-    num_facts_ = offset + g_variable_domain.back();
+    const std::size_t num_facts = offset + g_variable_domain.back();
 
-    constraints.resize(num_facts_, lp::LPConstraint(0.0, inf));
+    constraints.resize(num_facts, lp::LPConstraint(0.0, inf));
 
     /***** Max Prob specific *****/
 
-    // Sink variable?
+    // Insert flow absorption variable into goal fact constraints
     lp_vars.emplace_back(0, 1, 1);
 
-    // Set up constraint indices for goal facts
-
-    // Goal variables to corresponding constraint index and goal value
-    std::map<int, std::pair<std::size_t, int>> var_to_gconstraint;
-
     for (const auto& goal_fact : g_goal) {
-        const std::size_t cindex = constraints.size();
-        auto* constraint = &constraints.emplace_back(0.0, inf);
-        constraint->insert(0, -1);
-        var_to_gconstraint[goal_fact.first] = {cindex, goal_fact.second};
+        const std::size_t offset = ncc_offsets_[goal_fact.first];
+        constraints[offset + goal_fact.second].insert(0, -1);
     }
 
     /****************************/
@@ -232,23 +216,6 @@ void RegroupedOperatorCountingHeuristic::load_maxprob_lp()
                     // Always consumes
                     var_constraints[pre_val].insert(lp_var, -1);
                 }
-
-                /***** Max Prob specific *****/
-
-                // Goal constraint
-                const auto gconstr_it = var_to_gconstraint.find(var);
-
-                if (gconstr_it != var_to_gconstraint.end()) {
-                    const std::size_t cindex = gconstr_it->second.first;
-                    const int goal_val = gconstr_it->second.second;
-                    if (goal_val == val) {
-                        constraints[cindex].insert(lp_var, 1);
-                    } else if (pre_val == goal_val) {
-                        constraints[cindex].insert(lp_var, -1);
-                    }
-                }
-
-                /****************************/
             }
 
             // Skip first variable for regrouping constraints
@@ -267,13 +234,6 @@ void RegroupedOperatorCountingHeuristic::load_maxprob_lp()
         lp::LPObjectiveSense::MAXIMIZE,
         lp_vars,
         constraints);
-
-    for (const auto& goal_fact : g_goal) {
-        auto& c = constraints[var_to_gconstraint[goal_fact.first].first];
-        c.dump();
-        constraints[ncc_offsets_[goal_fact.first] + goal_fact.second].dump();
-        std::cout << "------" << std::endl;
-    }
 }
 
 void RegroupedOperatorCountingHeuristic::load_expcost_lp()
@@ -297,9 +257,9 @@ void RegroupedOperatorCountingHeuristic::load_expcost_lp()
         ncc_offsets_.push_back(offset);
     }
 
-    num_facts_ = offset + g_variable_domain.back();
+    const std::size_t num_facts = offset + g_variable_domain.back();
 
-    constraints.resize(num_facts_, lp::LPConstraint(0.0, inf));
+    constraints.resize(num_facts, lp::LPConstraint(0.0, inf));
 
     for (const ProbabilisticOperator& op : g_operators) {
         const int reward = -op.get_cost();

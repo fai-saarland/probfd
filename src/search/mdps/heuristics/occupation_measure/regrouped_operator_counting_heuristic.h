@@ -36,10 +36,8 @@ protected:
     virtual EvaluationResult evaluate(const GlobalState& state) const override;
 
     mutable lp::LPSolver lp_solver_;
-    std::vector<int> ncc_offsets_;
+    std::vector<std::size_t> ncc_offsets_;
     const bool is_maxprob;
-
-    std::size_t num_facts_;
 
     mutable std::vector<int> reset_indices_;
 
