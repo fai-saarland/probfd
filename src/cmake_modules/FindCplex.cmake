@@ -60,17 +60,7 @@ elseif(UNIX)
     set(CPLEX_LIBRARY_PATH_SUFFIX_DEBUG_64 ${CPLEX_LIBRARY_PATH_SUFFIX_RELEASE_64})
 elseif(MSVC)
     # Note that the numbers are correct: Visual Studio 2011 is version 10.
-    if (MSVC10)
-        set(CPLEX_COMPILER_HINT "vs2011")
-    elseif(MSVC11)
-        set(CPLEX_COMPILER_HINT "vs2012")
-    elseif(MSVC12)
-        set(CPLEX_COMPILER_HINT "vs2013")
-    elseif(MSVC13)
-        set(CPLEX_COMPILER_HINT "vs2015")
-    elseif(MSVC14)
-        set(CPLEX_COMPILER_HINT "vs2017")
-    endif()
+    set(CPLEX_COMPILER_HINT "msvc14")
 
     set(CPLEX_LIBRARY_PATH_SUFFIX_RELEASE_32 "lib/x86_windows_${CPLEX_COMPILER_HINT}/stat_mda")
     set(CPLEX_LIBRARY_PATH_SUFFIX_DEBUG_32 "lib/x86_windows_${CPLEX_COMPILER_HINT}/stat_mdd")
@@ -115,6 +105,7 @@ find_library(CPLEX_LIBRARY_RELEASE
     cplex1280
     cplex1271
     cplex1262
+    cplex2210
     cplex
     HINTS
     ${CPLEX_HINT_PATHS_RELEASE}
@@ -129,6 +120,7 @@ find_library(CPLEX_LIBRARY_DEBUG
     cplex1280
     cplex1271
     cplex1262
+    cplex2210
     cplex
     HINTS
     ${CPLEX_HINT_PATHS_DEBUG}
@@ -165,7 +157,7 @@ endif()
 # HACK: there must be a better way to find the dll file.
 find_path(CPLEX_RUNTIME_LIBRARY_PATH
     NAMES
-    cplex1262.dll
+    cplex2210.dll
     HINTS
     ${CPLEX_HINT_PATHS_RELEASE}
     ${CPLEX_HINT_PATHS_DEBUG}
@@ -173,7 +165,7 @@ find_path(CPLEX_RUNTIME_LIBRARY_PATH
     ${CPLEX_RUNTIME_LIBRARY_HINT}
 )
 if(CPLEX_RUNTIME_LIBRARY_PATH)
-    set(CPLEX_RUNTIME_LIBRARY "${CPLEX_RUNTIME_LIBRARY_PATH}/cplex1262.dll")
+    set(CPLEX_RUNTIME_LIBRARY "${CPLEX_RUNTIME_LIBRARY_PATH}/cplex2210.dll")
 endif()
 
 # Check if everything was found and set CPLEX_FOUND.
