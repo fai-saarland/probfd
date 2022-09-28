@@ -58,7 +58,7 @@ CostBasedSuccessorGenerator::CostBasedSuccessorGenerator(
         cost_.reserve(grouped.size());
         gens_.reserve(grouped.size());
 
-        for (const auto [i, gops] : grouped) {
+        for (const auto& [i, gops] : grouped) {
             cost_.push_back(i);
             gens_.push_back(construct_generator(gops));
         }
@@ -281,7 +281,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::
                 budget_var_,
                 newb);
 
-            for (const auto h : notify_) {
+            for (const auto& h : notify_) {
                 h->reach_state(state, *det_op, succ);
             }
 
@@ -292,7 +292,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::
             GlobalState succ =
                 state_registry_->get_successor_state(state, *det_op);
 
-            for (const auto h : notify_) {
+            for (const auto& h : notify_) {
                 h->reach_state(state, *det_op, succ);
             }
 

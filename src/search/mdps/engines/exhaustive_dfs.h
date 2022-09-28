@@ -761,7 +761,7 @@ private:
                 const auto& t = st.successors[i];
 
                 IncumbentSolution val(t.base);
-                for (const auto [succ_id, prob] : t.successors) {
+                for (const auto& [succ_id, prob] : t.successors) {
                     val += prob * search_space_[succ_id].value;
                 }
 
@@ -782,7 +782,7 @@ private:
                 auto& succs = it->successors[i];
                 auto& t = st.successors[i];
                 IncumbentSolution val(t.base);
-                for (const auto [succ_id, prob] : t.successors) {
+                for (const auto& [succ_id, prob] : t.successors) {
                     val += prob * search_space_[succ_id].value;
                 }
 
@@ -822,7 +822,7 @@ private:
                  --i) {
                 const auto& t = st.successors[i];
                 IncumbentSolution val(t.base);
-                for (const auto [succ_id, prob] : t.successors) {
+                for (const auto& [succ_id, prob] : t.successors) {
                     val += prob * search_space_[succ_id].value;
                 }
 
@@ -859,7 +859,7 @@ private:
                 for (int i = st.successors.size() - 1; i >= 0; --i) {
                     const auto& t = st.successors[i];
                     IncumbentSolution val(t.base);
-                    for (const auto [succ_id, prob] : t.successors) {
+                    for (const auto& [succ_id, prob] : t.successors) {
                         val += prob * search_space_[succ_id].value;
                     }
 
@@ -882,7 +882,7 @@ private:
                 const auto& t = st.successors[i];
 
                 IncumbentSolution val(t.base);
-                for (const auto [succ_id, prob] : t.successors) {
+                for (const auto& [succ_id, prob] : t.successors) {
                     val += prob * search_space_[succ_id].value;
                 }
 
@@ -904,7 +904,7 @@ private:
                 auto& t = st.successors[i];
 
                 IncumbentSolution val(t.base);
-                for (const auto [succ_id, prob] : t.successors) {
+                for (const auto& [succ_id, prob] : t.successors) {
                     val += prob * search_space_[succ_id].value;
                 }
 
@@ -945,7 +945,7 @@ private:
                 const auto& t = st.successors[i];
 
                 IncumbentSolution val(t.base);
-                for (const auto [succ_id, prob] : t.successors) {
+                for (const auto& [succ_id, prob] : t.successors) {
                     val += prob * search_space_[succ_id].value;
                 }
 

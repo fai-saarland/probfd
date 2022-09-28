@@ -192,7 +192,7 @@ public:
                     StateID next_prev_state = prev_state;
                     double w = 1.0;
 
-                    for (const auto [succ_id, prob] : transition) {
+                    for (const auto& [succ_id, prob] : transition) {
                         if (succ_id == state_id) {
                             w -= prob;
                             continue;

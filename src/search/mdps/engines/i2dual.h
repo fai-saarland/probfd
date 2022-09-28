@@ -202,7 +202,7 @@ public:
                 // }
 
                 if (!hpom_enabled_) {
-                    for (const auto [prob, var_id] : state_data.incoming) {
+                    for (const auto& [prob, var_id] : state_data.incoming) {
                         const double amount = state_data.estimate * prob;
                         obj_coef[var_id] -= amount;
                         assert(obj_coef[var_id] >= -value_type::g_epsilon);
@@ -231,7 +231,7 @@ public:
                     unsigned lp_var_id = next_lp_var_++;
 
                     double p_self = 0;
-                    for (const auto [succ_id, prob] : succs_) {
+                    for (const auto& [succ_id, prob] : succs_) {
                         if (succ_id == state_id) {
                             p_self += prob;
                             continue;
@@ -297,7 +297,7 @@ public:
             for (unsigned i = 0; i < frontier_candidates.size(); i++) {
                 const auto& state_data = idual_data[frontier_candidates[i]];
 
-                for (const auto [_, var_id] : state_data.incoming) {
+                for (const auto& [_, var_id] : state_data.incoming) {
                     if (solution[var_id] > value_type::g_epsilon) {
                         frontier.push_back(frontier_candidates[i]);
                         goto continue_outer;
