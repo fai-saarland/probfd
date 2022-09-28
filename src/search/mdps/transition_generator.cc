@@ -15,6 +15,7 @@
 #endif
 
 #include <algorithm>
+#include <cstring>
 #include <map>
 
 namespace probabilistic {
