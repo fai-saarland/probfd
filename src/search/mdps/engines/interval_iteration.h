@@ -150,7 +150,7 @@ private:
 
         ecd_statistics_ = ec_decomposer.get_statistics();
 
-        return std::move(sys);
+        return sys;
     }
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
