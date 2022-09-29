@@ -19,139 +19,6 @@
 namespace probabilistic {
 namespace occupation_measure_heuristic {
 
-void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
-    lp::LPSolver& lp_solver_,
-    std::vector<lp::LPVariable>& lp_vars,
-    std::vector<lp::LPConstraint>& constraints,
-    std::vector<int>& offset_)
-{
-    ::verify_no_axioms_no_conditional_effects();
-
-    const double inf = lp_solver_.get_infinity();
-
-    offset_.resize(g_variable_domain.size(), constraints.size());
-    for (unsigned var = 1; var < g_variable_domain.size(); ++var) {
-        offset_[var] = offset_[var - 1] + g_variable_domain[var - 1];
-    }
-    constraints.resize(
-        offset_.back() + g_variable_domain.back(),
-        lp::LPConstraint(0, inf));
-
-    lp_vars.emplace_back(0, inf, 1);
-    for (unsigned i = 0; i < g_goal.size(); ++i) {
-        constraints[offset_[g_goal[i].first] + g_goal[i].second].insert(0, -1);
-    }
-
-    std::vector<std::pair<int, int>> tieing_equality;
-    std::vector<std::pair<int, int>> tieing_inequality;
-
-    std::vector<int> ref;
-    std::vector<int> pre(g_variable_domain.size(), -1);
-    std::vector<std::vector<value_type::value_t>> post(
-        g_variable_domain.size());
-    for (int i = post.size() - 1; i >= 0; --i) {
-        post[i].resize(g_variable_domain[i] + 1, 0);
-    }
-    for (unsigned op_num = 0; op_num < g_operators.size(); ++op_num) {
-        const auto& op = g_operators[op_num];
-        const auto& pres = op.get_preconditions();
-        for (int i = post.size() - 1; i >= 0; --i) {
-            std::fill(post[i].begin(), post[i].end(), 0);
-            post[i].back() = 1;
-        }
-        std::fill(pre.begin(), pre.end(), -1);
-        for (int i = pres.size() - 1; i >= 0; --i) {
-            pre[pres[i].var] = pres[i].val;
-        }
-        for (int i = op.num_outcomes() - 1; i >= 0; --i) {
-            const auto& out = op[i];
-            const auto& effs = out.op->get_effects();
-            for (int j = effs.size() - 1; j >= 0; --j) {
-                ref.push_back(effs[j].var);
-                std::vector<value_type::value_t>& probs = post[effs[j].var];
-                probs[effs[j].val] += out.prob;
-                probs.back() -= out.prob;
-            }
-        }
-        std::sort(ref.begin(), ref.end());
-        ref.erase(std::unique(ref.begin(), ref.end()), ref.end());
-        for (unsigned i = 0; i < ref.size(); ++i) {
-            std::pair<int, int> var_range(lp_vars.size(), 0);
-            bool has_pure_self_loop = false;
-            const int var = ref[i];
-            lp::LPConstraint* flow = &constraints[offset_[var]];
-            if (pre[var] == -1) {
-                for (int val = 0; val < g_variable_domain[var]; ++val) {
-                    if (post[var][val] + post[var].back() >= 1.0) {
-                        has_pure_self_loop = true;
-                        continue;
-                    }
-                    const int lpvar = lp_vars.size();
-                    lp_vars.emplace_back(0, inf, 0);
-                    flow[val].insert(
-                        lpvar,
-                        -1 + post[var].back() + post[var][val]);
-                    for (int val2 = g_variable_domain[var] - 1; val2 >= 0;
-                         --val2) {
-                        const value_type::value_t prob = post[var][val2];
-                        if (val2 != val && prob > 0) {
-                            flow[val2].insert(lpvar, prob);
-                        }
-                    }
-                }
-            } else {
-                const int val = pre[var];
-                const int lpvar = lp_vars.size();
-                lp_vars.emplace_back(0, inf, 0);
-                flow[val].insert(lpvar, -1 + post[var].back() + post[var][val]);
-                for (int val2 = g_variable_domain[var] - 1; val2 >= 0; --val2) {
-                    const value_type::value_t prob = post[var][val2];
-                    if (val2 != val && prob > 0) {
-                        flow[val2].insert(lpvar, prob);
-                    }
-                }
-            }
-            var_range.second = lp_vars.size();
-            if (has_pure_self_loop) {
-                tieing_inequality.push_back(var_range);
-            } else {
-                tieing_equality.push_back(var_range);
-            }
-        }
-        ref.clear();
-        if (!tieing_equality.empty()) {
-            const auto& base_range = tieing_equality[0];
-            for (unsigned j = 1; j < tieing_equality.size(); ++j) {
-                constraints.emplace_back(0, 0);
-                for (int lpvar = base_range.first; lpvar < base_range.second;
-                     ++lpvar) {
-                    constraints.back().insert(lpvar, 1);
-                }
-                for (int lpvar = tieing_equality[j].first;
-                     lpvar < tieing_equality[j].second;
-                     ++lpvar) {
-                    constraints.back().insert(lpvar, -1);
-                }
-            }
-            for (unsigned j = 0; j < tieing_inequality.size(); ++j) {
-                constraints.emplace_back(0, inf);
-                for (int lpvar = base_range.first; lpvar < base_range.second;
-                     ++lpvar) {
-                    constraints.back().insert(lpvar, 1);
-                }
-                for (int lpvar = tieing_inequality[j].first;
-                     lpvar < tieing_inequality[j].second;
-                     ++lpvar) {
-                    constraints.back().insert(lpvar, -1);
-                }
-            }
-        }
-
-        tieing_equality.clear();
-        tieing_inequality.clear();
-    }
-}
-
 namespace {
 // Explicit goal values (-1 if variable not required)
 std::vector<int> get_goal_explicit()
@@ -180,25 +47,24 @@ std::vector<int> get_precondition_explicit(const ProbabilisticOperator& op)
 // Compute an explicit transition probability matrix
 std::vector<std::vector<value_type::value_t>> get_transition_probs_explicit(
     const ProbabilisticOperator& op,
-    std::set<int>& ref)
+    std::set<int>& possibly_updated)
 {
     std::vector<std::vector<value_type::value_t>> p(g_variable_domain.size());
 
-    for (size_t i = 0; i < p.size(); ++i) {
-        p[i].resize(g_variable_domain[i] + 1, 0.0);
-        p[i].back() = 1.0;
+    for (std::size_t i = 0; i < p.size(); ++i) {
+        p[i].resize(g_variable_domain[i] + 1, value_type::zero);
+        p[i].back() = value_type::one;
     }
 
     for (const ProbabilisticOutcome& out : op) {
-        const auto& effs = out.op->get_effects();
-        value_type::value_t prob = out.prob;
+        const value_type::value_t prob = out.prob;
 
-        for (int j = (int)effs.size() - 1; j >= 0; --j) {
-            int var = effs[j].var;
-            int val = effs[j].val;
+        for (const auto& fact : out.effects()) {
+            int var = fact.var;
+            int val = fact.val;
 
-            ref.insert(var);
-            std::vector<value_type::value_t>& probs = p[var];
+            possibly_updated.insert(var);
+            auto& probs = p[var];
             probs[val] += prob;
             probs.back() -= prob;
         }
@@ -207,6 +73,130 @@ std::vector<std::vector<value_type::value_t>> get_transition_probs_explicit(
     return p;
 }
 } // namespace
+
+void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
+    lp::LPSolver& lp_solver_,
+    std::vector<lp::LPVariable>& lp_vars,
+    std::vector<lp::LPConstraint>& constraints,
+    std::vector<int>& offset_)
+{
+    assert(lp_vars.empty() && constraints.empty());
+
+    ::verify_no_axioms_no_conditional_effects();
+
+    const std::size_t num_variables = g_variable_domain.size();
+    const double inf = lp_solver_.get_infinity();
+
+    // Prepare fact variable offsets
+    offset_.reserve(num_variables);
+
+    std::size_t offset = 0;
+    offset_.push_back(offset);
+    for (std::size_t var = 0; var < num_variables - 1; ++var) {
+        offset += g_variable_domain[var];
+        offset_.push_back(offset);
+    }
+
+    const std::size_t num_facts = offset + g_variable_domain.back();
+
+    // One flow constraint for every state of every atomic projections
+    constraints.resize(num_facts, lp::LPConstraint(-inf, value_type::zero));
+
+    // Flow absorption variable
+    lp_vars.emplace_back(0, inf, 1);
+
+    for (const auto& goal_fact : g_goal) {
+        constraints[offset_[goal_fact.first] + goal_fact.second].insert(0, 1);
+    }
+    //
+
+    for (const ProbabilisticOperator& op : g_operators) {
+        // Get dense precondition
+        const std::vector<int> pre = get_precondition_explicit(op);
+
+        // Get transition matrix and possibly updated variables
+        std::set<int> possibly_updated;
+        std::vector<std::vector<value_type::value_t>> post =
+            get_transition_probs_explicit(op, possibly_updated);
+
+        std::vector<std::pair<int, int>> tieing_equality;
+
+        for (const int var : possibly_updated) {
+            std::pair<int, int> var_range(lp_vars.size(), 0);
+            lp::LPConstraint* flow = constraints.data() + offset_[var];
+
+            const std::size_t domain = g_variable_domain[var];
+            const auto& tr_probs = post[var];
+
+            // Populate flow constraints
+            if (pre[var] == -1) {
+                for (std::size_t i = 0; i < domain; ++i) {
+                    const auto p_self_loop = tr_probs[i] + tr_probs.back();
+
+                    // Occupation measure / flow variable x_{d, a}
+                    const int lpvar = lp_vars.size();
+                    lp_vars.emplace_back(0, inf, 0);
+
+                    // Outflow
+                    flow[i].insert(lpvar, 1 - p_self_loop);
+
+                    // Inflows
+                    for (std::size_t j = 0; j < domain; ++j) {
+                        if (j == i) continue;
+
+                        const value_type::value_t prob = tr_probs[j];
+                        if (prob > 0) {
+                            flow[j].insert(lpvar, -prob);
+                        }
+                    }
+                }
+            } else {
+                const std::size_t i = pre[var];
+                const auto p_self_loop = tr_probs[i] + tr_probs.back();
+
+                // Occupation measure / flow variable x_{d, a}
+                const int lpvar = lp_vars.size();
+                lp_vars.emplace_back(0, inf, 0);
+
+                // Outflow
+                flow[i].insert(lpvar, 1 - p_self_loop);
+
+                // Inflows
+                for (std::size_t j = 0; j < domain; ++j) {
+                    if (j == i) continue;
+
+                    const value_type::value_t prob = tr_probs[j];
+                    if (prob > value_type::zero) {
+                        flow[j].insert(lpvar, -prob);
+                    }
+                }
+            }
+
+            var_range.second = lp_vars.size();
+
+            tieing_equality.push_back(var_range);
+        }
+
+        // Build tying constraints, tie everything to first projection
+        if (!tieing_equality.empty()) {
+            const auto& base_range = tieing_equality[0];
+
+            for (std::size_t j = 1; j < tieing_equality.size(); ++j) {
+                auto& tieing_eq = tieing_equality[j];
+
+                auto& tieing_constraint = constraints.emplace_back(0, 0);
+
+                for (int i = base_range.first; i < base_range.second; ++i) {
+                    tieing_constraint.insert(i, 1);
+                }
+
+                for (int i = tieing_eq.first; i < tieing_eq.second; ++i) {
+                    tieing_constraint.insert(i, -1);
+                }
+            }
+        }
+    }
+}
 
 void ProjectionOccupationMeasureHeuristic::generate_hpom_lp_expcost(
     lp::LPSolver& lp_solver_,
@@ -218,17 +208,25 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp_expcost(
 
     ::verify_no_axioms_no_conditional_effects();
 
+    const std::size_t num_variables = g_variable_domain.size();
     const double inf = lp_solver_.get_infinity();
 
-    offset_.resize(g_variable_domain.size(), 0);
-    for (unsigned var = 1; var < g_variable_domain.size(); ++var) {
-        offset_[var] = offset_[var - 1] + g_variable_domain[var - 1];
+    // Prepare fact variable offsets
+    offset_.reserve(num_variables);
+
+    std::size_t offset = 0;
+    offset_.push_back(offset);
+    for (std::size_t var = 0; var < num_variables - 1; ++var) {
+        offset += g_variable_domain[var];
+        offset_.push_back(offset);
     }
+
+    const std::size_t num_facts = offset + g_variable_domain.back();
 
     // One flow constraint for every state of every atomic projections
     constraints.resize(
-        offset_.back() + g_variable_domain.back(),
-        lp::LPConstraint(0, 0));
+        num_facts,
+        lp::LPConstraint(value_type::zero, value_type::zero));
 
     std::vector<int> the_goal = get_goal_explicit();
 
@@ -255,80 +253,97 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp_expcost(
 
     // Now ordinary actions
     for (const ProbabilisticOperator& op : g_operators) {
-        const int reward = -op.get_cost();
+        const auto reward = -op.get_cost();
+
+        // Get dense precondition
         const std::vector<int> pre = get_precondition_explicit(op);
-        std::set<int> affected_vars;
+
+        // Get transition matrix and possibly updated variables
+        std::set<int> possibly_updated;
         const std::vector<std::vector<value_type::value_t>> post =
-            get_transition_probs_explicit(op, affected_vars);
+            get_transition_probs_explicit(op, possibly_updated);
 
         // For tying constraints, contains lp variable ranges of projections
-        std::vector<std::pair<int, int>> tying;
+        std::vector<std::pair<int, int>> tieing_equality;
 
         // Build flow constraint coefficients...
-        for (const int var : affected_vars) {
+        for (const int var : possibly_updated) {
             std::pair<int, int> var_range(lp_vars.size(), 0);
             lp::LPConstraint* flow = &constraints[offset_[var]];
 
-            const auto& domain = g_variable_domain[var];
-            const auto& probs = post[var];
+            const std::size_t domain = g_variable_domain[var];
+            const auto& tr_probs = post[var];
 
             // Populate flow constraints
             if (pre[var] == -1) {
-                for (int val = 0; val < domain; ++val) {
+                for (std::size_t i = 0; i < domain; ++i) {
+                    const auto p_self_loop = tr_probs[i] + tr_probs.back();
+
+                    // Occupation measure / flow variable x_{d, a}
                     const int lpvar = lp_vars.size();
                     lp_vars.emplace_back(0, inf, 0);
-                    flow[val].insert(lpvar, 1 - (probs.back() + probs[val]));
 
-                    for (int val2 = 0; val2 < domain; ++val2) {
-                        const value_type::value_t prob = probs[val2];
-                        if (val2 != val && prob > 0) {
-                            flow[val2].insert(lpvar, -prob);
+                    // Outflow
+                    flow[i].insert(lpvar, 1 - p_self_loop);
+
+                    // Inflows
+                    for (std::size_t j = 0; j < domain; ++j) {
+                        if (j == i) continue;
+
+                        const value_type::value_t prob = tr_probs[j];
+                        if (prob > value_type::zero) {
+                            flow[j].insert(lpvar, -prob);
                         }
                     }
                 }
             } else {
-                const int val = pre[var];
+                const std::size_t i = pre[var];
+                const auto p_self_loop = tr_probs[i] + tr_probs.back();
+
+                // Occupation measure / flow variable x_{d, a}
                 const int lpvar = lp_vars.size();
                 lp_vars.emplace_back(0, inf, 0);
-                flow[val].insert(lpvar, 1 - (probs.back() + probs[val]));
 
-                for (int val2 = 0; val2 < domain; ++val2) {
-                    const value_type::value_t prob = probs[val2];
-                    if (val2 != val && prob > 0) {
-                        flow[val2].insert(lpvar, -prob);
+                // Outflow
+                flow[i].insert(lpvar, 1 - p_self_loop);
+
+                // Inflows
+                for (std::size_t j = 0; j < domain; ++j) {
+                    if (j == i) continue;
+
+                    const value_type::value_t prob = tr_probs[j];
+                    if (prob > 0) {
+                        flow[j].insert(lpvar, -prob);
                     }
                 }
             }
 
             var_range.second = lp_vars.size();
-            tying.push_back(var_range);
+
+            tieing_equality.push_back(var_range);
         }
 
         // Build tying constraints, tie everything to first projection
-        if (!tying.empty()) {
-            const auto& [base_range_b, base_range_e] = tying[0];
-            for (unsigned j = 1; j < tying.size(); ++j) {
-                const auto& [j_range_b, j_range_e] = tying[j];
+        if (!tieing_equality.empty()) {
+            const auto& base_range = tieing_equality[0];
 
-                lp::LPConstraint& tying_constraint =
-                    constraints.emplace_back(0, 0);
-
-                for (int lpvar = base_range_b; lpvar < base_range_e; ++lpvar) {
-                    tying_constraint.insert(lpvar, 1);
-                }
-
-                for (int lpvar = j_range_b; lpvar < j_range_e; ++lpvar) {
-                    tying_constraint.insert(lpvar, -1);
-                }
-            }
-        }
-
-        // Set objective coefficients for occupation measures of the first
-        // projection (does not matter which one)
-        if (!tying.empty()) {
-            const auto& [range_b, range_e] = tying[0];
-            for (int i = range_b; i < range_e; ++i) {
+            // Set objective coefficients for occ. measures of first projection
+            for (int i = base_range.first; i < base_range.second; ++i) {
                 lp_vars[i].objective_coefficient = reward;
+            }
+
+            for (std::size_t j = 1; j < tieing_equality.size(); ++j) {
+                const auto& tieing_eq = tieing_equality[j];
+
+                auto& tieing_constraint = constraints.emplace_back(0, 0);
+
+                for (int i = base_range.first; i < base_range.second; ++i) {
+                    tieing_constraint.insert(i, 1);
+                }
+
+                for (int i = tieing_eq.first; i < tieing_eq.second; ++i) {
+                    tieing_constraint.insert(i, -1);
+                }
             }
         }
     }
@@ -357,10 +372,10 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
         generate_hpom_lp_expcost(lp_solver_, lp_vars, constraints, offset_);
     }
 
-        lp_solver_.load_problem(
+    lp_solver_.load_problem(
         lp::LPObjectiveSense::MAXIMIZE,
-            lp_vars,
-            constraints);
+        lp_vars,
+        constraints);
 
     std::cout << "Finished POM LP setup after " << timer << std::endl;
 }
@@ -372,9 +387,7 @@ ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state) const
 
     if (is_maxprob_) {
         for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
-            lp_solver_.set_constraint_lower_bound(
-                offset_[var] + state[var],
-                -1);
+            lp_solver_.set_constraint_upper_bound(offset_[var] + state[var], 1);
         }
 
         lp_solver_.solve();
@@ -384,7 +397,7 @@ ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state) const
         EvaluationResult res = EvaluationResult(v == 0.0, v);
 
         for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
-            lp_solver_.set_constraint_lower_bound(offset_[var] + state[var], 0);
+            lp_solver_.set_constraint_upper_bound(offset_[var] + state[var], 0);
         }
 
         return res;
