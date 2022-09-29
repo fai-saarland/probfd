@@ -374,7 +374,12 @@ private:
 
         statistics_.hpom_timer_.resume();
         occupation_measure_heuristic::ProjectionOccupationMeasureHeuristic::
-            generate_hpom_lp(lp_solver_, vars, hpom_constraints_, offset_);
+            generate_hpom_lp(
+                lp_solver_,
+                vars,
+                hpom_constraints_,
+                offset_,
+                true);
         statistics_.hpom_num_vars_ = vars.size();
         statistics_.hpom_num_constraints_ = hpom_constraints_.size();
 

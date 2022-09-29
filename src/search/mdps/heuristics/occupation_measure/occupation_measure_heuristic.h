@@ -36,13 +36,8 @@ public:
         lp::LPSolver& lp_solver,
         std::vector<lp::LPVariable>& vars,
         std::vector<lp::LPConstraint>& constraints,
-        std::vector<int>& offsets);
-
-    static void generate_hpom_lp_expcost(
-        lp::LPSolver& lp_solver,
-        std::vector<lp::LPVariable>& vars,
-        std::vector<lp::LPConstraint>& constraints,
-        std::vector<int>& offsets);
+        std::vector<int>& offsets,
+        bool maxprob);
 
 protected:
     virtual EvaluationResult evaluate(const GlobalState& state) const override;
