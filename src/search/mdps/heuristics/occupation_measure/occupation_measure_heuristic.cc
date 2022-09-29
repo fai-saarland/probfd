@@ -153,6 +153,9 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
                 }
             }
         }
+
+        tieing_equality.clear();
+        tieing_inequality.clear();
     }
 }
 
@@ -384,19 +387,10 @@ ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state) const
         }
 
         lp_solver_.solve();
+        assert(lp_solver_.has_optimal_solution());
 
-        EvaluationResult res(true, 0.0);
-        if (lp_solver_.has_optimal_solution()) {
-            const double v = lp_solver_.get_objective_value();
-            res = EvaluationResult(v == 0.0, v);
-        }
-
-        for (unsigned i = 0; i < g_goal.size(); ++i) {
-            const auto& [g_var, g_val] = g_goal[i];
-            if (state[g_var] == g_val) {
-                lp_solver_.set_constraint_lower_bound((int)i, 0);
-            }
-        }
+        const double v = lp_solver_.get_objective_value();
+        EvaluationResult res = EvaluationResult(v == 0.0, v);
 
         for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
             lp_solver_.set_constraint_lower_bound(offset_[var] + state[var], 0);
