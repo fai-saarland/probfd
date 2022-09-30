@@ -36,6 +36,22 @@ int get_adjusted_action_cost(int cost, OperatorCost cost_type) {
     }
 }
 
+int get_adjusted_action_reward(int reward, OperatorCost cost_type)
+{
+    switch (cost_type) {
+    case NORMAL: return reward;
+    case ONE: return -1;
+    case PLUSONE:
+        if (is_unit_cost())
+            return -1;
+        else
+            return reward - 1;
+    case ZERO: return 0;
+    case MINONE: return std::min(-1, reward);
+    default: ABORT("Unknown cost type");
+    }
+}
+
 void add_cost_type_option_to_parser(options::OptionParser &parser, const std::string& name) {
     vector<string> cost_types;
     vector<string> cost_types_doc;

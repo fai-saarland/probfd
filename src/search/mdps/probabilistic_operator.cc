@@ -67,9 +67,9 @@ ProbabilisticOperator::get_preconditions() const
     return outcomes_.front().op->get_preconditions();
 }
 
-int ProbabilisticOperator::get_cost() const
+int ProbabilisticOperator::get_reward() const
 {
-    return outcomes_.front().op->get_cost();
+    return -outcomes_.front().op->get_cost();
 }
 
 bool is_applicable(const ProbabilisticOperator* op, const GlobalState& state)

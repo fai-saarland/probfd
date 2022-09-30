@@ -19,7 +19,7 @@ protected:
     value_type::value_t
     evaluate(StateID, const ProbabilisticOperator* op) override
     {
-        return -op->get_cost();
+        return op->get_reward();
     }
 };
 } // namespace

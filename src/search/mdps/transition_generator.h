@@ -43,7 +43,7 @@ public:
 
 private:
     int bvar_;
-    std::vector<int> cost_;
+    std::vector<int> reward_;
     std::vector<std::shared_ptr<
         successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>>
         gens_;
@@ -139,7 +139,7 @@ private:
     const OperatorCost budget_cost_type_;
     const std::vector<std::shared_ptr<Heuristic>> notify_;
     CostBasedSuccessorGenerator aops_gen_;
-    std::vector<int> cost_;
+    std::vector<int> reward_;
 
     StateRegistry* state_registry_;
 

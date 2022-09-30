@@ -247,7 +247,7 @@ protected:
 
     value_type::value_t evaluate(StateID, const AbstractOperator* op) override
     {
-        return -op->cost;
+        return op->reward;
     }
 
 private:

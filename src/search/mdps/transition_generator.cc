@@ -49,17 +49,19 @@ CostBasedSuccessorGenerator::CostBasedSuccessorGenerator(
     , gen_(gen)
 {
     if (bvar >= 0) {
-        std::map<int, std::vector<const ProbabilisticOperator*>> grouped;
+        std::map<int, std::vector<const ProbabilisticOperator*>, std::greater<>>
+            grouped;
         for (const auto& op : ops) {
-            const int cost = get_adjusted_action_cost(op.get_cost(), cost_type);
-            grouped[cost].push_back(&op);
+            const int reward =
+                get_adjusted_action_reward(op.get_reward(), cost_type);
+            grouped[reward].push_back(&op);
         }
 
-        cost_.reserve(grouped.size());
+        reward_.reserve(grouped.size());
         gens_.reserve(grouped.size());
 
         for (const auto& [i, gops] : grouped) {
-            cost_.push_back(i);
+            reward_.push_back(i);
             gens_.push_back(construct_generator(gops));
         }
     }
@@ -71,8 +73,8 @@ void CostBasedSuccessorGenerator::operator()(
 {
     if (bvar_ >= 0) {
         const int budget = s[bvar_];
-        for (std::size_t i = 0; i < cost_.size(); ++i) {
-            if (cost_[i] <= budget) {
+        for (std::size_t i = 0; i < reward_.size(); ++i) {
+            if (0 <= budget + reward_[i]) {
                 gens_[i]->generate_applicable_ops(s, res);
             }
         }
@@ -113,10 +115,10 @@ TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     , state_registry_(state_registry)
 {
     if (budget_var >= 0) {
-        cost_.reserve(ops.size());
+        reward_.reserve(ops.size());
         for (const ProbabilisticOperator& op : ops) {
-            cost_.push_back(
-                get_adjusted_action_cost(op.get_cost(), budget_cost_type));
+            reward_.push_back(
+                get_adjusted_action_reward(op.get_reward(), budget_cost_type));
         }
     }
 }
@@ -271,7 +273,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::
     succs.reserve(op->num_outcomes());
 
     if (budget_var_ >= 0) {
-        const int newb = state[budget_var_] - cost_[op->get_id()];
+        const int newb = state[budget_var_] + reward_[op->get_id()];
         assert(newb >= 0);
 
         for (const auto [det_op, prob] : *op) {
@@ -315,7 +317,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::
         const int remaining = s[budget_var_];
         unsigned j = 0;
         for (unsigned i = 0; i < ops.size(); ++i) {
-            if (cost_[ops[i]->get_id()] <= remaining) {
+            if (reward_[ops[i]->get_id()] + remaining >= 0) {
                 ops[j++] = ops[i];
             }
         }

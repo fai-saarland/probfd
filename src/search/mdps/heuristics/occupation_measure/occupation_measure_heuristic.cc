@@ -133,7 +133,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
     // Now ordinary actions
     for (const ProbabilisticOperator& op : g_operators) {
-        const auto reward = maxprob ? 0 : -op.get_cost();
+        const auto reward = maxprob ? 0 : op.get_reward();
 
         // Get dense precondition
         const std::vector<int> pre = get_precondition_explicit(op);

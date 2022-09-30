@@ -195,7 +195,7 @@ void ProbabilisticProjection::add_abstract_operators(
     bool pruning)
 {
     const int operator_id = op.get_id();
-    const int cost = op.get_cost();
+    const int reward = op.get_reward();
 
     std::vector<int> pdb_indices(::g_variable_domain.size(), -1);
 
@@ -248,7 +248,7 @@ void ProbabilisticProjection::add_abstract_operators(
 
     for (const PartialAssignment& values : ran) {
         // Generate the progression operator
-        AbstractOperator new_op(operator_id, cost);
+        AbstractOperator new_op(operator_id, reward);
 
         for (const auto& [info, prob] : outcomes) {
             const auto& [base_effect, missing_pres, effect] = info;

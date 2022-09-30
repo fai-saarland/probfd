@@ -93,7 +93,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     }
 
     for (const ProbabilisticOperator& op : g_operators) {
-        const int reward = is_maxprob ? value_type::zero : -op.get_cost();
+        const int reward = is_maxprob ? value_type::zero : op.get_reward();
 
         assert(op.num_outcomes() >= 1);
 

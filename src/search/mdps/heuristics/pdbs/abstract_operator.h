@@ -15,9 +15,9 @@ class ProbabilisticOperator;
 namespace pdbs {
 
 struct AbstractOperator {
-    explicit AbstractOperator(unsigned id, int cost);
+    explicit AbstractOperator(unsigned id, int reward);
     unsigned original_operator_id;
-    value_type::value_t cost;
+    value_type::value_t reward;
     Distribution<AbstractState> outcomes;
 };
 

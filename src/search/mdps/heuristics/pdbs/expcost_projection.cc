@@ -158,7 +158,7 @@ ExpCostProjection::get_optimal_abstract_policy(
 
         // Select first greedy operator
         for (const AbstractOperator* op : aops) {
-            value_type::value_t op_value = -op->cost;
+            value_type::value_t op_value = op->reward;
 
             std::vector<AbstractState> successors;
 
@@ -319,7 +319,7 @@ void ExpCostProjection::verify(
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
-            value_type::value_t op_value = -op->cost;
+            value_type::value_t op_value = op->reward;
 
             std::vector<AbstractState> successors;
 

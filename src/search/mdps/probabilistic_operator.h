@@ -76,7 +76,7 @@ public:
     /**
      * @brief Gets the cost of the operator.
      */
-    int get_cost() const;
+    int get_reward() const;
 
     /**
      * @brief Accesses a possible outcome of this operator by its index.
