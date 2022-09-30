@@ -36,11 +36,10 @@ protected:
     virtual EvaluationResult evaluate(const GlobalState& state) const override;
 
     mutable lp::LPSolver lp_solver_;
-    std::vector<int> constraint_offsets_;
+    std::vector<std::size_t> ncc_offsets_;
+    const bool is_maxprob;
 
-private:
-    void load_expcost_lp();
-    void load_maxprob_lp();
+    mutable std::vector<int> reset_indices_;
 };
 
 } // namespace occupation_measure_heuristic
