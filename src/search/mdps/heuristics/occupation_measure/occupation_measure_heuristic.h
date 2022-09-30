@@ -36,19 +36,15 @@ public:
         lp::LPSolver& lp_solver,
         std::vector<lp::LPVariable>& vars,
         std::vector<lp::LPConstraint>& constraints,
-        std::vector<int>& offsets);
-
-    static void generate_hpom_lp_expcost(
-        lp::LPSolver& lp_solver,
-        std::vector<lp::LPVariable>& vars,
-        std::vector<lp::LPConstraint>& constraints,
-        std::vector<int>& offsets);
+        std::vector<int>& offsets,
+        bool maxprob);
 
 protected:
     virtual EvaluationResult evaluate(const GlobalState& state) const override;
 
     mutable lp::LPSolver lp_solver_;
     std::vector<int> offset_;
+    bool is_maxprob_;
 };
 
 } // namespace occupation_measure_heuristic
