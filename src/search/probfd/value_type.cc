@@ -16,6 +16,18 @@ value_t from_fraction(int nom, int denom)
     return (((value_t)nom) / (value_t)denom);
 }
 
+value_t from_string(const std::string& str)
+{
+    for (unsigned i = 0; i < str.size(); ++i) {
+        if (str[i] == '/') {
+            return from_fraction(
+                    std::stoi(str.substr(0, i)),
+                    std::stoi(str.substr(i+1)));
+        }
+    }
+    return std::stod(str);
+}
+
 value_t cap(const value_t& val, const value_t& maxval)
 {
     return val < maxval ? val : maxval;

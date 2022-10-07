@@ -1,4 +1,7 @@
 #include "probfd/probabilistic_operator.h"
+#include "globals.h"
+
+#include <cstdlib>
 
 namespace probfd {
 
@@ -18,6 +21,30 @@ ProbabilisticOperator::ProbabilisticOperator(
     , outcomes_(std::move(outcomes))
     , name_(std::move(name))
 {
+}
+
+ProbabilisticOperator::ProbabilisticOperator(
+    unsigned id,
+    std::istream& in)
+    : id_(id)
+{
+    ::check_magic(in, "begin_probabilistic_operator");
+    in >> std::ws;
+    std::getline(in, name_);
+    int num_outcomes;
+    in >> num_outcomes;
+    outcomes_.reserve(num_outcomes);
+    while (num_outcomes) {
+        int opid;
+        in >> opid;
+        std::string prob;
+        in >> prob;
+        outcomes_.emplace_back(
+                &g_operators[opid],
+                value_type::from_string(prob));
+        --num_outcomes;
+    }
+    ::check_magic(in, "end_probabilistic_operator");
 }
 
 unsigned ProbabilisticOperator::get_id() const

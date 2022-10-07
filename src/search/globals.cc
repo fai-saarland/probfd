@@ -12,6 +12,9 @@
 #include "utils/rng.h"
 #include "successor_generator.h"
 
+#include "probfd/globals.h"
+#include "probfd/probabilistic_operator.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -22,7 +25,8 @@
 #include <sstream>
 using namespace std;
 
-static const int PRE_FILE_VERSION = 3;
+static const string PRE_FILE_VERSION = "3";
+static const string PROB_INDICATOR_VERSION = "3P";
 
 // TODO: This needs a proper type and should be moved to a separate
 //       mutexes.cc file or similar, accessed via something called
@@ -115,17 +119,18 @@ void check_magic(istream &in, string magic) {
     }
 }
 
-void read_and_verify_version(istream &in) {
-    int version;
+bool read_and_verify_version(istream &in) {
+    string version;
     check_magic(in, "begin_version");
     in >> version;
     check_magic(in, "end_version");
-    if (version != PRE_FILE_VERSION) {
+    if (version != PRE_FILE_VERSION && version != PROB_INDICATOR_VERSION) {
         cerr << "Expected preprocessor file version " << PRE_FILE_VERSION
              << ", got " << version << "." << endl;
         cerr << "Exiting." << endl;
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
+    return version == PROB_INDICATOR_VERSION;
 }
 
 void read_metric(istream &in) {
@@ -240,8 +245,11 @@ void dump_goal() {
 void read_operators(istream &in) {
     int count;
     in >> count;
-    for (int i = 0; i < count; ++i)
+    g_operators.reserve(count);
+    for (int i = 0; i < count; ++i) {
         g_operators.push_back(GlobalOperator(in, false));
+        g_operators.back().set_id(i);
+    }
 }
 
 void read_axioms(istream &in) {
@@ -251,6 +259,15 @@ void read_axioms(istream &in) {
         g_axioms.push_back(GlobalOperator(in, true));
 
     g_axiom_evaluator = new AxiomEvaluator;
+}
+
+void read_probabilistic_operators(istream& in)
+{
+    int count;
+    in >> count;
+    for (int i = 0; i < count; ++i) {
+        probfd::g_operators.emplace_back(i, in);
+    }
 }
 
 void read_dnf_formula(istream &in)
@@ -275,7 +292,7 @@ void read_dnf_formula(istream &in)
 
 void read_everything(istream &in) {
     cout << "reading input... [t=" << utils::g_timer << "]" << endl;
-    read_and_verify_version(in);
+    bool is_prob = read_and_verify_version(in);
     read_metric(in);
     read_variables(in);
     read_mutexes(in);
@@ -290,7 +307,12 @@ void read_everything(istream &in) {
     read_goal(in);
     read_operators(in);
     read_axioms(in);
-    read_dnf_formula(in);
+    if (is_prob) {
+        read_probabilistic_operators(in);
+    } else {
+        read_dnf_formula(in);
+    }
+
     // check_magic(in, "begin_SG");
     // g_successor_generator = read_successor_generator(in);
     // check_magic(in, "end_SG");

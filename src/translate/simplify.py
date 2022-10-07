@@ -379,8 +379,12 @@ class VarValueRenaming:
             for (var, value) in conditions_dict.items()
             if var in new_prevail_vars)
         return sas_tasks.SASOperator(
-            name=op.name, prevail=new_prevail, pre_post=new_pre_post,
-            cost=op.cost)
+            op.identifier,
+            op.name,
+            new_prevail,
+            new_pre_post,
+            op.cost,
+            op.probability)
 
     def apply_to_axiom(self, axiom):
         # The following line may generate an Impossible exception,

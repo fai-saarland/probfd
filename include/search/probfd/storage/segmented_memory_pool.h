@@ -3,6 +3,7 @@
 #include <cassert>
 #include <vector>
 
+namespace probfd {
 namespace storage {
 
 template <std::size_t SEGMENT_SIZE = 16384>
@@ -47,3 +48,4 @@ public:
 };
 
 } // namespace storage
+} // namespace probfd

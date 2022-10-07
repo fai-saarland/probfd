@@ -28,10 +28,11 @@ class BalanceChecker:
                     predicate = eff.literal.predicate
                     self.predicates_to_add_actions[predicate].add(action)
             if create_heavy_act:
-                heavy_act = pddl.Action(action.name, action.parameters,
+                heavy_act = pddl.Action(action.identifier,
+                                        action.name, action.parameters,
                                         action.num_external_parameters,
                                         action.precondition, too_heavy_effects,
-                                        action.cost)
+                                        action.cost, action.probability)
             # heavy_act: duplicated universal effects and assigned unique names
             # to all quantified variables (implicitly in constructor)
             self.action_to_heavy_action[action] = heavy_act
@@ -62,9 +63,9 @@ class BalanceChecker:
                 new_cond = pddl.NegatedAtom("=", (param1, param2))
                 precond_parts.append(new_cond)
             precond = pddl.Conjunction(precond_parts).simplified()
-            return pddl.Action(
+            return pddl.Action(action.identifier,
                 action.name, action.parameters, action.num_external_parameters,
-                precond, action.effects, action.cost)
+                precond, action.effects, action.cost, action.probability)
         else:
             return action
 

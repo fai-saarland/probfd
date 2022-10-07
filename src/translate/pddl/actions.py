@@ -6,9 +6,10 @@ from . import conditions
 
 
 class Action(object):
-    def __init__(self, name, parameters, num_external_parameters,
-                 precondition, effects, cost):
+    def __init__(self, identifier, name, parameters, num_external_parameters,
+                 precondition, effects, cost, probability = None):
         assert 0 <= num_external_parameters <= len(parameters)
+        self.identifier = identifier
         self.name = name
         self.parameters = parameters
         # num_external_parameters denotes how many of the parameters
@@ -20,6 +21,7 @@ class Action(object):
         self.precondition = precondition
         self.effects = effects
         self.cost = cost
+        self.probability = probability
         self.uniquify_variables() # TODO: uniquify variables in cost?
 
     def __repr__(self):
@@ -53,9 +55,9 @@ class Action(object):
             relaxed_eff = eff.relaxed()
             if relaxed_eff:
                 new_effects.append(relaxed_eff)
-        return Action(self.name, self.parameters, self.num_external_parameters,
+        return Action(self.identifier, self.name, self.parameters, self.num_external_parameters,
                       self.precondition.relaxed().simplified(),
-                      new_effects)
+                      new_effects, self.cost, self.probability)
 
     def untyped(self):
         # We do not actually remove the types from the parameter lists,
@@ -87,14 +89,13 @@ class Action(object):
                                           fluent_facts, precondition)
         except conditions.Impossible:
             return None
+
         effects = []
         for eff in self.effects:
             eff.instantiate(var_mapping, init_facts, fluent_facts,
                             objects_by_type, effects)
 
-        # HAZ: We return a propositional action since it may be a failed
-        #      outcome of a determinized action.
-        if metric:        
+        if metric:
             if self.cost is None:
                 cost = 0
             else:
@@ -102,14 +103,18 @@ class Action(object):
                     var_mapping, init_assignments).expression.value)
         else:
             cost = 1
-        return PropositionalAction(name, precondition, effects, cost)
+
+        return PropositionalAction((self.identifier, tuple(arg_list)), name, precondition, effects, cost, self.probability)
+
 
 class PropositionalAction:
-    def __init__(self, name, precondition, effects, cost):
+    def __init__(self, identifier, name, precondition, effects, cost, probability):
+        self.identifier = identifier
         self.name = name
         self.precondition = precondition
         self.add_effects = []
         self.del_effects = []
+        self.probability = probability
         for condition, effect in effects:
             if not effect.negated:
                 self.add_effects.append((condition, effect))

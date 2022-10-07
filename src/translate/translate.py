@@ -272,11 +272,10 @@ def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
                         effects_by_variable[var][none_of_those].append(
                             new_cond)
 
-    return build_sas_operator(operator.name, condition, effects_by_variable,
-                              operator.cost, ranges, implied_facts)
+    return build_sas_operator(operator, condition, effects_by_variable, ranges, implied_facts)
 
 
-def build_sas_operator(name, condition, effects_by_variable, cost, ranges,
+def build_sas_operator(strips_operator, condition, effects_by_variable, ranges,
                        implied_facts):
     if options.add_implied_preconditions:
         implied_precondition = set()
@@ -328,10 +327,8 @@ def build_sas_operator(name, condition, effects_by_variable, cost, ranges,
             # the condition on var is not a prevail condition but a
             # precondition, so we remove it from the prevail condition
             condition.pop(var, -1)
-    if not pre_post:  # operator is noop
-        return None
     prevail = list(condition.items())
-    return sas_tasks.SASOperator(name, prevail, pre_post, cost)
+    return sas_tasks.SASOperator(strips_operator.identifier, strips_operator.name, prevail, pre_post, strips_operator.cost, strips_operator.probability)
 
 
 def prune_stupid_effect_conditions(var, val, conditions, effects_on_var):
@@ -604,6 +601,31 @@ def pddl_to_sas(task):
                 options.filter_unimportant_vars,
                 options.filter_unimportant_ops)
 
+    if options.give_up_cost != None:
+        op = sas_tasks.SASOperator((-1, tuple()), "(GIVE-UP)", [], [(var, -1, post, []) for (var, post) in sas_task.goal.pairs], options.give_up_cost, 1)
+        sas_task.operators.append(op)
+
+    with timers.timing("Reconstructing probabilistic operators", block=True):
+        sas_task.rebuild_probabilistic_operators()
+
+    if options.budget != None:
+        with timers.timing("Compiling budget", block=True):
+            if options.budget < 0:
+                sys.stderr.write("Budget must be non-negative! Got %d.\n" % options.budget)
+                sys.exit(TRANSLATE_ERROR)
+            budget_compilation.augment_task_by_budget(sas_task, options.budget)
+
+    if options.discount_factor != None:
+        with timers.timing("Compiling dicount factor", block=True):
+            if options.discount_factor <= 0.0 or options.discount_factor >= 1.0:
+                sys.stderr.write(
+                    "Discount factor must be in range (0, 1)! Got %d.\n" %
+                    options.discount_factor)
+                sys.exit(TRANSLATE_ERROR)
+
+            discount_compilation.augment_task_by_discount_factor(
+                sas_task, options.discount_factor)
+
     return sas_task
 
 
@@ -708,29 +730,7 @@ def main():
                     del action.effects[index]
 
     sas_task = pddl_to_sas(task)
-    if options.budget != None:
-        if options.budget < 0:
-            sys.stderr.write("Budget must be non-negative! Got %d.\n" %
-                             options.budget)
-            sys.exit(TRANSLATE_ERROR)
-        budget_compilation.augment_task_by_budget(sas_task, options.budget)
     dump_statistics(sas_task)
-    if options.give_up_cost != None:
-        op = sas_tasks.SASOperator("(GIVE-UP)", [],
-                                   [(var, -1, post, [])
-                                    for (var, post) in sas_task.goal.pairs],
-                                   options.give_up_cost)
-        sas_task.operators.append(op)
-
-    if options.discount_factor != None:
-        if options.discount_factor <= 0.0 or options.discount_factor >= 1.0:
-            sys.stderr.write("Discount factor must be in range (0, 1)! Got %d.\n" %
-                             options.discount_factor)
-            sys.exit(TRANSLATE_ERROR)
-
-        discount_compilation.augment_task_by_discount_factor(
-            sas_task, options.discount_factor)
-
     with timers.timing("Writing output"):
         with open(options.sas_file, "w") as output_file:
             sas_task.output(output_file)
