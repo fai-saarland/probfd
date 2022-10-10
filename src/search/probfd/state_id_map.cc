@@ -3,6 +3,7 @@
 #include "../state_registry.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 StateIDMap<GlobalState>::StateIDMap(StateRegistry* reg)
     : reg_(reg)
@@ -19,4 +20,5 @@ GlobalState StateIDMap<GlobalState>::get_state(const StateID& state_id)
     return reg_->lookup_state(::StateID(state_id));
 }
 
+} // namespace engine_interfaces
 } // namespace probfd

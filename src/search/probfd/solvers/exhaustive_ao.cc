@@ -9,6 +9,8 @@
 namespace probfd {
 namespace solvers {
 
+using namespace engine_interfaces;
+
 template <typename Bisimulation>
 class ExhaustiveAOSolver
     : public MDPHeuristicSearch<Bisimulation, std::false_type> {

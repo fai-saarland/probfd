@@ -5,6 +5,7 @@
 #include "../types.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Interface specifying a strategy to choose a greedy action for a state
@@ -78,6 +79,7 @@ protected:
     }
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __POLICY_PICKER_H__

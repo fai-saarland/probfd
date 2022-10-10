@@ -162,20 +162,20 @@ class ExhaustiveDepthFirstSearch
 
 public:
     explicit ExhaustiveDepthFirstSearch(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* reward_function,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
-        TransitionGenerator<Action>* transition_generator,
-        HeuristicSearchConnector* connector,
-        StateEvaluator<State>* evaluator,
-        StateEvaluator<State>* dead_end_eval,
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::HeuristicSearchConnector* connector,
+        engine_interfaces::StateEvaluator<State>* evaluator,
+        engine_interfaces::StateEvaluator<State>* dead_end_eval,
         bool reevaluate,
         bool notify_initial,
-        SuccessorSorting<Action>* successor_sorting,
+        engine_interfaces::SuccessorSorting<Action>* successor_sorting,
         BacktrackingUpdateType path_updates,
         bool only_propagate_when_changed,
-        NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* progress)
         : MDPEngine<State, Action>(
               state_id_map,
@@ -1028,16 +1028,16 @@ private:
     const IncumbentSolution dead_end_value_;
     const IncumbentSolution trivial_bound_;
 
-    StateEvaluator<State>* evaluator_;
-    StateEvaluator<State>* dead_end_evaluator_;
-    NewStateHandler<State>* new_state_handler_;
+    engine_interfaces::StateEvaluator<State>* evaluator_;
+    engine_interfaces::StateEvaluator<State>* dead_end_evaluator_;
+    engine_interfaces::NewStateHandler<State>* new_state_handler_;
 
     const BacktrackingUpdateType reverse_path_updates_;
     const bool only_propagate_when_changed_;
     const bool evaluator_recomputation_;
     const bool notify_initial_state_;
 
-    SuccessorSorting<Action>* successor_sort_;
+    engine_interfaces::SuccessorSorting<Action>* successor_sort_;
 
     storage::PerStateStorage<SearchNodeInformation> search_space_;
 

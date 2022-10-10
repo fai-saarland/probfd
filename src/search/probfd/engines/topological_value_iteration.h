@@ -71,12 +71,12 @@ public:
     using Store = storage::PersistentPerStateStorage<IncumbentSolution>;
 
     explicit TopologicalValueIteration(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* reward_function,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
-        TransitionGenerator<Action>* transition_generator,
-        const StateEvaluator<State>* value_initializer,
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        const engine_interfaces::StateEvaluator<State>* value_initializer,
         bool expand_goals)
         : MDPEngine<State, Action>(
               state_id_map,
@@ -625,7 +625,7 @@ private:
         return num_updates;
     }
 
-    const StateEvaluator<State>* value_initializer_;
+    const engine_interfaces::StateEvaluator<State>* value_initializer_;
     const bool expand_goals_;
     const IncumbentSolution dead_end_value_;
 

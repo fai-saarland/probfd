@@ -8,6 +8,8 @@
 namespace probfd {
 namespace solvers {
 
+using namespace engine_interfaces;
+
 template <typename Bisimulation>
 class AOStarSolver : public MDPHeuristicSearch<Bisimulation, std::false_type> {
 public:

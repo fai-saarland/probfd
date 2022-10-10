@@ -62,7 +62,7 @@ private:
 
 #ifndef NDEBUG
     void verify(
-        const StateIDMap<AbstractState>& state_id_map,
+        const engine_interfaces::StateIDMap<AbstractState>& state_id_map,
         std::vector<StateID> proper_states);
 #endif
 };

@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Function object used as a callback when a new state is encountered
@@ -66,6 +67,7 @@ private:
     std::vector<std::shared_ptr<NewStateHandler<State>>> handlers_;
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __NEW_STATE_HANDLER_H__

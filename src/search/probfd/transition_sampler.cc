@@ -3,7 +3,8 @@
 #include "../plugin.h"
 
 namespace probfd {
-StateID TransitionSampler<const ProbabilisticOperator*>::operator()(
+
+StateID ProbabilisticOperatorTransitionSampler::operator()(
     const StateID& state,
     const ProbabilisticOperator* op,
     const Distribution<StateID>& transition)
@@ -13,4 +14,5 @@ StateID TransitionSampler<const ProbabilisticOperator*>::operator()(
 
 static PluginTypePlugin<ProbabilisticOperatorTransitionSampler>
     _plugin_type("TransitionSampler", "");
+
 } // namespace probfd

@@ -6,6 +6,7 @@
 #include <cassert>
 
 namespace probfd {
+namespace engine_interfaces {
 
 int ProbabilisticOperatorPolicyPicker::operator()(
     const StateID& state,
@@ -15,6 +16,8 @@ int ProbabilisticOperatorPolicyPicker::operator()(
 {
     return pick(state, prev_policy, action_choices, successors);
 }
+
+} // namespace engine_interfaces
 
 static PluginTypePlugin<ProbabilisticOperatorPolicyPicker>
     _plugin_type("PolicyPicker", "");

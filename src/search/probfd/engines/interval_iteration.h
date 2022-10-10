@@ -63,12 +63,12 @@ public:
     using BoolStore = std::vector<StateID>;
 
     explicit IntervalIteration(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* reward_function,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
-        TransitionGenerator<Action>* transition_generator,
-        const StateEvaluator<State>* prune,
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        const engine_interfaces::StateEvaluator<State>* prune,
         bool extract_probability_one_states,
         bool expand_goals)
         : MDPEngine<State, Action>(
@@ -161,6 +161,8 @@ private:
         SetLike2& one_states,
         QuotientSystem* sys)
     {
+        using namespace engine_interfaces;
+        
         TransitionGenerator<QAction> q_transition_gen(sys);
         quotient_system::DefaultQuotientRewardFunction<State, Action> q_reward(
             sys,
@@ -210,7 +212,7 @@ private:
         return result;
     }
 
-    const StateEvaluator<State>* prune_;
+    const engine_interfaces::StateEvaluator<State>* prune_;
     const bool extract_probability_one_states_;
     const bool expand_goals_;
 

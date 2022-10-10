@@ -7,6 +7,8 @@
 namespace probfd {
 namespace solvers {
 
+using namespace engine_interfaces;
+
 using AVIEngine = engines::acyclic_vi::
     AcyclicValueIteration<GlobalState, const ProbabilisticOperator*>;
 

@@ -47,20 +47,20 @@ class AOStar : public internal::AOBase<State, Action, DualBounds> {
 
 public:
     AOStar(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* reward_function,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
-        TransitionGenerator<Action>* transition_generator,
-        StateEvaluator<State>* dead_end_eval,
-        PolicyPicker<Action>* policy_chooser,
-        NewStateHandler<State>* new_state_handler,
-        StateEvaluator<State>* value_init,
-        HeuristicSearchConnector* connector,
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::StateEvaluator<State>* dead_end_eval,
+        engine_interfaces::PolicyPicker<Action>* policy_chooser,
+        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::StateEvaluator<State>* value_init,
+        engine_interfaces::HeuristicSearchConnector* connector,
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy,
-        TransitionSampler<Action>* outcome_selection)
+        engine_interfaces::TransitionSampler<Action>* outcome_selection)
         : AOBase(
               state_id_map,
               action_id_map,
@@ -209,7 +209,7 @@ private:
         } while (true);
     }
 
-    TransitionSampler<Action>* outcome_selection_;
+    engine_interfaces::TransitionSampler<Action>* outcome_selection_;
     std::vector<Distribution<StateID>> transitions_;
 };
 

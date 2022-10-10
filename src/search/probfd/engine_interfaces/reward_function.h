@@ -5,6 +5,7 @@
 #include "../types.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Interface specifying state and action rewards and goal states.
@@ -76,6 +77,7 @@ protected:
     virtual value_type::value_t evaluate(StateID state, Action action) = 0;
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __STATE_REWARD_FUNCTION_H__

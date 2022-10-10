@@ -4,6 +4,7 @@
 #include "../evaluation_result.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Function object specifying the immediate reward received in a target
@@ -29,6 +30,7 @@ protected:
     virtual EvaluationResult evaluate(const State& state) const = 0;
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __STATE_EVALUATOR_H__

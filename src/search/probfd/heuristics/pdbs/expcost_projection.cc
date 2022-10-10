@@ -239,6 +239,7 @@ void ExpCostProjection::compute_value_table(
     const AbstractStateEvaluator& heuristic)
 {
     using namespace reachability;
+    using namespace engine_interfaces;
     using namespace engines::topological_vi;
 
     NormalCostAbstractRewardFunction reward(
@@ -294,7 +295,7 @@ void ExpCostProjection::compute_value_table(
 
 #ifndef NDEBUG
 void ExpCostProjection::verify(
-    const StateIDMap<AbstractState>& state_id_map,
+    const engine_interfaces::StateIDMap<AbstractState>& state_id_map,
     std::vector<StateID> proper_states)
 {
     for (const int id : state_id_map.visited()) {

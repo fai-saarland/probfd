@@ -178,12 +178,13 @@ public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
 
     EndComponentDecomposition(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* rewards,
-        TransitionGenerator<Action>* transition_gen,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* rewards,
+        engine_interfaces::TransitionGenerator<Action>* transition_gen,
         bool expand_goals,
-        const StateEvaluator<State>* pruning_function = nullptr)
+        const engine_interfaces::StateEvaluator<State>* pruning_function =
+            nullptr)
         : state_id_map_(state_id_map)
         , rewards_(rewards)
         , transition_gen_(transition_gen)
@@ -642,13 +643,13 @@ private:
         assert(expansion_queue_.size() == limit);
     }
 
-    StateIDMap<State>* state_id_map_;
-    RewardFunction<State, Action>* rewards_;
-    TransitionGenerator<Action>* transition_gen_;
+    engine_interfaces::StateIDMap<State>* state_id_map_;
+    engine_interfaces::RewardFunction<State, Action>* rewards_;
+    engine_interfaces::TransitionGenerator<Action>* transition_gen_;
 
     bool expand_goals_;
 
-    const StateEvaluator<State>* pruning_function_;
+    const engine_interfaces::StateEvaluator<State>* pruning_function_;
 
     std::unique_ptr<QuotientSystem> sys_;
 

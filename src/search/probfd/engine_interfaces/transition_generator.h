@@ -7,6 +7,7 @@
 #include <vector>
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Function object used to generate the successor distribution for the
@@ -32,6 +33,7 @@ struct TransitionGenerator {
         std::vector<Distribution<StateID>>& successors);
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __TRANSITION_GENERATOR_H__

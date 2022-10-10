@@ -9,7 +9,7 @@
 namespace probfd {
 
 /// Type alias for state reward functions for GlobalState.
-using GlobalRewardFunction =
+using GlobalRewardFunction = engine_interfaces::
     RewardFunction<GlobalState, const ProbabilisticOperator*>;
 
 } // namespace probfd

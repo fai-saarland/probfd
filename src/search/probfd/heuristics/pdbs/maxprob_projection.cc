@@ -95,6 +95,7 @@ MaxProbProjection::MaxProbProjection(
 void MaxProbProjection::compute_value_table(
     const AbstractStateEvaluator& heuristic)
 {
+    using namespace engine_interfaces;
     using namespace engines::interval_iteration;
 
     ZeroCostAbstractRewardFunction reward(
@@ -321,7 +322,8 @@ void MaxProbProjection::dump_graphviz(
 }
 
 #ifndef NDEBUG
-void MaxProbProjection::verify(const StateIDMap<AbstractState>& state_id_map)
+void MaxProbProjection::verify(
+    const engine_interfaces::StateIDMap<AbstractState>& state_id_map)
 {
     for (const int id : state_id_map.visited()) {
         AbstractState s(id);

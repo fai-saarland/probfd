@@ -50,7 +50,7 @@ public:
         const DualValues&,
         const std::string& engine_name,
         StateRegistry* state_registry,
-        HeuristicSearchConnector& con,
+        engine_interfaces::HeuristicSearchConnector& con,
         ProgressReport& progress,
         bool interval,
         bool stable_policy,
@@ -115,7 +115,7 @@ protected:
               state_registry->get_initial_state(),
               g_step_bound,
               g_step_cost_type))
-        , tgen(new TransitionGenerator<QAction>(bs.get()))
+        , tgen(new engine_interfaces::TransitionGenerator<QAction>(bs.get()))
         , reward(new bisimulation::DefaultQuotientRewardFunction(
               bs.get(),
               g_analysis_objective->reward_bound()))
@@ -141,13 +141,13 @@ protected:
 
     std::unique_ptr<bisimulation::BisimilarStateSpace> bs;
 
-    StateIDMap<QState> state_id_map;
-    ActionIDMap<QAction> action_id_map;
-    std::unique_ptr<TransitionGenerator<QAction>> tgen;
+    engine_interfaces::StateIDMap<QState> state_id_map;
+    engine_interfaces::ActionIDMap<QAction> action_id_map;
+    std::unique_ptr<engine_interfaces::TransitionGenerator<QAction>> tgen;
     std::unique_ptr<bisimulation::QuotientRewardFunction> reward;
-    NewStateHandler<QState> new_state_handler_;
-    std::unique_ptr<StateEvaluator<QState>> heuristic_;
-    PolicyPicker<QAction> policy_;
+    engine_interfaces::NewStateHandler<QState> new_state_handler_;
+    std::unique_ptr<engine_interfaces::StateEvaluator<QState>> heuristic_;
+    engine_interfaces::PolicyPicker<QAction> policy_;
 
     std::unique_ptr<MDPEngineInterface<QState>> engine_;
 };
@@ -168,7 +168,7 @@ public:
         const DualValues&,
         const std::string& engine_name,
         StateRegistry* state_registry,
-        HeuristicSearchConnector& con,
+        engine_interfaces::HeuristicSearchConnector& con,
         ProgressReport& progress,
         bool interval,
         bool stable_policy,
@@ -211,7 +211,7 @@ public:
         const DualValues&,
         const std::string& engine_name,
         StateRegistry* state_registry,
-        HeuristicSearchConnector& con,
+        engine_interfaces::HeuristicSearchConnector& con,
         ProgressReport& progress,
         bool interval,
         bool stable_policy,
@@ -263,20 +263,26 @@ private:
         , q_reward_(new quotient_system::DefaultQuotientRewardFunction(
               quotient_.get(),
               reward.get()))
-        , q_action_id_map_(new ActionIDMap<QQAction>(quotient_.get()))
-        , q_transition_gen_(new TransitionGenerator<QQAction>(quotient_.get()))
-        , q_policy_tiebreaker_(
-              new PolicyPicker<quotient_system::QuotientAction<QAction>>())
+        , q_action_id_map_(
+              new engine_interfaces::ActionIDMap<QQAction>(quotient_.get()))
+        , q_transition_gen_(
+              new engine_interfaces::TransitionGenerator<QQAction>(
+                  quotient_.get()))
+        , q_policy_tiebreaker_(new engine_interfaces::PolicyPicker<
+                               quotient_system::QuotientAction<QAction>>())
     {
     }
 
     std::unique_ptr<quotient_system::QuotientSystem<QAction>> quotient_;
 
-    std::unique_ptr<RewardFunction<QState, QQAction>> q_reward_;
-    std::unique_ptr<ActionIDMap<QQAction>> q_action_id_map_;
-    std::unique_ptr<TransitionGenerator<QQAction>> q_transition_gen_;
+    std::unique_ptr<engine_interfaces::RewardFunction<QState, QQAction>>
+        q_reward_;
+    std::unique_ptr<engine_interfaces::ActionIDMap<QQAction>> q_action_id_map_;
+    std::unique_ptr<engine_interfaces::TransitionGenerator<QQAction>>
+        q_transition_gen_;
 
-    std::unique_ptr<PolicyPicker<QQAction>> q_policy_tiebreaker_;
+    std::unique_ptr<engine_interfaces::PolicyPicker<QQAction>>
+        q_policy_tiebreaker_;
 
     std::unique_ptr<MDPEngineInterface<QState>> engine2_;
 };

@@ -12,6 +12,8 @@
 namespace probfd {
 namespace solvers {
 
+using namespace engine_interfaces;
+
 class ExhaustiveDFSSolver : public MDPSolver {
 public:
     using Engine = engines::exhaustive_dfs::ExhaustiveDepthFirstSearch<

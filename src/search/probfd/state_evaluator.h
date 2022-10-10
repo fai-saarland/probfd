@@ -7,7 +7,7 @@
 namespace probfd {
 
 /// Type alias for state evaluators of GlobalState.
-using GlobalStateEvaluator = StateEvaluator<GlobalState>;
+using GlobalStateEvaluator = engine_interfaces::StateEvaluator<GlobalState>;
 
 } // namespace probfd
 

@@ -39,14 +39,17 @@ public:
     virtual void print_additional_statistics() const override;
 
 protected:
-    HeuristicSearchConnector* get_connector() { return &connector_; }
+    engine_interfaces::HeuristicSearchConnector* get_connector()
+    {
+        return &connector_;
+    }
 
     void initialize_interfaceable(HeuristicSearchInterfaceable* interfaceable);
     void initialize_interfaceable(
         std::shared_ptr<HeuristicSearchInterfaceable> interfaceable);
 
 private:
-    HeuristicSearchConnector connector_;
+    engine_interfaces::HeuristicSearchConnector connector_;
 
     std::shared_ptr<ProbabilisticOperatorPolicyPicker> policy_tiebreaker_;
     std::shared_ptr<NewGlobalStateHandler> new_state_handler_;
@@ -138,11 +141,13 @@ public:
                     const ProbabilisticOperator*>(
               quotient_.get(),
               this->get_reward_function()))
-        , q_action_id_map_(new ActionIDMap<QAction>(quotient_.get()))
-        , q_transition_gen_(new TransitionGenerator<QAction>(quotient_.get()))
+        , q_action_id_map_(
+              new engine_interfaces::ActionIDMap<QAction>(quotient_.get()))
+        , q_transition_gen_(new engine_interfaces::TransitionGenerator<QAction>(
+              quotient_.get()))
         , q_policy_tiebreaker_(
               this->policy_tiebreaker_ != nullptr
-                  ? new PolicyPicker<QAction>(
+                  ? new engine_interfaces::PolicyPicker<QAction>(
                         quotient_.get(),
                         this->policy_tiebreaker_.get())
                   : nullptr)
@@ -327,11 +332,14 @@ private:
         quotient_system::QuotientSystem<const ProbabilisticOperator*>>
         quotient_;
 
-    std::unique_ptr<RewardFunction<GlobalState, QAction>> q_reward_;
-    std::unique_ptr<ActionIDMap<QAction>> q_action_id_map_;
-    std::unique_ptr<TransitionGenerator<QAction>> q_transition_gen_;
+    std::unique_ptr<engine_interfaces::RewardFunction<GlobalState, QAction>>
+        q_reward_;
+    std::unique_ptr<engine_interfaces::ActionIDMap<QAction>> q_action_id_map_;
+    std::unique_ptr<engine_interfaces::TransitionGenerator<QAction>>
+        q_transition_gen_;
 
-    std::unique_ptr<PolicyPicker<QAction>> q_policy_tiebreaker_;
+    std::unique_ptr<engine_interfaces::PolicyPicker<QAction>>
+        q_policy_tiebreaker_;
 
     const bool fret_on_policy_;
 

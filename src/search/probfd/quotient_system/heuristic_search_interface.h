@@ -13,6 +13,7 @@
 
 namespace probfd {
 
+namespace engine_interfaces {
 template <>
 class PolicyPicker<
     quotient_system::QuotientAction<const ProbabilisticOperator*>> {
@@ -136,6 +137,7 @@ public:
     OpenList<const ProbabilisticOperator*>* original_;
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __HEURISTIC_SEARCH_INTERFACE_H__

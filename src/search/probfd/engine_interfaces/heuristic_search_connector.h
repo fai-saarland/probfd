@@ -4,6 +4,7 @@
 #include "../engines/heuristic_search_state_information.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * \todo Serves as a bridge between the global heuristic search engine and the
@@ -28,6 +29,7 @@ private:
     engines::heuristic_search::PerStateInformationLookup* lookup_ = nullptr;
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __HEURISTIC_SEARCH_CONNECTOR_H__

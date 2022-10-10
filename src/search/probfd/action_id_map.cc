@@ -3,6 +3,7 @@
 #include "globals.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 ActionIDMap<const ProbabilisticOperator*>::ActionIDMap()
     : ActionIDMap(g_operators)
@@ -35,4 +36,5 @@ ActionIDMap<const ProbabilisticOperator*>::get_action(
     return first_ + action_id;
 }
 
+} // namespace engine_interfaces
 } // namespace probfd

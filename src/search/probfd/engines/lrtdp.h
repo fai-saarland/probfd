@@ -161,21 +161,21 @@ public:
      * @brief Constructs an LRTDP solver object.
      */
     LRTDP(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* reward_function,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
-        TransitionGenerator<Action>* transition_generator,
-        StateEvaluator<State>* dead_end_eval,
-        PolicyPicker<Action>* policy_chooser,
-        NewStateHandler<State>* new_state_handler,
-        StateEvaluator<State>* value_init,
-        HeuristicSearchConnector* connector,
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::StateEvaluator<State>* dead_end_eval,
+        engine_interfaces::PolicyPicker<Action>* policy_chooser,
+        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::StateEvaluator<State>* value_init,
+        engine_interfaces::HeuristicSearchConnector* connector,
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy,
         TrialTerminationCondition stop_consistent,
-        TransitionSampler<Action>* succ_sampler)
+        engine_interfaces::TransitionSampler<Action>* succ_sampler)
         : HeuristicSearchBase(
               state_id_map,
               action_id_map,
@@ -535,7 +535,7 @@ private:
 
     const TrialTerminationCondition StopConsistent;
     std::unique_ptr<storage::PerStateStorage<StateInfoT>> state_infos_;
-    TransitionSampler<Action>* sample_;
+    engine_interfaces::TransitionSampler<Action>* sample_;
 
     std::vector<StateID> current_trial_;
     Distribution<StateID> selected_transition_;

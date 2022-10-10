@@ -4,6 +4,7 @@
 #include "../types.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Specifies a mapping between states and integer IDs.
@@ -23,6 +24,7 @@ struct StateIDMap {
     State get_state(const StateID& state_id);
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __STATE_ID_MAP_H__

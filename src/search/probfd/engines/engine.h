@@ -72,11 +72,11 @@ public:
      * @param transition_generator - The transition generator.
      */
     explicit MDPEngine(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* reward_function,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
-        TransitionGenerator<Action>* transition_generator)
+        engine_interfaces::TransitionGenerator<Action>* transition_generator)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
         , reward_function_(reward_function)
@@ -195,17 +195,24 @@ public:
     /**
      * @brief Get the state id map object.
      */
-    StateIDMap<State>* get_state_id_map() const { return state_id_map_; }
+    engine_interfaces::StateIDMap<State>* get_state_id_map() const
+    {
+        return state_id_map_;
+    }
 
     /**
      * @brief Get the action id map object.
      */
-    ActionIDMap<Action>* get_action_id_map() const { return action_id_map_; }
+    engine_interfaces::ActionIDMap<Action>* get_action_id_map() const
+    {
+        return action_id_map_;
+    }
 
     /**
      * @brief Get the reward interface.
      */
-    RewardFunction<State, Action>* get_reward_function() const
+    engine_interfaces::RewardFunction<State, Action>*
+    get_reward_function() const
     {
         return reward_function_;
     }
@@ -213,17 +220,18 @@ public:
     /**
      * @brief Get the transition generator.
      */
-    TransitionGenerator<Action>* get_transition_generator() const
+    engine_interfaces::TransitionGenerator<Action>*
+    get_transition_generator() const
     {
         return transition_generator_;
     }
 
 private:
-    StateIDMap<State>* state_id_map_;
-    ActionIDMap<Action>* action_id_map_;
-    RewardFunction<State, Action>* reward_function_;
+    engine_interfaces::StateIDMap<State>* state_id_map_;
+    engine_interfaces::ActionIDMap<Action>* action_id_map_;
+    engine_interfaces::RewardFunction<State, Action>* reward_function_;
     const value_utils::IntervalValue reward_bound_;
-    TransitionGenerator<Action>* transition_generator_;
+    engine_interfaces::TransitionGenerator<Action>* transition_generator_;
 };
 
 } // namespace engines

@@ -8,6 +8,8 @@
 namespace probfd {
 namespace solvers {
 
+using namespace engine_interfaces;
+
 using IIEngine = engines::interval_iteration::
     IntervalIteration<GlobalState, const ProbabilisticOperator*>;
 

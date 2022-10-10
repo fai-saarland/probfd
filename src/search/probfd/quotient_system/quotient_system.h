@@ -127,8 +127,8 @@ public:
     };
 
     explicit DefaultQuotientSystem(
-        ActionIDMap<Action>* action_id_map,
-        TransitionGenerator<Action>* transition_gen)
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::TransitionGenerator<Action>* transition_gen)
         : quotients_()
         , quotient_ids_()
         , action_id_map_(action_id_map)
@@ -422,7 +422,10 @@ public:
         }
     }
 
-    ActionIDMap<Action>* get_action_id_map() const { return action_id_map_; }
+    engine_interfaces::ActionIDMap<Action>* get_action_id_map() const
+    {
+        return action_id_map_;
+    }
 
 private:
     inline void
@@ -501,8 +504,8 @@ private:
 
     QuotientMap quotients_;
     segmented_vector::SegmentedVector<StateID::size_type> quotient_ids_;
-    ActionIDMap<Action>* action_id_map_;
-    TransitionGenerator<Action>* transition_gen_;
+    engine_interfaces::ActionIDMap<Action>* action_id_map_;
+    engine_interfaces::TransitionGenerator<Action>* transition_gen_;
 };
 
 template <typename ActionT>

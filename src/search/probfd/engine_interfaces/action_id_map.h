@@ -4,6 +4,7 @@
 #include "../types.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Specifies a mapping between state-action pairs and integer IDs.
@@ -32,6 +33,7 @@ struct ActionIDMap {
     Action get_action(const StateID& state_id, const ActionID& action_id);
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __ACTION_ID_MAP_H__

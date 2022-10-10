@@ -7,6 +7,7 @@
 #include <cassert>
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief The specialiation of ActionIDMap for ProbabilisticOperator.
@@ -33,6 +34,7 @@ private:
 #endif
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __ACTION_ID_MAP_H__

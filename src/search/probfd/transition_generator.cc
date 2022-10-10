@@ -83,6 +83,8 @@ void CostBasedSuccessorGenerator::operator()(
     }
 }
 
+namespace engine_interfaces {
+
 TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     StateRegistry* state_registry,
     bool enable_caching,
@@ -414,6 +416,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::Statistics::print(
         << std::endl;
 }
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #undef DEBUG_CACHE_CONSISTENCY_CHECK

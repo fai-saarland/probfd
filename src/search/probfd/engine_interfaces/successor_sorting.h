@@ -7,6 +7,7 @@
 #include <vector>
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Function object used to sort the possible successors of a transition
@@ -25,6 +26,7 @@ struct SuccessorSorting {
         std::vector<Distribution<StateID>>& successors);
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __SUCCESSOR_SORTING_H__

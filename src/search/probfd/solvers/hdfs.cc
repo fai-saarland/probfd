@@ -10,6 +10,8 @@
 namespace probfd {
 namespace solvers {
 
+using namespace engine_interfaces;
+
 template <typename Bisimulation, typename Fret>
 class HDFSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
 public:

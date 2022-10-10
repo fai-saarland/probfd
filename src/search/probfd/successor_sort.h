@@ -8,6 +8,7 @@
 class GlobalState;
 
 namespace probfd {
+namespace engine_interfaces {
 
 template <>
 struct SuccessorSorting<const ProbabilisticOperator*>
@@ -25,8 +26,10 @@ protected:
         std::vector<Distribution<StateID>>& successors) = 0;
 };
 
+} // namespace engine_interfaces
+
 using ProbabilisticOperatorSuccessorSorting =
-    SuccessorSorting<const ProbabilisticOperator*>;
+    engine_interfaces::SuccessorSorting<const ProbabilisticOperator*>;
 
 } // namespace probfd
 

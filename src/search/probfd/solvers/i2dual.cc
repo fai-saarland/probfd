@@ -7,6 +7,8 @@ namespace probfd {
 namespace solvers {
 namespace i2dual {
 
+using namespace engine_interfaces;
+
 using I2DualEngine =
     engines::i2dual::I2Dual<GlobalState, const ProbabilisticOperator*>;
 

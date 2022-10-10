@@ -10,7 +10,7 @@ namespace probfd {
 namespace quotient_system {
 
 template <typename State, typename Action>
-using QuotientRewardFunction =
+using QuotientRewardFunction = engine_interfaces::
     RewardFunction<State, quotient_system::QuotientAction<Action>>;
 
 template <typename State, typename Action>
@@ -19,7 +19,7 @@ class DefaultQuotientRewardFunction
 public:
     explicit DefaultQuotientRewardFunction(
         quotient_system::QuotientSystem<Action>* quotient,
-        RewardFunction<State, Action>* orig)
+        engine_interfaces::RewardFunction<State, Action>* orig)
         : quotient_(quotient)
         , eval_(orig)
     {
@@ -38,15 +38,19 @@ public:
             quotient_->get_original_action(s, qa));
     }
 
-    RewardFunction<State, Action>* real() const { return eval_; }
+    engine_interfaces::RewardFunction<State, Action>* real() const
+    {
+        return eval_;
+    }
 
 private:
     quotient_system::QuotientSystem<Action>* quotient_;
-    RewardFunction<State, Action>* eval_;
+    engine_interfaces::RewardFunction<State, Action>* eval_;
 };
 
 } // namespace quotient_system
 
+namespace engine_interfaces {
 template <typename Action>
 class ActionIDMap<quotient_system::QuotientAction<Action>> {
 public:
@@ -108,6 +112,7 @@ private:
     quotient_system::QuotientSystem<Action>* quotient_;
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __ENGINE_INTERFACES_H__

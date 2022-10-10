@@ -20,9 +20,10 @@ public:
     virtual ~HeuristicSearchInterfaceable() = default;
 
     void initialize(
-        HeuristicSearchConnector* connector,
-        StateIDMap<GlobalState>* state_id_map,
-        ActionIDMap<const ProbabilisticOperator*>* op_id_map);
+        engine_interfaces::HeuristicSearchConnector* connector,
+        engine_interfaces::StateIDMap<GlobalState>* state_id_map,
+        engine_interfaces::ActionIDMap<const ProbabilisticOperator*>*
+            op_id_map);
 
     virtual void print_statistics(std::ostream&) const {}
 
@@ -62,9 +63,10 @@ protected:
     }
 
 private:
-    HeuristicSearchConnector* connector_ = nullptr;
-    StateIDMap<GlobalState>* state_id_map_ = nullptr;
-    ActionIDMap<const ProbabilisticOperator*>* op_id_map_ = nullptr;
+    engine_interfaces::HeuristicSearchConnector* connector_ = nullptr;
+    engine_interfaces::StateIDMap<GlobalState>* state_id_map_ = nullptr;
+    engine_interfaces::ActionIDMap<const ProbabilisticOperator*>* op_id_map_ =
+        nullptr;
 };
 
 } // namespace probfd

@@ -9,6 +9,8 @@
 namespace probfd {
 namespace solvers {
 
+using namespace engine_interfaces;
+
 template <typename Bisimulation, typename Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
 public:

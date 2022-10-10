@@ -95,13 +95,13 @@ template <typename State, typename Action>
 class I2Dual : public MDPEngine<State, Action> {
 public:
     explicit I2Dual(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* reward_function,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
-        TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
         ProgressReport* progress,
-        StateEvaluator<State>* heuristic,
+        engine_interfaces::StateEvaluator<State>* heuristic,
         bool hpom_enabled,
         bool incremental_updates,
         lp::LPSolverType solver_type)
@@ -476,7 +476,7 @@ private:
 
     ProgressReport* progress_;
 
-    StateEvaluator<State>* heuristic_;
+    engine_interfaces::StateEvaluator<State>* heuristic_;
 
     const bool hpom_enabled_;
     const bool incremental_hpom_updates_;

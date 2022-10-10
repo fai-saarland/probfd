@@ -1,6 +1,7 @@
 #include "engine_interfaces.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 StateID StateIDMap<bisimulation::QuotientState>::get_state_id(
     const bisimulation::QuotientState& s) const
@@ -62,6 +63,8 @@ void TransitionGenerator<bisimulation::QuotientAction>::operator()(
     }
 }
 
+} // namespace engine_interfaces
+
 namespace bisimulation {
 
 DefaultQuotientStateEvaluator::DefaultQuotientStateEvaluator(
@@ -108,9 +111,8 @@ DefaultQuotientRewardFunction::evaluate(const bisimulation::QuotientState& s)
     return EvaluationResult(false, default_);
 }
 
-value_type::value_t DefaultQuotientRewardFunction::evaluate(
-    StateID,
-    bisimulation::QuotientAction)
+value_type::value_t
+DefaultQuotientRewardFunction::evaluate(StateID, bisimulation::QuotientAction)
 {
     return 0;
 }

@@ -7,6 +7,7 @@
 #include <deque>
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Open list used by the MDP search engine.
@@ -66,6 +67,7 @@ private:
     std::deque<StateID> queue_;
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __OPEN_LIST_H__

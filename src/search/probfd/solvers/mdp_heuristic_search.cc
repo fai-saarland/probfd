@@ -7,6 +7,8 @@
 namespace probfd {
 namespace solvers {
 
+using namespace engine_interfaces;
+
 MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
     : MDPSolver(opts)
     , connector_()

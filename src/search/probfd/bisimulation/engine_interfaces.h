@@ -12,6 +12,7 @@
 #include "../value_utils.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 template <>
 struct StateIDMap<bisimulation::QuotientState> {
@@ -44,12 +45,14 @@ struct TransitionGenerator<bisimulation::QuotientAction> {
         std::vector<Distribution<StateID>>& result) const;
     bisimulation::BisimilarStateSpace* bisim_;
 };
+} // namespace engine_interfaces
 
 namespace bisimulation {
 
-using QuotientRewardFunction =
+using QuotientRewardFunction = engine_interfaces::
     RewardFunction<bisimulation::QuotientState, bisimulation::QuotientAction>;
-using QuotientStateEvaluator = StateEvaluator<bisimulation::QuotientState>;
+using QuotientStateEvaluator =
+    engine_interfaces::StateEvaluator<bisimulation::QuotientState>;
 
 struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
     explicit DefaultQuotientStateEvaluator(

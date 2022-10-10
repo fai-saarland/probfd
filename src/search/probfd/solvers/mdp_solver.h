@@ -83,20 +83,25 @@ public:
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
-    StateIDMap<GlobalState>* get_state_id_map() { return &state_id_map_; }
+    engine_interfaces::StateIDMap<GlobalState>* get_state_id_map()
+    {
+        return &state_id_map_;
+    }
 
-    ActionIDMap<const ProbabilisticOperator*>* get_action_id_map()
+    engine_interfaces::ActionIDMap<const ProbabilisticOperator*>*
+    get_action_id_map()
     {
         return &action_id_map_;
     }
 
-    RewardFunction<GlobalState, const ProbabilisticOperator*>*
-    get_reward_function()
+    engine_interfaces::
+        RewardFunction<GlobalState, const ProbabilisticOperator*>*
+        get_reward_function()
     {
         return reward_function_;
     }
 
-    TransitionGenerator<const ProbabilisticOperator*>*
+    engine_interfaces::TransitionGenerator<const ProbabilisticOperator*>*
     get_transition_generator()
     {
         return &transition_generator_;
@@ -124,11 +129,14 @@ protected:
 private:
     StateRegistry state_registry_;
 
-    StateIDMap<GlobalState> state_id_map_;
-    ActionIDMap<const ProbabilisticOperator*> action_id_map_;
-    RewardFunction<GlobalState, const ProbabilisticOperator*>* reward_function_;
+    engine_interfaces::StateIDMap<GlobalState> state_id_map_;
+    engine_interfaces::ActionIDMap<const ProbabilisticOperator*> action_id_map_;
+    engine_interfaces::RewardFunction<
+        GlobalState,
+        const ProbabilisticOperator*>* reward_function_;
     const value_utils::IntervalValue reward_bound_;
-    TransitionGenerator<const ProbabilisticOperator*> transition_generator_;
+    engine_interfaces::TransitionGenerator<const ProbabilisticOperator*>
+        transition_generator_;
 };
 
 } // namespace solvers

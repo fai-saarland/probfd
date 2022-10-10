@@ -8,6 +8,8 @@
 #include <utility>
 
 namespace probfd {
+namespace engine_interfaces {
+
 template <>
 class TransitionSampler<const ProbabilisticOperator*>
     : public HeuristicSearchInterfaceable {
@@ -24,8 +26,10 @@ protected:
         const Distribution<StateID>& transition) = 0;
 };
 
+} // namespace engine_interfaces
+
 using ProbabilisticOperatorTransitionSampler =
-    TransitionSampler<const ProbabilisticOperator*>;
+    engine_interfaces::TransitionSampler<const ProbabilisticOperator*>;
 
 } // namespace probfd
 

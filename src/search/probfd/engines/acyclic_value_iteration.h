@@ -87,12 +87,12 @@ public:
      * @see MDPEngine
      */
     explicit AcyclicValueIteration(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* reward_function,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
-        TransitionGenerator<Action>* transition_generator,
-        StateEvaluator<State>* prune = nullptr)
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::StateEvaluator<State>* prune = nullptr)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
@@ -204,7 +204,7 @@ private:
         return true;
     }
 
-    StateEvaluator<State>* prune_;
+    engine_interfaces::StateEvaluator<State>* prune_;
 
     Statistics statistics_;
 

@@ -7,6 +7,7 @@
 #include "probabilistic_operator.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 template <>
 class OpenList<const ProbabilisticOperator*> {
@@ -34,7 +35,10 @@ private:
     StateIDMap<GlobalState>* state_id_map_ = nullptr;
 };
 
-using GlobalStateOpenList = OpenList<const ProbabilisticOperator*>;
+} // namespace engine_interfaces
+
+using GlobalStateOpenList =
+    engine_interfaces::OpenList<const ProbabilisticOperator*>;
 
 } // namespace probfd
 

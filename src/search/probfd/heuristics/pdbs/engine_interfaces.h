@@ -27,7 +27,7 @@ class PatternDatabase;
 }
 
 namespace probfd {
-
+namespace engine_interfaces {
 template <>
 class StateIDMap<heuristics::pdbs::AbstractState> {
 public:
@@ -99,12 +99,14 @@ private:
         aops_gen_;
 };
 
+} // namespace engine_interfaces
+
 namespace heuristics {
 namespace pdbs {
 
-using AbstractStateEvaluator = StateEvaluator<AbstractState>;
+using AbstractStateEvaluator = engine_interfaces::StateEvaluator<AbstractState>;
 using AbstractRewardFunction =
-    RewardFunction<AbstractState, const AbstractOperator*>;
+    engine_interfaces::RewardFunction<AbstractState, const AbstractOperator*>;
 
 class QualitativeResultStore;
 

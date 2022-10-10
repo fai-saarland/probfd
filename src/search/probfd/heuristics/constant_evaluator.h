@@ -10,7 +10,7 @@ namespace heuristics {
  * @brief Returns a constant estimate for each state.
  */
 template <typename State>
-class ConstantEvaluator : public StateEvaluator<State> {
+class ConstantEvaluator : public engine_interfaces::StateEvaluator<State> {
 public:
     /**
      * @brief Construct with constant estimate \p value .

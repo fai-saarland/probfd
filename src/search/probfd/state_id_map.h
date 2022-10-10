@@ -7,6 +7,7 @@
 class StateRegistry;
 
 namespace probfd {
+namespace engine_interfaces {
 
 template <>
 class StateIDMap<GlobalState> {
@@ -19,6 +20,7 @@ private:
     StateRegistry* reg_;
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __STATE_ID_MAP_H__

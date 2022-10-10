@@ -8,6 +8,8 @@
 namespace probfd {
 namespace quotient_system {
 
+using namespace engine_interfaces;
+
 unsigned QuotientSystem<const ProbabilisticOperator*>::quotient_size(
     const StateID& state_id) const
 {

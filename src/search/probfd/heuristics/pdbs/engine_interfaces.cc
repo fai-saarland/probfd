@@ -14,6 +14,7 @@ namespace probfd {
 
 using namespace heuristics::pdbs;
 
+namespace engine_interfaces {
 unsigned StateIDMap<AbstractState>::size() const
 {
     return seen.size();
@@ -119,6 +120,7 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
         }
     }
 }
+} // namespace engine_interfaces
 
 namespace heuristics {
 namespace pdbs {

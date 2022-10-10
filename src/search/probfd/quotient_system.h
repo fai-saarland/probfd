@@ -84,8 +84,8 @@ public:
     };
 
     explicit QuotientSystem(
-        ActionIDMap<Action>* aid,
-        TransitionGenerator<Action>* transition_gen)
+        engine_interfaces::ActionIDMap<Action>* aid,
+        engine_interfaces::TransitionGenerator<Action>* transition_gen)
         : cache_(transition_gen->caching_)
         , gen_(transition_gen)
         , fallback_(nullptr)
@@ -399,7 +399,7 @@ private:
 
     void update_cache(
         const std::vector<Action>& exclude,
-        TransitionGenerator<Action>::CacheEntry& entry,
+        engine_interfaces::TransitionGenerator<Action>::CacheEntry& entry,
         const uint32_t rid,
         const std::unordered_set<uint32_t>& quotient_states)
     {
@@ -443,14 +443,15 @@ private:
 #endif
 
     const QuotientInformation* get_infos(const StateID& sid) const;
-    TransitionGenerator<Action>::CacheEntry& lookup(const StateID& sid);
-    const TransitionGenerator<Action>::CacheEntry&
+    engine_interfaces::TransitionGenerator<Action>::CacheEntry&
+    lookup(const StateID& sid);
+    const engine_interfaces::TransitionGenerator<Action>::CacheEntry&
     lookup(const StateID& sid) const;
 
     const bool cache_;
 
     segmented_vector::SegmentedVector<QuotientInformation> state_infos_;
-    TransitionGenerator<Action>* gen_;
+    engine_interfaces::TransitionGenerator<Action>* gen_;
 
     std::unique_ptr<DefaultQuotientSystem<Action>> fallback_;
 };

@@ -50,6 +50,7 @@ private:
     successor_generator::SuccessorGenerator<const ProbabilisticOperator*>* gen_;
 };
 
+namespace engine_interfaces {
 template <>
 class TransitionGenerator<const ProbabilisticOperator*> {
     friend class quotient_system::QuotientSystem<const ProbabilisticOperator*>;
@@ -151,6 +152,7 @@ private:
     Statistics statistics_;
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __TRANSITION_GENERATOR_H__

@@ -9,8 +9,9 @@
 
 namespace probfd {
 
-using NewGlobalStateHandler = NewStateHandler<GlobalState>;
-using NewGlobalStateHandlerList = NewStateHandlerList<GlobalState>;
+using NewGlobalStateHandler = engine_interfaces::NewStateHandler<GlobalState>;
+using NewGlobalStateHandlerList =
+    engine_interfaces::NewStateHandlerList<GlobalState>;
 
 } // namespace probfd
 

@@ -6,6 +6,7 @@
 #include "../utils/distribution_random_sampler.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
 /**
  * @brief Function object used to sample a possible successor state for the
@@ -25,6 +26,7 @@ struct TransitionSampler {
     }
 };
 
+} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __TRANSITION_SAMPLER_H__

@@ -10,6 +10,8 @@
 namespace probfd {
 namespace solvers {
 
+using namespace engine_interfaces;
+
 using IDualEngine =
     engines::idual::IDual<GlobalState, const ProbabilisticOperator*>;
 

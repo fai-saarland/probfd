@@ -3,13 +3,14 @@
 #include "../plugin.h"
 
 namespace probfd {
+namespace engine_interfaces {
 
-bool GlobalStateOpenList::empty() const
+bool OpenList<const ProbabilisticOperator*>::empty() const
 {
     return size() == 0;
 }
 
-void GlobalStateOpenList::push(
+void OpenList<const ProbabilisticOperator*>::push(
     const StateID&,
     const ProbabilisticOperator*,
     const value_type::value_t&,
@@ -18,16 +19,19 @@ void GlobalStateOpenList::push(
     push(state_id);
 }
 
-void GlobalStateOpenList::set_state_id_map(
+void OpenList<const ProbabilisticOperator*>::set_state_id_map(
     StateIDMap<GlobalState>* state_id_map)
 {
     this->state_id_map_ = state_id_map;
 }
 
-GlobalState GlobalStateOpenList::lookup_state(const StateID& state_id)
+GlobalState
+OpenList<const ProbabilisticOperator*>::lookup_state(const StateID& state_id)
 {
     return this->state_id_map_->get_state(state_id);
 }
+
+} // namespace engine_interfaces
 
 static PluginTypePlugin<GlobalStateOpenList>
     _plugin_type("GlobalStateOpenList", "");

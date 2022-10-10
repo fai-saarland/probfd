@@ -93,13 +93,13 @@ template <typename State, typename Action>
 class IDual : public MDPEngine<State, Action> {
 public:
     explicit IDual(
-        StateIDMap<State>* state_id_map,
-        ActionIDMap<Action>* action_id_map,
-        RewardFunction<State, Action>* reward_function,
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::RewardFunction<State, Action>* reward_function,
         value_utils::IntervalValue reward_bound,
-        TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
         lp::LPSolverType solver_type,
-        StateEvaluator<State>* value_initializer,
+        engine_interfaces::StateEvaluator<State>* value_initializer,
         ProgressReport* report)
         : MDPEngine<State, Action>(
               state_id_map,
@@ -298,7 +298,7 @@ public:
 
 private:
     ProgressReport* report_;
-    StateEvaluator<State>* value_initializer_;
+    engine_interfaces::StateEvaluator<State>* value_initializer_;
     const value_type::value_t dead_end_value_;
 
     lp::LPSolver lp_solver_;

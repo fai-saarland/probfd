@@ -23,7 +23,7 @@ namespace pattern_selection {
 
 namespace {
 template <typename PDBType>
-class MergeEvaluator : public StateEvaluator<AbstractState> {
+class MergeEvaluator : public engine_interfaces::StateEvaluator<AbstractState> {
     const AbstractStateMapper* mapper;
     const PDBType& left;
     const PDBType& right;

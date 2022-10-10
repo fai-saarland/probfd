@@ -38,12 +38,12 @@ template <
 void dump(
     std::ostream& out,
     const State& initial_state,
-    StateIDMap<State>* state_id_map,
-    RewardFunction<State, Action>* goal_check,
-    TransitionGenerator<Action>* transition_gen,
+    engine_interfaces::StateIDMap<State>* state_id_map,
+    engine_interfaces::RewardFunction<State, Action>* goal_check,
+    engine_interfaces::TransitionGenerator<Action>* transition_gen,
     const StateToString& sstr = DefaultSTS(),
     const ActionToString& astr = DefaultATS(),
-    StateEvaluator<State>* prune = nullptr,
+    engine_interfaces::StateEvaluator<State>* prune = nullptr,
     bool expand_terminal = false)
 {
     StateID istateid = state_id_map->get_state_id(initial_state);

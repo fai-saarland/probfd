@@ -8,6 +8,7 @@
 class GlobalState;
 
 namespace probfd {
+namespace engine_interfaces {
 
 template <>
 struct PolicyPicker<const ProbabilisticOperator*>
@@ -27,8 +28,10 @@ protected:
         const std::vector<Distribution<StateID>>& successors) = 0;
 };
 
+} // namespace engine_interfaces
+
 using ProbabilisticOperatorPolicyPicker =
-    PolicyPicker<const ProbabilisticOperator*>;
+    engine_interfaces::PolicyPicker<const ProbabilisticOperator*>;
 
 } // namespace probfd
 

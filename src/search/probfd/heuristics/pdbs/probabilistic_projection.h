@@ -100,6 +100,8 @@ protected:
         bool transition_labels,
         value_type::value_t goal_value) const
     {
+        using namespace engine_interfaces;
+
         AbstractOperatorToString op_names(&g_operators);
 
         auto ats = [=](const AbstractOperator* op) {
