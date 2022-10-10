@@ -16,19 +16,17 @@ Printables::~Printables()
     }
 }
 
-void
-Printables::print(std::ostream& out) const
+void Printables::print(std::ostream& out) const
 {
     for (unsigned i = 0; i < printables_.size(); ++i) {
         printables_[i]->print(out);
     }
 }
 
-std::ostream&
-operator<<(std::ostream& out, const Printable& i)
+std::ostream& operator<<(std::ostream& out, const Printable& i)
 {
     i.print(out);
     return out;
 }
 
-} // namespace probabilistic
+} // namespace utils

@@ -2,7 +2,7 @@
 
 #include "../option_parser.h"
 #include "../plugin.h"
-#include "../mdps/globals.h"
+#include "../probfd/globals.h"
 #include "abstraction.h"
 
 using namespace std;
@@ -15,14 +15,13 @@ BudgetShrink::BudgetShrink(const Options& opts)
 {
 }
 
-void
-BudgetShrink::prune(Abstraction& a) const
+void BudgetShrink::prune(Abstraction& a) const
 {
     EquivalenceRelation equiv;
     equiv.reserve(a.size());
     for (int state = 0; state < a.size(); state++) {
-        if (a.get_init_distance(state) + a.get_goal_distance(state)
-            <= budget_) {
+        if (a.get_init_distance(state) + a.get_goal_distance(state) <=
+            budget_) {
             EquivalenceClass c;
             c.push_front(state);
             equiv.push_back(c);
@@ -38,14 +37,12 @@ BudgetShrink::prune(Abstraction& a) const
     }
 }
 
-std::string
-BudgetShrink::name() const
+std::string BudgetShrink::name() const
 {
     return "BudgetShrink";
 }
 
-static shared_ptr<ShrinkStrategy>
-_parse(options::OptionParser& parser)
+static shared_ptr<ShrinkStrategy> _parse(options::OptionParser& parser)
 {
     parser.add_option<int>("budget", "", options::OptionParser::NONE);
     ShrinkStrategy::add_options_to_parser(parser);
@@ -53,7 +50,7 @@ _parse(options::OptionParser& parser)
     if (!parser.dry_run()) {
         ShrinkStrategy::handle_option_defaults(opts);
         if (!opts.contains("budget")) {
-            opts.set<int>("budget", probabilistic::g_step_bound);
+            opts.set<int>("budget", probfd::g_step_bound);
         }
         return shared_ptr<ShrinkStrategy>(new BudgetShrink(opts));
     }
@@ -63,4 +60,3 @@ _parse(options::OptionParser& parser)
 static Plugin<ShrinkStrategy> _plugin("shrink_budget", _parse);
 
 } // namespace merge_and_shrink
-
