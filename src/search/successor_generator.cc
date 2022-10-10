@@ -96,17 +96,15 @@ SuccessorGenerator<const GlobalOperator*>::SuccessorGenerator()
 }
 
 template <>
-SuccessorGenerator<
-    const probabilistic::ProbabilisticOperator*>::SuccessorGenerator()
+SuccessorGenerator<const probfd::ProbabilisticOperator*>::SuccessorGenerator()
     : root(nullptr)
 {
-    std::vector<SuccessorGeneratorFactoryInfo<
-        const probabilistic::ProbabilisticOperator*>>
+    std::vector<
+        SuccessorGeneratorFactoryInfo<const probfd::ProbabilisticOperator*>>
         operator_infos;
-    operator_infos.reserve(probabilistic::g_operators.size());
-    for (int i = probabilistic::g_operators.size() - 1; i >= 0; i--) {
-        const probabilistic::ProbabilisticOperator& op =
-            probabilistic::g_operators[i];
+    operator_infos.reserve(probfd::g_operators.size());
+    for (int i = probfd::g_operators.size() - 1; i >= 0; i--) {
+        const probfd::ProbabilisticOperator& op = probfd::g_operators[i];
         const GlobalOperator& out = *(op[0].op);
         std::vector<SuccessorGeneratorFactoryKey> precond;
         precond.reserve(out.get_preconditions().size());

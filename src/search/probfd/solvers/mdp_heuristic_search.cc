@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
@@ -100,4 +100,4 @@ std::string MDPHeuristicSearchBase::get_engine_name() const
 }
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

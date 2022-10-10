@@ -1,6 +1,6 @@
 #include "abstract_state.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -11,10 +11,10 @@ std::ostream& operator<<(std::ostream& out, const AbstractState& s)
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 namespace utils {
-using namespace probabilistic::heuristics::pdbs;
+using namespace probfd::heuristics::pdbs;
 void feed(HashState& h, const AbstractState& s)
 {
     feed(h, s.id);

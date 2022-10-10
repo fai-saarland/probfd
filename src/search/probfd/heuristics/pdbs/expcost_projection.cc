@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -345,4 +345,4 @@ void ExpCostProjection::verify(
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

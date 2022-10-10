@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace probabilistic {
+namespace probfd {
 namespace policy_tiebreaking {
 
 PreferredOperatorsTiebreaker::PreferredOperatorsTiebreaker(
@@ -50,4 +50,4 @@ static Plugin<ProbabilisticOperatorPolicyPicker> _plugin(
         parse<ProbabilisticOperatorPolicyPicker, PreferredOperatorsTiebreaker>);
 
 } // namespace policy_tiebreaking
-} // namespace probabilistic
+} // namespace probfd

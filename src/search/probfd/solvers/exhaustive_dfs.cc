@@ -9,7 +9,7 @@
 #include "../successor_sort.h"
 #include "mdp_solver.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 class ExhaustiveDFSSolver : public MDPSolver {
@@ -153,4 +153,4 @@ static Plugin<SolverInterface> _plugin(
     options::parse<SolverInterface, ExhaustiveDFSSolver>);
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

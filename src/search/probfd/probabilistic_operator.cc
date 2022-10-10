@@ -1,6 +1,6 @@
 #include "probabilistic_operator.h"
 
-namespace probabilistic {
+namespace probfd {
 
 ProbabilisticOutcome::ProbabilisticOutcome(
     const GlobalOperator* op,
@@ -83,4 +83,4 @@ bool is_applicable(const ProbabilisticOperator* op, const GlobalState& state)
     return true;
 }
 
-} // namespace probabilistic
+} // namespace probfd

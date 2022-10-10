@@ -4,7 +4,7 @@
 #include "../../plugin.h"
 #include "../new_state_handlers/store_preferred_operators.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace open_lists {
 
 LifoPreferredOperatorsOpenList::LifoPreferredOperatorsOpenList(
@@ -67,4 +67,4 @@ static Plugin<GlobalStateOpenList> _plugin(
     options::parse<GlobalStateOpenList, LifoPreferredOperatorsOpenList>);
 
 } // namespace open_lists
-} // namespace probabilistic
+} // namespace probfd

@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to Topological Value Iteration (TVI).
@@ -98,7 +98,7 @@ public:
         this->value_store_.reset(new Store());
         this->solve(this->get_state_id(state), *this->value_store_);
         return value_utils::as_upper_bound(
-            value_store_->operator[](this->get_state_id(state))); 
+            value_store_->operator[](this->get_state_id(state)));
     }
 
     /**
@@ -641,6 +641,6 @@ private:
 
 } // namespace topological_vi
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __TOPOLOGICAL_VALUE_ITERATION_H__

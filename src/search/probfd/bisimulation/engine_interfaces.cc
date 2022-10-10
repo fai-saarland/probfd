@@ -1,6 +1,6 @@
 #include "engine_interfaces.h"
 
-namespace probabilistic {
+namespace probfd {
 
 StateID StateIDMap<bisimulation::QuotientState>::get_state_id(
     const bisimulation::QuotientState& s) const
@@ -117,4 +117,4 @@ value_type::value_t DefaultQuotientRewardFunction::evaluate(
 
 } // namespace bisimulation
 
-} // namespace probabilistic
+} // namespace probfd

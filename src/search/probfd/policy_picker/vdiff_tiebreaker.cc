@@ -4,7 +4,7 @@
 #include "../../plugin.h"
 #include "../engines/heuristic_search_state_information.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace policy_tiebreaking {
 
 VDiffTiebreaker::VDiffTiebreaker(const options::Options& opts)
@@ -44,4 +44,4 @@ static Plugin<ProbabilisticOperatorPolicyPicker> _plugin(
     options::parse<ProbabilisticOperatorPolicyPicker, VDiffTiebreaker>);
 
 } // namespace policy_tiebreaking
-} // namespace probabilistic
+} // namespace probfd

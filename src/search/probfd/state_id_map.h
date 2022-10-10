@@ -6,7 +6,7 @@
 
 class StateRegistry;
 
-namespace probabilistic {
+namespace probfd {
 
 template <>
 class StateIDMap<GlobalState> {
@@ -19,6 +19,6 @@ private:
     StateRegistry* reg_;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __STATE_ID_MAP_H__

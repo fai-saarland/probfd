@@ -7,7 +7,7 @@
 
 #include <sstream>
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 template <typename Bisimulation, typename Fret>
@@ -207,4 +207,4 @@ static Plugin<SolverInterface> _plugin4(
         HDPOptions>);
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

@@ -7,7 +7,7 @@
 
 class GlobalState;
 
-namespace probabilistic {
+namespace probfd {
 
 template <>
 struct PolicyPicker<const ProbabilisticOperator*>
@@ -30,6 +30,6 @@ protected:
 using ProbabilisticOperatorPolicyPicker =
     PolicyPicker<const ProbabilisticOperator*>;
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __POLICY_PICKER_H__

@@ -19,7 +19,7 @@ namespace {
 static const std::string token = "CEGAR_PDBs: ";
 }
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -191,4 +191,4 @@ template class BFSFlawFinder<ExpCostProjection>;
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

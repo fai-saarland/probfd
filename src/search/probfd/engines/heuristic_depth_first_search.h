@@ -16,7 +16,7 @@
 #define DMSG(x)
 #endif
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 namespace heuristic_depth_first_search {
@@ -513,10 +513,11 @@ private:
             einfo.value_changed = updated;
 
             if constexpr (Interval::value) {
-                parent_value_changed =
-                    parent_value_changed || einfo.value_changed ||
-                    (this->interval_comparison_ &&
-                     !this->get_state_info(stateid, sinfo).value.bounds_equal());
+                parent_value_changed = parent_value_changed ||
+                                       einfo.value_changed ||
+                                       (this->interval_comparison_ &&
+                                        !this->get_state_info(stateid, sinfo)
+                                             .value.bounds_equal());
             } else {
                 parent_value_changed =
                     parent_value_changed || einfo.value_changed;
@@ -589,9 +590,10 @@ private:
                 value_changed = val_change || value_changed;
 
                 if constexpr (Interval::value) {
-                    all_converged = all_converged &&
-                                    (!this->interval_comparison_ ||
-                                     this->get_state_info(id).value.bounds_equal());
+                    all_converged =
+                        all_converged &&
+                        (!this->interval_comparison_ ||
+                         this->get_state_info(id).value.bounds_equal());
                 }
 
                 policy_graph_changed = policy_graph_changed || policy_changed;
@@ -629,7 +631,7 @@ private:
 
 } // namespace heuristic_depth_first_search
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #undef DMSG
 

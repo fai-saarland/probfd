@@ -6,7 +6,7 @@
 #include "../transition_sampler.h"
 #include "mdp_heuristic_search.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 template <typename Bisimulation, typename Fret>
@@ -88,4 +88,4 @@ static Plugin<SolverInterface> _plugin(
     parse_mdp_heuristic_search_solver<LRTDPSolver, LRTDPOptions>);
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

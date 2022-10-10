@@ -8,7 +8,7 @@ class PatternCollectionGenerator;
 class PatternCollectionInformation;
 } // namespace pdbs
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 namespace pdbs {
@@ -31,6 +31,6 @@ using MaxProbPDBCollection = PPDBCollection<MaxProbProjection>;
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __TYPES_H__

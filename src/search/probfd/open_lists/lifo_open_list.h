@@ -10,7 +10,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace open_lists {
 
 class LifoOpenList : public GlobalStateOpenList {
@@ -28,6 +28,6 @@ private:
 };
 
 } // namespace open_lists
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __LIFO_OPEN_LIST_H__

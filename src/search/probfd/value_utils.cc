@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cassert>
 
-namespace probabilistic {
+namespace probfd {
 namespace value_utils {
 
 using namespace value_type;
@@ -234,4 +234,4 @@ value_type::value_t as_upper_bound(const value_type::value_t& single)
 }
 
 } // namespace value_utils
-} // namespace probabilistic
+} // namespace probfd

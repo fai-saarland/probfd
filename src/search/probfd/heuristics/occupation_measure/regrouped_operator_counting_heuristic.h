@@ -11,7 +11,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to occupation measure heuristics
 namespace occupation_measure_heuristic {
@@ -43,6 +43,6 @@ protected:
 };
 
 } // namespace occupation_measure_heuristic
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __REGROUPED_OPERATOR_COUNTING_HEURISTIC_H__

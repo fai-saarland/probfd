@@ -26,7 +26,7 @@ namespace utils {
 class CountdownTimer;
 }
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -167,6 +167,6 @@ using MaxProbPatternCollectionGeneratorCegar =
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // PDBS_PATTERN_COLLECTION_GENERATOR_CEGAR_H

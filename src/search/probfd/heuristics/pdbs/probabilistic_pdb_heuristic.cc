@@ -19,7 +19,7 @@
 #include <numeric>
 #include <string>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -191,4 +191,4 @@ static Plugin<GlobalStateEvaluator> _plugin_mp(
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

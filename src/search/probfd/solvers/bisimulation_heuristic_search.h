@@ -11,7 +11,7 @@
 #include "../logging.h"
 // #include "mdp_heuristic_search.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 struct BisimulationTimer {
@@ -476,6 +476,6 @@ private:
 };
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __BISIMULATION_HEURISTIC_SEARCH_H__

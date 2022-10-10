@@ -3,7 +3,7 @@
 #include "../../option_parser.h"
 #include "../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace transition_sampler {
 
 VBiasedSuccessorSampler::VBiasedSuccessorSampler(const options::Options&)
@@ -41,4 +41,4 @@ static Plugin<ProbabilisticOperatorTransitionSampler> _plugin(
         parse<ProbabilisticOperatorTransitionSampler, VBiasedSuccessorSampler>);
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd

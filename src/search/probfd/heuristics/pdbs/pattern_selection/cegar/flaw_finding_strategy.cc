@@ -5,7 +5,7 @@
 
 #include "../../../../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -24,4 +24,4 @@ static PluginTypePlugin<FlawFindingStrategy<MaxProbProjection>> _type_plugin_mp(
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

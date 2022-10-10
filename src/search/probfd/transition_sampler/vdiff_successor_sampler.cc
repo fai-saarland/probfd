@@ -4,7 +4,7 @@
 #include "../../plugin.h"
 #include "../engines/heuristic_search_state_information.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace transition_sampler {
 
 VDiffSuccessorSampler::VDiffSuccessorSampler(const options::Options& opts)
@@ -48,4 +48,4 @@ static Plugin<ProbabilisticOperatorTransitionSampler> _plugin(
         parse<ProbabilisticOperatorTransitionSampler, VDiffSuccessorSampler>);
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd

@@ -2,9 +2,9 @@
 
 #include "../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 
 static PluginTypePlugin<GlobalStateEvaluator>
     _plugin("GlobalStateEvaluator", "");
 
-} // namespace probabilistic
+} // namespace probfd

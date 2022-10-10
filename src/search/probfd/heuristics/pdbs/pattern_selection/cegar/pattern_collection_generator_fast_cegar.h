@@ -9,7 +9,7 @@ namespace options {
 class Options;
 }
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -60,6 +60,6 @@ using MaxProbPatternCollectionGeneratorFastCegar =
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif

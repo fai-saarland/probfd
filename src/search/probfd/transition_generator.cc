@@ -18,7 +18,7 @@
 #include <cstring>
 #include <map>
 
-namespace probabilistic {
+namespace probfd {
 
 static std::shared_ptr<
     successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>
@@ -414,6 +414,6 @@ void TransitionGenerator<const ProbabilisticOperator*>::Statistics::print(
         << std::endl;
 }
 
-} // namespace probabilistic
+} // namespace probfd
 
 #undef DEBUG_CACHE_CONSISTENCY_CHECK

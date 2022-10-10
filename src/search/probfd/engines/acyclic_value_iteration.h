@@ -9,7 +9,7 @@
 #include <memory>
 #include <stack>
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to the acyclic value iteration algorithm.
@@ -76,7 +76,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         // The current transition Q-value
         value_type::value_t t_value;
     };
-    
+
 public:
     /**
      * @brief Constructs an instance of acyclic value iteration.
@@ -214,6 +214,6 @@ private:
 
 } // namespace acyclic_vi
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ACYCLIC_VALUE_ITERATION_H__

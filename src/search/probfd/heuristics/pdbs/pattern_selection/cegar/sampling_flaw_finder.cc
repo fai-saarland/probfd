@@ -20,7 +20,7 @@
 using namespace std;
 using namespace utils;
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -226,4 +226,4 @@ template class SamplingFlawFinder<ExpCostProjection>;
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

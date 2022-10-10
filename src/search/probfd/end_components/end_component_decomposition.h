@@ -4,9 +4,9 @@
 #include "../../utils/iterators.h"
 #include "../../utils/timer.h"
 #include "../engine_interfaces/action_id_map.h"
+#include "../engine_interfaces/reward_function.h"
 #include "../engine_interfaces/state_evaluator.h"
 #include "../engine_interfaces/state_id_map.h"
-#include "../engine_interfaces/reward_function.h"
 #include "../engine_interfaces/transition_generator.h"
 #include "../heuristics/pdbs/qualitative_result_store.h"
 #include "../quotient_system/engine_interfaces.h"
@@ -21,7 +21,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to end component decomposition.
 namespace end_components {
@@ -660,6 +660,6 @@ private:
 };
 
 } // namespace end_components
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __END_COMPONENT_DECOMPOSITION_H__

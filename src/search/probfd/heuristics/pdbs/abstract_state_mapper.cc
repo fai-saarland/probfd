@@ -11,7 +11,7 @@
 #include <limits>
 #include <sstream>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -435,4 +435,4 @@ AbstractStateToString::operator()(const StateID&, AbstractState state) const
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

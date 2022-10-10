@@ -21,7 +21,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -100,6 +100,6 @@ using ExpCostPDBHeuristic = ProbabilisticPDBHeuristic<ExpCostProjection>;
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __PROBABILISTIC_PDB_HEURISTIC_H__

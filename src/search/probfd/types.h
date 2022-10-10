@@ -5,7 +5,7 @@
 #include <functional>
 #include <type_traits>
 
-namespace probabilistic {
+namespace probfd {
 
 struct StateID {
 public:
@@ -48,23 +48,23 @@ struct ActionID {
     size_type id;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 namespace std {
 
 template <>
-struct hash<probabilistic::StateID> {
-    size_t operator()(const probabilistic::StateID& sid) const
+struct hash<probfd::StateID> {
+    size_t operator()(const probfd::StateID& sid) const
     {
-        return hash<probabilistic::StateID::size_type>()(sid);
+        return hash<probfd::StateID::size_type>()(sid);
     }
 };
 
 template <>
-struct hash<probabilistic::ActionID> {
-    size_t operator()(const probabilistic::ActionID& aid) const
+struct hash<probfd::ActionID> {
+    size_t operator()(const probfd::ActionID& aid) const
     {
-        return hash<probabilistic::ActionID::size_type>()(aid);
+        return hash<probfd::ActionID::size_type>()(aid);
     }
 };
 

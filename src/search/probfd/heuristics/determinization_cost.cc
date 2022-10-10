@@ -4,7 +4,7 @@
 #include "../../option_parser.h"
 #include "../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
@@ -50,4 +50,4 @@ static Plugin<GlobalStateEvaluator> _plugin(
     options::parse<GlobalStateEvaluator, DeterminizationCostHeuristic>);
 
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

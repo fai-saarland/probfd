@@ -2,7 +2,7 @@
 
 #include "../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 
 bool GlobalStateOpenList::empty() const
 {
@@ -32,4 +32,4 @@ GlobalState GlobalStateOpenList::lookup_state(const StateID& state_id)
 static PluginTypePlugin<GlobalStateOpenList>
     _plugin_type("GlobalStateOpenList", "");
 
-} // namespace probabilistic
+} // namespace probfd

@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Function object used as a callback when a new state is encountered
@@ -66,6 +66,6 @@ private:
     std::vector<std::shared_ptr<NewStateHandler<State>>> handlers_;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __NEW_STATE_HANDLER_H__

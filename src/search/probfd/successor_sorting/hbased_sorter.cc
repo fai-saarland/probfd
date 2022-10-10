@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace probabilistic {
+namespace probfd {
 namespace successor_sorting {
 
 HBasedSorter::HBasedSorter(const options::Options& opts)
@@ -77,4 +77,4 @@ static Plugin<ProbabilisticOperatorSuccessorSorting> _plugin(
     options::parse<ProbabilisticOperatorSuccessorSorting, HBasedSorter>);
 
 } // namespace successor_sorting
-} // namespace probabilistic
+} // namespace probfd

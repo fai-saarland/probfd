@@ -21,7 +21,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to MDP solver interfaces.
 namespace solvers {
@@ -132,6 +132,6 @@ private:
 };
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __MDP_SOLVER_H__

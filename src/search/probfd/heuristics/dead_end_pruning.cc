@@ -7,7 +7,7 @@
 #include "../analysis_objectives/analysis_objective.h"
 #include "../globals.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(
@@ -57,4 +57,4 @@ static Plugin<GlobalStateEvaluator> _plugin(
     options::parse<GlobalStateEvaluator, DeadEndPruningHeuristic>);
 
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

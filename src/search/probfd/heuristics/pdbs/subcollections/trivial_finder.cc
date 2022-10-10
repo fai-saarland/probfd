@@ -3,7 +3,7 @@
 #include "../../../../option_parser.h"
 #include "../../../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -41,4 +41,4 @@ static Plugin<SubCollectionFinder> _plugin("finder_trivial", _parse);
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

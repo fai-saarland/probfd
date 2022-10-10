@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace probabilistic {
+namespace probfd {
 namespace value_utils {
 
 /**
@@ -229,6 +229,6 @@ value_type::value_t as_upper_bound(const value_type::value_t& single);
 value_type::value_t as_upper_bound(const IntervalValue& interval);
 
 } // namespace value_utils
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __VALUE_UTILS_H__

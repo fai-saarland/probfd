@@ -2,9 +2,9 @@
 
 #include "../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 
 static PluginTypePlugin<GlobalRewardFunction>
     _plugin("GlobalRewardFunction", "");
 
-} // namespace probabilistic
+} // namespace probfd

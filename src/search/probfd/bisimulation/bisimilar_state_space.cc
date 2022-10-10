@@ -29,7 +29,7 @@
 
 using namespace merge_and_shrink;
 
-namespace probabilistic {
+namespace probfd {
 namespace bisimulation {
 
 static constexpr const int BUCKET_SIZE = 1024 * 64;
@@ -336,7 +336,7 @@ BisimilarStateSpace::~BisimilarStateSpace()
         delete (abstraction_);
     }
     for (int i = store_.size() - 1; i >= 0; --i) {
-        delete[](store_[i]);
+        delete[] (store_[i]);
     }
 }
 
@@ -527,4 +527,4 @@ void BisimilarStateSpace::dump(std::ostream& out) const
 }
 
 } // namespace bisimulation
-} // namespace probabilistic
+} // namespace probfd

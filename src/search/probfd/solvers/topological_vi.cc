@@ -8,7 +8,7 @@
 #include "../globals.h"
 #include "../heuristics/constant_evaluator.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 using TVIEngine = engines::topological_vi::
@@ -61,4 +61,4 @@ static Plugin<SolverInterface> _plugin(
     options::parse<SolverInterface, TopologicalVISolver>);
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

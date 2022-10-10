@@ -2,7 +2,7 @@
 
 #include "../../probabilistic_operator.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -34,4 +34,4 @@ AbstractOperatorToString::operator()(const AbstractOperator* op) const
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

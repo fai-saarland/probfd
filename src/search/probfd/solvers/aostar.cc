@@ -5,7 +5,7 @@
 #include "../transition_sampler.h"
 #include "mdp_heuristic_search.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 template <typename Bisimulation>
@@ -68,4 +68,4 @@ static Plugin<SolverInterface> _plugin(
     parse_mdp_heuristic_search_solver<AOStarSolver, AOStarOptions>);
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

@@ -2,7 +2,7 @@
 
 #include "../../../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -30,4 +30,4 @@ static PluginTypePlugin<PatternCollectionGenerator<MaxProbProjection>>
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

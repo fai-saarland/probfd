@@ -3,7 +3,7 @@
 
 #include "../transition_sampler.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace transition_sampler {
 
 class MostLikelySuccessorSelector
@@ -16,6 +16,6 @@ protected:
 };
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __MOST_LIKELY_SELECTOR_H__

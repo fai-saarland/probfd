@@ -10,7 +10,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace open_lists {
 
 class FifoOpenList : public GlobalStateOpenList {
@@ -28,6 +28,6 @@ private:
 };
 
 } // namespace open_lists
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __FIFO_OPEN_LIST_H__

@@ -3,7 +3,7 @@
 
 #include "../state_evaluator.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 /**
@@ -30,6 +30,6 @@ protected:
 };
 
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __CONSTANT_EVALUATOR_H__

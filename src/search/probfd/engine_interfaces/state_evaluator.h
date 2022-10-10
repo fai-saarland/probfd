@@ -3,7 +3,7 @@
 
 #include "../evaluation_result.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Function object specifying the immediate reward received in a target
@@ -29,6 +29,6 @@ protected:
     virtual EvaluationResult evaluate(const State& state) const = 0;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __STATE_EVALUATOR_H__

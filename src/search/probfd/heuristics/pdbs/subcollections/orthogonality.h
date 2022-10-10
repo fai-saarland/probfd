@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 class ProbabilisticOperator;
 
@@ -28,6 +28,6 @@ std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ORTHOGONALITY_H__

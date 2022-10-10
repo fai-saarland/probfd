@@ -3,7 +3,7 @@
 #include <cmath>
 #include <limits>
 
-namespace probabilistic {
+namespace probfd {
 namespace value_type {
 
 value_t from_double(double d)
@@ -64,4 +64,4 @@ const value_t eps = std::numeric_limits<double>::epsilon();
 value_t g_epsilon = 5e-5;
 
 } // namespace value_type
-} // namespace probabilistic
+} // namespace probfd

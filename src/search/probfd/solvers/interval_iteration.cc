@@ -5,7 +5,7 @@
 #include "../state_evaluator.h"
 #include "mdp_solver.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 using IIEngine = engines::interval_iteration::
@@ -50,4 +50,4 @@ static Plugin<SolverInterface> _plugin(
     options::parse<SolverInterface, IntervalIterationSolver>);
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

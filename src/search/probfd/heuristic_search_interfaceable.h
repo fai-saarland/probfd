@@ -13,7 +13,7 @@
 
 class GlobalState;
 
-namespace probabilistic {
+namespace probfd {
 
 class HeuristicSearchInterfaceable {
 public:
@@ -67,6 +67,6 @@ private:
     ActionIDMap<const ProbabilisticOperator*>* op_id_map_ = nullptr;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __HEURISTIC_SEARCH_INTERFACEABLE_H__

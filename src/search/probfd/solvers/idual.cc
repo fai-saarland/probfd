@@ -7,7 +7,7 @@
 #include "../state_evaluator.h"
 #include "mdp_solver.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 using IDualEngine =
@@ -51,4 +51,4 @@ static Plugin<SolverInterface>
     _plugin("idual", options::parse<SolverInterface, IDualSolver>);
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

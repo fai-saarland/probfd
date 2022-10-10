@@ -12,7 +12,7 @@
 
 #define CAS_DEBUG_PRINT(x)
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to labelled real-time dynamic programming (LRTDP).
@@ -549,7 +549,7 @@ private:
 
 } // namespace lrtdp
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #undef CAS_DEBUG_PRINT
 

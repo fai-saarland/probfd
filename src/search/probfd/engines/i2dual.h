@@ -26,7 +26,7 @@ class OptionParser;
 
 class StateRegistry;
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 namespace i2dual {
 
@@ -500,6 +500,6 @@ private:
 
 } // namespace i2dual
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __I2DUAL_H__

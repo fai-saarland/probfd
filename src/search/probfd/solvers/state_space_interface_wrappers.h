@@ -13,7 +13,7 @@
 
 #include <memory>
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 template <typename Bisimulation, typename Fret, typename T>
@@ -187,6 +187,6 @@ struct Unwrapper<
 };
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __STATE_SPACE_INTERFACE_WRAPPERS_H__

@@ -4,7 +4,7 @@
 #include "../state_evaluator.h"
 #include "mdp_solver.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 using AVIEngine = engines::acyclic_vi::
@@ -49,4 +49,4 @@ static Plugin<SolverInterface> _plugin(
     options::parse<SolverInterface, AcyclicVISolver>);
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

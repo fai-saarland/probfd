@@ -9,7 +9,7 @@
 #include <set>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to the i-dual MDP engine.
@@ -312,6 +312,6 @@ private:
 
 } // namespace idual
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __IDUAL_H__

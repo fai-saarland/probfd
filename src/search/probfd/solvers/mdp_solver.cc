@@ -13,7 +13,7 @@
 #include <iomanip>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 MDPSolver::MDPSolver(const options::Options& opts)
@@ -94,4 +94,4 @@ void MDPSolver::add_options_to_parser(options::OptionParser& parser)
 }
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

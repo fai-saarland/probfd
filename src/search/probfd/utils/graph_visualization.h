@@ -7,12 +7,11 @@
 #include "../engine_interfaces/transition_generator.h"
 #include "../storage/per_state_storage.h"
 
-
 #include <deque>
 #include <iostream>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace graphviz {
 
 struct DefaultSTS {
@@ -125,6 +124,6 @@ void dump(
 }
 
 } // namespace graphviz
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __GRAPH_VISUALIZATION_H__

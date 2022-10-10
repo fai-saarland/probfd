@@ -21,7 +21,7 @@
 #define FRET_DEBUG_MSG(x)
 #endif
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to the Find, Revise, Eliminate Traps (FRET) framework.
@@ -462,7 +462,7 @@ using FRETPi = internal::
 
 } // namespace fret
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #undef FRET_DEBUG_MSG
 

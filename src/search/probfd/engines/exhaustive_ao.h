@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// I do not know this algorithm.
@@ -194,6 +194,6 @@ private:
 
 } // namespace exhaustive_ao
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __EXHAUSTIVE_AO_H__

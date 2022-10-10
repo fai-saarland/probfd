@@ -12,7 +12,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 /**
@@ -52,6 +52,6 @@ protected:
 };
 
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __DETERMINIZATION_COST_H__

@@ -4,7 +4,7 @@
 #include "../../plugin.h"
 #include "../new_state_handlers/store_heuristic.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace open_lists {
 
 GoalDistanceOpenList::GoalDistanceOpenList(const options::Options& opts)
@@ -29,4 +29,4 @@ static Plugin<GlobalStateOpenList> _plugin(
     options::parse<GlobalStateOpenList, GoalDistanceOpenList>);
 
 } // namespace open_lists
-} // namespace probabilistic
+} // namespace probfd

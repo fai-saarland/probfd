@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief A registry for print functions related to search progress.
@@ -80,6 +80,6 @@ private:
     std::vector<std::function<void(std::ostream&)>> additional_informations_;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __PROGRESS_REPORT_H__

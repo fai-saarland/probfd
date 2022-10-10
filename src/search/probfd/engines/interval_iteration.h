@@ -13,7 +13,7 @@
 
 #include <iterator>
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to interval iteration on MaxProb MDPs.
@@ -222,6 +222,6 @@ private:
 
 } // namespace interval_iteration
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __INTERVAL_ITERATION_H__dead_ends

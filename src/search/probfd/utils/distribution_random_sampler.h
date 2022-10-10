@@ -6,7 +6,7 @@
 #include "../distribution.h"
 #include "../value_type.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace distribution_random_sampler {
 
 struct DistributionRandomSampler {
@@ -34,6 +34,6 @@ struct DistributionRandomSampler {
 };
 
 } // namespace distribution_random_sampler
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __DISTRIBUTION_RANDOM_SAMPLER_H__

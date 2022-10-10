@@ -12,7 +12,7 @@ class GlobalOperator;
 struct GlobalCondition;
 class GlobalState;
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Struct representing a probabilistic outcome.
@@ -118,6 +118,6 @@ private:
 extern bool
 is_applicable(const ProbabilisticOperator* op, const GlobalState& state);
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __PROBABILISTIC_OPERATOR_H__

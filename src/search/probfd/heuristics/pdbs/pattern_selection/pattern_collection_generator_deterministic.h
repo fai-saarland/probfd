@@ -11,7 +11,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -46,6 +46,6 @@ using MaxProbPatternCollectionGeneratorDeterministic =
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // PATTERN_COLLECTION_GENERATOR_DETERMINISTIC_H_

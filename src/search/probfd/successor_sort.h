@@ -7,7 +7,7 @@
 
 class GlobalState;
 
-namespace probabilistic {
+namespace probfd {
 
 template <>
 struct SuccessorSorting<const ProbabilisticOperator*>
@@ -28,6 +28,6 @@ protected:
 using ProbabilisticOperatorSuccessorSorting =
     SuccessorSorting<const ProbabilisticOperator*>;
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __SUCCESSOR_SORT_H__

@@ -10,7 +10,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 
 namespace new_state_handlers {
 class StorePreferredOperators;
@@ -33,6 +33,6 @@ protected:
 };
 
 } // namespace successor_sorting
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __PREFERRED_OPERATORS_TIEBREAKER_H__

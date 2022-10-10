@@ -6,7 +6,7 @@
 
 #include <cassert>
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief The specialiation of ActionIDMap for ProbabilisticOperator.
@@ -33,6 +33,6 @@ private:
 #endif
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ACTION_ID_MAP_H__

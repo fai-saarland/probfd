@@ -3,7 +3,7 @@
 #include "../../../globals.h"
 #include "../syntactic_projection.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -146,4 +146,4 @@ bool is_independent_collection(const PatternCollection& patterns)
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

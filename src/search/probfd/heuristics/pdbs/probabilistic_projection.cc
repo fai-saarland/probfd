@@ -10,7 +10,7 @@
 #include <numeric>
 #include <set>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -286,4 +286,4 @@ void ProbabilisticProjection::add_abstract_operators(
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

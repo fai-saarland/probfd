@@ -7,7 +7,7 @@
 
 #include <sstream>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -63,4 +63,4 @@ template EvaluationResult evaluate<MaxProbProjection>(
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

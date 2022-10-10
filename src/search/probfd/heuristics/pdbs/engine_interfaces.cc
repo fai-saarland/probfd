@@ -10,7 +10,7 @@
 
 #include <limits>
 
-namespace probabilistic {
+namespace probfd {
 
 using namespace heuristics::pdbs;
 
@@ -37,15 +37,13 @@ StateIDMap<AbstractState>::visited() const
     return visited_range(visited_begin(), visited_end());
 }
 
-StateID
-StateIDMap<AbstractState>::get_state_id(const AbstractState& state)
+StateID StateIDMap<AbstractState>::get_state_id(const AbstractState& state)
 {
     seen.insert(state.id);
     return StateID(state.id);
 }
 
-AbstractState
-StateIDMap<AbstractState>::get_state(const StateID& id)
+AbstractState StateIDMap<AbstractState>::get_state(const StateID& id)
 {
     return AbstractState(id);
 }
@@ -63,8 +61,7 @@ ActionID ActionIDMap<const AbstractOperator*>::get_action_id(
     return op - (&ops_[0]);
 }
 
-const AbstractOperator*
-ActionIDMap<const AbstractOperator*>::get_action(
+const AbstractOperator* ActionIDMap<const AbstractOperator*>::get_action(
     const StateID&,
     const ActionID& idx) const
 {
@@ -237,4 +234,4 @@ template class IncrementalPPDBEvaluator<MaxProbProjection>;
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

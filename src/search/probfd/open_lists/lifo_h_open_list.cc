@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace probabilistic {
+namespace probfd {
 namespace open_lists {
 
 LifoHOpenList::LifoHOpenList(const options::Options& opts)
@@ -79,4 +79,4 @@ static Plugin<GlobalStateOpenList> _plugin(
     options::parse<GlobalStateOpenList, LifoHOpenList>);
 
 } // namespace open_lists
-} // namespace probabilistic
+} // namespace probfd

@@ -3,7 +3,7 @@
 
 #include "subcollection_finder.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -21,6 +21,6 @@ public:
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __TRIVIAL_FINDER_H__

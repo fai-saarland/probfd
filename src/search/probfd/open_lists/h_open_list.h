@@ -10,7 +10,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 
 namespace new_state_handlers {
 class StoreHeuristic;
@@ -30,6 +30,6 @@ protected:
 };
 
 } // namespace open_lists
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __H_OPEN_LIST_H__

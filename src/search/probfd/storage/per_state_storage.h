@@ -11,7 +11,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to commonly used storage and container types.
 namespace storage {
@@ -89,17 +89,14 @@ private:
 };
 
 template <template <typename...> class Container>
-struct is_container_persistent : std::false_type {
-};
+struct is_container_persistent : std::false_type {};
 
 template <>
-struct is_container_persistent<HashMap> : std::true_type {
-};
+struct is_container_persistent<HashMap> : std::true_type {};
 
 template <>
 struct is_container_persistent<segmented_vector::DynamicSegmentedVector>
-    : std::true_type {
-};
+    : std::true_type {};
 
 namespace internal {
 
@@ -198,21 +195,21 @@ using StateHashSet = std::unordered_set<State>;
 using StateIDHashSet = std::unordered_set<StateID>;
 
 } // namespace storage
-} // namespace probabilistic
+} // namespace probfd
 
 namespace utils {
 template <>
-class set_output_iterator<probabilistic::storage::PerStateStorage<bool>> {
-    probabilistic::storage::PerStateStorage<bool>& store;
+class set_output_iterator<probfd::storage::PerStateStorage<bool>> {
+    probfd::storage::PerStateStorage<bool>& store;
 
 public:
-    set_output_iterator(probabilistic::storage::PerStateStorage<bool>& store)
+    set_output_iterator(probfd::storage::PerStateStorage<bool>& store)
         : store(store)
     {
     }
 
-    probabilistic::storage::PerStateStorage<bool>::reference
-    operator=(const ::probabilistic::StateID& id)
+    probfd::storage::PerStateStorage<bool>::reference
+    operator=(const ::probfd::StateID& id)
     {
         return store[id] = true;
     }

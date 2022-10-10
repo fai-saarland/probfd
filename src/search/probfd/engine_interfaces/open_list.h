@@ -6,7 +6,7 @@
 
 #include <deque>
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Open list used by the MDP search engine.
@@ -66,6 +66,6 @@ private:
     std::deque<StateID> queue_;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __OPEN_LIST_H__

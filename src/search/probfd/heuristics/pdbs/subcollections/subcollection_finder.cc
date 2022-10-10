@@ -2,7 +2,7 @@
 
 #include "../../../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -10,4 +10,4 @@ static PluginTypePlugin<SubCollectionFinder> _plugin("SubCollectionFinder", "");
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

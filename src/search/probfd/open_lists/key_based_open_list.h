@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace open_lists {
 
 struct LifoPop {
@@ -129,6 +129,6 @@ private:
 };
 
 } // namespace open_lists
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __KEY_BASED_OPEN_LIST_H__

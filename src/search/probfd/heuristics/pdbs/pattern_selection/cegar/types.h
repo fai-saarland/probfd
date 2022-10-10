@@ -5,7 +5,7 @@
 
 #include "../../../../../global_operator.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -80,14 +80,14 @@ struct ExplicitGState {
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 namespace std {
 template <>
-struct hash<
-    probabilistic::heuristics::pdbs::pattern_selection::ExplicitGState> {
-    size_t operator()(const probabilistic::heuristics::pdbs::pattern_selection::
-                          ExplicitGState& state) const
+struct hash<probfd::heuristics::pdbs::pattern_selection::ExplicitGState> {
+    size_t operator()(
+        const probfd::heuristics::pdbs::pattern_selection::ExplicitGState&
+            state) const
     {
         return state.get_hash();
     }

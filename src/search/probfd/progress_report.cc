@@ -2,7 +2,7 @@
 
 #include "../utils/timer.h"
 
-namespace probabilistic {
+namespace probfd {
 
 ProgressReport::ProgressReport(
     const value_type::value_t min_change,
@@ -87,4 +87,4 @@ void ProgressReport::operator()()
     }
 }
 
-} // namespace probabilistic
+} // namespace probfd

@@ -22,7 +22,7 @@ template <typename T>
 class SuccessorGenerator;
 }
 
-namespace probabilistic {
+namespace probfd {
 
 class AnalysisObjective;
 
@@ -156,6 +156,6 @@ protected:
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __PROBABILISTIC_PROJECTION_H__

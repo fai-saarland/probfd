@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace probabilistic {
+namespace probfd {
 
 class ProbabilisticOperator;
 
@@ -31,6 +31,6 @@ private:
 };
 
 } // namespace analysis_objectives
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __GOAL_PROBABILITY_OBJECTIVE_H__

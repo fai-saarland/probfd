@@ -26,7 +26,7 @@
 using namespace std;
 using utils::Verbosity;
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -885,4 +885,4 @@ template class PatternCollectionGeneratorCegar<ExpCostProjection>;
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

@@ -6,12 +6,12 @@
 
 #include "engine_interfaces/reward_function.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /// Type alias for state reward functions for GlobalState.
 using GlobalRewardFunction =
     RewardFunction<GlobalState, const ProbabilisticOperator*>;
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __STATE_REWARD_FUNCTION_H__

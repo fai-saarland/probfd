@@ -16,7 +16,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 class ProbabilisticOperator;
 
 /// Namespace dedicated to new state listener implementations.
@@ -46,7 +46,7 @@ public:
     ~PrefOpsCacheEntry()
     {
         if (ops_) {
-            delete[](ops_);
+            delete[] (ops_);
         }
     }
 
@@ -78,6 +78,6 @@ private:
 };
 
 } // namespace new_state_handlers
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __STORE_PREFERRED_OPERATORS_H__

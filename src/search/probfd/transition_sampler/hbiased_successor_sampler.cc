@@ -4,7 +4,7 @@
 #include "../../plugin.h"
 #include "../new_state_handlers/store_heuristic.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace transition_sampler {
 
 HBiasedSuccessorSampler::HBiasedSuccessorSampler(const options::Options& opts)
@@ -47,4 +47,4 @@ static Plugin<ProbabilisticOperatorTransitionSampler> _plugin(
         parse<ProbabilisticOperatorTransitionSampler, HBiasedSuccessorSampler>);
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd

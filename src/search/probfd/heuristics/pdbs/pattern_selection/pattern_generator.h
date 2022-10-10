@@ -9,7 +9,7 @@
 
 #include <memory>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -36,5 +36,5 @@ using MaxProbPatternCollectionGenerator =
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 #endif // __PATTERN_GENERATOR_H__

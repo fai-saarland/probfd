@@ -3,7 +3,7 @@
 #include "../../option_parser.h"
 #include "../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace policy_tiebreaking {
 
 ArbitraryTiebreaker::ArbitraryTiebreaker()
@@ -32,4 +32,4 @@ static Plugin<ProbabilisticOperatorPolicyPicker> _plugin(
     options::parse<ProbabilisticOperatorPolicyPicker, ArbitraryTiebreaker>);
 
 } // namespace policy_tiebreaking
-} // namespace probabilistic
+} // namespace probfd

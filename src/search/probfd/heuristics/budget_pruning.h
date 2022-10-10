@@ -15,7 +15,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 /**
@@ -40,7 +40,7 @@ public:
             : registry_(r)
         {
         }
-        std::size_t operator()(const probabilistic::StateID& id) const;
+        std::size_t operator()(const StateID& id) const;
         const StateRegistry* registry_ = nullptr;
     };
 
@@ -49,9 +49,7 @@ public:
             : registry_(r)
         {
         }
-        bool operator()(
-            const probabilistic::StateID& x,
-            const probabilistic::StateID& y) const;
+        bool operator()(const StateID& x, const StateID& y) const;
         const StateRegistry* registry_ = nullptr;
     };
 
@@ -63,12 +61,11 @@ protected:
     std::shared_ptr<Heuristic> pruning_function_;
 
     const bool cache_estimates_;
-    mutable std::unique_ptr<
-        std::unordered_map<probabilistic::StateID, int, Hash, Equal>>
+    mutable std::unique_ptr<std::unordered_map<StateID, int, Hash, Equal>>
         cached_estimates_ = nullptr;
 };
 
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __BUDGET_PRUNING_H__

@@ -5,7 +5,7 @@
 #include "../types.h"
 #include "../utils/distribution_random_sampler.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Function object used to sample a possible successor state for the
@@ -25,6 +25,6 @@ struct TransitionSampler {
     }
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __TRANSITION_SAMPLER_H__

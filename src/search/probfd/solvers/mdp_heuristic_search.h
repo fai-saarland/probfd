@@ -17,7 +17,7 @@
 
 #include <memory>
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 
 template <typename Bisimulation, typename Fret>
@@ -139,8 +139,7 @@ public:
               quotient_.get(),
               this->get_reward_function()))
         , q_action_id_map_(new ActionIDMap<QAction>(quotient_.get()))
-        , q_transition_gen_(
-              new TransitionGenerator<QAction>(quotient_.get()))
+        , q_transition_gen_(new TransitionGenerator<QAction>(quotient_.get()))
         , q_policy_tiebreaker_(
               this->policy_tiebreaker_ != nullptr
                   ? new PolicyPicker<QAction>(
@@ -426,7 +425,7 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
 }
 
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd
 
 #include "bisimulation_heuristic_search.h"
 

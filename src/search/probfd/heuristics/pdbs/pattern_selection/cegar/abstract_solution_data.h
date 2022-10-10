@@ -15,7 +15,7 @@ namespace utils {
 class RandomNumberGenerator;
 }
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -77,5 +77,5 @@ using MaxProbAbstractSolutionData = AbstractSolutionData<MaxProbProjection>;
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 #endif

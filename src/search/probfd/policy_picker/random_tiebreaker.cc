@@ -5,7 +5,7 @@
 #include "../../plugin.h"
 #include "../../utils/rng.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace policy_tiebreaking {
 
 RandomTiebreaker::RandomTiebreaker(const options::Options&)
@@ -30,4 +30,4 @@ static Plugin<ProbabilisticOperatorPolicyPicker> _plugin(
     options::parse<ProbabilisticOperatorPolicyPicker, RandomTiebreaker>);
 
 } // namespace policy_tiebreaking
-} // namespace probabilistic
+} // namespace probfd

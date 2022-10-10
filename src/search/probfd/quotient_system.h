@@ -14,7 +14,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace quotient_system {
 
 template <>
@@ -456,6 +456,6 @@ private:
 };
 
 } // namespace quotient_system
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __QUOTIENT_SYSTEM_H__

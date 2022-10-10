@@ -4,7 +4,7 @@
 #include "../../plugin.h"
 #include "../engines/heuristic_search_state_information.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace successor_sorting {
 
 VDiffSorter::VDiffSorter(const options::Options& opts)
@@ -61,4 +61,4 @@ static Plugin<ProbabilisticOperatorSuccessorSorting> _plugin(
     options::parse<ProbabilisticOperatorSuccessorSorting, VDiffSorter>);
 
 } // namespace successor_sorting
-} // namespace probabilistic
+} // namespace probfd

@@ -11,7 +11,7 @@
 
 #include "../value_utils.h"
 
-namespace probabilistic {
+namespace probfd {
 
 template <>
 struct StateIDMap<bisimulation::QuotientState> {
@@ -83,6 +83,6 @@ struct DefaultQuotientRewardFunction : public QuotientRewardFunction {
 };
 
 } // namespace bisimulation
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ENGINE_INTERFACES_H__

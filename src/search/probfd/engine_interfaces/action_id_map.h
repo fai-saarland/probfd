@@ -3,7 +3,7 @@
 
 #include "../types.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Specifies a mapping between state-action pairs and integer IDs.
@@ -32,6 +32,6 @@ struct ActionIDMap {
     Action get_action(const StateID& state_id, const ActionID& action_id);
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ACTION_ID_MAP_H__

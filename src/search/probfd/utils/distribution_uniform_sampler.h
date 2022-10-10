@@ -5,7 +5,7 @@
 #include "../../utils/rng.h"
 #include "../distribution.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace distribution_uniform_sampler {
 
 struct DistributionUniformSampler {
@@ -25,6 +25,6 @@ struct DistributionUniformSampler {
 };
 
 } // namespace distribution_uniform_sampler
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __DISTRIBUTION_UNIFORM_SAMPLER_H__

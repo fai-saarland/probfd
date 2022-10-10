@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to the AO* algorithm.
@@ -215,6 +215,6 @@ private:
 
 } // namespace ao_star
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __AO_STAR_H__

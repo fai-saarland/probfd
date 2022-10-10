@@ -6,7 +6,7 @@
 #include "engine_interfaces/state_id_map.h"
 #include "probabilistic_operator.h"
 
-namespace probabilistic {
+namespace probfd {
 
 template <>
 class OpenList<const ProbabilisticOperator*> {
@@ -36,6 +36,6 @@ private:
 
 using GlobalStateOpenList = OpenList<const ProbabilisticOperator*>;
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __OPEN_LIST_H__

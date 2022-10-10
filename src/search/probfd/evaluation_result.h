@@ -3,7 +3,7 @@
 
 #include "value_type.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Holds a state value and a flag with varying purposes.
@@ -41,6 +41,6 @@ operator*(const value_type::value_t& x, const EvaluationResult& y);
 value_type::value_t
 operator/(const value_type::value_t& x, const EvaluationResult& y);
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __EVALUATION_RESULT_H__

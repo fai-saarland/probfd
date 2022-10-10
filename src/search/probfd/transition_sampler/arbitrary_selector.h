@@ -3,7 +3,7 @@
 
 #include "../transition_sampler.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to transition sampling.
 namespace transition_sampler {
@@ -18,6 +18,6 @@ protected:
 };
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ARBITRARY_SELECTOR_H__

@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <cassert>
 
-namespace probabilistic {
+namespace probfd {
 namespace new_state_handlers {
 
 bool PrefOpsCacheEntry::contains(const ProbabilisticOperator* ptr) const
@@ -116,4 +116,4 @@ static Plugin<NewGlobalStateHandler> _plugin(
     "store_preferred_operators",
     options::parse<NewGlobalStateHandler, StorePreferredOperators>);
 } // namespace new_state_handlers
-} // namespace probabilistic
+} // namespace probfd

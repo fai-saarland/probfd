@@ -18,7 +18,7 @@
 #include <string>
 #include <unordered_set>
 
-namespace probabilistic {
+namespace probfd {
 
 static std::vector<GlobalOperator> g_dummy_outcomes;
 
@@ -316,4 +316,4 @@ std::shared_ptr<
 
 std::shared_ptr<analysis_objectives::AnalysisObjective> g_analysis_objective;
 
-} // namespace probabilistic
+} // namespace probfd

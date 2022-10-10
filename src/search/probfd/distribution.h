@@ -11,7 +11,7 @@
 #include <cassert>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief A convenience class that wraps a list of element-probability
@@ -259,6 +259,6 @@ public:
     const distribution_t& data() const { return distribution_; }
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __DISTRIBUTION_H__

@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to MDP planning analysis objectives
 namespace analysis_objectives {
@@ -39,6 +39,6 @@ public:
 };
 
 } // namespace analysis_objectives
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // ANALYSIS_OBJECTIVE_H

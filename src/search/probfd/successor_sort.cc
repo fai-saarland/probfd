@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-namespace probabilistic {
+namespace probfd {
 
 void ProbabilisticOperatorSuccessorSorting::operator()(
     const StateID& state,
@@ -18,4 +18,4 @@ void ProbabilisticOperatorSuccessorSorting::operator()(
 static PluginTypePlugin<ProbabilisticOperatorSuccessorSorting>
     _plugin_type("ProbabilisticOperatorSuccessorSorting", "");
 
-} // namespace probabilistic
+} // namespace probfd

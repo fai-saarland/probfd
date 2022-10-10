@@ -15,7 +15,7 @@
 #include <cassert>
 #include <memory>
 
-namespace probabilistic {
+namespace probfd {
 namespace occupation_measure_heuristic {
 
 namespace {
@@ -197,4 +197,4 @@ static Plugin<GlobalStateEvaluator> _plugin(
     options::parse<GlobalStateEvaluator, RegroupedOperatorCountingHeuristic>);
 
 } // namespace occupation_measure_heuristic
-} // namespace probabilistic
+} // namespace probfd

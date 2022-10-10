@@ -11,7 +11,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace transition_sampler {
 
 class VDiffSuccessorSampler : public ProbabilisticOperatorTransitionSampler {
@@ -32,6 +32,6 @@ protected:
 };
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __VDIFF_SUCCESSOR_SAMPLER_H__

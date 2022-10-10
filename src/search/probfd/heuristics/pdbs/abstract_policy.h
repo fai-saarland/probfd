@@ -11,7 +11,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 namespace pdbs {
@@ -65,6 +65,6 @@ public:
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif

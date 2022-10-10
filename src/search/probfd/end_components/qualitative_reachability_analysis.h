@@ -13,7 +13,6 @@
 #include "../quotient_system/quotient_system.h"
 #include "../storage/per_state_storage.h"
 
-
 #include <cassert>
 #include <deque>
 #include <iostream>
@@ -22,7 +21,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 namespace reachability {
 
@@ -475,6 +474,6 @@ private:
 };
 
 } // namespace reachability
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __END_COMPONENT_DECOMPOSITION_H__

@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 namespace pdbs {
@@ -15,6 +15,6 @@ build_compatibility_graph_weak_orthogonality(const PatternCollection& patterns);
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __WEAK_ORTHOGONALITY_H__

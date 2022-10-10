@@ -6,7 +6,7 @@
 
 #include <limits>
 
-namespace probabilistic {
+namespace probfd {
 namespace policy_tiebreaking {
 
 OperatorIdTiebreaker::OperatorIdTiebreaker(const options::Options& opts)
@@ -42,4 +42,4 @@ static Plugin<ProbabilisticOperatorPolicyPicker> _plugin(
     options::parse<ProbabilisticOperatorPolicyPicker, OperatorIdTiebreaker>);
 
 } // namespace policy_tiebreaking
-} // namespace probabilistic
+} // namespace probfd

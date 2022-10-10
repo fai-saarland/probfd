@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -26,5 +26,5 @@ public:
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 #endif // __SUBCOLLECTION_FINDER_H__

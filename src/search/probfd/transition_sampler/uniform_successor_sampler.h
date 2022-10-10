@@ -5,7 +5,7 @@
 #include "../transition_sampler.h"
 #include "../utils/distribution_uniform_sampler.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace transition_sampler {
 
 class UniformSuccessorSampler : public ProbabilisticOperatorTransitionSampler {
@@ -19,6 +19,6 @@ protected:
 };
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __UNIFORM_SUCCESSOR_SAMPLER_H__

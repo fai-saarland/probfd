@@ -4,7 +4,7 @@
 #include "../distribution.h"
 #include "../types.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Interface specifying a strategy to choose a greedy action for a state
@@ -78,6 +78,6 @@ protected:
     }
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __POLICY_PICKER_H__

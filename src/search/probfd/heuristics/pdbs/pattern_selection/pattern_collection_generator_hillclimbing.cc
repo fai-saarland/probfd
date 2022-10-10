@@ -33,7 +33,7 @@
 
 using namespace utils;
 
-namespace probabilistic {
+namespace probfd {
 
 using namespace value_type;
 
@@ -649,4 +649,4 @@ static Plugin<PatternCollectionGenerator<MaxProbProjection>>
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

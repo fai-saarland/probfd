@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to the AO* family of MDP algorithms.
@@ -337,6 +337,6 @@ private:
 
 } // namespace ao_search
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __AO_SEARCH_H__

@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 class ProbabilisticOperator;
 
@@ -41,6 +41,6 @@ private:
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ABSTRACT_OPERATOR_H__

@@ -11,7 +11,7 @@
 
 #include "quotient_system.h"
 
-namespace probabilistic {
+namespace probfd {
 
 template <>
 class PolicyPicker<
@@ -70,8 +70,7 @@ class TransitionSampler<
 public:
     explicit TransitionSampler(
         QuotientSystem* quotient,
-        probabilistic::TransitionSampler<const ProbabilisticOperator*>*
-            original)
+        TransitionSampler<const ProbabilisticOperator*>* original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -137,6 +136,6 @@ public:
     OpenList<const ProbabilisticOperator*>* original_;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __HEURISTIC_SEARCH_INTERFACE_H__

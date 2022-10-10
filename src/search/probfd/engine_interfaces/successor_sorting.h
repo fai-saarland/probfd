@@ -6,7 +6,7 @@
 
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Function object used to sort the possible successors of a transition
@@ -25,6 +25,6 @@ struct SuccessorSorting {
         std::vector<Distribution<StateID>>& successors);
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __SUCCESSOR_SORTING_H__

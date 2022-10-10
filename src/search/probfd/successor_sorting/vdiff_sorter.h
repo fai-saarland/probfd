@@ -9,7 +9,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to policy tiebreaker implementations.
 namespace successor_sorting {
@@ -29,6 +29,6 @@ protected:
 };
 
 } // namespace successor_sorting
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __VDIFF_TIEBREAKER_H__

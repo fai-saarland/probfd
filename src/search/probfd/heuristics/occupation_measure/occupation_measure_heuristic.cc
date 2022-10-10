@@ -16,7 +16,7 @@
 #include <iostream>
 #include <memory>
 
-namespace probabilistic {
+namespace probfd {
 namespace occupation_measure_heuristic {
 
 namespace {
@@ -305,4 +305,4 @@ static Plugin<GlobalStateEvaluator> _plugin(
     options::parse<GlobalStateEvaluator, ProjectionOccupationMeasureHeuristic>);
 
 } // namespace occupation_measure_heuristic
-} // namespace probabilistic
+} // namespace probfd

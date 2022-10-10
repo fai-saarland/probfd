@@ -1,6 +1,6 @@
 #include "heuristic_search_interfaceable.h"
 
-namespace probabilistic {
+namespace probfd {
 
 void HeuristicSearchInterfaceable::initialize(
     HeuristicSearchConnector* connector,
@@ -26,4 +26,4 @@ const ProbabilisticOperator* HeuristicSearchInterfaceable::lookup_operator(
     return op_id_map_->get_action(state_id, action_id);
 }
 
-} // namespace probabilistic
+} // namespace probfd

@@ -4,7 +4,7 @@
 #include "../transition_sampler.h"
 #include "../utils/distribution_random_sampler.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace transition_sampler {
 
 class RandomSuccessorSampler : public ProbabilisticOperatorTransitionSampler {
@@ -18,6 +18,6 @@ protected:
 };
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __RANDOM_SUCCESSOR_SAMPLER_H__

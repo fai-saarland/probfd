@@ -6,8 +6,7 @@
 #include "../engine_interfaces/transition_generator.h"
 #include "quotient_system.h"
 
-
-namespace probabilistic {
+namespace probfd {
 namespace quotient_system {
 
 template <typename State, typename Action>
@@ -109,6 +108,6 @@ private:
     quotient_system::QuotientSystem<Action>* quotient_;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ENGINE_INTERFACES_H__

@@ -13,7 +13,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace new_state_handlers {
 
 class StoreHeuristic : public NewGlobalStateHandler {
@@ -34,6 +34,6 @@ private:
 };
 
 } // namespace new_state_handlers
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __STORE_HEURISTIC_H__

@@ -23,7 +23,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to the MDP heuristic search base implementation
@@ -287,7 +287,7 @@ public:
     }
 
     /**
-     * @brief Stores dead-end information in \p state_info. Returns true on 
+     * @brief Stores dead-end information in \p state_info. Returns true on
      * change.
      */
     bool notify_dead_end(StateInfo& state_info)
@@ -315,8 +315,7 @@ public:
      *
      * Returns true if the goal flag was set.
      */
-    bool
-    notify_dead_end_ifnot_goal(StateInfo& state_info)
+    bool notify_dead_end_ifnot_goal(StateInfo& state_info)
     {
         if (state_info.is_goal_state()) {
             return false;
@@ -969,8 +968,7 @@ private:
 } // namespace internal
 
 template <typename T>
-struct NoAdditionalStateData : public T {
-};
+struct NoAdditionalStateData : public T {};
 
 template <
     typename State,
@@ -985,6 +983,6 @@ using HeuristicSearchBase = internal::HeuristicSearchBase<
 
 } // namespace heuristic_search
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __HEURISTIC_SEARCH_BASE_H__

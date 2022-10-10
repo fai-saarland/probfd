@@ -11,7 +11,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 
 namespace new_state_handlers {
 class StorePreferredOperators;
@@ -42,6 +42,6 @@ private:
 };
 
 } // namespace open_lists
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __LIFO_PREFERRED_OPERATORS_OPEN_LIST_H__

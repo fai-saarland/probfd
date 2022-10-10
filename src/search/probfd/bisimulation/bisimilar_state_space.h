@@ -16,7 +16,7 @@ namespace merge_and_shrink {
 class Abstraction;
 }
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to probabilistic bisimulation.
 namespace bisimulation {
@@ -181,12 +181,12 @@ private:
 };
 
 } // namespace bisimulation
-} // namespace probabilistic
+} // namespace probfd
 
 namespace std {
 template <>
-struct hash<probabilistic::bisimulation::QuotientState> {
-    size_t operator()(const probabilistic::bisimulation::QuotientState& s) const
+struct hash<probfd::bisimulation::QuotientState> {
+    size_t operator()(const probfd::bisimulation::QuotientState& s) const
     {
         return s.hash();
     }

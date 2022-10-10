@@ -5,7 +5,7 @@
 #include "../../option_parser.h"
 #include "../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace new_state_handlers {
 
 StoreHeuristic::StoreHeuristic(const options::Options& opts)
@@ -50,4 +50,4 @@ static Plugin<NewGlobalStateHandler> _plugin(
     "store_heuristic",
     options::parse<NewGlobalStateHandler, StoreHeuristic>);
 } // namespace new_state_handlers
-} // namespace probabilistic
+} // namespace probfd

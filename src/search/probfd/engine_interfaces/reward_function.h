@@ -4,7 +4,7 @@
 #include "../evaluation_result.h"
 #include "../types.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Interface specifying state and action rewards and goal states.
@@ -76,6 +76,6 @@ protected:
     virtual value_type::value_t evaluate(StateID state, Action action) = 0;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __STATE_REWARD_FUNCTION_H__

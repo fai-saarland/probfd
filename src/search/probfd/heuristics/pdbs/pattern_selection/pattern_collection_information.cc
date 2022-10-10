@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
@@ -169,4 +169,4 @@ template class PatternCollectionInformation<ExpCostProjection>;
 } // namespace pattern_selection
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

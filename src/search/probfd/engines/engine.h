@@ -9,10 +9,9 @@
 #include "../engine_interfaces/transition_generator.h"
 #include "../value_utils.h"
 
-
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to MDP engines and algorithms.
 namespace engines {
@@ -228,6 +227,6 @@ private:
 };
 
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ENGINE_H__

@@ -12,7 +12,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 /**
@@ -62,6 +62,6 @@ protected:
 };
 
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __DEAD_END_PRUNING_H__

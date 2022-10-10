@@ -5,7 +5,7 @@
 #include "../../option_parser.h"
 #include "../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace analysis_objectives {
 
 namespace {
@@ -40,4 +40,4 @@ GlobalRewardFunction* ExpectedCostObjective::reward()
 }
 
 } // namespace analysis_objectives
-} // namespace probabilistic
+} // namespace probfd

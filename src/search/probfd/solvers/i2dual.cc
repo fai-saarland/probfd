@@ -3,7 +3,7 @@
 #include "../../plugin.h"
 #include "mdp_solver.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace solvers {
 namespace i2dual {
 
@@ -57,4 +57,4 @@ static Plugin<SolverInterface>
 
 } // namespace i2dual
 } // namespace solvers
-} // namespace probabilistic
+} // namespace probfd

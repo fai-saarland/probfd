@@ -3,7 +3,7 @@
 #include "../../option_parser.h"
 #include "../../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace open_lists {
 
 FifoOpenList::FifoOpenList(const options::Options&)
@@ -41,4 +41,4 @@ static Plugin<GlobalStateOpenList> _plugin(
     options::parse<GlobalStateOpenList, FifoOpenList>);
 
 } // namespace open_lists
-} // namespace probabilistic
+} // namespace probfd

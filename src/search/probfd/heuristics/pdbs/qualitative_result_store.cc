@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -98,10 +98,10 @@ QualitativeResultStore::get_storage() const
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 namespace utils {
-using namespace ::probabilistic::heuristics::pdbs;
+using namespace ::probfd::heuristics::pdbs;
 bool contains(QualitativeResultStore& store, AbstractState s)
 {
     return store.get(s);

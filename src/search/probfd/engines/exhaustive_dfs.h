@@ -19,7 +19,7 @@
 
 #define TIMERS_ENABLED(x)
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 
 /// I do not know this algorithm.
@@ -1052,7 +1052,7 @@ private:
 
 } // namespace exhaustive_dfs
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #undef TIMERS_ENABLED
 

@@ -10,7 +10,7 @@
 #include "../globals.h"
 #include "../logging.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 
 std::size_t
@@ -79,13 +79,11 @@ BudgetPruningHeuristic::evaluate(const GlobalState& state) const
     int est = 0;
     if (cache_estimates_) {
         if (cached_estimates_ == nullptr) {
-            cached_estimates_ = std::unique_ptr<
-                std::unordered_map<probabilistic::StateID, int, Hash, Equal>>(
-                new std::
-                    unordered_map<probabilistic::StateID, int, Hash, Equal>(
-                        1024,
-                        Hash(&state.get_registry()),
-                        Equal(&state.get_registry())));
+            cached_estimates_ =
+                std::make_unique<std::unordered_map<StateID, int, Hash, Equal>>(
+                    1024,
+                    Hash(&state.get_registry()),
+                    Equal(&state.get_registry()));
         }
         auto res =
             cached_estimates_->emplace(StateID(state.get_id().hash()), 0);
@@ -121,4 +119,4 @@ static Plugin<GlobalStateEvaluator> _plugin(
     options::parse<GlobalStateEvaluator, BudgetPruningHeuristic>);
 
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

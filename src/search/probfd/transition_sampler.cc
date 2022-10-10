@@ -2,7 +2,7 @@
 
 #include "../plugin.h"
 
-namespace probabilistic {
+namespace probfd {
 StateID TransitionSampler<const ProbabilisticOperator*>::operator()(
     const StateID& state,
     const ProbabilisticOperator* op,
@@ -13,4 +13,4 @@ StateID TransitionSampler<const ProbabilisticOperator*>::operator()(
 
 static PluginTypePlugin<ProbabilisticOperatorTransitionSampler>
     _plugin_type("TransitionSampler", "");
-} // namespace probabilistic
+} // namespace probfd

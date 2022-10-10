@@ -9,7 +9,7 @@
 
 #include "../../../../pdbs/pattern_cliques.h"
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -57,4 +57,4 @@ static Plugin<SubCollectionFinder> _plugin("finder_max_orthogonality", _parse);
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd

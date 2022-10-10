@@ -196,9 +196,9 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             }
             const std::string budget = argv[++i];
             if (budget != "infinity") {
-                probabilistic::g_step_bound = parse_int_arg(arg, budget);
-                probabilistic::g_steps_bounded = true;
-                if (probabilistic::g_step_bound < 0) {
+                probfd::g_step_bound = parse_int_arg(arg, budget);
+                probfd::g_steps_bounded = true;
+                if (probfd::g_step_bound < 0) {
                     throw ArgError("budget must be non-negative");
                 }
             }
@@ -209,15 +209,15 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             }
             string type = sanitize_arg_string(argv[++i]);
             if (type == "normal") {
-                probabilistic::g_step_cost_type = NORMAL;
+                probfd::g_step_cost_type = NORMAL;
             } else if (type == "one") {
-                probabilistic::g_step_cost_type = ONE;
+                probfd::g_step_cost_type = ONE;
             } else if (type == "plusone") {
-                probabilistic::g_step_cost_type = PLUSONE;
+                probfd::g_step_cost_type = PLUSONE;
             } else if (type == "zero") {
-                probabilistic::g_step_cost_type = ZERO;
+                probfd::g_step_cost_type = ZERO;
             } else if (type == "minone") {
-                probabilistic::g_step_cost_type = MINONE;
+                probfd::g_step_cost_type = MINONE;
             } else {
                 throw ArgError("unknown operator cost type " + type);
             }
@@ -257,8 +257,7 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             if (i + 1 == argc) {
                 throw ArgError("missing argument after " + arg);
             }
-            probabilistic::value_type::g_epsilon =
-                parse_double_arg(arg, argv[i + 1]);
+            probfd::value_type::g_epsilon = parse_double_arg(arg, argv[i + 1]);
             ++i;
         } else if (arg == "--property") {
             active = true;
@@ -295,27 +294,27 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             cout << "done! [t=" << utils::g_timer << "]" << endl;
         }
         // if (expected_cost) {
-        //     probabilistic::g_property =
-        //         std::make_shared<probabilistic::properties::ExpectedCost>(
-        //                 probabilistic::OptimizationObjective::Minimize,
-        //                 probabilistic::g_step_cost_type,
-        //                 probabilistic::value_type::from_double(give_up_cost));
+        //     probfd::g_property =
+        //         std::make_shared<probfd::properties::ExpectedCost>(
+        //                 probfd::OptimizationObjective::Minimize,
+        //                 probfd::g_step_cost_type,
+        //                 probfd::value_type::from_double(give_up_cost));
         // }
 
-        std::shared_ptr<probabilistic::analysis_objectives::AnalysisObjective>
-            obj = nullptr;
+        std::shared_ptr<probfd::analysis_objectives::AnalysisObjective> obj =
+            nullptr;
         if (expected_cost) {
             obj = std::make_shared<
-                probabilistic::analysis_objectives::ExpectedCostObjective>();
+                probfd::analysis_objectives::ExpectedCostObjective>();
             std::cout << "expected cost analysis." << std::endl;
         } else {
             obj = std::make_shared<
-                probabilistic::analysis_objectives::GoalProbabilityObjective>();
+                probfd::analysis_objectives::GoalProbabilityObjective>();
             std::cout << "max goal prob analysis." << std::endl;
         }
 
-        probabilistic::prepare_globals(obj);
-        probabilistic::print_task_info();
+        probfd::prepare_globals(obj);
+        probfd::print_task_info();
     }
 
     return parse_cmd_line_aux(args, registry, dry_run);

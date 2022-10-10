@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-namespace probabilistic {
+namespace probfd {
 
 int ProbabilisticOperatorPolicyPicker::operator()(
     const StateID& state,
@@ -19,4 +19,4 @@ int ProbabilisticOperatorPolicyPicker::operator()(
 static PluginTypePlugin<ProbabilisticOperatorPolicyPicker>
     _plugin_type("PolicyPicker", "");
 
-} // namespace probabilistic
+} // namespace probfd

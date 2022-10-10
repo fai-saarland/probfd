@@ -1,6 +1,6 @@
 #include "evaluation_result.h"
 
-namespace probabilistic {
+namespace probfd {
 
 EvaluationResult::EvaluationResult(bool x, value_type::value_t val)
     : bool_(x)
@@ -66,4 +66,4 @@ operator/(const value_type::value_t& x, const EvaluationResult& y)
     return x / (value_type::value_t)y;
 }
 
-} // namespace probabilistic
+} // namespace probfd

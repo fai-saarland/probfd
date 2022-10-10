@@ -26,7 +26,7 @@ namespace pdbs {
 class PatternDatabase;
 }
 
-namespace probabilistic {
+namespace probfd {
 
 template <>
 class StateIDMap<heuristics::pdbs::AbstractState> {
@@ -261,6 +261,6 @@ private:
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __ENGINE_INTERFACES_H__

@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace probabilistic {
+namespace probfd {
 namespace transition_sampler {
 
 StateID ArbitrarySuccessorSelector::sample(
@@ -24,4 +24,4 @@ static Plugin<ProbabilisticOperatorTransitionSampler> _plugin(
         ArbitrarySuccessorSelector>);
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd

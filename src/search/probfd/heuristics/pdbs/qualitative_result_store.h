@@ -7,7 +7,7 @@
 
 #include <unordered_set>
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -55,22 +55,20 @@ private:
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 namespace utils {
 template <>
-class set_output_iterator<
-    probabilistic::heuristics::pdbs::QualitativeResultStore> {
-    probabilistic::heuristics::pdbs::QualitativeResultStore& store;
+class set_output_iterator<probfd::heuristics::pdbs::QualitativeResultStore> {
+    probfd::heuristics::pdbs::QualitativeResultStore& store;
 
 public:
-    set_output_iterator(
-        probabilistic::heuristics::pdbs::QualitativeResultStore& store)
+    set_output_iterator(probfd::heuristics::pdbs::QualitativeResultStore& store)
         : store(store)
     {
     }
 
-    decltype(auto) operator=(const ::probabilistic::StateID& id)
+    decltype(auto) operator=(const ::probfd::StateID& id)
     {
         return store[id.id] = true;
     }
@@ -83,8 +81,8 @@ public:
 };
 
 bool contains(
-    probabilistic::heuristics::pdbs::QualitativeResultStore& store,
-    probabilistic::heuristics::pdbs::AbstractState s);
+    probfd::heuristics::pdbs::QualitativeResultStore& store,
+    probfd::heuristics::pdbs::AbstractState s);
 
 } // namespace utils
 

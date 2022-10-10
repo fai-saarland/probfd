@@ -7,11 +7,11 @@
 #include <memory>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 using NewGlobalStateHandler = NewStateHandler<GlobalState>;
 using NewGlobalStateHandlerList = NewStateHandlerList<GlobalState>;
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __NEW_STATE_HANDLER_H__

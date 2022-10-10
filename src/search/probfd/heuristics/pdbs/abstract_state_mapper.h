@@ -15,7 +15,7 @@
 
 class GlobalState;
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -198,5 +198,5 @@ private:
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 #endif // __ABSTRACT_STATE_MAPPER_H__

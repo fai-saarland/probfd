@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-namespace probabilistic {
+namespace probfd {
 
 /// Namespace dedicated to the classes dealing with quotienting of an MDP.
 namespace quotient_system {
@@ -516,6 +516,6 @@ public:
 };
 
 } // namespace quotient_system
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __QUOTIENT_SYSTEM_H__

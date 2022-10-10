@@ -3,7 +3,7 @@
 
 #include "../types.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /**
  * @brief Specifies a mapping between states and integer IDs.
@@ -23,6 +23,6 @@ struct StateIDMap {
     State get_state(const StateID& state_id);
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __STATE_ID_MAP_H__

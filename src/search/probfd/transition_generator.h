@@ -21,7 +21,7 @@ template <typename Op>
 class SuccessorGenerator;
 }
 
-namespace probabilistic {
+namespace probfd {
 
 namespace quotient_system {
 template <typename T>
@@ -151,6 +151,6 @@ private:
     Statistics statistics_;
 };
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __TRANSITION_GENERATOR_H__

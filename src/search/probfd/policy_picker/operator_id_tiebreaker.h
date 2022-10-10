@@ -8,7 +8,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 namespace policy_tiebreaking {
 
 class OperatorIdTiebreaker : public ProbabilisticOperatorPolicyPicker {
@@ -28,6 +28,6 @@ private:
 };
 
 } // namespace policy_tiebreaking
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __OPERATOR_ID_TIEBREAKER_H__

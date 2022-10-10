@@ -13,7 +13,7 @@ namespace pdbs {
 class PatternDatabase;
 }
 
-namespace probabilistic {
+namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
@@ -68,6 +68,6 @@ private:
 
 } // namespace pdbs
 } // namespace heuristics
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __MAXPROB_PROJECTION_H__

@@ -4,11 +4,11 @@
 #include "../global_state.h"
 #include "engine_interfaces/state_evaluator.h"
 
-namespace probabilistic {
+namespace probfd {
 
 /// Type alias for state evaluators of GlobalState.
 using GlobalStateEvaluator = StateEvaluator<GlobalState>;
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __STATE_EVALUATOR_H__

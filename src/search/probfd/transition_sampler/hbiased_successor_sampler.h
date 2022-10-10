@@ -11,7 +11,7 @@ class Options;
 class OptionParser;
 } // namespace options
 
-namespace probabilistic {
+namespace probfd {
 
 namespace new_state_handlers {
 class StoreHeuristic;
@@ -36,6 +36,6 @@ protected:
 };
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __HBIASED_SUCCESSOR_SAMPLER_H__

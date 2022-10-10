@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-namespace probabilistic {
+namespace probfd {
 namespace logging {
 
 struct Discard
@@ -55,11 +55,10 @@ void print_analysis_result(
 void print_initial_state_value(const value_type::value_t, int spaces = 0);
 
 } // namespace logging
-} // namespace probabilistic
+} // namespace probfd
 
 namespace std {
-inline ostream&
-operator<<(ostream& out, const probabilistic::logging::whitespace& ws)
+inline ostream& operator<<(ostream& out, const probfd::logging::whitespace& ws)
 {
     return ws.print(out);
 }

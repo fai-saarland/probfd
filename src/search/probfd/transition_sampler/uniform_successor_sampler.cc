@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace probabilistic {
+namespace probfd {
 namespace transition_sampler {
 
 StateID UniformSuccessorSampler::sample(
@@ -23,4 +23,4 @@ static Plugin<ProbabilisticOperatorTransitionSampler> _plugin(
         UniformSuccessorSampler>);
 
 } // namespace transition_sampler
-} // namespace probabilistic
+} // namespace probfd

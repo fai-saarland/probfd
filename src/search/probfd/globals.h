@@ -18,7 +18,7 @@ template <typename T>
 class SuccessorGenerator;
 }
 
-namespace probabilistic {
+namespace probfd {
 
 namespace analysis_objectives {
 class AnalysisObjective;
@@ -46,6 +46,6 @@ extern std::shared_ptr<
 extern std::shared_ptr<analysis_objectives::AnalysisObjective>
     g_analysis_objective;
 
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __GLOBALS_H__

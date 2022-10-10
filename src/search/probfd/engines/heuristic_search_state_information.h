@@ -9,13 +9,12 @@
 #include <cassert>
 #include <cstdint>
 
-namespace probabilistic {
+namespace probfd {
 namespace engines {
 namespace heuristic_search {
 
 template <typename StoresPolicyT = std::false_type>
-struct StatesPolicy {
-};
+struct StatesPolicy {};
 
 template <>
 struct StatesPolicy<std::true_type> {
@@ -85,6 +84,6 @@ public:
 
 } // namespace heuristic_search
 } // namespace engines
-} // namespace probabilistic
+} // namespace probfd
 
 #endif // __HEURISTIC_SEARCH_STATE_INFORMATION_H__

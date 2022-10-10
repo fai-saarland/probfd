@@ -5,7 +5,7 @@
 
 #define DEBUG(x)
 
-namespace probabilistic {
+namespace probfd {
 namespace quotient_system {
 
 unsigned QuotientSystem<const ProbabilisticOperator*>::quotient_size(
@@ -363,6 +363,6 @@ void QuotientSystem<const ProbabilisticOperator*>::verify_cache_consistency()
 #endif
 
 } // namespace quotient_system
-} // namespace probabilistic
+} // namespace probfd
 
 #undef DEBUG

@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <limits>
 
-namespace probabilistic {
+namespace probfd {
 namespace logging {
 
 std::ostream out(std::cout.rdbuf());
@@ -45,4 +45,4 @@ void print_initial_state_value(const value_type::value_t value, int spaces)
 }
 
 } // namespace logging
-} // namespace probabilistic
+} // namespace probfd
