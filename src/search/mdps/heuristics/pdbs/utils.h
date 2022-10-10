@@ -12,6 +12,7 @@
 class GlobalState;
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 template <class PDBType>
@@ -95,5 +96,6 @@ void dump_pattern_short(std::ostream& out, PatternID i, const Pattern& p);
 void dump_pattern(std::ostream& out, PatternID i, const Pattern& p);
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 #endif // __UTILS_H__

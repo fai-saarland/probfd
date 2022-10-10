@@ -4,6 +4,7 @@
 #include "subcollection_finder.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 class TrivialFinder : public SubCollectionFinder {
@@ -19,6 +20,7 @@ public:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __TRIVIAL_FINDER_H__

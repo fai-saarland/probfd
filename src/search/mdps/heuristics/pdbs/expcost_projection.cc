@@ -16,6 +16,7 @@
 #include <unordered_set>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 namespace {
@@ -51,9 +52,9 @@ ExpCostProjection::ExpCostProjection(
     bool operator_pruning,
     const AbstractStateEvaluator& heuristic)
     : ExpCostProjection(
-        new AbstractStateMapper(variables, domains),
-        operator_pruning,
-        heuristic)
+          new AbstractStateMapper(variables, domains),
+          operator_pruning,
+          heuristic)
 {
 }
 
@@ -113,8 +114,7 @@ EvaluationResult ExpCostProjection::evaluate(const AbstractState& s) const
     return {v == -value_type::inf, v};
 }
 
-AbstractPolicy
-ExpCostProjection::get_optimal_abstract_policy(
+AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
@@ -338,10 +338,11 @@ void ExpCostProjection::verify(
                   << "!" << std::endl;
         abort();
 
-        continue_exploring:;
+    continue_exploring:;
     }
 }
 #endif
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

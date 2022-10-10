@@ -13,6 +13,7 @@ class OptionParser;
 } // namespace options
 
 namespace probabilistic {
+namespace heuristics {
 
 /**
  * @brief Uses a classical heuristic on the all-outcomes-determinization to
@@ -50,6 +51,7 @@ protected:
     EvaluationResult evaluate(const GlobalState& state) const override;
 };
 
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __DETERMINIZATION_COST_H__

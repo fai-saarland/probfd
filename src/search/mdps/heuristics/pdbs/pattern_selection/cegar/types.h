@@ -6,6 +6,7 @@
 #include "../../../../../global_operator.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -76,16 +77,17 @@ struct ExplicitGState {
     }
 };
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace heuristics
+} // namespace probabilistic
 
 namespace std {
 template <>
-struct hash<probabilistic::pdbs::pattern_selection::ExplicitGState> {
-    size_t
-    operator()(const probabilistic::pdbs::pattern_selection::ExplicitGState&
-                   state) const
+struct hash<
+    probabilistic::heuristics::pdbs::pattern_selection::ExplicitGState> {
+    size_t operator()(const probabilistic::heuristics::pdbs::pattern_selection::
+                          ExplicitGState& state) const
     {
         return state.get_hash();
     }

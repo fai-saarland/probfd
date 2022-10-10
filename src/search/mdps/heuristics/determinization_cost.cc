@@ -5,6 +5,7 @@
 #include "../../plugin.h"
 
 namespace probabilistic {
+namespace heuristics {
 
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
     const options::Options& opts)
@@ -48,4 +49,5 @@ static Plugin<GlobalStateEvaluator> _plugin(
     "det",
     options::parse<GlobalStateEvaluator, DeterminizationCostHeuristic>);
 
+} // namespace heuristics
 } // namespace probabilistic

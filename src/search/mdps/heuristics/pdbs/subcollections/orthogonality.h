@@ -9,6 +9,7 @@ namespace probabilistic {
 
 class ProbabilisticOperator;
 
+namespace heuristics {
 namespace pdbs {
 
 std::vector<int>
@@ -26,6 +27,7 @@ std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
     const VariableOrthogonality& var_orthogonality);
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __ORTHOGONALITY_H__

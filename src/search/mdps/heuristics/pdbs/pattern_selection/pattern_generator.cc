@@ -3,6 +3,7 @@
 #include "../../../../plugin.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -16,8 +17,7 @@ PatternCollectionGenerator<PDBType>::get_report() const
 template class PatternCollectionGenerator<ExpCostProjection>;
 template class PatternCollectionGenerator<MaxProbProjection>;
 
-static PluginTypePlugin<
-    PatternCollectionGenerator<ExpCostProjection>>
+static PluginTypePlugin<PatternCollectionGenerator<ExpCostProjection>>
     _type_plugin_collection_ec(
         "PatternCollectionGenerator_ec",
         "Factory for pattern collections in the expected-cost setting");
@@ -29,4 +29,5 @@ static PluginTypePlugin<PatternCollectionGenerator<MaxProbProjection>>
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

@@ -16,6 +16,7 @@
 class GlobalState;
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 class AbstractStateMapper {
@@ -196,5 +197,6 @@ private:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 #endif // __ABSTRACT_STATE_MAPPER_H__

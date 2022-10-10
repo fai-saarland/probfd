@@ -10,12 +10,12 @@
 #include "../../globals.h"
 #include "../../utils/graph_visualization.h"
 
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
-#include <fstream>
 
 namespace successor_generator {
 template <typename T>
@@ -25,6 +25,8 @@ class SuccessorGenerator;
 namespace probabilistic {
 
 class AnalysisObjective;
+
+namespace heuristics {
 
 namespace pdbs {
 
@@ -133,7 +135,7 @@ protected:
 private:
     void setup_abstract_goal();
     void build_operators(bool operator_pruning);
-    
+
     void add_abstract_operators(
         const ProbabilisticOperator& op,
         std::set<ProgressionOperatorFootprint>& duplicate_set,
@@ -153,6 +155,7 @@ protected:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __PROBABILISTIC_PROJECTION_H__

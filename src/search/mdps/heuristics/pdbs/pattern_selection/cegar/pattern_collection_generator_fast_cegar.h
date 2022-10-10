@@ -10,6 +10,7 @@ class Options;
 }
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -58,6 +59,7 @@ using MaxProbPatternCollectionGeneratorFastCegar =
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif

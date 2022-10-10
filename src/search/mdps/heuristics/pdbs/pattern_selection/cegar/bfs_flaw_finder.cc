@@ -1,7 +1,7 @@
 #include "bfs_flaw_finder.h"
 
-#include "pattern_collection_generator_cegar.h"
 #include "abstract_solution_data.h"
+#include "pattern_collection_generator_cegar.h"
 
 #include "../../abstract_state.h"
 #include "../../expcost_projection.h"
@@ -20,6 +20,7 @@ static const std::string token = "CEGAR_PDBs: ";
 }
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -175,7 +176,7 @@ _parse(options::OptionParser& parser)
 
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
-    
+
     return make_shared<BFSFlawFinder<PDBType>>(opts);
 }
 
@@ -187,6 +188,7 @@ static Plugin<FlawFindingStrategy<ExpCostProjection>>
 template class BFSFlawFinder<MaxProbProjection>;
 template class BFSFlawFinder<ExpCostProjection>;
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace heuristics
+} // namespace probabilistic

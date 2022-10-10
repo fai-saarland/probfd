@@ -13,6 +13,7 @@ class PatternDatabase;
 }
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 class ExpCostProjection : public pdbs::ProbabilisticProjection {
@@ -67,6 +68,7 @@ private:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __EXPCOST_PROJECTION_H__

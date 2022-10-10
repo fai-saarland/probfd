@@ -29,15 +29,15 @@ class PatternDatabase;
 namespace probabilistic {
 
 template <>
-class StateIDMap<pdbs::AbstractState> {
+class StateIDMap<heuristics::pdbs::AbstractState> {
 public:
     using visited_iterator = std::set<int>::const_iterator;
     using visited_range = utils::RangeProxy<visited_iterator>;
 
     explicit StateIDMap() = default;
 
-    StateID get_state_id(const pdbs::AbstractState& state);
-    pdbs::AbstractState get_state(const StateID& id);
+    StateID get_state_id(const heuristics::pdbs::AbstractState& state);
+    heuristics::pdbs::AbstractState get_state(const StateID& id);
 
     unsigned size() const;
 
@@ -51,53 +51,55 @@ private:
 };
 
 template <>
-class ActionIDMap<const pdbs::AbstractOperator*> {
+class ActionIDMap<const heuristics::pdbs::AbstractOperator*> {
 public:
-    explicit ActionIDMap(const std::vector<pdbs::AbstractOperator>& ops);
+    explicit ActionIDMap(
+        const std::vector<heuristics::pdbs::AbstractOperator>& ops);
 
-    ActionID
-    get_action_id(const StateID& state_id, const pdbs::AbstractOperator* action)
-        const;
+    ActionID get_action_id(
+        const StateID& state_id,
+        const heuristics::pdbs::AbstractOperator* action) const;
 
-    const pdbs::AbstractOperator*
+    const heuristics::pdbs::AbstractOperator*
     get_action(const StateID& state_id, const ActionID& action_id) const;
 
 private:
-    const std::vector<pdbs::AbstractOperator>& ops_;
+    const std::vector<heuristics::pdbs::AbstractOperator>& ops_;
 };
 
 template <>
-class TransitionGenerator<const pdbs::AbstractOperator*> {
+class TransitionGenerator<const heuristics::pdbs::AbstractOperator*> {
 public:
     explicit TransitionGenerator(
-        StateIDMap<pdbs::AbstractState>& id_map,
-        std::shared_ptr<pdbs::AbstractStateMapper> state_mapper,
+        StateIDMap<heuristics::pdbs::AbstractState>& id_map,
+        std::shared_ptr<heuristics::pdbs::AbstractStateMapper> state_mapper,
         std::shared_ptr<successor_generator::SuccessorGenerator<
-            const pdbs::AbstractOperator*>> aops_gen);
+            const heuristics::pdbs::AbstractOperator*>> aops_gen);
 
     void operator()(
         const StateID& state,
-        std::vector<const pdbs::AbstractOperator*>& aops);
+        std::vector<const heuristics::pdbs::AbstractOperator*>& aops);
 
     void operator()(
         const StateID& state,
-        const pdbs::AbstractOperator* op,
+        const heuristics::pdbs::AbstractOperator* op,
         Distribution<StateID>& result);
 
     void operator()(
         const StateID& state,
-        std::vector<const pdbs::AbstractOperator*>& aops,
+        std::vector<const heuristics::pdbs::AbstractOperator*>& aops,
         std::vector<Distribution<StateID>>& result);
 
 private:
-    StateIDMap<pdbs::AbstractState>& id_map_;
-    std::shared_ptr<pdbs::AbstractStateMapper> state_mapper_;
+    StateIDMap<heuristics::pdbs::AbstractState>& id_map_;
+    std::shared_ptr<heuristics::pdbs::AbstractStateMapper> state_mapper_;
     std::vector<int> values_;
-    std::shared_ptr<
-        successor_generator::SuccessorGenerator<const pdbs::AbstractOperator*>>
+    std::shared_ptr<successor_generator::SuccessorGenerator<
+        const heuristics::pdbs::AbstractOperator*>>
         aops_gen_;
 };
 
+namespace heuristics {
 namespace pdbs {
 
 using AbstractStateEvaluator = StateEvaluator<AbstractState>;
@@ -213,7 +215,8 @@ protected:
             is_contained ? value_in_ : value_not_in_);
     }
 
-    value_type::value_t evaluate(StateID, const AbstractOperator*) override {
+    value_type::value_t evaluate(StateID, const AbstractOperator*) override
+    {
         return 0;
     }
 
@@ -257,6 +260,7 @@ private:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __ENGINE_INTERFACES_H__

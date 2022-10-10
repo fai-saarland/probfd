@@ -1,7 +1,7 @@
 #include "pucs_flaw_finder.h"
 
-#include "pattern_collection_generator_cegar.h"
 #include "abstract_solution_data.h"
+#include "pattern_collection_generator_cegar.h"
 
 #include "../../abstract_state.h"
 #include "../../expcost_projection.h"
@@ -16,6 +16,7 @@ using namespace std;
 using namespace utils;
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -55,12 +56,8 @@ std::pair<FlawList, bool> PUCSFlawFinder<PDBType>::apply_policy(
             continue;
         }
 
-        bool successful = expand(
-            base,
-            solution_index,
-            current,
-            priority,
-            flaw_list);
+        bool successful =
+            expand(base, solution_index, current, priority, flaw_list);
 
         executable = executable && successful;
 
@@ -72,7 +69,7 @@ std::pair<FlawList, bool> PUCSFlawFinder<PDBType>::apply_policy(
 
     pq.clear();
     probabilities.clear();
-    return { flaw_list, executable };
+    return {flaw_list, executable};
 }
 
 template <typename PDBType>
@@ -190,7 +187,7 @@ _parse(options::OptionParser& parser)
         "the search.",
         "1",
         options::Bounds("0", "infinity"));
-    
+
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
 
@@ -205,6 +202,7 @@ static Plugin<FlawFindingStrategy<ExpCostProjection>>
 template class PUCSFlawFinder<MaxProbProjection>;
 template class PUCSFlawFinder<ExpCostProjection>;
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace heuristics
+} // namespace probabilistic

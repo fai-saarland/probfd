@@ -13,6 +13,7 @@
 class GlobalState;
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 class CombinationStrategy;
@@ -77,5 +78,6 @@ using IncrementalMaxProbPDBs = IncrementalPPDBs<MaxProbProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 #endif // __INCREMENTAL_CANONICAL_PDBS_H__

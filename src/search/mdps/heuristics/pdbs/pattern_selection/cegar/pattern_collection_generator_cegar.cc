@@ -27,6 +27,7 @@ using namespace std;
 using utils::Verbosity;
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -172,8 +173,8 @@ void PatternCollectionGeneratorCegar<PDBType>::print_collection() const
 }
 
 template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::
-generate_trivial_solution_collection()
+void PatternCollectionGeneratorCegar<
+    PDBType>::generate_trivial_solution_collection()
 {
     assert(!remaining_goals.empty());
 
@@ -430,7 +431,11 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
     // compute merge solution
     unique_ptr<AbstractSolutionData<PDBType>> merged(
         new AbstractSolutionData<PDBType>(
-            rng, pdb1, pdb2, new_blacklist, wildcard));
+            rng,
+            pdb1,
+            pdb2,
+            new_blacklist,
+            wildcard));
 
     // update collection size
     collection_size -= pdb_size1;
@@ -879,4 +884,5 @@ template class PatternCollectionGeneratorCegar<ExpCostProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

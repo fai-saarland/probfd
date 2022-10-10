@@ -7,6 +7,8 @@
 #include "../syntactic_projection.h"
 
 namespace probabilistic {
+namespace heuristics {
+
 namespace pdbs {
 
 namespace {
@@ -82,4 +84,5 @@ build_compatibility_graph_weak_orthogonality(const PatternCollection& patterns)
 }
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

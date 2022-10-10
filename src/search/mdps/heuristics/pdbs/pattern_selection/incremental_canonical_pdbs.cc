@@ -17,6 +17,7 @@
 using namespace std;
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -107,7 +108,7 @@ template <class PDBType>
 EvaluationResult
 IncrementalPPDBs<PDBType>::evaluate(const GlobalState& state) const
 {
-    return probabilistic::pdbs::evaluate<PDBType>(
+    return heuristics::pdbs::evaluate<PDBType>(
         *pattern_databases,
         *pattern_subcollections,
         state);
@@ -153,4 +154,5 @@ template class IncrementalPPDBs<ExpCostProjection>;
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

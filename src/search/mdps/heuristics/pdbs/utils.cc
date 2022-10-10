@@ -8,6 +8,7 @@
 #include <sstream>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 void dump_pattern_vars(std::ostream& out, const Pattern& p)
@@ -36,8 +37,7 @@ void dump_pattern(std::ostream& out, PatternID i, const Pattern& p)
     out << "})" << std::flush;
 }
 
-template value_type::value_t
-evaluate_subcollection<ExpCostProjection>(
+template value_type::value_t evaluate_subcollection<ExpCostProjection>(
     const std::vector<value_type::value_t>& pdb_estimates,
     const std::vector<int>& subcollection);
 
@@ -45,13 +45,11 @@ template value_type::value_t evaluate_subcollection<MaxProbProjection>(
     const std::vector<value_type::value_t>& pdb_estimates,
     const std::vector<int>& subcollection);
 
-template value_type::value_t combine<ExpCostProjection>(
-    value_type::value_t left,
-    value_type::value_t right);
+template value_type::value_t
+combine<ExpCostProjection>(value_type::value_t left, value_type::value_t right);
 
-template value_type::value_t combine<MaxProbProjection>(
-    value_type::value_t left,
-    value_type::value_t right);
+template value_type::value_t
+combine<MaxProbProjection>(value_type::value_t left, value_type::value_t right);
 
 template EvaluationResult evaluate<ExpCostProjection>(
     const PPDBCollection<ExpCostProjection>& database,
@@ -64,4 +62,5 @@ template EvaluationResult evaluate<MaxProbProjection>(
     const GlobalState& state);
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

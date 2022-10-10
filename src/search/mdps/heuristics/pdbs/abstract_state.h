@@ -6,6 +6,7 @@
 #include <ostream>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 struct AbstractState {
@@ -45,12 +46,14 @@ struct AbstractState {
 extern std::ostream& operator<<(std::ostream& out, const AbstractState& s);
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 namespace std {
 template <>
-struct hash<probabilistic::pdbs::AbstractState> {
-    size_t operator()(const probabilistic::pdbs::AbstractState& state) const
+struct hash<probabilistic::heuristics::pdbs::AbstractState> {
+    size_t operator()(
+        const probabilistic::heuristics::pdbs::AbstractState& state) const
     {
         return hash<int>()(state.id);
     }
@@ -58,7 +61,9 @@ struct hash<probabilistic::pdbs::AbstractState> {
 } // namespace std
 
 namespace utils {
-void feed(HashState& h, const probabilistic::pdbs::AbstractState& s);
+void feed(
+    HashState& h,
+    const probabilistic::heuristics::pdbs::AbstractState& s);
 } // namespace utils
 
 #endif // __ABSTRACT_STATE_H__

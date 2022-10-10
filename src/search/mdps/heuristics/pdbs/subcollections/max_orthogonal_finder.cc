@@ -10,6 +10,7 @@
 #include "../../../../pdbs/pattern_cliques.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 MaxOrthogonalityFinder::MaxOrthogonalityFinder()
@@ -55,4 +56,5 @@ static std::shared_ptr<MaxOrthogonalityFinder> _parse(OptionParser& parser)
 static Plugin<SubCollectionFinder> _plugin("finder_max_orthogonality", _parse);
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

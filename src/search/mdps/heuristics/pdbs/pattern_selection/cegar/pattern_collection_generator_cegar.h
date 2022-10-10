@@ -27,6 +27,7 @@ class CountdownTimer;
 }
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -41,9 +42,12 @@ enum class InitialCollectionType { GIVEN_GOAL, RANDOM_GOAL, ALL_GOALS };
 template <typename PDBType>
 class PatternCollectionGeneratorCegar
     : public PatternCollectionGenerator<PDBType> {
-    template <typename> friend class BFSFlawFinder;
-    template <typename> friend class PUCSFlawFinder;
-    template <typename> friend class SamplingFlawFinder;
+    template <typename>
+    friend class BFSFlawFinder;
+    template <typename>
+    friend class PUCSFlawFinder;
+    template <typename>
+    friend class SamplingFlawFinder;
 
     // Random number generator
     std::shared_ptr<utils::RandomNumberGenerator> rng;
@@ -162,6 +166,7 @@ using MaxProbPatternCollectionGeneratorCegar =
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // PDBS_PATTERN_COLLECTION_GENERATOR_CEGAR_H

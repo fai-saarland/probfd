@@ -12,6 +12,8 @@
 #include <vector>
 
 namespace probabilistic {
+namespace heuristics {
+
 namespace pdbs {
 
 struct AbstractOperator;
@@ -62,6 +64,7 @@ public:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif

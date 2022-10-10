@@ -1,6 +1,7 @@
 #include "abstract_policy.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 AbstractPolicy::const_iterator
@@ -82,4 +83,5 @@ AbstractPolicy::const_operators_iterator AbstractPolicy::operator_end() const
 }
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

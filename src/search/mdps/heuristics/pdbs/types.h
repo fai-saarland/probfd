@@ -9,6 +9,8 @@ class PatternCollectionInformation;
 } // namespace pdbs
 
 namespace probabilistic {
+namespace heuristics {
+
 namespace pdbs {
 
 class ExpCostProjection;
@@ -28,6 +30,7 @@ using ExpCostPDBCollection = PPDBCollection<ExpCostProjection>;
 using MaxProbPDBCollection = PPDBCollection<MaxProbProjection>;
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __TYPES_H__

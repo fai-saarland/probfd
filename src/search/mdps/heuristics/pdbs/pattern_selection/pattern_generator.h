@@ -10,6 +10,7 @@
 #include <memory>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 /// Namespace dedicated to pattern selection techniques for probabilistic PDBs
@@ -34,5 +35,6 @@ using MaxProbPatternCollectionGenerator =
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 #endif // __PATTERN_GENERATOR_H__

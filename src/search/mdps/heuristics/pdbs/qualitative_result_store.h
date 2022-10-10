@@ -8,6 +8,7 @@
 #include <unordered_set>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 class ProbabilisticProjection;
@@ -53,15 +54,18 @@ private:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 namespace utils {
 template <>
-class set_output_iterator<probabilistic::pdbs::QualitativeResultStore> {
-    probabilistic::pdbs::QualitativeResultStore& store;
+class set_output_iterator<
+    probabilistic::heuristics::pdbs::QualitativeResultStore> {
+    probabilistic::heuristics::pdbs::QualitativeResultStore& store;
 
 public:
-    set_output_iterator(probabilistic::pdbs::QualitativeResultStore& store)
+    set_output_iterator(
+        probabilistic::heuristics::pdbs::QualitativeResultStore& store)
         : store(store)
     {
     }
@@ -79,8 +83,8 @@ public:
 };
 
 bool contains(
-    probabilistic::pdbs::QualitativeResultStore& store,
-    probabilistic::pdbs::AbstractState s);
+    probabilistic::heuristics::pdbs::QualitativeResultStore& store,
+    probabilistic::heuristics::pdbs::AbstractState s);
 
 } // namespace utils
 

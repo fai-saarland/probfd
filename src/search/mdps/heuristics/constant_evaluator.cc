@@ -8,6 +8,7 @@
 #include <memory>
 
 namespace probabilistic {
+namespace heuristics {
 
 static std::shared_ptr<GlobalStateEvaluator>
 _parse(options::OptionParser& parser)
@@ -28,4 +29,5 @@ _parse(options::OptionParser& parser)
 
 static Plugin<GlobalStateEvaluator> _plugin("const", _parse);
 
+} // namespace heuristics
 } // namespace probabilistic

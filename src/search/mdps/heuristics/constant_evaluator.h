@@ -4,6 +4,7 @@
 #include "../state_evaluator.h"
 
 namespace probabilistic {
+namespace heuristics {
 
 /**
  * @brief Returns a constant estimate for each state.
@@ -28,6 +29,7 @@ protected:
     const value_type::value_t value_;
 };
 
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __CONSTANT_EVALUATOR_H__

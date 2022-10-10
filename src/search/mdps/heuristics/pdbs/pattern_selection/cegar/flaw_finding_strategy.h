@@ -6,6 +6,7 @@
 #include <string>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 class AbstractPolicy;
@@ -20,7 +21,7 @@ template <typename PDBType>
 class FlawFindingStrategy {
 public:
     virtual ~FlawFindingStrategy() = default;
-    
+
     // Second value returns whether policy is executable (modulo blacklisting)
     // Note that the flaw list might be empty regardless since only remaining
     // goals are added to the list for goal violations.
@@ -32,8 +33,9 @@ public:
     virtual std::string get_name() const = 0;
 };
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace heuristics
+} // namespace probabilistic
 
 #endif

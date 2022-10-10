@@ -21,7 +21,7 @@ get_evaluator(const options::Options& opts)
         return opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval");
     }
 
-    return std::make_shared<ConstantEvaluator<GlobalState>>(
+    return std::make_shared<heuristics::ConstantEvaluator<GlobalState>>(
         g_analysis_objective->reward_bound().upper);
 }
 

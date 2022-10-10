@@ -16,6 +16,7 @@ class OptionParser;
 } // namespace options
 
 namespace probabilistic {
+namespace heuristics {
 
 /**
  * @brief Budget-pruning variant of \ref DeadEndPruningHeuristic.
@@ -67,6 +68,7 @@ protected:
         cached_estimates_ = nullptr;
 };
 
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __BUDGET_PRUNING_H__

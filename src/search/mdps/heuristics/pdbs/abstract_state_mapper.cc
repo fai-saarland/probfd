@@ -12,6 +12,7 @@
 #include <sstream>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 struct PatternTooLargeException : utils::Exception {
@@ -433,4 +434,5 @@ AbstractStateToString::operator()(const StateID&, AbstractState state) const
 }
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

@@ -12,68 +12,70 @@
 
 namespace probabilistic {
 
-unsigned StateIDMap<pdbs::AbstractState>::size() const
+using namespace heuristics::pdbs;
+
+unsigned StateIDMap<AbstractState>::size() const
 {
     return seen.size();
 }
 
-StateIDMap<pdbs::AbstractState>::visited_iterator
-StateIDMap<pdbs::AbstractState>::visited_begin() const
+StateIDMap<AbstractState>::visited_iterator
+StateIDMap<AbstractState>::visited_begin() const
 {
     return seen.cbegin();
 }
 
-StateIDMap<pdbs::AbstractState>::visited_iterator
-StateIDMap<pdbs::AbstractState>::visited_end() const
+StateIDMap<AbstractState>::visited_iterator
+StateIDMap<AbstractState>::visited_end() const
 {
     return seen.cend();
 }
 
-StateIDMap<pdbs::AbstractState>::visited_range
-StateIDMap<pdbs::AbstractState>::visited() const
+StateIDMap<AbstractState>::visited_range
+StateIDMap<AbstractState>::visited() const
 {
     return visited_range(visited_begin(), visited_end());
 }
 
 StateID
-StateIDMap<pdbs::AbstractState>::get_state_id(const pdbs::AbstractState& state)
+StateIDMap<AbstractState>::get_state_id(const AbstractState& state)
 {
     seen.insert(state.id);
     return StateID(state.id);
 }
 
-pdbs::AbstractState
-StateIDMap<pdbs::AbstractState>::get_state(const StateID& id)
+AbstractState
+StateIDMap<AbstractState>::get_state(const StateID& id)
 {
-    return pdbs::AbstractState(id);
+    return AbstractState(id);
 }
 
-ActionIDMap<const pdbs::AbstractOperator*>::ActionIDMap(
-    const std::vector<pdbs::AbstractOperator>& ops)
+ActionIDMap<const AbstractOperator*>::ActionIDMap(
+    const std::vector<AbstractOperator>& ops)
     : ops_(ops)
 {
 }
 
-ActionID ActionIDMap<const pdbs::AbstractOperator*>::get_action_id(
+ActionID ActionIDMap<const AbstractOperator*>::get_action_id(
     const StateID&,
-    const pdbs::AbstractOperator* op) const
+    const AbstractOperator* op) const
 {
     return op - (&ops_[0]);
 }
 
-const pdbs::AbstractOperator*
-ActionIDMap<const pdbs::AbstractOperator*>::get_action(
+const AbstractOperator*
+ActionIDMap<const AbstractOperator*>::get_action(
     const StateID&,
     const ActionID& idx) const
 {
     return (&ops_[0]) + idx;
 }
 
-TransitionGenerator<const pdbs::AbstractOperator*>::TransitionGenerator(
-    StateIDMap<pdbs::AbstractState>& id_map,
-    std::shared_ptr<pdbs::AbstractStateMapper> state_mapper,
+TransitionGenerator<const AbstractOperator*>::TransitionGenerator(
+    StateIDMap<AbstractState>& id_map,
+    std::shared_ptr<AbstractStateMapper> state_mapper,
     std::shared_ptr<
-        successor_generator::SuccessorGenerator<const pdbs::AbstractOperator*>>
+        successor_generator::SuccessorGenerator<const AbstractOperator*>>
         aops_gen)
     : id_map_(id_map)
     , state_mapper_(state_mapper)
@@ -82,45 +84,46 @@ TransitionGenerator<const pdbs::AbstractOperator*>::TransitionGenerator(
 {
 }
 
-void TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
+void TransitionGenerator<const AbstractOperator*>::operator()(
     const StateID& sid,
-    std::vector<const pdbs::AbstractOperator*>& aops)
+    std::vector<const AbstractOperator*>& aops)
 {
-    pdbs::AbstractState abstract_state = id_map_.get_state(sid);
+    AbstractState abstract_state = id_map_.get_state(sid);
     state_mapper_->to_values(abstract_state, values_);
     aops_gen_->generate_applicable_ops(values_, aops);
 }
 
-void TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
+void TransitionGenerator<const AbstractOperator*>::operator()(
     const StateID& state,
-    const pdbs::AbstractOperator* op,
+    const AbstractOperator* op,
     Distribution<StateID>& result)
 {
-    pdbs::AbstractState abstract_state = id_map_.get_state(state);
+    AbstractState abstract_state = id_map_.get_state(state);
     for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-        const pdbs::AbstractState succ = abstract_state + it->first;
+        const AbstractState succ = abstract_state + it->first;
         result.add(id_map_.get_state_id(succ), it->second);
     }
 }
 
-void TransitionGenerator<const pdbs::AbstractOperator*>::operator()(
+void TransitionGenerator<const AbstractOperator*>::operator()(
     const StateID& state,
-    std::vector<const pdbs::AbstractOperator*>& aops,
+    std::vector<const AbstractOperator*>& aops,
     std::vector<Distribution<StateID>>& result)
 {
-    pdbs::AbstractState abstract_state = id_map_.get_state(state);
+    AbstractState abstract_state = id_map_.get_state(state);
     state_mapper_->to_values(abstract_state, values_);
     aops_gen_->generate_applicable_ops(values_, aops);
     result.resize(aops.size());
     for (int i = aops.size() - 1; i >= 0; --i) {
-        const pdbs::AbstractOperator* op = aops[i];
+        const AbstractOperator* op = aops[i];
         for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-            const pdbs::AbstractState succ = abstract_state + it->first;
+            const AbstractState succ = abstract_state + it->first;
             result[i].add(id_map_.get_state_id(succ), it->second);
         }
     }
 }
 
+namespace heuristics {
 namespace pdbs {
 
 AbstractStateDeadendStoreEvaluator::AbstractStateDeadendStoreEvaluator(
@@ -233,4 +236,5 @@ template class IncrementalPPDBEvaluator<ExpCostProjection>;
 template class IncrementalPPDBEvaluator<MaxProbProjection>;
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

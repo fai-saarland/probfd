@@ -11,6 +11,7 @@
 #include <set>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 using PartialAssignment = std::vector<std::pair<int, int>>;
@@ -284,4 +285,5 @@ void ProbabilisticProjection::add_abstract_operators(
 }
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

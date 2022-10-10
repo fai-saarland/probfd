@@ -5,6 +5,7 @@
 #include "../../../probabilistic_operator.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 std::vector<int>
@@ -89,4 +90,5 @@ std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
 }
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

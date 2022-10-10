@@ -3,6 +3,7 @@
 #include "../../probabilistic_operator.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 AbstractOperator::AbstractOperator(unsigned id, int reward)
@@ -32,4 +33,5 @@ AbstractOperatorToString::operator()(const AbstractOperator* op) const
 }
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

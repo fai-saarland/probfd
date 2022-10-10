@@ -29,6 +29,7 @@ class RandomWalkSampler;
 }
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -190,6 +191,7 @@ using MaxProbPatternCollectionGeneratorHillclimbing =
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H__

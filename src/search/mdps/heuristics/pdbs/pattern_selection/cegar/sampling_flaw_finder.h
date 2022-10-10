@@ -1,8 +1,8 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_SAMPLING_FLAW_FINDER_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_SAMPLING_FLAW_FINDER_H
 
-#include "flaw_finding_strategy.h"
 #include "../../../../distribution.h"
+#include "flaw_finding_strategy.h"
 
 #include <stack>
 #include <unordered_map>
@@ -12,6 +12,7 @@ class Options;
 }
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -40,9 +41,7 @@ public:
         int solution_index,
         const ExplicitGState& init) override;
 
-    std::string get_name() const override {
-        return "Sampling Flaw Finder";
-    }
+    std::string get_name() const override { return "Sampling Flaw Finder"; }
 
 private:
     unsigned int push_state(
@@ -52,8 +51,9 @@ private:
         FlawList& flaw_list);
 };
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace heuristics
+} // namespace probabilistic
 
 #endif

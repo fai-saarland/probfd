@@ -4,6 +4,7 @@
 #include "../syntactic_projection.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 using namespace syntactic_projection;
@@ -144,4 +145,5 @@ bool is_independent_collection(const PatternCollection& patterns)
 }
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

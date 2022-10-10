@@ -5,6 +5,7 @@
 #include "subcollection_finder.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 class MaxOrthogonalityFinder : public SubCollectionFinder {
@@ -24,5 +25,6 @@ public:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 #endif // __MAX_ORTHOGONAL_FINDER_H__

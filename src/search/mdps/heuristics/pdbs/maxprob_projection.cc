@@ -1,8 +1,8 @@
 #include "maxprob_projection.h"
 
 #include "../../../pdbs/pattern_database.h"
-#include "../../../utils/collections.h"
 #include "../../../successor_generator.h"
+#include "../../../utils/collections.h"
 
 #include "../../engines/interval_iteration.h"
 #include "../../globals.h"
@@ -10,11 +10,12 @@
 #include "../../utils/graph_visualization.h"
 
 #include <deque>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
-#include <sstream>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 namespace {
@@ -50,9 +51,9 @@ MaxProbProjection::MaxProbProjection(
     bool operator_pruning,
     const AbstractStateEvaluator& heuristic)
     : MaxProbProjection(
-        new AbstractStateMapper(pattern, domains),
-        operator_pruning,
-        heuristic)
+          new AbstractStateMapper(pattern, domains),
+          operator_pruning,
+          heuristic)
 {
 }
 
@@ -229,8 +230,8 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
         }
     }
 
-    // Do regression search with duplicate checking through the constructed graph,
-    // expanding predecessors randomly to select an optimal policy
+    // Do regression search with duplicate checking through the constructed
+    // graph, expanding predecessors randomly to select an optimal policy
     assert(open.empty());
     open.insert(open.end(), goal_states_.begin(), goal_states_.end());
     closed.clear();
@@ -256,7 +257,9 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
                 auto facts = state_mapper_->to_values(pstate);
 
                 std::vector<const AbstractOperator*> aops;
-                progression_aops_generator_->generate_applicable_ops(facts, aops);
+                progression_aops_generator_->generate_applicable_ops(
+                    facts,
+                    aops);
 
                 std::vector<const AbstractOperator*> equivalent_operators;
 
@@ -273,7 +276,8 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
                         equivalent_operators.begin(),
                         equivalent_operators.end());
                 } else {
-                    policy[pstate].push_back(*rng->choose(equivalent_operators));
+                    policy[pstate].push_back(
+                        *rng->choose(equivalent_operators));
                 }
             }
         }
@@ -317,7 +321,8 @@ void MaxProbProjection::dump_graphviz(
 }
 
 #ifndef NDEBUG
-void MaxProbProjection::verify(const StateIDMap<AbstractState>& state_id_map) {
+void MaxProbProjection::verify(const StateIDMap<AbstractState>& state_id_map)
+{
     for (const int id : state_id_map.visited()) {
         AbstractState s(id);
         const value_type::value_t value = value_table[s.id].upper;
@@ -363,10 +368,11 @@ void MaxProbProjection::verify(const StateIDMap<AbstractState>& state_id_map) {
                   << "!" << std::endl;
         abort();
 
-        continue_exploring:;
+    continue_exploring:;
     }
 }
 #endif
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

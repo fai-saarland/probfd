@@ -11,6 +11,8 @@ namespace probabilistic {
 
 class ProbabilisticOperator;
 
+namespace heuristics {
+
 /// Namespace dedicated to probabilistic pattern databases.
 namespace pdbs {
 
@@ -38,6 +40,7 @@ private:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __ABSTRACT_OPERATOR_H__

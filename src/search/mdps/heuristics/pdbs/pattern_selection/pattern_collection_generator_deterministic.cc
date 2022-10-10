@@ -9,6 +9,7 @@
 #include "../maxprob_projection.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -91,4 +92,5 @@ static Plugin<PatternCollectionGenerator<ExpCostProjection>>
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

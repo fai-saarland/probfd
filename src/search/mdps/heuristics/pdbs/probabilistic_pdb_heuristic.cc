@@ -20,6 +20,7 @@
 #include <string>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 using namespace pattern_selection;
@@ -189,4 +190,5 @@ static Plugin<GlobalStateEvaluator> _plugin_mp(
     options::parse<GlobalStateEvaluator, MaxProbPDBHeuristic>);
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

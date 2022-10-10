@@ -13,6 +13,7 @@ class OptionParser;
 } // namespace options
 
 namespace probabilistic {
+namespace heuristics {
 
 /**
  * @brief Uses a classical heuristic on the all-outcomes-determinization to
@@ -60,6 +61,7 @@ protected:
     std::shared_ptr<Heuristic> pruning_function_;
 };
 
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __DEAD_END_PRUNING_H__

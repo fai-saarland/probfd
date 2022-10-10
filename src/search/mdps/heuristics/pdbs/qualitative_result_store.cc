@@ -3,6 +3,7 @@
 #include <cassert>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 QualitativeResultStore::assignable_bool_t::assignable_bool_t(
@@ -84,21 +85,24 @@ bool QualitativeResultStore::operator[](int s) const
     return get(AbstractState(s));
 }
 
-std::unordered_set<AbstractState>& QualitativeResultStore::get_storage() {
+std::unordered_set<AbstractState>& QualitativeResultStore::get_storage()
+{
     return states_;
 }
 
-const std::unordered_set<AbstractState>& QualitativeResultStore::get_storage() const {
+const std::unordered_set<AbstractState>&
+QualitativeResultStore::get_storage() const
+{
     return states_;
 }
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 namespace utils {
-bool contains(
-    probabilistic::pdbs::QualitativeResultStore& store,
-    probabilistic::pdbs::AbstractState s)
+using namespace ::probabilistic::heuristics::pdbs;
+bool contains(QualitativeResultStore& store, AbstractState s)
 {
     return store.get(s);
 }

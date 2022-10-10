@@ -98,7 +98,7 @@ public:
                     false,
                     false);
         } else {
-            ConstantEvaluator<QState> initializer(value_type::zero);
+            heuristics::ConstantEvaluator<QState> initializer(value_type::zero);
             solver = new engines::topological_vi::
                 TopologicalValueIteration<QState, QAction>(
                     &state_id_map,

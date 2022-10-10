@@ -7,6 +7,7 @@
 #include <vector>
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 class SubCollectionFinder {
@@ -24,5 +25,6 @@ public:
 };
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 #endif // __SUBCOLLECTION_FINDER_H__

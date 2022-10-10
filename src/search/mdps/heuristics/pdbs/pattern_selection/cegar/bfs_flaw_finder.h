@@ -11,6 +11,7 @@ class Options;
 }
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -32,9 +33,7 @@ public:
         int solution_index,
         const ExplicitGState& init) override;
 
-    std::string get_name() const override {
-        return "BFS Flaw Finder";
-    }
+    std::string get_name() const override { return "BFS Flaw Finder"; }
 
 private:
     bool expand(
@@ -44,8 +43,9 @@ private:
         FlawList& flaw_list);
 };
 
-}
-}
-}
+} // namespace pattern_selection
+} // namespace pdbs
+} // namespace heuristics
+} // namespace probabilistic
 
 #endif

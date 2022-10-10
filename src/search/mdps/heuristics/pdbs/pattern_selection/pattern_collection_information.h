@@ -13,6 +13,7 @@ class PatternCollectionInformation;
 }
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
@@ -69,6 +70,7 @@ using MaxProbPatternCollectionInformation =
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
 
 #endif // __PATTERN_COLLECTION_INFORMATION_H__

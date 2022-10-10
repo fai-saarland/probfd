@@ -37,14 +37,14 @@ namespace probabilistic {
 
 using namespace value_type;
 
+namespace heuristics {
 namespace pdbs {
 namespace pattern_selection {
 
 /* Since this exception class is only used for control flow and thus has no need
    for an error message, we use a standalone class instead of inheriting from
    utils::Exception. */
-class HillClimbingTimeout {
-};
+class HillClimbingTimeout {};
 
 static std::vector<int> get_goal_variables()
 {
@@ -227,7 +227,9 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::sample_states(
         };
 
         // TODO Hack for MaxProb
-        int absval = std::is_same_v<PDBType, MaxProbProjection> ? 100 : static_cast<int>(std::abs(init_h));
+        int absval = std::is_same_v<PDBType, MaxProbProjection>
+                         ? 100
+                         : static_cast<int>(std::abs(init_h));
 
         samples.push_back(sampler.sample_state(absval, f));
         if (hill_climbing_timer.is_expired()) {
@@ -646,4 +648,5 @@ static Plugin<PatternCollectionGenerator<MaxProbProjection>>
 
 } // namespace pattern_selection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

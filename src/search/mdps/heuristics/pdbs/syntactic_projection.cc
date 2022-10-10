@@ -1,6 +1,7 @@
 #include "syntactic_projection.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 namespace syntactic_projection {
 
@@ -77,4 +78,5 @@ project_operator(const Pattern& pattern, const ProbabilisticOperator& op)
 
 } // namespace syntactic_projection
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic

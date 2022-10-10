@@ -4,6 +4,7 @@
 #include "../../../../plugin.h"
 
 namespace probabilistic {
+namespace heuristics {
 namespace pdbs {
 
 std::shared_ptr<std::vector<PatternSubCollection>>
@@ -39,4 +40,5 @@ static std::shared_ptr<TrivialFinder> _parse(OptionParser& parser)
 static Plugin<SubCollectionFinder> _plugin("finder_trivial", _parse);
 
 } // namespace pdbs
+} // namespace heuristics
 } // namespace probabilistic
