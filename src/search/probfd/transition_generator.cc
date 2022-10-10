@@ -8,7 +8,7 @@
 #include "../state_registry.h"
 #include "../successor_generator.h"
 #include "globals.h"
-#include "logging.h"
+#include "utils/logging.h"
 
 #ifndef NDEBUG
 #define DEBUG_CACHE_CONSISTENCY_CHECK

@@ -10,7 +10,7 @@
 #include "../engines/topological_value_iteration.h"
 #include "../globals.h"
 #include "../heuristics/constant_evaluator.h"
-#include "../logging.h"
+#include "../utils/logging.h"
 
 #include <iomanip>
 

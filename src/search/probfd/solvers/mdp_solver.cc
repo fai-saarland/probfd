@@ -8,7 +8,7 @@
 #include "../../utils/timer.h"
 #include "../analysis_objectives/analysis_objective.h"
 #include "../globals.h"
-#include "../logging.h"
+#include "../utils/logging.h"
 
 #include <iomanip>
 #include <vector>

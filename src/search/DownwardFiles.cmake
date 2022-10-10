@@ -544,8 +544,7 @@ fast_downward_plugin(
         probfd/globals
 
         # Utility
-        # TODO move to / merge with global utils?
-        probfd/logging
+        probfd/utils/logging
 
         # Basic types
         probfd/evaluation_result

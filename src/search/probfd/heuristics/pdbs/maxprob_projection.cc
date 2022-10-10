@@ -6,8 +6,8 @@
 
 #include "../../engines/interval_iteration.h"
 #include "../../globals.h"
-#include "../../logging.h"
 #include "../../utils/graph_visualization.h"
+#include "../../utils/logging.h"
 
 #include <deque>
 #include <sstream>

@@ -7,8 +7,8 @@
 #include "../../end_components/qualitative_reachability_analysis.h"
 #include "../../engines/topological_value_iteration.h"
 #include "../../globals.h"
-#include "../../logging.h"
 #include "../../utils/graph_visualization.h"
+#include "../../utils/logging.h"
 
 #include <deque>
 #include <sstream>

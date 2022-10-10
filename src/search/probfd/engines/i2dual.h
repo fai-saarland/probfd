@@ -11,9 +11,9 @@
 #include "../analysis_objectives/goal_probability_objective.h"
 #include "../globals.h"
 #include "../heuristics/occupation_measure/occupation_measure_heuristic.h"
-#include "../logging.h"
 #include "../progress_report.h"
 #include "../storage/per_state_storage.h"
+#include "../utils/logging.h"
 #include "../value_type.h"
 
 #include <memory>

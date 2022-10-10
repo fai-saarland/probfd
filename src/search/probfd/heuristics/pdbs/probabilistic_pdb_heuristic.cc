@@ -6,7 +6,7 @@
 #include "../../../plugin.h"
 #include "../../../utils/countdown_timer.h"
 #include "../../../utils/logging.h"
-#include "../../logging.h"
+#include "../../utils/logging.h"
 
 #include "utils.h"
 

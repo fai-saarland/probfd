@@ -2,7 +2,7 @@
 #include "../../plugin.h"
 #include "../../utils/system.h"
 #include "../engines/heuristic_depth_first_search.h"
-#include "../logging.h"
+#include "../utils/logging.h"
 #include "mdp_heuristic_search.h"
 
 #include <sstream>

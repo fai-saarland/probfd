@@ -8,7 +8,7 @@
 #include "../../utils/hash.h"
 #include "../analysis_objectives/analysis_objective.h"
 #include "../globals.h"
-#include "../logging.h"
+#include "../utils/logging.h"
 
 namespace probfd {
 namespace heuristics {

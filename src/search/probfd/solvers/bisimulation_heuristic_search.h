@@ -8,7 +8,7 @@
 #include "../engine_interfaces/open_list.h"
 #include "../engine_interfaces/transition_sampler.h"
 #include "../globals.h"
-#include "../logging.h"
+#include "../utils/logging.h"
 // #include "mdp_heuristic_search.h"
 
 namespace probfd {

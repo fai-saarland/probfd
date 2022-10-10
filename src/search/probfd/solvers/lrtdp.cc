@@ -2,8 +2,8 @@
 
 #include "../../option_parser.h"
 #include "../../plugin.h"
-#include "../logging.h"
 #include "../transition_sampler.h"
+#include "../utils/logging.h"
 #include "mdp_heuristic_search.h"
 
 namespace probfd {

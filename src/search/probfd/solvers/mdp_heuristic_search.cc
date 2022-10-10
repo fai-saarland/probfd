@@ -1,6 +1,6 @@
 #include "mdp_heuristic_search.h"
 
-#include "../logging.h"
+#include "../utils/logging.h"
 
 #include <sstream>
 
