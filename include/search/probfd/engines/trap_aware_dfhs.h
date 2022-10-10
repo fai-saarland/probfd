@@ -58,9 +58,9 @@ struct Statistics {
 
 template <typename BaseInfo>
 struct PerStateInformation : public BaseInfo {
-    static constexpr const uint8_t SOLVED = (1 << BaseInfo::BITS);
-    static constexpr const uint8_t BITS = BaseInfo::BITS + 1;
-    static constexpr const uint8_t MASK = (1 << BaseInfo::BITS);
+    static constexpr uint8_t SOLVED = (1 << BaseInfo::BITS);
+    static constexpr uint8_t BITS = BaseInfo::BITS + 1;
+    static constexpr uint8_t MASK = (1 << BaseInfo::BITS);
 
     bool is_solved() const { return this->info & SOLVED; }
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
@@ -76,8 +76,8 @@ class DepthFirstHeuristicSearch
           BoundsType,
           std::true_type,
           internal::PerStateInformation> {
-    static constexpr const int STATE_UNSEEN = -1;
-    static constexpr const int STATE_CLOSED = -2;
+    static constexpr int STATE_UNSEEN = -1;
+    static constexpr int STATE_CLOSED = -2;
 
 public:
     using QAction = QActionT;
@@ -256,8 +256,10 @@ private:
         queue_.emplace_back(state, stack_.size());
         stack_index_[state] = stack_.size();
         stack_.push_back(state);
+
         ExplorationInformation& info = queue_.back();
         info.successors.reserve(transition_.size());
+
         if (open_list_ == nullptr) {
             for (auto it = transition_.begin(); it != transition_.end(); ++it) {
                 if (it->element != state) {
@@ -278,6 +280,7 @@ private:
                 --i;
             }
         }
+
         assert(!info.successors.empty());
         transition_.clear();
         info.flags.is_trap = has_zero_reward_;
@@ -289,6 +292,7 @@ private:
         last_value_changed_ = false;
         last_policy_changed_ = false;
         assert(!state_info.is_solved() && !state_info.is_terminal());
+
         const bool tip = state_info.is_on_fringe();
         if (tip || forward_updates_) {
             ++statistics_.fw_updates;
@@ -318,6 +322,7 @@ private:
             this->generate_successors(state, action, transition_);
             has_zero_reward_ = this->get_action_reward(state, action) == 0;
         }
+
         enqueue(state);
         return true;
     }
@@ -330,6 +335,7 @@ private:
             flags.update(state_info);
             return false;
         }
+
         return push_state(state, state_info, flags);
     }
 
@@ -339,6 +345,7 @@ private:
         last_policy_changed_ = false;
         flags.clear();
         ++statistics_.fw_updates;
+
         ActionID greedy_action;
         last_value_changed_ =
             this->async_update(state, &greedy_action, &transition_).first;
@@ -346,18 +353,22 @@ private:
         const bool cutoff = !reexpand_removed_traps_ ||
                             (cutoff_inconsistent_ && last_value_changed_);
         terminated_ = terminated_ || (terminate_exploration_ && cutoff);
+
         if (transition_.empty()) {
             flags.is_trap = false;
             return false;
         }
+
         if (cutoff) {
             transition_.clear();
             flags.complete = false;
             return false;
         }
+
         if (!queue_.empty()) {
             queue_.back().flags.update(flags);
         }
+
         flags.clear();
         has_zero_reward_ = this->get_action_reward(
                                state,
@@ -375,6 +386,7 @@ private:
             return flags.complete;
         }
         flags.clear();
+
         int recursiveBacklink = std::numeric_limits<int>::max();
         do {
             ExplorationInformation& einfo = queue_.back();
@@ -385,6 +397,7 @@ private:
                 const StateID succ =
                     quotient_->translate_state_id(einfo.successors.back());
                 einfo.successors.pop_back();
+
                 int& succ_status = stack_index_[succ];
                 if (succ_status == STATE_UNSEEN) {
                     // expand state (either not expanded before, or last
@@ -415,6 +428,7 @@ private:
                     einfo.backlink = std::min(einfo.backlink, succ_status);
                 }
             }
+
             if (backtrack) {
                 const StateID state = einfo.state;
                 const bool is_scc_root = einfo.backlink == stack_index_[state];
@@ -483,15 +497,18 @@ private:
                 }
             }
         } while (!queue_.empty());
+
         assert(queue_.empty());
         assert(stack_.empty());
         stack_index_.clear();
+
         return flags.complete && flags.all_solved;
     }
 
     void backtrack_from_singleton(const StateID state, Flags& flags)
     {
         assert(stack_.back() == state);
+
         if (flags.complete && flags.all_solved) {
             if (mark_solved_) {
                 this->get_state_info(state).set_solved();
@@ -499,6 +516,7 @@ private:
                 visited_states_.push_back(state);
             }
         }
+
         stack_index_[state] = STATE_CLOSED;
         stack_.pop_back();
         flags.is_trap = false;
@@ -510,6 +528,7 @@ private:
         std::vector<StateID>::iterator scc_begin)
     {
         assert(!flags.is_trap || !flags.complete || flags.all_solved);
+
         if (flags.complete && flags.all_solved) {
             if (flags.is_trap) {
                 backtrack_trap(state, flags, scc_begin);
@@ -528,9 +547,11 @@ private:
     {
         assert(flags.dead);
         ++this->statistics_.traps;
+
         for (auto it = scc_begin; it != stack_.end(); ++it) {
             stack_index_[*it] = STATE_CLOSED;
         }
+
         statistics_.trap_timer.resume();
         quotient_->build_quotient(scc_begin, stack_.end(), state);
         stack_.erase(scc_begin, stack_.end());
@@ -556,6 +577,7 @@ private:
         } else {
             assert(false); // inconsistent parameters
         }
+
         flags.is_trap = false;
         stack_.erase(scc_begin, stack_.end());
     }
@@ -568,6 +590,7 @@ private:
         for (auto it = scc_begin; it != stack_.end(); ++it) {
             stack_index_[*it] = STATE_CLOSED;
         }
+
         flags.is_trap = false;
         stack_.erase(scc_begin, stack_.end());
     }

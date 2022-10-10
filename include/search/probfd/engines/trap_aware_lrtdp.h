@@ -59,10 +59,10 @@ struct Statistics {
 
 template <typename StateInfo>
 struct PerStateInformation : public StateInfo {
-    static constexpr const uint8_t MARKED_TRIAL = (1 << StateInfo::BITS);
-    static constexpr const uint8_t SOLVED = (2 << StateInfo::BITS);
-    static constexpr const uint8_t BITS = StateInfo::BITS + 2;
-    static constexpr const uint8_t MASK = (3 << StateInfo::BITS);
+    static constexpr uint8_t MARKED_TRIAL = (1 << StateInfo::BITS);
+    static constexpr uint8_t SOLVED = (2 << StateInfo::BITS);
+    static constexpr uint8_t BITS = StateInfo::BITS + 2;
+    static constexpr uint8_t MASK = (3 << StateInfo::BITS);
 
     bool is_solved() const { return (this->info & MASK) == SOLVED; }
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
@@ -82,8 +82,8 @@ class LRTDP
           std::true_type,
           internal::PerStateInformation> {
 
-    static constexpr const int STATE_UNSEEN = -1;
-    static constexpr const int STATE_CLOSED = -2;
+    static constexpr int STATE_UNSEEN = -1;
+    static constexpr int STATE_CLOSED = -2;
 
 public:
     using State = StateT;
@@ -148,12 +148,13 @@ public:
         this->initialize_report(s);
         const StateID state_id = this->get_state_id(s);
         bool terminate = false;
-        while (!terminate) {
+        do {
             terminate = trial(state_id);
             statistics_.trials++;
             assert(state_id == quotient_->translate_state_id(state_id));
             this->report(state_id);
-        }
+        } while (!terminate);
+
         return this->get_value(state_id);
     }
 
@@ -203,12 +204,12 @@ private:
     struct ExplorationInformation {
         explicit ExplorationInformation(const StateID& state_id)
             : state(state_id)
-            , is_root(true)
         {
         }
+
         StateID state;
         std::vector<StateID> successors;
-        bool is_root;
+        bool is_root = true;
         Flags flags;
     };
 
@@ -216,6 +217,7 @@ private:
     {
         assert(current_trial_.empty());
         assert(selected_transition_.empty());
+
         current_trial_.push_back(start_state);
         while (true) {
             StateID stateid = current_trial_.back();
@@ -224,15 +226,18 @@ private:
                 current_trial_.pop_back();
                 break;
             }
+
             statistics_.trial_bellman_backups++;
             const bool changed =
                 this->async_update(stateid, nullptr, &selected_transition_)
                     .first;
+
             if (selected_transition_.empty()) {
                 info.set_solved();
                 current_trial_.pop_back();
                 break;
             }
+
             if ((stop_at_consistent_ == TrialTerminationCondition::Consistent &&
                  !changed) ||
                 (stop_at_consistent_ ==
@@ -244,16 +249,19 @@ private:
                 selected_transition_.clear();
                 break;
             }
+
             if (stop_at_consistent_ ==
                 TrialTerminationCondition::DoublyVisited) {
                 info.set_on_trial();
             }
+
             current_trial_.push_back(sample_->operator()(
                 stateid,
                 this->get_policy(stateid),
                 selected_transition_));
             selected_transition_.clear();
         }
+
         statistics_.trial_length += current_trial_.size();
         if (stop_at_consistent_ == TrialTerminationCondition::DoublyVisited) {
             for (auto it = current_trial_.begin(); it != current_trial_.end();
@@ -263,6 +271,7 @@ private:
                 info.clear_trial_flag();
             }
         }
+
         bool terminate = true;
         while (!current_trial_.empty()) {
             if (!check_and_solve()) {
@@ -271,6 +280,7 @@ private:
             }
             current_trial_.pop_back();
         }
+
         current_trial_.clear();
         return terminate;
     }
@@ -278,6 +288,7 @@ private:
     bool check_and_solve()
     {
         assert(!this->current_trial_.empty());
+
         Flags flags;
         {
             const StateID s =
@@ -291,6 +302,7 @@ private:
                 return flags.rv;
             }
         }
+
         do {
             ExplorationInformation& einfo = queue_.back();
             einfo.flags.update(flags);
@@ -325,6 +337,7 @@ private:
                 }
                 einfo.successors.pop_back();
             }
+
             if (backtrack) {
                 if (einfo.is_root) {
                     const unsigned stack_index = stack_index_[einfo.state];
@@ -395,8 +408,10 @@ private:
                 queue_.pop_back();
             }
         } while (!queue_.empty());
+
         assert(queue_.empty());
         assert(stack_.empty());
+
         stack_index_.clear();
         return this->get_state_info(this->current_trial_.back()).is_solved();
     }
@@ -405,19 +420,23 @@ private:
     {
         assert(this->quotient_->translate_state_id(state) == state);
         assert(this->selected_transition_.empty());
+
         ++this->statistics_.check_and_solve_bellman_backups;
+
         ActionID greedy_action;
         const bool value_changed = this->async_update(
                                            state,
                                            &greedy_action,
                                            &this->selected_transition_)
                                        .first;
+
         if (this->selected_transition_.empty()) {
             assert(this->get_state_info(state).is_dead_end());
             parent_flags.rv = parent_flags.rv && !value_changed;
             parent_flags.is_trap = false;
             return false;
         }
+
         if (value_changed) {
             parent_flags.rv = false;
             parent_flags.is_trap = false;
@@ -425,6 +444,7 @@ private:
             this->selected_transition_.clear();
             return false;
         }
+
         queue_.emplace_back(state);
         ExplorationInformation& e = queue_.back();
         for (auto it = this->selected_transition_.begin();
@@ -434,6 +454,7 @@ private:
                 e.successors.push_back(it->element);
             }
         }
+
         assert(!e.successors.empty());
         this->selected_transition_.clear();
         e.flags.is_trap = this->get_action_reward(
