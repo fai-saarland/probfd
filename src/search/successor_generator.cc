@@ -7,39 +7,36 @@
 
 namespace successor_generator {
 
-template<typename Entry>
+template <typename Entry>
 SuccessorGenerator<Entry>::SuccessorGenerator(
     std::unique_ptr<GeneratorBase<Entry>> root)
     : root(std::move(root))
 {
 }
 
-template<typename Entry>
+template <typename Entry>
 SuccessorGenerator<Entry>::~SuccessorGenerator() = default;
 
-template<typename Entry>
-void
-SuccessorGenerator<Entry>::generate_applicable_ops(
+template <typename Entry>
+void SuccessorGenerator<Entry>::generate_applicable_ops(
     const GlobalState& state,
     std::vector<Entry>& applicable_ops) const
 {
     root->generate_applicable_ops(state, applicable_ops);
 }
 
-template<typename Entry>
-void
-SuccessorGenerator<Entry>::generate_applicable_ops(
+template <typename Entry>
+void SuccessorGenerator<Entry>::generate_applicable_ops(
     const std::vector<int>& state,
     std::vector<Entry>& applicable_ops) const
 {
     root->generate_applicable_ops(state, applicable_ops);
 }
 
-template<typename Entry>
-void 
-SuccessorGenerator<Entry>::generate_applicable_ops(
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& applicable_ops) const
+template <typename Entry>
+void SuccessorGenerator<Entry>::generate_applicable_ops(
+    const std::vector<std::pair<int, int>>& facts,
+    std::vector<Entry>& applicable_ops) const
 {
     root->generate_applicable_ops(0, facts, applicable_ops);
 }
@@ -69,14 +66,14 @@ SuccessorGenerator<Entry>::SuccessorGenerator(
 #include "global_operator.h"
 #include "global_state.h"
 #include "globals.h"
-#include "mdps/globals.h"
-#include "mdps/probabilistic_operator.h"
+#include "probfd/globals.h"
+#include "probfd/probabilistic_operator.h"
 
 using namespace std;
 
 namespace successor_generator {
 
-template<>
+template <>
 SuccessorGenerator<const GlobalOperator*>::SuccessorGenerator()
     : root(nullptr)
 {
@@ -89,7 +86,8 @@ SuccessorGenerator<const GlobalOperator*>::SuccessorGenerator()
         precond.reserve(op.get_preconditions().size());
         for (unsigned j = 0; j < op.get_preconditions().size(); j++) {
             precond.emplace_back(
-                op.get_preconditions()[j].var, op.get_preconditions()[j].val);
+                op.get_preconditions()[j].var,
+                op.get_preconditions()[j].val);
         }
         std::sort(precond.begin(), precond.end());
         operator_infos.emplace_back(&op, precond);
@@ -97,7 +95,7 @@ SuccessorGenerator<const GlobalOperator*>::SuccessorGenerator()
     root = create(g_variable_domain, operator_infos);
 }
 
-template<>
+template <>
 SuccessorGenerator<
     const probabilistic::ProbabilisticOperator*>::SuccessorGenerator()
     : root(nullptr)
@@ -114,7 +112,8 @@ SuccessorGenerator<
         precond.reserve(out.get_preconditions().size());
         for (unsigned j = 0; j < out.get_preconditions().size(); j++) {
             precond.emplace_back(
-                out.get_preconditions()[j].var, out.get_preconditions()[j].val);
+                out.get_preconditions()[j].var,
+                out.get_preconditions()[j].val);
         }
         std::sort(precond.begin(), precond.end());
         operator_infos.emplace_back(&op, precond);
@@ -124,6 +123,6 @@ SuccessorGenerator<
 
 std::shared_ptr<SuccessorGenerator<const GlobalOperator*>>
     g_successor_generator = nullptr;
-}
+} // namespace successor_generator
 
 #endif

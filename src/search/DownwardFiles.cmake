@@ -541,36 +541,36 @@ fast_downward_plugin(
     HELP "Core source files for supporting MDPs"
     SOURCES
         # Globals
-        mdps/globals
+        probfd/globals
 
         # Utility
         # TODO move to / merge with global utils?
-        mdps/logging
+        probfd/logging
 
         # Basic types
-        mdps/evaluation_result
-        mdps/probabilistic_operator
-        mdps/value_type
-        mdps/value_utils
+        probfd/evaluation_result
+        probfd/probabilistic_operator
+        probfd/value_type
+        probfd/value_utils
         
         # Engine interfaces
-        mdps/action_id_map
-        mdps/state_id_map
-        mdps/state_evaluator
-        mdps/reward_function
-        mdps/transition_generator
-        mdps/progress_report
-        mdps/quotient_system
+        probfd/action_id_map
+        probfd/state_id_map
+        probfd/state_evaluator
+        probfd/reward_function
+        probfd/transition_generator
+        probfd/progress_report
+        probfd/quotient_system
 
         # Analysis objectives
-        mdps/analysis_objectives/analysis_objective
-        mdps/analysis_objectives/goal_probability_objective
-        mdps/analysis_objectives/expected_cost_objective
+        probfd/analysis_objectives/analysis_objective
+        probfd/analysis_objectives/goal_probability_objective
+        probfd/analysis_objectives/expected_cost_objective
 
         # Constant evaluator (default)
-        mdps/heuristics/constant_evaluator
+        probfd/heuristics/constant_evaluator
 
-        mdps/solvers/mdp_solver
+        probfd/solvers/mdp_solver
     DEPENDS SUCCESSOR_GENERATOR
     CORE_PLUGIN
 )
@@ -579,8 +579,8 @@ fast_downward_plugin(
     NAME BISIMULATION_CORE
     HELP "bisimulation_core"
     SOURCES
-        mdps/bisimulation/bisimilar_state_space
-        mdps/bisimulation/engine_interfaces
+        probfd/bisimulation/bisimilar_state_space
+        probfd/bisimulation/engine_interfaces
     DEPENDS MDP MAS_HEURISTIC
     DEPENDENCY_ONLY
 )
@@ -589,7 +589,7 @@ fast_downward_plugin(
     NAME ACYCLIC_VALUE_ITERATION_SOLVER
     HELP "acyclic_vi"
     SOURCES
-        mdps/solvers/acyclic_vi
+        probfd/solvers/acyclic_vi
     DEPENDS MDP
 )
 
@@ -597,7 +597,7 @@ fast_downward_plugin(
     NAME TOPOLOGICAL_VALUE_ITERATION_SOLVER
     HELP "topological_vi"
     SOURCES
-        mdps/solvers/topological_vi
+        probfd/solvers/topological_vi
     DEPENDS MDP
 )
 
@@ -605,7 +605,7 @@ fast_downward_plugin(
     NAME INTERVAL_ITERATION_SOLVER
     HELP "interval_iteration"
     SOURCES
-        mdps/solvers/interval_iteration
+        probfd/solvers/interval_iteration
     DEPENDS MDP
 )
 
@@ -613,8 +613,8 @@ fast_downward_plugin(
     NAME IDUAL_SOLVER
     HELP "idual & i2dual solvers"
     SOURCES
-        mdps/solvers/idual
-        mdps/solvers/i2dual
+        probfd/solvers/idual
+        probfd/solvers/i2dual
     DEPENDS MDP LP_SOLVER OCCUPATION_MEASURE_HEURISTICS
 )
 
@@ -622,7 +622,7 @@ fast_downward_plugin(
     NAME BISIMULATION_BASED_SOLVER
     HELP "bisimulation_vi"
     SOURCES
-        mdps/solvers/bisimulation_vi
+        probfd/solvers/bisimulation_vi
     DEPENDS BISIMULATION_CORE
 )
 
@@ -630,45 +630,45 @@ fast_downward_plugin(
     NAME MDP_HEURISTIC_SEARCH_BASE
     HELP "mdp heuristic search core"
     SOURCES
-        mdps/heuristic_search_interfaceable
+        probfd/heuristic_search_interfaceable
 
-        mdps/successor_sort
-        mdps/dead_end_listener
+        probfd/successor_sort
+        probfd/dead_end_listener
 
-        mdps/open_list
-        mdps/open_lists/lifo_open_list
-        mdps/open_lists/fifo_open_list
-        mdps/open_lists/h_open_list
-        mdps/open_lists/lifo_h_open_list
-        mdps/open_lists/lifo_preferred_operators_open_list
+        probfd/open_list
+        probfd/open_lists/lifo_open_list
+        probfd/open_lists/fifo_open_list
+        probfd/open_lists/h_open_list
+        probfd/open_lists/lifo_h_open_list
+        probfd/open_lists/lifo_preferred_operators_open_list
 
-        mdps/new_state_handler
-        mdps/new_state_handlers/store_heuristic
-        mdps/new_state_handlers/store_preferred_operators
+        probfd/new_state_handler
+        probfd/new_state_handlers/store_heuristic
+        probfd/new_state_handlers/store_preferred_operators
 
-        mdps/transition_sampler
-        mdps/transition_sampler/hbiased_successor_sampler
-        mdps/transition_sampler/most_likely_selector
-        mdps/transition_sampler/arbitrary_selector
-        mdps/transition_sampler/uniform_successor_sampler
-        mdps/transition_sampler/random_successor_sampler
-        mdps/transition_sampler/vbiased_successor_sampler
-        mdps/transition_sampler/vdiff_successor_sampler
+        probfd/transition_sampler
+        probfd/transition_sampler/hbiased_successor_sampler
+        probfd/transition_sampler/most_likely_selector
+        probfd/transition_sampler/arbitrary_selector
+        probfd/transition_sampler/uniform_successor_sampler
+        probfd/transition_sampler/random_successor_sampler
+        probfd/transition_sampler/vbiased_successor_sampler
+        probfd/transition_sampler/vdiff_successor_sampler
 
-        mdps/policy_picker
-        mdps/policy_picker/arbitrary_tiebreaker
-        mdps/policy_picker/hbased_tiebreaker
-        mdps/policy_picker/operator_id_tiebreaker
-        mdps/policy_picker/preferred_operators_tiebreaker
-        mdps/policy_picker/random_tiebreaker
-        mdps/policy_picker/vdiff_tiebreaker
+        probfd/policy_picker
+        probfd/policy_picker/arbitrary_tiebreaker
+        probfd/policy_picker/hbased_tiebreaker
+        probfd/policy_picker/operator_id_tiebreaker
+        probfd/policy_picker/preferred_operators_tiebreaker
+        probfd/policy_picker/random_tiebreaker
+        probfd/policy_picker/vdiff_tiebreaker
 
-        mdps/successor_sorting
-        mdps/successor_sorting/hbased_sorter
-        mdps/successor_sorting/preferred_operators_sorter
-        mdps/successor_sorting/vdiff_sorter
+        probfd/successor_sorting
+        probfd/successor_sorting/hbased_sorter
+        probfd/successor_sorting/preferred_operators_sorter
+        probfd/successor_sorting/vdiff_sorter
 
-        mdps/solvers/mdp_heuristic_search
+        probfd/solvers/mdp_heuristic_search
     DEPENDENCY_ONLY
     DEPENDS MDP
 )
@@ -677,8 +677,8 @@ fast_downward_plugin(
     NAME AO_SEARCH
     HELP "aostar implementations"
     SOURCES
-        mdps/solvers/aostar
-        mdps/solvers/exhaustive_ao
+        probfd/solvers/aostar
+        probfd/solvers/exhaustive_ao
     DEPENDS MDP_HEURISTIC_SEARCH_BASE BISIMULATION_CORE
 )
 
@@ -686,7 +686,7 @@ fast_downward_plugin(
     NAME EXHDFS
     HELP "exhaustive heuristic depth-first search"
     SOURCES
-        mdps/solvers/exhaustive_dfs
+        probfd/solvers/exhaustive_dfs
     DEPENDS MDP_HEURISTIC_SEARCH_BASE
 )
 
@@ -694,7 +694,7 @@ fast_downward_plugin(
     NAME LRTDP_SOLVER
     HELP "lrtdp"
     SOURCES
-        mdps/solvers/lrtdp
+        probfd/solvers/lrtdp
     DEPENDS MDP_HEURISTIC_SEARCH_BASE BISIMULATION_CORE
 )
 
@@ -702,7 +702,7 @@ fast_downward_plugin(
     NAME HDFS_SOLVERS
     HELP "heuristic depth-first search"
     SOURCES
-        mdps/solvers/hdfs
+        probfd/solvers/hdfs
     DEPENDS MDP_HEURISTIC_SEARCH_BASE BISIMULATION_CORE
 )
 
@@ -710,7 +710,7 @@ fast_downward_plugin(
     NAME DEADEND_PRUNING_HEURISTIC
     HELP "Dead-end pruning heuristic"
     SOURCES
-        mdps/heuristics/dead_end_pruning
+        probfd/heuristics/dead_end_pruning
     DEPENDS SUCCESSOR_GENERATOR
 )
 
@@ -718,7 +718,7 @@ fast_downward_plugin(
     NAME BUDGET_PRUNING_HEURISTIC
     HELP "Budget pruning heuristic"
     SOURCES
-        mdps/heuristics/budget_pruning
+        probfd/heuristics/budget_pruning
     DEPENDS SUCCESSOR_GENERATOR
 )
 
@@ -726,7 +726,7 @@ fast_downward_plugin(
     NAME DETERMINIZATION_HEURISTIC
     HELP "All-outcomes determinization heuristic"
     SOURCES
-        mdps/heuristics/determinization_cost
+        probfd/heuristics/determinization_cost
     DEPENDS SUCCESSOR_GENERATOR
 )
 
@@ -734,8 +734,8 @@ fast_downward_plugin(
     NAME OCCUPATION_MEASURE_HEURISTICS
     HELP "Occupation measure heuristics"
     SOURCES
-        mdps/heuristics/occupation_measure/occupation_measure_heuristic
-        mdps/heuristics/occupation_measure/regrouped_operator_counting_heuristic
+        probfd/heuristics/occupation_measure/occupation_measure_heuristic
+        probfd/heuristics/occupation_measure/regrouped_operator_counting_heuristic
     DEPENDS MDP LP_SOLVER
 )
 
@@ -743,20 +743,20 @@ fast_downward_plugin(
     NAME PROBABILISTIC_PDBS
     HELP "Probabilistic PDBs Base"
     SOURCES
-        mdps/heuristics/pdbs/abstract_operator
-        mdps/heuristics/pdbs/abstract_policy
-        mdps/heuristics/pdbs/abstract_state
-        mdps/heuristics/pdbs/abstract_state_mapper
-        mdps/heuristics/pdbs/engine_interfaces
-        mdps/heuristics/pdbs/orthogonality
-        mdps/heuristics/pdbs/probabilistic_projection
-        mdps/heuristics/pdbs/qualitative_result_store
-        mdps/heuristics/pdbs/syntactic_projection
-        mdps/heuristics/pdbs/types
-        mdps/heuristics/pdbs/utils
+        probfd/heuristics/pdbs/abstract_operator
+        probfd/heuristics/pdbs/abstract_policy
+        probfd/heuristics/pdbs/abstract_state
+        probfd/heuristics/pdbs/abstract_state_mapper
+        probfd/heuristics/pdbs/engine_interfaces
+        probfd/heuristics/pdbs/orthogonality
+        probfd/heuristics/pdbs/probabilistic_projection
+        probfd/heuristics/pdbs/qualitative_result_store
+        probfd/heuristics/pdbs/syntactic_projection
+        probfd/heuristics/pdbs/types
+        probfd/heuristics/pdbs/utils
 
-        mdps/heuristics/pdbs/maxprob_projection
-        mdps/heuristics/pdbs/expcost_projection
+        probfd/heuristics/pdbs/maxprob_projection
+        probfd/heuristics/pdbs/expcost_projection
     DEPENDS PDBS MDP SUCCESSOR_GENERATOR
     DEPENDENCY_ONLY
 )
@@ -765,16 +765,16 @@ fast_downward_plugin(
     NAME PPDBS_PATTERN_GENERATORS
     HELP "Base classes for pattern collection generation"
     SOURCES
-        mdps/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs
-        mdps/heuristics/pdbs/pattern_selection/pattern_collection_information
-        mdps/heuristics/pdbs/pattern_selection/pattern_generator
+        probfd/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs
+        probfd/heuristics/pdbs/pattern_selection/pattern_collection_information
+        probfd/heuristics/pdbs/pattern_selection/pattern_generator
 
-        mdps/heuristics/pdbs/subcollections/subcollection_finder
-        mdps/heuristics/pdbs/subcollections/max_orthogonal_finder
-        mdps/heuristics/pdbs/subcollections/trivial_finder
-        mdps/heuristics/pdbs/subcollections/orthogonality
-        mdps/heuristics/pdbs/subcollections/weak_orthogonality
-        mdps/heuristics/pdbs/subcollections/independence
+        probfd/heuristics/pdbs/subcollections/subcollection_finder
+        probfd/heuristics/pdbs/subcollections/max_orthogonal_finder
+        probfd/heuristics/pdbs/subcollections/trivial_finder
+        probfd/heuristics/pdbs/subcollections/orthogonality
+        probfd/heuristics/pdbs/subcollections/weak_orthogonality
+        probfd/heuristics/pdbs/subcollections/independence
     DEPENDS PROBABILISTIC_PDBS CAUSAL_GRAPH MAX_CLIQUES
     DEPENDENCY_ONLY
 )
@@ -783,7 +783,7 @@ fast_downward_plugin(
     NAME DETERMINISTIC_GENERATOR
     HELP "Deterministic pattern collection generator"
     SOURCES
-        mdps/heuristics/pdbs/pattern_selection/pattern_collection_generator_deterministic
+        probfd/heuristics/pdbs/pattern_selection/pattern_collection_generator_deterministic
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
@@ -791,7 +791,7 @@ fast_downward_plugin(
     NAME PROBABILISTIC_HILLCLIMBING_GENERATOR
     HELP "Probabilistic Hillclimbing pattern collection generator"
     SOURCES
-        mdps/heuristics/pdbs/pattern_selection/pattern_collection_generator_hillclimbing
+        probfd/heuristics/pdbs/pattern_selection/pattern_collection_generator_hillclimbing
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
@@ -799,12 +799,12 @@ fast_downward_plugin(
     NAME POLICY_CEGAR_GENERATOR
     HELP "Policy CEGAR pattern collection generator"
     SOURCES
-        mdps/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data
-        mdps/heuristics/pdbs/pattern_selection/cegar/bfs_flaw_finder
-        mdps/heuristics/pdbs/pattern_selection/cegar/pucs_flaw_finder
-        mdps/heuristics/pdbs/pattern_selection/cegar/sampling_flaw_finder
-        mdps/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy
-        mdps/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_cegar
+        probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data
+        probfd/heuristics/pdbs/pattern_selection/cegar/bfs_flaw_finder
+        probfd/heuristics/pdbs/pattern_selection/cegar/pucs_flaw_finder
+        probfd/heuristics/pdbs/pattern_selection/cegar/sampling_flaw_finder
+        probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy
+        probfd/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_cegar
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
@@ -812,7 +812,7 @@ fast_downward_plugin(
     NAME POLICY_FAST_CEGAR_GENERATOR
     HELP "Policy CEGAR pattern collection generator"
     SOURCES
-        mdps/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_fast_cegar
+        probfd/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_fast_cegar
     DEPENDS POLICY_CEGAR_GENERATOR
 )
 
@@ -820,7 +820,7 @@ fast_downward_plugin(
     NAME PROBABILISTIC_PDB_HEURISTIC
     HELP "Probabilistic PDB heuristic"
     SOURCES
-        mdps/heuristics/pdbs/probabilistic_pdb_heuristic
+        probfd/heuristics/pdbs/probabilistic_pdb_heuristic
     DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
 )
 

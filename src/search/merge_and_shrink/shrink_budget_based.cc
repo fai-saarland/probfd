@@ -2,7 +2,7 @@
 
 #include "../option_parser.h"
 #include "../plugin.h"
-#include "../mdps/globals.h"
+#include "../probfd/globals.h"
 #include "abstraction.h"
 
 using namespace std;
