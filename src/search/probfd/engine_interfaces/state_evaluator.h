@@ -7,8 +7,7 @@ namespace probfd {
 namespace engine_interfaces {
 
 /**
- * @brief Function object specifying the immediate reward received in a target
- * state, independent of the source state and action taken.
+ * @brief Represents a heuristic function.
  *
  * @tparam State - The state type of the underlying MDP model.
  *

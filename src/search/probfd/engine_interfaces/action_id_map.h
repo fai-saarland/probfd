@@ -4,6 +4,8 @@
 #include "../types.h"
 
 namespace probfd {
+
+/// Namespace dedicated to MDP engine interfaces.
 namespace engine_interfaces {
 
 /**

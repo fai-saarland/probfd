@@ -123,7 +123,7 @@ struct StackInfo {
 
 /**
  * @brief Algorithm that computes all dead-ends and states with a goal
- * probability of one.
+ * probability of one which are reachable from a given initial state.
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.

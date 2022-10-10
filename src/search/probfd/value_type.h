@@ -1,7 +1,7 @@
 #ifndef MDPS_VALUE_TYPE_H
 #define MDPS_VALUE_TYPE_H
 
-/// Namespace for classes related to search in probabilistic state space models.
+/// The main namespace of the probabilistic Fast Downward implementations.
 namespace probfd {
 
 /// Namespace dedicated to state value types.

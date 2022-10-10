@@ -10,8 +10,10 @@ namespace probfd {
 namespace engine_interfaces {
 
 /**
- * @brief Function object used to generate the successor distribution for the
- * given source state and applied action.
+ * @brief Function object representing the transition relation of the MDP.
+ * Is responsible for generating the applicable actions of a state and the
+ * successor distribution for a given applicable action. Can also generate all
+ * applicable actions and successor distributions at once for a given state.
  *
  * @tparam Action - The action type of the underlying MDP model.
  */
