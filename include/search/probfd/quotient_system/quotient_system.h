@@ -33,6 +33,14 @@ struct QuotientAction {
     }
 };
 
+template <typename T>
+struct unwrap_action_type {};
+
+template <typename T>
+struct unwrap_action_type<QuotientAction<T>> {
+    using type = T;
+};
+
 template <typename BaseActionT>
 class DefaultQuotientSystem {
     friend struct const_iterator;
