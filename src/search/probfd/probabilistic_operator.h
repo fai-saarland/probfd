@@ -42,7 +42,7 @@ struct ProbabilisticOutcome {
  * - A name
  * - A precondition
  * - A list of outcomes, each assigned a probability of occurence
- * - An integer cost
+ * - An integer reward
  */
 class ProbabilisticOperator {
 public:
@@ -74,7 +74,7 @@ public:
     std::size_t num_outcomes() const;
 
     /**
-     * @brief Gets the cost of the operator.
+     * @brief Gets the reward of the operator.
      */
     int get_reward() const;
 
