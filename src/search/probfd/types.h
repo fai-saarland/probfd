@@ -8,19 +8,12 @@
 namespace probfd {
 
 struct StateID {
-public:
     using size_type = uint32_t;
     static constexpr size_type undefined = -1;
 
-    StateID(const size_type& id = StateID::undefined)
+    StateID(size_type id = StateID::undefined)
         : id(id)
     {
-    }
-
-    StateID& operator=(const size_type& sid)
-    {
-        id = sid;
-        return *this;
     }
 
     operator size_type() const { return id; }
@@ -35,12 +28,6 @@ struct ActionID {
     ActionID(size_type id = ActionID::undefined)
         : id(id)
     {
-    }
-
-    ActionID& operator=(size_type sid)
-    {
-        id = sid;
-        return *this;
     }
 
     operator size_type() const { return id; }
