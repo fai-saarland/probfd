@@ -1,4 +1,4 @@
-#include "engine_interfaces.h"
+#include "probfd/bisimulation/engine_interfaces.h"
 
 namespace probfd {
 namespace engine_interfaces {

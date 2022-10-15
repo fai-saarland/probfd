@@ -1,7 +1,7 @@
 #ifndef MERGE_AND_SHRINK_SHRINK_BUCKET_BASED_H
 #define MERGE_AND_SHRINK_SHRINK_BUCKET_BASED_H
 
-#include "shrink_strategy.h"
+#include "merge_and_shrink/shrink_strategy.h"
 
 #include <vector>
 

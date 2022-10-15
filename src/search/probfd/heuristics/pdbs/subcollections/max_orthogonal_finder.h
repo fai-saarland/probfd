@@ -1,8 +1,9 @@
 #ifndef MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_MAX_ORTHOGONAL_FINDER_H
 #define MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_MAX_ORTHOGONAL_FINDER_H
 
-#include "../types.h"
-#include "subcollection_finder.h"
+#include "probfd/heuristics/pdbs/subcollections/subcollection_finder.h"
+
+#include "probfd/heuristics/pdbs//types.h"
 
 namespace probfd {
 namespace heuristics {

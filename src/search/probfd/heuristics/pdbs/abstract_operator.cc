@@ -1,6 +1,6 @@
-#include "abstract_operator.h"
+#include "probfd/heuristics/pdbs/abstract_operator.h"
 
-#include "../../probabilistic_operator.h"
+#include "probfd/probabilistic_operator.h"
 
 namespace probfd {
 namespace heuristics {

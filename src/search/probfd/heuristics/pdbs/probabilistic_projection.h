@@ -1,14 +1,15 @@
 #ifndef MDPS_HEURISTICS_PDBS_PROBABILISTIC_PROJECTION_H
 #define MDPS_HEURISTICS_PDBS_PROBABILISTIC_PROJECTION_H
 
-#include "abstract_operator.h"
-#include "abstract_state_mapper.h"
-#include "engine_interfaces.h"
-#include "qualitative_result_store.h"
-#include "types.h"
+#include "probfd/heuristics/pdbs/abstract_operator.h"
+#include "probfd/heuristics/pdbs/abstract_state_mapper.h"
+#include "probfd/heuristics/pdbs/engine_interfaces.h"
+#include "probfd/heuristics/pdbs/qualitative_result_store.h"
+#include "probfd/heuristics/pdbs/types.h"
 
-#include "../../globals.h"
-#include "../../utils/graph_visualization.h"
+#include "probfd/utils/graph_visualization.h"
+
+#include "probfd/globals.h"
 
 #include <fstream>
 #include <iostream>

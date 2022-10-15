@@ -1,4 +1,4 @@
-#include "perfect_hashing_function.h"
+#include "algorithms/perfect_hashing_function.h"
 
 #include <cassert>
 #include <limits>

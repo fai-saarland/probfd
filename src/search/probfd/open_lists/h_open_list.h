@@ -1,7 +1,7 @@
 #ifndef MDPS_OPEN_LISTS_H_OPEN_LIST_H
 #define MDPS_OPEN_LISTS_H_OPEN_LIST_H
 
-#include "key_based_open_list.h"
+#include "probfd/open_lists/key_based_open_list.h"
 
 #include <memory>
 

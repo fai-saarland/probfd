@@ -1,7 +1,8 @@
-#include "landmark_factory.h"
+#include "landmarks/landmark_factory.h"
 
-#include "util.h"
-#include "../utils/timer.h"
+#include "landmarks/util.h"
+
+#include "utils/timer.h"
 
 #include <fstream>
 #include <limits>

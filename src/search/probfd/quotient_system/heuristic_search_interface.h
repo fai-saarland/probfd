@@ -1,15 +1,14 @@
 #ifndef MDPS_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 #define MDPS_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 
-#include "../engine_interfaces/open_list.h"
-#include "../engine_interfaces/policy_picker.h"
-#include "../engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/open_list.h"
+#include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
 
-#include "../open_list.h"
-#include "../policy_picker.h"
-#include "../transition_sampler.h"
-
-#include "quotient_system.h"
+#include "probfd/open_list.h"
+#include "probfd/policy_picker.h"
+#include "probfd/quotient_system.h"
+#include "probfd/transition_sampler.h"
 
 namespace probfd {
 

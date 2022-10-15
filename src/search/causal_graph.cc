@@ -1,6 +1,7 @@
 #include "causal_graph.h"
 
 #include "global_operator.h"
+
 #include "utils/logging.h"
 
 #include <algorithm>

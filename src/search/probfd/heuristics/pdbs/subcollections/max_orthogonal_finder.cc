@@ -1,13 +1,13 @@
-#include "max_orthogonal_finder.h"
+#include "probfd/heuristics/pdbs/subcollections/max_orthogonal_finder.h"
 
-#include "orthogonality.h"
+#include "probfd/heuristics/pdbs/subcollections/orthogonality.h"
 
-#include "../../../../algorithms/max_cliques.h"
+#include "algorithms/max_cliques.h"
 
-#include "../../../../option_parser.h"
-#include "../../../../plugin.h"
+#include "pdbs/pattern_cliques.h"
 
-#include "../../../../pdbs/pattern_cliques.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace heuristics {

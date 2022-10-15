@@ -1,13 +1,13 @@
 #ifndef OPTIONS_PLUGIN_H
 #define OPTIONS_PLUGIN_H
 
-#include "doc_utils.h"
-#include "option_parser.h"
-#include "raw_registry.h"
-#include "type_namer.h"
+#include "options/doc_utils.h"
+#include "options/option_parser.h"
+#include "options/raw_registry.h"
+#include "options/type_namer.h"
 
-#include "../utils/strings.h"
-#include "../utils/system.h"
+#include "utils/strings.h"
+#include "utils/system.h"
 
 #include <algorithm>
 #include <functional>

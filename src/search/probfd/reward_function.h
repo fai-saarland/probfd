@@ -1,10 +1,11 @@
 #ifndef MDPS_REWARD_FUNCTION_H
 #define MDPS_REWARD_FUNCTION_H
 
-#include "../global_state.h"
-#include "probabilistic_operator.h"
+#include "probfd/engine_interfaces/reward_function.h"
 
-#include "engine_interfaces/reward_function.h"
+#include "probfd/probabilistic_operator.h"
+
+#include "global_state.h"
 
 namespace probfd {
 

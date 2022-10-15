@@ -1,9 +1,9 @@
 #ifndef MERGE_AND_SHRINK_LABEL_REDUCER_H
 #define MERGE_AND_SHRINK_LABEL_REDUCER_H
 
-#include "../global_operator.h"
-#include "../globals.h"
-#include "../operator_cost.h"
+#include "global_operator.h"
+#include "globals.h"
+#include "operator_cost.h"
 
 #include <cassert>
 #include <set>

@@ -1,11 +1,12 @@
-#include "utils.h"
+#include "pdbs/utils.h"
 
-#include "pattern_collection_information.h"
-#include "pattern_database.h"
-#include "pattern_information.h"
+#include "pdbs/pattern_collection_information.h"
+#include "pdbs/pattern_database.h"
+#include "pdbs/pattern_information.h"
 
-#include "../globals.h"
-#include "../utils/logging.h"
+#include "utils/logging.h"
+
+#include "globals.h"
 
 using namespace std;
 

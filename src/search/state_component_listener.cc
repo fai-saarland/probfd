@@ -1,6 +1,6 @@
 #include "state_component_listener.h"
 
-#include "../plugin.h"
+#include "plugin.h"
 
 namespace state_component {
 

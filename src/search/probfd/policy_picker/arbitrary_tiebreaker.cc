@@ -1,7 +1,7 @@
-#include "arbitrary_tiebreaker.h"
+#include "probfd/policy_picker/arbitrary_tiebreaker.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace policy_tiebreaking {

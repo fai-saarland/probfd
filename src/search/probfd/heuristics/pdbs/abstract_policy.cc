@@ -1,4 +1,4 @@
-#include "abstract_policy.h"
+#include "probfd/heuristics/pdbs/abstract_policy.h"
 
 namespace probfd {
 namespace heuristics {

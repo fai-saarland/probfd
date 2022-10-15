@@ -1,8 +1,9 @@
-#include "operator_id_tiebreaker.h"
+#include "probfd/policy_picker/operator_id_tiebreaker.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../probabilistic_operator.h"
+#include "probfd/probabilistic_operator.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <limits>
 

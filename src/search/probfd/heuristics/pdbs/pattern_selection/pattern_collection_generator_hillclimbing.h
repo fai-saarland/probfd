@@ -1,12 +1,14 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
 
-#include "../../../../utils/logging.h"
-#include "../../../evaluation_result.h"
-#include "../types.h"
+#include "probfd/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
 
-#include "incremental_canonical_pdbs.h"
-#include "pattern_generator.h"
+#include "probfd/heuristics/pdbs/types.h"
+
+#include "probfd/evaluation_result.h"
+
+#include "utils/logging.h"
 
 #include <cstdlib>
 #include <memory>

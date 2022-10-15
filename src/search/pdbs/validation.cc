@@ -1,7 +1,8 @@
-#include "validation.h"
+#include "pdbs/validation.h"
 
-#include "../globals.h"
-#include "../utils/system.h"
+#include "utils/system.h"
+
+#include "globals.h"
 
 #include <algorithm>
 #include <iostream>

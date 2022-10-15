@@ -1,6 +1,6 @@
-#include "state_id_map.h"
+#include "probfd/state_id_map.h"
 
-#include "../state_registry.h"
+#include "state_registry.h"
 
 namespace probfd {
 namespace engine_interfaces {

@@ -1,8 +1,9 @@
-#include "hbiased_successor_sampler.h"
+#include "probfd/transition_sampler/hbiased_successor_sampler.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../new_state_handlers/store_heuristic.h"
+#include "probfd/new_state_handlers/store_heuristic.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace transition_sampler {

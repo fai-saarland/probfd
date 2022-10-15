@@ -1,14 +1,15 @@
 #ifndef MDPS_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
 #define MDPS_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
 
-#include "../../../utils/printable.h"
-#include "../../evaluation_result.h"
-#include "../../state_evaluator.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
 
-#include "abstract_state.h"
-#include "types.h"
+#include "probfd/heuristics/pdbs/abstract_state.h"
+#include "probfd/heuristics/pdbs/types.h"
 
-#include "pattern_selection/pattern_generator.h"
+#include "probfd/evaluation_result.h"
+#include "probfd/state_evaluator.h"
+
+#include "utils/printable.h"
 
 #include <memory>
 #include <ostream>

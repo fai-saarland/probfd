@@ -1,10 +1,11 @@
 #ifndef MDPS_QUOTIENT_SYSTEM_ENGINE_INTERFACES_H
 #define MDPS_QUOTIENT_SYSTEM_ENGINE_INTERFACES_H
 
-#include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/reward_function.h"
-#include "../engine_interfaces/transition_generator.h"
-#include "quotient_system.h"
+#include "probfd/engine_interfaces/action_id_map.h"
+#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/transition_generator.h"
+
+#include "probfd/quotient_system/quotient_system.h"
 
 namespace probfd {
 namespace quotient_system {

@@ -1,11 +1,11 @@
-#include "shrink_empty_labels.h"
+#include "merge_and_shrink/shrink_empty_labels.h"
 
-#include "abstraction.h"
+#include "merge_and_shrink/abstraction.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../globals.h"
-#include "../global_operator.h"
+#include "global_operator.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <iostream>

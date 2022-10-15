@@ -1,10 +1,10 @@
-#include "landmark_cost_assignment.h"
+#include "landmarks/landmark_cost_assignment.h"
 
-#include "landmark_graph.h"
+#include "landmarks/landmark_graph.h"
 
-#include "../utils/system.h"
-#include "../utils/collections.h"
-#include "../utils/language.h"
+#include "utils/collections.h"
+#include "utils/language.h"
+#include "utils/system.h"
 
 #include <cstdlib>
 #include <iostream>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shrink_strategy.h"
+#include "merge_and_shrink/shrink_strategy.h"
 
 #include <memory>
 #include <vector>

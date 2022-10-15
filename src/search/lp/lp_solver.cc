@@ -1,8 +1,10 @@
-#include "lp_solver.h"
+#include "lp/lp_solver.h"
 
-#include "../option_parser.h"
-#include "../utils/system.h"
-#include "lp_internals.h"
+#include "lp/lp_internals.h"
+
+#include "utils/system.h"
+
+#include "option_parser.h"
 
 #ifdef USE_LP
 #ifdef __GNUG__

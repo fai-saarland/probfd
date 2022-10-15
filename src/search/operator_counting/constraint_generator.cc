@@ -1,6 +1,6 @@
-#include "constraint_generator.h"
+#include "operator_counting/constraint_generator.h"
 
-#include "../plugin.h"
+#include "plugin.h"
 
 using namespace std;
 

@@ -1,10 +1,12 @@
 #ifndef LANDMARKS_EXPLORATION_H
 #define LANDMARKS_EXPLORATION_H
 
-#include "../heuristic.h"
-#include "../globals.h"
-#include "../algorithms/priority_queues.h"
-#include "landmark_types.h"
+#include "heuristic.h"
+#include "globals.h"
+
+#include "algorithms/priority_queues.h"
+
+#include "landmarks/landmark_types.h"
 
 #include <vector>
 #include <cassert>

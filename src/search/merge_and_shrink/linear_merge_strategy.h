@@ -28,8 +28,8 @@
 // Num: prefer variables that apper in more labels of the current
 // abstraction.
 
-#include "variable_order_finder.h"
-#include "scc.h"
+#include "merge_and_shrink/scc.h"
+#include "merge_and_shrink/variable_order_finder.h"
 
 #include <set>
 #include <vector>

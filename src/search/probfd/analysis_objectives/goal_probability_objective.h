@@ -1,7 +1,7 @@
 #ifndef MDPS_ANALYSIS_OBJECTIVES_GOAL_PROBABILITY_OBJECTIVE_H
 #define MDPS_ANALYSIS_OBJECTIVES_GOAL_PROBABILITY_OBJECTIVE_H
 
-#include "analysis_objective.h"
+#include "probfd/analysis_objectives/analysis_objective.h"
 
 #include <memory>
 

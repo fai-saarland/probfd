@@ -1,6 +1,6 @@
-#include "max_cliques.h"
+#include "algorithms/max_cliques.h"
 
-#include "../utils/collections.h"
+#include "utils/collections.h"
 
 #include <algorithm>
 #include <cassert>

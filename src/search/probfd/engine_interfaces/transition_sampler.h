@@ -1,9 +1,10 @@
 #ifndef MDPS_ENGINE_INTERACES_TRANSITION_SAMPLER_H
 #define MDPS_ENGINE_INTERACES_TRANSITION_SAMPLER_H
 
-#include "../distribution.h"
-#include "../types.h"
-#include "../utils/distribution_random_sampler.h"
+#include "probfd/utils/distribution_random_sampler.h"
+
+#include "probfd/distribution.h"
+#include "probfd/types.h"
 
 namespace probfd {
 namespace engine_interfaces {

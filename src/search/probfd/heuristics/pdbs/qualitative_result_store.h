@@ -1,9 +1,11 @@
 #ifndef MDPS_HEURISTICS_PDBS_QUALITATIVE_RESULT_STORE_H
 #define MDPS_HEURISTICS_PDBS_QUALITATIVE_RESULT_STORE_H
 
-#include "../../../utils/iterators.h"
-#include "../../types.h"
-#include "abstract_state.h"
+#include "probfd/heuristics/pdbs/abstract_state.h"
+
+#include "probfd/types.h"
+
+#include "utils/iterators.h"
 
 #include <unordered_set>
 

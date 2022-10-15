@@ -1,6 +1,6 @@
-#include "subcollection_finder.h"
+#include "probfd/heuristics/pdbs/subcollections/subcollection_finder.h"
 
-#include "../../../../plugin.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace heuristics {

@@ -1,11 +1,13 @@
-#include "zero_one_pdbs.h"
+#include "pdbs/zero_one_pdbs.h"
 
-#include "pattern_database.h"
+#include "pdbs/pattern_database.h"
 
-#include "../globals.h"
-#include "../global_operator.h"
-#include "../global_state.h"
-#include "../utils/logging.h"
+#include "utils/logging.h"
+
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
+
 
 #include <iostream>
 #include <limits>

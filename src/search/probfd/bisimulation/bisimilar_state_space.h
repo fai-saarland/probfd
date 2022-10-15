@@ -1,11 +1,13 @@
 #ifndef MDPS_BISIMULATION_BISIMILAR_STATE_SPACE_H
 #define MDPS_BISIMULATION_BISIMILAR_STATE_SPACE_H
 
-#include "../../algorithms/segmented_vector.h"
-#include "../../operator_cost.h"
-#include "../../state_id.h"
-#include "../distribution.h"
-#include "../types.h"
+#include "algorithms/segmented_vector.h"
+
+#include "probfd/distribution.h"
+#include "probfd/types.h"
+
+#include "operator_cost.h"
+#include "state_id.h"
 
 #include <cassert>
 #include <unordered_set>

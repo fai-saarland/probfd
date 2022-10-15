@@ -1,8 +1,9 @@
 #ifndef MDPS_NEW_STATE_HANDLERS_STORE_PREFERRED_OPERATORS_H
 #define MDPS_NEW_STATE_HANDLERS_STORE_PREFERRED_OPERATORS_H
 
-#include "../new_state_handler.h"
-#include "../storage/per_state_storage.h"
+#include "probfd/new_state_handler.h"
+
+#include "probfd/storage/per_state_storage.h"
 
 #include <cassert>
 #include <memory>
@@ -46,7 +47,7 @@ public:
     ~PrefOpsCacheEntry()
     {
         if (ops_) {
-            delete[] (ops_);
+            delete[](ops_);
         }
     }
 

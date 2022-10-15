@@ -1,8 +1,9 @@
 #ifndef MDPS_STATE_ID_MAP_H
 #define MDPS_STATE_ID_MAP_H
 
-#include "../global_state.h"
-#include "engine_interfaces/state_id_map.h"
+#include "probfd/engine_interfaces/state_id_map.h"
+
+#include "global_state.h"
 
 class StateRegistry;
 

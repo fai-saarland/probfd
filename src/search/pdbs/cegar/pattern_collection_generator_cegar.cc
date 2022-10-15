@@ -1,20 +1,19 @@
-#include "pattern_collection_generator_cegar.h"
+#include "pdbs/cegar/pattern_collection_generator_cegar.h"
 
-#include "abstract_solution_data.h"
+#include "pdbs/cegar/abstract_solution_data.h"
 
-#include "../pattern_database.h"
+#include "pdbs/pattern_database.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "utils/collections.h"
+#include "utils/countdown_timer.h"
+#include "utils/logging.h"
+#include "utils/math.h"
+#include "utils/rng.h"
+#include "utils/rng_options.h"
+#include "utils/system.h"
 
-#include "../../utils/collections.h"
-#include "../../utils/countdown_timer.h"
-#include "../../utils/logging.h"
-#include "../../utils/math.h"
-#include "../../utils/rng.h"
-#include "../../utils/rng_options.h"
-#include "../../utils/system.h"
-
+#include "option_parser.h"
+#include "plugin.h"
 using namespace std;
 using utils::Verbosity;
 

@@ -7,16 +7,16 @@
 
 #if defined(_WIN32)
 #define OPERATING_SYSTEM WINDOWS
-#include "system_windows.h"
+#include "utils/system_windows.h"
 #elif defined(__APPLE__)
 #define OPERATING_SYSTEM OSX
-#include "system_unix.h"
+#include "utils/system_unix.h"
 #else
 #define OPERATING_SYSTEM LINUX
-#include "system_unix.h"
+#include "utils/system_unix.h"
 #endif
 
-#include "language.h"
+#include "utils/language.h"
 
 #include <iostream>
 #include <stdlib.h>

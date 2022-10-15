@@ -1,6 +1,6 @@
-#include "merge_strategy.h"
+#include "merge_and_shrink/merge_strategy.h"
 
-#include "../globals.h"
+#include "globals.h"
 
 #include <iostream>
 

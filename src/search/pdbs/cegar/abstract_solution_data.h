@@ -1,9 +1,9 @@
 #ifndef PDBS_ABSTRACT_SOLUTION_DATA_H
 #define PDBS_ABSTRACT_SOLUTION_DATA_H
 
-#include "../pattern_database.h"
+#include "pdbs/pattern_database.h"
 
-#include "../utils/logging.h"
+#include "utils/logging.h"
 
 #include <memory>
 #include <ostream>

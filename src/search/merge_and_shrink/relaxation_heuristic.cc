@@ -1,7 +1,8 @@
-#include "relaxation_heuristic.h"
+#include "merge_and_shrink/relaxation_heuristic.h"
 
-#include "../globals.h"
-#include "../global_operator.h"
+#include "global_operator.h"
+#include "globals.h"
+
 
 #include <cassert>
 #include <vector>

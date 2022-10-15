@@ -1,6 +1,7 @@
-#include "multiple_shrinking_strategies.h"
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "merge_and_shrink/multiple_shrinking_strategies.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <sstream>
 

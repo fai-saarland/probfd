@@ -1,8 +1,9 @@
 #ifndef MDPS_ENGINES_LRTDP_H
 #define MDPS_ENGINES_LRTDP_H
 
-#include "../engine_interfaces/transition_sampler.h"
-#include "heuristic_search_base.h"
+#include "probfd/engines/heuristic_search_base.h"
+
+#include "probfd/engine_interfaces/transition_sampler.h"
 
 #include <cassert>
 #include <deque>

@@ -1,8 +1,9 @@
-#include "lama_ff_synergy.h"
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "landmark_factory_rpg_sasp.h"
+#include "landmarks/lama_ff_synergy.h"
 
+#include "landmarks/landmark_factory_rpg_sasp.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 LamaFFSynergy::HeuristicProxy::HeuristicProxy(LamaFFSynergy *synergy_)
     : Heuristic(Heuristic::default_options()) {

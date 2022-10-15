@@ -1,7 +1,7 @@
 #ifndef PDBS_PATTERN_CLIQUES_H
 #define PDBS_PATTERN_CLIQUES_H
 
-#include "types.h"
+#include "pdbs/types.h"
 
 #include <memory>
 #include <vector>

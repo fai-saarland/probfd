@@ -1,8 +1,9 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_GENERATOR_DETERMINISTIC_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_GENERATOR_DETERMINISTIC_H
 
-#include "../../../../pdbs/pattern_generator.h"
-#include "pattern_generator.h"
+#include "pdbs/pattern_generator.h"
+
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
 
 #include <memory>
 

@@ -1,8 +1,9 @@
-#include "lifo_preferred_operators_open_list.h"
+#include "probfd/open_lists/lifo_preferred_operators_open_list.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../new_state_handlers/store_preferred_operators.h"
+#include "probfd/new_state_handlers/store_preferred_operators.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace open_lists {

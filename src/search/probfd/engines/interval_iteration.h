@@ -1,15 +1,18 @@
 #ifndef MDPS_ENGINES_INTERVAL_ITERATION_H
 #define MDPS_ENGINES_INTERVAL_ITERATION_H
 
-#include "../end_components/end_component_decomposition.h"
-#include "../end_components/qualitative_reachability_analysis.h"
-#include "../quotient_system/engine_interfaces.h"
-#include "../quotient_system/quotient_system.h"
-#include "../storage/per_state_storage.h"
-#include "engine.h"
-#include "topological_value_iteration.h"
+#include "probfd/engines/engine.h"
+#include "probfd/engines/topological_value_iteration.h"
 
-#include "../../utils/collections.h"
+#include "probfd/end_components/end_component_decomposition.h"
+#include "probfd/end_components/qualitative_reachability_analysis.h"
+
+#include "probfd/quotient_system/engine_interfaces.h"
+#include "probfd/quotient_system/quotient_system.h"
+
+#include "probfd/storage/per_state_storage.h"
+
+#include "utils/collections.h"
 
 #include <iterator>
 
@@ -162,7 +165,7 @@ private:
         QuotientSystem* sys)
     {
         using namespace engine_interfaces;
-        
+
         TransitionGenerator<QAction> q_transition_gen(sys);
         quotient_system::DefaultQuotientRewardFunction<State, Action> q_reward(
             sys,

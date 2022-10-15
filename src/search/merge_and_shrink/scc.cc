@@ -1,7 +1,8 @@
-#include "scc.h"
+#include "merge_and_shrink/scc.h"
+
 #include <algorithm>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 

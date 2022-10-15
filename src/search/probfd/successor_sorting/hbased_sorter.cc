@@ -1,8 +1,9 @@
-#include "hbased_sorter.h"
+#include "probfd/successor_sorting/hbased_sorter.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../new_state_handlers/store_heuristic.h"
+#include "probfd/new_state_handlers/store_heuristic.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <algorithm>
 

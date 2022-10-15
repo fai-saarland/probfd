@@ -1,16 +1,15 @@
-#include "incremental_canonical_pdbs.h"
+#include "probfd/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_information.h"
 
-#include "../../../../global_state.h"
-#include "../../../../pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/subcollections/max_orthogonal_finder.h"
 
-#include "../subcollections/max_orthogonal_finder.h"
+#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/utils.h"
 
-#include "../expcost_projection.h"
-#include "../maxprob_projection.h"
+#include "pdbs/pattern_collection_information.h"
 
-#include "../utils.h"
-
-#include "pattern_collection_information.h"
+#include "global_state.h"
 
 #include <limits>
 

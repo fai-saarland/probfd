@@ -1,4 +1,4 @@
-#include "equivalence_relation.h"
+#include "algorithms/equivalence_relation.h"
 
 #include <cassert>
 

@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_INDEPENDENCE_H
 #define MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_INDEPENDENCE_H
 
-#include "../types.h"
+#include "probfd/heuristics/pdbs/types.h"
 
 namespace probfd {
 namespace heuristics {

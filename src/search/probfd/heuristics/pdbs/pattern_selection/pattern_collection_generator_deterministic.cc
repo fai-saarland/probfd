@@ -1,12 +1,14 @@
-#include "pattern_collection_generator_deterministic.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_generator_deterministic.h"
 
-#include "../../../../option_parser.h"
-#include "../../../../options/options.h"
-#include "../../../../pdbs/pattern_database.h"
-#include "../../../../plugin.h"
+#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
 
-#include "../expcost_projection.h"
-#include "../maxprob_projection.h"
+#include "options/options.h"
+
+#include "pdbs/pattern_database.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace heuristics {

@@ -1,16 +1,15 @@
-#include "pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_information.h"
 
-#include "../subcollections/trivial_finder.h"
+#include "probfd/heuristics/pdbs/subcollections/trivial_finder.h"
 
-#include "../../../../pdbs/pattern_cliques.h"
+#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
 
-#include "../../../../utils/collections.h"
-#include "../../../../utils/timer.h"
+#include "pdbs/pattern_cliques.h"
+#include "pdbs/pattern_collection_information.h"
 
-#include "../expcost_projection.h"
-#include "../maxprob_projection.h"
-
-#include "../../../../pdbs/pattern_collection_information.h"
+#include "utils/collections.h"
+#include "utils/timer.h"
 
 #include <algorithm>
 #include <cassert>

@@ -1,15 +1,15 @@
-#include "pattern_collection_generator_combo.h"
+#include "pdbs/pattern_collection_generator_combo.h"
 
-#include "pattern_generator_greedy.h"
-#include "utils.h"
-#include "validation.h"
+#include "pdbs/pattern_generator_greedy.h"
+#include "pdbs/utils.h"
+#include "pdbs/validation.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../globals.h"
+#include "utils/logging.h"
+#include "utils/timer.h"
 
-#include "../utils/logging.h"
-#include "../utils/timer.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <iostream>
 #include <memory>

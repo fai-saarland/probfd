@@ -1,8 +1,9 @@
 #ifndef MDPS_NEW_STATE_HANDLERS_STORE_HEURISTIC_H
 #define MDPS_NEW_STATE_HANDLERS_STORE_HEURISTIC_H
 
-#include "../new_state_handler.h"
-#include "../storage/per_state_storage.h"
+#include "probfd/new_state_handler.h"
+
+#include "probfd/storage/per_state_storage.h"
 
 #include <memory>
 

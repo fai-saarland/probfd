@@ -1,10 +1,11 @@
 #include "command_line.h"
+#include "globals.h"
 #include "option_parser.h"
 #include "solver_interface.h"
 
 #include "options/registries.h"
-#include "globals.h"
-#include "../utils/logging.h"
+
+#include "utils/logging.h"
 #include "utils/system.h"
 #include "utils/timer.h"
 

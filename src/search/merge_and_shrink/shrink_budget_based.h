@@ -1,7 +1,7 @@
 #ifndef BUDGET_SHRINK_H
 #define BUDGET_SHRINK_H
 
-#include "shrink_strategy.h"
+#include "merge_and_shrink/shrink_strategy.h"
 
 namespace merge_and_shrink {
 

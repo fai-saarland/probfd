@@ -1,10 +1,13 @@
-#include "../engines/lrtdp.h"
+#include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../transition_sampler.h"
-#include "../utils/logging.h"
-#include "mdp_heuristic_search.h"
+#include "probfd/engines/lrtdp.h"
+
+#include "probfd/utils/logging.h"
+
+#include "probfd/transition_sampler.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace solvers {

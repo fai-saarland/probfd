@@ -1,8 +1,9 @@
 #ifndef MDPS_ENGINES_AO_SEARCH_H
 #define MDPS_ENGINES_AO_SEARCH_H
 
-#include "../storage/per_state_storage.h"
-#include "heuristic_search_base.h"
+#include "probfd/engines/heuristic_search_base.h"
+
+#include "probfd/storage/per_state_storage.h"
 
 #include <limits>
 #include <queue>

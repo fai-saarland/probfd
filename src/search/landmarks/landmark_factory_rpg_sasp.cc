@@ -1,14 +1,14 @@
-#include "landmark_factory_rpg_sasp.h"
+#include "landmarks/landmark_factory_rpg_sasp.h"
 
-#include "landmark_graph.h"
-#include "util.h"
+#include "landmarks/landmark_graph.h"
+#include "landmarks/util.h"
 
-#include "../domain_transition_graph.h"
-#include "../global_operator.h"
-#include "../global_state.h"
-#include "../globals.h"
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "domain_transition_graph.h"
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <limits>

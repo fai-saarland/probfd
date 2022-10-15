@@ -1,12 +1,14 @@
 #ifndef MDPS_HEURISTICS_PDBS_SYNTACTIC_PROJECTION_H
 #define MDPS_HEURISTICS_PDBS_SYNTACTIC_PROJECTION_H
 
+#include "probfd/heuristics/pdbs/types.h"
+
+#include "probfd/globals.h"
+
+#include "global_operator.h"
+
 #include <map>
 #include <vector>
-
-#include "../../../global_operator.h"
-#include "../../globals.h"
-#include "types.h"
 
 namespace probfd {
 namespace heuristics {

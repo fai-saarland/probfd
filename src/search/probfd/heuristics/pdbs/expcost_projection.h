@@ -1,12 +1,12 @@
 #ifndef MDPS_HEURISTICS_PDBS_EXPCOST_PROJECTION_H
 #define MDPS_HEURISTICS_PDBS_EXPCOST_PROJECTION_H
 
-#include "../../globals.h"
+#include "probfd/heuristics/pdbs/abstract_policy.h"
+#include "probfd/heuristics/pdbs/probabilistic_projection.h"
 
-#include "../constant_evaluator.h"
+#include "probfd/heuristics/constant_evaluator.h"
 
-#include "abstract_policy.h"
-#include "probabilistic_projection.h"
+#include "probfd/globals.h"
 
 namespace pdbs {
 class PatternDatabase;

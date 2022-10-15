@@ -1,4 +1,5 @@
 #include "solver_interface.h"
+
 #include "plugin.h"
 
 SolverInterface::SolverInterface() {}

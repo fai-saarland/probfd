@@ -1,11 +1,14 @@
 #ifndef MDPS_TRANSITION_GENERATOR_H
 #define MDPS_TRANSITION_GENERATOR_H
 
-#include "../algorithms/segmented_array_store.h"
-#include "../algorithms/segmented_vector.h"
-#include "../operator_cost.h"
-#include "engine_interfaces/transition_generator.h"
-#include "probabilistic_operator.h"
+#include "probfd/engine_interfaces/transition_generator.h"
+
+#include "probfd/probabilistic_operator.h"
+
+#include "algorithms/segmented_array_store.h"
+#include "algorithms/segmented_vector.h"
+
+#include "operator_cost.h"
 
 #include <cassert>
 #include <iostream>

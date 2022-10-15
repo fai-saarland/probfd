@@ -1,16 +1,17 @@
-#include "pattern_generator_greedy.h"
+#include "pdbs/pattern_generator_greedy.h"
 
-#include "pattern_information.h"
-#include "utils.h"
+#include "pdbs/pattern_information.h"
+#include "pdbs/utils.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "utils/logging.h"
+#include "utils/math.h"
+#include "utils/timer.h"
 
-#include "../globals.h"
-#include "../variable_order_finder.h"
-#include "../utils/logging.h"
-#include "../utils/math.h"
-#include "../utils/timer.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
+#include "variable_order_finder.h"
+
 
 #include <iostream>
 

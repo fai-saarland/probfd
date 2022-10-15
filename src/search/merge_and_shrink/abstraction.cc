@@ -1,21 +1,19 @@
-#include "abstraction.h"
+#include "merge_and_shrink/abstraction.h"
 
-#include "label_reducer.h"
+#include "merge_and_shrink/label_reducer.h"
 // #include "merge_and_shrink_heuristic.h" // needed for ShrinkStrategy type;
 // TODO: move that type somewhere else?
-#include "shrink_fh.h"
+#include "merge_and_shrink/shrink_fh.h"
+#include "merge_and_shrink/utils.h"
 
-#include "../globals.h"
-#include "../global_operator.h"
-#include "../option_parser.h" // TODO: Should be removable later.
-#include "../utils/timer.h"
-#include "../utils/system.h"
-#include "utils.h"
-#include "../algorithms/priority_queues.h"
+#include "algorithms/priority_queues.h"
 
+#include "utils/system.h"
+#include "utils/timer.h"
 
-
-
+#include "global_operator.h"
+#include "globals.h"
+#include "option_parser.h" // TODO: Should be removable later.
 
 
 #include <fstream>

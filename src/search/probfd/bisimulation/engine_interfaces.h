@@ -1,15 +1,15 @@
 #ifndef MDPS_BISIMULATION_ENGINE_INTERFACES_H
 #define MDPS_BISIMULATION_ENGINE_INTERFACES_H
 
-#include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/reward_function.h"
-#include "../engine_interfaces/state_evaluator.h"
-#include "../engine_interfaces/state_id_map.h"
-#include "../engine_interfaces/transition_generator.h"
+#include "probfd/bisimulation/bisimilar_state_space.h"
 
-#include "bisimilar_state_space.h"
+#include "probfd/engine_interfaces/action_id_map.h"
+#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/state_id_map.h"
+#include "probfd/engine_interfaces/transition_generator.h"
 
-#include "../value_utils.h"
+#include "probfd/value_utils.h"
 
 namespace probfd {
 namespace engine_interfaces {

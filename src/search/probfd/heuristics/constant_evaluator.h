@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_CONSTANT_EVALUATOR_H
 #define MDPS_HEURISTICS_CONSTANT_EVALUATOR_H
 
-#include "../state_evaluator.h"
+#include "probfd/state_evaluator.h"
 
 namespace probfd {
 namespace heuristics {

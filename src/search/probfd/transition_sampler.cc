@@ -1,6 +1,6 @@
-#include "transition_sampler.h"
+#include "probfd/transition_sampler.h"
 
-#include "../plugin.h"
+#include "plugin.h"
 
 namespace probfd {
 

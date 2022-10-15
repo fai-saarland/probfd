@@ -1,4 +1,4 @@
-#include "sccs.h"
+#include "algorithms/sccs.h"
 
 #include <algorithm>
 

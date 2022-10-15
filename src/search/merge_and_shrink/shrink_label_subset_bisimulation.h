@@ -1,7 +1,7 @@
 #ifndef MERGE_AND_SHRINK_SHRINK_LABEL_SUBSET_BISIMULATION_H
 #define MERGE_AND_SHRINK_SHRINK_LABEL_SUBSET_BISIMULATION_H
 
-#include "shrink_bisimulation.h"
+#include "merge_and_shrink/shrink_bisimulation.h"
 
 namespace merge_and_shrink {
 

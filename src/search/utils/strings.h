@@ -1,7 +1,7 @@
 #ifndef UTILS_STRINGS_H
 #define UTILS_STRINGS_H
 
-#include "exceptions.h"
+#include "utils/exceptions.h"
 
 #include <sstream>
 #include <string>

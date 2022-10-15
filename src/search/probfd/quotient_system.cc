@@ -1,7 +1,8 @@
-#include "quotient_system.h"
+#include "probfd/quotient_system.h"
 
-#include "../state_registry.h"
-#include "../utils/range_proxy.h"
+#include "utils/range_proxy.h"
+
+#include "state_registry.h"
 
 #define DEBUG(x)
 

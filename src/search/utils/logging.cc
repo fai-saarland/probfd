@@ -1,9 +1,9 @@
-#include "logging.h"
+#include "utils/logging.h"
 
-#include "system.h"
-#include "timer.h"
+#include "utils/system.h"
+#include "utils/timer.h"
 
-#include "../option_parser.h"
+#include "option_parser.h"
 
 #include <iomanip>
 #include <iostream>

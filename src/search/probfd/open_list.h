@@ -1,10 +1,12 @@
 #ifndef MDPS_OPEN_LIST_H
 #define MDPS_OPEN_LIST_H
 
-#include "../global_state.h"
-#include "engine_interfaces/open_list.h"
-#include "engine_interfaces/state_id_map.h"
-#include "probabilistic_operator.h"
+#include "probfd/engine_interfaces/open_list.h"
+#include "probfd/engine_interfaces/state_id_map.h"
+
+#include "probfd/probabilistic_operator.h"
+
+#include "global_state.h"
 
 namespace probfd {
 namespace engine_interfaces {

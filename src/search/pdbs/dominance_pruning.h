@@ -1,11 +1,11 @@
 #ifndef PDBS_DOMINANCE_PRUNING_H
 #define PDBS_DOMINANCE_PRUNING_H
 
-#include "types.h"
-#include "pattern_database.h"
+#include "pdbs/pattern_database.h"
+#include "pdbs/types.h"
 
-#include "../utils/countdown_timer.h"
-#include "../utils/hash.h"
+#include "utils/countdown_timer.h"
+#include "utils/hash.h"
 
 #include <cassert>
 #include <unordered_map>

@@ -1,8 +1,8 @@
 #ifndef MDPS_ENGINE_INTERACES_POLICY_PICKER_H
 #define MDPS_ENGINE_INTERACES_POLICY_PICKER_H
 
-#include "../distribution.h"
-#include "../types.h"
+#include "probfd/distribution.h"
+#include "probfd/types.h"
 
 namespace probfd {
 namespace engine_interfaces {

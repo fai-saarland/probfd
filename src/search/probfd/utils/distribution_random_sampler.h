@@ -1,10 +1,12 @@
 #ifndef MDPS_UTILS_DISTRIBUTION_RANDOM_SAMPLER_H
 #define MDPS_UTILS_DISTRIBUTION_RANDOM_SAMPLER_H
 
-#include "../../globals.h"
-#include "../../utils/rng.h"
-#include "../distribution.h"
-#include "../value_type.h"
+#include "probfd/distribution.h"
+#include "probfd/value_type.h"
+
+#include "utils/rng.h"
+
+#include "globals.h"
 
 namespace probfd {
 namespace distribution_random_sampler {

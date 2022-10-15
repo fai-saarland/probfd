@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_SUBCOLLECTION_FINDER_H
 #define MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_SUBCOLLECTION_FINDER_H
 
-#include "../types.h"
+#include "probfd/heuristics/pdbs/types.h"
 
 #include <memory>
 #include <vector>

@@ -1,6 +1,6 @@
-#include "option_parser.h"
+#include "options/option_parser.h"
 
-#include "errors.h"
+#include "options/errors.h"
 
 #include <iostream>
 #include <tree_util.hh>

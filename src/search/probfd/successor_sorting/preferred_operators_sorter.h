@@ -1,7 +1,7 @@
 #ifndef MDPS_SUCCESSOR_SORTING_PREFERRED_OPERATORS_SORTER_H
 #define MDPS_SUCCESSOR_SORTING_PREFERRED_OPERATORS_SORTER_H
 
-#include "../successor_sort.h"
+#include "probfd/successor_sort.h"
 
 #include <memory>
 

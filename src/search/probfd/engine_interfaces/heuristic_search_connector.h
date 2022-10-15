@@ -1,7 +1,7 @@
 #ifndef MDPS_ENGINE_INTERACES_HEURISTIC_SEARCH_CONNECTOR_H
 #define MDPS_ENGINE_INTERACES_HEURISTIC_SEARCH_CONNECTOR_H
 
-#include "../engines/heuristic_search_state_information.h"
+#include "probfd/engines/heuristic_search_state_information.h"
 
 namespace probfd {
 namespace engine_interfaces {

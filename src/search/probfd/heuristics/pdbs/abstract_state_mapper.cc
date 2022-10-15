@@ -1,10 +1,10 @@
-#include "abstract_state_mapper.h"
+#include "probfd/heuristics/pdbs/abstract_state_mapper.h"
 
-#include "../../../global_state.h"
-#include "../../../globals.h"
+#include "utils/collections.h"
+#include "utils/exceptions.h"
 
-#include "../../../utils/collections.h"
-#include "../../../utils/exceptions.h"
+#include "global_state.h"
+#include "globals.h"
 
 #include <algorithm>
 #include <cassert>

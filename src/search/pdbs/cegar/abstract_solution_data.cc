@@ -1,11 +1,11 @@
-#include "abstract_solution_data.h"
+#include "pdbs/cegar/abstract_solution_data.h"
 
-#include "pattern_collection_generator_cegar.h" // TODO: only for Verbosity
+#include "pdbs/cegar/pattern_collection_generator_cegar.h" // TODO: only for Verbosity
 
-#include "../global_state.h"
+#include "global_state.h"
 
-#include "../utils/hash.h"
-#include "../utils/rng.h"
+#include "utils/hash.h"
+#include "utils/rng.h"
 
 #include <functional>
 #include <limits>

@@ -1,8 +1,8 @@
 #ifndef PDBS_PATTERN_COLLECTION_GENERATOR_MANUAL_H
 #define PDBS_PATTERN_COLLECTION_GENERATOR_MANUAL_H
 
-#include "pattern_generator.h"
-#include "types.h"
+#include "pdbs/pattern_generator.h"
+#include "pdbs/types.h"
 
 #include <memory>
 

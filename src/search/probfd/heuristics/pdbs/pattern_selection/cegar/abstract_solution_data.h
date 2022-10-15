@@ -1,10 +1,10 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_ABSTRACT_SOLUTION_DATA_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_ABSTRACT_SOLUTION_DATA_H
 
-#include "../../types.h"
+#include "probfd/heuristics/pdbs/abstract_policy.h"
+#include "probfd/heuristics/pdbs/types.h"
 
-#include "../../../../../utils/logging.h"
-#include "../../abstract_policy.h"
+#include "utils/logging.h"
 
 #include <memory>
 #include <ostream>

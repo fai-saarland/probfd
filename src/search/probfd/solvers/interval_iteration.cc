@@ -1,9 +1,11 @@
-#include "../engines/interval_iteration.h"
+#include "probfd/solvers/mdp_solver.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../state_evaluator.h"
-#include "mdp_solver.h"
+#include "probfd/engines/interval_iteration.h"
+
+#include "probfd/state_evaluator.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace solvers {

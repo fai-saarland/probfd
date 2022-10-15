@@ -1,8 +1,8 @@
 #ifndef PDBS_PATTERN_COLLECTION_GENERATOR_GENETIC_H
 #define PDBS_PATTERN_COLLECTION_GENERATOR_GENETIC_H
 
-#include "pattern_generator.h"
-#include "types.h"
+#include "pdbs/pattern_generator.h"
+#include "pdbs/types.h"
 
 #include <memory>
 #include <vector>
@@ -51,7 +51,7 @@ class PatternCollectionGeneratorGenetic : public PatternCollectionGenerator {
       evaluate. All changes there (i.e. transformation and removal of irrelevant
       variables) are just temporary for improved PDB computation.
     */
-    void select(const std::vector<double> &fitness_values);
+    void select(const std::vector<double>& fitness_values);
 
     /*
       Iterate over all patterns and flip every variable (set 0 if 1 or 1 if 0)
@@ -65,8 +65,8 @@ class PatternCollectionGeneratorGenetic : public PatternCollectionGenerator {
       mainly for easy mutation) to the "normal" pattern form vector<int>, which
       we need for ZeroOnePDBsHeuristic.
     */
-    Pattern transform_to_pattern_normal_form(
-        const std::vector<bool> &bitvector) const;
+    Pattern
+    transform_to_pattern_normal_form(const std::vector<bool>& bitvector) const;
 
     /*
       Calculates the mean h-value (fitness value) for each pattern collection.
@@ -78,17 +78,18 @@ class PatternCollectionGeneratorGenetic : public PatternCollectionGenerator {
       collection) computed. The overall best heuristic is eventually updated and
       saved for further episodes.
     */
-    void evaluate(std::vector<double> &fitness_values);
-    bool is_pattern_too_large(const Pattern &pattern) const;
+    void evaluate(std::vector<double>& fitness_values);
+    bool is_pattern_too_large(const Pattern& pattern) const;
 
     /*
       Mark used variables in variables_used and return true iff
       anything was already used (in which case we do not mark the
       remaining variables).
     */
-    bool mark_used_variables(const Pattern &pattern,
-                             std::vector<bool> &variables_used) const;
-    void remove_irrelevant_variables(Pattern &pattern) const;
+    bool mark_used_variables(
+        const Pattern& pattern,
+        std::vector<bool>& variables_used) const;
+    void remove_irrelevant_variables(Pattern& pattern) const;
 
     /*
       Calculates the initial pattern collections with a next-fit bin packing
@@ -110,11 +111,13 @@ class PatternCollectionGeneratorGenetic : public PatternCollectionGenerator {
       of recombination.
     */
     void genetic_algorithm();
-public:
-    explicit PatternCollectionGeneratorGenetic(const options::Options &opts);
 
-    virtual PatternCollectionInformation generate(OperatorCost cost_type) override;
+public:
+    explicit PatternCollectionGeneratorGenetic(const options::Options& opts);
+
+    virtual PatternCollectionInformation
+    generate(OperatorCost cost_type) override;
 };
-}
+} // namespace pdbs
 
 #endif

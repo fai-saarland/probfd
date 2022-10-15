@@ -1,8 +1,8 @@
 #ifndef OPTIONS_TYPE_NAMER_H
 #define OPTIONS_TYPE_NAMER_H
 
-#include "parse_tree.h"
-#include "registries.h"
+#include "options/parse_tree.h"
+#include "options/registries.h"
 
 #include <memory>
 #include <string>
@@ -17,9 +17,9 @@ namespace options {
   generic version below for shared_ptr<...> types, which are the ones we use
   for plugins.
 */
-template<typename T>
+template <typename T>
 struct TypeNamer {
-    static std::string name(const Registry &registry);
+    static std::string name(const Registry& registry);
 };
 
 /*
@@ -28,58 +28,54 @@ struct TypeNamer {
   instead, but this has the disadvantage that typeid(T) requires T to be a
   complete type, while typeid(shared_ptr<T>) also accepts incomplete types.
 */
-template<typename T>
+template <typename T>
 struct TypeNamer<std::shared_ptr<T>> {
-    static std::string name(const Registry &registry) {
+    static std::string name(const Registry& registry)
+    {
         using TPtr = std::shared_ptr<T>;
-        const PluginTypeInfo &type_info =
+        const PluginTypeInfo& type_info =
             registry.get_type_info(std::type_index(typeid(TPtr)));
         return type_info.type_name;
     }
 };
 
-template<>
+template <>
 struct TypeNamer<int> {
-    static std::string name(const Registry &) {
-        return "int";
-    }
+    static std::string name(const Registry&) { return "int"; }
 };
 
-template<>
+template <>
 struct TypeNamer<bool> {
-    static std::string name(const Registry &) {
-        return "bool";
-    }
+    static std::string name(const Registry&) { return "bool"; }
 };
 
-template<>
+template <>
 struct TypeNamer<double> {
-    static std::string name(const Registry &) {
-        return "double";
-    }
+    static std::string name(const Registry&) { return "double"; }
 };
 
-template<>
+template <>
 struct TypeNamer<std::string> {
-    static std::string name(const Registry &) {
-        return "string";
-    }
+    static std::string name(const Registry&) { return "string"; }
 };
 
-template<>
+template <>
 struct TypeNamer<ParseTree> {
-    static std::string name(const Registry &) {
-        return "ParseTree (this just means the input is parsed at a later point."
+    static std::string name(const Registry&)
+    {
+        return "ParseTree (this just means the input is parsed at a later "
+               "point."
                " The real type is probably a search engine.)";
     }
 };
 
-template<typename T>
+template <typename T>
 struct TypeNamer<std::vector<T>> {
-    static std::string name(const Registry &registry) {
+    static std::string name(const Registry& registry)
+    {
         return "list of " + TypeNamer<T>::name(registry);
     }
 };
-}
+} // namespace options
 
 #endif

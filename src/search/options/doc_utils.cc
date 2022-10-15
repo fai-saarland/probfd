@@ -1,7 +1,7 @@
-#include "doc_utils.h"
+#include "options/doc_utils.h"
 
-#include "option_parser.h"
-#include "predefinitions.h"
+#include "options/option_parser.h"
+#include "options/predefinitions.h"
 
 using namespace std;
 

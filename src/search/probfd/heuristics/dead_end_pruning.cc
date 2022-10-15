@@ -1,11 +1,13 @@
-#include "dead_end_pruning.h"
+#include "probfd/heuristics/dead_end_pruning.h"
 
-#include "../../global_state.h"
-#include "../../heuristic.h"
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../analysis_objectives/analysis_objective.h"
-#include "../globals.h"
+#include "probfd/analysis_objectives/analysis_objective.h"
+
+#include "probfd/globals.h"
+
+#include "global_state.h"
+#include "heuristic.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace heuristics {

@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_TRIVIAL_FINDER_H
 #define MDPS_HEURISTICS_PDBS_SUBCOLLECTIONS_TRIVIAL_FINDER_H
 
-#include "subcollection_finder.h"
+#include "probfd/heuristics/pdbs/subcollections/subcollection_finder.h"
 
 namespace probfd {
 namespace heuristics {

@@ -1,7 +1,7 @@
 #ifndef MDPS_OPEN_LISTS_LIFO_H_OPEN_LIST_H
 #define MDPS_OPEN_LISTS_LIFO_H_OPEN_LIST_H
 
-#include "../open_list.h"
+#include "probfd/open_list.h"
 
 #include <deque>
 #include <memory>

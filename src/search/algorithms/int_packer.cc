@@ -1,4 +1,4 @@
-#include "int_packer.h"
+#include "algorithms/int_packer.h"
 
 #include <cassert>
 

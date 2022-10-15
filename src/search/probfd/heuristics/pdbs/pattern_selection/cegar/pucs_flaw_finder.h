@@ -1,11 +1,11 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_PUCS_FLAW_FINDER_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_PUCS_FLAW_FINDER_H
 
-#include "flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy.h"
 
-#include "../../../../value_type.h"
+#include "probfd/value_type.h"
 
-#include "../../../../../algorithms/priority_queues.h"
+#include "algorithms/priority_queues.h"
 
 #include <stack>
 #include <unordered_map>

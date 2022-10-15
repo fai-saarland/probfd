@@ -1,4 +1,4 @@
-#include "heuristic_search_interfaceable.h"
+#include "probfd/heuristic_search_interfaceable.h"
 
 namespace probfd {
 

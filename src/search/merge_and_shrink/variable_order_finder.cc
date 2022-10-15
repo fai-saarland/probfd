@@ -1,12 +1,12 @@
-#include "variable_order_finder.h"
+#include "merge_and_shrink/variable_order_finder.h"
 
 // #include "merge_and_shrink_heuristic.h" // needed for MergeStrategy type;
 // TODO: move that type somewhere else?
+#include "utils/rng.h"
+#include "utils/system.h"
 
-#include "../causal_graph.h"
-#include "../globals.h"
-#include "../utils/system.h"
-#include "../utils/rng.h"
+#include "causal_graph.h"
+#include "globals.h"
 
 #include <cassert>
 #include <cstdlib>

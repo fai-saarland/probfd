@@ -1,7 +1,8 @@
-#include "label.h"
+#include "merge_and_shrink/label.h"
 
-#include "../globals.h"
-#include "../utils/system.h"
+#include "utils/system.h"
+
+#include "globals.h"
 
 #include <ostream>
 

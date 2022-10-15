@@ -1,9 +1,9 @@
-#include "flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy.h"
 
-#include "../../expcost_projection.h"
-#include "../../maxprob_projection.h"
+#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
 
-#include "../../../../../plugin.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace heuristics {

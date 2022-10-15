@@ -1,8 +1,8 @@
 #ifndef UTILS_LOGGING_H
 #define UTILS_LOGGING_H
 
-#include "system.h"
-#include "timer.h"
+#include "utils/system.h"
+#include "utils/timer.h"
 
 #include <ostream>
 #include <string>

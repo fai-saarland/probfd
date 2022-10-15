@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_DEAD_END_PRUNING_H
 #define MDPS_HEURISTICS_DEAD_END_PRUNING_H
 
-#include "../state_evaluator.h"
+#include "probfd/state_evaluator.h"
 
 #include <memory>
 

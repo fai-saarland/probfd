@@ -1,4 +1,4 @@
-#include "abstract_state.h"
+#include "probfd/heuristics/pdbs/abstract_state.h"
 
 namespace probfd {
 namespace heuristics {

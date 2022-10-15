@@ -1,8 +1,8 @@
 #ifndef MDPS_ANALYSIS_OBJECTIVES_ANALYSIS_OBJECTIVE_H
 #define MDPS_ANALYSIS_OBJECTIVES_ANALYSIS_OBJECTIVE_H
 
-#include "../reward_function.h"
-#include "../value_utils.h"
+#include "probfd/reward_function.h"
+#include "probfd/value_utils.h"
 
 #include <memory>
 

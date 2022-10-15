@@ -1,13 +1,15 @@
-#include "../engines/exhaustive_dfs.h"
+#include "probfd/solvers/mdp_solver.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../heuristic_search_interfaceable.h"
-#include "../new_state_handler.h"
-#include "../progress_report.h"
-#include "../state_evaluator.h"
-#include "../successor_sort.h"
-#include "mdp_solver.h"
+#include "probfd/engines/exhaustive_dfs.h"
+
+#include "probfd/heuristic_search_interfaceable.h"
+#include "probfd/new_state_handler.h"
+#include "probfd/progress_report.h"
+#include "probfd/state_evaluator.h"
+#include "probfd/successor_sort.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace solvers {

@@ -1,12 +1,13 @@
-#include "open_list_buckets.h"
-#include "open_list_factory.h"
+#include "open_lists/open_list_buckets.h"
+
+#include "open_lists/open_list_factory.h"
+
+#include "option_parser.h"
+#include "plugin.h"
+#include "state_id.h"
 
 #include <cassert>
 #include <limits>
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../state_id.h"
-
 using namespace std;
 
 /*

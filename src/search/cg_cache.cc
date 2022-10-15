@@ -3,6 +3,7 @@
 #include "causal_graph.h"
 #include "global_state.h"
 #include "globals.h"
+
 #include "utils/collections.h"
 #include "utils/math.h"
 

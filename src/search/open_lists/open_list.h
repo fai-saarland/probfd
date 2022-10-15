@@ -1,8 +1,9 @@
 #ifndef OPEN_LISTS_OPEN_LIST_H
 #define OPEN_LISTS_OPEN_LIST_H
 
-#include "../evaluator.h"
-#include "../state_id.h"
+#include "evaluator.h"
+#include "state_id.h"
+
 #include <vector>
 
 template<class Entry>

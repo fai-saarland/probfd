@@ -1,17 +1,22 @@
 #ifndef MDPS_END_COMPONENT_DECOMPOSITION_QUALITATIVE_REACHABILITY_ANALYSIS_H
 #define MDPS_END_COMPONENT_DECOMPOSITION_QUALITATIVE_REACHABILITY_ANALYSIS_H
 
-#include "../../utils/iterators.h"
-#include "../../utils/timer.h"
-#include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/reward_function.h"
-#include "../engine_interfaces/state_evaluator.h"
-#include "../engine_interfaces/state_id_map.h"
-#include "../engine_interfaces/transition_generator.h"
-#include "../heuristics/pdbs/qualitative_result_store.h"
-#include "../quotient_system/engine_interfaces.h"
-#include "../quotient_system/quotient_system.h"
-#include "../storage/per_state_storage.h"
+#include "utils/iterators.h"
+#include "utils/timer.h"
+
+#include "probfd/engine_interfaces/action_id_map.h"
+#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/state_id_map.h"
+#include "probfd/engine_interfaces/transition_generator.h"
+
+
+#include "probfd/heuristics/pdbs/qualitative_result_store.h"
+
+#include "probfd/quotient_system/engine_interfaces.h"
+#include "probfd/quotient_system/quotient_system.h"
+
+#include "probfd/storage/per_state_storage.h"
 
 #include <cassert>
 #include <deque>

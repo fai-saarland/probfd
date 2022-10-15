@@ -1,6 +1,6 @@
-#include "match_tree.h"
+#include "pdbs/match_tree.h"
 
-#include "../globals.h"
+#include "globals.h"
 
 #include <cassert>
 #include <iostream>

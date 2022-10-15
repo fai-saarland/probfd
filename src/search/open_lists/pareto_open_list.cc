@@ -1,11 +1,13 @@
-#include "pareto_open_list.h"
+#include "open_lists/pareto_open_list.h"
 
-#include "open_list_factory.h"
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../state_id.h"
-#include "../globals.h"
-#include "../utils/rng.h"
+#include "open_lists/open_list_factory.h"
+
+#include "utils/rng.h"
+
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
+#include "state_id.h"
 
 #include <iostream>
 #include <cassert>

@@ -1,12 +1,14 @@
-#include "engine_interfaces.h"
+#include "probfd/heuristics/pdbs/engine_interfaces.h"
 
-#include "../../../successor_generator.h"
-#include "../../probabilistic_operator.h"
-#include "qualitative_result_store.h"
+#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/qualitative_result_store.h"
 
-#include "../../../pdbs/pattern_database.h"
-#include "expcost_projection.h"
-#include "maxprob_projection.h"
+#include "probfd/probabilistic_operator.h"
+
+#include "pdbs/pattern_database.h"
+
+#include "successor_generator.h"
 
 #include <limits>
 

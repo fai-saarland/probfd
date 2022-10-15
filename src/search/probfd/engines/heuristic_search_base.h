@@ -1,15 +1,19 @@
 #ifndef MDPS_ENGINES_HEURISTIC_SEARCH_BASE_H
 #define MDPS_ENGINES_HEURISTIC_SEARCH_BASE_H
 
-#include "../engine_interfaces/heuristic_search_connector.h"
-#include "../engine_interfaces/new_state_handler.h"
-#include "../engine_interfaces/policy_picker.h"
-#include "../progress_report.h"
-#include "../storage/per_state_storage.h"
-#include "../utils/graph_visualization.h"
-#include "../value_utils.h"
-#include "engine.h"
-#include "heuristic_search_state_information.h"
+#include "probfd/engines/engine.h"
+#include "probfd/engines/heuristic_search_state_information.h"
+
+#include "probfd/engine_interfaces/heuristic_search_connector.h"
+#include "probfd/engine_interfaces/new_state_handler.h"
+#include "probfd/engine_interfaces/policy_picker.h"
+
+#include "probfd/storage/per_state_storage.h"
+
+#include "probfd/utils/graph_visualization.h"
+
+#include "probfd/progress_report.h"
+#include "probfd/value_utils.h"
 
 #if defined(EXPENSIVE_STATISTICS)
 #include "../../utils/timer.h"

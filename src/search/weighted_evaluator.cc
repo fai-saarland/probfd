@@ -1,10 +1,10 @@
 #include "weighted_evaluator.h"
 
-#include <cstdlib>
-#include <sstream>
-
 #include "option_parser.h"
 #include "plugin.h"
+
+#include <cstdlib>
+#include <sstream>
 
 WeightedEvaluator::WeightedEvaluator(const options::Options &opts)
     : evaluator(opts.get<std::shared_ptr<Evaluator> >("eval")),

@@ -1,4 +1,4 @@
-#include "system.h"
+#include "utils/system.h"
 
 #if OPERATING_SYSTEM == LINUX || OPERATING_SYSTEM == OSX
 /*
@@ -20,7 +20,7 @@
   See also: issue479
 */
 
-#include "system_unix.h"
+#include "utils/system_unix.h"
 
 #include <csignal>
 #include <cstdio>

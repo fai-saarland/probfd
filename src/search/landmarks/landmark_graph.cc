@@ -1,9 +1,9 @@
-#include "landmark_graph.h"
+#include "landmarks/landmark_graph.h"
 
-#include "../global_operator.h"
-#include "../global_state.h"
-#include "../globals.h"
-#include "../plugin.h"
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <list>

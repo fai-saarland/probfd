@@ -1,14 +1,14 @@
-#include "shrink_label_subset_bisimulation.h"
+#include "merge_and_shrink/shrink_label_subset_bisimulation.h"
 
-#include "abstraction.h"
+#include "merge_and_shrink/abstraction.h"
+#include "merge_and_shrink/max_regression_operators.h"
+#include "merge_and_shrink/relaxed_plan_operators.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../globals.h"
-#include "../utils/timer.h"
+#include "utils/timer.h"
 
-#include "max_regression_operators.h"
-#include "relaxed_plan_operators.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <iostream>

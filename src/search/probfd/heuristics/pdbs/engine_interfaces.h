@@ -1,15 +1,17 @@
 #ifndef MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 #define MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 
-#include "../../../utils/collections.h"
-#include "../../../utils/range_proxy.h"
-#include "../../engine_interfaces/action_id_map.h"
-#include "../../engine_interfaces/reward_function.h"
-#include "../../engine_interfaces/state_evaluator.h"
-#include "../../engine_interfaces/state_id_map.h"
-#include "../../engine_interfaces/transition_generator.h"
-#include "abstract_operator.h"
-#include "abstract_state_mapper.h"
+#include "probfd/heuristics/pdbs/abstract_operator.h"
+#include "probfd/heuristics/pdbs/abstract_state_mapper.h"
+
+#include "probfd/engine_interfaces/action_id_map.h"
+#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/state_id_map.h"
+#include "probfd/engine_interfaces/transition_generator.h"
+
+#include "utils/collections.h"
+#include "utils/range_proxy.h"
 
 #include <memory>
 #include <set>

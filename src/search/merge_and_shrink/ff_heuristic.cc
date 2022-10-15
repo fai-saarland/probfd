@@ -1,9 +1,9 @@
-#include "ff_heuristic.h"
+#include "merge_and_shrink/ff_heuristic.h"
 
-#include "../globals.h"
-#include "../global_operator.h"
-#include "../option_parser.h"
-#include "../global_state.h"
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
+#include "option_parser.h"
 
 #include <cassert>
 #include <vector>

@@ -1,7 +1,7 @@
 #ifndef OPERATOR_COUNTING_CONSTRAINT_GENERATOR_H
 #define OPERATOR_COUNTING_CONSTRAINT_GENERATOR_H
 
-#include "../operator_cost.h"
+#include "operator_cost.h"
 
 #include <memory>
 #include <vector>

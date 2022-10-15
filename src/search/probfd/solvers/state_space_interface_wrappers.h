@@ -1,15 +1,18 @@
 #ifndef MDPS_SOLVERS_STATE_SPACE_INTERFACE_WRAPPERS_H
 #define MDPS_SOLVERS_STATE_SPACE_INTERFACE_WRAPPERS_H
 
-#include "../bisimulation/bisimilar_state_space.h"
-#include "../engine_interfaces/open_list.h"
-#include "../engine_interfaces/transition_sampler.h"
-#include "../open_list.h"
-#include "../probabilistic_operator.h"
-#include "../quotient_system/engine_interfaces.h"
-#include "../quotient_system/heuristic_search_interface.h"
-#include "../quotient_system/quotient_system.h"
-#include "../transition_sampler.h"
+#include "probfd/bisimulation/bisimilar_state_space.h"
+
+#include "probfd/engine_interfaces/open_list.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
+
+#include "probfd/quotient_system/engine_interfaces.h"
+#include "probfd/quotient_system/heuristic_search_interface.h"
+#include "probfd/quotient_system/quotient_system.h"
+
+#include "probfd/open_list.h"
+#include "probfd/probabilistic_operator.h"
+#include "probfd/transition_sampler.h"
 
 #include <memory>
 

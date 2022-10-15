@@ -1,14 +1,15 @@
 #ifndef MERGE_AND_SHRINK_ABSTRACTION_H
 #define MERGE_AND_SHRINK_ABSTRACTION_H
 
-#include "shrink_strategy.h"
-#include "label_reducer.h"
+#include "merge_and_shrink/label_reducer.h"
+#include "merge_and_shrink/shrink_strategy.h"
+
 
 //#include "merge_and_shrink_heuristic.h" // needed for MergeStrategy type;
 // TODO: move that type somewhere else?
 
 
-#include "../operator_cost.h"
+#include "operator_cost.h"
 
 #include <list>
 #include <vector>

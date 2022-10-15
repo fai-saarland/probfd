@@ -1,8 +1,9 @@
-#include "orthogonality.h"
+#include "probfd/heuristics/pdbs/subcollections/orthogonality.h"
 
-#include "../../../../pdbs/pattern_cliques.h"
-#include "../../../globals.h"
-#include "../../../probabilistic_operator.h"
+#include "pdbs/pattern_cliques.h"
+
+#include "probfd/globals.h"
+#include "probfd/probabilistic_operator.h"
 
 namespace probfd {
 namespace heuristics {

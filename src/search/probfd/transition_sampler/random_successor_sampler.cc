@@ -1,7 +1,7 @@
-#include "random_successor_sampler.h"
+#include "probfd/transition_sampler/random_successor_sampler.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <memory>
 

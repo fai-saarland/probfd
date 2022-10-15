@@ -1,12 +1,12 @@
-#include "pattern_collection_generator_manual.h"
+#include "pdbs/pattern_collection_generator_manual.h"
 
-#include "validation.h"
+#include "pdbs/validation.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../globals.h"
+#include "utils/logging.h"
 
-#include "../utils/logging.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <iostream>
 

@@ -1,9 +1,9 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_PATTERN_COLLECTION_GENERATOR_FAST_CEGAR_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_PATTERN_COLLECTION_GENERATOR_FAST_CEGAR_H
 
-#include "../pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
 
-#include "../../../../../utils/logging.h"
+#include "utils/logging.h"
 
 namespace options {
 class Options;

@@ -1,9 +1,11 @@
-#include "utils.h"
-#include "../../../globals.h"
-#include "../../globals.h"
+#include "probfd/heuristics/pdbs/utils.h"
 
-#include "expcost_projection.h"
-#include "maxprob_projection.h"
+#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
+
+#include "probfd/globals.h"
+
+#include "globals.h"
 
 #include <sstream>
 

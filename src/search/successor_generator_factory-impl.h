@@ -2,6 +2,7 @@
 
 #include "global_operator.h"
 #include "successor_generator_internals.h"
+
 #include "utils/collections.h"
 
 #include <algorithm>

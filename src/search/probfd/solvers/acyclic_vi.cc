@@ -1,8 +1,11 @@
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../engines/acyclic_value_iteration.h"
-#include "../state_evaluator.h"
-#include "mdp_solver.h"
+#include "probfd/solvers/mdp_solver.h"
+
+#include "probfd/engines/acyclic_value_iteration.h"
+
+#include "probfd/state_evaluator.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace solvers {

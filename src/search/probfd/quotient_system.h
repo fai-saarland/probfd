@@ -1,11 +1,13 @@
 #ifndef MDPS_QUOTIENT_SYSTEM_H
 #define MDPS_QUOTIENT_SYSTEM_H
 
-#include "../algorithms/segmented_vector.h"
-#include "probabilistic_operator.h"
-#include "quotient_system/engine_interfaces.h"
-#include "quotient_system/quotient_system.h"
-#include "transition_generator.h"
+#include "algorithms/segmented_vector.h"
+
+#include "probfd/quotient_system/engine_interfaces.h"
+#include "probfd/quotient_system/quotient_system.h"
+
+#include "probfd/probabilistic_operator.h"
+#include "probfd/transition_generator.h"
 
 #include <algorithm>
 #include <cassert>

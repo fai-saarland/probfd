@@ -4,13 +4,14 @@
 #include "globals.h"
 #include "heuristic.h"
 #include "plugin.h"
-#include "utils/rng.h"
 #include "successor_generator.h"
 #include "sum_evaluator.h"
 #include "weighted_evaluator.h"
 
 #include "open_lists/standard_scalar_open_list.h"
 #include "open_lists/alternation_open_list.h"
+
+#include "utils/rng.h"
 
 #include <algorithm>
 #include <limits>

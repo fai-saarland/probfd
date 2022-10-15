@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_DETERMINIZATION_COST_H
 #define MDPS_HEURISTICS_DETERMINIZATION_COST_H
 
-#include "../state_evaluator.h"
+#include "probfd/state_evaluator.h"
 
 #include <memory>
 

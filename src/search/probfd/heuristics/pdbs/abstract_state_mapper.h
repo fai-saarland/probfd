@@ -1,12 +1,13 @@
 #ifndef MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
 #define MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
 
-#include "../../../utils/iterators.h"
-#include "../../../utils/range_proxy.h"
-#include "../../types.h"
+#include "probfd/heuristics/pdbs/abstract_state.h"
+#include "probfd/heuristics/pdbs/types.h"
 
-#include "abstract_state.h"
-#include "types.h"
+#include "probfd/types.h"
+
+#include "utils/iterators.h"
+#include "utils/range_proxy.h"
 
 #include <memory>
 #include <string>

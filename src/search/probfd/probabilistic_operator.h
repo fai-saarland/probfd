@@ -1,8 +1,9 @@
 #ifndef MDPS_PROBABILISTIC_OPERATOR_H
 #define MDPS_PROBABILISTIC_OPERATOR_H
 
-#include "../global_operator.h"
-#include "value_type.h"
+#include "probfd/value_type.h"
+
+#include "global_operator.h"
 
 #include <iterator>
 #include <string>

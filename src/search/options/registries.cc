@@ -1,11 +1,11 @@
-#include "registries.h"
+#include "options/registries.h"
 
-#include "errors.h"
-#include "option_parser.h"
-#include "predefinitions.h"
+#include "options/errors.h"
+#include "options/option_parser.h"
+#include "options/predefinitions.h"
 
-#include "../utils/collections.h"
-#include "../utils/strings.h"
+#include "utils/collections.h"
+#include "utils/strings.h"
 
 #include <iostream>
 #include <typeindex>

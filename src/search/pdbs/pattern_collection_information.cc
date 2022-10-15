@@ -1,11 +1,11 @@
-#include "pattern_collection_information.h"
+#include "pdbs/pattern_collection_information.h"
 
-#include "pattern_database.h"
-#include "pattern_cliques.h"
-#include "validation.h"
+#include "pdbs/pattern_cliques.h"
+#include "pdbs/pattern_database.h"
+#include "pdbs/validation.h"
 
-#include "../utils/collections.h"
-#include "../utils/timer.h"
+#include "utils/collections.h"
+#include "utils/timer.h"
 
 #include <algorithm>
 #include <cassert>

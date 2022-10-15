@@ -1,6 +1,6 @@
-#include "action_id_map.h"
+#include "probfd/action_id_map.h"
 
-#include "globals.h"
+#include "probfd/globals.h"
 
 namespace probfd {
 namespace engine_interfaces {

@@ -1,7 +1,8 @@
-#include "independence.h"
+#include "probfd/heuristics/pdbs/subcollections/independence.h"
 
-#include "../../../globals.h"
-#include "../syntactic_projection.h"
+#include "probfd/heuristics/pdbs/syntactic_projection.h"
+
+#include "probfd/globals.h"
 
 namespace probfd {
 namespace heuristics {

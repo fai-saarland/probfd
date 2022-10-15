@@ -1,15 +1,18 @@
-#include "pattern_database.h"
+#include "pdbs/pattern_database.h"
 
-#include "../algorithms/priority_queues.h"
-#include "../global_operator.h"
-#include "../global_state.h"
-#include "../globals.h"
-#include "../utils/collections.h"
-#include "../utils/logging.h"
-#include "../utils/math.h"
-#include "../utils/rng.h"
-#include "../utils/timer.h"
-#include "match_tree.h"
+#include "pdbs/match_tree.h"
+
+#include "algorithms/priority_queues.h"
+
+#include "utils/collections.h"
+#include "utils/logging.h"
+#include "utils/math.h"
+#include "utils/rng.h"
+#include "utils/timer.h"
+
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
 
 #include <algorithm>
 #include <cassert>

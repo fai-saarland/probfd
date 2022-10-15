@@ -1,8 +1,9 @@
 #ifndef PDBS_PATTERN_DATABASE_H
 #define PDBS_PATTERN_DATABASE_H
 
-#include "types.h"
-#include "../operator_cost.h"
+#include "pdbs/types.h"
+
+#include "operator_cost.h"
 
 #include <utility>
 #include <vector>

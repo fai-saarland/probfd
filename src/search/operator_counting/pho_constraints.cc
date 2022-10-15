@@ -1,18 +1,17 @@
-#include "pho_constraints.h"
+#include "operator_counting/pho_constraints.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "lp/lp_solver.h"
 
-#include "../lp/lp_solver.h"
+#include "pdbs/pattern_database.h"
+#include "pdbs/pattern_generator.h"
 
-#include "../pdbs/pattern_database.h"
-#include "../pdbs/pattern_generator.h"
+#include "utils/markup.h"
 
-#include "../utils/markup.h"
-
-#include "../globals.h"
-#include "../global_operator.h"
-#include "../global_state.h"
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <limits>

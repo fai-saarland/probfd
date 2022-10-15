@@ -1,10 +1,11 @@
-#include "pattern_cliques.h"
+#include "pdbs/pattern_cliques.h"
 
-#include "pattern_database.h"
+#include "pdbs/pattern_database.h"
 
-#include "../globals.h"
-#include "../global_operator.h"
-#include "../algorithms/max_cliques.h"
+#include "algorithms/max_cliques.h"
+
+#include "global_operator.h"
+#include "globals.h"
 
 using namespace std;
 

@@ -5,6 +5,7 @@
 #include "plugin.h"
 #include "pref_evaluator.h"
 #include "successor_generator.h"
+
 #include "utils/system.h"
 
 #include "open_lists/standard_scalar_open_list.h"

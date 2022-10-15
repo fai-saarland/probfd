@@ -1,8 +1,9 @@
 #ifndef MDPS_GLOBALS_H
 #define MDPS_GLOBALS_H
 
-#include "../operator_cost.h"
-#include "probabilistic_operator.h"
+#include "probfd/probabilistic_operator.h"
+
+#include "operator_cost.h"
 
 #include <memory>
 #include <vector>

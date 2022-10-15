@@ -1,11 +1,13 @@
 #ifndef MDPS_ENGINES_FRET_H
 #define MDPS_ENGINES_FRET_H
 
-#include "../progress_report.h"
-#include "../quotient_system/quotient_system.h"
-#include "../utils/graph_visualization.h"
-#include "engine.h"
-#include "heuristic_search_base.h"
+#include "probfd/engines/engine.h"
+#include "probfd/engines/heuristic_search_base.h"
+
+#include "probfd/utils/graph_visualization.h"
+
+#include "probfd/progress_report.h"
+#include "probfd/quotient_system/quotient_system.h"
 
 #if defined(EXPENSIVE_STATISTICS)
 #include "../../utils/timer.h"

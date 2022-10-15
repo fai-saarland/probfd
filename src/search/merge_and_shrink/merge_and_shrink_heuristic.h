@@ -1,10 +1,10 @@
 #ifndef MERGE_AND_SHRINK_MERGE_AND_SHRINK_HEURISTIC_H
 #define MERGE_AND_SHRINK_MERGE_AND_SHRINK_HEURISTIC_H
 
-#include "linear_merge_strategy.h"
-#include "variable_order_finder.h"
-#include "shrink_strategy.h"
-#include "shrink_empty_labels.h"
+#include "merge_and_shrink/linear_merge_strategy.h"
+#include "merge_and_shrink/shrink_empty_labels.h"
+#include "merge_and_shrink/shrink_strategy.h"
+#include "merge_and_shrink/variable_order_finder.h"
 
 #include "../heuristic.h"
 

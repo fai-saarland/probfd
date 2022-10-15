@@ -1,6 +1,6 @@
-#include "mdp_heuristic_search.h"
+#include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "../utils/logging.h"
+#include "probfd/utils/logging.h"
 
 #include <sstream>
 

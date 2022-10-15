@@ -1,10 +1,12 @@
 #ifndef MDPS_QUOTIENT_SYSTEM_QUOTIENT_SYSTEM_H
 #define MDPS_QUOTIENT_SYSTEM_QUOTIENT_SYSTEM_H
 
-#include "../../algorithms/segmented_vector.h"
-#include "../../utils/collections.h"
-#include "../engine_interfaces/action_id_map.h"
-#include "../engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/action_id_map.h"
+#include "probfd/engine_interfaces/transition_generator.h"
+
+#include "algorithms/segmented_vector.h"
+
+#include "utils/collections.h"
 
 #include <deque>
 #include <iterator>

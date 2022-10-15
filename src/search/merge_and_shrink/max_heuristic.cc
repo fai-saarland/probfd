@@ -1,8 +1,8 @@
-#include "max_heuristic.h"
+#include "merge_and_shrink/max_heuristic.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../global_state.h"
+#include "global_state.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <vector>

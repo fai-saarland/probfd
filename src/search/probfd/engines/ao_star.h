@@ -1,8 +1,8 @@
 #ifndef MDPS_ENGINES_AO_STAR_H
 #define MDPS_ENGINES_AO_STAR_H
 
-#include "../engine_interfaces/transition_sampler.h"
-#include "ao_search.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engines/ao_search.h"
 
 #include <iostream>
 #include <queue>

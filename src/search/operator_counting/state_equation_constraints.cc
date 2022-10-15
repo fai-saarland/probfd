@@ -1,14 +1,13 @@
-#include "state_equation_constraints.h"
+#include "operator_counting/state_equation_constraints.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "lp/lp_solver.h"
+#include "utils/markup.h"
 
-#include "../globals.h"
-#include "../global_operator.h"
-#include "../global_state.h"
-
-#include "../lp/lp_solver.h"
-#include "../utils/markup.h"
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 using namespace std;
 

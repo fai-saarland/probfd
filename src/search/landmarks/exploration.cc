@@ -1,8 +1,9 @@
-#include "exploration.h"
-#include "../global_operator.h"
-#include "../global_state.h"
-#include "../globals.h"
-#include "../utils/collections.h"
+#include "landmarks/exploration.h"
+
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
+#include "utils/collections.h"
 
 #include <cassert>
 #include <limits>

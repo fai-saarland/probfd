@@ -1,14 +1,21 @@
 #ifndef MDPS_SOLVERS_BISIMULATION_HEURISTIC_SEARCH_H
 #define MDPS_SOLVERS_BISIMULATION_HEURISTIC_SEARCH_H
 
-#include "../../utils/timer.h"
-#include "../analysis_objectives/analysis_objective.h"
-#include "../bisimulation/bisimilar_state_space.h"
-#include "../bisimulation/engine_interfaces.h"
-#include "../engine_interfaces/open_list.h"
-#include "../engine_interfaces/transition_sampler.h"
-#include "../globals.h"
-#include "../utils/logging.h"
+#include "probfd/engine_interfaces/open_list.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
+
+#include "probfd/analysis_objectives/analysis_objective.h"
+
+#include "probfd/bisimulation/bisimilar_state_space.h"
+#include "probfd/bisimulation/engine_interfaces.h"
+
+#include "probfd/utils/logging.h"
+
+#include "probfd/globals.h"
+
+#include "utils/timer.h"
+
+
 // #include "mdp_heuristic_search.h"
 
 namespace probfd {

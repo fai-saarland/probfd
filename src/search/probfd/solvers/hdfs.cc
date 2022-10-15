@@ -1,9 +1,13 @@
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../../utils/system.h"
-#include "../engines/heuristic_depth_first_search.h"
-#include "../utils/logging.h"
-#include "mdp_heuristic_search.h"
+#include "probfd/solvers/mdp_heuristic_search.h"
+
+#include "probfd/engines/heuristic_depth_first_search.h"
+
+#include "probfd/utils/logging.h"
+
+#include "utils/system.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <sstream>
 

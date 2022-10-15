@@ -1,6 +1,6 @@
-#include "reward_function.h"
+#include "probfd/reward_function.h"
 
-#include "../plugin.h"
+#include "plugin.h"
 
 namespace probfd {
 

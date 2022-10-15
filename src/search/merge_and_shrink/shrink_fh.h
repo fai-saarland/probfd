@@ -1,10 +1,10 @@
 #ifndef MERGE_AND_SHRINK_SHRINK_FH_H
 #define MERGE_AND_SHRINK_SHRINK_FH_H
 
-#include "shrink_bucket_based.h"
+#include "merge_and_shrink/shrink_bucket_based.h"
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 /*
   TODO/NOTE: The behaviour of this strategy in the cases where we
@@ -17,7 +17,8 @@
 
   To see how we can get disastrous results here, try
 
-  $ make debug && ./downward-1-debug --search 'astar(mas(10000,shrink_strategy=shrink_fh(LOW,HIGH)))' < output
+  $ make debug && ./downward-1-debug --search
+  'astar(mas(10000,shrink_strategy=shrink_fh(LOW,HIGH)))' < output
 
   Of course, LOW/HIGH are not very clever parameters, but that is not
   the point here. The init h value drops from 43 to 0 at the point
@@ -30,35 +31,36 @@
 
 namespace merge_and_shrink {
 
-class ShrinkFH : public ShrinkBucketBased
-{
+class ShrinkFH : public ShrinkBucketBased {
 public:
-    enum HighLow {HIGH, LOW};
+    enum HighLow { HIGH, LOW };
 
 private:
     const HighLow f_start;
     const HighLow h_start;
 
     void ordered_buckets_use_vector(
-        const Abstraction &abs,
-        std::vector<Bucket> &buckets) const;
+        const Abstraction& abs,
+        std::vector<Bucket>& buckets) const;
     void ordered_buckets_use_map(
-        const Abstraction &abs,
-        std::vector<Bucket> &buckets) const;
+        const Abstraction& abs,
+        std::vector<Bucket>& buckets) const;
+
 protected:
     virtual std::string name() const;
     virtual void dump_strategy_specific_options() const;
 
-    virtual void partition_into_buckets(
-        const Abstraction &abs, std::vector<Bucket> &buckets) const;
+    virtual void
+    partition_into_buckets(const Abstraction& abs, std::vector<Bucket>& buckets)
+        const;
 
 public:
-    ShrinkFH(const options::Options &opts);
+    ShrinkFH(const options::Options& opts);
     virtual ~ShrinkFH();
 
     static std::shared_ptr<ShrinkStrategy> create_default(int max_states);
 };
 
-}
+} // namespace merge_and_shrink
 
 #endif

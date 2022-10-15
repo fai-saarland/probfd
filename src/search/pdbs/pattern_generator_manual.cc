@@ -1,11 +1,11 @@
-#include "pattern_generator_manual.h"
+#include "pdbs/pattern_generator_manual.h"
 
-#include "pattern_information.h"
+#include "pdbs/pattern_information.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "utils/logging.h"
 
-#include "../utils/logging.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <iostream>
 

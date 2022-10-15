@@ -1,7 +1,8 @@
-#include "util.h"
+#include "landmarks/util.h"
 
-#include "landmark_graph.h"
-#include "../global_operator.h"
+#include "landmarks/landmark_graph.h"
+
+#include "global_operator.h"
 
 #include <limits>
 

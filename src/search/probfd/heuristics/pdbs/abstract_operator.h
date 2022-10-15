@@ -1,8 +1,9 @@
 #ifndef MDPS_HEURISTICS_PDBS_ABSTRACT_OPERATOR_H
 #define MDPS_HEURISTICS_PDBS_ABSTRACT_OPERATOR_H
 
-#include "../../distribution.h"
-#include "abstract_state.h"
+#include "probfd/heuristics/pdbs/abstract_state.h"
+
+#include "probfd/distribution.h"
 
 #include <string>
 #include <vector>

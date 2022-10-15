@@ -1,9 +1,10 @@
 #include "variable_order_finder.h"
 
-#include "../globals.h"
-#include "../causal_graph.h"
-#include "../utils/system.h"
-#include "../utils/rng.h"
+#include "globals.h"
+#include "causal_graph.h"
+
+#include "utils/system.h"
+#include "utils/rng.h"
 
 #include <algorithm>
 #include <cassert>

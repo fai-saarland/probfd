@@ -9,7 +9,7 @@ class GlobalState;
 
 namespace successor_generator {
 
-template<typename Entry>
+template <typename Entry>
 class GeneratorBase {
 public:
     virtual ~GeneratorBase() {}
@@ -28,7 +28,7 @@ public:
         std::vector<Entry>& result) const = 0;
 };
 
-template<typename Entry>
+template <typename Entry>
 class GeneratorForkBinary : public GeneratorBase<Entry> {
     std::unique_ptr<GeneratorBase<Entry>> generator1;
     std::unique_ptr<GeneratorBase<Entry>> generator2;
@@ -52,7 +52,7 @@ public:
         std::vector<Entry>& result) const override;
 };
 
-template<typename Entry>
+template <typename Entry>
 class GeneratorForkMulti : public GeneratorBase<Entry> {
     std::vector<std::unique_ptr<GeneratorBase<Entry>>> children;
 
@@ -74,7 +74,7 @@ public:
         std::vector<Entry>& result) const override;
 };
 
-template<typename Entry>
+template <typename Entry>
 class GeneratorSwitchVector : public GeneratorBase<Entry> {
     int switch_var_id;
     std::vector<std::unique_ptr<GeneratorBase<Entry>>> generator_for_value;
@@ -99,7 +99,7 @@ public:
         std::vector<Entry>& result) const override;
 };
 
-template<typename Entry>
+template <typename Entry>
 class GeneratorSwitchHash : public GeneratorBase<Entry> {
     int switch_var_id;
     std::unordered_map<int, std::unique_ptr<GeneratorBase<Entry>>>
@@ -125,7 +125,7 @@ public:
         std::vector<Entry>& result) const override;
 };
 
-template<typename Entry>
+template <typename Entry>
 class GeneratorSwitchSingle : public GeneratorBase<Entry> {
     int switch_var_id;
     int value;
@@ -151,7 +151,7 @@ public:
         std::vector<Entry>& result) const override;
 };
 
-template<typename Entry>
+template <typename Entry>
 class GeneratorLeafVector : public GeneratorBase<Entry> {
     std::vector<Entry> applicable_operators;
 
@@ -172,7 +172,7 @@ public:
         std::vector<Entry>& result) const override;
 };
 
-template<typename Entry>
+template <typename Entry>
 class GeneratorLeafSingle : public GeneratorBase<Entry> {
     Entry applicable_operator;
 
@@ -195,6 +195,6 @@ public:
 
 } // namespace successor_generator
 
-#include "successor_generator_internals.cc"
+#include "successor_generator_internals-impl.h"
 
 #endif

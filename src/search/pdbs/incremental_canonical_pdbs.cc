@@ -1,8 +1,10 @@
-#include "incremental_canonical_pdbs.h"
+#include "pdbs/incremental_canonical_pdbs.h"
 
-#include "canonical_pdbs.h"
-#include "pattern_database.h"
-#include "../global_state.h"
+#include "pdbs/canonical_pdbs.h"
+#include "pdbs/pattern_database.h"
+
+#include "global_state.h"
+
 #include <limits>
 
 using namespace std;

@@ -1,14 +1,18 @@
-#include "budget_pruning.h"
+#include "probfd/heuristics/budget_pruning.h"
 
-#include "../../global_state.h"
-#include "../../heuristic.h"
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../../state_registry.h"
-#include "../../utils/hash.h"
-#include "../analysis_objectives/analysis_objective.h"
-#include "../globals.h"
-#include "../utils/logging.h"
+#include "probfd/analysis_objectives/analysis_objective.h"
+
+#include "probfd/globals.h"
+
+#include "probfd/utils/logging.h"
+
+#include "utils/hash.h"
+
+#include "global_state.h"
+#include "heuristic.h"
+#include "option_parser.h"
+#include "plugin.h"
+#include "state_registry.h"
 
 namespace probfd {
 namespace heuristics {

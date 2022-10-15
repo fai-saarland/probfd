@@ -1,13 +1,13 @@
 #ifndef OPTIONS_OPTION_PARSER_H
 #define OPTIONS_OPTION_PARSER_H
 
-#include "doc_utils.h"
-#include "options.h"
-#include "predefinitions.h"
-#include "registries.h"
+#include "options/doc_utils.h"
+#include "options/options.h"
+#include "options/predefinitions.h"
+#include "options/registries.h"
 
-#include "../utils/math.h"
-#include "../utils/strings.h"
+#include "utils/math.h"
+#include "utils/strings.h"
 
 #include <cctype>
 #include <limits>

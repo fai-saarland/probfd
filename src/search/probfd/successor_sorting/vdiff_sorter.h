@@ -1,8 +1,8 @@
 #ifndef MDPS_SUCCESSOR_SORTING_VDIFF_SORTER_H
 #define MDPS_SUCCESSOR_SORTING_VDIFF_SORTER_H
 
-#include "../policy_picker.h"
-#include "../successor_sort.h"
+#include "probfd/policy_picker.h"
+#include "probfd/successor_sort.h"
 
 namespace options {
 class Options;

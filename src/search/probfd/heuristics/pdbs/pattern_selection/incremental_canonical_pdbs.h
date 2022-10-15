@@ -1,12 +1,14 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_INCREMENTAL_CANONICAL_PDBS_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_INCREMENTAL_CANONICAL_PDBS_H
 
-#include "pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_information.h"
 
-#include "../../../../operator_cost.h"
-#include "../../../evaluation_result.h"
-#include "../../../value_type.h"
-#include "../types.h"
+#include "probfd/heuristics/pdbs/types.h"
+
+#include "probfd/evaluation_result.h"
+#include "probfd/value_type.h"
+
+#include "operator_cost.h"
 
 #include <memory>
 

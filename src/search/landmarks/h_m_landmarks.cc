@@ -1,5 +1,6 @@
-#include "h_m_landmarks.h"
-#include "../plugin.h"
+#include "landmarks/h_m_landmarks.h"
+
+#include "plugin.h"
 
 using namespace std;
 

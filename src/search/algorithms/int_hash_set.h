@@ -1,9 +1,9 @@
 #ifndef ALGORITHMS_INT_HASH_SET_H
 #define ALGORITHMS_INT_HASH_SET_H
 
-#include "../utils/collections.h"
-#include "../utils/language.h"
-#include "../utils/system.h"
+#include "utils/collections.h"
+#include "utils/language.h"
+#include "utils/system.h"
 
 #include <algorithm>
 #include <cassert>

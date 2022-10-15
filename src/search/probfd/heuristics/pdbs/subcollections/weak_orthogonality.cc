@@ -1,10 +1,11 @@
-#include "weak_orthogonality.h"
+#include "probfd/heuristics/pdbs/subcollections/weak_orthogonality.h"
 
-#include "../../../../pdbs/pattern_cliques.h"
-#include "../../../globals.h"
-#include "../../../probabilistic_operator.h"
+#include "probfd/heuristics/pdbs/syntactic_projection.h"
 
-#include "../syntactic_projection.h"
+#include "probfd/globals.h"
+#include "probfd/probabilistic_operator.h"
+
+#include "pdbs/pattern_cliques.h"
 
 namespace probfd {
 namespace heuristics {

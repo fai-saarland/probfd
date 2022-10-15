@@ -1,7 +1,7 @@
-#include "successor_sort.h"
+#include "probfd/successor_sort.h"
 
-#include "../global_state.h"
-#include "../plugin.h"
+#include "global_state.h"
+#include "plugin.h"
 
 #include <cassert>
 

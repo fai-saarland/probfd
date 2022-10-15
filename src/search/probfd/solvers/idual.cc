@@ -1,11 +1,14 @@
-#include "../engines/idual.h"
+#include "probfd/solvers/mdp_solver.h"
 
-#include "../../lp/lp_solver.h"
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../progress_report.h"
-#include "../state_evaluator.h"
-#include "mdp_solver.h"
+#include "probfd/engines/idual.h"
+
+#include "probfd/progress_report.h"
+#include "probfd/state_evaluator.h"
+
+#include "lp/lp_solver.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace solvers {

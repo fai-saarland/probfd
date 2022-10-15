@@ -1,9 +1,9 @@
 #ifndef OPTIONS_ERRORS_H
 #define OPTIONS_ERRORS_H
 
-#include "parse_tree.h"
+#include "options/parse_tree.h"
 
-#include "../utils/exceptions.h"
+#include "utils/exceptions.h"
 
 #include <string>
 

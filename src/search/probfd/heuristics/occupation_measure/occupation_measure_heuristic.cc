@@ -1,15 +1,18 @@
-#include "occupation_measure_heuristic.h"
+#include "probfd/heuristics/occupation_measure/occupation_measure_heuristic.h"
 
-#include "../../../global_operator.h"
-#include "../../../globals.h"
-#include "../../../option_parser.h"
-#include "../../../plugin.h"
-#include "../../../utils/system.h"
-#include "../../../utils/timer.h"
-#include "../../analysis_objectives/expected_cost_objective.h"
-#include "../../analysis_objectives/goal_probability_objective.h"
-#include "../../globals.h"
-#include "../../probabilistic_operator.h"
+#include "global_operator.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
+
+#include "utils/system.h"
+#include "utils/timer.h"
+
+#include "probfd/analysis_objectives/expected_cost_objective.h"
+#include "probfd/analysis_objectives/goal_probability_objective.h"
+
+#include "probfd/globals.h"
+#include "probfd/probabilistic_operator.h"
 
 #include <algorithm>
 #include <cassert>

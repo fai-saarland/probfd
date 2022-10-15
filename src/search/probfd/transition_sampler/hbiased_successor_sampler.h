@@ -1,8 +1,9 @@
 #ifndef MDPS_TRANSITION_SAMPLER_HBIASED_SUCCESSOR_SAMPLER_H
 #define MDPS_TRANSITION_SAMPLER_HBIASED_SUCCESSOR_SAMPLER_H
 
-#include "../transition_sampler.h"
-#include "../utils/distribution_random_sampler.h"
+#include "probfd/transition_sampler.h"
+
+#include "probfd/utils/distribution_random_sampler.h"
 
 #include <memory>
 

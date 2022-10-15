@@ -1,10 +1,13 @@
-#include "../engines/exhaustive_ao.h"
+#include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../open_list.h"
-#include "../utils/logging.h"
-#include "mdp_heuristic_search.h"
+#include "probfd/engines/exhaustive_ao.h"
+
+#include "probfd/utils/logging.h"
+
+#include "probfd/open_list.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace solvers {

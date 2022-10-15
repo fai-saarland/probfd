@@ -1,19 +1,19 @@
-#include "sampling_flaw_finder.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/sampling_flaw_finder.h"
 
-#include "abstract_solution_data.h"
-#include "pattern_collection_generator_cegar.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_cegar.h"
 
-#include "../../abstract_state.h"
-#include "../../expcost_projection.h"
-#include "../../maxprob_projection.h"
+#include "probfd/heuristics/pdbs/abstract_state.h"
+#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
 
-#include "../../../../distribution.h"
+#include "probfd/distribution.h"
 
-#include "../../../../../option_parser.h"
-#include "../../../../../plugin.h"
+#include "utils/collections.h"
+#include "utils/rng.h"
 
-#include "../../../../../utils/collections.h"
-#include "../../../../../utils/rng.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <stack>
 

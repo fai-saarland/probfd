@@ -1,8 +1,9 @@
 #ifndef MERGE_AND_SHRINK_FF_HEURISTIC_H
 #define MERGE_AND_SHRINK_FF_HEURISTIC_H
 
-#include "additive_heuristic.h"
-#include "../utils/rng.h"
+#include "merge_and_shrink/additive_heuristic.h"
+
+#include "utils/rng.h"
 
 #include <vector>
 

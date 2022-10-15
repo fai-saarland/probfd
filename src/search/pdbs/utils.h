@@ -1,9 +1,9 @@
 #ifndef PDBS_UTILS_H
 #define PDBS_UTILS_H
 
-#include "types.h"
+#include "pdbs/types.h"
 
-#include "../utils/timer.h"
+#include "utils/timer.h"
 
 #include <memory>
 #include <string>

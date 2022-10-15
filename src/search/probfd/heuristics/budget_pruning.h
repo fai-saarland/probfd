@@ -1,8 +1,8 @@
 #ifndef MDPS_HEURISTICS_BUDGET_PRUNING_H
 #define MDPS_HEURISTICS_BUDGET_PRUNING_H
 
-#include "../state_evaluator.h"
-#include "../types.h"
+#include "probfd/state_evaluator.h"
+#include "probfd/types.h"
 
 #include <memory>
 #include <unordered_map>

@@ -1,10 +1,11 @@
-#include "standard_scalar_open_list.h"
-#include "open_list_factory.h"
+#include "open_lists/standard_scalar_open_list.h"
 
-#include "../evaluator.h"
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../state_id.h"
+#include "open_lists/open_list_factory.h"
+
+#include "evaluator.h"
+#include "option_parser.h"
+#include "plugin.h"
+#include "state_id.h"
 
 #include <cassert>
 

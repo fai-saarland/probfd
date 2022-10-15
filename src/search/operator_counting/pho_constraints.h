@@ -1,9 +1,9 @@
 #ifndef OPERATOR_COUNTING_PHO_CONSTRAINTS_H
 #define OPERATOR_COUNTING_PHO_CONSTRAINTS_H
 
-#include "constraint_generator.h"
+#include "operator_counting/constraint_generator.h"
 
-#include "../pdbs/types.h"
+#include "pdbs/types.h"
 
 #include <memory>
 
@@ -21,16 +21,18 @@ class PhOConstraints : public ConstraintGenerator {
 
     int constraint_offset;
     std::shared_ptr<pdbs::PDBCollection> pdbs;
+
 public:
-    explicit PhOConstraints(const options::Options &opts);
+    explicit PhOConstraints(const options::Options& opts);
 
     virtual void initialize_constraints(
         OperatorCost cost_type,
-        std::vector<lp::LPConstraint> &constraints,
+        std::vector<lp::LPConstraint>& constraints,
         double infinity) override;
-    virtual bool update_constraints(
-        const GlobalState &state, lp::LPSolver &lp_solver) override;
+    virtual bool
+    update_constraints(const GlobalState& state, lp::LPSolver& lp_solver)
+        override;
 };
-}
+} // namespace operator_counting
 
 #endif

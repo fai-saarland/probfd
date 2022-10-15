@@ -1,20 +1,26 @@
 #ifndef MDPS_ENGINES_I2DUAL_H
 #define MDPS_ENGINES_I2DUAL_H
 
-#include "engine.h"
+#include "probfd/engines/engine.h"
 
-#include "../../global_state.h"
-#include "../../lp/lp_solver.h"
-#include "../../utils/timer.h"
+#include "probfd/analysis_objectives/analysis_objective.h"
+#include "probfd/analysis_objectives/goal_probability_objective.h"
 
-#include "../analysis_objectives/analysis_objective.h"
-#include "../analysis_objectives/goal_probability_objective.h"
-#include "../globals.h"
-#include "../heuristics/occupation_measure/occupation_measure_heuristic.h"
-#include "../progress_report.h"
-#include "../storage/per_state_storage.h"
-#include "../utils/logging.h"
-#include "../value_type.h"
+#include "probfd/heuristics/occupation_measure/occupation_measure_heuristic.h"
+
+#include "probfd/storage/per_state_storage.h"
+
+#include "probfd/utils/logging.h"
+
+#include "probfd/globals.h"
+#include "probfd/progress_report.h"
+#include "probfd/value_type.h"
+
+#include "lp/lp_solver.h"
+
+#include "utils/timer.h"
+
+#include "global_state.h"
 
 #include <memory>
 #include <vector>

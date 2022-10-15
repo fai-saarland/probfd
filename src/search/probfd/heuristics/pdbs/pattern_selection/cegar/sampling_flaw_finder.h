@@ -1,8 +1,9 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_SAMPLING_FLAW_FINDER_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_SAMPLING_FLAW_FINDER_H
 
-#include "../../../../distribution.h"
-#include "flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy.h"
+
+#include "probfd/distribution.h"
 
 #include <stack>
 #include <unordered_map>

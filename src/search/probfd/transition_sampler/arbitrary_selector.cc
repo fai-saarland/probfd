@@ -1,7 +1,7 @@
-#include "arbitrary_selector.h"
+#include "probfd/transition_sampler/arbitrary_selector.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <memory>
 

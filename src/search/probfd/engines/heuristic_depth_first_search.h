@@ -1,7 +1,7 @@
 #ifndef MDPS_ENGINES_HEURISTIC_DEPTH_FIRST_SEARCH_H
 #define MDPS_ENGINES_HEURISTIC_DEPTH_FIRST_SEARCH_H
 
-#include "heuristic_search_base.h"
+#include "probfd/engines/heuristic_search_base.h"
 
 #include <cassert>
 #include <deque>

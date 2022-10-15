@@ -1,9 +1,9 @@
 #ifndef PDBS_ZERO_ONE_PDBS_HEURISTIC_H
 #define PDBS_ZERO_ONE_PDBS_HEURISTIC_H
 
-#include "zero_one_pdbs.h"
+#include "pdbs/zero_one_pdbs.h"
 
-#include "../heuristic.h"
+#include "heuristic.h"
 
 namespace pdbs {
 class PatternDatabase;

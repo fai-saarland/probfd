@@ -1,7 +1,7 @@
-#include "fifo_open_list.h"
+#include "probfd/open_lists/fifo_open_list.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace open_lists {

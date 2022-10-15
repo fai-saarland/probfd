@@ -1,7 +1,8 @@
-#include "shrink_bucket_based.h"
+#include "merge_and_shrink/shrink_bucket_based.h"
 
-#include "abstraction.h"
-#include "../option_parser.h"
+#include "merge_and_shrink/abstraction.h"
+
+#include "option_parser.h"
 
 #include <cassert>
 #include <iostream>

@@ -1,16 +1,23 @@
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../../solver_interface.h"
-#include "../../state_registry.h"
-#include "../../utils/timer.h"
-#include "../analysis_objectives/analysis_objective.h"
-#include "../bisimulation/bisimilar_state_space.h"
-#include "../bisimulation/engine_interfaces.h"
-#include "../engines/interval_iteration.h"
-#include "../engines/topological_value_iteration.h"
-#include "../globals.h"
-#include "../heuristics/constant_evaluator.h"
-#include "../utils/logging.h"
+#include "probfd/analysis_objectives/analysis_objective.h"
+
+#include "probfd/bisimulation/bisimilar_state_space.h"
+#include "probfd/bisimulation/engine_interfaces.h"
+
+#include "probfd/engines/interval_iteration.h"
+#include "probfd/engines/topological_value_iteration.h"
+
+#include "probfd/heuristics/constant_evaluator.h"
+
+#include "probfd/utils/logging.h"
+
+#include "probfd/globals.h"
+
+#include "utils/timer.h"
+
+#include "option_parser.h"
+#include "plugin.h"
+#include "solver_interface.h"
+#include "state_registry.h"
 
 #include <iomanip>
 

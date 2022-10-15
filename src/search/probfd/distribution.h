@@ -1,11 +1,11 @@
 #ifndef MDPS_DISTRIBUTION_H
 #define MDPS_DISTRIBUTION_H
 
-#include "value_type.h"
+#include "probfd/value_type.h"
 
-#include "../utils/iterators.h"
-#include "../utils/range_proxy.h"
-#include "../utils/rng.h"
+#include "utils/iterators.h"
+#include "utils/range_proxy.h"
+#include "utils/rng.h"
 
 #include <algorithm>
 #include <cassert>

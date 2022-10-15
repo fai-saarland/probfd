@@ -1,8 +1,8 @@
 #ifndef MDPS_ENGINE_INTERACES_REWARD_FUNCTION_H
 #define MDPS_ENGINE_INTERACES_REWARD_FUNCTION_H
 
-#include "../evaluation_result.h"
-#include "../types.h"
+#include "probfd/evaluation_result.h"
+#include "probfd/types.h"
 
 namespace probfd {
 namespace engine_interfaces {

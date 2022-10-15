@@ -1,10 +1,13 @@
 #ifndef MDPS_ENGINES_IDUAL_H
 #define MDPS_ENGINES_IDUAL_H
 
-#include "../../lp/lp_solver.h"
-#include "../progress_report.h"
-#include "../storage/per_state_storage.h"
-#include "engine.h"
+#include "probfd/engines/engine.h"
+
+#include "probfd/storage/per_state_storage.h"
+
+#include "probfd/progress_report.h"
+
+#include "lp/lp_solver.h"
 
 #include <set>
 #include <vector>

@@ -1,10 +1,12 @@
 #ifndef MDPS_STORAGE_PER_STATE_STORAGE_H
 #define MDPS_STORAGE_PER_STATE_STORAGE_H
 
-#include "../../algorithms/segmented_vector.h"
-#include "../../utils/iterators.h"
-#include "../types.h"
-#include "../value_type.h"
+#include "probfd/types.h"
+#include "probfd/value_type.h"
+
+#include "algorithms/segmented_vector.h"
+
+#include "utils/iterators.h"
 
 #include <type_traits>
 #include <unordered_map>
@@ -89,14 +91,17 @@ private:
 };
 
 template <template <typename...> class Container>
-struct is_container_persistent : std::false_type {};
+struct is_container_persistent : std::false_type {
+};
 
 template <>
-struct is_container_persistent<HashMap> : std::true_type {};
+struct is_container_persistent<HashMap> : std::true_type {
+};
 
 template <>
 struct is_container_persistent<segmented_vector::DynamicSegmentedVector>
-    : std::true_type {};
+    : std::true_type {
+};
 
 namespace internal {
 

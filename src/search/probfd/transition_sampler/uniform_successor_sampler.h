@@ -1,9 +1,11 @@
 #ifndef MDPS_TRANSITION_SAMPLER_UNIFORM_SUCCESSOR_SAMPLER_H
 #define MDPS_TRANSITION_SAMPLER_UNIFORM_SUCCESSOR_SAMPLER_H
 
-#include "../probabilistic_operator.h"
-#include "../transition_sampler.h"
-#include "../utils/distribution_uniform_sampler.h"
+#include "probfd/probabilistic_operator.h"
+#include "probfd/transition_sampler.h"
+
+#include "probfd/utils/distribution_uniform_sampler.h"
+
 
 namespace probfd {
 namespace transition_sampler {

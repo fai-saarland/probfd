@@ -1,7 +1,7 @@
 #ifndef PDBS_CANONICAL_PDBS_H
 #define PDBS_CANONICAL_PDBS_H
 
-#include "types.h"
+#include "pdbs/types.h"
 
 #include <memory>
 

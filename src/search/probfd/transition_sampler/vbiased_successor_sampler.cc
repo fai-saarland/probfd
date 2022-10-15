@@ -1,7 +1,7 @@
-#include "vbiased_successor_sampler.h"
+#include "probfd/transition_sampler/vbiased_successor_sampler.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace transition_sampler {

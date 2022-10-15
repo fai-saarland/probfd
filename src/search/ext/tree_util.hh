@@ -28,7 +28,7 @@
 #define tree_util_hh_
 
 #include <iostream>
-#include "tree.hh"
+#include "ext/tree.hh"
 
 namespace kptree {
 

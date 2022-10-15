@@ -1,25 +1,28 @@
-#include "bisimilar_state_space.h"
+#include "probfd/bisimulation/bisimilar_state_space.h"
 
-#include "engine_interfaces.h"
+#include "probfd/bisimulation/engine_interfaces.h"
 
-#include "../../algorithms/segmented_vector.h"
-#include "../../global_operator.h"
-#include "../../global_state.h"
-#include "../../globals.h"
-#include "../../merge_and_shrink/abstraction.h"
-#include "../../merge_and_shrink/linear_merge_strategy.h"
-#include "../../merge_and_shrink/merge_and_shrink_heuristic.h"
-#include "../../merge_and_shrink/multiple_shrinking_strategies.h"
-#include "../../merge_and_shrink/shrink_bisimulation.h"
-#include "../../merge_and_shrink/shrink_budget_based.h"
-#include "../../merge_and_shrink/shrink_strategy.h"
-#include "../../merge_and_shrink/variable_order_finder.h"
-#include "../../option_parser.h"
-#include "../../utils/hash.h"
-#include "../../utils/system.h"
-#include "../../utils/timer.h"
-#include "../globals.h"
-#include "../probabilistic_operator.h"
+#include "probfd/probabilistic_operator.h"
+#include "probfd/globals.h"
+
+#include "algorithms/segmented_vector.h"
+
+#include "merge_and_shrink/abstraction.h"
+#include "merge_and_shrink/linear_merge_strategy.h"
+#include "merge_and_shrink/merge_and_shrink_heuristic.h"
+#include "merge_and_shrink/multiple_shrinking_strategies.h"
+#include "merge_and_shrink/shrink_bisimulation.h"
+#include "merge_and_shrink/shrink_budget_based.h"
+#include "merge_and_shrink/shrink_strategy.h"
+#include "merge_and_shrink/variable_order_finder.h"
+
+#include "utils/hash.h"
+#include "utils/system.h"
+#include "utils/timer.h"
+
+#include "global_operator.h"
+#include "global_state.h"
+#include "option_parser.h"
 
 #include <cassert>
 #include <map>

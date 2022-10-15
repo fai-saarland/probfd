@@ -1,9 +1,9 @@
-#include "store_heuristic.h"
+#include "probfd/new_state_handlers/store_heuristic.h"
 
-#include "../../global_state.h"
-#include "../../heuristic.h"
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "global_state.h"
+#include "heuristic.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace new_state_handlers {

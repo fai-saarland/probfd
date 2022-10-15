@@ -1,13 +1,13 @@
-#include "abstract_solution_data.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data.h"
 
-#include "../../../../../global_state.h"
+#include "global_state.h"
 
-#include "../../../../../utils/hash.h"
-#include "../../../../../utils/rng.h"
+#include "utils/hash.h"
+#include "utils/rng.h"
 
-#include "../../abstract_state_mapper.h"
-#include "../../expcost_projection.h"
-#include "../../maxprob_projection.h"
+#include "probfd/heuristics/pdbs/abstract_state_mapper.h"
+#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
 
 #include <functional>
 #include <limits>

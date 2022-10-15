@@ -1,19 +1,19 @@
-#include "merge_and_shrink_heuristic.h"
+#include "merge_and_shrink/merge_and_shrink_heuristic.h"
 
-#include "linear_merge_strategy.h"
-#include "abstraction.h"
-#include "shrink_fh.h"
-#include "variable_order_finder.h"
+#include "merge_and_shrink/abstraction.h"
+#include "merge_and_shrink/linear_merge_strategy.h"
+#include "merge_and_shrink/shrink_bisimulation.h"
+#include "merge_and_shrink/shrink_fh.h"
+#include "merge_and_shrink/shrink_label_subset_bisimulation.h"
+#include "merge_and_shrink/variable_order_finder.h"
 
-#include "../causal_graph.h"
-#include "../globals.h"
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../global_state.h"
-#include "../utils/timer.h"
+#include "utils/timer.h"
 
-#include "shrink_bisimulation.h"
-#include "shrink_label_subset_bisimulation.h"
+#include "causal_graph.h"
+#include "global_state.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <limits>

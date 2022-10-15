@@ -1,9 +1,10 @@
 #ifndef LANDMARKS_H_M_LANDMARKS_H
 #define LANDMARKS_H_M_LANDMARKS_H
 
-#include "landmark_factory.h"
-#include "landmark_graph.h"
-#include "../globals.h"
+#include "globals.h"
+
+#include "landmarks/landmark_factory.h"
+#include "landmarks/landmark_graph.h"
 
 typedef std::pair<int, int> Fluent;
 typedef std::vector<Fluent> FluentSet;

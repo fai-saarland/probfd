@@ -1,11 +1,13 @@
 #ifndef PDBS_PATTERN_GENERATOR_H
 #define PDBS_PATTERN_GENERATOR_H
 
-#include "pattern_collection_information.h"
-#include "pattern_information.h"
-#include "types.h"
-#include "../operator_cost.h"
-#include "../utils/printable.h"
+#include "pdbs/pattern_collection_information.h"
+#include "pdbs/pattern_information.h"
+#include "pdbs/types.h"
+
+#include "utils/printable.h"
+
+#include "operator_cost.h"
 
 #include <memory>
 

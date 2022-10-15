@@ -1,11 +1,10 @@
 #ifndef OPTIONS_REGISTRIES_H
 #define OPTIONS_REGISTRIES_H
 
+#include "options/doc_utils.h"
+#include "options/raw_registry.h"
+
 #include <any>
-
-#include "doc_utils.h"
-#include "raw_registry.h"
-
 #include <functional>
 #include <string>
 #include <typeindex>

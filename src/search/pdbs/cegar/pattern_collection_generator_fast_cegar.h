@@ -1,9 +1,9 @@
 #ifndef PDBS_PATTERN_COLLECTION_GENERATOR_FAST_CEGAR_H
 #define PDBS_PATTERN_COLLECTION_GENERATOR_FAST_CEGAR_H
 
-#include "../pattern_generator.h"
+#include "pdbs/pattern_generator.h"
 
-#include "../utils/logging.h"
+#include "utils/logging.h"
 
 namespace options {
 class Options;
@@ -19,7 +19,7 @@ class PatternCollectionGeneratorFastCegar : public PatternCollectionGenerator {
     const bool single_generator_extended_plans;
     const bool single_generator_treat_goal_violations_differently;
     const bool single_generator_local_blacklisting;
-    const double single_generator_max_time; // Possibly overwritten by 
+    const double single_generator_max_time; // Possibly overwritten by
                                             // remaining total_time_limit
     const utils::Verbosity single_generator_verbosity;
 
@@ -29,14 +29,14 @@ class PatternCollectionGeneratorFastCegar : public PatternCollectionGenerator {
     const double blacklist_trigger_time;
     const bool blacklist_on_stagnation;
     const double total_time_limit;
-    
+
 public:
-    explicit PatternCollectionGeneratorFastCegar(options::Options &opts);
+    explicit PatternCollectionGeneratorFastCegar(options::Options& opts);
     virtual ~PatternCollectionGeneratorFastCegar() = default;
 
     virtual PatternCollectionInformation
     generate(OperatorCost cost_type) override;
 };
-}
+} // namespace pdbs
 
 #endif

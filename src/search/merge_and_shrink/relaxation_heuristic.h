@@ -1,7 +1,7 @@
 #ifndef MERGE_AND_SHRINK_RELAXATION_HEURISTIC_H
 #define MERGE_AND_SHRINK_RELAXATION_HEURISTIC_H
 
-#include "../heuristic.h"
+#include "heuristic.h"
 
 #include <vector>
 

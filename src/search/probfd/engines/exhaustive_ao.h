@@ -1,8 +1,9 @@
 #ifndef MDPS_ENGINES_EXHAUSTIVE_AO_H
 #define MDPS_ENGINES_EXHAUSTIVE_AO_H
 
-#include "../engine_interfaces/open_list.h"
-#include "ao_search.h"
+#include "probfd/engines/ao_search.h"
+
+#include "probfd/engine_interfaces/open_list.h"
 
 #include <iostream>
 #include <sstream>

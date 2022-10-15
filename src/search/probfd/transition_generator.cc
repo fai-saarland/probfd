@@ -1,14 +1,17 @@
-#include "transition_generator.h"
+#include "probfd/transition_generator.h"
 
-#include "../algorithms/int_packer.h"
-#include "../global_operator.h"
-#include "../global_state.h"
-#include "../globals.h"
-#include "../heuristic.h"
-#include "../state_registry.h"
-#include "../successor_generator.h"
+#include "probfd/utils/logging.h"
+
+#include "probfd/globals.h"
+
+#include "algorithms/int_packer.h"
+
+#include "global_operator.h"
+#include "global_state.h"
 #include "globals.h"
-#include "utils/logging.h"
+#include "heuristic.h"
+#include "state_registry.h"
+#include "successor_generator.h"
 
 #ifndef NDEBUG
 #define DEBUG_CACHE_CONSISTENCY_CHECK

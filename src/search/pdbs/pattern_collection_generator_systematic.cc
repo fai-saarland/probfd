@@ -1,16 +1,16 @@
-#include "pattern_collection_generator_systematic.h"
+#include "pdbs/pattern_collection_generator_systematic.h"
 
-#include "utils.h"
-#include "validation.h"
+#include "pdbs/utils.h"
+#include "pdbs/validation.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../globals.h"
+#include "utils/logging.h"
+#include "utils/markup.h"
+#include "utils/timer.h"
 
-#include "../causal_graph.h"
-#include "../utils/logging.h"
-#include "../utils/markup.h"
-#include "../utils/timer.h"
+#include "causal_graph.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <algorithm>
 #include <cassert>

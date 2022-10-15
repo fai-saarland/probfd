@@ -1,7 +1,7 @@
 #ifndef MDPS_TRANSITION_SAMPLER_MOST_LIKELY_SELECTOR_H
 #define MDPS_TRANSITION_SAMPLER_MOST_LIKELY_SELECTOR_H
 
-#include "../transition_sampler.h"
+#include "probfd/transition_sampler.h"
 
 namespace probfd {
 namespace transition_sampler {

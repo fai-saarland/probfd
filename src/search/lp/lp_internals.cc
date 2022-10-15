@@ -1,9 +1,9 @@
-#include "lp_internals.h"
+#include "lp/lp_internals.h"
 
 #ifdef USE_LP
-#include "lp_solver.h"
+#include "lp/lp_solver.h"
 
-#include "../utils/system.h"
+#include "utils/system.h"
 
 #ifdef __GNUG__
 #pragma GCC diagnostic push

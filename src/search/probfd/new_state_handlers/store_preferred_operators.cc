@@ -1,13 +1,14 @@
-#include "store_preferred_operators.h"
+#include "probfd/new_state_handlers/store_preferred_operators.h"
 
-#include "../../global_operator.h"
-#include "../../global_state.h"
-#include "../../globals.h"
-#include "../../heuristic.h"
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../globals.h"
-#include "../probabilistic_operator.h"
+#include "probfd/globals.h"
+#include "probfd/probabilistic_operator.h"
+
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
+#include "heuristic.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <algorithm>
 #include <cassert>

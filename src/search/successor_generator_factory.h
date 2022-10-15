@@ -34,6 +34,6 @@ std::unique_ptr<GeneratorBase<Entry> > create(
 
 } // namespace successor_generator
 
-#include "successor_generator_factory.cc"
+#include "successor_generator_factory-impl.h"
 
 #endif

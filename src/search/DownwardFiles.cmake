@@ -230,8 +230,8 @@ fast_downward_plugin(
     HELP "Successor generator"
     SOURCES
         successor_generator
-        successor_generator_factory
-        successor_generator_internals
+        #successor_generator_factory
+        #successor_generator_internals
 )
 
 fast_downward_plugin(

@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_TYPES_H
 #define MDPS_HEURISTICS_PDBS_TYPES_H
 
-#include "../../../pdbs/types.h"
+#include "pdbs/types.h"
 
 namespace pdbs {
 class PatternCollectionGenerator;

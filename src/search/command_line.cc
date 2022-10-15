@@ -1,25 +1,25 @@
 #include "command_line.h"
 
-#include "option_parser.h"
-#include "solver_interface.h"
-
 #include "options/doc_printer.h"
 #include "options/predefinitions.h"
 #include "options/registries.h"
-#include "utils/strings.h"
 
-#include "causal_graph.h"
-#include "global_operator.h"
-#include "globals.h"
-#include "successor_generator.h"
 #include "utils/rng.h"
+#include "utils/strings.h"
 #include "utils/timer.h"
 
-#include "operator_cost.h"
 #include "probfd/analysis_objectives/expected_cost_objective.h"
 #include "probfd/analysis_objectives/goal_probability_objective.h"
 #include "probfd/globals.h"
 #include "probfd/value_type.h"
+
+#include "causal_graph.h"
+#include "global_operator.h"
+#include "globals.h"
+#include "operator_cost.h"
+#include "option_parser.h"
+#include "solver_interface.h"
+#include "successor_generator.h"
 
 #include <algorithm>
 #include <limits>

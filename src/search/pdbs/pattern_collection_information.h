@@ -1,8 +1,9 @@
 #ifndef PDBS_PATTERN_COLLECTION_INFORMATION_H
 #define PDBS_PATTERN_COLLECTION_INFORMATION_H
 
-#include "types.h"
-#include "../operator_cost.h"
+#include "pdbs/types.h"
+
+#include "operator_cost.h"
 
 #include <memory>
 
@@ -29,15 +30,16 @@ class PatternCollectionInformation {
     void create_pattern_cliques_if_missing();
 
     bool information_is_valid() const;
+
 public:
     PatternCollectionInformation(
         OperatorCost cost_type,
-        const std::shared_ptr<PatternCollection> &patterns);
+        const std::shared_ptr<PatternCollection>& patterns);
     ~PatternCollectionInformation() = default;
 
-    void set_pdbs(const std::shared_ptr<PDBCollection> &pdbs);
+    void set_pdbs(const std::shared_ptr<PDBCollection>& pdbs);
     void set_pattern_cliques(
-        const std::shared_ptr<std::vector<PatternClique>> &pattern_cliques);
+        const std::shared_ptr<std::vector<PatternClique>>& pattern_cliques);
 
     std::shared_ptr<PatternCollection> get_patterns() const;
     std::shared_ptr<PDBCollection> get_pdbs();
@@ -47,6 +49,6 @@ public:
     std::shared_ptr<PDBCollection> move_pdbs();
     std::shared_ptr<std::vector<PatternClique>> move_pattern_cliques();
 };
-}
+} // namespace pdbs
 
 #endif

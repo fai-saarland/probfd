@@ -1,9 +1,10 @@
 #ifndef MDPS_TRANSITION_SAMPLER_H
 #define MDPS_TRANSITION_SAMPLER_H
 
-#include "engine_interfaces/transition_sampler.h"
-#include "heuristic_search_interfaceable.h"
-#include "probabilistic_operator.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
+
+#include "probfd/heuristic_search_interfaceable.h"
+#include "probfd/probabilistic_operator.h"
 
 #include <utility>
 

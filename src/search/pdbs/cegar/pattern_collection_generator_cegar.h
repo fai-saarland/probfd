@@ -1,16 +1,17 @@
 #ifndef PDBS_PATTERN_COLLECTION_GENERATOR_CEGAR_H
 #define PDBS_PATTERN_COLLECTION_GENERATOR_CEGAR_H
 
-#include "../pattern_generator.h"
+#include "pdbs/pattern_generator.h"
 
-#include "../types.h"
+#include "pdbs/types.h"
 
-#include "../../utils/rng.h"
-#include "../../utils/logging.h"
-#include "../../global_state.h"
-#include "../../options/options.h"
-#include "../../globals.h"
-#include "../../global_operator.h"
+#include "utils/rng.h"
+#include "utils/logging.h"
+
+#include "global_state.h"
+#include "options/options.h"
+#include "globals.h"
+#include "global_operator.h"
 
 #include <unordered_set>
 #include <vector>

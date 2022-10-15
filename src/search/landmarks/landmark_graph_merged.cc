@@ -1,6 +1,7 @@
-#include "landmark_graph_merged.h"
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "landmarks/landmark_graph_merged.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <set>
 

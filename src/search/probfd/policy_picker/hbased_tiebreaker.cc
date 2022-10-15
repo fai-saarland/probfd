@@ -1,8 +1,8 @@
-#include "hbased_tiebreaker.h"
+#include "probfd/policy_picker/hbased_tiebreaker.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../new_state_handlers/store_heuristic.h"
+#include "option_parser.h"
+#include "plugin.h"
+#include "probfd/new_state_handlers/store_heuristic.h"
 
 #include <algorithm>
 

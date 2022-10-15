@@ -1,6 +1,6 @@
-#include "canonical_pdbs.h"
+#include "pdbs/canonical_pdbs.h"
 
-#include "pattern_database.h"
+#include "pdbs/pattern_database.h"
 
 #include <algorithm>
 #include <cassert>

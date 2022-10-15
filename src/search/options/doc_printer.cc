@@ -1,9 +1,9 @@
-#include "doc_printer.h"
+#include "options/doc_printer.h"
 
-#include "doc_utils.h"
-#include "registries.h"
+#include "options/doc_utils.h"
+#include "options/registries.h"
 
-#include "../utils/strings.h"
+#include "utils/strings.h"
 
 #include <iostream>
 #include <map>

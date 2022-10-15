@@ -1,4 +1,4 @@
-#include "raw_registry.h"
+#include "options/raw_registry.h"
 
 using namespace std;
 

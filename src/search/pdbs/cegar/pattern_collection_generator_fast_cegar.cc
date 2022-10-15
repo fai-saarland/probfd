@@ -1,18 +1,18 @@
-#include "pattern_collection_generator_fast_cegar.h"
+#include "pdbs/cegar/pattern_collection_generator_fast_cegar.h"
 
-#include "pattern_collection_generator_cegar.h"
+#include "pdbs/cegar/pattern_collection_generator_cegar.h"
 
-#include "../pattern_database.h"
+#include "pdbs/pattern_database.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "utils/collections.h"
+#include "utils/countdown_timer.h"
+#include "utils/hash.h"
+#include "utils/logging.h"
+#include "utils/rng.h"
+#include "utils/rng_options.h"
 
-#include "../utils/collections.h"
-#include "../utils/countdown_timer.h"
-#include "../utils/hash.h"
-#include "../utils/logging.h"
-#include "../utils/rng.h"
-#include "../utils/rng_options.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <vector>
 

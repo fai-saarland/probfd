@@ -1,10 +1,12 @@
 #ifndef LANDMARKS_LANDMARK_FACTORY_RPG_SASP_H
 #define LANDMARKS_LANDMARK_FACTORY_RPG_SASP_H
 
-#include "landmark_factory.h"
-#include "landmark_graph.h"
+#include "landmarks/landmark_factory.h"
+#include "landmarks/landmark_graph.h"
+
+#include "globals.h"
+
 #include <unordered_set>
-#include "../globals.h"
 
 class LandmarkFactoryRpgSasp : public LandmarkFactory {
     std::list<LandmarkNode *> open_landmarks;

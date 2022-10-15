@@ -1,8 +1,9 @@
-#include "preferred_operators_sorter.h"
+#include "probfd/successor_sorting/preferred_operators_sorter.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../new_state_handlers/store_preferred_operators.h"
+#include "probfd/new_state_handlers/store_preferred_operators.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <algorithm>
 

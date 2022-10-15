@@ -1,7 +1,7 @@
 #ifndef OPERATOR_COUNTING_STATE_EQUATION_CONSTRAINTS_H
 #define OPERATOR_COUNTING_STATE_EQUATION_CONSTRAINTS_H
 
-#include "constraint_generator.h"
+#include "operator_counting/constraint_generator.h"
 
 #include <set>
 
@@ -18,7 +18,9 @@ struct Proposition {
     std::set<int> sometimes_produced_by;
     std::set<int> always_consumed_by;
 
-    Proposition() : constraint_index(-1) {
+    Proposition()
+        : constraint_index(-1)
+    {
     }
     ~Proposition() = default;
 };
@@ -29,13 +31,18 @@ class StateEquationConstraints : public ConstraintGenerator {
     std::vector<int> goal_state;
 
     void build_propositions();
-    void add_constraints(std::vector<lp::LPConstraint> &constraints, double infinity);
+    void add_constraints(
+        std::vector<lp::LPConstraint>& constraints,
+        double infinity);
+
 public:
-    virtual void initialize_constraints(OperatorCost cost_type,
-                                        std::vector<lp::LPConstraint> &constraints,
-                                        double infinity);
-    virtual bool update_constraints(const GlobalState &state, lp::LPSolver &lp_solver);
+    virtual void initialize_constraints(
+        OperatorCost cost_type,
+        std::vector<lp::LPConstraint>& constraints,
+        double infinity);
+    virtual bool
+    update_constraints(const GlobalState& state, lp::LPSolver& lp_solver);
 };
-}
+} // namespace operator_counting
 
 #endif

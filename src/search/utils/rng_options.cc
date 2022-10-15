@@ -1,8 +1,8 @@
-#include "rng_options.h"
+#include "utils/rng_options.h"
 
-#include "rng.h"
+#include "utils/rng.h"
 
-#include "../options/option_parser.h"
+#include "options/option_parser.h"
 
 using namespace std;
 

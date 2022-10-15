@@ -1,14 +1,18 @@
-#include "mdp_solver.h"
+#include "probfd/solvers/mdp_solver.h"
 
-#include "../../globals.h"
-#include "../../heuristic.h"
-#include "../../operator_cost.h"
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../../utils/timer.h"
-#include "../analysis_objectives/analysis_objective.h"
-#include "../globals.h"
-#include "../utils/logging.h"
+#include "probfd/analysis_objectives/analysis_objective.h"
+
+#include "probfd/utils/logging.h"
+
+#include "probfd/globals.h"
+
+#include "utils/timer.h"
+
+#include "globals.h"
+#include "heuristic.h"
+#include "operator_cost.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <iomanip>
 #include <vector>

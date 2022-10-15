@@ -1,11 +1,13 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_GENERATOR_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_GENERATOR_H
 
-#include "../../../../operator_cost.h"
-#include "../../../../utils/printable.h"
-#include "../types.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_information.h"
 
-#include "pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/types.h"
+
+#include "utils/printable.h"
+
+#include "operator_cost.h"
 
 #include <memory>
 

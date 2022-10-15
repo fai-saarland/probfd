@@ -1,10 +1,11 @@
 #ifndef PDBS_INCREMENTAL_CANONICAL_PDBS_H
 #define PDBS_INCREMENTAL_CANONICAL_PDBS_H
 
-#include "pattern_cliques.h"
-#include "pattern_collection_information.h"
-#include "types.h"
-#include "../operator_cost.h"
+#include "pdbs/pattern_cliques.h"
+#include "pdbs/pattern_collection_information.h"
+#include "pdbs/types.h"
+
+#include "operator_cost.h"
 
 #include <memory>
 

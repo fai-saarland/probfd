@@ -1,8 +1,9 @@
 #ifndef MDPS_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
 #define MDPS_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
 
-#include "../../../lp/lp_solver.h"
-#include "../../state_evaluator.h"
+#include "probfd/state_evaluator.h"
+
+#include "lp/lp_solver.h"
 
 #include <vector>
 

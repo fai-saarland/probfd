@@ -1,11 +1,11 @@
-#include "pdb_heuristic.h"
+#include "pdbs/pdb_heuristic.h"
 
-#include "pattern_database.h"
-#include "pattern_generator.h"
+#include "pdbs/pattern_database.h"
+#include "pdbs/pattern_generator.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../operator_cost.h"
+#include "option_parser.h"
+#include "plugin.h"
+#include "operator_cost.h"
 
 #include <limits>
 #include <memory>

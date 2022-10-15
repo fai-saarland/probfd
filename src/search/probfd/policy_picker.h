@@ -1,9 +1,11 @@
 #ifndef MDPS_POLICY_PICKER_H
 #define MDPS_POLICY_PICKER_H
 
-#include "engine_interfaces/policy_picker.h"
-#include "heuristic_search_interfaceable.h"
-#include "probabilistic_operator.h"
+#include "probfd/engine_interfaces/policy_picker.h"
+
+#include "probfd/heuristic_search_interfaceable.h"
+
+#include "probfd/probabilistic_operator.h"
 
 class GlobalState;
 

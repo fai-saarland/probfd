@@ -1,18 +1,21 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_PATTERN_COLLECTION_GENERATOR_CEGAR_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_PATTERN_COLLECTION_GENERATOR_CEGAR_H
 
-#include "../pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
 
-#include "../../types.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/types.h"
 
-#include "../../../../../global_state.h"
-#include "../../../../../options/options.h"
-#include "../../../../../utils/logging.h"
-#include "../../../../../utils/rng.h"
-#include "../../../../globals.h"
-#include "../../../../probabilistic_operator.h"
+#include "probfd/heuristics/pdbs/types.h"
 
-#include "types.h"
+#include "probfd/globals.h"
+#include "probfd/probabilistic_operator.h"
+
+#include "options/options.h"
+
+#include "utils/logging.h"
+#include "utils/rng.h"
+
+#include "global_state.h"
 
 #include <string>
 #include <unordered_set>

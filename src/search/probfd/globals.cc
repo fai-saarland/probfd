@@ -1,12 +1,15 @@
-#include "globals.h"
+#include "probfd/globals.h"
 
-#include "../algorithms/int_packer.h"
-#include "../global_operator.h"
-#include "../globals.h"
-#include "../successor_generator.h"
-#include "../utils/hash.h"
-#include "../utils/timer.h"
-#include "analysis_objectives/analysis_objective.h"
+#include "probfd/analysis_objectives/analysis_objective.h"
+
+#include "algorithms/int_packer.h"
+
+#include "utils/hash.h"
+#include "utils/timer.h"
+
+#include "global_operator.h"
+#include "globals.h"
+#include "successor_generator.h"
 
 #include <algorithm>
 #include <cassert>

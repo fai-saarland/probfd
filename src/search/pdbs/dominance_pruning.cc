@@ -1,6 +1,6 @@
-#include "dominance_pruning.h"
+#include "pdbs/dominance_pruning.h"
 
-#include "pattern_database.h"
+#include "pdbs/pattern_database.h"
 
 #include <cassert>
 #include <vector>

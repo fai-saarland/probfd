@@ -1,11 +1,13 @@
 #ifndef OPEN_LISTS_PARETO_OPEN_LIST_H
 #define OPEN_LISTS_PARETO_OPEN_LIST_H
 
-#include "open_list.h"
-#include "open_list_factory.h"
-#include "../evaluator.h"
-#include "../utils/hash.h"
-#include "../state_id.h"
+#include "open_lists/open_list.h"
+#include "open_lists/open_list_factory.h"
+
+#include "utils/hash.h"
+
+#include "evaluator.h"
+#include "state_id.h"
 
 #include <deque>
 #include <set>

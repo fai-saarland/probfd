@@ -1,8 +1,9 @@
 #ifndef MDPS_STATE_EVALUATOR_H
 #define MDPS_STATE_EVALUATOR_H
 
-#include "../global_state.h"
-#include "engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
+
+#include "global_state.h"
 
 namespace probfd {
 

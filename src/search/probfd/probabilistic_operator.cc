@@ -1,4 +1,4 @@
-#include "probabilistic_operator.h"
+#include "probfd/probabilistic_operator.h"
 
 namespace probfd {
 

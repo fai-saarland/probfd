@@ -1,4 +1,4 @@
-#include "syntactic_projection.h"
+#include "probfd/heuristics/pdbs/syntactic_projection.h"
 
 namespace probfd {
 namespace heuristics {

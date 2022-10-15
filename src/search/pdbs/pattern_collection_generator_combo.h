@@ -1,7 +1,7 @@
 #ifndef PDBS_PATTERN_COLLECTION_GENERATOR_COMBO_H
 #define PDBS_PATTERN_COLLECTION_GENERATOR_COMBO_H
 
-#include "pattern_generator.h"
+#include "pdbs/pattern_generator.h"
 
 namespace options {
 class Options;

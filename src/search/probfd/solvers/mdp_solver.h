@@ -1,17 +1,19 @@
 #ifndef MDPS_SOLVERS_MDP_SOLVER_H
 #define MDPS_SOLVERS_MDP_SOLVER_H
 
-#include "../../global_state.h"
-#include "../../solver_interface.h"
-#include "../../state_registry.h"
-#include "../action_id_map.h"
-#include "../engines/engine.h"
-#include "../probabilistic_operator.h"
-#include "../progress_report.h"
-#include "../reward_function.h"
-#include "../state_evaluator.h"
-#include "../state_id_map.h"
-#include "../transition_generator.h"
+#include "probfd/engines/engine.h"
+
+#include "probfd/action_id_map.h"
+#include "probfd/probabilistic_operator.h"
+#include "probfd/progress_report.h"
+#include "probfd/reward_function.h"
+#include "probfd/state_evaluator.h"
+#include "probfd/state_id_map.h"
+#include "probfd/transition_generator.h"
+
+#include "global_state.h"
+#include "solver_interface.h"
+#include "state_registry.h"
 
 #include <memory>
 #include <string>

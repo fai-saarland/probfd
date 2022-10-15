@@ -1,8 +1,8 @@
 #ifndef MDPS_ENGINE_INTERACES_SUCCESSOR_SORTING_H
 #define MDPS_ENGINE_INTERACES_SUCCESSOR_SORTING_H
 
-#include "../distribution.h"
-#include "../types.h"
+#include "probfd/distribution.h"
+#include "probfd/types.h"
 
 #include <vector>
 

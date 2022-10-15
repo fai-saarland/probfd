@@ -1,9 +1,9 @@
-#include "shrink_strategy.h"
+#include "merge_and_shrink/shrink_strategy.h"
 
-#include "abstraction.h"
+#include "merge_and_shrink/abstraction.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <cmath>

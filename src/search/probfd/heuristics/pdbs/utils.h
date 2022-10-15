@@ -1,9 +1,10 @@
 #ifndef MDPS_HEURISTICS_PDBS_UTILS_H
 #define MDPS_HEURISTICS_PDBS_UTILS_H
 
-#include "../../evaluation_result.h"
-#include "../../value_type.h"
-#include "types.h"
+#include "probfd/heuristics/pdbs/types.h"
+
+#include "probfd/evaluation_result.h"
+#include "probfd/value_type.h"
 
 #include <algorithm>
 #include <numeric>

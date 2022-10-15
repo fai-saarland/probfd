@@ -1,9 +1,9 @@
 #ifndef ALGORITHMS_ORDERED_SET_H
 #define ALGORITHMS_ORDERED_SET_H
 
-#include "../utils/collections.h"
-#include "../utils/hash.h"
-#include "../utils/rng.h"
+#include "utils/collections.h"
+#include "utils/hash.h"
+#include "utils/rng.h"
 
 #include <cassert>
 #include <vector>

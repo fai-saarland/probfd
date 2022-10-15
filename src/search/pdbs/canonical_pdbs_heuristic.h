@@ -1,9 +1,9 @@
 #ifndef PDBS_CANONICAL_PDBS_HEURISTIC_H
 #define PDBS_CANONICAL_PDBS_HEURISTIC_H
 
-#include "canonical_pdbs.h"
+#include "pdbs/canonical_pdbs.h"
 
-#include "../heuristic.h"
+#include "heuristic.h"
 
 namespace options {
 class OptionParser;

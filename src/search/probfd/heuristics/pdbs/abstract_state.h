@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_H
 #define MDPS_HEURISTICS_PDBS_ABSTRACT_STATE_H
 
-#include "../../../utils/hash.h"
+#include "utils/hash.h"
 
 #include <ostream>
 

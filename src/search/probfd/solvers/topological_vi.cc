@@ -1,13 +1,17 @@
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../engines/topological_value_iteration.h"
-#include "../state_evaluator.h"
-#include "mdp_solver.h"
+#include "probfd/solvers/mdp_solver.h"
 
-#include "../analysis_objectives/analysis_objective.h"
-#include "../globals.h"
-#include "../heuristics/constant_evaluator.h"
+#include "probfd/analysis_objectives/analysis_objective.h"
 
+#include "probfd/engines/topological_value_iteration.h"
+
+#include "probfd/heuristics/constant_evaluator.h"
+
+#include "probfd/globals.h"
+#include "probfd/state_evaluator.h"
+
+
+#include "option_parser.h"
+#include "plugin.h"
 namespace probfd {
 namespace solvers {
 

@@ -1,9 +1,10 @@
 #ifndef LANDMARKS_LAMA_FF_SYNERGY_H
 #define LANDMARKS_LAMA_FF_SYNERGY_H
 
-#include "../heuristic.h"
-#include "exploration.h"
-#include "landmark_count_heuristic.h"
+#include "heuristic.h"
+
+#include "landmarks/exploration.h"
+#include "landmarks/landmark_count_heuristic.h"
 
 class LamaFFSynergy {
     class HeuristicProxy : public Heuristic {

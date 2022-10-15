@@ -1,13 +1,17 @@
-#include "maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
 
-#include "../../../pdbs/pattern_database.h"
-#include "../../../successor_generator.h"
-#include "../../../utils/collections.h"
+#include "probfd/engines/interval_iteration.h"
 
-#include "../../engines/interval_iteration.h"
-#include "../../globals.h"
-#include "../../utils/graph_visualization.h"
-#include "../../utils/logging.h"
+#include "probfd/utils/graph_visualization.h"
+#include "probfd/utils/logging.h"
+
+#include "probfd/globals.h"
+
+#include "pdbs/pattern_database.h"
+
+#include "utils/collections.h"
+
+#include "successor_generator.h"
 
 #include <deque>
 #include <sstream>

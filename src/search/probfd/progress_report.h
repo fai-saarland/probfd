@@ -1,7 +1,7 @@
 #ifndef MDPS_PROGRESS_REPORT_H
 #define MDPS_PROGRESS_REPORT_H
 
-#include "value_type.h"
+#include "probfd/value_type.h"
 
 #include <functional>
 #include <iostream>

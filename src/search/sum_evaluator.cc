@@ -1,10 +1,10 @@
 #include "sum_evaluator.h"
 
-#include <limits>
-#include <cassert>
-
 #include "option_parser.h"
 #include "plugin.h"
+
+#include <limits>
+#include <cassert>
 
 using namespace std;
 

@@ -1,10 +1,12 @@
-#include "landmark_factory_zhu_givan.h"
-#include "landmark_graph.h"
-#include "../global_operator.h"
-#include "../global_state.h"
-#include "../globals.h"
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "landmarks/landmark_factory_zhu_givan.h"
+
+#include "landmarks/landmark_graph.h"
+
+#include "global_operator.h"
+#include "global_state.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <iostream>
 #include <vector>

@@ -1,9 +1,10 @@
-#include "landmark_count_heuristic.h"
+#include "landmarks/landmark_count_heuristic.h"
 
-#include "../globals.h"
-#include "../plugin.h"
-#include "../lp/lp_solver.h"
-#include "../successor_generator.h"
+#include "lp/lp_solver.h"
+
+#include "globals.h"
+#include "plugin.h"
+#include "successor_generator.h"
 
 #include <cmath>
 #include <unordered_map>

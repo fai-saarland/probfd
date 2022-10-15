@@ -1,9 +1,11 @@
-#include "shrink_budget_based.h"
+#include "merge_and_shrink/shrink_budget_based.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../probfd/globals.h"
-#include "abstraction.h"
+#include "merge_and_shrink/abstraction.h"
+
+#include "probfd/globals.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 using namespace std;
 

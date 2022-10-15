@@ -1,8 +1,10 @@
 #ifndef MAX_REGRESSION_OPERATORS_H
 #define MAX_REGRESSION_OPERATORS_H
 
-#include "../algorithms/priority_queues.h"
-#include "max_heuristic.h"
+#include "algorithms/priority_queues.h"
+
+#include "merge_and_shrink/max_heuristic.h"
+
 #include <cassert>
 #include <set>
 #include <vector>

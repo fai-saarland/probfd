@@ -1,8 +1,8 @@
 #ifndef LANDMARKS_LANDMARK_FACTORY_H
 #define LANDMARKS_LANDMARK_FACTORY_H
 
-#include "landmark_graph.h"
-#include "exploration.h"
+#include "landmarks/exploration.h"
+#include "landmarks/landmark_graph.h"
 
 #include <unordered_map>
 #include <unordered_set>

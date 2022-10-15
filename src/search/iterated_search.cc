@@ -1,7 +1,10 @@
 #include "iterated_search.h"
+
 #include "plugin.h"
 #include "ext/tree_util.hh"
+
 #include <limits>
+
 using namespace std;
 
 IteratedSearch::IteratedSearch(const options::Options &opts, options::Registry &registry,

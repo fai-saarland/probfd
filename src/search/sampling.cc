@@ -1,12 +1,13 @@
 #include "sampling.h"
 
-#include "../successor_generator.h"
-#include "../globals.h"
-#include "../global_state.h"
-#include "../global_operator.h"
-#include "../state_registry.h"
-#include "../utils/memory.h"
-#include "../utils/rng.h"
+#include "successor_generator.h"
+#include "globals.h"
+#include "global_state.h"
+#include "global_operator.h"
+#include "state_registry.h"
+
+#include "utils/memory.h"
+#include "utils/rng.h"
 
 using namespace std;
 

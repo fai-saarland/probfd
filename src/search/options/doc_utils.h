@@ -1,7 +1,7 @@
 #ifndef OPTIONS_DOC_UTILS_H
 #define OPTIONS_DOC_UTILS_H
 
-#include "bounds.h"
+#include "options/bounds.h"
 
 #include <functional>
 #include <string>

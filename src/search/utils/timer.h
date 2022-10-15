@@ -1,18 +1,20 @@
 #ifndef UTILS_TIMER_H
 #define UTILS_TIMER_H
 
-#include "system.h"
+#include "utils/system.h"
 
 #include <ostream>
 
 namespace utils {
 class Duration {
     double seconds;
+
 public:
-    explicit Duration(double seconds) : seconds(seconds) {}
-    operator double() const {
-        return seconds;
+    explicit Duration(double seconds)
+        : seconds(seconds)
+    {
     }
+    operator double() const { return seconds; }
     Duration& operator+=(const Duration& other)
     {
         seconds += other.seconds;
@@ -33,7 +35,7 @@ public:
     }
 };
 
-std::ostream &operator<<(std::ostream &os, const Duration &time);
+std::ostream& operator<<(std::ostream& os, const Duration& time);
 
 class Timer {
     double last_start_clock;
@@ -45,6 +47,7 @@ class Timer {
 #endif
 
     double current_clock() const;
+
 public:
     Timer(bool stopped = false);
     ~Timer() = default;
@@ -54,10 +57,10 @@ public:
     Duration reset();
 };
 
-std::ostream &operator<<(std::ostream &os, const Timer &timer);
+std::ostream& operator<<(std::ostream& os, const Timer& timer);
 
 extern Timer g_search_timer;
 extern Timer g_timer;
-}
+} // namespace utils
 
 #endif

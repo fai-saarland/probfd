@@ -1,10 +1,11 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_INFORMATION_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_INFORMATION_H
 
-#include "../../../../operator_cost.h"
-#include "../types.h"
+#include "probfd/heuristics/pdbs/subcollections/subcollection_finder.h"
 
-#include "../subcollections/subcollection_finder.h"
+#include "probfd/heuristics/pdbs/types.h"
+
+#include "operator_cost.h"
 
 #include <memory>
 

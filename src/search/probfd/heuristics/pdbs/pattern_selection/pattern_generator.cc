@@ -1,6 +1,6 @@
-#include "pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
 
-#include "../../../../plugin.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace heuristics {

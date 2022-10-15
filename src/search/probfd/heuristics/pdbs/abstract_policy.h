@@ -1,10 +1,11 @@
 #ifndef MDPS_HEURISTICS_PDBS_ABSTRACT_POLICY_H
 #define MDPS_HEURISTICS_PDBS_ABSTRACT_POLICY_H
 
-#include "../../../utils/iterators.h"
+#include "probfd/heuristics/pdbs/abstract_state.h"
 
-#include "../../value_type.h"
-#include "abstract_state.h"
+#include "probfd/value_type.h"
+
+#include "utils/iterators.h"
 
 #include <map>
 #include <unordered_map>

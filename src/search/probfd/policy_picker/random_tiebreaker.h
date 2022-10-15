@@ -1,7 +1,7 @@
 #ifndef MDPS_POLICY_PICKER_RANDOM_TIEBREAKER_H
 #define MDPS_POLICY_PICKER_RANDOM_TIEBREAKER_H
 
-#include "../policy_picker.h"
+#include "probfd/policy_picker.h"
 
 namespace options {
 class Options;

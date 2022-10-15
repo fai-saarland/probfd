@@ -1,8 +1,9 @@
-#include "label_reducer.h"
+#include "merge_and_shrink/label_reducer.h"
 
-#include "../global_operator.h"
-#include "../globals.h"
-#include "../utils/hash.h"
+#include "utils/hash.h"
+
+#include "global_operator.h"
+#include "globals.h"
 
 #include <algorithm>
 #include <cassert>

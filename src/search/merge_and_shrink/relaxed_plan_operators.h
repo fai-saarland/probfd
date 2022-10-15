@@ -1,7 +1,8 @@
 #ifndef RELAXED_PLAN_OPERATORS_H
 #define RELAXED_PLAN_OPERATORS_H
 
-#include "ff_heuristic.h"
+#include "merge_and_shrink/ff_heuristic.h"
+
 #include <cassert>
 #include <set>
 #include <vector>

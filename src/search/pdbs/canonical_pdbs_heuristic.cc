@@ -1,14 +1,15 @@
-#include "canonical_pdbs_heuristic.h"
+#include "pdbs/canonical_pdbs_heuristic.h"
 
-#include "dominance_pruning.h"
-#include "pattern_generator.h"
-#include "utils.h"
-#include "../globals.h"
+#include "pdbs/dominance_pruning.h"
+#include "pdbs/pattern_generator.h"
+#include "pdbs/utils.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "utils/timer.h"
 
-#include "../utils/timer.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
+
 
 #include <iostream>
 #include <limits>

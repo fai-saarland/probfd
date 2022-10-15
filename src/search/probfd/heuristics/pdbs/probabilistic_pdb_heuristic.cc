@@ -1,18 +1,21 @@
-#include "probabilistic_pdb_heuristic.h"
+#include "probfd/heuristics/pdbs/probabilistic_pdb_heuristic.h"
 
-#include "../../../globals.h"
-#include "../../../option_parser.h"
-#include "../../../pdbs/dominance_pruning.h"
-#include "../../../plugin.h"
-#include "../../../utils/countdown_timer.h"
-#include "../../../utils/logging.h"
-#include "../../utils/logging.h"
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_information.h"
 
-#include "utils.h"
+#include "probfd/heuristics/pdbs/utils.h"
+#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
 
-#include "expcost_projection.h"
-#include "maxprob_projection.h"
-#include "pattern_selection/pattern_collection_information.h"
+#include "probfd/utils/logging.h"
+
+#include "pdbs/dominance_pruning.h"
+
+#include "utils/countdown_timer.h"
+#include "utils/logging.h"
+
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <iomanip>

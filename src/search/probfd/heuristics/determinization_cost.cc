@@ -1,8 +1,8 @@
-#include "determinization_cost.h"
+#include "probfd/heuristics/determinization_cost.h"
 
-#include "../../heuristic.h"
-#include "../../option_parser.h"
-#include "../../plugin.h"
+#include "heuristic.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace heuristics {

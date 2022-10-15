@@ -1,9 +1,10 @@
-#include "max_regression_operators.h"
+#include "merge_and_shrink/max_regression_operators.h"
 
-#include "utils.h"
-#include "../global_operator.h"
-#include "../option_parser.h"
-#include "../global_state.h"
+#include "merge_and_shrink/utils.h"
+
+#include "global_operator.h"
+#include "global_state.h"
+#include "option_parser.h"
 
 #include <cassert>
 #include <vector>

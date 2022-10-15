@@ -1,15 +1,15 @@
 #ifndef MDPS_HEURISTIC_SEARCH_INTERFACEABLE_H
 #define MDPS_HEURISTIC_SEARCH_INTERFACEABLE_H
 
-#include "engine_interfaces/heuristic_search_connector.h"
-#include "engine_interfaces/policy_picker.h"
+#include "probfd/engine_interfaces/heuristic_search_connector.h"
+#include "probfd/engine_interfaces/policy_picker.h"
 
-#include "action_id_map.h"
-#include "state_id_map.h"
+#include "probfd/action_id_map.h"
+#include "probfd/state_id_map.h"
 
-#include "probabilistic_operator.h"
+#include "probfd/probabilistic_operator.h"
 
-#include "../global_state.h"
+#include "global_state.h"
 
 class GlobalState;
 

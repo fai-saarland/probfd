@@ -1,7 +1,7 @@
 #ifndef ALGORITHMS_PRIORITY_QUEUES_H
 #define ALGORITHMS_PRIORITY_QUEUES_H
 
-#include "../utils/collections.h"
+#include "utils/collections.h"
 
 #include <cassert>
 #include <iostream>

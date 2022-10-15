@@ -1,13 +1,18 @@
 
-#include <iostream>
+
+#include "open_lists/tiebreaking_open_list.h"
+
+#include "open_lists/open_list_factory.h"
+
+#include "evaluator.h"
+#include "option_parser.h"
+#include "plugin.h"
+#include "state_id.h"
+
 #include <cassert>
+#include <iostream>
 #include <limits>
-#include "tiebreaking_open_list.h"
-#include "open_list_factory.h"
-#include "../evaluator.h"
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../state_id.h"
+
 using namespace std;
 
 

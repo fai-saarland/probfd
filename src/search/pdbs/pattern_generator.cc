@@ -1,6 +1,6 @@
-#include "pattern_generator.h"
+#include "pdbs/pattern_generator.h"
 
-#include "../plugin.h"
+#include "plugin.h"
 
 namespace pdbs {
 static PluginTypePlugin<PatternCollectionGenerator> _type_plugin_collection(

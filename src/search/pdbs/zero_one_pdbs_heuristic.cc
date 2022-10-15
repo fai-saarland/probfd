@@ -1,9 +1,9 @@
-#include "zero_one_pdbs_heuristic.h"
+#include "pdbs/zero_one_pdbs_heuristic.h"
 
-#include "pattern_generator.h"
+#include "pdbs/pattern_generator.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 using namespace std;
 

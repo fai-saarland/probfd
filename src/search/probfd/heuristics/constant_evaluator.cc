@@ -1,9 +1,11 @@
-#include "constant_evaluator.h"
+#include "probfd/heuristics/constant_evaluator.h"
 
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "../analysis_objectives/analysis_objective.h"
-#include "../globals.h"
+#include "probfd/analysis_objectives/analysis_objective.h"
+
+#include "probfd/globals.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <memory>
 

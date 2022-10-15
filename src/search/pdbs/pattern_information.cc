@@ -1,7 +1,7 @@
-#include "pattern_information.h"
+#include "pdbs/pattern_information.h"
 
-#include "pattern_database.h"
-#include "validation.h"
+#include "pdbs/pattern_database.h"
+#include "pdbs/validation.h"
 
 #include <cassert>
 

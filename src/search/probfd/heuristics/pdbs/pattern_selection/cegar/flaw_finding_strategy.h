@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_FLAW_FINDER_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_FLAW_FINDER_H
 
-#include "types.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/types.h"
 
 #include <string>
 

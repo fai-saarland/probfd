@@ -1,8 +1,10 @@
 #ifndef MERGE_AND_SHRINK_ADDITIVE_HEURISTIC_H
 #define MERGE_AND_SHRINK_ADDITIVE_HEURISTIC_H
 
-#include "../algorithms/priority_queues.h"
-#include "relaxation_heuristic.h"
+#include "algorithms/priority_queues.h"
+
+#include "merge_and_shrink/relaxation_heuristic.h"
+
 #include <cassert>
 
 namespace merge_and_shrink {

@@ -1,7 +1,7 @@
 #ifndef OPTIONS_RAW_REGISTRY_H
 #define OPTIONS_RAW_REGISTRY_H
 
-#include "doc_utils.h"
+#include "options/doc_utils.h"
 
 #include <any>
 #include <vector>

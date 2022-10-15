@@ -1,9 +1,9 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_TYPES_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_TYPES_H
 
-#include <vector>
+#include "global_operator.h"
 
-#include "../../../../../global_operator.h"
+#include <vector>
 
 namespace probfd {
 namespace heuristics {

@@ -1,9 +1,10 @@
-#include <vector>
+#include "landmarks/landmark_factory_rpg_exhaust.h"
 
-#include "landmark_factory_rpg_exhaust.h"
-#include "../global_state.h"
-#include "../option_parser.h"
-#include "../plugin.h"
+#include "global_state.h"
+#include "option_parser.h"
+#include "plugin.h"
+
+#include <vector>
 
 using namespace std;
 

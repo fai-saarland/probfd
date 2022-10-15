@@ -1,6 +1,6 @@
-#include "open_list.h"
+#include "probfd/open_list.h"
 
-#include "../plugin.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace engine_interfaces {

@@ -3,10 +3,10 @@
 #include "global_operator.h"
 #include "global_state.h"
 #include "globals.h"
+#include "search_node_info.h"
 #include "state_registry.h"
 
 #include <cassert>
-#include "search_node_info.h"
 
 using namespace std;
 

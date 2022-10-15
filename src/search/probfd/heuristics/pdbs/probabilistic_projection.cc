@@ -1,9 +1,11 @@
-#include "probabilistic_projection.h"
+#include "probfd/heuristics/pdbs/probabilistic_projection.h"
 
-#include "../../../global_operator.h"
-#include "../../../successor_generator.h"
-#include "../../analysis_objectives/goal_probability_objective.h"
-#include "../../globals.h"
+#include "probfd/analysis_objectives/goal_probability_objective.h"
+
+#include "probfd/globals.h"
+
+#include "global_operator.h"
+#include "successor_generator.h"
 
 #include <algorithm>
 #include <deque>

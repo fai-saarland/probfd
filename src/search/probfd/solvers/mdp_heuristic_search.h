@@ -1,19 +1,24 @@
 #ifndef MDPS_SOLVERS_MDP_HEURISTIC_SEARCH_H
 #define MDPS_SOLVERS_MDP_HEURISTIC_SEARCH_H
 
-#include "../../option_parser.h"
-#include "../engine_interfaces/heuristic_search_connector.h"
-#include "../engine_interfaces/transition_sampler.h"
-#include "../engines/fret.h"
-#include "../heuristic_search_interfaceable.h"
-#include "../new_state_handler.h"
-#include "../policy_picker.h"
-#include "../quotient_system.h"
-#include "../quotient_system/engine_interfaces.h"
-#include "../quotient_system/heuristic_search_interface.h"
-#include "../quotient_system/quotient_system.h"
-#include "mdp_solver.h"
+#include "probfd/solvers/mdp_solver.h"
+
+#include "probfd/engine_interfaces/heuristic_search_connector.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
+
+#include "probfd/engines/fret.h"
+
+#include "probfd/quotient_system/engine_interfaces.h"
+#include "probfd/quotient_system/heuristic_search_interface.h"
+#include "probfd/quotient_system/quotient_system.h"
+
+#include "probfd/heuristic_search_interfaceable.h"
+#include "probfd/new_state_handler.h"
+#include "probfd/policy_picker.h"
+#include "probfd/quotient_system.h"
+
 #include "state_space_interface_wrappers.h"
+#include "option_parser.h"
 
 #include <memory>
 

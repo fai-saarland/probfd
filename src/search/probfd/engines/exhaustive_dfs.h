@@ -1,16 +1,22 @@
 #ifndef MDPS_ENGINES_EXHAUSTIVE_DFS_H
 #define MDPS_ENGINES_EXHAUSTIVE_DFS_H
 
-#include "../../utils/timer.h"
-#include "../engine_interfaces/heuristic_search_connector.h"
-#include "../engine_interfaces/new_state_handler.h"
-#include "../engine_interfaces/successor_sorting.h"
-#include "../progress_report.h"
-#include "../storage/per_state_storage.h"
-#include "../utils/logging.h"
-#include "../value_utils.h"
-#include "engine.h"
-#include "heuristic_search_state_information.h"
+#include "probfd/engines/engine.h"
+
+#include "probfd/engines/heuristic_search_state_information.h"
+
+#include "probfd/engine_interfaces/heuristic_search_connector.h"
+#include "probfd/engine_interfaces/new_state_handler.h"
+#include "probfd/engine_interfaces/successor_sorting.h"
+
+#include "probfd/storage/per_state_storage.h"
+
+#include "probfd/utils/logging.h"
+
+#include "probfd/progress_report.h"
+#include "probfd/value_utils.h"
+
+#include "utils/timer.h"
 
 #include <cassert>
 #include <deque>

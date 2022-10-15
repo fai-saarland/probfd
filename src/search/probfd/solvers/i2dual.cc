@@ -1,7 +1,9 @@
-#include "../engines/i2dual.h"
-#include "../../option_parser.h"
-#include "../../plugin.h"
-#include "mdp_solver.h"
+#include "probfd/solvers/mdp_solver.h"
+
+#include "probfd/engines/i2dual.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace solvers {

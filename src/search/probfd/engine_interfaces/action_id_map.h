@@ -1,7 +1,7 @@
 #ifndef MDPS_ENGINE_INTERACES_ACTION_ID_MAP_H
 #define MDPS_ENGINE_INTERACES_ACTION_ID_MAP_H
 
-#include "../types.h"
+#include "probfd/types.h"
 
 namespace probfd {
 

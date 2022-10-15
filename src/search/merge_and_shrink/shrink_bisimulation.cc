@@ -1,12 +1,13 @@
-#include "shrink_bisimulation.h"
+#include "merge_and_shrink/shrink_bisimulation.h"
 
-#include "abstraction.h"
+#include "merge_and_shrink/abstraction.h"
 
-#include "../option_parser.h"
-#include "../plugin.h"
-#include "../globals.h"
-#include "../global_operator.h"
-#include "../utils/system.h"
+#include "utils/system.h"
+
+#include "global_operator.h"
+#include "globals.h"
+#include "option_parser.h"
+#include "plugin.h"
 
 #include <cassert>
 #include <iostream>

@@ -1,9 +1,10 @@
 #ifndef LP_LP_SOLVER_H
 #define LP_LP_SOLVER_H
 
-#include "../utils/language.h"
-#include "../utils/system.h"
-#include "../option_parser.h"
+#include "utils/language.h"
+#include "utils/system.h"
+
+#include "option_parser.h"
 
 #include <functional>
 #include <memory>
@@ -17,62 +18,42 @@
 #ifdef USE_LP
 #define LP_METHOD(X) X;
 #else
-#define LP_METHOD(X) NO_RETURN X { \
-        ABORT("LP method called but the planner was compiled without LP support.\n" \
-              "See http://www.fast-downward.org/LPBuildInstructions\n" \
-              "to install an LP solver and use it in the planner."); \
+#define LP_METHOD(X)                                                           \
+    NO_RETURN X                                                                \
+    {                                                                          \
+        ABORT("LP method called but the planner was compiled without LP "      \
+              "support.\n"                                                     \
+              "See http://www.fast-downward.org/LPBuildInstructions\n"         \
+              "to install an LP solver and use it in the planner.");           \
     }
 #endif
 
 class CoinPackedVectorBase;
 class OsiSolverInterface;
 
-namespace lp
-{
-enum class LPSolverType {
-    CLP, CPLEX, GUROBI, SOPLEX
-};
+namespace lp {
+enum class LPSolverType { CLP, CPLEX, GUROBI, SOPLEX };
 
-enum class LPObjectiveSense {
-    MAXIMIZE, MINIMIZE
-};
+enum class LPObjectiveSense { MAXIMIZE, MINIMIZE };
 
-void add_lp_solver_option_to_parser(options::OptionParser &parser);
+void add_lp_solver_option_to_parser(options::OptionParser& parser);
 
-class LPConstraint
-{
+class LPConstraint {
     std::vector<int> variables;
     std::vector<double> coefficients;
     double lower_bound;
     double upper_bound;
+
 public:
     LPConstraint(double lower_bound_, double upper_bound_);
 
-    const std::vector<int> &get_variables() const
-    {
-        return variables;
-    }
-    const std::vector<double> &get_coefficients() const
-    {
-        return coefficients;
-    }
+    const std::vector<int>& get_variables() const { return variables; }
+    const std::vector<double>& get_coefficients() const { return coefficients; }
 
-    double get_lower_bound() const
-    {
-        return lower_bound;
-    }
-    void set_lower_bound(double lb)
-    {
-        lower_bound = lb;
-    }
-    double get_upper_bound() const
-    {
-        return upper_bound;
-    }
-    void set_upper_bound(double ub)
-    {
-        upper_bound = ub;
-    }
+    double get_lower_bound() const { return lower_bound; }
+    void set_lower_bound(double lb) { lower_bound = lb; }
+    double get_upper_bound() const { return upper_bound; }
+    void set_upper_bound(double ub) { upper_bound = ub; }
 
     void clear();
     bool empty() const;
@@ -87,9 +68,10 @@ struct LPVariable {
     double upper_bound;
     double objective_coefficient;
 
-    LPVariable(double lower_bound_,
-               double upper_bound_,
-               double objective_coefficient_);
+    LPVariable(
+        double lower_bound_,
+        double upper_bound_,
+        double objective_coefficient_);
     void dump(unsigned x) const;
 };
 
@@ -97,8 +79,7 @@ struct LPVariable {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
-class LPSolver
-{
+class LPSolver {
     bool is_initialized;
     bool is_solved;
     int num_permanent_constraints;
@@ -120,9 +101,10 @@ class LPSolver
     std::vector<double> objective;
     std::vector<double> row_lb;
     std::vector<double> row_ub;
-    std::vector<CoinPackedVectorBase *> rows;
+    std::vector<CoinPackedVectorBase*> rows;
     void clear_temporary_data();
     LPSolverType solver_type;
+
 public:
     LP_METHOD(explicit LPSolver(LPSolverType solver_type))
     /*
@@ -135,38 +117,43 @@ public:
 
     LP_METHOD(LPSolverType get_type() const)
     LP_METHOD(void load_problem(
-                  LPObjectiveSense sense,
-                  const std::vector<LPVariable> &variables,
-                  const std::vector<LPConstraint> &constraints))
-    LP_METHOD(void add_temporary_constraints(const std::vector<LPConstraint>
-              &constraints))
+        LPObjectiveSense sense,
+        const std::vector<LPVariable>& variables,
+        const std::vector<LPConstraint>& constraints))
+    LP_METHOD(void add_temporary_constraints(
+        const std::vector<LPConstraint>& constraints))
     LP_METHOD(void clear_temporary_constraints())
     LP_METHOD(double get_infinity() const)
 
-    LP_METHOD(int add_variable(const LPVariable &var,
-                                const std::vector<int> &constraints,
-                                const std::vector<double> &coefficients))
-    LP_METHOD(void add_variable(const LPVariable& var,
-                                const std::vector<int>& ids,
-                                const std::vector<double>& coefs,
-                                const std::string& name))
+    LP_METHOD(int add_variable(
+        const LPVariable& var,
+        const std::vector<int>& constraints,
+        const std::vector<double>& coefficients))
+    LP_METHOD(void add_variable(
+        const LPVariable& var,
+        const std::vector<int>& ids,
+        const std::vector<double>& coefs,
+        const std::string& name))
 
-    LP_METHOD(void add_constraints(const std::vector<LPConstraint> &constraints))
-    LP_METHOD(int add_constraint(const LPConstraint &constraint))
-    LP_METHOD(void add_constraint(const LPConstraint &constraint, const std::string& name))
+    LP_METHOD(
+        void add_constraints(const std::vector<LPConstraint>& constraints))
+    LP_METHOD(int add_constraint(const LPConstraint& constraint))
+    LP_METHOD(void add_constraint(
+        const LPConstraint& constraint,
+        const std::string& name))
 
     LP_METHOD(void delete_variables(int num, const int* var_ids))
     LP_METHOD(void delete_constraints(int num, const int* constraint_ids))
 
-    LP_METHOD(void set_objective_coefficients(const std::vector<double>
-              &coefficients))
+    LP_METHOD(void set_objective_coefficients(
+        const std::vector<double>& coefficients))
     LP_METHOD(void set_objective_coefficient(int index, double coefficient))
     LP_METHOD(void set_constraint_lower_bound(int index, double bound))
     LP_METHOD(void set_constraint_upper_bound(int index, double bound))
     LP_METHOD(void set_constraint_bounds(int index, double lb, double ub))
     LP_METHOD(void set_variable_lower_bound(int index, double bound))
     LP_METHOD(void set_variable_upper_bound(int index, double bound))
-    LP_METHOD(void set_variable_upper_bounds(const std::vector<double> &bounds))
+    LP_METHOD(void set_variable_upper_bounds(const std::vector<double>& bounds))
 
     LP_METHOD(void solve())
 
@@ -205,11 +192,12 @@ public:
 
     LP_METHOD(void store(const char* path) const)
 
-    LP_METHOD(void get_constraint(int index, std::vector<double>& coefficients) const)
+    LP_METHOD(void get_constraint(int index, std::vector<double>& coefficients)
+                  const)
 };
 #ifdef __GNUG__
 #pragma GCC diagnostic pop
 #endif
-}
+} // namespace lp
 
 #endif

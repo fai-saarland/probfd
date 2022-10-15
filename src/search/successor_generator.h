@@ -9,14 +9,15 @@ class GlobalOperator;
 
 namespace successor_generator {
 
-template<typename Entry>
+template <typename Entry>
 class GeneratorBase;
 
-template<typename Entry>
+template <typename Entry>
 class SuccessorGenerator {
-    std::unique_ptr<GeneratorBase<Entry> > root;
+    std::unique_ptr<GeneratorBase<Entry>> root;
 
-    explicit SuccessorGenerator(std::unique_ptr<GeneratorBase<Entry> > root);
+    explicit SuccessorGenerator(std::unique_ptr<GeneratorBase<Entry>> root);
+
 public:
     explicit SuccessorGenerator();
 
@@ -32,25 +33,26 @@ public:
     */
     ~SuccessorGenerator();
 
-    // Transitional method, used until the search is switched to the new task 
+    // Transitional method, used until the search is switched to the new task
     // interface.
     void generate_applicable_ops(
-        const GlobalState &state,
-        std::vector<Entry> &applicable_ops) const;
+        const GlobalState& state,
+        std::vector<Entry>& applicable_ops) const;
 
     void generate_applicable_ops(
         const std::vector<int>& state,
-        std::vector<Entry> &applicable_ops) const;
+        std::vector<Entry>& applicable_ops) const;
 
     void generate_applicable_ops(
         const std::vector<std::pair<int, int>>& facts,
         std::vector<Entry>& applicable_ops) const;
 };
 
-extern std::shared_ptr<SuccessorGenerator<const GlobalOperator*> > g_successor_generator;
+extern std::shared_ptr<SuccessorGenerator<const GlobalOperator*>>
+    g_successor_generator;
 
-}
+} // namespace successor_generator
 
-#include "successor_generator.cc"
+#include "successor_generator-impl.h"
 
 #endif
