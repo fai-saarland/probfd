@@ -70,72 +70,6 @@ struct Statistics {
     utils::Timer time;
 };
 
-namespace internal {
-
-struct StateInfo {
-    static const unsigned UNDEF = (((unsigned)-1) >> 2) - 2;
-    static const unsigned ZERO = UNDEF + 1;
-    static const unsigned ONE = UNDEF + 2;
-
-    explicit StateInfo()
-        : explored(0)
-        , expandable_goal(0)
-        , stackid_(UNDEF)
-    {
-    }
-
-    unsigned stackid() const
-    {
-        assert(onstack());
-        return stackid_;
-    }
-    bool onstack() const { return stackid_ < UNDEF; }
-
-    unsigned explored : 1;
-    unsigned expandable_goal : 1; // non-terminal goal?
-    unsigned stackid_ : 30;
-};
-
-template <typename Action>
-struct ExpansionInfo {
-    explicit ExpansionInfo(unsigned stck)
-        : stck(stck)
-        , lstck(stck)
-    {
-    }
-
-    // Tarjan's SCC algorithm: stack id and lowlink
-    const unsigned stck;
-    unsigned lstck;
-
-    // whether the current transition remains in the scc
-    bool remains_in_scc = true;
-
-    // recursive decomposition flag
-    // Recurse if there is a transition that can leave and remain in the scc
-    // If a always remains in the SCC, then a does not violate the EC condition
-    // If a always goes out of the SCC, then no edge of a was part of it
-    bool recurse = false;
-
-    std::vector<Action> aops;
-    std::vector<std::vector<StateID>> successors;
-};
-
-template <typename Action>
-struct StackInfo {
-    explicit StackInfo(const StateID& sid)
-        : stateid(sid)
-        , successors(1)
-    {
-    }
-
-    StateID stateid;
-    std::vector<Action> aops;
-    std::vector<std::vector<StateID>> successors;
-};
-
-} // namespace internal
-
 /**
  * @brief A builder class that implements end component decomposition.
  *
@@ -170,13 +104,126 @@ struct StackInfo {
  */
 template <typename State, typename Action>
 class EndComponentDecomposition {
-    using StateInfo = internal::StateInfo;
-    using ExpansionInfo = internal::ExpansionInfo<Action>;
-    using StackInfo = internal::StackInfo<Action>;
+    struct StateInfo {
+        static const unsigned UNDEF = (((unsigned)-1) >> 2) - 2;
+        static const unsigned ZERO = UNDEF + 1;
+        static const unsigned ONE = UNDEF + 2;
+
+        explicit StateInfo()
+            : explored(0)
+            , expandable_goal(0)
+            , stackid_(UNDEF)
+        {
+        }
+
+        unsigned stackid() const
+        {
+            assert(onstack());
+            return stackid_;
+        }
+        bool onstack() const { return stackid_ < UNDEF; }
+
+        unsigned explored : 1;
+        unsigned expandable_goal : 1; // non-terminal goal?
+        unsigned stackid_ : 30;
+    };
+
+    struct ExpansionInfo {
+        explicit ExpansionInfo(unsigned stck)
+            : stck(stck)
+            , lstck(stck)
+        {
+        }
+
+        // Tarjan's SCC algorithm: stack id and lowlink
+        const unsigned stck;
+        unsigned lstck;
+
+        // whether the current transition remains in the scc
+        bool remains_in_scc = true;
+
+        // recursive decomposition flag
+        // Recurse if there is a transition that can leave and remain in the scc
+        // If a always remains in the SCC, then a does not violate the EC
+        // condition If a always goes out of the SCC, then no edge of a was part
+        // of it
+        bool recurse = false;
+
+        std::vector<Action> aops;
+        std::vector<std::vector<StateID>> successors;
+    };
+
+    struct StackInfo {
+        explicit StackInfo(const StateID& sid)
+            : stateid(sid)
+            , successors(1)
+        {
+        }
+
+        StateID stateid;
+        std::vector<Action> aops;
+        std::vector<std::vector<StateID>> successors;
+    };
 
     using StateInfoStore = storage::PerStateStorage<StateInfo>;
-    using ExpansionQueue = std::deque<ExpansionInfo>;
-    using Stack = std::vector<StackInfo>;
+
+    class PushLocal {
+        EndComponentDecomposition<State, Action>* self;
+        std::vector<StackInfo>& scc_;
+
+    public:
+        explicit PushLocal(
+            EndComponentDecomposition<State, Action>* self,
+            std::vector<StackInfo>& scc)
+            : self(self)
+            , scc_(scc)
+        {
+        }
+
+        bool operator()(unsigned i, StateInfo& info) const
+        {
+            assert(!info.explored);
+            info.explored = true;
+            StackInfo& scc_info = scc_[i];
+
+            if (scc_info.successors.empty()) {
+                ++self->stats_.ec1;
+                return false;
+            }
+
+            info.stackid_ = self->stack_.size();
+            auto& e = self->expansion_queue_.emplace_back(self->stack_.size());
+            e.successors.swap(scc_info.successors);
+            e.aops.swap(scc_info.aops);
+            self->stack_.emplace_back(scc_info.stateid);
+
+            return true;
+        }
+    };
+
+    struct StateInfoLookup {
+        explicit StateInfoLookup(std::vector<StackInfo>* s, StateInfoStore* i)
+            : s_(s)
+            , i_(i)
+        {
+        }
+
+        StateInfo& operator[](unsigned x) const
+        {
+            const StateID& sid = s_->operator[](x).stateid;
+            return i_->operator[](sid);
+        }
+
+        StateInfo& operator[](const StateID& stateid) const
+        {
+            return i_->operator[](stateid);
+        }
+
+        std::vector<StackInfo>* s_;
+        StateInfoStore* i_;
+    };
+
+    friend PushLocal;
 
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
@@ -320,68 +367,6 @@ private:
 
         return true;
     }
-
-    struct PushLocal {
-        explicit PushLocal(
-            std::vector<StackInfo>* scc,
-            ExpansionQueue* e,
-            Stack* stack,
-            Statistics* stats)
-            : scc_(scc)
-            , expansion_queue_(e)
-            , stack_(stack)
-            , stats_(stats)
-        {
-        }
-
-        bool operator()(unsigned i, StateInfo& info) const
-        {
-            assert(!info.explored);
-            info.explored = true;
-            StackInfo& scc_info = scc_->operator[](i);
-
-            if (scc_info.successors.empty()) {
-                ++stats_->ec1;
-                return false;
-            }
-
-            info.stackid_ = stack_->size();
-            ExpansionInfo& e = expansion_queue_->emplace_back(stack_->size());
-            e.successors.swap(scc_info.successors);
-            e.aops.swap(scc_info.aops);
-            stack_->emplace_back(scc_info.stateid);
-
-            return true;
-        }
-
-    private:
-        std::vector<StackInfo>* scc_;
-        ExpansionQueue* expansion_queue_;
-        Stack* stack_;
-        Statistics* stats_;
-    };
-
-    struct StateInfoLookup {
-        explicit StateInfoLookup(std::vector<StackInfo>* s, StateInfoStore* i)
-            : s_(s)
-            , i_(i)
-        {
-        }
-
-        StateInfo& operator[](unsigned x) const
-        {
-            const StateID& sid = s_->operator[](x).stateid;
-            return i_->operator[](sid);
-        }
-
-        StateInfo& operator[](const StateID& stateid) const
-        {
-            return i_->operator[](stateid);
-        }
-
-        std::vector<StackInfo>* s_;
-        StateInfoStore* i_;
-    };
 
     template <
         bool RootIteration,
@@ -622,7 +607,7 @@ private:
         stack_.erase(scc_begin, scc_end);
 
         // Define accessors for the SCC
-        PushLocal push_local(&scc, &expansion_queue_, &stack_, &stats_);
+        PushLocal push_local(this, scc);
         StateInfoLookup get_state_info(&scc, &state_infos_);
         auto get_succ_id = [start](const StateID& id) { return id - start; };
 
@@ -658,8 +643,8 @@ private:
     std::unique_ptr<QuotientSystem> sys_;
 
     StateInfoStore state_infos_;
-    ExpansionQueue expansion_queue_;
-    Stack stack_;
+    std::deque<ExpansionInfo> expansion_queue_;
+    std::vector<StackInfo> stack_;
 
     Statistics stats_;
 };
