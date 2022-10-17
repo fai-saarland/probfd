@@ -761,7 +761,7 @@ void add_flaw_finder_options_to_parser<ExpCostProjection>(
     parser.add_option<std::shared_ptr<FlawFindingStrategy<ExpCostProjection>>>(
         "flaw_strategy",
         "strategy used to find flaws in a policy",
-        "pucs_ec()");
+        "pucs_flaw_finder_ec()");
 }
 
 template <>
@@ -771,7 +771,7 @@ void add_flaw_finder_options_to_parser<MaxProbProjection>(
     parser.add_option<std::shared_ptr<FlawFindingStrategy<MaxProbProjection>>>(
         "flaw_strategy",
         "strategy used to find flaws in a policy",
-        "pucs_mp()");
+        "pucs_flaw_finder_mp()");
 }
 
 template <typename PDBType>
