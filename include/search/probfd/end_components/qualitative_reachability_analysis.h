@@ -103,11 +103,10 @@ struct ExpansionInfo {
         engine_interfaces::TransitionGenerator<Action>& transition_gen,
         StateID state_id)
     {
-        while (!aops.empty()) {
+        for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
             transition.clear();
             transition_gen(state_id, aops.back(), transition);
             transition.make_unique();
-            aops.pop_back();
 
             if (!transition.is_dirac(state_id)) {
                 successor = transition.begin();
@@ -122,6 +121,10 @@ struct ExpansionInfo {
 
         return false;
     }
+
+    bool next_successor() { return ++successor != transition.end(); }
+
+    StateID get_current_successor() { return successor->first; }
 
     // Tarjan's SCC algorithm: stack id and lowlink
     const unsigned stck;
@@ -217,12 +220,13 @@ public:
 
             // Repeated backtracking
             do {
+                const unsigned stck = e->stck;
                 const unsigned lstck = e->lstck;
-                const bool onstack = e->stck != e->lstck;
+                const bool onstack = stck != lstck;
 
                 if (!onstack) {
                     scc_found(
-                        stack_.begin() + e->stck,
+                        stack_.begin() + stck,
                         stack_.end(),
                         zero_states_out,
                         one_states_out);
@@ -257,7 +261,7 @@ public:
                 st->dead = st->dead && bt_info.dead;
 
                 // If a successor exists stop backtracking
-                if (e->successor != e->transition.end()) {
+                if (e->next_successor()) {
                     break;
                 }
 
@@ -332,7 +336,6 @@ private:
         do {
             transition_gen_->operator()(state_id, aops.back(), transition);
             transition.make_unique();
-            aops.pop_back();
 
             assert(!transition.empty());
 
@@ -353,6 +356,7 @@ private:
             }
 
             transition.clear();
+            aops.pop_back();
         } while (!aops.empty());
         /*****************************************************************/
 
@@ -369,7 +373,7 @@ private:
     {
         do {
             do {
-                StateID succ_id = e.successor++->first;
+                StateID succ_id = e.get_current_successor();
                 StateInfo& succ_info = state_infos_[succ_id];
 
                 if (succ_info.onstack()) {
@@ -390,7 +394,7 @@ private:
                     e.exits_only_proper = e.exits_only_proper && succ_info.one;
                     st.dead = st.dead && succ_info.dead;
                 }
-            } while (e.successor != e.transition.end());
+            } while (e.next_successor());
 
             if (e.transitions_in_scc) {
                 if (e.exits_only_proper) ++s.scc_transitions;
