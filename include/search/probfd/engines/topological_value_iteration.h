@@ -135,53 +135,91 @@ public:
         StateInfo& iinfo = state_information_[init_state_id];
         IncumbentSolution& init_value = value_store[init_state_id];
 
-        if (iinfo.status == StateInfo::CLOSED) {
+        if (!push_state(init_state_id, iinfo, init_value, dead_end_out)) {
             return value_utils::as_upper_bound(init_value);
         }
 
-        push_state(init_state_id, iinfo, init_value, dead_end_out);
+        ExplorationInfo* explore = &exploration_stack_.back();
+        StateID state_id = explore->state_id;
+        StackInfo* stack_info = &stack_[explore->stackidx];
+        StateInfo* state_info = &state_information_[state_id];
 
-        StateInfo* backtracked_state_info_ = nullptr;
-
-        while (!exploration_stack_.empty()) {
-            ExplorationInfo& explore = exploration_stack_.back();
-
-            const StateID& state_id = explore.state_id;
-
-            StackInfo& stack_info = stack_[explore.stackidx];
-            StateInfo& state_info = state_information_[state_id];
-
-            assert(state_id == stack_info.state_id);
-            assert(state_info.status == StateInfo::ONSTACK);
-
-            if (backtracked_state_info_ != nullptr) {
-                state_info.update_lowlink(backtracked_state_info_->lowlink);
-                state_info.update_dead(backtracked_state_info_->dead);
-                backtracked_state_info_ = nullptr;
-            }
-
-            bool recurse = successor_loop(
-                explore,
-                stack_info,
-                state_info,
+        for (;;) {
+            while (successor_loop(
+                *explore,
+                *stack_info,
+                *state_info,
                 state_id,
                 value_store,
-                dead_end_out);
-
-            if (recurse) {
-                continue;
+                dead_end_out)) {
+                explore = &exploration_stack_.back();
+                state_id = explore->state_id;
+                stack_info = &stack_[explore->stackidx];
+                state_info = &state_information_[state_id];
             }
 
-            // Check if an SCC was found.
-            if (state_info.stack_id == state_info.lowlink) {
-                const auto begin = stack_.begin() + explore.stackidx;
-                const auto end = stack_.end();
-                scc_found(state_info, begin, end, dead_end_out);
-            }
+            for (;;) {
+                // Check if an SCC was found.
+                const unsigned stack_id = state_info->stack_id;
+                const unsigned lowlink = state_info->lowlink;
+                const bool onstack = stack_id != lowlink;
 
-            backtracked_state_info_ = &state_info;
-            exploration_stack_.pop_back();
+                if (!onstack) {
+                    const auto begin = stack_.begin() + stack_id;
+                    const auto end = stack_.end();
+                    scc_found(*state_info, begin, end, dead_end_out);
+                }
+
+                exploration_stack_.pop_back();
+
+                if (exploration_stack_.empty()) {
+                    goto break_exploration;
+                }
+
+                StateInfo* bt_state_info = state_info;
+
+                explore = &exploration_stack_.back();
+                state_id = explore->state_id;
+                stack_info = &stack_[explore->stackidx];
+                state_info = &state_information_[state_id];
+
+                const auto [succ_id, prob] = *explore->successor;
+                IncumbentSolution& s_value = value_store[succ_id];
+                QValueInfo& tinfo = stack_info->nconv_qs.back();
+
+                if (onstack) {
+                    state_info->update_lowlink(bt_state_info->lowlink);
+                    tinfo.nconv_successors.emplace_back(prob, &s_value);
+                } else {
+                    tinfo.conv_part += prob * s_value;
+                }
+
+                state_info->update_dead(bt_state_info->dead);
+
+                if (++explore->successor != explore->transition.end()) {
+                    break;
+                }
+
+                if (tinfo.finalize()) {
+                    value_utils::set_max(
+                        stack_info->conv_part,
+                        tinfo.conv_part);
+                    stack_info->nconv_qs.pop_back();
+                }
+
+                if (const Action* action =
+                        explore->next_action(this, state_id)) {
+                    explore->aops.pop_back();
+
+                    stack_info->nconv_qs.emplace_back(
+                        this->get_action_reward(state_id, *action));
+
+                    break;
+                }
+            }
         }
+
+    break_exploration:;
 
         return value_utils::as_upper_bound(init_value);
     }
@@ -485,7 +523,7 @@ private:
         ValueStore& value_store,
         DeadendOutputIt dead_end_out)
     {
-        do {
+        for (;;) {
             assert(!stack_info.nconv_qs.empty());
 
             QValueInfo& tinfo = stack_info.nconv_qs.back();
@@ -531,7 +569,7 @@ private:
 
             stack_info.nconv_qs.emplace_back(
                 this->get_action_reward(state_id, *next_action));
-        } while (true);
+        }
     }
 
     /**
