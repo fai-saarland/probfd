@@ -98,10 +98,8 @@ public:
      */
     virtual value_type::value_t solve(const State& state) override
     {
-        this->value_store_.reset(new Store());
-        this->solve(this->get_state_id(state), *this->value_store_);
-        return value_utils::as_upper_bound(
-            value_store_->operator[](this->get_state_id(state)));
+        Store value_store;
+        return this->solve(this->get_state_id(state), value_store);
     }
 
     /**
@@ -175,7 +173,7 @@ public:
             }
 
             // Check if an SCC was found.
-            if (state_info.dfs_index == state_info.lowlink) {
+            if (state_info.stack_id == state_info.lowlink) {
                 const auto begin = stack_.begin() + explore.stackidx;
                 const auto end = stack_.end();
                 scc_found(state_info, begin, end, dead_end_out);
@@ -203,7 +201,7 @@ private:
         uint8_t dead : 1; // Dead-end flag
 
         // Tarjan's info
-        unsigned dfs_index = 0;
+        unsigned stack_id = 0;
         unsigned lowlink = 0;
 
         void update_lowlink(unsigned upd) { lowlink = std::min(lowlink, upd); }
@@ -376,8 +374,6 @@ private:
         State state = this->lookup_state(state_id);
         EvaluationResult state_eval = this->get_state_reward(state);
 
-        state_info.dfs_index = state_info.lowlink = index_++;
-
         if (state_eval) {
             state_value =
                 IncumbentSolution(static_cast<value_type::value_t>(state_eval));
@@ -429,6 +425,8 @@ private:
                 // Check for self loop
                 if (!transition.is_dirac(state_id)) {
                     std::size_t stack_size = stack_.size();
+
+                    state_info.stack_id = state_info.lowlink = stack_size;
 
                     // Found non self loop action, push and return success.
                     auto& s_info = stack_.emplace_back(
@@ -506,7 +504,7 @@ private:
                 int status = succ_info.status;
 
                 if (status == StateInfo::ONSTACK) {
-                    state_info.update_lowlink(succ_info.dfs_index);
+                    state_info.update_lowlink(succ_info.stack_id);
                     tinfo.nconv_successors.emplace_back(prob, &s_value);
                 } else if (
                     status == StateInfo::NEW &&
@@ -633,9 +631,6 @@ private:
     const IncumbentSolution dead_end_value_;
 
     storage::PerStateStorage<StateInfo> state_information_;
-    std::unique_ptr<Store> value_store_;
-
-    unsigned index_ = 0;
     std::deque<ExplorationInfo> exploration_stack_;
     std::vector<StackInfo> stack_;
 
