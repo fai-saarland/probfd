@@ -274,9 +274,9 @@ private:
                 const Action& action = aops.back();
                 self->generate_successors(state_id, action, transition);
                 transition.make_unique();
-                successor = transition.begin();
 
-                if (transition.size() != 1 || successor->first != state_id) {
+                if (!transition.is_dirac(state_id)) {
+                    successor = transition.begin();
                     return &action;
                 }
 
