@@ -61,13 +61,13 @@ struct Statistics {
 namespace internal {
 
 struct StateInfo {
-    static const unsigned UNDEF = (((unsigned)-1) >> 2) - 2;
-    static const unsigned ZERO = UNDEF + 1;
-    static const unsigned ONE = UNDEF + 2;
+    static const unsigned UNDEF = std::numeric_limits<unsigned>::max() >> 4;
 
     explicit StateInfo()
         : explored(0)
         , expandable_goal(0)
+        , dead(1)
+        , one(0)
         , stackid_(UNDEF)
     {
     }
@@ -77,13 +77,14 @@ struct StateInfo {
         assert(onstack());
         return stackid_;
     }
+
     bool onstack() const { return stackid_ < UNDEF; }
-    bool zero() const { return stackid_ == ZERO; }
-    bool one() const { return stackid_ == ONE; }
 
     unsigned explored : 1;
     unsigned expandable_goal : 1; // non-terminal goal?
-    unsigned stackid_ : 30;
+    unsigned dead : 1;            // dead end flag
+    unsigned one : 1;             // proper state flag
+    unsigned stackid_ : 28;
 };
 
 template <typename Action>
@@ -113,8 +114,6 @@ struct StackInfo {
 
     StateID stateid;
 
-    bool dead = true;
-    bool one = false;
     unsigned scc_transitions = 0;
 
     std::vector<bool> active;
@@ -206,6 +205,7 @@ public:
 
             e = &expansion_queue_.back();
             s = &stack_[e->stck];
+            st = &state_infos_[s->stateid];
 
             // We returned from a recursive DFS call. Update the parent.
 
@@ -218,10 +218,10 @@ public:
                     parents.emplace_back(e->stck, s->active.size());
                 }
             } else {
-                e->exits_only_proper = e->exits_only_proper && bt_info.one();
+                e->exits_only_proper = e->exits_only_proper && bt_info.one;
             }
 
-            s->dead = s->dead && backtracked_from->dead;
+            st->dead = st->dead && bt_info.dead;
 
             if (e->successors.back().empty()) {
                 e->successors.pop_back();
@@ -230,7 +230,7 @@ public:
                     if (e->exits_only_proper) ++s->scc_transitions;
                     s->active.push_back(e->exits_only_proper);
                 } else if (e->exits_only_proper) {
-                    s->one = true;
+                    st->one = true;
                 }
 
                 // Reset transition flags
@@ -249,7 +249,7 @@ private:
         OneOutputIt one_states_out)
     {
         assert(!state_info.explored);
-        assert(!state_info.one() && !state_info.zero());
+        assert(!state_info.one && state_info.dead);
 
         state_info.explored = 1;
 
@@ -259,8 +259,11 @@ private:
             ++stats_.terminals;
             ++stats_.goals;
             ++stats_.ones;
+
+            state_info.dead = 0;
+            state_info.one = 1;
+
             *one_states_out = state_id;
-            state_info.stackid_ = StateInfo::ONE;
 
             if (!expand_goals_) {
                 return false;
@@ -272,7 +275,6 @@ private:
             pruning_function_->operator()(state)) {
             ++stats_.terminals;
             *zero_states_out = state_id;
-            state_info.stackid_ = StateInfo::ZERO;
             return false;
         }
 
@@ -285,7 +287,6 @@ private:
             } else {
                 ++stats_.terminals;
                 *zero_states_out = state_id;
-                state_info.stackid_ = StateInfo::ZERO;
             }
 
             return false;
@@ -313,10 +314,7 @@ private:
         }
 
         state_info.stackid_ = stack_.size();
-
-        StackInfo& info = stack_.emplace_back(state_id);
-        info.dead = !state_info.expandable_goal;
-        info.one = expand_goals_ && state_info.expandable_goal;
+        stack_.emplace_back(state_id);
 
         return true;
     }
@@ -348,12 +346,12 @@ private:
 
                     assert(!succ_info.onstack());
 
-                    if (!succ_info.one()) {
+                    if (!succ_info.one) {
                         e.exits_only_proper = false;
                     }
 
-                    if (!succ_info.zero()) {
-                        s.dead = false;
+                    if (!succ_info.dead) {
+                        st.dead = false;
                     }
                 }
 
@@ -367,12 +365,12 @@ private:
                         parents.emplace_back(e.stck, s.active.size());
                     }
                 } else {
-                    if (!succ_info.one()) {
+                    if (!succ_info.one) {
                         e.exits_only_proper = false;
                     }
 
-                    if (!succ_info.zero()) {
-                        s.dead = false;
+                    if (!succ_info.dead) {
+                        st.dead = false;
                     }
                 }
             }
@@ -383,7 +381,7 @@ private:
                 if (e.exits_only_proper) ++s.scc_transitions;
                 s.active.push_back(e.exits_only_proper);
             } else if (e.exits_only_proper) {
-                s.one = true;
+                st.one = true;
             }
 
             // Reset transition flags
@@ -403,10 +401,13 @@ private:
         ZeroOutputIt zero_states_out,
         OneOutputIt one_states_out)
     {
-        if (begin->dead) {
+        const StateInfo& st_info = state_infos_[begin->stateid];
+
+        if (st_info.dead) {
             for (auto it = begin; it != end; ++it) {
                 StateInfo& info = state_infos_[it->stateid];
-                info.stackid_ = StateInfo::ZERO;
+                info.stackid_ = StateInfo::UNDEF;
+                assert(info.dead);
                 *zero_states_out = it->stateid;
             }
         } else {
@@ -414,7 +415,10 @@ private:
             std::deque<StackInfo*> non_one;
             {
                 for (auto stk_it = begin; stk_it != end; ++stk_it) {
-                    if (!stk_it->one && stk_it->scc_transitions == 0 &&
+                    auto sid = stk_it->stateid;
+                    StateInfo& sinfo = state_infos_[sid];
+
+                    if (!sinfo.one && stk_it->scc_transitions == 0 &&
                         !stk_it->parents.empty()) {
                         non_one.push_back(&*stk_it);
                     }
@@ -430,7 +434,9 @@ private:
 
                 for (const auto& [first, second] : scc_elem->parents) {
                     StackInfo& pinfo = stack_[first];
-                    if (!pinfo.one && pinfo.active[second]) {
+                    const StateInfo& sinfo = state_infos_[pinfo.stateid];
+
+                    if (!sinfo.one && pinfo.active[second]) {
                         pinfo.active[second] = false;
                         if (--pinfo.scc_transitions == 0 &&
                             !pinfo.parents.empty()) {
@@ -445,17 +451,15 @@ private:
                 auto sid = stk_it->stateid;
                 StateInfo& sinfo = state_infos_[sid];
 
-                if (stk_it->one || stk_it->scc_transitions) {
-                    sinfo.stackid_ = StateInfo::ONE;
-
+                if (sinfo.one || stk_it->scc_transitions) {
                     if (!sinfo.expandable_goal) {
+                        sinfo.one = true;
                         *one_states_out = sid;
+                        ++stats_.ones;
                     }
-
-                    ++stats_.ones;
-                } else {
-                    sinfo.stackid_ = StateInfo::UNDEF;
                 }
+
+                sinfo.stackid_ = StateInfo::UNDEF;
             }
         }
 
