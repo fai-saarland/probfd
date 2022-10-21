@@ -183,7 +183,7 @@ public:
                 stack_info = &stack_[explore->stackidx];
                 state_info = &state_information_[state_id];
 
-                const auto [succ_id, prob] = *explore->successor;
+                const auto [succ_id, prob] = explore->get_current_successor();
                 IncumbentSolution& s_value = value_store[succ_id];
                 QValueInfo& tinfo = stack_info->nconv_qs.back();
 
@@ -196,7 +196,7 @@ public:
 
                 state_info->update_dead(bt_state_info->dead);
 
-                if (++explore->successor != explore->transition.end()) {
+                if (explore->next_successor()) {
                     break;
                 }
 
@@ -207,12 +207,10 @@ public:
                     stack_info->nconv_qs.pop_back();
                 }
 
-                if (const Action* action =
-                        explore->next_action(this, state_id)) {
-                    explore->aops.pop_back();
-
-                    stack_info->nconv_qs.emplace_back(
-                        this->get_action_reward(state_id, *action));
+                if (explore->next_action(this, state_id)) {
+                    stack_info->nconv_qs.emplace_back(this->get_action_reward(
+                        state_id,
+                        explore->get_current_action()));
 
                     break;
                 }
@@ -258,32 +256,35 @@ private:
             , transition(std::move(transition))
             , successor(this->transition.begin())
         {
-            // First action was handled already.
-            this->aops.pop_back();
         }
 
         /**
          * Advances to the next non-loop action. Returns nullptr if such an
          * action does not exist.
          */
-        const Action*
-        next_action(TopologicalValueIteration* self, unsigned int state_id)
+        bool next_action(TopologicalValueIteration* self, unsigned int state_id)
         {
-            while (!aops.empty()) {
+            for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
                 transition.clear();
-                const Action& action = aops.back();
-                self->generate_successors(state_id, action, transition);
+                self->generate_successors(state_id, aops.back(), transition);
                 transition.make_unique();
 
                 if (!transition.is_dirac(state_id)) {
                     successor = transition.begin();
-                    return &action;
+                    return true;
                 }
-
-                aops.pop_back();
             }
 
-            return nullptr;
+            return false;
+        }
+
+        bool next_successor() { return ++successor != transition.end(); }
+
+        Action& get_current_action() { return aops.back(); }
+
+        std::pair<StateID, value_type::value_t> get_current_successor()
+        {
+            return *successor;
         }
 
         // Immutable info
@@ -529,7 +530,7 @@ private:
             QValueInfo& tinfo = stack_info.nconv_qs.back();
 
             do {
-                const auto [succ_id, prob] = *explore.successor;
+                const auto [succ_id, prob] = explore.get_current_successor();
 
                 if (succ_id == state_id) {
                     tinfo.has_self_loop = true;
@@ -552,23 +553,20 @@ private:
                     tinfo.conv_part += prob * s_value;
                     state_info.update_dead(succ_info.dead);
                 }
-            } while (++explore.successor != explore.transition.end());
+            } while (explore.next_successor());
 
             if (tinfo.finalize()) {
                 value_utils::set_max(stack_info.conv_part, tinfo.conv_part);
                 stack_info.nconv_qs.pop_back();
             }
 
-            const Action* next_action = explore.next_action(this, state_id);
-
-            if (!next_action) {
+            if (!explore.next_action(this, state_id)) {
                 return false;
             }
 
-            explore.aops.pop_back();
-
-            stack_info.nconv_qs.emplace_back(
-                this->get_action_reward(state_id, *next_action));
+            stack_info.nconv_qs.emplace_back(this->get_action_reward(
+                state_id,
+                explore.get_current_action()));
         }
     }
 
