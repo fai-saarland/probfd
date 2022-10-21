@@ -88,18 +88,15 @@ struct StateInfo {
 
 template <typename Action>
 struct ExpansionInfo {
-    explicit ExpansionInfo(unsigned stck, bool non_expandable_goal)
+    explicit ExpansionInfo(unsigned stck)
         : stck(stck)
         , lstck(stck)
-        , non_expandable_goal(non_expandable_goal)
     {
     }
 
     // Tarjan's SCC algorithm: stack id and lowlink
     const unsigned stck;
     unsigned lstck;
-
-    const bool non_expandable_goal;
 
     bool exits_only_proper = true;
     bool transitions_in_scc = false;
@@ -177,12 +174,15 @@ public:
 
         ExpansionInfo* e = &expansion_queue_.back();
         StackInfo* s = &stack_[e->stck];
+        StateInfo* st = &state_infos_[s->stateid];
 
         for (;;) {
             // DFS recursion
-            while (push_successor(*e, *s, zero_states_out, one_states_out)) {
+            while (
+                push_successor(*e, *s, *st, zero_states_out, one_states_out)) {
                 e = &expansion_queue_.back();
                 s = &stack_[e->stck];
+                st = &state_infos_[s->stateid];
             }
 
             StateInfo& bt_info = state_infos_[s->stateid];
@@ -213,7 +213,7 @@ public:
                 e->lstck = std::min(e->lstck, lstck);
                 e->transitions_in_scc = true;
 
-                if (!expand_goals_ || e->non_expandable_goal) {
+                if (!expand_goals_ || !st->expandable_goal) {
                     auto& parents = backtracked_from->parents;
                     parents.emplace_back(e->stck, s->active.size());
                 }
@@ -291,9 +291,7 @@ private:
             return false;
         }
 
-        ExpansionInfo& e = expansion_queue_.emplace_back(
-            stack_.size(),
-            !state_info.expandable_goal);
+        ExpansionInfo& e = expansion_queue_.emplace_back(stack_.size());
 
         e.successors.reserve(aops.size());
 
@@ -327,6 +325,7 @@ private:
     bool push_successor(
         ExpansionInfo& e,
         StackInfo& s,
+        StateInfo& st,
         ZeroOutputIt zero_states_out,
         OneOutputIt one_states_out)
     {
@@ -363,7 +362,7 @@ private:
                     e.transitions_in_scc = true;
                     e.lstck = std::min(e.lstck, succ_stack_id);
 
-                    if (!expand_goals_ || e.non_expandable_goal) {
+                    if (!expand_goals_ || !st.expandable_goal) {
                         auto& parents = stack_[succ_stack_id].parents;
                         parents.emplace_back(e.stck, s.active.size());
                     }
