@@ -207,7 +207,7 @@ public:
                 e->lstck = std::min(e->lstck, lstck);
                 e->transitions_in_scc = true;
 
-                if (!expand_goals_ || !st->expandable_goal) {
+                if (!st->expandable_goal) {
                     auto& parents = backtracked_from->parents;
                     parents.emplace_back(e->stck, s->active.size());
                 }
@@ -276,7 +276,7 @@ private:
         transition_gen_->operator()(state_id, aops);
 
         if (aops.empty()) {
-            if (expand_goals_ && state_info.expandable_goal) {
+            if (state_info.expandable_goal) {
                 state_info.expandable_goal = 0;
             } else {
                 ++stats_.terminals;
@@ -329,43 +329,23 @@ private:
                 succs.pop_back();
                 StateInfo& succ_info = state_infos_[succ_id];
 
-                if (!succ_info.explored) {
-                    if (push(
-                            succ_id,
-                            succ_info,
-                            zero_states_out,
-                            one_states_out)) {
-                        return true;
-                    }
-
-                    assert(!succ_info.onstack());
-
-                    if (!succ_info.one) {
-                        e.exits_only_proper = false;
-                    }
-
-                    if (!succ_info.dead) {
-                        st.dead = false;
-                    }
-                }
-
                 if (succ_info.onstack()) {
                     unsigned succ_stack_id = succ_info.stackid_;
-                    e.transitions_in_scc = true;
                     e.lstck = std::min(e.lstck, succ_stack_id);
 
-                    if (!expand_goals_ || !st.expandable_goal) {
+                    e.transitions_in_scc = true;
+
+                    if (!st.expandable_goal) {
                         auto& parents = stack_[succ_stack_id].parents;
                         parents.emplace_back(e.stck, s.active.size());
                     }
+                } else if (
+                    !succ_info.explored &&
+                    push(succ_id, succ_info, zero_states_out, one_states_out)) {
+                    return true;
                 } else {
-                    if (!succ_info.one) {
-                        e.exits_only_proper = false;
-                    }
-
-                    if (!succ_info.dead) {
-                        st.dead = false;
-                    }
+                    e.exits_only_proper = e.exits_only_proper && succ_info.one;
+                    st.dead = st.dead && succ_info.dead;
                 }
             }
 
