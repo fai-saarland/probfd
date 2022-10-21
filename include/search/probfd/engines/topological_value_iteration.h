@@ -594,36 +594,20 @@ private:
             } while (++it != end);
 
             // Now run VI on the SCC until convergence
-            statistics_.bellman_backups += value_iteration(begin, end);
+            bool changed;
+
+            do {
+                changed = false;
+                auto it = begin;
+
+                do {
+                    changed |= it->update_value();
+                    ++statistics_.bellman_backups;
+                } while (++it != end);
+            } while (changed);
         }
 
         stack_.erase(begin, end);
-    }
-
-    /**
-     * Performs value iteration on the SCC until convergence. Returns the
-     * number of performed updates.
-     */
-    template <typename StackInfoIterator>
-    unsigned
-    value_iteration(StackInfoIterator begin, StackInfoIterator end) const
-    {
-        assert(begin != end);
-
-        bool changed;
-        unsigned num_updates = 0;
-
-        do {
-            changed = false;
-            auto it = begin;
-
-            do {
-                changed |= it->update_value();
-                ++num_updates;
-            } while (++it != end);
-        } while (changed);
-
-        return num_updates;
     }
 
     const engine_interfaces::StateEvaluator<State>* value_initializer_;
