@@ -105,9 +105,7 @@ struct Statistics {
 template <typename State, typename Action>
 class EndComponentDecomposition {
     struct StateInfo {
-        static const unsigned UNDEF = (((unsigned)-1) >> 2) - 2;
-        static const unsigned ZERO = UNDEF + 1;
-        static const unsigned ONE = UNDEF + 2;
+        static const unsigned UNDEF = std::numeric_limits<unsigned>::max() >> 2;
 
         explicit StateInfo()
             : explored(0)
@@ -287,7 +285,6 @@ private:
         if (rewards_->operator()(state)) {
             ++stats_.terminals;
             ++stats_.goals;
-            state_info.stackid_ = StateInfo::ONE;
 
             if (!expand_goals_) {
                 return false;
@@ -298,7 +295,6 @@ private:
             pruning_function_ != nullptr &&
             pruning_function_->operator()(state)) {
             ++stats_.terminals;
-            state_info.stackid_ = StateInfo::ZERO;
             return false;
         }
 
@@ -310,7 +306,6 @@ private:
                 state_info.expandable_goal = 0;
             } else {
                 ++stats_.terminals;
-                state_info.stackid_ = StateInfo::ZERO;
             }
 
             return false;
@@ -350,7 +345,6 @@ private:
             } else {
                 ++stats_.terminals;
                 ++stats_.selfloops;
-                state_info.stackid_ = StateInfo::ZERO;
             }
 
             return false;
