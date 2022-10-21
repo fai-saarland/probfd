@@ -133,6 +133,17 @@ class EndComponentDecomposition {
         {
         }
 
+        explicit ExpansionInfo(
+            unsigned stck,
+            std::vector<Action> aops,
+            std::vector<std::vector<StateID>> successors)
+            : stck(stck)
+            , lstck(stck)
+            , aops(std::move(aops))
+            , successors(std::move(successors))
+        {
+        }
+
         // Tarjan's SCC algorithm: stack id and lowlink
         const unsigned stck;
         unsigned lstck;
@@ -189,10 +200,14 @@ class EndComponentDecomposition {
                 return false;
             }
 
-            info.stackid_ = self->stack_.size();
-            auto& e = self->expansion_queue_.emplace_back(self->stack_.size());
-            e.successors.swap(scc_info.successors);
-            e.aops.swap(scc_info.aops);
+            const auto stack_size = self->stack_.size();
+            info.stackid_ = stack_size;
+
+            self->expansion_queue_.emplace_back(
+                stack_size,
+                std::move(scc_info.aops),
+                std::move(scc_info.successors));
+
             self->stack_.emplace_back(scc_info.stateid);
 
             return true;
@@ -210,11 +225,6 @@ class EndComponentDecomposition {
         {
             const StateID& sid = s_->operator[](x).stateid;
             return i_->operator[](sid);
-        }
-
-        StateInfo& operator[](const StateID& stateid) const
-        {
-            return i_->operator[](stateid);
         }
 
         std::vector<StackInfo>* s_;
@@ -399,7 +409,7 @@ private:
             bool is_onstack = e->stck != e->lstck;
 
             if (e->stck == e->lstck) {
-                scc_found<RootIteration>(*e, *s, get_state_info);
+                scc_found<RootIteration>(*e, *s);
             }
 
             expansion_queue_.pop_back();
@@ -503,8 +513,8 @@ private:
         return false;
     }
 
-    template <bool RootIteration, typename GetStateInfo>
-    void scc_found(ExpansionInfo& e, StackInfo& s, GetStateInfo& get_state_info)
+    template <bool RootIteration>
+    void scc_found(ExpansionInfo& e, StackInfo& s)
     {
         unsigned scc_size = stack_.size() - e.stck;
         auto scc_begin = stack_.begin() + e.stck;
@@ -513,7 +523,7 @@ private:
         StateID scc_repr_id = s.stateid;
         if (scc_size == 1) {
             assert(s.aops.empty());
-            StateInfo& info = get_state_info[scc_repr_id];
+            StateInfo& info = state_infos_[scc_repr_id];
             info.stackid_ = StateInfo::UNDEF;
 
             stack_.pop_back();
@@ -528,7 +538,7 @@ private:
             if (expand_goals_) {
                 for (auto it = scc_begin; it != scc_end; ++it) {
                     assert(it->successors.size() == it->aops.size());
-                    StateInfo& info = get_state_info[it->stateid];
+                    StateInfo& info = state_infos_[it->stateid];
                     if (info.expandable_goal) {
                         it->successors.clear();
                         it->aops.clear();
@@ -546,7 +556,7 @@ private:
 
                 for (auto it = scc_begin; it != scc_end; ++it) {
                     assert(it->successors.size() == it->aops.size());
-                    StateInfo& info = get_state_info[it->stateid];
+                    StateInfo& info = state_infos_[it->stateid];
                     info.stackid_ = StateInfo::UNDEF;
                     info.explored = 0;
                 }
@@ -557,7 +567,7 @@ private:
 
                 for (auto it = scc_begin; it != scc_end; ++it) {
                     assert(it->successors.size() == it->aops.size());
-                    StateInfo& info = get_state_info[it->stateid];
+                    StateInfo& info = state_infos_[it->stateid];
                     info.stackid_ = StateInfo::UNDEF;
 
                     transitions += it->aops.size();
@@ -606,7 +616,7 @@ private:
         auto get_succ_id = [start](const StateID& id) { return id - start; };
 
         for (unsigned i = 0; i < scc_size; ++i) {
-            StateInfo& iinfo = get_state_info[scc[i].stateid];
+            StateInfo& iinfo = state_infos_[scc[i].stateid];
 
             if (iinfo.explored) {
                 continue;
