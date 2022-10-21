@@ -72,12 +72,6 @@ struct StateInfo {
     {
     }
 
-    unsigned stackid() const
-    {
-        assert(onstack());
-        return stackid_;
-    }
-
     bool onstack() const { return stackid_ < UNDEF; }
 
     unsigned explored : 1;
