@@ -114,11 +114,6 @@ class EndComponentDecomposition {
         {
         }
 
-        unsigned stackid() const
-        {
-            assert(onstack());
-            return stackid_;
-        }
         bool onstack() const { return stackid_ < UNDEF; }
 
         unsigned explored : 1;
@@ -170,68 +165,11 @@ class EndComponentDecomposition {
         }
 
         StateID stateid;
+
+        // SCC successors for ECD recursion
         std::vector<Action> aops;
         std::vector<std::vector<StateID>> successors;
     };
-
-    using StateInfoStore = storage::PerStateStorage<StateInfo>;
-
-    class PushLocal {
-        EndComponentDecomposition<State, Action>* self;
-        std::vector<StackInfo>& scc_;
-
-    public:
-        explicit PushLocal(
-            EndComponentDecomposition<State, Action>* self,
-            std::vector<StackInfo>& scc)
-            : self(self)
-            , scc_(scc)
-        {
-        }
-
-        bool operator()(unsigned i, StateInfo& info) const
-        {
-            assert(!info.explored);
-            info.explored = true;
-            StackInfo& scc_info = scc_[i];
-
-            if (scc_info.successors.empty()) {
-                ++self->stats_.ec1;
-                return false;
-            }
-
-            const auto stack_size = self->stack_.size();
-            info.stackid_ = stack_size;
-
-            self->expansion_queue_.emplace_back(
-                stack_size,
-                std::move(scc_info.aops),
-                std::move(scc_info.successors));
-
-            self->stack_.emplace_back(scc_info.stateid);
-
-            return true;
-        }
-    };
-
-    struct StateInfoLookup {
-        explicit StateInfoLookup(std::vector<StackInfo>* s, StateInfoStore* i)
-            : s_(s)
-            , i_(i)
-        {
-        }
-
-        StateInfo& operator[](unsigned x) const
-        {
-            const StateID& sid = s_->operator[](x).stateid;
-            return i_->operator[](sid);
-        }
-
-        std::vector<StackInfo>* s_;
-        StateInfoStore* i_;
-    };
-
-    friend PushLocal;
 
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
@@ -266,14 +204,9 @@ public:
         stats_ = Statistics();
 
         auto init_id = state_id_map_->get_state_id(initial_state);
-        push(init_id, state_infos_[init_id]);
+        push<true>(init_id, state_infos_[init_id]);
 
-        auto get_succ_id = [](const StateID& id) { return id; };
-        auto pushf = [this](const StateID& state_id, StateInfo& state_info) {
-            return push(state_id, state_info);
-        };
-
-        find_and_decompose_sccs<true>(0, pushf, state_infos_, get_succ_id);
+        find_and_decompose_sccs<true>();
 
         assert(stack_.empty());
         assert(expansion_queue_.empty());
@@ -287,7 +220,11 @@ public:
     Statistics get_statistics() const { return stats_; }
 
 private:
-    bool push(const StateID& state_id, StateInfo& state_info)
+    template <bool RootIteration>
+    bool push(StateID state_id, StateInfo& state_info);
+
+    template <>
+    bool push<true>(StateID state_id, StateInfo& state_info)
     {
         state_info.explored = 1;
         State state = state_id_map_->get_state(state_id);
@@ -372,16 +309,36 @@ private:
         return true;
     }
 
-    template <
-        bool RootIteration,
-        typename Push,
-        typename GetStateInfo,
-        typename GetSuccID>
-    void find_and_decompose_sccs(
-        const unsigned limit,
-        Push& pushf,
-        GetStateInfo& get_state_info,
-        GetSuccID& get_state_id)
+    template <>
+    bool push<false>(StateID state_id, StateInfo& info)
+    {
+        assert(!info.explored);
+        assert(info.onstack());
+
+        info.explored = true;
+        StackInfo& scc_info = stack_[info.stackid_];
+
+        if (scc_info.successors.empty()) {
+            info.stackid_ = StateInfo::UNDEF;
+            ++stats_.ec1;
+            return false;
+        }
+
+        const auto stack_size = stack_.size();
+        info.stackid_ = stack_size;
+
+        expansion_queue_.emplace_back(
+            stack_size,
+            std::move(scc_info.aops),
+            std::move(scc_info.successors));
+
+        stack_.emplace_back(state_id);
+
+        return true;
+    }
+
+    template <bool RootIteration>
+    void find_and_decompose_sccs(const unsigned limit = 0)
     {
         if (expansion_queue_.size() <= limit) {
             return;
@@ -392,8 +349,7 @@ private:
 
         for (;;) {
             // DFS recursion
-            while (
-                push_successor(*e, *s, pushf, get_state_info, get_state_id)) {
+            while (push_successor<RootIteration>(*e, *s)) {
                 e = &expansion_queue_.back();
                 s = &stack_[e->stck];
             }
@@ -423,8 +379,7 @@ private:
 
             // We returned from a recursive DFS call. Update the parent.
 
-            const auto action_reward =
-                (*rewards_)(get_state_id(s->stateid), e->aops.back());
+            const auto action_reward = (*rewards_)(s->stateid, e->aops.back());
 
             if (is_onstack) {
                 e->lstck = std::min(e->lstck, lstck);
@@ -452,30 +407,24 @@ private:
         }
     }
 
-    template <typename Push, typename GetStateInfo, typename GetSuccID>
-    bool push_successor(
-        ExpansionInfo& e,
-        StackInfo& s,
-        Push& pushf,
-        GetStateInfo& get_state_info,
-        GetSuccID& get_state_id)
+    template <bool RootIteration>
+    bool push_successor(ExpansionInfo& e, StackInfo& s)
     {
         while (!e.successors.empty()) {
             std::vector<StateID>& e_succs = e.successors.back();
             std::vector<StateID>& s_succs = s.successors.back();
             assert(!e_succs.empty());
 
-            const auto action_reward =
-                (*rewards_)(get_state_id(s.stateid), e.aops.back());
+            const auto action_reward = (*rewards_)(s.stateid, e.aops.back());
 
             do {
-                const auto succ_id = get_state_id(e_succs.back());
+                const StateID succ_id = e_succs.back();
                 e_succs.pop_back();
-                StateInfo& succ_info = get_state_info[succ_id];
+                StateInfo& succ_info = state_infos_[succ_id];
 
                 if (!succ_info.explored) {
-                    s_succs.emplace_back(stack_.size());
-                    if (pushf(succ_id, succ_info)) {
+                    s_succs.emplace_back(succ_id);
+                    if (push<RootIteration>(succ_id, succ_info)) {
                         return true;
                     }
 
@@ -484,8 +433,9 @@ private:
                         e.recurse || (e.remains_in_scc && s_succs.size() > 1);
                     e.remains_in_scc = false;
                 } else if (succ_info.onstack()) {
-                    s_succs.emplace_back(succ_info.stackid());
-                    e.lstck = std::min(e.lstck, succ_info.stackid());
+                    e.lstck = std::min(e.lstck, succ_info.stackid_);
+
+                    s_succs.emplace_back(succ_id);
                     e.recurse = e.recurse || !e.remains_in_scc ||
                                 action_reward != value_type::zero;
                 } else {
@@ -556,9 +506,7 @@ private:
 
                 for (auto it = scc_begin; it != scc_end; ++it) {
                     assert(it->successors.size() == it->aops.size());
-                    StateInfo& info = state_infos_[it->stateid];
-                    info.stackid_ = StateInfo::UNDEF;
-                    info.explored = 0;
+                    state_infos_[it->stateid].explored = 0;
                 }
 
                 decompose(e.stck);
@@ -597,42 +545,29 @@ private:
         assert(stack_.size() == e.stck);
     }
 
-    void decompose(const unsigned start)
+    using StackIterator = typename std::vector<StackInfo>::iterator;
+
+    void decompose(unsigned start)
     {
-        const unsigned scc_size = stack_.size() - start;
-        auto scc_begin = stack_.begin() + start;
-        auto scc_end = stack_.end();
         const unsigned limit = expansion_queue_.size();
 
-        // Move the SCC to a new vector
-        std::vector<StackInfo> scc(
-            std::make_move_iterator(scc_begin),
-            std::make_move_iterator(scc_end));
-        stack_.erase(scc_begin, scc_end);
+        for (unsigned i = start; i < stack_.size(); ++i) {
+            StackInfo& stack_info = stack_[i];
+            const StateID id = stack_info.stateid;
+            StateInfo& state_info = state_infos_[id];
 
-        // Define accessors for the SCC
-        PushLocal push_local(this, scc);
-        StateInfoLookup get_state_info(&scc, &state_infos_);
-        auto get_succ_id = [start](const StateID& id) { return id - start; };
-
-        for (unsigned i = 0; i < scc_size; ++i) {
-            StateInfo& iinfo = state_infos_[scc[i].stateid];
-
-            if (iinfo.explored) {
+            if (state_info.explored) {
                 continue;
             }
 
-            push_local(i, iinfo);
+            push<false>(id, state_info);
 
             // Recursively run decomposition
-            find_and_decompose_sccs<false>(
-                limit,
-                push_local,
-                get_state_info,
-                get_succ_id);
+            find_and_decompose_sccs<false>(limit);
         }
 
-        assert(stack_.size() == start);
+        stack_.erase(stack_.begin() + start, stack_.end());
+
         assert(expansion_queue_.size() == limit);
     }
 
@@ -646,7 +581,7 @@ private:
 
     std::unique_ptr<QuotientSystem> sys_;
 
-    StateInfoStore state_infos_;
+    storage::PerStateStorage<StateInfo> state_infos_;
     std::deque<ExpansionInfo> expansion_queue_;
     std::vector<StackInfo> stack_;
 
