@@ -398,12 +398,14 @@ private:
 
                 if (is_onstack) {
                     e->lstck = std::min(e->lstck, lstck);
+
+                    s->successors.back().emplace_back(
+                        e->get_current_successor());
                     e->recurse = e->recurse || recurse || !e->remains_in_scc ||
                                  action_reward != value_type::zero;
                 } else {
-                    e->recurse =
-                        e->recurse ||
-                        (e->remains_in_scc && s->successors.back().size() > 1);
+                    e->recurse = e->recurse || (e->remains_in_scc &&
+                                                !s->successors.back().empty());
                     e->remains_in_scc = false;
                 }
 
@@ -444,16 +446,18 @@ private:
                 const StateID succ_id = e.get_current_successor();
                 StateInfo& succ_info = state_infos_[succ_id];
 
+                // NOTE: Exploration status must be checked first.
+                // During recursive decomposition, the exploration status is
+                // reset but the stack index is maintained for the time being.
+                // The node is however not logically on the stack.
+                // Therefore the onstack check cannot be moved up, we have to
+                // resort to goto to avoid code duplication.
                 if (!succ_info.explored) {
-                    s_succs.emplace_back(succ_id);
                     if (push<RootIteration>(succ_id, succ_info)) {
                         return true;
                     }
 
-                    assert(!succ_info.onstack());
-                    e.recurse =
-                        e.recurse || (e.remains_in_scc && s_succs.size() > 1);
-                    e.remains_in_scc = false;
+                    goto backtrack_child_scc;
                 } else if (succ_info.onstack()) {
                     e.lstck = std::min(e.lstck, succ_info.stackid_);
 
@@ -461,6 +465,7 @@ private:
                     e.recurse = e.recurse || !e.remains_in_scc ||
                                 action_reward != value_type::zero;
                 } else {
+                backtrack_child_scc:
                     e.recurse =
                         e.recurse || (e.remains_in_scc && !s_succs.empty());
                     e.remains_in_scc = false;
@@ -486,7 +491,7 @@ private:
     template <bool RootIteration>
     void scc_found(ExpansionInfo& e, StackInfo& s)
     {
-        unsigned scc_size = stack_.size() - e.stck;
+        const unsigned scc_size = stack_.size() - e.stck;
         auto scc_begin = stack_.begin() + e.stck;
         auto scc_end = stack_.end();
 
