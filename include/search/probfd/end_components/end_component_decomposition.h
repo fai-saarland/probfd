@@ -404,8 +404,7 @@ private:
                     e->recurse = e->recurse || recurse || !e->remains_in_scc ||
                                  action_reward != value_type::zero;
                 } else {
-                    e->recurse = e->recurse || (e->remains_in_scc &&
-                                                !s->successors.back().empty());
+                    e->recurse = e->recurse || !s->successors.back().empty();
                     e->remains_in_scc = false;
                 }
 
@@ -466,8 +465,7 @@ private:
                                 action_reward != value_type::zero;
                 } else {
                 backtrack_child_scc:
-                    e.recurse =
-                        e.recurse || (e.remains_in_scc && !s_succs.empty());
+                    e.recurse = e.recurse || !s_succs.empty();
                     e.remains_in_scc = false;
                 }
             } while (e.next_successor());
