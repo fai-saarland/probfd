@@ -122,12 +122,6 @@ class EndComponentDecomposition {
     };
 
     struct ExpansionInfo {
-        explicit ExpansionInfo(unsigned stck)
-            : stck(stck)
-            , lstck(stck)
-        {
-        }
-
         explicit ExpansionInfo(
             unsigned stck,
             std::vector<Action> aops,
@@ -299,9 +293,10 @@ private:
 
         aops.erase(aops.begin() + non_loop_actions, aops.end());
 
-        ExpansionInfo& e = expansion_queue_.emplace_back(stack_.size());
-        e.aops = std::move(aops);
-        e.successors = std::move(successors);
+        expansion_queue_.emplace_back(
+            stack_.size(),
+            std::move(aops),
+            std::move(successors));
 
         state_info.stackid_ = stack_.size();
         stack_.emplace_back(state_id);
