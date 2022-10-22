@@ -133,6 +133,25 @@ class EndComponentDecomposition {
         {
         }
 
+        bool next_action()
+        {
+            assert(aops.size() == successors.size());
+            aops.pop_back();
+            successors.pop_back();
+            return !aops.empty();
+        }
+
+        bool next_successor()
+        {
+            auto& succs = successors.back();
+            succs.pop_back();
+            return !succs.empty();
+        }
+
+        StateID get_current_successor() { return successors.back().back(); }
+
+        Action& get_current_action() { return aops.back(); }
+
         // Tarjan's SCC algorithm: stack id and lowlink
         const unsigned stck;
         unsigned lstck;
@@ -349,72 +368,80 @@ private:
                 s = &stack_[e->stck];
             }
 
-            assert(e->successors.empty() && e->aops.empty());
-            assert(e->stck >= e->lstck);
-            assert(s->successors.back().empty());
+            // Iterative backtracking
+            for (;;) {
+                assert(e->successors.empty() && e->aops.empty());
 
-            s->successors.pop_back();
+                const bool recurse = e->recurse;
+                const unsigned int stck = e->stck;
+                const unsigned int lstck = e->lstck;
 
-            bool recurse = e->recurse;
-            unsigned int lstck = e->lstck;
-            bool is_onstack = e->stck != e->lstck;
+                assert(stck >= lstck);
 
-            if (e->stck == e->lstck) {
-                scc_found<RootIteration>(*e, *s);
-            }
+                const bool is_onstack = stck != lstck;
 
-            expansion_queue_.pop_back();
+                if (!is_onstack) {
+                    scc_found<RootIteration>(*e, *s);
+                }
 
-            if (expansion_queue_.size() <= limit) {
-                break;
-            }
+                expansion_queue_.pop_back();
 
-            e = &expansion_queue_.back();
-            s = &stack_[e->stck];
+                if (expansion_queue_.size() <= limit) {
+                    goto break_exploration;
+                }
 
-            // We returned from a recursive DFS call. Update the parent.
+                e = &expansion_queue_.back();
+                s = &stack_[e->stck];
 
-            const auto action_reward = (*rewards_)(s->stateid, e->aops.back());
+                const auto action_reward =
+                    (*rewards_)(s->stateid, e->get_current_action());
 
-            if (is_onstack) {
-                e->lstck = std::min(e->lstck, lstck);
-                e->recurse = e->recurse || recurse || !e->remains_in_scc ||
-                             action_reward != value_type::zero;
-            } else {
-                e->recurse = e->recurse || (e->remains_in_scc &&
-                                            s->successors.back().size() > 1);
-                e->remains_in_scc = false;
-            }
+                if (is_onstack) {
+                    e->lstck = std::min(e->lstck, lstck);
+                    e->recurse = e->recurse || recurse || !e->remains_in_scc ||
+                                 action_reward != value_type::zero;
+                } else {
+                    e->recurse =
+                        e->recurse ||
+                        (e->remains_in_scc && s->successors.back().size() > 1);
+                    e->remains_in_scc = false;
+                }
 
-            if (e->successors.back().empty()) {
+                if (e->next_successor()) {
+                    break;
+                }
+
                 if (e->remains_in_scc && action_reward == value_type::zero) {
                     assert(!s->successors.back().empty());
-                    s->aops.push_back(e->aops.back());
+                    s->aops.push_back(e->get_current_action());
                     s->successors.emplace_back();
                 } else {
                     e->remains_in_scc = true;
                     s->successors.back().clear();
                 }
 
-                e->aops.pop_back();
-                e->successors.pop_back();
+                if (e->next_action()) {
+                    break;
+                }
+
+                assert(s->successors.back().empty());
+                s->successors.pop_back();
             }
         }
+
+    break_exploration:;
     }
 
     template <bool RootIteration>
     bool push_successor(ExpansionInfo& e, StackInfo& s)
     {
-        while (!e.successors.empty()) {
-            std::vector<StateID>& e_succs = e.successors.back();
+        do {
             std::vector<StateID>& s_succs = s.successors.back();
-            assert(!e_succs.empty());
 
             const auto action_reward = (*rewards_)(s.stateid, e.aops.back());
 
             do {
-                const StateID succ_id = e_succs.back();
-                e_succs.pop_back();
+                const StateID succ_id = e.get_current_successor();
                 StateInfo& succ_info = state_infos_[succ_id];
 
                 if (!succ_info.explored) {
@@ -438,22 +465,20 @@ private:
                         e.recurse || (e.remains_in_scc && !s_succs.empty());
                     e.remains_in_scc = false;
                 }
-            } while (!e_succs.empty());
-
-            assert(e_succs.empty());
+            } while (e.next_successor());
 
             if (e.remains_in_scc && action_reward == value_type::zero) {
                 assert(!s_succs.empty());
                 s.successors.emplace_back();
-                s.aops.push_back(e.aops.back());
+                s.aops.push_back(e.get_current_action());
             } else {
                 s_succs.clear();
                 e.remains_in_scc = true;
             }
+        } while (e.next_action());
 
-            e.aops.pop_back();
-            e.successors.pop_back();
-        }
+        assert(s.successors.back().empty());
+        s.successors.pop_back();
 
         return false;
     }
