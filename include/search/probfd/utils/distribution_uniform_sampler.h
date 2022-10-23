@@ -22,7 +22,7 @@ struct DistributionUniformSampler {
             selection--;
         }
         assert(it != distribution.end());
-        return it->first;
+        return it->element;
     }
 };
 

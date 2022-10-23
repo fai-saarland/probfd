@@ -229,8 +229,7 @@ public:
                     this->generate_successors(state_id, act, succs_);
                     succs_.make_unique();
 
-                    if (succs_.size() == 1 &&
-                        succs_.begin()->first == state_id) {
+                    if (succs_.is_dirac(state_id)) {
                         continue;
                     }
 

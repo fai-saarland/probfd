@@ -27,21 +27,20 @@ void VDiffSorter::sort(
     k0.reserve(successors.size());
     std::vector<std::pair<double, unsigned>> k1;
     for (int i = successors.size() - 1; i >= 0; --i) {
-        const std::vector<std::pair<StateID, value_type::value_t>>& t =
-            successors[i].data();
+        const auto& t = successors[i].data();
         value_type::value_t sum = 0;
         for (unsigned j = 0; j < t.size(); ++j) {
             const auto& suc = t[j];
             k1.emplace_back(
                 std::abs(
                     favor_large_gaps_ *
-                    lookup_dual_bounds(suc.first)->error_bound()),
+                    lookup_dual_bounds(suc.element)->error_bound()),
                 j);
-            sum += suc.second * k1.back().first;
+            sum += suc.probability * k1.back().first;
         }
         k0.emplace_back(sum, i);
         std::sort(k1.begin(), k1.end());
-        std::vector<std::pair<StateID, value_type::value_t>> sor;
+        std::vector<WeightedElement<StateID>> sor;
         sor.reserve(t.size());
         for (unsigned j = 0; j < k1.size(); ++j) {
             sor.push_back(t[k1[j].second]);

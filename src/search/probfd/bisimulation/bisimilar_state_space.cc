@@ -520,7 +520,7 @@ void BisimilarStateSpace::dump(std::ostream& out) const
                     g_operators[ts[i].op][j].prob);
             }
             for (auto it = succs.begin(); it != succs.end(); ++it) {
-                out << "t" << t << " -> n" << it->first << "\n";
+                out << "t" << t << " -> n" << it->element << "\n";
             }
             ++t;
         }

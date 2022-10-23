@@ -100,8 +100,8 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
 {
     AbstractState abstract_state = id_map_.get_state(state);
     for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-        const AbstractState succ = abstract_state + it->first;
-        result.add(id_map_.get_state_id(succ), it->second);
+        const AbstractState succ = abstract_state + it->element;
+        result.add(id_map_.get_state_id(succ), it->probability);
     }
 }
 
@@ -117,8 +117,8 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
     for (int i = aops.size() - 1; i >= 0; --i) {
         const AbstractOperator* op = aops[i];
         for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-            const AbstractState succ = abstract_state + it->first;
-            result[i].add(id_map_.get_state_id(succ), it->second);
+            const AbstractState succ = abstract_state + it->element;
+            result[i].add(id_map_.get_state_id(succ), it->probability);
         }
     }
 }

@@ -35,7 +35,7 @@ class ProbabilisticProjection {
     // Footprint used for detecting duplicate operators.
     struct ProgressionOperatorFootprint {
         int precondition_hash;
-        std::vector<std::pair<AbstractState, value_type::value_t>> successors;
+        std::vector<WeightedElement<AbstractState>> successors;
 
         ProgressionOperatorFootprint(
             int precondition_hash,

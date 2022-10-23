@@ -41,22 +41,21 @@ void HBasedSorter::sort(
     std::vector<SortKey> vals(successors.size());
     std::vector<std::pair<int, unsigned>> hests;
     for (int i = successors.size() - 1; i >= 0; --i) {
-        std::vector<std::pair<StateID, value_type::value_t>>& t =
-            successors[i].data();
+        std::vector<WeightedElement<StateID>>& t = successors[i].data();
         auto& val = vals[i];
         val.index = i;
         for (unsigned j = 0; j < t.size(); ++j) {
-            const auto& succ = t[j];
-            const int h = heuristic_->get_cached_h_value(succ.first);
+            const auto& [element, probability] = t[j];
+            const int h = heuristic_->get_cached_h_value(element);
             hests.emplace_back(h, j);
             if (h < 0) {
-                val.dead_end += succ.second;
+                val.dead_end += probability;
             } else {
-                val.exp_h += succ.second * h;
+                val.exp_h += probability * h;
             }
         }
         std::sort(hests.begin(), hests.end());
-        std::vector<std::pair<StateID, value_type::value_t>> news;
+        std::vector<WeightedElement<StateID>> news;
         news.reserve(t.size());
         for (unsigned j = 0; j < hests.size(); ++j) {
             news.push_back(t[hests[j].second]);

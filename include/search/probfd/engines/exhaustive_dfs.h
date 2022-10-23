@@ -736,7 +736,7 @@ private:
             StackInformation& st = stack_infos_[it->stack_index];
             SearchNodeInformation& sn = search_space_[st.state_ref];
             const auto& t = st.successors[st.successors.size() - st.i - 1];
-            const value_type::value_t v = t.base + it->succ->second * val;
+            const value_type::value_t v = t.base + it->succ->probability * val;
             if (!update_lower_bound(sn.value, v)) {
                 break;
             }
@@ -772,11 +772,11 @@ private:
                 }
 
                 for (auto succ = it->succ; succ != succs.end(); ++succ) {
-                    const auto& succ_info = search_space_[succ->first];
+                    const auto& succ_info = search_space_[succ->element];
                     if (succ_info.is_new()) {
-                        val += succ->second * trivial_bound_;
+                        val += succ->probability * trivial_bound_;
                     } else {
-                        val += succ->second * succ_info.value;
+                        val += succ->probability * succ_info.value;
                     }
                 }
 
@@ -893,11 +893,11 @@ private:
                 }
 
                 for (auto succ = it->succ; succ != succs.end(); ++succ) {
-                    const auto& succ_info = search_space_[succ->first];
+                    const auto& succ_info = search_space_[succ->element];
                     if (succ_info.is_new()) {
-                        val += succ->second * trivial_bound_;
+                        val += succ->probability * trivial_bound_;
                     } else {
-                        val += succ->second * succ_info.value;
+                        val += succ->probability * succ_info.value;
                     }
                 }
 

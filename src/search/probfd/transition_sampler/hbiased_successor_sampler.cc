@@ -27,12 +27,12 @@ StateID HBiasedSuccessorSampler::sample(
     biased_.clear();
     value_type::value_t sum = 0;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
-        const int h = heuristic_->get_cached_h_value(it->first);
+        const int h = heuristic_->get_cached_h_value(it->element);
         if (h >= 0) {
             const value_type::value_t p =
-                it->second / value_type::value_t(h + 1);
+                it->probability / value_type::value_t(h + 1);
             sum += p;
-            biased_.add(it->first, p);
+            biased_.add(it->element, p);
         }
     }
     if (biased_.empty()) {

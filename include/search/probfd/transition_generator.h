@@ -126,7 +126,7 @@ private:
     void compute_successor_states(
         const GlobalState& s,
         const ProbabilisticOperator* op,
-        std::vector<std::pair<StateID, value_type::value_t>>& successors);
+        std::vector<WeightedElement<StateID>>& successors);
 
     void compute_applicable_operators(
         const GlobalState& s,

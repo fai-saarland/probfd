@@ -185,8 +185,8 @@ private:
             value_type::value_t normalize_factor = 0;
             auto succ = this->selected_transition_.begin();
             while (succ != this->selected_transition_.end()) {
-                if (this->get_state_info(succ->first).is_solved()) {
-                    normalize_factor += succ->second;
+                if (this->get_state_info(succ->element).is_solved()) {
+                    normalize_factor += succ->probability;
                     succ = this->selected_transition_.erase(succ);
                 } else {
                     ++succ;

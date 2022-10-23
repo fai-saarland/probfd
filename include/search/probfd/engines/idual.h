@@ -182,8 +182,7 @@ public:
                     Distribution<StateID>& transition = transitions[j];
                     transition.make_unique();
 
-                    if (transition.size() == 1 &&
-                        transition.begin()->first == state_id) {
+                    if (transition.is_dirac(state_id)) {
                         continue;
                     }
 

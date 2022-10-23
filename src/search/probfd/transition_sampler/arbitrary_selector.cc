@@ -14,7 +14,7 @@ StateID ArbitrarySuccessorSelector::sample(
     const Distribution<StateID>& successors)
 {
     auto it = successors.begin();
-    return it->first;
+    return it->element;
 }
 
 static Plugin<ProbabilisticOperatorTransitionSampler> _plugin(

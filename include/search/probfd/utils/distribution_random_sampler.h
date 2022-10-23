@@ -25,13 +25,13 @@ struct DistributionRandomSampler {
         auto it = distribution.begin();
         while (true) {
             assert(it != distribution.end());
-            p -= it->second;
+            p -= it->probability;
             if (!value_type::approx_greater()(p, value_type::zero)) {
                 break;
             }
             it++;
         }
-        return it->first;
+        return it->element;
     }
 };
 

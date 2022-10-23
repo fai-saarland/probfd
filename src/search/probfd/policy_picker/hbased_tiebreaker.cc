@@ -32,12 +32,12 @@ int HBasedTiebreaker::pick(
         const Distribution<StateID>& t = successors[i];
         value_type::value_t sum = value_type::zero;
         for (auto it = t.begin(); it != t.end(); ++it) {
-            const int h = heuristic_->get_cached_h_value(it->first);
+            const int h = heuristic_->get_cached_h_value(it->element);
             if (h < 0) {
                 sum = value_type::inf;
                 break;
             }
-            sum += it->second * h;
+            sum += it->probability * h;
         }
         if (value_type::approx_less()(sum, best)) {
             best = sum;

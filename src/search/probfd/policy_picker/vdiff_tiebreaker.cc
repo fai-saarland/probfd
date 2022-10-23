@@ -30,7 +30,8 @@ int VDiffTiebreaker::pick(
         const Distribution<StateID>& t = successors[i];
         value_type::value_t sum = value_type::zero;
         for (auto it = t.begin(); it != t.end(); ++it) {
-            sum += it->second * lookup_dual_bounds(it->first)->error_bound();
+            const auto& value = lookup_dual_bounds(it->element);
+            sum += it->probability * value->error_bound();
         }
         if (value_type::approx_less()(favor_large_gaps_ * sum, best)) {
             best = sum;

@@ -282,10 +282,7 @@ private:
 
         Action& get_current_action() { return aops.back(); }
 
-        std::pair<StateID, value_type::value_t> get_current_successor()
-        {
-            return *successor;
-        }
+        WeightedElement<StateID> get_current_successor() { return *successor; }
 
         // Immutable info
         StateID state_id;  // State this information belongs to

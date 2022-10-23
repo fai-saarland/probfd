@@ -9,9 +9,61 @@
 
 #include <algorithm>
 #include <cassert>
+#include <utility>
 #include <vector>
 
 namespace probfd {
+
+template <typename T>
+struct WeightedElement {
+    template <class Tuple, size_t... Indices>
+    WeightedElement(
+        Tuple& args,
+        value_type::value_t probability,
+        std::index_sequence<Indices...>)
+        : element(std::get<Indices>(std::move(args))...)
+        , probability(probability)
+    {
+    }
+
+public:
+    T element;
+    value_type::value_t probability;
+
+    WeightedElement() = default;
+
+    WeightedElement(T element, value_type::value_t probability)
+        : element(std::move(element))
+        , probability(probability)
+    {
+    }
+
+    template <typename... Args>
+    WeightedElement(
+        std::piecewise_construct_t,
+        std::tuple<Args...> constructor_args,
+        value_type::value_t probability)
+        : WeightedElement(
+              constructor_args,
+              probability,
+              std::index_sequence_for<Args...>{})
+    {
+    }
+
+    friend bool
+    operator<(const WeightedElement<T>& left, const WeightedElement<T>& right)
+    {
+        return std::tie(left.element, left.probability) <
+               std::tie(right.element, right.probability);
+    }
+
+    friend bool
+    operator==(const WeightedElement<T>& left, const WeightedElement<T>& right)
+    {
+        return std::tie(left.element, left.probability) ==
+               std::tie(right.element, right.probability);
+    }
+};
 
 /**
  * @brief A convenience class that wraps a list of element-probability
@@ -22,8 +74,7 @@ namespace probfd {
 template <typename T>
 class Distribution {
 private:
-    using distribution_t =
-        typename std::vector<std::pair<T, value_type::value_t>>;
+    using distribution_t = std::vector<WeightedElement<T>>;
     distribution_t distribution_;
 
 public:
@@ -75,7 +126,7 @@ public:
         auto it = this->find(t);
 
         if (it != end()) {
-            it->second += prob;
+            it->probability += prob;
             return {it, false};
         }
 
@@ -90,14 +141,11 @@ public:
      * @see make_unique
      */
     template <typename... Args>
-    std::pair<T, value_type::value_t>&
+    WeightedElement<T>&
     emplace(std::tuple<Args...> args, value_type::value_t prob)
     {
         assert(prob > 0.0);
-        return distribution_.emplace_back(
-            std::piecewise_construct,
-            args,
-            std::forward_as_tuple(prob));
+        return distribution_.emplace_back(std::piecewise_construct, args, prob);
     }
 
     iterator find(const T& t)
@@ -129,7 +177,7 @@ public:
     void normalize(const value_type::value_t& scale)
     {
         for (auto it = distribution_.begin(); it != distribution_.end(); it++) {
-            it->second *= scale;
+            it->probability *= scale;
         }
     }
 
@@ -143,7 +191,7 @@ public:
         }
         value_type::value_t sum = 0;
         for (auto it = begin(); it != end(); it++) {
-            sum += it->second;
+            sum += it->probability;
         }
         normalize(value_type::value_t(1.0) / sum);
     }
@@ -160,16 +208,16 @@ public:
         std::sort(distribution_.begin(), distribution_.end());
         unsigned i = 0;
         for (unsigned j = 1; j < distribution_.size(); ++j) {
-            if (distribution_[i].first == distribution_[j].first) {
-                distribution_[i].second += distribution_[j].second;
-                distribution_[j].second = 0;
+            if (distribution_[i].element == distribution_[j].element) {
+                distribution_[i].probability += distribution_[j].probability;
+                distribution_[j].probability = 0;
             } else {
                 i = j;
             }
         }
         i = 1;
         for (unsigned j = 1; j < distribution_.size(); ++j) {
-            if (distribution_[j].second != 0) {
+            if (distribution_[j].probability != 0) {
                 distribution_[i] = distribution_[j];
                 ++i;
             }
@@ -187,10 +235,10 @@ public:
         const value_type::value_t r = rng();
 
         auto it = distribution_.begin();
-        value_type::value_t sum = it->second;
+        value_type::value_t sum = it->probability;
 
         while (sum <= r) {
-            sum += (++it)->second;
+            sum += (++it)->probability;
         }
 
         return it;
@@ -218,13 +266,33 @@ public:
 
     auto end() const { return distribution_.end(); }
 
-    auto elem_begin() { return utils::make_key_iterator(begin()); }
+    auto elem_begin()
+    {
+        return utils::make_transform_iterator(
+            begin(),
+            &WeightedElement<T>::element);
+    }
 
-    auto elem_begin() const { return utils::make_key_iterator(begin()); }
+    auto elem_begin() const
+    {
+        return utils::make_transform_iterator(
+            begin(),
+            &WeightedElement<T>::element);
+    }
 
-    auto elem_end() { return utils::make_key_iterator(end()); }
+    auto elem_end()
+    {
+        return utils::make_transform_iterator(
+            end(),
+            &WeightedElement<T>::element);
+    }
 
-    auto elem_end() const { return utils::make_key_iterator(end()); }
+    auto elem_end() const
+    {
+        return utils::make_transform_iterator(
+            end(),
+            &WeightedElement<T>::element);
+    }
 
     auto elements() { return utils::make_range(elem_begin(), elem_end()); }
 
@@ -233,13 +301,33 @@ public:
         return utils::make_range(elem_begin(), elem_end());
     }
 
-    auto prob_begin() { return utils::make_val_iterator(begin()); }
+    auto prob_begin()
+    {
+        return utils::make_transform_iterator(
+            begin(),
+            &WeightedElement<T>::probability);
+    }
 
-    auto prob_begin() const { return utils::make_val_iterator(begin()); }
+    auto prob_begin() const
+    {
+        return utils::make_transform_iterator(
+            begin(),
+            &WeightedElement<T>::probability);
+    }
 
-    auto prob_end() { return utils::make_val_iterator(end()); }
+    auto prob_end()
+    {
+        return utils::make_transform_iterator(
+            end(),
+            &WeightedElement<T>::probability);
+    }
 
-    auto prob_end() const { return utils::make_val_iterator(end()); }
+    auto prob_end() const
+    {
+        return utils::make_transform_iterator(
+            end(),
+            &WeightedElement<T>::probability);
+    }
 
     auto probabilities() { return utils::make_range(prob_begin(), prob_end()); }
 

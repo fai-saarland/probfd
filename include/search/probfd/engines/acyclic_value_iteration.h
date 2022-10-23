@@ -119,13 +119,13 @@ public:
                 // Topological order: Push all successors, recurse if
                 // one has not been expanded before
                 for (; e.successor != e.transition.end(); ++e.successor) {
-                    const auto& succ_id = e.successor->first;
+                    const auto& succ_id = e.successor->element;
                     if (push_state(succ_id)) {
                         goto continue_outer; // DFS recursion
                     }
 
                     // Already seen -> update transition Q-value
-                    const auto& succ_prob = e.successor->second;
+                    const auto& succ_prob = e.successor->probability;
                     e.t_value += succ_prob * state_infos_[succ_id].value;
                 }
 

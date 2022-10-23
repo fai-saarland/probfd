@@ -14,11 +14,11 @@ StateID MostLikelySuccessorSelector::sample(
     const Distribution<StateID>& successors)
 {
     value_type::value_t max = value_type::zero;
-    StateID res = successors.begin()->first;
+    StateID res = successors.begin()->element;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
-        if (it->second > max) {
-            max = it->second;
-            res = it->first;
+        if (it->probability > max) {
+            max = it->probability;
+            res = it->element;
         }
     }
     return res;

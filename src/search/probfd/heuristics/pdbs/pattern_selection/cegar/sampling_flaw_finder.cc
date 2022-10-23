@@ -65,7 +65,7 @@ std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
         while (!einfo.successors.empty()) {
             // Sample next successor
             auto it = einfo.successors.sample(*base.rng);
-            auto& succ = it->first;
+            auto& succ = it->element;
 
             // Ignore states already seen
             if (einfos.find(succ) == einfos.end()) {

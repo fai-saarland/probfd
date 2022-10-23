@@ -22,10 +22,10 @@ StateID VBiasedSuccessorSampler::sample(
     biased_.clear();
     value_type::value_t sum = 0;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
-        const value_type::value_t p = it->second * lookup_value(it->first);
+        const auto p = it->probability * lookup_value(it->element);
         if (p > value_type::zero) {
             sum += p;
-            biased_.add(it->first, p);
+            biased_.add(it->element, p);
         }
     }
     if (biased_.empty()) {

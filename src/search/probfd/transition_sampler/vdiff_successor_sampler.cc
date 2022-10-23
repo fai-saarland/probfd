@@ -27,13 +27,13 @@ StateID VDiffSuccessorSampler::sample(
     value_type::value_t sum = 0;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
         const value_type::value_t error =
-            lookup_dual_bounds(it->first)->error_bound();
+            lookup_dual_bounds(it->element)->error_bound();
         const value_type::value_t p =
-            it->second *
+            it->probability *
             (prefer_large_gaps_ ? error : (value_type::one - error));
         if (p > value_type::zero) {
             sum += p;
-            biased_.add(it->first, p);
+            biased_.add(it->element, p);
         }
     }
     if (biased_.empty()) {
