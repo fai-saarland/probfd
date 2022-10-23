@@ -217,9 +217,10 @@ public:
         stats_ = Statistics();
 
         auto init_id = state_id_map_->get_state_id(initial_state);
-        push<true>(init_id, state_infos_[init_id]);
 
-        find_and_decompose_sccs<true>();
+        if (push<true>(init_id, state_infos_[init_id])) {
+            find_and_decompose_sccs<true>();
+        }
 
         assert(stack_.empty());
         assert(expansion_queue_.empty());
@@ -575,18 +576,13 @@ private:
         const unsigned limit = expansion_queue_.size();
 
         for (unsigned i = start; i < stack_.size(); ++i) {
-            StackInfo& stack_info = stack_[i];
-            const StateID id = stack_info.stateid;
+            const StateID id = stack_[i].stateid;
             StateInfo& state_info = state_infos_[id];
 
-            if (state_info.explored) {
-                continue;
+            if (!state_info.explored && push<false>(id, state_info)) {
+                // Recursively run decomposition
+                find_and_decompose_sccs<false>(limit);
             }
-
-            push<false>(id, state_info);
-
-            // Recursively run decomposition
-            find_and_decompose_sccs<false>(limit);
         }
 
         stack_.erase(stack_.begin() + start, stack_.end());
