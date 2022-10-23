@@ -397,15 +397,16 @@ private:
                 const auto action_reward =
                     (*rewards_)(s->stateid, e->get_current_action());
 
+                auto& stk_successors = s->successors.back();
+
                 if (is_onstack) {
                     e->lstck = std::min(e->lstck, lstck);
 
-                    s->successors.back().emplace_back(
-                        e->get_current_successor());
+                    stk_successors.emplace_back(e->get_current_successor());
                     e->recurse = e->recurse || recurse || !e->remains_in_scc ||
                                  action_reward != value_type::zero;
                 } else {
-                    e->recurse = e->recurse || !s->successors.back().empty();
+                    e->recurse = e->recurse || !stk_successors.empty();
                     e->remains_in_scc = false;
                 }
 
@@ -414,19 +415,19 @@ private:
                 }
 
                 if (e->remains_in_scc && action_reward == value_type::zero) {
-                    assert(!s->successors.back().empty());
+                    assert(!stk_successors.empty());
                     s->aops.push_back(e->get_current_action());
                     s->successors.emplace_back();
                 } else {
                     e->remains_in_scc = true;
-                    s->successors.back().clear();
+                    stk_successors.clear();
                 }
 
                 if (e->next_action()) {
                     break;
                 }
 
-                assert(s->successors.back().empty());
+                assert(stk_successors.empty());
                 s->successors.pop_back();
             }
         }
