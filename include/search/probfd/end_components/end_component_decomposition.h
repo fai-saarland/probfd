@@ -569,8 +569,6 @@ private:
         assert(stack_.size() == e.stck);
     }
 
-    using StackIterator = typename std::vector<StackInfo>::iterator;
-
     void decompose(unsigned start)
     {
         const unsigned limit = expansion_queue_.size();
