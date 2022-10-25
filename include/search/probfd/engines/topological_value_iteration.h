@@ -69,8 +69,174 @@ struct Statistics {
  */
 template <typename State, typename Action, typename Interval = std::false_type>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
-public:
     using IncumbentSolution = value_utils::IncumbentSolution<Interval>;
+
+    struct StateInfo {
+        // Status Flags
+        enum { NEW, OPEN, ONSTACK, CLOSED };
+        
+        uint8_t status : 7;
+        uint8_t dead : 1; // Dead-end flag
+
+        // Tarjan's info
+        unsigned stack_id = 0;
+        unsigned lowlink = 0;
+
+        StateInfo()
+            : status(NEW)
+            , dead(true)
+        {
+        }
+
+        void update_lowlink(unsigned upd) { lowlink = std::min(lowlink, upd); }
+        void update_dead(unsigned d) { dead = dead && d; }
+    };
+
+    struct ExplorationInfo {
+        // Immutable info
+        StateID state_id;  // State this information belongs to
+        unsigned stackidx; // Index on the stack of the associated state
+
+        // Mutable info
+        std::vector<Action> aops;         // Remaining unexpanded operators
+        Distribution<StateID> transition; // Currently expanded transition
+        // Next state to expand
+        typename Distribution<StateID>::const_iterator successor;
+
+        ExplorationInfo(
+            StateID state_id,
+            unsigned stackidx,
+            std::vector<Action> aops,
+            Distribution<StateID> transition)
+            : state_id(state_id)
+            , stackidx(stackidx)
+            , aops(std::move(aops))
+            , transition(std::move(transition))
+            , successor(this->transition.begin())
+        {
+        }
+
+        /**
+         * Advances to the next non-loop action. Returns nullptr if such an
+         * action does not exist.
+         */
+        bool next_action(TopologicalValueIteration* self, unsigned int state_id)
+        {
+            for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
+                transition.clear();
+                self->generate_successors(state_id, aops.back(), transition);
+                transition.make_unique();
+
+                if (!transition.is_dirac(state_id)) {
+                    successor = transition.begin();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        bool next_successor() { return ++successor != transition.end(); }
+
+        Action& get_current_action() { return aops.back(); }
+
+        WeightedElement<StateID> get_current_successor() { return *successor; }
+    };
+
+    struct QValueInfo {
+        // Probability to remain in the same state.
+        // Casted to the self-loop normalization factor after finalize().
+        value_type::value_t self_loop_prob = value_type::zero;
+
+        // Precomputed part of the Q-value.
+        // Sum of action reward plus those weighted successor values which
+        // have already converged due to topological ordering.
+        IncumbentSolution conv_part;
+
+        // Pointers to successor values which have not yet converged,
+        // self-loops excluded.
+        std::vector<WeightedElement<IncumbentSolution*>> nconv_successors;
+
+        explicit QValueInfo(value_type::value_t action_reward)
+            : conv_part(action_reward)
+        {
+        }
+
+        bool finalize()
+        {
+            if (self_loop_prob != value_type::zero) {
+                // Calculate self-loop normalization factor
+                self_loop_prob =
+                    value_type::one / (value_type::one - self_loop_prob);
+
+                if (nconv_successors.empty()) {
+                    // Apply self-loop normalization immediately
+                    conv_part *= self_loop_prob;
+                }
+            }
+
+            return nconv_successors.empty();
+        }
+
+        IncumbentSolution compute_q_value() const
+        {
+            IncumbentSolution res = conv_part;
+
+            for (auto& [value, prob] : nconv_successors) {
+                res += prob * (*value);
+            }
+
+            if (self_loop_prob != value_type::zero) {
+                res *= self_loop_prob;
+            }
+
+            return res;
+        }
+    };
+
+    struct StackInfo {
+        StateID state_id;
+
+        // Reference to the state value of the state.
+        IncumbentSolution* value;
+
+        // Precomputed part of the max of the value update.
+        // Maximum over all Q values which have already converged due to
+        // topological ordering.
+        IncumbentSolution conv_part;
+
+        // Remaining Q values which have not yet converged.
+        std::vector<QValueInfo> nconv_qs;
+
+        StackInfo(
+            const StateID& state_id,
+            IncumbentSolution& value_ref,
+            IncumbentSolution conv_part,
+            unsigned num_aops)
+            : state_id(state_id)
+            , value(&value_ref)
+            , conv_part(conv_part)
+        {
+            nconv_qs.reserve(num_aops);
+        }
+
+        bool update_value()
+        {
+            IncumbentSolution v = conv_part;
+
+            for (const QValueInfo& info : nconv_qs) {
+                value_utils::set_max(v, info.compute_q_value());
+            }
+
+            if constexpr (Interval::value) {
+                return value_utils::update(*value, v) || !value->bounds_equal();
+            } else {
+                return value_utils::update(*value, v);
+            }
+        }
+    };
+
+public:
     using Store = storage::PersistentPerStateStorage<IncumbentSolution>;
 
     explicit TopologicalValueIteration(
@@ -189,7 +355,7 @@ public:
 
                 if (onstack) {
                     state_info->update_lowlink(bt_state_info->lowlink);
-                    tinfo.nconv_successors.emplace_back(prob, &s_value);
+                    tinfo.nconv_successors.emplace_back(&s_value, prob);
                 } else {
                     tinfo.conv_part += prob * s_value;
                 }
@@ -223,176 +389,6 @@ public:
     }
 
 private:
-    struct StateInfo {
-        // Status Flags
-        enum { NEW, OPEN, ONSTACK, CLOSED };
-
-        StateInfo()
-            : status(NEW)
-            , dead(true)
-        {
-        }
-
-        uint8_t status : 7;
-        uint8_t dead : 1; // Dead-end flag
-
-        // Tarjan's info
-        unsigned stack_id = 0;
-        unsigned lowlink = 0;
-
-        void update_lowlink(unsigned upd) { lowlink = std::min(lowlink, upd); }
-        void update_dead(unsigned d) { dead = dead && d; }
-    };
-
-    struct ExplorationInfo {
-        ExplorationInfo(
-            StateID state_id,
-            unsigned stackidx,
-            std::vector<Action> aops,
-            Distribution<StateID> transition)
-            : state_id(state_id)
-            , stackidx(stackidx)
-            , aops(std::move(aops))
-            , transition(std::move(transition))
-            , successor(this->transition.begin())
-        {
-        }
-
-        /**
-         * Advances to the next non-loop action. Returns nullptr if such an
-         * action does not exist.
-         */
-        bool next_action(TopologicalValueIteration* self, unsigned int state_id)
-        {
-            for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
-                transition.clear();
-                self->generate_successors(state_id, aops.back(), transition);
-                transition.make_unique();
-
-                if (!transition.is_dirac(state_id)) {
-                    successor = transition.begin();
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        bool next_successor() { return ++successor != transition.end(); }
-
-        Action& get_current_action() { return aops.back(); }
-
-        WeightedElement<StateID> get_current_successor() { return *successor; }
-
-        // Immutable info
-        StateID state_id;  // State this information belongs to
-        unsigned stackidx; // Index on the stack of the associated state
-
-        // Mutable info
-        std::vector<Action> aops;         // Remaining unexpanded operators
-        Distribution<StateID> transition; // Currently expanded transition
-        // Next state to expand
-        typename Distribution<StateID>::const_iterator successor;
-    };
-
-    struct QValueInfo {
-        explicit QValueInfo(value_type::value_t action_reward)
-            : conv_part(action_reward)
-        {
-        }
-
-        bool finalize()
-        {
-            if (has_self_loop) {
-                // Calculate self-loop normalization factor
-                self_loop_prob =
-                    value_type::one / (value_type::one - self_loop_prob);
-
-                if (nconv_successors.empty()) {
-                    // Apply self-loop normalization immediately
-                    conv_part *= self_loop_prob;
-                }
-            }
-
-            return nconv_successors.empty();
-        }
-
-        IncumbentSolution compute_q_value() const
-        {
-            IncumbentSolution res = conv_part;
-
-            for (auto& [prob, value] : nconv_successors) {
-                res += prob * (*value);
-            }
-
-            if (has_self_loop) {
-                res *= self_loop_prob;
-            }
-
-            return res;
-        }
-
-        bool has_self_loop = false;
-
-        // Probability to remain in the same state.
-        // HACK: Casted to the self-loop normalization factor after finalize().
-        value_type::value_t self_loop_prob = value_type::zero;
-
-        // Precomputed part of the Q-value.
-        // Sum of action reward plus weighted values for successor states which
-        // have already converged due to topological ordering.
-        IncumbentSolution conv_part;
-
-        using WeightedValueRef =
-            std::pair<value_type::value_t, IncumbentSolution*>;
-
-        // Probability and reference to values for successor states which
-        // have not yet converged, self-loops excluded.
-        std::vector<WeightedValueRef> nconv_successors;
-    };
-
-    struct StackInfo {
-        StackInfo(
-            const StateID& state_id,
-            IncumbentSolution& value_ref,
-            IncumbentSolution conv_part,
-            unsigned num_aops)
-            : state_id(state_id)
-            , value(&value_ref)
-            , conv_part(conv_part)
-        {
-            nconv_qs.reserve(num_aops);
-        }
-
-        bool update_value()
-        {
-            IncumbentSolution v = conv_part;
-
-            for (const QValueInfo& info : nconv_qs) {
-                value_utils::set_max(v, info.compute_q_value());
-            }
-
-            if constexpr (Interval::value) {
-                return value_utils::update(*value, v) || !value->bounds_equal();
-            } else {
-                return value_utils::update(*value, v);
-            }
-        }
-
-        StateID state_id;
-
-        // Reference to the state value of the state.
-        IncumbentSolution* value;
-
-        // Precomputed part of the max of the value update.
-        // Maximum over all Q values which have already converged due to
-        // topological ordering.
-        IncumbentSolution conv_part;
-
-        // Remaining Q values which have not yet converged.
-        std::vector<QValueInfo> nconv_qs;
-    };
-
     /**
      * Initializes the data structures for this new state and pushes it
      * onto the queue unless it is terminal modulo self-loops. Returns
@@ -530,7 +526,6 @@ private:
                 const auto [succ_id, prob] = explore.get_current_successor();
 
                 if (succ_id == state_id) {
-                    tinfo.has_self_loop = true;
                     tinfo.self_loop_prob += prob;
                     continue;
                 }
@@ -541,7 +536,7 @@ private:
 
                 if (status == StateInfo::ONSTACK) {
                     state_info.update_lowlink(succ_info.stack_id);
-                    tinfo.nconv_successors.emplace_back(prob, &s_value);
+                    tinfo.nconv_successors.emplace_back(&s_value, prob);
                 } else if (
                     status == StateInfo::NEW &&
                     push_state(succ_id, succ_info, s_value, dead_end_out)) {
