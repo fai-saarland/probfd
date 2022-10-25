@@ -63,6 +63,18 @@ public:
         return std::tie(left.element, left.probability) ==
                std::tie(right.element, right.probability);
     }
+
+    static bool
+    key_less(const WeightedElement<T>& left, const WeightedElement<T>& right)
+    {
+        return left.element < right.element;
+    }
+
+    static bool
+    key_equal(const WeightedElement<T>& left, const WeightedElement<T>& right)
+    {
+        return left.element == right.element;
+    }
 };
 
 /**
@@ -198,7 +210,7 @@ public:
         for (auto it = begin(); it != end(); it++) {
             sum += it->probability;
         }
-        normalize(value_type::value_t(1.0) / sum);
+        normalize(value_type::one / sum);
     }
 
     /**
@@ -206,28 +218,28 @@ public:
      */
     void make_unique()
     {
-        if (empty()) {
+        if (size() < 2) {
             return;
         }
 
-        std::sort(distribution_.begin(), distribution_.end());
-        unsigned i = 0;
-        for (unsigned j = 1; j < distribution_.size(); ++j) {
-            if (distribution_[i].element == distribution_[j].element) {
-                distribution_[i].probability += distribution_[j].probability;
-                distribution_[j].probability = 0;
-            } else {
-                i = j;
-            }
-        }
-        i = 1;
-        for (unsigned j = 1; j < distribution_.size(); ++j) {
-            if (distribution_[j].probability != 0) {
-                distribution_[i] = distribution_[j];
-                ++i;
-            }
-        }
-        distribution_.erase(distribution_.begin() + i, distribution_.end());
+        std::sort(
+            distribution_.begin(),
+            distribution_.end(),
+            WeightedElement<T>::key_less);
+
+        auto last = std::unique(
+            distribution_.begin(),
+            distribution_.end(),
+            [](auto& left, auto& right) {
+                if (left.element == right.element) {
+                    left.probability += right.probability;
+                    return true;
+                }
+
+                return false;
+            });
+
+        distribution_.erase(last, distribution_.end());
     }
 
     auto sample(utils::RandomNumberGenerator& rng)
