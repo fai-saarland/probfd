@@ -233,10 +233,16 @@ public:
 
 private:
     template <bool RootIteration>
-    bool push(StateID state_id, StateInfo& state_info);
+    bool push(StateID state_id, StateInfo& state_info)
+    {
+        if constexpr (RootIteration) {
+            return push_root(state_id, state_info);
+        } else {
+            return push_ecd(state_id, state_info);
+        }
+    }
 
-    template <>
-    bool push<true>(StateID state_id, StateInfo& state_info)
+    bool push_root(StateID state_id, StateInfo& state_info)
     {
         state_info.explored = 1;
         State state = state_id_map_->get_state(state_id);
@@ -322,8 +328,7 @@ private:
         return true;
     }
 
-    template <>
-    bool push<false>(StateID state_id, StateInfo& info)
+    bool push_ecd(StateID state_id, StateInfo& info)
     {
         assert(!info.explored);
         assert(info.onstack());
