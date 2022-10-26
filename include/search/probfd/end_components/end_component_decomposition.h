@@ -120,12 +120,29 @@ class EndComponentDecomposition {
     };
 
     struct ExpansionInfo {
-        explicit ExpansionInfo(
+        // Used in decomposition recursion
+        ExpansionInfo(
             unsigned stck,
             std::vector<Action> aops,
             std::vector<std::vector<StateID>> successors)
             : stck(stck)
             , lstck(stck)
+            , nz_or_leaves_scc(false)
+            , aops(std::move(aops))
+            , successors(std::move(successors))
+        {
+        }
+
+        // Used in root iteration
+        ExpansionInfo(
+            unsigned stck,
+            std::vector<Action> aops,
+            std::vector<std::vector<StateID>> successors,
+            StateID state_id,
+            engine_interfaces::RewardFunction<State, Action>& rew)
+            : stck(stck)
+            , lstck(stck)
+            , nz_or_leaves_scc(rew(state_id, aops.back()) != value_type::zero)
             , aops(std::move(aops))
             , successors(std::move(successors))
         {
@@ -136,7 +153,25 @@ class EndComponentDecomposition {
             assert(aops.size() == successors.size());
             aops.pop_back();
             successors.pop_back();
+            nz_or_leaves_scc = false;
             return !aops.empty();
+        }
+
+        bool next_action(
+            StateID state_id,
+            engine_interfaces::RewardFunction<State, Action>& rew)
+        {
+            assert(aops.size() == successors.size());
+            aops.pop_back();
+            successors.pop_back();
+
+            if (!aops.empty()) {
+                nz_or_leaves_scc =
+                    rew(state_id, aops.back()) != value_type::zero;
+                return true;
+            }
+
+            return false;
         }
 
         bool next_successor()
@@ -154,14 +189,12 @@ class EndComponentDecomposition {
         const unsigned stck;
         unsigned lstck;
 
-        // whether the current transition remains in the scc
-        bool remains_in_scc = true;
+        // whether the transition has non-zero reward or can leave the scc
+        bool nz_or_leaves_scc;
 
         // recursive decomposition flag
-        // Recurse if there is a transition that can leave and remain in the scc
-        // If a always remains in the SCC, then a does not violate the EC
-        // condition If a always goes out of the SCC, then no edge of a was part
-        // of it
+        // Recursively decompose the SCC if there is a zero-reward transition
+        // in it that can leave and remain in the scc.
         bool recurse = false;
 
         std::vector<Action> aops;
@@ -397,36 +430,39 @@ private:
                 e = &expansion_queue_.back();
                 s = &stack_[e->stck];
 
-                const auto action_reward =
-                    (*rewards_)(s->stateid, e->get_current_action());
-
                 auto& stk_successors = s->successors.back();
 
                 if (is_onstack) {
                     e->lstck = std::min(e->lstck, lstck);
 
                     stk_successors.emplace_back(e->get_current_successor());
-                    e->recurse = e->recurse || recurse || !e->remains_in_scc ||
-                                 action_reward != value_type::zero;
+                    e->recurse = e->recurse || recurse || e->nz_or_leaves_scc;
                 } else {
                     e->recurse = e->recurse || !stk_successors.empty();
-                    e->remains_in_scc = false;
+                    e->nz_or_leaves_scc = true;
                 }
 
                 if (e->next_successor()) {
                     break;
                 }
 
-                if (e->remains_in_scc && action_reward == value_type::zero) {
+                if (!e->nz_or_leaves_scc) {
                     assert(!stk_successors.empty());
                     s->aops.push_back(e->get_current_action());
                     s->successors.emplace_back();
                 } else {
-                    e->remains_in_scc = true;
                     stk_successors.clear();
                 }
 
-                if (e->next_action()) {
+                bool next_action;
+
+                if constexpr (RootIteration) {
+                    next_action = e->next_action(s->stateid, *rewards_);
+                } else {
+                    next_action = e->next_action();
+                }
+
+                if (next_action) {
                     break;
                 }
 
@@ -441,10 +477,8 @@ private:
     template <bool RootIteration>
     bool push_successor(ExpansionInfo& e, StackInfo& s)
     {
-        do {
+        for (;;) {
             std::vector<StateID>& s_succs = s.successors.back();
-
-            const auto action_reward = (*rewards_)(s.stateid, e.aops.back());
 
             do {
                 const StateID succ_id = e.get_current_successor();
@@ -466,24 +500,34 @@ private:
                     e.lstck = std::min(e.lstck, succ_info.stackid_);
 
                     s_succs.emplace_back(succ_id);
-                    e.recurse = e.recurse || !e.remains_in_scc ||
-                                action_reward != value_type::zero;
+                    e.recurse = e.recurse || e.nz_or_leaves_scc;
                 } else {
                 backtrack_child_scc:
                     e.recurse = e.recurse || !s_succs.empty();
-                    e.remains_in_scc = false;
+                    e.nz_or_leaves_scc = true;
                 }
             } while (e.next_successor());
 
-            if (e.remains_in_scc && action_reward == value_type::zero) {
+            if (!e.nz_or_leaves_scc) {
                 assert(!s_succs.empty());
                 s.successors.emplace_back();
                 s.aops.push_back(e.get_current_action());
             } else {
                 s_succs.clear();
-                e.remains_in_scc = true;
             }
-        } while (e.next_action());
+
+            bool next_action;
+
+            if constexpr (RootIteration) {
+                next_action = e.next_action(s.stateid, *rewards_);
+            } else {
+                next_action = e.next_action();
+            }
+
+            if (!next_action) {
+                break;
+            }
+        }
 
         assert(s.successors.back().empty());
         s.successors.pop_back();
