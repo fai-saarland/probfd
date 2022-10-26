@@ -247,14 +247,13 @@ public:
         */
 
         friend class StateRegistry;
-        const StateRegistry& registry;
+        [[maybe_unused]] const StateRegistry& registry;
         StateID pos;
 
         const_iterator(const StateRegistry& registry, size_t start)
             : registry(registry)
             , pos(start)
         {
-            utils::unused_variable(this->registry);
         }
 
     public:

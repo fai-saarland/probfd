@@ -149,8 +149,8 @@ unique_ptr<OsiSolverInterface> create_lp_solver(LPSolverType solver_type) {
     }
 }
 
-NO_RETURN
-void handle_coin_error(const CoinError &error) {
+[[noreturn]] void handle_coin_error(const CoinError& error)
+{
     cerr << "Coin threw exception: " << error.message() << endl
          << " from method " << error.methodName() << endl
          << " from class " << error.className() << endl;

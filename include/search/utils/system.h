@@ -16,8 +16,6 @@
 #include "utils/system_unix.h"
 #endif
 
-#include "utils/language.h"
-
 #include <iostream>
 #include <stdlib.h>
 
@@ -53,9 +51,9 @@ enum class ExitCode {
     SEARCH_UNSUPPORTED = 34
 };
 
-NO_RETURN extern void exit_with(ExitCode returncode);
-NO_RETURN extern void oom_exit_with(ExitCode exitcode);
-NO_RETURN extern void exit_after_receiving_signal(ExitCode returncode);
+[[noreturn]] extern void exit_with(ExitCode returncode);
+[[noreturn]] extern void oom_exit_with(ExitCode exitcode);
+[[noreturn]] extern void exit_after_receiving_signal(ExitCode returncode);
 
 int get_peak_memory_in_kb();
 const char *get_exit_code_message_reentrant(ExitCode exitcode);

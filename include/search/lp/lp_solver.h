@@ -1,7 +1,6 @@
 #ifndef LP_LP_SOLVER_H
 #define LP_LP_SOLVER_H
 
-#include "utils/language.h"
 #include "utils/system.h"
 
 #include "option_parser.h"

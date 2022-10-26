@@ -2,7 +2,6 @@
 #define ALGORITHMS_INT_HASH_SET_H
 
 #include "utils/collections.h"
-#include "utils/language.h"
 #include "utils/system.h"
 
 #include <algorithm>
@@ -113,7 +112,7 @@ class IntHashSet {
 
     void rehash(int new_capacity) {
         assert(new_capacity >= 1);
-        int num_entries_before = num_entries;
+        [[maybe_unused]] int num_entries_before = num_entries;
         std::vector<Bucket> old_buckets = std::move(buckets);
         assert(buckets.empty());
         num_entries = 0;
@@ -123,7 +122,6 @@ class IntHashSet {
                 insert(bucket.key, bucket.hash);
             }
         }
-        utils::unused_variable(num_entries_before);
         assert(num_entries == num_entries_before);
         ++num_resizes;
     }

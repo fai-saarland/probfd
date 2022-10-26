@@ -3,7 +3,6 @@
 #include "landmarks/landmark_graph.h"
 
 #include "utils/collections.h"
-#include "utils/language.h"
 #include "utils/system.h"
 
 #include <cstdlib>
