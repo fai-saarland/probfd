@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 #include <unordered_set>
 #include <utility>
 

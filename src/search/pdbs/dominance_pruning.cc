@@ -3,6 +3,7 @@
 #include "pdbs/pattern_database.h"
 
 #include <cassert>
+#include <iostream>
 #include <vector>
 
 using namespace std;
