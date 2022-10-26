@@ -130,6 +130,20 @@ public:
     ActionID
     get_original_action_id(const StateID& sid, const ActionID& a) const;
 
+    template <typename Range>
+    void build_quotient(Range& range)
+    {
+        this->build_quotient(range.begin(), range.end());
+    }
+
+    template <typename StateIDIterator>
+    void build_quotient(StateIDIterator begin, StateIDIterator end)
+    {
+        if (begin != end) {
+            this->build_quotient(begin, end, *begin);
+        }
+    }
+
     template <typename StateIDIterator>
     void build_quotient(
         StateIDIterator begin,
