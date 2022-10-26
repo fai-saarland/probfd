@@ -10,12 +10,16 @@
 #ifdef __GNUG__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#elif defined _MSC_VER
+#pragma warning(disable : 5033 4100)
 #endif
 #include <CoinPackedMatrix.hpp>
 #include <CoinPackedVector.hpp>
 #include <OsiSolverInterface.hpp>
 #ifdef __GNUG__
 #pragma GCC diagnostic pop
+#elif defined _MSC_VER
+#pragma warning(default : 5033 4100)
 #endif
 #endif
 

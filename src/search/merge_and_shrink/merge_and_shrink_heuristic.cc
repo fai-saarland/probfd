@@ -700,18 +700,18 @@ Abstraction *MergeAndShrinkHeuristic::build_abstraction(bool is_first)
         }
 #endif
         // SELECT NEXT VARIABLE MOVED HERE
-        int var_no = order->next(abstraction);
-        if (irrelevant_abstractions[var_no]) {
-            cout << "Ignoring next variable: #" << var_no << endl;
-            atom_abstractions[var_no]->release_memory();
+        int var2_no = order->next(abstraction);
+        if (irrelevant_abstractions[var2_no]) {
+            cout << "Ignoring next variable: #" << var2_no << endl;
+            atom_abstractions[var2_no]->release_memory();
             continue;
         }
-        cout << "Next variable: #" << var_no;
-        for (size_t i = 0; i < g_fact_names[var_no].size(); ++i) {
-            cout << " " << g_fact_names[var_no][i];
+        cout << "Next variable: #" << var2_no;
+        for (size_t i = 0; i < g_fact_names[var2_no].size(); ++i) {
+            cout << " " << g_fact_names[var2_no][i];
         }
         cout << endl;
-        Abstraction *other_abstraction = atom_abstractions[var_no];
+        Abstraction* other_abstraction = atom_abstractions[var2_no];
 
         if (shrink_strategy->reduce_labels_before_shrinking() || use_label_inheritance
                 || empty_label_shrink_strategy) {
@@ -969,8 +969,8 @@ void MergeAndShrinkHeuristic::initialize()
             }
 #endif
             // Released memory only here, since it could be needed for goal leading actions
-            for (size_t i = 0; i < abstractions.size(); i++) {
-                abstractions[i]->release_memory();
+            for (size_t j = 0; j < abstractions.size(); j++) {
+                abstractions[j]->release_memory();
             }
         }
     } else {

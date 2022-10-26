@@ -284,26 +284,30 @@ QuotientSystem<const ProbabilisticOperator*>::lookup(const StateID& sid)
             state_infos_.push_back(QuotientInformation(StateID(i)));
         }
 
-        const uint32_t* aop = entry.aops;
-        const uint32_t* aop_end = entry.aops + entry.naops;
-        uint32_t* succ = entry.succs;
         std::unordered_set<StateID> unique_successors;
-        DEBUG(std::cout << "   ";);
-        for (; aop != aop_end; ++aop) {
-            auto succ_end = succ + gen_->first_op_[*aop].num_outcomes();
-            for (; succ != succ_end; ++succ) {
-                const StateID x = state_infos_[*succ].states[0];
-                DEBUG(std::cout << " " << *succ << ":=" << x);
-                *succ = x;
-                DEBUG(std::cout << "(" << *succ << ")");
-                // QuotientInformation& succ_info = state_infos_[*succ];
-                // if (succ_info.parents.empty() || succ_info.parents.back() !=
-                // sid) {
-                //     succ_info.parents.push_back(sid);
-                // }
-                unique_successors.insert(x);
+
+        {
+            const uint32_t* aop = entry.aops;
+            const uint32_t* aop_end = entry.aops + entry.naops;
+            uint32_t* succ = entry.succs;
+            DEBUG(std::cout << "   ";);
+            for (; aop != aop_end; ++aop) {
+                auto succ_end = succ + gen_->first_op_[*aop].num_outcomes();
+                for (; succ != succ_end; ++succ) {
+                    const StateID x = state_infos_[*succ].states[0];
+                    DEBUG(std::cout << " " << *succ << ":=" << x);
+                    *succ = x;
+                    DEBUG(std::cout << "(" << *succ << ")");
+                    // QuotientInformation& succ_info = state_infos_[*succ];
+                    // if (succ_info.parents.empty() || succ_info.parents.back() !=
+                    // sid) {
+                    //     succ_info.parents.push_back(sid);
+                    // }
+                    unique_successors.insert(x);
+                }
             }
         }
+        
         DEBUG(std::cout << std::endl;)
 #if 1
         for (const StateID& succ : unique_successors) {

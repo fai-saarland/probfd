@@ -99,7 +99,7 @@ template<typename F>
 void
 FactSetSetCounterBased::apply_to_subsets(const FactSet& fact_set, F fun) const
 {
-    using return_type = typename std::result_of<F(unsigned)>::type;
+    using return_type = typename std::invoke_result_t<F, unsigned>;
     auto early = std::is_convertible<return_type, bool>();
     std::fill(counter_.begin(), counter_.end(), 0);
     // if (empty_fact_set_id_ >= 0) {
@@ -128,7 +128,7 @@ template<typename F>
 void
 FactSetSetCounterBased::apply_to_supersets(const FactSet& fact_set, F fun) const
 {
-    using return_type = typename std::result_of<F(unsigned)>::type;
+    using return_type = typename std::invoke_result_t<F, unsigned>;
     auto early = std::is_convertible<return_type, bool>();
     const unsigned size = strips_utils::size(fact_set);
     if (size == 0) {

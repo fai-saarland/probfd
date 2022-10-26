@@ -19,7 +19,7 @@
 #define LP_METHOD(X) X;
 #else
 #define LP_METHOD(X)                                                           \
-    NO_RETURN X                                                                \
+    X                                                                \
     {                                                                          \
         ABORT("LP method called but the planner was compiled without LP "      \
               "support.\n"                                                     \
@@ -78,6 +78,8 @@ struct LPVariable {
 #ifdef __GNUG__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#elif defined _MSC_VER
+#pragma warning(disable : 4100)
 #endif
 class LPSolver {
     bool is_initialized;
@@ -197,6 +199,8 @@ public:
 };
 #ifdef __GNUG__
 #pragma GCC diagnostic pop
+#elif defined _MSC_VER
+#pragma warning(default : 4100)
 #endif
 } // namespace lp
 

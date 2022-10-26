@@ -272,13 +272,17 @@ void MaxRegressionOperators::mark_relaxed_operators(vector<bool> &labels,
         }
 
         bool are_preconditions_bounded = true;
-        std::vector<Proposition *> &prec = op->precondition;
-        for (size_t p = 0; p < prec.size(); p++) {
-            if (prec[p]->cost == -1 || prec[p]->cost > bound) {
-                are_preconditions_bounded = false;
-                break;
+
+        {
+            std::vector<Proposition*>& prec = op->precondition;
+            for (size_t p = 0; p < prec.size(); p++) {
+                if (prec[p]->cost == -1 || prec[p]->cost > bound) {
+                    are_preconditions_bounded = false;
+                    break;
+                }
             }
         }
+        
         if (!are_preconditions_bounded) {
             continue;
         }

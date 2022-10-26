@@ -527,8 +527,8 @@ private:
                 }
             }
 
-            int t = stack_info.successors.size() - stack_info.i - 1;
-            SCCTransition* inc = &stack_info.successors[t];
+            int idx = stack_info.successors.size() - stack_info.i - 1;
+            SCCTransition* inc = &stack_info.successors[idx];
             bool val_changed = false;
             bool completely_explored = false;
 
@@ -678,16 +678,16 @@ private:
                                     best = best > t_first ? best : t_first;
                                 }
 
-                                SearchNodeInformation& node_info =
+                                SearchNodeInformation& snode_info =
                                     search_space_[s.state_ref];
                                 if (best > value_utils::as_lower_bound(
-                                               node_info.value)) {
+                                               snode_info.value)) {
                                     changed = changed ||
                                               !value_type::approx_equal()(
                                                   value_utils::as_lower_bound(
-                                                      node_info.value),
+                                                      snode_info.value),
                                                   best);
-                                    node_info.value = IncumbentSolution(best);
+                                    snode_info.value = IncumbentSolution(best);
                                 }
                             }
                             ++iterations;

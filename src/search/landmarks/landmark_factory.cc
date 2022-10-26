@@ -432,10 +432,10 @@ void LandmarkFactory::approximate_reasonable_orders(bool obedient_orders) {
             // Use hash set to filter duplicates.
             unordered_set<LandmarkNode *, hash_pointer> interesting_nodes(
                 g_variable_name.size());
-            for (unordered_map<LandmarkNode *, edge_type, hash_pointer>::iterator it =
-                     node_p->children.begin(); it != node_p->children.end(); ++it) {
-                if (it->second >= greedy_necessary) { // found node2: node_p ->_gn node2
-                    LandmarkNode &node2 = *(it->first);
+            for (unordered_map<LandmarkNode *, edge_type, hash_pointer>::iterator itt =
+                     node_p->children.begin(); itt != node_p->children.end(); ++itt) {
+                if (itt->second >= greedy_necessary) { // found node2: node_p ->_gn node2
+                    LandmarkNode &node2 = *(itt->first);
                     for (unordered_map<LandmarkNode *, edge_type, hash_pointer>::iterator
                          it2 = node2.parents.begin(); it2
                          != node2.parents.end(); ++it2) {   // find parent

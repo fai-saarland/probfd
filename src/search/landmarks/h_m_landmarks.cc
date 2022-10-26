@@ -389,13 +389,13 @@ void HMLandmarks::print_pm_op(const PMOp &op) {
 
         std::cout << "EFF:" << std::endl;
         for (; j < op.cond_noops[i].size(); ++j) {
-            int pm_fluent = op.cond_noops[i][j];
+            int pm_fluent2 = op.cond_noops[i][j];
 
-            print_fluentset(h_m_table_[pm_fluent].fluents);
+            print_fluentset(h_m_table_[pm_fluent2].fluents);
             std::cout << std::endl;
 
-            for (size_t k = 0; k < h_m_table_[pm_fluent].fluents.size(); ++k) {
-                cond_eff.insert(h_m_table_[pm_fluent].fluents[k]);
+            for (size_t k = 0; k < h_m_table_[pm_fluent2].fluents.size(); ++k) {
+                cond_eff.insert(h_m_table_[pm_fluent2].fluents[k]);
             }
         }
         conds.push_back(std::make_pair(cond_pc, cond_eff));
@@ -925,9 +925,10 @@ void HMLandmarks::add_lm_node(int set_index, bool goal) {
     std::map<int, LandmarkNode *>::iterator it = lm_node_table_.find(set_index);
 
     if (it == lm_node_table_.end()) {
-        for (FluentSet::iterator it = h_m_table_[set_index].fluents.begin();
-             it != h_m_table_[set_index].fluents.end(); ++it) {
-            lm.insert(*it);
+        for (FluentSet::iterator itt = h_m_table_[set_index].fluents.begin();
+             itt != h_m_table_[set_index].fluents.end();
+             ++itt) {
+            lm.insert(*itt);
         }
         LandmarkNode *node;
         if (lm.size() > 1) { // conjunctive landmark

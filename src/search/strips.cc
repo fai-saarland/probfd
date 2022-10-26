@@ -49,12 +49,12 @@ STRIPS::STRIPS()
                 mutex_with[q].push_back(p);
             }
         }
-        for (int var = g_inconsistent_facts.size() - 1; var >= 0; var--) {
-            for (int val = g_inconsistent_facts[var].size() - 1; val >= 0;
+        for (int ivar = g_inconsistent_facts.size() - 1; ivar >= 0; ivar--) {
+            for (int val = g_inconsistent_facts[ivar].size() - 1; val >= 0;
                  val--) {
-                const Fact p = variable_offset_[var] + val;
-                for (auto it = g_inconsistent_facts[var][val].begin();
-                     it != g_inconsistent_facts[var][val].end();
+                const Fact p = variable_offset_[ivar] + val;
+                for (auto it = g_inconsistent_facts[ivar][val].begin();
+                     it != g_inconsistent_facts[ivar][val].end();
                      ++it) {
                     const Fact q = variable_offset_[it->first] + it->second;
                     mutexes_[p][q] = true;

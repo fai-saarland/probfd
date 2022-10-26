@@ -18,6 +18,9 @@
 #ifdef __clang__
 #pragma GCC diagnostic ignored "-Wconstant-conversion"
 #endif
+#ifdef _MSC_VER
+#pragma warning(disable : 5033 4100)
+#endif
 #include <OsiSolverInterface.hpp>
 
 #ifdef COIN_HAS_CLP
@@ -39,6 +42,9 @@
 #endif
 #ifdef __GNUG__
 #pragma GCC diagnostic pop
+#endif
+#ifdef _MSC_VER
+#pragma warning(default : 5033 4100)
 #endif
 
 using namespace std;

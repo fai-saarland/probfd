@@ -2067,14 +2067,12 @@ std::ostream &operator << (std::ostream &ss, const Abstraction &abs)
 ////////////////////////////////////////////////////////////////////////////////////////
 void Abstraction::dump_goal_leading_actions(bool /*backward_pruning*/) const
 {
-    std::cerr << "This function has not been ported yet..." << std::endl;
-    assert(false);
-    utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-    // // Dumping to file
-    // vector<bool> labels;
-    // int num_labels = set_goal_leading_actions(labels, backward_pruning);
-    // write_goal_leading_actions(labels, num_labels);
-
+    ABORT("This function has not been ported yet...");
+    // utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+    //  // Dumping to file
+    //  vector<bool> labels;
+    //  int num_labels = set_goal_leading_actions(labels, backward_pruning);
+    //  write_goal_leading_actions(labels, num_labels);
 }
 
 int Abstraction::set_goal_leading_actions(vector<bool> &labels,

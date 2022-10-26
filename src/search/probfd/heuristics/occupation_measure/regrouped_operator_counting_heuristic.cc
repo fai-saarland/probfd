@@ -91,8 +91,8 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     }
 
     for (const auto& goal_fact : g_goal) {
-        const std::size_t offset = ncc_offsets_[goal_fact.first];
-        constraints[offset + goal_fact.second].insert(0, -1);
+        const std::size_t off = ncc_offsets_[goal_fact.first];
+        constraints[off + goal_fact.second].insert(0, -1);
     }
 
     for (const ProbabilisticOperator& op : g_operators) {

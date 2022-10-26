@@ -50,10 +50,12 @@ std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
     bool executable = true;
     unsigned int violation = 0;
 
-    int status = push_state(base, solution_index, init, flaw_list);
-    if ((status & STATE_PUSHED) == 0) {
-        assert(stk.empty() && einfos.empty());
-        return {flaw_list, (status & FLAW_OCCURED) == 0};
+    {
+        int status = push_state(base, solution_index, init, flaw_list);
+        if ((status & STATE_PUSHED) == 0) {
+            assert(stk.empty() && einfos.empty());
+            return {flaw_list, (status & FLAW_OCCURED) == 0};
+        }
     }
 
     assert(!stk.empty());

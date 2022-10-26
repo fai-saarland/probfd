@@ -430,8 +430,7 @@ private:
 
                     auto end = stack_.begin();
                     do {
-                        LocalStateInfo& sinfo = state_infos_[*end];
-                        sinfo.status = LocalStateInfo::UNSOLVED;
+                        state_infos_[*end].status = LocalStateInfo::UNSOLVED;
                         DMSG(std::cout << " " << *end;)
                         ++scc_size;
                     } while (*(end++) != einfo.stateid);

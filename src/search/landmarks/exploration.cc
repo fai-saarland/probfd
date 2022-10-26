@@ -367,8 +367,8 @@ void Exploration::compute_reachability_with_excludes(vector<vector<int> > &lvl_v
             // H_max_cost of operator might be wrongly 0 or 1, if the operator
             // did not get applied during relaxed exploration. Look through
             // preconditions and adjust.
-            for (size_t i = 0; i < op.precondition.size(); ++i) {
-                ExProposition *prop = op.precondition[i];
+            for (size_t j = 0; j < op.precondition.size(); ++j) {
+                ExProposition* prop = op.precondition[j];
                 if (prop->h_max_cost == -1) {
                     // Operator cannot be applied due to unreached precondition
                     op.h_max_cost = numeric_limits<int>::max();

@@ -107,7 +107,6 @@ public:
                 stable_policy_,
                 std::forward<Args>(args)...);
         }
-        return nullptr;
     }
 
 protected:

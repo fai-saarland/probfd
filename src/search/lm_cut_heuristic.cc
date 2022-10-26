@@ -326,7 +326,7 @@ int LandmarkCutHeuristic::compute_heuristic(const GlobalState &state) {
         int cut_cost = numeric_limits<int>::max();
         for (size_t i = 0; i < cut.size(); ++i) {
             cut_cost = min(cut_cost, cut[i]->cost);
-            if (COST_MULTIPLIER > 1) {
+            if constexpr (COST_MULTIPLIER > 1) {
                 /* We're using this "if" here because COST_MULTIPLIER
                    is currently a global constant and usually 1, which
                    allows the optimizer to get rid of this additional

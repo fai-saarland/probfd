@@ -46,7 +46,9 @@
 namespace segmented_vector {
 template<class Entry, class Allocator = std::allocator<Entry>>
 class SegmentedVector {
-    typedef typename Allocator::template rebind<Entry>::other EntryAllocator;
+    using ATraits = std::allocator_traits<Allocator>;
+    using EntryAllocator = typename ATraits::template rebind_alloc<Entry>;
+
     // TODO: Try to find a good value for SEGMENT_BYTES.
     static const size_t SEGMENT_BYTES = 8192;
 
@@ -87,7 +89,7 @@ public:
 
     ~SegmentedVector() {
         for (size_t i = 0; i < the_size; ++i) {
-            entry_allocator.destroy(&operator[](i));
+            ATraits::destroy(entry_allocator, &operator[](i));
         }
         for (size_t segment = 0; segment < segments.size(); ++segment) {
             entry_allocator.deallocate(segments[segment], SEGMENT_ELEMENTS);
@@ -120,12 +122,12 @@ public:
             // Must add a new segment.
             add_segment();
         }
-        entry_allocator.construct(segments[segment] + offset, entry);
+        ATraits::construct(entry_allocator, segments[segment] + offset, entry);
         ++the_size;
     }
 
     void pop_back() {
-        entry_allocator.destroy(&operator[](the_size - 1));
+        ATraits::destroy(entry_allocator, &operator[](the_size - 1));
         --the_size;
         // If the removed element was the last in its segment, the segment
         // is not removed (memory is not deallocated). This way a subsequent
@@ -172,7 +174,9 @@ private:
 
 template<class Element, class Allocator = std::allocator<Element>>
 class SegmentedArrayVector {
-    typedef typename Allocator::template rebind<Element>::other ElementAllocator;
+    using ATraits = std::allocator_traits<Allocator>;
+    using ElementAllocator = typename ATraits::template rebind_alloc<Element>;
+
     // TODO: Try to find a good value for SEGMENT_BYTES.
     static const size_t SEGMENT_BYTES = 8192;
 
@@ -226,7 +230,7 @@ public:
         //      wihtout looping over the arrays first.
         for (size_t i = 0; i < the_size; ++i) {
             for (size_t offset = 0; offset < elements_per_array; ++offset) {
-                element_allocator.destroy(operator[](i) + offset);
+                ATraits::destroy(element_allocator, operator[](i) + offset);
             }
         }
         for (size_t i = 0; i < segments.size(); ++i) {
@@ -262,13 +266,15 @@ public:
         }
         Element *dest = segments[segment] + offset;
         for (size_t i = 0; i < elements_per_array; ++i)
-            element_allocator.construct(dest++, *entry++);
+            ATraits::construct(element_allocator, dest++, *entry++);
         ++the_size;
     }
 
     void pop_back() {
         for (size_t offset = 0; offset < elements_per_array; ++offset) {
-            element_allocator.destroy(operator[](the_size - 1) + offset);
+            ATraits::destroy(
+                element_allocator,
+                operator[](the_size - 1) + offset);
         }
         --the_size;
         // If the removed element was the last in its segment, the segment

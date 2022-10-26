@@ -608,18 +608,20 @@ private:
             state_info.status = StateInfo::CLOSED;
         } else {
             // Mark all states as closed
-            auto it = begin;
-            do {
-                StackInfo& stack_it = *it;
-                StateInfo& state_it = state_information_[stack_it.state_id];
+            {
+                auto it = begin;
+                do {
+                    StackInfo& stack_it = *it;
+                    StateInfo& state_it = state_information_[stack_it.state_id];
 
-                assert(state_it.status == StateInfo::ONSTACK);
-                assert(!stack_it.nconv_qs.empty());
+                    assert(state_it.status == StateInfo::ONSTACK);
+                    assert(!stack_it.nconv_qs.empty());
 
-                state_it.dead = false;
+                    state_it.dead = false;
 
-                state_it.status = StateInfo::CLOSED;
-            } while (++it != end);
+                    state_it.status = StateInfo::CLOSED;
+                } while (++it != end);
+            }
 
             // Now run VI on the SCC until convergence
             bool changed;

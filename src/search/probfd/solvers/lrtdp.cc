@@ -33,14 +33,16 @@ public:
               opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
                   "successor_sampler")))
     {
-        if (Fret::value &&
-            stop_consistent_ !=
+        if constexpr (Fret::value) {
+            if (stop_consistent_ !=
                 engines::lrtdp::TrialTerminationCondition::Consistent) {
-            logging::out << std::endl;
-            logging::out << "Warning: LRTDP is run within FRET without "
-                            "stop_consistent being enabled! LRTDP's trials may "
-                            "get stuck in cycles."
-                         << std::endl;
+                logging::out << std::endl;
+                logging::out
+                    << "Warning: LRTDP is run within FRET without "
+                       "stop_consistent being enabled! LRTDP's trials may "
+                       "get stuck in cycles."
+                    << std::endl;
+            }
         }
         this->initialize_interfaceable(this->unwrap(successor_sampler_));
     }
