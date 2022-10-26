@@ -1,20 +1,14 @@
 include(CMakeParseArguments)
 
 macro(fast_downward_set_compiler_flags)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_STANDARD 17)
+
     # Note: on CMake >= 3.0 the compiler ID of Apple-provided clang is AppleClang.
     # If we change the required CMake version from 2.8.3 to 3.0 or greater,
     # we have to fix this.
     if(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-        include(CheckCXXCompilerFlag)
-        check_cxx_compiler_flag( "-std=c++17" CXX17_FOUND )
-        if(CXX17_FOUND)
-             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-        else()
-            message(FATAL_ERROR "${CMAKE_CXX_COMPILER} does not support C++17, please use a different compiler")
-        endif()
-
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wnon-virtual-dtor")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic -Wnon-virtual-dtor")
 
         if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-range-loop-analysis")
@@ -34,7 +28,7 @@ macro(fast_downward_set_compiler_flags)
         string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 
         # Enable exceptions.
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++17")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 
         # Use warning level 4 (/W4).
         # /Wall currently detects too many warnings outside of our code to be useful.

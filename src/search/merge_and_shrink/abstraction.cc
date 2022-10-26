@@ -2855,10 +2855,10 @@ void Abstraction::write_action_files(const bool backward_pruning)
 {
     compute_distances(false, true, true, false, true);
     dump_goal_leading_actions(backward_pruning);
-    write_mip_file(backward_pruning, false);
-    compute_distances(false, true, true, true, true);
-    write_mip_file(backward_pruning, true);
-    write_pmaxsat_file(backward_pruning);
+    // write_mip_file(backward_pruning, false);
+    //  compute_distances(false, true, true, true, true);
+    //  write_mip_file(backward_pruning, true);
+    //  write_pmaxsat_file(backward_pruning);
 }
 
 
