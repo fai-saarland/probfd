@@ -299,7 +299,7 @@ public:
     }
 
     template <typename Range>
-    void build_quotient(Range range)
+    void build_quotient(Range& range)
     {
         this->build_quotient(range.begin(), range.end());
     }
