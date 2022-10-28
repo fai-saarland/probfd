@@ -466,7 +466,7 @@ private:
                     break;
                 }
 
-                assert(stk_successors.empty());
+                assert(s->successors.back().empty());
                 s->successors.pop_back();
             }
         }
