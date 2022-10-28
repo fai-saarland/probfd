@@ -353,7 +353,9 @@ private:
         expansion_queue_.emplace_back(
             stack_.size(),
             std::move(aops),
-            std::move(successors));
+            std::move(successors),
+            state_id,
+            *rewards_);
 
         state_info.stackid_ = stack_.size();
         stack_.emplace_back(state_id);
