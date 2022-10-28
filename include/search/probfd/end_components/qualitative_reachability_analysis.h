@@ -389,8 +389,9 @@ private:
                     return true;
                 } else {
                     e.exits_only_proper = e.exits_only_proper && succ_info.one;
-                    st.dead = st.dead && succ_info.dead;
                 }
+
+                st.dead = st.dead && succ_info.dead;
             } while (e.next_successor());
 
             if (e.transitions_in_scc) {
