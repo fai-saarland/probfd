@@ -60,10 +60,10 @@ public:
 private:
     void compute_value_table(const AbstractStateEvaluator& heuristic);
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) && defined(USE_LP)
     void verify(
         const engine_interfaces::StateIDMap<AbstractState>& state_id_map,
-        std::vector<StateID> proper_states);
+        const std::vector<StateID>& proper_states);
 #endif
 };
 

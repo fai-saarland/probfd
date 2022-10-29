@@ -13,6 +13,8 @@
 
 #include "successor_generator.h"
 
+#include "lp/lp_solver.h"
+
 #include <deque>
 #include <sstream>
 #include <unordered_map>
@@ -137,7 +139,9 @@ void MaxProbProjection::compute_value_table(
 
     logging::out << "]: value=" << value_table[initial_state_.id] << std::endl;
 
+#if defined(USE_LP)
     verify(state_id_map);
+#endif
 #endif
 }
 
@@ -325,18 +329,59 @@ void MaxProbProjection::dump_graphviz(
         value_type::one);
 }
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) && defined(USE_LP)
 void MaxProbProjection::verify(
     const engine_interfaces::StateIDMap<AbstractState>& state_id_map)
 {
-    for (const int id : state_id_map.visited()) {
-        AbstractState s(id);
-        const value_type::value_t value = value_table[s.id].upper;
+    lp::LPSolverType type;
 
-        if (utils::contains(goal_states_, s)) {
-            assert(value == value_type::one);
-            continue;
-        }
+#ifdef COIN_HAS_CLP
+    type = lp::LPSolverType::CLP;
+#elif defined(COIN_HAS_CPX)
+    type = lp::LPSolverType::CPLEX;
+#elif defined(COIN_HAS_GRB)
+    type = lp::LPSolverType::GUROBI;
+#elif defined(COIN_HAS_SPX)
+    type = lp::LPSolverType::SOPLEX;
+#else
+    std::cerr << "Warning: Could not verify PDB value table since no LP solver"
+        "is available !" << std::endl;
+    return;
+#endif
+
+    lp::LPSolver solver(type);
+
+    std::unordered_set<StateID> visited(
+        state_id_map.visited_begin(),
+        state_id_map.visited_end());
+
+    std::vector<lp::LPVariable> variables;
+
+    for (AbstractState s = AbstractState(0);
+         s.id != static_cast<int>(state_mapper_->num_states());
+         ++s.id) {
+        variables.emplace_back(
+            value_type::zero,
+            value_type::one,
+            value_type::one);
+    }
+
+    std::vector<lp::LPConstraint> constraints;
+
+    for (AbstractState s : goal_states_) {
+        auto& g = constraints.emplace_back(value_type::one, value_type::one);
+        g.insert(s.id, value_type::one);
+    }
+
+    std::deque<AbstractState> queue({initial_state_});
+    std::set<AbstractState> seen({initial_state_});
+
+    while (!queue.empty()) {
+        AbstractState s = queue.front();
+        queue.pop_front();
+
+        assert(utils::contains(visited, StateID(s.id)));
+        visited.erase(StateID(s.id));
 
         // Generate operators...
         auto facts = state_mapper_->to_values(s);
@@ -344,37 +389,56 @@ void MaxProbProjection::verify(
         std::vector<const AbstractOperator*> aops;
         progression_aops_generator_->generate_applicable_ops(facts, aops);
 
-        if (aops.empty()) {
-            assert(value == value_type::zero);
-            continue;
-        }
-
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
-            value_type::value_t op_value = value_type::zero;
+            auto& constr =
+                constraints.emplace_back(value_type::zero, value_type::inf);
 
-            std::vector<AbstractState> successors;
+            std::unordered_map<AbstractState, value_type::value_t>
+                successor_dist;
 
             for (const auto& [eff, prob] : op->outcomes) {
-                AbstractState t = s + eff;
-                op_value += prob * value_table[t.id].upper;
-                successors.push_back(t);
+                successor_dist[s + eff] -= prob;
             }
 
-            if (value_type::approx_less()(value, op_value)) {
-                abort();
+            if (successor_dist.size() == 1 &&
+                successor_dist.begin()->first == s) {
+                continue;
             }
 
-            if (value_type::approx_equal()(value, op_value)) {
-                goto continue_exploring;
+            successor_dist[s] += value_type::one;
+
+            for (const auto& [succ, prob] : successor_dist) {
+                constr.insert(succ.id, prob);
+
+                if (!utils::contains(seen, succ)) {
+                    queue.push_back(succ);
+                    seen.insert(succ);
+                }
             }
         }
+    }
 
-        std::cerr << "Could not find greedy operator for abstract state " << s
-                  << "!" << std::endl;
-        abort();
+    assert(visited.empty());
 
-    continue_exploring:;
+    solver.load_problem(lp::LPObjectiveSense::MINIMIZE, variables, constraints);
+
+    solver.solve();
+
+    assert(solver.has_optimal_solution());
+
+    std::vector<double> solution = solver.extract_solution();
+
+    for (AbstractState s = AbstractState(0);
+         s.id != static_cast<int>(state_mapper_->num_states());
+         ++s.id) {
+        if (utils::contains(seen, s)) {
+            assert(value_type::approx_equal(
+                0.001)(solution[s.id], value_table[s.id].upper));
+        } else {
+            assert(value_type::zero == value_table[s.id].lower);
+            assert(value_type::zero == value_table[s.id].upper);
+        }
     }
 }
 #endif

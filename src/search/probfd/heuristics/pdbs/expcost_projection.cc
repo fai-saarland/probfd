@@ -15,6 +15,7 @@
 
 #include "successor_generator.h"
 
+#include "lp/lp_solver.h"
 
 #include <deque>
 #include <sstream>
@@ -261,9 +262,6 @@ void ExpCostProjection::compute_value_table(
         state_mapper_,
         progression_aops_generator_);
 
-    // TODO First compute EC quotient
-    // TODO Then aggregate all non-proper states
-
     QualitativeReachabilityAnalysis<AbstractState, const AbstractOperator*>
         analysis(&state_id_map, &action_id_map, &reward, &transition_gen, true);
 
@@ -295,28 +293,68 @@ void ExpCostProjection::compute_value_table(
 
     logging::out << "]: value=" << value_table[initial_state_.id] << std::endl;
 
+#if defined(USE_LP)
     verify(state_id_map, proper_states);
+#endif
 #endif
 }
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) && defined(USE_LP)
 void ExpCostProjection::verify(
     const engine_interfaces::StateIDMap<AbstractState>& state_id_map,
-    std::vector<StateID> proper_states)
+    const std::vector<StateID>& proper_states)
 {
-    for (const int id : state_id_map.visited()) {
-        AbstractState s(id);
-        const value_type::value_t value = value_table[s.id];
+    lp::LPSolverType type;
 
-        if (utils::contains(goal_states_, s)) {
-            assert(value == value_type::zero);
-            continue;
-        }
+#ifdef COIN_HAS_CLP
+    type = lp::LPSolverType::CLP;
+#elif defined(COIN_HAS_CPX)
+    type = lp::LPSolverType::CPLEX;
+#elif defined(COIN_HAS_GRB)
+    type = lp::LPSolverType::GUROBI;
+#elif defined(COIN_HAS_SPX)
+    type = lp::LPSolverType::SOPLEX;
+#else
+    std::cerr << "Warning: Could not verify PDB value table since no LP solver"
+                 "is available !"
+              << std::endl;
+    return;
+#endif
 
-        if (!utils::contains(proper_states, StateID(id))) {
-            assert(value == -value_type::inf);
-            continue;
-        }
+    lp::LPSolver solver(type);
+
+    std::unordered_set<StateID> visited(
+        state_id_map.visited_begin(),
+        state_id_map.visited_end());
+
+    std::vector<lp::LPVariable> variables;
+
+    for (AbstractState s = AbstractState(0);
+         s.id != static_cast<int>(state_mapper_->num_states());
+         ++s.id) {
+        const bool in = utils::contains(proper_states, StateID(s.id));
+        variables.emplace_back(
+            -value_type::inf,
+            value_type::zero,
+            in ? value_type::one : value_type::zero);
+    }
+
+    std::vector<lp::LPConstraint> constraints;
+
+    for (AbstractState s : goal_states_) {
+        auto& g = constraints.emplace_back(value_type::zero, value_type::zero);
+        g.insert(s.id, value_type::one);
+    }
+
+    std::deque<AbstractState> queue({initial_state_});
+    std::set<AbstractState> seen({initial_state_});
+
+    while (!queue.empty()) {
+        AbstractState s = queue.front();
+        queue.pop_front();
+
+        assert(utils::contains(visited, StateID(s.id)));
+        visited.erase(StateID(s.id));
 
         // Generate operators...
         auto facts = state_mapper_->to_values(s);
@@ -326,26 +364,55 @@ void ExpCostProjection::verify(
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
-            value_type::value_t op_value = op->reward;
+            value_type::value_t reward = op->reward;
 
-            std::vector<AbstractState> successors;
+            auto& constr = constraints.emplace_back(reward, value_type::inf);
+
+            std::unordered_map<AbstractState, value_type::value_t>
+                successor_dist;
 
             for (const auto& [eff, prob] : op->outcomes) {
-                AbstractState t = s + eff;
-                op_value += prob * value_table[t.id];
-                successors.push_back(t);
+                successor_dist[s + eff] -= prob;
             }
 
-            if (value_type::approx_equal()(value, op_value)) {
-                goto continue_exploring;
+            if (successor_dist.size() == 1 &&
+                successor_dist.begin()->first == s) {
+                continue;
+            }
+
+            successor_dist[s] += value_type::one;
+
+            for (const auto& [succ, prob] : successor_dist) {
+                constr.insert(succ.id, prob);
+
+                if (!utils::contains(seen, succ)) {
+                    queue.push_back(succ);
+                    seen.insert(succ);
+                }
             }
         }
+    }
 
-        std::cerr << "Could not find greedy operator for abstract state " << s
-                  << "!" << std::endl;
-        abort();
+    assert(visited.empty());
 
-    continue_exploring:;
+    solver.load_problem(lp::LPObjectiveSense::MINIMIZE, variables, constraints);
+
+    solver.solve();
+
+    assert(solver.has_optimal_solution());
+
+    std::vector<double> solution = solver.extract_solution();
+
+    for (AbstractState s = AbstractState(0);
+         s.id != static_cast<int>(state_mapper_->num_states());
+         ++s.id) {
+        if (utils::contains(proper_states, StateID(s.id)) &&
+            utils::contains(seen, s)) {
+            assert(value_type::approx_equal(
+                0.001)(solution[s.id], value_table[s.id]));
+        } else {
+            assert(value_table[s.id] == -value_type::inf);
+        }
     }
 }
 #endif
