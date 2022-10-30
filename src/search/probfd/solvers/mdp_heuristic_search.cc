@@ -21,10 +21,6 @@ MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
           opts.get_list<std::shared_ptr<NewGlobalStateHandler>>(
               "on_new_state")))
     , heuristic_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
-    , dead_end_eval_(
-          opts.contains("dead_end_eval")
-              ? opts.get<std::shared_ptr<GlobalStateEvaluator>>("dead_end_eval")
-              : nullptr)
     , dual_bounds_(
           opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
     , interval_comparison_(
@@ -89,10 +85,6 @@ void MDPHeuristicSearchBase::add_options_to_parser(
     parser.add_option<bool>("interval_comparison", "", "false");
     parser.add_option<bool>("stable_policy", "", "false");
     parser.add_option<bool>("dual_bounds", "", "false");
-    parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
-        "dead_end_eval",
-        "",
-        options::OptionParser::NONE);
     MDPSolver::add_options_to_parser(parser);
 }
 

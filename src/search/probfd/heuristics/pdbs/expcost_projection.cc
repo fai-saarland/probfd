@@ -252,7 +252,7 @@ void ExpCostProjection::compute_value_table(
     NormalCostAbstractRewardFunction reward(
         &goal_states_,
         value_type::zero,
-        value_type::zero);
+        -value_type::inf);
 
     StateIDMap<AbstractState> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
@@ -274,14 +274,8 @@ void ExpCostProjection::compute_value_table(
 
     WrapperHeuristic h(proper_states, heuristic);
 
-    TopologicalValueIteration<AbstractState, const AbstractOperator*> vi(
-        &state_id_map,
-        &action_id_map,
-        &reward,
-        value_utils::IntervalValue(-value_type::inf, value_type::zero),
-        &transition_gen,
-        &h,
-        true);
+    TopologicalValueIteration<AbstractState, const AbstractOperator*>
+        vi(&state_id_map, &action_id_map, &reward, &transition_gen, &h, true);
 
     vi.solve(state_id_map.get_state_id(initial_state_), value_table);
 

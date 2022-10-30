@@ -200,6 +200,9 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // Reference to the state value of the state.
         IncumbentSolution* value;
 
+        // The state reward
+        IncumbentSolution state_reward;
+
         // Precomputed part of the max of the value update.
         // Maximum over all Q values which have already converged due to
         // topological ordering.
@@ -211,11 +214,12 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         StackInfo(
             const StateID& state_id,
             IncumbentSolution& value_ref,
-            IncumbentSolution conv_part,
+            value_type::value_t state_reward,
             unsigned num_aops)
             : state_id(state_id)
             , value(&value_ref)
-            , conv_part(conv_part)
+            , state_reward(state_reward)
+            , conv_part(state_reward)
         {
             nconv_qs.reserve(num_aops);
         }
@@ -243,7 +247,6 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         const engine_interfaces::StateEvaluator<State>* value_initializer,
         bool expand_goals)
@@ -251,11 +254,9 @@ public:
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator)
         , value_initializer_(value_initializer)
         , expand_goals_(expand_goals)
-        , dead_end_value_(this->get_minimal_reward())
     {
     }
 
@@ -403,98 +404,108 @@ private:
     {
         assert(state_info.status == StateInfo::NEW);
 
-        State state = this->lookup_state(state_id);
-        EvaluationResult state_eval = this->get_state_reward(state);
+        const State state = this->lookup_state(state_id);
+
+        const EvaluationResult state_eval = this->get_state_reward(state);
+        const auto t_reward = static_cast<value_type::value_t>(state_eval);
+
+        const EvaluationResult h_eval = value_initializer_->operator()(state);
+        const auto estimate = static_cast<value_type::value_t>(h_eval);
 
         if (state_eval) {
-            state_value =
-                IncumbentSolution(static_cast<value_type::value_t>(state_eval));
             state_info.dead = false;
             ++statistics_.goal_states;
 
             if (!expand_goals_) {
                 ++statistics_.terminal_states;
-                goto fail;
-            }
-        } else {
-            auto estimate = value_initializer_->operator()(state);
 
-            if (estimate) {
-                ++statistics_.pruned;
-                ++statistics_.terminal_states;
-                goto fail;
-            }
+                state_value = IncumbentSolution(t_reward);
+                state_info.status = StateInfo::CLOSED;
 
-            if constexpr (Interval::value) {
-                state_value.lower = this->get_minimal_reward();
-                state_value.upper = static_cast<value_type::value_t>(estimate);
-            } else {
-                state_value = static_cast<value_type::value_t>(estimate);
+                return false;
             }
+        }
+
+        if (h_eval) {
+            ++statistics_.pruned;
+
+            state_value = IncumbentSolution(estimate);
+            state_info.status = StateInfo::CLOSED;
+
+            return false;
         }
 
         state_info.status = StateInfo::ONSTACK;
 
-        {
-            std::vector<Action> aops;
-            this->generate_applicable_ops(state_id, aops);
-            ++statistics_.expanded_states;
+        std::vector<Action> aops;
+        this->generate_applicable_ops(state_id, aops);
+        ++statistics_.expanded_states;
 
-            if (aops.empty()) {
-                ++statistics_.terminal_states;
-                goto fail;
-            }
+        if (aops.empty()) {
+            ++statistics_.terminal_states;
+            ++statistics_.dead_ends;
 
-            /************** Forward to first non self loop ****************/
-            Distribution<StateID> transition;
+            *dead_end_out = state_id;
 
-            do {
-                this->generate_successors(state_id, aops.back(), transition);
-                transition.make_unique();
+            state_value = IncumbentSolution(t_reward);
+            state_info.status = StateInfo::CLOSED;
 
-                assert(!transition.empty());
-
-                // Check for self loop
-                if (!transition.is_dirac(state_id)) {
-                    std::size_t stack_size = stack_.size();
-
-                    state_info.stack_id = state_info.lowlink = stack_size;
-
-                    // Found non self loop action, push and return success.
-                    auto& s_info = stack_.emplace_back(
-                        state_id,
-                        state_value,
-                        state_eval
-                            ? IncumbentSolution(
-                                  static_cast<value_type::value_t>(state_eval))
-                            : dead_end_value_,
-                        aops.size());
-
-                    s_info.nconv_qs.emplace_back(
-                        this->get_action_reward(state_id, aops.back()));
-
-                    exploration_stack_.emplace_back(
-                        state_id,
-                        stack_size,
-                        std::move(aops),
-                        std::move(transition));
-
-                    return true;
-                }
-
-                aops.pop_back();
-                transition.clear();
-            } while (!aops.empty());
-            /*****************************************************************/
+            return false;
         }
 
-    fail:
+        /************** Forward to first non self loop ****************/
+        Distribution<StateID> transition;
+
+        do {
+            this->generate_successors(state_id, aops.back(), transition);
+            transition.make_unique();
+
+            assert(!transition.empty());
+
+            // Check for self loop
+            if (!transition.is_dirac(state_id)) {
+                if constexpr (Interval::value) {
+                    assert(t_reward <= estimate);
+                    state_value.lower = t_reward;
+                    state_value.upper = estimate;
+                } else {
+                    state_value = estimate;
+                }
+
+                std::size_t stack_size = stack_.size();
+
+                state_info.stack_id = state_info.lowlink = stack_size;
+
+                // Found non self loop action, push and return success.
+                auto& s_info = stack_.emplace_back(
+                    state_id,
+                    state_value,
+                    t_reward,
+                    aops.size());
+
+                s_info.nconv_qs.emplace_back(
+                    this->get_action_reward(state_id, aops.back()));
+
+                exploration_stack_.emplace_back(
+                    state_id,
+                    stack_size,
+                    std::move(aops),
+                    std::move(transition));
+
+                return true;
+            }
+
+            aops.pop_back();
+            transition.clear();
+        } while (!aops.empty());
+        /*****************************************************************/
+
         if (state_info.dead) {
-            state_value = dead_end_value_;
             ++statistics_.dead_ends;
             *dead_end_out = state_id;
         }
 
+        state_value = IncumbentSolution(t_reward);
         state_info.status = StateInfo::CLOSED;
 
         return false;
@@ -592,7 +603,7 @@ private:
 
                 assert(state_it.dead && state_it.status == StateInfo::ONSTACK);
 
-                *stack_it.value = dead_end_value_;
+                *stack_it.value = IncumbentSolution(stack_it.state_reward);
                 *dead_end_out = stack_it.state_id;
 
                 state_it.status = StateInfo::CLOSED;
@@ -642,7 +653,6 @@ private:
 
     const engine_interfaces::StateEvaluator<State>* value_initializer_;
     const bool expand_goals_;
-    const IncumbentSolution dead_end_value_;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::deque<ExplorationInfo> exploration_stack_;

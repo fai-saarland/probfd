@@ -65,7 +65,7 @@ struct Statistics {
         out << "  Found " << dead_end_sccs << " dead-end SCC(s)." << std::endl;
         out << "  Partially pruned " << pruned_dead_end_sccs
             << " dead-end SCC(s)." << std::endl;
-        TIMERS_ENABLED(out << "  Dead end evaluator time: " << evaluation_time
+        TIMERS_ENABLED(out << "  Evaluator time: " << evaluation_time
                            << std::endl;)
         out << "  Average dead-end SCC size: "
             << (static_cast<double>(summed_dead_end_scc_sizes) /
@@ -164,6 +164,7 @@ class ExhaustiveDepthFirstSearch
         unsigned lowlink = -1;
         uint8_t status = NEW;
         IncumbentSolution value;
+        value_type::value_t state_reward;
     };
 
 public:
@@ -171,11 +172,10 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::HeuristicSearchConnector* connector,
+        value_utils::IntervalValue reward_bound,
         engine_interfaces::StateEvaluator<State>* evaluator,
-        engine_interfaces::StateEvaluator<State>* dead_end_eval,
         bool reevaluate,
         bool notify_initial,
         engine_interfaces::SuccessorSorting<Action>* successor_sorting,
@@ -187,14 +187,12 @@ public:
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator)
         , statistics_()
         , report_(progress)
-        , dead_end_value_(this->get_minimal_reward())
+        , reward_bound_(reward_bound)
         , trivial_bound_(get_trivial_bound())
         , evaluator_(evaluator)
-        , dead_end_evaluator_(dead_end_eval)
         , new_state_handler_(new_state_handler)
         , reverse_path_updates_(path_updates)
         , only_propagate_when_changed_(only_propagate_when_changed)
@@ -268,33 +266,12 @@ private:
         return res;
     }
 
-    bool is_dead_end(const StateID& state_id)
-    {
-        State state = this->lookup_state(state_id);
-        return is_dead_end(state);
-    }
-
-    bool is_dead_end(const State& state)
-    {
-        TIMERS_ENABLED(statistics_.evaluation_started();)
-        bool result = false;
-        if (dead_end_evaluator_ != nullptr) {
-            result = (bool)dead_end_evaluator_->operator()(state);
-        }
-        TIMERS_ENABLED(statistics_.evaluation_finished();)
-        return result;
-    }
-
-    IncumbentSolution dead_end_value() const { return dead_end_value_; }
-
     IncumbentSolution get_trivial_bound() const
     {
         if constexpr (DualBounds::value) {
-            return IncumbentSolution(
-                this->get_minimal_reward(),
-                this->get_maximal_reward());
+            return reward_bound_;
         } else {
-            return IncumbentSolution(this->get_minimal_reward());
+            return reward_bound_.lower;
         }
     }
 
@@ -346,6 +323,7 @@ private:
         info.value = trivial_bound_;
 
         auto reward = this->get_state_reward(state);
+        info.state_reward = static_cast<value_type::value_t>(reward);
         if (reward) {
             info.close();
             info.value = IncumbentSolution((value_type::value_t)reward);
@@ -358,7 +336,7 @@ private:
 
         reward = evaluate(state);
         if (reward) {
-            info.value = dead_end_value_;
+            info.value = IncumbentSolution(info.state_reward);
             info.mark_dead_end();
             ++statistics_.dead_ends;
             if (new_state_handler_) {
@@ -385,7 +363,7 @@ private:
         std::vector<Distribution<StateID>> successors;
         this->generate_all_successors(state_id, aops, successors);
         if (successors.empty()) {
-            info.value = dead_end_value_;
+            info.value = IncumbentSolution(info.state_reward);
             info.set_dead_end();
             statistics_.terminal++;
             return false;
@@ -478,7 +456,7 @@ private:
             stack_infos_.pop_back();
 
             if (pure_self_loop) {
-                info.value = dead_end_value_;
+                info.value = IncumbentSolution(info.state_reward);
                 info.set_dead_end();
                 ++statistics_.self_loop;
             } else {
@@ -520,13 +498,6 @@ private:
             expanding.all_successors_marked_dead =
                 expanding.all_successors_marked_dead && last_all_marked_dead_;
 
-            if (evaluator_recomputation_ && backtracked_from_dead_end_scc_) {
-                if (is_dead_end(stateid)) {
-                    mark_current_component_dead();
-                    continue;
-                }
-            }
-
             int idx = stack_info.successors.size() - stack_info.i - 1;
             SCCTransition* inc = &stack_info.successors[idx];
             bool val_changed = false;
@@ -542,13 +513,7 @@ private:
                     assert(!succ_info.is_new());
 
                     if (succ_info.is_open()) {
-                        if (is_dead_end(succ_id)) {
-                            statistics_.dead_ends++;
-                            succ_info.value = dead_end_value_;
-                            succ_info.mark_dead_end();
-                            inc->base += prob * value_utils::as_lower_bound(
-                                                    succ_info.value);
-                        } else if (push_state(succ_id, succ_info)) {
+                        if (push_state(succ_id, succ_info)) {
                             goto skip;
                         } else {
                             expanding.all_successors_are_dead =
@@ -630,7 +595,7 @@ private:
                     do {
                         ++scc_size;
                         auto& info = search_space_[rend->state_ref];
-                        info.value = dead_end_value_;
+                        info.value = IncumbentSolution(info.state_reward);
                         info.set_dead_end();
                     } while ((rend++)->state_ref != stateid);
 
@@ -989,7 +954,7 @@ private:
             for (const auto& successors : exp.successors) {
                 for (const StateID sid : successors.elements()) {
                     SearchNodeInformation& succ_info = search_space_[sid];
-                    succ_info.value = dead_end_value_;
+                    succ_info.value = succ_info.state_reward;
                     succ_info.mark_dead_end();
 
                     if (succ_info.is_onstack()) {
@@ -1005,7 +970,7 @@ private:
                 auto it = stack_infos_.rbegin();
                 do {
                     SearchNodeInformation& info = search_space_[it->state_ref];
-                    info.value = dead_end_value_;
+                    info.value = info.state_reward;
                     info.mark_dead_end();
                 } while ((it++)->state_ref != stateid);
 
@@ -1024,18 +989,17 @@ private:
             return node.value.lower >= node.value.upper;
         } else {
             return value_utils::as_lower_bound(node.value) >=
-                   this->get_maximal_reward();
+                   reward_bound_.upper;
         }
     }
 
     Statistics statistics_;
 
     ProgressReport* report_;
-    const IncumbentSolution dead_end_value_;
+    const value_utils::IntervalValue reward_bound_;
     const IncumbentSolution trivial_bound_;
 
     engine_interfaces::StateEvaluator<State>* evaluator_;
-    engine_interfaces::StateEvaluator<State>* dead_end_evaluator_;
     engine_interfaces::NewStateHandler<State>* new_state_handler_;
 
     const BacktrackingUpdateType reverse_path_updates_;

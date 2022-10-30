@@ -49,7 +49,7 @@ struct Statistics {
 template <typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
     struct StateInfo {
-        bool expanded;
+        bool expanded = false;
         value_type::value_t value;
     };
 
@@ -92,17 +92,14 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::StateEvaluator<State>* prune = nullptr)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator)
         , prune_(prune)
-        , state_infos_(StateInfo{false, this->get_minimal_reward()})
     {
     }
 
@@ -173,17 +170,22 @@ private:
         }
 
         State state = this->lookup_state(state_id);
-        state_infos_[state_id].expanded = true;
+        auto rew = this->get_state_reward(state);
+        const auto value = static_cast<value_type::value_t>(rew);
+
+        StateInfo& info = state_infos_[state_id];
+
+        info.expanded = true;
+        info.value = value;
+
         if (prune_ && bool(prune_->operator()(state))) {
             ++statistics_.pruned;
             return false;
         }
 
-        auto rew = this->get_state_reward(state);
         if (bool(rew)) {
             ++statistics_.terminal_states;
             ++statistics_.goal_states;
-            state_infos_[state_id].value = value_type::value_t(rew);
             return false;
         }
 
@@ -197,10 +199,8 @@ private:
         ++statistics_.state_expansions;
         auto& e = expansion_stack_.emplace(
             state_id,
-            value_type::value_t(rew),
+            value,
             std::move(remaining_aops));
-
-        state_infos_[state_id].value = this->get_minimal_reward();
 
         setup_next_transition(e);
         return true;

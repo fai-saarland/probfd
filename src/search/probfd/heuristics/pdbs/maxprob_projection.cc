@@ -121,7 +121,6 @@ void MaxProbProjection::compute_value_table(
         &state_id_map,
         &action_id_map,
         &reward,
-        value_utils::IntervalValue(value_type::zero, value_type::one),
         &transition_gen,
         &heuristic,
         true,

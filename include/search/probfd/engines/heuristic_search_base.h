@@ -142,9 +142,7 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
-        engine_interfaces::StateEvaluator<State>* dead_end_eval,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         engine_interfaces::StateEvaluator<State>* value_init,
@@ -156,7 +154,6 @@ public:
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator)
         , report_(report)
         , interval_comparison_(interval_comparison)
@@ -164,8 +161,6 @@ public:
         , value_initializer_(value_init)
         , policy_chooser_(policy_chooser)
         , on_new_state_(new_state_handler)
-        , dead_end_eval_(dead_end_eval)
-        , dead_end_value_(this->get_minimal_reward())
     {
         statistics_.state_info_bytes = sizeof(StateInfo);
         connector->set_lookup_function(this);
@@ -298,7 +293,7 @@ public:
     {
         if (!state_info.is_dead_end()) {
             state_info.set_dead_end();
-            state_info.value = dead_end_value_;
+            state_info.value = IncumbentSolution(state_info.state_reward);
             return true;
         }
 
@@ -328,24 +323,6 @@ public:
         notify_dead_end(state_info);
 
         return true;
-    }
-
-    /**
-     * @brief Checks whether the attached dead-end evaluator recognizes the
-     * state as a dead-end. If yes and the state has not been recognized before,
-     * the state is marked as a dead-end.
-     */
-    bool check_dead_end(const StateID& state_id)
-    {
-        if (dead_end_eval_ != nullptr) {
-            State state = this->lookup_state(state_id);
-            if (dead_end_eval_->operator()(state)) {
-                notify_dead_end(state_id);
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -426,6 +403,11 @@ public:
     }
 
 protected:
+    value_type::value_t get_state_reward(const StateID& id)
+    {
+        return get_state_info(id).state_reward;
+    }
+
     value_type::value_t get_value(const State& s)
     {
         return get_value(this->get_state_id(s));
@@ -662,7 +644,9 @@ private:
         if (!state_info.is_value_initialized()) {
             statistics_.evaluated_states++;
             State state = this->lookup_state(state_id);
-            auto estimate = this->get_state_reward(state);
+            auto estimate = MDPEngine<StateT, ActionT>::get_state_reward(state);
+            auto val = static_cast<value_type::value_t>(estimate);
+            state_info.state_reward = val;
             if (estimate) {
                 state_info.set_goal();
                 state_info.value =
@@ -691,8 +675,6 @@ private:
             }
         }
     }
-
-    IncumbentSolution dead_end_value() const { return dead_end_value_; }
 
     bool compute_value_update(const StateID& state_id)
     {
@@ -753,7 +735,7 @@ private:
             return result;
         }
 
-        new_value = IncumbentSolution(this->get_minimal_reward());
+        new_value = IncumbentSolution(this->get_state_reward(state_id));
         values.reserve(aops.size());
 
         unsigned non_loop_end = 0;
@@ -761,11 +743,7 @@ private:
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
-            const State state = this->lookup_state(state_id);
-
-            IncumbentSolution t_value(
-                this->get_state_reward(state) +
-                this->get_action_reward(state_id, op));
+            IncumbentSolution t_value(this->get_action_reward(state_id, op));
             value_type::value_t self_loop = value_type::zero;
             bool non_loop = false;
 
@@ -959,9 +937,6 @@ private:
     engine_interfaces::StateEvaluator<State>* value_initializer_;
     engine_interfaces::PolicyPicker<Action>* policy_chooser_;
     engine_interfaces::NewStateHandler<State>* on_new_state_;
-    engine_interfaces::StateEvaluator<State>* dead_end_eval_;
-
-    const IncumbentSolution dead_end_value_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
 

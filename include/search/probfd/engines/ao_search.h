@@ -110,9 +110,7 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
-        engine_interfaces::StateEvaluator<State>* dead_end_eval,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         engine_interfaces::StateEvaluator<State>* value_init,
@@ -124,9 +122,7 @@ public:
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator,
-              dead_end_eval,
               policy_chooser,
               new_state_handler,
               value_init,
@@ -315,12 +311,6 @@ private:
 
             solved = info.unsolved == 0;
             dead = solved && info.alive == 0 && !info.is_goal_state();
-
-            if (value_utils::as_lower_bound(info.value) >=
-                this->get_maximal_reward()) {
-                solved = true;
-                dead = false;
-            }
 
             return result;
         }

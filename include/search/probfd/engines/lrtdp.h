@@ -165,9 +165,7 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
-        engine_interfaces::StateEvaluator<State>* dead_end_eval,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         engine_interfaces::StateEvaluator<State>* value_init,
@@ -181,9 +179,7 @@ public:
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator,
-              dead_end_eval,
               policy_chooser,
               new_state_handler,
               value_init,
@@ -301,22 +297,9 @@ private:
 
         // std::cout << " ]" << std::endl;
 
-        this->last_check_and_solve_was_dead_ = true;
         while (!this->current_trial_.empty()) {
             bool solved = this->check_and_solve(this->current_trial_.back());
             this->current_trial_.pop_back();
-
-            if (this->last_check_and_solve_was_dead_ &&
-                !this->current_trial_.empty()) {
-                do {
-                    if (!this->check_dead_end(this->current_trial_.back())) {
-                        break;
-                    }
-
-                    solved = false;
-                    this->current_trial_.pop_back();
-                } while (!this->current_trial_.empty());
-            }
 
             if (!solved) {
                 break;
@@ -339,13 +322,7 @@ private:
         bool mark_solved = true;
         bool epsilon_consistent = true;
         bool all_dead = true;
-
-        // this->last_check_and_solve_was_dead_
-        //    && (!StopConsistent
-        //        || this->has_dead_end_value(this->current_trial_.back()));
-
         bool any_dead = false;
-        this->last_check_and_solve_was_dead_ = false;
 
         {
             auto& init_info = get_lrtdp_state_info(init_state_id);
@@ -444,8 +421,6 @@ private:
 
     bool check_and_solve_original(const StateID& init_state_id)
     {
-        this->last_check_and_solve_was_dead_ = false;
-
         bool rv = true;
 
         get_lrtdp_state_info(init_state_id).mark_open();
@@ -534,8 +509,6 @@ private:
     std::deque<StateID> visited_;
 
     Statistics statistics_;
-
-    bool last_check_and_solve_was_dead_;
 };
 
 } // namespace lrtdp

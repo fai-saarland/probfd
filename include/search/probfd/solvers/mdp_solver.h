@@ -52,7 +52,6 @@ public:
             &state_id_map_,
             &action_id_map_,
             reward_function_,
-            reward_bound_,
             &transition_generator_,
             std::forward<Args>(args)...);
     }
@@ -109,21 +108,6 @@ protected:
         return &transition_generator_;
     }
 
-    value_type::value_t get_minimal_reward() const
-    {
-        return reward_bound_.lower;
-    }
-
-    value_type::value_t get_maximal_reward() const
-    {
-        return reward_bound_.upper;
-    }
-
-    value_utils::IntervalValue get_reward_bound() const
-    {
-        return reward_bound_;
-    }
-
     StateRegistry* get_state_registry() { return &state_registry_; }
 
     ProgressReport progress_;
@@ -136,7 +120,6 @@ private:
     engine_interfaces::RewardFunction<
         GlobalState,
         const ProbabilisticOperator*>* reward_function_;
-    const value_utils::IntervalValue reward_bound_;
     engine_interfaces::TransitionGenerator<const ProbabilisticOperator*>
         transition_generator_;
 };

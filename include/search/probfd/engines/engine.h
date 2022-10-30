@@ -76,12 +76,10 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
         , reward_function_(reward_function)
-        , reward_bound_(reward_bound)
         , transition_generator_(transition_generator)
     {
     }
@@ -137,22 +135,6 @@ public:
     get_action_reward(const StateID& sid, const Action& a) const
     {
         return reward_function_->operator()(sid, a);
-    }
-
-    /**
-     * @brief Get the lower bound on reward values.
-     */
-    value_type::value_t get_minimal_reward() const
-    {
-        return reward_bound_.lower;
-    }
-
-    /**
-     * @brief Get the upper bound on reward values.
-     */
-    value_type::value_t get_maximal_reward() const
-    {
-        return reward_bound_.upper;
     }
 
     /**
@@ -231,7 +213,6 @@ private:
     engine_interfaces::StateIDMap<State>* state_id_map_;
     engine_interfaces::ActionIDMap<Action>* action_id_map_;
     engine_interfaces::RewardFunction<State, Action>* reward_function_;
-    const value_utils::IntervalValue reward_bound_;
     engine_interfaces::TransitionGenerator<Action>* transition_generator_;
 };
 

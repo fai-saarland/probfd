@@ -1,7 +1,10 @@
 #include "probfd/solvers/mdp_solver.h"
 
+#include "probfd/analysis_objectives/analysis_objective.h"
+
 #include "probfd/engines/exhaustive_dfs.h"
 
+#include "probfd/globals.h"
 #include "probfd/heuristic_search_interfaceable.h"
 #include "probfd/new_state_handler.h"
 #include "probfd/progress_report.h"
@@ -30,15 +33,11 @@ public:
 
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
+        , reward_bound_(g_analysis_objective->reward_bound())
         , new_state_handler_(new NewGlobalStateHandlerList(
               opts.get_list<std::shared_ptr<NewGlobalStateHandler>>(
                   "on_new_state")))
         , heuristic_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
-        , dead_end_eval_(
-              opts.contains("dead_end_eval")
-                  ? opts.get<std::shared_ptr<GlobalStateEvaluator>>(
-                        "dead_end_eval")
-                  : nullptr)
         , successor_sort_(
               opts.contains("order")
                   ? opts.get<
@@ -77,10 +76,6 @@ public:
             "[]");
         parser.add_option<bool>("interval_comparison", "", "false");
         parser.add_option<bool>("dual_bounds", "", "false");
-        parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
-            "dead_end_eval",
-            "",
-            options::OptionParser::NONE);
         parser
             .add_option<std::shared_ptr<ProbabilisticOperatorSuccessorSorting>>(
                 "order",
@@ -112,8 +107,8 @@ public:
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
                 &connector_,
+                reward_bound_,
                 heuristic_.get(),
-                dead_end_eval_.get(),
                 reevaluate_,
                 notify_s0_,
                 successor_sort_.get(),
@@ -124,8 +119,8 @@ public:
         } else {
             return this->template engine_factory<Engine>(
                 &connector_,
+                reward_bound_,
                 heuristic_.get(),
-                dead_end_eval_.get(),
                 reevaluate_,
                 notify_s0_,
                 successor_sort_.get(),
@@ -139,9 +134,10 @@ public:
 private:
     HeuristicSearchConnector connector_;
 
+    const value_utils::IntervalValue reward_bound_;
+
     std::shared_ptr<NewGlobalStateHandlerList> new_state_handler_;
     std::shared_ptr<GlobalStateEvaluator> heuristic_;
-    std::shared_ptr<GlobalStateEvaluator> dead_end_eval_;
     std::shared_ptr<ProbabilisticOperatorSuccessorSorting> successor_sort_;
 
     const bool dual_bounds_;

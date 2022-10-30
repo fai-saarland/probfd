@@ -13,7 +13,11 @@ class SSPReward : public GlobalRewardFunction {
 protected:
     EvaluationResult evaluate(const GlobalState& state) override
     {
-        return {::test_goal(state), value_type::zero};
+        if (::test_goal(state)) {
+            return EvaluationResult(true, value_type::zero);
+        } else {
+            return EvaluationResult(false, -value_type::inf);
+        }
     }
 
     value_type::value_t
