@@ -112,7 +112,6 @@ public:
               transition_generator)
         , report_(report)
         , value_initializer_(value_initializer)
-        , dead_end_value_(this->get_minimal_reward())
         , lp_solver_(solver_type)
     {
     }
@@ -166,16 +165,17 @@ public:
             for (const StateID state_id : frontier) {
                 const State state = this->lookup_state(state_id);
                 auto rew = this->get_state_reward(state);
+                const auto t_rew = static_cast<value_type::value_t>(rew);
+
                 const unsigned var_id = state_infos_[state_id].idx;
                 assert(state_infos_[state_id].status == PerStateInfo::CLOSED);
 
+                lp_solver_.set_variable_lower_bound(var_id, t_rew);
+
                 if (rew) {
-                    const auto value = static_cast<value_type::value_t>(rew);
-                    lp_solver_.set_variable_lower_bound(var_id, value);
                     continue;
                 }
 
-                lp_solver_.set_variable_lower_bound(var_id, dead_end_value_);
                 this->generate_all_successors(state_id, aops, transitions);
 
                 for (unsigned j = 0; j < transitions.size(); ++j) {
@@ -300,7 +300,6 @@ public:
 private:
     ProgressReport* report_;
     engine_interfaces::StateEvaluator<State>* value_initializer_;
-    const value_type::value_t dead_end_value_;
 
     lp::LPSolver lp_solver_;
     storage::PerStateStorage<PerStateInfo> state_infos_;
