@@ -75,15 +75,13 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
         uint8_t status = NEW;
         unsigned stack_id = 0;
-        unsigned lowlink = 0;
-
-        void update_lowlink(unsigned upd) { lowlink = std::min(lowlink, upd); }
     };
 
     struct ExplorationInfo {
         // Immutable info
         StateID state_id;  // State this information belongs to
         unsigned stackidx; // Index on the stack of the associated state
+        unsigned lowlink;
 
         // Mutable info
         std::vector<Action> aops;         // Remaining unexpanded operators
@@ -98,11 +96,14 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
             Distribution<StateID> transition)
             : state_id(state_id)
             , stackidx(stackidx)
+            , lowlink(stackidx)
             , aops(std::move(aops))
             , transition(std::move(transition))
             , successor(this->transition.begin())
         {
         }
+
+        void update_lowlink(unsigned upd) { lowlink = std::min(lowlink, upd); }
 
         /**
          * Advances to the next non-loop action. Returns nullptr if such an
@@ -290,31 +291,28 @@ public:
         ExplorationInfo* explore = &exploration_stack_.back();
         StateID state_id = explore->state_id;
         StackInfo* stack_info = &stack_[explore->stackidx];
-        StateInfo* state_info = &state_information_[state_id];
 
         for (;;) {
             while (successor_loop(
                 *explore,
                 *stack_info,
-                *state_info,
                 state_id,
                 value_store)) {
                 explore = &exploration_stack_.back();
                 state_id = explore->state_id;
                 stack_info = &stack_[explore->stackidx];
-                state_info = &state_information_[state_id];
             }
 
             for (;;) {
                 // Check if an SCC was found.
-                const unsigned stack_id = state_info->stack_id;
-                const unsigned lowlink = state_info->lowlink;
+                const unsigned stack_id = explore->stackidx;
+                const unsigned lowlink = explore->lowlink;
                 const bool onstack = stack_id != lowlink;
 
                 if (!onstack) {
                     const auto begin = stack_.begin() + stack_id;
                     const auto end = stack_.end();
-                    scc_found(*state_info, begin, end);
+                    scc_found(begin, end);
                 }
 
                 exploration_stack_.pop_back();
@@ -323,19 +321,16 @@ public:
                     goto break_exploration;
                 }
 
-                StateInfo* bt_state_info = state_info;
-
                 explore = &exploration_stack_.back();
                 state_id = explore->state_id;
                 stack_info = &stack_[explore->stackidx];
-                state_info = &state_information_[state_id];
 
                 const auto [succ_id, prob] = explore->get_current_successor();
                 IncumbentSolution& s_value = value_store[succ_id];
                 QValueInfo& tinfo = stack_info->nconv_qs.back();
 
                 if (onstack) {
-                    state_info->update_lowlink(bt_state_info->lowlink);
+                    explore->update_lowlink(lowlink);
                     tinfo.nconv_successors.emplace_back(&s_value, prob);
                 } else {
                     tinfo.conv_part += prob * s_value;
@@ -446,7 +441,7 @@ private:
 
                 std::size_t stack_size = stack_.size();
 
-                state_info.stack_id = state_info.lowlink = stack_size;
+                state_info.stack_id = stack_size;
 
                 // Found non self loop action, push and return success.
                 auto& s_info = stack_.emplace_back(
@@ -490,7 +485,6 @@ private:
     bool successor_loop(
         ExplorationInfo& explore,
         StackInfo& stack_info,
-        StateInfo& state_info,
         const StateID& state_id,
         ValueStore& value_store)
     {
@@ -512,7 +506,7 @@ private:
                 int status = succ_info.status;
 
                 if (status == StateInfo::ONSTACK) {
-                    state_info.update_lowlink(succ_info.stack_id);
+                    explore.update_lowlink(succ_info.stack_id);
                     tinfo.nconv_successors.emplace_back(&s_value, prob);
                 } else if (
                     status == StateInfo::NEW &&
@@ -544,7 +538,7 @@ private:
      * Handle the new SCC and perform value iteration on it.
      */
     void
-    scc_found(StateInfo& state_info, StackIterator begin, StackIterator end)
+    scc_found(StackIterator begin, StackIterator end)
     {
         assert(begin != end);
 
@@ -554,9 +548,10 @@ private:
             // For singleton SCCs, we only have transitions which are
             // self-loops or go to a state that is topologically greater.
             // The state value is therefore the base value.
-            assert(state_info.status == StateInfo::ONSTACK);
             ++statistics_.singleton_sccs;
+            StateInfo& state_info = state_information_[begin->state_id];
             value_utils::update(*begin->value, begin->conv_part);
+            assert(state_info.status == StateInfo::ONSTACK);
             state_info.status = StateInfo::CLOSED;
         } else {
             // Mark all states as closed
