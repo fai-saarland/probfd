@@ -28,7 +28,6 @@ struct Statistics {
     unsigned long long expanded_states = 0;
     unsigned long long terminal_states = 0;
     unsigned long long goal_states = 0;
-    unsigned long long dead_ends = 0;
     unsigned long long sccs = 0;
     unsigned long long singleton_sccs = 0;
     unsigned long long bellman_backups = 0;
@@ -39,7 +38,6 @@ struct Statistics {
         out << "  Expanded state(s): " << expanded_states << std::endl;
         out << "  Terminal state(s): " << terminal_states << std::endl;
         out << "  Goal state(s): " << goal_states << std::endl;
-        out << "  Dead end state(s): " << dead_ends << std::endl;
         out << "  Pruned state(s): " << pruned << std::endl;
         out << "  Maximal SCCs: " << sccs << " (" << singleton_sccs
             << " are singleton)" << std::endl;
@@ -74,22 +72,12 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
     struct StateInfo {
         // Status Flags
         enum { NEW, OPEN, ONSTACK, CLOSED };
-        
-        uint8_t status : 7;
-        uint8_t dead : 1; // Dead-end flag
 
-        // Tarjan's info
+        uint8_t status = NEW;
         unsigned stack_id = 0;
         unsigned lowlink = 0;
 
-        StateInfo()
-            : status(NEW)
-            , dead(true)
-        {
-        }
-
         void update_lowlink(unsigned upd) { lowlink = std::min(lowlink, upd); }
-        void update_dead(unsigned d) { dead = dead && d; }
     };
 
     struct ExplorationInfo {
@@ -287,22 +275,15 @@ public:
      *
      * Computes the full optimal value function for the entire state space
      * reachable from \p initial_state. Stores the state values in the
-     * output parameter \p value_store and optionally notifies the caller
-     * of encountered dead ends via the output iterator \p dead_end_out.
-     * Returns the value of the initial state.
+     * output parameter \p value_store. Returns the value of the initial state.
      */
-    template <
-        typename ValueStore,
-        typename DeadendOutputIt = utils::discarding_output_iterator>
-    value_type::value_t solve(
-        StateID init_state_id,
-        ValueStore& value_store,
-        DeadendOutputIt dead_end_out = DeadendOutputIt{})
+    template <typename ValueStore>
+    value_type::value_t solve(StateID init_state_id, ValueStore& value_store)
     {
         StateInfo& iinfo = state_information_[init_state_id];
         IncumbentSolution& init_value = value_store[init_state_id];
 
-        if (!push_state(init_state_id, iinfo, init_value, dead_end_out)) {
+        if (!push_state(init_state_id, iinfo, init_value)) {
             return value_utils::as_upper_bound(init_value);
         }
 
@@ -317,8 +298,7 @@ public:
                 *stack_info,
                 *state_info,
                 state_id,
-                value_store,
-                dead_end_out)) {
+                value_store)) {
                 explore = &exploration_stack_.back();
                 state_id = explore->state_id;
                 stack_info = &stack_[explore->stackidx];
@@ -334,7 +314,7 @@ public:
                 if (!onstack) {
                     const auto begin = stack_.begin() + stack_id;
                     const auto end = stack_.end();
-                    scc_found(*state_info, begin, end, dead_end_out);
+                    scc_found(*state_info, begin, end);
                 }
 
                 exploration_stack_.pop_back();
@@ -360,8 +340,6 @@ public:
                 } else {
                     tinfo.conv_part += prob * s_value;
                 }
-
-                state_info->update_dead(bt_state_info->dead);
 
                 if (explore->next_successor()) {
                     break;
@@ -395,12 +373,10 @@ private:
      * onto the queue unless it is terminal modulo self-loops. Returns
      * true if the state was pushed.
      */
-    template <typename DeadendOutputIt>
     bool push_state(
         StateID state_id,
         StateInfo& state_info,
-        IncumbentSolution& state_value,
-        DeadendOutputIt dead_end_out)
+        IncumbentSolution& state_value)
     {
         assert(state_info.status == StateInfo::NEW);
 
@@ -413,7 +389,6 @@ private:
         const auto estimate = static_cast<value_type::value_t>(h_eval);
 
         if (state_eval) {
-            state_info.dead = false;
             ++statistics_.goal_states;
 
             if (!expand_goals_) {
@@ -443,9 +418,6 @@ private:
 
         if (aops.empty()) {
             ++statistics_.terminal_states;
-            ++statistics_.dead_ends;
-
-            *dead_end_out = state_id;
 
             state_value = IncumbentSolution(t_reward);
             state_info.status = StateInfo::CLOSED;
@@ -500,11 +472,6 @@ private:
         } while (!aops.empty());
         /*****************************************************************/
 
-        if (state_info.dead) {
-            ++statistics_.dead_ends;
-            *dead_end_out = state_id;
-        }
-
         state_value = IncumbentSolution(t_reward);
         state_info.status = StateInfo::CLOSED;
 
@@ -519,14 +486,13 @@ private:
      * Initializes the data structures of all newly encountered successor
      * states, and updates the data structures of the source state.
      */
-    template <typename ValueStore, typename DeadendOutputIt>
+    template <typename ValueStore>
     bool successor_loop(
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateInfo& state_info,
         const StateID& state_id,
-        ValueStore& value_store,
-        DeadendOutputIt dead_end_out)
+        ValueStore& value_store)
     {
         for (;;) {
             assert(!stack_info.nconv_qs.empty());
@@ -550,11 +516,10 @@ private:
                     tinfo.nconv_successors.emplace_back(&s_value, prob);
                 } else if (
                     status == StateInfo::NEW &&
-                    push_state(succ_id, succ_info, s_value, dead_end_out)) {
+                    push_state(succ_id, succ_info, s_value)) {
                     return true; // recursion on new state
                 } else {
                     tinfo.conv_part += prob * s_value;
-                    state_info.update_dead(succ_info.dead);
                 }
             } while (explore.next_successor());
 
@@ -573,48 +538,24 @@ private:
         }
     }
 
+    using StackIterator = typename std::vector<StackInfo>::iterator;
+
     /**
      * Handle the new SCC and perform value iteration on it.
      */
-    template <typename StackIterator, typename DeadendOutputIt>
-    void scc_found(
-        StateInfo& state_info,
-        StackIterator begin,
-        StackIterator end,
-        DeadendOutputIt dead_end_out)
+    void
+    scc_found(StateInfo& state_info, StackIterator begin, StackIterator end)
     {
         assert(begin != end);
 
         ++statistics_.sccs;
 
-        const auto scc_size = end - begin;
-
-        if (scc_size == 1) {
-            ++statistics_.singleton_sccs;
-        }
-
-        if (state_info.dead) {
-            // If the SCC consists of dead ends, report them and set their
-            // state values accordingly
-            auto it = begin;
-            do {
-                StackInfo& stack_it = *it;
-                StateInfo& state_it = state_information_[stack_it.state_id];
-
-                assert(state_it.dead && state_it.status == StateInfo::ONSTACK);
-
-                *stack_it.value = IncumbentSolution(stack_it.state_reward);
-                *dead_end_out = stack_it.state_id;
-
-                state_it.status = StateInfo::CLOSED;
-            } while (++it != end);
-
-            statistics_.dead_ends += scc_size;
-        } else if (scc_size == 1) {
+        if (std::distance(begin, end) == 1) {
             // For singleton SCCs, we only have transitions which are
             // self-loops or go to a state that is topologically greater.
             // The state value is therefore the base value.
             assert(state_info.status == StateInfo::ONSTACK);
+            ++statistics_.singleton_sccs;
             value_utils::update(*begin->value, begin->conv_part);
             state_info.status = StateInfo::CLOSED;
         } else {
@@ -627,8 +568,6 @@ private:
 
                     assert(state_it.status == StateInfo::ONSTACK);
                     assert(!stack_it.nconv_qs.empty());
-
-                    state_it.dead = false;
 
                     state_it.status = StateInfo::CLOSED;
                 } while (++it != end);
