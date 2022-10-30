@@ -200,6 +200,9 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // Reference to the state value of the state.
         IncumbentSolution* value;
 
+        // The state reward
+        IncumbentSolution state_reward;
+
         // Precomputed part of the max of the value update.
         // Maximum over all Q values which have already converged due to
         // topological ordering.
@@ -211,11 +214,12 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         StackInfo(
             const StateID& state_id,
             IncumbentSolution& value_ref,
-            IncumbentSolution conv_part,
+            value_type::value_t state_reward,
             unsigned num_aops)
             : state_id(state_id)
             , value(&value_ref)
-            , conv_part(conv_part)
+            , state_reward(state_reward)
+            , conv_part(state_reward)
         {
             nconv_qs.reserve(num_aops);
         }
@@ -255,7 +259,6 @@ public:
               transition_generator)
         , value_initializer_(value_initializer)
         , expand_goals_(expand_goals)
-        , dead_end_value_(this->get_minimal_reward())
     {
     }
 
@@ -405,10 +408,10 @@ private:
 
         State state = this->lookup_state(state_id);
         EvaluationResult state_eval = this->get_state_reward(state);
+        const auto state_reward = static_cast<value_type::value_t>(state_eval);
 
         if (state_eval) {
-            state_value =
-                IncumbentSolution(static_cast<value_type::value_t>(state_eval));
+            state_value = IncumbentSolution(state_reward);
             state_info.dead = false;
             ++statistics_.goal_states;
 
@@ -464,10 +467,7 @@ private:
                     auto& s_info = stack_.emplace_back(
                         state_id,
                         state_value,
-                        state_eval
-                            ? IncumbentSolution(
-                                  static_cast<value_type::value_t>(state_eval))
-                            : dead_end_value_,
+                        state_reward,
                         aops.size());
 
                     s_info.nconv_qs.emplace_back(
@@ -490,7 +490,7 @@ private:
 
     fail:
         if (state_info.dead) {
-            state_value = dead_end_value_;
+            state_value = IncumbentSolution(state_reward);
             ++statistics_.dead_ends;
             *dead_end_out = state_id;
         }
@@ -592,7 +592,7 @@ private:
 
                 assert(state_it.dead && state_it.status == StateInfo::ONSTACK);
 
-                *stack_it.value = dead_end_value_;
+                *stack_it.value = IncumbentSolution(stack_it.state_reward);
                 *dead_end_out = stack_it.state_id;
 
                 state_it.status = StateInfo::CLOSED;
@@ -642,7 +642,6 @@ private:
 
     const engine_interfaces::StateEvaluator<State>* value_initializer_;
     const bool expand_goals_;
-    const IncumbentSolution dead_end_value_;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::deque<ExplorationInfo> exploration_stack_;

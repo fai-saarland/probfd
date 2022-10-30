@@ -252,7 +252,7 @@ void ExpCostProjection::compute_value_table(
     NormalCostAbstractRewardFunction reward(
         &goal_states_,
         value_type::zero,
-        value_type::zero);
+        -value_type::inf);
 
     StateIDMap<AbstractState> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
