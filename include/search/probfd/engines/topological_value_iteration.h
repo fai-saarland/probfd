@@ -73,8 +73,8 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // Status Flags
         enum { NEW, OPEN, ONSTACK, CLOSED };
 
-        uint8_t status = NEW;
         unsigned stack_id = 0;
+        uint8_t status = NEW;
     };
 
     struct ExplorationInfo {
