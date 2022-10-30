@@ -219,27 +219,33 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 
 void ExpCostProjection::dump_graphviz(
     const std::string& path,
-    bool transition_labels,
-    bool values) const
+    bool transition_labels) const
 {
-    AbstractStateToString state_str(state_mapper_);
-
-    auto s2str = [&, this](const StateID& id, const AbstractState& x) {
+    auto s2str = [this](const StateID& id, const AbstractState& x) {
         std::ostringstream out;
-        out << state_str(id, x);
+        out.precision(3);
+        out << id.id;
 
-        if (values) {
-            out << " (" << value_table[x.id] << ")";
+        const auto v = value_table[x.id];
+        if (v == -value_type::inf) {
+            out << "\\nh = -&infin;";
+        } else {
+            out << "\\nh = " << v;
         }
 
         return out.str();
     };
 
+    NormalCostAbstractRewardFunction reward(
+        &goal_states_,
+        value_type::zero,
+        -value_type::inf);
+
     ProbabilisticProjection::dump_graphviz(
         path,
         s2str,
-        transition_labels,
-        value_type::zero);
+        reward,
+        transition_labels);
 }
 
 void ExpCostProjection::compute_value_table(

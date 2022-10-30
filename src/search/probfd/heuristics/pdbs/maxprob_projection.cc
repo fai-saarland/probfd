@@ -296,36 +296,32 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
 void MaxProbProjection::dump_graphviz(
     const std::string& path,
-    bool transition_labels,
-    bool values)
+    bool transition_labels)
 {
-    AbstractStateToString state_str(state_mapper_);
-
-    auto s2str = [&, this](const StateID& id, const AbstractState& x) {
+    auto s2str = [this](const StateID& id, const AbstractState& x) {
         std::ostringstream out;
-        out << state_str(id, x);
+        out.precision(3);
+        out << id.id;
 
-        if (values) {
-            out << " (";
             if (utils::contains(dead_ends_, StateID(x.id))) {
-                out << "dead";
-            } else if (utils::contains(goal_states_, x)) {
-                out << "goal";
+            out << "\\nh = 0 (dead)";
             } else {
-                auto bounds = value_table[x.id];
-                out << "[" << bounds.lower << ", " << bounds.upper << "]";
-            }
-            out << ")";
+            out << "\\nh = " << value_table[x.id];
         }
 
         return out.str();
     };
 
+    ZeroCostAbstractRewardFunction reward(
+        &goal_states_,
+        value_type::one,
+        value_type::zero);
+
     ProbabilisticProjection::dump_graphviz(
         path,
         s2str,
-        transition_labels,
-        value_type::one);
+        reward,
+        transition_labels);
 }
 
 #if !defined(NDEBUG) && defined(USE_LP)

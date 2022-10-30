@@ -52,10 +52,8 @@ public:
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard = false) const;
 
-    void dump_graphviz(
-        const std::string& path,
-        bool transition_labels = true,
-        bool values = true) const;
+    void
+    dump_graphviz(const std::string& path, bool transition_labels = true) const;
 
 private:
     void compute_value_table(const AbstractStateEvaluator& heuristic);
