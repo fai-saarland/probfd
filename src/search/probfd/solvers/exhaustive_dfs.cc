@@ -1,7 +1,10 @@
 #include "probfd/solvers/mdp_solver.h"
 
+#include "probfd/analysis_objectives/analysis_objective.h"
+
 #include "probfd/engines/exhaustive_dfs.h"
 
+#include "probfd/globals.h"
 #include "probfd/heuristic_search_interfaceable.h"
 #include "probfd/new_state_handler.h"
 #include "probfd/progress_report.h"
@@ -30,6 +33,7 @@ public:
 
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
+        , reward_bound_(g_analysis_objective->reward_bound())
         , new_state_handler_(new NewGlobalStateHandlerList(
               opts.get_list<std::shared_ptr<NewGlobalStateHandler>>(
                   "on_new_state")))
@@ -103,6 +107,7 @@ public:
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
                 &connector_,
+                reward_bound_,
                 heuristic_.get(),
                 reevaluate_,
                 notify_s0_,
@@ -114,6 +119,7 @@ public:
         } else {
             return this->template engine_factory<Engine>(
                 &connector_,
+                reward_bound_,
                 heuristic_.get(),
                 reevaluate_,
                 notify_s0_,
@@ -127,6 +133,8 @@ public:
 
 private:
     HeuristicSearchConnector connector_;
+
+    const value_utils::IntervalValue reward_bound_;
 
     std::shared_ptr<NewGlobalStateHandlerList> new_state_handler_;
     std::shared_ptr<GlobalStateEvaluator> heuristic_;

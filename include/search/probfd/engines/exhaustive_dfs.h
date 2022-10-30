@@ -172,9 +172,9 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::HeuristicSearchConnector* connector,
+        value_utils::IntervalValue reward_bound,
         engine_interfaces::StateEvaluator<State>* evaluator,
         bool reevaluate,
         bool notify_initial,
@@ -187,10 +187,10 @@ public:
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator)
         , statistics_()
         , report_(progress)
+        , reward_bound_(reward_bound)
         , trivial_bound_(get_trivial_bound())
         , evaluator_(evaluator)
         , new_state_handler_(new_state_handler)
@@ -269,11 +269,9 @@ private:
     IncumbentSolution get_trivial_bound() const
     {
         if constexpr (DualBounds::value) {
-            return IncumbentSolution(
-                this->get_minimal_reward(),
-                this->get_maximal_reward());
+            return reward_bound_;
         } else {
-            return IncumbentSolution(this->get_minimal_reward());
+            return reward_bound_.lower;
         }
     }
 
@@ -991,13 +989,14 @@ private:
             return node.value.lower >= node.value.upper;
         } else {
             return value_utils::as_lower_bound(node.value) >=
-                   this->get_maximal_reward();
+                   reward_bound_.upper;
         }
     }
 
     Statistics statistics_;
 
     ProgressReport* report_;
+    const value_utils::IntervalValue reward_bound_;
     const IncumbentSolution trivial_bound_;
 
     engine_interfaces::StateEvaluator<State>* evaluator_;

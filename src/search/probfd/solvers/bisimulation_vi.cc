@@ -101,7 +101,6 @@ public:
                     &state_id_map,
                     &action_id_map,
                     &reward,
-                    g_analysis_objective->reward_bound(),
                     &tgen,
                     nullptr,
                     false,
@@ -113,7 +112,6 @@ public:
                     &state_id_map,
                     &action_id_map,
                     &reward,
-                    g_analysis_objective->reward_bound(),
                     &tgen,
                     &initializer,
                     false);

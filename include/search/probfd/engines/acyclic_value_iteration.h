@@ -92,14 +92,12 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::StateEvaluator<State>* prune = nullptr)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator)
         , prune_(prune)
     {

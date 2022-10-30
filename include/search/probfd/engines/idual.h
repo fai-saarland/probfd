@@ -99,7 +99,6 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         lp::LPSolverType solver_type,
         engine_interfaces::StateEvaluator<State>* value_initializer,
@@ -108,7 +107,6 @@ public:
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator)
         , report_(report)
         , value_initializer_(value_initializer)

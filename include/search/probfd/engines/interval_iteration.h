@@ -69,7 +69,6 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         const engine_interfaces::StateEvaluator<State>* prune,
         bool extract_probability_one_states,
@@ -78,7 +77,6 @@ public:
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator)
         , prune_(prune)
         , extract_probability_one_states_(extract_probability_one_states)
@@ -205,7 +203,6 @@ private:
             this->get_state_id_map(),
             &q_action_id_map,
             &q_reward,
-            value_utils::IntervalValue(value_type::zero, value_type::one),
             &q_transition_gen,
             prune_,
             expand_goals_);

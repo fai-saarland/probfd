@@ -100,7 +100,6 @@ public:
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
-        value_utils::IntervalValue reward_bound,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         QuotientSystem* quotient,
         ProgressReport* report,
@@ -109,7 +108,6 @@ public:
               state_id_map,
               action_id_map,
               reward_function,
-              reward_bound,
               transition_generator)
         , greedy_graph_(engine)
         , report_(report)

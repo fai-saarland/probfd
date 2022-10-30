@@ -216,7 +216,6 @@ public:
                 q_action_id_map_.get(),
                 this->get_state_reward_function(),
                 q_reward_.get(),
-                this->get_reward_bound(),
                 q_transition_gen_.get());
         } else {
             return new HS<GlobalState, QAction, std::false_type>(
@@ -233,7 +232,6 @@ public:
                 q_action_id_map_.get(),
                 this->get_state_reward_function(),
                 q_reward_.get(),
-                this->get_reward_bound(),
                 q_transition_gen_.get());
         }
     }
@@ -285,7 +283,6 @@ private:
             this->get_state_id_map(),
             q_action_id_map_.get(),
             q_reward_.get(),
-            this->get_reward_bound(),
             q_transition_gen_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
@@ -319,7 +316,6 @@ private:
             this->get_state_id_map(),
             this->get_action_id_map(),
             this->get_reward_function(),
-            this->get_reward_bound(),
             this->get_transition_generator(),
             quotient_.get(),
             &progress_,
