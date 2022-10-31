@@ -171,7 +171,7 @@ public:
     }
 
 protected:
-    virtual void setup_custom_reports(const State&)
+    virtual void setup_custom_reports(const State&) override
     {
         statistics_.register_report(this->report_);
     }
@@ -554,6 +554,7 @@ private:
 
         statistics_.trap_timer.resume();
         quotient_->build_quotient(scc_begin, stack_.end(), state);
+        this->get_state_info(state).set_policy(ActionID::undefined);
         stack_.erase(scc_begin, stack_.end());
         repush_trap(state, flags);
         statistics_.trap_timer.stop();

@@ -370,6 +370,7 @@ private:
                                 stack_.begin(),
                                 scc_end,
                                 minstate);
+                            this->get_state_info(minstate).set_policy(ActionID::undefined);
                             ++this->statistics_.traps;
                             ++this->statistics_.check_and_solve_bellman_backups;
                             stack_.erase(stack_.begin(), scc_end);
