@@ -462,6 +462,8 @@ private:
                 auto sid = stk_it->stateid;
                 StateInfo& sinfo = state_infos_[sid];
 
+                sinfo.dead = false;
+
                 if (sinfo.one || stk_it->scc_transitions) {
                     if (!sinfo.expandable_goal) {
                         sinfo.one = true;
