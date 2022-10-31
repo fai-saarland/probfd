@@ -161,6 +161,7 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_all_successors(
         }
         ++(gen_->statistics_.all_transitions_generator_calls);
         gen_->statistics_.generated_operators += aops.size();
+        return;
     }
 
     fallback_->generate_all_successors(sid, aops, successors);
@@ -320,7 +321,7 @@ QuotientSystem<const ProbabilisticOperator*>::lookup(const StateID& sid)
     }
 #ifndef NDEBUG
     {
-        std::cout << "looked up " << sid << std::endl;
+        // std::cout << "looked up " << sid << std::endl;
         verify_cache_consistency();
     }
 #endif
