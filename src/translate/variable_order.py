@@ -1,10 +1,11 @@
-
+import heapq
 from collections import defaultdict, deque
 from itertools import chain
-import heapq
 
 import sccs
+
 DEBUG = False
+
 
 class CausalGraph:
     """Weighted causal graph used for defining a variable order.
@@ -29,11 +30,11 @@ class CausalGraph:
         self.predecessor_graph = defaultdict(set)
         self.ordering = []
 
-        self.weight_graph_from_ops(sas_task.operators)
-        self.weight_graph_from_axioms(sas_task.axioms)
+        self.weight_graph_from_ops(sas_task.get_outcomes())
+        self.weight_graph_from_axioms(sas_task.get_axioms())
 
-        self.num_variables = len(sas_task.variables.ranges)
-        self.goal_map = dict(sas_task.goal.pairs)
+        self.num_variables = len(sas_task.get_variable_domains())
+        self.goal_map = dict(sas_task.get_goal())
 
     def get_ordering(self):
         if not self.ordering:
@@ -69,7 +70,7 @@ class CausalGraph:
 
     def get_strongly_connected_components(self):
         unweighted_graph = [[] for _ in range(self.num_variables)]
-        assert(len(self.weighted_graph) <= self.num_variables)
+        assert len(self.weighted_graph) <= self.num_variables
         for source, target_weights in self.weighted_graph.items():
             unweighted_graph[source] = sorted(target_weights.keys())
         return sccs.get_sccs_adjacency_list(unweighted_graph)
@@ -99,7 +100,7 @@ class CausalGraph:
         # Note for future refactoring: it is perhaps more idiomatic
         # and efficient to use a set rather than a defaultdict(bool).
         necessary = defaultdict(bool)
-        for var, _ in goal.pairs:
+        for var, _ in goal:
             if not necessary[var]:
                 necessary[var] = True
                 self.dfs(var, necessary)
@@ -150,12 +151,15 @@ class MaxDAG:
             min_key = weights[0]
             min_elem = None
             entries = weight_to_nodes[min_key]
-            while entries and (min_elem is None or min_elem in done or
-                               min_key > incoming_weights[min_elem]):
+            while entries and (
+                min_elem is None
+                or min_elem in done
+                or min_key > incoming_weights[min_elem]
+            ):
                 min_elem = entries.popleft()
             if not entries:
                 del weight_to_nodes[min_key]
-                heapq.heappop(weights) # remove min_key from heap
+                heapq.heappop(weights)  # remove min_key from heap
             if min_elem is None or min_elem in done:
                 # since we use lazy deletion from the heap weights,
                 # there can be weights with a "done" entry in
@@ -180,8 +184,12 @@ class MaxDAG:
 
 
 class VariableOrder:
+    FALSE = object()
+    TRUE = object()
+
     """Apply a given variable order to a SAS task."""
-    def __init__(self, ordering):
+
+    def __init__(self, ordering, domains):
         """Ordering is a list of variable numbers in the desired order.
 
         If a variable does not occur in the ordering, it is removed
@@ -189,88 +197,21 @@ class VariableOrder:
         """
         self.ordering = ordering
         self.new_var = {v: i for i, v in enumerate(ordering)}
+        self.domains = [domains[v] for v in self.ordering]
 
-    def apply_to_task(self, sas_task, filter_unimportant_ops=True):
-        self._apply_to_variables(sas_task.variables)
-        self._apply_to_init(sas_task.init)
-        self._apply_to_goal(sas_task.goal)
-        self._apply_to_mutexes(sas_task.mutexes)
-        self._apply_to_operators(sas_task.operators, filter_unimportant_ops)
-        self._apply_to_axioms(sas_task.axioms)
-        if DEBUG:
-            sas_task.validate()
+    def get_new_variable_domains(self):
+        return self.domains
 
-    def _apply_to_variables(self, variables):
-        ranges = []
-        layers = []
-        names = []
-        for index, var in enumerate(self.ordering):
-            ranges.append(variables.ranges[var])
-            layers.append(variables.axiom_layers[var])
-            names.append(variables.value_names[var])
-        variables.ranges = ranges
-        variables.axiom_layers = layers
-        variables.value_names = names
+    def translate_variable(self, old_var: int):
+        return self.new_var[old_var]
 
-    def _apply_to_init(self, init):
-        init.values = [init.values[var] for var in self.ordering]
-
-    def _apply_to_goal(self, goal):
-        goal.pairs = sorted((self.new_var[var], val)
-                            for var, val in goal.pairs
-                            if var in self.new_var)
-
-    def _apply_to_mutexes(self, mutexes):
-        new_mutexes = []
-        for group in mutexes:
-            facts = [(self.new_var[var], val) for var, val in group.facts
-                     if var in self.new_var]
-            if facts and len({var for var, _ in facts}) > 1:
-                group.facts = facts
-                new_mutexes.append(group)
-        print("%s of %s mutex groups necessary." % (len(new_mutexes),
-                                                    len(mutexes)))
-        mutexes[:] = new_mutexes
-
-    def _apply_to_operators(self, operators, filter_unimportant_ops=True):
-        new_ops = []
-        for op in operators:
-            pre_post = []
-            for eff_var, pre, post, cond in op.pre_post:
-                if eff_var in self.new_var:
-                    new_cond = list((self.new_var[var], val)
-                                    for var, val in cond
-                                    if var in self.new_var)
-                    pre_post.append(
-                        (self.new_var[eff_var], pre, post, new_cond))
-            if not filter_unimportant_ops or pre_post:
-                op.pre_post = pre_post
-                op.prevail = [(self.new_var[var], val)
-                              for var, val in op.prevail
-                              if var in self.new_var]
-                new_ops.append(op)
-        print("%s of %s operators necessary." % (len(new_ops),
-                                                 len(operators)))
-        operators[:] = new_ops
-
-    def _apply_to_axioms(self, axioms):
-        new_axioms = []
-        for ax in axioms:
-            eff_var, eff_val = ax.effect
-            if eff_var in self.new_var:
-                ax.condition = [(self.new_var[var], val)
-                                for var, val in ax.condition
-                                if var in self.new_var]
-                ax.effect = (self.new_var[eff_var], eff_val)
-                new_axioms.append(ax)
-        print("%s of %s axiom rules necessary." % (len(new_axioms),
-                                                   len(axioms)))
-        axioms[:] = new_axioms
+    def translate_value(self, old_var: int, old_val: int):
+        return old_val if self.new_var[old_var] != None else VariableOrder.TRUE
 
 
-def find_and_apply_variable_order(sas_task, reorder_vars=True,
-                                  filter_unimportant_vars=True,
-                                  filter_unimportant_ops=True):
+def find_and_apply_variable_order(
+    sas_task, reorder_vars=True, filter_unimportant_vars=True
+):
     if reorder_vars or filter_unimportant_vars:
         cg = CausalGraph(sas_task)
         if reorder_vars:
@@ -278,8 +219,9 @@ def find_and_apply_variable_order(sas_task, reorder_vars=True,
         else:
             order = list(range(len(sas_task.variables.ranges)))
         if filter_unimportant_vars:
-            necessary = cg.calculate_important_vars(sas_task.goal)
-            print("%s of %s variables necessary." % (len(necessary),
-                                                     len(order)))
+            necessary = cg.calculate_important_vars(sas_task.get_goal())
+            print("%s of %s variables necessary." % (len(necessary), len(order)))
             order = [var for var in order if necessary[var]]
-        VariableOrder(order).apply_to_task(sas_task, filter_unimportant_ops)
+        sas_task.apply_variable_renaming(
+            VariableOrder(order, sas_task.get_variable_domains())
+        )

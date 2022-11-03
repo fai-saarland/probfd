@@ -50,11 +50,6 @@ def parse_args():
         dest="filter_unimportant_vars", action="store_false",
         help="keep variables that do not influence the goal in the causal graph")
     argparser.add_argument(
-        "--drop-unimportant-operators",
-        dest="filter_unimportant_ops", action="store_true",
-        help="keep operators with empty effect",
-        default=False)
-    argparser.add_argument(
         "--dump-task", action="store_true",
         help="dump human-readable SAS+ representation of the task")
     argparser.add_argument(
@@ -66,6 +61,9 @@ def parse_args():
         "--budget-cost-type", default="cost", choices=["cost", "one", "plus_one", "min_one"], help="How actions affect the budget")
     argparser.add_argument(
         "--give-up-cost", default=None, type=int)
+    argparser.add_argument(
+        "--finite-horizon", type=int, default=None,
+        help="Compilation of finite horizon reward maximization.")
     return argparser.parse_args()
 
 
@@ -80,4 +78,3 @@ def setup():
     copy_args_to_module(args)
 
 
-setup()

@@ -1,85 +1,87 @@
-
-import copy
-
 import sas_tasks
-import options
-import re
-from fractions import Fraction
+
+BUDGET_VAR = 0
+BUDGET_FACT_NAME = "budget({0})"
 
 
-def budget_cost_function(op):
-    if options.budget_cost_type == "cost":
-        return op.cost
-    elif options.budget_cost_type == "one":
+class BudgetCostType:
+    ABS_REWARD = "cost"
+    ONE = "one"
+    PLUS_ONE = "plus_one"
+    MIN_ONE = "min_one"
+
+
+def budget_cost_function(op: sas_tasks.SASOperatorOutcome, budget_cost_type: str):
+    if budget_cost_type == BudgetCostType.ABS_REWARD:
+        return abs(op.reward)
+    elif budget_cost_type == BudgetCostType.ONE:
         return 1
-    elif options.budget_cost_type == "plus_one":
-        return op.cost + 1
-    elif options.budget_cost_type == "min_one":
-        return max(1, op.cost)
-    assert(False)
+    elif budget_cost_type == BudgetCostType.PLUS_ONE:
+        return abs(op.reward) + 1
+    elif budget_cost_type == BudgetCostType.MIN_ONE:
+        return max(1, abs(op.reward))
+    assert False
 
 
-def insert_missing_noops(sas_task):
-    pattributes = re.compile("\(\s*(.+)_DETDUP_(\d+)_WEIGHT_(\d+)_(\d+)(.+)\)")
-    def key(op):
-        m = pattributes.match(op.name)
-        if m is None:
-            return None, None
-        pre = tuple(sorted(list(op.prevail) + [(var, pre) for (var, pre, _, _) in op.pre_post if pre != -1]))
-        return (m.group(1), m.group(5).strip(), pre), Fraction(int(m.group(3)), int(m.group(4)))
-    prob_ops = {}
-    for op in sas_task.operators:
-        k, p = key(op)
-        if not k is None:
-            if not k in prob_ops:
-                prob_ops[k] = []
-            prob_ops[k].append((p, op))
-    one = Fraction(1, 1)
-    zero = Fraction(0, 1)
-    for ((name, params, pre), outcomes) in prob_ops.items():
-        p = one - sum([f for (f, out) in outcomes])
-        if p > zero:
-            sas_task.operators.append(sas_tasks.SASOperator("(%s_DETDUP_%d_WEIGHT_%d_%d%s)" % (name, len(outcomes), p.numerator, p.denominator, "" if len(params) == 0 else " %s" % params), pre, [], min([out.cost for (_, out) in outcomes])))
+def _augment_variables(task: sas_tasks.SASTask, budget: int):
+    task.add_variable(
+        budget,
+        None,
+        -1,
+        [f"Atom {BUDGET_FACT_NAME.format(i)}" for i in range(budget + 1)],
+    )
+
+    class VarShift:
+        def __init__(self):
+            self.domains = task.get_variable_domains()
+            self.domains = [self.domains[-1]] + self.domains[:-1]
+
+        def get_new_variable_domains(self) -> list[int]:
+            return self.domains
+
+        def translate_variable(self, old_var: int) -> int:
+            return (old_var + 1) % len(self.domains)
+
+    task.apply_variable_renaming(VarShift())
 
 
-def augment_task_by_budget(sas_task, budget, cost_function = budget_cost_function):
-    def shift_fact_pairs(prevail):
-        return [(var + 1, val) for (var, val) in prevail]
-
-    def shift_pre_post(pre_post):
-        return [(var + 1, pre, post, shift_fact_pairs(cond)) for (var, pre, post, cond) in pre_post]
-
-
-    insert_missing_noops(sas_task)
-
-    budget_var_id = 0
-    
-    sas_task.variables.ranges = [budget + 1] + sas_task.variables.ranges
-    sas_task.variables.axiom_layers = [-1] + sas_task.variables.axiom_layers
-    sas_task.variables.value_names = [["Atom budget(%d)" % i for i in range(budget + 1)]] + sas_task.variables.value_names
-
-    sas_task.init.values = [budget] + sas_task.init.values
-    sas_task.goal.pairs = shift_fact_pairs(sas_task.goal.pairs)
-
-    for mutex in sas_task.mutexes:
-        mutex.facts = shift_fact_pairs(mutex.facts)
-
+def _augment_operators(task: sas_tasks.SASTask, budget: int, cost):
     new_operators = []
-    for op in sas_task.operators:
-        cost = cost_function(op)
-        if cost == 0:
-            new_operators.append(sas_tasks.SASOperator(op.name, shift_fact_pairs(op.prevail), shift_pre_post(op.pre_post), op.cost))
-        elif cost <= budget:
-            for b in range(cost, budget + 1):
-                new_op = sas_tasks.SASOperator(\
-                        "(%s budget%d budget%d)" % (op.name[1:-1].strip(), b, b-cost),
-                        shift_fact_pairs(op.prevail),
-                        [(budget_var_id, b, b-cost, [])] + shift_pre_post(op.pre_post),
-                        op.cost)
-                new_operators.append(new_op)
-    sas_task.operators = new_operators
+    for op in task.get_operators():
+        for b in range(1, budget + 1):
+            name = f"({op.name[1:-1].strip()} budget{b})"
+            nontriv = False
+            outs = []
+            for out in op.outcomes:
+                c = cost(out)
+                if c > b:
+                    outs.append(
+                        sas_tasks.SASOperatorOutcome(
+                            name,
+                            out.prevail,
+                            [(0, b, 0, [])] + out.pre_post,
+                            0,
+                            out.prob,
+                        )
+                    )
+                else:
+                    outs.append(
+                        sas_tasks.SASOperatorOutcome(
+                            name,
+                            out.prevail,
+                            [(0, b, b - c, [])] + out.pre_post,
+                            out.reward,
+                            out.prob,
+                        )
+                    )
+                    nontriv = True
+            if nontriv:
+                new_operators.append(sas_tasks.SASPOperator(name, outs))
+    task.set_operators(new_operators)
 
-    for axiom in sas_task.axioms:
-        axiom.condition = shift_fact_pairs(axiom.condition)
-        axiom.effect = (axiom.effect[0] + 1, axiom.effect[1])
 
+def augment_task_by_budget(sas_task, budget, cost_type):
+    _augment_variables(sas_task, budget)
+    _augment_operators(
+        sas_task, budget, lambda out: budget_cost_function(out, cost_type)
+    )

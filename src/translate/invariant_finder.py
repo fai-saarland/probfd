@@ -9,6 +9,7 @@ import invariants
 import options
 import pddl
 import timers
+from pddl import fo_action
 
 class BalanceChecker:
     def __init__(self, task, reachable_action_params):
@@ -16,31 +17,30 @@ class BalanceChecker:
         self.action_to_heavy_action = {}
         for act in task.actions:
             action = self.add_inequality_preconds(act, reachable_action_params)
-            too_heavy_effects = []
-            create_heavy_act = False
-            heavy_act = action
-            for eff in action.effects:
-                too_heavy_effects.append(eff)
-                if eff.parameters: # universal effect
-                    create_heavy_act = True
-                    too_heavy_effects.append(eff.copy())
-                if not eff.literal.negated:
-                    predicate = eff.literal.predicate
-                    self.predicates_to_add_actions[predicate].add(action)
-            if create_heavy_act:
-                heavy_act = pddl.Action(action.name, action.parameters,
-                                        action.num_external_parameters,
-                                        action.precondition, too_heavy_effects,
-                                        action.cost)
-            # heavy_act: duplicated universal effects and assigned unique names
-            # to all quantified variables (implicitly in constructor)
-            self.action_to_heavy_action[action] = heavy_act
+            assert len(action.effects) == 1, "action not in 1NF"
+            for outcome in action.effects[0].outcomes:
+                too_heavy_effects = []
+                create_heavy_act = False
+                heavy_act = (action, outcome)
+                for eff in outcome.effects:
+                    too_heavy_effects.append(eff)
+                    if eff.parameters: # universal effect
+                        create_heavy_act = True
+                        too_heavy_effects.append(eff.copy())
+                    if not eff.literal.negated:
+                        predicate = eff.literal.predicate
+                        self.predicates_to_add_actions[predicate].add((action, outcome))
+                if create_heavy_act:
+                    heavy_act = (action, fo_action.ProbabilisticOutcome(outcome.prob, too_heavy_effects, outcome.reward))
+                # heavy_act: duplicated universal effects and assigned unique names
+                # to all quantified variables (implicitly in constructor)
+                self.action_to_heavy_action[(action, outcome)] = heavy_act
 
     def get_threats(self, predicate):
         return self.predicates_to_add_actions.get(predicate, set())
 
-    def get_heavy_action(self, action):
-        return self.action_to_heavy_action[action]
+    def get_heavy_action(self, action, outcome):
+        return self.action_to_heavy_action[(action, outcome)]
 
     def add_inequality_preconds(self, action, reachable_action_params):
         if reachable_action_params is None or len(action.parameters) < 2:
@@ -64,15 +64,17 @@ class BalanceChecker:
             precond = pddl.Conjunction(precond_parts).simplified()
             return pddl.Action(
                 action.name, action.parameters, action.num_external_parameters,
-                precond, action.effects, action.cost)
+                precond, action.effects)
         else:
             return action
 
 def get_fluents(task):
     fluent_names = set()
     for action in task.actions:
-        for eff in action.effects:
-            fluent_names.add(eff.literal.predicate)
+        for p_eff in action.effects:
+            for out in p_eff.outcomes:
+                for eff in out.effects:
+                    fluent_names.add(eff.literal.predicate)
     return [pred for pred in task.predicates if pred.name in fluent_names]
 
 def get_initial_invariants(task):

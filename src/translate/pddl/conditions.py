@@ -11,6 +11,8 @@ class Condition(object):
     def __init__(self, parts):
         self.parts = tuple(parts)
         self.hash = hash((self.__class__, self.parts))
+    def __repr__(self):
+        return f"{self.__class__.__name__}({', '.join(self.parts)})"
     def __hash__(self):
         return self.hash
     def __ne__(self, other):
@@ -80,6 +82,8 @@ class ConstantCondition(Condition):
     parts = ()
     def __init__(self):
         self.hash = hash(self.__class__)
+    def __repr__(self):
+        return self.__class__.__name__
     def change_parts(self, parts):
         return self
     def __eq__(self, other):
@@ -119,6 +123,8 @@ class JunctorCondition(Condition):
         return self.__class__(parts)
     def change_parts(self, parts):
         return self.__class__(parts)
+    def __repr__(self):
+        return f"{self.__class__.__name__}({', '.join((repr(x) for x in self.parts))})"
 
 class Conjunction(JunctorCondition):
     def _simplified(self, parts):
@@ -180,6 +186,8 @@ class QuantifiedCondition(Condition):
                 self.__class__ is other.__class__ and
                 self.parameters == other.parameters and
                 self.parts == other.parts)
+    def __repr__(self):
+        return f"{self.__class__.__name__}([{', '.join(self.parameters)}]: {', '.join((repr(x) for x in self.parts))})"
     def _dump(self, indent="  "):
         arglist = ", ".join(map(str, self.parameters))
         return "%s %s" % (self.__class__.__name__, arglist)
@@ -240,6 +248,8 @@ class Literal(Condition):
         self.predicate = predicate
         self.args = tuple(args)
         self.hash = hash((self.__class__, self.predicate, self.args))
+    def __repr__(self):
+        return f"Literal({self.predicate}: {', '.join(self.args)})"
     def __eq__(self, other):
         # Compare hash first for speed reasons.
         return (other != None and
@@ -282,6 +292,8 @@ class Literal(Condition):
 
 class Atom(Literal):
     negated = False
+    def __repr__(self):
+        return ("not " if self.negated else "") + super().__repr__()
     def to_untyped_strips(self):
         return [self]
     def instantiate(self, var_mapping, init_facts, fluent_facts, result):
@@ -298,6 +310,8 @@ class Atom(Literal):
 
 class NegatedAtom(Literal):
     negated = True
+    def __repr__(self):
+        return ("not " if self.negated else "") + super().__repr__()
     def _relaxed(self, parts):
         return Truth()
     def instantiate(self, var_mapping, init_facts, fluent_facts, result):

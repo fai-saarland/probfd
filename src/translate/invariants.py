@@ -27,10 +27,10 @@ def instantiate_factored_mapping(pairs):
     return tools.cartesian_product(part_mappings)
 
 
-def find_unique_variables(action, invariant):
+def find_unique_variables(action, outcome, invariant):
     # find unique names for invariant variables
     params = {p.name for p in action.parameters}
-    for eff in action.effects:
+    for eff in outcome.effects:
         params.update([p.name for p in eff.parameters])
     inv_vars = []
     counter = itertools.count()
@@ -240,19 +240,19 @@ class Invariant:
         actions_to_check = set()
         for part in self.parts:
             actions_to_check |= balance_checker.get_threats(part.predicate)
-        for action in actions_to_check:
-            heavy_action = balance_checker.get_heavy_action(action)
-            if self.operator_too_heavy(heavy_action):
+        for action, outcome in actions_to_check:
+            _, heavy_outcome = balance_checker.get_heavy_action(action, outcome)
+            if self.operator_too_heavy(action, heavy_outcome):
                 return False
-            if self.operator_unbalanced(action, enqueue_func):
+            if self.operator_unbalanced(action, outcome, enqueue_func):
                 return False
         return True
 
-    def operator_too_heavy(self, h_action):
-        add_effects = [eff for eff in h_action.effects
+    def operator_too_heavy(self, h_action, h_outcome):
+        add_effects = [eff for eff in h_outcome.effects
                        if not eff.literal.negated and
                        self.predicate_to_part.get(eff.literal.predicate)]
-        inv_vars = find_unique_variables(h_action, self)
+        inv_vars = find_unique_variables(h_action, h_outcome, self)
 
         if len(add_effects) <= 1:
             return False
@@ -271,16 +271,16 @@ class Invariant:
                 return True
         return False
 
-    def operator_unbalanced(self, action, enqueue_func):
-        inv_vars = find_unique_variables(action, self)
-        relevant_effs = [eff for eff in action.effects
+    def operator_unbalanced(self, action, outcome, enqueue_func):
+        inv_vars = find_unique_variables(action, outcome, self)
+        relevant_effs = [eff for eff in outcome.effects
                          if self.predicate_to_part.get(eff.literal.predicate)]
         add_effects = [eff for eff in relevant_effs
                        if not eff.literal.negated]
         del_effects = [eff for eff in relevant_effs
                        if eff.literal.negated]
         for eff in add_effects:
-            if self.add_effect_unbalanced(action, eff, del_effects, inv_vars,
+            if self.add_effect_unbalanced(action, outcome, eff, del_effects, inv_vars,
                                           enqueue_func):
                 return True
         return False
@@ -308,7 +308,7 @@ class Invariant:
             minimal_renamings.append(system)
         return minimal_renamings
 
-    def add_effect_unbalanced(self, action, add_effect, del_effects,
+    def add_effect_unbalanced(self, action, outcome, add_effect, del_effects,
                               inv_vars, enqueue_func):
 
         minimal_renamings = self.minimal_covering_renamings(action, add_effect,
@@ -327,14 +327,14 @@ class Invariant:
                 return False
 
         # Otherwise, the balance check fails => Generate new candidates.
-        self.refine_candidate(add_effect, action, enqueue_func)
+        self.refine_candidate(add_effect, action, outcome, enqueue_func)
         return True
 
-    def refine_candidate(self, add_effect, action, enqueue_func):
+    def refine_candidate(self, add_effect, action, outcome, enqueue_func):
         """refines the candidate for an add effect that is unbalanced in the
            action and adds the refined one to the queue"""
         part = self.predicate_to_part[add_effect.literal.predicate]
-        for del_eff in [eff for eff in action.effects if eff.literal.negated]:
+        for del_eff in [eff for eff in outcome.effects if eff.literal.negated]:
             if del_eff.literal.predicate not in self.predicate_to_part:
                 for match in part.possible_matches(add_effect.literal,
                                                    del_eff.literal):

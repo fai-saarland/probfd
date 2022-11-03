@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-
 from collections import defaultdict
 
 import build_model
@@ -11,8 +10,10 @@ import timers
 def get_fluent_facts(task, model):
     fluent_predicates = set()
     for action in task.actions:
-        for effect in action.effects:
-            fluent_predicates.add(effect.literal.predicate)
+        for p_effect in action.effects:
+            for outcome in p_effect.outcomes:
+                for effect in outcome.effects:
+                    fluent_predicates.add(effect.literal.predicate)
     for axiom in task.axioms:
         fluent_predicates.add(axiom.name)
     return {fact for fact in model

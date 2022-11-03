@@ -1,9 +1,8 @@
+from collections import defaultdict
+
 import pddl
 import sccs
 import timers
-
-from collections import defaultdict
-
 
 DEBUG = False
 def handle_axioms(operators, axioms, goals):
@@ -253,10 +252,11 @@ def compute_necessary_axiom_literals(axioms_by_atom, operators, goal):
     register_literals(goal, False)
     for op in operators:
         register_literals(op.precondition, False)
-        for (cond, _) in op.add_effects:
-            register_literals(cond, False)
-        for (cond, _) in op.del_effects:
-            register_literals(cond, True)
+        for out in op.outcomes:
+            for (cond, _) in out.add_effects:
+                register_literals(cond, False)
+            for (cond, _) in out.del_effects:
+                register_literals(cond, True)
 
     while queue:
         literal = queue.pop()

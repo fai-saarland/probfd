@@ -15,6 +15,7 @@ if not python_version_supported():
 from collections import defaultdict
 from copy import deepcopy
 from itertools import product
+import signal
 
 import axiom_rules
 import fact_groups
@@ -24,12 +25,14 @@ import options
 import pddl
 import pddl_parser
 import sas_tasks
-import signal
 import simplify
 import timers
 import tools
 import variable_order
 import budget_compilation
+import unary_normal_form
+import give_up_action
+import finite_horizon
 
 # TODO: The translator may generate trivial derived variables which are always
 # true, for example if there ia a derived predicate in the input that only
@@ -179,11 +182,21 @@ def translate_strips_operator(operator, dictionary, ranges, mutex_dict,
         return []
     sas_operators = []
     for condition in conditions:
-        op = translate_strips_operator_aux(operator, dictionary, ranges,
-                                           mutex_dict, mutex_ranges,
-                                           implied_facts, condition)
-        if op is not None:
-            sas_operators.append(op)
+        outcomes = []
+        for propo_out in operator.outcomes:
+            out = translate_strips_operator_aux(
+                operator.name,
+                propo_out,
+                dictionary,
+                ranges,
+                mutex_dict,
+                mutex_ranges,
+                implied_facts,
+                condition)
+            if out is not None:
+                outcomes.append(out)
+        if len(outcomes) > 0:
+            sas_operators.append(sas_tasks.SASPOperator(operator.name, outcomes))
     return sas_operators
 
 
@@ -205,14 +218,14 @@ def negate_and_translate_condition(condition, dictionary, ranges, mutex_dict,
     return negation if negation else None
 
 
-def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
+def translate_strips_operator_aux(name, outcome, dictionary, ranges, mutex_dict,
                                   mutex_ranges, implied_facts, condition):
 
     # collect all add effects
     effects_by_variable = defaultdict(lambda: defaultdict(list))
     # effects_by_variables: var -> val -> list(FDR conditions)
     add_conds_by_variable = defaultdict(list)
-    for conditions, fact in operator.add_effects:
+    for conditions, fact in outcome.add_effects:
         eff_condition_list = translate_strips_conditions(conditions, dictionary,
                                                          ranges, mutex_dict,
                                                          mutex_ranges)
@@ -224,7 +237,7 @@ def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
 
     # collect all del effects
     del_effects_by_variable = defaultdict(lambda: defaultdict(list))
-    for conditions, fact in operator.del_effects:
+    for conditions, fact in outcome.del_effects:
         eff_condition_list = translate_strips_conditions(conditions, dictionary,
                                                          ranges, mutex_dict,
                                                          mutex_ranges)
@@ -271,11 +284,11 @@ def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
                     else:
                         effects_by_variable[var][none_of_those].append(new_cond)
 
-    return build_sas_operator(operator.name, condition, effects_by_variable,
-                              operator.cost, ranges, implied_facts)
+    return build_sas_operator(name, condition, effects_by_variable,
+                              outcome.reward, outcome.prob, ranges, implied_facts)
 
 
-def build_sas_operator(name, condition, effects_by_variable, cost, ranges,
+def build_sas_operator(name, condition, effects_by_variable, reward, prob, ranges,
                        implied_facts):
     if options.add_implied_preconditions:
         implied_precondition = set()
@@ -326,10 +339,10 @@ def build_sas_operator(name, condition, effects_by_variable, cost, ranges,
             # the condition on var is not a prevail condition but a
             # precondition, so we remove it from the prevail condition
             condition.pop(var, -1)
-    if not pre_post:  # operator is noop
+    if reward == 0 and not pre_post:  # operator is noop
         return None
     prevail = list(condition.items())
-    return sas_tasks.SASOperator(name, prevail, pre_post, cost)
+    return sas_tasks.SASOperatorOutcome(name, prevail, pre_post, reward, prob)
 
 
 def prune_stupid_effect_conditions(var, val, conditions, effects_on_var):
@@ -473,7 +486,7 @@ def translate_task(strips_to_sas, ranges, translation_key,
     ## values, which is most of the time the case, and hence refrain from
     ## introducing axioms (that are not supported by all heuristics)
     goal_pairs = list(goal_dict_list[0].items())
-    if not goal_pairs:
+    if not goal_pairs and not options.finite_horizon:
         return solvable_sas_task("Empty goal")
     goal = sas_tasks.SASGoal(goal_pairs)
 
@@ -584,19 +597,18 @@ def pddl_to_sas(task):
         with timers.timing("Detecting unreachable propositions", block=True):
             try:
                 simplify.filter_unreachable_propositions(
-                        sas_task,
-                        options.filter_unimportant_ops)
-            except simplify.Impossible:
+                        sas_task)
+            except sas_tasks.Impossible:
                 return unsolvable_sas_task("Simplified to trivially false goal")
-            except simplify.TriviallySolvable:
-                return solvable_sas_task("Simplified to empty goal")
+            except sas_tasks.SimplifiesToTrival:
+                if not options.finite_horizon:
+                    return solvable_sas_task("Simplified to empty goal")
 
     if options.reorder_variables or options.filter_unimportant_vars:
         with timers.timing("Reordering and filtering variables", block=True):
             variable_order.find_and_apply_variable_order(
                 sas_task, options.reorder_variables,
-                options.filter_unimportant_vars,
-                options.filter_unimportant_ops)
+                options.filter_unimportant_vars)
 
     return sas_task
 
@@ -664,18 +676,7 @@ def build_implied_facts(strips_to_sas, groups, mutex_groups):
 
 
 def dump_statistics(sas_task):
-    print("Translator variables: %d" % len(sas_task.variables.ranges))
-    print("Translator derived variables: %d" %
-          len([layer for layer in sas_task.variables.axiom_layers
-               if layer >= 0]))
-    print("Translator facts: %d" % sum(sas_task.variables.ranges))
-    print("Translator goal facts: %d" % len(sas_task.goal.pairs))
-    print("Translator mutex groups: %d" % len(sas_task.mutexes))
-    print("Translator total mutex groups size: %d" %
-          sum(mutex.get_encoding_size() for mutex in sas_task.mutexes))
-    print("Translator operators: %d" % len(sas_task.operators))
-    print("Translator axioms: %d" % len(sas_task.axioms))
-    print("Translator task size: %d" % sas_task.get_encoding_size())
+    sas_task.statistics()
     try:
         peak_memory = tools.get_peak_memory_in_kb()
     except Warning as warning:
@@ -693,23 +694,21 @@ def main():
     with timers.timing("Normalizing task"):
         normalize.normalize(task)
 
-    if options.generate_relaxed_task:
-        # Remove delete effects.
-        for action in task.actions:
-            for index, effect in reversed(list(enumerate(action.effects))):
-                if effect.literal.negated:
-                    del action.effects[index]
-
     sas_task = pddl_to_sas(task)
     if options.budget != None:
         if options.budget < 0:
             sys.stderr.write("Budget must be non-negative! Got %d.\n" % options.budget)
             sys.exit(TRANSLATE_ERROR)
-        budget_compilation.augment_task_by_budget(sas_task, options.budget)
+        budget_compilation.augment_task_by_budget(sas_task, options.budget, options.budget_cost_type)
+    elif options.finite_horizon != None:
+        if options.finite_horizon <= 0:
+            sys.stderr.write("Horizon must be positive! Got %d.\n" % options.budget)
+            sys.exit(TRANSLATE_ERROR)
+        finite_horizon.compile_finite_horizon_maximization(sas_task, options.finite_horizon)
+
     dump_statistics(sas_task)
     if options.give_up_cost != None:
-        op = sas_tasks.SASOperator("(GIVE-UP)", [], [(var, -1, post, []) for (var, post) in sas_task.goal.pairs], options.give_up_cost)
-        sas_task.operators.append(op)
+        give_up_action.add_give_up_action(sas_task, options.give_up_cost)
     with timers.timing("Writing output"):
         with open(options.sas_file, "w") as output_file:
             sas_task.output(output_file)
@@ -734,6 +733,7 @@ if __name__ == "__main__":
         # Reserve about 10 MB of emergency memory.
         # https://stackoverflow.com/questions/19469608/
         emergency_memory = b"x" * 10**7
+        options.setup()
         main()
     except MemoryError:
         del emergency_memory

@@ -65,6 +65,6 @@ class Requirements:
               ":negative-preconditions", ":disjunctive-preconditions",
               ":existential-preconditions", ":universal-preconditions",
               ":quantified-preconditions", ":conditional-effects",
-              ":derived-predicates", ":action-costs", ":probabilistic-effects"), req
+              ":derived-predicates", ":action-costs", ":probabilistic-effects", ":rewards"), req
     def __str__(self):
         return ", ".join(self.requirements)
