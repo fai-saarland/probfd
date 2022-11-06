@@ -15,15 +15,6 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-struct PatternTooLargeException : utils::Exception {
-    void print() const override
-    {
-        std::cerr << "Construction of PDB would exceed "
-                     "std::numeric_limits<int>::max()"
-                  << std::endl;
-    }
-};
-
 AbstractStateMapper::PartialAssignmentIterator::PartialAssignmentIterator(
     std::vector<std::pair<int, int>> partial_state,
     const std::vector<VariableInfo>& var_infos)
@@ -188,7 +179,8 @@ AbstractStateMapper::AbstractStateMapper(
         prev_info.domain = d;
 
         if (prev_info.partial_multiplier > maxint / (d + 1)) {
-            throw PatternTooLargeException();
+            throw std::range_error("Construction of PDB would exceed "
+                                   "std::numeric_limits<int>::max()");
         }
 
         cur_info.var = pattern_[i];
@@ -203,7 +195,8 @@ AbstractStateMapper::AbstractStateMapper(
     last_info.domain = d;
 
     if (last_info.partial_multiplier > maxint / (d + 1)) {
-        throw PatternTooLargeException();
+        throw std::range_error("Construction of PDB would exceed "
+                               "std::numeric_limits<int>::max()");
     }
 
     num_states_ = last_info.multiplier * d;
