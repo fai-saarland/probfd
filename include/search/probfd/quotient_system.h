@@ -174,8 +174,8 @@ public:
         std::vector<StateID>& states = dest_info.states;
         const unsigned old_qstates = states.size();
 
-        std::set<uint32_t> uniqs;
-        std::unordered_set<uint32_t> states_set;
+        std::set<uint64_t> uniqs;
+        std::unordered_set<uint64_t> states_set;
 
         {
 #ifndef NDEBUG
@@ -238,7 +238,7 @@ public:
 
 #if 0
         {
-            std::set<uint32_t> diff;
+            std::set<uint64_t> diff;
             std::set_difference(
                 uniqs.begin(),
                 uniqs.end(),
@@ -295,9 +295,9 @@ public:
 
             for (const StateID& parent_state : parent_states) {
                 auto& entry = gen_->lookup(parent_state);
-                const uint32_t* aop = entry.aops;
-                const uint32_t* aop_end = entry.aops + entry.naops;
-                uint32_t* succ = entry.succs;
+                const uint64_t* aop = entry.aops;
+                const uint64_t* aop_end = entry.aops + entry.naops;
+                uint64_t* succ = entry.succs;
 
                 for (; aop != aop_end; ++aop) {
                     auto succ_e = succ + gen_->first_op_[*aop].num_outcomes();
@@ -317,12 +317,12 @@ public:
 
             auto substitute =
                 [](const ProbabilisticOperator* first_op,
-                   const std::set<uint32_t>& states_set,
+                   const std::set<uint64_t>& states_set,
                    const StateID& rid,
                    TransitionGenerator<
                        const ProbabilisticOperator*>::CacheEntry& entry) {
-                    const uint32_t* aop = entry.aops;
-                    uint32_t* succ = entry.succs;
+                    const uint64_t* aop = entry.aops;
+                    uint64_t* succ = entry.succs;
                     for (int k = entry.naops - 1; k >= 0; --k, ++aop) {
                         for (int l = (first_op + *aop)->num_outcomes() - 1;
                              l >= 0;
@@ -416,14 +416,14 @@ private:
     void update_cache(
         const std::vector<Action>& exclude,
         engine_interfaces::TransitionGenerator<Action>::CacheEntry& entry,
-        const uint32_t rid,
-        const std::unordered_set<uint32_t>& quotient_states)
+        const uint64_t rid,
+        const std::unordered_set<uint64_t>& quotient_states)
     {
         unsigned new_size = 0;
-        uint32_t* aops_src = entry.aops;
-        uint32_t* aops_dest = entry.aops;
-        uint32_t* succ_src = entry.succs;
-        uint32_t* succ_dest = entry.succs;
+        uint64_t* aops_src = entry.aops;
+        uint64_t* aops_dest = entry.aops;
+        uint64_t* succ_src = entry.succs;
+        uint64_t* succ_dest = entry.succs;
 
         auto aops_src_end = aops_src + entry.naops;
         for (; aops_src != aops_src_end; ++aops_src) {
@@ -433,7 +433,7 @@ private:
             }
 
             bool self_loop = true;
-            uint32_t* k = succ_dest;
+            uint64_t* k = succ_dest;
 
             auto succ_src_end = succ_src + op->num_outcomes();
             for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {

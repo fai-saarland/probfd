@@ -25,8 +25,8 @@ public:
     struct VariableInfo {
         int var;
         int domain;
-        int multiplier;
-        int partial_multiplier;
+        long long int multiplier;
+        long long int partial_multiplier;
     };
 
     class PartialAssignmentIterator {
@@ -70,7 +70,7 @@ public:
 
         std::vector<int> values_;
         std::vector<int> domains_;
-        std::vector<int> multipliers_;
+        std::vector<long long int> multipliers_;
         AbstractState state_;
 
         bool done;
@@ -147,7 +147,7 @@ public:
         const std::vector<std::pair<int, int>>& sparse_values) const;
     AbstractState from_fact(int idx, int val) const;
 
-    int get_unique_partial_state_id(
+    long long int get_unique_partial_state_id(
         const std::vector<std::pair<int, int>>& pstate) const;
 
     std::vector<int> to_values(AbstractState abstract_state) const;
@@ -174,7 +174,7 @@ public:
     utils::RangeProxy<AbstractStateIterator, utils::default_sentinel_t>
     abstract_states(AbstractState offset, std::vector<int> indices) const;
 
-    int get_multiplier(int var) const;
+    long long int get_multiplier(int var) const;
 
     int get_domain_size(int var) const;
 
@@ -183,8 +183,8 @@ public:
 private:
     Pattern pattern_;
     std::vector<VariableInfo> var_infos_;
-    int num_states_;
-    int num_partial_states_;
+    long long int num_states_;
+    long long int num_partial_states_;
 };
 
 class AbstractStateToString {

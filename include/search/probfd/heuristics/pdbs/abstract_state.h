@@ -10,8 +10,8 @@ namespace heuristics {
 namespace pdbs {
 
 struct AbstractState {
-    int id;
-    explicit AbstractState(int id)
+    long long int id;
+    explicit AbstractState(long long int id)
         : id(id)
     {
     }
@@ -55,7 +55,7 @@ struct hash<probfd::heuristics::pdbs::AbstractState> {
     size_t
     operator()(const probfd::heuristics::pdbs::AbstractState& state) const
     {
-        return hash<int>()(state.id);
+        return hash<long long int>()(state.id);
     }
 };
 } // namespace std

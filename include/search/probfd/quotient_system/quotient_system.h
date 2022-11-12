@@ -78,7 +78,7 @@ public:
     struct const_iterator {
         using iterator_type = std::forward_iterator_tag;
         using value_type = StateID::size_type;
-        using difference_type = int;
+        using difference_type = std::ptrdiff_t;
         using pointer = const StateID::size_type*;
         using reference = const StateID::size_type&;
 

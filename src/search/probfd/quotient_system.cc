@@ -114,8 +114,8 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_successors(
         assert(state_infos_[sid].states[0] == sid);
         auto& cached = lookup(a.state_id);
         assert(a.action_id < cached.naops);
-        const uint32_t* succ = cached.succs;
-        const uint32_t* aop = cached.aops;
+        const uint64_t* succ = cached.succs;
+        const uint64_t* aop = cached.aops;
 
         auto aop_end = aop + a.action_id;
         for (; aop != aop_end; ++aop) {
@@ -145,8 +145,8 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_all_successors(
         assert(qstates[0] == sid);
         for (unsigned i = 0; i < qstates.size(); ++i) {
             auto& cached = lookup(qstates[i]);
-            const uint32_t* aop = cached.aops;
-            const uint32_t* succ = cached.succs;
+            const uint64_t* aop = cached.aops;
+            const uint64_t* succ = cached.succs;
             for (unsigned k = 0; k < cached.naops; ++k, ++aop) {
                 aops.emplace_back(qstates[i], k);
                 successors.emplace_back();
@@ -288,9 +288,9 @@ QuotientSystem<const ProbabilisticOperator*>::lookup(const StateID& sid)
         std::unordered_set<StateID> unique_successors;
 
         {
-            const uint32_t* aop = entry.aops;
-            const uint32_t* aop_end = entry.aops + entry.naops;
-            uint32_t* succ = entry.succs;
+            const uint64_t* aop = entry.aops;
+            const uint64_t* aop_end = entry.aops + entry.naops;
+            uint64_t* succ = entry.succs;
             DEBUG(std::cout << "   ";);
             for (; aop != aop_end; ++aop) {
                 auto succ_end = succ + gen_->first_op_[*aop].num_outcomes();
@@ -342,8 +342,8 @@ void QuotientSystem<const ProbabilisticOperator*>::verify_cache_consistency()
             DEBUG(std::cout << " -> represented by "
                             << state_infos_[i].states[0]
                             << "; naops=" << entry.naops << ": " << std::flush;)
-            const uint32_t* op = entry.aops;
-            const uint32_t* succ = entry.succs;
+            const uint64_t* op = entry.aops;
+            const uint64_t* succ = entry.succs;
             for (int j = entry.naops - 1; j >= 0; --j, ++op) {
                 for (int k = (gen_->first_op_ + *op)->num_outcomes() - 1;
                      k >= 0;

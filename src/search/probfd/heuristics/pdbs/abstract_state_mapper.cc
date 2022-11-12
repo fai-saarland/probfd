@@ -271,7 +271,7 @@ AbstractState AbstractStateMapper::from_fact(int idx, int val) const
     return AbstractState(var_infos_[idx].multiplier * val);
 }
 
-int AbstractStateMapper::get_unique_partial_state_id(
+long long int AbstractStateMapper::get_unique_partial_state_id(
     const std::vector<std::pair<int, int>>& pstate) const
 {
     int id = 0;
@@ -392,7 +392,7 @@ AbstractStateMapper::abstract_states(
         abstract_states_end());
 }
 
-int AbstractStateMapper::get_multiplier(int var) const
+long long int AbstractStateMapper::get_multiplier(int var) const
 {
     return var_infos_[var].multiplier;
 }

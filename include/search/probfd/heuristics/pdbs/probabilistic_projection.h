@@ -33,11 +33,11 @@ namespace pdbs {
 class ProbabilisticProjection {
     // Footprint used for detecting duplicate operators.
     struct ProgressionOperatorFootprint {
-        int precondition_hash;
+        long long int precondition_hash;
         std::vector<WeightedElement<AbstractState>> successors;
 
         ProgressionOperatorFootprint(
-            int precondition_hash,
+            long long int precondition_hash,
             const AbstractOperator& op)
             : precondition_hash(precondition_hash)
             , successors(op.outcomes.begin(), op.outcomes.end())

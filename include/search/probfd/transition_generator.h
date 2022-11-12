@@ -100,8 +100,8 @@ private:
         }
 
         unsigned naops = std::numeric_limits<unsigned>::max();
-        uint32_t* aops = nullptr;
-        uint32_t* succs = nullptr;
+        uint64_t* aops = nullptr;
+        uint64_t* succs = nullptr;
     };
 
     struct Statistics {
@@ -148,7 +148,7 @@ private:
     StateRegistry* state_registry_;
 
     Cache cache_;
-    segmented_array_store::SegmentedArrayStore<uint32_t> cache_data_;
+    segmented_array_store::SegmentedArrayStore<uint64_t> cache_data_;
     std::vector<const ProbabilisticOperator*> aops_;
     std::vector<StateID> successors_;
 

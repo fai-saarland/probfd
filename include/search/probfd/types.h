@@ -8,7 +8,7 @@
 namespace probfd {
 
 struct StateID {
-    using size_type = uint32_t;
+    using size_type = unsigned long long;
     static constexpr size_type undefined = -1;
 
     StateID(size_type id = StateID::undefined)
@@ -22,7 +22,7 @@ struct StateID {
 };
 
 struct ActionID {
-    using size_type = uint32_t;
+    using size_type = std::make_unsigned_t<std::ptrdiff_t>;
     static constexpr size_type undefined = -1;
 
     ActionID(size_type id = ActionID::undefined)

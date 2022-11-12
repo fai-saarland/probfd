@@ -176,11 +176,11 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
     if (caching_) {
         const CacheEntry& entry = cache_[state_id];
         assert(entry.is_initialized());
-        const uint32_t idx = action - first_op_;
-        const uint32_t* succs = entry.succs;
+        const uint64_t idx = action - first_op_;
+        const uint64_t* succs = entry.succs;
 
         for (size_t i = 0; i < entry.naops; ++i) {
-            uint32_t op_idx = entry.aops[i];
+            uint64_t op_idx = entry.aops[i];
 
             if (op_idx == idx) {
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
@@ -220,7 +220,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
 {
     if (caching_) {
         CacheEntry& entry = lookup(state_id);
-        const uint32_t* succs = entry.succs;
+        const uint64_t* succs = entry.succs;
         aops.resize(entry.naops, nullptr);
         successors.resize(entry.naops);
 
