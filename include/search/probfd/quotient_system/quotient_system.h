@@ -394,10 +394,10 @@ public:
                 }
 
                 // Move the actions to the new quotient
-                qinfo.aops.insert(
-                    qinfo.aops.end(),
+                std::move(
                     q.aops.begin(),
-                    q.aops.end());
+                    q.aops.end(),
+                    std::back_inserter(qinfo.aops));
 
                 // Erase the old quotient
                 quotients_.erase(qit);
