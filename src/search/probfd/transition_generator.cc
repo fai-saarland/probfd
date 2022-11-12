@@ -144,10 +144,8 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
             this->state_registry_->lookup_state(::StateID(state_id));
         std::vector<const ProbabilisticOperator*> test;
         this->compute_applicable_operators(state, test);
-        assert(test.size() == result.size());
-        for (size_t i = 0; i < test.size(); ++i) {
-            assert(test[i] == result[i]);
-        }
+        assert(
+            std::equal(test.begin(), test.end(), result.begin(), result.end()));
 #endif
     } else {
         GlobalState state = state_registry_->lookup_state(::StateID(state_id));
@@ -176,31 +174,30 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
     if (caching_) {
         const CacheEntry& entry = cache_[state_id];
         assert(entry.is_initialized());
-        const uint64_t idx = action - first_op_;
-        const uint64_t* succs = entry.succs;
+        const ActionID id = action - first_op_;
+        const StateID* succs = entry.succs;
 
         for (size_t i = 0; i < entry.naops; ++i) {
-            uint64_t op_idx = entry.aops[i];
+            ActionID op_id = entry.aops[i];
 
-            if (op_idx == idx) {
-#ifdef DEBUG_CACHE_CONSISTENCY_CHECK
-                GlobalState state =
-                    this->state_registry_->lookup_state(::StateID(state_id));
-                std::vector<WeightedElement<StateID>> test;
-                this->compute_successor_states(state, action, test);
-                assert(test.size() == action->num_outcomes());
-#endif
-                for (unsigned j = 0; j < action->num_outcomes(); ++j, ++succs) {
-                    assert(test[j].element == *succs);
-                    assert(test[j].probability == action->get(j).prob);
-                    result.add(*succs, action->get(j).prob);
-                }
-
-                break;
+            if (op_id != id) {
+                succs += first_op_[op_id].num_outcomes();
+                continue;
             }
 
-            const ProbabilisticOperator* op = first_op_ + op_idx;
-            succs += op->num_outcomes();
+#ifdef DEBUG_CACHE_CONSISTENCY_CHECK
+            GlobalState state =
+                this->state_registry_->lookup_state(::StateID(state_id));
+            std::vector<WeightedElement<StateID>> test;
+            this->compute_successor_states(state, action, test);
+            assert(test.size() == action->num_outcomes());
+#endif
+            for (unsigned j = 0; j < action->num_outcomes(); ++j, ++succs) {
+                assert(test[j] == WeightedElement(*succs, action->get(j).prob));
+                result.add(*succs, action->get(j).prob);
+            }
+
+            break;
         }
     } else {
         GlobalState state = state_registry_->lookup_state(::StateID(state_id));
@@ -220,7 +217,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
 {
     if (caching_) {
         CacheEntry& entry = lookup(state_id);
-        const uint64_t* succs = entry.succs;
+        const StateID* succs = entry.succs;
         aops.resize(entry.naops, nullptr);
         successors.resize(entry.naops);
 
@@ -244,8 +241,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
 
             Distribution<StateID>& result = successors[i];
             for (unsigned j = 0; j < op->num_outcomes(); ++j, ++succs) {
-                assert(test[j].element == *succs);
-                assert(test[j].probability == op->get(j).prob);
+                assert(test[j] == WeightedElement(*succs, op->get(j).prob));
                 result.add(*succs, op->get(j).prob);
             }
 
@@ -347,7 +343,7 @@ bool TransitionGenerator<const ProbabilisticOperator*>::setup_cache(
         entry.naops = aops_.size();
 
         if (entry.naops > 0) {
-            entry.aops = cache_data_.allocate(aops_.size());
+            entry.aops = cache_data_.allocate<ActionID>(aops_.size());
 
             std::vector<WeightedElement<StateID>> succs;
             for (size_t i = 0; i < aops_.size(); ++i) {
@@ -363,7 +359,7 @@ bool TransitionGenerator<const ProbabilisticOperator*>::setup_cache(
                 succs.clear();
             }
 
-            entry.succs = cache_data_.allocate(successors_.size());
+            entry.succs = cache_data_.allocate<StateID>(successors_.size());
 
             for (size_t i = 0; i != successors_.size(); ++i) {
                 entry.succs[i] = successors_[i];

@@ -12,18 +12,20 @@ ActionIDMap<const ProbabilisticOperator*>::ActionIDMap()
 
 ActionIDMap<const ProbabilisticOperator*>::ActionIDMap(
     const std::vector<ProbabilisticOperator>& ops)
-    : first_(!ops.empty() ? &ops[0] : nullptr)
-{
+    : first_(!ops.empty() ? ops.data() : nullptr)
 #ifndef NDEBUG
-    num_operators_ = ops.size();
+    , num_operators_(ops.size())
 #endif
+{
 }
 
 ActionID ActionIDMap<const ProbabilisticOperator*>::get_action_id(
     const StateID&,
     const ProbabilisticOperator* const& op)
 {
-    assert(int(op - first_) >= 0 && int(op - first_) < int(num_operators_));
+    assert(
+        op - first_ >= 0 &&
+        static_cast<std::size_t>(op - first_) < num_operators_);
     return ActionID(op - first_);
 }
 

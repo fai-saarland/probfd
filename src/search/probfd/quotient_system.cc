@@ -98,7 +98,8 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_applicable_ops(
                 result.emplace_back(qstates[i], ActionID(j));
             }
         }
-        ++(gen_->statistics_.aops_generator_calls);
+        
+        ++gen_->statistics_.aops_generator_calls;
         gen_->statistics_.generated_operators += result.size();
     } else {
         this->fallback_->generate_applicable_ops(sid, result);
@@ -114,8 +115,8 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_successors(
         assert(state_infos_[sid].states[0] == sid);
         auto& cached = lookup(a.state_id);
         assert(a.action_id < cached.naops);
-        const uint64_t* succ = cached.succs;
-        const uint64_t* aop = cached.aops;
+        const StateID* succ = cached.succs;
+        const ActionID* aop = cached.aops;
 
         auto aop_end = aop + a.action_id;
         for (; aop != aop_end; ++aop) {
@@ -145,21 +146,23 @@ void QuotientSystem<const ProbabilisticOperator*>::generate_all_successors(
         assert(qstates[0] == sid);
         for (unsigned i = 0; i < qstates.size(); ++i) {
             auto& cached = lookup(qstates[i]);
-            const uint64_t* aop = cached.aops;
-            const uint64_t* succ = cached.succs;
+            const ActionID* aop = cached.aops;
+            const StateID* succ = cached.succs;
             for (unsigned k = 0; k < cached.naops; ++k, ++aop) {
                 aops.emplace_back(qstates[i], k);
                 successors.emplace_back();
                 Distribution<StateID>& succs = successors.back();
-                const ProbabilisticOperator* op = (gen_->first_op_ + *aop);
-                for (unsigned j = 0; j < op->num_outcomes(); ++j, ++succ) {
-                    succs.add(*succ, op->get(j).prob);
+                const ProbabilisticOperator& op = gen_->first_op_[*aop];
+                for (unsigned j = 0; j < op.num_outcomes(); ++j, ++succ) {
+                    succs.add(*succ, op.get(j).prob);
                     assert(state_infos_[*succ].states[0] == *succ);
                 }
+
                 gen_->statistics_.generated_states += succs.size();
             }
         }
-        ++(gen_->statistics_.all_transitions_generator_calls);
+
+        ++gen_->statistics_.all_transitions_generator_calls;
         gen_->statistics_.generated_operators += aops.size();
         return;
     }
@@ -220,13 +223,10 @@ QuotientSystem<const ProbabilisticOperator*>::get_original_action(
     if (cache_) {
         assert(
             state_infos_[sid].states[0] == sid &&
-            std::count(
-                state_infos_[sid].states.begin(),
-                state_infos_[sid].states.end(),
-                sid));
+            utils::contains(state_infos_[sid].states, sid));
         const auto& entry = lookup(a.state_id);
         assert(a.action_id < entry.naops);
-        return (gen_->first_op_ + entry.aops[a.action_id]);
+        return gen_->first_op_ + entry.aops[a.action_id];
     }
 
     return fallback_->get_original_action(sid, a);
@@ -275,56 +275,56 @@ QuotientSystem<const ProbabilisticOperator*>::lookup(const StateID& sid)
     bool cache_setup = false;
     auto& entry = gen_->lookup(sid, cache_setup);
 
-    if (cache_setup) {
-        DEBUG(std::cout << "cache for " << sid
-                        << " has been initialized -> applying abstraction ..."
-                        << std::endl;)
-        for (unsigned i = state_infos_.size();
-             i < gen_->state_registry_->size();
-             ++i) {
-            state_infos_.push_back(QuotientInformation(StateID(i)));
-        }
-
-        std::unordered_set<StateID> unique_successors;
-
-        {
-            const uint64_t* aop = entry.aops;
-            const uint64_t* aop_end = entry.aops + entry.naops;
-            uint64_t* succ = entry.succs;
-            DEBUG(std::cout << "   ";);
-            for (; aop != aop_end; ++aop) {
-                auto succ_end = succ + gen_->first_op_[*aop].num_outcomes();
-                for (; succ != succ_end; ++succ) {
-                    const StateID x = state_infos_[*succ].states[0];
-                    DEBUG(std::cout << " " << *succ << ":=" << x);
-                    *succ = x;
-                    DEBUG(std::cout << "(" << *succ << ")");
-                    // QuotientInformation& succ_info = state_infos_[*succ];
-                    // if (succ_info.parents.empty() || succ_info.parents.back() !=
-                    // sid) {
-                    //     succ_info.parents.push_back(sid);
-                    // }
-                    unique_successors.insert(x);
-                }
-            }
-        }
-        
-        DEBUG(std::cout << std::endl;)
-#if 1
-        for (const StateID& succ : unique_successors) {
-            if (succ != sid) {
-                assert(!utils::contains(state_infos_[succ].parents, sid));
-                state_infos_[succ].parents.push_back(sid);
-            }
-        }
-#endif
-    }
+    if (!cache_setup) {
 #ifndef NDEBUG
-    {
         // std::cout << "looked up " << sid << std::endl;
         verify_cache_consistency();
-    }
 #endif
+
+        return entry;
+    }
+
+    DEBUG(std::cout << "cache for " << sid
+                    << " has been initialized -> applying abstraction ..."
+                    << std::endl;)
+
+    for (auto i = state_infos_.size(); i < gen_->state_registry_->size(); ++i) {
+        state_infos_.push_back(QuotientInformation(StateID(i)));
+    }
+
+    std::unordered_set<StateID> unique_successors;
+
+    {
+        const ActionID* aop = entry.aops;
+        const ActionID* aop_end = entry.aops + entry.naops;
+        StateID* succ = entry.succs;
+        DEBUG(std::cout << "   ";);
+        for (; aop != aop_end; ++aop) {
+            auto succ_end = succ + gen_->first_op_[*aop].num_outcomes();
+            for (; succ != succ_end; ++succ) {
+                const StateID x = state_infos_[*succ].states[0];
+                DEBUG(std::cout << " " << *succ << ":=" << x);
+                *succ = x;
+                DEBUG(std::cout << "(" << *succ << ")");
+                unique_successors.insert(x);
+            }
+        }
+    }
+
+    DEBUG(std::cout << std::endl;)
+
+    for (const StateID& succ : unique_successors) {
+        if (succ != sid) {
+            assert(!utils::contains(state_infos_[succ].parents, sid));
+            state_infos_[succ].parents.push_back(sid);
+        }
+    }
+
+#ifndef NDEBUG
+    // std::cout << "looked up " << sid << std::endl;
+    verify_cache_consistency();
+#endif
+
     return entry;
 }
 
@@ -333,39 +333,33 @@ void QuotientSystem<const ProbabilisticOperator*>::verify_cache_consistency()
 {
     DEBUG(std::cout << "  current cache size: " << gen_->cache_.size()
                     << std::endl;)
+
     for (unsigned i = 0; i < gen_->cache_.size(); ++i) {
         const auto& entry = gen_->cache_[i];
-        if (entry.is_initialized()) {
-            DEBUG(std::cout << "  checking cache[" << i << "] ..."
-                            << std::flush;)
-            assert(i < state_infos_.size() && !state_infos_[i].states.empty());
-            DEBUG(std::cout << " -> represented by "
-                            << state_infos_[i].states[0]
-                            << "; naops=" << entry.naops << ": " << std::flush;)
-            const uint64_t* op = entry.aops;
-            const uint64_t* succ = entry.succs;
-            for (int j = entry.naops - 1; j >= 0; --j, ++op) {
-                for (int k = (gen_->first_op_ + *op)->num_outcomes() - 1;
-                     k >= 0;
-                     --k, ++succ) {
-                    assert(*succ < state_infos_.size());
-                    const QuotientInformation& info = state_infos_[*succ];
-                    DEBUG(std::cout << " {succ:" << (*succ) << "->"
-                                    << info.states[0] << "}" << std::flush;)
-                    assert(!info.states.empty() && info.states[0] == *succ);
-                    // assert(
-                    //     *succ == i
-                    //     || std::count(
-                    //         info.parents.begin(), info.parents.end(), i));
-                    // assert(
-                    //     *succ == i
-                    //     || (std::count(
-                    //             info.parents.begin(), info.parents.end(), i)
-                    //         == 1));
-                }
-            }
-            DEBUG(std::cout << std::endl;)
+
+        if (!entry.is_initialized()) {
+            continue;
         }
+
+        DEBUG(std::cout << "  checking cache[" << i << "] ..." << std::flush;)
+        assert(i < state_infos_.size() && !state_infos_[i].states.empty());
+        DEBUG(std::cout << " -> represented by " << state_infos_[i].states[0]
+                        << "; naops=" << entry.naops << ": " << std::flush;)
+
+        const ActionID* opid = entry.aops;
+        const StateID* succ = entry.succs;
+        for (int j = entry.naops - 1; j >= 0; --j, ++opid) {
+            const auto& aop = gen_->first_op_[*opid];
+            for (int k = aop.num_outcomes() - 1; k >= 0; --k, ++succ) {
+                assert(*succ < state_infos_.size());
+                const QuotientInformation& info = state_infos_[*succ];
+                DEBUG(std::cout << " {succ:" << (*succ) << "->"
+                                << info.states[0] << "}" << std::flush;)
+                assert(!info.states.empty() && info.states[0] == *succ);
+            }
+        }
+
+        DEBUG(std::cout << std::endl;)
     }
 }
 #endif

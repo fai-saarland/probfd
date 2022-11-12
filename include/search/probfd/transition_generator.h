@@ -5,7 +5,8 @@
 
 #include "probfd/probabilistic_operator.h"
 
-#include "algorithms/segmented_array_store.h"
+#include "probfd/storage/segmented_memory_pool.h"
+
 #include "algorithms/segmented_vector.h"
 
 #include "operator_cost.h"
@@ -100,8 +101,8 @@ private:
         }
 
         unsigned naops = std::numeric_limits<unsigned>::max();
-        uint64_t* aops = nullptr;
-        uint64_t* succs = nullptr;
+        ActionID* aops = nullptr;
+        StateID* succs = nullptr;
     };
 
     struct Statistics {
@@ -148,7 +149,7 @@ private:
     StateRegistry* state_registry_;
 
     Cache cache_;
-    segmented_array_store::SegmentedArrayStore<uint64_t> cache_data_;
+    storage::SegmentedMemoryPool<> cache_data_;
     std::vector<const ProbabilisticOperator*> aops_;
     std::vector<StateID> successors_;
 

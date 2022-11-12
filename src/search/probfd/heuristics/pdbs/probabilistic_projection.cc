@@ -271,7 +271,8 @@ void ProbabilisticProjection::add_abstract_operators(
             std::back_inserter(precondition));
 
         // Generate a hash for the precondition to check for duplicates
-        int pre_hash = state_mapper_->get_unique_partial_state_id(precondition);
+        long long int pre_hash =
+            state_mapper_->get_unique_partial_state_id(precondition);
 
         if (pruning && !duplicate_set.emplace(pre_hash, new_op).second) {
             continue;

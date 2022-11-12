@@ -161,7 +161,7 @@ AbstractStateMapper::AbstractStateMapper(
     assert(!pattern_.empty());
     assert(std::is_sorted(pattern_.begin(), pattern_.end()));
 
-    constexpr int maxint = std::numeric_limits<int>::max();
+    constexpr long long int maxint = std::numeric_limits<long long int>::max();
 
     {
         VariableInfo& first_info = var_infos_[0];
@@ -180,7 +180,7 @@ AbstractStateMapper::AbstractStateMapper(
 
         if (prev_info.partial_multiplier > maxint / (d + 1)) {
             throw std::range_error("Construction of PDB would exceed "
-                                   "std::numeric_limits<int>::max()");
+                                   "std::numeric_limits<long long int>::max()");
         }
 
         cur_info.var = pattern_[i];
@@ -196,7 +196,7 @@ AbstractStateMapper::AbstractStateMapper(
 
     if (last_info.partial_multiplier > maxint / (d + 1)) {
         throw std::range_error("Construction of PDB would exceed "
-                               "std::numeric_limits<int>::max()");
+                               "std::numeric_limits<long long int>::max()");
     }
 
     num_states_ = last_info.multiplier * d;
@@ -274,7 +274,7 @@ AbstractState AbstractStateMapper::from_fact(int idx, int val) const
 long long int AbstractStateMapper::get_unique_partial_state_id(
     const std::vector<std::pair<int, int>>& pstate) const
 {
-    int id = 0;
+    long long int id = 0;
     for (const auto& [var, val] : pstate) {
         id += var_infos_[var].partial_multiplier * (val + 1);
     }
@@ -316,7 +316,7 @@ AbstractState AbstractStateMapper::convert(
     assert(!pattern.empty());
 
     AbstractState converted_state(0);
-    int multiplier = 1;
+    long long int multiplier = 1;
 
     auto pattern_it = pattern.begin();
     auto pattern_end = pattern.end();

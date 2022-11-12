@@ -32,7 +32,7 @@ public:
     struct const_iterator {
         using iterator_type = std::forward_iterator_tag;
         using value_type = StateID::size_type;
-        using difference_type = int;
+        using difference_type = std::ptrdiff_t;
         using pointer = const StateID::size_type*;
         using reference = const StateID::size_type&;
 
@@ -164,6 +164,8 @@ public:
         const StateID& rid,
         ActionFilterIterator filter_it)
     {
+        assert(std::find(begin, end, rid) != end);
+
         if (!cache_) {
             fallback_->build_quotient(begin, end, rid, filter_it);
             return;
@@ -174,118 +176,61 @@ public:
         std::vector<StateID>& states = dest_info.states;
         const unsigned old_qstates = states.size();
 
-        std::set<uint64_t> uniqs;
-        std::unordered_set<uint64_t> states_set;
+        std::unordered_set<StateID> states_set;
 
-        {
-#ifndef NDEBUG
-            bool rid_is_in_range = false;
-#endif
-            for (auto it = begin; it != end; ++it) {
-                const StateID state_id = *it;
+        for (auto it = begin; it != end; ++it) {
+            const StateID state_id = *it;
 
-                if (state_id == rid) {
-#ifndef NDEBUG
-                    rid_is_in_range = true;
-#endif
-                    continue;
-                }
-
-                QuotientInformation& info = state_infos_[state_id];
-                assert(info.states[0] == state_id);
-
-                parents.insert(
-                    parents.end(),
-                    info.parents.begin(),
-                    info.parents.end());
-                info.parents.clear();
-                info.parents.shrink_to_fit();
-
-                states.insert(
-                    states.end(),
-                    info.states.begin(),
-                    info.states.end());
-
-                assert(utils::contains(states, state_id));
+            if (state_id == rid) {
+                continue;
             }
 
-            assert(rid_is_in_range);
+            QuotientInformation& info = state_infos_[state_id];
+            assert(info.states[0] == state_id);
 
-            states_set.insert(states.begin(), states.end());
+            std::move(
+                info.parents.begin(),
+                info.parents.end(),
+                std::back_inserter(parents));
 
-            for (auto it = begin; it != end; ++it, ++filter_it) {
-                const StateID state_id = *it;
-                QuotientInformation& info = state_infos_[state_id];
-                int e = (state_id != rid ? info.states.size() : old_qstates);
+            // Release Memory
+            decltype(info.parents)().swap(info.parents);
 
-                for (int i = 0; i < e; ++i) {
-                    auto state = info.states[i];
-                    update_cache(
-                        *filter_it,
-                        gen_->lookup(state),
-                        rid,
-                        states_set);
-                    state_infos_[state].states[0] = rid;
-                }
+            states.insert(states.end(), info.states.begin(), info.states.end());
 
-                if (state_id != rid) {
-                    info.states.resize(1);
-                    info.states[0] = rid;
-                    info.states.shrink_to_fit();
-                }
+            assert(utils::contains(states, state_id));
+        }
+
+        states_set.insert(states.begin(), states.end());
+
+        for (auto it = begin; it != end; ++it, ++filter_it) {
+            const StateID state_id = *it;
+            QuotientInformation& info = state_infos_[state_id];
+            const int e = (state_id != rid ? info.states.size() : old_qstates);
+
+            for (int i = 0; i < e; ++i) {
+                auto state = info.states[i];
+                update_cache(*filter_it, gen_->lookup(state), rid, states_set);
+                state_infos_[state].states[0] = rid;
+            }
+
+            if (state_id != rid) {
+                info.states.resize(1);
+                info.states[0] = rid;
+                info.states.shrink_to_fit();
             }
         }
 
-#if 0
-        {
-            std::set<uint64_t> diff;
-            std::set_difference(
-                uniqs.begin(),
-                uniqs.end(),
-                states_set.begin(),
-                states_set.end(),
-                std::inserter(diff, diff.end()));
-            diff.swap(uniqs);
-        }
+        auto rem_it = std::remove_if(
+            parents.begin(),
+            parents.end(),
+            [rid, this](StateID parent) {
+                return state_infos_[parent].states[0] != rid;
+            });
 
-        for (auto it = uniqs.begin(); it != uniqs.end(); ++it) {
-            QuotientInformation& info = state_infos_[*it];
-            assert(info.states[0] == *it);
-            assert(*it != rid);
-            unsigned i = 0;
-            bool in = false;
-            for (unsigned j = 0; j < info.parents.size(); ++j) {
-                if (!states_set.count(info.parents[j])) {
-                    info.parents[i] = info.parents[j];
-                    ++i;
-                } else if (!in) {
-                    info.parents[i] = rid;
-                    ++i;
-                    in = true;
-                }
-            }
-            info.parents.resize(i);
-            info.parents.shrink_to_fit();
-#ifndef NDEBUG
-            std::vector<StateID> p(info.parents);
-            std::sort(p.begin(), p.end());
-            assert(std::unique(p.begin(), p.end()) == p.end());
-#endif
-        }
-#endif
-
-        {
-            unsigned i = 0;
-            for (const StateID& parent : parents) {
-                const StateID new_id = state_infos_[parent].states[0];
-                if (new_id != rid) {
-                    parents[i++] = new_id;
-                }
-            }
-            parents.resize(i);
-            utils::sort_unique(parents);
-            parents.shrink_to_fit();
-        }
+        parents.erase(rem_it, parents.end());
+        utils::sort_unique(parents);
+        parents.shrink_to_fit();
 
         for (const StateID& parent : parents) {
             assert(parent != rid);
@@ -295,9 +240,9 @@ public:
 
             for (const StateID& parent_state : parent_states) {
                 auto& entry = gen_->lookup(parent_state);
-                const uint64_t* aop = entry.aops;
-                const uint64_t* aop_end = entry.aops + entry.naops;
-                uint64_t* succ = entry.succs;
+                const ActionID* aop = entry.aops;
+                const ActionID* aop_end = entry.aops + entry.naops;
+                StateID* succ = entry.succs;
 
                 for (; aop != aop_end; ++aop) {
                     auto succ_e = succ + gen_->first_op_[*aop].num_outcomes();
@@ -312,94 +257,23 @@ public:
             }
         }
 
-#if 0
-        {
-
-            auto substitute =
-                [](const ProbabilisticOperator* first_op,
-                   const std::set<uint64_t>& states_set,
-                   const StateID& rid,
-                   TransitionGenerator<
-                       const ProbabilisticOperator*>::CacheEntry& entry) {
-                    const uint64_t* aop = entry.aops;
-                    uint64_t* succ = entry.succs;
-                    for (int k = entry.naops - 1; k >= 0; --k, ++aop) {
-                        for (int l = (first_op + *aop)->num_outcomes() - 1;
-                             l >= 0;
-                             --l, ++succ) {
-                            if (states_set.count(*succ)) {
-                                *succ = rid;
-                            }
-                            // assert(state_infos_[*succ].states[0] == *succ);
-                        }
-                    }
-                };
-
-            unsigned i = 0;
-            auto state = states_set.begin();
-            auto parent = parents.begin();
-            while (state != states_set.end() && parent != parents.end()) {
-                if (*state < *parent) {
-                    ++state;
-                } else if (*state == *parent) {
-                    ++state;
-                    ++parent;
-                } else {
-                    if (i == 0 || parents[i - 1] != *parent) {
-                        parents[i++] = *parent;
-                        assert(*parent != rid);
-                        assert(state_infos_[*parent].states[0] == *parent);
-                        auto& entry = gen_->lookup(*parent);
-                        substitute(gen_->first_op_, states_set, rid, entry);
-                    }
-                    ++parent;
-                }
-            }
-            while (parent != parents.end()) {
-                if (i == 0 || parents[i - 1] != *parent) {
-                    parents[i++] = *parent;
-                    assert(*parent != rid);
-                    assert(state_infos_[*parent].states[0] == *parent);
-                    auto& entry = gen_->lookup(*parent);
-                    substitute(gen_->first_op_, states_set, rid, entry);
-                }
-                ++parent;
-            }
-
-            parents.resize(i);
-            parents.shrink_to_fit();
-        }
-#endif
-
 #ifndef NDEBUG
         {
             const QuotientInformation& qinfo = state_infos_[rid];
             assert(!qinfo.states.empty());
             assert(qinfo.states[0] == rid);
-            assert(
-                !std::count(qinfo.parents.begin(), qinfo.parents.end(), rid));
+            assert(!utils::contains(qinfo.parents, rid));
+
             std::vector<StateID> uqs = qinfo.states;
             std::sort(uqs.begin(), uqs.end());
             assert(std::unique(uqs.begin(), uqs.end()) == uqs.end());
+
             uqs = qinfo.parents;
             std::sort(uqs.begin(), uqs.end());
             assert(std::unique(uqs.begin(), uqs.end()) == uqs.end());
         }
 
-#if 0
-        std::cout << "new quotient #" << rid << " -> [";
-        for (auto it = begin; it != end; ++it) {
-            std::cout << (it != begin ? ", " : "") << (*it);
-        }
-        std::cout << "] === [";
-        for (unsigned i = 0; i < states.size(); ++i) {
-            std::cout << (i > 0 ? ", " : "") << states[i];
-        }
-        std::cout << "]" << std::endl;
-#endif
-
         verify_cache_consistency();
-
 #endif
     }
 
@@ -416,14 +290,14 @@ private:
     void update_cache(
         const std::vector<Action>& exclude,
         engine_interfaces::TransitionGenerator<Action>::CacheEntry& entry,
-        const uint64_t rid,
-        const std::unordered_set<uint64_t>& quotient_states)
+        const StateID rid,
+        const std::unordered_set<StateID>& quotient_states)
     {
         unsigned new_size = 0;
-        uint64_t* aops_src = entry.aops;
-        uint64_t* aops_dest = entry.aops;
-        uint64_t* succ_src = entry.succs;
-        uint64_t* succ_dest = entry.succs;
+        ActionID* aops_src = entry.aops;
+        ActionID* aops_dest = entry.aops;
+        StateID* succ_src = entry.succs;
+        StateID* succ_dest = entry.succs;
 
         auto aops_src_end = aops_src + entry.naops;
         for (; aops_src != aops_src_end; ++aops_src) {
@@ -433,18 +307,14 @@ private:
             }
 
             bool self_loop = true;
-            uint64_t* k = succ_dest;
+            StateID* k = succ_dest;
 
             auto succ_src_end = succ_src + op->num_outcomes();
             for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {
-                bool member = utils::contains(quotient_states, *succ_src);
+                const bool member = utils::contains(quotient_states, *succ_src);
                 *succ_dest = member ? rid : *succ_src;
                 self_loop = self_loop && (*succ_dest == rid);
-            }
-
-            if (self_loop) {
                 succ_dest = k;
-            } else {
                 *aops_dest = *aops_src;
                 ++aops_dest;
                 ++new_size;

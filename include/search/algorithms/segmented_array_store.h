@@ -1,53 +1,49 @@
 #pragma once
 
 #include <cassert>
-#include <queue>
+#include <vector>
 
 namespace segmented_array_store {
 
-template<typename T>
+template <std::size_t SEGMENT_SIZE = 16384>
 class SegmentedArrayStore {
-public:
-    static constexpr const std::size_t SEGMENT_ELEMENTS = 16384;
-    static constexpr const std::size_t SEGMENT_SIZE =
-        (SEGMENT_ELEMENTS * sizeof(T));
+    std::size_t space_left = 0;
+    void* current_ = nullptr;
+    std::vector<void*> segments_;
 
-    explicit SegmentedArrayStore()
-    {
-    }
+public:
+    SegmentedArrayStore() = default;
 
     ~SegmentedArrayStore()
     {
-        while (!segments_.empty()) {
-            delete[](segments_.front());
-            segments_.pop();
+        for (void* segment : segments_) {
+            delete[](segment);
         }
     }
 
-    T* allocate(const unsigned size)
+    template <typename T>
+    T* allocate(const std::size_t elements)
     {
-        assert(size <= SEGMENT_ELEMENTS);
-        if (size > segments_left_) {
-            segments_left_ = SEGMENT_ELEMENTS;
-            current_ = new char[SEGMENT_SIZE];
-            segments_.push(current_);
+        const std::size_t size = elements * sizeof(T);
+
+        assert(size <= SEGMENT_SIZE);
+
+        if (!std::align(alignof(T), size, current_, space_left)) {
+            space_left = SEGMENT_SIZE;
+            current_ = ::operator new[](SEGMENT_SIZE);
+            segments_.push_back(current_);
         }
+
         T* res = reinterpret_cast<T*>(current_);
-        current_ += (size * sizeof(T));
-        segments_left_ -= size;
+        current_ = reinterpret_cast<char*>(current_) + size;
+        space_left -= size;
         return res;
     }
 
     std::size_t size_in_bytes() const
     {
-        return (segments_.size() * SEGMENT_ELEMENTS)
-            * sizeof(T);
+        return segments_.size() * SEGMENT_SIZE;
     }
-
-private:
-    std::size_t segments_left_ = 0;
-    char* current_ = nullptr;
-    std::queue<char*> segments_;
 };
 
 } // namespace segmented_array_store
