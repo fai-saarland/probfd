@@ -1,4 +1,3 @@
-
 import copy
 
 import sas_tasks
@@ -87,7 +86,7 @@ def _augment_probabilistic_task(sas_task, budget, cost_function, budget_var_id):
                 outcomes.append((len(new_operators), p))
                 new_operators.append(_shift_operator(sas_task.operators[out_id]))
             pop.outcomes = tuple(outcomes)
-            new_prob_operators.appennd(pop)
+            new_prob_operators.append(pop)
         elif min_cost <= budget:
             for b in range(min_cost, budget + 1):
                 outcomes = []
@@ -110,4 +109,3 @@ def augment_task_by_budget(sas_task, budget, cost_function = budget_cost_functio
     for axiom in sas_task.axioms:
         axiom.condition = _shift_fact_pairs(axiom.condition)
         axiom.effect = _shift_fact_pairs(axiom.effect)
-
