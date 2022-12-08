@@ -698,6 +698,22 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME TRAP_AWARE_LRTDP_SOLVER
+    HELP "Trap-Aware LRTDP (TALRTDP)"
+    SOURCES
+        probfd/solvers/talrtdp
+    DEPENDS MDP_HEURISTIC_SEARCH_BASE
+)
+
+fast_downward_plugin(
+    NAME TRAP_AWARE_DFHS_SOLVER
+    HELP "Trap-Aware DFHS (TADFHS)"
+    SOURCES
+        probfd/solvers/tadfhs
+    DEPENDS MDP_HEURISTIC_SEARCH_BASE
+)
+
+fast_downward_plugin(
     NAME HDFS_SOLVERS
     HELP "heuristic depth-first search"
     SOURCES

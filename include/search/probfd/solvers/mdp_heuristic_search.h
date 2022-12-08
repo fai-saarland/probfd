@@ -17,8 +17,9 @@
 #include "probfd/policy_picker.h"
 #include "probfd/quotient_system.h"
 
-#include "state_space_interface_wrappers.h"
 #include "option_parser.h"
+#include "state_space_interface_wrappers.h"
+
 
 #include <memory>
 
@@ -203,8 +204,10 @@ public:
     {
         if (dual_bounds_) {
             return new HS<GlobalState, QAction, std::true_type>(
-                args...,
-                this->quotient_.get(),
+                this->get_state_id_map(),
+                q_action_id_map_.get(),
+                q_reward_.get(),
+                q_transition_gen_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -212,15 +215,14 @@ public:
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
-                this->get_state_id_map(),
-                q_action_id_map_.get(),
-                this->get_state_reward_function(),
-                q_reward_.get(),
-                q_transition_gen_.get());
+                this->quotient_.get(),
+                args...);
         } else {
             return new HS<GlobalState, QAction, std::false_type>(
-                args...,
-                this->quotient_.get(),
+                this->get_state_id_map(),
+                q_action_id_map_.get(),
+                q_reward_.get(),
+                q_transition_gen_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -228,11 +230,8 @@ public:
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
-                this->get_state_id_map(),
-                q_action_id_map_.get(),
-                this->get_state_reward_function(),
-                q_reward_.get(),
-                q_transition_gen_.get());
+                this->quotient_.get(),
+                args...);
         }
     }
 
