@@ -41,15 +41,32 @@ parse_operator_outcome_name(const std::string& name)
             std::istringstream(
                 tmp.substr(weight_num_pos + 1, std::string::npos)) >>
                 denominator;
+
+            size_t parameter_pos = name.find(" ");
+
+            if (parameter_pos != std::string::npos) {
+                return std::make_pair(
+                    std::make_pair((int)numerator, (int)denominator),
+                    name.substr(0, det_pos) +
+                        name.substr(name.find(" "), std::string::npos));
+            }
+
             return std::make_pair(
                 std::make_pair((int)numerator, (int)denominator),
-                name.substr(0, det_pos) +
-                    name.substr(name.find(" "), std::string::npos));
+                name.substr(0, det_pos));
         } else {
+            size_t parameter_pos = name.find(" ");
+
+            if (parameter_pos != std::string::npos) {
+                return std::make_pair(
+                    std::make_pair(1, 1),
+                    name.substr(0, det_pos) +
+                        name.substr(name.find(" "), std::string::npos));
+            }
+
             return std::make_pair(
                 std::make_pair(1, 1),
-                name.substr(0, det_pos) +
-                    name.substr(name.find(" "), std::string::npos));
+                name.substr(0, det_pos));
         }
     } else {
         return std::make_pair(std::make_pair(1, 1), name);
