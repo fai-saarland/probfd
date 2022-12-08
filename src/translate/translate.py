@@ -616,7 +616,7 @@ def pddl_to_sas(task):
             budget_compilation.augment_task_by_budget(sas_task, options.budget)
 
     if options.discount_factor != None:
-        with timers.timing("Compiling dicount factor", block=True):
+        with timers.timing("Compiling discount factor", block=True):
             if options.discount_factor <= 0.0 or options.discount_factor >= 1.0:
                 sys.stderr.write(
                     "Discount factor must be in range (0, 1)! Got %d.\n" %
