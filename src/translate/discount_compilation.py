@@ -5,43 +5,29 @@ from fractions import Fraction
 
 
 def augment_task_by_discount_factor(sas_task, discount):
-    pattributes = re.compile("\(\s*(.+)_DETDUP_(\d+)_WEIGHT_(\d+)_(\d+)(.+)\)")
+    assert sas_task.probabilistic_operators
 
-    def key(op):
-        pre = tuple(
-            sorted(
-                list(op.prevail) +
-                [(var, pre) for (var, pre, _, _) in op.pre_post if pre != -1]))
-
-        m = pattributes.match(op.name)
-
-        if m is None:
-            name = op.name.split(maxsplit=1)
-            return (name[0][1:], name[1][:-1], pre), Fraction(1, 1), 0
-
-        return (m.group(1), m.group(5).strip(),
-                pre), Fraction(int(m.group(3)),
-                               int(m.group(4))), int(m.group(2))
-
-    prob_ops = {}
-    for op in sas_task.operators:
-        k, p, nr = key(op)
-        if not k is None:
-            if not k in prob_ops:
-                prob_ops[k] = []
-            prob_ops[k].append((p, nr, op))
-        else:
-            prob_ops[k] = [(p, nr, op)]
-
+    op_id = len(sas_task.operators)
     leftover = Fraction(1, 1) - discount
 
-    for ((name, params, pre), outcomes) in prob_ops.items():
-        for (prob, nr, op) in outcomes:
-            new_prob = discount * prob
+    for pop in sas_task.probabilistic_operators:
+        new_outcomes = []
 
-            op.name = "(%s_DETDUP_%d_WEIGHT_%d_%d%s)" % (
-                name, nr, new_prob.numerator, new_prob.denominator,
-                "" if len(params) == 0 else " %s" % params)
+        for out_id, probability in pop.outcomes:
+            new_prob = probability * discount
+            op = sas_task.operators[out_id]
+            op.probability = new_prob
+            new_outcomes.append((out_id, new_prob))
+
+        new_outcomes.append((op_id, leftover))
+        pop.outcomes = tuple(new_outcomes)
+
+        print(pop.outcomes)
+        first = sas_task.operators[pop.outcomes[0][0]]
+
+        pre = first.prevail + [
+            (var, pre) for (var, pre, _, _) in first.pre_post if pre != -1
+        ]
 
         def get_precondition(pres, var):
             for pvar, pval in pres:
@@ -56,10 +42,7 @@ def augment_task_by_discount_factor(sas_task, discount):
                     for (gvar, gval) in sas_task.goal.pairs]
 
         sas_task.operators.append(
-            sas_tasks.SASOperator(
-                "(%s_DETDUP_%d_WEIGHT_%d_%d%s)" %
-                (name, len(outcomes), leftover.numerator, leftover.denominator,
-                 "" if len(params) == 0 else " %s" % params),
-                prevail,
-                pre_post,  # Remove discount fact
-                min([out.cost for (_, _, out) in outcomes])))
+            sas_tasks.SASOperator(first.identifier, first.name, prevail,
+                                  pre_post, first.cost, leftover))
+
+        op_id += 1

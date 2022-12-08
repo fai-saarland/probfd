@@ -1,4 +1,8 @@
-SAS_FILE_VERSION = 3
+import fractions
+from collections import defaultdict
+
+SAS_FILE_VERSION = "3"
+SAS_FILE_VERSION_PROBABILISTIC = "3P"
 
 DEBUG = False
 
@@ -22,8 +26,69 @@ class SASTask:
         self.axioms = sorted(axioms, key=lambda axiom: (
             axiom.condition, axiom.effect))
         self.metric = metric
+        self.probabilistic_operators = []
         if DEBUG:
             self.validate()
+
+
+    def _remove_noop_operators(self):
+        assert not self.probabilistic_operators
+        i = 0
+        for j in range(len(self.operators)):
+            if self.operators[j].pre_post:
+                if i != j:
+                    self.operators[i] = self.operators[j]
+                i += 1
+        self.operators = self.operators[:i]
+
+
+    def rebuild_probabilistic_operators(self):
+        def prob_op_identifier(outcome):
+            # Need to take into account preconditions due to normalization step
+            # when translation a propositional operator into a sas operator
+            # (cf. translate.py)
+            precon = []
+            for var, val in outcome.prevail:
+                precon.append((var, val))
+            for var, pre, _, _ in outcome.pre_post:
+                if pre != -1:
+                    precon.append((var, pre))
+            precon = sorted(precon)
+            return (outcome.identifier, tuple(precon))
+        mapping = defaultdict(list)
+        prob = False
+        for i, outcome in enumerate(self.operators):
+            ix = prob_op_identifier(outcome)
+            mapping[ix].append((i, outcome.probability or fractions.Fraction(1)))
+            prob = prob or (outcome.probability != None and outcome.probability < fractions.Fraction(1))
+        if not prob:
+            return self._remove_noop_operators()
+        for key in mapping:
+            group = mapping[key]
+            remainder = fractions.Fraction(1)
+            for i, _ in group:
+                name = self.operators[i].name
+                break
+            for _, p in group:
+                remainder = remainder - p
+            assert remainder == fractions.Fraction(0), "%s' outcome probabilities do not sum up to 1 %r" % (name, remainder)
+            assert len(set((self.operators[i].name for i, _ in group))) == 1, "outcomes have different action names"
+            is_noop = True
+            for i, _ in group:
+                if self.operators[i].pre_post:
+                    is_noop = False
+                    break
+            if not is_noop:
+                self.probabilistic_operators.append(ProbabilisticSASOperator(name, group))
+        self.probabilistic_operators = sorted(self.probabilistic_operators, key = lambda op: (op.name, len(op.outcomes)))
+        newidx = {}
+        for pop in self.probabilistic_operators:
+            for idx, _ in pop.outcomes:
+                newidx[idx] = len(newidx)
+            pop.outcomes = tuple(((newidx[i], p) for i, p in pop.outcomes))
+        ops = self.operators
+        self.operators = [ ops[newidx[i]] for i in range(len(ops)) if i in newidx ]
+
 
     def validate(self):
         """Fail an assertion if the task is invalid.
@@ -54,6 +119,8 @@ class SASTask:
             op.validate(self.variables)
         for axiom in self.axioms:
             axiom.validate(self.variables, self.init)
+        for op in self.probabilistic_operators:
+            op.validate(self.variables)
         assert self.metric is False or self.metric is True, self.metric
 
     def dump(self):
@@ -73,11 +140,17 @@ class SASTask:
         print("%d axioms:" % len(self.axioms))
         for axiom in self.axioms:
             axiom.dump()
+        print("%d probabilistic operators:" % len(self.probabilistic_operators))
+        for op in self.probabilistic_operators:
+            op.dump()
         print("metric: %s" % self.metric)
 
     def output(self, stream):
         print("begin_version", file=stream)
-        print(SAS_FILE_VERSION, file=stream)
+        if self.probabilistic_operators:
+            print(SAS_FILE_VERSION_PROBABILISTIC, file=stream)
+        else:
+            print(SAS_FILE_VERSION, file=stream)
         print("end_version", file=stream)
         print("begin_metric", file=stream)
         print(int(self.metric), file=stream)
@@ -94,6 +167,10 @@ class SASTask:
         print(len(self.axioms), file=stream)
         for axiom in self.axioms:
             axiom.output(stream)
+        if self.probabilistic_operators:
+            print(len(self.probabilistic_operators), file=stream)
+            for op in self.probabilistic_operators:
+                op.output(stream)
 
     def get_encoding_size(self):
         task_size = 0
@@ -105,6 +182,8 @@ class SASTask:
             task_size += op.get_encoding_size()
         for axiom in self.axioms:
             task_size += axiom.get_encoding_size()
+        for op in self.probabilistic_operators:
+            task_size += op.get_encoding_size()
         return task_size
 
 
@@ -250,12 +329,41 @@ class SASGoal:
         return len(self.pairs)
 
 
+class ProbabilisticSASOperator:
+    def __init__(self, name, outcomes):
+        self.name = name
+        self.outcomes = tuple(outcomes)
+
+    def validate(self, variables):
+        assert len(self.outcomes) >= 1
+        assert sum((prob for _, prob in self.outcomes)) == fractions.Fraction(1)
+
+    def dump(self):
+        print(self.name)
+        print("outcomes:", len(self.outcomes))
+        for out, prob in self.outcomes:
+            print(out, prob)
+
+    def output(self, stream):
+        print("begin_probabilistic_operator", file=stream)
+        print(self.name[1:-1], file=stream)
+        print(len(self.outcomes), file=stream)
+        for out, prob in self.outcomes:
+            print(out, prob, file = stream)
+        print("end_probabilistic_operator", file=stream)
+
+    def get_encoding_size(self):
+        return len(self.outcomes)
+
+
 class SASOperator:
-    def __init__(self, name, prevail, pre_post, cost):
+    def __init__(self, identifier, name, prevail, pre_post, cost, probability):
+        self.identifier = identifier
         self.name = name
         self.prevail = sorted(prevail)
         self.pre_post = self._canonical_pre_post(pre_post)
         self.cost = cost
+        self.probability = probability
 
     def _canonical_pre_post(self, pre_post):
         # Return a sorted and uniquified version of pre_post. We would

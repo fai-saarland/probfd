@@ -6,6 +6,7 @@
 #include "global_operator.h"
 
 #include <iterator>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -53,6 +54,10 @@ public:
         unsigned id,
         std::string name,
         std::vector<ProbabilisticOutcome> outcomes);
+
+    ProbabilisticOperator(
+        unsigned id,
+        std::istream& in);
 
     /**
      * @brief Gets the id of the operator

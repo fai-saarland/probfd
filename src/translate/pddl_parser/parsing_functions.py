@@ -304,7 +304,7 @@ def parse_assignment(alist):
         assert False, "Assignment operator not supported."
 
 
-def parse_action(alist, type_dict, predicate_dict):
+def parse_action(action_identifier, alist, type_dict, predicate_dict):
     iterator = iter(alist)
     action_tag = next(iterator)
     assert action_tag == ":action"
@@ -333,39 +333,25 @@ def parse_action(alist, type_dict, predicate_dict):
     assert effect_tag == ":effect"
     effect_list = next(iterator)
     eff = []
+    outcomes = []
     if effect_list:
         try:
             cost_eff_pairs = parse_effects(
                 effect_list, eff, type_dict, predicate_dict)
             if 1 == len(cost_eff_pairs):
-                cost_eff_pairs = [(cost_eff_pairs[0][0], cost_eff_pairs[0][1], '')]
+                cost, eff, prob = cost_eff_pairs[0]
+                assert prob == fractions.Fraction(1)
+                outcomes.append(pddl.Action(action_identifier, name, parameters, len(parameters), precondition, eff, cost, prob))
             else:
-                # Convert floats to fractions to output
-                # TODO : Benchmark this fraction conversion
-                all_fractions = []
-                # summed = fractions.Fraction(0)
-                for cep in cost_eff_pairs:
-                    all_fractions.append(fractions.Fraction(cep[2]).limit_denominator())
-                    # summed += all_fractions[-1]
-                # assert(summed == fractions.Fraction(1))
-                # lcm = functools.reduce(lambda a,b: (a*b)/fractions.gcd(a,b), [f.denominator for f in all_fractions], 1)
-                lcm = all_fractions[0].denominator
-                for f in all_fractions[1:]:
-                    lcm = lcm * f.denominator // math.gcd(lcm, f.denominator)
-                # Use the fractions and lcm to build the weights
-                cost_eff_pairs = [(cost_eff_pairs[i][0], cost_eff_pairs[i][1], "_DETDUP_%d_WEIGHT_%d_%d" %
-                    (i, all_fractions[i].numerator*(lcm/all_fractions[i].denominator), lcm)) for i in range(len(cost_eff_pairs))]
+                probabilities = []
+                for epair in cost_eff_pairs:
+                    cost, eff, prob = epair
+                    outcomes.append(pddl.Action(action_identifier, name, parameters, len(parameters), precondition, eff, cost, fractions.Fraction(prob).limit_denominator()))
         except ValueError as e:
             raise SystemExit("Error in Action %s\nReason: %s." % (name, e))
     for rest in iterator:
         assert False, rest
-    return [pddl.Action(
-        name + suffix,
-        parameters,
-        len(parameters),
-        precondition,
-        eff,
-        cost) for (cost, eff, suffix) in cost_eff_pairs]
+    return outcomes
 
 
 def parse_axiom(alist, type_dict, predicate_dict):
@@ -472,7 +458,7 @@ def parse_domain_pddl(domain_pddl):
             axiom = parse_axiom(entry, type_dict, predicate_dict)
             the_axioms.append(axiom)
         else:
-            action = parse_action(entry, type_dict, predicate_dict)
+            action = parse_action(len(the_actions), entry, type_dict, predicate_dict)
             # if action is not None:
             the_actions.extend(action)
     yield the_actions
