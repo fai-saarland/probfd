@@ -27,7 +27,7 @@
 namespace probfd {
 namespace engines {
 
-/// I do not know this algorithm.
+/// namespace for anytime TVI
 namespace exhaustive_dfs {
 
 struct Statistics {
@@ -81,13 +81,6 @@ struct Statistics {
     void evaluation_finished() { TIMERS_ENABLED(evaluation_time.stop();) }
 };
 
-enum class BacktrackingUpdateType {
-    Disabled,
-    SimplePropagation,
-    FullValueUpdatesOnTrace,
-    FullValueUpdatesOnStack,
-};
-
 inline bool update_lower_bound(value_t& x, value_t v)
 {
     if (v > x) {
@@ -108,6 +101,15 @@ inline bool update_lower_bound(Interval& x, value_t v)
     return false;
 }
 
+/**
+ * @brief Implementation of an anyime topological value iteration
+ * variant.
+ *
+ * @tparam State - The state type of the underlying MDP.
+ * @tparam Action - The action type of the underlying MDP.
+ * @tparam UseInterval - Whether interval state values are used.
+ *
+ */
 template <typename State, typename Action, bool UseInterval>
 class ExhaustiveDepthFirstSearch
     : public MDPEngine<State, Action>
@@ -176,7 +178,7 @@ public:
         bool reevaluate,
         bool notify_initial,
         engine_interfaces::SuccessorSorter<Action>* successor_sorting,
-        BacktrackingUpdateType path_updates,
+        bool path_updates,
         bool only_propagate_when_changed,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* progress)
@@ -191,7 +193,7 @@ public:
         , trivial_bound_(get_trivial_bound())
         , evaluator_(evaluator)
         , new_state_handler_(new_state_handler)
-        , reverse_path_updates_(path_updates)
+        , value_propagation_(path_updates)
         , only_propagate_when_changed_(only_propagate_when_changed)
         , evaluator_recomputation_(reevaluate)
         , notify_initial_state_(notify_initial)
@@ -682,24 +684,14 @@ private:
 
         skip:
 
-            if (val_changed || !only_propagate_when_changed_) {
-                switch (reverse_path_updates_) {
-                case BacktrackingUpdateType::Disabled: break;
-                case BacktrackingUpdateType::SimplePropagation:
+            if ((val_changed || !only_propagate_when_changed_) 
+                    && value_propagation_) {
                     propagate_value_along_trace(
                         completely_explored,
                         as_lower_bound(node_info.value));
-                    break;
-                case BacktrackingUpdateType::FullValueUpdatesOnTrace:
-                    value_updates_along_trace(completely_explored);
-                    break;
-                case BacktrackingUpdateType::FullValueUpdatesOnStack:
-                    value_updates_along_stack(completely_explored);
-                    break;
-                }
             }
         }
-    }
+}
 
     void propagate_value_along_trace(bool was_poped, value_t val)
     {
@@ -723,222 +715,6 @@ private:
         if (it == expansion_infos_.rend()) {
             report_->operator()();
         }
-    }
-
-    void value_updates_along_trace(bool /*was_poped*/)
-    {
-        auto it = expansion_infos_.rbegin();
-        // if (!was_poped) {
-        //     ++it;
-        // }
-        for (; it != expansion_infos_.rend(); ++it) {
-            ++statistics_.value_updates;
-
-            StackInformation& st = stack_infos_[it->stack_index];
-            SearchNodeInformation& sn = search_space_[st.state_ref];
-            IncumbentSolution new_val(as_lower_bound(sn.value));
-            {
-                const int i = it->successors.size() - 1;
-                const auto& succs = it->successors[i];
-                const auto& t = st.successors[i];
-
-                IncumbentSolution val(t.base);
-                for (const auto& [succ_id, prob] : t.successors) {
-                    val += prob * search_space_[succ_id].value;
-                }
-
-                for (auto succ = it->succ; succ != succs.end(); ++succ) {
-                    const auto& succ_info = search_space_[succ->item];
-                    if (succ_info.is_new()) {
-                        val += succ->probability * trivial_bound_;
-                    } else {
-                        val += succ->probability * succ_info.value;
-                    }
-                }
-
-                val *= t.self_loop;
-                set_max(new_val, val);
-            }
-
-            for (int i = it->successors.size() - 2; i >= 0; --i) {
-                auto& succs = it->successors[i];
-                auto& t = st.successors[i];
-                IncumbentSolution val(t.base);
-                for (const auto& [succ_id, prob] : t.successors) {
-                    val += prob * search_space_[succ_id].value;
-                }
-
-                for (auto succ = succs.begin(); succ != succs.end();) {
-                    const auto [succ_id, prob] = *succ;
-                    const auto& succ_info = search_space_[succ_id];
-
-                    if (succ_info.is_new()) {
-                        val += prob * trivial_bound_;
-                        ++succ;
-                    } else if (succ_info.is_onstack()) {
-                        sn.lowlink = std::min(sn.lowlink, succ_info.lowlink);
-                        val += prob * succ_info.value;
-                        t.successors.add(succ_id, prob);
-                        succ = succs.erase(succ);
-                    } else {
-                        assert(succ_info.is_closed());
-                        t.base += as_lower_bound(succ_info.value) * prob;
-                        val += prob * succ_info.value;
-                        it->all_successors_are_dead =
-                            it->all_successors_are_dead &&
-                            succ_info.is_dead_end();
-                        it->all_successors_marked_dead =
-                            it->all_successors_marked_dead &&
-                            succ_info.is_marked_dead_end();
-                        succ = succs.erase(succ);
-                    }
-                }
-
-                val *= t.self_loop;
-                set_max(new_val, val);
-            }
-
-            for (unsigned i = st.successors.size() - 1;
-                 i > it->successors.size();
-                 --i) {
-                const auto& t = st.successors[i];
-                IncumbentSolution val(t.base);
-                for (const auto& [succ_id, prob] : t.successors) {
-                    val += prob * search_space_[succ_id].value;
-                }
-
-                val *= t.self_loop;
-                set_max(new_val, val);
-            }
-
-            if (!update(sn.value, new_val) && only_propagate_when_changed_) {
-                return;
-            }
-        }
-
-        assert(it == expansion_infos_.rend());
-        report_->operator()();
-    }
-
-    void value_updates_along_stack(bool /*was_poped*/)
-    {
-        auto it = expansion_infos_.rbegin();
-        // if (!was_poped) {
-        //     ++it;
-        // }
-        int stack_index = stack_infos_.size() - 1;
-        for (; it != expansion_infos_.rend(); ++it) {
-            assert(stack_index <= int(it->stack_index));
-            for (; stack_index > int(it->stack_index); --stack_index) {
-                ++statistics_.value_updates;
-
-                StackInformation& st = stack_infos_[stack_index];
-                SearchNodeInformation& sn = search_space_[st.state_ref];
-                IncumbentSolution new_val(as_lower_bound(sn.value));
-                for (int i = st.successors.size() - 1; i >= 0; --i) {
-                    const auto& t = st.successors[i];
-                    IncumbentSolution val(t.base);
-                    for (const auto& [succ_id, prob] : t.successors) {
-                        val += prob * search_space_[succ_id].value;
-                    }
-
-                    val *= t.self_loop;
-                    set_max(new_val, val);
-                }
-
-                update(sn.value, new_val);
-            }
-
-            ++statistics_.value_updates;
-            --stack_index;
-
-            StackInformation& st = stack_infos_[it->stack_index];
-            SearchNodeInformation& sn = search_space_[st.state_ref];
-            IncumbentSolution new_val(as_lower_bound(sn.value));
-            {
-                const int i = it->successors.size() - 1;
-                const auto& succs = it->successors[i];
-                const auto& t = st.successors[i];
-
-                IncumbentSolution val(t.base);
-                for (const auto& [succ_id, prob] : t.successors) {
-                    val += prob * search_space_[succ_id].value;
-                }
-
-                for (auto succ = it->succ; succ != succs.end(); ++succ) {
-                    const auto& succ_info = search_space_[succ->item];
-                    if (succ_info.is_new()) {
-                        val += succ->probability * trivial_bound_;
-                    } else {
-                        val += succ->probability * succ_info.value;
-                    }
-                }
-
-                val *= t.self_loop;
-                set_max(new_val, val);
-            }
-
-            for (int i = it->successors.size() - 2; i >= 0; --i) {
-                auto& succs = it->successors[i];
-                auto& t = st.successors[i];
-
-                IncumbentSolution val(t.base);
-                for (const auto& [succ_id, prob] : t.successors) {
-                    val += prob * search_space_[succ_id].value;
-                }
-
-                for (auto succ = succs.begin(); succ != succs.end();) {
-                    const auto [succ_id, prob] = *succ;
-                    const auto& succ_info = search_space_[succ_id];
-
-                    if (succ_info.is_new()) {
-                        val += prob * trivial_bound_;
-                        ++succ;
-                    } else if (succ_info.is_onstack()) {
-                        sn.lowlink = std::min(sn.lowlink, succ_info.lowlink);
-                        val += prob * succ_info.value;
-                        t.successors.add(succ_id, prob);
-                        succ = succs.erase(succ);
-                    } else {
-                        assert(succ_info.is_closed());
-                        t.base += as_lower_bound(succ_info.value) * prob;
-                        val += prob * succ_info.value;
-                        it->all_successors_are_dead =
-                            it->all_successors_are_dead &&
-                            succ_info.is_dead_end();
-                        it->all_successors_marked_dead =
-                            it->all_successors_marked_dead &&
-                            succ_info.is_marked_dead_end();
-                        succ = succs.erase(succ);
-                    }
-                }
-
-                val *= t.self_loop;
-                set_max(new_val, val);
-            }
-
-            for (unsigned i = st.successors.size() - 1;
-                 i > it->successors.size();
-                 --i) {
-                const auto& t = st.successors[i];
-
-                IncumbentSolution val(t.base);
-                for (const auto& [succ_id, prob] : t.successors) {
-                    val += prob * search_space_[succ_id].value;
-                }
-
-                val *= t.self_loop;
-                set_max(new_val, val);
-            }
-
-            if (!update(sn.value, new_val) && only_propagate_when_changed_) {
-                return;
-            }
-        }
-
-        assert(stack_index < 0);
-        assert(it == expansion_infos_.rend());
-        report_->operator()();
     }
 
     void mark_current_component_dead()
@@ -1007,7 +783,7 @@ private:
     engine_interfaces::StateEvaluator<State>* evaluator_;
     engine_interfaces::NewStateHandler<State>* new_state_handler_;
 
-    const BacktrackingUpdateType reverse_path_updates_;
+    const bool value_propagation_;
     const bool only_propagate_when_changed_;
     const bool evaluator_recomputation_;
     const bool notify_initial_state_;

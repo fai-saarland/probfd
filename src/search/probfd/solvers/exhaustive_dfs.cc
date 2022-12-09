@@ -49,8 +49,7 @@ public:
               opts.get<bool>("interval_comparison"))
         , reevaluate_(opts.get<bool>("reevaluate"))
         , notify_s0_(opts.get<bool>("initial_state_notification"))
-        , path_updates_(BacktrackingUpdateType(
-              opts.get<BacktrackingUpdateType>("reverse_path_updates")))
+        , path_updates_(opts.get<bool>("reverse_path_updates"))
         , only_propagate_when_changed_(
               opts.get<bool>("only_propagate_when_changed"))
     {
@@ -61,7 +60,7 @@ public:
         parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
             "eval",
             "",
-            "const");
+            "const_eval");
         parser.add_list_option<std::shared_ptr<TaskNewStateHandler>>(
             "on_new_state",
             "",
@@ -74,16 +73,7 @@ public:
             options::OptionParser::NONE);
         parser.add_option<bool>("reevaluate", "", "true");
         parser.add_option<bool>("initial_state_notification", "", "false");
-        std::vector<std::string> t(
-            {"disabled",
-             "cheap",
-             "updates_along_trace",
-             "updates_along_stack"});
-        parser.add_enum_option<BacktrackingUpdateType>(
-            "reverse_path_updates",
-            t,
-            "",
-            "updates_along_trace");
+        parser.add_option<bool>("reverse_path_updates", "", "true");
         parser.add_option<bool>("only_propagate_when_changed", "", "true");
         MDPSolver::add_options_to_parser(parser);
     }
@@ -131,7 +121,7 @@ private:
     const bool interval_comparison_;
     const bool reevaluate_;
     const bool notify_s0_;
-    const BacktrackingUpdateType path_updates_;
+    const bool path_updates_;
     const bool only_propagate_when_changed_;
 };
 
