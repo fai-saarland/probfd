@@ -1,0 +1,111 @@
+#include "probfd/heuristics/occupation_measures/pho_constraints.h"
+
+#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+
+#include "probfd/task_utils/task_properties.h"
+
+#include "utils/collections.h"
+
+#include "lp/lp_solver.h"
+#include "plugin.h"
+
+#include <limits>
+#include <unordered_set>
+
+namespace probfd {
+namespace heuristics {
+namespace occupation_measures {
+
+using namespace pdbs;
+
+PHOGenerator::PHOGenerator(options::Options& opts)
+    : PHOGenerator(
+          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
+{
+}
+
+PHOGenerator::PHOGenerator(
+    std::shared_ptr<PatternCollectionGenerator> generator)
+    : generator_(generator)
+{
+}
+
+void PHOGenerator::initialize_constraints(
+    const std::shared_ptr<ProbabilisticTask>& task,
+    lp::LinearProgram& lp)
+{
+    ProbabilisticTaskProxy task_proxy(*task);
+    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+
+    auto pattern_collection_info = generator_->generate(task);
+    this->pdbs_ = pattern_collection_info.get_pdbs();
+
+    const double lp_infinity = lp.get_infinity();
+
+    auto& lp_variables = lp.get_variables();
+    auto& lp_constraints = lp.get_constraints();
+
+    std::vector<std::set<int>> affected_vars;
+    affected_vars.reserve(operators.size());
+
+    for (const ProbabilisticOperatorProxy op : operators) {
+        auto& var_set = affected_vars.emplace_back();
+        task_properties::get_affected_vars(
+            op,
+            std::inserter(var_set, var_set.begin()));
+        lp_variables.emplace_back(0.0, lp_infinity, 1.0);
+    }
+
+    for (std::size_t i = 0; i != pdbs_->size(); ++i) {
+        auto& pdb = pdbs_->operator[](i);
+        auto& pdb_constraint = lp_constraints.emplace_back(0.0, lp_infinity);
+
+        for (const ProbabilisticOperatorProxy op : operators) {
+            const int op_id = op.get_id();
+            const bool affects_pdb = utils::have_common_element(
+                pdb->get_pattern(),
+                affected_vars[op_id]);
+
+            pdb_constraint.insert(op_id, affects_pdb ? 1.0 : 0.0);
+        }
+    }
+}
+
+void PHOGenerator::update_constraints(const State& state, lp::LPSolver& solver)
+{
+    for (std::size_t i = 0; i != pdbs_->size(); ++i) {
+        auto& pdb = pdbs_->operator[](i);
+        solver.set_constraint_lower_bound(i, pdb->lookup(state));
+    }
+}
+
+void PHOGenerator::reset_constraints(const State&, lp::LPSolver&)
+{
+    // No need to reset, constraints are overwritten in the next iteration
+}
+
+static std::shared_ptr<ConstraintGenerator>
+_parse(options::OptionParser& parser)
+{
+    parser.document_synopsis(
+        "Post-hoc optimization constraints",
+        "Post-hoc optimization constraints for a collection of pattern "
+        "databases.");
+
+    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
+        "patterns",
+        "The pattern generator used to construct the PDB collection which is "
+        "subject to post-hoc optimization.",
+        "det_adapter_ec(generator=systematic(pattern_max_size=2))");
+
+    Options opts = parser.parse();
+
+    if (parser.dry_run()) return nullptr;
+    return std::make_shared<PHOGenerator>(opts);
+}
+
+static Plugin<ConstraintGenerator> _plugin("om_pho_constraints", _parse);
+
+} // namespace occupation_measures
+} // namespace heuristics
+} // namespace probfd

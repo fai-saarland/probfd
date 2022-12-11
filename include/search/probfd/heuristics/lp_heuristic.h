@@ -51,7 +51,6 @@ public:
         static_cast<const Derived*>(this)->update_constraints(state);
 
         lp_solver_.solve();
-        lp_solver_.clear_temporary_constraints();
 
         EvaluationResult result;
 
@@ -61,6 +60,7 @@ public:
             result = EvaluationResult(true, INFINITE_VALUE);
         }
 
+        lp_solver_.clear_temporary_constraints();
         static_cast<const Derived*>(this)->reset_constraints(state);
 
         return result;
