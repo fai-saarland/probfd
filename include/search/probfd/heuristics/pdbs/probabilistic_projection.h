@@ -31,6 +31,22 @@ namespace heuristics {
 namespace pdbs {
 
 class ProbabilisticProjection {
+protected:
+    using ProgressionSuccessorGenerator =
+        successor_generator::SuccessorGenerator<const AbstractOperator*>;
+
+    std::shared_ptr<AbstractStateMapper> state_mapper_;
+
+    AbstractState initial_state_;
+    std::unordered_set<AbstractState> goal_states_;
+    std::vector<AbstractOperator> abstract_operators_;
+    std::shared_ptr<ProgressionSuccessorGenerator> progression_aops_generator_;
+
+    std::vector<StateID> dead_ends_;
+
+    std::vector<value_type::value_t> value_table;
+
+private:
     // Footprint used for detecting duplicate operators.
     struct ProgressionOperatorFootprint {
         long long int precondition_hash;
@@ -62,10 +78,6 @@ class ProbabilisticProjection {
         }
     };
 
-protected:
-    using ProgressionSuccessorGenerator =
-        successor_generator::SuccessorGenerator<const AbstractOperator*>;
-
 public:
     ProbabilisticProjection(
         const Pattern& pattern,
@@ -88,6 +100,9 @@ public:
 
     AbstractState get_abstract_state(const GlobalState& s) const;
     AbstractState get_abstract_state(const std::vector<int>& s) const;
+
+    [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
+    [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
 
     // Returns the pattern (i.e. all variables used) of the PDB
     const Pattern& get_pattern() const;
@@ -139,16 +154,6 @@ private:
         std::vector<std::vector<std::pair<int, int>>>&
             progression_preconditions,
         bool operator_pruining);
-
-protected:
-    std::shared_ptr<AbstractStateMapper> state_mapper_;
-
-    AbstractState initial_state_;
-    std::unordered_set<AbstractState> goal_states_;
-    std::vector<AbstractOperator> abstract_operators_;
-    std::shared_ptr<ProgressionSuccessorGenerator> progression_aops_generator_;
-
-    std::vector<StateID> dead_ends_;
 };
 
 } // namespace pdbs

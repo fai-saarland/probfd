@@ -17,9 +17,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class MaxProbProjection : public pdbs::ProbabilisticProjection {
-    std::vector<value_utils::IntervalValue> value_table;
-
+class MaxProbProjection : public ProbabilisticProjection {
 public:
     explicit MaxProbProjection(
         const Pattern& pattern,
@@ -42,9 +40,6 @@ public:
         const MaxProbProjection& pdb,
         int add_var,
         bool operator_pruning = true);
-
-    [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
-    [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
 
     [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
     [[nodiscard]] EvaluationResult evaluate(const AbstractState& s) const;

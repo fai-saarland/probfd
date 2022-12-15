@@ -10,7 +10,6 @@ namespace heuristics {
 namespace pdbs {
 
 class AbstractPolicy;
-class ProbabilisticProjection;
 
 namespace pattern_selection {
 

@@ -16,9 +16,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class ExpCostProjection : public pdbs::ProbabilisticProjection {
-    std::vector<value_type::value_t> value_table;
-
+class ExpCostProjection : public ProbabilisticProjection {
 public:
     explicit ExpCostProjection(
         const Pattern& variables,
@@ -41,9 +39,6 @@ public:
         const ExpCostProjection& pdb,
         int add_var,
         bool operator_pruning = true);
-
-    [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
-    [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
 
     [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
     [[nodiscard]] EvaluationResult evaluate(const AbstractState& s) const;

@@ -33,6 +33,7 @@ ProbabilisticProjection::ProbabilisticProjection(
     bool operator_pruning)
     : state_mapper_(mapper)
     , initial_state_((*state_mapper_)(::g_initial_state_data))
+    , value_table(state_mapper_->num_states())
 {
     setup_abstract_goal();
     build_operators(operator_pruning);
@@ -68,6 +69,17 @@ bool ProbabilisticProjection::is_dead_end(const AbstractState& s) const
 bool ProbabilisticProjection::is_goal(const AbstractState& s) const
 {
     return utils::contains(goal_states_, s);
+}
+
+value_type::value_t ProbabilisticProjection::lookup(const GlobalState& s) const
+{
+    return lookup(get_abstract_state(s));
+}
+
+value_type::value_t
+ProbabilisticProjection::lookup(const AbstractState& s) const
+{
+    return value_table[s.id];
 }
 
 AbstractState

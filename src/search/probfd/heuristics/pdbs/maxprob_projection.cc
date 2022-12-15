@@ -68,7 +68,6 @@ MaxProbProjection::MaxProbProjection(
     bool operator_pruning,
     const AbstractStateEvaluator& heuristic)
     : ProbabilisticProjection(mapper, operator_pruning)
-    , value_table(state_mapper_->num_states())
 {
     compute_value_table(heuristic);
 }
@@ -92,7 +91,6 @@ MaxProbProjection::MaxProbProjection(
           utils::insert(pdb.get_pattern(), add_var),
           ::g_variable_domain,
           operator_pruning)
-    , value_table(state_mapper_->num_states())
 {
     compute_value_table(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
@@ -128,7 +126,15 @@ void MaxProbProjection::compute_value_table(
 
     std::vector<StateID> proper_states;
 
-    vi.solve(initial_state_, value_table, dead_ends_, proper_states);
+    std::vector<value_utils::IntervalValue> interval_value_table(
+        state_mapper_->num_states());
+
+    vi.solve(initial_state_, interval_value_table, dead_ends_, proper_states);
+
+    // We only need the upper bounds
+    for (std::size_t i = 0; i != interval_value_table.size(); ++i) {
+        value_table[i] = interval_value_table[i].upper;
+    }
 
 #if !defined(NDEBUG)
     logging::out << "(II) Pattern [";
@@ -136,23 +142,13 @@ void MaxProbProjection::compute_value_table(
         logging::out << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
     }
 
-    logging::out << "]: value=" << value_table[initial_state_.id] << std::endl;
+    logging::out << "]: value=" << interval_value_table[initial_state_.id]
+                 << std::endl;
 
 #if defined(USE_LP)
     verify(state_id_map);
 #endif
 #endif
-}
-
-value_type::value_t MaxProbProjection::lookup(const GlobalState& s) const
-{
-    return lookup(get_abstract_state(s));
-}
-
-value_type::value_t MaxProbProjection::lookup(const AbstractState& s) const
-{
-    assert(!is_dead_end(s));
-    return value_table[s.id].upper;
 }
 
 EvaluationResult MaxProbProjection::evaluate(const GlobalState& s) const
@@ -204,7 +200,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
             continue;
         }
 
-        const value_type::value_t value = value_table[s.id].upper;
+        const value_type::value_t value = value_table[s.id];
 
         // Generate operators...
         auto facts = state_mapper_->to_values(s);
@@ -220,7 +216,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
             for (const auto& [eff, prob] : op->outcomes) {
                 AbstractState t = s + eff;
-                op_value += prob * value_table[t.id].upper;
+                op_value += prob * value_table[t.id];
                 successors.push_back(t);
             }
 
@@ -424,15 +420,13 @@ void MaxProbProjection::verify(
 
     std::vector<double> solution = solver.extract_solution();
 
-    for (AbstractState s = AbstractState(0);
-         s.id != static_cast<int>(state_mapper_->num_states());
+    for (AbstractState s(0); s.id != static_cast<int>(value_table.size());
          ++s.id) {
         if (utils::contains(seen, s)) {
             assert(value_type::approx_equal(
-                0.001)(solution[s.id], value_table[s.id].upper));
+                0.001)(solution[s.id], value_table[s.id]));
         } else {
-            assert(value_type::zero == value_table[s.id].lower);
-            assert(value_type::zero == value_table[s.id].upper);
+            assert(value_type::zero == value_table[s.id]);
         }
     }
 }

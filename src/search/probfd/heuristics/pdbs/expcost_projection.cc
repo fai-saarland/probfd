@@ -70,7 +70,6 @@ ExpCostProjection::ExpCostProjection(
     bool operator_pruning,
     const AbstractStateEvaluator& heuristic)
     : ProbabilisticProjection(mapper, operator_pruning)
-    , value_table(state_mapper_->num_states(), -value_type::inf)
 {
     compute_value_table(heuristic);
 }
@@ -94,20 +93,9 @@ ExpCostProjection::ExpCostProjection(
           utils::insert(pdb.get_pattern(), add_var),
           ::g_variable_domain,
           operator_pruning)
-    , value_table(state_mapper_->num_states(), -value_type::inf)
 {
     compute_value_table(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
-}
-
-value_type::value_t ExpCostProjection::lookup(const GlobalState& s) const
-{
-    return lookup(get_abstract_state(s));
-}
-
-value_type::value_t ExpCostProjection::lookup(const AbstractState& s) const
-{
-    return value_table[s.id];
 }
 
 EvaluationResult ExpCostProjection::evaluate(const GlobalState& s) const
