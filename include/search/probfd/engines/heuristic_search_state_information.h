@@ -1,7 +1,6 @@
 #ifndef MDPS_ENGINES_HEURISTIC_SEARCH_STATE_INFORMATION_H
 #define MDPS_ENGINES_HEURISTIC_SEARCH_STATE_INFORMATION_H
 
-#include "probfd/evaluation_result.h"
 #include "probfd/types.h"
 #include "probfd/value_type.h"
 #include "probfd/value_utils.h"

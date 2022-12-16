@@ -169,23 +169,23 @@ private:
             return false;
         }
 
-        State state = this->lookup_state(state_id);
-        auto rew = this->get_state_reward(state);
-        const auto value = static_cast<value_type::value_t>(rew);
+        const State state = this->lookup_state(state_id);
+        const TerminationInfo term_info = this->get_state_reward(state);
+        const value_type::value_t value = term_info.get_reward();
 
         StateInfo& info = state_infos_[state_id];
 
         info.expanded = true;
         info.value = value;
 
-        if (prune_ && bool(prune_->operator()(state))) {
-            ++statistics_.pruned;
+        if (term_info.is_goal_state()) {
+            ++statistics_.terminal_states;
+            ++statistics_.goal_states;
             return false;
         }
 
-        if (bool(rew)) {
-            ++statistics_.terminal_states;
-            ++statistics_.goal_states;
+        if (prune_ && prune_->operator()(state).is_unsolvable()) {
+            ++statistics_.pruned;
             return false;
         }
 

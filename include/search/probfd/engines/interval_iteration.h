@@ -183,7 +183,8 @@ private:
                 std::back_inserter(dead_ends),
                 std::back_inserter(one_states));
             assert(
-                this->get_state_reward(this->lookup_state(one_states.front())));
+                this->get_state_reward(this->lookup_state(one_states.front()))
+                    .is_goal_state());
         } else {
             analysis.run_analysis(
                 state,

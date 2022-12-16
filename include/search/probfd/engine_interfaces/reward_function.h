@@ -1,14 +1,40 @@
 #ifndef MDPS_ENGINE_INTERACES_REWARD_FUNCTION_H
 #define MDPS_ENGINE_INTERACES_REWARD_FUNCTION_H
 
-#include "probfd/evaluation_result.h"
 #include "probfd/types.h"
+#include "probfd/value_type.h"
 
 namespace probfd {
+
+/**
+ * @brief Contains reward received upon termination in a state, and whether
+ * the state is a goal.
+ */
+class TerminationInfo {
+    bool is_goal_;
+    value_type::value_t terminal_reward_;
+
+public:
+    TerminationInfo() = default;
+
+    TerminationInfo(bool is_goal, value_type::value_t terminal_reward)
+        : is_goal_(is_goal)
+        , terminal_reward_(terminal_reward)
+    {
+    }
+
+    /// Is this state a goal?
+    bool is_goal_state() const { return is_goal_; }
+
+    /// Obtains the reward received upon termination in the state.
+    value_type::value_t get_reward() const { return terminal_reward_; }
+};
+
 namespace engine_interfaces {
 
 /**
- * @brief Interface specifying state and action rewards and goal states.
+ * @brief Interface specifying state termination rewards, action rewards and
+ * goal states.
  *
  * This interface communicates the state and action rewards and goal states to
  * the MDP engines. Users must implement the protected methods
@@ -23,17 +49,17 @@ class MaxProbStateReward :
 public RewardFunction<GlobalState, const ProbabilisticOperator*>
 {
 protected:
-    EvaluationResult evaluate(const GlobalState& state) override
+    StateReward evaluate(const GlobalState& state) override
     {
         bool is_goal = ::test_goal(state);
 
         // Receive a reward in goal states, no reward otherwise.
         return is_goal ?
-            EvaluationResult(true, value_type::one) :
-            EvaluationResult(false, value_type::zero);
+            StateReward(true, value_type::one) :
+            StateReward(false, value_type::zero);
     }
 
-    EvaluationResult evaluate(
+    StateReward evaluate(
         const GlobalState& state,
         const ProbabilisticOperator* const& action) override
     {
@@ -52,9 +78,9 @@ public:
     virtual ~RewardFunction() = default;
 
     /**
-     * @brief Get the state reward and the goal state status of the input state.
+     * @brief Get the terminal state reward of the input state.
      */
-    EvaluationResult operator()(const State& state)
+    TerminationInfo operator()(const State& state)
     {
         return this->evaluate(state);
     }
@@ -73,7 +99,7 @@ public:
     virtual void print_statistics() const {}
 
 protected:
-    virtual EvaluationResult evaluate(const State& state) = 0;
+    virtual TerminationInfo evaluate(const State& state) = 0;
     virtual value_type::value_t evaluate(StateID state, Action action) = 0;
 };
 

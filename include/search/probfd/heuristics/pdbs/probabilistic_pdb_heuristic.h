@@ -6,7 +6,6 @@
 #include "probfd/heuristics/pdbs/abstract_state.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/evaluation_result.h"
 #include "probfd/state_evaluator.h"
 
 #include "utils/printable.h"

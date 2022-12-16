@@ -6,7 +6,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/evaluation_result.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
 
 #include "utils/logging.h"
 

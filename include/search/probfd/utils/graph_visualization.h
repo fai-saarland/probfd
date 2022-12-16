@@ -358,11 +358,13 @@ void dump(
         node->setAttribute("shape", "circle");
 
         const auto rew = reward_fn->operator()(state);
-        bool expand = expand_terminal || !rew;
+        bool expand = expand_terminal || !rew.is_goal_state();
 
-        if (rew) {
+        if (rew.is_goal_state()) {
             node->setAttribute("peripheries", std::to_string(2));
-        } else if (expand && prune != nullptr && prune->operator()(state)) {
+        } else if (
+            expand && prune != nullptr &&
+            prune->operator()(state).is_unsolvable()) {
             expand = false;
             node->setAttribute("peripheries", std::to_string(3));
         }

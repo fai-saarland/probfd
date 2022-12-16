@@ -339,19 +339,19 @@ private:
     {
         assert(data.is_new());
 
-        auto x = this->get_state_reward(state);
-        if ((bool)x) {
-            data.set_terminal((value_type::value_t)x);
+        const TerminationInfo term_info = this->get_state_reward(state);
+        if (term_info.is_goal_state()) {
+            data.set_terminal(term_info.get_reward());
             return true;
         }
 
-        x = heuristic_->operator()(state);
-        if ((bool)x) {
+        const EvaluationResult eval = heuristic_->operator()(state);
+        if (eval.is_unsolvable()) {
             data.set_terminal(0);
             return true;
         }
 
-        data.open(next_lp_constr_id_++, (value_type::value_t)x);
+        data.open(next_lp_constr_id_++, eval.get_estimate());
         return false;
     }
 

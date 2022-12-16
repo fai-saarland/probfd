@@ -127,13 +127,15 @@ public:
 
         {
             // initialize lp
-            auto eval = value_initializer_->operator()(initial_state);
-            if ((bool)eval) {
-                objective_ = value_type::value_t(eval);
+            const EvaluationResult eval =
+                value_initializer_->operator()(initial_state);
+            const auto estimate = eval.get_estimate();
+            if (eval.is_unsolvable()) {
+                objective_ = estimate;
                 return objective_;
             }
 
-            lp::LPVariable var((value_type::value_t)eval, inf, 1.0);
+            lp::LPVariable var(estimate, inf, 1.0);
             lp_solver_.load_problem(
                 lp::LPObjectiveSense::MINIMIZE,
                 std::vector<lp::LPVariable>({var}),
@@ -162,15 +164,15 @@ public:
 
             for (const StateID state_id : frontier) {
                 const State state = this->lookup_state(state_id);
-                auto rew = this->get_state_reward(state);
-                const auto t_rew = static_cast<value_type::value_t>(rew);
+                const TerminationInfo term_info = this->get_state_reward(state);
+                const auto t_rew = term_info.get_reward();
 
                 const unsigned var_id = state_infos_[state_id].idx;
                 assert(state_infos_[state_id].status == PerStateInfo::CLOSED);
 
                 lp_solver_.set_variable_lower_bound(var_id, t_rew);
 
-                if (rew) {
+                if (term_info.is_goal_state()) {
                     continue;
                 }
 
@@ -203,11 +205,11 @@ public:
                             assert(state_infos_[succ_id].idx == (unsigned)-1);
 
                             State succ_state = this->lookup_state(succ_id);
-                            auto eval =
+                            const auto eval =
                                 value_initializer_->operator()(succ_state);
-                            const auto value = (value_type::value_t)eval;
+                            const auto value = eval.get_estimate();
 
-                            if (eval) {
+                            if (eval.is_unsolvable()) {
                                 succ_info.status = PerStateInfo::TERMINAL;
                                 succ_info.idx = terminals_.get_id(value);
                                 base_val += prob * value;

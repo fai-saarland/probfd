@@ -46,7 +46,7 @@ protected:
 
         auto leval = left.evaluate(lstate);
 
-        if (leval) {
+        if (leval.is_unsolvable()) {
             return leval;
         }
 
@@ -54,15 +54,11 @@ protected:
 
         auto reval = right.evaluate(rstate);
 
-        if (reval) {
+        if (reval.is_unsolvable()) {
             return reval;
         }
 
-        return {
-            false,
-            std::min(
-                static_cast<value_type::value_t>(leval),
-                static_cast<value_type::value_t>(reval))};
+        return {false, std::min(leval.get_estimate(), reval.get_estimate())};
     }
 };
 } // namespace
@@ -200,7 +196,7 @@ void AbstractSolutionData<PDBType>::mark_as_solved()
 template <typename PDBType>
 bool AbstractSolutionData<PDBType>::solution_exists() const
 {
-    return !static_cast<bool>(pdb->evaluate(g_initial_state()));
+    return !pdb->evaluate(g_initial_state()).is_unsolvable();
 }
 
 template class AbstractSolutionData<MaxProbProjection>;

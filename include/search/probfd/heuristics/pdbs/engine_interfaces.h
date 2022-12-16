@@ -179,10 +179,10 @@ public:
     }
 
 protected:
-    EvaluationResult evaluate(const AbstractState& state) override
+    TerminationInfo evaluate(const AbstractState& state) override
     {
         const bool is_contained = utils::contains(*goal_states_, state);
-        return EvaluationResult(
+        return TerminationInfo(
             is_contained,
             is_contained ? value_in_ : value_not_in_);
     }
@@ -212,10 +212,10 @@ public:
     }
 
 protected:
-    EvaluationResult evaluate(const AbstractState& state) override
+    TerminationInfo evaluate(const AbstractState& state) override
     {
         const bool is_contained = ::utils::contains(*goal_states_, state);
-        return EvaluationResult(
+        return TerminationInfo(
             is_contained,
             is_contained ? value_in_ : value_not_in_);
     }

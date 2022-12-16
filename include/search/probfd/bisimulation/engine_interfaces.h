@@ -74,8 +74,7 @@ struct DefaultQuotientRewardFunction : public QuotientRewardFunction {
         const value_utils::IntervalValue bound,
         value_type::value_t default_value = 0);
 
-    EvaluationResult
-    evaluate(const bisimulation::QuotientState& state) override;
+    TerminationInfo evaluate(const bisimulation::QuotientState& state) override;
 
     value_type::value_t
     evaluate(StateID state, bisimulation::QuotientAction action) override;

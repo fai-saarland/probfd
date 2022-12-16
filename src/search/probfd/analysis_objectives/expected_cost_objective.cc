@@ -11,12 +11,12 @@ namespace analysis_objectives {
 namespace {
 class SSPReward : public GlobalRewardFunction {
 protected:
-    EvaluationResult evaluate(const GlobalState& state) override
+    TerminationInfo evaluate(const GlobalState& state) override
     {
         if (::test_goal(state)) {
-            return EvaluationResult(true, value_type::zero);
+            return TerminationInfo(true, value_type::zero);
         } else {
-            return EvaluationResult(false, -value_type::inf);
+            return TerminationInfo(false, -value_type::inf);
         }
     }
 

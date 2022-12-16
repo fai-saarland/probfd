@@ -5,7 +5,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/evaluation_result.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/value_type.h"
 
 #include "operator_cost.h"

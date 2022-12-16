@@ -11,12 +11,12 @@ namespace analysis_objectives {
 namespace {
 class MaxProbReward : public GlobalRewardFunction {
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) override
+    virtual TerminationInfo evaluate(const GlobalState& state) override
     {
         if (::test_goal(state)) {
-            return EvaluationResult(true, value_type::one);
+            return TerminationInfo(true, value_type::one);
         } else {
-            return EvaluationResult(false, value_type::zero);
+            return TerminationInfo(false, value_type::zero);
         }
     }
 

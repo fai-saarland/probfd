@@ -122,7 +122,7 @@ public:
     /**
      * @brief Get the state reward for successor state \p s .
      */
-    EvaluationResult get_state_reward(const State& s) const
+    TerminationInfo get_state_reward(const State& s) const
     {
         return reward_function_->operator()(s);
     }

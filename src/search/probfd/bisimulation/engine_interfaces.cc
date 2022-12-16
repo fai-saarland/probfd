@@ -99,16 +99,16 @@ DefaultQuotientRewardFunction::DefaultQuotientRewardFunction(
 {
 }
 
-EvaluationResult
+TerminationInfo
 DefaultQuotientRewardFunction::evaluate(const bisimulation::QuotientState& s)
 {
     if (bisim_->is_dead_end(s)) {
-        return EvaluationResult(true, bound_.lower);
+        return TerminationInfo(true, bound_.lower);
     }
     if (bisim_->is_goal_state(s)) {
-        return EvaluationResult(true, bound_.upper);
+        return TerminationInfo(true, bound_.upper);
     }
-    return EvaluationResult(false, default_);
+    return TerminationInfo(false, default_);
 }
 
 value_type::value_t

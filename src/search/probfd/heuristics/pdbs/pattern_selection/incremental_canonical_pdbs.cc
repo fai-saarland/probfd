@@ -100,7 +100,7 @@ template <class PDBType>
 value_type::value_t
 IncrementalPPDBs<PDBType>::get_value(const GlobalState& state) const
 {
-    return static_cast<value_type::value_t>(evaluate(state));
+    return evaluate(state).get_estimate();
 }
 
 template <class PDBType>
@@ -117,7 +117,7 @@ template <class PDBType>
 bool IncrementalPPDBs<PDBType>::is_dead_end(const GlobalState& state) const
 {
     for (const auto& pdb : *pattern_databases) {
-        if (pdb->evaluate(state)) {
+        if (pdb->evaluate(state).is_unsolvable()) {
             return true;
         }
     }

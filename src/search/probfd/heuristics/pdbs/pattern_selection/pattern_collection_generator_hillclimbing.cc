@@ -325,26 +325,26 @@ bool PatternCollectionGeneratorHillclimbing<PDBType>::is_heuristic_improved(
     const PPDBCollection<PDBType>& pdbs,
     const std::vector<PatternSubCollection>& pattern_subcollections)
 {
-    const auto h_pattern_eval = pdb.evaluate(sample);
+    const EvaluationResult h_pattern_eval = pdb.evaluate(sample);
 
-    if (h_pattern_eval) {
+    if (h_pattern_eval.is_unsolvable()) {
         return true;
     }
 
-    value_t h_pattern = static_cast<value_t>(h_pattern_eval);
+    const value_t h_pattern = h_pattern_eval.get_estimate();
 
     // h_collection: h-value of the current collection heuristic
-    if (h_collection_eval) return false;
+    if (h_collection_eval.is_unsolvable()) return false;
 
-    const value_t h_collection = static_cast<value_t>(h_collection_eval);
+    const value_t h_collection = h_collection_eval.get_estimate();
 
     std::vector<value_t> h_values;
     h_values.reserve(pdbs.size());
 
     for (const auto& p : pdbs) {
-        const auto h = p->evaluate(sample);
-        if (h) return false;
-        h_values.push_back(static_cast<value_type::value_t>(h));
+        const EvaluationResult eval = p->evaluate(sample);
+        if (eval.is_unsolvable()) return false;
+        h_values.push_back(eval.get_estimate());
     }
 
     for (const PatternSubCollection& subcollection : pattern_subcollections) {

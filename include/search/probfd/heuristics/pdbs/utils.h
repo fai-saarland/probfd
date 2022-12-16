@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/evaluation_result.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/value_type.h"
 
 #include <algorithm>
@@ -64,13 +64,13 @@ EvaluationResult evaluate(
         // Get pattern estimates
         std::vector<value_type::value_t> estimates(database.size());
         for (std::size_t i = 0; i != database.size(); ++i) {
-            auto eval_result = database[i]->evaluate(state);
+            const EvaluationResult eval_result = database[i]->evaluate(state);
 
-            if (eval_result) {
+            if (eval_result.is_unsolvable()) {
                 return eval_result;
             }
 
-            estimates[i] = static_cast<value_type::value_t>(eval_result);
+            estimates[i] = eval_result.get_estimate();
         }
 
         // Get lowest additive subcollection value

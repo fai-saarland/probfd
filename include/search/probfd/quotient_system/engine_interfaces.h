@@ -26,7 +26,7 @@ public:
     {
     }
 
-    virtual EvaluationResult evaluate(const State& s) override
+    virtual TerminationInfo evaluate(const State& s) override
     {
         return eval_->operator()(s);
     }

@@ -290,7 +290,7 @@ private:
 
         State state = state_id_map_->get_state(state_id);
 
-        if (rewards_->operator()(state)) {
+        if (rewards_->operator()(state).is_goal_state()) {
             ++stats_.terminals;
             ++stats_.goals;
             ++stats_.ones;
@@ -307,7 +307,7 @@ private:
             state_info.expandable_goal = 1;
         } else if (
             pruning_function_ != nullptr &&
-            pruning_function_->operator()(state)) {
+            pruning_function_->operator()(state).is_unsolvable()) {
             ++stats_.terminals;
             *zero_states_out = state_id;
             return false;

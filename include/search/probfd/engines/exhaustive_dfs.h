@@ -322,11 +322,11 @@ private:
         assert(info.is_new());
         info.value = trivial_bound_;
 
-        auto reward = this->get_state_reward(state);
-        info.state_reward = static_cast<value_type::value_t>(reward);
-        if (reward) {
+        TerminationInfo term_info = this->get_state_reward(state);
+        info.state_reward = term_info.get_reward();
+        if (term_info.is_goal_state()) {
             info.close();
-            info.value = IncumbentSolution((value_type::value_t)reward);
+            info.value = IncumbentSolution(term_info.get_reward());
             ++statistics_.goal_states;
             if (new_state_handler_) {
                 new_state_handler_->touch_goal(state);
@@ -334,8 +334,8 @@ private:
             return false;
         }
 
-        reward = evaluate(state);
-        if (reward) {
+        EvaluationResult eval_result = evaluate(state);
+        if (eval_result.is_unsolvable()) {
             info.value = IncumbentSolution(info.state_reward);
             info.mark_dead_end();
             ++statistics_.dead_ends;
@@ -346,7 +346,7 @@ private:
         }
 
         if constexpr (DualBounds::value) {
-            info.value.upper = static_cast<value_type::value_t>(reward);
+            info.value.upper = eval_result.get_estimate();
         }
 
         info.open();

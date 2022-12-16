@@ -643,35 +643,36 @@ private:
     {
         if (!state_info.is_value_initialized()) {
             statistics_.evaluated_states++;
+
             State state = this->lookup_state(state_id);
-            auto estimate = MDPEngine<StateT, ActionT>::get_state_reward(state);
-            auto val = static_cast<value_type::value_t>(estimate);
-            state_info.state_reward = val;
-            if (estimate) {
+            TerminationInfo term =
+                MDPEngine<StateT, ActionT>::get_state_reward(state);
+            const value_type::value_t t_reward = term.get_reward();
+            
+            state_info.state_reward = t_reward;
+            if (term.is_goal_state()) {
                 state_info.set_goal();
-                state_info.value =
-                    IncumbentSolution((value_type::value_t)estimate);
+                state_info.value = IncumbentSolution(t_reward);
                 statistics_.goal_states++;
                 if (on_new_state_) on_new_state_->touch_goal(state);
+                return;
+            }
+
+            EvaluationResult estimate = value_initializer_->operator()(state);
+            if (estimate.is_unsolvable()) {
+                statistics_.pruned_states++;
+                notify_dead_end(state_info);
+                if (on_new_state_) on_new_state_->touch_dead_end(state);
             } else {
-                estimate = value_initializer_->operator()(state);
-                if (estimate) {
-                    statistics_.pruned_states++;
-                    notify_dead_end(state_info);
-                    if (on_new_state_) on_new_state_->touch_dead_end(state);
+                state_info.set_on_fringe();
+
+                if constexpr (DualBounds::value) {
+                    state_info.value.upper = estimate.get_estimate();
                 } else {
-                    state_info.set_on_fringe();
-
-                    if constexpr (DualBounds::value) {
-                        state_info.value.upper =
-                            static_cast<value_type::value_t>(estimate);
-                    } else {
-                        state_info.value =
-                            static_cast<value_type::value_t>(estimate);
-                    }
-
-                    if (on_new_state_) on_new_state_->touch(state);
+                    state_info.value = estimate.get_estimate();
                 }
+
+                if (on_new_state_) on_new_state_->touch(state);
             }
         }
     }
