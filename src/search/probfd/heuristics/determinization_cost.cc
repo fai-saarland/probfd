@@ -27,11 +27,11 @@ DeterminizationCostHeuristic::evaluate(const GlobalState& state) const
 {
     heuristic_->evaluate(state);
 
-    // No dead ends for SSPs
-    assert(!heuristic_->is_dead_end());
-
-    auto eval = static_cast<value_type::value_t>(-heuristic_->get_heuristic());
-    return {false, eval};
+    return heuristic_->is_dead_end() ? EvaluationResult(true, -value_type::inf)
+                                     : EvaluationResult(
+                                           false,
+                                           static_cast<value_type::value_t>(
+                                               -heuristic_->get_heuristic()));
 }
 
 void DeterminizationCostHeuristic::print_statistics() const
