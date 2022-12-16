@@ -46,38 +46,6 @@ protected:
 
     std::vector<value_type::value_t> value_table;
 
-private:
-    // Footprint used for detecting duplicate operators.
-    struct ProgressionOperatorFootprint {
-        long long int precondition_hash;
-        std::vector<WeightedElement<AbstractState>> successors;
-
-        ProgressionOperatorFootprint(
-            long long int precondition_hash,
-            const AbstractOperator& op)
-            : precondition_hash(precondition_hash)
-            , successors(op.outcomes.begin(), op.outcomes.end())
-        {
-            std::sort(successors.begin(), successors.end());
-        }
-
-        friend bool operator<(
-            const ProgressionOperatorFootprint& a,
-            const ProgressionOperatorFootprint& b)
-        {
-            return std::tie(a.precondition_hash, a.successors) <
-                   std::tie(b.precondition_hash, b.successors);
-        }
-
-        friend bool operator==(
-            const ProgressionOperatorFootprint& a,
-            const ProgressionOperatorFootprint& b)
-        {
-            return std::tie(a.precondition_hash, a.successors) ==
-                   std::tie(b.precondition_hash, b.successors);
-        }
-    };
-
 public:
     ProbabilisticProjection(
         const Pattern& pattern,
@@ -147,13 +115,6 @@ protected:
 private:
     void setup_abstract_goal();
     void build_operators(bool operator_pruning);
-
-    void add_abstract_operators(
-        const ProbabilisticOperator& op,
-        std::set<ProgressionOperatorFootprint>& duplicate_set,
-        std::vector<std::vector<std::pair<int, int>>>&
-            progression_preconditions,
-        bool operator_pruining);
 };
 
 } // namespace pdbs
