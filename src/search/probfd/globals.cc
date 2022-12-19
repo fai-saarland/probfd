@@ -104,7 +104,7 @@ void print_task_info()
               << " excluding step variable)" << std::endl;
     std::cout << "  State size: "
               << (g_state_packer->get_num_bins() *
-                  g_state_packer->get_bin_size_in_bytes())
+                  sizeof(int_packer::IntPacker::Bin))
               << " bytes" << std::endl;
     std::cout << "  Operators: " << g_operators.size() << std::endl;
     std::cout << "  Operators with stochastic effects: " << prob_ops

@@ -5,6 +5,7 @@
 
 #include "probfd/probabilistic_operator.h"
 
+#include "probfd/storage/dynamic_segmented_vector.h"
 #include "probfd/storage/segmented_memory_pool.h"
 
 #include "algorithms/segmented_vector.h"
@@ -122,7 +123,7 @@ private:
         unsigned long long generated_states = 0;
     };
 
-    using Cache = segmented_vector::DynamicSegmentedVector<CacheEntry>;
+    using Cache = storage::DynamicSegmentedVector<CacheEntry>;
 
     void compute_successor_states(
         const GlobalState& s,

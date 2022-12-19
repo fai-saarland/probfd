@@ -4,7 +4,7 @@
 #include "probfd/types.h"
 #include "probfd/value_type.h"
 
-#include "algorithms/segmented_vector.h"
+#include "probfd/storage/dynamic_segmented_vector.h"
 
 #include "utils/iterators.h"
 
@@ -99,7 +99,7 @@ struct is_container_persistent<HashMap> : std::true_type {
 };
 
 template <>
-struct is_container_persistent<segmented_vector::DynamicSegmentedVector>
+struct is_container_persistent<storage::DynamicSegmentedVector>
     : std::true_type {
 };
 
@@ -144,7 +144,7 @@ protected:
 
 template <typename T, typename Alloc = std::allocator<T>>
 using PersistentPerStateStorage = internal::
-    PerStateStorage<T, Alloc, segmented_vector::DynamicSegmentedVector>;
+    PerStateStorage<T, Alloc, probfd::storage::DynamicSegmentedVector>;
 
 template <typename T, typename Alloc = std::allocator<T>>
 class PerStateStorage : public PersistentPerStateStorage<T, Alloc> {
