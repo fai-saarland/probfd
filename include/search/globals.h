@@ -11,7 +11,6 @@ class AxiomEvaluator;
 class DomainTransitionGraph;
 class GlobalOperator;
 class GlobalState;
-class LegacyCausalGraph;
 
 namespace causal_graph {
 class CausalGraph;
@@ -75,7 +74,6 @@ extern std::vector<GlobalOperator> g_axioms;
 extern AxiomEvaluator *g_axiom_evaluator;
 extern std::vector<DomainTransitionGraph *> g_transition_graphs;
 extern causal_graph::CausalGraph* g_causal_graph;
-extern LegacyCausalGraph *g_legacy_causal_graph;
 extern std::string g_plan_filename;
 extern int g_num_previously_generated_plans;
 extern bool g_is_part_of_anytime_portfolio;
