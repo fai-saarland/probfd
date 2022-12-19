@@ -61,6 +61,7 @@ fast_downward_plugin(
         global_operator
         global_state
         partial_state
+        plan_manager
         operator_cost
         operator_id
 
