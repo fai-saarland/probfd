@@ -23,7 +23,7 @@ public:
     explicit IDualSolver(const options::Options& opts)
         : MDPSolver(opts)
         , eval_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
-        , solver_type_(lp::LPSolverType(opts.get_enum("lpsolver")))
+        , solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
     {
     }
 

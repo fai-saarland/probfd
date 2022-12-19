@@ -16,7 +16,8 @@ namespace pdbs {
 shared_ptr<PatternDatabase> get_pdb_from_options(const Options &opts) {
     shared_ptr<PatternGenerator> pattern_generator =
         opts.get<shared_ptr<PatternGenerator>>("pattern");
-    PatternInformation pattern_info = pattern_generator->generate(OperatorCost(opts.get_enum("cost_type")));
+    PatternInformation pattern_info =
+        pattern_generator->generate(opts.get<OperatorCost>("cost_type"));
     return pattern_info.get_pdb();
 }
 

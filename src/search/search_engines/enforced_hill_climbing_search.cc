@@ -16,13 +16,14 @@
 using namespace std;
 
 EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
-    const options::Options &opts)
-    : SearchEngine(opts),
-      heuristic(opts.get<std::shared_ptr<Heuristic> >("h")),
-      use_preferred(false),
-      preferred_usage(PreferredUsage(opts.get_enum("preferred_usage"))),
-      current_state(g_initial_state()),
-      num_ehc_phases(0) {
+    const options::Options& opts)
+    : SearchEngine(opts)
+    , heuristic(opts.get<std::shared_ptr<Heuristic>>("h"))
+    , use_preferred(false)
+    , preferred_usage(opts.get<PreferredUsage>("preferred_usage"))
+    , current_state(g_initial_state())
+    , num_ehc_phases(0)
+{
     if (opts.contains("preferred")) {
         preferred_heuristics = opts.get_list<std::shared_ptr<Heuristic> >("preferred");
         if (preferred_heuristics.empty()) {
@@ -248,9 +249,11 @@ static shared_ptr<SearchEngine> _parse(options::OptionParser &parser) {
     vector<string> preferred_usages;
     preferred_usages.push_back("PRUNE_BY_PREFERRED");
     preferred_usages.push_back("RANK_PREFERRED_FIRST");
-    parser.add_enum_option("preferred_usage", preferred_usages,
-                           "preferred operator usage",
-                           "PRUNE_BY_PREFERRED");
+    parser.add_enum_option<PreferredUsage>(
+        "preferred_usage",
+        preferred_usages,
+        "preferred operator usage",
+        "PRUNE_BY_PREFERRED");
 
     parser.add_list_option<std::shared_ptr<Heuristic> >(
         "preferred",

@@ -80,7 +80,7 @@ void add_cost_type_option_to_parser(options::OptionParser &parser, const std::st
     cost_types.push_back("MINONE");
     cost_types_doc.push_back(
         "asd");
-    parser.add_enum_option(
+    parser.add_enum_option<OperatorCost>(
         name,
         cost_types,
         "Operator cost adjustment type. "

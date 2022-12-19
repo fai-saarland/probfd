@@ -389,7 +389,7 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
     MDPHeuristicSearchBase::add_options_to_parser(parser);
 
     std::vector<std::string> fret_types({"disabled", "policy", "value"});
-    parser.add_enum_option("fret", fret_types, "", "disabled");
+    parser.add_enum_option<int>("fret", fret_types, "", "disabled");
 
     parser.add_option<bool>("bisimulation", "", "false");
 
@@ -400,7 +400,7 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
     OptionsPostprocessing()(opts);
 
     if (!parser.dry_run()) {
-        const int fret_type = opts.get_enum("fret");
+        const int fret_type = opts.get<int>("fret");
         if (opts.get<bool>("bisimulation")) {
             if (fret_type == 0) {
                 return std::make_shared<

@@ -44,8 +44,7 @@ PatternCollectionGeneratorFastCegar<
           opts.get<bool>("treat_goal_violations_differently"))
     , single_generator_local_blacklisting(opts.get<bool>("local_blacklisting"))
     , single_generator_max_time(opts.get<double>("max_time"))
-    , single_generator_verbosity(
-          static_cast<Verbosity>(opts.get_enum("verbosity")))
+    , single_generator_verbosity(opts.get<Verbosity>("verbosity"))
     , initial_random_seed(opts.get<int>("initial_random_seed"))
     , total_collection_max_size(opts.get<int>("total_collection_max_size"))
     , stagnation_limit(opts.get<double>("stagnation_limit"))

@@ -28,26 +28,29 @@ using namespace std;
 
 namespace merge_and_shrink {
 
-MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(const options::Options &opts)
-    : Heuristic(opts),
-      abstraction_count(opts.get<int>("count")),
-      merge_criteria(opts.get_list<std::shared_ptr<MergeCriterion> >("merge_criteria")),
-      merge_order(MergeOrder(opts.get_enum("merge_order"))),
-      merge_strategy(MergeStrategy(opts.get_enum("merge_strategy"))),
-      shrink_strategy(opts.get<std::shared_ptr<ShrinkStrategy> >("shrink_strategy")),
-      use_label_reduction(opts.get<bool>("reduce_labels")),
-      prune_unreachable(opts.get<bool>("prune_unreachable")),
-      prune_irrelevant(opts.get<bool>("prune_irrelevant")),
-      use_expensive_statistics(opts.get<bool>("expensive_statistics")),
-      use_label_inheritance(opts.get<bool>("label_inheritance")),
-      new_approach(opts.get<bool>("new_approach")),
-      use_uniform_distances(opts.get<bool>("use_uniform_distances")),
-      check_unsolvability(opts.get<bool>("check_unsolvability")),
-      continue_if_unsolvable(opts.get<bool>("continue_if_unsolvable")),
-      merge_size_limit(opts.get<int>("merge_size_limit")),
-      max_branching_merge(opts.get<int>("max_branching_merge")),
-      c_release_memory(opts.contains("release_memory") ?
-                       opts.get<bool>("release_memory") : true)
+MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(const options::Options& opts)
+    : Heuristic(opts)
+    , abstraction_count(opts.get<int>("count"))
+    , merge_criteria(
+          opts.get_list<std::shared_ptr<MergeCriterion>>("merge_criteria"))
+    , merge_order(opts.get<MergeOrder>("merge_order"))
+    , merge_strategy(opts.get<MergeStrategy>("merge_strategy"))
+    , shrink_strategy(
+          opts.get<std::shared_ptr<ShrinkStrategy>>("shrink_strategy"))
+    , use_label_reduction(opts.get<bool>("reduce_labels"))
+    , prune_unreachable(opts.get<bool>("prune_unreachable"))
+    , prune_irrelevant(opts.get<bool>("prune_irrelevant"))
+    , use_expensive_statistics(opts.get<bool>("expensive_statistics"))
+    , use_label_inheritance(opts.get<bool>("label_inheritance"))
+    , new_approach(opts.get<bool>("new_approach"))
+    , use_uniform_distances(opts.get<bool>("use_uniform_distances"))
+    , check_unsolvability(opts.get<bool>("check_unsolvability"))
+    , continue_if_unsolvable(opts.get<bool>("continue_if_unsolvable"))
+    , merge_size_limit(opts.get<int>("merge_size_limit"))
+    , max_branching_merge(opts.get<int>("max_branching_merge"))
+    , c_release_memory(
+          opts.contains("release_memory") ? opts.get<bool>("release_memory")
+                                          : true)
 {
     bool use_empty_label_shrinking = opts.get<bool>("use_empty_label_shrinking");
     if (use_empty_label_shrinking) {
@@ -1034,17 +1037,21 @@ static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser)
     merge_strategies.push_back("MERGE_LINEAR");
     merge_strategies.push_back("MERGE_LINEAR_MULTIPLE_DFS");
 
-    parser.add_enum_option("merge_strategy", merge_strategies,
-                           "merge strategy",
-                           "MERGE_LINEAR");
+    parser.add_enum_option<MergeStrategy>(
+        "merge_strategy",
+        merge_strategies,
+        "merge strategy",
+        "MERGE_LINEAR");
 
     vector<string> merge_orders;
     merge_orders.push_back("level");
     merge_orders.push_back("reverse_level");
     merge_orders.push_back("random");
-    parser.add_enum_option("merge_order", merge_orders,
-                           "merge variable order for tie breaking",
-                           "RANDOM");
+    parser.add_enum_option<MergeOrder>(
+        "merge_order",
+        merge_orders,
+        "merge variable order for tie breaking",
+        "RANDOM");
 
     // TODO: Default shrink strategy should only be created
     // when it's actually used.
@@ -1090,8 +1097,7 @@ static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser)
         return 0;
     }
 
-    MergeStrategy merge_strategy = MergeStrategy(
-                                       opts.get_enum("merge_strategy"));
+    MergeStrategy merge_strategy = opts.get<MergeStrategy>("merge_strategy");
     if (merge_strategy < 0 || merge_strategy >= MAX_MERGE_STRATEGY) {
         cerr << "error: unknown merge strategy: " << merge_strategy << endl;
         exit(2);

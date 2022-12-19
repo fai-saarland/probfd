@@ -12,10 +12,10 @@ using namespace std;
 namespace merge_and_shrink {
 
 // construction and destruction
-FFHeuristic::FFHeuristic(const options::Options &opts)
-  : AdditiveHeuristic(opts),
-    c_tiebreaking(TieBreaking(opts.get_enum("ties"))),
-    m_rng(opts.get<int>("seed"))
+FFHeuristic::FFHeuristic(const options::Options& opts)
+    : AdditiveHeuristic(opts)
+    , c_tiebreaking(opts.get<TieBreaking>("ties"))
+    , m_rng(opts.get<int>("seed"))
 {
 }
 

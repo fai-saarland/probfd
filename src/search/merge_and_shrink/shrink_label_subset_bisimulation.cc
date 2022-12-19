@@ -19,10 +19,10 @@ using namespace std;
 namespace merge_and_shrink {
 
 ShrinkLabelSubsetBisimulation::ShrinkLabelSubsetBisimulation(
-    const options::Options &opts)
-    : ShrinkBisimulation(opts),
-      goal_leading(GoalLeading(opts.get_enum("goal_leading"))),
-      max_states_before_catching(opts.get_enum("max_states_before_catching"))
+    const options::Options& opts)
+    : ShrinkBisimulation(opts)
+    , goal_leading(opts.get<GoalLeading>("goal_leading"))
+    , max_states_before_catching(opts.get<int>("max_states_before_catching"))
 {
 
     cout << goal_leading << endl;
@@ -222,7 +222,7 @@ void ShrinkLabelSubsetBisimulation::handle_option_defaults(options::Options &opt
      * h_max, we want to consider all facts, even those with a value greater than
      * that of the initial state. Thus, we have to use the highest possible bound.
      */
-    GoalLeading gl = GoalLeading(opts.get_enum("goal_leading"));
+    GoalLeading gl = opts.get<GoalLeading>("goal_leading");
     if (gl == APPROXIMATED_BY_H_MAX) {
         opts.set<double>("alpha", numeric_limits<double>::max());
     }
@@ -245,9 +245,11 @@ static std::shared_ptr<ShrinkStrategy> _parse(options::OptionParser &parser)
     goal_lead.push_back("from_h_max");
     goal_lead.push_back("from_h_max_backward_pruning");
     goal_lead.push_back("from_h_ff");
-    parser.add_enum_option(
-        "goal_leading", goal_lead,
-        "a method for setting the set of labels to catch", "false");
+    parser.add_enum_option<ShrinkLabelSubsetBisimulation::GoalLeading>(
+        "goal_leading",
+        goal_lead,
+        "a method for setting the set of labels to catch",
+        "false");
 
     parser.add_option<double>("alpha", "alpha", "1.0");
 

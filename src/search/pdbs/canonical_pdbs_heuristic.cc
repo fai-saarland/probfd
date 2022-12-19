@@ -24,7 +24,7 @@ CanonicalPDBs get_canonical_pdbs_from_options(const Options &opts) {
     utils::Timer timer;
     cout << "Initializing canonical PDB heuristic..." << endl;
     PatternCollectionInformation pattern_collection_info =
-        pattern_generator->generate(OperatorCost(opts.get_enum("cost_type")));
+        pattern_generator->generate(opts.get<OperatorCost>("cost_type"));
     shared_ptr<PatternCollection> patterns =
         pattern_collection_info.get_patterns();
     /*

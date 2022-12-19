@@ -124,9 +124,9 @@ PatternCollectionGeneratorCegar(const options::Options &opts)
         opts.get<bool>("treat_goal_violations_differently"),
         opts.get<bool>("local_blacklisting"),
         opts.get<int>("global_blacklist_size"),
-        static_cast<InitialCollectionType>(opts.get_enum("initial")),
+        opts.get<InitialCollectionType>("initial"),
         opts.get<int>("given_goal"),
-        static_cast<Verbosity>(opts.get_enum("verbosity")),
+        opts.get<Verbosity>("verbosity"),
         opts.get<double>("max_time"))
 {
 }
@@ -838,7 +838,7 @@ PatternCollectionGeneratorCegar::generate(OperatorCost cost_type)
 void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser &parser)
 {
-    utils::add_verbosity_option_to_parser(parser);
+    utils::add_log_options_to_parser(parser);
 
     parser.add_option<int>(
             "max_refinements",
@@ -886,11 +886,11 @@ void add_pattern_collection_generator_cegar_options_to_parser(
     initial_collection_options.emplace_back("GIVEN_GOAL");
     initial_collection_options.emplace_back("RANDOM_GOAL");
     initial_collection_options.emplace_back("ALL_GOALS");
-    parser.add_enum_option(
-            "initial",
-            initial_collection_options,
-            "initial collection for refinement",
-            "ALL_GOALS");
+    parser.add_enum_option<InitialCollectionType>(
+        "initial",
+        initial_collection_options,
+        "initial collection for refinement",
+        "ALL_GOALS");
     parser.add_option<int>(
             "given_goal",
             "a goal variable to be used as the initial collection",

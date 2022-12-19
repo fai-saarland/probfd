@@ -7,6 +7,7 @@ namespace merge_and_shrink {
 
 class ShrinkLabelSubsetBisimulation : public ShrinkBisimulation
 {
+public:
     enum GoalLeading {
         ALL_ACTIONS,
         ALL_GOAL_LEADING,
@@ -20,14 +21,17 @@ class ShrinkLabelSubsetBisimulation : public ShrinkBisimulation
         APPROXIMATED_BY_H_MAX_BACKWARD_PRUNED,
         APPROXIMATED_BY_H_FF
     };
+
+private:
     const GoalLeading goal_leading;
     bool goal_leading_threshold_reached;
     int max_states_before_catching;
 
     std::vector<bool> reg_labels;
     void dump_caught_labels_statistic() const;
+
 public:
-    ShrinkLabelSubsetBisimulation(const options::Options &opts);
+    ShrinkLabelSubsetBisimulation(const options::Options& opts);
     virtual ~ShrinkLabelSubsetBisimulation();
 
     virtual std::string name() const;
@@ -35,15 +39,15 @@ public:
 
     virtual bool reduce_labels_before_shrinking() const;
 
-//    virtual void shrink(Abstraction &abs, int target, bool force = false);
-//    virtual void shrink_atomic(Abstraction &abs);
-    virtual void shrink_before_merge(Abstraction &abs1, Abstraction &abs2);
+    //    virtual void shrink(Abstraction &abs, int target, bool force =
+    //    false); virtual void shrink_atomic(Abstraction &abs);
+    virtual void shrink_before_merge(Abstraction& abs1, Abstraction& abs2);
 
     virtual bool is_backward_pruned() const
     {
-        return goal_leading == BACKWARD_PRUNED_GOAL_LEADING
-               || goal_leading == GOAL_LEADING_FROM_THRESHOLD_BACKWARD_PRUNED
-               || goal_leading == APPROXIMATED_BY_H_MAX_BACKWARD_PRUNED;
+        return goal_leading == BACKWARD_PRUNED_GOAL_LEADING ||
+               goal_leading == GOAL_LEADING_FROM_THRESHOLD_BACKWARD_PRUNED ||
+               goal_leading == APPROXIMATED_BY_H_MAX_BACKWARD_PRUNED;
     }
 
     virtual const std::vector<bool> &get_caught_labels_set() const;

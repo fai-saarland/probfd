@@ -536,9 +536,11 @@ void ShrinkBisimulation::add_options_to_parser(options::OptionParser &parser)
     greediness.push_back("false");
     greediness.push_back("somewhat");
     greediness.push_back("true");
-    parser.add_enum_option(
-        "greedy", greediness,
-        "use exact, somewhat greedy or greedy bisimulation", "false");
+    parser.add_enum_option<Greediness>(
+        "greedy",
+        greediness,
+        "use exact, somewhat greedy or greedy bisimulation",
+        "false");
     parser.add_option<int>("threshold", "", "-1"); // default: same as max_states
     parser.add_option<bool>("initialize_by_h", "", "true");
     parser.add_option<bool>("group_by_h", "", "false");
@@ -546,10 +548,11 @@ void ShrinkBisimulation::add_options_to_parser(options::OptionParser &parser)
     vector<string> at_limit;
     at_limit.push_back("RETURN");
     at_limit.push_back("USE_UP");
-    parser.add_enum_option(
-        "at_limit", at_limit,
-        "what to do when the size limit is hit", "RETURN");
-
+    parser.add_enum_option<AtLimit>(
+        "at_limit",
+        at_limit,
+        "what to do when the size limit is hit",
+        "RETURN");
 }
 
 void ShrinkBisimulation::handle_option_defaults(options::Options &opts)

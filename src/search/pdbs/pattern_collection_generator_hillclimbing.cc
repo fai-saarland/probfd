@@ -121,19 +121,21 @@ print(std::ostream& out) const {
         << "\n  Time: " << hillclimbing_time << "s" << std::endl;
 }
 
-PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(const Options &opts)
-    : verbosity(static_cast<Verbosity>(opts.get_enum("verbosity"))),
-      initial_generator(opts.get<std::shared_ptr<PatternCollectionGenerator>>(
-          "initial_generator")),
-      pdb_max_size(opts.get<int>("pdb_max_size")),
-      collection_max_size(opts.get<int>("collection_max_size")),
-      num_samples(opts.get<int>("num_samples")),
-      min_improvement(opts.get<int>("min_improvement")),
-      max_time(opts.get<double>("max_time")),
-      rng(utils::parse_rng_from_options(opts)),
-      num_rejected(0),
-      hill_climbing_timer(0),
-      cost_type(OperatorCost(opts.get_enum("cost_type"))) {
+PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
+    const Options& opts)
+    : verbosity(opts.get<Verbosity>("verbosity"))
+    , initial_generator(opts.get<std::shared_ptr<PatternCollectionGenerator>>(
+          "initial_generator"))
+    , pdb_max_size(opts.get<int>("pdb_max_size"))
+    , collection_max_size(opts.get<int>("collection_max_size"))
+    , num_samples(opts.get<int>("num_samples"))
+    , min_improvement(opts.get<int>("min_improvement"))
+    , max_time(opts.get<double>("max_time"))
+    , rng(utils::parse_rng_from_options(opts))
+    , num_rejected(0)
+    , hill_climbing_timer(0)
+    , cost_type(opts.get<OperatorCost>("cost_type"))
+{
 }
 
 int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
@@ -495,7 +497,7 @@ PatternCollectionGeneratorHillclimbing::get_report() const
 
 
 void add_hillclimbing_options(OptionParser &parser) {
-    utils::add_verbosity_option_to_parser(parser);
+    utils::add_log_options_to_parser(parser);
 
     parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "initial_generator",
@@ -676,7 +678,9 @@ static shared_ptr<Heuristic> _parse_ipdb(OptionParser &parser) {
         make_shared<PatternCollectionGeneratorHillclimbing>(opts);
 
     Options heuristic_opts;
-    heuristic_opts.set<int>("cost_type", opts.get_enum("cost_type"));
+    heuristic_opts.set<OperatorCost>(
+        "cost_type",
+        opts.get<OperatorCost>("cost_type"));
     heuristic_opts.set<shared_ptr<PatternCollectionGenerator>>(
         "patterns", pgh);
     heuristic_opts.set<double>(

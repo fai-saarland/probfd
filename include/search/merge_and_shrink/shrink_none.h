@@ -7,12 +7,15 @@ namespace merge_and_shrink {
 
 class ShrinkNone : public ShrinkStrategy
 {
+public:
     // Michael: Moved from bisimulation
     enum GoalLeading {
         NO_GOAL_LEADING,
         ALL_GOAL_LEADING,
         BACKWARD_PRUNED_GOAL_LEADING
     };
+
+private:
     const GoalLeading goal_leading;
 
 public:

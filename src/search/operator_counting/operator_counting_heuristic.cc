@@ -15,11 +15,12 @@
 using namespace std;
 
 namespace operator_counting {
-OperatorCountingHeuristic::OperatorCountingHeuristic(const Options &opts)
-    : Heuristic(opts),
-      constraint_generators(
-          opts.get_list<shared_ptr<ConstraintGenerator>>("constraint_generators")),
-      lp_solver(lp::LPSolverType(opts.get_enum("lpsolver"))) {
+OperatorCountingHeuristic::OperatorCountingHeuristic(const Options& opts)
+    : Heuristic(opts)
+    , constraint_generators(opts.get_list<shared_ptr<ConstraintGenerator>>(
+          "constraint_generators"))
+    , lp_solver(opts.get<lp::LPSolverType>("lpsolver"))
+{
     vector<lp::LPVariable> variables;
     double infinity = lp_solver.get_infinity();
     for (unsigned op_num = 0; op_num < g_operators.size(); op_num++) {

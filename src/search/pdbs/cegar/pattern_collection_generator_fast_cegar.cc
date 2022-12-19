@@ -23,23 +23,22 @@ namespace pdbs {
 
 PatternCollectionGeneratorFastCegar::PatternCollectionGeneratorFastCegar(
     options::Options& opts)
-    : single_generator_max_refinements(opts.get<int>("max_refinements")),
-      single_generator_max_pdb_size(opts.get<int>("max_pdb_size")),
-      single_generator_max_collection_size(
-          opts.get<int>("max_collection_size")),
-      single_generator_extended_plans(opts.get<bool>("extended_plan")),
-      single_generator_treat_goal_violations_differently(
-          opts.get<bool>("treat_goal_violations_differently")),
-      single_generator_local_blacklisting(opts.get<bool>("local_blacklisting")),
-      single_generator_max_time(opts.get<double>("max_time")),
-      single_generator_verbosity(
-          static_cast<Verbosity>(opts.get_enum("verbosity"))),
-      initial_random_seed(opts.get<int>("initial_random_seed")),
-      total_collection_max_size(opts.get<int>("total_collection_max_size")),
-      stagnation_limit(opts.get<double>("stagnation_limit")),
-      blacklist_trigger_time(opts.get<double>("blacklist_trigger_time")),
-      blacklist_on_stagnation(opts.get<bool>("blacklist_on_stagnation")),
-      total_time_limit(opts.get<double>("total_time_limit")) {
+    : single_generator_max_refinements(opts.get<int>("max_refinements"))
+    , single_generator_max_pdb_size(opts.get<int>("max_pdb_size"))
+    , single_generator_max_collection_size(opts.get<int>("max_collection_size"))
+    , single_generator_extended_plans(opts.get<bool>("extended_plan"))
+    , single_generator_treat_goal_violations_differently(
+          opts.get<bool>("treat_goal_violations_differently"))
+    , single_generator_local_blacklisting(opts.get<bool>("local_blacklisting"))
+    , single_generator_max_time(opts.get<double>("max_time"))
+    , single_generator_verbosity(opts.get<Verbosity>("verbosity"))
+    , initial_random_seed(opts.get<int>("initial_random_seed"))
+    , total_collection_max_size(opts.get<int>("total_collection_max_size"))
+    , stagnation_limit(opts.get<double>("stagnation_limit"))
+    , blacklist_trigger_time(opts.get<double>("blacklist_trigger_time"))
+    , blacklist_on_stagnation(opts.get<bool>("blacklist_on_stagnation"))
+    , total_time_limit(opts.get<double>("total_time_limit"))
+{
 }
 
 PatternCollectionInformation

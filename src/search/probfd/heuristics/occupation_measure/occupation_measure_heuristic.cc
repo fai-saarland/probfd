@@ -234,7 +234,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
 ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     const options::Options& opts)
-    : lp_solver_(lp::LPSolverType(opts.get_enum("lpsolver")))
+    : lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
     , is_maxprob_(
           std::dynamic_pointer_cast<
               analysis_objectives::GoalProbabilityObjective>(

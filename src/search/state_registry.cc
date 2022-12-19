@@ -130,5 +130,5 @@ int StateRegistry::get_state_size_in_bytes() const {
 
 void StateRegistry::print_statistics() const {
     cout << "Number of registered states: " << size() << endl;
-    registered_states.print_statistics();
+    registered_states.print_statistics(utils::g_log);
 }

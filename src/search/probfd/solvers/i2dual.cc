@@ -21,7 +21,7 @@ public:
         , heuristic_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
         , hpom_enabled_(!opts.get<bool>("disable_hpom"))
         , incremental_hpom_updates_(opts.get<bool>("incremental_updates"))
-        , solver_type_(lp::LPSolverType(opts.get_enum("lpsolver")))
+        , solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
     {
     }
 

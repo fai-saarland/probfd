@@ -139,7 +139,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::Statistics::print(
 template <typename PDBType>
 PatternCollectionGeneratorHillclimbing<
     PDBType>::PatternCollectionGeneratorHillclimbing(const Options& opts)
-    : verbosity(static_cast<Verbosity>(opts.get_enum("verbosity")))
+    : verbosity(opts.get<Verbosity>("verbosity"))
     , initial_generator(
           opts.get<std::shared_ptr<PatternCollectionGenerator<PDBType>>>(
               "initial_generator"))
@@ -152,7 +152,7 @@ PatternCollectionGeneratorHillclimbing<
     , max_time(opts.get<double>("max_time"))
     , rng(utils::parse_rng_from_options(opts))
     , num_rejected(0)
-    , cost_type(OperatorCost(opts.get_enum("cost_type")))
+    , cost_type(opts.get<OperatorCost>("cost_type"))
 {
 }
 
@@ -572,7 +572,7 @@ void add_hillclimbing_initial_generator_option<MaxProbProjection>(
 
 void add_hillclimbing_common_options(OptionParser& parser)
 {
-    utils::add_verbosity_option_to_parser(parser);
+    utils::add_log_options_to_parser(parser);
 
     parser.add_option<std::shared_ptr<SubCollectionFinder>>(
         "subcollection_finder",

@@ -18,8 +18,8 @@ SearchEngine::SearchEngine(const options::Options& opts)
     : status(IN_PROGRESS)
     , solution_found(false)
     , state_registry(std::make_shared<StateRegistry>())
-    , search_space(OperatorCost(opts.get_enum("cost_type")), nullptr)
-    , cost_type(OperatorCost(opts.get_enum("cost_type")))
+    , search_space(opts.get<OperatorCost>("cost_type"), nullptr)
+    , cost_type(opts.get<OperatorCost>("cost_type"))
     , max_time(opts.get<double>("max_time"))
 {
     if (opts.get<int>("bound") < 0) {

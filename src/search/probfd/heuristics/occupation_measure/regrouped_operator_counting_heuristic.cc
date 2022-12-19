@@ -45,7 +45,7 @@ std::vector<int> get_precondition_explicit(const ProbabilisticOperator& op)
 
 RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     const options::Options& opts)
-    : lp_solver_(lp::LPSolverType(opts.get_enum("lpsolver")))
+    : lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
     , is_maxprob(
           std::dynamic_pointer_cast<
               analysis_objectives::GoalProbabilityObjective>(

@@ -12,9 +12,11 @@
 
 namespace merge_and_shrink {
 
-ShrinkNone::ShrinkNone(const options::Options &opts) : ShrinkStrategy(opts),
-    //Michael: For goal leading
-    goal_leading(GoalLeading(opts.get_enum("goal_leading")))
+ShrinkNone::ShrinkNone(const options::Options& opts)
+    : ShrinkStrategy(opts)
+    ,
+    // Michael: For goal leading
+    goal_leading(opts.get<GoalLeading>("goal_leading"))
 {
 }
 
@@ -73,9 +75,11 @@ static std::shared_ptr<ShrinkStrategy> _parse(options::OptionParser &parser)
     goal_lead.push_back("false");
     goal_lead.push_back("all");
     goal_lead.push_back("backward_pruning");
-    parser.add_enum_option(
-        "goal_leading", goal_lead,
-        "catch all, all goal leading or all goal leading with backward pruning actions",
+    parser.add_enum_option<ShrinkNone::GoalLeading>(
+        "goal_leading",
+        goal_lead,
+        "catch all, all goal leading or all goal leading with backward pruning "
+        "actions",
         "false");
 
     options::Options opts = parser.parse();

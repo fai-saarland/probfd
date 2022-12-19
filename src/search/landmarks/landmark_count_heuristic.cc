@@ -40,10 +40,11 @@ LandmarkCountHeuristic::LandmarkCountHeuristic(const options::Options &opts)
         }
         if (opts.get<bool>("optimal")) {
 #ifdef USE_LP
-            lm_cost_assignment = new LandmarkEfficientOptimalSharedCostAssignment(
-                lgraph,
-                OperatorCost(opts.get_enum("cost_type")),
-                lp::LPSolverType(opts.get_enum("lpsolver")));
+            lm_cost_assignment =
+                new LandmarkEfficientOptimalSharedCostAssignment(
+                    lgraph,
+                    opts.get<OperatorCost>("cost_type"),
+                    opts.get<lp::LPSolverType>("lpsolver"));
 #else
             cerr << "You must build the planner with the USE_LP symbol defined." << endl
                  << "If you already did, try \"make clean\" before rebuilding with USE_LP=1." << endl;
@@ -51,8 +52,9 @@ LandmarkCountHeuristic::LandmarkCountHeuristic(const options::Options &opts)
 #endif
         } else {
             lm_cost_assignment = new LandmarkUniformSharedCostAssignment(
-                lgraph, opts.get<bool>("alm"),
-                OperatorCost(opts.get_enum("cost_type")));
+                lgraph,
+                opts.get<bool>("alm"),
+                opts.get<OperatorCost>("cost_type"));
         }
     } else {
         use_cost_sharing = false;

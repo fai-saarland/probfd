@@ -23,7 +23,7 @@ LandmarkGraph::LandmarkGraph(const options::Options &opts)
     disjunctive_landmarks = opts.get<bool>("disjunctive_landmarks");
     conjunctive_landmarks = opts.get<bool>("conjunctive_landmarks");
     no_orders = opts.get<bool>("no_orders");
-    lm_cost_type = static_cast<OperatorCost>(opts.get_enum("lm_cost_type"));
+    lm_cost_type = opts.get<OperatorCost>("lm_cost_type");
     conditional_effects_supported = opts.get<bool>("supports_conditional_effects");
     generate_operators_lookups();
 }
@@ -353,10 +353,11 @@ void LandmarkGraph::add_options_to_parser(options::OptionParser &parser) {
     cost_types.push_back("NORMAL");
     cost_types.push_back("ONE");
     cost_types.push_back("PLUSONE");
-    parser.add_enum_option("lm_cost_type",
-                           cost_types,
-                           "landmark action cost adjustment",
-                           "NORMAL");
+    parser.add_enum_option<OperatorCost>(
+        "lm_cost_type",
+        cost_types,
+        "landmark action cost adjustment",
+        "NORMAL");
 }
 
 static PluginTypePlugin<LandmarkGraph> _plugin_type("LandmarkGraph", "");

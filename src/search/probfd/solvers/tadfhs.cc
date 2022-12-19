@@ -10,6 +10,7 @@ namespace probfd {
 namespace solvers {
 
 using namespace engine_interfaces;
+using namespace engines::trap_aware_dfhs;
 
 class TrapAwareDFHSSolver
     : public MDPHeuristicSearch<std::false_type, std::true_type> {
@@ -20,8 +21,7 @@ public:
             WrappedType<T>;
 
     template <typename State, typename Action, typename Bounds>
-    using Engine = engines::trap_aware_dfhs::
-        DepthFirstHeuristicSearch<State, Action, Bounds>;
+    using Engine = DepthFirstHeuristicSearch<State, Action, Bounds>;
 
     explicit TrapAwareDFHSSolver(const options::Options& opts)
         : MDPHeuristicSearch<std::false_type, std::true_type>(opts)
@@ -31,8 +31,7 @@ public:
                         "open_list"))
                   : nullptr)
         , forward_updates_(opts.get<bool>("fwup"))
-        , backward_updates_(engines::trap_aware_dfhs::BacktrackingUpdateType(
-              opts.get_enum("bwup")))
+        , backward_updates_(opts.get<BacktrackingUpdateType>("bwup"))
         , cutoff_tip_(opts.get<bool>("cutoff_tip"))
         , cutoff_inconsistent_(opts.get<bool>("cutoff_inconsistent"))
         , terminate_exploration_(opts.get<bool>("terminate_exploration"))
@@ -55,7 +54,7 @@ public:
         {
             std::vector<std::string> bwups(
                 {"disabled", "ondemand", "single", "convergence"});
-            parser.add_enum_option(
+            parser.add_enum_option<BacktrackingUpdateType>(
                 "bwup",
                 bwups,
                 "Value updates on the way back of exploration: disabled, "
@@ -124,7 +123,7 @@ protected:
 
     WrappedType<std::shared_ptr<GlobalStateOpenList>> open_list_;
     const bool forward_updates_;
-    const engines::trap_aware_dfhs::BacktrackingUpdateType backward_updates_;
+    const BacktrackingUpdateType backward_updates_;
     const bool cutoff_tip_;
     const bool cutoff_inconsistent_;
     const bool terminate_exploration_;

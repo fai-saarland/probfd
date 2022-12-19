@@ -13,10 +13,10 @@ ZeroOnePDBs get_zero_one_pdbs_from_options(
     shared_ptr<PatternCollectionGenerator> pattern_generator =
         opts.get<shared_ptr<PatternCollectionGenerator>>("patterns");
     PatternCollectionInformation pattern_collection_info =
-        pattern_generator->generate(OperatorCost(opts.get_enum("cost_type")));
+        pattern_generator->generate(opts.get<OperatorCost>("cost_type"));
     shared_ptr<PatternCollection> patterns =
         pattern_collection_info.get_patterns();
-    return ZeroOnePDBs(OperatorCost(opts.get_enum("cost_type")), *patterns);
+    return ZeroOnePDBs(opts.get<OperatorCost>("cost_type"), *patterns);
 }
 
 ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(

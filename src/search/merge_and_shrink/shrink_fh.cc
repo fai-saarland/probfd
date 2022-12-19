@@ -18,11 +18,10 @@ namespace merge_and_shrink {
 
 static const int infinity = numeric_limits<int>::max();
 
-
-ShrinkFH::ShrinkFH(const options::Options &opts)
-    : ShrinkBucketBased(opts),
-      f_start(HighLow(opts.get_enum("shrink_f"))),
-      h_start(HighLow(opts.get_enum("shrink_h")))
+ShrinkFH::ShrinkFH(const options::Options& opts)
+    : ShrinkBucketBased(opts)
+    , f_start(opts.get<HighLow>("shrink_f"))
+    , h_start(opts.get<HighLow>("shrink_h"))
 {
 }
 
@@ -182,11 +181,15 @@ static std::shared_ptr<ShrinkStrategy> _parse(options::OptionParser &parser)
     vector<string> high_low;
     high_low.push_back("HIGH");
     high_low.push_back("LOW");
-    parser.add_enum_option(
-        "shrink_f", high_low, "prefer shrinking states with high or low f values",
+    parser.add_enum_option<ShrinkFH::HighLow>(
+        "shrink_f",
+        high_low,
+        "prefer shrinking states with high or low f values",
         "HIGH");
-    parser.add_enum_option(
-        "shrink_h", high_low, "prefer shrinking states with high or low h values",
+    parser.add_enum_option<ShrinkFH::HighLow>(
+        "shrink_h",
+        high_low,
+        "prefer shrinking states with high or low h values",
         "LOW");
     options::Options opts = parser.parse();
 
