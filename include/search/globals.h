@@ -72,8 +72,7 @@ extern causal_graph::CausalGraph* g_causal_graph;
 // changed.
 extern utils::RandomNumberGenerator g_rng;
 
-extern std::vector<std::vector<std::set<std::pair<int, int> > > > g_inconsistent_facts;
-extern std::vector<std::vector<std::pair<int, int>>> g_dnf_formula;
-
+extern std::vector<std::vector<std::set<std::pair<int, int>>>>
+    g_inconsistent_facts;
 
 #endif
