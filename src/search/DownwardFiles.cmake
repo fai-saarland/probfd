@@ -288,7 +288,7 @@ fast_downward_plugin(
     NAME EAGER_SEARCH
     HELP "Eager search algorithm"
     SOURCES
-        eager_search
+        search_engines/eager_search
     DEPENDS SUM_EVALUATOR G_EVALUATOR OPEN_LISTS BLIND_SEARCH_HEURISTIC
 )
 
@@ -296,7 +296,7 @@ fast_downward_plugin(
     NAME ENFORCED_HILL_CLIMBING
     HELP "Enforced Hill-Climbing search algorithm"
     SOURCES
-        enforced_hill_climbing_search
+        search_engines/enforced_hill_climbing_search
     DEPENDS SUM_EVALUATOR G_EVALUATOR PREF_EVALUATOR OPEN_LISTS BLIND_SEARCH_HEURISTIC
 )
 
@@ -304,7 +304,7 @@ fast_downward_plugin(
     NAME LAZY_SEARCH
     HELP "Eager search algorithm with lazy heuristic evaluation"
     SOURCES
-        lazy_search
+        search_engines/lazy_search
     DEPENDS SUM_EVALUATOR G_EVALUATOR WEIGHTED_EVALUATOR OPEN_LISTS BLIND_SEARCH_HEURISTIC
 )
 
@@ -312,7 +312,7 @@ fast_downward_plugin(
     NAME ITERATED_SEARCH
     HELP "Iterated search algorithm"
     SOURCES
-        iterated_search
+        search_engines/iterated_search
 )
 
 fast_downward_plugin(

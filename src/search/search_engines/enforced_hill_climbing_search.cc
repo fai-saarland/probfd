@@ -1,4 +1,4 @@
-#include "enforced_hill_climbing_search.h"
+#include "search_engines/enforced_hill_climbing_search.h"
 
 #include "global_operator.h"
 #include "heuristic.h"
