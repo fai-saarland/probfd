@@ -4,9 +4,10 @@
 #include "globals.h"
 #include "heuristic.h"
 #include "plugin.h"
-#include "successor_generator.h"
 #include "sum_evaluator.h"
 #include "weighted_evaluator.h"
+
+#include "task_utils/successor_generator.h"
 
 #include "open_lists/standard_scalar_open_list.h"
 #include "open_lists/alternation_open_list.h"

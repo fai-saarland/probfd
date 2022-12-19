@@ -13,13 +13,15 @@
 #include "probfd/globals.h"
 #include "probfd/value_type.h"
 
-#include "causal_graph.h"
 #include "global_operator.h"
 #include "globals.h"
 #include "operator_cost.h"
 #include "option_parser.h"
 #include "solver_interface.h"
-#include "successor_generator.h"
+
+#include "task_utils/causal_graph.h"
+#include "task_utils/successor_generator.h"
+
 
 #include <algorithm>
 #include <limits>
@@ -282,7 +284,7 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
     if (!dry_run) {
         if (build_causal_graph) {
             cout << "building causal graph..." << flush;
-            g_causal_graph = new CausalGraph;
+            g_causal_graph = new causal_graph::CausalGraph;
             cout << "done! [t=" << utils::g_timer << "]" << endl;
         }
 

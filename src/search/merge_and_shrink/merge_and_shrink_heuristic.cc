@@ -9,7 +9,8 @@
 
 #include "utils/timer.h"
 
-#include "causal_graph.h"
+#include "task_utils/causal_graph.h"
+
 #include "global_state.h"
 #include "globals.h"
 #include "option_parser.h"

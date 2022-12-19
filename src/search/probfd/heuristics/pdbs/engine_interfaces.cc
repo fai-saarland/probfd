@@ -7,7 +7,7 @@
 
 #include "pdbs/pattern_database.h"
 
-#include "successor_generator.h"
+#include "task_utils/successor_generator.h"
 
 #include <limits>
 

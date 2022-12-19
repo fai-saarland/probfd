@@ -18,12 +18,13 @@
 #include "utils/rng_options.h"
 #include "utils/timer.h"
 
-#include "causal_graph.h"
+#include "task_utils/causal_graph.h"
+#include "task_utils/sampling.h"
+
 #include "global_state.h"
 #include "globals.h"
 #include "option_parser.h"
 #include "plugin.h"
-#include "sampling.h"
 #include "state_registry.h"
 
 #include <algorithm>
@@ -89,7 +90,7 @@ static std::vector<int> get_goal_variables()
 */
 static std::vector<std::vector<int>> compute_relevant_neighbours()
 {
-    const CausalGraph& causal_graph = *g_causal_graph;
+    const causal_graph::CausalGraph& causal_graph = *g_causal_graph;
     const std::vector<int> goal_vars = get_goal_variables();
 
     std::vector<std::vector<int>> connected_vars_by_variable;

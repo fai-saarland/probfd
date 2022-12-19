@@ -1,5 +1,5 @@
-#ifndef SUCCESSOR_GENERATOR_FACTORY_H
-#define SUCCESSOR_GENERATOR_FACTORY_H
+#ifndef TASK_UTILS_SUCCESSOR_GENERATOR_FACTORY_H
+#define TASK_UTILS_SUCCESSOR_GENERATOR_FACTORY_H
 
 #include <memory>
 #include <vector>
@@ -28,12 +28,12 @@ private:
 };
 
 template <typename Entry, typename RandomAccessIterator>
-std::unique_ptr<GeneratorBase<Entry> > create(
+std::unique_ptr<GeneratorBase<Entry>> create(
     RandomAccessIterator domains,
-    std::vector<SuccessorGeneratorFactoryInfo<Entry> >& infos);
+    std::vector<SuccessorGeneratorFactoryInfo<Entry>>& infos);
 
 } // namespace successor_generator
 
-#include "successor_generator_factory-impl.h"
+#include "task_utils/successor_generator_factory-impl.h"
 
 #endif

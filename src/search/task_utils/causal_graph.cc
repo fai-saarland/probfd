@@ -1,4 +1,4 @@
-#include "causal_graph.h"
+#include "task_utils/causal_graph.h"
 
 #include "global_operator.h"
 
@@ -11,6 +11,7 @@
 
 using namespace std;
 
+namespace causal_graph {
 
 /*
   An IntRelationBuilder constructs an IntRelation by adding one pair
@@ -34,37 +35,38 @@ class IntRelationBuilder {
     vector<IntSet> int_sets;
 
     int get_range() const;
+
 public:
     explicit IntRelationBuilder(int range);
     ~IntRelationBuilder();
 
     void add_pair(int u, int v);
-    void compute_relation(IntRelation &result) const;
+    void compute_relation(IntRelation& result) const;
 };
 
-
 IntRelationBuilder::IntRelationBuilder(int range)
-    : int_sets(range) {
+    : int_sets(range)
+{
 }
 
-
-IntRelationBuilder::~IntRelationBuilder() {
+IntRelationBuilder::~IntRelationBuilder()
+{
 }
 
-
-int IntRelationBuilder::get_range() const {
+int IntRelationBuilder::get_range() const
+{
     return int_sets.size();
 }
 
-
-void IntRelationBuilder::add_pair(int u, int v) {
+void IntRelationBuilder::add_pair(int u, int v)
+{
     assert(u >= 0 && u < get_range());
     assert(v >= 0 && v < get_range());
     int_sets[u].insert(v);
 }
 
-
-void IntRelationBuilder::compute_relation(IntRelation &result) const {
+void IntRelationBuilder::compute_relation(IntRelation& result) const
+{
     int range = get_range();
     result.clear();
     result.resize(range);
@@ -73,7 +75,6 @@ void IntRelationBuilder::compute_relation(IntRelation &result) const {
         sort(result[i].begin(), result[i].end());
     }
 }
-
 
 struct CausalGraphBuilder {
     IntRelationBuilder pre_eff_builder;
@@ -84,17 +85,18 @@ struct CausalGraphBuilder {
     IntRelationBuilder pred_builder;
 
     explicit CausalGraphBuilder(int var_count)
-        : pre_eff_builder(var_count),
-          eff_pre_builder(var_count),
-          eff_eff_builder(var_count),
-          succ_builder(var_count),
-          pred_builder(var_count) {
+        : pre_eff_builder(var_count)
+        , eff_pre_builder(var_count)
+        , eff_eff_builder(var_count)
+        , succ_builder(var_count)
+        , pred_builder(var_count)
+    {
     }
 
-    ~CausalGraphBuilder() {
-    }
+    ~CausalGraphBuilder() {}
 
-    void handle_pre_eff_arc(int u, int v) {
+    void handle_pre_eff_arc(int u, int v)
+    {
         assert(u != v);
         pre_eff_builder.add_pair(u, v);
         succ_builder.add_pair(u, v);
@@ -102,7 +104,8 @@ struct CausalGraphBuilder {
         pred_builder.add_pair(v, u);
     }
 
-    void handle_eff_eff_edge(int u, int v) {
+    void handle_eff_eff_edge(int u, int v)
+    {
         assert(u != v);
         eff_eff_builder.add_pair(u, v);
         eff_eff_builder.add_pair(v, u);
@@ -112,28 +115,27 @@ struct CausalGraphBuilder {
         pred_builder.add_pair(v, u);
     }
 
-    void handle_operator(const GlobalOperator &op) {
-        const vector<GlobalCondition> &preconditions = op.get_preconditions();
-        const vector<GlobalEffect> &effects = op.get_effects();
+    void handle_operator(const GlobalOperator& op)
+    {
+        const vector<GlobalCondition>& preconditions = op.get_preconditions();
+        const vector<GlobalEffect>& effects = op.get_effects();
 
         // Handle pre->eff links from preconditions.
         for (size_t i = 0; i < preconditions.size(); ++i) {
             int pre_var = preconditions[i].var;
             for (size_t j = 0; j < effects.size(); ++j) {
                 int eff_var = effects[j].var;
-                if (pre_var != eff_var)
-                    handle_pre_eff_arc(pre_var, eff_var);
+                if (pre_var != eff_var) handle_pre_eff_arc(pre_var, eff_var);
             }
         }
 
         // Handle pre->eff links from effect conditions.
         for (size_t i = 0; i < effects.size(); ++i) {
             int eff_var = effects[i].var;
-            const vector<GlobalCondition> &conditions = effects[i].conditions;
+            const vector<GlobalCondition>& conditions = effects[i].conditions;
             for (size_t j = 0; j < conditions.size(); ++j) {
                 int pre_var = conditions[j].var;
-                if (pre_var != eff_var)
-                    handle_pre_eff_arc(pre_var, eff_var);
+                if (pre_var != eff_var) handle_pre_eff_arc(pre_var, eff_var);
             }
         }
 
@@ -149,8 +151,8 @@ struct CausalGraphBuilder {
     }
 };
 
-
-CausalGraph::CausalGraph() {
+CausalGraph::CausalGraph()
+{
     CausalGraphBuilder cg_builder(g_variable_domain.size());
 
     for (size_t i = 0; i < g_operators.size(); ++i)
@@ -169,12 +171,12 @@ CausalGraph::CausalGraph() {
     // dump();
 }
 
-
-CausalGraph::~CausalGraph() {
+CausalGraph::~CausalGraph()
+{
 }
 
-
-void CausalGraph::dump() const {
+void CausalGraph::dump() const
+{
     cout << "Causal graph: " << endl;
     for (size_t var = 0; var < g_variable_domain.size(); ++var)
         cout << "#" << var << " [" << g_variable_name[var] << "]:" << endl
@@ -184,3 +186,4 @@ void CausalGraph::dump() const {
              << "    successors: " << successors[var] << endl
              << "    predecessors: " << predecessors[var] << endl;
 }
+} // namespace causal_graph

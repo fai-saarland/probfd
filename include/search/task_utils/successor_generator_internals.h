@@ -195,6 +195,6 @@ public:
 
 } // namespace successor_generator
 
-#include "successor_generator_internals-impl.h"
+#include "task_utils/successor_generator_internals-impl.h"
 
 #endif

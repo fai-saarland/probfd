@@ -4,7 +4,8 @@
 
 #include "globals.h"
 #include "plugin.h"
-#include "successor_generator.h"
+
+#include "task_utils/successor_generator.h"
 
 #include <cmath>
 #include <unordered_map>

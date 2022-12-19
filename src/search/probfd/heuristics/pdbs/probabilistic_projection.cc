@@ -5,7 +5,8 @@
 #include "probfd/globals.h"
 
 #include "global_operator.h"
-#include "successor_generator.h"
+
+#include "task_utils/successor_generator.h"
 
 #include <algorithm>
 #include <deque>

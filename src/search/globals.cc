@@ -1,16 +1,19 @@
 #include "globals.h"
 
+#include "algorithms/int_packer.h"
+
 #include "axioms.h"
-#include "causal_graph.h"
 #include "domain_transition_graph.h"
 #include "global_operator.h"
 #include "global_state.h"
 #include "heuristic.h"
-#include "algorithms/int_packer.h"
+
+#include "task_utils/causal_graph.h"
+#include "task_utils/successor_generator.h"
+
+#include "utils/rng.h"
 #include "utils/system.h"
 #include "utils/timer.h"
-#include "utils/rng.h"
-#include "successor_generator.h"
 
 #include "probfd/globals.h"
 #include "probfd/probabilistic_operator.h"
@@ -446,7 +449,7 @@ vector<GlobalOperator> g_operators;
 vector<GlobalOperator> g_axioms;
 AxiomEvaluator *g_axiom_evaluator;
 vector<DomainTransitionGraph *> g_transition_graphs;
-CausalGraph *g_causal_graph;
+causal_graph::CausalGraph *g_causal_graph;
 
 string g_plan_filename = "sas_plan";
 int g_num_previously_generated_plans = 0;

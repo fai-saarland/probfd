@@ -1,5 +1,5 @@
-#ifndef VARIABLE_ORDER_FINDER_H
-#define VARIABLE_ORDER_FINDER_H
+#ifndef TASK_UTILS_VARIABLE_ORDER_FINDER_H
+#define TASK_UTILS_VARIABLE_ORDER_FINDER_H
 
 #include <memory>
 #include <vector>

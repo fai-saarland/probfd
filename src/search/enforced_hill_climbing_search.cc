@@ -4,7 +4,8 @@
 #include "heuristic.h"
 #include "plugin.h"
 #include "pref_evaluator.h"
-#include "successor_generator.h"
+
+#include "task_utils/successor_generator.h"
 
 #include "utils/system.h"
 

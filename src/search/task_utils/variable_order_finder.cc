@@ -1,10 +1,11 @@
-#include "variable_order_finder.h"
+#include "task_utils/variable_order_finder.h"
+
+#include "task_utils/causal_graph.h"
 
 #include "globals.h"
-#include "causal_graph.h"
 
-#include "utils/system.h"
 #include "utils/rng.h"
+#include "utils/system.h"
 
 #include <algorithm>
 #include <cassert>
@@ -15,10 +16,10 @@
 using namespace std;
 using utils::ExitCode;
 
-
 namespace variable_order_finder {
 VariableOrderFinder::VariableOrderFinder(VariableOrderType variable_order_type)
-    : variable_order_type(variable_order_type) {
+    : variable_order_type(variable_order_type)
+{
     int var_count = g_variable_domain.size();
     if (variable_order_type == REVERSE_LEVEL) {
         for (int i = 0; i < var_count; ++i)
@@ -40,24 +41,27 @@ VariableOrderFinder::VariableOrderFinder(VariableOrderType variable_order_type)
         is_goal_variable[goal.first] = true;
 }
 
-void VariableOrderFinder::select_next(int position, int var_no) {
+void VariableOrderFinder::select_next(int position, int var_no)
+{
     assert(remaining_vars[position] == var_no);
     remaining_vars.erase(remaining_vars.begin() + position);
     selected_vars.push_back(var_no);
-    const CausalGraph &cg = *g_causal_graph;
-    const vector<int> &new_vars = cg.get_eff_to_pre(var_no);
+    const causal_graph::CausalGraph& cg = *g_causal_graph;
+    const vector<int>& new_vars = cg.get_eff_to_pre(var_no);
     for (int new_var : new_vars)
         is_causal_predecessor[new_var] = true;
 }
 
-bool VariableOrderFinder::done() const {
+bool VariableOrderFinder::done() const
+{
     return remaining_vars.empty();
 }
 
-int VariableOrderFinder::next() {
+int VariableOrderFinder::next()
+{
     assert(!done());
-    if (variable_order_type == CG_GOAL_LEVEL || variable_order_type
-        == CG_GOAL_RANDOM) {
+    if (variable_order_type == CG_GOAL_LEVEL ||
+        variable_order_type == CG_GOAL_RANDOM) {
         // First run: Try to find a causally connected variable.
         for (size_t i = 0; i < remaining_vars.size(); ++i) {
             int var_no = remaining_vars[i];
@@ -91,9 +95,9 @@ int VariableOrderFinder::next() {
                 return var_no;
             }
         }
-    } else if (variable_order_type == RANDOM ||
-               variable_order_type == LEVEL ||
-               variable_order_type == REVERSE_LEVEL) {
+    } else if (
+        variable_order_type == RANDOM || variable_order_type == LEVEL ||
+        variable_order_type == REVERSE_LEVEL) {
         int var_no = remaining_vars[0];
         select_next(0, var_no);
         return var_no;
@@ -102,30 +106,18 @@ int VariableOrderFinder::next() {
     utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
 }
 
-void dump_variable_order_type(VariableOrderType variable_order_type) {
+void dump_variable_order_type(VariableOrderType variable_order_type)
+{
     cout << "Variable order type: ";
     switch (variable_order_type) {
-    case CG_GOAL_LEVEL:
-        cout << "CG/GOAL, tie breaking on level (main)";
-        break;
-    case CG_GOAL_RANDOM:
-        cout << "CG/GOAL, tie breaking random";
-        break;
-    case GOAL_CG_LEVEL:
-        cout << "GOAL/CG, tie breaking on level";
-        break;
-    case RANDOM:
-        cout << "random";
-        break;
-    case LEVEL:
-        cout << "by level";
-        break;
-    case REVERSE_LEVEL:
-        cout << "by reverse level";
-        break;
-    default:
-        ABORT("Unknown variable order type.");
+    case CG_GOAL_LEVEL: cout << "CG/GOAL, tie breaking on level (main)"; break;
+    case CG_GOAL_RANDOM: cout << "CG/GOAL, tie breaking random"; break;
+    case GOAL_CG_LEVEL: cout << "GOAL/CG, tie breaking on level"; break;
+    case RANDOM: cout << "random"; break;
+    case LEVEL: cout << "by level"; break;
+    case REVERSE_LEVEL: cout << "by reverse level"; break;
+    default: ABORT("Unknown variable order type.");
     }
     cout << endl;
 }
-}
+} // namespace variable_order_finder

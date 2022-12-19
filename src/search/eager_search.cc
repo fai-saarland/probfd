@@ -3,11 +3,12 @@
 #include "globals.h"
 #include "heuristic.h"
 #include "option_parser.h"
-#include "successor_generator.h"
 #include "plugin.h"
 
 #include "g_evaluator.h"
 #include "sum_evaluator.h"
+
+#include "task_utils/successor_generator.h"
 
 #include "open_lists/alternation_open_list.h"
 #include "open_lists/standard_scalar_open_list.h"

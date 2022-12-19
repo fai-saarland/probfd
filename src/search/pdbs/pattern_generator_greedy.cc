@@ -10,8 +10,8 @@
 #include "globals.h"
 #include "option_parser.h"
 #include "plugin.h"
-#include "variable_order_finder.h"
 
+#include "task_utils/variable_order_finder.h"
 
 #include <iostream>
 

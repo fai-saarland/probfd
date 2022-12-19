@@ -17,7 +17,6 @@
   and do the memory profiling.
 */
 
-
 /*
   An IntRelation represents a relation on a set {0, ..., K - 1} as an
   adjacency list, encoded as a vector<vector<int> >. For example, the
@@ -51,8 +50,9 @@
 
 #include <vector>
 
-typedef std::vector<std::vector<int> > IntRelation;
+typedef std::vector<std::vector<int>> IntRelation;
 
+namespace causal_graph {
 
 class CausalGraph {
     IntRelation pre_to_eff;
@@ -61,6 +61,7 @@ class CausalGraph {
 
     IntRelation successors;
     IntRelation predecessors;
+
 public:
     CausalGraph();
     ~CausalGraph();
@@ -83,37 +84,39 @@ public:
       conditional effect.
     */
 
-    const std::vector<int> &get_pre_to_eff(int var) const {
+    const std::vector<int>& get_pre_to_eff(int var) const
+    {
         return pre_to_eff[var];
     }
 
-    const std::vector<int> &get_eff_to_pre(int var) const {
+    const std::vector<int>& get_eff_to_pre(int var) const
+    {
         return eff_to_pre[var];
     }
 
-    const std::vector<int> &get_eff_to_eff(int var) const {
+    const std::vector<int>& get_eff_to_eff(int var) const
+    {
         return eff_to_eff[var];
     }
 
-    const std::vector<int> &get_successors(int var) const {
+    const std::vector<int>& get_successors(int var) const
+    {
         return successors[var];
     }
 
-    const std::vector<int> &get_predecessors(int var) const {
+    const std::vector<int>& get_predecessors(int var) const
+    {
         return predecessors[var];
     }
-    
-    const std::vector<std::vector<int> > &get_arcs() const
-    {
-        return successors;
-    }
 
-    const std::vector<std::vector<int> > &get_inverse_arcs() const
+    const std::vector<std::vector<int>>& get_arcs() const { return successors; }
+
+    const std::vector<std::vector<int>>& get_inverse_arcs() const
     {
         return predecessors;
     }
 
     void dump() const;
 };
-
+} // namespace causal_graph
 #endif

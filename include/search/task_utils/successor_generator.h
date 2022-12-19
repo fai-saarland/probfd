@@ -1,5 +1,5 @@
-#ifndef SUCCESSOR_GENERATOR_H
-#define SUCCESSOR_GENERATOR_H
+#ifndef TASK_UTILS_SUCCESSOR_GENERATOR_H
+#define TASK_UTILS_SUCCESSOR_GENERATOR_H
 
 #include <memory>
 #include <vector>
@@ -53,6 +53,6 @@ extern std::shared_ptr<SuccessorGenerator<const GlobalOperator*>>
 
 } // namespace successor_generator
 
-#include "successor_generator-impl.h"
+#include "task_utils/successor_generator-impl.h"
 
 #endif

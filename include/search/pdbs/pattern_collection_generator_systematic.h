@@ -11,7 +11,9 @@
 #include <unordered_set>
 #include <vector>
 
+namespace causal_graph{
 class CausalGraph;
+}
 
 namespace options {
 class Options;
@@ -31,15 +33,15 @@ class PatternCollectionGeneratorSystematic : public PatternCollectionGenerator {
 
     void enqueue_pattern_if_new(const Pattern& pattern);
     void compute_eff_pre_neighbors(
-        const CausalGraph& cg,
+        const causal_graph::CausalGraph& cg,
         const Pattern& pattern,
         std::vector<int>& result) const;
     void compute_connection_points(
-        const CausalGraph& cg,
+        const causal_graph::CausalGraph& cg,
         const Pattern& pattern,
         std::vector<int>& result) const;
 
-    void build_sga_patterns(const CausalGraph& cg);
+    void build_sga_patterns(const causal_graph::CausalGraph& cg);
     void build_patterns();
     void build_patterns_naive();
 

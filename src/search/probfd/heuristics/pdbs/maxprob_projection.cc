@@ -11,7 +11,7 @@
 
 #include "utils/collections.h"
 
-#include "successor_generator.h"
+#include "task_utils/successor_generator.h"
 
 #include "lp/lp_solver.h"
 

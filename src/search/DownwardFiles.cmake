@@ -48,6 +48,7 @@ fast_downward_plugin(
     SOURCES
         planner
 
+        abstract_task
         command_line
         option_parser
         option_parser_util
@@ -61,13 +62,15 @@ fast_downward_plugin(
         global_state
         partial_state
         operator_cost
+        operator_id
 
         state_id
         state_registry
+        task_proxy
 
         globals
 
-    DEPENDS INT_HASH_SET INT_PACKER ORDERED_SET SEGMENTED_VECTOR SUBSCRIBER
+    DEPENDS CAUSAL_GRAPH INT_HASH_SET INT_PACKER ORDERED_SET SEGMENTED_VECTOR SUBSCRIBER SUCCESSOR_GENERATOR TASK_PROPERTIES
     CORE_PLUGIN
 )
 
@@ -226,15 +229,6 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME SUCCESSOR_GENERATOR
-    HELP "Successor generator"
-    SOURCES
-        successor_generator
-        #successor_generator_factory
-        #successor_generator_internals
-)
-
-fast_downward_plugin(
     NAME OPEN_LISTS
     HELP "open list"
     SOURCES
@@ -363,7 +357,7 @@ fast_downward_plugin(
     HELP "The additive heuristic"
     SOURCES
         additive_heuristic
-    DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC
+    DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -371,7 +365,7 @@ fast_downward_plugin(
     HELP "The context-enhanced additive heuristic"
     SOURCES
         cea_heuristic
-    DEPENDS PRIORITY_QUEUES
+    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -379,7 +373,7 @@ fast_downward_plugin(
     HELP "The causal graph heuristic"
     SOURCES cg_heuristic
             cg_cache
-    DEPENDS PRIORITY_QUEUES
+    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -387,7 +381,7 @@ fast_downward_plugin(
     HELP "The FF heuristic (an implementation of the RPG heuristic)"
     SOURCES
         ff_heuristic
-    DEPENDS ADDITIVE_HEURISTIC
+    DEPENDS ADDITIVE_HEURISTIC TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -402,6 +396,7 @@ fast_downward_plugin(
     HELP "The h^m heuristic"
     SOURCES
         hm_heuristic
+    DEPENDS TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -409,7 +404,7 @@ fast_downward_plugin(
     HELP "The LM-cut heuristic"
     SOURCES
         lm_cut_heuristic
-    DEPENDS PRIORITY_QUEUES
+    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -425,6 +420,70 @@ fast_downward_plugin(
     SOURCES
         max_heuristic
     DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC
+)
+
+fast_downward_plugin(
+    NAME CORE_TASKS
+    HELP "Core task transformations"
+    SOURCES
+        tasks/cost_adapted_task
+        tasks/delegating_task
+        tasks/root_task
+    CORE_PLUGIN
+)
+
+fast_downward_plugin(
+    NAME EXTRA_TASKS
+    HELP "Non-core task transformations"
+    SOURCES
+        tasks/domain_abstracted_task
+        tasks/domain_abstracted_task_factory
+        tasks/modified_goals_task
+        tasks/modified_operator_costs_task
+    DEPENDS TASK_PROPERTIES
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
+    NAME CAUSAL_GRAPH
+    HELP "Causal Graph"
+    SOURCES
+        task_utils/causal_graph
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
+    NAME SAMPLING
+    HELP "Sampling"
+    SOURCES
+        task_utils/sampling
+    DEPENDS SUCCESSOR_GENERATOR TASK_PROPERTIES
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
+    NAME SUCCESSOR_GENERATOR
+    HELP "Successor generator"
+    SOURCES
+        task_utils/successor_generator
+#        task_utils/successor_generator_factory
+#        task_utils/successor_generator_internals
+)
+
+fast_downward_plugin(
+    NAME TASK_PROPERTIES
+    HELP "Task properties"
+    SOURCES
+        task_utils/task_properties
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
+    NAME VARIABLE_ORDER_FINDER
+    HELP "Variable order finder"
+    SOURCES
+        task_utils/variable_order_finder
+    DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(
@@ -463,7 +522,7 @@ fast_downward_plugin(
         merge_and_shrink/variable_order_finder
         merge_and_shrink/multiple_shrinking_strategies
         merge_and_shrink/utils
-    DEPENDS PRIORITY_QUEUES
+    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES VARIABLE_ORDER_FINDER
 )
 
 fast_downward_plugin(
@@ -483,7 +542,7 @@ fast_downward_plugin(
         landmarks/landmark_graph_merged
         landmarks/landmark_status_manager
         landmarks/util
-    DEPENDS LP_SOLVER PRIORITY_QUEUES SUCCESSOR_GENERATOR
+    DEPENDS LP_SOLVER PRIORITY_QUEUES SUCCESSOR_GENERATOR TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -494,7 +553,7 @@ fast_downward_plugin(
         operator_counting/operator_counting_heuristic
         operator_counting/pho_constraints
         operator_counting/state_equation_constraints
-    DEPENDS LP_SOLVER LANDMARK_CUT_HEURISTIC PDBS
+    DEPENDS LP_SOLVER LANDMARK_CUT_HEURISTIC PDBS TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -523,7 +582,7 @@ fast_downward_plugin(
         pdbs/validation
         pdbs/zero_one_pdbs
         pdbs/zero_one_pdbs_heuristic
-    DEPENDS CAUSAL_GRAPH MAX_CLIQUES PRIORITY_QUEUES VARIABLE_ORDER_FINDER SAMPLING
+    DEPENDS CAUSAL_GRAPH MAX_CLIQUES PRIORITY_QUEUES SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES VARIABLE_ORDER_FINDER
 )
 
 fast_downward_plugin(
@@ -534,6 +593,15 @@ fast_downward_plugin(
         pdbs/cegar/pattern_collection_generator_cegar
         pdbs/cegar/pattern_collection_generator_fast_cegar
     DEPENDS PDBS
+)
+
+fast_downward_plugin(
+    NAME SCCS
+    HELP "Algorithm to compute the strongly connected components (SCCs) of a "
+         "directed graph."
+    SOURCES
+        algorithms/sccs
+    DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(

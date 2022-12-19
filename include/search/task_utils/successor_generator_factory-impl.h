@@ -1,7 +1,7 @@
-#ifdef SUCCESSOR_GENERATOR_FACTORY_H
+#ifdef TASK_UTILS_SUCCESSOR_GENERATOR_FACTORY_H
 
 #include "global_operator.h"
-#include "successor_generator_internals.h"
+#include "task_utils/successor_generator_internals.h"
 
 #include "utils/collections.h"
 

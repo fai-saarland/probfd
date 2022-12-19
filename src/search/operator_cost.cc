@@ -17,14 +17,18 @@ int get_adjusted_action_cost(const GlobalOperator& op, OperatorCost cost_type)
     return get_adjusted_action_cost(op.get_cost(), cost_type);
 }
 
-int get_adjusted_action_cost(int cost, OperatorCost cost_type) {
+int get_adjusted_action_cost(
+    int cost,
+    OperatorCost cost_type,
+    bool is_unit_cost)
+{
     switch (cost_type) {
     case NORMAL:
         return cost;
     case ONE:
         return 1;
     case PLUSONE:
-        if (is_unit_cost())
+        if (is_unit_cost)
             return 1;
         else
             return cost + 1;

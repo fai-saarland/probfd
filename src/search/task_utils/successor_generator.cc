@@ -1,4 +1,4 @@
-#include "successor_generator.h"
+#include "task_utils/successor_generator.h"
 
 #include "probfd/globals.h"
 #include "probfd/probabilistic_operator.h"

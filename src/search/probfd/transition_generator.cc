@@ -11,7 +11,8 @@
 #include "globals.h"
 #include "heuristic.h"
 #include "state_registry.h"
-#include "successor_generator.h"
+
+#include "task_utils/successor_generator.h"
 
 #ifndef NDEBUG
 #define DEBUG_CACHE_CONSISTENCY_CHECK

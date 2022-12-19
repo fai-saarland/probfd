@@ -1,7 +1,7 @@
-//#ifdef SUCCESSOR_GENERATOR_H
+//#ifdef TASK_UTILS_SUCCESSOR_GENERATOR_H
 
-#include "successor_generator_factory.h"
-#include "successor_generator_internals.h"
+#include "task_utils/successor_generator_factory.h"
+#include "task_utils/successor_generator_internals.h"
 
 #include <algorithm>
 

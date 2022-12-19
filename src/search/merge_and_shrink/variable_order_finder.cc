@@ -5,8 +5,9 @@
 #include "utils/rng.h"
 #include "utils/system.h"
 
-#include "causal_graph.h"
 #include "globals.h"
+
+#include "task_utils/causal_graph.h"
 
 #include <cassert>
 #include <cstdlib>
