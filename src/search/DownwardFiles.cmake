@@ -345,7 +345,7 @@ fast_downward_plugin(
     NAME RELAXATION_HEURISTIC
     HELP "The base class for relaxation heuristics"
     SOURCES
-        relaxation_heuristic
+        heuristics/relaxation_heuristic
     DEPENDENCY_ONLY
 )
 
@@ -353,7 +353,7 @@ fast_downward_plugin(
     NAME ADDITIVE_HEURISTIC
     HELP "The additive heuristic"
     SOURCES
-        additive_heuristic
+        heuristics/additive_heuristic
     DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC TASK_PROPERTIES
 )
 
@@ -361,23 +361,31 @@ fast_downward_plugin(
     NAME CONTEXT_ENHANCED_ADDITIVE_HEURISTIC
     HELP "The context-enhanced additive heuristic"
     SOURCES
-        cea_heuristic
-    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES
+        heuristics/cea_heuristic
+    DEPENDS DOMAIN_TRANSITION_GRAPH PRIORITY_QUEUES TASK_PROPERTIES
 )
 
 fast_downward_plugin(
     NAME CG_HEURISTIC
     HELP "The causal graph heuristic"
-    SOURCES cg_heuristic
-            cg_cache
-    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES
+    SOURCES heuristics/cg_heuristic
+            heuristics/cg_cache
+    DEPENDS DOMAIN_TRANSITION_GRAPH PRIORITY_QUEUES TASK_PROPERTIES
+)
+
+fast_downward_plugin(
+    NAME DOMAIN_TRANSITION_GRAPH
+    HELP "DTGs used by cg and cea heuristic"
+    SOURCES
+        heuristics/domain_transition_graph
+    DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(
     NAME FF_HEURISTIC
     HELP "The FF heuristic (an implementation of the RPG heuristic)"
     SOURCES
-        ff_heuristic
+        heuristics/ff_heuristic
     DEPENDS ADDITIVE_HEURISTIC TASK_PROPERTIES
 )
 
@@ -385,14 +393,14 @@ fast_downward_plugin(
     NAME GOAL_COUNT_HEURISTIC
     HELP "The goal-counting heuristic"
     SOURCES
-        goal_count_heuristic
+        heuristics/goal_count_heuristic
 )
 
 fast_downward_plugin(
     NAME HM_HEURISTIC
     HELP "The h^m heuristic"
     SOURCES
-        hm_heuristic
+        heuristics/hm_heuristic
     DEPENDS TASK_PROPERTIES
 )
 
@@ -400,7 +408,7 @@ fast_downward_plugin(
     NAME LANDMARK_CUT_HEURISTIC
     HELP "The LM-cut heuristic"
     SOURCES
-        lm_cut_heuristic
+        heuristics/lm_cut_heuristic
     DEPENDS PRIORITY_QUEUES TASK_PROPERTIES
 )
 
@@ -408,14 +416,14 @@ fast_downward_plugin(
     NAME IPC_MAX_HEURISTIC
     HELP "Admissible combination of multiples heuristics via max"
     SOURCES
-        ipc_max_heuristic
+        heuristics/ipc_max_heuristic
 )
 
 fast_downward_plugin(
     NAME MAX_HEURISTIC
     HELP "The Max heuristic"
     SOURCES
-        max_heuristic
+        heuristics/max_heuristic
     DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC
 )
 
@@ -487,7 +495,7 @@ fast_downward_plugin(
     NAME BLIND_SEARCH_HEURISTIC
     HELP "The 'blind search' heuristic"
     SOURCES
-        blind_search_heuristic
+        heuristics/blind_search_heuristic
 )
 
 fast_downward_plugin(

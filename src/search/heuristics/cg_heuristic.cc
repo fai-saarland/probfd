@@ -1,7 +1,8 @@
-#include "cg_heuristic.h"
+#include "heuristics/cg_heuristic.h"
 
-#include "cg_cache.h"
-#include "domain_transition_graph.h"
+#include "heuristics/cg_cache.h"
+#include "heuristics/domain_transition_graph.h"
+
 #include "global_operator.h"
 #include "global_state.h"
 #include "globals.h"

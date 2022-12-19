@@ -1,4 +1,4 @@
-#include "relaxation_heuristic.h"
+#include "heuristics/relaxation_heuristic.h"
 
 #include "global_operator.h"
 #include "global_state.h"

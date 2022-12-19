@@ -1,4 +1,4 @@
-#include "hm_heuristic.h"
+#include "heuristics/hm_heuristic.h"
 
 #include "option_parser.h"
 #include "plugin.h"

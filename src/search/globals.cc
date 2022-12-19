@@ -2,8 +2,9 @@
 
 #include "algorithms/int_packer.h"
 
+#include "heuristics/domain_transition_graph.h"
+
 #include "axioms.h"
-#include "domain_transition_graph.h"
 #include "global_operator.h"
 #include "global_state.h"
 #include "heuristic.h"

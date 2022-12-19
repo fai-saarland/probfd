@@ -1,4 +1,4 @@
-#include "lm_cut_heuristic.h"
+#include "heuristics/lm_cut_heuristic.h"
 
 #include "global_operator.h"
 #include "global_state.h"

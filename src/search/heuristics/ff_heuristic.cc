@@ -1,4 +1,4 @@
-#include "ff_heuristic.h"
+#include "heuristics/ff_heuristic.h"
 
 #include "global_operator.h"
 #include "global_state.h"

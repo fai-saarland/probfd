@@ -1,4 +1,4 @@
-#include "max_heuristic.h"
+#include "heuristics/max_heuristic.h"
 
 #include "global_operator.h"
 #include "global_state.h"

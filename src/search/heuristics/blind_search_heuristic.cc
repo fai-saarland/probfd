@@ -1,4 +1,4 @@
-#include "blind_search_heuristic.h"
+#include "heuristics/blind_search_heuristic.h"
 
 #include "global_operator.h"
 #include "global_state.h"

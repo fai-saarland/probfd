@@ -1,4 +1,4 @@
-#include "additive_heuristic.h"
+#include "heuristics/additive_heuristic.h"
 
 #include "global_operator.h"
 #include "global_state.h"
@@ -9,19 +9,19 @@
 #include <vector>
 using namespace std;
 
-
-
-
 // construction and destruction
-AdditiveHeuristic::AdditiveHeuristic(const options::Options &opts)
-    : RelaxationHeuristic(opts),
-      did_write_overflow_warning(false) {
+AdditiveHeuristic::AdditiveHeuristic(const options::Options& opts)
+    : RelaxationHeuristic(opts)
+    , did_write_overflow_warning(false)
+{
 }
 
-AdditiveHeuristic::~AdditiveHeuristic() {
+AdditiveHeuristic::~AdditiveHeuristic()
+{
 }
 
-void AdditiveHeuristic::write_overflow_warning() {
+void AdditiveHeuristic::write_overflow_warning()
+{
     if (!did_write_overflow_warning) {
         // TODO: Should have a planner-wide warning mechanism to handle
         // things like this.
@@ -34,7 +34,8 @@ void AdditiveHeuristic::write_overflow_warning() {
 }
 
 // initialization
-void AdditiveHeuristic::initialize() {
+void AdditiveHeuristic::initialize()
+{
     cout << "Initializing additive heuristic..." << endl;
     RelaxationHeuristic::initialize();
 }
@@ -44,19 +45,20 @@ void AdditiveHeuristic::compute_proposition_costs(const std::vector<int>& state)
     ensure_initialized();
     setup_exploration_queue();
     for (size_t var = 0; var < propositions.size(); ++var) {
-        Proposition *init_prop = &propositions[var][state[var]];
+        Proposition* init_prop = &propositions[var][state[var]];
         enqueue_if_necessary(init_prop, 0, 0);
     }
     relaxed_exploration();
 }
 
 // heuristic computation
-void AdditiveHeuristic::setup_exploration_queue() {
+void AdditiveHeuristic::setup_exploration_queue()
+{
     queue.clear();
 
     for (size_t var = 0; var < propositions.size(); ++var) {
         for (size_t value = 0; value < propositions[var].size(); ++value) {
-            Proposition &prop = propositions[var][value];
+            Proposition& prop = propositions[var][value];
             prop.cost = -1;
             prop.marked = false;
         }
@@ -64,7 +66,7 @@ void AdditiveHeuristic::setup_exploration_queue() {
 
     // Deal with operators and axioms without preconditions.
     for (size_t i = 0; i < unary_operators.size(); ++i) {
-        UnaryOperator &op = unary_operators[i];
+        UnaryOperator& op = unary_operators[i];
         op.unsatisfied_preconditions = op.precondition.size();
         op.cost = op.base_cost; // will be increased by precondition costs
 
@@ -73,45 +75,49 @@ void AdditiveHeuristic::setup_exploration_queue() {
     }
 }
 
-void AdditiveHeuristic::setup_exploration_queue_state(const GlobalState &state) {
+void AdditiveHeuristic::setup_exploration_queue_state(const GlobalState& state)
+{
     for (size_t var = 0; var < propositions.size(); ++var) {
-        Proposition *init_prop = &propositions[var][state[var]];
+        Proposition* init_prop = &propositions[var][state[var]];
         enqueue_if_necessary(init_prop, 0, 0);
     }
 }
 
-void AdditiveHeuristic::relaxed_exploration() {
+void AdditiveHeuristic::relaxed_exploration()
+{
     int unsolved_goals = goal_propositions.size();
     while (!queue.empty()) {
-        pair<int, Proposition *> top_pair = queue.pop();
+        pair<int, Proposition*> top_pair = queue.pop();
         int distance = top_pair.first;
-        Proposition *prop = top_pair.second;
+        Proposition* prop = top_pair.second;
         int prop_cost = prop->cost;
         assert(prop_cost >= 0);
         assert(prop_cost <= distance);
-        if (prop_cost < distance)
-            continue;
-        if (prop->is_goal && --unsolved_goals == 0)
-            return;
-        const vector<UnaryOperator *> &triggered_operators =
+        if (prop_cost < distance) continue;
+        if (prop->is_goal && --unsolved_goals == 0) return;
+        const vector<UnaryOperator*>& triggered_operators =
             prop->precondition_of;
         for (size_t i = 0; i < triggered_operators.size(); ++i) {
-            UnaryOperator *unary_op = triggered_operators[i];
+            UnaryOperator* unary_op = triggered_operators[i];
             increase_cost(unary_op->cost, prop_cost);
             --unary_op->unsatisfied_preconditions;
             assert(unary_op->unsatisfied_preconditions >= 0);
             if (unary_op->unsatisfied_preconditions == 0)
-                enqueue_if_necessary(unary_op->effect,
-                                     unary_op->cost, unary_op);
+                enqueue_if_necessary(
+                    unary_op->effect,
+                    unary_op->cost,
+                    unary_op);
         }
     }
 }
 
 void AdditiveHeuristic::mark_preferred_operators(
-    const GlobalState &state, Proposition *goal) {
+    const GlobalState& state,
+    Proposition* goal)
+{
     if (!goal->marked) { // Only consider each subgoal once.
         goal->marked = true;
-        UnaryOperator *unary_op = goal->reached_by;
+        UnaryOperator* unary_op = goal->reached_by;
         if (unary_op) { // We have not yet chained back to a start node.
             for (size_t i = 0; i < unary_op->precondition.size(); ++i)
                 mark_preferred_operators(state, unary_op->precondition[i]);
@@ -122,15 +128,15 @@ void AdditiveHeuristic::mark_preferred_operators(
                 // more expensive applicability test.
                 // If we had no 0-cost operators and axioms to worry
                 // about, this would also be a sufficient condition.
-                const GlobalOperator *op = &g_operators[operator_no];
-                if (op->is_applicable(state))
-                    set_preferred(op);
+                const GlobalOperator* op = &g_operators[operator_no];
+                if (op->is_applicable(state)) set_preferred(op);
             }
         }
     }
 }
 
-int AdditiveHeuristic::compute_add_and_ff(const GlobalState &state) {
+int AdditiveHeuristic::compute_add_and_ff(const GlobalState& state)
+{
     setup_exploration_queue();
     setup_exploration_queue_state(state);
     relaxed_exploration();
@@ -138,14 +144,14 @@ int AdditiveHeuristic::compute_add_and_ff(const GlobalState &state) {
     int total_cost = 0;
     for (size_t i = 0; i < goal_propositions.size(); ++i) {
         int prop_cost = goal_propositions[i]->cost;
-        if (prop_cost == -1)
-            return DEAD_END;
+        if (prop_cost == -1) return DEAD_END;
         increase_cost(total_cost, prop_cost);
     }
     return total_cost;
 }
 
-int AdditiveHeuristic::compute_heuristic(const GlobalState &state) {
+int AdditiveHeuristic::compute_heuristic(const GlobalState& state)
+{
     int h = compute_add_and_ff(state);
     if (h != DEAD_END) {
         for (size_t i = 0; i < goal_propositions.size(); ++i)
@@ -154,7 +160,8 @@ int AdditiveHeuristic::compute_heuristic(const GlobalState &state) {
     return h;
 }
 
-static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser) {
+static std::shared_ptr<Heuristic> _parse(options::OptionParser& parser)
+{
     parser.document_synopsis("Additive heuristic", "");
     parser.document_language_support("action costs", "supported");
     parser.document_language_support("conditional effects", "supported");

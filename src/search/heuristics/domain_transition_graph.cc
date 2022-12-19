@@ -3,7 +3,8 @@
 #include <cassert>
 using namespace std;
 
-#include "domain_transition_graph.h"
+#include "heuristics/domain_transition_graph.h"
+
 #include "global_operator.h"
 #include "globals.h"
 

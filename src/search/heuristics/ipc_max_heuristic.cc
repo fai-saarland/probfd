@@ -1,4 +1,4 @@
-#include "ipc_max_heuristic.h"
+#include "heuristics/ipc_max_heuristic.h"
 
 #include "option_parser.h"
 #include "plugin.h"
