@@ -1,4 +1,4 @@
-#include "command_line.h"
+#include "probfd/command_line.h"
 
 #include "options/doc_printer.h"
 #include "options/predefinitions.h"
@@ -10,8 +10,10 @@
 
 #include "probfd/analysis_objectives/expected_cost_objective.h"
 #include "probfd/analysis_objectives/goal_probability_objective.h"
+
+#include "probfd/solvers/solver_interface.h"
+
 #include "probfd/globals.h"
-#include "probfd/solver_interface.h"
 #include "probfd/value_type.h"
 
 #include "global_operator.h"
@@ -23,12 +25,13 @@
 #include "task_utils/causal_graph.h"
 #include "task_utils/successor_generator.h"
 
-
 #include <algorithm>
 #include <limits>
 #include <vector>
 
 using namespace std;
+
+namespace probfd {
 
 ArgError::ArgError(const string& msg)
     : msg(msg)
@@ -71,17 +74,14 @@ static double parse_double_arg(const string& name, const string& value)
     }
 }
 
-static std::shared_ptr<SearchEngine> parse_cmd_line_aux(
+static std::shared_ptr<SolverInterface> parse_cmd_line_aux(
     const vector<string>& args,
     options::Registry& registry,
     bool dry_run)
 {
-    string plan_filename = "sas_plan";
-    int num_previously_generated_plans = 0;
-    bool is_part_of_anytime_portfolio = false;
     options::Predefinitions predefinitions;
 
-    std::shared_ptr<SearchEngine> engine;
+    std::shared_ptr<SolverInterface> engine;
     /*
       Note that we don’t sanitize all arguments beforehand because filenames
       should remain as-is (no conversion to lower-case, no conversion of
@@ -99,7 +99,7 @@ static std::shared_ptr<SearchEngine> parse_cmd_line_aux(
                 registry,
                 predefinitions,
                 dry_run);
-            engine = parser.start_parsing<std::shared_ptr<SearchEngine>>();
+            engine = parser.start_parsing<std::shared_ptr<SolverInterface>>();
         } else if (arg == "--help" && dry_run) {
             cout << "Help:" << endl;
             bool txt2tags = false;
@@ -128,22 +128,6 @@ static std::shared_ptr<SearchEngine> parse_cmd_line_aux(
             }
             cout << "Help output finished." << endl;
             exit(0);
-        } else if (arg == "--internal-plan-file") {
-            if (is_last)
-                throw ArgError("missing argument after --internal-plan-file");
-            ++i;
-            plan_filename = args[i];
-        } else if (arg == "--internal-previous-portfolio-plans") {
-            if (is_last)
-                throw ArgError("missing argument after "
-                               "--internal-previous-portfolio-plans");
-            ++i;
-            is_part_of_anytime_portfolio = true;
-            num_previously_generated_plans = parse_int_arg(arg, args[i]);
-            if (num_previously_generated_plans < 0)
-                throw ArgError(
-                    "argument for --internal-previous-portfolio-plans must be "
-                    "positive");
         } else if (
             utils::startswith(arg, "--") &&
             registry.is_predefinition(arg.substr(2))) {
@@ -159,24 +143,18 @@ static std::shared_ptr<SearchEngine> parse_cmd_line_aux(
         }
     }
 
-    if (engine) {
-        PlanManager& plan_manager = engine->get_plan_manager();
-        plan_manager.set_plan_filename(plan_filename);
-        plan_manager.set_num_previously_generated_plans(
-            num_previously_generated_plans);
-        plan_manager.set_is_part_of_anytime_portfolio(
-            is_part_of_anytime_portfolio);
-    }
     return engine;
 }
 
-std::shared_ptr<SearchEngine> parse_cmd_line(
+std::shared_ptr<SolverInterface> parse_cmd_line(
     int argc,
     const char** argv,
     options::Registry& registry,
     bool dry_run,
     bool is_unit_cost)
 {
+    using namespace probfd::analysis_objectives;
+
     vector<string> args;
     bool active = true;
 
@@ -299,23 +277,14 @@ std::shared_ptr<SearchEngine> parse_cmd_line(
                     const GlobalOperator*>>();
             cout << "done! [t=" << utils::g_timer << "]" << endl;
         }
-        // if (expected_cost) {
-        //     probfd::g_property =
-        //         std::make_shared<probfd::properties::ExpectedCost>(
-        //                 probfd::OptimizationObjective::Minimize,
-        //                 probfd::g_step_cost_type,
-        //                 probfd::value_type::from_double(give_up_cost));
-        // }
 
         std::shared_ptr<probfd::analysis_objectives::AnalysisObjective> obj =
             nullptr;
         if (expected_cost) {
-            obj = std::make_shared<
-                probfd::analysis_objectives::ExpectedCostObjective>();
+            obj.reset(new ExpectedCostObjective());
             std::cout << "expected cost analysis." << std::endl;
         } else {
-            obj = std::make_shared<
-                probfd::analysis_objectives::GoalProbabilityObjective>();
+            obj.reset(new GoalProbabilityObjective());
             std::cout << "max goal prob analysis." << std::endl;
         }
 
@@ -353,3 +322,4 @@ string usage(const string& progname)
            "FILENAME.COUNTER+1\n\n"
            "See http://www.fast-downward.org/ for details.";
 }
+} // namespace probfd

@@ -3,6 +3,8 @@
 
 #include "probfd/engines/engine.h"
 
+#include "probfd/solvers/solver_interface.h"
+
 #include "probfd/action_id_map.h"
 #include "probfd/probabilistic_operator.h"
 #include "probfd/progress_report.h"
@@ -12,7 +14,6 @@
 #include "probfd/transition_generator.h"
 
 #include "global_state.h"
-#include "solver_interface.h"
 #include "state_registry.h"
 
 #include <memory>

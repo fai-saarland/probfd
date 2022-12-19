@@ -24,14 +24,7 @@ namespace utils {
 class RandomNumberGenerator;
 }
 
-bool test_goal(const GlobalState &state);
-/*
-  Set generates_multiple_plan_files to true if the planner can find more than
-  one plan and should number the plans as FILENAME.1, ..., FILENAME.n.
-*/
-void save_plan(const std::vector<const GlobalOperator *> &plan,
-               bool generates_multiple_plan_files = false);
-int calculate_plan_cost(const std::vector<const GlobalOperator *> &plan);
+bool test_goal(const GlobalState& state);
 
 void read_everything(std::istream &in);
 void dump_everything();
@@ -74,9 +67,6 @@ extern std::vector<GlobalOperator> g_axioms;
 extern AxiomEvaluator *g_axiom_evaluator;
 extern std::vector<DomainTransitionGraph *> g_transition_graphs;
 extern causal_graph::CausalGraph* g_causal_graph;
-extern std::string g_plan_filename;
-extern int g_num_previously_generated_plans;
-extern bool g_is_part_of_anytime_portfolio;
 // Only one global object for now. Could later be changed to use one instance
 // for each problem in this case the method GlobalState::get_id would also have to be
 // changed.

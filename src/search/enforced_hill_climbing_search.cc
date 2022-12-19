@@ -225,7 +225,8 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
     return FAILED;
 }
 
-void EnforcedHillClimbingSearch::statistics() const {
+void EnforcedHillClimbingSearch::print_statistics() const
+{
     cout << "  EHC Phases: " << num_ehc_phases << endl;
     cout << "  Average expansions per EHC Phase: " << (double)search_progress.get_expanded() / (double)num_ehc_phases << endl;
 
@@ -264,4 +265,4 @@ static shared_ptr<SearchEngine> _parse(options::OptionParser &parser) {
     return engine;
 }
 
-static Plugin<SolverInterface> _plugin("ehc", _parse);
+static Plugin<SearchEngine> _plugin("ehc", _parse);

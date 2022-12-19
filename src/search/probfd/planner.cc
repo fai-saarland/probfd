@@ -1,10 +1,11 @@
-#include "command_line.h"
 #include "globals.h"
 #include "option_parser.h"
 
-#include "options/registries.h"
+#include "probfd/command_line.h"
 
-#include "search_engine.h"
+#include "probfd/solvers/solver_interface.h"
+
+#include "options/registries.h"
 
 #include "utils/logging.h"
 #include "utils/system.h"
@@ -13,9 +14,12 @@
 #include <iostream>
 
 using namespace std;
+using namespace probfd;
+
 using utils::ExitCode;
 
-int main(int argc, const char **argv) {
+int main(int argc, const char** argv)
+{
     utils::register_event_handlers();
 
     if (argc < 2) {
@@ -23,10 +27,9 @@ int main(int argc, const char **argv) {
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    if (string(argv[1]).compare("--help") != 0)
-        read_everything(cin);
+    if (string(argv[1]).compare("--help") != 0) read_everything(cin);
 
-    shared_ptr<SearchEngine> engine;
+    shared_ptr<SolverInterface> engine;
 
     // The command line is parsed twice: once in dry-run mode, to
     // check for simple input errors, and then in normal mode.
@@ -35,32 +38,32 @@ int main(int argc, const char **argv) {
         options::Registry registry(*options::RawRegistry::instance());
         parse_cmd_line(argc, argv, registry, true, unit_cost);
         engine = parse_cmd_line(argc, argv, registry, false, unit_cost);
-    } catch (const ArgError &error) {
+    } catch (const ArgError& error) {
         error.print();
         usage(argv[0]);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-    } catch (const OptionParserError &error) {
+    } catch (const OptionParserError& error) {
         error.print();
         usage(argv[0]);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-    } catch (const ParseError &error) {
+    } catch (const ParseError& error) {
         error.print();
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
     utils::g_search_timer.resume();
-    engine->search();
+    engine->solve();
     utils::g_search_timer.stop();
     utils::g_timer.stop();
 
-    engine->save_plan_if_necessary();
+    engine->save_result_if_necessary();
     engine->print_statistics();
     utils::g_log << "Search time: " << utils::g_search_timer << endl;
     utils::g_log << "Total time: " << utils::g_timer << endl;
 
     ExitCode exitcode = engine->found_solution()
-        ? ExitCode::SUCCESS
-        : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
+                            ? ExitCode::SUCCESS
+                            : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
     utils::report_exit_code_reentrant(exitcode);
     return static_cast<int>(exitcode);
 }

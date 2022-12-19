@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
-class OperatorID;
+class GlobalOperator;
 class TaskProxy;
 
-using Plan = std::vector<OperatorID>;
+using Plan = std::vector<const GlobalOperator*>;
 
 class PlanManager {
     std::string plan_filename;
@@ -24,11 +24,10 @@ public:
       Set generates_multiple_plan_files to true if the planner can find more than
       one plan and should number the plans as FILENAME.1, ..., FILENAME.n.
     */
-    void save_plan(
-        const Plan &plan, const TaskProxy &task_proxy,
-        bool generates_multiple_plan_files = false);
+    void
+    save_plan(const Plan& plan, bool generates_multiple_plan_files = false);
 };
 
-extern int calculate_plan_cost(const Plan &plan, const TaskProxy &task_proxy);
+extern int calculate_plan_cost(const Plan& plan);
 
 #endif

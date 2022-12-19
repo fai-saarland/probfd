@@ -39,7 +39,7 @@ protected:
     // should disappear into the open list
 
     virtual void initialize() override;
-    virtual void statistics() const override;
+    virtual void print_statistics() const override;
 
 public:
     EagerSearch(const options::Options &opts);

@@ -46,14 +46,10 @@ fast_downward_plugin(
     NAME CORE_SOURCES
     HELP "Core source files"
     SOURCES
-        planner
-
         abstract_task
-        command_line
         option_parser
         option_parser_util
         plugin
-        solver_interface
 
         axioms
         causal_graph
@@ -609,6 +605,10 @@ fast_downward_plugin(
     NAME MDP
     HELP "Core source files for supporting MDPs"
     SOURCES
+        # Main
+        probfd/planner
+        probfd/command_line
+
         # Globals
         probfd/globals
 
@@ -638,6 +638,7 @@ fast_downward_plugin(
         # Constant evaluator (default)
         probfd/heuristics/constant_evaluator
 
+        probfd/solvers/solver_interface
         probfd/solvers/mdp_solver
     DEPENDS SUCCESSOR_GENERATOR
     CORE_PLUGIN

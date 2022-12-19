@@ -8,6 +8,8 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
+#include "probfd/solvers/solver_interface.h"
+
 #include "probfd/utils/logging.h"
 
 #include "probfd/globals.h"
@@ -16,7 +18,6 @@
 
 #include "option_parser.h"
 #include "plugin.h"
-#include "solver_interface.h"
 #include "state_registry.h"
 
 #include <iomanip>

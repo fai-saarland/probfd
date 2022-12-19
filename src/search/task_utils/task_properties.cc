@@ -4,6 +4,10 @@
 #include "utils/memory.h"
 #include "utils/system.h"
 
+#include "global_operator.h"
+#include "globals.h"
+
+
 #include <algorithm>
 #include <iostream>
 #include <limits>
@@ -12,6 +16,15 @@ using namespace std;
 using utils::ExitCode;
 
 namespace task_properties {
+
+bool is_unit_cost()
+{
+    for (const GlobalOperator& op : ::g_operators) {
+        if (op.get_cost() != 1) return false;
+    }
+    return true;
+}
+
 bool is_unit_cost(TaskProxy task)
 {
     for (OperatorProxy op : task.get_operators()) {

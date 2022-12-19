@@ -48,7 +48,8 @@ protected:
     SearchStatus ehc();
     void get_successors(const GlobalState &state, std::vector<const GlobalOperator *> &ops);
     void evaluate(const GlobalState &parent, const GlobalOperator *op, const GlobalState &state);
-    virtual void statistics() const;
+    virtual void print_statistics() const;
+
 public:
     EnforcedHillClimbingSearch(const options::Options &opts);
     virtual ~EnforcedHillClimbingSearch();

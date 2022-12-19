@@ -3,6 +3,7 @@
 #include "g_evaluator.h"
 #include "globals.h"
 #include "heuristic.h"
+#include "option_parser.h"
 #include "plugin.h"
 #include "sum_evaluator.h"
 #include "weighted_evaluator.h"
@@ -214,12 +215,12 @@ void LazySearch::reward_progress() {
     open_list->boost_preferred();
 }
 
-void LazySearch::statistics() const {
+void LazySearch::print_statistics() const
+{
     for (const auto& h : heuristics) {
         h->print_statistics();
     }
 }
-
 
 static void _add_succ_order_options(options::OptionParser &parser) {
     vector<string> options;
@@ -452,6 +453,7 @@ static std::shared_ptr<SearchEngine> _parse_weighted_astar(options::OptionParser
     return engine;
 }
 
-static Plugin<SolverInterface> _plugin("lazy", _parse);
-static Plugin<SolverInterface> _plugin_greedy("lazy_greedy", _parse_greedy);
-static Plugin<SolverInterface> _plugin_weighted_astar("lazy_wastar", _parse_weighted_astar);
+static Plugin<SearchEngine> _plugin("lazy", _parse);
+static Plugin<SearchEngine> _plugin_greedy("lazy_greedy", _parse_greedy);
+static Plugin<SearchEngine>
+    _plugin_weighted_astar("lazy_wastar", _parse_weighted_astar);

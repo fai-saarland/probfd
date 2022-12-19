@@ -17,6 +17,10 @@ class Heuristic;
 
 using OpenListEntryLazy = std::pair<StateID, const GlobalOperator *>;
 
+namespace options {
+class Options;
+}
+
 class LazySearch : public SearchEngine {
 protected:
     std::shared_ptr<OpenList<OpenListEntryLazy> > open_list;
@@ -46,7 +50,8 @@ protected:
 
     void get_successor_operators(std::vector<const GlobalOperator *> &ops);
 
-    virtual void statistics() const override;
+    virtual void print_statistics() const override;
+
 public:
 
     LazySearch(const options::Options &opts);

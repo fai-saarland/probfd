@@ -28,6 +28,7 @@ inline bool is_goal_state(TaskProxy task, const State &state) {
 
   Runtime: O(n), where n is the number of operators.
 */
+extern bool is_unit_cost();
 extern bool is_unit_cost(TaskProxy task);
 
 // Runtime: O(1)

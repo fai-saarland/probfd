@@ -46,43 +46,6 @@ bool test_goal(const GlobalState &state) {
     return true;
 }
 
-int calculate_plan_cost(const vector<const GlobalOperator *> &plan) {
-    // TODO: Refactor: this is only used by save_plan (see below)
-    //       and the SearchEngine classes and hence should maybe
-    //       be moved into the SearchEngine (along with save_plan).
-    int plan_cost = 0;
-    for (size_t i = 0; i < plan.size(); ++i) {
-        plan_cost += plan[i]->get_cost();
-    }
-    return plan_cost;
-}
-
-void save_plan(const vector<const GlobalOperator *> &plan,
-               bool generates_multiple_plan_files) {
-    // TODO: Refactor: this is only used by the SearchEngine classes
-    //       and hence should maybe be moved into the SearchEngine.
-    ostringstream filename;
-    filename << g_plan_filename;
-    int plan_number = g_num_previously_generated_plans + 1;
-    if (generates_multiple_plan_files || g_is_part_of_anytime_portfolio) {
-        filename << "." << plan_number;
-    } else {
-        assert(plan_number == 1);
-    }
-    ofstream outfile(filename.str());
-    for (size_t i = 0; i < plan.size(); ++i) {
-        cout << plan[i]->get_name() << " (" << plan[i]->get_cost() << ")" << endl;
-        outfile << "(" << plan[i]->get_name() << ")" << endl;
-    }
-    int plan_cost = calculate_plan_cost(plan);
-    outfile << "; cost = " << plan_cost << " ("
-            << (is_unit_cost() ? "unit cost" : "general cost") << ")" << endl;
-    outfile.close();
-    cout << "Plan length: " << plan.size() << " step(s)." << endl;
-    cout << "Plan cost: " << plan_cost << endl;
-    ++g_num_previously_generated_plans;
-}
-
 bool peek_magic(istream &in, string magic) {
     string word;
     in >> word;

@@ -101,8 +101,8 @@ void EagerSearch::initialize() {
     }
 }
 
-
-void EagerSearch::statistics() const {
+void EagerSearch::print_statistics() const
+{
     for (const auto& h : heuristics) {
         h->print_statistics();
     }
@@ -513,6 +513,6 @@ static std::shared_ptr<SearchEngine> _parse_greedy(options::OptionParser &parser
     return engine;
 }
 
-static Plugin<SolverInterface> _plugin("eager", _parse);
-static Plugin<SolverInterface> _plugin_astar("astar", _parse_astar);
-static Plugin<SolverInterface> _plugin_greedy("eager_greedy", _parse_greedy);
+static Plugin<SearchEngine> _plugin("eager", _parse);
+static Plugin<SearchEngine> _plugin_astar("astar", _parse_astar);
+static Plugin<SearchEngine> _plugin_greedy("eager_greedy", _parse_greedy);
