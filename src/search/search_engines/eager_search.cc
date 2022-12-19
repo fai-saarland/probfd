@@ -5,8 +5,8 @@
 #include "option_parser.h"
 #include "plugin.h"
 
-#include "g_evaluator.h"
-#include "sum_evaluator.h"
+#include "evaluators/g_evaluator.h"
+#include "evaluators/sum_evaluator.h"
 
 #include "task_utils/successor_generator.h"
 

@@ -1,4 +1,4 @@
-#include "weighted_evaluator.h"
+#include "evaluators/weighted_evaluator.h"
 
 #include "option_parser.h"
 #include "plugin.h"

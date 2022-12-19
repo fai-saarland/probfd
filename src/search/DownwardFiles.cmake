@@ -243,14 +243,14 @@ fast_downward_plugin(
     NAME G_EVALUATOR
     HELP "The g-evaluator"
     SOURCES
-        g_evaluator
+        evaluators/g_evaluator
 )
 
 fast_downward_plugin(
     NAME COMBINING_EVALUATOR
     HELP "The combining evaluator"
     SOURCES
-        combining_evaluator
+        evaluators/combining_evaluator
     DEPENDENCY_ONLY
 )
 
@@ -258,7 +258,7 @@ fast_downward_plugin(
     NAME MAX_EVALUATOR
     HELP "The max evaluator"
     SOURCES
-        max_evaluator
+        evaluators/max_evaluator
     DEPENDS COMBINING_EVALUATOR
 )
 
@@ -266,21 +266,21 @@ fast_downward_plugin(
     NAME PREF_EVALUATOR
     HELP "The pref evaluator"
     SOURCES
-        pref_evaluator
+        evaluators/pref_evaluator
 )
 
 fast_downward_plugin(
     NAME WEIGHTED_EVALUATOR
     HELP "The weighted evaluator"
     SOURCES
-        weighted_evaluator
+        evaluators/weighted_evaluator
 )
 
 fast_downward_plugin(
     NAME SUM_EVALUATOR
     HELP "The sum evaluator"
     SOURCES
-        sum_evaluator
+        evaluators/sum_evaluator
     DEPENDS COMBINING_EVALUATOR
 )
 

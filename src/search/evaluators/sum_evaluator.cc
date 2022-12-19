@@ -1,4 +1,4 @@
-#include "sum_evaluator.h"
+#include "evaluators/sum_evaluator.h"
 
 #include "option_parser.h"
 #include "plugin.h"

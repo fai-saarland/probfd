@@ -1,7 +1,8 @@
 #ifndef ENFORCED_HILL_CLIMBING_SEARCH_H
 #define ENFORCED_HILL_CLIMBING_SEARCH_H
 
-#include "g_evaluator.h"
+#include "evaluators/g_evaluator.h"
+
 #include "global_operator.h"
 #include "global_state.h"
 #include "globals.h"

@@ -1,12 +1,13 @@
 #include "search_engines/lazy_search.h"
 
-#include "g_evaluator.h"
+#include "evaluators/g_evaluator.h"
+#include "evaluators/weighted_evaluator.h"
+#include "evaluators/sum_evaluator.h"
+
 #include "globals.h"
 #include "heuristic.h"
 #include "option_parser.h"
 #include "plugin.h"
-#include "sum_evaluator.h"
-#include "weighted_evaluator.h"
 
 #include "task_utils/successor_generator.h"
 

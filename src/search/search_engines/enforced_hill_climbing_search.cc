@@ -1,9 +1,10 @@
 #include "search_engines/enforced_hill_climbing_search.h"
 
+#include "evaluators/pref_evaluator.h"
+
 #include "global_operator.h"
 #include "heuristic.h"
 #include "plugin.h"
-#include "pref_evaluator.h"
 
 #include "task_utils/successor_generator.h"
 

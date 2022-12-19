@@ -1,6 +1,7 @@
-#include "pref_evaluator.h"
-#include "plugin.h"
+#include "evaluators/pref_evaluator.h"
+
 #include "option_parser.h"
+#include "plugin.h"
 
 PrefEvaluator::PrefEvaluator() {
 }
