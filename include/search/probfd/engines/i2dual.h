@@ -358,18 +358,22 @@ private:
     void prepare_lp()
     {
         // setup empty LP
-        std::vector<lp::LPVariable> vars;
-        std::vector<lp::LPConstraint> constr;
+        named_vector::NamedVector<lp::LPVariable> vars;
+        named_vector::NamedVector<lp::LPConstraint> constr;
         prepare_hpom(vars);
 
         next_lp_var_ = vars.size();
         next_lp_constr_id_ = constr.size();
 
         constr.emplace_back(-lp_solver_.get_infinity(), 1);
-        lp_solver_.load_problem(lp::LPObjectiveSense::MAXIMIZE, vars, constr);
+        lp_solver_.load_problem(lp::LinearProgram(
+            lp::LPObjectiveSense::MAXIMIZE,
+            std::move(vars),
+            std::move(constr),
+            lp_solver_.get_infinity()));
     }
 
-    void prepare_hpom(std::vector<lp::LPVariable>& vars)
+    void prepare_hpom(named_vector::NamedVector<lp::LPVariable>& vars)
     {
         if (!hpom_enabled_) {
             return;
@@ -407,7 +411,7 @@ private:
                 remove_fringe_state_from_hpom(
                     this->lookup_state(state_id),
                     data[state_id],
-                    hpom_constraints_);
+                    frontier_constraints_);
             }
 
             statistics_.hpom_timer_.stop();
@@ -431,12 +435,15 @@ private:
             for (size_t i = start; i < frontier.size(); ++i) {
                 const StateID& state_id = frontier[i];
                 State s = this->lookup_state(state_id);
-                add_fringe_state_to_hpom(s, data[state_id], hpom_constraints_);
+                add_fringe_state_to_hpom(
+                    s,
+                    data[state_id],
+                    frontier_constraints_);
             }
 
-            lp_solver_.add_temporary_constraints(hpom_constraints_);
+            lp_solver_.add_temporary_constraints(frontier_constraints_);
         } else {
-            std::vector<lp::LPConstraint> constraints(hpom_constraints_);
+            std::vector<lp::LPConstraint> constraints(frontier_constraints_);
             for (size_t i = 0; i < frontier.size(); ++i) {
                 const StateID& state_id = frontier[i];
                 State s = this->lookup_state(state_id);
@@ -491,7 +498,8 @@ private:
 
     bool hpom_initialized_ = false;
     std::vector<int> offset_;
-    std::vector<lp::LPConstraint> hpom_constraints_;
+    named_vector::NamedVector<lp::LPConstraint> hpom_constraints_;
+    std::vector<lp::LPConstraint> frontier_constraints_;
 
     Statistics statistics_;
 

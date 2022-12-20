@@ -66,8 +66,8 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 
     const double inf = lp_solver_.get_infinity();
 
-    std::vector<lp::LPVariable> lp_vars;
-    std::vector<lp::LPConstraint> constraints;
+    named_vector::NamedVector<lp::LPVariable> lp_vars;
+    named_vector::NamedVector<lp::LPConstraint> constraints;
 
     // Set up net change constraint offsets, one constraint per fact
     ncc_offsets_.reserve(num_variables);
@@ -120,7 +120,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
                 const int var = eff.var;
                 const int val = eff.val;
 
-                auto* var_constraints = constraints.data() + ncc_offsets_[var];
+                auto* var_constraints = &constraints[0] + ncc_offsets_[var];
 
                 // Always produces / Sometimes produces
                 var_constraints[val].insert(lp_var, 1);
@@ -145,10 +145,11 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
         }
     }
 
-    lp_solver_.load_problem(
+    lp_solver_.load_problem(lp::LinearProgram(
         lp::LPObjectiveSense::MAXIMIZE,
-        lp_vars,
-        constraints);
+        std::move(lp_vars),
+        std::move(constraints),
+        inf));
 
     std::cout << "Finished ROC LP setup after " << timer << std::endl;
 }

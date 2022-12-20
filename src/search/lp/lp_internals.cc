@@ -13,14 +13,10 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #if __GNUC__ >= 6
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
-#pragma GCC diagnostic ignored "-Wregister"
 #endif
 #endif
 #ifdef __clang__
 #pragma GCC diagnostic ignored "-Wconstant-conversion"
-#endif
-#ifdef _MSC_VER
-#pragma warning(disable : 5033 4100)
 #endif
 #include <OsiSolverInterface.hpp>
 
@@ -41,11 +37,9 @@
 #include <OsiSpxSolverInterface.hpp>
 #include <spxout.h>
 #endif
+
 #ifdef __GNUG__
 #pragma GCC diagnostic pop
-#endif
-#ifdef _MSC_VER
-#pragma warning(default : 5033 4100)
 #endif
 
 using namespace std;
@@ -67,6 +61,10 @@ static const string CPLEX_ERROR_OOM_PRE =
     "CPX0000  Insufficient memory for presolve.";
 static const string CPLEX_ERROR_OOM_DEVEX =
     "CPX0000  Not enough memory for devex.";
+static const string CPLEX_ERROR_OOM_MIP =
+    "CPX0000  Warning: MIP starts not constructed because of out-of-memory "
+    "status.";
+static const string COIN_CPLEX_ERROR_OOM = "returned error 1001";
 
 /*
   CPLEX sometimes does not report errors as exceptions and only prints an
@@ -95,7 +93,8 @@ public:
         } else if (
             messageBuffer_ == CPLEX_ERROR_OOM ||
             messageBuffer_ == CPLEX_ERROR_OOM_PRE ||
-            messageBuffer_ == CPLEX_ERROR_OOM_DEVEX) {
+            messageBuffer_ == CPLEX_ERROR_OOM_DEVEX ||
+            messageBuffer_ == CPLEX_ERROR_OOM_MIP) {
             utils::exit_with(ExitCode::SEARCH_OUT_OF_MEMORY);
         } else {
             utils::exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
@@ -145,7 +144,7 @@ unique_ptr<OsiSolverInterface> create_lp_solver(LPSolverType solver_type)
         missing_symbol = "COIN_HAS_SPX";
 #endif
     break;
-    default: ABORT("Unknown LP solver type.");
+        default: ABORT("Unknown LP solver type.");
     }
     if (lp_solver) {
         lp_solver->messageHandler()->setLogLevel(0);
@@ -157,12 +156,36 @@ unique_ptr<OsiSolverInterface> create_lp_solver(LPSolverType solver_type)
     }
 }
 
+void set_mip_gap(OsiSolverInterface* lp_solver, double relative_gap)
+{
+#ifdef COIN_HAS_CPX
+    auto* cpx_solver = dynamic_cast<OsiCpxSolverInterface*>(lp_solver);
+    if (cpx_solver) {
+        CPXsetdblparam(
+            cpx_solver->getEnvironmentPtr(),
+            CPXPARAM_MIP_Tolerances_MIPGap,
+            relative_gap);
+    }
+#else
+    utils::unused_variable(lp_solver);
+    utils::unused_variable(relative_gap);
+#endif
+}
+
 [[noreturn]] void handle_coin_error(const CoinError& error)
 {
-    cerr << "Coin threw exception: " << error.message() << endl
-         << " from method " << error.methodName() << endl
-         << " from class " << error.className() << endl;
-    utils::exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
+    if (error.message().find(COIN_CPLEX_ERROR_OOM) != string::npos) {
+        cout << "CPLEX ran out of memory during OSI method." << endl
+             << "Coin exception: " << error.message() << endl
+             << " from method " << error.methodName() << endl
+             << " from class " << error.className() << endl;
+        utils::exit_with(ExitCode::SEARCH_OUT_OF_MEMORY);
+    } else {
+        cerr << "Coin threw exception: " << error.message() << endl
+             << " from method " << error.methodName() << endl
+             << " from class " << error.className() << endl;
+        utils::exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
+    }
 }
 } // namespace lp
 

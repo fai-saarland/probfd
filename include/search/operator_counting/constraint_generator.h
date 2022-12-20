@@ -3,6 +3,8 @@
 
 #include "operator_cost.h"
 
+#include "algorithms/named_vector.h"
+
 #include <memory>
 #include <vector>
 
@@ -40,7 +42,7 @@ public:
     */
     virtual void initialize_constraints(
         OperatorCost cost_type,
-        std::vector<lp::LPConstraint> &constraints,
+        named_vector::NamedVector<lp::LPConstraint>& constraints,
         double infinity);
 
     /*

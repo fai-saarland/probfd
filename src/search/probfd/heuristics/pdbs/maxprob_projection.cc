@@ -348,12 +348,13 @@ void MaxProbProjection::verify(
 #endif
 
     lp::LPSolver solver(type);
+    const double inf = solver.get_infinity();
 
     std::unordered_set<StateID> visited(
         state_id_map.visited_begin(),
         state_id_map.visited_end());
 
-    std::vector<lp::LPVariable> variables;
+    named_vector::NamedVector<lp::LPVariable> variables;
 
     for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
@@ -364,7 +365,7 @@ void MaxProbProjection::verify(
             value_type::one);
     }
 
-    std::vector<lp::LPConstraint> constraints;
+    named_vector::NamedVector<lp::LPConstraint> constraints;
 
     std::deque<StateRank> queue({abstract_state_space_.initial_state_});
     std::set<StateRank> seen({abstract_state_space_.initial_state_});
@@ -388,8 +389,7 @@ void MaxProbProjection::verify(
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
-            auto& constr =
-                constraints.emplace_back(value_type::zero, value_type::inf);
+            auto& constr = constraints.emplace_back(value_type::zero, inf);
 
             std::unordered_map<StateRank, value_type::value_t>
                 successor_dist;
@@ -418,7 +418,11 @@ void MaxProbProjection::verify(
 
     assert(visited.empty());
 
-    solver.load_problem(lp::LPObjectiveSense::MINIMIZE, variables, constraints);
+    solver.load_problem(lp::LinearProgram(
+        lp::LPObjectiveSense::MINIMIZE,
+        std::move(variables),
+        std::move(constraints),
+        inf));
 
     solver.solve();
 

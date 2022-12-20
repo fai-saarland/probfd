@@ -35,8 +35,8 @@ public:
 
     static void generate_hpom_lp(
         lp::LPSolver& lp_solver,
-        std::vector<lp::LPVariable>& vars,
-        std::vector<lp::LPConstraint>& constraints,
+        named_vector::NamedVector<lp::LPVariable>& vars,
+        named_vector::NamedVector<lp::LPConstraint>& constraints,
         std::vector<int>& offsets,
         bool maxprob);
 

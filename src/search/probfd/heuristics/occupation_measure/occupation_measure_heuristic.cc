@@ -79,8 +79,8 @@ std::vector<std::vector<value_type::value_t>> get_transition_probs_explicit(
 
 void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     lp::LPSolver& lp_solver_,
-    std::vector<lp::LPVariable>& lp_vars,
-    std::vector<lp::LPConstraint>& constraints,
+    named_vector::NamedVector<lp::LPVariable>& lp_vars,
+    named_vector::NamedVector<lp::LPConstraint>& constraints,
     std::vector<int>& offset_,
     bool maxprob)
 {
@@ -246,15 +246,16 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
               << std::endl;
     utils::Timer timer;
 
-    std::vector<lp::LPVariable> lp_vars;
-    std::vector<lp::LPConstraint> constraints;
+    named_vector::NamedVector<lp::LPVariable> lp_vars;
+    named_vector::NamedVector<lp::LPConstraint> constraints;
 
     generate_hpom_lp(lp_solver_, lp_vars, constraints, offset_, is_maxprob_);
 
-    lp_solver_.load_problem(
+    lp_solver_.load_problem(lp::LinearProgram(
         lp::LPObjectiveSense::MAXIMIZE,
-        lp_vars,
-        constraints);
+        std::move(lp_vars),
+        std::move(constraints),
+        lp_solver_.get_infinity()));
 
     std::cout << "Finished POM LP setup after " << timer << std::endl;
 }

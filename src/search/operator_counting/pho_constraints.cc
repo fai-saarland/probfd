@@ -28,8 +28,9 @@ PhOConstraints::PhOConstraints(const Options &opts)
 
 void PhOConstraints::initialize_constraints(
     OperatorCost cost_type,
-    vector<lp::LPConstraint> &constraints,
-    double infinity) {
+    named_vector::NamedVector<lp::LPConstraint>& constraints,
+    double infinity)
+{
     assert(pattern_generator);
     pdbs::PatternCollectionInformation pattern_collection_info =
         pattern_generator->generate(cost_type);

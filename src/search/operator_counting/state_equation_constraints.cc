@@ -50,7 +50,9 @@ void StateEquationConstraints::build_propositions() {
 }
 
 void StateEquationConstraints::add_constraints(
-    vector<lp::LPConstraint> &constraints, double infinity) {
+    named_vector::NamedVector<lp::LPConstraint>& constraints,
+    double infinity)
+{
     for (vector<Proposition> &var_propositions : propositions) {
         for (Proposition &prop : var_propositions) {
             lp::LPConstraint constraint(-infinity, infinity);
@@ -66,8 +68,10 @@ void StateEquationConstraints::add_constraints(
 }
 
 void StateEquationConstraints::initialize_constraints(
-    OperatorCost , vector<lp::LPConstraint> &constraints,
-    double infinity) {
+    OperatorCost,
+    named_vector::NamedVector<lp::LPConstraint>& constraints,
+    double infinity)
+{
     cout << "Initializing constraints from state equation." << endl;
     ::verify_no_axioms();
     ::verify_no_conditional_effects();

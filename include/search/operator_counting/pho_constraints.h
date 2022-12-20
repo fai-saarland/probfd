@@ -27,7 +27,7 @@ public:
 
     virtual void initialize_constraints(
         OperatorCost cost_type,
-        std::vector<lp::LPConstraint>& constraints,
+        named_vector::NamedVector<lp::LPConstraint>& constraints,
         double infinity) override;
     virtual bool
     update_constraints(const GlobalState& state, lp::LPSolver& lp_solver)

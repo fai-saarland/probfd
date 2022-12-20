@@ -315,24 +315,25 @@ void ExpCostProjection::verify(
 #endif
 
     lp::LPSolver solver(type);
+    const double inf = solver.get_infinity();
 
     std::unordered_set<StateID> visited(
         state_id_map.visited_begin(),
         state_id_map.visited_end());
 
-    std::vector<lp::LPVariable> variables;
+    named_vector::NamedVector<lp::LPVariable> variables;
 
     for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
         const bool in = utils::contains(proper_states, StateID(s.id));
         variables.emplace_back(
-            -value_type::inf,
+            -inf,
             value_type::zero,
             in ? value_type::one : value_type::zero);
     }
 
-    std::vector<lp::LPConstraint> constraints;
+    named_vector::NamedVector<lp::LPConstraint> constraints;
 
     std::deque<StateRank> queue({abstract_state_space_.initial_state_});
     std::set<StateRank> seen({abstract_state_space_.initial_state_});
@@ -358,7 +359,7 @@ void ExpCostProjection::verify(
         for (const AbstractOperator* op : aops) {
             value_type::value_t reward = op->reward;
 
-            auto& constr = constraints.emplace_back(reward, value_type::inf);
+            auto& constr = constraints.emplace_back(reward, inf);
 
             std::unordered_map<StateRank, value_type::value_t> successor_dist;
 
@@ -386,7 +387,11 @@ void ExpCostProjection::verify(
 
     assert(visited.empty());
 
-    solver.load_problem(lp::LPObjectiveSense::MINIMIZE, variables, constraints);
+    solver.load_problem(lp::LinearProgram(
+        lp::LPObjectiveSense::MINIMIZE,
+        std::move(variables),
+        std::move(constraints),
+        inf));
 
     solver.solve();
 

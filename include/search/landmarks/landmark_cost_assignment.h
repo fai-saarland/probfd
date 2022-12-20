@@ -41,9 +41,10 @@ public:
 class LandmarkEfficientOptimalSharedCostAssignment : public LandmarkCostAssignment {
     lp::LPSolver lp_solver;
 
-    std::vector<lp::LPVariable> lp_variables;
-    std::vector<lp::LPConstraint> lp_constraints;
-    std::vector<lp::LPConstraint> non_empty_lp_constraints;
+    named_vector::NamedVector<lp::LPVariable> lp_variables;
+    named_vector::NamedVector<lp::LPConstraint> lp_constraints;
+    named_vector::NamedVector<lp::LPConstraint> non_empty_lp_constraints;
+
 public:
     LandmarkEfficientOptimalSharedCostAssignment(std::shared_ptr<LandmarkGraph> graph, OperatorCost cost_type, lp::LPSolverType solver_type);
     virtual ~LandmarkEfficientOptimalSharedCostAssignment();

@@ -32,13 +32,13 @@ class StateEquationConstraints : public ConstraintGenerator {
 
     void build_propositions();
     void add_constraints(
-        std::vector<lp::LPConstraint>& constraints,
+        named_vector::NamedVector<lp::LPConstraint>& constraints,
         double infinity);
 
 public:
     virtual void initialize_constraints(
         OperatorCost cost_type,
-        std::vector<lp::LPConstraint>& constraints,
+        named_vector::NamedVector<lp::LPConstraint>& constraints,
         double infinity);
     virtual bool
     update_constraints(const GlobalState& state, lp::LPSolver& lp_solver);
