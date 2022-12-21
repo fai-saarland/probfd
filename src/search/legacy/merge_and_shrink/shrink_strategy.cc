@@ -188,7 +188,8 @@ void ShrinkStrategy::handle_option_defaults(options::Options& opts)
     opts.set<int>("max_states_before_merge", max_states_before_merge);
 }
 
-static PluginTypePlugin<ShrinkStrategy> _plugin_type("ShrinkStrategy", "");
+static PluginTypePlugin<ShrinkStrategy>
+    _plugin_type("LegacyShrinkStrategy", "");
 
 } // namespace merge_and_shrink
 } // namespace legacy

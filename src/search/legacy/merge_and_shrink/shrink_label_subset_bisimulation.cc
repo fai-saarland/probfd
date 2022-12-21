@@ -280,7 +280,7 @@ static std::shared_ptr<ShrinkStrategy> _parse(options::OptionParser& parser)
 }
 
 static Plugin<ShrinkStrategy>
-    _plugin("shrink_label_subset_bisimulation", _parse);
+    _plugin("legacy_shrink_label_subset_bisimulation", _parse);
 
 } // namespace merge_and_shrink
 } // namespace legacy

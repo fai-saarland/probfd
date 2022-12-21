@@ -1370,9 +1370,9 @@ static std::shared_ptr<Heuristic> _parse_owna(options::OptionParser& parser)
     return 0;
 }
 
-static Plugin<Heuristic> _plugin("merge_and_shrink", _parse);
-static Plugin<Heuristic> _plugin_onwk("msownk", _parse_ownk);
-static Plugin<Heuristic> _plugin_onwa("msowna", _parse_owna);
+static Plugin<Heuristic> _plugin("legacy_merge_and_shrink", _parse);
+static Plugin<Heuristic> _plugin_onwk("legacy_msownk", _parse_ownk);
+static Plugin<Heuristic> _plugin_onwa("legacy_msowna", _parse_owna);
 
 } // namespace merge_and_shrink
 } // namespace legacy

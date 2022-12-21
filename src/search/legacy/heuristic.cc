@@ -183,7 +183,7 @@ options::Options Heuristic::default_options()
 }
 
 static PluginTypePlugin<Heuristic> _type_plugin(
-    "Heuristic",
+    "LegacyHeuristic",
     "An evaluator specification is either a newly created evaluator "
     "instance or an evaluator that has been defined previously. "
     "This page describes how one can specify a new evaluator instance. "
@@ -197,6 +197,6 @@ static PluginTypePlugin<Heuristic> _type_plugin(
     " * **safe:** h(s) = infinity is only true for states "
     "with h*(s) = infinity\n"
     " * **preferred operators:** this heuristic identifies ",
-    "heuristic");
+    "legacy_heuristic");
 
 } // namespace legacy

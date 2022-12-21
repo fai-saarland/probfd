@@ -29,7 +29,7 @@ _parse(options::OptionParser& parser)
     }
 }
 
-static Plugin<GlobalStateEvaluator> _plugin("const", _parse);
+static Plugin<GlobalStateEvaluator> _plugin("const_eval", _parse);
 
 } // namespace heuristics
 } // namespace probfd

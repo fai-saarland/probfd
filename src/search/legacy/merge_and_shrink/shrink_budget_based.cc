@@ -60,7 +60,7 @@ static shared_ptr<ShrinkStrategy> _parse(options::OptionParser& parser)
     return nullptr;
 }
 
-static Plugin<ShrinkStrategy> _plugin("shrink_budget", _parse);
+static Plugin<ShrinkStrategy> _plugin("legacy_shrink_budget", _parse);
 
 } // namespace merge_and_shrink
 } // namespace legacy

@@ -598,7 +598,7 @@ static std::shared_ptr<ShrinkStrategy> _parse(options::OptionParser& parser)
     }
 }
 
-static Plugin<ShrinkStrategy> _plugin("shrink_bisimulation", _parse);
+static Plugin<ShrinkStrategy> _plugin("legacy_shrink_bisimulation", _parse);
 
 } // namespace merge_and_shrink
 } // namespace legacy

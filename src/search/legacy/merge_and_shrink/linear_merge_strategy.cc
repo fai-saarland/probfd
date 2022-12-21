@@ -421,19 +421,21 @@ static std::shared_ptr<MergeCriterion> _parse_scc(options::OptionParser& parser)
 }
 
 static PluginTypePlugin<MergeCriterion>
-    _plugin_type("LinearMergeCriterion", "");
-static Plugin<MergeCriterion> _plugin_cg("cg", _parse<MergeCriterionCG>);
-static Plugin<MergeCriterion> _plugin_goal("goal", _parse<MergeCriterionGoal>);
-static Plugin<MergeCriterion> _plugin_scc("scc", _parse_scc);
+    _plugin_type("LegacyLinearMergeCriterion", "");
+static Plugin<MergeCriterion> _plugin_cg("legacy_cg", _parse<MergeCriterionCG>);
 static Plugin<MergeCriterion>
-    _plugin_scc_no_level("scc_no_level", _parse_scc_no_level);
+    _plugin_goal("legacy_goal", _parse<MergeCriterionGoal>);
+static Plugin<MergeCriterion> _plugin_scc("legacy_scc", _parse_scc);
 static Plugin<MergeCriterion>
-    _plugin_empty("empty", _parse<MergeCriterionEmpty>);
+    _plugin_scc_no_level("legacy_scc_no_level", _parse_scc_no_level);
 static Plugin<MergeCriterion>
-    _plugin_empty_goal("empty_goal", _parse<MergeCriterionEmptyGoal>);
-static Plugin<MergeCriterion> _plugin_num("num", _parse<MergeCriterionNum>);
+    _plugin_empty("legacy_empty", _parse<MergeCriterionEmpty>);
 static Plugin<MergeCriterion>
-    _plugin_rel("relevant", _parse<MergeCriterionRelevant>);
+    _plugin_empty_goal("legacy_empty_goal", _parse<MergeCriterionEmptyGoal>);
+static Plugin<MergeCriterion>
+    _plugin_num("legacy_num", _parse<MergeCriterionNum>);
+static Plugin<MergeCriterion>
+    _plugin_rel("legacy_relevant", _parse<MergeCriterionRelevant>);
 
 } // namespace merge_and_shrink
 } // namespace legacy

@@ -3,7 +3,7 @@
 #include "plugin.h"
 
 static PluginTypePlugin<legacy::Evaluator> _type_plugin(
-    "Evaluator",
+    "LegacyEvaluator",
     "An evaluator specification is either a newly created evaluator "
     "instance or an evaluator that has been defined previously. "
     "This page describes how one can specify a new evaluator instance. "

@@ -90,7 +90,7 @@ static std::shared_ptr<ShrinkStrategy> _parse(options::OptionParser& parser)
     }
 }
 
-static Plugin<ShrinkStrategy> _plugin("shrink_none", _parse);
+static Plugin<ShrinkStrategy> _plugin("legacy_shrink_none", _parse);
 
 } // namespace merge_and_shrink
 } // namespace legacy
