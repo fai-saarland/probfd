@@ -20,7 +20,7 @@ State::State(
     , id(id)
     , buffer(buffer)
     , values(nullptr)
-    , state_packer(registry.get_state_packer())
+    , state_packer(&registry.get_state_packer())
     , num_variables(state_packer->get_num_bins())
 {
     assert(id != StateID::no_state);
@@ -74,6 +74,7 @@ State State::get_unregistered_successor(const OperatorProxy& op) const
     return State(*task, move(new_values));
 }
 
-// const causal_graph::CausalGraph &TaskProxy::get_causal_graph() const {
-//     return causal_graph::get_causal_graph(task);
-// }
+const causal_graph::CausalGraph& TaskProxy::get_causal_graph() const
+{
+    return causal_graph::get_causal_graph(task);
+}

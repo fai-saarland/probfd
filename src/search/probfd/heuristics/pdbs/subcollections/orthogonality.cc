@@ -24,7 +24,7 @@ get_affected_vars(const ProbabilisticOperator& op, bool ignore_deterministic)
     for (const ProbabilisticOutcome& outcome : op) {
         const auto effects = outcome.op->get_effects();
 
-        for (const ::GlobalEffect& eff : outcome.op->get_effects()) {
+        for (const legacy::GlobalEffect& eff : outcome.op->get_effects()) {
             affected_vars.push_back(eff.var);
         }
     }
@@ -34,7 +34,7 @@ get_affected_vars(const ProbabilisticOperator& op, bool ignore_deterministic)
 
 VariableOrthogonality compute_prob_orthogonal_vars(bool ignore_deterministic)
 {
-    const std::size_t num_vars = g_variable_domain.size();
+    const std::size_t num_vars = legacy::g_variable_domain.size();
 
     VariableOrthogonality are_orthogonal(
         num_vars,

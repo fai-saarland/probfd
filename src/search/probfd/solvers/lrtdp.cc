@@ -52,7 +52,8 @@ public:
         return "lrtdp";
     }
 
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<legacy::GlobalState>*
+    create_engine() override
     {
         return this->template heuristic_search_engine_factory<LRTDP>(
             stop_consistent_,

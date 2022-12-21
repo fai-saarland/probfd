@@ -1,6 +1,7 @@
 #include "probfd/heuristics/determinization_cost.h"
 
-#include "heuristic.h"
+#include "legacy/heuristic.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -10,12 +11,12 @@ namespace heuristics {
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
     const options::Options& opts)
     : DeterminizationCostHeuristic(
-          opts.get<std::shared_ptr<Heuristic>>("heuristic"))
+          opts.get<std::shared_ptr<legacy::Heuristic>>("heuristic"))
 {
 }
 
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
-    std::shared_ptr<Heuristic> heuristic)
+    std::shared_ptr<legacy::Heuristic> heuristic)
     : heuristic_(std::move(heuristic))
 {
 }
@@ -23,7 +24,7 @@ DeterminizationCostHeuristic::DeterminizationCostHeuristic(
 DeterminizationCostHeuristic::~DeterminizationCostHeuristic() = default;
 
 EvaluationResult
-DeterminizationCostHeuristic::evaluate(const GlobalState& state) const
+DeterminizationCostHeuristic::evaluate(const legacy::GlobalState& state) const
 {
     heuristic_->evaluate(state);
 
@@ -42,7 +43,7 @@ void DeterminizationCostHeuristic::print_statistics() const
 void DeterminizationCostHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<Heuristic>>("heuristic");
+    parser.add_option<std::shared_ptr<legacy::Heuristic>>("heuristic");
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(

@@ -1,22 +1,23 @@
-#ifndef SUM_EVALUATOR_H
-#define SUM_EVALUATOR_H
+#ifndef EVALUATORS_SUM_EVALUATOR_H
+#define EVALUATORS_SUM_EVALUATOR_H
 
 #include "combining_evaluator.h"
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace options {
 class Options;
 }
 
-class SumEvaluator : public CombiningEvaluator {
+namespace sum_evaluator {
+class SumEvaluator : public combining_evaluator::CombiningEvaluator {
 protected:
-    virtual int combine_values(const std::vector<int> &values);
+    virtual int combine_values(const std::vector<int> &values) override;
 public:
-    SumEvaluator(const options::Options &opts);
-    SumEvaluator(const std::vector<std::shared_ptr<Evaluator>> &evals);
-    ~SumEvaluator();
+    explicit SumEvaluator(const options::Options &opts);
+    virtual ~SumEvaluator() override;
 };
+}
 
 #endif

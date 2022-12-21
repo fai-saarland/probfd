@@ -12,7 +12,9 @@
 
 #include <memory>
 
+namespace legacy {
 class GlobalState;
+}
 
 namespace probfd {
 namespace heuristics {
@@ -55,9 +57,9 @@ public:
     std::vector<PatternSubCollection>
     get_pattern_subcollections(const Pattern& new_pattern);
 
-    value_type::value_t get_value(const GlobalState& state) const;
+    value_type::value_t get_value(const legacy::GlobalState& state) const;
 
-    EvaluationResult evaluate(const GlobalState& state) const;
+    EvaluationResult evaluate(const legacy::GlobalState& state) const;
 
     /*
       The following method offers a quick dead-end check for the sampling
@@ -65,7 +67,7 @@ public:
       efficiently test if the canonical heuristic is infinite than
       computing the exact heuristic value.
     */
-    bool is_dead_end(const GlobalState& state) const;
+    bool is_dead_end(const legacy::GlobalState& state) const;
 
     PatternCollectionInformation<PDBType>
     get_pattern_collection_information() const;

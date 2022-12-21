@@ -3,20 +3,20 @@
 
 #include "pdbs/pattern_generator.h"
 
-namespace options {
-class Options;
-}
+#include "options/options.h"
 
 namespace pdbs {
 /* Take one large pattern and then single-variable patterns for
    all goal variables that are not in the large pattern. */
 class PatternCollectionGeneratorCombo : public PatternCollectionGenerator {
-    int max_states;
+    options::Options opts;
+
+    virtual std::string name() const override;
+    virtual PatternCollectionInformation compute_patterns(
+        const std::shared_ptr<AbstractTask> &task) override;
 public:
     explicit PatternCollectionGeneratorCombo(const options::Options &opts);
     virtual ~PatternCollectionGeneratorCombo() = default;
-
-    virtual PatternCollectionInformation generate(OperatorCost cost_type) override;
 };
 }
 

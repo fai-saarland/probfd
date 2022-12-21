@@ -62,15 +62,16 @@ public:
 
     unsigned int num_states() const;
 
-    bool is_dead_end(const GlobalState& s) const;
+    bool is_dead_end(const legacy::GlobalState& s) const;
     bool is_dead_end(const StateRank& s) const;
 
     bool is_goal(const StateRank& s) const;
 
-    StateRank get_abstract_state(const GlobalState& s) const;
+    StateRank get_abstract_state(const legacy::GlobalState& s) const;
     StateRank get_abstract_state(const std::vector<int>& s) const;
 
-    [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
+    [[nodiscard]] value_type::value_t
+    lookup(const legacy::GlobalState& s) const;
     [[nodiscard]] value_type::value_t lookup(const StateRank& s) const;
 
     // Returns the pattern (i.e. all variables used) of the PDB

@@ -3,9 +3,13 @@
 
 #include "pdbs/types.h"
 
-#include "operator_cost.h"
+#include "task_proxy.h"
 
 #include <memory>
+
+namespace utils {
+class LogProxy;
+}
 
 namespace pdbs {
 /*
@@ -20,7 +24,7 @@ namespace pdbs {
   ownership transfer, from the generator to the user.
 */
 class PatternInformation {
-    OperatorCost operator_cost;
+    TaskProxy task_proxy;
     Pattern pattern;
     std::shared_ptr<PatternDatabase> pdb;
 
@@ -28,9 +32,14 @@ class PatternInformation {
 
     bool information_is_valid() const;
 public:
-    PatternInformation(OperatorCost operator_cost, Pattern pattern);
+    PatternInformation(
+        const TaskProxy &task_proxy, Pattern pattern, utils::LogProxy &log);
 
     void set_pdb(const std::shared_ptr<PatternDatabase> &pdb);
+
+    TaskProxy get_task_proxy() const {
+        return task_proxy;
+    }
 
     const Pattern &get_pattern() const;
     std::shared_ptr<PatternDatabase> get_pdb();

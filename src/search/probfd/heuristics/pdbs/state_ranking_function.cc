@@ -3,8 +3,8 @@
 #include "utils/collections.h"
 #include "utils/exceptions.h"
 
-#include "global_state.h"
-#include "globals.h"
+#include "legacy/global_state.h"
+#include "legacy/globals.h"
 
 #include <algorithm>
 #include <cassert>
@@ -389,7 +389,7 @@ std::string StateRankToString::operator()(const StateID&, StateRank state) const
     std::vector<int> values = state_mapper_->unrank(state);
     for (unsigned i = 0; i < values.size(); i++) {
         const int var = state_mapper_->get_pattern()[i];
-        out << (i > 0 ? ", " : "") << ::g_fact_names[var][values[i]];
+        out << (i > 0 ? ", " : "") << legacy::g_fact_names[var][values[i]];
     }
     return out.str();
 }

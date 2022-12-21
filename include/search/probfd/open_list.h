@@ -6,7 +6,7 @@
 
 #include "probfd/probabilistic_operator.h"
 
-#include "global_state.h"
+#include "legacy/global_state.h"
 
 namespace probfd {
 namespace engine_interfaces {
@@ -28,13 +28,13 @@ public:
     virtual unsigned size() const = 0;
     virtual void clear() = 0;
 
-    void set_state_id_map(StateIDMap<GlobalState>* state_id_map);
+    void set_state_id_map(StateIDMap<legacy::GlobalState>* state_id_map);
 
 protected:
-    GlobalState lookup_state(const StateID& state_id);
+    legacy::GlobalState lookup_state(const StateID& state_id);
 
 private:
-    StateIDMap<GlobalState>* state_id_map_ = nullptr;
+    StateIDMap<legacy::GlobalState>* state_id_map_ = nullptr;
 };
 
 } // namespace engine_interfaces

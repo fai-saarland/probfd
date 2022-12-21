@@ -1,153 +1,86 @@
 #ifndef LANDMARKS_EXPLORATION_H
 #define LANDMARKS_EXPLORATION_H
 
-#include "heuristic.h"
-#include "globals.h"
+#include "landmarks/util.h"
+
+#include "task_proxy.h"
 
 #include "algorithms/priority_queues.h"
 
-#include "landmarks/landmark_types.h"
-
-#include <vector>
-#include <cassert>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
-class GlobalOperator;
-class GlobalState;
+namespace utils {
+class LogProxy;
+}
 
-struct ExProposition;
-struct ExUnaryOperator;
+namespace landmarks {
+struct Proposition;
+struct UnaryOperator;
 
-struct ExProposition {
-    int var;
-    int val;
-    bool is_goal_condition;
-    bool is_termination_condition;
-    std::vector<ExUnaryOperator *> precondition_of;
+struct Proposition {
+    FactPair fact;
+    std::vector<UnaryOperator *> precondition_of;
+    bool reached;
+    bool excluded;
 
-    int h_add_cost;
-    int h_max_cost;
-    int depth;
-    bool marked; // used when computing preferred operators
-    ExUnaryOperator *reached_by;
-
-    ExProposition() {
-        is_goal_condition = false;
-        is_termination_condition = false;
-        h_add_cost = -1;
-        h_max_cost = -1;
-        reached_by = 0;
-        marked = false;
+    Proposition()
+        : fact(FactPair::no_fact),
+          reached(false),
+          excluded(false) {
     }
 
-    bool operator<(const ExProposition &other) const {
-        return var < other.var || (var == other.var && val < other.val);
+    bool operator<(const Proposition &other) const {
+        return fact < other.fact;
     }
 };
 
-struct ExUnaryOperator {
-    const GlobalOperator *op;
-    std::vector<ExProposition *> precondition;
-    ExProposition *effect;
-    int base_cost; // 0 for axioms, 1 for regular operators
+struct UnaryOperator {
+    int op_or_axiom_id;
+    const int num_preconditions;
+    Proposition *effect;
 
     int unsatisfied_preconditions;
-    int h_add_cost;
-    int h_max_cost;
-    int depth;
-    ExUnaryOperator(const std::vector<ExProposition *> &pre, ExProposition *eff,
-                    const GlobalOperator *the_op, int base)
-        : op(the_op), precondition(pre), effect(eff), base_cost(base) {}
-
-
-    bool operator<(const ExUnaryOperator &other) const {
-        if (*(other.effect) < *effect)
-            return false;
-        else if (*effect < *(other.effect))
-            return true;
-
-        else {
-            for (size_t i = 0; i < precondition.size(); ++i) {
-                if (i == other.precondition.size() ||
-                    *(other.precondition[i]) < *(precondition[i]))
-                    return false;
-                else if (*(precondition[i]) < *(other.precondition[i]))
-                    return true;
-            }
-            return true;
-        }
-    }
+    bool excluded;
+    UnaryOperator(const std::vector<Proposition *> &preconditions,
+                  Proposition *eff, int op_or_axiom_id)
+        : op_or_axiom_id(op_or_axiom_id),
+          num_preconditions(static_cast<int>(preconditions.size())),
+          effect(eff),
+          unsatisfied_preconditions(num_preconditions),
+          excluded(false) {}
 };
 
-struct ex_hash_operator_ptr {
-    size_t operator()(const GlobalOperator *key) const {
-        return reinterpret_cast<size_t>(key);
-    }
-};
+class Exploration {
+    TaskProxy task_proxy;
 
-class Exploration : public Heuristic {
-    static const int MAX_COST_VALUE = 100000000; // See additive_heuristic.h.
+    std::vector<UnaryOperator> unary_operators;
+    std::vector<std::vector<Proposition>> propositions;
+    std::deque<Proposition *> prop_queue;
 
-    typedef std::unordered_set<const GlobalOperator *, ex_hash_operator_ptr> RelaxedPlan;
-    RelaxedPlan relaxed_plan;
-    std::vector<ExUnaryOperator> unary_operators;
-    std::vector<std::vector<ExProposition> > propositions;
-    std::vector<ExProposition *> goal_propositions;
-    std::vector<ExProposition *> termination_propositions;
-
-    priority_queues::AdaptiveQueue<ExProposition *> prop_queue;
-    bool did_write_overflow_warning;
-
-    bool heuristic_recomputation_needed;
-
-    void build_unary_operators(const GlobalOperator &op);
-    void simplify();
-
-    void setup_exploration_queue(const GlobalState &state,
-                                 const std::vector<std::pair<int, int> > &excluded_props,
-                                 const std::unordered_set<const GlobalOperator *,
-                                                           ex_hash_operator_ptr> &excluded_ops,
-                                 bool use_h_max);
-    inline void setup_exploration_queue(const GlobalState &state, bool h_max) {
-        std::vector<std::pair<int, int> > excluded_props;
-        std::unordered_set<const GlobalOperator *, ex_hash_operator_ptr> excluded_ops;
-        setup_exploration_queue(state, excluded_props, excluded_ops, h_max);
-    }
-    void relaxed_exploration(bool use_h_max, bool level_out);
-    void prepare_heuristic_computation(const GlobalState &state, bool h_max);
-    void collect_relaxed_plan(ExProposition *goal, RelaxedPlan &relaxed_plan, const GlobalState &state);
-
-    int compute_hsp_add_heuristic();
-    int compute_ff_heuristic(const GlobalState &state);
-
-    void collect_ha(ExProposition *goal, RelaxedPlan &relaxed_plan, const GlobalState &state);
-
-    void enqueue_if_necessary(ExProposition *prop, int cost, int depth, ExUnaryOperator *op,
-                              bool use_h_max);
-    void increase_cost(int &cost, int amount);
-    void write_overflow_warning();
-protected:
-    virtual int compute_heuristic(const GlobalState &state);
+    void build_unary_operators(const OperatorProxy &op);
+    void setup_exploration_queue(
+        const State &state, const std::vector<FactPair> &excluded_props,
+        const std::vector<int> &excluded_op_ids);
+    void relaxed_exploration();
+    void enqueue_if_necessary(Proposition *prop);
 public:
-    void set_additional_goals(const std::vector<std::pair<int, int> > &goals);
-    void set_recompute_heuristic() {heuristic_recomputation_needed = true; }
-    void compute_reachability_with_excludes(std::vector<std::vector<int> > &lvl_var,
-                                            std::vector<std::unordered_map<std::pair<int, int>, int,
-                                                                            hash_int_pair> > &lvl_op,
-                                            bool level_out,
-                                            const std::vector<std::pair<int, int> > &excluded_props,
-                                            const std::unordered_set<const GlobalOperator *,
-                                                                      ex_hash_operator_ptr> &excluded_ops,
-                                            bool compute_lvl_ops);
-    std::vector<const GlobalOperator *> exported_ops; // only needed for landmarks count heuristic ha
+    Exploration(const TaskProxy &task_proxy, utils::LogProxy &log);
 
-    // Returns true iff disj_goal is relaxed reachable. As a side effect, marks preferred operators
-    // via "exported_ops". (This is the real reason why you might want to call this.)
-    bool plan_for_disj(std::vector<std::pair<int, int> > &disj_goal, const GlobalState &state);
-
-    Exploration(const options::Options &opts);
-    ~Exploration();
+    /*
+      Computes the reachability of each proposition when excluding
+      operators in *excluded_op_ids* and ensuring that propositions
+      in *excluded_pros* are not achieved.
+      The returned vector of vector denotes for each proposition
+      (grouped by their fact variable) whether it is relaxed reachable.
+      The values are exact in the absence of conditional effects, otherwise
+      they are an admissible approximation (see implementation for details).
+    */
+    std::vector<std::vector<bool>> compute_relaxed_reachability(
+        const std::vector<FactPair> &excluded_props,
+        const std::vector<int> &excluded_op_ids);
 };
+}
 
 #endif

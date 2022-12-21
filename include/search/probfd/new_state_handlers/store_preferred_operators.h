@@ -9,7 +9,10 @@
 #include <memory>
 #include <vector>
 
+namespace legacy {
 class Heuristic;
+}
+
 class GlobalOperator;
 
 namespace options {
@@ -65,15 +68,15 @@ public:
 
     const PrefOpsCacheEntry& get_cached_ops(const StateID& s);
 
-    virtual void touch(const GlobalState& s) override;
-    virtual void touch_goal(const GlobalState& s) override;
-    virtual void touch_dead_end(const GlobalState& s) override;
+    virtual void touch(const legacy::GlobalState& s) override;
+    virtual void touch_goal(const legacy::GlobalState& s) override;
+    virtual void touch_dead_end(const legacy::GlobalState& s) override;
 
 private:
     const bool fetch_only_;
-    std::shared_ptr<Heuristic> heuristic_;
+    std::shared_ptr<legacy::Heuristic> heuristic_;
     storage::PerStateStorage<PrefOpsCacheEntry> store_;
-    std::vector<const GlobalOperator*> pref_;
+    std::vector<const legacy::GlobalOperator*> pref_;
     std::vector<unsigned> ids_;
     std::vector<unsigned> refs_;
 };

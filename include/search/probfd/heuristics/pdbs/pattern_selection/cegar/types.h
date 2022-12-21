@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_TYPES_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_TYPES_H
 
-#include "global_operator.h"
+#include "legacy/global_operator.h"
 
 #include <vector>
 
@@ -37,7 +37,7 @@ struct ExplicitGState {
     {
         std::size_t res = 0;
         for (size_t i = 0; i < values.size(); ++i) {
-            res += g_variable_domain[i] * values[i];
+            res += legacy::g_variable_domain[i] * values[i];
         }
         return res;
     }
@@ -46,7 +46,7 @@ struct ExplicitGState {
 
     const int& operator[](int i) const { return values[i]; }
 
-    ExplicitGState get_successor(const GlobalOperator& op) const
+    ExplicitGState get_successor(const legacy::GlobalOperator& op) const
     {
         assert(!op.is_axiom());
 
@@ -62,7 +62,7 @@ struct ExplicitGState {
 
     bool is_goal() const
     {
-        for (auto& [goal_var, goal_val] : g_goal) {
+        for (auto& [goal_var, goal_val] : legacy::g_goal) {
             if (values[goal_var] != goal_val) {
                 return false;
             }

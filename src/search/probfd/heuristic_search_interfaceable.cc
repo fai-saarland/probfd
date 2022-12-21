@@ -4,7 +4,7 @@ namespace probfd {
 
 void HeuristicSearchInterfaceable::initialize(
     engine_interfaces::HeuristicSearchConnector* connector,
-    engine_interfaces::StateIDMap<GlobalState>* state_id_map,
+    engine_interfaces::StateIDMap<legacy::GlobalState>* state_id_map,
     engine_interfaces::ActionIDMap<const ProbabilisticOperator*>* op_id_map)
 {
     connector_ = connector;
@@ -13,7 +13,7 @@ void HeuristicSearchInterfaceable::initialize(
     initialize();
 }
 
-GlobalState
+legacy::GlobalState
 HeuristicSearchInterfaceable::lookup_state(const StateID& state_id) const
 {
     return state_id_map_->get_state(state_id);

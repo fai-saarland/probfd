@@ -1,19 +1,17 @@
-#ifndef ITERATED_SEARCH_H
-#define ITERATED_SEARCH_H
+#ifndef SEARCH_ENGINES_ITERATED_SEARCH_H
+#define SEARCH_ENGINES_ITERATED_SEARCH_H
 
-#include "globals.h"
+#include "option_parser_util.h"
 #include "search_engine.h"
-#include "search_progress.h"
 
-#include "../options/registries.h"
-#include "../options/predefinitions.h"
-
-#include <memory>
+#include "options/registries.h"
+#include "options/predefinitions.h"
 
 namespace options {
 class Options;
 }
 
+namespace iterated_search {
 class IteratedSearch : public SearchEngine {
     const std::vector<options::ParseTree> engine_configs;
     /*
@@ -32,19 +30,19 @@ class IteratedSearch : public SearchEngine {
     int best_bound;
     bool iterated_found_solution;
 
-    std::shared_ptr<SearchEngine> get_search_engine(int engine_config_start_index);
-    std::shared_ptr<SearchEngine> create_current_phase(int p);
+    std::shared_ptr<SearchEngine> get_search_engine(int engine_configs_index);
+    std::shared_ptr<SearchEngine> create_current_phase();
     SearchStatus step_return_value();
 
     virtual SearchStatus step() override;
 
 public:
-    IteratedSearch(
-        const options::Options& opts,
-        options::Registry& registry,
-        const options::Predefinitions& predefinitions);
+    IteratedSearch(const options::Options &opts, options::Registry &registry,
+                   const options::Predefinitions &predefinitions);
+
     virtual void save_plan_if_necessary() override;
     virtual void print_statistics() const override;
 };
+}
 
 #endif

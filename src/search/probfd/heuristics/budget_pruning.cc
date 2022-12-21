@@ -8,11 +8,12 @@
 
 #include "utils/hash.h"
 
-#include "global_state.h"
-#include "heuristic.h"
+#include "legacy/global_state.h"
+#include "legacy/heuristic.h"
+#include "legacy/state_registry.h"
+
 #include "option_parser.h"
 #include "plugin.h"
-#include "state_registry.h"
 
 namespace probfd {
 namespace heuristics {
@@ -20,7 +21,8 @@ namespace heuristics {
 std::size_t
 BudgetPruningHeuristic::Hash::operator()(const StateID& state_id) const
 {
-    const GlobalState s = registry_->lookup_state(::StateID(state_id));
+    const legacy::GlobalState s =
+        registry_->lookup_state(legacy::StateID(state_id));
     utils::HashState res;
     for (int var = g_initial_state_values.size() - g_steps_bounded - 1;
          var >= 0;
@@ -34,8 +36,8 @@ bool BudgetPruningHeuristic::Equal::operator()(
     const StateID& x,
     const StateID& y) const
 {
-    const GlobalState s = registry_->lookup_state(::StateID(x));
-    const GlobalState t = registry_->lookup_state(::StateID(y));
+    const legacy::GlobalState s = registry_->lookup_state(legacy::StateID(x));
+    const legacy::GlobalState t = registry_->lookup_state(legacy::StateID(y));
     for (int var = g_initial_state_values.size() - g_steps_bounded - 1;
          var >= 0;
          --var) {
@@ -49,7 +51,7 @@ bool BudgetPruningHeuristic::Equal::operator()(
 BudgetPruningHeuristic::BudgetPruningHeuristic(
     value_type::value_t default_value,
     value_type::value_t dead_end_value,
-    std::shared_ptr<Heuristic> pruning_function,
+    std::shared_ptr<legacy::Heuristic> pruning_function,
     bool cache_estimates)
     : default_value_(default_value)
     , dead_end_value_(dead_end_value)
@@ -64,7 +66,7 @@ BudgetPruningHeuristic::BudgetPruningHeuristic(const options::Options& opts)
               ? g_analysis_objective->reward_bound().lower
               : g_analysis_objective->reward_bound().upper,
           g_analysis_objective->reward_bound().lower,
-          opts.get<std::shared_ptr<Heuristic>>("heuristic"),
+          opts.get<std::shared_ptr<legacy::Heuristic>>("heuristic"),
           opts.get<bool>("cache_estimates"))
 {
 }
@@ -72,13 +74,13 @@ BudgetPruningHeuristic::BudgetPruningHeuristic(const options::Options& opts)
 void BudgetPruningHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<Heuristic>>("heuristic");
+    parser.add_option<std::shared_ptr<legacy::Heuristic>>("heuristic");
     parser.add_option<bool>("pessimistic", "", "false");
     parser.add_option<bool>("cache_estimates", "", "true");
 }
 
 EvaluationResult
-BudgetPruningHeuristic::evaluate(const GlobalState& state) const
+BudgetPruningHeuristic::evaluate(const legacy::GlobalState& state) const
 {
     int est = 0;
     if (cache_estimates_) {

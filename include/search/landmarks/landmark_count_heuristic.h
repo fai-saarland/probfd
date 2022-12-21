@@ -1,71 +1,76 @@
 #ifndef LANDMARKS_LANDMARK_COUNT_HEURISTIC_H
 #define LANDMARKS_LANDMARK_COUNT_HEURISTIC_H
 
-#include "landmarks/exploration.h"
-#include "landmarks/landmark_cost_assignment.h"
-#include "landmarks/landmark_graph.h"
-#include "landmarks/landmark_status_manager.h"
-
-#include "global_state.h"
 #include "heuristic.h"
 
-#include <memory>
+class BitsetView;
+
+namespace successor_generator {
+class SuccessorGenerator;
+}
+
+namespace landmarks {
+class LandmarkCostAssignment;
+class LandmarkGraph;
+class LandmarkNode;
+class LandmarkStatusManager;
+
+using LandmarkNodeSet = std::unordered_set<const LandmarkNode *>;
 
 class LandmarkCountHeuristic : public Heuristic {
-    friend class LamaFFSynergy;
     std::shared_ptr<LandmarkGraph> lgraph;
-    Exploration* exploration;
-    bool use_preferred_operators;
-    int lookahead;
-    bool ff_search_disjunctive_lms;
+    const bool use_preferred_operators;
+    const bool conditional_effects_supported;
+    const bool admissible;
+    const bool dead_ends_reliable;
 
-    LandmarkStatusManager lm_status_manager;
-    LandmarkCostAssignment* lm_cost_assignment;
+    std::unique_ptr<LandmarkStatusManager> lm_status_manager;
+    std::unique_ptr<LandmarkCostAssignment> lm_cost_assignment;
+    std::unique_ptr<successor_generator::SuccessorGenerator> successor_generator;
 
-    bool use_cost_sharing;
+    /*
+      TODO: The following vectors are only used in the non-admissible case. This
+       is bad design, but given this is already the case for
+       *lm_cost_assignment* above, this is just another indicator to change this
+       in the future.
+    */
+    std::vector<int> min_first_achiever_costs;
+    std::vector<int> min_possible_achiever_costs;
 
-    int get_heuristic_value(const GlobalState& state);
+    int get_heuristic_value(const State &ancestor_state);
 
-    void collect_lm_leaves(
-        bool disjunctive_lms,
-        LandmarkSet& result,
-        std::vector<std::pair<int, int>>& leaves);
-    bool ff_search_lm_leaves(
-        bool disjunctive_lms,
-        const GlobalState& state,
-        LandmarkSet& result);
-    // returns true iff relaxed reachable and marks relaxed operators
+    bool check_node_orders_disobeyed(
+        const LandmarkNode &node, const LandmarkNodeSet &reached) const;
 
-    bool
-    check_node_orders_disobeyed(LandmarkNode& node, const LandmarkSet& reached)
-        const;
-
-    void
-    add_node_children(LandmarkNode& node, const LandmarkSet& reached) const;
+    void add_node_children(LandmarkNode &node,
+                           const LandmarkNodeSet &reached) const;
 
     bool landmark_is_interesting(
-        const GlobalState& s,
-        const LandmarkSet& reached,
-        LandmarkNode& lm) const;
+        const State &state, const LandmarkNodeSet &reached, LandmarkNode &lm_node) const;
     bool generate_helpful_actions(
-        const GlobalState& state,
-        const LandmarkSet& reached);
-    void set_exploration_goals(const GlobalState& state);
+        const State &state, const LandmarkNodeSet &reached);
 
-    Exploration* get_exploration() { return exploration; }
-    void convert_lms(LandmarkSet& lms_set, const std::vector<bool>& lms_vec);
+    LandmarkNodeSet convert_to_landmark_set(const BitsetView &landmark_bitset);
 
+    int get_min_cost_of_achievers(const std::set<int> &achievers,
+                                  const TaskProxy &task_proxy);
+    void compute_landmark_costs();
 protected:
-    virtual int compute_heuristic(const GlobalState& state);
-
+    virtual int compute_heuristic(const State &ancestor_state) override;
 public:
-    LandmarkCountHeuristic(const options::Options& opts);
-    ~LandmarkCountHeuristic() {}
-    virtual bool reach_state(
-        const GlobalState& parent_state,
-        const GlobalOperator& op,
-        const GlobalState& state);
-    virtual bool dead_ends_are_reliable() const;
+    explicit LandmarkCountHeuristic(const options::Options &opts);
+
+    virtual void get_path_dependent_evaluators(
+        std::set<Evaluator *> &evals) override {
+        evals.insert(this);
+    }
+
+    virtual void notify_initial_state(const State &initial_state) override;
+    virtual void notify_state_transition(const State &parent_state,
+                                         OperatorID op_id,
+                                         const State &state) override;
+    virtual bool dead_ends_are_reliable() const override;
 };
+}
 
 #endif

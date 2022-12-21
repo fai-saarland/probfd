@@ -5,7 +5,9 @@
 
 #include <memory>
 
+namespace legacy {
 class Heuristic;
+}
 
 namespace options {
 class Options;
@@ -36,7 +38,7 @@ public:
     DeadEndPruningHeuristic(
         value_type::value_t default_value,
         value_type::value_t dead_end_value,
-        std::shared_ptr<Heuristic> pruning_function);
+        std::shared_ptr<legacy::Heuristic> pruning_function);
 
     /**
      * @brief Construct from options.
@@ -54,11 +56,12 @@ public:
     virtual void print_statistics() const override;
 
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) const override;
+    virtual EvaluationResult
+    evaluate(const legacy::GlobalState& state) const override;
 
     const value_type::value_t default_value_;
     const value_type::value_t dead_end_value_;
-    std::shared_ptr<Heuristic> pruning_function_;
+    std::shared_ptr<legacy::Heuristic> pruning_function_;
 };
 
 } // namespace heuristics

@@ -1,7 +1,8 @@
 #include "probfd/heuristics/occupation_measure/occupation_measure_heuristic.h"
 
-#include "global_operator.h"
-#include "globals.h"
+#include "legacy/global_operator.h"
+#include "legacy/globals.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -26,9 +27,9 @@ namespace {
 // Explicit goal values (-1 if variable not required)
 std::vector<int> get_goal_explicit()
 {
-    std::vector<int> the_goal(g_variable_domain.size(), -1);
+    std::vector<int> the_goal(legacy::g_variable_domain.size(), -1);
 
-    for (const auto& [var, val] : g_goal) {
+    for (const auto& [var, val] : legacy::g_goal) {
         the_goal[var] = val;
     }
 
@@ -38,7 +39,7 @@ std::vector<int> get_goal_explicit()
 // Explicit precondition values (-1 if no precondition for variable)
 std::vector<int> get_precondition_explicit(const ProbabilisticOperator& op)
 {
-    std::vector<int> pre(g_variable_domain.size(), -1);
+    std::vector<int> pre(legacy::g_variable_domain.size(), -1);
 
     for (const auto& [var, val] : op.get_preconditions()) {
         pre[var] = val;
@@ -52,10 +53,11 @@ std::vector<std::vector<value_type::value_t>> get_transition_probs_explicit(
     const ProbabilisticOperator& op,
     std::set<int>& possibly_updated)
 {
-    std::vector<std::vector<value_type::value_t>> p(g_variable_domain.size());
+    std::vector<std::vector<value_type::value_t>> p(
+        legacy::g_variable_domain.size());
 
     for (std::size_t i = 0; i < p.size(); ++i) {
-        p[i].resize(g_variable_domain[i] + 1, value_type::zero);
+        p[i].resize(legacy::g_variable_domain[i] + 1, value_type::zero);
         p[i].back() = value_type::one;
     }
 
@@ -86,9 +88,9 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 {
     assert(lp_vars.empty() && constraints.empty());
 
-    ::verify_no_axioms_no_conditional_effects();
+    legacy::verify_no_axioms_no_conditional_effects();
 
-    const std::size_t num_variables = g_variable_domain.size();
+    const std::size_t num_variables = legacy::g_variable_domain.size();
     const double inf = lp_solver_.get_infinity();
 
     // Prepare fact variable offsets
@@ -97,11 +99,11 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     std::size_t offset = 0;
     offset_.push_back(offset);
     for (std::size_t var = 0; var < num_variables - 1; ++var) {
-        offset += g_variable_domain[var];
+        offset += legacy::g_variable_domain[var];
         offset_.push_back(offset);
     }
 
-    const std::size_t num_facts = offset + g_variable_domain.back();
+    const std::size_t num_facts = offset + legacy::g_variable_domain.back();
 
     // One flow constraint for every state of every atomic projections
     constraints.resize(num_facts, lp::LPConstraint(-inf, value_type::zero));
@@ -113,13 +115,13 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     std::vector<int> the_goal = get_goal_explicit();
 
     // Build flow contraint coefficients for dummy goal action
-    for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
+    for (unsigned var = 0; var < legacy::g_variable_domain.size(); ++var) {
         lp::LPConstraint& goal_constraint = constraints.emplace_back(0, 0);
         goal_constraint.insert(0, -1);
         lp::LPConstraint* flow = &constraints[offset_[var]];
 
         if (the_goal[var] == -1) {
-            for (int val = 0; val != g_variable_domain[var]; ++val) {
+            for (int val = 0; val != legacy::g_variable_domain[var]; ++val) {
                 const int lpvar = lp_vars.size();
                 lp_vars.emplace_back(0, inf, 0);
                 flow[val].insert(lpvar, 1);       // outflow for goal states
@@ -154,7 +156,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
             std::pair<int, int> var_range(lp_vars.size(), 0);
             lp::LPConstraint* flow = &constraints[offset_[var]];
 
-            const std::size_t domain = g_variable_domain[var];
+            const std::size_t domain = legacy::g_variable_domain[var];
             const auto& tr_probs = post[var];
 
             // Populate flow constraints
@@ -260,13 +262,13 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     std::cout << "Finished POM LP setup after " << timer << std::endl;
 }
 
-EvaluationResult
-ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state) const
+EvaluationResult ProjectionOccupationMeasureHeuristic::evaluate(
+    const legacy::GlobalState& state) const
 {
     using namespace analysis_objectives;
 
     // Set to initial state in LP
-    for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
+    for (unsigned var = 0; var < legacy::g_variable_domain.size(); ++var) {
         const std::size_t index = offset_[var] + state[var];
         lp_solver_.set_constraint_upper_bound(index, 1.0);
     }
@@ -290,7 +292,7 @@ ProjectionOccupationMeasureHeuristic::evaluate(const GlobalState& state) const
         result = EvaluationResult(!was_feasible, estimate);
     }
 
-    for (unsigned var = 0; var < g_variable_domain.size(); ++var) {
+    for (unsigned var = 0; var < legacy::g_variable_domain.size(); ++var) {
         const std::size_t index = offset_[var] + state[var];
         lp_solver_.set_constraint_upper_bound(index, 0.0);
     }

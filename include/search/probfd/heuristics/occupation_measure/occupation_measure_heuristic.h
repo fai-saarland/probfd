@@ -41,7 +41,8 @@ public:
         bool maxprob);
 
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) const override;
+    virtual EvaluationResult
+    evaluate(const legacy::GlobalState& state) const override;
 
     mutable lp::LPSolver lp_solver_;
     std::vector<int> offset_;

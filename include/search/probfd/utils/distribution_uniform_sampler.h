@@ -5,7 +5,7 @@
 
 #include "utils/rng.h"
 
-#include "globals.h"
+#include "legacy/globals.h"
 
 namespace probfd {
 namespace distribution_uniform_sampler {
@@ -15,7 +15,7 @@ struct DistributionUniformSampler {
     const T& operator()(const Distribution<T>& distribution) const
     {
         assert(!distribution.empty());
-        unsigned selection = g_rng(distribution.size());
+        unsigned selection = legacy::g_rng.random(distribution.size());
         auto it = distribution.begin();
         for (; selection > 0; it++) {
             assert(it != distribution.end());

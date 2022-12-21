@@ -16,9 +16,10 @@
 
 #include "utils/timer.h"
 
+#include "legacy/state_registry.h"
+
 #include "option_parser.h"
 #include "plugin.h"
-#include "state_registry.h"
 
 #include <iomanip>
 
@@ -67,7 +68,7 @@ public:
         logging::out << "Building bisimulation..." << std::endl;
 
         BisimulationTimer stats;
-        StateRegistry state_registry;
+        legacy::StateRegistry state_registry;
         bisimulation::BisimilarStateSpace bs(
             state_registry.get_initial_state(),
             g_step_bound,

@@ -44,7 +44,7 @@ bool ProjectionOperator::is_pseudo_deterministic() const
 
 std::vector<std::pair<int, int>> project_effects(
     const Pattern& pattern,
-    const std::vector<GlobalEffect>& effects)
+    const std::vector<legacy::GlobalEffect>& effects)
 {
     std::vector<std::pair<int, int>> projected_effects;
 

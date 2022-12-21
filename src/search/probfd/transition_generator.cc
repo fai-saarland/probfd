@@ -6,13 +6,12 @@
 
 #include "algorithms/int_packer.h"
 
-#include "global_operator.h"
-#include "global_state.h"
-#include "globals.h"
-#include "heuristic.h"
-#include "state_registry.h"
-
-#include "task_utils/successor_generator.h"
+#include "legacy/global_operator.h"
+#include "legacy/global_state.h"
+#include "legacy/globals.h"
+#include "legacy/heuristic.h"
+#include "legacy/state_registry.h"
+#include "legacy/successor_generator.h"
 
 #ifndef NDEBUG
 #define DEBUG_CACHE_CONSISTENCY_CHECK
@@ -24,8 +23,8 @@
 
 namespace probfd {
 
-static std::shared_ptr<
-    successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>
+static std::shared_ptr<legacy::successor_generator::SuccessorGenerator<
+    const ProbabilisticOperator*>>
 construct_generator(const std::vector<const ProbabilisticOperator*>& ops)
 {
     std::vector<std::vector<std::pair<int, int>>> preconditions(ops.size());
@@ -37,18 +36,19 @@ construct_generator(const std::vector<const ProbabilisticOperator*>& ops)
         std::sort(pre.begin(), pre.end());
     }
 
-    return std::make_shared<
-        successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>(
-        g_variable_domain,
+    return std::make_shared<legacy::successor_generator::SuccessorGenerator<
+        const ProbabilisticOperator*>>(
+        legacy::g_variable_domain,
         preconditions,
         ops);
 }
 
 CostBasedSuccessorGenerator::CostBasedSuccessorGenerator(
     const std::vector<ProbabilisticOperator>& ops,
-    OperatorCost cost_type,
+    legacy::OperatorCost cost_type,
     int bvar,
-    successor_generator::SuccessorGenerator<const ProbabilisticOperator*>* gen)
+    legacy::successor_generator::SuccessorGenerator<
+        const ProbabilisticOperator*>* gen)
     : bvar_(bvar)
     , gen_(gen)
 {
@@ -72,7 +72,7 @@ CostBasedSuccessorGenerator::CostBasedSuccessorGenerator(
 }
 
 void CostBasedSuccessorGenerator::operator()(
-    const GlobalState& s,
+    const legacy::GlobalState& s,
     std::vector<const ProbabilisticOperator*>& res) const
 {
     if (bvar_ >= 0) {
@@ -90,9 +90,10 @@ void CostBasedSuccessorGenerator::operator()(
 namespace engine_interfaces {
 
 TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
-    StateRegistry* state_registry,
+    legacy::StateRegistry* state_registry,
     bool enable_caching,
-    const std::vector<std::shared_ptr<Heuristic>>& path_dependent_heuristics)
+    const std::vector<std::shared_ptr<legacy::Heuristic>>&
+        path_dependent_heuristics)
     : TransitionGenerator(
           g_operators,
           g_successor_generator.get(),
@@ -106,12 +107,14 @@ TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
 
 TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     const std::vector<ProbabilisticOperator>& ops,
-    successor_generator::SuccessorGenerator<const ProbabilisticOperator*>* gen,
+    legacy::successor_generator::SuccessorGenerator<
+        const ProbabilisticOperator*>* gen,
     int budget_var,
-    OperatorCost budget_cost_type,
-    StateRegistry* state_registry,
+    legacy::OperatorCost budget_cost_type,
+    legacy::StateRegistry* state_registry,
     bool enable_caching,
-    const std::vector<std::shared_ptr<Heuristic>>& path_dependent_heuristics)
+    const std::vector<std::shared_ptr<legacy::Heuristic>>&
+        path_dependent_heuristics)
     : first_op_(!ops.empty() ? &ops[0] : nullptr)
     , caching_(enable_caching)
     , budget_var_(budget_var)
@@ -123,8 +126,9 @@ TransitionGenerator<const ProbabilisticOperator*>::TransitionGenerator(
     if (budget_var >= 0) {
         reward_.reserve(ops.size());
         for (const ProbabilisticOperator& op : ops) {
-            reward_.push_back(
-                get_adjusted_action_reward(op.get_reward(), budget_cost_type));
+            reward_.push_back(legacy::get_adjusted_action_reward(
+                op.get_reward(),
+                budget_cost_type));
         }
     }
 }
@@ -141,15 +145,16 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
         }
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
-        GlobalState state =
-            this->state_registry_->lookup_state(::StateID(state_id));
+        legacy::GlobalState state =
+            this->state_registry_->lookup_state(legacy::StateID(state_id));
         std::vector<const ProbabilisticOperator*> test;
         this->compute_applicable_operators(state, test);
         assert(
             std::equal(test.begin(), test.end(), result.begin(), result.end()));
 #endif
     } else {
-        GlobalState state = state_registry_->lookup_state(::StateID(state_id));
+        legacy::GlobalState state =
+            state_registry_->lookup_state(legacy::StateID(state_id));
         compute_applicable_operators(state, result);
     }
 
@@ -164,8 +169,8 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
 {
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
     {
-        GlobalState state =
-            this->state_registry_->lookup_state(::StateID(state_id));
+        legacy::GlobalState state =
+            this->state_registry_->lookup_state(legacy::StateID(state_id));
         for (const auto [var, val] : action->get_preconditions()) {
             assert(state[var] == val);
         }
@@ -187,8 +192,8 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
             }
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
-            GlobalState state =
-                this->state_registry_->lookup_state(::StateID(state_id));
+            legacy::GlobalState state =
+                this->state_registry_->lookup_state(legacy::StateID(state_id));
             std::vector<WeightedElement<StateID>> test;
             this->compute_successor_states(state, action, test);
             assert(test.size() == action->num_outcomes());
@@ -201,7 +206,8 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
             break;
         }
     } else {
-        GlobalState state = state_registry_->lookup_state(::StateID(state_id));
+        legacy::GlobalState state =
+            state_registry_->lookup_state(legacy::StateID(state_id));
         std::vector<WeightedElement<StateID>> temp;
         compute_successor_states(state, action, temp);
         result = Distribution<StateID>(std::move(temp));
@@ -223,8 +229,8 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
         successors.resize(entry.naops);
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
-        GlobalState state =
-            this->state_registry_->lookup_state(::StateID(state_id));
+        legacy::GlobalState state =
+            this->state_registry_->lookup_state(legacy::StateID(state_id));
         std::vector<const ProbabilisticOperator*> test_aops;
         this->compute_applicable_operators(state, test_aops);
         assert(test_aops.size() == entry.naops);
@@ -249,7 +255,8 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
             statistics_.generated_states += result.size();
         }
     } else {
-        GlobalState state = state_registry_->lookup_state(::StateID(state_id));
+        legacy::GlobalState state =
+            state_registry_->lookup_state(legacy::StateID(state_id));
         compute_applicable_operators(state, aops);
         successors.reserve(aops.size());
 
@@ -268,7 +275,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::operator()(
 
 void TransitionGenerator<const ProbabilisticOperator*>::
     compute_successor_states(
-        const GlobalState& state,
+        const legacy::GlobalState& state,
         const ProbabilisticOperator* op,
         std::vector<WeightedElement<StateID>>& succs)
 {
@@ -279,7 +286,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::
         assert(newb >= 0);
 
         for (const auto [det_op, prob] : *op) {
-            GlobalState succ = state_registry_->get_successor_state(
+            legacy::GlobalState succ = state_registry_->get_successor_state(
                 state,
                 *det_op,
                 budget_var_,
@@ -293,7 +300,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::
         }
     } else {
         for (const auto [det_op, prob] : *op) {
-            GlobalState succ =
+            legacy::GlobalState succ =
                 state_registry_->get_successor_state(state, *det_op);
 
             for (const auto& h : notify_) {
@@ -310,7 +317,7 @@ void TransitionGenerator<const ProbabilisticOperator*>::
 
 void TransitionGenerator<const ProbabilisticOperator*>::
     compute_applicable_operators(
-        const GlobalState& s,
+        const legacy::GlobalState& s,
         std::vector<const ProbabilisticOperator*>& ops)
 {
 #if 0
@@ -338,7 +345,8 @@ bool TransitionGenerator<const ProbabilisticOperator*>::setup_cache(
     CacheEntry& entry)
 {
     if (!entry.is_initialized()) {
-        GlobalState state = state_registry_->lookup_state(::StateID(state_id));
+        legacy::GlobalState state =
+            state_registry_->lookup_state(legacy::StateID(state_id));
         assert(aops_.empty() && successors_.empty());
         compute_applicable_operators(state, aops_);
         entry.naops = aops_.size();

@@ -12,7 +12,7 @@ namespace i2dual {
 using namespace engine_interfaces;
 
 using I2DualEngine =
-    engines::i2dual::I2Dual<GlobalState, const ProbabilisticOperator*>;
+    engines::i2dual::I2Dual<legacy::GlobalState, const ProbabilisticOperator*>;
 
 class I2DualSolver : public MDPSolver {
 public:
@@ -39,7 +39,8 @@ public:
 
     virtual std::string get_engine_name() const override { return "i2dual"; }
 
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<legacy::GlobalState>*
+    create_engine() override
     {
         return engine_factory<I2DualEngine>(
             &progress_,

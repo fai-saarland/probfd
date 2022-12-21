@@ -21,10 +21,10 @@ _parse(options::OptionParser& parser)
         return nullptr;
     }
     if (opts.contains("value")) {
-        return std::make_shared<ConstantEvaluator<GlobalState>>(
+        return std::make_shared<ConstantEvaluator<legacy::GlobalState>>(
             value_type::from_double(opts.get<double>("value")));
     } else {
-        return std::make_shared<ConstantEvaluator<GlobalState>>(
+        return std::make_shared<ConstantEvaluator<legacy::GlobalState>>(
             g_analysis_objective->reward_bound().upper);
     }
 }

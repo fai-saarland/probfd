@@ -1,50 +1,51 @@
-#ifndef EAGER_SEARCH_H
-#define EAGER_SEARCH_H
+#ifndef SEARCH_ENGINES_EAGER_SEARCH_H
+#define SEARCH_ENGINES_EAGER_SEARCH_H
 
-#include <vector>
-#include <memory>
-
-#include "evaluator.h"
-#include "global_state.h"
+#include "open_list.h"
 #include "search_engine.h"
-#include "search_progress.h"
-#include "search_space.h"
 
-#include "open_lists/open_list.h"
+#include <memory>
+#include <vector>
 
-class GlobalOperator;
-class Heuristic;
 class Evaluator;
+class PruningMethod;
 
+namespace options {
+class OptionParser;
+class Options;
+}
+
+namespace eager_search {
 class EagerSearch : public SearchEngine {
-    // Search Behavior parameters
-    bool reopen_closed_nodes; // whether to reopen closed nodes upon finding lower g paths
-    bool do_pathmax; // whether to use pathmax correction
-    bool use_multi_path_dependence;
+    const bool reopen_closed_nodes;
 
-    std::shared_ptr<OpenList<StateID>> open_list;
+    std::unique_ptr<StateOpenList> open_list;
     std::shared_ptr<Evaluator> f_evaluator;
 
-protected:
-    SearchStatus step() override;
-    std::pair<SearchNode, bool> fetch_next_node();
-    void update_jump_statistic(const SearchNode &node);
-    void print_heuristic_values(const std::vector<int> &values) const;
+    std::vector<Evaluator *> path_dependent_evaluators;
+    std::vector<std::shared_ptr<Evaluator>> preferred_operator_evaluators;
+    std::shared_ptr<Evaluator> lazy_evaluator;
+
+    std::shared_ptr<PruningMethod> pruning_method;
+
+    void start_f_value_statistics(EvaluationContext &eval_context);
+    void update_f_value_statistics(EvaluationContext &eval_context);
     void reward_progress();
 
-    std::vector<Heuristic *> heuristics;
-    std::vector<std::shared_ptr<Heuristic> > preferred_operator_heuristics;
-    std::vector<Heuristic *> estimate_heuristics;
-    // TODO: in the long term this
-    // should disappear into the open list
-
+protected:
     virtual void initialize() override;
-    virtual void print_statistics() const override;
+    virtual SearchStatus step() override;
 
 public:
-    EagerSearch(const options::Options &opts);
+    explicit EagerSearch(const options::Options &opts);
+    virtual ~EagerSearch() = default;
 
-    void dump_search_space();
+    virtual void print_statistics() const override;
+
+    void dump_search_space() const;
 };
+
+extern void add_options_to_parser(options::OptionParser &parser);
+}
 
 #endif

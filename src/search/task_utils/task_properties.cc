@@ -4,9 +4,8 @@
 #include "utils/memory.h"
 #include "utils/system.h"
 
-#include "global_operator.h"
-#include "globals.h"
-
+#include "legacy/global_operator.h"
+#include "legacy/globals.h"
 
 #include <algorithm>
 #include <iostream>
@@ -19,7 +18,7 @@ namespace task_properties {
 
 bool is_unit_cost()
 {
-    for (const GlobalOperator& op : ::g_operators) {
+    for (const legacy::GlobalOperator& op : legacy::g_operators) {
         if (op.get_cost() != 1) return false;
     }
     return true;

@@ -1,44 +1,43 @@
-#ifndef LAZY_SEARCH_H
-#define LAZY_SEARCH_H
+#ifndef SEARCH_ENGINES_LAZY_SEARCH_H
+#define SEARCH_ENGINES_LAZY_SEARCH_H
 
-#include "global_state.h"
+#include "evaluation_context.h"
 #include "evaluator.h"
+#include "open_list.h"
+#include "operator_id.h"
 #include "search_engine.h"
 #include "search_progress.h"
 #include "search_space.h"
 
-#include "open_lists/open_list.h"
+#include "utils/rng.h"
 
-#include <vector>
 #include <memory>
-
-class GlobalOperator;
-class Heuristic;
-
-using OpenListEntryLazy = std::pair<StateID, const GlobalOperator *>;
+#include <vector>
 
 namespace options {
 class Options;
 }
 
+namespace lazy_search {
 class LazySearch : public SearchEngine {
 protected:
-    std::shared_ptr<OpenList<OpenListEntryLazy> > open_list;
+    std::unique_ptr<EdgeOpenList> open_list;
 
-    // Search Behavior parameters
+    // Search behavior parameters
     bool reopen_closed_nodes; // whether to reopen closed nodes upon finding lower g paths
     bool randomize_successors;
     bool preferred_successors_first;
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
 
-    std::vector<Heuristic *> heuristics;
-    std::vector<std::shared_ptr<Heuristic> > preferred_operator_heuristics;
-    std::vector<Heuristic *> estimate_heuristics;
+    std::vector<Evaluator *> path_dependent_evaluators;
+    std::vector<std::shared_ptr<Evaluator>> preferred_operator_evaluators;
 
-    GlobalState current_state;
+    State current_state;
     StateID current_predecessor_id;
-    const GlobalOperator *current_operator;
+    OperatorID current_operator_id;
     int current_g;
     int current_real_g;
+    EvaluationContext current_eval_context;
 
     virtual void initialize() override;
     virtual SearchStatus step() override;
@@ -48,16 +47,17 @@ protected:
 
     void reward_progress();
 
-    void get_successor_operators(std::vector<const GlobalOperator *> &ops);
-
-    virtual void print_statistics() const override;
+    std::vector<OperatorID> get_successor_operators(
+        const ordered_set::OrderedSet<OperatorID> &preferred_operators) const;
 
 public:
+    explicit LazySearch(const options::Options &opts);
+    virtual ~LazySearch() = default;
 
-    LazySearch(const options::Options &opts);
-    virtual ~LazySearch();
-    void set_pref_operator_heuristics(std::vector<std::shared_ptr<Heuristic> > &heur);
+    void set_preferred_operator_evaluators(std::vector<std::shared_ptr<Evaluator>> &evaluators);
 
+    virtual void print_statistics() const override;
 };
+}
 
 #endif

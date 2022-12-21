@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data.h"
 
-#include "global_state.h"
+#include "legacy/global_state.h"
 
 #include "utils/hash.h"
 #include "utils/rng.h"
@@ -69,7 +69,7 @@ AbstractSolutionData<PDBType>::AbstractSolutionData(
     const Pattern& pattern,
     set<int> blacklist,
     bool wildcard)
-    : pdb(new PDBType(pattern, ::g_variable_domain, !wildcard))
+    : pdb(new PDBType(pattern, legacy::g_variable_domain, !wildcard))
     , blacklist(std::move(blacklist))
     , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
     , solved(false)
@@ -110,7 +110,7 @@ PDBType* construct_merge_pdb(
         std::back_inserter(merge_pattern));
 
     StateRankingFunction* mapper =
-        new StateRankingFunction(merge_pattern, ::g_variable_domain);
+        new StateRankingFunction(merge_pattern, legacy::g_variable_domain);
 
     return new PDBType(
         mapper,
@@ -178,7 +178,7 @@ const AbstractPolicy& AbstractSolutionData<PDBType>::get_policy() const
 template <typename PDBType>
 value_type::value_t AbstractSolutionData<PDBType>::get_policy_cost() const
 {
-    return pdb->lookup(g_initial_state());
+    return pdb->lookup(legacy::g_initial_state());
 }
 
 template <typename PDBType>
@@ -196,7 +196,7 @@ void AbstractSolutionData<PDBType>::mark_as_solved()
 template <typename PDBType>
 bool AbstractSolutionData<PDBType>::solution_exists() const
 {
-    return !pdb->evaluate(g_initial_state()).is_unsolvable();
+    return !pdb->evaluate(legacy::g_initial_state()).is_unsolvable();
 }
 
 template class AbstractSolutionData<MaxProbProjection>;

@@ -3,10 +3,11 @@
 #include "probfd/globals.h"
 #include "probfd/probabilistic_operator.h"
 
-#include "global_operator.h"
-#include "global_state.h"
-#include "globals.h"
-#include "heuristic.h"
+#include "legacy/global_operator.h"
+#include "legacy/global_state.h"
+#include "legacy/globals.h"
+#include "legacy/heuristic.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -36,14 +37,14 @@ bool PrefOpsCacheEntry::contains(unsigned i) const
 
 StorePreferredOperators::StorePreferredOperators(const options::Options& opts)
     : fetch_only_(opts.get<bool>("fetch_only"))
-    , heuristic_(opts.get<std::shared_ptr<Heuristic>>("heuristic"))
+    , heuristic_(opts.get<std::shared_ptr<legacy::Heuristic>>("heuristic"))
 {
-    refs_.resize(::g_operators.size(), -1);
+    refs_.resize(legacy::g_operators.size(), -1);
     for (int i = g_operators.size() - 1; i >= 0; --i) {
         const ProbabilisticOperator& op = g_operators[i];
         for (int j = op.num_outcomes() - 1; j >= 0; --j) {
-            const GlobalOperator* out = op[j].op;
-            if (out->get_id() < ::g_operators.size()) {
+            const legacy::GlobalOperator* out = op[j].op;
+            if (out->get_id() < legacy::g_operators.size()) {
                 refs_[out->get_id()] = i;
             }
         }
@@ -58,7 +59,7 @@ StorePreferredOperators::StorePreferredOperators(const options::Options& opts)
 void StorePreferredOperators::add_options_to_parser(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<Heuristic>>("heuristic");
+    parser.add_option<std::shared_ptr<legacy::Heuristic>>("heuristic");
     parser.add_option<bool>("fetch_only", "", "false");
 }
 
@@ -68,15 +69,15 @@ StorePreferredOperators::get_cached_ops(const StateID& s)
     return store_[s];
 }
 
-void StorePreferredOperators::touch_goal(const GlobalState&)
+void StorePreferredOperators::touch_goal(const legacy::GlobalState&)
 {
 }
 
-void StorePreferredOperators::touch_dead_end(const GlobalState&)
+void StorePreferredOperators::touch_dead_end(const legacy::GlobalState&)
 {
 }
 
-void StorePreferredOperators::touch(const GlobalState& s)
+void StorePreferredOperators::touch(const legacy::GlobalState& s)
 {
     if (!fetch_only_) {
         heuristic_->evaluate(s);

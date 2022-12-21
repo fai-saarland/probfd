@@ -15,7 +15,6 @@
 #include <set>
 #include <vector>
 
-class GlobalState;
 
 namespace options {
 class Options;
@@ -26,9 +25,12 @@ class CountdownTimer;
 class RandomNumberGenerator;
 } // namespace utils
 
+namespace legacy {
+class GlobalState;
 namespace sampling {
 class RandomWalkSampler;
 }
+} // namespace legacy
 
 namespace probfd {
 namespace heuristics {
@@ -116,9 +118,9 @@ class PatternCollectionGeneratorHillclimbing
     */
     void sample_states(
         utils::CountdownTimer& hill_climbing_timer,
-        const sampling::RandomWalkSampler& sampler,
+        const legacy::sampling::RandomWalkSampler& sampler,
         value_type::value_t init_h,
-        std::vector<GlobalState>& samples);
+        std::vector<legacy::GlobalState>& samples);
 
     /*
       Searches for the best improving pdb in candidate_pdbs according to the
@@ -127,7 +129,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     std::pair<int, int> find_best_improving_pdb(
         utils::CountdownTimer& hill_climbing_timer,
-        const std::vector<GlobalState>& samples,
+        const std::vector<legacy::GlobalState>& samples,
         const std::vector<EvaluationResult>& samples_h_values,
         PPDBCollection<PDBType>& candidate_pdbs);
 
@@ -139,7 +141,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     bool is_heuristic_improved(
         const PDBType& pdb,
-        const GlobalState& sample,
+        const legacy::GlobalState& sample,
         EvaluationResult h_collection,
         const PPDBCollection<PDBType>& pdbs,
         const std::vector<PatternSubCollection>& pattern_subcollections);

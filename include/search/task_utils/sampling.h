@@ -1,37 +1,39 @@
 #ifndef TASK_UTILS_SAMPLING_H
 #define TASK_UTILS_SAMPLING_H
 
+#include "../task_proxy.h"
+
 #include <functional>
 #include <memory>
 
-class GlobalState;
-class GlobalOperator;
-class StateRegistry;
+class State;
 
 namespace successor_generator {
-template<typename T> class SuccessorGenerator;
+class SuccessorGenerator;
 }
 
 namespace utils {
 class RandomNumberGenerator;
 }
 
-using DeadEndDetector = std::function<bool (GlobalState)>;
+using DeadEndDetector = std::function<bool(State)>;
 
 namespace sampling {
 /*
   Sample states with random walks.
 */
 class RandomWalkSampler {
-    const std::shared_ptr<successor_generator::SuccessorGenerator<const GlobalOperator*> > successor_generator;
+    const OperatorsProxy operators;
+    const std::unique_ptr<successor_generator::SuccessorGenerator>
+        successor_generator;
+    const State initial_state;
     const double average_operator_costs;
-    utils::RandomNumberGenerator &rng;
-    StateRegistry& state_registry;
+    utils::RandomNumberGenerator& rng;
 
 public:
     RandomWalkSampler(
-        StateRegistry& state_registry,
-        utils::RandomNumberGenerator &rng);
+        const TaskProxy& task_proxy,
+        utils::RandomNumberGenerator& rng);
     ~RandomWalkSampler();
 
     /*
@@ -45,9 +47,11 @@ public:
       a dead end. If omitted, no dead end detection is performed. The 'init_h'
       value should be an estimate of the solution cost.
     */
-    GlobalState sample_state(
+    State sample_state(
         int init_h,
-        const DeadEndDetector &is_dead_end = [](const GlobalState &) {return false;}) const;
+        const DeadEndDetector& is_dead_end = [](const State&) {
+            return false;
+        }) const;
 };
 }
 

@@ -13,7 +13,8 @@
 #include "utils/countdown_timer.h"
 #include "utils/logging.h"
 
-#include "globals.h"
+#include "legacy/globals.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -106,8 +107,9 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
             *patterns,
             *pdbs,
             *subcollections,
-            g_variable_domain.size(),
-            max_time_dominance_pruning);
+            legacy::g_variable_domain.size(),
+            max_time_dominance_pruning,
+            utils::g_log);
 
         dominance_pruning_time = timer();
     }
@@ -141,8 +143,8 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
 }
 
 template <typename PDBType>
-EvaluationResult
-ProbabilisticPDBHeuristic<PDBType>::evaluate(const GlobalState& state) const
+EvaluationResult ProbabilisticPDBHeuristic<PDBType>::evaluate(
+    const legacy::GlobalState& state) const
 {
     return pdbs::evaluate<PDBType>(*pdbs, *subcollections, state);
 }

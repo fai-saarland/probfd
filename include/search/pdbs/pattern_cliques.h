@@ -6,10 +6,12 @@
 #include <memory>
 #include <vector>
 
+class TaskProxy;
+
 namespace pdbs {
 using VariableAdditivity = std::vector<std::vector<bool>>;
 
-extern VariableAdditivity compute_additive_vars();
+extern VariableAdditivity compute_additive_vars(const TaskProxy &task_proxy);
 
 /* Returns true iff the two patterns are additive i.e. there is no operator
    which affects variables in pattern one as well as in pattern two. */

@@ -15,7 +15,7 @@
 #include "utils/logging.h"
 #include "utils/rng.h"
 
-#include "global_state.h"
+#include "legacy/global_state.h"
 
 #include <string>
 #include <unordered_set>

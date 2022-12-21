@@ -1,9 +1,18 @@
-#ifndef FF_HEURISTIC_H
-#define FF_HEURISTIC_H
+#ifndef HEURISTICS_FF_HEURISTIC_H
+#define HEURISTICS_FF_HEURISTIC_H
 
-#include "additive_heuristic.h"
+#include "heuristics/additive_heuristic.h"
 
 #include <vector>
+
+namespace ff_heuristic {
+using relaxation_heuristic::PropID;
+using relaxation_heuristic::OpID;
+
+using relaxation_heuristic::NO_OP;
+
+using relaxation_heuristic::Proposition;
+using relaxation_heuristic::UnaryOperator;
 
 /*
   TODO: In a better world, this should not derive from
@@ -13,21 +22,18 @@
         other relaxation heuristics and the additional FF heuristic
         implementation in the landmark code.
 */
-
-
-class FFHeuristic : public AdditiveHeuristic {
+class FFHeuristic : public additive_heuristic::AdditiveHeuristic {
     // Relaxed plans are represented as a set of operators implemented
     // as a bit vector.
-    typedef std::vector<bool> RelaxedPlan;
+    using RelaxedPlan = std::vector<bool>;
     RelaxedPlan relaxed_plan;
     void mark_preferred_operators_and_relaxed_plan(
-        const GlobalState &state, Proposition *goal);
+        const State &state, PropID goal_id);
 protected:
-    virtual void initialize();
-    virtual int compute_heuristic(const GlobalState &state);
+    virtual int compute_heuristic(const State &ancestor_state) override;
 public:
-    FFHeuristic(const options::Options &options);
-    ~FFHeuristic();
+    explicit FFHeuristic(const options::Options &opts);
 };
+}
 
 #endif

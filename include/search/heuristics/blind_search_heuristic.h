@@ -1,16 +1,17 @@
-#ifndef BLIND_SEARCH_HEURISTIC_H
-#define BLIND_SEARCH_HEURISTIC_H
+#ifndef HEURISTICS_BLIND_SEARCH_HEURISTIC_H
+#define HEURISTICS_BLIND_SEARCH_HEURISTIC_H
 
 #include "heuristic.h"
 
+namespace blind_search_heuristic {
 class BlindSearchHeuristic : public Heuristic {
     int min_operator_cost;
 protected:
-    virtual void initialize();
-    virtual int compute_heuristic(const GlobalState &state);
+    virtual int compute_heuristic(const State &ancestor_state) override;
 public:
-    BlindSearchHeuristic(const options::Options &options);
+    BlindSearchHeuristic(const options::Options &opts);
     ~BlindSearchHeuristic();
 };
+}
 
 #endif

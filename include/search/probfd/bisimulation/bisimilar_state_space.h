@@ -6,17 +6,19 @@
 #include "probfd/distribution.h"
 #include "probfd/types.h"
 
-#include "operator_cost.h"
-#include "state_id.h"
+#include "legacy/operator_cost.h"
+#include "legacy/state_id.h"
 
 #include <cassert>
 #include <unordered_set>
 #include <vector>
 
+namespace legacy {
 class GlobalState;
 namespace merge_and_shrink {
 class Abstraction;
 }
+} // namespace legacy
 
 namespace probfd {
 
@@ -26,27 +28,30 @@ namespace bisimulation {
 /** \class QuotientState
  * Class representing a state in a quotient MDP.
  */
-class QuotientState : public ::StateID {
+class QuotientState : public legacy::StateID {
 public:
-    using ::StateID::StateID;
-    explicit QuotientState(const ::StateID& id)
-        : ::StateID(id)
+    using legacy::StateID::StateID;
+    explicit QuotientState(const legacy::StateID& id)
+        : legacy::StateID(id)
     {
     }
-    QuotientState& operator=(const ::StateID& id)
+    QuotientState& operator=(const legacy::StateID& id)
     {
         StateID::operator=(id);
         return *this;
     }
-    bool operator==(const ::StateID& s) const
+    bool operator==(const legacy::StateID& s) const
     {
         return this->hash() == s.hash();
     }
-    bool operator!=(const ::StateID& s) const
+    bool operator!=(const legacy::StateID& s) const
     {
         return this->hash() != s.hash();
     }
-    bool operator<(const ::StateID& s) const { return this->hash() < s.hash(); }
+    bool operator<(const legacy::StateID& s) const
+    {
+        return this->hash() < s.hash();
+    }
 };
 
 /** \struct QuotientAction
@@ -84,9 +89,9 @@ public:
      * @param cost_type - The operator cost type.
      */
     explicit BisimilarStateSpace(
-        const GlobalState& initial_state,
+        const legacy::GlobalState& initial_state,
         int budget,
-        OperatorCost cost_type);
+        legacy::OperatorCost cost_type);
     ~BisimilarStateSpace();
 
     /// Get the initial state of the quotient MDP.
@@ -165,9 +170,9 @@ private:
     };
 
     const bool limited_budget_;
-    const OperatorCost cost_type_;
+    const legacy::OperatorCost cost_type_;
 
-    merge_and_shrink::Abstraction* abstraction_;
+    legacy::merge_and_shrink::Abstraction* abstraction_;
     unsigned num_cached_transitions_;
 
     QuotientState initial_state_;

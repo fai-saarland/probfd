@@ -4,9 +4,8 @@
 
 #include "probfd/globals.h"
 
-#include "global_operator.h"
-
-#include "task_utils/successor_generator.h"
+#include "legacy/global_operator.h"
+#include "legacy/successor_generator.h"
 
 #include <algorithm>
 #include <deque>
@@ -85,7 +84,7 @@ using PartialAssignment = std::vector<std::pair<int, int>>;
 ProbabilisticProjection::StateRankSpace::StateRankSpace(
     const StateRankingFunction& mapper,
     bool operator_pruning)
-    : initial_state_(mapper.rank(::g_initial_state_data))
+    : initial_state_(mapper.rank(legacy::g_initial_state_data))
     , match_tree_(mapper.get_pattern(), mapper)
     , goal_state_flags_(mapper.num_states())
 {
@@ -93,7 +92,7 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
 
     std::set<ProgressionOperatorFootprint> duplicate_set;
 
-    std::vector<int> pdb_indices(::g_variable_domain.size(), -1);
+    std::vector<int> pdb_indices(legacy::g_variable_domain.size(), -1);
 
     for (size_t i = 0; i < mapper.get_pattern().size(); ++i) {
         pdb_indices[mapper.get_pattern()[i]] = i;
@@ -203,17 +202,17 @@ void ProbabilisticProjection::StateRankSpace::setup_abstract_goal(
     const Pattern& variables = mapper.get_pattern();
     for (int v = 0, w = 0; v != static_cast<int>(variables.size());) {
         const int p_var = variables[v];
-        const int g_var = g_goal[w].first;
+        const int g_var = legacy::g_goal[w].first;
 
         if (p_var < g_var) {
             non_goal_vars.push_back(v++);
         } else {
             if (p_var == g_var) {
-                const int g_val = g_goal[w].second;
+                const int g_val = legacy::g_goal[w].second;
                 base.id += mapper.get_multiplier(v++) * g_val;
             }
 
-            if (++w == static_cast<int>(g_goal.size())) {
+            if (++w == static_cast<int>(legacy::g_goal.size())) {
                 while (v < static_cast<int>(variables.size())) {
                     non_goal_vars.push_back(v++);
                 }
@@ -269,7 +268,7 @@ unsigned int ProbabilisticProjection::num_states() const
     return state_mapper_->num_states();
 }
 
-bool ProbabilisticProjection::is_dead_end(const GlobalState& s) const
+bool ProbabilisticProjection::is_dead_end(const legacy::GlobalState& s) const
 {
     return is_dead_end(get_abstract_state(s));
 }
@@ -284,7 +283,8 @@ bool ProbabilisticProjection::is_goal(const StateRank& s) const
     return abstract_state_space_.is_goal(s);
 }
 
-value_type::value_t ProbabilisticProjection::lookup(const GlobalState& s) const
+value_type::value_t
+ProbabilisticProjection::lookup(const legacy::GlobalState& s) const
 {
     return lookup(get_abstract_state(s));
 }
@@ -295,7 +295,7 @@ value_type::value_t ProbabilisticProjection::lookup(const StateRank& s) const
 }
 
 StateRank
-ProbabilisticProjection::get_abstract_state(const GlobalState& s) const
+ProbabilisticProjection::get_abstract_state(const legacy::GlobalState& s) const
 {
     return state_mapper_->rank(s);
 }

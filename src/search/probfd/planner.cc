@@ -1,4 +1,5 @@
-#include "globals.h"
+#include "legacy/globals.h"
+
 #include "option_parser.h"
 
 #include "probfd/command_line.h"
@@ -27,13 +28,13 @@ int main(int argc, const char** argv)
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    if (string(argv[1]).compare("--help") != 0) read_everything(cin);
+    if (string(argv[1]).compare("--help") != 0) legacy::read_everything(cin);
 
     shared_ptr<SolverInterface> engine;
 
     // The command line is parsed twice: once in dry-run mode, to
     // check for simple input errors, and then in normal mode.
-    bool unit_cost = is_unit_cost();
+    bool unit_cost = legacy::is_unit_cost();
     try {
         options::Registry registry(*options::RawRegistry::instance());
         parse_cmd_line(argc, argv, registry, true, unit_cost);

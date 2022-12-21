@@ -28,11 +28,9 @@ CostAdaptedTask::CostAdaptedTask(
 int CostAdaptedTask::get_operator_cost(int index, bool is_axiom) const
 {
     OperatorProxy op(*parent, index, is_axiom);
-    return is_axiom ? 0
-                    : get_adjusted_action_cost(
-                          op.get_cost(),
-                          cost_type,
-                          parent_is_unit_cost);
+    return is_axiom
+               ? 0
+               : get_adjusted_action_cost(op, cost_type, parent_is_unit_cost);
 }
 
 static shared_ptr<AbstractTask> _parse(OptionParser& parser)

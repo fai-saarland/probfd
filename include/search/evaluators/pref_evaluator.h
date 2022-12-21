@@ -1,25 +1,21 @@
-#ifndef PREF_EVALUATOR_H
-#define PREF_EVALUATOR_H
+#ifndef EVALUATORS_PREF_EVALUATOR_H
+#define EVALUATORS_PREF_EVALUATOR_H
 
-#include "evaluator.h"
+#include "../evaluator.h"
 
 #include <string>
 #include <vector>
 
-
+namespace pref_evaluator {
 class PrefEvaluator : public Evaluator {
-private:
-    bool value_preferred;
-
 public:
-    PrefEvaluator();
-    ~PrefEvaluator();
+    explicit PrefEvaluator(const options::Options &opts);
+    virtual ~PrefEvaluator() override;
 
-    void evaluate(int g, bool preferred);
-    bool is_dead_end() const;
-    bool dead_end_is_reliable() const;
-    int get_value() const;
-    void get_involved_heuristics(std::set<Heuristic *> &) {return; }
+    virtual EvaluationResult compute_result(
+        EvaluationContext &eval_context) override;
+    virtual void get_path_dependent_evaluators(std::set<Evaluator *> &) override {}
 };
+}
 
 #endif

@@ -7,7 +7,9 @@
 
 #include <memory>
 
+namespace legacy {
 class Heuristic;
+}
 
 namespace options {
 class Options;
@@ -24,13 +26,13 @@ public:
 
     int get_cached_h_value(const StateID& s);
 
-    virtual void touch(const GlobalState& s) override;
-    virtual void touch_goal(const GlobalState& s) override;
-    virtual void touch_dead_end(const GlobalState& s) override;
+    virtual void touch(const legacy::GlobalState& s) override;
+    virtual void touch_goal(const legacy::GlobalState& s) override;
+    virtual void touch_dead_end(const legacy::GlobalState& s) override;
 
 private:
     const bool fetch_only_;
-    std::shared_ptr<Heuristic> heuristic_;
+    std::shared_ptr<legacy::Heuristic> heuristic_;
     storage::PerStateStorage<int> hstore_;
 };
 

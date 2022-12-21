@@ -14,7 +14,9 @@
 #include <ostream>
 #include <vector>
 
+namespace legacy {
 class GlobalState;
+}
 
 namespace options {
 class Options;
@@ -89,7 +91,7 @@ public:
     void print_statistics() const override;
 
 protected:
-    EvaluationResult evaluate(const GlobalState& state) const override;
+    EvaluationResult evaluate(const legacy::GlobalState& state) const override;
 
 public:
     static void add_options_to_parser(options::OptionParser& parser);

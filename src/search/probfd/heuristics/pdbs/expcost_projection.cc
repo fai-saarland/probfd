@@ -15,7 +15,7 @@
 
 #include "utils/collections.h"
 
-#include "task_utils/successor_generator.h"
+#include "legacy/successor_generator.h"
 
 #include "lp/lp_solver.h"
 
@@ -81,7 +81,7 @@ ExpCostProjection::ExpCostProjection(
     bool operator_pruning)
     : ExpCostProjection(
           pdb.get_pattern(),
-          ::g_variable_domain,
+          legacy::g_variable_domain,
           operator_pruning,
           PDBEvaluator(pdb))
 {
@@ -93,7 +93,7 @@ ExpCostProjection::ExpCostProjection(
     bool operator_pruning)
     : ProbabilisticProjection(
           utils::insert(pdb.get_pattern(), add_var),
-          ::g_variable_domain,
+          legacy::g_variable_domain,
           operator_pruning,
           -value_type::inf)
 {
@@ -101,7 +101,7 @@ ExpCostProjection::ExpCostProjection(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
 }
 
-EvaluationResult ExpCostProjection::evaluate(const GlobalState& s) const
+EvaluationResult ExpCostProjection::evaluate(const legacy::GlobalState& s) const
 {
     return evaluate(get_abstract_state(s));
 }

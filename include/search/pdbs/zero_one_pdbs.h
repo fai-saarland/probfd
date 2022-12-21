@@ -3,19 +3,22 @@
 
 #include "pdbs/types.h"
 
-#include "operator_cost.h"
+class State;
+class TaskProxy;
 
-class GlobalState;
+namespace utils {
+class LogProxy;
+}
 
 namespace pdbs {
 class ZeroOnePDBs {
     PDBCollection pattern_databases;
 
 public:
-    ZeroOnePDBs(OperatorCost cost_type, const PatternCollection& patterns);
+    ZeroOnePDBs(const TaskProxy& task_proxy, const PatternCollection& patterns);
     ~ZeroOnePDBs() = default;
 
-    int get_value(const GlobalState& state) const;
+    int get_value(const State& state) const;
     /*
       Returns the sum of all mean finite h-values of every PDB.
       This is an approximation of the real mean finite h-value of the Heuristic,
@@ -25,7 +28,7 @@ public:
       these states.
     */
     double compute_approx_mean_finite_h() const;
-    void dump() const;
+    void dump(utils::LogProxy& log) const;
 };
 } // namespace pdbs
 

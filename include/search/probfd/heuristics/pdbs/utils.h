@@ -10,7 +10,9 @@
 #include <numeric>
 #include <ostream>
 
+namespace legacy {
 class GlobalState;
+}
 
 namespace probfd {
 namespace heuristics {
@@ -54,7 +56,7 @@ template <class PDBType>
 EvaluationResult evaluate(
     const PPDBCollection<PDBType>& database,
     const std::vector<PatternSubCollection>& subcollections,
-    const GlobalState& state)
+    const legacy::GlobalState& state)
 {
     value_type::value_t result = std::is_same_v<PDBType, ExpCostProjection>
                                      ? value_type::zero

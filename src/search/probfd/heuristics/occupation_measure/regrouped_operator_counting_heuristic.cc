@@ -1,7 +1,8 @@
 #include "probfd/heuristics/occupation_measure/regrouped_operator_counting_heuristic.h"
 
-#include "global_operator.h"
-#include "globals.h"
+#include "legacy/global_operator.h"
+#include "legacy/globals.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -26,7 +27,7 @@ namespace {
 template <typename T>
 std::vector<int> make_explicit(const std::vector<T>& partial_state)
 {
-    std::vector<int> pre(g_variable_domain.size(), -1);
+    std::vector<int> pre(legacy::g_variable_domain.size(), -1);
 
     for (const auto& [var, val] : partial_state) {
         pre[var] = val;
@@ -51,7 +52,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
               analysis_objectives::GoalProbabilityObjective>(
               g_analysis_objective) != nullptr)
 {
-    ::verify_no_axioms_no_conditional_effects();
+    legacy::verify_no_axioms_no_conditional_effects();
 
     std::cout << "Initializing regrouped operator counting heuristic..."
               << std::endl;
@@ -60,7 +61,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 
     // Construct LP...
 
-    const std::size_t num_variables = g_variable_domain.size();
+    const std::size_t num_variables = legacy::g_variable_domain.size();
 
     this->reset_indices_.reserve(2 * num_variables);
 
@@ -75,11 +76,11 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     std::size_t offset = 0;
     ncc_offsets_.push_back(offset);
     for (std::size_t var = 0; var < num_variables - 1; ++var) {
-        offset += g_variable_domain[var];
+        offset += legacy::g_variable_domain[var];
         ncc_offsets_.push_back(offset);
     }
 
-    const std::size_t num_facts = offset + g_variable_domain.back();
+    const std::size_t num_facts = offset + legacy::g_variable_domain.back();
 
     constraints.resize(num_facts, lp::LPConstraint(0.0, inf));
 
@@ -90,7 +91,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
         lp_vars.emplace_back(1, 1, 0);
     }
 
-    for (const auto& goal_fact : g_goal) {
+    for (const auto& goal_fact : legacy::g_goal) {
         const std::size_t off = ncc_offsets_[goal_fact.first];
         constraints[off + goal_fact.second].insert(0, -1);
     }
@@ -154,11 +155,11 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     std::cout << "Finished ROC LP setup after " << timer << std::endl;
 }
 
-EvaluationResult
-RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
+EvaluationResult RegroupedOperatorCountingHeuristic::evaluate(
+    const legacy::GlobalState& state) const
 {
     // Set outflow of 1 for all state facts
-    for (std::size_t var = 0; var < g_variable_domain.size(); ++var) {
+    for (std::size_t var = 0; var < legacy::g_variable_domain.size(); ++var) {
         const int c_index = ncc_offsets_[var] + state[var];
         lp_solver_.set_constraint_lower_bound(c_index, -1);
         reset_indices_.push_back(c_index);

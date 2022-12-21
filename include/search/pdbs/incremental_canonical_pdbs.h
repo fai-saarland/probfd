@@ -5,14 +5,14 @@
 #include "pdbs/pattern_collection_information.h"
 #include "pdbs/types.h"
 
-#include "operator_cost.h"
+#include "task_proxy.h"
 
 #include <memory>
 
-class GlobalState;
-
 namespace pdbs {
 class IncrementalCanonicalPDBs {
+    TaskProxy task_proxy;
+
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PDBCollection> pattern_databases;
     std::shared_ptr<std::vector<PatternClique>> pattern_cliques;
@@ -23,19 +23,13 @@ class IncrementalCanonicalPDBs {
     // The sum of all abstract state sizes of all pdbs in the collection.
     int size;
 
-    OperatorCost cost_type;
-
     // Adds a PDB for pattern but does not recompute pattern_cliques.
     void add_pdb_for_pattern(const Pattern &pattern);
 
     void recompute_pattern_cliques();
 public:
-    IncrementalCanonicalPDBs(
-        OperatorCost cost_type, const PatternCollection &intitial_patterns);
-
-    IncrementalCanonicalPDBs(
-        OperatorCost cost_type, PatternCollectionInformation& info);
-
+    IncrementalCanonicalPDBs(const TaskProxy &task_proxy,
+                             const PatternCollection &intitial_patterns);
     virtual ~IncrementalCanonicalPDBs() = default;
 
     // Adds a new PDB to the collection and recomputes pattern_cliques.
@@ -45,7 +39,7 @@ public:
        pattern. Detailed documentation in max_additive_pdb_sets.h */
     std::vector<PatternClique> get_pattern_cliques(const Pattern &new_pattern);
 
-    int get_value(const GlobalState &state) const;
+    int get_value(const State &state) const;
 
     /*
       The following method offers a quick dead-end check for the sampling
@@ -53,9 +47,10 @@ public:
       efficiently test if the canonical heuristic is infinite than
       computing the exact heuristic value.
     */
-    bool is_dead_end(const GlobalState &state) const;
+    bool is_dead_end(const State &state) const;
 
-    PatternCollectionInformation get_pattern_collection_information() const;
+    PatternCollectionInformation get_pattern_collection_information(
+        utils::LogProxy &log) const;
 
     std::shared_ptr<PDBCollection> get_pattern_databases() const {
         return pattern_databases;

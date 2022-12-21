@@ -1,200 +1,91 @@
 #ifndef TASK_UTILS_SUCCESSOR_GENERATOR_INTERNALS_H
 #define TASK_UTILS_SUCCESSOR_GENERATOR_INTERNALS_H
 
+#include "operator_id.h"
+
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
-class GlobalState;
+class State;
 
 namespace successor_generator {
-
-template <typename Entry>
 class GeneratorBase {
 public:
     virtual ~GeneratorBase() {}
 
     virtual void generate_applicable_ops(
-        const std::vector<int>& state,
-        std::vector<Entry>& applicable_ops) const = 0;
-
-    virtual void generate_applicable_ops(
-        const GlobalState& state,
-        std::vector<Entry>& applicable_ops) const = 0;
-
-    virtual void generate_applicable_ops(
-        unsigned i,
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& result) const = 0;
+        const std::vector<int> &state, std::vector<OperatorID> &applicable_ops) const = 0;
 };
 
-template <typename Entry>
-class GeneratorForkBinary : public GeneratorBase<Entry> {
-    std::unique_ptr<GeneratorBase<Entry>> generator1;
-    std::unique_ptr<GeneratorBase<Entry>> generator2;
-
+class GeneratorForkBinary : public GeneratorBase {
+    std::unique_ptr<GeneratorBase> generator1;
+    std::unique_ptr<GeneratorBase> generator2;
 public:
     GeneratorForkBinary(
-        std::unique_ptr<GeneratorBase<Entry>> generator1,
-        std::unique_ptr<GeneratorBase<Entry>> generator2);
-
+        std::unique_ptr<GeneratorBase> generator1,
+        std::unique_ptr<GeneratorBase> generator2);
     virtual void generate_applicable_ops(
-        const std::vector<int>& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        const GlobalState& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        unsigned i,
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& result) const override;
+        const std::vector<int> &state, std::vector<OperatorID> &applicable_ops) const override;
 };
 
-template <typename Entry>
-class GeneratorForkMulti : public GeneratorBase<Entry> {
-    std::vector<std::unique_ptr<GeneratorBase<Entry>>> children;
-
+class GeneratorForkMulti : public GeneratorBase {
+    std::vector<std::unique_ptr<GeneratorBase>> children;
 public:
-    GeneratorForkMulti(
-        std::vector<std::unique_ptr<GeneratorBase<Entry>>> children);
-
+    GeneratorForkMulti(std::vector<std::unique_ptr<GeneratorBase>> children);
     virtual void generate_applicable_ops(
-        const std::vector<int>& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        const GlobalState& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        unsigned i,
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& result) const override;
+        const std::vector<int> &state, std::vector<OperatorID> &applicable_ops) const override;
 };
 
-template <typename Entry>
-class GeneratorSwitchVector : public GeneratorBase<Entry> {
+class GeneratorSwitchVector : public GeneratorBase {
     int switch_var_id;
-    std::vector<std::unique_ptr<GeneratorBase<Entry>>> generator_for_value;
-
+    std::vector<std::unique_ptr<GeneratorBase>> generator_for_value;
 public:
     GeneratorSwitchVector(
         int switch_var_id,
-        std::vector<std::unique_ptr<GeneratorBase<Entry>>>&&
-            generator_for_value);
-
+        std::vector<std::unique_ptr<GeneratorBase>> &&generator_for_value);
     virtual void generate_applicable_ops(
-        const std::vector<int>& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        const GlobalState& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        unsigned i,
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& result) const override;
+        const std::vector<int> &state, std::vector<OperatorID> &applicable_ops) const override;
 };
 
-template <typename Entry>
-class GeneratorSwitchHash : public GeneratorBase<Entry> {
+class GeneratorSwitchHash : public GeneratorBase {
     int switch_var_id;
-    std::unordered_map<int, std::unique_ptr<GeneratorBase<Entry>>>
-        generator_for_value;
-
+    std::unordered_map<int, std::unique_ptr<GeneratorBase>> generator_for_value;
 public:
     GeneratorSwitchHash(
         int switch_var_id,
-        std::unordered_map<int, std::unique_ptr<GeneratorBase<Entry>>>&&
-            generator_for_value);
-
+        std::unordered_map<int, std::unique_ptr<GeneratorBase>> &&generator_for_value);
     virtual void generate_applicable_ops(
-        const std::vector<int>& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        const GlobalState& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        unsigned i,
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& result) const override;
+        const std::vector<int> &state, std::vector<OperatorID> &applicable_ops) const override;
 };
 
-template <typename Entry>
-class GeneratorSwitchSingle : public GeneratorBase<Entry> {
+class GeneratorSwitchSingle : public GeneratorBase {
     int switch_var_id;
     int value;
-    std::unique_ptr<GeneratorBase<Entry>> generator_for_value;
-
+    std::unique_ptr<GeneratorBase> generator_for_value;
 public:
     GeneratorSwitchSingle(
-        int switch_var_id,
-        int value,
-        std::unique_ptr<GeneratorBase<Entry>> generator_for_value);
-
+        int switch_var_id, int value,
+        std::unique_ptr<GeneratorBase> generator_for_value);
     virtual void generate_applicable_ops(
-        const std::vector<int>& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        const GlobalState& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        unsigned i,
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& result) const override;
+        const std::vector<int> &state, std::vector<OperatorID> &applicable_ops) const override;
 };
 
-template <typename Entry>
-class GeneratorLeafVector : public GeneratorBase<Entry> {
-    std::vector<Entry> applicable_operators;
-
+class GeneratorLeafVector : public GeneratorBase {
+    std::vector<OperatorID> applicable_operators;
 public:
-    GeneratorLeafVector(std::vector<Entry>&& applicable_operators);
-
+    GeneratorLeafVector(std::vector<OperatorID> &&applicable_operators);
     virtual void generate_applicable_ops(
-        const std::vector<int>& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        const GlobalState& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        unsigned i,
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& result) const override;
+        const std::vector<int> &state, std::vector<OperatorID> &applicable_ops) const override;
 };
 
-template <typename Entry>
-class GeneratorLeafSingle : public GeneratorBase<Entry> {
-    Entry applicable_operator;
-
+class GeneratorLeafSingle : public GeneratorBase {
+    OperatorID applicable_operator;
 public:
-    GeneratorLeafSingle(Entry applicable_operator);
-
+    GeneratorLeafSingle(OperatorID applicable_operator);
     virtual void generate_applicable_ops(
-        const std::vector<int>& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        const GlobalState& state,
-        std::vector<Entry>& applicable_ops) const override;
-
-    virtual void generate_applicable_ops(
-        unsigned i,
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& result) const override;
+        const std::vector<int> &state, std::vector<OperatorID> &applicable_ops) const override;
 };
-
-} // namespace successor_generator
-
-#include "task_utils/successor_generator_internals-impl.h"
+}
 
 #endif

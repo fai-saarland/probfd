@@ -3,17 +3,14 @@
 #include "option_parser.h"
 #include "plugin.h"
 
-#include <limits>
 #include <cassert>
+#include <limits>
 
 using namespace std;
 
-SumEvaluator::SumEvaluator(const options::Options &opts)
-    : CombiningEvaluator(opts.get_list<std::shared_ptr<Evaluator>>("evals")) {
-}
-
-SumEvaluator::SumEvaluator(const std::vector<std::shared_ptr<Evaluator>> &evals)
-    : CombiningEvaluator(evals) {
+namespace sum_evaluator {
+SumEvaluator::SumEvaluator(const Options &opts)
+    : CombiningEvaluator(opts) {
 }
 
 SumEvaluator::~SumEvaluator() {
@@ -21,30 +18,28 @@ SumEvaluator::~SumEvaluator() {
 
 int SumEvaluator::combine_values(const vector<int> &values) {
     int result = 0;
-    for (size_t i = 0; i < values.size(); ++i) {
-        assert(values[i] >= 0);
-        result += values[i];
+    for (int value : values) {
+        assert(value >= 0);
+        result += value;
         assert(result >= 0); // Check against overflow.
     }
     return result;
 }
 
-
-
-static std::shared_ptr<Evaluator> _parse(options::OptionParser &parser) {
+static shared_ptr<Evaluator> _parse(OptionParser &parser) {
     parser.document_synopsis("Sum evaluator",
                              "Calculates the sum of the sub-evaluators.");
+    combining_evaluator::add_combining_evaluator_options_to_parser(parser);
 
-    parser.add_list_option<std::shared_ptr<Evaluator>>("evals",
-                                              "at least one scalar evaluator");
-    options::Options opts = parser.parse();
+    Options opts = parser.parse();
 
-    opts.verify_list_non_empty<std::shared_ptr<Evaluator>>("evals");
+    opts.verify_list_non_empty<shared_ptr<Evaluator>>("evals");
 
     if (parser.dry_run())
         return nullptr;
     else
-        return std::make_shared<SumEvaluator>(opts);
+        return make_shared<SumEvaluator>(opts);
 }
 
-static Plugin<Evaluator> _plugin("sum", _parse);
+static Plugin<Evaluator> _plugin("sum", _parse, "evaluators_basic");
+}

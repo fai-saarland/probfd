@@ -1,12 +1,12 @@
 #include "probfd/probabilistic_operator.h"
-#include "globals.h"
+#include "legacy/globals.h"
 
 #include <cstdlib>
 
 namespace probfd {
 
 ProbabilisticOutcome::ProbabilisticOutcome(
-    const GlobalOperator* op,
+    const legacy::GlobalOperator* op,
     value_type::value_t prob)
     : op(op)
     , prob(prob)
@@ -28,7 +28,7 @@ ProbabilisticOperator::ProbabilisticOperator(
     std::istream& in)
     : id_(id)
 {
-    ::check_magic(in, "begin_probabilistic_operator");
+    legacy::check_magic(in, "begin_probabilistic_operator");
     in >> std::ws;
     std::getline(in, name_);
     int num_outcomes;
@@ -40,11 +40,11 @@ ProbabilisticOperator::ProbabilisticOperator(
         std::string prob;
         in >> prob;
         outcomes_.emplace_back(
-                &g_operators[opid],
+                &legacy::g_operators[opid],
                 value_type::from_string(prob));
         --num_outcomes;
     }
-    ::check_magic(in, "end_probabilistic_operator");
+    legacy::check_magic(in, "end_probabilistic_operator");
 }
 
 unsigned ProbabilisticOperator::get_id() const
@@ -88,7 +88,7 @@ ProbabilisticOperator::const_iterator ProbabilisticOperator::end() const
     return outcomes_.end();
 }
 
-const std::vector<GlobalCondition>&
+const std::vector<legacy::GlobalCondition>&
 ProbabilisticOperator::get_preconditions() const
 {
     return outcomes_.front().op->get_preconditions();
@@ -99,7 +99,9 @@ int ProbabilisticOperator::get_reward() const
     return -outcomes_.front().op->get_cost();
 }
 
-bool is_applicable(const ProbabilisticOperator* op, const GlobalState& state)
+bool is_applicable(
+    const ProbabilisticOperator* op,
+    const legacy::GlobalState& state)
 {
     const auto& pres = op->get_preconditions();
     for (int i = pres.size() - 1; i >= 0; --i) {

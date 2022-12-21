@@ -3,16 +3,18 @@
 
 #include "probfd/value_type.h"
 
-#include "global_operator.h"
+#include "legacy/global_operator.h"
 
 #include <iterator>
 #include <iostream>
 #include <string>
 #include <vector>
 
+namespace legacy {
 class GlobalOperator;
 struct GlobalCondition;
 class GlobalState;
+}
 
 namespace probfd {
 
@@ -25,11 +27,11 @@ namespace probfd {
  * via the this operator instead.
  */
 struct ProbabilisticOutcome {
-    const GlobalOperator* op; ///< The all-outcomes determinization
+    const legacy::GlobalOperator* op; ///< The all-outcomes determinization
     value_type::value_t prob; ///< The probability of occurence
 
     explicit ProbabilisticOutcome(
-        const GlobalOperator* op,
+        const legacy::GlobalOperator* op,
         value_type::value_t prob);
 
     const auto& effects() { return op->get_effects(); }
@@ -97,7 +99,7 @@ public:
     /**
      * @brief Gets the precondition of this operator.
      */
-    const std::vector<GlobalCondition>& get_preconditions() const;
+    const std::vector<legacy::GlobalCondition>& get_preconditions() const;
 
     /**
      * @brief Returns an iterator for the beginning of the outcome sequence
@@ -121,8 +123,9 @@ private:
  *
  * \todo make friend function
  */
-extern bool
-is_applicable(const ProbabilisticOperator* op, const GlobalState& state);
+extern bool is_applicable(
+    const ProbabilisticOperator* op,
+    const legacy::GlobalState& state);
 
 } // namespace probfd
 

@@ -1,60 +1,70 @@
-#ifndef ENFORCED_HILL_CLIMBING_SEARCH_H
-#define ENFORCED_HILL_CLIMBING_SEARCH_H
+#ifndef SEARCH_ENGINES_ENFORCED_HILL_CLIMBING_SEARCH_H
+#define SEARCH_ENGINES_ENFORCED_HILL_CLIMBING_SEARCH_H
 
-#include "evaluators/g_evaluator.h"
-
-#include "global_operator.h"
-#include "global_state.h"
-#include "globals.h"
+#include "evaluation_context.h"
+#include "open_list.h"
 #include "search_engine.h"
-#include "search_node_info.h"
-#include "search_progress.h"
-#include "search_space.h"
-
-#include "open_lists/open_list.h"
 
 #include <map>
-#include <vector>
 #include <memory>
+#include <set>
+#include <utility>
+#include <vector>
 
-using OpenListEntryEHC = std::pair<StateID, std::pair<int, const GlobalOperator * > >;
+namespace options {
+class Options;
+}
 
-enum PreferredUsage {
-    PRUNE_BY_PREFERRED, RANK_PREFERRED_FIRST,
-    MAX_PREFERRED_USAGE
+namespace enforced_hill_climbing_search {
+enum class PreferredUsage {
+    PRUNE_BY_PREFERRED,
+    RANK_PREFERRED_FIRST
 };
 
-class EnforcedHillClimbingSearch : public SearchEngine {
-protected:
-    std::shared_ptr<OpenList<OpenListEntryEHC> > open_list;
-    std::shared_ptr<GEvaluator> g_evaluator;
+/*
+  Enforced hill-climbing with deferred evaluation.
 
-    std::shared_ptr<Heuristic> heuristic;
-    bool preferred_contains_eval;
-    std::vector<std::shared_ptr<Heuristic> > preferred_heuristics;
+  TODO: We should test if this lazy implementation really has any benefits over
+  an eager one. We hypothesize that both versions need to evaluate and store
+  the same states anyways.
+*/
+class EnforcedHillClimbingSearch : public SearchEngine {
+    std::unique_ptr<EdgeOpenList> open_list;
+
+    std::shared_ptr<Evaluator> evaluator;
+    std::vector<std::shared_ptr<Evaluator>> preferred_operator_evaluators;
+    std::set<Evaluator *> path_dependent_evaluators;
     bool use_preferred;
     PreferredUsage preferred_usage;
 
-    GlobalState current_state;
-    int current_h;
-    int current_g;
+    EvaluationContext current_eval_context;
+    int current_phase_start_g;
 
-    // statistics
-    std::map<int, std::pair<int, int> > d_counts;
+    // Statistics
+    std::map<int, std::pair<int, int>> d_counts;
     int num_ehc_phases;
-    int last_expanded;
+    int last_num_expanded;
 
-    virtual void initialize();
-    virtual SearchStatus step();
+    void insert_successor_into_open_list(
+        const EvaluationContext &eval_context,
+        int parent_g,
+        OperatorID op_id,
+        bool preferred);
+    void expand(EvaluationContext &eval_context);
+    void reach_state(
+        const State &parent, OperatorID op_id, const State &state);
     SearchStatus ehc();
-    void get_successors(const GlobalState &state, std::vector<const GlobalOperator *> &ops);
-    void evaluate(const GlobalState &parent, const GlobalOperator *op, const GlobalState &state);
-    virtual void print_statistics() const;
+
+protected:
+    virtual void initialize() override;
+    virtual SearchStatus step() override;
 
 public:
-    EnforcedHillClimbingSearch(const options::Options &opts);
-    virtual ~EnforcedHillClimbingSearch();
+    explicit EnforcedHillClimbingSearch(const options::Options &opts);
+    virtual ~EnforcedHillClimbingSearch() override;
 
+    virtual void print_statistics() const override;
 };
+}
 
 #endif

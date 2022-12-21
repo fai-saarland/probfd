@@ -20,12 +20,12 @@ void OpenList<const ProbabilisticOperator*>::push(
 }
 
 void OpenList<const ProbabilisticOperator*>::set_state_id_map(
-    StateIDMap<GlobalState>* state_id_map)
+    StateIDMap<legacy::GlobalState>* state_id_map)
 {
     this->state_id_map_ = state_id_map;
 }
 
-GlobalState
+legacy::GlobalState
 OpenList<const ProbabilisticOperator*>::lookup_state(const StateID& state_id)
 {
     return this->state_id_map_->get_state(state_id);

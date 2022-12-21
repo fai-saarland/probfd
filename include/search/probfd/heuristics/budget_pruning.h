@@ -7,8 +7,11 @@
 #include <memory>
 #include <unordered_map>
 
+namespace legacy {
 class Heuristic;
 class StateRegistry;
+}
+
 
 namespace options {
 class Options;
@@ -26,7 +29,7 @@ public:
     BudgetPruningHeuristic(
         value_type::value_t default_value,
         value_type::value_t dead_end_value,
-        std::shared_ptr<Heuristic> pruning_function,
+        std::shared_ptr<legacy::Heuristic> pruning_function,
         bool cache_estimates);
 
     explicit BudgetPruningHeuristic(const options::Options& opts);
@@ -36,29 +39,30 @@ public:
     virtual void print_statistics() const override;
 
     struct Hash {
-        explicit Hash(const StateRegistry* r)
+        explicit Hash(const legacy::StateRegistry* r)
             : registry_(r)
         {
         }
         std::size_t operator()(const StateID& id) const;
-        const StateRegistry* registry_ = nullptr;
+        const legacy::StateRegistry* registry_ = nullptr;
     };
 
     struct Equal {
-        explicit Equal(const StateRegistry* r)
+        explicit Equal(const legacy::StateRegistry* r)
             : registry_(r)
         {
         }
         bool operator()(const StateID& x, const StateID& y) const;
-        const StateRegistry* registry_ = nullptr;
+        const legacy::StateRegistry* registry_ = nullptr;
     };
 
 protected:
-    virtual EvaluationResult evaluate(const GlobalState& state) const override;
+    virtual EvaluationResult
+    evaluate(const legacy::GlobalState& state) const override;
 
     const value_type::value_t default_value_;
     const value_type::value_t dead_end_value_;
-    std::shared_ptr<Heuristic> pruning_function_;
+    std::shared_ptr<legacy::Heuristic> pruning_function_;
 
     const bool cache_estimates_;
     mutable std::unique_ptr<std::unordered_map<StateID, int, Hash, Equal>>

@@ -2,7 +2,8 @@
 
 #include "utils/rng.h"
 
-#include "globals.h"
+#include "legacy/globals.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -23,7 +24,7 @@ int RandomTiebreaker::pick(
     const std::vector<const ProbabilisticOperator*>& options,
     const std::vector<Distribution<StateID>>&)
 {
-    return ::g_rng(options.size());
+    return legacy::g_rng.random(options.size());
 }
 
 static Plugin<ProbabilisticOperatorPolicyPicker> _plugin(

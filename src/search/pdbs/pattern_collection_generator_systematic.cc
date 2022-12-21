@@ -3,15 +3,14 @@
 #include "pdbs/utils.h"
 #include "pdbs/validation.h"
 
+#include "option_parser.h"
+#include "plugin.h"
+#include "task_proxy.h"
+
+#include "task_utils/causal_graph.h"
 #include "utils/logging.h"
 #include "utils/markup.h"
 #include "utils/timer.h"
-
-#include "globals.h"
-#include "option_parser.h"
-#include "plugin.h"
-
-#include "task_utils/causal_graph.h"
 
 #include <algorithm>
 #include <cassert>
@@ -50,15 +49,13 @@ static void compute_union_pattern(
 
 PatternCollectionGeneratorSystematic::PatternCollectionGeneratorSystematic(
     const Options &opts)
-    : max_pattern_size(opts.get<int>("pattern_max_size")),
+    : PatternCollectionGenerator(opts),
+      max_pattern_size(opts.get<int>("pattern_max_size")),
       only_interesting_patterns(opts.get<bool>("only_interesting_patterns")) {
 }
 
 void PatternCollectionGeneratorSystematic::compute_eff_pre_neighbors(
-    const causal_graph::CausalGraph& cg,
-    const Pattern& pattern,
-    vector<int>& result) const
-{
+    const causal_graph::CausalGraph &cg, const Pattern &pattern, vector<int> &result) const {
     /*
       Compute all variables that are reachable from pattern by an
       (eff, pre) arc and are not already contained in the pattern.
@@ -80,10 +77,7 @@ void PatternCollectionGeneratorSystematic::compute_eff_pre_neighbors(
 }
 
 void PatternCollectionGeneratorSystematic::compute_connection_points(
-    const causal_graph::CausalGraph& cg,
-    const Pattern& pattern,
-    vector<int>& result) const
-{
+    const causal_graph::CausalGraph &cg, const Pattern &pattern, vector<int> &result) const {
     /*
       The "connection points" of a pattern are those variables of which
       one must be contained in an SGA pattern that can be attached to this
@@ -129,7 +123,7 @@ void PatternCollectionGeneratorSystematic::enqueue_pattern_if_new(
 }
 
 void PatternCollectionGeneratorSystematic::build_sga_patterns(
-    const causal_graph::CausalGraph &cg) {
+    const TaskProxy &task_proxy, const causal_graph::CausalGraph &cg) {
     assert(max_pattern_size >= 1);
     assert(pattern_set.empty());
     assert(patterns && patterns->empty());
@@ -149,8 +143,8 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
     */
 
     // Build goal patterns.
-    for (const auto& goal : g_goal) {
-        int var_id = goal.first;
+    for (FactProxy goal : task_proxy.get_goals()) {
+        int var_id = goal.get_variable().get_id();
         Pattern goal_pattern;
         goal_pattern.push_back(var_id);
         enqueue_pattern_if_new(goal_pattern);
@@ -181,14 +175,15 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
     pattern_set.clear();
 }
 
-void PatternCollectionGeneratorSystematic::build_patterns() {
-    int num_variables = g_variable_domain.size();
-    const causal_graph::CausalGraph& cg = *g_causal_graph;
+void PatternCollectionGeneratorSystematic::build_patterns(
+    const TaskProxy &task_proxy) {
+    int num_variables = task_proxy.get_variables().size();
+    const causal_graph::CausalGraph &cg = task_proxy.get_causal_graph();
 
     // Generate SGA (single-goal-ancestor) patterns.
     // They are generated into the patterns variable,
     // so we swap them from there.
-    build_sga_patterns(cg);
+    build_sga_patterns(task_proxy, cg);
     PatternCollection sga_patterns;
     patterns->swap(sga_patterns);
 
@@ -210,7 +205,9 @@ void PatternCollectionGeneratorSystematic::build_patterns() {
         enqueue_pattern_if_new(pattern);
 
 
-    cout << "Found " << sga_patterns.size() << " SGA patterns." << endl;
+    if (log.is_at_least_normal()) {
+        log << "Found " << sga_patterns.size() << " SGA patterns." << endl;
+    }
 
     /*
       Combine patterns in the queue with SGA patterns until all
@@ -240,11 +237,14 @@ void PatternCollectionGeneratorSystematic::build_patterns() {
     }
 
     pattern_set.clear();
-    cout << "Found " << patterns->size() << " interesting patterns." << endl;
+    if (log.is_at_least_normal()) {
+        log << "Found " << patterns->size() << " interesting patterns." << endl;
+    }
 }
 
-void PatternCollectionGeneratorSystematic::build_patterns_naive() {
-    int num_variables = g_variable_domain.size();
+void PatternCollectionGeneratorSystematic::build_patterns_naive(
+    const TaskProxy &task_proxy) {
+    int num_variables = task_proxy.get_variables().size();
     PatternCollection current_patterns(1);
     PatternCollection next_patterns;
     for (size_t i = 0; i < max_pattern_size; ++i) {
@@ -263,25 +263,26 @@ void PatternCollectionGeneratorSystematic::build_patterns_naive() {
         next_patterns.clear();
     }
 
-    cout << "Found " << patterns->size() << " patterns." << endl;
+    if (log.is_at_least_normal()) {
+        log << "Found " << patterns->size() << " patterns." << endl;
+    }
 }
 
-PatternCollectionInformation PatternCollectionGeneratorSystematic::generate(OperatorCost cost_type) {
-    utils::Timer timer;
-    cout << "Generating patterns using the systematic generator..." << endl;
+string PatternCollectionGeneratorSystematic::name() const {
+    return "systematic pattern collection generator";
+}
+
+PatternCollectionInformation PatternCollectionGeneratorSystematic::compute_patterns(
+    const shared_ptr<AbstractTask> &task) {
+    TaskProxy task_proxy(*task);
     patterns = make_shared<PatternCollection>();
     pattern_set.clear();
     if (only_interesting_patterns) {
-        build_patterns();
+        build_patterns(task_proxy);
     } else {
-        build_patterns_naive();
+        build_patterns_naive(task_proxy);
     }
-    PatternCollectionInformation pci(cost_type, patterns);
-    /* Do not dump the collection since it can be very large for
-       pattern_max_size >= 3. */
-    dump_pattern_collection_generation_statistics(
-        "Systematic generator", timer(), pci, false);
-    return pci;
+    return PatternCollectionInformation(task_proxy, patterns, log);
 }
 
 static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser) {
@@ -309,6 +310,7 @@ static shared_ptr<PatternCollectionGenerator> _parse(OptionParser &parser) {
         "Only consider the union of two disjoint patterns if the union has "
         "more information than the individual patterns.",
         "true");
+    add_generator_options_to_parser(parser);
 
     Options opts = parser.parse();
     if (parser.dry_run())

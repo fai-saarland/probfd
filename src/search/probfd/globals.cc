@@ -7,10 +7,9 @@
 #include "utils/hash.h"
 #include "utils/timer.h"
 
-#include "global_operator.h"
-#include "globals.h"
-
-#include "task_utils/successor_generator.h"
+#include "legacy/global_operator.h"
+#include "legacy/globals.h"
+#include "legacy/successor_generator.h"
 
 #include <algorithm>
 #include <cassert>
@@ -32,26 +31,26 @@ void prepare_globals(
     std::cout << "building probabilistic operator successor generator..."
               << std::flush;
     g_successor_generator =
-        std::make_shared<successor_generator::SuccessorGenerator<
+        std::make_shared<legacy::successor_generator::SuccessorGenerator<
             const ProbabilisticOperator*>>();
     std::cout << "done! [t=" << utils::g_timer << "]" << std::endl;
 
-    g_initial_state_values = ::g_initial_state_data;
+    g_initial_state_values = legacy::g_initial_state_data;
 
     if (g_steps_bounded) {
-        g_step_var = g_variable_domain.size();
+        g_step_var = legacy::g_variable_domain.size();
 
-        std::vector<int> extended_domains(g_variable_domain);
+        std::vector<int> extended_domains(legacy::g_variable_domain);
         extended_domains.push_back(g_step_bound + 1);
         g_state_packer = new int_packer::IntPacker(extended_domains);
 
         g_initial_state_values.push_back(g_step_bound);
     } else {
-        g_state_packer = ::g_state_packer;
+        g_state_packer = legacy::g_state_packer;
     }
 
-    for (unsigned op_id = 0; op_id < ::g_operators.size(); ++op_id) {
-        ::g_operators[op_id].set_id(op_id);
+    for (unsigned op_id = 0; op_id < legacy::g_operators.size(); ++op_id) {
+        legacy::g_operators[op_id].set_id(op_id);
     }
 
     for (int i = g_operators.size() - 1; i >= 0; i--) {
@@ -89,9 +88,9 @@ void print_task_info()
     }
     unsigned orig_values = 0;
     unsigned values = 0;
-    for (int var = g_variable_domain.size() - 1; var >= 0; --var) {
-        values += g_variable_domain[var];
-        orig_values += g_variable_domain[var];
+    for (int var = legacy::g_variable_domain.size() - 1; var >= 0; --var) {
+        values += legacy::g_variable_domain[var];
+        orig_values += legacy::g_variable_domain[var];
     }
     if (g_step_var >= 0) {
         values += g_step_bound + 1;
@@ -110,7 +109,7 @@ void print_task_info()
     std::cout << "  Operators with stochastic effects: " << prob_ops
               << std::endl;
     std::cout << "  Operator outcomes: " << outcomes << " ("
-              << ::g_operators.size() << " without dummy outcomes)"
+              << legacy::g_operators.size() << " without dummy outcomes)"
               << std::endl;
 
     std::cout << "  Step bound: ";
@@ -129,15 +128,15 @@ bool g_steps_bounded = false;
 const int g_unlimited_budget = std::numeric_limits<int>::max();
 int g_step_bound = g_unlimited_budget;
 int g_step_var = -1;
-OperatorCost g_step_cost_type = NORMAL;
+legacy::OperatorCost g_step_cost_type = legacy::NORMAL;
 
 std::vector<ProbabilisticOperator> g_operators;
 
 int_packer::IntPacker* g_state_packer = nullptr;
 std::vector<int> g_initial_state_values;
 
-std::shared_ptr<
-    successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>
+std::shared_ptr<legacy::successor_generator::SuccessorGenerator<
+    const ProbabilisticOperator*>>
     g_successor_generator = nullptr;
 
 std::shared_ptr<analysis_objectives::AnalysisObjective> g_analysis_objective;

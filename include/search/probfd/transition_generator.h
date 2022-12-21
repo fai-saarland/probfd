@@ -10,21 +10,22 @@
 
 #include "algorithms/segmented_vector.h"
 
-#include "operator_cost.h"
+#include "legacy/operator_cost.h"
 
 #include <cassert>
 #include <iostream>
 #include <memory>
 #include <vector>
 
-class StateRegistry;
-class Heuristic;
+namespace legacy {
 class GlobalState;
-
+class Heuristic;
+class StateRegistry;
 namespace successor_generator {
 template <typename Op>
 class SuccessorGenerator;
 }
+} // namespace legacy
 
 namespace probfd {
 
@@ -37,22 +38,23 @@ struct CostBasedSuccessorGenerator {
 public:
     explicit CostBasedSuccessorGenerator(
         const std::vector<ProbabilisticOperator>& ops,
-        OperatorCost cost_type,
+        legacy::OperatorCost cost_type,
         int bvar,
-        successor_generator::SuccessorGenerator<const ProbabilisticOperator*>*
-            gen);
+        legacy::successor_generator::SuccessorGenerator<
+            const ProbabilisticOperator*>* gen);
 
     void operator()(
-        const GlobalState& s,
+        const legacy::GlobalState& s,
         std::vector<const ProbabilisticOperator*>& result) const;
 
 private:
     int bvar_;
     std::vector<int> reward_;
-    std::vector<std::shared_ptr<
-        successor_generator::SuccessorGenerator<const ProbabilisticOperator*>>>
+    std::vector<std::shared_ptr<legacy::successor_generator::SuccessorGenerator<
+        const ProbabilisticOperator*>>>
         gens_;
-    successor_generator::SuccessorGenerator<const ProbabilisticOperator*>* gen_;
+    legacy::successor_generator::SuccessorGenerator<
+        const ProbabilisticOperator*>* gen_;
 };
 
 namespace engine_interfaces {
@@ -63,19 +65,19 @@ class TransitionGenerator<const ProbabilisticOperator*> {
 public:
     explicit TransitionGenerator(
         const std::vector<ProbabilisticOperator>& ops,
-        successor_generator::SuccessorGenerator<const ProbabilisticOperator*>*
-            gen,
+        legacy::successor_generator::SuccessorGenerator<
+            const ProbabilisticOperator*>* gen,
         int budget_var,
-        OperatorCost budget_cost_type,
-        StateRegistry* state_registry,
+        legacy::OperatorCost budget_cost_type,
+        legacy::StateRegistry* state_registry,
         bool enable_caching,
-        const std::vector<std::shared_ptr<Heuristic>>&
+        const std::vector<std::shared_ptr<legacy::Heuristic>>&
             path_dependent_heuristics);
 
     explicit TransitionGenerator(
-        StateRegistry* state_registry,
+        legacy::StateRegistry* state_registry,
         bool enable_caching,
-        const std::vector<std::shared_ptr<Heuristic>>&
+        const std::vector<std::shared_ptr<legacy::Heuristic>>&
             path_dependent_heuristics);
 
     void operator()(
@@ -126,12 +128,12 @@ private:
     using Cache = storage::DynamicSegmentedVector<CacheEntry>;
 
     void compute_successor_states(
-        const GlobalState& s,
+        const legacy::GlobalState& s,
         const ProbabilisticOperator* op,
         std::vector<WeightedElement<StateID>>& successors);
 
     void compute_applicable_operators(
-        const GlobalState& s,
+        const legacy::GlobalState& s,
         std::vector<const ProbabilisticOperator*>& ops);
 
     bool setup_cache(const StateID& state_id, CacheEntry& entry);
@@ -142,12 +144,12 @@ private:
     const ProbabilisticOperator* first_op_;
     const bool caching_;
     const int budget_var_;
-    const OperatorCost budget_cost_type_;
-    const std::vector<std::shared_ptr<Heuristic>> notify_;
+    const legacy::OperatorCost budget_cost_type_;
+    const std::vector<std::shared_ptr<legacy::Heuristic>> notify_;
     CostBasedSuccessorGenerator aops_gen_;
     std::vector<int> reward_;
 
-    StateRegistry* state_registry_;
+    legacy::StateRegistry* state_registry_;
 
     Cache cache_;
     storage::SegmentedMemoryPool<> cache_data_;

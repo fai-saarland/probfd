@@ -7,9 +7,9 @@
 
 using namespace std;
 
-
-MaxEvaluator::MaxEvaluator(const vector<std::shared_ptr<Evaluator> > &subevaluators)
-    : CombiningEvaluator(subevaluators) {
+namespace max_evaluator {
+MaxEvaluator::MaxEvaluator(const Options &opts)
+    : CombiningEvaluator(opts) {
 }
 
 MaxEvaluator::~MaxEvaluator() {
@@ -17,41 +17,28 @@ MaxEvaluator::~MaxEvaluator() {
 
 int MaxEvaluator::combine_values(const vector<int> &values) {
     int result = 0;
-    for (size_t i = 0; i < values.size(); ++i) {
-        assert(values[i] >= 0);
-        result = max(result, values[i]);
+    for (int value : values) {
+        assert(value >= 0);
+        result = max(result, value);
     }
     return result;
 }
 
-/* commented out to silence compiler warning while this is unused.
+static shared_ptr<Evaluator> _parse(OptionParser &parser) {
+    parser.document_synopsis(
+        "Max evaluator",
+        "Calculates the maximum of the sub-evaluators.");
+    combining_evaluator::add_combining_evaluator_options_to_parser(parser);
 
-static std::shared_ptr<Evaluator> create(const vector<string> &config,
-                               int start, int &end, bool dry_run) {
-    if (config[start + 1] != "(")
-        throw ParseError(start + 1);
+    Options opts = parser.parse();
 
-    // create evaluators
-    vector<std::shared_ptr<Evaluator> > evals;
-    options::OptionParser::instance()->parse_scalar_evaluator_list(
-        config, start + 2, end, false, evals, dry_run);
+    opts.verify_list_non_empty<shared_ptr<Evaluator>>("evals");
 
-    if (evals.empty())
-        throw ParseError(end);
-    // need at least one evaluator
-
-    ++end;
-    if (config[end] != ")")
-        throw ParseError(end);
-
-    if (dry_run)
-        return 0;
-    else
-        return new MaxEvaluator(evals);
+    if (parser.dry_run()) {
+        return nullptr;
+    }
+    return make_shared<MaxEvaluator>(opts);
 }
-*/
 
-// TODO: Comment this in once the max/sum evaluator stuff is fixed.
-//       For now, it's commented out to use the IPC implementation of
-//       max again, see issue181.
-// static Plugin<Evaluator> plugin("max", create);
+static Plugin<Evaluator> plugin("max", _parse, "evaluators_basic");
+}

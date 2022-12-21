@@ -24,12 +24,12 @@ using namespace engines::exhaustive_dfs;
 class ExhaustiveDFSSolver : public MDPSolver {
 public:
     using Engine = ExhaustiveDepthFirstSearch<
-        GlobalState,
+        legacy::GlobalState,
         const ProbabilisticOperator*,
         std::false_type>;
 
     using Engine2 = ExhaustiveDepthFirstSearch<
-        GlobalState,
+        legacy::GlobalState,
         const ProbabilisticOperator*,
         std::true_type>;
 
@@ -104,7 +104,8 @@ public:
         return "exhaustive_dfs";
     }
 
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<legacy::GlobalState>*
+    create_engine() override
     {
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(

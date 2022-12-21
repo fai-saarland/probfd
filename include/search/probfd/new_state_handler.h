@@ -3,16 +3,17 @@
 
 #include "probfd/engine_interfaces/new_state_handler.h"
 
-#include "global_state.h"
+#include "legacy/global_state.h"
 
 #include <memory>
 #include <vector>
 
 namespace probfd {
 
-using NewGlobalStateHandler = engine_interfaces::NewStateHandler<GlobalState>;
+using NewGlobalStateHandler =
+    engine_interfaces::NewStateHandler<legacy::GlobalState>;
 using NewGlobalStateHandlerList =
-    engine_interfaces::NewStateHandlerList<GlobalState>;
+    engine_interfaces::NewStateHandlerList<legacy::GlobalState>;
 
 } // namespace probfd
 

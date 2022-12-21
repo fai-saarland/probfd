@@ -1,6 +1,7 @@
 #include "merge_and_shrink/shrink_random.h"
 
-#include "merge_and_shrink/abstraction.h"
+#include "merge_and_shrink/factored_transition_system.h"
+#include "merge_and_shrink/transition_system.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -11,47 +12,40 @@
 using namespace std;
 
 namespace merge_and_shrink {
-
-ShrinkRandom::ShrinkRandom(const options::Options &opts)
-    : ShrinkBucketBased(opts)
-{
+ShrinkRandom::ShrinkRandom(const Options &opts)
+    : ShrinkBucketBased(opts) {
 }
 
-ShrinkRandom::~ShrinkRandom()
-{
+vector<ShrinkBucketBased::Bucket> ShrinkRandom::partition_into_buckets(
+    const TransitionSystem &ts,
+    const Distances &) const {
+    vector<Bucket> buckets;
+    buckets.resize(1);
+    Bucket &big_bucket = buckets.back();
+    big_bucket.reserve(ts.get_size());
+    int num_states = ts.get_size();
+    for (int state = 0; state < num_states; ++state)
+        big_bucket.push_back(state);
+    assert(!big_bucket.empty());
+    return buckets;
 }
 
-string ShrinkRandom::name() const
-{
+string ShrinkRandom::name() const {
     return "random";
 }
 
-void ShrinkRandom::partition_into_buckets(
-    const Abstraction &abs, vector<Bucket> &buckets) const
-{
-    assert(buckets.empty());
-    buckets.resize(1);
-    Bucket &big_bucket = buckets.back();
-    big_bucket.reserve(abs.size());
-    for (AbstractStateRef state = 0; state < abs.size(); ++state) {
-        big_bucket.push_back(state);
-    }
-    assert(!big_bucket.empty());
-}
+static shared_ptr<ShrinkStrategy>_parse(OptionParser &parser) {
+    parser.document_synopsis("Random", "");
+    ShrinkBucketBased::add_options_to_parser(parser);
+    Options opts = parser.parse();
+    if (parser.help_mode())
+        return nullptr;
 
-static std::shared_ptr<ShrinkStrategy> _parse(options::OptionParser &parser)
-{
-    ShrinkStrategy::add_options_to_parser(parser);
-    options::Options opts = parser.parse();
-
-    if (!parser.dry_run()) {
-        ShrinkStrategy::handle_option_defaults(opts);
-        return std::make_shared< ShrinkRandom>(opts);
-    } else {
-        return 0;
-    }
+    if (parser.dry_run())
+        return nullptr;
+    else
+        return make_shared<ShrinkRandom>(opts);
 }
 
 static Plugin<ShrinkStrategy> _plugin("shrink_random", _parse);
-
 }

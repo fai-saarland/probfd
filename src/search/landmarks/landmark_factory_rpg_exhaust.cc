@@ -1,74 +1,85 @@
 #include "landmarks/landmark_factory_rpg_exhaust.h"
 
-#include "global_state.h"
+#include "landmarks/landmark.h"
+#include "landmarks/landmark_graph.h"
+
 #include "option_parser.h"
 #include "plugin.h"
+#include "task_proxy.h"
+
+#include "utils/logging.h"
 
 #include <vector>
-
 using namespace std;
 
+namespace landmarks {
 /* Problem: We don't get any orders here. (All we have is the reasonable orders
    that are inferred later.) It's thus best to combine this landmark generation
    method with others, don't use it by itself. */
 
-LandmarkFactoryRpgExhaust::LandmarkFactoryRpgExhaust(const options::Options &opts)
-    : LandmarkFactory(opts) {
+LandmarkFactoryRpgExhaust::LandmarkFactoryRpgExhaust(const Options &opts)
+    : LandmarkFactoryRelaxation(opts),
+      only_causal_landmarks(opts.get<bool>("only_causal_landmarks")) {
 }
 
-void LandmarkFactoryRpgExhaust::generate_landmarks() {
-    cout << "Generating landmarks by testing all facts with RPG method" << endl;
+void LandmarkFactoryRpgExhaust::generate_relaxed_landmarks(
+    const shared_ptr<AbstractTask> &task, Exploration &exploration) {
+    TaskProxy task_proxy(*task);
+    if (log.is_at_least_normal()) {
+        log << "Generating landmarks by testing all facts with RPG method" << endl;
+    }
 
     // insert goal landmarks and mark them as goals
-    for (size_t i = 0; i < g_goal.size(); ++i) {
-        LandmarkNode *lmp = &lm_graph->landmark_add_simple(g_goal[i]);
-        lmp->in_goal = true;
+    for (FactProxy goal : task_proxy.get_goals()) {
+        Landmark landmark({goal.get_pair()}, false, false, true);
+        lm_graph->add_landmark(move(landmark));
     }
     // test all other possible facts
-    const GlobalState &initial_state = g_initial_state();
-    for (size_t i = 0; i < g_variable_name.size(); ++i) {
-        for (int j = 0; j < g_variable_domain[i]; ++j) {
-            const pair<int, int> lm = make_pair(i, j);
-            if (!lm_graph->simple_landmark_exists(lm)) {
-                LandmarkNode *new_lm = &lm_graph->landmark_add_simple(lm);
-                if (initial_state[lm.first] != lm.second && relaxed_task_solvable(true, new_lm)) {
-                    assert(lm_graph->landmark_exists(lm));
-                    LandmarkNode *node;
-                    if (lm_graph->simple_landmark_exists(lm))
-                        node = &lm_graph->get_simple_lm_node(lm);
-                    else
-                        node = &lm_graph->get_disj_lm_node(lm);
-                    lm_graph->rm_landmark_node(node);
+    State initial_state = task_proxy.get_initial_state();
+    for (VariableProxy var : task_proxy.get_variables()) {
+        for (int value = 0; value < var.get_domain_size(); ++value) {
+            const FactPair lm(var.get_id(), value);
+            if (!lm_graph->contains_simple_landmark(lm)) {
+                Landmark landmark({lm}, false, false);
+                if (initial_state[lm.var].get_value() == lm.value ||
+                    !relaxed_task_solvable(task_proxy, exploration, landmark)) {
+                    lm_graph->add_landmark(move(landmark));
                 }
             }
         }
     }
+
+    if (only_causal_landmarks) {
+        discard_noncausal_landmarks(task_proxy, exploration);
+    }
 }
 
-static std::shared_ptr<LandmarkGraph> _parse(options::OptionParser &parser) {
+bool LandmarkFactoryRpgExhaust::computes_reasonable_orders() const {
+    return false;
+}
+
+bool LandmarkFactoryRpgExhaust::supports_conditional_effects() const {
+    return false;
+}
+
+static shared_ptr<LandmarkFactory> _parse(OptionParser &parser) {
     parser.document_synopsis(
         "Exhaustive Landmarks",
         "Exhaustively checks for each fact if it is a landmark."
         "This check is done using relaxed planning.");
-    parser.document_note(
-        "Relevant options",
-        "reasonable_orders, only_causal_landmarks");
-    LandmarkGraph::add_options_to_parser(parser);
+    add_landmark_factory_options_to_parser(parser);
+    add_only_causal_landmarks_option_to_parser(parser);
 
-    options::Options opts = parser.parse();
+    Options opts = parser.parse();
 
     parser.document_language_support("conditional_effects",
                                      "ignored, i.e. not supported");
-    opts.set<bool>("supports_conditional_effects", false);
 
-    if (parser.dry_run()) {
-        return 0;
-    } else {
-        opts.set<Exploration *>("explor", new Exploration(opts));
-        LandmarkFactoryRpgExhaust lm_graph_factory(opts);
-        return std::shared_ptr<LandmarkGraph>(lm_graph_factory.compute_lm_graph());
-    }
+    if (parser.dry_run())
+        return nullptr;
+    else
+        return make_shared<LandmarkFactoryRpgExhaust>(opts);
 }
 
-static Plugin<LandmarkGraph> _plugin(
-    "lm_exhaust", _parse);
+static Plugin<LandmarkFactory> _plugin("lm_exhaust", _parse);
+}

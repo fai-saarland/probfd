@@ -21,7 +21,7 @@ class MaxProbProjection : public ProbabilisticProjection {
 public:
     explicit MaxProbProjection(
         const Pattern& pattern,
-        const std::vector<int>& domains = ::g_variable_domain,
+        const std::vector<int>& domains = legacy::g_variable_domain,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(value_type::one));
@@ -41,7 +41,7 @@ public:
         int add_var,
         bool operator_pruning = true);
 
-    [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
+    [[nodiscard]] EvaluationResult evaluate(const legacy::GlobalState& s) const;
     [[nodiscard]] EvaluationResult evaluate(const StateRank& s) const;
 
     AbstractPolicy get_optimal_abstract_policy(

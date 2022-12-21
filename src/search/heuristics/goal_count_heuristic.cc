@@ -1,36 +1,35 @@
 #include "heuristics/goal_count_heuristic.h"
 
-#include "global_state.h"
-#include "globals.h"
 #include "option_parser.h"
 #include "plugin.h"
 
+#include "utils/logging.h"
+
+#include <iostream>
 using namespace std;
 
-
-
-GoalCountHeuristic::GoalCountHeuristic(const options::Options &opts)
+namespace goal_count_heuristic {
+GoalCountHeuristic::GoalCountHeuristic(const Options &opts)
     : Heuristic(opts) {
+    if (log.is_at_least_normal()) {
+        log << "Initializing goal count heuristic..." << endl;
+    }
 }
 
-GoalCountHeuristic::~GoalCountHeuristic() {
-}
-
-void GoalCountHeuristic::initialize() {
-    cout << "Initializing goal count heuristic..." << endl;
-}
-
-int GoalCountHeuristic::compute_heuristic(const GlobalState &state) {
+int GoalCountHeuristic::compute_heuristic(const State &ancestor_state) {
+    State state = convert_ancestor_state(ancestor_state);
     int unsatisfied_goal_count = 0;
-    for (size_t i = 0; i < g_goal.size(); ++i) {
-        int var = g_goal[i].first, value = g_goal[i].second;
-        if (state[var] != value)
+
+    for (FactProxy goal : task_proxy.get_goals()) {
+        const VariableProxy var = goal.get_variable();
+        if (state[var] != goal) {
             ++unsatisfied_goal_count;
+        }
     }
     return unsatisfied_goal_count;
 }
 
-static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser) {
+static shared_ptr<Heuristic> _parse(OptionParser &parser) {
     parser.document_synopsis("Goal count heuristic", "");
     parser.document_language_support("action costs", "ignored by design");
     parser.document_language_support("conditional effects", "supported");
@@ -41,12 +40,13 @@ static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser) {
     parser.document_property("preferred operators", "no");
 
     Heuristic::add_options_to_parser(parser);
-    options::Options opts = parser.parse();
+    Options opts = parser.parse();
     if (parser.dry_run())
-        return 0;
+        return nullptr;
     else
-        return std::make_shared<GoalCountHeuristic>(opts);
+        return make_shared<GoalCountHeuristic>(opts);
 }
 
 
-static Plugin<Heuristic> _plugin("goalcount", _parse);
+static Plugin<Evaluator> _plugin("goalcount", _parse);
+}

@@ -1,6 +1,7 @@
 #include "probfd/policy_picker.h"
 
-#include "global_state.h"
+#include "legacy/global_state.h"
+
 #include "plugin.h"
 
 #include <cassert>

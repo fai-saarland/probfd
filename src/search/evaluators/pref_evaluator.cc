@@ -1,41 +1,41 @@
 #include "evaluators/pref_evaluator.h"
 
+#include "evaluation_context.h"
+#include "evaluation_result.h"
 #include "option_parser.h"
 #include "plugin.h"
 
-PrefEvaluator::PrefEvaluator() {
+using namespace std;
+
+namespace pref_evaluator {
+PrefEvaluator::PrefEvaluator(const options::Options &opts)
+    : Evaluator(opts) {
 }
 
 PrefEvaluator::~PrefEvaluator() {
 }
 
-void PrefEvaluator::evaluate(int, bool preferred) {
-    value_preferred = preferred;
-}
-
-bool PrefEvaluator::is_dead_end() const {
-    return false;
-}
-
-bool PrefEvaluator::dead_end_is_reliable() const {
-    return true;
-}
-
-int PrefEvaluator::get_value() const {
-    if (value_preferred)
-        return 0;
+EvaluationResult PrefEvaluator::compute_result(
+    EvaluationContext &eval_context) {
+    EvaluationResult result;
+    if (eval_context.is_preferred())
+        result.set_evaluator_value(0);
     else
-        return 1;
+        result.set_evaluator_value(1);
+    return result;
 }
 
-static std::shared_ptr<Evaluator> _parse(options::OptionParser &parser) {
+static shared_ptr<Evaluator> _parse(OptionParser &parser) {
     parser.document_synopsis("Preference evaluator",
                              "Returns 0 if preferred is true and 1 otherwise.");
-    parser.parse();
+    add_evaluator_options_to_parser(parser);
+
+    Options opts = parser.parse();
     if (parser.dry_run())
-        return 0;
+        return nullptr;
     else
-        return std::make_shared<PrefEvaluator>();
+        return make_shared<PrefEvaluator>(opts);
 }
 
-static Plugin<Evaluator> _plugin("pref", _parse);
+static Plugin<Evaluator> _plugin("pref", _parse, "evaluators_basic");
+}

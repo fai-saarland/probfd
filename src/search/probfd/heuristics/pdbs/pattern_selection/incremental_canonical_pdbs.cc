@@ -9,7 +9,7 @@
 
 #include "pdbs/pattern_collection_information.h"
 
-#include "global_state.h"
+#include "legacy/global_state.h"
 
 #include <limits>
 
@@ -98,14 +98,14 @@ IncrementalPPDBs<PDBType>::get_pattern_subcollections(
 
 template <class PDBType>
 value_type::value_t
-IncrementalPPDBs<PDBType>::get_value(const GlobalState& state) const
+IncrementalPPDBs<PDBType>::get_value(const legacy::GlobalState& state) const
 {
     return evaluate(state).get_estimate();
 }
 
 template <class PDBType>
 EvaluationResult
-IncrementalPPDBs<PDBType>::evaluate(const GlobalState& state) const
+IncrementalPPDBs<PDBType>::evaluate(const legacy::GlobalState& state) const
 {
     return heuristics::pdbs::evaluate<PDBType>(
         *pattern_databases,
@@ -114,7 +114,8 @@ IncrementalPPDBs<PDBType>::evaluate(const GlobalState& state) const
 }
 
 template <class PDBType>
-bool IncrementalPPDBs<PDBType>::is_dead_end(const GlobalState& state) const
+bool IncrementalPPDBs<PDBType>::is_dead_end(
+    const legacy::GlobalState& state) const
 {
     for (const auto& pdb : *pattern_databases) {
         if (pdb->evaluate(state).is_unsolvable()) {

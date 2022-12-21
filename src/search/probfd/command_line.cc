@@ -16,14 +16,15 @@
 #include "probfd/globals.h"
 #include "probfd/value_type.h"
 
-#include "global_operator.h"
-#include "globals.h"
-#include "operator_cost.h"
+#include "legacy/global_operator.h"
+#include "legacy/globals.h"
+#include "legacy/operator_cost.h"
+#include "legacy/successor_generator.h"
+
 #include "option_parser.h"
 #include "search_engine.h"
 
 #include "task_utils/causal_graph.h"
-#include "task_utils/successor_generator.h"
 
 #include <algorithm>
 #include <limits>
@@ -193,15 +194,15 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             }
             string type = sanitize_arg_string(argv[++i]);
             if (type == "normal") {
-                probfd::g_step_cost_type = NORMAL;
+                probfd::g_step_cost_type = legacy::NORMAL;
             } else if (type == "one") {
-                probfd::g_step_cost_type = ONE;
+                probfd::g_step_cost_type = legacy::ONE;
             } else if (type == "plusone") {
-                probfd::g_step_cost_type = PLUSONE;
+                probfd::g_step_cost_type = legacy::PLUSONE;
             } else if (type == "zero") {
-                probfd::g_step_cost_type = ZERO;
+                probfd::g_step_cost_type = legacy::ZERO;
             } else if (type == "minone") {
-                probfd::g_step_cost_type = MINONE;
+                probfd::g_step_cost_type = legacy::MINONE;
             } else {
                 throw ArgError("unknown operator cost type " + type);
             }
@@ -234,7 +235,7 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             }
             int seed = parse_int_arg(arg, argv[i + 1]);
             cout << "Setting RNG seed: " << seed << endl;
-            g_rng.seed(seed);
+            legacy::g_rng.seed(seed);
             ++i;
         } else if (arg == "--epsilon") {
             active = true;
@@ -266,15 +267,16 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
     if (!dry_run) {
         if (build_causal_graph) {
             cout << "building causal graph..." << flush;
-            g_causal_graph = new causal_graph::CausalGraph;
+            legacy::g_causal_graph = new causal_graph::CausalGraph;
             cout << "done! [t=" << utils::g_timer << "]" << endl;
         }
 
         if (build_successor_generator) {
             cout << "building successor generator..." << flush;
-            successor_generator::g_successor_generator =
-                std::make_shared<successor_generator::SuccessorGenerator<
-                    const GlobalOperator*>>();
+            legacy::successor_generator::g_successor_generator =
+                std::make_shared<
+                    legacy::successor_generator::SuccessorGenerator<
+                        const legacy::GlobalOperator*>>();
             cout << "done! [t=" << utils::g_timer << "]" << endl;
         }
 

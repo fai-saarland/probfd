@@ -1,31 +1,23 @@
 #ifndef TASK_UTILS_SUCCESSOR_GENERATOR_H
 #define TASK_UTILS_SUCCESSOR_GENERATOR_H
 
+#include "per_task_information.h"
+
 #include <memory>
 #include <vector>
 
-class GlobalState;
-class GlobalOperator;
+class OperatorID;
+class State;
+class TaskProxy;
 
 namespace successor_generator {
-
-template <typename Entry>
 class GeneratorBase;
 
-template <typename Entry>
 class SuccessorGenerator {
-    std::unique_ptr<GeneratorBase<Entry>> root;
-
-    explicit SuccessorGenerator(std::unique_ptr<GeneratorBase<Entry>> root);
+    std::unique_ptr<GeneratorBase> root;
 
 public:
-    explicit SuccessorGenerator();
-
-    template <typename RandomAccessIterator>
-    explicit SuccessorGenerator(
-        RandomAccessIterator domains,
-        const std::vector<std::vector<std::pair<int, int>>>& conditions,
-        const std::vector<Entry>& values);
+    explicit SuccessorGenerator(const TaskProxy& task_proxy);
     /*
       We cannot use the default destructor (implicitly or explicitly)
       here because GeneratorBase is a forward declaration and the
@@ -33,26 +25,12 @@ public:
     */
     ~SuccessorGenerator();
 
-    // Transitional method, used until the search is switched to the new task
-    // interface.
     void generate_applicable_ops(
-        const GlobalState& state,
-        std::vector<Entry>& applicable_ops) const;
-
-    void generate_applicable_ops(
-        const std::vector<int>& state,
-        std::vector<Entry>& applicable_ops) const;
-
-    void generate_applicable_ops(
-        const std::vector<std::pair<int, int>>& facts,
-        std::vector<Entry>& applicable_ops) const;
+        const State& state,
+        std::vector<OperatorID>& applicable_ops) const;
 };
 
-extern std::shared_ptr<SuccessorGenerator<const GlobalOperator*>>
-    g_successor_generator;
-
+extern PerTaskInformation<SuccessorGenerator> g_successor_generators;
 } // namespace successor_generator
-
-#include "task_utils/successor_generator-impl.h"
 
 #endif

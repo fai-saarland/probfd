@@ -1,6 +1,8 @@
 #ifndef MDPS_SOLVERS_BISIMULATION_HEURISTIC_SEARCH_H
 #define MDPS_SOLVERS_BISIMULATION_HEURISTIC_SEARCH_H
 
+#include "probfd/solvers/mdp_solver.h"
+
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/transition_sampler.h"
 
@@ -12,6 +14,8 @@
 #include "probfd/utils/logging.h"
 
 #include "probfd/globals.h"
+
+#include "legacy/state_registry.h"
 
 #include "utils/timer.h"
 
@@ -42,7 +46,7 @@ struct BisimulationTimer {
 };
 
 class BisimulationBasedHeuristicSearchEngine
-    : public engines::MDPEngineInterface<GlobalState> {
+    : public engines::MDPEngineInterface<legacy::GlobalState> {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
     using QQAction = quotient_system::QuotientAction<QAction>;
@@ -56,7 +60,7 @@ public:
     static BisimulationBasedHeuristicSearchEngine* Constructor(
         const DualValues&,
         const std::string& engine_name,
-        StateRegistry* state_registry,
+        legacy::StateRegistry* state_registry,
         engine_interfaces::HeuristicSearchConnector& con,
         ProgressReport& progress,
         bool interval,
@@ -84,7 +88,7 @@ public:
         return res;
     }
 
-    virtual value_type::value_t solve(const GlobalState&) override
+    virtual value_type::value_t solve(const legacy::GlobalState&) override
     {
         logging::out << "Running " << engine_name_ << "..." << std::endl;
         const value_type::value_t val = engine_->solve(bs->get_initial_state());
@@ -97,7 +101,7 @@ public:
         return engine_->supports_error_bound();
     }
 
-    virtual value_type::value_t get_error(const GlobalState&) override
+    virtual value_type::value_t get_error(const legacy::GlobalState&) override
     {
         return engine_->get_error(bs->get_initial_state());
     }
@@ -114,7 +118,7 @@ public:
 protected:
     explicit BisimulationBasedHeuristicSearchEngine(
         const std::string& engine_name,
-        StateRegistry* state_registry)
+        legacy::StateRegistry* state_registry)
         : engine_name_(engine_name)
         , bs(new bisimulation::BisimilarStateSpace(
               state_registry->get_initial_state(),
@@ -172,7 +176,7 @@ public:
     static QBisimulationBasedHeuristicSearchEngine* QConstructor(
         const DualValues&,
         const std::string& engine_name,
-        StateRegistry* state_registry,
+        legacy::StateRegistry* state_registry,
         engine_interfaces::HeuristicSearchConnector& con,
         ProgressReport& progress,
         bool interval,
@@ -214,7 +218,7 @@ public:
     static QBisimulationBasedHeuristicSearchEngine* Constructor(
         const DualValues&,
         const std::string& engine_name,
-        StateRegistry* state_registry,
+        legacy::StateRegistry* state_registry,
         engine_interfaces::HeuristicSearchConnector& con,
         ProgressReport& progress,
         bool interval,
@@ -256,7 +260,7 @@ public:
 private:
     explicit QBisimulationBasedHeuristicSearchEngine(
         const std::string& engine_name,
-        StateRegistry* state_registry)
+        legacy::StateRegistry* state_registry)
         : BisimulationBasedHeuristicSearchEngine(engine_name, state_registry)
         , quotient_(new quotient_system::QuotientSystem<QAction>(
               &action_id_map,
@@ -304,7 +308,7 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngineInterface<GlobalState>*
+    engines::MDPEngineInterface<legacy::GlobalState>*
     heuristic_search_engine_factory(Args... args)
     {
         if (dual_bounds_) {
@@ -367,7 +371,7 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngineInterface<GlobalState>*
+    engines::MDPEngineInterface<legacy::GlobalState>*
     heuristic_search_engine_factory(Args... args)
     {
         if (this->dual_bounds_) {
@@ -401,7 +405,7 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngineInterface<GlobalState>*
+    engines::MDPEngineInterface<legacy::GlobalState>*
     quotient_heuristic_search_factory(Args... args)
     {
         if (dual_bounds_) {
@@ -464,7 +468,7 @@ private:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngineInterface<GlobalState>*
+    engines::MDPEngineInterface<legacy::GlobalState>*
     heuristic_search_engine_factory_wrapper(Args... args)
     {
         return QBisimulationBasedHeuristicSearchEngine::

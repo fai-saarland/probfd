@@ -1,82 +1,78 @@
 #include "heuristics/ff_heuristic.h"
 
-#include "global_operator.h"
-#include "global_state.h"
-#include "globals.h"
 #include "option_parser.h"
 #include "plugin.h"
 
+#include "task_utils/task_properties.h"
+#include "utils/logging.h"
+
 #include <cassert>
-#include <vector>
+
 using namespace std;
 
-
-
+namespace ff_heuristic {
 // construction and destruction
-FFHeuristic::FFHeuristic(const options::Options &opts)
-    : AdditiveHeuristic(opts) {
-}
-
-FFHeuristic::~FFHeuristic() {
-}
-
-// initialization
-void FFHeuristic::initialize() {
-    cout << "Initializing FF heuristic..." << endl;
-    AdditiveHeuristic::initialize();
-    relaxed_plan.resize(g_operators.size(), false);
+FFHeuristic::FFHeuristic(const Options &opts)
+    : AdditiveHeuristic(opts),
+      relaxed_plan(task_proxy.get_operators().size(), false) {
+    if (log.is_at_least_normal()) {
+        log << "Initializing FF heuristic..." << endl;
+    }
 }
 
 void FFHeuristic::mark_preferred_operators_and_relaxed_plan(
-    const GlobalState &state, Proposition *goal) {
+    const State &state, PropID goal_id) {
+    Proposition *goal = get_proposition(goal_id);
     if (!goal->marked) { // Only consider each subgoal once.
         goal->marked = true;
-        UnaryOperator *unary_op = goal->reached_by;
-        if (unary_op) { // We have not yet chained back to a start node.
-            for (size_t i = 0; i < unary_op->precondition.size(); ++i)
+        OpID op_id = goal->reached_by;
+        if (op_id != NO_OP) { // We have not yet chained back to a start node.
+            UnaryOperator *unary_op = get_operator(op_id);
+            bool is_preferred = true;
+            for (PropID precond : get_preconditions(op_id)) {
                 mark_preferred_operators_and_relaxed_plan(
-                    state, unary_op->precondition[i]);
+                    state, precond);
+                if (get_proposition(precond)->reached_by != NO_OP) {
+                    is_preferred = false;
+                }
+            }
             int operator_no = unary_op->operator_no;
             if (operator_no != -1) {
                 // This is not an axiom.
                 relaxed_plan[operator_no] = true;
-
-                if (unary_op->cost == unary_op->base_cost) {
-                    // This test is implied by the next but cheaper,
-                    // so we perform it to save work.
-                    // If we had no 0-cost operators and axioms to worry
-                    // about, it would also imply applicability.
-                    const GlobalOperator *op = &g_operators[operator_no];
-                    if (op->is_applicable(state))
-                        set_preferred(op);
+                if (is_preferred) {
+                    OperatorProxy op = task_proxy.get_operators()[operator_no];
+                    assert(task_properties::is_applicable(op, state));
+                    set_preferred(op);
                 }
             }
         }
     }
 }
 
-int FFHeuristic::compute_heuristic(const GlobalState &state) {
+int FFHeuristic::compute_heuristic(const State &ancestor_state) {
+    State state = convert_ancestor_state(ancestor_state);
     int h_add = compute_add_and_ff(state);
     if (h_add == DEAD_END)
         return h_add;
 
     // Collecting the relaxed plan also sets the preferred operators.
-    for (size_t i = 0; i < goal_propositions.size(); ++i)
-        mark_preferred_operators_and_relaxed_plan(state, goal_propositions[i]);
+    for (PropID goal_id : goal_propositions)
+        mark_preferred_operators_and_relaxed_plan(state, goal_id);
 
     int h_ff = 0;
     for (size_t op_no = 0; op_no < relaxed_plan.size(); ++op_no) {
         if (relaxed_plan[op_no]) {
             relaxed_plan[op_no] = false; // Clean up for next computation.
-            h_ff += get_adjusted_cost(g_operators[op_no]);
+            h_ff += task_proxy.get_operators()[op_no].get_cost();
         }
     }
     return h_ff;
 }
 
 
-static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser) {
-    parser.document_synopsis("FF heuristic", "See also Synergy.");
+static shared_ptr<Heuristic> _parse(OptionParser &parser) {
+    parser.document_synopsis("FF heuristic", "");
     parser.document_language_support("action costs", "supported");
     parser.document_language_support("conditional effects", "supported");
     parser.document_language_support(
@@ -90,11 +86,12 @@ static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser) {
     parser.document_property("preferred operators", "yes");
 
     Heuristic::add_options_to_parser(parser);
-    options::Options opts = parser.parse();
+    Options opts = parser.parse();
     if (parser.dry_run())
-        return 0;
+        return nullptr;
     else
-        return std::make_shared<FFHeuristic>(opts);
+        return make_shared<FFHeuristic>(opts);
 }
 
-static Plugin<Heuristic> _plugin("ff", _parse);
+static Plugin<Evaluator> _plugin("ff", _parse);
+}

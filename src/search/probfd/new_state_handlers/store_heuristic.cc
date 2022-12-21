@@ -1,23 +1,24 @@
 #include "probfd/new_state_handlers/store_heuristic.h"
 
-#include "global_state.h"
-#include "heuristic.h"
 #include "option_parser.h"
 #include "plugin.h"
+
+#include "legacy/global_state.h"
+#include "legacy/heuristic.h"
 
 namespace probfd {
 namespace new_state_handlers {
 
 StoreHeuristic::StoreHeuristic(const options::Options& opts)
     : fetch_only_(opts.get<bool>("fetch_only"))
-    , heuristic_(opts.get<std::shared_ptr<Heuristic>>("heuristic"))
+    , heuristic_(opts.get<std::shared_ptr<legacy::Heuristic>>("heuristic"))
     , hstore_(-2)
 {
 }
 
 void StoreHeuristic::add_options_to_parser(options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<Heuristic>>("heuristic");
+    parser.add_option<std::shared_ptr<legacy::Heuristic>>("heuristic");
     parser.add_option<bool>("fetch_only", "", "false");
 }
 
@@ -28,17 +29,17 @@ int StoreHeuristic::get_cached_h_value(const StateID& s)
     return res;
 }
 
-void StoreHeuristic::touch_goal(const GlobalState& s)
+void StoreHeuristic::touch_goal(const legacy::GlobalState& s)
 {
     hstore_[s.get_id().hash()] = 0;
 }
 
-void StoreHeuristic::touch_dead_end(const GlobalState& s)
+void StoreHeuristic::touch_dead_end(const legacy::GlobalState& s)
 {
     hstore_[s.get_id().hash()] = -1;
 }
 
-void StoreHeuristic::touch(const GlobalState& s)
+void StoreHeuristic::touch(const legacy::GlobalState& s)
 {
     if (!fetch_only_) {
         heuristic_->evaluate(s);

@@ -9,12 +9,13 @@ using namespace std;
 
 namespace pdbs {
 PatternInformation::PatternInformation(
-    OperatorCost operator_cost,
-    Pattern pattern)
-    : operator_cost(operator_cost),
+    const TaskProxy &task_proxy,
+    Pattern pattern,
+    utils::LogProxy &log)
+    : task_proxy(task_proxy),
       pattern(move(pattern)),
       pdb(nullptr) {
-    validate_and_normalize_pattern(this->pattern);
+    validate_and_normalize_pattern(task_proxy, this->pattern, log);
 }
 
 bool PatternInformation::information_is_valid() const {
@@ -23,7 +24,7 @@ bool PatternInformation::information_is_valid() const {
 
 void PatternInformation::create_pdb_if_missing() {
     if (!pdb) {
-        pdb = make_shared<PatternDatabase>(pattern, operator_cost);
+        pdb = make_shared<PatternDatabase>(task_proxy, pattern);
     }
 }
 

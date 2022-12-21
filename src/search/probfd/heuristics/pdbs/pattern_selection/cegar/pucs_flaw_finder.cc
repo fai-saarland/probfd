@@ -102,7 +102,7 @@ bool PUCSFlawFinder<PDBType>::expand(
             if (!base.ignore_goal_violations) {
                 // Collect all non-satisfied goal variables that are
                 // still available.
-                for (const auto& [goal_var, goal_value] : g_goal) {
+                for (const auto& [goal_var, goal_value] : legacy::g_goal) {
                     if (state[goal_var] != goal_value &&
                         !utils::contains(base.global_blacklist, goal_var) &&
                         utils::contains(base.remaining_goals, goal_var)) {

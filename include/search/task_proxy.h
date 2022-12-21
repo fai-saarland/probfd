@@ -786,7 +786,7 @@ public:
         return create_state(std::move(state_values));
     }
 
-    // const causal_graph::CausalGraph &get_causal_graph() const;
+    const causal_graph::CausalGraph &get_causal_graph() const;
 };
 
 inline FactProxy::FactProxy(const AbstractTask& task, const FactPair& fact)

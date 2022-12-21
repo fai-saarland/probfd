@@ -4,8 +4,9 @@
 
 #include "probfd/globals.h"
 
-#include "global_state.h"
-#include "heuristic.h"
+#include "legacy/global_state.h"
+#include "legacy/heuristic.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -15,7 +16,7 @@ namespace heuristics {
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     value_type::value_t default_value,
     value_type::value_t dead_end_value,
-    std::shared_ptr<Heuristic> pruning_function)
+    std::shared_ptr<legacy::Heuristic> pruning_function)
     : default_value_(default_value)
     , dead_end_value_(dead_end_value)
     , pruning_function_(pruning_function)
@@ -28,19 +29,19 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(const options::Options& opts)
               ? g_analysis_objective->reward_bound().lower
               : g_analysis_objective->reward_bound().upper,
           g_analysis_objective->reward_bound().lower,
-          opts.get<std::shared_ptr<Heuristic>>("heuristic"))
+          opts.get<std::shared_ptr<legacy::Heuristic>>("heuristic"))
 {
 }
 
 void DeadEndPruningHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<Heuristic>>("heuristic");
+    parser.add_option<std::shared_ptr<legacy::Heuristic>>("heuristic");
     parser.add_option<bool>("pessimistic", "", "false");
 }
 
 EvaluationResult
-DeadEndPruningHeuristic::evaluate(const GlobalState& state) const
+DeadEndPruningHeuristic::evaluate(const legacy::GlobalState& state) const
 {
     pruning_function_->evaluate(state);
     if (pruning_function_->is_dead_end()) {

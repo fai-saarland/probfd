@@ -1,7 +1,8 @@
 #include "probfd/analysis_objectives/goal_probability_objective.h"
 
-#include "global_state.h"
-#include "globals.h"
+#include "legacy/global_state.h"
+#include "legacy/globals.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -11,9 +12,9 @@ namespace analysis_objectives {
 namespace {
 class MaxProbReward : public GlobalRewardFunction {
 protected:
-    virtual TerminationInfo evaluate(const GlobalState& state) override
+    virtual TerminationInfo evaluate(const legacy::GlobalState& state) override
     {
-        if (::test_goal(state)) {
+        if (legacy::test_goal(state)) {
             return TerminationInfo(true, value_type::one);
         } else {
             return TerminationInfo(false, value_type::zero);

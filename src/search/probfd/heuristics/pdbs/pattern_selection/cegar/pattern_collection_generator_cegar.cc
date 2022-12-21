@@ -285,7 +285,7 @@ template <typename PDBType>
 FlawList PatternCollectionGeneratorCegar<PDBType>::get_flaws()
 {
     FlawList flaws;
-    ExplicitGState concrete_init(g_initial_state_data);
+    ExplicitGState concrete_init(legacy::g_initial_state_data);
 
     const int num_solutions = static_cast<int>(solutions.size());
     for (int sol_idx = 0; sol_idx < num_solutions; ++sol_idx) {
@@ -342,7 +342,7 @@ template <typename PDBType>
 bool PatternCollectionGeneratorCegar<PDBType>::can_add_singleton_pattern(
     int var) const
 {
-    int pdb_size = g_variable_domain[var];
+    int pdb_size = legacy::g_variable_domain[var];
     return pdb_size <= max_pdb_size &&
            collection_size <= max_collection_size - pdb_size;
 }
@@ -453,7 +453,7 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_variable_to_pattern(
     int var) const
 {
     int pdb_size = solutions[index]->get_pdb().num_states();
-    int domain_size = g_variable_domain[var];
+    int domain_size = legacy::g_variable_domain[var];
 
     if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size)) {
         return false;
@@ -567,7 +567,7 @@ void PatternCollectionGeneratorCegar<PDBType>::refine(const FlawList& flaws)
     assert(!flaws.empty());
 
     // pick a random flaw
-    int random_flaw_index = (*rng)(flaws.size());
+    int random_flaw_index = rng->random(flaws.size());
     const Flaw& flaw = flaws[random_flaw_index];
 
     if (verbosity >= Verbosity::VERBOSE) {
@@ -598,14 +598,14 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
     utils::CountdownTimer timer(max_time);
 
     if (given_goal != -1 &&
-        given_goal >= static_cast<int>(g_variable_domain.size())) {
+        given_goal >= static_cast<int>(legacy::g_variable_domain.size())) {
         cerr << "Goal variable out of range of task's variables" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 
     // save all goals in random order for refinement later
     bool found_given_goal = false;
-    for (auto& [goal_var, _] : g_goal) {
+    for (auto& [goal_var, _] : legacy::g_goal) {
         remaining_goals.push_back(goal_var);
         if (given_goal != -1 && goal_var == given_goal) {
             found_given_goal = true;
@@ -620,7 +620,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
     rng->shuffle(remaining_goals);
 
     if (global_blacklist_size) {
-        int num_vars = g_variable_domain.size();
+        int num_vars = legacy::g_variable_domain.size();
         vector<int> nongoals;
         nongoals.reserve(num_vars - remaining_goals.size());
         for (int var_id = 0; var_id < num_vars; ++var_id) {

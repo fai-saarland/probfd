@@ -2,7 +2,7 @@
 
 #include "utils/range_proxy.h"
 
-#include "state_registry.h"
+#include "legacy/state_registry.h"
 
 #define DEBUG(x)
 

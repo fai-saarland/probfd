@@ -7,21 +7,22 @@
 
 #include "algorithms/segmented_vector.h"
 
-#include "merge_and_shrink/abstraction.h"
-#include "merge_and_shrink/linear_merge_strategy.h"
-#include "merge_and_shrink/merge_and_shrink_heuristic.h"
-#include "merge_and_shrink/multiple_shrinking_strategies.h"
-#include "merge_and_shrink/shrink_bisimulation.h"
-#include "merge_and_shrink/shrink_budget_based.h"
-#include "merge_and_shrink/shrink_strategy.h"
-#include "merge_and_shrink/variable_order_finder.h"
+#include "legacy/merge_and_shrink/abstraction.h"
+#include "legacy/merge_and_shrink/linear_merge_strategy.h"
+#include "legacy/merge_and_shrink/merge_and_shrink_heuristic.h"
+#include "legacy/merge_and_shrink/multiple_shrinking_strategies.h"
+#include "legacy/merge_and_shrink/shrink_bisimulation.h"
+#include "legacy/merge_and_shrink/shrink_budget_based.h"
+#include "legacy/merge_and_shrink/shrink_strategy.h"
+#include "legacy/merge_and_shrink/variable_order_finder.h"
+
+#include "legacy/global_operator.h"
+#include "legacy/global_state.h"
 
 #include "utils/hash.h"
 #include "utils/system.h"
 #include "utils/timer.h"
 
-#include "global_operator.h"
-#include "global_state.h"
 #include "option_parser.h"
 
 #include <cassert>
@@ -30,19 +31,19 @@
 #include <unordered_set>
 #include <vector>
 
-using namespace merge_and_shrink;
+using namespace legacy::merge_and_shrink;
 
 namespace probfd {
 namespace bisimulation {
 
 static constexpr const int BUCKET_SIZE = 1024 * 64;
 
-static bool is_dummy_outcome(const GlobalOperator* op)
+static bool is_dummy_outcome(const legacy::GlobalOperator* op)
 {
-    return op->get_id() >= ::g_operators.size();
+    return op->get_id() >= legacy::g_operators.size();
 }
 
-static unsigned get_global_operator_id(const GlobalOperator* op)
+static unsigned get_global_operator_id(const legacy::GlobalOperator* op)
 {
     return op->get_id();
 }
@@ -58,14 +59,14 @@ bool BisimilarStateSpace::Equal::operator()(int i, int j) const
 }
 
 BisimilarStateSpace::BisimilarStateSpace(
-    const GlobalState& initial_state,
+    const legacy::GlobalState& initial_state,
     int budget,
-    OperatorCost cost_type)
+    legacy::OperatorCost cost_type)
     : limited_budget_(budget != g_unlimited_budget)
     , cost_type_(cost_type)
     , abstraction_(nullptr)
-    , initial_state_(::StateID::no_state)
-    , dead_end_state_(::StateID::no_state)
+    , initial_state_(legacy::StateID::no_state)
+    , dead_end_state_(legacy::StateID::no_state)
     , transitions_()
     , extended_()
     , ids_(1024, Hash(&extended_), Equal(&extended_))
@@ -129,9 +130,8 @@ BisimilarStateSpace::BisimilarStateSpace(
     opts.set<int>("max_branching_merge", std::numeric_limits<int>::max());
 
     num_cached_transitions_ = 0;
-    std::unique_ptr<MergeAndShrinkHeuristic> ms =
-        std::unique_ptr<MergeAndShrinkHeuristic>(
-            new MergeAndShrinkHeuristic(opts));
+    std::unique_ptr<MergeAndShrinkHeuristic> ms(
+        new MergeAndShrinkHeuristic(opts));
     ms->evaluate(initial_state);
 
     std::cout << "AOD-bisimulation was constructed in " << timer << std::endl;
@@ -146,7 +146,7 @@ BisimilarStateSpace::BisimilarStateSpace(
             std::vector<CachedTransition>());
 
         std::vector<std::vector<std::pair<unsigned, unsigned>>> g_to_p(
-            ::g_operators.size());
+            legacy::g_operators.size());
         std::vector<std::vector<unsigned>> dummys(g_operators.size());
         for (unsigned p_op_id = 0; p_op_id < g_operators.size(); ++p_op_id) {
             const ProbabilisticOperator& op = g_operators[p_op_id];
@@ -176,11 +176,11 @@ BisimilarStateSpace::BisimilarStateSpace(
         };
 
 #if 1
-        std::vector<std::vector<merge_and_shrink::AbstractTransition>>
-            transitions(abstraction_->extract_transitions());
+        std::vector<std::vector<AbstractTransition>> transitions(
+            abstraction_->extract_transitions());
 
         for (int g_op_id = g_to_p.size() - 1; g_op_id >= 0; --g_op_id) {
-            std::vector<merge_and_shrink::AbstractTransition> op_transitions(
+            std::vector<AbstractTransition> op_transitions(
                 std::move(transitions.back()));
             transitions.pop_back();
             for (int i = op_transitions.size() - 1; i >= 0; --i) {
@@ -314,8 +314,8 @@ BisimilarStateSpace::BisimilarStateSpace(
 
             operator_cost_.resize(g_operators.size(), 0);
             for (int i = g_operators.size() - 1; i >= 0; --i) {
-                operator_cost_[i] = ::get_adjusted_action_cost(
-                    *g_operators[i].get(0).op,
+                operator_cost_[i] = legacy::get_adjusted_action_cost(
+                    g_operators[i].get(0).op->get_cost(),
                     cost_type_);
             }
         } else {

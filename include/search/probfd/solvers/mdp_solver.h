@@ -13,8 +13,8 @@
 #include "probfd/state_id_map.h"
 #include "probfd/transition_generator.h"
 
-#include "global_state.h"
-#include "state_registry.h"
+#include "legacy/global_state.h"
+#include "legacy/state_registry.h"
 
 #include <memory>
 #include <string>
@@ -46,7 +46,7 @@ public:
      * @tparam Engine - The engine type to construct.
      */
     template <typename Engine, typename... Args>
-    engines::MDPEngine<GlobalState, const ProbabilisticOperator*>*
+    engines::MDPEngine<legacy::GlobalState, const ProbabilisticOperator*>*
     engine_factory(Args&&... args)
     {
         return new Engine(
@@ -60,7 +60,8 @@ public:
     /**
      * @brief Factory method a new instance of the encapsulated MDP engine.
      */
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() = 0;
+    virtual engines::MDPEngineInterface<legacy::GlobalState>*
+    create_engine() = 0;
 
     /**
      * @brief Returns the name of the encapsulated MDP engine.
@@ -85,7 +86,7 @@ public:
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
-    engine_interfaces::StateIDMap<GlobalState>* get_state_id_map()
+    engine_interfaces::StateIDMap<legacy::GlobalState>* get_state_id_map()
     {
         return &state_id_map_;
     }
@@ -97,7 +98,7 @@ protected:
     }
 
     engine_interfaces::
-        RewardFunction<GlobalState, const ProbabilisticOperator*>*
+        RewardFunction<legacy::GlobalState, const ProbabilisticOperator*>*
         get_reward_function()
     {
         return reward_function_;
@@ -109,17 +110,17 @@ protected:
         return &transition_generator_;
     }
 
-    StateRegistry* get_state_registry() { return &state_registry_; }
+    legacy::StateRegistry* get_state_registry() { return &state_registry_; }
 
     ProgressReport progress_;
 
 private:
-    StateRegistry state_registry_;
+    legacy::StateRegistry state_registry_;
 
-    engine_interfaces::StateIDMap<GlobalState> state_id_map_;
+    engine_interfaces::StateIDMap<legacy::GlobalState> state_id_map_;
     engine_interfaces::ActionIDMap<const ProbabilisticOperator*> action_id_map_;
     engine_interfaces::RewardFunction<
-        GlobalState,
+        legacy::GlobalState,
         const ProbabilisticOperator*>* reward_function_;
     engine_interfaces::TransitionGenerator<const ProbabilisticOperator*>
         transition_generator_;

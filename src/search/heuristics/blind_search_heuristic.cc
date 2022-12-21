@@ -1,39 +1,38 @@
 #include "heuristics/blind_search_heuristic.h"
 
-#include "global_operator.h"
-#include "global_state.h"
-#include "globals.h"
 #include "option_parser.h"
 #include "plugin.h"
 
+#include "task_utils/task_properties.h"
+#include "utils/logging.h"
+
+#include <cstddef>
 #include <limits>
 #include <utility>
-#include <memory>
+
 using namespace std;
 
-BlindSearchHeuristic::BlindSearchHeuristic(const options::Options &opts)
-    : Heuristic(opts) {
-    min_operator_cost = numeric_limits<int>::max();
-    for (size_t i = 0; i < g_operators.size(); ++i)
-        min_operator_cost = min(min_operator_cost,
-                                get_adjusted_cost(g_operators[i]));
+namespace blind_search_heuristic {
+BlindSearchHeuristic::BlindSearchHeuristic(const Options &opts)
+    : Heuristic(opts),
+      min_operator_cost(task_properties::get_min_operator_cost(task_proxy)) {
+    if (log.is_at_least_normal()) {
+        log << "Initializing blind search heuristic..." << endl;
+    }
 }
 
 BlindSearchHeuristic::~BlindSearchHeuristic() {
 }
 
-void BlindSearchHeuristic::initialize() {
-    cout << "Initializing blind search heuristic..." << endl;
-}
-
-int BlindSearchHeuristic::compute_heuristic(const GlobalState &state) {
-    if (test_goal(state))
+int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
+    State state = convert_ancestor_state(ancestor_state);
+    if (task_properties::is_goal_state(task_proxy, state))
         return 0;
     else
         return min_operator_cost;
 }
 
-static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser) {
+static shared_ptr<Heuristic> _parse(OptionParser &parser) {
     parser.document_synopsis("Blind heuristic",
                              "Returns cost of cheapest action for "
                              "non-goal states, "
@@ -47,11 +46,12 @@ static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser) {
     parser.document_property("preferred operators", "no");
 
     Heuristic::add_options_to_parser(parser);
-    options::Options opts = parser.parse();
+    Options opts = parser.parse();
     if (parser.dry_run())
-        return 0;
+        return nullptr;
     else
-        return std::make_shared<BlindSearchHeuristic>(opts);
+        return make_shared<BlindSearchHeuristic>(opts);
 }
 
-static Plugin<Heuristic> _plugin("blind", _parse);
+static Plugin<Evaluator> _plugin("blind", _parse);
+}

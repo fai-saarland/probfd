@@ -9,9 +9,11 @@
 
 #include "probfd/probabilistic_operator.h"
 
-#include "global_state.h"
+#include "legacy/global_state.h"
 
+namespace legacy {
 class GlobalState;
+}
 
 namespace probfd {
 
@@ -21,7 +23,7 @@ public:
 
     void initialize(
         engine_interfaces::HeuristicSearchConnector* connector,
-        engine_interfaces::StateIDMap<GlobalState>* state_id_map,
+        engine_interfaces::StateIDMap<legacy::GlobalState>* state_id_map,
         engine_interfaces::ActionIDMap<const ProbabilisticOperator*>*
             op_id_map);
 
@@ -30,7 +32,7 @@ public:
 protected:
     virtual void initialize() {}
 
-    GlobalState lookup_state(const StateID& state_id) const;
+    legacy::GlobalState lookup_state(const StateID& state_id) const;
 
     const ProbabilisticOperator*
     lookup_operator(const StateID& state_id, const ActionID& action_id) const;
@@ -64,7 +66,7 @@ protected:
 
 private:
     engine_interfaces::HeuristicSearchConnector* connector_ = nullptr;
-    engine_interfaces::StateIDMap<GlobalState>* state_id_map_ = nullptr;
+    engine_interfaces::StateIDMap<legacy::GlobalState>* state_id_map_ = nullptr;
     engine_interfaces::ActionIDMap<const ProbabilisticOperator*>* op_id_map_ =
         nullptr;
 };

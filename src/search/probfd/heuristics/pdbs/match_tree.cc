@@ -3,7 +3,7 @@
 #include "probfd/heuristics/pdbs/abstract_operator.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 
-#include "globals.h"
+#include "legacy/globals.h"
 
 #include <cassert>
 #include <iostream>
@@ -104,7 +104,7 @@ void MatchTree::insert_recursive(
         const std::pair<int, int>& fact = progression_preconditions[pre_index];
         int pattern_var_id = fact.first;
         int var_id = pattern[pattern_var_id];
-        int var_domain_size = g_variable_domain[var_id];
+        int var_domain_size = legacy::g_variable_domain[var_id];
 
         // Set up node correctly or insert a new node if necessary.
         if (node->is_leaf_node()) {

@@ -1,50 +1,60 @@
 #include "evaluators/combining_evaluator.h"
 
-#include <limits>
+#include "evaluation_context.h"
+#include "evaluation_result.h"
+#include "option_parser.h"
 
 using namespace std;
 
+namespace combining_evaluator {
 CombiningEvaluator::CombiningEvaluator(
-    const vector<std::shared_ptr<Evaluator>> &subevaluators_)
-    : subevaluators(subevaluators_),
-      subevaluator_values(subevaluators_.size()) {
+    const options::Options &opts)
+    : Evaluator(opts),
+      subevaluators(opts.get_list<shared_ptr<Evaluator>>("evals")) {
+    all_dead_ends_are_reliable = true;
+    for (const shared_ptr<Evaluator> &subevaluator : subevaluators)
+        if (!subevaluator->dead_ends_are_reliable())
+            all_dead_ends_are_reliable = false;
 }
 
 CombiningEvaluator::~CombiningEvaluator() {
 }
 
-void CombiningEvaluator::evaluate(int g, bool preferred) {
-    dead_end = false;
-    dead_end_reliable = false;
-    for (size_t i = 0; i < subevaluators.size(); ++i) {
-        subevaluators[i]->evaluate(g, preferred);
-        subevaluator_values[i] = subevaluators[i]->get_value();
-        if (subevaluators[i]->is_dead_end()) {
-            dead_end = true;
-            if (subevaluators[i]->dead_end_is_reliable())
-                dead_end_reliable = true;
+bool CombiningEvaluator::dead_ends_are_reliable() const {
+    return all_dead_ends_are_reliable;
+}
+
+EvaluationResult CombiningEvaluator::compute_result(
+    EvaluationContext &eval_context) {
+    // This marks no preferred operators.
+    EvaluationResult result;
+    vector<int> values;
+    values.reserve(subevaluators.size());
+
+    // Collect component values. Return infinity if any is infinite.
+    for (const shared_ptr<Evaluator> &subevaluator : subevaluators) {
+        int value = eval_context.get_evaluator_value_or_infinity(subevaluator.get());
+        if (value == EvaluationResult::INFTY) {
+            result.set_evaluator_value(value);
+            return result;
+        } else {
+            values.push_back(value);
         }
     }
 
-    if (dead_end)
-        value = numeric_limits<int>::max();
-    else
-        value = combine_values(subevaluator_values);
+    // If we arrived here, all subevaluator values are finite.
+    result.set_evaluator_value(combine_values(values));
+    return result;
 }
 
-bool CombiningEvaluator::is_dead_end() const {
-    return dead_end;
+void CombiningEvaluator::get_path_dependent_evaluators(
+    set<Evaluator *> &evals) {
+    for (auto &subevaluator : subevaluators)
+        subevaluator->get_path_dependent_evaluators(evals);
 }
-
-bool CombiningEvaluator::dead_end_is_reliable() const {
-    return dead_end_reliable;
+void add_combining_evaluator_options_to_parser(options::OptionParser &parser) {
+    parser.add_list_option<shared_ptr<Evaluator>>(
+        "evals", "at least one evaluator");
+    add_evaluator_options_to_parser(parser);
 }
-
-int CombiningEvaluator::get_value() const {
-    return value;
-}
-
-void CombiningEvaluator::get_involved_heuristics(std::set<Heuristic *> &hset) {
-    for (size_t i = 0; i < subevaluators.size(); ++i)
-        subevaluators[i]->get_involved_heuristics(hset);
 }

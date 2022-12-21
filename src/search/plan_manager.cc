@@ -5,8 +5,6 @@
 #include "task_utils/task_properties.h"
 #include "utils/logging.h"
 
-#include "global_operator.h"
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -14,11 +12,11 @@
 
 using namespace std;
 
-int calculate_plan_cost(const Plan& plan)
-{
+int calculate_plan_cost(const Plan &plan, const TaskProxy &task_proxy) {
+    OperatorsProxy operators = task_proxy.get_operators();
     int plan_cost = 0;
-    for (const GlobalOperator* op : plan) {
-        plan_cost += op->get_cost();
+    for (OperatorID op_id : plan) {
+        plan_cost += operators[op_id].get_cost();
     }
     return plan_cost;
 }
@@ -42,9 +40,8 @@ void PlanManager::set_is_part_of_anytime_portfolio(bool is_part_of_anytime_portf
 }
 
 void PlanManager::save_plan(
-    const Plan& plan,
-    bool generates_multiple_plan_files)
-{
+    const Plan &plan, const TaskProxy &task_proxy,
+    bool generates_multiple_plan_files) {
     ostringstream filename;
     filename << plan_filename;
     int plan_number = num_previously_generated_plans + 1;
@@ -58,12 +55,13 @@ void PlanManager::save_plan(
         cerr << "Failed to open plan file: " << filename.str() << endl;
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
-    for (const GlobalOperator* op : plan) {
-        cout << op->get_name() << " (" << op->get_cost() << ")" << endl;
-        outfile << "(" << op->get_name() << ")" << endl;
+    OperatorsProxy operators = task_proxy.get_operators();
+    for (OperatorID op_id : plan) {
+        cout << operators[op_id].get_name() << " (" << operators[op_id].get_cost() << ")" << endl;
+        outfile << "(" << operators[op_id].get_name() << ")" << endl;
     }
-    int plan_cost = calculate_plan_cost(plan);
-    bool is_unit_cost = task_properties::is_unit_cost();
+    int plan_cost = calculate_plan_cost(plan, task_proxy);
+    bool is_unit_cost = task_properties::is_unit_cost(task_proxy);
     outfile << "; cost = " << plan_cost << " ("
             << (is_unit_cost ? "unit cost" : "general cost") << ")" << endl;
     outfile.close();

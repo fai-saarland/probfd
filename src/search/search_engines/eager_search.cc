@@ -1,247 +1,280 @@
 #include "search_engines/eager_search.h"
 
-#include "globals.h"
-#include "heuristic.h"
+#include "evaluation_context.h"
+#include "evaluator.h"
+#include "open_list_factory.h"
 #include "option_parser.h"
-#include "plugin.h"
+#include "pruning_method.h"
 
-#include "evaluators/g_evaluator.h"
-#include "evaluators/sum_evaluator.h"
-
+#include "algorithms/ordered_set.h"
 #include "task_utils/successor_generator.h"
 
-#include "open_lists/alternation_open_list.h"
-#include "open_lists/standard_scalar_open_list.h"
-#include "open_lists/tiebreaking_open_list.h"
+#include "utils/logging.h"
 
 #include <cassert>
 #include <cstdlib>
+#include <memory>
 #include <set>
+#include <optional>
 
 using namespace std;
-using namespace successor_generator;
 
-EagerSearch::EagerSearch(const options::Options& opts)
-    : SearchEngine(opts)
-    , reopen_closed_nodes(opts.get<bool>("reopen_closed"))
-    , do_pathmax(opts.get<bool>("pathmax"))
-    , use_multi_path_dependence(opts.get<bool>("mpd"))
-    , open_list(opts.get<std::shared_ptr<OpenListFactory>>("open")
-                    ->create_state_open_list())
-{
-    if (opts.contains("f_eval")) {
-        f_evaluator = opts.get<std::shared_ptr<Evaluator>>("f_eval");
-    } else {
-        f_evaluator = 0;
-    }
-    if (opts.contains("preferred")) {
-        preferred_operator_heuristics =
-            opts.get_list<std::shared_ptr<Heuristic>>("preferred");
+namespace eager_search {
+EagerSearch::EagerSearch(const Options &opts)
+    : SearchEngine(opts),
+      reopen_closed_nodes(opts.get<bool>("reopen_closed")),
+      open_list(opts.get<shared_ptr<OpenListFactory>>("open")->
+                create_state_open_list()),
+      f_evaluator(opts.get<shared_ptr<Evaluator>>("f_eval", nullptr)),
+      preferred_operator_evaluators(opts.get_list<shared_ptr<Evaluator>>("preferred")),
+      lazy_evaluator(opts.get<shared_ptr<Evaluator>>("lazy_evaluator", nullptr)),
+      pruning_method(opts.get<shared_ptr<PruningMethod>>("pruning")) {
+    if (lazy_evaluator && !lazy_evaluator->does_cache_estimates()) {
+        cerr << "lazy_evaluator must cache its estimates" << endl;
+        utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 }
 
-void EagerSearch::initialize()
-{
-    // TODO children classes should output which kind of search
-    cout << "Conducting best first search"
-         << (reopen_closed_nodes ? " with" : " without")
-         << " reopening closed nodes, (real) bound = " << bound << endl;
-    if (do_pathmax) cout << "Using pathmax correction" << endl;
-    if (use_multi_path_dependence)
-        cout << "Using multi-path dependence (LM-A*)" << endl;
-    assert(open_list != NULL);
+void EagerSearch::initialize() {
+    log << "Conducting best first search"
+        << (reopen_closed_nodes ? " with" : " without")
+        << " reopening closed nodes, (real) bound = " << bound
+        << endl;
+    assert(open_list);
 
-    set<Heuristic*> hset;
-    open_list->get_involved_heuristics(hset);
+    set<Evaluator *> evals;
+    open_list->get_path_dependent_evaluators(evals);
 
-    for (set<Heuristic*>::iterator it = hset.begin(); it != hset.end(); ++it) {
-        estimate_heuristics.push_back(*it);
-        search_progress.add_heuristic(*it);
+    /*
+      Collect path-dependent evaluators that are used for preferred operators
+      (in case they are not also used in the open list).
+    */
+    for (const shared_ptr<Evaluator> &evaluator : preferred_operator_evaluators) {
+        evaluator->get_path_dependent_evaluators(evals);
     }
 
-    // add heuristics that are used for preferred operators (in case they are
-    // not also used in the open list)
-    for (auto ptr : preferred_operator_heuristics) {
-        hset.insert(ptr.get());
-    }
-
-    // add heuristics that are used in the f_evaluator. They are usually also
-    // used in the open list and hence already be included, but we want to be
-    // sure.
+    /*
+      Collect path-dependent evaluators that are used in the f_evaluator.
+      They are usually also used in the open list and will hence already be
+      included, but we want to be sure.
+    */
     if (f_evaluator) {
-        f_evaluator->get_involved_heuristics(hset);
+        f_evaluator->get_path_dependent_evaluators(evals);
     }
 
-    for (set<Heuristic*>::iterator it = hset.begin(); it != hset.end(); ++it) {
-        heuristics.push_back(*it);
+    /*
+      Collect path-dependent evaluators that are used in the lazy_evaluator
+      (in case they are not already included).
+    */
+    if (lazy_evaluator) {
+        lazy_evaluator->get_path_dependent_evaluators(evals);
     }
 
-    assert(!heuristics.empty());
+    path_dependent_evaluators.assign(evals.begin(), evals.end());
 
-    const GlobalState& initial_state = state_registry->get_initial_state();
-    for (size_t i = 0; i < heuristics.size(); ++i)
-        heuristics[i]->evaluate(initial_state);
-    open_list->evaluate(0, false);
-    search_progress.inc_evaluated_states();
-    search_progress.inc_evaluations(heuristics.size());
+    State initial_state = state_registry.get_initial_state();
+    for (Evaluator *evaluator : path_dependent_evaluators) {
+        evaluator->notify_initial_state(initial_state);
+    }
 
-    if (open_list->is_dead_end()) {
-        cout << "Initial state is a dead end." << endl;
+    /*
+      Note: we consider the initial state as reached by a preferred
+      operator.
+    */
+    EvaluationContext eval_context(initial_state, 0, true, &statistics);
+
+    statistics.inc_evaluated_states();
+
+    if (open_list->is_dead_end(eval_context)) {
+        log << "Initial state is a dead end." << endl;
     } else {
-        search_progress.get_initial_h_values();
-        if (f_evaluator) {
-            f_evaluator->evaluate(0, false);
-            search_progress.report_f_value(f_evaluator->get_value());
-        }
-        search_progress.check_h_progress(0);
+        if (search_progress.check_progress(eval_context))
+            statistics.print_checkpoint_line(0);
+        start_f_value_statistics(eval_context);
         SearchNode node = search_space.get_node(initial_state);
-        node.open_initial(heuristics[0]->get_value());
+        node.open_initial();
 
-        open_list->insert(initial_state.get_id());
+        open_list->insert(eval_context, initial_state.get_id());
     }
+
+    print_initial_evaluator_values(eval_context);
+
+    pruning_method->initialize(task);
 }
 
-void EagerSearch::print_statistics() const
-{
-    for (const auto& h : heuristics) {
-        h->print_statistics();
-    }
+void EagerSearch::print_statistics() const {
+    statistics.print_detailed_statistics();
+    search_space.print_statistics();
+    pruning_method->print_statistics();
 }
 
-SearchStatus EagerSearch::step()
-{
-    pair<SearchNode, bool> n = fetch_next_node();
-    if (!n.second) {
-        return FAILED;
-    }
-    SearchNode node = n.first;
-
-    GlobalState s = node.get_state();
-    if (check_goal_and_set_plan(s)) return SOLVED;
-
-    vector<const GlobalOperator*> applicable_ops;
-    set<const GlobalOperator*> preferred_ops;
-
-    g_successor_generator->generate_applicable_ops(s, applicable_ops);
-    // This evaluates the expanded state (again) to get preferred ops
-    for (size_t i = 0; i < preferred_operator_heuristics.size(); ++i) {
-        std::shared_ptr<Heuristic> h = preferred_operator_heuristics[i];
-        h->evaluate(s);
-        if (!h->is_dead_end()) {
-            // In an alternation search with unreliable heuristics, it is
-            // possible that this heuristic considers the state a dead end.
-            vector<const GlobalOperator*> preferred;
-            h->get_preferred_operators(preferred);
-            preferred_ops.insert(preferred.begin(), preferred.end());
+SearchStatus EagerSearch::step() {
+    std::optional<SearchNode> node;
+    while (true) {
+        if (open_list->empty()) {
+            log << "Completely explored state space -- no solution!" << endl;
+            return FAILED;
         }
+        StateID id = open_list->remove_min();
+        State s = state_registry.lookup_state(id);
+        node.emplace(search_space.get_node(s));
+
+        if (node->is_closed())
+            continue;
+
+        /*
+          We can pass calculate_preferred=false here since preferred
+          operators are computed when the state is expanded.
+        */
+        EvaluationContext eval_context(s, node->get_g(), false, &statistics);
+
+        if (lazy_evaluator) {
+            /*
+              With lazy evaluators (and only with these) we can have dead nodes
+              in the open list.
+
+              For example, consider a state s that is reached twice before it is expanded.
+              The first time we insert it into the open list, we compute a finite
+              heuristic value. The second time we insert it, the cached value is reused.
+
+              During first expansion, the heuristic value is recomputed and might become
+              infinite, for example because the reevaluation uses a stronger heuristic or
+              because the heuristic is path-dependent and we have accumulated more
+              information in the meantime. Then upon second expansion we have a dead-end
+              node which we must ignore.
+            */
+            if (node->is_dead_end())
+                continue;
+
+            if (lazy_evaluator->is_estimate_cached(s)) {
+                int old_h = lazy_evaluator->get_cached_estimate(s);
+                int new_h = eval_context.get_evaluator_value_or_infinity(lazy_evaluator.get());
+                if (open_list->is_dead_end(eval_context)) {
+                    node->mark_as_dead_end();
+                    statistics.inc_dead_ends();
+                    continue;
+                }
+                if (new_h != old_h) {
+                    open_list->insert(eval_context, id);
+                    continue;
+                }
+            }
+        }
+
+        node->close();
+        assert(!node->is_dead_end());
+        update_f_value_statistics(eval_context);
+        statistics.inc_expanded();
+        break;
     }
-    search_progress.inc_evaluations(preferred_operator_heuristics.size());
 
-    for (size_t i = 0; i < applicable_ops.size(); ++i) {
-        const GlobalOperator* op = applicable_ops[i];
+    const State &s = node->get_state();
+    if (check_goal_and_set_plan(s))
+        return SOLVED;
 
-        if ((node.get_real_g() + op->get_cost()) >= bound) continue;
+    vector<OperatorID> applicable_ops;
+    successor_generator.generate_applicable_ops(s, applicable_ops);
 
-        GlobalState succ_state = state_registry->get_successor_state(s, *op);
-        search_progress.inc_generated();
-        bool is_preferred = (preferred_ops.find(op) != preferred_ops.end());
+    /*
+      TODO: When preferred operators are in use, a preferred operator will be
+      considered by the preferred operator queues even when it is pruned.
+    */
+    pruning_method->prune_operators(s, applicable_ops);
+
+    // This evaluates the expanded state (again) to get preferred ops
+    EvaluationContext eval_context(s, node->get_g(), false, &statistics, true);
+    ordered_set::OrderedSet<OperatorID> preferred_operators;
+    for (const shared_ptr<Evaluator> &preferred_operator_evaluator : preferred_operator_evaluators) {
+        collect_preferred_operators(eval_context,
+                                    preferred_operator_evaluator.get(),
+                                    preferred_operators);
+    }
+
+    for (OperatorID op_id : applicable_ops) {
+        OperatorProxy op = task_proxy.get_operators()[op_id];
+        if ((node->get_real_g() + op.get_cost()) >= bound)
+            continue;
+
+        State succ_state = state_registry.get_successor_state(s, op);
+        statistics.inc_generated();
+        bool is_preferred = preferred_operators.contains(op_id);
 
         SearchNode succ_node = search_space.get_node(succ_state);
 
-        // Previously encountered dead end. Don't re-evaluate.
-        if (succ_node.is_dead_end()) continue;
-
-        // update new path
-        if (use_multi_path_dependence || succ_node.is_new()) {
-            bool h_is_dirty = false;
-            for (size_t j = 0; j < heuristics.size(); ++j) {
-                /*
-                  Note that we can't break out of the loop when
-                  h_is_dirty is set to true or use short-circuit
-                  evaluation here. We must call reach_state for each
-                  heuristic for its side effects.
-                */
-                if (heuristics[j]->reach_state(s, *op, succ_state))
-                    h_is_dirty = true;
-            }
-            if (h_is_dirty && use_multi_path_dependence)
-                succ_node.set_h_dirty();
+        for (Evaluator *evaluator : path_dependent_evaluators) {
+            evaluator->notify_state_transition(s, op_id, succ_state);
         }
+
+        // Previously encountered dead end. Don't re-evaluate.
+        if (succ_node.is_dead_end())
+            continue;
 
         if (succ_node.is_new()) {
             // We have not seen this state before.
             // Evaluate and create a new node.
-            for (size_t j = 0; j < heuristics.size(); ++j)
-                heuristics[j]->evaluate(succ_state);
-            succ_node.clear_h_dirty();
-            search_progress.inc_evaluated_states();
-            search_progress.inc_evaluations(heuristics.size());
 
-            // Note that we cannot use succ_node.get_g() here as the
-            // node is not yet open. Furthermore, we cannot open it
-            // before having checked that we're not in a dead end. The
-            // division of responsibilities is a bit tricky here -- we
-            // may want to refactor this later.
-            open_list->evaluate(
-                node.get_g() + get_adjusted_cost(*op),
-                is_preferred);
-            bool dead_end = open_list->is_dead_end();
-            if (dead_end) {
+            // Careful: succ_node.get_g() is not available here yet,
+            // hence the stupid computation of succ_g.
+            // TODO: Make this less fragile.
+            int succ_g = node->get_g() + get_adjusted_cost(op);
+
+            EvaluationContext succ_eval_context(
+                succ_state, succ_g, is_preferred, &statistics);
+            statistics.inc_evaluated_states();
+
+            if (open_list->is_dead_end(succ_eval_context)) {
                 succ_node.mark_as_dead_end();
-                search_progress.inc_dead_ends();
+                statistics.inc_dead_ends();
                 continue;
             }
+            succ_node.open(*node, op, get_adjusted_cost(op));
 
-            // TODO:CR - add an ID to each state, and then we can use a vector
-            // to save per-state information
-            int succ_h = heuristics[0]->get_heuristic();
-            if (do_pathmax) {
-                if ((node.get_h() - get_adjusted_cost(*op)) > succ_h) {
-                    // cout << "Pathmax correction: " << succ_h << " -> " <<
-                    // node.get_h() - get_adjusted_cost(*op) << endl;
-                    succ_h = node.get_h() - get_adjusted_cost(*op);
-                    heuristics[0]->set_evaluator_value(succ_h);
-                    open_list->evaluate(
-                        node.get_g() + get_adjusted_cost(*op),
-                        is_preferred);
-                    search_progress.inc_pathmax_corrections();
-                }
-            }
-            succ_node.open(succ_h, node, op);
-
-            open_list->insert(succ_state.get_id());
-            if (search_progress.check_h_progress(succ_node.get_g())) {
+            open_list->insert(succ_eval_context, succ_state.get_id());
+            if (search_progress.check_progress(succ_eval_context)) {
+                statistics.print_checkpoint_line(succ_node.get_g());
                 reward_progress();
             }
-        } else if (succ_node.get_g() > node.get_g() + get_adjusted_cost(*op)) {
+        } else if (succ_node.get_g() > node->get_g() + get_adjusted_cost(op)) {
             // We found a new cheapest path to an open or closed state.
             if (reopen_closed_nodes) {
-                // TODO:CR - test if we should add a reevaluate flag and if it
-                // helps
-                //  if we reopen closed nodes, do that
                 if (succ_node.is_closed()) {
-                    /* TODO: Verify that the heuristic is inconsistent.
-                     * Otherwise, this is a bug. This is a serious
-                     * assertion because it can show that a heuristic that
-                     * was thought to be consistent isn't. Therefore, it
-                     * should be present also in release builds, so don't
-                     * use a plain assert. */
-                    // TODO:CR - add a consistent flag to heuristics, and add an
-                    // assert here based on it
-                    search_progress.inc_reopened();
+                    /*
+                      TODO: It would be nice if we had a way to test
+                      that reopening is expected behaviour, i.e., exit
+                      with an error when this is something where
+                      reopening should not occur (e.g. A* with a
+                      consistent heuristic).
+                    */
+                    statistics.inc_reopened();
                 }
-                succ_node.reopen(node, op);
-                heuristics[0]->set_evaluator_value(succ_node.get_h());
-                // TODO: this appears fishy to me. Why is here only heuristic[0]
-                // involved? Is this still feasible in the current version?
-                open_list->evaluate(succ_node.get_g(), is_preferred);
+                succ_node.reopen(*node, op, get_adjusted_cost(op));
 
-                open_list->insert(succ_state.get_id());
+                EvaluationContext succ_eval_context(
+                    succ_state, succ_node.get_g(), is_preferred, &statistics);
+
+                /*
+                  Note: our old code used to retrieve the h value from
+                  the search node here. Our new code recomputes it as
+                  necessary, thus avoiding the incredible ugliness of
+                  the old "set_evaluator_value" approach, which also
+                  did not generalize properly to settings with more
+                  than one evaluator.
+
+                  Reopening should not happen all that frequently, so
+                  the performance impact of this is hopefully not that
+                  large. In the medium term, we want the evaluators to
+                  remember evaluator values for states themselves if
+                  desired by the user, so that such recomputations
+                  will just involve a look-up by the Evaluator object
+                  rather than a recomputation of the evaluator value
+                  from scratch.
+                */
+                open_list->insert(succ_eval_context, succ_state.get_id());
             } else {
-                // if we do not reopen closed nodes, we just update the parent
-                // pointers Note that this could cause an incompatibility
-                // between the g-value and the actual path that is traced back
-                succ_node.update_parent(node, op);
+                // If we do not reopen closed nodes, we just update the parent pointers.
+                // Note that this could cause an incompatibility between
+                // the g-value and the actual path that is traced back.
+                succ_node.update_parent(*node, op, get_adjusted_cost(op));
             }
         }
     }
@@ -249,301 +282,34 @@ SearchStatus EagerSearch::step()
     return IN_PROGRESS;
 }
 
-pair<SearchNode, bool> EagerSearch::fetch_next_node()
-{
-    /* TODO: The bulk of this code deals with multi-path dependence,
-       which is a bit unfortunate since that is a special case that
-       makes the common case look more complicated than it would need
-       to be. We could refactor this by implementing multi-path
-       dependence as a separate search algorithm that wraps the "usual"
-       search algorithm and adds the extra processing in the desired
-       places. I think this would lead to much cleaner code. */
-
-    while (true) {
-        if (open_list->empty()) {
-            cout << "Completely explored state space -- no solution!" << endl;
-            // HACK! HACK! we do this because SearchNode has no default/copy
-            // constructor
-            SearchNode dummy_node =
-                search_space.get_node(state_registry->get_initial_state());
-            return make_pair(dummy_node, false);
-        }
-        vector<int> last_key_removed;
-        StateID id = open_list->remove_min(
-            use_multi_path_dependence ? &last_key_removed : 0);
-        // TODO is there a way we can avoid creating the state here and then
-        //      recreate it outside of this function with node.get_state()?
-        //      One way would be to store GlobalState objects inside SearchNodes
-        //      instead of StateIDs
-        GlobalState s = state_registry->lookup_state(id);
-        SearchNode node = search_space.get_node(s);
-
-        if (node.is_closed()) continue;
-
-        if (use_multi_path_dependence) {
-            assert(last_key_removed.size() == 2);
-            if (node.is_dead_end()) continue;
-            int pushed_h = last_key_removed[1];
-            assert(node.get_h() >= pushed_h);
-            if (node.get_h() > pushed_h) {
-                // cout << "LM-A* skip h" << endl;
-                continue;
-            }
-            assert(node.get_h() == pushed_h);
-            if (!node.is_closed() && node.is_h_dirty()) {
-                for (size_t i = 0; i < heuristics.size(); ++i)
-                    heuristics[i]->evaluate(node.get_state());
-                node.clear_h_dirty();
-                search_progress.inc_evaluations(heuristics.size());
-
-                open_list->evaluate(node.get_g(), false);
-                bool dead_end = open_list->is_dead_end();
-                if (dead_end) {
-                    node.mark_as_dead_end();
-                    search_progress.inc_dead_ends();
-                    continue;
-                }
-                int new_h = heuristics[0]->get_heuristic();
-                if (new_h > node.get_h()) {
-                    assert(node.is_open());
-                    node.increase_h(new_h);
-                    open_list->insert(node.get_state_id());
-                    continue;
-                }
-            }
-        }
-
-        node.close();
-        assert(!node.is_dead_end());
-        update_jump_statistic(node);
-        search_progress.inc_expanded();
-        return make_pair(node, true);
-    }
-}
-
-void EagerSearch::reward_progress()
-{
+void EagerSearch::reward_progress() {
     // Boost the "preferred operator" open lists somewhat whenever
     // one of the heuristics finds a state with a new best h value.
     open_list->boost_preferred();
 }
 
-void EagerSearch::dump_search_space()
-{
-    search_space.dump();
+void EagerSearch::dump_search_space() const {
+    search_space.dump(task_proxy);
 }
 
-void EagerSearch::update_jump_statistic(const SearchNode& node)
-{
+void EagerSearch::start_f_value_statistics(EvaluationContext &eval_context) {
     if (f_evaluator) {
-        heuristics[0]->set_evaluator_value(node.get_h());
-        f_evaluator->evaluate(node.get_g(), false);
-        int new_f_value = f_evaluator->get_value();
-        search_progress.report_f_value(new_f_value);
+        int f_value = eval_context.get_evaluator_value(f_evaluator.get());
+        statistics.report_f_value_progress(f_value);
     }
 }
 
-void EagerSearch::print_heuristic_values(const vector<int>& values) const
-{
-    for (size_t i = 0; i < values.size(); ++i) {
-        cout << values[i];
-        if (i != values.size() - 1) cout << "/";
+/* TODO: HACK! This is very inefficient for simply looking up an h value.
+   Also, if h values are not saved it would recompute h for each and every state. */
+void EagerSearch::update_f_value_statistics(EvaluationContext &eval_context) {
+    if (f_evaluator) {
+        int f_value = eval_context.get_evaluator_value(f_evaluator.get());
+        statistics.report_f_value_progress(f_value);
     }
 }
 
-static std::shared_ptr<SearchEngine> _parse(options::OptionParser& parser)
-{
-    parser.document_synopsis("Eager best first search", "");
-
-    parser.add_option<std::shared_ptr<OpenListFactory>>("open", "open list");
-    parser.add_option<bool>("reopen_closed", "reopen closed nodes", "false");
-    parser.add_option<bool>("pathmax", "use pathmax correction", "false");
-    parser.add_option<std::shared_ptr<Evaluator>>(
-        "f_eval",
-        "set evaluator for jump statistics. "
-        "(Optional; if no evaluator is used, jump statistics will not be "
-        "displayed.)",
-        options::OptionParser::NONE);
-    parser.add_list_option<std::shared_ptr<Heuristic>>(
-        "preferred",
-        "use preferred operators of these heuristics",
-        "[]");
+void add_options_to_parser(OptionParser &parser) {
+    SearchEngine::add_pruning_option(parser);
     SearchEngine::add_options_to_parser(parser);
-    options::Options opts = parser.parse();
-
-    std::shared_ptr<EagerSearch> engine = 0;
-    if (!parser.dry_run()) {
-        opts.set<bool>("mpd", false);
-        engine = std::make_shared<EagerSearch>(opts);
-    }
-
-    return engine;
 }
-
-static std::shared_ptr<SearchEngine> _parse_astar(options::OptionParser& parser)
-{
-    parser.document_synopsis(
-        "A* search (eager)",
-        "A* is a special case of eager best first search that uses g+h "
-        "as f-function. "
-        "We break ties using the evaluator. Closed nodes are re-opened.");
-    parser.document_note(
-        "mpd option",
-        "This option is currently only present for the A* algorithm and not "
-        "for the more general eager search, "
-        "because the current implementation of multi-path depedence "
-        "does not support general open lists.");
-    parser.document_note(
-        "Equivalent statements using general eager search",
-        "\n```\n--search astar(evaluator)\n```\n"
-        "is equivalent to\n"
-        "```\n--heuristic h=evaluator\n"
-        "--search eager(tiebreaking([sum([g(), h]), h], "
-        "unsafe_pruning=false),\n"
-        "               reopen_closed=true, pathmax=false, "
-        "progress_evaluator=sum([g(), h]))\n"
-        "```\n",
-        true);
-    parser.add_option<std::shared_ptr<Heuristic>>(
-        "eval",
-        "evaluator for h-value");
-    parser.add_option<bool>("pathmax", "use pathmax correction", "false");
-    parser.add_option<bool>(
-        "mpd",
-        "use multi-path dependence (LM-A*)",
-        "false");
-    SearchEngine::add_options_to_parser(parser);
-    options::Options opts = parser.parse();
-
-    std::shared_ptr<EagerSearch> engine = 0;
-    if (!parser.dry_run()) {
-        std::shared_ptr<GEvaluator> g = std::make_shared<GEvaluator>();
-        vector<std::shared_ptr<Evaluator>> sum_evals;
-        sum_evals.push_back(g);
-        std::shared_ptr<Evaluator> eval =
-            opts.get<std::shared_ptr<Heuristic>>("eval");
-        sum_evals.push_back(eval);
-        std::shared_ptr<Evaluator> f_eval =
-            std::make_shared<SumEvaluator>(sum_evals);
-
-        // use eval for tiebreaking
-        std::vector<std::shared_ptr<Evaluator>> evals;
-        evals.push_back(f_eval);
-        evals.push_back(eval);
-        std::shared_ptr<OpenListFactory> open =
-            std::make_shared<TieBreakingOpenListFactory>(evals, false, false);
-
-        opts.set("open", open);
-        opts.set("f_eval", f_eval);
-        opts.set("reopen_closed", true);
-        engine = std::make_shared<EagerSearch>(opts);
-    }
-
-    return engine;
 }
-
-static std::shared_ptr<SearchEngine>
-_parse_greedy(options::OptionParser& parser)
-{
-    parser.document_synopsis("Greedy search (eager)", "");
-    parser.document_note(
-        "Open list",
-        "In most cases, eager greedy best first search uses "
-        "an alternation open list with one queue for each evaluator. "
-        "If preferred operator heuristics are used, it adds an extra queue "
-        "for each of these evaluators that includes only the nodes that "
-        "are generated with a preferred operator. "
-        "If only one evaluator and no preferred operator heuristic is used, "
-        "the search does not use an alternation open list but a "
-        "standard open list with only one queue.");
-    parser.document_note("Closed nodes", "Closed node are not re-opened");
-    parser.document_note(
-        "Equivalent statements using general eager search",
-        "\n```\n--heuristic h2=eval2\n"
-        "--search eager_greedy([eval1, h2], preferred=h2, boost=100)\n```\n"
-        "is equivalent to\n"
-        "```\n--heuristic h1=eval1 --heuristic h2=eval2\n"
-        "--search eager(alt([single(h1), single(h1, pref_only=true), "
-        "single(h2), \n"
-        "                    single(h2, pref_only=true)], boost=100),\n"
-        "               preferred=h2)\n```\n"
-        "------------------------------------------------------------\n"
-        "```\n--search eager_greedy([eval1, eval2])\n```\n"
-        "is equivalent to\n"
-        "```\n--search eager(alt([single(eval1), single(eval2)]))\n```\n"
-        "------------------------------------------------------------\n"
-        "```\n--heuristic h1=eval1\n"
-        "--search eager_greedy(h1, preferred=h1)\n```\n"
-        "is equivalent to\n"
-        "```\n--heuristic h1=eval1\n"
-        "--search eager(alt([single(h1), single(h1, pref_only=true)]),\n"
-        "               preferred=h1)\n```\n"
-        "------------------------------------------------------------\n"
-        "```\n--search eager_greedy(eval1)\n```\n"
-        "is equivalent to\n"
-        "```\n--search eager(single(eval1))\n```\n",
-        true);
-
-    parser.add_list_option<std::shared_ptr<Heuristic>>(
-        "evals",
-        "scalar evaluators");
-    parser.add_list_option<std::shared_ptr<Heuristic>>(
-        "preferred",
-        "use preferred operators of these heuristics",
-        "[]");
-    parser.add_option<int>(
-        "boost",
-        "boost value for preferred operator open lists",
-        "0");
-    SearchEngine::add_options_to_parser(parser);
-
-    options::Options opts = parser.parse();
-    opts.verify_list_non_empty<std::shared_ptr<Heuristic>>("evals");
-
-    std::shared_ptr<EagerSearch> engine = 0;
-    if (!parser.dry_run()) {
-        vector<std::shared_ptr<Evaluator>> evals;
-        for (auto h : opts.get_list<std::shared_ptr<Heuristic>>("evals")) {
-            evals.emplace_back(h);
-        }
-        vector<std::shared_ptr<Heuristic>> preferred_list =
-            opts.get_list<std::shared_ptr<Heuristic>>("preferred");
-        std::shared_ptr<OpenListFactory> open = 0;
-        if ((evals.size() == 1) && preferred_list.empty()) {
-            open = std::make_shared<StandardScalarOpenListFactory>(
-                evals[0],
-                false);
-        } else {
-            vector<std::shared_ptr<OpenListFactory>> inner_lists;
-            for (size_t i = 0; i < evals.size(); ++i) {
-                inner_lists.push_back(
-                    std::make_shared<StandardScalarOpenListFactory>(
-                        evals[i],
-                        false));
-                if (!preferred_list.empty()) {
-                    inner_lists.push_back(
-                        std::make_shared<StandardScalarOpenListFactory>(
-                            evals[i],
-                            true));
-                }
-            }
-            open = std::make_shared<AlternationOpenListFactory>(
-                inner_lists,
-                opts.get<int>("boost"));
-        }
-
-        opts.set("open", open);
-        opts.set("reopen_closed", false);
-        opts.set("pathmax", false);
-        opts.set("mpd", false);
-        std::shared_ptr<Evaluator> sep = 0;
-        opts.set("f_eval", sep);
-        opts.set("preferred", preferred_list);
-        engine = std::make_shared<EagerSearch>(opts);
-    }
-    return engine;
-}
-
-static Plugin<SearchEngine> _plugin("eager", _parse);
-static Plugin<SearchEngine> _plugin_astar("astar", _parse_astar);
-static Plugin<SearchEngine> _plugin_greedy("eager_greedy", _parse_greedy);

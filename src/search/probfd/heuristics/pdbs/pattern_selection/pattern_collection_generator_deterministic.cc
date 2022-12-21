@@ -10,6 +10,8 @@
 #include "option_parser.h"
 #include "plugin.h"
 
+#include "tasks/root_task.h"
+
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
@@ -38,11 +40,10 @@ PatternCollectionGeneratorDeterministic<
 
 template <class PDBType>
 PatternCollectionInformation<PDBType>
-PatternCollectionGeneratorDeterministic<PDBType>::generate(
-    OperatorCost cost_type)
+PatternCollectionGeneratorDeterministic<PDBType>::generate(OperatorCost)
 {
     return PatternCollectionInformation<PDBType>(
-        gen->generate(cost_type),
+        gen->generate(tasks::g_root_task),
         finder);
 }
 
@@ -50,7 +51,7 @@ template <class PDBType>
 std::shared_ptr<utils::Printable>
 PatternCollectionGeneratorDeterministic<PDBType>::get_report() const
 {
-    return gen->get_report();
+    return nullptr;
 }
 
 template <class PDBType>

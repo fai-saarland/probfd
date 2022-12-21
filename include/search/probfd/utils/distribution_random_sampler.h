@@ -6,7 +6,7 @@
 
 #include "utils/rng.h"
 
-#include "globals.h"
+#include "legacy/globals.h"
 
 namespace probfd {
 namespace distribution_random_sampler {
@@ -16,8 +16,9 @@ struct DistributionRandomSampler {
     const T& operator()(const Distribution<T>& distribution) const
     {
         assert(!distribution.empty());
-        value_type::value_t p =
-            value_type::cap(value_type::from_double(g_rng()), value_type::one);
+        value_type::value_t p = value_type::cap(
+            value_type::from_double(legacy::g_rng.random()),
+            value_type::one);
         assert(!value_type::approx_greater()(p, value_type::one));
         assert(
             value_type::approx_greater()(p, value_type::zero) ||

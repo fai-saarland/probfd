@@ -4,36 +4,34 @@
 #include <memory>
 #include <vector>
 
-namespace successor_generator {
+class TaskProxy;
 
-template <typename Entry>
+namespace successor_generator {
 class GeneratorBase;
 
-using SuccessorGeneratorFactoryKey = std::pair<int, int>;
+using GeneratorPtr = std::unique_ptr<GeneratorBase>;
 
-template <typename Entry>
-class SuccessorGeneratorFactoryInfo {
+struct OperatorRange;
+class OperatorInfo;
+
+
+class SuccessorGeneratorFactory {
+    using ValuesAndGenerators = std::vector<std::pair<int, GeneratorPtr>>;
+
+    const TaskProxy &task_proxy;
+    std::vector<OperatorInfo> operator_infos;
+
+    GeneratorPtr construct_fork(std::vector<GeneratorPtr> nodes) const;
+    GeneratorPtr construct_leaf(OperatorRange range) const;
+    GeneratorPtr construct_switch(
+        int switch_var_id, ValuesAndGenerators values_and_generators) const;
+    GeneratorPtr construct_recursive(int depth, OperatorRange range) const;
 public:
-    explicit SuccessorGeneratorFactoryInfo(
-        Entry op,
-        std::vector<SuccessorGeneratorFactoryKey> precondition);
-    bool operator<(const SuccessorGeneratorFactoryInfo<Entry>& other) const;
-    Entry get() const;
-    int first(int depth) const;
-    int second(int depth) const;
-
-private:
-    Entry op;
-    std::vector<SuccessorGeneratorFactoryKey> precondition;
+    explicit SuccessorGeneratorFactory(const TaskProxy &task_proxy);
+    // Destructor cannot be implicit because OperatorInfo is forward-declared.
+    ~SuccessorGeneratorFactory();
+    GeneratorPtr create();
 };
-
-template <typename Entry, typename RandomAccessIterator>
-std::unique_ptr<GeneratorBase<Entry>> create(
-    RandomAccessIterator domains,
-    std::vector<SuccessorGeneratorFactoryInfo<Entry>>& infos);
-
-} // namespace successor_generator
-
-#include "task_utils/successor_generator_factory-impl.h"
+}
 
 #endif

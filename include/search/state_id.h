@@ -11,14 +11,18 @@ class StateID {
     friend std::ostream &operator<<(std::ostream &os, StateID id);
     template<typename>
     friend class PerStateInformation;
+    template<typename>
+    friend class PerStateArray;
+    friend class PerStateBitset;
 
     int value;
-
-public:
-    StateID() : value(StateID::no_state.value) {}
     explicit StateID(int value_)
         : value(value_) {
     }
+
+    // No implementation to prevent default construction
+    StateID();
+public:
     ~StateID() {
     }
 
@@ -31,20 +35,7 @@ public:
     bool operator!=(const StateID &other) const {
         return !(*this == other);
     }
-
-    size_t hash() const {
-        return value;
-    }
 };
 
-std::ostream &operator<<(std::ostream &os, StateID id);
-
-namespace std {
-template<>
-struct hash<StateID> {
-    size_t operator()(const StateID& state_id) const { return state_id.hash(); }
-};
-
-}
 
 #endif

@@ -27,11 +27,11 @@ template <typename PDBType>
 PatternCollectionInformation<PDBType>::PatternCollectionInformation(
     ::pdbs::PatternCollectionInformation det_info,
     shared_ptr<SubCollectionFinder> subcollection_finder)
-    : patterns_(det_info.move_patterns())
-    , subcollections_(det_info.move_pattern_cliques())
+    : patterns_(det_info.get_patterns())
+    , subcollections_(det_info.get_pattern_cliques())
     , subcollection_finder_(std::move(subcollection_finder))
 {
-    auto pdbs = det_info.move_pdbs();
+    auto pdbs = det_info.get_pdbs();
 
     if (!pdbs) {
         return;

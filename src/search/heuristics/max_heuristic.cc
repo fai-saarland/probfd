@@ -1,17 +1,16 @@
 #include "heuristics/max_heuristic.h"
 
-#include "global_operator.h"
-#include "global_state.h"
 #include "option_parser.h"
 #include "plugin.h"
 
+#include "utils/logging.h"
+
 #include <cassert>
 #include <vector>
+
 using namespace std;
 
-
-
-
+namespace max_heuristic {
 /*
   TODO: At the time of this writing, this shares huge amounts of code
         with h^add, and the two should be refactored so that the
@@ -25,34 +24,23 @@ using namespace std;
  */
 
 // construction and destruction
-HSPMaxHeuristic::HSPMaxHeuristic(const options::Options &opts)
+HSPMaxHeuristic::HSPMaxHeuristic(const Options &opts)
     : RelaxationHeuristic(opts) {
-}
-
-HSPMaxHeuristic::~HSPMaxHeuristic() {
-}
-
-// initialization
-void HSPMaxHeuristic::initialize() {
-    cout << "Initializing HSP max heuristic..." << endl;
-    RelaxationHeuristic::initialize();
+    if (log.is_at_least_normal()) {
+        log << "Initializing HSP max heuristic..." << endl;
+    }
 }
 
 // heuristic computation
 void HSPMaxHeuristic::setup_exploration_queue() {
     queue.clear();
 
-    for (size_t var = 0; var < propositions.size(); ++var) {
-        for (size_t value = 0; value < propositions[var].size(); ++value) {
-            Proposition &prop = propositions[var][value];
-            prop.cost = -1;
-        }
-    }
+    for (Proposition &prop : propositions)
+        prop.cost = -1;
 
     // Deal with operators and axioms without preconditions.
-    for (size_t i = 0; i < unary_operators.size(); ++i) {
-        UnaryOperator &op = unary_operators[i];
-        op.unsatisfied_preconditions = op.precondition.size();
+    for (UnaryOperator &op : unary_operators) {
+        op.unsatisfied_preconditions = op.num_preconditions;
         op.cost = op.base_cost; // will be increased by precondition costs
 
         if (op.unsatisfied_preconditions == 0)
@@ -60,9 +48,9 @@ void HSPMaxHeuristic::setup_exploration_queue() {
     }
 }
 
-void HSPMaxHeuristic::setup_exploration_queue_state(const GlobalState &state) {
-    for (size_t var = 0; var < propositions.size(); ++var) {
-        Proposition *init_prop = &propositions[var][state[var]];
+void HSPMaxHeuristic::setup_exploration_queue_state(const State &state) {
+    for (FactProxy fact : state) {
+        PropID init_prop = get_prop_id(fact);
         enqueue_if_necessary(init_prop, 0);
     }
 }
@@ -70,22 +58,23 @@ void HSPMaxHeuristic::setup_exploration_queue_state(const GlobalState &state) {
 void HSPMaxHeuristic::relaxed_exploration() {
     int unsolved_goals = goal_propositions.size();
     while (!queue.empty()) {
-        pair<int, Proposition *> top_pair = queue.pop();
+        pair<int, PropID> top_pair = queue.pop();
         int distance = top_pair.first;
-        Proposition *prop = top_pair.second;
+        PropID prop_id = top_pair.second;
+        Proposition *prop = get_proposition(prop_id);
         int prop_cost = prop->cost;
+        assert(prop_cost >= 0);
         assert(prop_cost <= distance);
         if (prop_cost < distance)
             continue;
         if (prop->is_goal && --unsolved_goals == 0)
             return;
-        const vector<UnaryOperator *> &triggered_operators =
-            prop->precondition_of;
-        for (size_t i = 0; i < triggered_operators.size(); ++i) {
-            UnaryOperator *unary_op = triggered_operators[i];
-            --unary_op->unsatisfied_preconditions;
+        for (OpID op_id : precondition_of_pool.get_slice(
+                 prop->precondition_of, prop->num_precondition_occurences)) {
+            UnaryOperator *unary_op = get_operator(op_id);
             unary_op->cost = max(unary_op->cost,
                                  unary_op->base_cost + prop_cost);
+            --unary_op->unsatisfied_preconditions;
             assert(unary_op->unsatisfied_preconditions >= 0);
             if (unary_op->unsatisfied_preconditions == 0)
                 enqueue_if_necessary(unary_op->effect, unary_op->cost);
@@ -93,23 +82,25 @@ void HSPMaxHeuristic::relaxed_exploration() {
     }
 }
 
-int HSPMaxHeuristic::compute_heuristic(const GlobalState &state) {
+int HSPMaxHeuristic::compute_heuristic(const State &ancestor_state) {
+    State state = convert_ancestor_state(ancestor_state);
+
     setup_exploration_queue();
     setup_exploration_queue_state(state);
     relaxed_exploration();
 
     int total_cost = 0;
-    for (size_t i = 0; i < goal_propositions.size(); ++i) {
-        int prop_cost = goal_propositions[i]->cost;
-        if (prop_cost == -1)
+    for (PropID goal_id : goal_propositions) {
+        const Proposition *goal = get_proposition(goal_id);
+        int goal_cost = goal->cost;
+        if (goal_cost == -1)
             return DEAD_END;
-        total_cost = max(total_cost, prop_cost);
+        total_cost = max(total_cost, goal_cost);
     }
-
     return total_cost;
 }
 
-static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser) {
+static shared_ptr<Heuristic> _parse(OptionParser &parser) {
     parser.document_synopsis("Max heuristic", "");
     parser.document_language_support("action costs", "supported");
     parser.document_language_support("conditional effects", "supported");
@@ -124,13 +115,13 @@ static std::shared_ptr<Heuristic> _parse(options::OptionParser &parser) {
     parser.document_property("preferred operators", "no");
 
     Heuristic::add_options_to_parser(parser);
-    options::Options opts = parser.parse();
-
+    Options opts = parser.parse();
     if (parser.dry_run())
-        return 0;
+        return nullptr;
     else
-        return std::make_shared<HSPMaxHeuristic>(opts);
+        return make_shared<HSPMaxHeuristic>(opts);
 }
 
 
-static Plugin<Heuristic> _plugin("hmax", _parse);
+static Plugin<Evaluator> _plugin("hmax", _parse);
+}

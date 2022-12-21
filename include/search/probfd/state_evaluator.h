@@ -3,12 +3,13 @@
 
 #include "probfd/engine_interfaces/state_evaluator.h"
 
-#include "global_state.h"
+#include "legacy/global_state.h"
 
 namespace probfd {
 
 /// Type alias for state evaluators of GlobalState.
-using GlobalStateEvaluator = engine_interfaces::StateEvaluator<GlobalState>;
+using GlobalStateEvaluator =
+    engine_interfaces::StateEvaluator<legacy::GlobalState>;
 
 } // namespace probfd
 

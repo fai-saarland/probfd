@@ -20,7 +20,7 @@
 
 #include "utils/timer.h"
 
-#include "global_state.h"
+#include "legacy/global_state.h"
 
 #include <memory>
 #include <vector>
@@ -144,11 +144,8 @@ public:
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
 
-        if (hpom_enabled_ && (::has_axioms() || ::has_conditional_effects())) {
-            logging::err
-                << "hpom doesn't support axioms and conditional effects!"
-                << std::endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        if (hpom_enabled_) {
+            legacy::verify_no_axioms_no_conditional_effects();
         }
 
         storage::PerStateStorage<IDualData> idual_data;
@@ -461,7 +458,7 @@ private:
         const IDualData& data,
         std::vector<lp::LPConstraint>& constraints) const
     {
-        for (size_t var = 0; var != g_variable_domain.size(); ++var) {
+        for (size_t var = 0; var != legacy::g_variable_domain.size(); ++var) {
             const int val = state[var];
             lp::LPConstraint& c = constraints[offset_[var] + val];
             for (const auto& om : data.incoming) {
@@ -475,7 +472,7 @@ private:
         const IDualData& data,
         std::vector<lp::LPConstraint>& constraints) const
     {
-        for (size_t var = 0; var != g_variable_domain.size(); ++var) {
+        for (size_t var = 0; var != legacy::g_variable_domain.size(); ++var) {
             const int val = state[var];
             lp::LPConstraint& c = constraints[offset_[var] + val];
             for (const auto& om : data.incoming) {

@@ -5,7 +5,7 @@
 
 #include "probfd/globals.h"
 
-#include "globals.h"
+#include "legacy/globals.h"
 
 #include <sstream>
 
@@ -34,7 +34,7 @@ void dump_pattern(std::ostream& out, PatternID i, const Pattern& p)
 
     out << " ({";
     for (unsigned j = 0; j < p.size(); j++) {
-        out << (j > 0 ? ", " : "") << ::g_fact_names[p[j]][0];
+        out << (j > 0 ? ", " : "") << legacy::g_fact_names[p[j]][0];
     }
     out << "})" << std::flush;
 }
@@ -56,12 +56,12 @@ combine<MaxProbProjection>(value_type::value_t left, value_type::value_t right);
 template EvaluationResult evaluate<ExpCostProjection>(
     const PPDBCollection<ExpCostProjection>& database,
     const std::vector<PatternSubCollection>& subcollections,
-    const GlobalState& state);
+    const legacy::GlobalState& state);
 
 template EvaluationResult evaluate<MaxProbProjection>(
     const PPDBCollection<MaxProbProjection>& database,
     const std::vector<PatternSubCollection>& subcollections,
-    const GlobalState& state);
+    const legacy::GlobalState& state);
 
 } // namespace pdbs
 } // namespace heuristics

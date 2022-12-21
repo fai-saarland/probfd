@@ -47,49 +47,82 @@ fast_downward_plugin(
     HELP "Core source files"
     SOURCES
         abstract_task
-        option_parser
-        option_parser_util
-        plugin
-
         axioms
-        causal_graph
-        domain_transition_graph
-        global_operator
-        global_state
-        partial_state
-        plan_manager
+        #command_line
+        evaluation_context
+        evaluation_result
+        evaluator
+        evaluator_cache
+        heuristic
+        open_list
+        open_list_factory
         operator_cost
         operator_id
-
+        option_parser
+        option_parser_util
+        per_state_array
+        per_state_bitset
+        per_state_information
+        per_task_information
+        plan_manager
+        plugin
+        pruning_method
+        search_engine
+        search_node_info
+        search_progress
+        search_space
+        search_statistics
         state_id
         state_registry
+        task_id
         task_proxy
 
-        globals
-
+        legacy/axioms
+        legacy/evaluator
+        legacy/global_operator
+        legacy/global_state
+        legacy/globals
+        legacy/heuristic
+        legacy/operator_cost
+        legacy/partial_state
+        legacy/sampling
+        legacy/state_id
+        legacy/state_registry
+        legacy/successor_generator
     DEPENDS CAUSAL_GRAPH INT_HASH_SET INT_PACKER ORDERED_SET SEGMENTED_VECTOR SUBSCRIBER SUCCESSOR_GENERATOR TASK_PROPERTIES
     CORE_PLUGIN
 )
 
 fast_downward_plugin(
-    NAME CLASSICAL_CORE_SOURCES
-    HELP "Core source files"
+    NAME LEGACY_MAS_HEURISTIC
+    HELP "The Merge-and-Shrink heuristic (legacy code)"
     SOURCES
-        per_state_information
-        evaluator
-        heuristic
-
-        search_engine
-        search_node_info
-        search_progress
-        search_space
-
-        fact_set
-        strips
-        state_component_listener
-
-    DEPENDS INT_HASH_SET INT_PACKER ORDERED_SET SEGMENTED_VECTOR SUBSCRIBER
-    CORE_PLUGIN
+        legacy/merge_and_shrink/relaxation_heuristic
+        legacy/merge_and_shrink/max_heuristic
+        legacy/merge_and_shrink/additive_heuristic
+        legacy/merge_and_shrink/ff_heuristic
+        legacy/merge_and_shrink/abstraction
+        legacy/merge_and_shrink/label
+        legacy/merge_and_shrink/label_reducer
+        legacy/merge_and_shrink/linear_merge_strategy
+        legacy/merge_and_shrink/max_regression_operators
+        legacy/merge_and_shrink/merge_and_shrink_heuristic
+        legacy/merge_and_shrink/merge_strategy
+        legacy/merge_and_shrink/relaxed_plan_operators
+        legacy/merge_and_shrink/scc
+        legacy/merge_and_shrink/shrink_bisimulation
+        legacy/merge_and_shrink/shrink_bucket_based
+        legacy/merge_and_shrink/shrink_empty_labels
+        legacy/merge_and_shrink/shrink_fh
+        legacy/merge_and_shrink/shrink_label_subset_bisimulation
+        legacy/merge_and_shrink/shrink_none
+        legacy/merge_and_shrink/shrink_random
+        legacy/merge_and_shrink/shrink_budget_based
+        legacy/merge_and_shrink/shrink_strategy
+        legacy/merge_and_shrink/variable_order_finder
+        legacy/merge_and_shrink/multiple_shrinking_strategies
+        legacy/merge_and_shrink/utils
+    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES VARIABLE_ORDER_FINDER
 )
 
 fast_downward_plugin(
@@ -137,10 +170,60 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME ALTERNATION_OPEN_LIST
+    HELP "Open list that alternates between underlying open lists in a round-robin manner"
+    SOURCES
+        open_lists/alternation_open_list
+)
+
+fast_downward_plugin(
+    NAME BEST_FIRST_OPEN_LIST
+    HELP "Open list that selects the best element according to a single evaluation function"
+    SOURCES
+        open_lists/best_first_open_list
+)
+
+fast_downward_plugin(
+    NAME EPSILON_GREEDY_OPEN_LIST
+    HELP "Open list that chooses an entry randomly with probability epsilon"
+    SOURCES
+        open_lists/epsilon_greedy_open_list
+)
+
+fast_downward_plugin(
+    NAME PARETO_OPEN_LIST
+    HELP "Pareto open list"
+    SOURCES
+        open_lists/pareto_open_list
+)
+
+fast_downward_plugin(
+    NAME TIEBREAKING_OPEN_LIST
+    HELP "Tiebreaking open list"
+    SOURCES
+        open_lists/tiebreaking_open_list
+)
+
+fast_downward_plugin(
+    NAME TYPE_BASED_OPEN_LIST
+    HELP "Type-based open list"
+    SOURCES
+        open_lists/type_based_open_list
+)
+
+fast_downward_plugin(
     NAME DYNAMIC_BITSET
     HELP "Poor man's version of boost::dynamic_bitset"
     SOURCES
         algorithms/dynamic_bitset
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
+    NAME NAMED_VECTOR
+    HELP "Generic vector with associated name for each element"
+    SOURCES
+        algorithms/named_vector
     DEPENDENCY_ONLY
 )
 
@@ -209,34 +292,19 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME SCCS
-    HELP "Algorithm to compute the strongly connected components (SCCs) of a "
-         "directed graph."
+    NAME EVALUATORS_PLUGIN_GROUP
+    HELP "Plugin group for basic evaluators"
     SOURCES
-        algorithms/sccs
-    DEPENDENCY_ONLY
+        evaluators/plugin_group
 )
 
-fast_downward_plugin(
-    NAME PERFECT_HASHING_FUNCTION
-    HELP "Finite domain perfect hash computation"
-    SOURCES
-        algorithms/perfect_hashing_function
-    DEPENDENCY_ONLY
-)
 
 fast_downward_plugin(
-    NAME OPEN_LISTS
-    HELP "open list"
+    NAME CONST_EVALUATOR
+    HELP "The constant evaluator"
     SOURCES
-        open_lists/open_list
-        open_lists/open_list_factory
-        open_lists/alternation_open_list
-        open_lists/standard_scalar_open_list
-        open_lists/open_list_buckets
-        open_lists/pareto_open_list
-        open_lists/tiebreaking_open_list
-        open_lists/plugins
+        evaluators/const_evaluator
+    DEPENDS EVALUATORS_PLUGIN_GROUP
 )
 
 fast_downward_plugin(
@@ -244,6 +312,7 @@ fast_downward_plugin(
     HELP "The g-evaluator"
     SOURCES
         evaluators/g_evaluator
+    DEPENDS EVALUATORS_PLUGIN_GROUP
 )
 
 fast_downward_plugin(
@@ -259,7 +328,7 @@ fast_downward_plugin(
     HELP "The max evaluator"
     SOURCES
         evaluators/max_evaluator
-    DEPENDS COMBINING_EVALUATOR
+    DEPENDS COMBINING_EVALUATOR EVALUATORS_PLUGIN_GROUP
 )
 
 fast_downward_plugin(
@@ -267,6 +336,7 @@ fast_downward_plugin(
     HELP "The pref evaluator"
     SOURCES
         evaluators/pref_evaluator
+    DEPENDS EVALUATORS_PLUGIN_GROUP
 )
 
 fast_downward_plugin(
@@ -274,6 +344,7 @@ fast_downward_plugin(
     HELP "The weighted evaluator"
     SOURCES
         evaluators/weighted_evaluator
+    DEPENDS EVALUATORS_PLUGIN_GROUP
 )
 
 fast_downward_plugin(
@@ -281,7 +352,16 @@ fast_downward_plugin(
     HELP "The sum evaluator"
     SOURCES
         evaluators/sum_evaluator
-    DEPENDS COMBINING_EVALUATOR
+    DEPENDS COMBINING_EVALUATOR EVALUATORS_PLUGIN_GROUP
+)
+
+fast_downward_plugin(
+    NAME SEARCH_COMMON
+    HELP "Basic classes used for all search engines"
+    SOURCES
+        search_engines/search_common
+    DEPENDS ALTERNATION_OPEN_LIST G_EVALUATOR BEST_FIRST_OPEN_LIST SUM_EVALUATOR TIEBREAKING_OPEN_LIST WEIGHTED_EVALUATOR
+    DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(
@@ -289,23 +369,72 @@ fast_downward_plugin(
     HELP "Eager search algorithm"
     SOURCES
         search_engines/eager_search
-    DEPENDS SUM_EVALUATOR G_EVALUATOR OPEN_LISTS BLIND_SEARCH_HEURISTIC
+    DEPENDS NULL_PRUNING_METHOD ORDERED_SET SUCCESSOR_GENERATOR
+    DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(
-    NAME ENFORCED_HILL_CLIMBING
-    HELP "Enforced Hill-Climbing search algorithm"
+    NAME PLUGIN_ASTAR
+    HELP "A* search"
+    SOURCES
+        search_engines/plugin_astar
+    DEPENDS EAGER_SEARCH SEARCH_COMMON
+)
+
+fast_downward_plugin(
+    NAME PLUGIN_EAGER
+    HELP "Eager (i.e., normal) best-first search"
+    SOURCES
+        search_engines/plugin_eager
+    DEPENDS EAGER_SEARCH SEARCH_COMMON
+)
+
+fast_downward_plugin(
+    NAME PLUGIN_EAGER_GREEDY
+    HELP "Eager greedy best-first search"
+    SOURCES
+        search_engines/plugin_eager_greedy
+    DEPENDS EAGER_SEARCH SEARCH_COMMON
+)
+
+fast_downward_plugin(
+    NAME PLUGIN_EAGER_WASTAR
+    HELP "Weighted eager A* search"
+    SOURCES
+        search_engines/plugin_eager_wastar
+    DEPENDS EAGER_SEARCH SEARCH_COMMON
+)
+
+fast_downward_plugin(
+    NAME PLUGIN_LAZY
+    HELP "Best-first search with deferred evaluation (lazy)"
+    SOURCES
+        search_engines/plugin_lazy
+    DEPENDS LAZY_SEARCH SEARCH_COMMON
+)
+
+fast_downward_plugin(
+    NAME PLUGIN_LAZY_GREEDY
+    HELP "Greedy best-first search with deferred evaluation (lazy)"
+    SOURCES
+        search_engines/plugin_lazy_greedy
+    DEPENDS LAZY_SEARCH SEARCH_COMMON
+)
+
+fast_downward_plugin(
+    NAME PLUGIN_LAZY_WASTAR
+    HELP "Weighted A* search with deferred evaluation (lazy)"
+    SOURCES
+        search_engines/plugin_lazy_wastar
+    DEPENDS LAZY_SEARCH SEARCH_COMMON
+)
+
+fast_downward_plugin(
+    NAME ENFORCED_HILL_CLIMBING_SEARCH
+    HELP "Lazy enforced hill-climbing search algorithm"
     SOURCES
         search_engines/enforced_hill_climbing_search
-    DEPENDS SUM_EVALUATOR G_EVALUATOR PREF_EVALUATOR OPEN_LISTS BLIND_SEARCH_HEURISTIC
-)
-
-fast_downward_plugin(
-    NAME LAZY_SEARCH
-    HELP "Eager search algorithm with lazy heuristic evaluation"
-    SOURCES
-        search_engines/lazy_search
-    DEPENDS SUM_EVALUATOR G_EVALUATOR WEIGHTED_EVALUATOR OPEN_LISTS BLIND_SEARCH_HEURISTIC
+    DEPENDS G_EVALUATOR ORDERED_SET PREF_EVALUATOR SEARCH_COMMON SUCCESSOR_GENERATOR
 )
 
 fast_downward_plugin(
@@ -316,28 +445,21 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME LAZY_SEARCH
+    HELP "Lazy search algorithm"
+    SOURCES
+        search_engines/lazy_search
+    DEPENDS ORDERED_SET SUCCESSOR_GENERATOR
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
     NAME LP_SOLVER
     HELP "Interface to an LP solver"
     SOURCES
-        lp/lp_solver
         lp/lp_internals
-    DEPENDENCY_ONLY
-)
-
-fast_downward_plugin(
-    NAME VARIABLE_ORDER_FINDER
-    HELP "Variable order finder"
-    SOURCES
-        variable_order_finder
-    DEPENDENCY_ONLY
-)
-
-fast_downward_plugin(
-    NAME SAMPLING
-    HELP "Sampling"
-    SOURCES
-        sampling
-    DEPENDS SUCCESSOR_GENERATOR
+        lp/lp_solver
+    DEPENDS NAMED_VECTOR
     DEPENDENCY_ONLY
 )
 
@@ -345,6 +467,7 @@ fast_downward_plugin(
     NAME RELAXATION_HEURISTIC
     HELP "The base class for relaxation heuristics"
     SOURCES
+        heuristics/array_pool
         heuristics/relaxation_heuristic
     DEPENDENCY_ONLY
 )
@@ -355,6 +478,14 @@ fast_downward_plugin(
     SOURCES
         heuristics/additive_heuristic
     DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC TASK_PROPERTIES
+)
+
+fast_downward_plugin(
+    NAME BLIND_SEARCH_HEURISTIC
+    HELP "The 'blind search' heuristic"
+    SOURCES
+        heuristics/blind_search_heuristic
+    DEPENDS TASK_PROPERTIES
 )
 
 fast_downward_plugin(
@@ -409,14 +540,8 @@ fast_downward_plugin(
     HELP "The LM-cut heuristic"
     SOURCES
         heuristics/lm_cut_heuristic
+        heuristics/lm_cut_landmarks
     DEPENDS PRIORITY_QUEUES TASK_PROPERTIES
-)
-
-fast_downward_plugin(
-    NAME IPC_MAX_HEURISTIC
-    HELP "Admissible combination of multiples heuristics via max"
-    SOURCES
-        heuristics/ipc_max_heuristic
 )
 
 fast_downward_plugin(
@@ -471,8 +596,10 @@ fast_downward_plugin(
     HELP "Successor generator"
     SOURCES
         task_utils/successor_generator
-#        task_utils/successor_generator_factory
-#        task_utils/successor_generator_internals
+        task_utils/successor_generator_factory
+        task_utils/successor_generator_internals
+    DEPENDS TASK_PROPERTIES
+    DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(
@@ -492,42 +619,47 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME BLIND_SEARCH_HEURISTIC
-    HELP "The 'blind search' heuristic"
-    SOURCES
-        heuristics/blind_search_heuristic
-)
-
-fast_downward_plugin(
     NAME MAS_HEURISTIC
     HELP "The Merge-and-Shrink heuristic"
     SOURCES
-        merge_and_shrink/relaxation_heuristic
-        merge_and_shrink/max_heuristic
-        merge_and_shrink/additive_heuristic
-        merge_and_shrink/ff_heuristic
-        merge_and_shrink/abstraction
-        merge_and_shrink/label
-        merge_and_shrink/label_reducer
-        merge_and_shrink/linear_merge_strategy
-        merge_and_shrink/max_regression_operators
+        merge_and_shrink/distances
+        merge_and_shrink/factored_transition_system
+        merge_and_shrink/fts_factory
+        merge_and_shrink/label_equivalence_relation
+        merge_and_shrink/label_reduction
+        merge_and_shrink/labels
+        merge_and_shrink/merge_and_shrink_algorithm
         merge_and_shrink/merge_and_shrink_heuristic
+        merge_and_shrink/merge_and_shrink_representation
+        merge_and_shrink/merge_scoring_function
+        merge_and_shrink/merge_scoring_function_dfp
+        merge_and_shrink/merge_scoring_function_goal_relevance
+        merge_and_shrink/merge_scoring_function_miasm
+        merge_and_shrink/merge_scoring_function_miasm_utils
+        merge_and_shrink/merge_scoring_function_single_random
+        merge_and_shrink/merge_scoring_function_total_order
+        merge_and_shrink/merge_selector
+        merge_and_shrink/merge_selector_score_based_filtering
         merge_and_shrink/merge_strategy
-        merge_and_shrink/relaxed_plan_operators
-        merge_and_shrink/scc
+        merge_and_shrink/merge_strategy_factory
+        merge_and_shrink/merge_strategy_factory_precomputed
+        merge_and_shrink/merge_strategy_factory_sccs
+        merge_and_shrink/merge_strategy_factory_stateless
+        merge_and_shrink/merge_strategy_precomputed
+        merge_and_shrink/merge_strategy_sccs
+        merge_and_shrink/merge_strategy_stateless
+        merge_and_shrink/merge_tree
+        merge_and_shrink/merge_tree_factory
+        merge_and_shrink/merge_tree_factory_linear
         merge_and_shrink/shrink_bisimulation
         merge_and_shrink/shrink_bucket_based
-        merge_and_shrink/shrink_empty_labels
         merge_and_shrink/shrink_fh
-        merge_and_shrink/shrink_label_subset_bisimulation
-        merge_and_shrink/shrink_none
         merge_and_shrink/shrink_random
-        merge_and_shrink/shrink_budget_based
         merge_and_shrink/shrink_strategy
-        merge_and_shrink/variable_order_finder
-        merge_and_shrink/multiple_shrinking_strategies
+        merge_and_shrink/transition_system
+        merge_and_shrink/types
         merge_and_shrink/utils
-    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES VARIABLE_ORDER_FINDER
+    DEPENDS PRIORITY_QUEUES EQUIVALENCE_RELATION SCCS TASK_PROPERTIES VARIABLE_ORDER_FINDER
 )
 
 fast_downward_plugin(
@@ -535,16 +667,18 @@ fast_downward_plugin(
     HELP "Plugin containing the code to reason with landmarks"
     SOURCES
         landmarks/exploration
-        landmarks/h_m_landmarks
-        #landmarks/lama_ff_synergy
+        landmarks/landmark
         landmarks/landmark_cost_assignment
         landmarks/landmark_count_heuristic
         landmarks/landmark_factory
+        landmarks/landmark_factory_h_m
+        landmarks/landmark_factory_reasonable_orders_hps
+        landmarks/landmark_factory_merged
+        landmarks/landmark_factory_relaxation
         landmarks/landmark_factory_rpg_exhaust
         landmarks/landmark_factory_rpg_sasp
         landmarks/landmark_factory_zhu_givan
         landmarks/landmark_graph
-        landmarks/landmark_graph_merged
         landmarks/landmark_status_manager
         landmarks/util
     DEPENDS LP_SOLVER PRIORITY_QUEUES SUCCESSOR_GENERATOR TASK_PROPERTIES
@@ -552,9 +686,11 @@ fast_downward_plugin(
 
 fast_downward_plugin(
     NAME OPERATOR_COUNTING
-    HELP "Plugin containing the code for operator counting heuristics"
+    HELP "Plugin containing the code for operator-counting heuristics"
     SOURCES
         operator_counting/constraint_generator
+        operator_counting/delete_relaxation_constraints
+        operator_counting/lm_cut_constraints
         operator_counting/operator_counting_heuristic
         operator_counting/pho_constraints
         operator_counting/state_equation_constraints
@@ -567,37 +703,38 @@ fast_downward_plugin(
     SOURCES
         pdbs/canonical_pdbs
         pdbs/canonical_pdbs_heuristic
+        pdbs/cegar
         pdbs/dominance_pruning
         pdbs/incremental_canonical_pdbs
         pdbs/match_tree
+        pdbs/max_cliques
         pdbs/pattern_cliques
+        pdbs/pattern_collection_information
         pdbs/pattern_collection_generator_combo
+        pdbs/pattern_collection_generator_disjoint_cegar
         pdbs/pattern_collection_generator_genetic
         pdbs/pattern_collection_generator_hillclimbing
         pdbs/pattern_collection_generator_manual
+        pdbs/pattern_collection_generator_multiple_cegar
+        pdbs/pattern_collection_generator_multiple_random
+        pdbs/pattern_collection_generator_multiple
         pdbs/pattern_collection_generator_systematic
-        pdbs/pattern_collection_information
         pdbs/pattern_database
-        pdbs/pattern_generator
+        pdbs/pattern_generator_cegar
         pdbs/pattern_generator_greedy
         pdbs/pattern_generator_manual
+        pdbs/pattern_generator_random
+        pdbs/pattern_generator
         pdbs/pattern_information
         pdbs/pdb_heuristic
+        pdbs/plugin_group
+        pdbs/random_pattern
+        pdbs/types
         pdbs/utils
         pdbs/validation
         pdbs/zero_one_pdbs
         pdbs/zero_one_pdbs_heuristic
     DEPENDS CAUSAL_GRAPH MAX_CLIQUES PRIORITY_QUEUES SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES VARIABLE_ORDER_FINDER
-)
-
-fast_downward_plugin(
-    NAME CEGAR_PDBS
-    HELP "Plugin containing the code for CEGAR PDBs"
-    SOURCES
-        pdbs/cegar/abstract_solution_data
-        pdbs/cegar/pattern_collection_generator_cegar
-        pdbs/cegar/pattern_collection_generator_fast_cegar
-    DEPENDS PDBS
 )
 
 fast_downward_plugin(
@@ -658,7 +795,7 @@ fast_downward_plugin(
     SOURCES
         probfd/bisimulation/bisimilar_state_space
         probfd/bisimulation/engine_interfaces
-    DEPENDS MDP MAS_HEURISTIC
+    DEPENDS MDP LEGACY_MAS_HEURISTIC
     DEPENDENCY_ONLY
 )
 

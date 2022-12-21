@@ -68,11 +68,11 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(OperatorCost cost_type)
     utils::HashSet<Pattern> pattern_set; // for checking if a pattern is
                                          // already in collection
 
-    size_t nvars = g_variable_domain.size();
+    size_t nvars = legacy::g_variable_domain.size();
     utils::RandomNumberGenerator rng(initial_random_seed);
 
     vector<int> goals;
-    for (auto& [goal_var, _] : g_goal) {
+    for (auto& [goal_var, _] : legacy::g_goal) {
         goals.push_back(goal_var);
     }
     rng.shuffle(goals);
@@ -95,7 +95,7 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(OperatorCost cost_type)
         int blacklist_size = 0;
         if (force_blacklisting || timer.get_elapsed_time() / total_time_limit >
                                       blacklist_trigger_time) {
-            blacklist_size = static_cast<int>(nvars * rng());
+            blacklist_size = static_cast<int>(nvars * rng.random());
             force_blacklisting = true;
         }
 

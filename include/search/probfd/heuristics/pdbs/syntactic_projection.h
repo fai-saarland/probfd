@@ -5,7 +5,7 @@
 
 #include "probfd/globals.h"
 
-#include "global_operator.h"
+#include "legacy/global_operator.h"
 
 #include <map>
 #include <vector>
@@ -46,7 +46,7 @@ public:
 
 std::vector<std::pair<int, int>> project_effects(
     const Pattern& pattern,
-    const std::vector<GlobalEffect>& effects);
+    const std::vector<legacy::GlobalEffect>& effects);
 
 ProjectionOperator
 project_operator(const Pattern& pattern, const ProbabilisticOperator& op);

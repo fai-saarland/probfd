@@ -1,17 +1,14 @@
 #include "operator_counting/pho_constraints.h"
 
+#include "option_parser.h"
+#include "plugin.h"
+
 #include "lp/lp_solver.h"
 
 #include "pdbs/pattern_database.h"
 #include "pdbs/pattern_generator.h"
 
 #include "utils/markup.h"
-
-#include "global_operator.h"
-#include "global_state.h"
-#include "globals.h"
-#include "option_parser.h"
-#include "plugin.h"
 
 #include <cassert>
 #include <limits>
@@ -27,39 +24,39 @@ PhOConstraints::PhOConstraints(const Options &opts)
 }
 
 void PhOConstraints::initialize_constraints(
-    OperatorCost cost_type,
-    named_vector::NamedVector<lp::LPConstraint>& constraints,
-    double infinity)
-{
+    const shared_ptr<AbstractTask> &task, lp::LinearProgram &lp) {
     assert(pattern_generator);
     pdbs::PatternCollectionInformation pattern_collection_info =
-        pattern_generator->generate(cost_type);
+        pattern_generator->generate(task);
     /*
       TODO issue590: Currently initialize_constraints should only be called
       once. When we separate constraint generators from constraints, we can
       create pattern_generator locally and no longer need to explicitly reset
       it.
     */
-    pattern_generator = nullptr;
     pdbs = pattern_collection_info.get_pdbs();
+    pattern_generator = nullptr;
+    TaskProxy task_proxy(*task);
+    named_vector::NamedVector<lp::LPConstraint> &constraints = lp.get_constraints();
     constraint_offset = constraints.size();
     for (const shared_ptr<pdbs::PatternDatabase> &pdb : *pdbs) {
-        constraints.emplace_back(0, infinity);
+        constraints.emplace_back(0, lp.get_infinity());
         lp::LPConstraint &constraint = constraints.back();
-        for (unsigned op_num = 0; op_num < g_operators.size(); op_num++) {
-            if (pdb->is_operator_relevant(g_operators[op_num])) {
-                constraint.insert(op_num, ::get_adjusted_action_cost(g_operators[op_num], cost_type));
+        for (OperatorProxy op : task_proxy.get_operators()) {
+            if (pdb->is_operator_relevant(op)) {
+                constraint.insert(op.get_id(), op.get_cost());
             }
         }
     }
 }
 
-bool PhOConstraints::update_constraints(const GlobalState &state,
+bool PhOConstraints::update_constraints(const State &state,
                                         lp::LPSolver &lp_solver) {
+    state.unpack();
     for (size_t i = 0; i < pdbs->size(); ++i) {
         int constraint_id = constraint_offset + i;
         shared_ptr<pdbs::PatternDatabase> pdb = (*pdbs)[i];
-        int h = pdb->get_value(state);
+        int h = pdb->get_value(state.get_unpacked_values());
         if (h == numeric_limits<int>::max()) {
             return true;
         }

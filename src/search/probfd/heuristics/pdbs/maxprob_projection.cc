@@ -11,7 +11,7 @@
 
 #include "utils/collections.h"
 
-#include "task_utils/successor_generator.h"
+#include "legacy/successor_generator.h"
 
 #include "lp/lp_solver.h"
 
@@ -77,7 +77,7 @@ MaxProbProjection::MaxProbProjection(
     bool operator_pruning)
     : MaxProbProjection(
           pdb.get_pattern(),
-          ::g_variable_domain,
+          legacy::g_variable_domain,
           operator_pruning,
           DeadendPDBEvaluator(pdb))
 {
@@ -89,7 +89,7 @@ MaxProbProjection::MaxProbProjection(
     bool operator_pruning)
     : ProbabilisticProjection(
           utils::insert(pdb.get_pattern(), add_var),
-          ::g_variable_domain,
+          legacy::g_variable_domain,
           operator_pruning,
           value_type::zero)
 {
@@ -97,8 +97,7 @@ MaxProbProjection::MaxProbProjection(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
 }
 
-void MaxProbProjection::compute_value_table(
-    const StateRankEvaluator& heuristic)
+void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
 {
     using namespace engine_interfaces;
     using namespace engines::interval_iteration;
@@ -158,7 +157,7 @@ void MaxProbProjection::compute_value_table(
 #endif
 }
 
-EvaluationResult MaxProbProjection::evaluate(const GlobalState& s) const
+EvaluationResult MaxProbProjection::evaluate(const legacy::GlobalState& s) const
 {
     return evaluate(get_abstract_state(s));
 }
@@ -306,9 +305,9 @@ void MaxProbProjection::dump_graphviz(
         out.precision(3);
         out << id.id;
 
-            if (utils::contains(dead_ends_, StateID(x.id))) {
+        if (utils::contains(dead_ends_, StateID(x.id))) {
             out << "\\nh = 0 (dead)";
-            } else {
+        } else {
             out << "\\nh = " << value_table[x.id];
         }
 
@@ -343,7 +342,8 @@ void MaxProbProjection::verify(
     type = lp::LPSolverType::SOPLEX;
 #else
     std::cerr << "Warning: Could not verify PDB value table since no LP solver"
-        "is available !" << std::endl;
+                 "is available !"
+              << std::endl;
     return;
 #endif
 
@@ -391,8 +391,7 @@ void MaxProbProjection::verify(
         for (const AbstractOperator* op : aops) {
             auto& constr = constraints.emplace_back(value_type::zero, inf);
 
-            std::unordered_map<StateRank, value_type::value_t>
-                successor_dist;
+            std::unordered_map<StateRank, value_type::value_t> successor_dist;
 
             for (const auto& [eff, prob] : op->outcomes) {
                 successor_dist[s + eff] -= prob;
@@ -430,8 +429,7 @@ void MaxProbProjection::verify(
 
     std::vector<double> solution = solver.extract_solution();
 
-    for (StateRank s(0); s.id != static_cast<int>(value_table.size());
-         ++s.id) {
+    for (StateRank s(0); s.id != static_cast<int>(value_table.size()); ++s.id) {
         if (utils::contains(seen, s)) {
             assert(value_type::approx_equal(
                 0.001)(solution[s.id], value_table[s.id]));

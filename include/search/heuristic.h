@@ -2,13 +2,16 @@
 #define HEURISTIC_H
 
 #include "evaluator.h"
-#include "operator_cost.h"
+#include "operator_id.h"
+#include "per_state_information.h"
+#include "task_proxy.h"
 
+#include "algorithms/ordered_set.h"
+
+#include <memory>
 #include <vector>
 
-class GlobalOperator;
-class GlobalState;
-class PartialState;
+class TaskProxy;
 
 namespace options {
 class OptionParser;
@@ -16,53 +19,75 @@ class Options;
 }
 
 class Heuristic : public Evaluator {
-    enum {NOT_INITIALIZED = -2};
-    int heuristic;
-    int evaluator_value; // usually equal to heuristic but can be different
-    // if set with set_evaluator_value which is done if we use precalculated
-    // estimates, eg. when re-opening a search node
+    struct HEntry {
+        /* dirty is conceptually a bool, but Visual C++ does not support
+           packing ints and bools together in a bitfield. */
+        int h : 31;
+        unsigned int dirty : 1;
 
-    std::vector<const GlobalOperator *> preferred_operators;
+        HEntry(int h, bool dirty)
+            : h(h), dirty(dirty) {
+        }
+    };
+    static_assert(sizeof(HEntry) == 4, "HEntry has unexpected size.");
+
+    /*
+      TODO: We might want to get rid of the preferred_operators
+      attribute. It is currently only used by compute_result() and the
+      methods it calls (compute_heuristic() directly, further methods
+      indirectly), and we could e.g. change this by having
+      compute_heuristic return an EvaluationResult object.
+
+      If we do this, we should be mindful of the cost incurred by not
+      being able to reuse the data structure from one iteration to the
+      next, but this seems to be the only potential downside.
+    */
+    ordered_set::OrderedSet<OperatorID> preferred_operators;
+
 protected:
-    OperatorCost cost_type;
-    enum {DEAD_END = -1};
-    virtual void initialize() {}
-    virtual int compute_heuristic(const GlobalState &state) = 0;
-    virtual int compute_heuristic(const PartialState& partial_state);
-    // Usage note: It's OK to set the same operator as preferred
-    // multiple times -- it will still only appear in the list of
-    // preferred operators for this heuristic once.
-    void set_preferred(const GlobalOperator *op);
-    int get_adjusted_cost(const GlobalOperator &op) const;
-    void ensure_initialized();
+    /*
+      Cache for saving h values
+      Before accessing this cache always make sure that the cache_evaluator_values
+      flag is set to true - as soon as the cache is accessed it will create
+      entries for all existing states
+    */
+    PerStateInformation<HEntry> heuristic_cache;
+    bool cache_evaluator_values;
+
+    // Hold a reference to the task implementation and pass it to objects that need it.
+    const std::shared_ptr<AbstractTask> task;
+    // Use task_proxy to access task information.
+    TaskProxy task_proxy;
+
+    enum {DEAD_END = -1, NO_VALUE = -2};
+
+    virtual int compute_heuristic(const State &ancestor_state) = 0;
+
+    /*
+      Usage note: Marking the same operator as preferred multiple times
+      is OK -- it will only appear once in the list of preferred
+      operators for this heuristic.
+    */
+    void set_preferred(const OperatorProxy &op);
+
+    State convert_ancestor_state(const State &ancestor_state) const;
+
 public:
-    Heuristic(const options::Options &options);
-    virtual ~Heuristic();
+    explicit Heuristic(const options::Options &opts);
+    virtual ~Heuristic() override;
 
-    void evaluate(const GlobalState &state);
-    void evaluate(const PartialState& partial_state);
-    bool is_dead_end() const;
-    int get_heuristic();
-    // changed to virtual, so HeuristicProxy can delegate this:
-    virtual bool supports_partial_state_evaluation() const;
-    virtual void get_preferred_operators(std::vector<const GlobalOperator *> &result);
-    virtual bool dead_ends_are_reliable() const {return true; }
-    virtual bool reach_state(const GlobalState &parent_state, const GlobalOperator &op,
-                             const GlobalState &state);
-
-    // virtual methods inherited from Evaluator and Evaluator:
-    virtual int get_value() const;
-    virtual void evaluate(int g, bool preferred);
-    virtual bool dead_end_is_reliable() const;
-    virtual void get_involved_heuristics(std::set<Heuristic *> &hset) {hset.insert(this); }
-
-    void set_evaluator_value(int val);
-    OperatorCost get_cost_type() const {return cost_type; }
-
-    virtual void print_statistics() const {}
+    virtual void get_path_dependent_evaluators(
+        std::set<Evaluator *> & /*evals*/) override {
+    }
 
     static void add_options_to_parser(options::OptionParser &parser);
-    static options::Options default_options();
+
+    virtual EvaluationResult compute_result(
+        EvaluationContext &eval_context) override;
+
+    virtual bool does_cache_estimates() const override;
+    virtual bool is_estimate_cached(const State &state) const override;
+    virtual int get_cached_estimate(const State &state) const override;
 };
 
 #endif
