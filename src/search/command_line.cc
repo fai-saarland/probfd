@@ -1,31 +1,15 @@
 #include "command_line.h"
 
+#include "option_parser.h"
+#include "plan_manager.h"
+#include "search_engine.h"
+
 #include "options/doc_printer.h"
 #include "options/predefinitions.h"
 #include "options/registries.h"
-
-#include "utils/rng.h"
 #include "utils/strings.h"
-#include "utils/timer.h"
-
-#include "probfd/analysis_objectives/expected_cost_objective.h"
-#include "probfd/analysis_objectives/goal_probability_objective.h"
-#include "probfd/globals.h"
-#include "probfd/solver_interface.h"
-#include "probfd/value_type.h"
-
-#include "global_operator.h"
-#include "globals.h"
-#include "operator_cost.h"
-#include "option_parser.h"
-#include "search_engine.h"
-
-#include "task_utils/causal_graph.h"
-#include "task_utils/successor_generator.h"
-
 
 #include <algorithm>
-#include <limits>
 #include <vector>
 
 using namespace std;
@@ -60,18 +44,7 @@ static int parse_int_arg(const string& name, const string& value)
     }
 }
 
-static double parse_double_arg(const string& name, const string& value)
-{
-    try {
-        return stod(value);
-    } catch (invalid_argument&) {
-        throw ArgError("argument for " + name + " must be a number");
-    } catch (out_of_range&) {
-        throw ArgError("argument for " + name + " is out of range");
-    }
-}
-
-static std::shared_ptr<SearchEngine> parse_cmd_line_aux(
+static shared_ptr<SearchEngine> parse_cmd_line_aux(
     const vector<string>& args,
     options::Registry& registry,
     bool dry_run)
@@ -81,7 +54,7 @@ static std::shared_ptr<SearchEngine> parse_cmd_line_aux(
     bool is_part_of_anytime_portfolio = false;
     options::Predefinitions predefinitions;
 
-    std::shared_ptr<SearchEngine> engine;
+    shared_ptr<SearchEngine> engine;
     /*
       Note that we don’t sanitize all arguments beforehand because filenames
       should remain as-is (no conversion to lower-case, no conversion of
@@ -99,7 +72,7 @@ static std::shared_ptr<SearchEngine> parse_cmd_line_aux(
                 registry,
                 predefinitions,
                 dry_run);
-            engine = parser.start_parsing<std::shared_ptr<SearchEngine>>();
+            engine = parser.start_parsing<shared_ptr<SearchEngine>>();
         } else if (arg == "--help" && dry_run) {
             cout << "Help:" << endl;
             bool txt2tags = false;
@@ -170,7 +143,7 @@ static std::shared_ptr<SearchEngine> parse_cmd_line_aux(
     return engine;
 }
 
-std::shared_ptr<SearchEngine> parse_cmd_line(
+shared_ptr<SearchEngine> parse_cmd_line(
     int argc,
     const char** argv,
     options::Registry& registry,
@@ -179,12 +152,6 @@ std::shared_ptr<SearchEngine> parse_cmd_line(
 {
     vector<string> args;
     bool active = true;
-
-    bool build_causal_graph = true;
-    bool build_successor_generator = true;
-
-    bool expected_cost = false;
-
     for (int i = 1; i < argc; ++i) {
         string arg = sanitize_arg_string(argv[i]);
 
@@ -194,135 +161,12 @@ std::shared_ptr<SearchEngine> parse_cmd_line(
             active = !is_unit_cost;
         } else if (arg == "--always") {
             active = true;
-        } else if (
-            arg == "--horizon" || arg == "--budget" || arg == "--step-bound") {
-            active = true;
-            if (i + 1 == argc) {
-                throw ArgError("missing argument after " + arg);
-            }
-            const std::string budget = argv[++i];
-            if (budget != "infinity") {
-                probfd::g_step_bound = parse_int_arg(arg, budget);
-                probfd::g_steps_bounded = true;
-                if (probfd::g_step_bound < 0) {
-                    throw ArgError("budget must be non-negative");
-                }
-            }
-        } else if (arg == "--step-cost-type" || arg == "--budget-cost-type") {
-            active = true;
-            if (i + 1 == argc) {
-                throw ArgError("missing argument after " + arg);
-            }
-            string type = sanitize_arg_string(argv[++i]);
-            if (type == "normal") {
-                probfd::g_step_cost_type = NORMAL;
-            } else if (type == "one") {
-                probfd::g_step_cost_type = ONE;
-            } else if (type == "plusone") {
-                probfd::g_step_cost_type = PLUSONE;
-            } else if (type == "zero") {
-                probfd::g_step_cost_type = ZERO;
-            } else if (type == "minone") {
-                probfd::g_step_cost_type = MINONE;
-            } else {
-                throw ArgError("unknown operator cost type " + type);
-            }
-        } else if (arg == "-d" || arg == "--define") {
-            active = true;
-            if (i + 1 < argc) {
-                string defs = sanitize_arg_string(argv[i + 1]);
-                size_t j = defs.find(',');
-                while (true) {
-                    string def = defs.substr(0, j);
-                    if (def == "no_cg") {
-                        build_causal_graph = false;
-                    } else if (def == "no_sg") {
-                        build_successor_generator = false;
-                    } else {
-                        throw ArgError("Unknown define " + def);
-                    }
-                    if (j == string::npos) {
-                        break;
-                    }
-                    defs = defs.substr(j + 1, string::npos);
-                    j = defs.find(',');
-                }
-                i++;
-            }
-        } else if (arg == "--seed") {
-            active = true;
-            if (i + 1 == argc) {
-                throw ArgError("missing argument after " + arg);
-            }
-            int seed = parse_int_arg(arg, argv[i + 1]);
-            cout << "Setting RNG seed: " << seed << endl;
-            g_rng.seed(seed);
-            ++i;
-        } else if (arg == "--epsilon") {
-            active = true;
-            if (i + 1 == argc) {
-                throw ArgError("missing argument after " + arg);
-            }
-            probfd::value_type::g_epsilon = parse_double_arg(arg, argv[i + 1]);
-            ++i;
-        } else if (arg == "--property") {
-            active = true;
-            if (i + 1 == argc) {
-                throw ArgError("missing argument after " + arg);
-            }
-            string prop = sanitize_arg_string(argv[i + 1]);
-            if (prop == "maxprob") {
-            } else if (prop == "expcost") {
-                expected_cost = true;
-            } else {
-                throw ArgError("unknown property " + prop);
-            }
-            ++i;
         } else if (active) {
             // We use the unsanitized arguments because sanitizing is
             // inappropriate for things like filenames.
             args.push_back(argv[i]);
         }
     }
-
-    if (!dry_run) {
-        if (build_causal_graph) {
-            cout << "building causal graph..." << flush;
-            g_causal_graph = new causal_graph::CausalGraph;
-            cout << "done! [t=" << utils::g_timer << "]" << endl;
-        }
-
-        if (build_successor_generator) {
-            cout << "building successor generator..." << flush;
-            successor_generator::g_successor_generator =
-                std::make_shared<successor_generator::SuccessorGenerator<
-                    const GlobalOperator*>>();
-            cout << "done! [t=" << utils::g_timer << "]" << endl;
-        }
-        // if (expected_cost) {
-        //     probfd::g_property =
-        //         std::make_shared<probfd::properties::ExpectedCost>(
-        //                 probfd::OptimizationObjective::Minimize,
-        //                 probfd::g_step_cost_type,
-        //                 probfd::value_type::from_double(give_up_cost));
-        // }
-
-        std::shared_ptr<probfd::analysis_objectives::AnalysisObjective> obj =
-            nullptr;
-        if (expected_cost) {
-            obj = std::make_shared<
-                probfd::analysis_objectives::ExpectedCostObjective>();
-            std::cout << "expected cost analysis." << std::endl;
-        } else {
-            obj = std::make_shared<
-                probfd::analysis_objectives::GoalProbabilityObjective>();
-            std::cout << "max goal prob analysis." << std::endl;
-        }
-
-        probfd::prepare_globals(obj);
-        probfd::print_task_info();
-    }
-
     return parse_cmd_line_aux(args, registry, dry_run);
 }
 
@@ -351,5 +195,5 @@ string usage(const string& progname)
            "    plan files FILENAME.1 up to FILENAME.COUNTER.\n"
            "    Start enumerating plan files with COUNTER+1, i.e. "
            "FILENAME.COUNTER+1\n\n"
-           "See http://www.fast-downward.org/ for details.";
+           "See https://www.fast-downward.org for details.";
 }

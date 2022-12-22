@@ -19,7 +19,8 @@ using namespace std;
 using utils::ExitCode;
 
 namespace tasks {
-static const int PRE_FILE_VERSION = 3;
+static const auto PRE_FILE_VERSION = "3";
+static const auto PRE_FILE_PROB_VERSION = "3P";
 shared_ptr<AbstractTask> g_root_task = nullptr;
 
 struct ExplicitVariable {
@@ -220,11 +221,11 @@ ExplicitOperator::ExplicitOperator(istream &in, bool is_an_axiom, bool use_metri
 }
 
 void read_and_verify_version(istream &in) {
-    int version;
+    std::string version;
     check_magic(in, "begin_version");
     in >> version;
     check_magic(in, "end_version");
-    if (version != PRE_FILE_VERSION) {
+    if (version != PRE_FILE_VERSION && version != PRE_FILE_PROB_VERSION) {
         cerr << "Expected translator output file version " << PRE_FILE_VERSION
              << ", got " << version << "." << endl
              << "Exiting." << endl;

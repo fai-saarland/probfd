@@ -1,10 +1,11 @@
 #include "command_line.h"
-#include "globals.h"
 #include "option_parser.h"
+#include "search_engine.h"
 
 #include "options/registries.h"
+#include "task_utils/task_properties.h"
+#include "tasks/root_task.h"
 
-#include "search_engine.h"
 
 #include "utils/logging.h"
 #include "utils/system.h"
@@ -23,14 +24,19 @@ int main(int argc, const char **argv) {
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    if (string(argv[1]).compare("--help") != 0)
-        read_everything(cin);
+    bool unit_cost = false;
+    if (static_cast<string>(argv[1]) != "--help") {
+        utils::g_log << "reading input..." << endl;
+        tasks::read_root_task(cin);
+        utils::g_log << "done reading input!" << endl;
+        TaskProxy task_proxy(*tasks::g_root_task);
+        unit_cost = task_properties::is_unit_cost(task_proxy);
+    }
 
     shared_ptr<SearchEngine> engine;
 
     // The command line is parsed twice: once in dry-run mode, to
     // check for simple input errors, and then in normal mode.
-    bool unit_cost = is_unit_cost();
     try {
         options::Registry registry(*options::RawRegistry::instance());
         parse_cmd_line(argc, argv, registry, true, unit_cost);
@@ -48,14 +54,14 @@ int main(int argc, const char **argv) {
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    utils::g_search_timer.resume();
+    utils::Timer search_timer;
     engine->search();
-    utils::g_search_timer.stop();
+    search_timer.stop();
     utils::g_timer.stop();
 
     engine->save_plan_if_necessary();
     engine->print_statistics();
-    utils::g_log << "Search time: " << utils::g_search_timer << endl;
+    utils::g_log << "Search time: " << search_timer << endl;
     utils::g_log << "Total time: " << utils::g_timer << endl;
 
     ExitCode exitcode = engine->found_solution()

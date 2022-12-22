@@ -12,6 +12,10 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 
+#include "task_proxy.h"
+#include "task_utils/task_properties.h"
+#include "tasks/root_task.h"
+
 #include <iostream>
 
 using namespace std;
@@ -28,13 +32,24 @@ int main(int argc, const char** argv)
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    if (string(argv[1]).compare("--help") != 0) legacy::read_everything(cin);
+    bool unit_cost = false;
+    if (static_cast<string>(argv[1]) != "--help") {
+        utils::g_log << "reading input..." << endl;
+        tasks::read_root_task(cin);
+        utils::g_log << "done reading input!" << endl;
+        TaskProxy task_proxy(*tasks::g_root_task);
+        unit_cost = task_properties::is_unit_cost(task_proxy);
+
+        cin.clear();
+        cin.seekg(0);
+
+        legacy::read_everything(cin);
+    }
 
     shared_ptr<SolverInterface> engine;
 
     // The command line is parsed twice: once in dry-run mode, to
     // check for simple input errors, and then in normal mode.
-    bool unit_cost = legacy::is_unit_cost();
     try {
         options::Registry registry(*options::RawRegistry::instance());
         parse_cmd_line(argc, argv, registry, true, unit_cost);
