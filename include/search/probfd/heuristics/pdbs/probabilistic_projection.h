@@ -36,7 +36,7 @@ protected:
     std::unordered_set<AbstractState> goal_states_;
     std::vector<AbstractOperator> abstract_operators_;
 
-    std::shared_ptr<MatchTree> match_tree_;
+    MatchTree match_tree_;
 
     std::vector<StateID> dead_ends_;
 
@@ -91,7 +91,6 @@ protected:
 
         TransitionGenerator<const AbstractOperator*> transition_gen(
             state_id_map,
-            state_mapper_,
             match_tree_);
 
         std::ofstream out(path);

@@ -138,7 +138,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        match_tree_->get_applicable_operators(s, aops);
+        match_tree_.get_applicable_operators(s, aops);
 
         if (aops.empty()) {
             assert(value == -value_type::inf);
@@ -253,7 +253,6 @@ void ExpCostProjection::compute_value_table(
 
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map,
-        state_mapper_,
         match_tree_);
 
     QualitativeReachabilityAnalysis<AbstractState, const AbstractOperator*>
@@ -346,7 +345,7 @@ void ExpCostProjection::verify(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        match_tree_->get_applicable_operators(s, aops);
+        match_tree_.get_applicable_operators(s, aops);
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {

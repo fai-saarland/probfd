@@ -112,7 +112,6 @@ void MaxProbProjection::compute_value_table(
 
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map,
-        state_mapper_,
         match_tree_);
 
     IntervalIteration<AbstractState, const AbstractOperator*> vi(
@@ -204,7 +203,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        match_tree_->get_applicable_operators(s, aops);
+        match_tree_.get_applicable_operators(s, aops);
 
         // Select the greedy operators and add their successors
         for (const AbstractOperator* op : aops) {
@@ -257,7 +256,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
                 // Collect all equivalent greedy operators
                 std::vector<const AbstractOperator*> aops;
-                match_tree_->get_applicable_operators(pstate, aops);
+                match_tree_.get_applicable_operators(pstate, aops);
 
                 std::vector<const AbstractOperator*> equivalent_operators;
 
@@ -370,7 +369,7 @@ void MaxProbProjection::verify(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        match_tree_->get_applicable_operators(s, aops);
+        match_tree_.get_applicable_operators(s, aops);
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {

@@ -75,8 +75,7 @@ class TransitionGenerator<const heuristics::pdbs::AbstractOperator*> {
 public:
     explicit TransitionGenerator(
         StateIDMap<heuristics::pdbs::AbstractState>& id_map,
-        std::shared_ptr<heuristics::pdbs::AbstractStateMapper> state_mapper,
-        std::shared_ptr<heuristics::pdbs::MatchTree> aops_gen);
+        const heuristics::pdbs::MatchTree& aops_gen);
 
     void operator()(
         const StateID& state,
@@ -94,8 +93,7 @@ public:
 
 private:
     StateIDMap<heuristics::pdbs::AbstractState>& id_map_;
-    std::shared_ptr<heuristics::pdbs::AbstractStateMapper> state_mapper_;
-    std::shared_ptr<heuristics::pdbs::MatchTree> aops_gen_;
+    const heuristics::pdbs::MatchTree& aops_gen_;
 };
 
 } // namespace engine_interfaces

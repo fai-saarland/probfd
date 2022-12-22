@@ -96,6 +96,7 @@ ProbabilisticProjection::ProbabilisticProjection(
     bool operator_pruning)
     : state_mapper_(mapper)
     , initial_state_((*state_mapper_)(::g_initial_state_data))
+    , match_tree_(state_mapper_->get_pattern(), state_mapper_)
     , value_table(state_mapper_->num_states())
 {
     setup_abstract_goal();
@@ -312,12 +313,9 @@ void ProbabilisticProjection::build_operators(bool operator_pruning)
     assert(abstract_operators_.size() == progression_preconditions.size());
     assert(opptrs.size() == progression_preconditions.size());
 
-    match_tree_.reset(
-        new MatchTree(state_mapper_->get_pattern(), state_mapper_));
-
     // build the match tree
     for (size_t op_id = 0; op_id < abstract_operators_.size(); ++op_id) {
-        match_tree_->insert(
+        match_tree_.insert(
             &abstract_operators_[op_id],
             progression_preconditions[op_id]);
     }
