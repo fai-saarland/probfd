@@ -790,6 +790,14 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME CORE_PROBABILISTIC_TASKS
+    HELP "Core probabilistic task transformations"
+    SOURCES
+        probfd/tasks/root_task
+    CORE_PLUGIN
+)
+
+fast_downward_plugin(
     NAME BISIMULATION_CORE
     HELP "bisimulation_core"
     SOURCES
