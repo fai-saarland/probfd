@@ -73,12 +73,9 @@ const AbstractOperator* ActionIDMap<const AbstractOperator*>::get_action(
 TransitionGenerator<const AbstractOperator*>::TransitionGenerator(
     StateIDMap<AbstractState>& id_map,
     std::shared_ptr<AbstractStateMapper> state_mapper,
-    std::shared_ptr<
-        successor_generator::SuccessorGenerator<const AbstractOperator*>>
-        aops_gen)
+    std::shared_ptr<MatchTree> aops_gen)
     : id_map_(id_map)
     , state_mapper_(state_mapper)
-    , values_(state_mapper->get_pattern().size(), 0)
     , aops_gen_(aops_gen)
 {
 }
@@ -88,8 +85,7 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
     std::vector<const AbstractOperator*>& aops)
 {
     AbstractState abstract_state = id_map_.get_state(sid);
-    state_mapper_->to_values(abstract_state, values_);
-    aops_gen_->generate_applicable_ops(values_, aops);
+    aops_gen_->get_applicable_operators(abstract_state, aops);
 }
 
 void TransitionGenerator<const AbstractOperator*>::operator()(
@@ -110,8 +106,7 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
     std::vector<Distribution<StateID>>& result)
 {
     AbstractState abstract_state = id_map_.get_state(state);
-    state_mapper_->to_values(abstract_state, values_);
-    aops_gen_->generate_applicable_ops(values_, aops);
+    aops_gen_->get_applicable_operators(abstract_state, aops);
     result.resize(aops.size());
     for (int i = aops.size() - 1; i >= 0; --i) {
         const AbstractOperator* op = aops[i];

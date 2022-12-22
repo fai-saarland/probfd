@@ -4,6 +4,7 @@
 #include "probfd/heuristics/pdbs/abstract_operator.h"
 #include "probfd/heuristics/pdbs/abstract_state_mapper.h"
 #include "probfd/heuristics/pdbs/engine_interfaces.h"
+#include "probfd/heuristics/pdbs/match_tree.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/utils/graph_visualization.h"
@@ -17,11 +18,6 @@
 #include <string>
 #include <vector>
 
-namespace successor_generator {
-template <typename T>
-class SuccessorGenerator;
-}
-
 namespace probfd {
 
 class AnalysisObjective;
@@ -30,17 +26,17 @@ namespace heuristics {
 
 namespace pdbs {
 
+class MatchTree;
+
 class ProbabilisticProjection {
 protected:
-    using ProgressionSuccessorGenerator =
-        successor_generator::SuccessorGenerator<const AbstractOperator*>;
-
     std::shared_ptr<AbstractStateMapper> state_mapper_;
 
     AbstractState initial_state_;
     std::unordered_set<AbstractState> goal_states_;
     std::vector<AbstractOperator> abstract_operators_;
-    std::shared_ptr<ProgressionSuccessorGenerator> progression_aops_generator_;
+
+    std::shared_ptr<MatchTree> match_tree_;
 
     std::vector<StateID> dead_ends_;
 
@@ -96,7 +92,7 @@ protected:
         TransitionGenerator<const AbstractOperator*> transition_gen(
             state_id_map,
             state_mapper_,
-            progression_aops_generator_);
+            match_tree_);
 
         std::ofstream out(path);
 

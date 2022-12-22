@@ -312,11 +312,15 @@ void ProbabilisticProjection::build_operators(bool operator_pruning)
     assert(abstract_operators_.size() == progression_preconditions.size());
     assert(opptrs.size() == progression_preconditions.size());
 
-    // Build applicable operator generators
-    progression_aops_generator_.reset(new ProgressionSuccessorGenerator(
-        state_mapper_->domains_begin(),
-        progression_preconditions,
-        opptrs));
+    match_tree_.reset(
+        new MatchTree(state_mapper_->get_pattern(), state_mapper_));
+
+    // build the match tree
+    for (size_t op_id = 0; op_id < abstract_operators_.size(); ++op_id) {
+        match_tree_->insert(
+            &abstract_operators_[op_id],
+            progression_preconditions[op_id]);
+    }
 }
 
 } // namespace pdbs

@@ -3,6 +3,7 @@
 
 #include "probfd/heuristics/pdbs/abstract_operator.h"
 #include "probfd/heuristics/pdbs/abstract_state_mapper.h"
+#include "probfd/heuristics/pdbs/match_tree.h"
 
 #include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/reward_function.h"
@@ -75,8 +76,7 @@ public:
     explicit TransitionGenerator(
         StateIDMap<heuristics::pdbs::AbstractState>& id_map,
         std::shared_ptr<heuristics::pdbs::AbstractStateMapper> state_mapper,
-        std::shared_ptr<successor_generator::SuccessorGenerator<
-            const heuristics::pdbs::AbstractOperator*>> aops_gen);
+        std::shared_ptr<heuristics::pdbs::MatchTree> aops_gen);
 
     void operator()(
         const StateID& state,
@@ -95,10 +95,7 @@ public:
 private:
     StateIDMap<heuristics::pdbs::AbstractState>& id_map_;
     std::shared_ptr<heuristics::pdbs::AbstractStateMapper> state_mapper_;
-    std::vector<int> values_;
-    std::shared_ptr<successor_generator::SuccessorGenerator<
-        const heuristics::pdbs::AbstractOperator*>>
-        aops_gen_;
+    std::shared_ptr<heuristics::pdbs::MatchTree> aops_gen_;
 };
 
 } // namespace engine_interfaces

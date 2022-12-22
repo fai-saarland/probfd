@@ -1,5 +1,7 @@
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 
+#include "probfd/heuristics/pdbs/match_tree.h"
+
 #include "probfd/end_components/qualitative_reachability_analysis.h"
 
 #include "probfd/engines/topological_value_iteration.h"
@@ -135,10 +137,8 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
         const value_type::value_t value = value_table[s.id];
 
         // Generate operators...
-        auto facts = state_mapper_->to_values(s);
-
         std::vector<const AbstractOperator*> aops;
-        progression_aops_generator_->generate_applicable_ops(facts, aops);
+        match_tree_->get_applicable_operators(s, aops);
 
         if (aops.empty()) {
             assert(value == -value_type::inf);
@@ -254,7 +254,7 @@ void ExpCostProjection::compute_value_table(
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map,
         state_mapper_,
-        progression_aops_generator_);
+        match_tree_);
 
     QualitativeReachabilityAnalysis<AbstractState, const AbstractOperator*>
         analysis(&state_id_map, &action_id_map, &reward, &transition_gen, true);
@@ -345,10 +345,8 @@ void ExpCostProjection::verify(
         visited.erase(StateID(s.id));
 
         // Generate operators...
-        auto facts = state_mapper_->to_values(s);
-
         std::vector<const AbstractOperator*> aops;
-        progression_aops_generator_->generate_applicable_ops(facts, aops);
+        match_tree_->get_applicable_operators(s, aops);
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {

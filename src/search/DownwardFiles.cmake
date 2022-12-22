@@ -763,6 +763,7 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/abstract_state
         probfd/heuristics/pdbs/abstract_state_mapper
         probfd/heuristics/pdbs/engine_interfaces
+        probfd/heuristics/pdbs/match_tree
         probfd/heuristics/pdbs/orthogonality
         probfd/heuristics/pdbs/probabilistic_projection
         probfd/heuristics/pdbs/syntactic_projection
