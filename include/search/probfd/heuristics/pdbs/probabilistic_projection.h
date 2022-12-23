@@ -19,11 +19,7 @@
 #include <vector>
 
 namespace probfd {
-
-class AnalysisObjective;
-
 namespace heuristics {
-
 namespace pdbs {
 
 class MatchTree;
@@ -49,7 +45,7 @@ protected:
     std::vector<StateID> dead_ends_;
     std::vector<value_type::value_t> value_table;
 
-public:
+protected:
     ProbabilisticProjection(
         const Pattern& pattern,
         const std::vector<int>& domains,
@@ -59,6 +55,7 @@ public:
         AbstractStateMapper* mapper,
         bool operator_pruning = true);
 
+public:
     std::shared_ptr<AbstractStateMapper> get_abstract_state_mapper() const;
 
     unsigned int num_states() const;
@@ -111,7 +108,7 @@ protected:
             ats,
             nullptr,
             true);
-    }
+        }
 };
 
 } // namespace pdbs
