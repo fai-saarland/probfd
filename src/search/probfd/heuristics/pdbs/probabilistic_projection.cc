@@ -100,7 +100,106 @@ ProbabilisticProjection::ProbabilisticProjection(
     , value_table(state_mapper_->num_states())
 {
     setup_abstract_goal();
-    build_operators(operator_pruning);
+
+    abstract_operators_.reserve(g_operators.size());
+
+    std::set<ProgressionOperatorFootprint> duplicate_set;
+
+    std::vector<int> pdb_indices(::g_variable_domain.size(), -1);
+
+    for (size_t i = 0; i < state_mapper_->get_pattern().size(); ++i) {
+        pdb_indices[state_mapper_->get_pattern()[i]] = i;
+    }
+
+    // Generate the abstract operators for each probabilistic operator
+    for (const ProbabilisticOperator& op : g_operators) {
+        const int operator_id = op.get_id();
+        const int reward = op.get_reward();
+
+        // Precondition partial state and partial state to enumerate
+        // effect values not appearing in precondition
+        auto view =
+            utils::common(pdb_view(op.get_preconditions(), pdb_indices));
+        PartialAssignment local_precondition(view.begin(), view.end());
+        PartialAssignment vars_eff_not_pre;
+
+        // Info about each probabilistic outcome
+        Distribution<OutcomeInfo> outcomes;
+
+        // Collect info about the outcomes
+        for (const ProbabilisticOutcome& out : op) {
+            OutcomeInfo info;
+
+            for (const auto& [var, val] :
+                 pdb_view(out.effects(), pdb_indices)) {
+                auto beg = utils::make_key_iterator(local_precondition.begin());
+                auto end = utils::make_key_iterator(local_precondition.end());
+                auto pre_it = utils::find_sorted(beg, end, var);
+
+                int val_change = val;
+
+                if (pre_it == local_precondition.end()) {
+                    vars_eff_not_pre.emplace_back(var, 0);
+                    info.missing_pres.push_back(var);
+                } else {
+                    val_change -= pre_it.base->second;
+                }
+
+                info.base_effect += state_mapper_->from_fact(var, val_change);
+            }
+
+            outcomes.add_unique(std::move(info), out.prob);
+        }
+
+        utils::sort_unique(vars_eff_not_pre);
+
+        // We enumerate all values for variables that are not part of
+        // the precondition but in an effect. Depending on the value of the
+        // variable, the value change caused by the abstract operator would be
+        // different, hence we generate on operator for each state where
+        // enabled.
+        auto ran =
+            state_mapper_->partial_assignments(std::move(vars_eff_not_pre));
+
+        for (const PartialAssignment& values : ran) {
+            // Generate the progression operator
+            AbstractOperator new_op(operator_id, reward);
+
+            for (const auto& [info, prob] : outcomes) {
+                const auto& [base_effect, missing_pres] = info;
+                auto a =
+                    state_mapper_->from_values_partial(missing_pres, values);
+
+                new_op.outcomes.add_unique(base_effect - a, prob);
+            }
+
+            // Construct the precondition by merging the original precondition
+            // partial state with the partial state for the non-precondition
+            // effects of this iteration
+            PartialAssignment precondition;
+            precondition.reserve(local_precondition.size() + values.size());
+
+            std::merge(
+                local_precondition.begin(),
+                local_precondition.end(),
+                values.begin(),
+                values.end(),
+                std::back_inserter(precondition));
+
+            if (operator_pruning) {
+                // Generate a hash for the precondition to check for duplicates
+                const long long int pre_hash =
+                    state_mapper_->get_unique_partial_state_id(precondition);
+                if (!duplicate_set.emplace(pre_hash, new_op).second) {
+                    continue;
+                }
+            }
+
+            // Now add the progression operators to the match tree
+            auto& aop = abstract_operators_.emplace_back(std::move(new_op));
+            match_tree_.insert(&aop, precondition);
+        }
+    }
 }
 
 std::shared_ptr<AbstractStateMapper>
@@ -198,126 +297,6 @@ void ProbabilisticProjection::setup_abstract_goal()
 
     for (const auto& g : goals) {
         goal_states_.insert(g);
-    }
-}
-
-void ProbabilisticProjection::build_operators(bool operator_pruning)
-{
-    abstract_operators_.reserve(g_operators.size());
-
-    std::vector<PartialAssignment> progression_preconditions;
-    progression_preconditions.reserve(g_operators.size());
-
-    std::set<ProgressionOperatorFootprint> duplicate_set;
-
-    std::vector<int> pdb_indices(::g_variable_domain.size(), -1);
-
-    for (size_t i = 0; i < state_mapper_->get_pattern().size(); ++i) {
-        pdb_indices[state_mapper_->get_pattern()[i]] = i;
-    }
-
-    std::vector<const AbstractOperator*> opptrs;
-    opptrs.reserve(abstract_operators_.size());
-
-    // Generate the abstract operators for each probabilistic operator
-    for (const ProbabilisticOperator& op : g_operators) {
-        const int operator_id = op.get_id();
-        const int reward = op.get_reward();
-
-        // Precondition partial state and partial state to enumerate
-        // effect values not appearing in precondition
-        auto view =
-            utils::common(pdb_view(op.get_preconditions(), pdb_indices));
-        PartialAssignment local_precondition(view.begin(), view.end());
-        PartialAssignment vars_eff_not_pre;
-
-        // Info about each probabilistic outcome
-        Distribution<OutcomeInfo> outcomes;
-
-        // Collect info about the outcomes
-        for (const ProbabilisticOutcome& out : op) {
-            OutcomeInfo info;
-
-            for (const auto& [var, val] :
-                 pdb_view(out.effects(), pdb_indices)) {
-                auto beg = utils::make_key_iterator(local_precondition.begin());
-                auto end = utils::make_key_iterator(local_precondition.end());
-                auto pre_it = utils::find_sorted(beg, end, var);
-
-                int val_change = val;
-
-                if (pre_it == local_precondition.end()) {
-                    vars_eff_not_pre.emplace_back(var, 0);
-                    info.missing_pres.push_back(var);
-                } else {
-                    val_change -= pre_it.base->second;
-                }
-
-                info.base_effect += state_mapper_->from_fact(var, val_change);
-            }
-
-            outcomes.add_unique(std::move(info), out.prob);
-        }
-
-        utils::sort_unique(vars_eff_not_pre);
-
-        // We enumerate all values for variables that are not part of
-        // the precondition but in an effect. Depending on the value of the
-        // variable, the value change caused by the abstract operator would be
-        // different, hence we generate on operator for each state where
-        // enabled.
-        auto ran =
-            state_mapper_->partial_assignments(std::move(vars_eff_not_pre));
-
-        for (const PartialAssignment& values : ran) {
-            // Generate the progression operator
-            AbstractOperator new_op(operator_id, reward);
-
-            for (const auto& [info, prob] : outcomes) {
-                const auto& [base_effect, missing_pres] = info;
-                auto a =
-                    state_mapper_->from_values_partial(missing_pres, values);
-
-                new_op.outcomes.add_unique(base_effect - a, prob);
-            }
-
-            // Construct the precondition by merging the original precondition
-            // partial state with the partial state for the non-precondition
-            // effects of this iteration
-            PartialAssignment precondition;
-            precondition.reserve(local_precondition.size() + values.size());
-
-            std::merge(
-                local_precondition.begin(),
-                local_precondition.end(),
-                values.begin(),
-                values.end(),
-                std::back_inserter(precondition));
-
-            if (operator_pruning) {
-                // Generate a hash for the precondition to check for duplicates
-                const long long int pre_hash =
-                    state_mapper_->get_unique_partial_state_id(precondition);
-                if (!duplicate_set.emplace(pre_hash, new_op).second) {
-                    continue;
-                }
-            }
-
-            // Now add the progression operators.
-            progression_preconditions.push_back(std::move(precondition));
-            auto& aop = abstract_operators_.emplace_back(std::move(new_op));
-            opptrs.push_back(&aop);
-        }
-    }
-
-    assert(abstract_operators_.size() == progression_preconditions.size());
-    assert(opptrs.size() == progression_preconditions.size());
-
-    // build the match tree
-    for (size_t op_id = 0; op_id < abstract_operators_.size(); ++op_id) {
-        match_tree_.insert(
-            &abstract_operators_[op_id],
-            progression_preconditions[op_id]);
     }
 }
 

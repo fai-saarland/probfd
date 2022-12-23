@@ -109,7 +109,6 @@ protected:
 
 private:
     void setup_abstract_goal();
-    void build_operators(bool operator_pruning);
 };
 
 } // namespace pdbs
