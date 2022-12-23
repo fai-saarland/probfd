@@ -194,13 +194,12 @@ AbstractStateMapper::AbstractStateMapper(
     const int d = domains[last_info.var];
     last_info.domain = d;
 
-    if (last_info.partial_multiplier > maxint / (d + 1)) {
+    if (last_info.multiplier > maxint / d) {
         throw std::range_error("Construction of PDB would exceed "
                                "std::numeric_limits<long long int>::max()");
     }
 
     num_states_ = last_info.multiplier * d;
-    num_partial_states_ = last_info.partial_multiplier * (d + 1);
 }
 
 unsigned AbstractStateMapper::num_states() const

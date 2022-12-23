@@ -184,7 +184,6 @@ private:
     Pattern pattern_;
     std::vector<VariableInfo> var_infos_;
     long long int num_states_;
-    long long int num_partial_states_;
 };
 
 class AbstractStateToString {
