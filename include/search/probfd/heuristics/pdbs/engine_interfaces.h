@@ -160,14 +160,18 @@ protected:
     EvaluationResult evaluate(const AbstractState& state) const override;
 };
 
-template <typename Container>
-class ZeroCostAbstractRewardFunction : public AbstractRewardFunction {
+class BaseAbstractRewardFunction : public AbstractRewardFunction {
+protected:
+    const std::vector<bool>& goal_state_flags_;
+    const value_type::value_t value_in_;
+    const value_type::value_t value_not_in_;
+
 public:
-    explicit ZeroCostAbstractRewardFunction(
-        const Container* goal_states,
+    explicit BaseAbstractRewardFunction(
+        const std::vector<bool>& goal_state_flags,
         value_type::value_t value_in,
         value_type::value_t value_not_in)
-        : goal_states_(goal_states)
+        : goal_state_flags_(goal_state_flags)
         , value_in_(value_in)
         , value_not_in_(value_not_in)
     {
@@ -176,54 +180,33 @@ public:
 protected:
     TerminationInfo evaluate(const AbstractState& state) override
     {
-        const bool is_contained = utils::contains(*goal_states_, state);
+        const bool is_contained = goal_state_flags_[state.id];
         return TerminationInfo(
             is_contained,
             is_contained ? value_in_ : value_not_in_);
     }
+};
 
+class ZeroCostAbstractRewardFunction : public BaseAbstractRewardFunction {
+public:
+    using BaseAbstractRewardFunction::BaseAbstractRewardFunction;
+
+protected:
     value_type::value_t evaluate(StateID, const AbstractOperator*) override
     {
         return 0;
     }
-
-private:
-    const Container* goal_states_;
-    const value_type::value_t value_in_;
-    const value_type::value_t value_not_in_;
 };
 
-template <typename Container>
-class NormalCostAbstractRewardFunction : public AbstractRewardFunction {
+class NormalCostAbstractRewardFunction : public BaseAbstractRewardFunction {
 public:
-    explicit NormalCostAbstractRewardFunction(
-        Container* goal_states,
-        value_type::value_t value_in,
-        value_type::value_t value_not_in)
-        : goal_states_(goal_states)
-        , value_in_(value_in)
-        , value_not_in_(value_not_in)
-    {
-    }
+    using BaseAbstractRewardFunction::BaseAbstractRewardFunction;
 
 protected:
-    TerminationInfo evaluate(const AbstractState& state) override
-    {
-        const bool is_contained = ::utils::contains(*goal_states_, state);
-        return TerminationInfo(
-            is_contained,
-            is_contained ? value_in_ : value_not_in_);
-    }
-
     value_type::value_t evaluate(StateID, const AbstractOperator* op) override
     {
         return op->reward;
     }
-
-private:
-    const Container* goal_states_;
-    const value_type::value_t value_in_;
-    const value_type::value_t value_not_in_;
 };
 
 } // namespace pdbs

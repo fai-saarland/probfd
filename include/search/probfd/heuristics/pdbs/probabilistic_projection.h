@@ -33,7 +33,7 @@ protected:
     std::shared_ptr<AbstractStateMapper> state_mapper_;
 
     AbstractState initial_state_;
-    std::unordered_set<AbstractState> goal_states_;
+    std::vector<bool> goal_state_flags_;
     std::vector<AbstractOperator> abstract_operators_;
 
     MatchTree match_tree_;
@@ -53,7 +53,6 @@ public:
         bool operator_pruning = true);
 
     std::shared_ptr<AbstractStateMapper> get_abstract_state_mapper() const;
-    std::unordered_set<AbstractState>& get_abstract_goal_states();
 
     unsigned int num_states() const;
 

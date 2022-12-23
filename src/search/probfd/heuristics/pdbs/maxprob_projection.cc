@@ -103,7 +103,7 @@ void MaxProbProjection::compute_value_table(
     using namespace engines::interval_iteration;
 
     ZeroCostAbstractRewardFunction reward(
-        &goal_states_,
+        goal_state_flags_,
         value_type::one,
         value_type::zero);
 
@@ -177,7 +177,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
     AbstractPolicy policy;
 
     // return empty policy indicating unsolvable
-    if (utils::contains(goal_states_, initial_state_)) {
+    if (goal_state_flags_[initial_state_.id]) {
         return policy;
     }
 
@@ -187,7 +187,8 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
     std::unordered_set<AbstractState> closed;
     open.push_back(initial_state_);
     closed.insert(initial_state_);
-    closed.insert(goal_states_.begin(), goal_states_.end());
+
+    std::vector<AbstractState> goals;
 
     // Build the greedy policy graph
     while (!open.empty()) {
@@ -219,7 +220,9 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
             if (value_type::approx_equal()(value, op_value)) {
                 for (const AbstractState& succ : successors) {
-                    if (!utils::contains(closed, succ)) {
+                    if (goal_state_flags_[succ.id]) {
+                        goals.push_back(succ);
+                    } else if (!utils::contains(closed, succ)) {
                         closed.insert(succ);
                         open.push_back(succ);
                         predecessors[succ] = PredecessorList();
@@ -234,9 +237,9 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
     // Do regression search with duplicate checking through the constructed
     // graph, expanding predecessors randomly to select an optimal policy
     assert(open.empty());
-    open.insert(open.end(), goal_states_.begin(), goal_states_.end());
+    open.insert(open.end(), goals.begin(), goals.end());
     closed.clear();
-    closed.insert(goal_states_.begin(), goal_states_.end());
+    closed.insert(goals.begin(), goals.end());
 
     while (!open.empty()) {
         // Choose a random successor
@@ -302,7 +305,7 @@ void MaxProbProjection::dump_graphviz(
     };
 
     ZeroCostAbstractRewardFunction reward(
-        &goal_states_,
+        goal_state_flags_,
         value_type::one,
         value_type::zero);
 
@@ -352,11 +355,6 @@ void MaxProbProjection::verify(
 
     std::vector<lp::LPConstraint> constraints;
 
-    for (AbstractState s : goal_states_) {
-        auto& g = constraints.emplace_back(value_type::one, value_type::one);
-        g.insert(s.id, value_type::one);
-    }
-
     std::deque<AbstractState> queue({initial_state_});
     std::set<AbstractState> seen({initial_state_});
 
@@ -366,6 +364,12 @@ void MaxProbProjection::verify(
 
         assert(utils::contains(visited, StateID(s.id)));
         visited.erase(StateID(s.id));
+
+        if (goal_state_flags_[s.id]) {
+            auto& g =
+                constraints.emplace_back(value_type::one, value_type::one);
+            g.insert(s.id, value_type::one);
+        }
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;

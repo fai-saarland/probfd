@@ -119,7 +119,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 
     assert(lookup(initial_state_) != -value_type::inf);
 
-    if (utils::contains(goal_states_, initial_state_)) {
+    if (goal_state_flags_[initial_state_.id]) {
         return policy;
     }
 
@@ -127,7 +127,6 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
     std::unordered_set<AbstractState> closed;
     open.push_back(initial_state_);
     closed.insert(initial_state_);
-    closed.insert(goal_states_.begin(), goal_states_.end());
 
     // Build the greedy policy graph
     while (!open.empty()) {
@@ -174,7 +173,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 
         // Generate successors
         for (const AbstractState& succ : greedy_successors) {
-            if (!utils::contains(closed, succ)) {
+            if (!goal_state_flags_[succ.id] && !utils::contains(closed, succ)) {
                 closed.insert(succ);
                 open.push_back(succ);
             }
@@ -225,7 +224,7 @@ void ExpCostProjection::dump_graphviz(
     };
 
     NormalCostAbstractRewardFunction reward(
-        &goal_states_,
+        goal_state_flags_,
         value_type::zero,
         -value_type::inf);
 
@@ -244,7 +243,7 @@ void ExpCostProjection::compute_value_table(
     using namespace engines::topological_vi;
 
     NormalCostAbstractRewardFunction reward(
-        &goal_states_,
+        goal_state_flags_,
         value_type::zero,
         -value_type::inf);
 
@@ -328,11 +327,6 @@ void ExpCostProjection::verify(
 
     std::vector<lp::LPConstraint> constraints;
 
-    for (AbstractState s : goal_states_) {
-        auto& g = constraints.emplace_back(value_type::zero, value_type::zero);
-        g.insert(s.id, value_type::one);
-    }
-
     std::deque<AbstractState> queue({initial_state_});
     std::set<AbstractState> seen({initial_state_});
 
@@ -342,6 +336,12 @@ void ExpCostProjection::verify(
 
         assert(utils::contains(visited, StateID(s.id)));
         visited.erase(StateID(s.id));
+
+        if (goal_state_flags_[s.id]) {
+            auto& g =
+                constraints.emplace_back(value_type::zero, value_type::zero);
+            g.insert(s.id, value_type::one);
+        }
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;

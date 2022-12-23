@@ -96,6 +96,7 @@ ProbabilisticProjection::ProbabilisticProjection(
     bool operator_pruning)
     : state_mapper_(mapper)
     , initial_state_((*state_mapper_)(::g_initial_state_data))
+    , goal_state_flags_(state_mapper_->num_states())
     , match_tree_(state_mapper_->get_pattern(), state_mapper_)
     , value_table(state_mapper_->num_states())
 {
@@ -208,12 +209,6 @@ ProbabilisticProjection::get_abstract_state_mapper() const
     return state_mapper_;
 }
 
-std::unordered_set<AbstractState>&
-ProbabilisticProjection::get_abstract_goal_states()
-{
-    return goal_states_;
-}
-
 unsigned int ProbabilisticProjection::num_states() const
 {
     return state_mapper_->num_states();
@@ -231,7 +226,7 @@ bool ProbabilisticProjection::is_dead_end(const AbstractState& s) const
 
 bool ProbabilisticProjection::is_goal(const AbstractState& s) const
 {
-    return utils::contains(goal_states_, s);
+    return goal_state_flags_[s.id];
 }
 
 value_type::value_t ProbabilisticProjection::lookup(const GlobalState& s) const
@@ -296,7 +291,7 @@ void ProbabilisticProjection::setup_abstract_goal()
     auto goals = state_mapper_->abstract_states(base, std::move(non_goal_vars));
 
     for (const auto& g : goals) {
-        goal_states_.insert(g);
+        goal_state_flags_[g.id] = true;
     }
 }
 
