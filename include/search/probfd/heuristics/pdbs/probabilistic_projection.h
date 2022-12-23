@@ -29,17 +29,24 @@ namespace pdbs {
 class MatchTree;
 
 class ProbabilisticProjection {
+    struct AbstractStateSpace {
+        AbstractState initial_state_;
+        std::vector<AbstractOperator> abstract_operators_;
+        MatchTree match_tree_;
+        std::vector<bool> goal_state_flags_;
+
+        AbstractStateSpace(
+            const AbstractStateMapper& mapper,
+            bool operator_pruning = true);
+
+        void setup_abstract_goal(const AbstractStateMapper& mapper);
+        bool is_goal(const AbstractState& s) const;
+    };
+
 protected:
     std::shared_ptr<AbstractStateMapper> state_mapper_;
-
-    AbstractState initial_state_;
-    std::vector<bool> goal_state_flags_;
-    std::vector<AbstractOperator> abstract_operators_;
-
-    MatchTree match_tree_;
-
+    AbstractStateSpace abstract_state_space_;
     std::vector<StateID> dead_ends_;
-
     std::vector<value_type::value_t> value_table;
 
 public:
@@ -90,13 +97,13 @@ protected:
 
         TransitionGenerator<const AbstractOperator*> transition_gen(
             state_id_map,
-            match_tree_);
+            abstract_state_space_.match_tree_);
 
         std::ofstream out(path);
 
         graphviz::dump<AbstractState>(
             out,
-            initial_state_,
+            abstract_state_space_.initial_state_,
             &state_id_map,
             &rewards,
             &transition_gen,
@@ -105,9 +112,6 @@ protected:
             nullptr,
             true);
     }
-
-private:
-    void setup_abstract_goal();
 };
 
 } // namespace pdbs

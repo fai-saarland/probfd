@@ -81,35 +81,21 @@ auto pdb_view(FactRange&& partial_state, const std::vector<int>& pdb_indices)
 
 using PartialAssignment = std::vector<std::pair<int, int>>;
 
-ProbabilisticProjection::ProbabilisticProjection(
-    const Pattern& pattern,
-    const std::vector<int>& domains,
+ProbabilisticProjection::AbstractStateSpace::AbstractStateSpace(
+    const AbstractStateMapper& mapper,
     bool operator_pruning)
-    : ProbabilisticProjection(
-          new AbstractStateMapper(pattern, domains),
-          operator_pruning)
+    : initial_state_(mapper(::g_initial_state_data))
+    , match_tree_(mapper.get_pattern(), mapper)
+    , goal_state_flags_(mapper.num_states())
 {
-}
-
-ProbabilisticProjection::ProbabilisticProjection(
-    AbstractStateMapper* mapper,
-    bool operator_pruning)
-    : state_mapper_(mapper)
-    , initial_state_((*state_mapper_)(::g_initial_state_data))
-    , goal_state_flags_(state_mapper_->num_states())
-    , match_tree_(state_mapper_->get_pattern(), state_mapper_)
-    , value_table(state_mapper_->num_states())
-{
-    setup_abstract_goal();
-
     abstract_operators_.reserve(g_operators.size());
 
     std::set<ProgressionOperatorFootprint> duplicate_set;
 
     std::vector<int> pdb_indices(::g_variable_domain.size(), -1);
 
-    for (size_t i = 0; i < state_mapper_->get_pattern().size(); ++i) {
-        pdb_indices[state_mapper_->get_pattern()[i]] = i;
+    for (size_t i = 0; i < mapper.get_pattern().size(); ++i) {
+        pdb_indices[mapper.get_pattern()[i]] = i;
     }
 
     // Generate the abstract operators for each probabilistic operator
@@ -146,7 +132,7 @@ ProbabilisticProjection::ProbabilisticProjection(
                     val_change -= pre_it.base->second;
                 }
 
-                info.base_effect += state_mapper_->from_fact(var, val_change);
+                info.base_effect += mapper.from_fact(var, val_change);
             }
 
             outcomes.add_unique(std::move(info), out.prob);
@@ -159,8 +145,7 @@ ProbabilisticProjection::ProbabilisticProjection(
         // variable, the value change caused by the abstract operator would be
         // different, hence we generate on operator for each state where
         // enabled.
-        auto ran =
-            state_mapper_->partial_assignments(std::move(vars_eff_not_pre));
+        auto ran = mapper.partial_assignments(std::move(vars_eff_not_pre));
 
         for (const PartialAssignment& values : ran) {
             // Generate the progression operator
@@ -168,8 +153,7 @@ ProbabilisticProjection::ProbabilisticProjection(
 
             for (const auto& [info, prob] : outcomes) {
                 const auto& [base_effect, missing_pres] = info;
-                auto a =
-                    state_mapper_->from_values_partial(missing_pres, values);
+                auto a = mapper.from_values_partial(missing_pres, values);
 
                 new_op.outcomes.add_unique(base_effect - a, prob);
             }
@@ -190,17 +174,85 @@ ProbabilisticProjection::ProbabilisticProjection(
             if (operator_pruning) {
                 // Generate a hash for the precondition to check for duplicates
                 const long long int pre_hash =
-                    state_mapper_->get_unique_partial_state_id(precondition);
+                    mapper.get_unique_partial_state_id(precondition);
                 if (!duplicate_set.emplace(pre_hash, new_op).second) {
                     continue;
                 }
             }
 
             // Now add the progression operators to the match tree
-            auto& aop = abstract_operators_.emplace_back(std::move(new_op));
-            match_tree_.insert(&aop, precondition);
+            match_tree_.insert(abstract_operators_.size(), precondition);
+            abstract_operators_.emplace_back(std::move(new_op));
         }
     }
+
+    match_tree_.set_first_aop(abstract_operators_.data());
+
+    setup_abstract_goal(mapper);
+}
+
+void ProbabilisticProjection::AbstractStateSpace::setup_abstract_goal(
+    const AbstractStateMapper& mapper)
+{
+    std::vector<int> non_goal_vars;
+    AbstractState base(0);
+
+    // Translate sparse goal into pdb index space
+    // and collect non-goal variables aswell.
+    const Pattern& variables = mapper.get_pattern();
+    for (int v = 0, w = 0; v != static_cast<int>(variables.size());) {
+        const int p_var = variables[v];
+        const int g_var = g_goal[w].first;
+
+        if (p_var < g_var) {
+            non_goal_vars.push_back(v++);
+        } else {
+            if (p_var == g_var) {
+                const int g_val = g_goal[w].second;
+                base.id += mapper.get_multiplier(v++) * g_val;
+            }
+
+            if (++w == static_cast<int>(g_goal.size())) {
+                while (v < static_cast<int>(variables.size())) {
+                    non_goal_vars.push_back(v++);
+                }
+                break;
+            }
+        }
+    }
+
+    assert(non_goal_vars.size() != variables.size()); // No goal no fun.
+
+    auto goals = mapper.abstract_states(base, std::move(non_goal_vars));
+
+    for (const auto& g : goals) {
+        goal_state_flags_[g.id] = true;
+    }
+}
+
+bool ProbabilisticProjection::AbstractStateSpace::is_goal(
+    const AbstractState& s) const
+{
+    return goal_state_flags_[s.id];
+}
+
+ProbabilisticProjection::ProbabilisticProjection(
+    const Pattern& pattern,
+    const std::vector<int>& domains,
+    bool operator_pruning)
+    : ProbabilisticProjection(
+          new AbstractStateMapper(pattern, domains),
+          operator_pruning)
+{
+}
+
+ProbabilisticProjection::ProbabilisticProjection(
+    AbstractStateMapper* mapper,
+    bool operator_pruning)
+    : state_mapper_(mapper)
+    , abstract_state_space_(*state_mapper_, operator_pruning)
+    , value_table(state_mapper_->num_states())
+{
 }
 
 std::shared_ptr<AbstractStateMapper>
@@ -226,7 +278,7 @@ bool ProbabilisticProjection::is_dead_end(const AbstractState& s) const
 
 bool ProbabilisticProjection::is_goal(const AbstractState& s) const
 {
-    return goal_state_flags_[s.id];
+    return abstract_state_space_.is_goal(s);
 }
 
 value_type::value_t ProbabilisticProjection::lookup(const GlobalState& s) const
@@ -255,44 +307,6 @@ ProbabilisticProjection::get_abstract_state(const std::vector<int>& s) const
 const Pattern& ProbabilisticProjection::get_pattern() const
 {
     return state_mapper_->get_pattern();
-}
-
-void ProbabilisticProjection::setup_abstract_goal()
-{
-    std::vector<int> non_goal_vars;
-    AbstractState base(0);
-
-    // Translate sparse goal into pdb index space
-    // and collect non-goal variables aswell.
-    const Pattern& variables = state_mapper_->get_pattern();
-    for (int v = 0, w = 0; v != static_cast<int>(variables.size());) {
-        const int p_var = variables[v];
-        const int g_var = g_goal[w].first;
-
-        if (p_var < g_var) {
-            non_goal_vars.push_back(v++);
-        } else {
-            if (p_var == g_var) {
-                const int g_val = g_goal[w].second;
-                base.id += state_mapper_->get_multiplier(v++) * g_val;
-            }
-
-            if (++w == static_cast<int>(g_goal.size())) {
-                while (v < static_cast<int>(variables.size())) {
-                    non_goal_vars.push_back(v++);
-                }
-                break;
-            }
-        }
-    }
-
-    assert(non_goal_vars.size() != variables.size()); // No goal no fun.
-
-    auto goals = state_mapper_->abstract_states(base, std::move(non_goal_vars));
-
-    for (const auto& g : goals) {
-        goal_state_flags_[g.id] = true;
-    }
 }
 
 } // namespace pdbs

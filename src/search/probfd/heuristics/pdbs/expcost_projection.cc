@@ -115,18 +115,19 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
-    AbstractPolicy policy;
+    AbstractPolicy policy(state_mapper_->num_states());
 
-    assert(lookup(initial_state_) != -value_type::inf);
+    assert(lookup(abstract_state_space_.initial_state_) != -value_type::inf);
 
-    if (goal_state_flags_[initial_state_.id]) {
+    if (abstract_state_space_
+            .goal_state_flags_[abstract_state_space_.initial_state_.id]) {
         return policy;
     }
 
     std::deque<AbstractState> open;
     std::unordered_set<AbstractState> closed;
-    open.push_back(initial_state_);
-    closed.insert(initial_state_);
+    open.push_back(abstract_state_space_.initial_state_);
+    closed.insert(abstract_state_space_.initial_state_);
 
     // Build the greedy policy graph
     while (!open.empty()) {
@@ -137,7 +138,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        match_tree_.get_applicable_operators(s, aops);
+        abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
 
         if (aops.empty()) {
             assert(value == -value_type::inf);
@@ -173,7 +174,8 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 
         // Generate successors
         for (const AbstractState& succ : greedy_successors) {
-            if (!goal_state_flags_[succ.id] && !utils::contains(closed, succ)) {
+            if (!abstract_state_space_.goal_state_flags_[succ.id] &&
+                !utils::contains(closed, succ)) {
                 closed.insert(succ);
                 open.push_back(succ);
             }
@@ -224,7 +226,7 @@ void ExpCostProjection::dump_graphviz(
     };
 
     NormalCostAbstractRewardFunction reward(
-        goal_state_flags_,
+        abstract_state_space_.goal_state_flags_,
         value_type::zero,
         -value_type::inf);
 
@@ -243,16 +245,17 @@ void ExpCostProjection::compute_value_table(
     using namespace engines::topological_vi;
 
     NormalCostAbstractRewardFunction reward(
-        goal_state_flags_,
+        abstract_state_space_.goal_state_flags_,
         value_type::zero,
         -value_type::inf);
 
     StateIDMap<AbstractState> state_id_map;
-    ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
+    ActionIDMap<const AbstractOperator*> action_id_map(
+        abstract_state_space_.abstract_operators_);
 
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map,
-        match_tree_);
+        abstract_state_space_.match_tree_);
 
     QualitativeReachabilityAnalysis<AbstractState, const AbstractOperator*>
         analysis(&state_id_map, &action_id_map, &reward, &transition_gen, true);
@@ -260,7 +263,7 @@ void ExpCostProjection::compute_value_table(
     std::vector<StateID> proper_states;
 
     analysis.run_analysis(
-        initial_state_,
+        abstract_state_space_.initial_state_,
         std::back_inserter(dead_ends_),
         std::back_inserter(proper_states));
 
@@ -269,7 +272,9 @@ void ExpCostProjection::compute_value_table(
     TopologicalValueIteration<AbstractState, const AbstractOperator*>
         vi(&state_id_map, &action_id_map, &reward, &transition_gen, &h, true);
 
-    vi.solve(state_id_map.get_state_id(initial_state_), value_table);
+    vi.solve(
+        state_id_map.get_state_id(abstract_state_space_.initial_state_),
+        value_table);
 
 #if !defined(NDEBUG)
     logging::out << "(II) Pattern [";
@@ -277,7 +282,9 @@ void ExpCostProjection::compute_value_table(
         logging::out << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
     }
 
-    logging::out << "]: value=" << value_table[initial_state_.id] << std::endl;
+    logging::out << "]: value="
+                 << value_table[abstract_state_space_.initial_state_.id]
+                 << std::endl;
 
 #if defined(USE_LP)
     verify(state_id_map, proper_states);
@@ -327,8 +334,8 @@ void ExpCostProjection::verify(
 
     std::vector<lp::LPConstraint> constraints;
 
-    std::deque<AbstractState> queue({initial_state_});
-    std::set<AbstractState> seen({initial_state_});
+    std::deque<AbstractState> queue({abstract_state_space_.initial_state_});
+    std::set<AbstractState> seen({abstract_state_space_.initial_state_});
 
     while (!queue.empty()) {
         AbstractState s = queue.front();
@@ -337,7 +344,7 @@ void ExpCostProjection::verify(
         assert(utils::contains(visited, StateID(s.id)));
         visited.erase(StateID(s.id));
 
-        if (goal_state_flags_[s.id]) {
+        if (abstract_state_space_.goal_state_flags_[s.id]) {
             auto& g =
                 constraints.emplace_back(value_type::zero, value_type::zero);
             g.insert(s.id, value_type::one);
@@ -345,7 +352,7 @@ void ExpCostProjection::verify(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        match_tree_.get_applicable_operators(s, aops);
+        abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {

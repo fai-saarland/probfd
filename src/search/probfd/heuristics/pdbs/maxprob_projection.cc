@@ -103,16 +103,17 @@ void MaxProbProjection::compute_value_table(
     using namespace engines::interval_iteration;
 
     ZeroCostAbstractRewardFunction reward(
-        goal_state_flags_,
+        abstract_state_space_.goal_state_flags_,
         value_type::one,
         value_type::zero);
 
     StateIDMap<AbstractState> state_id_map;
-    ActionIDMap<const AbstractOperator*> action_id_map(abstract_operators_);
+    ActionIDMap<const AbstractOperator*> action_id_map(
+        abstract_state_space_.abstract_operators_);
 
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map,
-        match_tree_);
+        abstract_state_space_.match_tree_);
 
     IntervalIteration<AbstractState, const AbstractOperator*> vi(
         &state_id_map,
@@ -128,7 +129,11 @@ void MaxProbProjection::compute_value_table(
     std::vector<value_utils::IntervalValue> interval_value_table(
         state_mapper_->num_states());
 
-    vi.solve(initial_state_, interval_value_table, dead_ends_, proper_states);
+    vi.solve(
+        abstract_state_space_.initial_state_,
+        interval_value_table,
+        dead_ends_,
+        proper_states);
 
     // We only need the upper bounds
     for (std::size_t i = 0; i != interval_value_table.size(); ++i) {
@@ -141,8 +146,10 @@ void MaxProbProjection::compute_value_table(
         logging::out << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
     }
 
-    logging::out << "]: value=" << interval_value_table[initial_state_.id]
-                 << std::endl;
+    logging::out
+        << "]: value="
+        << interval_value_table[abstract_state_space_.initial_state_.id]
+        << std::endl;
 
 #if defined(USE_LP)
     verify(state_id_map);
@@ -172,12 +179,13 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
     using PredecessorList =
         std::vector<std::pair<AbstractState, const AbstractOperator*>>;
 
-    assert(!is_dead_end(initial_state_));
+    assert(!is_dead_end(abstract_state_space_.initial_state_));
 
-    AbstractPolicy policy;
+    AbstractPolicy policy(state_mapper_->num_states());
 
     // return empty policy indicating unsolvable
-    if (goal_state_flags_[initial_state_.id]) {
+    if (abstract_state_space_
+            .goal_state_flags_[abstract_state_space_.initial_state_.id]) {
         return policy;
     }
 
@@ -185,8 +193,8 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
     std::deque<AbstractState> open;
     std::unordered_set<AbstractState> closed;
-    open.push_back(initial_state_);
-    closed.insert(initial_state_);
+    open.push_back(abstract_state_space_.initial_state_);
+    closed.insert(abstract_state_space_.initial_state_);
 
     std::vector<AbstractState> goals;
 
@@ -204,7 +212,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        match_tree_.get_applicable_operators(s, aops);
+        abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
 
         // Select the greedy operators and add their successors
         for (const AbstractOperator* op : aops) {
@@ -220,7 +228,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
             if (value_type::approx_equal()(value, op_value)) {
                 for (const AbstractState& succ : successors) {
-                    if (goal_state_flags_[succ.id]) {
+                    if (abstract_state_space_.goal_state_flags_[succ.id]) {
                         goals.push_back(succ);
                     } else if (!utils::contains(closed, succ)) {
                         closed.insert(succ);
@@ -259,7 +267,9 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
                 // Collect all equivalent greedy operators
                 std::vector<const AbstractOperator*> aops;
-                match_tree_.get_applicable_operators(pstate, aops);
+                abstract_state_space_.match_tree_.get_applicable_operators(
+                    pstate,
+                    aops);
 
                 std::vector<const AbstractOperator*> equivalent_operators;
 
@@ -305,7 +315,7 @@ void MaxProbProjection::dump_graphviz(
     };
 
     ZeroCostAbstractRewardFunction reward(
-        goal_state_flags_,
+        abstract_state_space_.goal_state_flags_,
         value_type::one,
         value_type::zero);
 
@@ -355,8 +365,8 @@ void MaxProbProjection::verify(
 
     std::vector<lp::LPConstraint> constraints;
 
-    std::deque<AbstractState> queue({initial_state_});
-    std::set<AbstractState> seen({initial_state_});
+    std::deque<AbstractState> queue({abstract_state_space_.initial_state_});
+    std::set<AbstractState> seen({abstract_state_space_.initial_state_});
 
     while (!queue.empty()) {
         AbstractState s = queue.front();
@@ -365,7 +375,7 @@ void MaxProbProjection::verify(
         assert(utils::contains(visited, StateID(s.id)));
         visited.erase(StateID(s.id));
 
-        if (goal_state_flags_[s.id]) {
+        if (abstract_state_space_.goal_state_flags_[s.id]) {
             auto& g =
                 constraints.emplace_back(value_type::one, value_type::one);
             g.insert(s.id, value_type::one);
@@ -373,7 +383,7 @@ void MaxProbProjection::verify(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        match_tree_.get_applicable_operators(s, aops);
+        abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {

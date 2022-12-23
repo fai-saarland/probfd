@@ -22,11 +22,14 @@ class MatchTree {
 
     // See PatternDatabase for documentation on pattern and hash_multipliers.
     Pattern pattern;
-    std::shared_ptr<AbstractStateMapper> mapper;
+    const AbstractStateMapper& mapper;
     Node* root;
 
+    // Pointer to first operator
+    const AbstractOperator* first;
+
     void insert_recursive(
-        const AbstractOperator* op,
+        size_t op_index,
         const std::vector<std::pair<int, int>>& progression_preconditions,
         int pre_index,
         Node** edge_from_parent);
@@ -40,16 +43,14 @@ class MatchTree {
 
 public:
     // Initialize an empty match tree.
-    MatchTree(
-        const Pattern& pattern,
-        std::shared_ptr<AbstractStateMapper> mapper);
+    MatchTree(const Pattern& pattern, const AbstractStateMapper& mapper);
 
     ~MatchTree();
 
     /* Insert an abstract operator into the match tree, creating or
        enlarging it. */
     void insert(
-        const AbstractOperator* op,
+        size_t op_index,
         const std::vector<std::pair<int, int>>& progression_preconditions);
 
     /*
@@ -60,6 +61,9 @@ public:
     void get_applicable_operators(
         AbstractState abstract_state,
         std::vector<const AbstractOperator*>& operators) const;
+
+    void set_first_aop(const AbstractOperator* first);
+
     void dump() const;
 };
 

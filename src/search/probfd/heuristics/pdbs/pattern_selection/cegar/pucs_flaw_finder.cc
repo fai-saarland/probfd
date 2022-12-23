@@ -92,10 +92,10 @@ bool PUCSFlawFinder<PDBType>::expand(
         return true;
     }
 
-    const auto abs_op_it = policy.find(abs);
+    const auto& abs_operators = policy[abs];
 
     // We reached a terminal state, check if it is a goal
-    if (abs_op_it == policy.end()) {
+    if (abs_operators.empty()) {
         assert(pdb.is_goal(abs));
 
         if (pdb.is_goal(abs) && !state.is_goal()) {
@@ -117,7 +117,6 @@ bool PUCSFlawFinder<PDBType>::expand(
         return true;
     }
 
-    const AbstractPolicy::OperatorList& abs_operators = abs_op_it->second;
     FlawList local_flaws;
 
     for (const AbstractOperator* abs_op : abs_operators) {
