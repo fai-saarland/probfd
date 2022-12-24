@@ -49,11 +49,13 @@ protected:
     ProbabilisticProjection(
         const Pattern& pattern,
         const std::vector<int>& domains,
-        bool operator_pruning = true);
+        bool operator_pruning,
+        value_type::value_t fill);
 
     ProbabilisticProjection(
         AbstractStateMapper* mapper,
-        bool operator_pruning = true);
+        bool operator_pruning,
+        value_type::value_t fill);
 
 public:
     std::shared_ptr<AbstractStateMapper> get_abstract_state_mapper() const;

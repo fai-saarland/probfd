@@ -47,6 +47,7 @@ StateID StateIDMap<AbstractState>::get_state_id(const AbstractState& state)
 
 AbstractState StateIDMap<AbstractState>::get_state(const StateID& id)
 {
+    seen.insert(id);
     return AbstractState(id);
 }
 

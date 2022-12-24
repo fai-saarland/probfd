@@ -67,7 +67,7 @@ MaxProbProjection::MaxProbProjection(
     AbstractStateMapper* mapper,
     bool operator_pruning,
     const AbstractStateEvaluator& heuristic)
-    : ProbabilisticProjection(mapper, operator_pruning)
+    : ProbabilisticProjection(mapper, operator_pruning, value_type::zero)
 {
     compute_value_table(heuristic);
 }
@@ -90,7 +90,8 @@ MaxProbProjection::MaxProbProjection(
     : ProbabilisticProjection(
           utils::insert(pdb.get_pattern(), add_var),
           ::g_variable_domain,
-          operator_pruning)
+          operator_pruning,
+          value_type::zero)
 {
     compute_value_table(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));

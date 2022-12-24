@@ -239,19 +239,22 @@ bool ProbabilisticProjection::AbstractStateSpace::is_goal(
 ProbabilisticProjection::ProbabilisticProjection(
     const Pattern& pattern,
     const std::vector<int>& domains,
-    bool operator_pruning)
+    bool operator_pruning,
+    value_type::value_t fill)
     : ProbabilisticProjection(
           new AbstractStateMapper(pattern, domains),
-          operator_pruning)
+          operator_pruning,
+          fill)
 {
 }
 
 ProbabilisticProjection::ProbabilisticProjection(
     AbstractStateMapper* mapper,
-    bool operator_pruning)
+    bool operator_pruning,
+    value_type::value_t fill)
     : state_mapper_(mapper)
     , abstract_state_space_(*state_mapper_, operator_pruning)
-    , value_table(state_mapper_->num_states())
+    , value_table(state_mapper_->num_states(), fill)
 {
 }
 
