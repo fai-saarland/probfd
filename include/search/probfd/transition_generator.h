@@ -34,51 +34,63 @@ template <typename T>
 class QuotientSystem;
 }
 
-struct CostBasedSuccessorGenerator {
-public:
-    explicit CostBasedSuccessorGenerator(
-        const std::vector<ProbabilisticOperator>& ops,
-        legacy::OperatorCost cost_type,
-        int bvar,
-        legacy::successor_generator::SuccessorGenerator<
-            const ProbabilisticOperator*>* gen);
-
-    void operator()(
-        const legacy::GlobalState& s,
-        std::vector<const ProbabilisticOperator*>& result) const;
-
-private:
-    int bvar_;
-    std::vector<int> reward_;
-    std::vector<std::shared_ptr<legacy::successor_generator::SuccessorGenerator<
-        const ProbabilisticOperator*>>>
-        gens_;
-    legacy::successor_generator::SuccessorGenerator<
-        const ProbabilisticOperator*>* gen_;
-};
-
-namespace engine_interfaces {
-template <>
-class TransitionGenerator<const ProbabilisticOperator*> {
+class TransitionGeneratorBase {
     friend class quotient_system::QuotientSystem<const ProbabilisticOperator*>;
 
-public:
-    explicit TransitionGenerator(
-        const std::vector<ProbabilisticOperator>& ops,
-        legacy::successor_generator::SuccessorGenerator<
-            const ProbabilisticOperator*>* gen,
-        int budget_var,
-        legacy::OperatorCost budget_cost_type,
-        legacy::StateRegistry* state_registry,
-        bool enable_caching,
-        const std::vector<std::shared_ptr<legacy::Heuristic>>&
-            path_dependent_heuristics);
+protected:
+    struct Statistics {
+        unsigned long long single_transition_generator_calls = 0;
+        unsigned long long all_transitions_generator_calls = 0;
+        unsigned long long aops_generator_calls = 0;
 
-    explicit TransitionGenerator(
+        unsigned long long generated_operators = 0;
+        unsigned long long generated_states = 0;
+
+        unsigned long long aops_computations = 0;
+        unsigned long long computed_operators = 0;
+
+        unsigned long long transition_computations = 0;
+        unsigned long long computed_successors = 0;
+
+        void print(std::ostream& out) const;
+    };
+
+    struct CacheEntry {
+        bool is_initialized() const
+        {
+            return naops != std::numeric_limits<unsigned>::max();
+        }
+
+        unsigned naops = std::numeric_limits<unsigned>::max();
+        ActionID* aops = nullptr;
+        StateID* succs = nullptr;
+    };
+
+    using Cache = storage::DynamicSegmentedVector<CacheEntry>;
+
+protected:
+    const ProbabilisticOperator* first_op_;
+    const bool caching_;
+    const std::vector<std::shared_ptr<legacy::Heuristic>> notify_;
+
+    legacy::StateRegistry* state_registry_;
+
+    Cache cache_;
+    storage::SegmentedMemoryPool<> cache_data_;
+    std::vector<const ProbabilisticOperator*> aops_;
+    std::vector<StateID> successors_;
+
+    Statistics statistics_;
+
+public:
+    TransitionGeneratorBase(
         legacy::StateRegistry* state_registry,
-        bool enable_caching,
+        const std::vector<ProbabilisticOperator>& ops,
         const std::vector<std::shared_ptr<legacy::Heuristic>>&
-            path_dependent_heuristics);
+            path_dependent_heuristics,
+        bool enable_caching);
+
+    virtual ~TransitionGeneratorBase() = default;
 
     void operator()(
         const StateID& state_id,
@@ -96,70 +108,130 @@ public:
 
     void print_statistics(std::ostream& out) const;
 
-private:
-    struct CacheEntry {
-        bool is_initialized() const
-        {
-            return naops != std::numeric_limits<unsigned>::max();
-        }
-
-        unsigned naops = std::numeric_limits<unsigned>::max();
-        ActionID* aops = nullptr;
-        StateID* succs = nullptr;
-    };
-
-    struct Statistics {
-        void print(std::ostream& out) const;
-
-        unsigned long long aops_computations = 0;
-        unsigned long long computed_operators = 0;
-
-        unsigned long long transition_computations = 0;
-        unsigned long long computed_states = 0;
-
-        unsigned long long single_transition_generator_calls = 0;
-        unsigned long long all_transitions_generator_calls = 0;
-        unsigned long long aops_generator_calls = 0;
-
-        unsigned long long generated_operators = 0;
-        unsigned long long generated_states = 0;
-    };
-
-    using Cache = storage::DynamicSegmentedVector<CacheEntry>;
-
-    void compute_successor_states(
+protected:
+    virtual void compute_successor_states(
         const legacy::GlobalState& s,
         const ProbabilisticOperator* op,
-        std::vector<WeightedElement<StateID>>& successors);
+        std::vector<WeightedElement<StateID>>& successors) = 0;
 
-    void compute_applicable_operators(
+    virtual void compute_applicable_operators(
         const legacy::GlobalState& s,
-        std::vector<const ProbabilisticOperator*>& ops);
+        std::vector<const ProbabilisticOperator*>& ops) = 0;
 
     bool setup_cache(const StateID& state_id, CacheEntry& entry);
 
     CacheEntry& lookup(const StateID& state_id);
     CacheEntry& lookup(const StateID& state_id, bool& initialized);
+};
 
-    const ProbabilisticOperator* first_op_;
-    const bool caching_;
+class BudgetTransitionGenerator : public TransitionGeneratorBase {
     const int budget_var_;
     const legacy::OperatorCost budget_cost_type_;
-    const std::vector<std::shared_ptr<legacy::Heuristic>> notify_;
-    CostBasedSuccessorGenerator aops_gen_;
     std::vector<int> reward_;
 
-    legacy::StateRegistry* state_registry_;
+    std::vector<std::shared_ptr<legacy::successor_generator::SuccessorGenerator<
+        const ProbabilisticOperator*>>>
+        gens_;
 
-    Cache cache_;
-    storage::SegmentedMemoryPool<> cache_data_;
-    std::vector<const ProbabilisticOperator*> aops_;
-    std::vector<StateID> successors_;
+public:
+    explicit BudgetTransitionGenerator(
+        legacy::StateRegistry* state_registry,
+        const std::vector<ProbabilisticOperator>& ops,
+        const std::vector<std::shared_ptr<legacy::Heuristic>>&
+            path_dependent_heuristics,
+        bool enable_caching,
+        int budget_var,
+        legacy::OperatorCost budget_cost_type);
 
-    Statistics statistics_;
+    ~BudgetTransitionGenerator() override final = default;
+
+private:
+    void compute_successor_states(
+        const legacy::GlobalState& s,
+        const ProbabilisticOperator* op,
+        std::vector<WeightedElement<StateID>>& successors) override final;
+
+    void compute_applicable_operators(
+        const legacy::GlobalState& s,
+        std::vector<const ProbabilisticOperator*>& ops) override final;
+};
+
+class DefaultTransitionGenerator : public TransitionGeneratorBase {
+    legacy::successor_generator::SuccessorGenerator<
+        const ProbabilisticOperator*>* gen_;
+
+public:
+    explicit DefaultTransitionGenerator(
+        legacy::StateRegistry* state_registry,
+        const std::vector<ProbabilisticOperator>& ops,
+        const std::vector<std::shared_ptr<legacy::Heuristic>>&
+            path_dependent_heuristics,
+        bool enable_caching,
+        legacy::successor_generator::SuccessorGenerator<
+            const ProbabilisticOperator*>* gen);
+
+    ~DefaultTransitionGenerator() override final = default;
+
+private:
+    void compute_successor_states(
+        const legacy::GlobalState& s,
+        const ProbabilisticOperator* op,
+        std::vector<WeightedElement<StateID>>& successors) override final;
+
+    void compute_applicable_operators(
+        const legacy::GlobalState& s,
+        std::vector<const ProbabilisticOperator*>& ops) override final;
+};
+
+namespace engine_interfaces {
+
+template <>
+class TransitionGenerator<const ProbabilisticOperator*> {
+    std::unique_ptr<TransitionGeneratorBase> base;
+
+public:
+    TransitionGenerator(
+        legacy::StateRegistry* state_registry,
+        const std::vector<ProbabilisticOperator>& ops,
+        const std::vector<std::shared_ptr<legacy::Heuristic>>&
+            path_dependent_heuristics,
+        bool enable_caching);
+
+    ~TransitionGenerator() = default;
+
+    TransitionGeneratorBase& getBase() { return *base; }
+
+    void operator()(
+        const StateID& state_id,
+        std::vector<const ProbabilisticOperator*>& result)
+    {
+        return base->operator()(state_id, result);
+    }
+
+    void operator()(
+        const StateID& state,
+        const ProbabilisticOperator* const& action,
+        Distribution<StateID>& result)
+    {
+        return base->operator()(state, action, result);
+    }
+
+    void operator()(
+        const StateID& state,
+        std::vector<const ProbabilisticOperator*>& aops,
+        std::vector<Distribution<StateID>>& successors)
+    {
+        return base->operator()(state, aops, successors);
+    }
+
+    void print_statistics(std::ostream& out) const
+    {
+        base->print_statistics(out);
+    }
 };
 
 } // namespace engine_interfaces
+
 } // namespace probfd
 
 #endif // __TRANSITION_GENERATOR_H__

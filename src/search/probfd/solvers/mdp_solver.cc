@@ -34,14 +34,11 @@ MDPSolver::MDPSolver(const options::Options& opts)
     , action_id_map_(g_operators)
     , reward_function_(g_analysis_objective->reward())
     , transition_generator_(
-          g_operators,
-          g_successor_generator.get(),
-          g_step_var,
-          g_step_cost_type,
           &state_registry_,
-          opts.get<bool>("cache"),
+          g_operators,
           opts.get_list<std::shared_ptr<legacy::Heuristic>>(
-              "path_dependent_heuristics"))
+              "path_dependent_heuristics"),
+          opts.get<bool>("cache"))
 {
     legacy::StateRegistry* state_registry = &state_registry_;
     progress_.register_print([state_registry](std::ostream& out) {

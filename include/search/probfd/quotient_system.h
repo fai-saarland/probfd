@@ -88,7 +88,7 @@ public:
     explicit QuotientSystem(
         engine_interfaces::ActionIDMap<Action>* aid,
         engine_interfaces::TransitionGenerator<Action>* transition_gen)
-        : cache_(transition_gen->caching_)
+        : cache_(transition_gen->getBase().caching_)
         , gen_(transition_gen)
         , fallback_(nullptr)
     {
@@ -210,7 +210,11 @@ public:
 
             for (int i = 0; i < e; ++i) {
                 auto state = info.states[i];
-                update_cache(*filter_it, gen_->lookup(state), rid, states_set);
+                update_cache(
+                    *filter_it,
+                    gen_->getBase().lookup(state),
+                    rid,
+                    states_set);
                 state_infos_[state].states[0] = rid;
             }
 
@@ -239,13 +243,14 @@ public:
             const auto& parent_states = state_infos_[parent].states;
 
             for (const StateID& parent_state : parent_states) {
-                auto& entry = gen_->lookup(parent_state);
+                auto& entry = gen_->getBase().lookup(parent_state);
                 const ActionID* aop = entry.aops;
                 const ActionID* aop_end = entry.aops + entry.naops;
                 StateID* succ = entry.succs;
 
                 for (; aop != aop_end; ++aop) {
-                    auto succ_e = succ + gen_->first_op_[*aop].num_outcomes();
+                    auto succ_e =
+                        succ + gen_->getBase().first_op_[*aop].num_outcomes();
                     for (; succ != succ_e; ++succ) {
                         if (utils::contains(states_set, *succ)) {
                             *succ = rid;
@@ -289,7 +294,7 @@ private:
 
     void update_cache(
         const std::vector<Action>& exclude,
-        engine_interfaces::TransitionGenerator<Action>::CacheEntry& entry,
+        TransitionGeneratorBase::CacheEntry& entry,
         const StateID rid,
         const std::unordered_set<StateID>& quotient_states)
     {
@@ -301,7 +306,8 @@ private:
 
         auto aops_src_end = aops_src + entry.naops;
         for (; aops_src != aops_src_end; ++aops_src) {
-            const ProbabilisticOperator* op = gen_->first_op_ + *aops_src;
+            const ProbabilisticOperator* op =
+                gen_->getBase().first_op_ + *aops_src;
             if (utils::contains(exclude, op)) {
                 continue;
             }
@@ -329,10 +335,8 @@ private:
 #endif
 
     const QuotientInformation* get_infos(const StateID& sid) const;
-    engine_interfaces::TransitionGenerator<Action>::CacheEntry&
-    lookup(const StateID& sid);
-    const engine_interfaces::TransitionGenerator<Action>::CacheEntry&
-    lookup(const StateID& sid) const;
+    TransitionGeneratorBase::CacheEntry& lookup(const StateID& sid);
+    const TransitionGeneratorBase::CacheEntry& lookup(const StateID& sid) const;
 
     const bool cache_;
 
