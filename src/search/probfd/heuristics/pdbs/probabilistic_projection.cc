@@ -84,7 +84,7 @@ using PartialAssignment = std::vector<std::pair<int, int>>;
 ProbabilisticProjection::AbstractStateSpace::AbstractStateSpace(
     const AbstractStateMapper& mapper,
     bool operator_pruning)
-    : initial_state_(mapper(::g_initial_state_data))
+    : initial_state_(mapper.rank(::g_initial_state_data))
     , match_tree_(mapper.get_pattern(), mapper)
     , goal_state_flags_(mapper.num_states())
 {
@@ -298,13 +298,13 @@ ProbabilisticProjection::lookup(const AbstractState& s) const
 AbstractState
 ProbabilisticProjection::get_abstract_state(const GlobalState& s) const
 {
-    return state_mapper_->operator()(s);
+    return state_mapper_->rank(s);
 }
 
 AbstractState
 ProbabilisticProjection::get_abstract_state(const std::vector<int>& s) const
 {
-    return state_mapper_->operator()(s);
+    return state_mapper_->rank(s);
 }
 
 const Pattern& ProbabilisticProjection::get_pattern() const

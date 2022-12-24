@@ -23,7 +23,6 @@ namespace pdbs {
 class AbstractStateMapper {
 public:
     struct VariableInfo {
-        int var;
         int domain;
         long long int multiplier;
         long long int partial_multiplier;
@@ -105,41 +104,18 @@ public:
 
     const Pattern& get_pattern() const;
 
-    const std::vector<VariableInfo>& get_variable_infos() const
-    {
-        return var_infos_;
-    }
-
-    auto domains_begin() const
-    {
-        return utils::make_transform_iterator(
-            var_infos_.begin(),
-            &VariableInfo::domain);
-    }
-
-    auto domains_end() const
-    {
-        return utils::make_transform_iterator(
-            var_infos_.end(),
-            &VariableInfo::domain);
-    }
-
-    auto domains() const
-    {
-        return utils::make_range(domains_begin(), domains_end());
-    }
-
     template <typename State>
-    AbstractState operator()(const State& state) const
+    AbstractState rank(const State& state) const
     {
         AbstractState res(0);
-        for (const VariableInfo& info : var_infos_) {
-            res.id += info.multiplier * state[info.var];
+        for (size_t i = 0; i != pattern_.size(); ++i) {
+            res.id += var_infos_[i].multiplier * state[pattern_[i]];
         }
         return res;
     }
 
-    AbstractState from_values(const std::vector<int>& values) const;
+    std::vector<int> unrank(AbstractState abstract_state) const;
+
     AbstractState from_values_partial(
         const std::vector<std::pair<int, int>>& sparse_values) const;
     AbstractState from_values_partial(
@@ -150,13 +126,8 @@ public:
     long long int get_unique_partial_state_id(
         const std::vector<std::pair<int, int>>& pstate) const;
 
-    std::vector<int> to_values(AbstractState abstract_state) const;
-
     AbstractState
     convert(AbstractState abstract_state, const Pattern& values) const;
-
-    void
-    to_values(AbstractState abstract_state, std::vector<int>& values) const;
 
     PartialAssignmentIterator partial_assignments_begin(
         std::vector<std::pair<int, int>> partial_state) const;

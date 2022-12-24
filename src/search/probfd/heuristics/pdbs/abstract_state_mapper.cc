@@ -165,7 +165,6 @@ AbstractStateMapper::AbstractStateMapper(
 
     {
         VariableInfo& first_info = var_infos_[0];
-        first_info.var = pattern_[0];
         first_info.multiplier = 1;
         first_info.partial_multiplier = 1;
     }
@@ -174,8 +173,7 @@ AbstractStateMapper::AbstractStateMapper(
         VariableInfo& prev_info = var_infos_[i - 1];
         VariableInfo& cur_info = var_infos_[i];
 
-        assert(prev_info.var < static_cast<int>(domains.size()));
-        const int d = domains[prev_info.var];
+        const int d = domains[pattern_[i - 1]];
         prev_info.domain = d;
 
         if (prev_info.partial_multiplier > maxint / (d + 1)) {
@@ -183,15 +181,13 @@ AbstractStateMapper::AbstractStateMapper(
                                    "std::numeric_limits<long long int>::max()");
         }
 
-        cur_info.var = pattern_[i];
         cur_info.multiplier = prev_info.multiplier * d;
         cur_info.partial_multiplier = prev_info.partial_multiplier * (d + 1);
     }
 
     VariableInfo& last_info = var_infos_.back();
-    assert(last_info.var < static_cast<int>(domains.size()));
 
-    const int d = domains[last_info.var];
+    const int d = domains[pattern_.back()];
     last_info.domain = d;
 
     if (last_info.multiplier > maxint / d) {
@@ -215,18 +211,6 @@ unsigned AbstractStateMapper::num_vars() const
 const Pattern& AbstractStateMapper::get_pattern() const
 {
     return pattern_;
-}
-
-AbstractState
-AbstractStateMapper::from_values(const std::vector<int>& values) const
-{
-    assert(values.size() == var_infos_.size());
-    AbstractState res(0);
-    auto it = values.begin();
-    for (const VariableInfo& info : var_infos_) {
-        res.id += info.multiplier * (*it++);
-    }
-    return res;
 }
 
 AbstractState AbstractStateMapper::from_values_partial(
@@ -280,8 +264,7 @@ long long int AbstractStateMapper::get_unique_partial_state_id(
     return id;
 }
 
-std::vector<int>
-AbstractStateMapper::to_values(AbstractState abstract_state) const
+std::vector<int> AbstractStateMapper::unrank(AbstractState abstract_state) const
 {
     std::vector<int> values(var_infos_.size());
     for (size_t i = 0; i != var_infos_.size(); ++i) {
@@ -289,17 +272,6 @@ AbstractStateMapper::to_values(AbstractState abstract_state) const
         values[i] = (abstract_state.id / info.multiplier) % info.domain;
     }
     return values;
-}
-
-void AbstractStateMapper::to_values(
-    AbstractState abstract_state,
-    std::vector<int>& values) const
-{
-    values.resize(var_infos_.size());
-    for (size_t i = 0; i != var_infos_.size(); ++i) {
-        const VariableInfo& info = var_infos_[i];
-        values[i] = (abstract_state.id / info.multiplier) % info.domain;
-    }
 }
 
 AbstractState AbstractStateMapper::convert(
@@ -321,14 +293,14 @@ AbstractState AbstractStateMapper::convert(
     auto pattern_end = pattern.end();
 
     const VariableInfo& first_info = var_infos_[0];
-    if (first_info.var == *pattern_it) {
+    if (pattern_[0] == *pattern_it) {
         converted_state.id += abstract_state.id % first_info.domain;
         multiplier *= first_info.domain;
         ++pattern_it;
     }
 
     for (int i = 1; pattern_it != pattern_end; ++pattern_it, ++i) {
-        while (var_infos_[i].var != *pattern_it) {
+        while (pattern_[i] != *pattern_it) {
             ++i;
         }
 
@@ -417,7 +389,7 @@ std::string
 AbstractStateToString::operator()(const StateID&, AbstractState state) const
 {
     std::ostringstream out;
-    std::vector<int> values = state_mapper_->to_values(state);
+    std::vector<int> values = state_mapper_->unrank(state);
     for (unsigned i = 0; i < values.size(); i++) {
         const int var = state_mapper_->get_pattern()[i];
         out << (i > 0 ? ", " : "") << ::g_fact_names[var][values[i]];
