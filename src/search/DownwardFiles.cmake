@@ -754,6 +754,9 @@ fast_downward_plugin(
         probfd/planner
         probfd/command_line
 
+        # Tasks
+        probfd/probabilistic_task
+
         # Globals
         probfd/globals
 
