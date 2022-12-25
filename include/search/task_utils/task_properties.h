@@ -10,8 +10,15 @@ namespace task_properties {
 inline bool is_applicable(AxiomOrOperatorProxy op, const State& state)
 {
     for (FactProxy precondition : op.get_preconditions()) {
-        if (state[precondition.get_variable()] != precondition)
-            return false;
+        if (state[precondition.get_variable()] != precondition) return false;
+    }
+    return true;
+}
+
+inline bool is_applicable(OperatorLightProxy op, const State& state)
+{
+    for (FactProxy precondition : op.get_preconditions()) {
+        if (state[precondition.get_variable()] != precondition) return false;
     }
     return true;
 }
