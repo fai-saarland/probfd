@@ -59,7 +59,7 @@ class Exploration {
     std::vector<std::vector<Proposition>> propositions;
     std::deque<Proposition *> prop_queue;
 
-    void build_unary_operators(const OperatorProxy &op);
+    void build_unary_operators(const AxiomOrOperatorProxy &op);
     void setup_exploration_queue(
         const State &state, const std::vector<FactPair> &excluded_props,
         const std::vector<int> &excluded_op_ids);

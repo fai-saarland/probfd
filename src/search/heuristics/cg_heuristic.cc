@@ -157,10 +157,12 @@ int CGHeuristic::get_transition_cost(
 
                 // Scan labels of the transition.
                 for (ValueTransitionLabel& label : transition.labels) {
-                    OperatorProxy op =
+                    AxiomOrOperatorProxy op =
                         label.is_axiom
-                            ? task_proxy.get_axioms()[label.op_id]
-                            : task_proxy.get_operators()[label.op_id];
+                            ? AxiomOrOperatorProxy(
+                                  task_proxy.get_axioms()[label.op_id])
+                            : AxiomOrOperatorProxy(
+                                  task_proxy.get_operators()[label.op_id]);
                     int new_distance = source_distance + op.get_cost();
                     for (LocalAssignment& assignment : label.precond) {
                         if (new_distance >= *target_distance_ptr)
@@ -286,13 +288,14 @@ void CGHeuristic::mark_helpful_transitions(
         cost = start_node->distances[to];
     }
 
-    OperatorProxy op = helpful->is_axiom
-                           ? task_proxy.get_axioms()[helpful->op_id]
-                           : task_proxy.get_operators()[helpful->op_id];
+    AxiomOrOperatorProxy op =
+        helpful->is_axiom
+            ? AxiomOrOperatorProxy(task_proxy.get_axioms()[helpful->op_id])
+            : AxiomOrOperatorProxy(task_proxy.get_operators()[helpful->op_id]);
     if (cost == op.get_cost() && !op.is_axiom() &&
         task_properties::is_applicable(op, state)) {
         // Transition immediately applicable, all preconditions true.
-        set_preferred(op);
+        set_preferred(op.to_operator());
     } else {
         // Recursively compute helpful transitions for the precondition
         // variables.

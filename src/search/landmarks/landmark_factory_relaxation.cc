@@ -88,7 +88,8 @@ void LandmarkFactoryRelaxation::calc_achievers(
             compute_relaxed_reachability(exploration, landmark);
 
         for (int op_or_axom_id : landmark.possible_achievers) {
-            OperatorProxy op = get_operator_or_axiom(task_proxy, op_or_axom_id);
+            AxiomOrOperatorProxy op =
+                get_operator_or_axiom(task_proxy, op_or_axom_id);
 
             if (possibly_reaches_lm(op, reached, landmark)) {
                 landmark.first_achievers.insert(op_or_axom_id);

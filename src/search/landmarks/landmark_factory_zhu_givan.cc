@@ -129,7 +129,8 @@ LandmarkFactoryZhuGivan::PropositionLayer LandmarkFactoryZhuGivan::build_relaxed
         unordered_set<int> next_triggered;
         changes = false;
         for (int op_or_axiom_id : triggered) {
-            OperatorProxy op = get_operator_or_axiom(task_proxy, op_or_axiom_id);
+            AxiomOrOperatorProxy op =
+                get_operator_or_axiom(task_proxy, op_or_axiom_id);
             if (operator_applicable(op, current_prop_layer)) {
                 lm_set changed = apply_operator_and_propagate_labels(
                     op, current_prop_layer, next_prop_layer);
@@ -149,8 +150,10 @@ LandmarkFactoryZhuGivan::PropositionLayer LandmarkFactoryZhuGivan::build_relaxed
     return current_prop_layer;
 }
 
-bool LandmarkFactoryZhuGivan::operator_applicable(const OperatorProxy &op,
-                                                  const PropositionLayer &state) const {
+bool LandmarkFactoryZhuGivan::operator_applicable(
+    const AxiomOrOperatorProxy& op,
+    const PropositionLayer& state) const
+{
     // test preconditions
     for (FactProxy fact : op.get_preconditions())
         if (!state[fact.get_variable().get_id()][fact.get_value()].reached())
@@ -189,8 +192,10 @@ static lm_set _intersection(const lm_set &a, const lm_set &b) {
     return result;
 }
 
-lm_set LandmarkFactoryZhuGivan::union_of_precondition_labels(const OperatorProxy &op,
-                                                             const PropositionLayer &current) const {
+lm_set LandmarkFactoryZhuGivan::union_of_precondition_labels(
+    const AxiomOrOperatorProxy& op,
+    const PropositionLayer& current) const
+{
     lm_set result;
 
     // TODO This looks like an O(n^2) algorithm where O(n log n) would do, a
@@ -233,8 +238,10 @@ static bool _propagate_labels(lm_set &labels, const lm_set &new_labels,
 }
 
 lm_set LandmarkFactoryZhuGivan::apply_operator_and_propagate_labels(
-    const OperatorProxy &op, const PropositionLayer &current,
-    PropositionLayer &next) const {
+    const AxiomOrOperatorProxy& op,
+    const PropositionLayer& current,
+    PropositionLayer& next) const
+{
     assert(operator_applicable(op, current));
 
     lm_set result;
@@ -275,12 +282,14 @@ void LandmarkFactoryZhuGivan::compute_triggers(const TaskProxy &task_proxy) {
     for (OperatorProxy op : task_proxy.get_operators()) {
         add_operator_to_triggers(op);
     }
-    for (OperatorProxy axiom : task_proxy.get_axioms()) {
+    for (AxiomProxy axiom : task_proxy.get_axioms()) {
         add_operator_to_triggers(axiom);
     }
 }
 
-void LandmarkFactoryZhuGivan::add_operator_to_triggers(const OperatorProxy &op) {
+void LandmarkFactoryZhuGivan::add_operator_to_triggers(
+    const AxiomOrOperatorProxy& op)
+{
     // Collect possible triggers first.
     lm_set possible_triggers;
 

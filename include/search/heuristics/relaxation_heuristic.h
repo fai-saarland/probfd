@@ -10,6 +10,7 @@
 #include <cassert>
 #include <vector>
 
+class AxiomOrOperatorProxy;
 class FactProxy;
 class OperatorProxy;
 
@@ -57,7 +58,7 @@ struct UnaryOperator {
 static_assert(sizeof(UnaryOperator) == 28, "UnaryOperator has wrong size");
 
 class RelaxationHeuristic : public Heuristic {
-    void build_unary_operators(const OperatorProxy& op);
+    void build_unary_operators(const AxiomOrOperatorProxy& op);
     void simplify();
 
     // proposition_offsets[var_no]: first PropID related to variable var_no

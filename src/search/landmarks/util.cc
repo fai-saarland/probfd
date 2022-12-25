@@ -35,7 +35,7 @@ _intersect(const unordered_map<int, int>& a, const unordered_map<int, int>& b)
 }
 
 bool possibly_reaches_lm(
-    const OperatorProxy& op,
+    const AxiomOrOperatorProxy& op,
     const vector<vector<bool>>& reached,
     const Landmark& landmark)
 {
@@ -68,7 +68,7 @@ bool possibly_reaches_lm(
     return false;
 }
 
-OperatorProxy
+AxiomOrOperatorProxy
 get_operator_or_axiom(const TaskProxy& task_proxy, int op_or_axiom_id)
 {
     if (op_or_axiom_id < 0) {
@@ -78,7 +78,7 @@ get_operator_or_axiom(const TaskProxy& task_proxy, int op_or_axiom_id)
     }
 }
 
-int get_operator_or_axiom_id(const OperatorProxy& op)
+int get_operator_or_axiom_id(const AxiomOrOperatorProxy& op)
 {
     if (op.is_axiom()) {
         return -op.get_id() - 1;

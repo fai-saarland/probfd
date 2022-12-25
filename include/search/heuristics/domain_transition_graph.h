@@ -39,7 +39,7 @@ class DTGFactory {
     void allocate_graphs_and_nodes(DTGs &dtgs);
     void initialize_index_structures(int num_dtgs);
     void create_transitions(DTGs &dtgs);
-    void process_effect(const EffectProxy &eff, const OperatorProxy &op,
+    void process_effect(const EffectProxy &eff, const AxiomOrOperatorProxy &op,
                         DTGs &dtgs);
     void update_transition_condition(const FactProxy &fact,
                                      DomainTransitionGraph *dtg,
@@ -55,7 +55,7 @@ class DTGFactory {
     void collect_all_side_effects(DTGs &dtgs);
     void collect_side_effects(DomainTransitionGraph *dtg,
                               std::vector<ValueTransitionLabel> &labels);
-    OperatorProxy get_op_for_label(const ValueTransitionLabel &label);
+    AxiomOrOperatorProxy get_op_for_label(const ValueTransitionLabel &label);
 
 public:
     DTGFactory(const TaskProxy &task_proxy,

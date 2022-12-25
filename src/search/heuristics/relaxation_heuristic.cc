@@ -67,7 +67,7 @@ RelaxationHeuristic::RelaxationHeuristic(const options::Options& opts)
     unary_operators.reserve(task_properties::get_num_total_effects(task_proxy));
     for (OperatorProxy op : task_proxy.get_operators())
         build_unary_operators(op);
-    for (OperatorProxy axiom : task_proxy.get_axioms())
+    for (AxiomProxy axiom : task_proxy.get_axioms())
         build_unary_operators(axiom);
 
     // Simplify unary operators.
@@ -127,7 +127,7 @@ Proposition* RelaxationHeuristic::get_proposition(const FactProxy& fact)
     return get_proposition(fact.get_variable().get_id(), fact.get_value());
 }
 
-void RelaxationHeuristic::build_unary_operators(const OperatorProxy& op)
+void RelaxationHeuristic::build_unary_operators(const AxiomOrOperatorProxy& op)
 {
     int op_no = op.is_axiom() ? -1 : op.get_id();
     int base_cost = op.get_cost();

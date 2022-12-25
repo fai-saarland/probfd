@@ -50,7 +50,7 @@ Exploration::Exploration(const TaskProxy &task_proxy, utils::LogProxy &log)
     for (OperatorProxy op : operators) {
         num_unary_ops += op.get_effects().size();
     }
-    for (OperatorProxy axiom : axioms) {
+    for (AxiomProxy axiom : axioms) {
         num_unary_ops += axiom.get_effects().size();
     }
     unary_operators.reserve(num_unary_ops);
@@ -58,11 +58,12 @@ Exploration::Exploration(const TaskProxy &task_proxy, utils::LogProxy &log)
     // Build unary operators for operators and axioms.
     for (OperatorProxy op : operators)
         build_unary_operators(op);
-    for (OperatorProxy axiom : axioms)
+    for (AxiomProxy axiom : axioms)
         build_unary_operators(axiom);
 }
 
-void Exploration::build_unary_operators(const OperatorProxy &op) {
+void Exploration::build_unary_operators(const AxiomOrOperatorProxy& op)
+{
     // Note: changed from the original to allow sorting of operator conditions
     vector<Proposition *> precondition;
     vector<FactPair> precondition_facts1;

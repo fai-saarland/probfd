@@ -48,10 +48,15 @@ public:
     virtual bool are_facts_mutex(
         const FactPair &fact1, const FactPair &fact2) const override;
 
-    virtual FactPair get_operator_precondition(
-        int op_index, int fact_index, bool is_axiom) const override;
-    virtual FactPair get_operator_effect(
-        int op_index, int eff_index, bool is_axiom) const override;
+    virtual FactPair
+    get_axiom_precondition(int op_index, int fact_index) const override;
+    virtual FactPair
+    get_axiom_effect(int op_index, int eff_index) const override;
+
+    virtual FactPair
+    get_operator_precondition(int op_index, int fact_index) const override;
+    virtual FactPair
+    get_operator_effect(int op_index, int eff_index) const override;
 
     virtual FactPair get_goal_fact(int index) const override;
 

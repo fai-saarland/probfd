@@ -59,16 +59,31 @@ bool DomainAbstractedTask::are_facts_mutex(const FactPair &, const FactPair &) c
     ABORT("DomainAbstractedTask doesn't support querying mutexes.");
 }
 
-FactPair DomainAbstractedTask::get_operator_precondition(
-    int op_index, int fact_index, bool is_axiom) const {
+FactPair
+DomainAbstractedTask::get_axiom_precondition(int op_index, int fact_index) const
+{
     return get_abstract_fact(
-        parent->get_operator_precondition(op_index, fact_index, is_axiom));
+        parent->get_axiom_precondition(op_index, fact_index));
 }
 
-FactPair DomainAbstractedTask::get_operator_effect(
-    int op_index, int eff_index, bool is_axiom) const {
+FactPair
+DomainAbstractedTask::get_axiom_effect(int op_index, int eff_index) const
+{
+    return get_abstract_fact(parent->get_axiom_effect(op_index, eff_index));
+}
+
+FactPair
+DomainAbstractedTask::get_operator_precondition(int op_index, int fact_index)
+    const
+{
     return get_abstract_fact(
-        parent->get_operator_effect(op_index, eff_index, is_axiom));
+        parent->get_operator_precondition(op_index, fact_index));
+}
+
+FactPair
+DomainAbstractedTask::get_operator_effect(int op_index, int eff_index) const
+{
+    return get_abstract_fact(parent->get_operator_effect(op_index, eff_index));
 }
 
 FactPair DomainAbstractedTask::get_goal_fact(int index) const {

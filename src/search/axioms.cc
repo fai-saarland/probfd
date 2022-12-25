@@ -25,7 +25,7 @@ AxiomEvaluator::AxiomEvaluator(const TaskProxy &task_proxy) {
         // Since we are skipping some axioms, we cannot access them through
         // their id position directly.
         vector<int> axiom_id_to_position(axioms.size(), -1);
-        for (OperatorProxy axiom : axioms) {
+        for (AxiomProxy axiom : axioms) {
             assert(axiom.get_effects().size() == 1);
             EffectProxy cond_effect = axiom.get_effects()[0];
             FactPair effect = cond_effect.get_fact().get_pair();
@@ -40,7 +40,7 @@ AxiomEvaluator::AxiomEvaluator(const TaskProxy &task_proxy) {
         }
 
         // Cross-reference rules and literals
-        for (OperatorProxy axiom : axioms) {
+        for (AxiomProxy axiom : axioms) {
             // Ignore axioms which set the variable to its default value.
             int position = axiom_id_to_position[axiom.get_id()];
             if (position != -1) {

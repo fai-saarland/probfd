@@ -136,7 +136,7 @@ struct CausalGraphBuilder {
         pred_builder.add_pair(v, u);
     }
 
-    void handle_operator(const OperatorProxy& op)
+    void handle_operator(const AxiomOrOperatorProxy& op)
     {
         EffectsProxy effects = op.get_effects();
 
@@ -242,7 +242,7 @@ CausalGraph::CausalGraph(const TaskProxy& task_proxy)
     for (OperatorProxy op : task_proxy.get_operators())
         cg_builder.handle_operator(op);
 
-    for (OperatorProxy op : task_proxy.get_axioms())
+    for (AxiomProxy op : task_proxy.get_axioms())
         cg_builder.handle_operator(op);
 
     cg_builder.pre_eff_builder.compute_relation(pre_to_eff);

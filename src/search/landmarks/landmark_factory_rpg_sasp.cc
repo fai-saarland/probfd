@@ -73,8 +73,11 @@ void LandmarkFactoryRpgSasp::add_dtg_successor(int var_id, int pre, int post) {
 }
 
 void LandmarkFactoryRpgSasp::get_greedy_preconditions_for_lm(
-    const TaskProxy &task_proxy, const Landmark &landmark,
-    const OperatorProxy &op, unordered_map<int, int> &result) const {
+    const TaskProxy& task_proxy,
+    const Landmark& landmark,
+    const AxiomOrOperatorProxy& op,
+    unordered_map<int, int>& result) const
+{
     // Computes a subset of the actual preconditions of o for achieving lmp - takes into account
     // operator preconditions, but only reports those effect conditions that are true for ALL
     // effects achieving the LM.
@@ -249,7 +252,8 @@ void LandmarkFactoryRpgSasp::compute_shared_preconditions(
         const vector<int> &op_ids = get_operators_including_eff(lm_fact);
 
         for (int op_or_axiom_id : op_ids) {
-            OperatorProxy op = get_operator_or_axiom(task_proxy, op_or_axiom_id);
+            AxiomOrOperatorProxy op =
+                get_operator_or_axiom(task_proxy, op_or_axiom_id);
             if (!init && shared_pre.empty())
                 break;
 
@@ -356,7 +360,8 @@ void LandmarkFactoryRpgSasp::compute_disjunctive_preconditions(
     unordered_map<int, set<int>> used_operators;  // tells for each
     // proposition which operators use it
     for (size_t i = 0; i < op_or_axiom_ids.size(); ++i) {
-        OperatorProxy op = get_operator_or_axiom(task_proxy, op_or_axiom_ids[i]);
+        AxiomOrOperatorProxy op =
+            get_operator_or_axiom(task_proxy, op_or_axiom_ids[i]);
         if (possibly_reaches_lm(op, reached, landmark)) {
             ++num_ops;
             unordered_map<int, int> next_pre;

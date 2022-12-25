@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
+class AxiomOrOperatorProxy;
 class OperatorProxy;
 class TaskProxy;
 
@@ -21,11 +22,13 @@ extern std::unordered_map<int, int> _intersect(
     const std::unordered_map<int, int> &b);
 
 extern bool possibly_reaches_lm(
-    const OperatorProxy &op, const std::vector<std::vector<bool>> &reached,
-    const Landmark &landmark);
+    const AxiomOrOperatorProxy& op,
+    const std::vector<std::vector<bool>>& reached,
+    const Landmark& landmark);
 
-extern OperatorProxy get_operator_or_axiom(const TaskProxy &task_proxy, int op_or_axiom_id);
-extern int get_operator_or_axiom_id(const OperatorProxy &op);
+extern AxiomOrOperatorProxy
+get_operator_or_axiom(const TaskProxy& task_proxy, int op_or_axiom_id);
+extern int get_operator_or_axiom_id(const AxiomOrOperatorProxy &op);
 
 extern void dump_landmark_graph(
     const TaskProxy &task_proxy,

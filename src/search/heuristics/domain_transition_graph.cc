@@ -51,13 +51,16 @@ void DTGFactory::create_transitions(DTGs &dtgs) {
     for (OperatorProxy op : task_proxy.get_operators())
         for (EffectProxy eff : op.get_effects())
             process_effect(eff, op, dtgs);
-    for (OperatorProxy ax : task_proxy.get_axioms())
+    for (AxiomProxy ax : task_proxy.get_axioms())
         for (EffectProxy eff : ax.get_effects())
             process_effect(eff, ax, dtgs);
 }
 
-void DTGFactory::process_effect(const EffectProxy &eff, const OperatorProxy &op,
-                                DTGs &dtgs) {
+void DTGFactory::process_effect(
+    const EffectProxy& eff,
+    const AxiomOrOperatorProxy& op,
+    DTGs& dtgs)
+{
     FactProxy fact = eff.get_fact();
     int var_id = fact.get_variable().get_id();
     DomainTransitionGraph *dtg = dtgs[var_id].get();
@@ -169,7 +172,7 @@ void DTGFactory::collect_side_effects(DomainTransitionGraph *dtg,
         sort(precond_pairs.begin(), precond_pairs.end());
 
         // collect operator precondition
-        OperatorProxy op = get_op_for_label(label);
+        AxiomOrOperatorProxy op = get_op_for_label(label);
         unordered_map<int, int> pre_map;
         for (FactProxy pre : op.get_preconditions())
             pre_map[pre.get_variable().get_id()] = pre.get_value();
@@ -220,7 +223,9 @@ void DTGFactory::simplify_transitions(DTGs &dtgs) {
                 simplify_labels(transition.labels);
 }
 
-OperatorProxy DTGFactory::get_op_for_label(const ValueTransitionLabel &label) {
+AxiomOrOperatorProxy
+DTGFactory::get_op_for_label(const ValueTransitionLabel& label)
+{
     if (label.is_axiom)
         return task_proxy.get_axioms()[label.op_id];
     return task_proxy.get_operators()[label.op_id];
@@ -261,7 +266,7 @@ void DTGFactory::simplify_labels(vector<ValueTransitionLabel> &labels) {
         int powerset_size = (1 << key.size()) - 1; // -1: only consider proper subsets
         bool match = false;
         if (powerset_size <= 31) { // HACK! Don't spend too much time here...
-            OperatorProxy op = get_op_for_label(old_labels[label_no]);
+            AxiomOrOperatorProxy op = get_op_for_label(old_labels[label_no]);
             for (int mask = 0; mask < powerset_size; ++mask) {
                 HashKey subset;
                 for (size_t i = 0; i < key.size(); ++i)
@@ -270,7 +275,7 @@ void DTGFactory::simplify_labels(vector<ValueTransitionLabel> &labels) {
                 HashMap::iterator found = label_index.find(subset);
                 if (found != label_index.end()) {
                     const ValueTransitionLabel &f_label = old_labels[found->second];
-                    OperatorProxy f_op = get_op_for_label(f_label);
+                    AxiomOrOperatorProxy f_op = get_op_for_label(f_label);
                     if (op.get_cost() >= f_op.get_cost()) {
                         /* TODO: Depending on how clever we want to
                            be, we could prune based on the *adjusted*

@@ -25,11 +25,18 @@ static int get_adjusted_action_cost(int cost, OperatorCost cost_type, bool is_un
     }
 }
 
-int get_adjusted_action_cost(const OperatorProxy &op, OperatorCost cost_type, bool is_unit_cost) {
+int get_adjusted_action_cost(
+    const AxiomOrOperatorProxy& op,
+    OperatorCost cost_type,
+    bool is_unit_cost)
+{
     if (op.is_axiom())
         return 0;
     else
-        return get_adjusted_action_cost(op.get_cost(), cost_type, is_unit_cost);
+        return get_adjusted_action_cost(
+            op.to_operator().get_cost(),
+            cost_type,
+            is_unit_cost);
 }
 
 void add_cost_type_option_to_parser(OptionParser &parser) {

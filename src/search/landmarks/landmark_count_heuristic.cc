@@ -115,7 +115,7 @@ int LandmarkCountHeuristic::get_min_cost_of_achievers(const set<int> &achievers,
                                                       const TaskProxy &task_proxy) {
     int min_cost = numeric_limits<int>::max();
     for (int id : achievers) {
-        OperatorProxy op = get_operator_or_axiom(task_proxy, id);
+        AxiomOrOperatorProxy op = get_operator_or_axiom(task_proxy, id);
         min_cost = min(min_cost, op.get_cost());
     }
     return min_cost;

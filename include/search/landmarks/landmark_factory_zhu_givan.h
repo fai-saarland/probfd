@@ -36,7 +36,9 @@ public:
     // Note: must include operators that only have conditional effects
     std::vector<int> operators_without_preconditions;
 
-    bool operator_applicable(const OperatorProxy &op, const PropositionLayer &state) const;
+    bool operator_applicable(
+        const AxiomOrOperatorProxy& op,
+        const PropositionLayer& state) const;
 
     bool operator_cond_effect_fires(const EffectConditionsProxy &effect_conditions,
                                     const PropositionLayer &layer) const;
@@ -45,13 +47,16 @@ public:
     // propositions that:
     // (a) have just been reached OR (b) had their labels changed in next
     // proposition layer
-    lm_set apply_operator_and_propagate_labels(const OperatorProxy &op,
-                                               const PropositionLayer &current, PropositionLayer &next) const;
+    lm_set apply_operator_and_propagate_labels(
+        const AxiomOrOperatorProxy& op,
+        const PropositionLayer& current,
+        PropositionLayer& next) const;
 
     // Calculate the union of precondition labels of op, using the
     // labels from current
-    lm_set union_of_precondition_labels(const OperatorProxy &op,
-                                        const PropositionLayer &current) const;
+    lm_set union_of_precondition_labels(
+        const AxiomOrOperatorProxy& op,
+        const PropositionLayer& current) const;
 
     // Calculate the union of precondition labels of a conditional effect,
     // using the labels from current
@@ -68,7 +73,7 @@ public:
                            const PropositionLayer &last_prop_layer);
 
     // Link operators to its propositions in trigger list.
-    void add_operator_to_triggers(const OperatorProxy &op);
+    void add_operator_to_triggers(const AxiomOrOperatorProxy &op);
 
     virtual void generate_relaxed_landmarks(
         const std::shared_ptr<AbstractTask> &task,

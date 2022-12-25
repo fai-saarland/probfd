@@ -282,7 +282,6 @@ void CEGAR::compute_initial_collection()
 */
 void apply_op_to_state(vector<int>& state, const OperatorProxy& op)
 {
-    assert(!op.is_axiom());
     for (EffectProxy effect : op.get_effects()) {
         assert(effect.get_conditions().empty());
         FactPair effect_fact = effect.get_fact().get_pair();

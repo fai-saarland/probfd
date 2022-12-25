@@ -26,7 +26,8 @@ Heuristic::Heuristic(const Options &opts)
 Heuristic::~Heuristic() {
 }
 
-void Heuristic::set_preferred(const OperatorProxy &op) {
+void Heuristic::set_preferred(const OperatorProxy& op)
+{
     preferred_operators.insert(op.get_ancestor_operator_id(tasks::g_root_task.get()));
 }
 

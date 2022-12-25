@@ -31,7 +31,7 @@ public:
         OperatorCost cost_type);
     virtual ~CostAdaptedTask() override = default;
 
-    virtual int get_operator_cost(int index, bool is_axiom) const override;
+    virtual int get_operator_cost(int index) const override;
 };
 }
 

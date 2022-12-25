@@ -277,7 +277,7 @@ void LandmarkFactory::generate_operators_lookups(const TaskProxy &task_proxy) {
                 get_operator_or_axiom_id(op));
         }
     }
-    for (OperatorProxy axiom : task_proxy.get_axioms()) {
+    for (AxiomProxy axiom : task_proxy.get_axioms()) {
         const EffectsProxy effects = axiom.get_effects();
         for (EffectProxy effect : effects) {
             const FactProxy effect_fact = effect.get_fact();

@@ -30,44 +30,33 @@ public:
 
     std::unique_ptr<AbstractTask> build_all_outcomes_determinization();
 
-    virtual int get_operator_cost(int index, bool is_axiom) const = 0;
-    virtual std::string get_operator_name(int index, bool is_axiom) const = 0;
+    virtual int get_operator_cost(int index) const = 0;
+    virtual std::string get_operator_name(int index) const = 0;
     virtual int get_num_operators() const = 0;
-    virtual int
-    get_num_operator_preconditions(int index, bool is_axiom) const = 0;
+    virtual int get_num_operator_preconditions(int index) const = 0;
     virtual FactPair
-    get_operator_precondition(int op_index, int fact_index, bool is_axiom)
-        const = 0;
+    get_operator_precondition(int op_index, int fact_index) const = 0;
+
+    virtual int get_num_operator_outcomes(int op_index) const = 0;
+
+    virtual value_type::value_t
+    get_operator_outcome_probability(int op_index, int outcome_index) const = 0;
 
     virtual int
-    get_num_operator_outcomes(int op_index, bool is_axiom) const = 0;
-
-    virtual value_type::value_t get_operator_outcome_probability(
-        int op_index,
-        int outcome_index,
-        bool is_axiom) const = 0;
-
-    virtual int get_num_operator_outcome_effects(
-        int op_index,
-        int outcome_index,
-        bool is_axiom) const = 0;
-    virtual FactPair get_operator_outcome_effect(
-        int op_index,
-        int outcome_index,
-        int eff_index,
-        bool is_axiom) const = 0;
+    get_num_operator_outcome_effects(int op_index, int outcome_index) const = 0;
+    virtual FactPair
+    get_operator_outcome_effect(int op_index, int outcome_index, int eff_index)
+        const = 0;
 
     virtual int get_num_operator_outcome_effect_conditions(
         int op_index,
         int outcome_index,
-        int eff_index,
-        bool is_axiom) const = 0;
+        int eff_index) const = 0;
     virtual FactPair get_operator_outcome_effect_condition(
         int op_index,
         int outcome_index,
         int eff_index,
-        int cond_index,
-        bool is_axiom) const = 0;
+        int cond_index) const = 0;
 
     /*
      * Convert an operator index from this task, C (child), into an operator

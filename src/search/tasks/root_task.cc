@@ -79,26 +79,38 @@ public:
     virtual bool are_facts_mutex(
         const FactPair &fact1, const FactPair &fact2) const override;
 
-    virtual int get_operator_cost(int index, bool is_axiom) const override;
-    virtual string get_operator_name(
-        int index, bool is_axiom) const override;
+    virtual int get_num_axioms() const override;
+
+    virtual string get_axiom_name(int index) const override;
+    virtual int get_num_axiom_preconditions(int index) const override;
+    virtual FactPair
+    get_axiom_precondition(int op_index, int fact_index) const override;
+    virtual int get_num_axiom_effects(int op_index) const override;
+    virtual int
+    get_num_axiom_effect_conditions(int op_index, int eff_index) const override;
+    virtual FactPair
+    get_axiom_effect_condition(int op_index, int eff_index, int cond_index)
+        const override;
+    virtual FactPair
+    get_axiom_effect(int op_index, int eff_index) const override;
+
     virtual int get_num_operators() const override;
-    virtual int get_num_operator_preconditions(
-        int index, bool is_axiom) const override;
-    virtual FactPair get_operator_precondition(
-        int op_index, int fact_index, bool is_axiom) const override;
-    virtual int get_num_operator_effects(
-        int op_index, bool is_axiom) const override;
-    virtual int get_num_operator_effect_conditions(
-        int op_index, int eff_index, bool is_axiom) const override;
-    virtual FactPair get_operator_effect_condition(
-        int op_index, int eff_index, int cond_index, bool is_axiom) const override;
-    virtual FactPair get_operator_effect(
-        int op_index, int eff_index, bool is_axiom) const override;
+
+    virtual int get_operator_cost(int index) const override;
+    virtual string get_operator_name(int index) const override;
+    virtual int get_num_operator_preconditions(int index) const override;
+    virtual FactPair
+    get_operator_precondition(int op_index, int fact_index) const override;
+    virtual int get_num_operator_effects(int op_index) const override;
+    virtual int get_num_operator_effect_conditions(int op_index, int eff_index)
+        const override;
+    virtual FactPair
+    get_operator_effect_condition(int op_index, int eff_index, int cond_index)
+        const override;
+    virtual FactPair
+    get_operator_effect(int op_index, int eff_index) const override;
     virtual int convert_operator_index(
         int index, const AbstractTask *ancestor_task) const override;
-
-    virtual int get_num_axioms() const override;
 
     virtual int get_num_goals() const override;
     virtual FactPair get_goal_fact(int index) const override;
@@ -418,48 +430,104 @@ bool RootTask::are_facts_mutex(const FactPair &fact1, const FactPair &fact2) con
     return bool(mutexes[fact1.var][fact1.value].count(fact2));
 }
 
-int RootTask::get_operator_cost(int index, bool is_axiom) const {
-    return get_operator_or_axiom(index, is_axiom).cost;
+int RootTask::get_num_axioms() const
+{
+    return axioms.size();
 }
 
-string RootTask::get_operator_name(int index, bool is_axiom) const {
-    return get_operator_or_axiom(index, is_axiom).name;
+string RootTask::get_axiom_name(int index) const
+{
+    return get_operator_or_axiom(index, true).name;
 }
 
-int RootTask::get_num_operators() const {
-    return operators.size();
+int RootTask::get_num_axiom_preconditions(int index) const
+{
+    return get_operator_or_axiom(index, true).preconditions.size();
 }
 
-int RootTask::get_num_operator_preconditions(int index, bool is_axiom) const {
-    return get_operator_or_axiom(index, is_axiom).preconditions.size();
-}
-
-FactPair RootTask::get_operator_precondition(
-    int op_index, int fact_index, bool is_axiom) const {
-    const ExplicitOperator &op = get_operator_or_axiom(op_index, is_axiom);
+FactPair RootTask::get_axiom_precondition(int op_index, int fact_index) const
+{
+    const ExplicitOperator& op = get_operator_or_axiom(op_index, true);
     assert(utils::in_bounds(fact_index, op.preconditions));
     return op.preconditions[fact_index];
 }
 
-int RootTask::get_num_operator_effects(int op_index, bool is_axiom) const {
-    return get_operator_or_axiom(op_index, is_axiom).effects.size();
+int RootTask::get_num_axiom_effects(int op_index) const
+{
+    return get_operator_or_axiom(op_index, true).effects.size();
 }
 
-int RootTask::get_num_operator_effect_conditions(
-    int op_index, int eff_index, bool is_axiom) const {
-    return get_effect(op_index, eff_index, is_axiom).conditions.size();
+int RootTask::get_num_axiom_effect_conditions(int op_index, int eff_index) const
+{
+    return get_effect(op_index, eff_index, true).conditions.size();
 }
 
-FactPair RootTask::get_operator_effect_condition(
-    int op_index, int eff_index, int cond_index, bool is_axiom) const {
-    const ExplicitEffect &effect = get_effect(op_index, eff_index, is_axiom);
+FactPair RootTask::get_axiom_effect_condition(
+    int op_index,
+    int eff_index,
+    int cond_index) const
+{
+    const ExplicitEffect& effect = get_effect(op_index, eff_index, true);
     assert(utils::in_bounds(cond_index, effect.conditions));
     return effect.conditions[cond_index];
 }
 
-FactPair RootTask::get_operator_effect(
-    int op_index, int eff_index, bool is_axiom) const {
-    return get_effect(op_index, eff_index, is_axiom).fact;
+FactPair RootTask::get_axiom_effect(int op_index, int eff_index) const
+{
+    return get_effect(op_index, eff_index, true).fact;
+}
+
+int RootTask::get_num_operators() const
+{
+    return operators.size();
+}
+
+int RootTask::get_operator_cost(int index) const
+{
+    return get_operator_or_axiom(index, false).cost;
+}
+
+string RootTask::get_operator_name(int index) const
+{
+    return get_operator_or_axiom(index, false).name;
+}
+
+int RootTask::get_num_operator_preconditions(int index) const
+{
+    return get_operator_or_axiom(index, false).preconditions.size();
+}
+
+FactPair RootTask::get_operator_precondition(int op_index, int fact_index) const
+{
+    const ExplicitOperator& op = get_operator_or_axiom(op_index, false);
+    assert(utils::in_bounds(fact_index, op.preconditions));
+    return op.preconditions[fact_index];
+}
+
+int RootTask::get_num_operator_effects(int op_index) const
+{
+    return get_operator_or_axiom(op_index, false).effects.size();
+}
+
+int RootTask::get_num_operator_effect_conditions(int op_index, int eff_index)
+    const
+{
+    return get_effect(op_index, eff_index, false).conditions.size();
+}
+
+FactPair RootTask::get_operator_effect_condition(
+    int op_index,
+    int eff_index,
+    int cond_index) const
+{
+    const ExplicitEffect& effect = get_effect(op_index, eff_index, false);
+    assert(utils::in_bounds(cond_index, effect.conditions));
+    return effect.conditions[cond_index];
+}
+
+FactPair RootTask::get_operator_effect(int op_index, int eff_index) const
+{
+    return get_effect(op_index, eff_index, false).fact;
 }
 
 int RootTask::convert_operator_index(
@@ -468,10 +536,6 @@ int RootTask::convert_operator_index(
         ABORT("Invalid operator ID conversion");
     }
     return index;
-}
-
-int RootTask::get_num_axioms() const {
-    return axioms.size();
 }
 
 int RootTask::get_num_goals() const {

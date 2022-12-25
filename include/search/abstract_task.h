@@ -67,6 +67,17 @@ public:
     are_facts_mutex(const FactPair& fact1, const FactPair& fact2) const = 0;
 
     virtual int get_num_axioms() const = 0;
+    virtual std::string get_axiom_name(int index) const = 0;
+    virtual int get_num_axiom_preconditions(int index) const = 0;
+    virtual FactPair
+    get_axiom_precondition(int op_index, int fact_index) const = 0;
+    virtual int get_num_axiom_effects(int op_index) const = 0;
+    virtual int
+    get_num_axiom_effect_conditions(int op_index, int eff_index) const = 0;
+    virtual FactPair
+    get_axiom_effect_condition(int op_index, int eff_index, int cond_index)
+        const = 0;
+    virtual FactPair get_axiom_effect(int op_index, int eff_index) const = 0;
 
     virtual int get_num_goals() const = 0;
     virtual FactPair get_goal_fact(int index) const = 0;
@@ -95,26 +106,19 @@ public:
     AbstractTask() = default;
     virtual ~AbstractTask() override = default;
 
-    virtual int get_operator_cost(int index, bool is_axiom) const = 0;
-    virtual std::string get_operator_name(int index, bool is_axiom) const = 0;
+    virtual int get_operator_cost(int index) const = 0;
+    virtual std::string get_operator_name(int index) const = 0;
     virtual int get_num_operators() const = 0;
+    virtual int get_num_operator_preconditions(int index) const = 0;
+    virtual FactPair
+    get_operator_precondition(int op_index, int fact_index) const = 0;
+    virtual int get_num_operator_effects(int op_index) const = 0;
     virtual int
-    get_num_operator_preconditions(int index, bool is_axiom) const = 0;
+    get_num_operator_effect_conditions(int op_index, int eff_index) const = 0;
     virtual FactPair
-    get_operator_precondition(int op_index, int fact_index, bool is_axiom)
+    get_operator_effect_condition(int op_index, int eff_index, int cond_index)
         const = 0;
-    virtual int get_num_operator_effects(int op_index, bool is_axiom) const = 0;
-    virtual int get_num_operator_effect_conditions(
-        int op_index,
-        int eff_index,
-        bool is_axiom) const = 0;
-    virtual FactPair get_operator_effect_condition(
-        int op_index,
-        int eff_index,
-        int cond_index,
-        bool is_axiom) const = 0;
-    virtual FactPair
-    get_operator_effect(int op_index, int eff_index, bool is_axiom) const = 0;
+    virtual FactPair get_operator_effect(int op_index, int eff_index) const = 0;
 
     /*
       Convert an operator index from this task, C (child), into an operator

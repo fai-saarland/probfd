@@ -63,7 +63,6 @@ const State &StateRegistry::get_initial_state() {
 //     out of the StateRegistry. This could for example be done by global functions
 //     operating on state buffers (PackedStateBin *).
 State StateRegistry::get_successor_state(const State &predecessor, const OperatorProxy &op) {
-    assert(!op.is_axiom());
     state_data_pool.push_back(predecessor.get_buffer());
     PackedStateBin *buffer = state_data_pool[state_data_pool.size() - 1];
     /* Experiments for issue348 showed that for tasks with axioms it's faster

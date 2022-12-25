@@ -54,7 +54,6 @@ State::State(const AbstractTask& task, vector<int>&& values)
 
 State State::get_unregistered_successor(const OperatorProxy& op) const
 {
-    assert(!op.is_axiom());
     assert(task_properties::is_applicable(op, *this));
     assert(values);
     vector<int> new_values = get_unpacked_values();
