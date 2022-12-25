@@ -36,6 +36,7 @@ class OperatorsProxy;
 class PreconditionsProxy;
 class State;
 class StateRegistry;
+class TaskBaseProxy;
 class TaskProxy;
 class VariableProxy;
 class VariablesProxy;
@@ -843,11 +844,11 @@ public:
 };
 
 class AxiomsProxy {
-    const AbstractTask* task;
+    const AbstractTaskBase* task;
 
 public:
     using ItemType = AxiomProxy;
-    explicit AxiomsProxy(const AbstractTask& task)
+    explicit AxiomsProxy(const AbstractTaskBase& task)
         : task(&task)
     {
     }
@@ -922,7 +923,7 @@ class State {
       a 4-byte gap at the end of the object. But it would probably be nice to
       have fewer attributes regardless.
     */
-    const AbstractTask* task;
+    const AbstractTaskBase* task;
     const StateRegistry* registry;
     StateID id;
     const PackedStateBin* buffer;
@@ -945,19 +946,19 @@ public:
 
     // Construct a registered state with only packed data.
     State(
-        const AbstractTask& task,
+        const AbstractTaskBase& task,
         const StateRegistry& registry,
         StateID id,
         const PackedStateBin* buffer);
     // Construct a registered state with packed and unpacked data.
     State(
-        const AbstractTask& task,
+        const AbstractTaskBase& task,
         const StateRegistry& registry,
         StateID id,
         const PackedStateBin* buffer,
         std::vector<int>&& values);
     // Construct a state with only unpacked data.
-    State(const AbstractTask& task, std::vector<int>&& values);
+    State(const AbstractTaskBase& task, std::vector<int>&& values);
 
     bool operator==(const State& other) const;
     bool operator!=(const State& other) const;
@@ -970,7 +971,7 @@ public:
     FactProxy operator[](std::size_t var_id) const;
     FactProxy operator[](VariableProxy var) const;
 
-    TaskProxy get_task() const;
+    TaskBaseProxy get_task() const;
 
     /* Return a pointer to the registry in which this state is registered.
        If the state is not registered, return nullptr. */
@@ -1015,27 +1016,20 @@ inline void feed(HashState& hash_state, const State& state)
 }
 } // namespace utils
 
-class TaskProxy {
-    const AbstractTask* task;
+class TaskBaseProxy {
+protected:
+    const AbstractTaskBase* task;
 
 public:
-    explicit TaskProxy(const AbstractTask& task)
+    explicit TaskBaseProxy(const AbstractTaskBase& task)
         : task(&task)
     {
     }
-    ~TaskProxy() = default;
+    ~TaskBaseProxy() = default;
 
     TaskID get_id() const { return TaskID(task); }
 
-    void subscribe_to_task_destruction(
-        subscriber::Subscriber<AbstractTask>* subscriber) const
-    {
-        task->subscribe(subscriber);
-    }
-
     VariablesProxy get_variables() const { return VariablesProxy(*task); }
-
-    OperatorsProxy get_operators() const { return OperatorsProxy(*task); }
 
     AxiomsProxy get_axioms() const { return AxiomsProxy(*task); }
 
@@ -1083,7 +1077,7 @@ public:
     */
     State convert_ancestor_state(const State& ancestor_state) const
     {
-        TaskProxy ancestor_task_proxy = ancestor_state.get_task();
+        TaskBaseProxy ancestor_task_proxy = ancestor_state.get_task();
         // Create a copy of the state values for the new state.
         ancestor_state.unpack();
         std::vector<int> state_values = ancestor_state.get_unpacked_values();
@@ -1093,8 +1087,35 @@ public:
         return create_state(std::move(state_values));
     }
 
-    const causal_graph::CausalGraph &get_causal_graph() const;
+    explicit operator TaskProxy() const;
 };
+
+class TaskProxy : public TaskBaseProxy {
+public:
+    explicit TaskProxy(const AbstractTask& task)
+        : TaskBaseProxy(task)
+    {
+    }
+    ~TaskProxy() = default;
+
+    void subscribe_to_task_destruction(
+        subscriber::Subscriber<AbstractTask>* subscriber) const
+    {
+        static_cast<const AbstractTask*>(task)->subscribe(subscriber);
+    }
+
+    OperatorsProxy get_operators() const
+    {
+        return OperatorsProxy(*static_cast<const AbstractTask*>(task));
+    }
+
+    const causal_graph::CausalGraph& get_causal_graph() const;
+};
+
+inline TaskBaseProxy::operator TaskProxy() const
+{
+    return TaskProxy(*static_cast<const AbstractTask*>(task));
+}
 
 inline FactProxy::FactProxy(const AbstractTaskBase& task, const FactPair& fact)
     : task(&task)
@@ -1192,9 +1213,9 @@ inline FactProxy State::operator[](VariableProxy var) const
     return (*this)[var.get_id()];
 }
 
-inline TaskProxy State::get_task() const
+inline TaskBaseProxy State::get_task() const
 {
-    return TaskProxy(*task);
+    return TaskBaseProxy(*task);
 }
 
 inline const StateRegistry* State::get_registry() const

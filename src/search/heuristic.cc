@@ -81,14 +81,25 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
         heuristic = EvaluationResult::INFTY;
     }
 
-#ifndef NDEBUG
-    TaskProxy global_task_proxy = state.get_task();
-    OperatorsProxy global_operators = global_task_proxy.get_operators();
-    if (heuristic != EvaluationResult::INFTY) {
-        for (OperatorID op_id : preferred_operators)
-            assert(task_properties::is_applicable(global_operators[op_id], state));
-    }
-#endif
+    /*
+     * NOTE: This debug check queries the global determinization from the state.
+     * We do not want the state to know too much about the task, since we want
+     * the State type to work both for the classical and probabilistic part of
+     * the planner, so operators cannot be inferred from the part of the task
+     * proxy the state. Hence, we need to disable this check for now.
+     */
+
+    /*
+    #ifndef NDEBUG
+        TaskProxy global_task_proxy = state.get_task();
+        OperatorsProxy global_operators = global_task_proxy.get_operators();
+        if (heuristic != EvaluationResult::INFTY) {
+            for (OperatorID op_id : preferred_operators)
+                assert(task_properties::is_applicable(global_operators[op_id],
+    state));
+        }
+    #endif
+    */
 
     result.set_evaluator_value(heuristic);
     result.set_preferred_operators(preferred_operators.pop_as_vector());

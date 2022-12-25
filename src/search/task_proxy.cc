@@ -11,7 +11,7 @@
 using namespace std;
 
 State::State(
-    const AbstractTask& task,
+    const AbstractTaskBase& task,
     const StateRegistry& registry,
     StateID id,
     const PackedStateBin* buffer)
@@ -29,7 +29,7 @@ State::State(
 }
 
 State::State(
-    const AbstractTask& task,
+    const AbstractTaskBase& task,
     const StateRegistry& registry,
     StateID id,
     const PackedStateBin* buffer,
@@ -40,7 +40,7 @@ State::State(
     this->values = make_shared<vector<int>>(move(values));
 }
 
-State::State(const AbstractTask& task, vector<int>&& values)
+State::State(const AbstractTaskBase& task, vector<int>&& values)
     : task(&task)
     , registry(nullptr)
     , id(StateID::no_state)
@@ -75,5 +75,5 @@ State State::get_unregistered_successor(const OperatorProxy& op) const
 
 const causal_graph::CausalGraph& TaskProxy::get_causal_graph() const
 {
-    return causal_graph::get_causal_graph(task);
+    return causal_graph::get_causal_graph(static_cast<const AbstractTask*>(task));
 }
