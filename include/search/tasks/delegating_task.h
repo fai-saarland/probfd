@@ -57,8 +57,8 @@ public:
     virtual std::vector<int> get_initial_state_values() const override;
 
     virtual void convert_ancestor_state_values(
-        std::vector<int> &values,
-        const AbstractTask *ancestor_task) const final override;
+        std::vector<int>& values,
+        const AbstractTaskBase* ancestor_task) const final override;
     virtual void convert_state_values_from_parent(std::vector<int> &) const {
     }
 };

@@ -139,7 +139,7 @@ public:
 
     virtual void convert_ancestor_state_values(
         vector<int>& values,
-        const ProbabilisticTask* ancestor_task) const override;
+        const AbstractTaskBase* ancestor_task) const override;
 
     virtual int
     convert_operator_index(int index, const ProbabilisticTask* ancestor_task)
@@ -648,7 +648,7 @@ vector<int> RootTask::get_initial_state_values() const
 
 void RootTask::convert_ancestor_state_values(
     vector<int>&,
-    const ProbabilisticTask* ancestor_task) const
+    const AbstractTaskBase* ancestor_task) const
 {
     if (this != ancestor_task) {
         ABORT("Invalid state conversion");

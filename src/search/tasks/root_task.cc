@@ -105,8 +105,8 @@ public:
 
     virtual vector<int> get_initial_state_values() const override;
     virtual void convert_ancestor_state_values(
-        vector<int> &values,
-        const AbstractTask *ancestor_task) const override;
+        vector<int>& values,
+        const AbstractTaskBase* ancestor_task) const override;
 };
 
 
@@ -488,7 +488,9 @@ vector<int> RootTask::get_initial_state_values() const {
 }
 
 void RootTask::convert_ancestor_state_values(
-    vector<int> &, const AbstractTask *ancestor_task) const {
+    vector<int>&,
+    const AbstractTaskBase* ancestor_task) const
+{
     if (this != ancestor_task) {
         ABORT("Invalid state conversion");
     }
