@@ -24,20 +24,20 @@ bool is_unit_cost()
     return true;
 }
 
-bool is_unit_cost(TaskProxy task)
+bool is_unit_cost(TaskBaseProxy task)
 {
-    for (OperatorProxy op : task.get_operators()) {
+    for (OperatorLightProxy op : task.get_light_operators()) {
         if (op.get_cost() != 1) return false;
     }
     return true;
 }
 
-bool has_axioms(TaskProxy task)
+bool has_axioms(TaskBaseProxy task)
 {
     return !task.get_axioms().empty();
 }
 
-void verify_no_axioms(TaskProxy task)
+void verify_no_axioms(TaskBaseProxy task)
 {
     if (has_axioms(task)) {
         cerr << "This configuration does not support axioms!" << endl
@@ -73,36 +73,36 @@ void verify_no_conditional_effects(TaskProxy task)
     }
 }
 
-vector<int> get_operator_costs(const TaskProxy& task_proxy)
+vector<int> get_operator_costs(const TaskBaseProxy& task_proxy)
 {
     vector<int> costs;
-    OperatorsProxy operators = task_proxy.get_operators();
+    OperatorsLightProxy operators = task_proxy.get_light_operators();
     costs.reserve(operators.size());
-    for (OperatorProxy op : operators)
+    for (OperatorLightProxy op : operators)
         costs.push_back(op.get_cost());
     return costs;
 }
 
-double get_average_operator_cost(TaskProxy task_proxy)
+double get_average_operator_cost(TaskBaseProxy task_proxy)
 {
     double average_operator_cost = 0;
-    for (OperatorProxy op : task_proxy.get_operators()) {
+    for (OperatorLightProxy op : task_proxy.get_light_operators()) {
         average_operator_cost += op.get_cost();
     }
-    average_operator_cost /= task_proxy.get_operators().size();
+    average_operator_cost /= task_proxy.get_light_operators().size();
     return average_operator_cost;
 }
 
-int get_min_operator_cost(TaskProxy task_proxy)
+int get_min_operator_cost(TaskBaseProxy task_proxy)
 {
     int min_cost = numeric_limits<int>::max();
-    for (OperatorProxy op : task_proxy.get_operators()) {
+    for (OperatorLightProxy op : task_proxy.get_light_operators()) {
         min_cost = min(min_cost, op.get_cost());
     }
     return min_cost;
 }
 
-int get_num_facts(const TaskProxy& task_proxy)
+int get_num_facts(const TaskBaseProxy& task_proxy)
 {
     int num_facts = 0;
     for (VariableProxy var : task_proxy.get_variables())
@@ -119,7 +119,7 @@ int get_num_total_effects(const TaskProxy& task_proxy)
     return num_effects;
 }
 
-void print_variable_statistics(const TaskProxy& task_proxy)
+void print_variable_statistics(const TaskBaseProxy& task_proxy)
 {
     const int_packer::IntPacker& state_packer = g_state_packers[task_proxy];
 
@@ -193,7 +193,7 @@ void dump_task(const TaskProxy& task_proxy)
 }
 
 PerTaskInformation<int_packer::IntPacker>
-    g_state_packers([](const TaskProxy& task_proxy) {
+    g_state_packers([](const TaskBaseProxy& task_proxy) {
         VariablesProxy variables = task_proxy.get_variables();
         vector<int> variable_ranges;
         variable_ranges.reserve(variables.size());

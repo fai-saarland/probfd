@@ -150,8 +150,7 @@ public:
         vector<int>& values,
         const AbstractTaskBase* ancestor_task) const override;
 
-    int
-    convert_operator_index(int index, const ProbabilisticTask* ancestor_task)
+    int convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
         const override;
 };
 
@@ -735,7 +734,7 @@ void RootTask::convert_ancestor_state_values(
 
 int RootTask::convert_operator_index(
     int index,
-    const ProbabilisticTask* ancestor_task) const
+    const AbstractTaskBase* ancestor_task) const
 {
     if (this != ancestor_task) {
         ABORT("Invalid operator ID conversion");

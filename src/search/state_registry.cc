@@ -8,15 +8,16 @@
 
 using namespace std;
 
-StateRegistry::StateRegistry(const TaskProxy &task_proxy)
-    : task_proxy(task_proxy),
-      state_packer(task_properties::g_state_packers[task_proxy]),
-      axiom_evaluator(g_axiom_evaluators[task_proxy]),
-      num_variables(task_proxy.get_variables().size()),
-      state_data_pool(get_bins_per_state()),
-      registered_states(
+StateRegistry::StateRegistry(const TaskBaseProxy& task_proxy)
+    : task_proxy(task_proxy)
+    , state_packer(task_properties::g_state_packers[task_proxy])
+    , axiom_evaluator(g_axiom_evaluators[task_proxy])
+    , num_variables(task_proxy.get_variables().size())
+    , state_data_pool(get_bins_per_state())
+    , registered_states(
           StateIDSemanticHash(state_data_pool, get_bins_per_state()),
-          StateIDSemanticEqual(state_data_pool, get_bins_per_state())) {
+          StateIDSemanticEqual(state_data_pool, get_bins_per_state()))
+{
 }
 
 StateID StateRegistry::insert_id_or_pop_state() {

@@ -16,7 +16,8 @@ inline bool is_applicable(AxiomOrOperatorProxy op, const State& state)
     return true;
 }
 
-inline bool is_goal_state(TaskProxy task, const State &state) {
+inline bool is_goal_state(TaskBaseProxy task, const State& state)
+{
     for (FactProxy goal : task.get_goals()) {
         if (state[goal.get_variable()] != goal)
             return false;
@@ -30,16 +31,16 @@ inline bool is_goal_state(TaskProxy task, const State &state) {
   Runtime: O(n), where n is the number of operators.
 */
 extern bool is_unit_cost();
-extern bool is_unit_cost(TaskProxy task);
+extern bool is_unit_cost(TaskBaseProxy task);
 
 // Runtime: O(1)
-extern bool has_axioms(TaskProxy task);
+extern bool has_axioms(TaskBaseProxy task);
 
 /*
   Report an error and exit with ExitCode::UNSUPPORTED if the task has axioms.
   Runtime: O(1)
 */
-extern void verify_no_axioms(TaskProxy task);
+extern void verify_no_axioms(TaskBaseProxy task);
 
 // Runtime: O(n), where n is the number of operators.
 extern bool has_conditional_effects(TaskProxy task);
@@ -51,15 +52,15 @@ extern bool has_conditional_effects(TaskProxy task);
 */
 extern void verify_no_conditional_effects(TaskProxy task);
 
-extern std::vector<int> get_operator_costs(const TaskProxy &task_proxy);
-extern double get_average_operator_cost(TaskProxy task_proxy);
-extern int get_min_operator_cost(TaskProxy task_proxy);
+extern std::vector<int> get_operator_costs(const TaskBaseProxy& task_proxy);
+extern double get_average_operator_cost(TaskBaseProxy task_proxy);
+extern int get_min_operator_cost(TaskBaseProxy task_proxy);
 
 /*
   Return the number of facts of the task.
   Runtime: O(n), where n is the number of state variables.
 */
-extern int get_num_facts(const TaskProxy &task_proxy);
+extern int get_num_facts(const TaskBaseProxy& task_proxy);
 
 /*
   Return the total number of effects of the task, including the
@@ -78,7 +79,7 @@ std::vector<FactPair> get_fact_pairs(const FactProxyCollection &facts) {
     return fact_pairs;
 }
 
-extern void print_variable_statistics(const TaskProxy &task_proxy);
+extern void print_variable_statistics(const TaskBaseProxy& task_proxy);
 extern void dump_pddl(const State &state);
 extern void dump_fdr(const State &state);
 extern void dump_goals(const GoalsProxy &goals);

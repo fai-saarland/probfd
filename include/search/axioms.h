@@ -57,7 +57,7 @@ class AxiomEvaluator {
     template<typename Values, typename Accessor>
     void evaluate_aux(Values &values, const Accessor &accessor);
 public:
-    explicit AxiomEvaluator(const TaskProxy &task_proxy);
+    explicit AxiomEvaluator(const TaskBaseProxy& task_proxy);
 
     void evaluate(std::vector<int> &state);
 };

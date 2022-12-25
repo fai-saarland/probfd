@@ -11,7 +11,8 @@
 
 using namespace std;
 
-AxiomEvaluator::AxiomEvaluator(const TaskProxy &task_proxy) {
+AxiomEvaluator::AxiomEvaluator(const TaskBaseProxy& task_proxy)
+{
     task_has_axioms = task_properties::has_axioms(task_proxy);
     if (task_has_axioms) {
         VariablesProxy variables = task_proxy.get_variables();

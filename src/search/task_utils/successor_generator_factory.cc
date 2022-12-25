@@ -164,10 +164,10 @@ public:
     }
 };
 
-
 SuccessorGeneratorFactory::SuccessorGeneratorFactory(
-    const TaskProxy &task_proxy)
-    : task_proxy(task_proxy) {
+    const TaskBaseProxy& task_proxy)
+    : task_proxy(task_proxy)
+{
 }
 
 SuccessorGeneratorFactory::~SuccessorGeneratorFactory() = default;
@@ -270,7 +270,8 @@ GeneratorPtr SuccessorGeneratorFactory::construct_recursive(
     return construct_fork(move(nodes));
 }
 
-static vector<FactPair> build_sorted_precondition(const OperatorProxy &op) {
+static vector<FactPair> build_sorted_precondition(const OperatorLightProxy& op)
+{
     vector<FactPair> precond;
     precond.reserve(op.get_preconditions().size());
     for (FactProxy pre : op.get_preconditions())
@@ -281,9 +282,9 @@ static vector<FactPair> build_sorted_precondition(const OperatorProxy &op) {
 }
 
 GeneratorPtr SuccessorGeneratorFactory::create() {
-    OperatorsProxy operators = task_proxy.get_operators();
+    OperatorsLightProxy operators = task_proxy.get_light_operators();
     operator_infos.reserve(operators.size());
-    for (OperatorProxy op : operators) {
+    for (OperatorLightProxy op : operators) {
         operator_infos.emplace_back(
             OperatorID(op.get_id()), build_sorted_precondition(op));
     }

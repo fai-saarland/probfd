@@ -33,6 +33,7 @@ class OperatorEffectConditionsProxy;
 class OperatorEffectsProxy;
 class OperatorProxy;
 class OperatorsProxy;
+class OperatorsLightProxy;
 class PreconditionsProxy;
 class State;
 class StateRegistry;
@@ -369,12 +370,12 @@ public:
 };
 
 class OperatorPreconditionsProxy {
-    const AbstractTask* task;
+    const AbstractTaskBase* task;
     int op_index;
 
 public:
     using ItemType = FactProxy;
-    OperatorPreconditionsProxy(const AbstractTask& task, int op_index)
+    OperatorPreconditionsProxy(const AbstractTaskBase& task, int op_index)
         : task(&task)
         , op_index(op_index)
     {
@@ -769,6 +770,51 @@ public:
     }
 };
 
+class OperatorLightProxy {
+    const AbstractTaskBase* task;
+    int index;
+
+public:
+    OperatorLightProxy(const AbstractTaskBase& task, int index)
+        : task(&task)
+        , index(index)
+    {
+    }
+
+    bool operator==(const OperatorLightProxy& other) const
+    {
+        assert(task == other.task);
+        return index == other.index;
+    }
+
+    bool operator!=(const OperatorLightProxy& other) const
+    {
+        return !(*this == other);
+    }
+
+    OperatorPreconditionsProxy get_preconditions() const
+    {
+        return OperatorPreconditionsProxy(*task, index);
+    }
+
+    int get_cost() const { return task->get_operator_cost(index); }
+
+    std::string get_name() const { return task->get_operator_name(index); }
+
+    int get_id() const { return index; }
+
+    /*
+      Eventually, this method should perhaps not be part of OperatorProxy but
+      live in a class that handles the task transformation and known about both
+      the original and the transformed task.
+    */
+    OperatorID
+    get_ancestor_operator_id(const AbstractTaskBase* ancestor_task) const
+    {
+        return OperatorID(task->convert_operator_index(index, ancestor_task));
+    }
+};
+
 class AxiomOrOperatorProxy {
     std::variant<AxiomProxy, OperatorProxy> proxy;
 
@@ -885,6 +931,32 @@ public:
     }
 
     OperatorProxy operator[](OperatorID id) const
+    {
+        return (*this)[id.get_index()];
+    }
+};
+
+class OperatorsLightProxy {
+    const AbstractTaskBase* task;
+
+public:
+    using ItemType = OperatorLightProxy;
+    explicit OperatorsLightProxy(const AbstractTaskBase& task)
+        : task(&task)
+    {
+    }
+
+    std::size_t size() const { return task->get_num_operators(); }
+
+    bool empty() const { return size() == 0; }
+
+    OperatorLightProxy operator[](std::size_t index) const
+    {
+        assert(index < size());
+        return OperatorLightProxy(*task, index);
+    }
+
+    OperatorLightProxy operator[](OperatorID id) const
     {
         return (*this)[id.get_index()];
     }
@@ -1027,9 +1099,20 @@ public:
     }
     ~TaskBaseProxy() = default;
 
+    void subscribe_to_task_destruction(
+        subscriber::Subscriber<AbstractTaskBase>* subscriber) const
+    {
+        task->subscribe(subscriber);
+    }
+
     TaskID get_id() const { return TaskID(task); }
 
     VariablesProxy get_variables() const { return VariablesProxy(*task); }
+
+    OperatorsLightProxy get_light_operators() const
+    {
+        return OperatorsLightProxy(*task);
+    }
 
     AxiomsProxy get_axioms() const { return AxiomsProxy(*task); }
 
@@ -1097,12 +1180,6 @@ public:
     {
     }
     ~TaskProxy() = default;
-
-    void subscribe_to_task_destruction(
-        subscriber::Subscriber<AbstractTask>* subscriber) const
-    {
-        static_cast<const AbstractTask*>(task)->subscribe(subscriber);
-    }
 
     OperatorsProxy get_operators() const
     {

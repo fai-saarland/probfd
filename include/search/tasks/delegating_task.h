@@ -60,7 +60,7 @@ public:
     virtual FactPair
     get_operator_effect(int op_index, int eff_index) const override;
     virtual int
-    convert_operator_index(int index, const AbstractTask* ancestor_task)
+    convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
         const final override;
 
     virtual int convert_operator_index_to_parent(int index) const

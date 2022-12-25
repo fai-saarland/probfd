@@ -109,8 +109,9 @@ public:
         const override;
     virtual FactPair
     get_operator_effect(int op_index, int eff_index) const override;
-    virtual int convert_operator_index(
-        int index, const AbstractTask *ancestor_task) const override;
+    virtual int
+    convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
+        const override;
 
     virtual int get_num_goals() const override;
     virtual FactPair get_goal_fact(int index) const override;
@@ -531,7 +532,9 @@ FactPair RootTask::get_operator_effect(int op_index, int eff_index) const
 }
 
 int RootTask::convert_operator_index(
-    int index, const AbstractTask *ancestor_task) const {
+    int index,
+    const AbstractTaskBase* ancestor_task) const
+{
     if (this != ancestor_task) {
         ABORT("Invalid operator ID conversion");
     }

@@ -146,7 +146,7 @@ FactPair DelegatingTask::get_operator_effect(int op_index, int eff_index) const
 
 int DelegatingTask::convert_operator_index(
     int index,
-    const AbstractTask* ancestor_task) const
+    const AbstractTaskBase* ancestor_task) const
 {
     if (ancestor_task == this) {
         return index;

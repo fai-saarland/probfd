@@ -8,7 +8,7 @@
 
 class OperatorID;
 class State;
-class TaskProxy;
+class TaskBaseProxy;
 
 namespace successor_generator {
 class GeneratorBase;
@@ -17,7 +17,7 @@ class SuccessorGenerator {
     std::unique_ptr<GeneratorBase> root;
 
 public:
-    explicit SuccessorGenerator(const TaskProxy& task_proxy);
+    explicit SuccessorGenerator(const TaskBaseProxy& task_proxy);
     /*
       We cannot use the default destructor (implicitly or explicitly)
       here because GeneratorBase is a forward declaration and the
