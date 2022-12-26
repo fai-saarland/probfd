@@ -948,11 +948,19 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME TASK_DEPENDENT_HEURISTIC
+    HELP "Heuristics depending on the input task"
+    SOURCES
+        probfd/heuristics/task_dependent_heuristic
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
     NAME DEADEND_PRUNING_HEURISTIC
     HELP "Dead-end pruning heuristic"
     SOURCES
         probfd/heuristics/dead_end_pruning
-    DEPENDS SUCCESSOR_GENERATOR
+    DEPENDS SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
 )
 
 fast_downward_plugin(
@@ -960,7 +968,7 @@ fast_downward_plugin(
     HELP "Budget pruning heuristic"
     SOURCES
         probfd/heuristics/budget_pruning
-    DEPENDS SUCCESSOR_GENERATOR
+    DEPENDS SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
 )
 
 fast_downward_plugin(
@@ -968,7 +976,7 @@ fast_downward_plugin(
     HELP "All-outcomes determinization heuristic"
     SOURCES
         probfd/heuristics/determinization_cost
-    DEPENDS SUCCESSOR_GENERATOR
+    DEPENDS SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
 )
 
 fast_downward_plugin(
@@ -977,7 +985,7 @@ fast_downward_plugin(
     SOURCES
         probfd/heuristics/occupation_measure/occupation_measure_heuristic
         probfd/heuristics/occupation_measure/regrouped_operator_counting_heuristic
-    DEPENDS MDP LP_SOLVER
+    DEPENDS MDP LP_SOLVER TASK_DEPENDENT_HEURISTIC
 )
 
 fast_downward_plugin(
@@ -998,7 +1006,7 @@ fast_downward_plugin(
 
         probfd/heuristics/pdbs/maxprob_projection
         probfd/heuristics/pdbs/expcost_projection
-    DEPENDS PDBS MDP SUCCESSOR_GENERATOR
+    DEPENDS PDBS MDP SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
     DEPENDENCY_ONLY
 )
 
