@@ -3,9 +3,9 @@
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data.h"
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_cegar.h"
 
-#include "probfd/heuristics/pdbs/abstract_state.h"
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -79,7 +79,7 @@ bool BFSFlawFinder<PDBType>::expand(
     const AbstractPolicy& policy = solution.get_policy();
     const PDBType& pdb = solution.get_pdb();
 
-    const AbstractState abs = pdb.get_abstract_state(state.values);
+    const StateRank abs = pdb.get_abstract_state(state.values);
 
     // We reached a dead-end, the operator is irrelevant.
     if (pdb.is_dead_end(abs)) {

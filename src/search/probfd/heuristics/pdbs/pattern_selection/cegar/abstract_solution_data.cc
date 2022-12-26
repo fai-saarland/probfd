@@ -5,9 +5,9 @@
 #include "utils/hash.h"
 #include "utils/rng.h"
 
-#include "probfd/heuristics/pdbs/abstract_state_mapper.h"
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
 
 #include <functional>
 #include <limits>
@@ -23,14 +23,14 @@ namespace pattern_selection {
 
 namespace {
 template <typename PDBType>
-class MergeEvaluator : public engine_interfaces::StateEvaluator<AbstractState> {
-    const AbstractStateMapper* mapper;
+class MergeEvaluator : public engine_interfaces::StateEvaluator<StateRank> {
+    const StateRankingFunction* mapper;
     const PDBType& left;
     const PDBType& right;
 
 public:
     explicit MergeEvaluator(
-        const AbstractStateMapper* mapper,
+        const StateRankingFunction* mapper,
         const PDBType& left,
         const PDBType& right)
         : mapper(mapper)
@@ -40,9 +40,9 @@ public:
     }
 
 protected:
-    EvaluationResult evaluate(const AbstractState& state) const override
+    EvaluationResult evaluate(const StateRank& state) const override
     {
-        AbstractState lstate = mapper->convert(state, left.get_pattern());
+        StateRank lstate = mapper->convert(state, left.get_pattern());
 
         auto leval = left.evaluate(lstate);
 
@@ -50,7 +50,7 @@ protected:
             return leval;
         }
 
-        AbstractState rstate = mapper->convert(state, right.get_pattern());
+        StateRank rstate = mapper->convert(state, right.get_pattern());
 
         auto reval = right.evaluate(rstate);
 
@@ -109,8 +109,8 @@ PDBType* construct_merge_pdb(
         right_pattern.end(),
         std::back_inserter(merge_pattern));
 
-    AbstractStateMapper* mapper =
-        new AbstractStateMapper(merge_pattern, ::g_variable_domain);
+    StateRankingFunction* mapper =
+        new StateRankingFunction(merge_pattern, ::g_variable_domain);
 
     return new PDBType(
         mapper,

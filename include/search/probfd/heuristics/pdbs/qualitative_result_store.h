@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_QUALITATIVE_RESULT_STORE_H
 #define MDPS_HEURISTICS_PDBS_QUALITATIVE_RESULT_STORE_H
 
-#include "probfd/heuristics/pdbs/abstract_state.h"
+#include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/types.h"
 
@@ -24,35 +24,33 @@ public:
 
     private:
         friend class QualitativeResultStore;
-        assignable_bool_t(
-            const AbstractState& s,
-            QualitativeResultStore* store);
-        const AbstractState state_;
+        assignable_bool_t(const StateRank& s, QualitativeResultStore* store);
+        const StateRank state_;
         QualitativeResultStore* ref_;
     };
 
     QualitativeResultStore() = default;
     QualitativeResultStore(
         bool is_negated,
-        std::unordered_set<AbstractState> states);
+        std::unordered_set<StateRank> states);
 
     void negate_all();
     void clear();
-    void set(const AbstractState& s, bool val);
-    bool get(const AbstractState& s) const;
+    void set(const StateRank& s, bool val);
+    bool get(const StateRank& s) const;
 
-    assignable_bool_t operator[](const AbstractState& s);
-    bool operator[](const AbstractState& s) const;
+    assignable_bool_t operator[](const StateRank& s);
+    bool operator[](const StateRank& s) const;
 
     assignable_bool_t operator[](int s);
     bool operator[](int s) const;
 
-    std::unordered_set<AbstractState>& get_storage();
-    const std::unordered_set<AbstractState>& get_storage() const;
+    std::unordered_set<StateRank>& get_storage();
+    const std::unordered_set<StateRank>& get_storage() const;
 
 private:
     bool is_negated_ = false;
-    std::unordered_set<AbstractState> states_;
+    std::unordered_set<StateRank> states_;
 };
 
 } // namespace pdbs
@@ -84,7 +82,7 @@ public:
 
 bool contains(
     probfd::heuristics::pdbs::QualitativeResultStore& store,
-    probfd::heuristics::pdbs::AbstractState s);
+    probfd::heuristics::pdbs::StateRank s);
 
 } // namespace utils
 

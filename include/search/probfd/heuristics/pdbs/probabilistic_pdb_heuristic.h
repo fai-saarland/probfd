@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
 
-#include "probfd/heuristics/pdbs/abstract_state.h"
+#include "probfd/heuristics/pdbs/state_rank.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/state_evaluator.h"

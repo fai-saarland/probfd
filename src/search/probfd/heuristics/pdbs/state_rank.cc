@@ -1,12 +1,12 @@
-#include "probfd/heuristics/pdbs/abstract_state.h"
+#include "probfd/heuristics/pdbs/state_rank.h"
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-std::ostream& operator<<(std::ostream& out, const AbstractState& s)
+std::ostream& operator<<(std::ostream& out, const StateRank& s)
 {
-    return out << "PDBState(" << s.id << ")";
+    return out << "StateRank(" << s.id << ")";
 }
 
 } // namespace pdbs
@@ -15,7 +15,7 @@ std::ostream& operator<<(std::ostream& out, const AbstractState& s)
 
 namespace utils {
 using namespace probfd::heuristics::pdbs;
-void feed(HashState& h, const AbstractState& s)
+void feed(HashState& h, const StateRank& s)
 {
     feed(h, s.id);
 }

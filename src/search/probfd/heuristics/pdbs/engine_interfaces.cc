@@ -16,39 +16,38 @@ namespace probfd {
 using namespace heuristics::pdbs;
 
 namespace engine_interfaces {
-unsigned StateIDMap<AbstractState>::size() const
+unsigned StateIDMap<StateRank>::size() const
 {
     return seen.size();
 }
 
-StateIDMap<AbstractState>::visited_iterator
-StateIDMap<AbstractState>::visited_begin() const
+StateIDMap<StateRank>::visited_iterator
+StateIDMap<StateRank>::visited_begin() const
 {
     return seen.cbegin();
 }
 
-StateIDMap<AbstractState>::visited_iterator
-StateIDMap<AbstractState>::visited_end() const
+StateIDMap<StateRank>::visited_iterator
+StateIDMap<StateRank>::visited_end() const
 {
     return seen.cend();
 }
 
-StateIDMap<AbstractState>::visited_range
-StateIDMap<AbstractState>::visited() const
+StateIDMap<StateRank>::visited_range StateIDMap<StateRank>::visited() const
 {
     return visited_range(visited_begin(), visited_end());
 }
 
-StateID StateIDMap<AbstractState>::get_state_id(const AbstractState& state)
+StateID StateIDMap<StateRank>::get_state_id(const StateRank& state)
 {
     seen.insert(state.id);
     return StateID(state.id);
 }
 
-AbstractState StateIDMap<AbstractState>::get_state(const StateID& id)
+StateRank StateIDMap<StateRank>::get_state(const StateID& id)
 {
     seen.insert(id);
-    return AbstractState(id);
+    return StateRank(id);
 }
 
 ActionIDMap<const AbstractOperator*>::ActionIDMap(
@@ -72,7 +71,7 @@ const AbstractOperator* ActionIDMap<const AbstractOperator*>::get_action(
 }
 
 TransitionGenerator<const AbstractOperator*>::TransitionGenerator(
-    StateIDMap<AbstractState>& id_map,
+    StateIDMap<StateRank>& id_map,
     const MatchTree& aops_gen)
     : id_map_(id_map)
     , aops_gen_(aops_gen)
@@ -83,7 +82,7 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
     const StateID& sid,
     std::vector<const AbstractOperator*>& aops)
 {
-    AbstractState abstract_state = id_map_.get_state(sid);
+    StateRank abstract_state = id_map_.get_state(sid);
     aops_gen_.get_applicable_operators(abstract_state, aops);
 }
 
@@ -92,9 +91,9 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
     const AbstractOperator* op,
     Distribution<StateID>& result)
 {
-    AbstractState abstract_state = id_map_.get_state(state);
+    StateRank abstract_state = id_map_.get_state(state);
     for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-        const AbstractState succ = abstract_state + it->element;
+        const StateRank succ = abstract_state + it->element;
         result.add(id_map_.get_state_id(succ), it->probability);
     }
 }
@@ -104,13 +103,13 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
     std::vector<const AbstractOperator*>& aops,
     std::vector<Distribution<StateID>>& result)
 {
-    AbstractState abstract_state = id_map_.get_state(state);
+    StateRank abstract_state = id_map_.get_state(state);
     aops_gen_.get_applicable_operators(abstract_state, aops);
     result.resize(aops.size());
     for (int i = aops.size() - 1; i >= 0; --i) {
         const AbstractOperator* op = aops[i];
         for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-            const AbstractState succ = abstract_state + it->element;
+            const StateRank succ = abstract_state + it->element;
             result[i].add(id_map_.get_state_id(succ), it->probability);
         }
     }
@@ -125,7 +124,7 @@ PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 {
 }
 
-EvaluationResult PDBEvaluator::evaluate(const AbstractState& state) const
+EvaluationResult PDBEvaluator::evaluate(const StateRank& state) const
 {
     int deterministic_val = pdb.get_value_for_index(state.id);
 
@@ -139,7 +138,7 @@ DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 {
 }
 
-EvaluationResult DeadendPDBEvaluator::evaluate(const AbstractState& state) const
+EvaluationResult DeadendPDBEvaluator::evaluate(const StateRank& state) const
 {
     bool dead =
         pdb.get_value_for_index(state.id) == std::numeric_limits<int>::max();
@@ -149,7 +148,7 @@ EvaluationResult DeadendPDBEvaluator::evaluate(const AbstractState& state) const
 }
 
 IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(
-    const AbstractStateMapper* mapper,
+    const StateRankingFunction* mapper,
     int add_var)
 {
     const int idx = mapper->get_index(add_var);
@@ -163,18 +162,17 @@ IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(
             : mapper->num_states();
 }
 
-AbstractState
-IncrementalPPDBEvaluatorBase::to_parent_state(AbstractState state) const
+StateRank IncrementalPPDBEvaluatorBase::to_parent_state(StateRank state) const
 {
     int left = state.id % left_multiplier;
     int right = state.id - (state.id % right_multiplier);
-    return AbstractState(left + right / domain_size);
+    return StateRank(left + right / domain_size);
 }
 
 template <typename PDBType>
 IncrementalPPDBEvaluator<PDBType>::IncrementalPPDBEvaluator(
     const PDBType& pdb,
-    const AbstractStateMapper* mapper,
+    const StateRankingFunction* mapper,
     int add_var)
     : IncrementalPPDBEvaluatorBase(mapper, add_var)
     , pdb(pdb)
@@ -183,7 +181,7 @@ IncrementalPPDBEvaluator<PDBType>::IncrementalPPDBEvaluator(
 
 template <typename PDBType>
 EvaluationResult
-IncrementalPPDBEvaluator<PDBType>::evaluate(const AbstractState& state) const
+IncrementalPPDBEvaluator<PDBType>::evaluate(const StateRank& state) const
 {
     return pdb.evaluate(to_parent_state(state));
 }

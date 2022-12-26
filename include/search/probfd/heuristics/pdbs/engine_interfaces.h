@@ -2,8 +2,8 @@
 #define MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 
 #include "probfd/heuristics/pdbs/abstract_operator.h"
-#include "probfd/heuristics/pdbs/abstract_state_mapper.h"
 #include "probfd/heuristics/pdbs/match_tree.h"
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
 
 #include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/reward_function.h"
@@ -32,15 +32,15 @@ class PatternDatabase;
 namespace probfd {
 namespace engine_interfaces {
 template <>
-class StateIDMap<heuristics::pdbs::AbstractState> {
+class StateIDMap<heuristics::pdbs::StateRank> {
 public:
     using visited_iterator = std::set<int>::const_iterator;
     using visited_range = utils::RangeProxy<visited_iterator>;
 
     explicit StateIDMap() = default;
 
-    StateID get_state_id(const heuristics::pdbs::AbstractState& state);
-    heuristics::pdbs::AbstractState get_state(const StateID& id);
+    StateID get_state_id(const heuristics::pdbs::StateRank& state);
+    heuristics::pdbs::StateRank get_state(const StateID& id);
 
     unsigned size() const;
 
@@ -74,7 +74,7 @@ template <>
 class TransitionGenerator<const heuristics::pdbs::AbstractOperator*> {
 public:
     explicit TransitionGenerator(
-        StateIDMap<heuristics::pdbs::AbstractState>& id_map,
+        StateIDMap<heuristics::pdbs::StateRank>& id_map,
         const heuristics::pdbs::MatchTree& aops_gen);
 
     void operator()(
@@ -92,7 +92,7 @@ public:
         std::vector<Distribution<StateID>>& result);
 
 private:
-    StateIDMap<heuristics::pdbs::AbstractState>& id_map_;
+    StateIDMap<heuristics::pdbs::StateRank>& id_map_;
     const heuristics::pdbs::MatchTree& aops_gen_;
 };
 
@@ -101,49 +101,49 @@ private:
 namespace heuristics {
 namespace pdbs {
 
-using AbstractStateEvaluator = engine_interfaces::StateEvaluator<AbstractState>;
+using StateRankEvaluator = engine_interfaces::StateEvaluator<StateRank>;
 using AbstractRewardFunction =
-    engine_interfaces::RewardFunction<AbstractState, const AbstractOperator*>;
+    engine_interfaces::RewardFunction<StateRank, const AbstractOperator*>;
 
 class QualitativeResultStore;
 
 class ExpCostProjection;
 class MaxProbProjection;
 
-class PDBEvaluator : public AbstractStateEvaluator {
+class PDBEvaluator : public StateRankEvaluator {
 public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
 protected:
-    EvaluationResult evaluate(const AbstractState& state) const override;
+    EvaluationResult evaluate(const StateRank& state) const override;
 
 private:
     const ::pdbs::PatternDatabase& pdb;
 };
 
-class DeadendPDBEvaluator : public AbstractStateEvaluator {
+class DeadendPDBEvaluator : public StateRankEvaluator {
 public:
     explicit DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
 protected:
-    EvaluationResult evaluate(const AbstractState& state) const override;
+    EvaluationResult evaluate(const StateRank& state) const override;
 
 private:
     const ::pdbs::PatternDatabase& pdb;
 };
 
-class IncrementalPPDBEvaluatorBase : public AbstractStateEvaluator {
+class IncrementalPPDBEvaluatorBase : public StateRankEvaluator {
     int left_multiplier;
     int right_multiplier;
     int domain_size;
 
 public:
     explicit IncrementalPPDBEvaluatorBase(
-        const AbstractStateMapper* mapper,
+        const StateRankingFunction* mapper,
         int add_var);
 
 protected:
-    AbstractState to_parent_state(AbstractState state) const;
+    StateRank to_parent_state(StateRank state) const;
 };
 
 template <typename PDBType>
@@ -153,11 +153,11 @@ class IncrementalPPDBEvaluator : public IncrementalPPDBEvaluatorBase {
 public:
     explicit IncrementalPPDBEvaluator(
         const PDBType& pdb,
-        const AbstractStateMapper* mapper,
+        const StateRankingFunction* mapper,
         int add_var);
 
 protected:
-    EvaluationResult evaluate(const AbstractState& state) const override;
+    EvaluationResult evaluate(const StateRank& state) const override;
 };
 
 class BaseAbstractRewardFunction : public AbstractRewardFunction {
@@ -178,7 +178,7 @@ public:
     }
 
 protected:
-    TerminationInfo evaluate(const AbstractState& state) override
+    TerminationInfo evaluate(const StateRank& state) override
     {
         const bool is_contained = goal_state_flags_[state.id];
         return TerminationInfo(

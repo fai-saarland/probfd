@@ -760,12 +760,12 @@ fast_downward_plugin(
     SOURCES
         probfd/heuristics/pdbs/abstract_operator
         probfd/heuristics/pdbs/abstract_policy
-        probfd/heuristics/pdbs/abstract_state
-        probfd/heuristics/pdbs/abstract_state_mapper
         probfd/heuristics/pdbs/engine_interfaces
         probfd/heuristics/pdbs/match_tree
         probfd/heuristics/pdbs/orthogonality
         probfd/heuristics/pdbs/probabilistic_projection
+        probfd/heuristics/pdbs/state_rank
+        probfd/heuristics/pdbs/state_ranking_function
         probfd/heuristics/pdbs/syntactic_projection
         probfd/heuristics/pdbs/types
         probfd/heuristics/pdbs/utils

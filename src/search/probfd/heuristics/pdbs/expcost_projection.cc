@@ -29,20 +29,20 @@ namespace heuristics {
 namespace pdbs {
 
 namespace {
-class WrapperHeuristic : public AbstractStateEvaluator {
+class WrapperHeuristic : public StateRankEvaluator {
     const std::vector<StateID>& one_states;
-    const AbstractStateEvaluator& parent;
+    const StateRankEvaluator& parent;
 
 public:
     WrapperHeuristic(
         const std::vector<StateID>& one_states,
-        const AbstractStateEvaluator& parent)
+        const StateRankEvaluator& parent)
         : one_states(one_states)
         , parent(parent)
     {
     }
 
-    virtual EvaluationResult evaluate(const AbstractState& state) const
+    virtual EvaluationResult evaluate(const StateRank& state) const
     {
         if (utils::contains(one_states, StateID(state.id))) {
             return parent(state);
@@ -59,18 +59,18 @@ ExpCostProjection::ExpCostProjection(
     const Pattern& variables,
     const std::vector<int>& domains,
     bool operator_pruning,
-    const AbstractStateEvaluator& heuristic)
+    const StateRankEvaluator& heuristic)
     : ExpCostProjection(
-          new AbstractStateMapper(variables, domains),
+          new StateRankingFunction(variables, domains),
           operator_pruning,
           heuristic)
 {
 }
 
 ExpCostProjection::ExpCostProjection(
-    AbstractStateMapper* mapper,
+    StateRankingFunction* mapper,
     bool operator_pruning,
-    const AbstractStateEvaluator& heuristic)
+    const StateRankEvaluator& heuristic)
     : ProbabilisticProjection(mapper, operator_pruning, -value_type::inf)
 {
     compute_value_table(heuristic);
@@ -106,7 +106,7 @@ EvaluationResult ExpCostProjection::evaluate(const GlobalState& s) const
     return evaluate(get_abstract_state(s));
 }
 
-EvaluationResult ExpCostProjection::evaluate(const AbstractState& s) const
+EvaluationResult ExpCostProjection::evaluate(const StateRank& s) const
 {
     const auto v = this->lookup(s);
     return {v == -value_type::inf, v};
@@ -125,14 +125,14 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
         return policy;
     }
 
-    std::deque<AbstractState> open;
-    std::unordered_set<AbstractState> closed;
+    std::deque<StateRank> open;
+    std::unordered_set<StateRank> closed;
     open.push_back(abstract_state_space_.initial_state_);
     closed.insert(abstract_state_space_.initial_state_);
 
     // Build the greedy policy graph
     while (!open.empty()) {
-        AbstractState s = open.front();
+        StateRank s = open.front();
         open.pop_front();
 
         const value_type::value_t value = value_table[s.id];
@@ -150,16 +150,16 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
         rng->shuffle(aops);
 
         const AbstractOperator* greedy_operator = nullptr;
-        std::vector<AbstractState> greedy_successors;
+        std::vector<StateRank> greedy_successors;
 
         // Select first greedy operator
         for (const AbstractOperator* op : aops) {
             value_type::value_t op_value = op->reward;
 
-            std::vector<AbstractState> successors;
+            std::vector<StateRank> successors;
 
             for (const auto& [eff, prob] : op->outcomes) {
-                AbstractState t = s + eff;
+                StateRank t = s + eff;
                 op_value += prob * value_table[t.id];
                 successors.push_back(t);
             }
@@ -174,7 +174,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
         assert(greedy_operator != nullptr);
 
         // Generate successors
-        for (const AbstractState& succ : greedy_successors) {
+        for (const StateRank& succ : greedy_successors) {
             if (!abstract_state_space_.goal_state_flags_[succ.id] &&
                 !utils::contains(closed, succ)) {
                 closed.insert(succ);
@@ -211,7 +211,7 @@ void ExpCostProjection::dump_graphviz(
     const std::string& path,
     bool transition_labels) const
 {
-    auto s2str = [this](const StateID& id, const AbstractState& x) {
+    auto s2str = [this](const StateID& id, const StateRank& x) {
         std::ostringstream out;
         out.precision(3);
         out << id.id;
@@ -238,8 +238,7 @@ void ExpCostProjection::dump_graphviz(
         transition_labels);
 }
 
-void ExpCostProjection::compute_value_table(
-    const AbstractStateEvaluator& heuristic)
+void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
 {
     using namespace reachability;
     using namespace engine_interfaces;
@@ -250,7 +249,7 @@ void ExpCostProjection::compute_value_table(
         value_type::zero,
         -value_type::inf);
 
-    StateIDMap<AbstractState> state_id_map;
+    StateIDMap<StateRank> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(
         abstract_state_space_.abstract_operators_);
 
@@ -258,7 +257,7 @@ void ExpCostProjection::compute_value_table(
         state_id_map,
         abstract_state_space_.match_tree_);
 
-    QualitativeReachabilityAnalysis<AbstractState, const AbstractOperator*>
+    QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
         analysis(&state_id_map, &action_id_map, &reward, &transition_gen, true);
 
     std::vector<StateID> proper_states;
@@ -270,7 +269,7 @@ void ExpCostProjection::compute_value_table(
 
     WrapperHeuristic h(proper_states, heuristic);
 
-    TopologicalValueIteration<AbstractState, const AbstractOperator*>
+    TopologicalValueIteration<StateRank, const AbstractOperator*>
         vi(&state_id_map, &action_id_map, &reward, &transition_gen, &h, true);
 
     vi.solve(
@@ -295,7 +294,7 @@ void ExpCostProjection::compute_value_table(
 
 #if !defined(NDEBUG) && defined(USE_LP)
 void ExpCostProjection::verify(
-    const engine_interfaces::StateIDMap<AbstractState>& state_id_map,
+    const engine_interfaces::StateIDMap<StateRank>& state_id_map,
     const std::vector<StateID>& proper_states)
 {
     lp::LPSolverType type;
@@ -323,7 +322,7 @@ void ExpCostProjection::verify(
 
     std::vector<lp::LPVariable> variables;
 
-    for (AbstractState s = AbstractState(0);
+    for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
         const bool in = utils::contains(proper_states, StateID(s.id));
@@ -335,11 +334,11 @@ void ExpCostProjection::verify(
 
     std::vector<lp::LPConstraint> constraints;
 
-    std::deque<AbstractState> queue({abstract_state_space_.initial_state_});
-    std::set<AbstractState> seen({abstract_state_space_.initial_state_});
+    std::deque<StateRank> queue({abstract_state_space_.initial_state_});
+    std::set<StateRank> seen({abstract_state_space_.initial_state_});
 
     while (!queue.empty()) {
-        AbstractState s = queue.front();
+        StateRank s = queue.front();
         queue.pop_front();
 
         assert(utils::contains(visited, StateID(s.id)));
@@ -361,8 +360,7 @@ void ExpCostProjection::verify(
 
             auto& constr = constraints.emplace_back(reward, value_type::inf);
 
-            std::unordered_map<AbstractState, value_type::value_t>
-                successor_dist;
+            std::unordered_map<StateRank, value_type::value_t> successor_dist;
 
             for (const auto& [eff, prob] : op->outcomes) {
                 successor_dist[s + eff] -= prob;
@@ -396,7 +394,7 @@ void ExpCostProjection::verify(
 
     std::vector<double> solution = solver.extract_solution();
 
-    for (AbstractState s = AbstractState(0);
+    for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
         if (utils::contains(proper_states, StateID(s.id)) &&

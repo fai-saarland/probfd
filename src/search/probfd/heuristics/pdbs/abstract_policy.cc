@@ -10,13 +10,13 @@ AbstractPolicy::AbstractPolicy(std::size_t num_abstract_states)
 }
 
 AbstractPolicy::OperatorList&
-AbstractPolicy::operator[](const AbstractState& state)
+AbstractPolicy::operator[](const StateRank& state)
 {
     return optimal_operators[state.id];
 }
 
 const AbstractPolicy::OperatorList&
-AbstractPolicy::operator[](const AbstractState& state) const
+AbstractPolicy::operator[](const StateRank& state) const
 {
     return optimal_operators[state.id];
 }

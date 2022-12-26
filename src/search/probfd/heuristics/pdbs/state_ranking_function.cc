@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/abstract_state_mapper.h"
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
 
 #include "utils/collections.h"
 #include "utils/exceptions.h"
@@ -15,7 +15,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-AbstractStateMapper::PartialAssignmentIterator::PartialAssignmentIterator(
+StateRankingFunction::PartialAssignmentIterator::PartialAssignmentIterator(
     std::vector<std::pair<int, int>> partial_state,
     const std::vector<VariableInfo>& var_infos)
     : partial_state_(std::move(partial_state))
@@ -24,8 +24,8 @@ AbstractStateMapper::PartialAssignmentIterator::PartialAssignmentIterator(
 {
 }
 
-AbstractStateMapper::PartialAssignmentIterator&
-AbstractStateMapper::PartialAssignmentIterator::operator++()
+StateRankingFunction::PartialAssignmentIterator&
+StateRankingFunction::PartialAssignmentIterator::operator++()
 {
     for (int i = partial_state_.size() - 1; i >= 0; --i) {
         auto& [var, val] = partial_state_[i];
@@ -44,8 +44,8 @@ AbstractStateMapper::PartialAssignmentIterator::operator++()
     return *this;
 }
 
-AbstractStateMapper::PartialAssignmentIterator&
-AbstractStateMapper::PartialAssignmentIterator::operator--()
+StateRankingFunction::PartialAssignmentIterator&
+StateRankingFunction::PartialAssignmentIterator::operator--()
 {
     for (int i = partial_state_.size() - 1; i >= 0; --i) {
         auto& [var, val] = partial_state_[i];
@@ -64,34 +64,34 @@ AbstractStateMapper::PartialAssignmentIterator::operator--()
     return *this;
 }
 
-AbstractStateMapper::PartialAssignmentIterator::reference
-AbstractStateMapper::PartialAssignmentIterator::operator*()
+StateRankingFunction::PartialAssignmentIterator::reference
+StateRankingFunction::PartialAssignmentIterator::operator*()
 {
     return partial_state_;
 }
 
-AbstractStateMapper::PartialAssignmentIterator::pointer
-AbstractStateMapper::PartialAssignmentIterator::operator->()
+StateRankingFunction::PartialAssignmentIterator::pointer
+StateRankingFunction::PartialAssignmentIterator::operator->()
 {
     return &partial_state_;
 }
 
 bool operator==(
-    const AbstractStateMapper::PartialAssignmentIterator& a,
+    const StateRankingFunction::PartialAssignmentIterator& a,
     const utils::default_sentinel_t&)
 {
     return a.done;
 }
 
 bool operator!=(
-    const AbstractStateMapper::PartialAssignmentIterator& a,
+    const StateRankingFunction::PartialAssignmentIterator& a,
     const utils::default_sentinel_t&)
 {
     return !a.done;
 }
 
-AbstractStateMapper::AbstractStateIterator::AbstractStateIterator(
-    AbstractState offset,
+StateRankingFunction::StateRankIterator::StateRankIterator(
+    StateRank offset,
     const std::vector<int>& indices,
     const std::vector<VariableInfo>& var_infos)
     : values_(indices.size(), 0)
@@ -107,8 +107,8 @@ AbstractStateMapper::AbstractStateIterator::AbstractStateIterator(
     }
 }
 
-AbstractStateMapper::AbstractStateIterator&
-AbstractStateMapper::AbstractStateIterator::operator++()
+StateRankingFunction::StateRankIterator&
+StateRankingFunction::StateRankIterator::operator++()
 {
     for (int idx = values_.size() - 1; idx >= 0; --idx) {
         const int next = values_[idx] + 1;
@@ -128,31 +128,31 @@ AbstractStateMapper::AbstractStateIterator::operator++()
     return *this;
 }
 
-const AbstractState& AbstractStateMapper::AbstractStateIterator::operator*()
+const StateRank& StateRankingFunction::StateRankIterator::operator*()
 {
     return state_;
 }
 
-const AbstractState* AbstractStateMapper::AbstractStateIterator::operator->()
+const StateRank* StateRankingFunction::StateRankIterator::operator->()
 {
     return &state_;
 }
 
 bool operator==(
-    const AbstractStateMapper::AbstractStateIterator& a,
+    const StateRankingFunction::StateRankIterator& a,
     const utils::default_sentinel_t&)
 {
     return a.done;
 }
 
 bool operator!=(
-    const AbstractStateMapper::AbstractStateIterator& a,
+    const StateRankingFunction::StateRankIterator& a,
     const utils::default_sentinel_t&)
 {
     return !a.done;
 }
 
-AbstractStateMapper::AbstractStateMapper(
+StateRankingFunction::StateRankingFunction(
     Pattern pattern,
     const std::vector<int>& domains)
     : pattern_(std::move(pattern))
@@ -198,25 +198,25 @@ AbstractStateMapper::AbstractStateMapper(
     num_states_ = last_info.multiplier * d;
 }
 
-unsigned AbstractStateMapper::num_states() const
+unsigned StateRankingFunction::num_states() const
 {
     return num_states_;
 }
 
-unsigned AbstractStateMapper::num_vars() const
+unsigned StateRankingFunction::num_vars() const
 {
     return var_infos_.size();
 }
 
-const Pattern& AbstractStateMapper::get_pattern() const
+const Pattern& StateRankingFunction::get_pattern() const
 {
     return pattern_;
 }
 
-AbstractState AbstractStateMapper::from_values_partial(
+StateRank StateRankingFunction::from_values_partial(
     const std::vector<std::pair<int, int>>& sparse_values) const
 {
-    AbstractState res(0);
+    StateRank res(0);
     for (const auto& [idx, val] : sparse_values) {
         assert(utils::in_bounds(idx, var_infos_));
         assert(0 <= val && val < var_infos_[idx].domain);
@@ -225,11 +225,11 @@ AbstractState AbstractStateMapper::from_values_partial(
     return res;
 }
 
-AbstractState AbstractStateMapper::from_values_partial(
+StateRank StateRankingFunction::from_values_partial(
     const std::vector<int>& indices,
     const std::vector<std::pair<int, int>>& sparse_values) const
 {
-    AbstractState res(0);
+    StateRank res(0);
 
     auto ind_it = indices.begin();
     auto ind_end = indices.end();
@@ -249,12 +249,12 @@ AbstractState AbstractStateMapper::from_values_partial(
     return res;
 }
 
-AbstractState AbstractStateMapper::from_fact(int idx, int val) const
+StateRank StateRankingFunction::from_fact(int idx, int val) const
 {
-    return AbstractState(var_infos_[idx].multiplier * val);
+    return StateRank(var_infos_[idx].multiplier * val);
 }
 
-long long int AbstractStateMapper::get_unique_partial_state_id(
+long long int StateRankingFunction::get_unique_partial_state_id(
     const std::vector<std::pair<int, int>>& pstate) const
 {
     long long int id = 0;
@@ -264,19 +264,19 @@ long long int AbstractStateMapper::get_unique_partial_state_id(
     return id;
 }
 
-std::vector<int> AbstractStateMapper::unrank(AbstractState abstract_state) const
+std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
 {
     std::vector<int> values(var_infos_.size());
     for (size_t i = 0; i != var_infos_.size(); ++i) {
         const VariableInfo& info = var_infos_[i];
-        values[i] = (abstract_state.id / info.multiplier) % info.domain;
+        values[i] = (state_rank.id / info.multiplier) % info.domain;
     }
     return values;
 }
 
-AbstractState AbstractStateMapper::convert(
-    AbstractState abstract_state,
-    const Pattern& pattern) const
+StateRank
+StateRankingFunction::convert(StateRank state_rank, const Pattern& pattern)
+    const
 {
     assert(std::includes(
         pattern_.begin(),
@@ -286,7 +286,7 @@ AbstractState AbstractStateMapper::convert(
 
     assert(!pattern.empty());
 
-    AbstractState converted_state(0);
+    StateRank converted_state(0);
     long long int multiplier = 1;
 
     auto pattern_it = pattern.begin();
@@ -294,7 +294,7 @@ AbstractState AbstractStateMapper::convert(
 
     const VariableInfo& first_info = var_infos_[0];
     if (pattern_[0] == *pattern_it) {
-        converted_state.id += abstract_state.id % first_info.domain;
+        converted_state.id += state_rank.id % first_info.domain;
         multiplier *= first_info.domain;
         ++pattern_it;
     }
@@ -306,7 +306,7 @@ AbstractState AbstractStateMapper::convert(
 
         const VariableInfo& cur_info = var_infos_[i];
 
-        int value = (abstract_state.id / cur_info.multiplier) % cur_info.domain;
+        int value = (state_rank.id / cur_info.multiplier) % cur_info.domain;
         converted_state.id += multiplier * value;
         multiplier *= cur_info.domain;
     }
@@ -314,22 +314,22 @@ AbstractState AbstractStateMapper::convert(
     return converted_state;
 }
 
-AbstractStateMapper::PartialAssignmentIterator
-AbstractStateMapper::partial_assignments_begin(
+StateRankingFunction::PartialAssignmentIterator
+StateRankingFunction::partial_assignments_begin(
     std::vector<std::pair<int, int>> partial_state) const
 {
     return PartialAssignmentIterator(std::move(partial_state), var_infos_);
 }
 
-utils::default_sentinel_t AbstractStateMapper::partial_assignments_end() const
+utils::default_sentinel_t StateRankingFunction::partial_assignments_end() const
 {
     return utils::default_sentinel_t();
 }
 
 utils::RangeProxy<
-    AbstractStateMapper::PartialAssignmentIterator,
+    StateRankingFunction::PartialAssignmentIterator,
     utils::default_sentinel_t>
-AbstractStateMapper::partial_assignments(
+StateRankingFunction::partial_assignments(
     std::vector<std::pair<int, int>> partial_state) const
 {
     return utils::
@@ -338,55 +338,52 @@ AbstractStateMapper::partial_assignments(
             partial_assignments_end());
 }
 
-AbstractStateMapper::AbstractStateIterator
-AbstractStateMapper::abstract_states_begin(
-    AbstractState offset,
+StateRankingFunction::StateRankIterator StateRankingFunction::state_ranks_begin(
+    StateRank offset,
     std::vector<int> indices) const
 {
-    return AbstractStateIterator(offset, indices, var_infos_);
+    return StateRankIterator(offset, indices, var_infos_);
 }
 
-utils::default_sentinel_t AbstractStateMapper::abstract_states_end() const
+utils::default_sentinel_t StateRankingFunction::state_ranks_end() const
 {
     return utils::default_sentinel_t();
 }
 
 utils::RangeProxy<
-    AbstractStateMapper::AbstractStateIterator,
+    StateRankingFunction::StateRankIterator,
     utils::default_sentinel_t>
-AbstractStateMapper::abstract_states(
-    AbstractState offset,
-    std::vector<int> indices) const
+StateRankingFunction::state_ranks(StateRank offset, std::vector<int> indices)
+    const
 {
-    return utils::RangeProxy<AbstractStateIterator, utils::default_sentinel_t>(
-        abstract_states_begin(offset, indices),
-        abstract_states_end());
+    return utils::RangeProxy<StateRankIterator, utils::default_sentinel_t>(
+        state_ranks_begin(offset, indices),
+        state_ranks_end());
 }
 
-long long int AbstractStateMapper::get_multiplier(int var) const
+long long int StateRankingFunction::get_multiplier(int var) const
 {
     return var_infos_[var].multiplier;
 }
 
-int AbstractStateMapper::get_domain_size(int var) const
+int StateRankingFunction::get_domain_size(int var) const
 {
     return var_infos_[var].domain;
 }
 
-int AbstractStateMapper::get_index(int var) const
+int StateRankingFunction::get_index(int var) const
 {
     auto it = std::find(pattern_.begin(), pattern_.end(), var);
     return it != pattern_.end() ? std::distance(pattern_.begin(), it) : -1;
 }
 
-AbstractStateToString::AbstractStateToString(
-    std::shared_ptr<AbstractStateMapper> state_mapper)
+StateRankToString::StateRankToString(
+    std::shared_ptr<StateRankingFunction> state_mapper)
     : state_mapper_(std::move(state_mapper))
 {
 }
 
-std::string
-AbstractStateToString::operator()(const StateID&, AbstractState state) const
+std::string StateRankToString::operator()(const StateID&, StateRank state) const
 {
     std::ostringstream out;
     std::vector<int> values = state_mapper_->unrank(state);

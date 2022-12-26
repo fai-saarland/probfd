@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_PDBS_ABSTRACT_OPERATOR_H
 #define MDPS_HEURISTICS_PDBS_ABSTRACT_OPERATOR_H
 
-#include "probfd/heuristics/pdbs/abstract_state.h"
+#include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/distribution.h"
 
@@ -21,7 +21,7 @@ struct AbstractOperator {
     explicit AbstractOperator(unsigned id, int reward);
     unsigned original_operator_id;
     value_type::value_t reward;
-    Distribution<AbstractState> outcomes;
+    Distribution<StateRank> outcomes;
 };
 
 class AbstractOperatorToString {

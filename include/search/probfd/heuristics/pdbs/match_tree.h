@@ -10,9 +10,9 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-struct AbstractState;
 struct AbstractOperator;
-class AbstractStateMapper;
+struct StateRank;
+class StateRankingFunction;
 
 /*
  * Successor Generator for abstract operators.
@@ -22,7 +22,7 @@ class MatchTree {
 
     // See PatternDatabase for documentation on pattern and hash_multipliers.
     Pattern pattern;
-    const AbstractStateMapper& mapper;
+    const StateRankingFunction& mapper;
     Node* root;
 
     // Pointer to first operator
@@ -36,14 +36,14 @@ class MatchTree {
 
     void get_applicable_operators_recursive(
         Node* node,
-        AbstractState abstract_state,
+        StateRank abstract_state,
         std::vector<const AbstractOperator*>& operators) const;
 
     void dump_recursive(Node* node) const;
 
 public:
     // Initialize an empty match tree.
-    MatchTree(const Pattern& pattern, const AbstractStateMapper& mapper);
+    MatchTree(const Pattern& pattern, const StateRankingFunction& mapper);
 
     ~MatchTree();
 
@@ -59,7 +59,7 @@ public:
       pairs).
     */
     void get_applicable_operators(
-        AbstractState abstract_state,
+        StateRank abstract_state,
         std::vector<const AbstractOperator*>& operators) const;
 
     void set_first_aop(const AbstractOperator* first);

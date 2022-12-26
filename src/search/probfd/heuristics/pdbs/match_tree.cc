@@ -1,7 +1,7 @@
 #include "probfd/heuristics/pdbs/match_tree.h"
 
 #include "probfd/heuristics/pdbs/abstract_operator.h"
-#include "probfd/heuristics/pdbs/abstract_state_mapper.h"
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
 
 #include "globals.h"
 
@@ -73,7 +73,7 @@ bool MatchTree::Node::is_leaf_node() const
     return var_id == LEAF_NODE;
 }
 
-MatchTree::MatchTree(const Pattern& pattern, const AbstractStateMapper& mapper)
+MatchTree::MatchTree(const Pattern& pattern, const StateRankingFunction& mapper)
     : pattern(pattern)
     , mapper(mapper)
     , root(nullptr)
@@ -152,7 +152,7 @@ void MatchTree::insert(
 
 void MatchTree::get_applicable_operators_recursive(
     Node* node,
-    const AbstractState abstract_state,
+    const StateRank abstract_state,
     vector<const AbstractOperator*>& operator_ids) const
 {
     /*
@@ -188,7 +188,7 @@ void MatchTree::get_applicable_operators_recursive(
 }
 
 void MatchTree::get_applicable_operators(
-    AbstractState abstract_state,
+    StateRank abstract_state,
     vector<const AbstractOperator*>& operator_ids) const
 {
     if (root)

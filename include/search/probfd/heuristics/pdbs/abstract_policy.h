@@ -2,7 +2,7 @@
 #define MDPS_HEURISTICS_PDBS_ABSTRACT_POLICY_H
 
 #include "probfd/heuristics/pdbs/abstract_operator.h"
-#include "probfd/heuristics/pdbs/abstract_state.h"
+#include "probfd/heuristics/pdbs/state_rank.h"
 
 
 #include <vector>
@@ -24,8 +24,8 @@ private:
 public:
     AbstractPolicy(std::size_t num_abstract_states);
 
-    OperatorList& operator[](const AbstractState& state);
-    const OperatorList& operator[](const AbstractState& state) const;
+    OperatorList& operator[](const StateRank& state);
+    const OperatorList& operator[](const StateRank& state) const;
 };
 
 } // namespace pdbs

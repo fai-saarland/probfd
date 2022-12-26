@@ -25,20 +25,20 @@ namespace heuristics {
 namespace pdbs {
 
 namespace {
-class WrapperHeuristic : public AbstractStateEvaluator {
-    const std::unordered_map<AbstractState, int>& goal_distances;
-    const AbstractStateEvaluator& parent;
+class WrapperHeuristic : public StateRankEvaluator {
+    const std::unordered_map<StateRank, int>& goal_distances;
+    const StateRankEvaluator& parent;
 
 public:
     WrapperHeuristic(
-        const std::unordered_map<AbstractState, int>& goal_distances,
-        const AbstractStateEvaluator& parent)
+        const std::unordered_map<StateRank, int>& goal_distances,
+        const StateRankEvaluator& parent)
         : goal_distances(goal_distances)
         , parent(parent)
     {
     }
 
-    virtual EvaluationResult evaluate(const AbstractState& state) const
+    virtual EvaluationResult evaluate(const StateRank& state) const
     {
         auto it = goal_distances.find(state);
 
@@ -55,18 +55,18 @@ MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
     const std::vector<int>& domains,
     bool operator_pruning,
-    const AbstractStateEvaluator& heuristic)
+    const StateRankEvaluator& heuristic)
     : MaxProbProjection(
-          new AbstractStateMapper(pattern, domains),
+          new StateRankingFunction(pattern, domains),
           operator_pruning,
           heuristic)
 {
 }
 
 MaxProbProjection::MaxProbProjection(
-    AbstractStateMapper* mapper,
+    StateRankingFunction* mapper,
     bool operator_pruning,
-    const AbstractStateEvaluator& heuristic)
+    const StateRankEvaluator& heuristic)
     : ProbabilisticProjection(mapper, operator_pruning, value_type::zero)
 {
     compute_value_table(heuristic);
@@ -98,7 +98,7 @@ MaxProbProjection::MaxProbProjection(
 }
 
 void MaxProbProjection::compute_value_table(
-    const AbstractStateEvaluator& heuristic)
+    const StateRankEvaluator& heuristic)
 {
     using namespace engine_interfaces;
     using namespace engines::interval_iteration;
@@ -108,7 +108,7 @@ void MaxProbProjection::compute_value_table(
         value_type::one,
         value_type::zero);
 
-    StateIDMap<AbstractState> state_id_map;
+    StateIDMap<StateRank> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(
         abstract_state_space_.abstract_operators_);
 
@@ -116,7 +116,7 @@ void MaxProbProjection::compute_value_table(
         state_id_map,
         abstract_state_space_.match_tree_);
 
-    IntervalIteration<AbstractState, const AbstractOperator*> vi(
+    IntervalIteration<StateRank, const AbstractOperator*> vi(
         &state_id_map,
         &action_id_map,
         &reward,
@@ -163,7 +163,7 @@ EvaluationResult MaxProbProjection::evaluate(const GlobalState& s) const
     return evaluate(get_abstract_state(s));
 }
 
-EvaluationResult MaxProbProjection::evaluate(const AbstractState& s) const
+EvaluationResult MaxProbProjection::evaluate(const StateRank& s) const
 {
     if (is_dead_end(s)) {
         return {true, value_type::zero};
@@ -178,7 +178,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
     bool wildcard) const
 {
     using PredecessorList =
-        std::vector<std::pair<AbstractState, const AbstractOperator*>>;
+        std::vector<std::pair<StateRank, const AbstractOperator*>>;
 
     assert(!is_dead_end(abstract_state_space_.initial_state_));
 
@@ -190,18 +190,18 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
         return policy;
     }
 
-    std::map<AbstractState, PredecessorList> predecessors;
+    std::map<StateRank, PredecessorList> predecessors;
 
-    std::deque<AbstractState> open;
-    std::unordered_set<AbstractState> closed;
+    std::deque<StateRank> open;
+    std::unordered_set<StateRank> closed;
     open.push_back(abstract_state_space_.initial_state_);
     closed.insert(abstract_state_space_.initial_state_);
 
-    std::vector<AbstractState> goals;
+    std::vector<StateRank> goals;
 
     // Build the greedy policy graph
     while (!open.empty()) {
-        AbstractState s = open.front();
+        StateRank s = open.front();
         open.pop_front();
 
         // Skip dead-ends, the operator is irrelevant
@@ -219,16 +219,16 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
         for (const AbstractOperator* op : aops) {
             value_type::value_t op_value = value_type::zero;
 
-            std::vector<AbstractState> successors;
+            std::vector<StateRank> successors;
 
             for (const auto& [eff, prob] : op->outcomes) {
-                AbstractState t = s + eff;
+                StateRank t = s + eff;
                 op_value += prob * value_table[t.id];
                 successors.push_back(t);
             }
 
             if (value_type::approx_equal()(value, op_value)) {
-                for (const AbstractState& succ : successors) {
+                for (const StateRank& succ : successors) {
                     if (abstract_state_space_.goal_state_flags_[succ.id]) {
                         goals.push_back(succ);
                     } else if (!utils::contains(closed, succ)) {
@@ -253,7 +253,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
     while (!open.empty()) {
         // Choose a random successor
         auto it = rng->choose(open);
-        AbstractState s = *it;
+        StateRank s = *it;
 
         std::swap(*it, open.back());
         open.pop_back();
@@ -301,7 +301,7 @@ void MaxProbProjection::dump_graphviz(
     const std::string& path,
     bool transition_labels)
 {
-    auto s2str = [this](const StateID& id, const AbstractState& x) {
+    auto s2str = [this](const StateID& id, const StateRank& x) {
         std::ostringstream out;
         out.precision(3);
         out << id.id;
@@ -329,7 +329,7 @@ void MaxProbProjection::dump_graphviz(
 
 #if !defined(NDEBUG) && defined(USE_LP)
 void MaxProbProjection::verify(
-    const engine_interfaces::StateIDMap<AbstractState>& state_id_map)
+    const engine_interfaces::StateIDMap<StateRank>& state_id_map)
 {
     lp::LPSolverType type;
 
@@ -355,7 +355,7 @@ void MaxProbProjection::verify(
 
     std::vector<lp::LPVariable> variables;
 
-    for (AbstractState s = AbstractState(0);
+    for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
         variables.emplace_back(
@@ -366,11 +366,11 @@ void MaxProbProjection::verify(
 
     std::vector<lp::LPConstraint> constraints;
 
-    std::deque<AbstractState> queue({abstract_state_space_.initial_state_});
-    std::set<AbstractState> seen({abstract_state_space_.initial_state_});
+    std::deque<StateRank> queue({abstract_state_space_.initial_state_});
+    std::set<StateRank> seen({abstract_state_space_.initial_state_});
 
     while (!queue.empty()) {
-        AbstractState s = queue.front();
+        StateRank s = queue.front();
         queue.pop_front();
 
         assert(utils::contains(visited, StateID(s.id)));
@@ -391,7 +391,7 @@ void MaxProbProjection::verify(
             auto& constr =
                 constraints.emplace_back(value_type::zero, value_type::inf);
 
-            std::unordered_map<AbstractState, value_type::value_t>
+            std::unordered_map<StateRank, value_type::value_t>
                 successor_dist;
 
             for (const auto& [eff, prob] : op->outcomes) {
@@ -426,7 +426,7 @@ void MaxProbProjection::verify(
 
     std::vector<double> solution = solver.extract_solution();
 
-    for (AbstractState s(0); s.id != static_cast<int>(value_table.size());
+    for (StateRank s(0); s.id != static_cast<int>(value_table.size());
          ++s.id) {
         if (utils::contains(seen, s)) {
             assert(value_type::approx_equal(

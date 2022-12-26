@@ -2,9 +2,9 @@
 #define MDPS_HEURISTICS_PDBS_PROBABILISTIC_PROJECTION_H
 
 #include "probfd/heuristics/pdbs/abstract_operator.h"
-#include "probfd/heuristics/pdbs/abstract_state_mapper.h"
 #include "probfd/heuristics/pdbs/engine_interfaces.h"
 #include "probfd/heuristics/pdbs/match_tree.h"
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/utils/graph_visualization.h"
@@ -25,23 +25,23 @@ namespace pdbs {
 class MatchTree;
 
 class ProbabilisticProjection {
-    struct AbstractStateSpace {
-        AbstractState initial_state_;
+    struct StateRankSpace {
+        StateRank initial_state_;
         std::vector<AbstractOperator> abstract_operators_;
         MatchTree match_tree_;
         std::vector<bool> goal_state_flags_;
 
-        AbstractStateSpace(
-            const AbstractStateMapper& mapper,
+        StateRankSpace(
+            const StateRankingFunction& mapper,
             bool operator_pruning = true);
 
-        void setup_abstract_goal(const AbstractStateMapper& mapper);
-        bool is_goal(const AbstractState& s) const;
+        void setup_abstract_goal(const StateRankingFunction& mapper);
+        bool is_goal(const StateRank& s) const;
     };
 
 protected:
-    std::shared_ptr<AbstractStateMapper> state_mapper_;
-    AbstractStateSpace abstract_state_space_;
+    std::shared_ptr<StateRankingFunction> state_mapper_;
+    StateRankSpace abstract_state_space_;
     std::vector<StateID> dead_ends_;
     std::vector<value_type::value_t> value_table;
 
@@ -53,25 +53,25 @@ protected:
         value_type::value_t fill);
 
     ProbabilisticProjection(
-        AbstractStateMapper* mapper,
+        StateRankingFunction* mapper,
         bool operator_pruning,
         value_type::value_t fill);
 
 public:
-    std::shared_ptr<AbstractStateMapper> get_abstract_state_mapper() const;
+    std::shared_ptr<StateRankingFunction> get_abstract_state_mapper() const;
 
     unsigned int num_states() const;
 
     bool is_dead_end(const GlobalState& s) const;
-    bool is_dead_end(const AbstractState& s) const;
+    bool is_dead_end(const StateRank& s) const;
 
-    bool is_goal(const AbstractState& s) const;
+    bool is_goal(const StateRank& s) const;
 
-    AbstractState get_abstract_state(const GlobalState& s) const;
-    AbstractState get_abstract_state(const std::vector<int>& s) const;
+    StateRank get_abstract_state(const GlobalState& s) const;
+    StateRank get_abstract_state(const std::vector<int>& s) const;
 
     [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
-    [[nodiscard]] value_type::value_t lookup(const AbstractState& s) const;
+    [[nodiscard]] value_type::value_t lookup(const StateRank& s) const;
 
     // Returns the pattern (i.e. all variables used) of the PDB
     const Pattern& get_pattern() const;
@@ -92,7 +92,7 @@ protected:
             return transition_labels ? op_names(op) : "";
         };
 
-        StateIDMap<AbstractState> state_id_map;
+        StateIDMap<StateRank> state_id_map;
 
         TransitionGenerator<const AbstractOperator*> transition_gen(
             state_id_map,
@@ -100,7 +100,7 @@ protected:
 
         std::ofstream out(path);
 
-        graphviz::dump<AbstractState>(
+        graphviz::dump<StateRank>(
             out,
             abstract_state_space_.initial_state_,
             &state_id_map,

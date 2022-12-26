@@ -3,9 +3,9 @@
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data.h"
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_cegar.h"
 
-#include "probfd/heuristics/pdbs/abstract_state.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
 #include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "utils/collections.h"
 
@@ -85,7 +85,7 @@ bool PUCSFlawFinder<PDBType>::expand(
     const PDBType& pdb = solution.get_pdb();
 
     // Check flaws, generate successors
-    const AbstractState abs = pdb.get_abstract_state(state.values);
+    const StateRank abs = pdb.get_abstract_state(state.values);
 
     // We reached a dead-end, the operator is irrelevant.
     if (pdb.is_dead_end(abs)) {

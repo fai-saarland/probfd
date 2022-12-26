@@ -20,7 +20,7 @@ namespace {
 // Footprint used for detecting duplicate operators.
 struct ProgressionOperatorFootprint {
     long long int precondition_hash;
-    std::vector<WeightedElement<AbstractState>> successors;
+    std::vector<WeightedElement<StateRank>> successors;
 
     ProgressionOperatorFootprint(
         long long int precondition_hash,
@@ -49,7 +49,7 @@ struct ProgressionOperatorFootprint {
 };
 
 struct OutcomeInfo {
-    AbstractState base_effect = AbstractState(0);
+    StateRank base_effect = StateRank(0);
     std::vector<int> missing_pres;
 
     friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b)
@@ -81,8 +81,8 @@ auto pdb_view(FactRange&& partial_state, const std::vector<int>& pdb_indices)
 
 using PartialAssignment = std::vector<std::pair<int, int>>;
 
-ProbabilisticProjection::AbstractStateSpace::AbstractStateSpace(
-    const AbstractStateMapper& mapper,
+ProbabilisticProjection::StateRankSpace::StateRankSpace(
+    const StateRankingFunction& mapper,
     bool operator_pruning)
     : initial_state_(mapper.rank(::g_initial_state_data))
     , match_tree_(mapper.get_pattern(), mapper)
@@ -191,11 +191,11 @@ ProbabilisticProjection::AbstractStateSpace::AbstractStateSpace(
     setup_abstract_goal(mapper);
 }
 
-void ProbabilisticProjection::AbstractStateSpace::setup_abstract_goal(
-    const AbstractStateMapper& mapper)
+void ProbabilisticProjection::StateRankSpace::setup_abstract_goal(
+    const StateRankingFunction& mapper)
 {
     std::vector<int> non_goal_vars;
-    AbstractState base(0);
+    StateRank base(0);
 
     // Translate sparse goal into pdb index space
     // and collect non-goal variables aswell.
@@ -223,15 +223,14 @@ void ProbabilisticProjection::AbstractStateSpace::setup_abstract_goal(
 
     assert(non_goal_vars.size() != variables.size()); // No goal no fun.
 
-    auto goals = mapper.abstract_states(base, std::move(non_goal_vars));
+    auto goals = mapper.state_ranks(base, std::move(non_goal_vars));
 
     for (const auto& g : goals) {
         goal_state_flags_[g.id] = true;
     }
 }
 
-bool ProbabilisticProjection::AbstractStateSpace::is_goal(
-    const AbstractState& s) const
+bool ProbabilisticProjection::StateRankSpace::is_goal(const StateRank& s) const
 {
     return goal_state_flags_[s.id];
 }
@@ -242,14 +241,14 @@ ProbabilisticProjection::ProbabilisticProjection(
     bool operator_pruning,
     value_type::value_t fill)
     : ProbabilisticProjection(
-          new AbstractStateMapper(pattern, domains),
+          new StateRankingFunction(pattern, domains),
           operator_pruning,
           fill)
 {
 }
 
 ProbabilisticProjection::ProbabilisticProjection(
-    AbstractStateMapper* mapper,
+    StateRankingFunction* mapper,
     bool operator_pruning,
     value_type::value_t fill)
     : state_mapper_(mapper)
@@ -258,7 +257,7 @@ ProbabilisticProjection::ProbabilisticProjection(
 {
 }
 
-std::shared_ptr<AbstractStateMapper>
+std::shared_ptr<StateRankingFunction>
 ProbabilisticProjection::get_abstract_state_mapper() const
 {
     return state_mapper_;
@@ -274,12 +273,12 @@ bool ProbabilisticProjection::is_dead_end(const GlobalState& s) const
     return is_dead_end(get_abstract_state(s));
 }
 
-bool ProbabilisticProjection::is_dead_end(const AbstractState& s) const
+bool ProbabilisticProjection::is_dead_end(const StateRank& s) const
 {
     return utils::contains(dead_ends_, StateID(s.id));
 }
 
-bool ProbabilisticProjection::is_goal(const AbstractState& s) const
+bool ProbabilisticProjection::is_goal(const StateRank& s) const
 {
     return abstract_state_space_.is_goal(s);
 }
@@ -289,19 +288,18 @@ value_type::value_t ProbabilisticProjection::lookup(const GlobalState& s) const
     return lookup(get_abstract_state(s));
 }
 
-value_type::value_t
-ProbabilisticProjection::lookup(const AbstractState& s) const
+value_type::value_t ProbabilisticProjection::lookup(const StateRank& s) const
 {
     return value_table[s.id];
 }
 
-AbstractState
+StateRank
 ProbabilisticProjection::get_abstract_state(const GlobalState& s) const
 {
     return state_mapper_->rank(s);
 }
 
-AbstractState
+StateRank
 ProbabilisticProjection::get_abstract_state(const std::vector<int>& s) const
 {
     return state_mapper_->rank(s);

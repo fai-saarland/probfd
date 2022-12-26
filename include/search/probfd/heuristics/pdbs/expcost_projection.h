@@ -22,14 +22,14 @@ public:
         const Pattern& variables,
         const std::vector<int>& domains = ::g_variable_domain,
         bool operator_pruning = true,
-        const AbstractStateEvaluator& heuristic =
-            ConstantEvaluator<AbstractState>(value_type::zero));
+        const StateRankEvaluator& heuristic =
+            ConstantEvaluator<StateRank>(value_type::zero));
 
     explicit ExpCostProjection(
-        AbstractStateMapper* mapper,
+        StateRankingFunction* mapper,
         bool operator_pruning = true,
-        const AbstractStateEvaluator& heuristic =
-            ConstantEvaluator<AbstractState>(value_type::zero));
+        const StateRankEvaluator& heuristic =
+            ConstantEvaluator<StateRank>(value_type::zero));
 
     explicit ExpCostProjection(
         const ::pdbs::PatternDatabase& pdb,
@@ -41,7 +41,7 @@ public:
         bool operator_pruning = true);
 
     [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
-    [[nodiscard]] EvaluationResult evaluate(const AbstractState& s) const;
+    [[nodiscard]] EvaluationResult evaluate(const StateRank& s) const;
 
     AbstractPolicy get_optimal_abstract_policy(
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -51,11 +51,11 @@ public:
     dump_graphviz(const std::string& path, bool transition_labels = true) const;
 
 private:
-    void compute_value_table(const AbstractStateEvaluator& heuristic);
+    void compute_value_table(const StateRankEvaluator& heuristic);
 
 #if !defined(NDEBUG) && defined(USE_LP)
     void verify(
-        const engine_interfaces::StateIDMap<AbstractState>& state_id_map,
+        const engine_interfaces::StateIDMap<StateRank>& state_id_map,
         const std::vector<StateID>& proper_states);
 #endif
 };
