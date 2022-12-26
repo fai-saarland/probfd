@@ -49,6 +49,12 @@ public:
         int outcome_index,
         int eff_index,
         int cond_index) const = 0;
+
+    // Convenience function returning the negative operator cost
+    int get_operator_reward(int op_index) const
+    {
+        return -this->get_operator_cost(op_index);
+    }
 };
 
 } // namespace probfd

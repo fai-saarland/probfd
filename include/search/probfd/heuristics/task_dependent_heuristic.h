@@ -13,6 +13,7 @@ namespace probfd {
 namespace heuristics {
 
 class TaskDependentHeuristic : public GlobalStateEvaluator {
+protected:
     std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;
 

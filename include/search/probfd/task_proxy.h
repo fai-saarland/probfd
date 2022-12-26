@@ -124,6 +124,7 @@ public:
         int eff_index)
         : task(&task)
         , op_index(op_index)
+        , outcome_index(outcome_index)
         , eff_index(eff_index)
     {
     }
@@ -266,7 +267,7 @@ public:
         return ProbabilisticOutcomesProxy(*task, index);
     }
 
-    int get_cost() const { return task->get_operator_cost(index); }
+    int get_reward() const { return task->get_operator_reward(index); }
 
     std::string get_name() const { return task->get_operator_name(index); }
 
