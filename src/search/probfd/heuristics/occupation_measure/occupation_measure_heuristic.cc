@@ -15,34 +15,39 @@
 #include "probfd/globals.h"
 #include "probfd/probabilistic_operator.h"
 
+#include "task_utils/task_properties.h"
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <memory>
 
 namespace probfd {
+namespace heuristics {
 namespace occupation_measure_heuristic {
 
 namespace {
 // Explicit goal values (-1 if variable not required)
-std::vector<int> get_goal_explicit()
+std::vector<int> get_goal_explicit(const ProbabilisticTaskProxy& task_proxy)
 {
-    std::vector<int> the_goal(legacy::g_variable_domain.size(), -1);
+    std::vector<int> the_goal(task_proxy.get_variables().size(), -1);
 
-    for (const auto& [var, val] : legacy::g_goal) {
-        the_goal[var] = val;
+    for (const FactProxy fact : task_proxy.get_goals()) {
+        the_goal[fact.get_variable().get_id()] = fact.get_value();
     }
 
     return the_goal;
 }
 
 // Explicit precondition values (-1 if no precondition for variable)
-std::vector<int> get_precondition_explicit(const ProbabilisticOperator& op)
+std::vector<int> get_precondition_explicit(
+    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticOperatorProxy& op_proxy)
 {
-    std::vector<int> pre(legacy::g_variable_domain.size(), -1);
+    std::vector<int> pre(task_proxy.get_variables().size(), -1);
 
-    for (const auto& [var, val] : op.get_preconditions()) {
-        pre[var] = val;
+    for (const FactProxy fact : op_proxy.get_preconditions()) {
+        pre[fact.get_variable().get_id()] = fact.get_value();
     }
 
     return pre;
@@ -50,23 +55,27 @@ std::vector<int> get_precondition_explicit(const ProbabilisticOperator& op)
 
 // Compute an explicit transition probability matrix
 std::vector<std::vector<value_type::value_t>> get_transition_probs_explicit(
-    const ProbabilisticOperator& op,
+    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticOperatorProxy& op_proxy,
     std::set<int>& possibly_updated)
 {
-    std::vector<std::vector<value_type::value_t>> p(
-        legacy::g_variable_domain.size());
+    const VariablesProxy variables = task_proxy.get_variables();
+    const size_t num_variables = variables.size();
 
-    for (std::size_t i = 0; i < p.size(); ++i) {
-        p[i].resize(legacy::g_variable_domain[i] + 1, value_type::zero);
+    std::vector<std::vector<value_type::value_t>> p(num_variables);
+
+    for (std::size_t i = 0; i < num_variables; ++i) {
+        p[i].resize(variables[i].get_domain_size() + 1, value_type::zero);
         p[i].back() = value_type::one;
     }
 
-    for (const ProbabilisticOutcome& out : op) {
-        const value_type::value_t prob = out.prob;
+    for (const ProbabilisticOutcomeProxy& out : op_proxy.get_outcomes()) {
+        const value_type::value_t prob = out.get_probability();
 
-        for (const auto& fact : out.effects()) {
-            int var = fact.var;
-            int val = fact.val;
+        for (const ProbabilisticEffectProxy effect : out.get_effects()) {
+            const FactProxy fact = effect.get_fact();
+            int var = fact.get_variable().get_id();
+            int val = fact.get_value();
 
             possibly_updated.insert(var);
             auto& probs = p[var];
@@ -80,6 +89,7 @@ std::vector<std::vector<value_type::value_t>> get_transition_probs_explicit(
 } // namespace
 
 void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
+    const ProbabilisticTaskProxy& task_proxy,
     lp::LPSolver& lp_solver_,
     named_vector::NamedVector<lp::LPVariable>& lp_vars,
     named_vector::NamedVector<lp::LPConstraint>& constraints,
@@ -88,22 +98,26 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 {
     assert(lp_vars.empty() && constraints.empty());
 
-    legacy::verify_no_axioms_no_conditional_effects();
+    task_properties::verify_no_axioms(task_proxy);
+    // FIXME
+    // task_properties::verify_no_conditional_effects(task_proxy);
 
-    const std::size_t num_variables = legacy::g_variable_domain.size();
+    const VariablesProxy variables = task_proxy.get_variables();
+    const GoalsProxy goals = task_proxy.get_goals();
+
+    const std::size_t num_variables = variables.size();
     const double inf = lp_solver_.get_infinity();
 
     // Prepare fact variable offsets
     offset_.reserve(num_variables);
 
     std::size_t offset = 0;
-    offset_.push_back(offset);
-    for (std::size_t var = 0; var < num_variables - 1; ++var) {
-        offset += legacy::g_variable_domain[var];
+    for (const VariableProxy variable : variables) {
         offset_.push_back(offset);
+        offset += variable.get_domain_size();
     }
 
-    const std::size_t num_facts = offset + legacy::g_variable_domain.back();
+    const std::size_t num_facts = offset;
 
     // One flow constraint for every state of every atomic projections
     constraints.resize(num_facts, lp::LPConstraint(-inf, value_type::zero));
@@ -112,23 +126,23 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     // Maximized in MaxProb, must be constant 1 for SSPs
     lp_vars.emplace_back(maxprob ? 0 : 1, 1, maxprob ? 1 : 0);
 
-    std::vector<int> the_goal = get_goal_explicit();
+    std::vector<int> the_goal = get_goal_explicit(task_proxy);
 
     // Build flow contraint coefficients for dummy goal action
-    for (unsigned var = 0; var < legacy::g_variable_domain.size(); ++var) {
+    for (const VariableProxy var : variables) {
         lp::LPConstraint& goal_constraint = constraints.emplace_back(0, 0);
         goal_constraint.insert(0, -1);
-        lp::LPConstraint* flow = &constraints[offset_[var]];
+        lp::LPConstraint* flow = &constraints[offset_[var.get_id()]];
 
-        if (the_goal[var] == -1) {
-            for (int val = 0; val != legacy::g_variable_domain[var]; ++val) {
+        if (the_goal[var.get_id()] == -1) {
+            for (int val = 0; val != var.get_domain_size(); ++val) {
                 const int lpvar = lp_vars.size();
                 lp_vars.emplace_back(0, inf, 0);
                 flow[val].insert(lpvar, 1);       // outflow for goal states
                 goal_constraint.insert(lpvar, 1); // inflow for dummy goal state
             }
         } else {
-            const int val = the_goal[var];
+            const int val = the_goal[var.get_id()];
             const int lpvar = lp_vars.size();
             lp_vars.emplace_back(0, inf, 0);
             flow[val].insert(lpvar, 1);
@@ -137,16 +151,16 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     }
 
     // Now ordinary actions
-    for (const ProbabilisticOperator& op : g_operators) {
+    for (const ProbabilisticOperatorProxy& op : task_proxy.get_operators()) {
         const auto reward = maxprob ? 0 : op.get_reward();
 
         // Get dense precondition
-        const std::vector<int> pre = get_precondition_explicit(op);
+        const std::vector<int> pre = get_precondition_explicit(task_proxy, op);
 
         // Get transition matrix and possibly updated variables
         std::set<int> possibly_updated;
         const std::vector<std::vector<value_type::value_t>> post =
-            get_transition_probs_explicit(op, possibly_updated);
+            get_transition_probs_explicit(task_proxy, op, possibly_updated);
 
         // For tying constraints, contains lp variable ranges of projections
         std::vector<std::pair<int, int>> tieing_equality;
@@ -156,7 +170,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
             std::pair<int, int> var_range(lp_vars.size(), 0);
             lp::LPConstraint* flow = &constraints[offset_[var]];
 
-            const std::size_t domain = legacy::g_variable_domain[var];
+            const std::size_t domain = variables[var].get_domain_size();
             const auto& tr_probs = post[var];
 
             // Populate flow constraints
@@ -236,7 +250,8 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
 ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     const options::Options& opts)
-    : lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
+    : TaskDependentHeuristic(opts)
+    , lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
     , is_maxprob_(
           std::dynamic_pointer_cast<
               analysis_objectives::GoalProbabilityObjective>(
@@ -251,7 +266,13 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     named_vector::NamedVector<lp::LPVariable> lp_vars;
     named_vector::NamedVector<lp::LPConstraint> constraints;
 
-    generate_hpom_lp(lp_solver_, lp_vars, constraints, offset_, is_maxprob_);
+    generate_hpom_lp(
+        task_proxy,
+        lp_solver_,
+        lp_vars,
+        constraints,
+        offset_,
+        is_maxprob_);
 
     lp_solver_.load_problem(lp::LinearProgram(
         lp::LPObjectiveSense::MAXIMIZE,
@@ -267,8 +288,10 @@ EvaluationResult ProjectionOccupationMeasureHeuristic::evaluate(
 {
     using namespace analysis_objectives;
 
+    const size_t num_variables = task_proxy.get_variables().size();
+
     // Set to initial state in LP
-    for (unsigned var = 0; var < legacy::g_variable_domain.size(); ++var) {
+    for (size_t var = 0; var < num_variables; ++var) {
         const std::size_t index = offset_[var] + state[var];
         lp_solver_.set_constraint_upper_bound(index, 1.0);
     }
@@ -292,7 +315,7 @@ EvaluationResult ProjectionOccupationMeasureHeuristic::evaluate(
         result = EvaluationResult(!was_feasible, estimate);
     }
 
-    for (unsigned var = 0; var < legacy::g_variable_domain.size(); ++var) {
+    for (size_t var = 0; var < num_variables; ++var) {
         const std::size_t index = offset_[var] + state[var];
         lp_solver_.set_constraint_upper_bound(index, 0.0);
     }
@@ -303,6 +326,7 @@ EvaluationResult ProjectionOccupationMeasureHeuristic::evaluate(
 void ProjectionOccupationMeasureHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
+    TaskDependentHeuristic::add_options_to_parser(parser);
     lp::add_lp_solver_option_to_parser(parser);
 }
 
@@ -311,4 +335,5 @@ static Plugin<GlobalStateEvaluator> _plugin(
     options::parse<GlobalStateEvaluator, ProjectionOccupationMeasureHeuristic>);
 
 } // namespace occupation_measure_heuristic
+} // namespace heuristics
 } // namespace probfd

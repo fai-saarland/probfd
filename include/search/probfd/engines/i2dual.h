@@ -22,6 +22,8 @@
 
 #include "legacy/global_state.h"
 
+#include "probfd/tasks/root_task.h"
+
 #include <memory>
 #include <vector>
 
@@ -372,18 +374,20 @@ private:
 
     void prepare_hpom(named_vector::NamedVector<lp::LPVariable>& vars)
     {
+        using namespace heuristics::occupation_measure_heuristic;
+
         if (!hpom_enabled_) {
             return;
         }
 
         statistics_.hpom_timer_.resume();
-        occupation_measure_heuristic::ProjectionOccupationMeasureHeuristic::
-            generate_hpom_lp(
-                lp_solver_,
-                vars,
-                hpom_constraints_,
-                offset_,
-                true);
+        ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
+            ProbabilisticTaskProxy(*tasks::g_root_task),
+            lp_solver_,
+            vars,
+            hpom_constraints_,
+            offset_,
+            true);
         statistics_.hpom_num_vars_ = vars.size();
         statistics_.hpom_num_constraints_ = hpom_constraints_.size();
 

@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
 #define MDPS_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
 
-#include "probfd/state_evaluator.h"
+#include "probfd/heuristics/task_dependent_heuristic.h"
 
 #include "lp/lp_solver.h"
 
@@ -14,6 +14,8 @@ class OptionParser;
 
 namespace probfd {
 
+namespace heuristics {
+
 /// Namespace dedicated to occupation measure heuristics
 namespace occupation_measure_heuristic {
 
@@ -21,7 +23,7 @@ namespace occupation_measure_heuristic {
  * @brief Implements the projection occupation measure heuristic
  * \cite trevizan:etal:icaps-17 .
  */
-class ProjectionOccupationMeasureHeuristic : public GlobalStateEvaluator {
+class ProjectionOccupationMeasureHeuristic : public TaskDependentHeuristic {
 public:
     /**
      * @brief Construct from options.
@@ -31,14 +33,16 @@ public:
      * \em CLP, \em CPLEX, \em GUROBI or \em SOPLEX.
      */
     explicit ProjectionOccupationMeasureHeuristic(const options::Options& opts);
-    static void add_options_to_parser(options::OptionParser& parser);
 
     static void generate_hpom_lp(
+        const ProbabilisticTaskProxy& task_proxy,
         lp::LPSolver& lp_solver,
         named_vector::NamedVector<lp::LPVariable>& vars,
         named_vector::NamedVector<lp::LPConstraint>& constraints,
         std::vector<int>& offsets,
         bool maxprob);
+
+    static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
     virtual EvaluationResult
@@ -50,6 +54,7 @@ protected:
 };
 
 } // namespace occupation_measure_heuristic
+} // namespace heuristics
 } // namespace probfd
 
 #endif // __OCCUPATION_MEASURE_HEURISTIC_H__
