@@ -15,7 +15,7 @@
 #include "probfd/globals.h"
 #include "probfd/probabilistic_operator.h"
 
-#include "task_utils/task_properties.h"
+#include "probfd/task_utils/task_properties.h"
 
 #include <algorithm>
 #include <cassert>
@@ -98,9 +98,8 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 {
     assert(lp_vars.empty() && constraints.empty());
 
-    task_properties::verify_no_axioms(task_proxy);
-    // FIXME
-    // task_properties::verify_no_conditional_effects(task_proxy);
+    ::task_properties::verify_no_axioms(task_proxy);
+    task_properties::verify_no_conditional_effects(task_proxy);
 
     const VariablesProxy variables = task_proxy.get_variables();
     const GoalsProxy goals = task_proxy.get_goals();

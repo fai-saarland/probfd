@@ -757,6 +757,8 @@ fast_downward_plugin(
         # Tasks
         probfd/probabilistic_task
 
+        probfd/task_utils/task_properties
+
         # Globals
         probfd/globals
 

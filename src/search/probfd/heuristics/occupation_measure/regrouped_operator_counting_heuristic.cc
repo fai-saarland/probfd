@@ -15,7 +15,7 @@
 #include "probfd/globals.h"
 #include "probfd/probabilistic_operator.h"
 
-#include "task_utils/task_properties.h"
+#include "probfd/task_utils/task_properties.h"
 
 #include <algorithm>
 #include <cassert>
@@ -59,9 +59,8 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
               analysis_objectives::GoalProbabilityObjective>(
               g_analysis_objective) != nullptr)
 {
-    task_properties::verify_no_axioms(task_proxy);
-    // FIXME
-    // task_properties::verify_no_conditional_effects(task_proxy);
+    ::task_properties::verify_no_axioms(task_proxy);
+    task_properties::verify_no_conditional_effects(task_proxy);
 
     std::cout << "Initializing regrouped operator counting heuristic..."
               << std::endl;
