@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_REGROUPED_OPERATOR_COUNTING_HEURISTIC_H
 #define MDPS_HEURISTICS_REGROUPED_OPERATOR_COUNTING_HEURISTIC_H
 
-#include "probfd/state_evaluator.h"
+#include "probfd/heuristics/task_dependent_heuristic.h"
 
 #include "lp/lp_solver.h"
 
@@ -13,7 +13,7 @@ class OptionParser;
 } // namespace options
 
 namespace probfd {
-
+namespace heuristics {
 /// Namespace dedicated to occupation measure heuristics
 namespace occupation_measure_heuristic {
 
@@ -21,7 +21,7 @@ namespace occupation_measure_heuristic {
  * @brief Implements the regrouped operator counting heuristic
  * \cite trevizan:etal:icaps-17 .
  */
-class RegroupedOperatorCountingHeuristic : public GlobalStateEvaluator {
+class RegroupedOperatorCountingHeuristic : public TaskDependentHeuristic {
 public:
     /**
      * @brief Construct from options.
@@ -45,6 +45,7 @@ protected:
 };
 
 } // namespace occupation_measure_heuristic
+} // namespace heuristics
 } // namespace probfd
 
 #endif // __REGROUPED_OPERATOR_COUNTING_HEURISTIC_H__
