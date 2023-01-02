@@ -1,6 +1,8 @@
 #include "probfd/heuristics/determinization_cost.h"
 
-#include "legacy/heuristic.h"
+#include "evaluation_context.h"
+#include "evaluation_result.h"
+#include "evaluator.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -11,39 +13,38 @@ namespace heuristics {
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
     const options::Options& opts)
     : DeterminizationCostHeuristic(
-          opts.get<std::shared_ptr<legacy::Heuristic>>("heuristic"))
+          opts.get<std::shared_ptr<Evaluator>>("evaluator"))
 {
 }
 
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
-    std::shared_ptr<legacy::Heuristic> heuristic)
-    : heuristic_(std::move(heuristic))
+    std::shared_ptr<Evaluator> evaluator)
+    : evaluator_(std::move(evaluator))
 {
 }
 
 DeterminizationCostHeuristic::~DeterminizationCostHeuristic() = default;
 
 EvaluationResult
-DeterminizationCostHeuristic::evaluate(const legacy::GlobalState& state) const
+DeterminizationCostHeuristic::evaluate(const State& state) const
 {
-    heuristic_->evaluate(state);
+    EvaluationContext context(state);
+    ::EvaluationResult result = evaluator_->compute_result(context);
 
-    return heuristic_->is_dead_end() ? EvaluationResult(true, -value_type::inf)
-                                     : EvaluationResult(
-                                           false,
-                                           static_cast<value_type::value_t>(
-                                               -heuristic_->get_heuristic()));
+    return result.is_infinite()
+               ? EvaluationResult(true, -value_type::inf)
+               : EvaluationResult(false, -result.get_evaluator_value());
 }
 
 void DeterminizationCostHeuristic::print_statistics() const
 {
-    heuristic_->print_statistics();
+    // evaluator_->print_statistics();
 }
 
 void DeterminizationCostHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<legacy::Heuristic>>("heuristic");
+    parser.add_option<std::shared_ptr<Evaluator>>("evaluator");
 }
 
 static Plugin<GlobalStateEvaluator> _plugin(

@@ -6,6 +6,8 @@
 #include "task_utils/task_properties.h"
 #include "utils/logging.h"
 
+#include "probfd/task_proxy.h"
+
 using namespace std;
 
 StateRegistry::StateRegistry(const TaskBaseProxy& task_proxy)
@@ -91,6 +93,43 @@ State StateRegistry::get_successor_state(const State &predecessor, const Operato
             }
         }
         StateID id = insert_id_or_pop_state();
+        return task_proxy.create_state(*this, id, buffer);
+    }
+}
+
+State StateRegistry::get_successor_state(
+    const State& predecessor,
+    const probfd::ProbabilisticOutcomeProxy& outcome)
+{
+    using namespace probfd;
+
+    state_data_pool.push_back(predecessor.get_buffer());
+    PackedStateBin* buffer = state_data_pool[state_data_pool.size() - 1];
+    /* Experiments for issue348 showed that for tasks with axioms it's faster
+       to compute successor states using unpacked data. */
+    if (task_properties::has_axioms(task_proxy)) {
+        predecessor.unpack();
+        vector<int> new_values = predecessor.get_unpacked_values();
+        for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
+            if (does_fire(effect, predecessor)) {
+                FactPair effect_pair = effect.get_fact().get_pair();
+                new_values[effect_pair.var] = effect_pair.value;
+            }
+        }
+        axiom_evaluator.evaluate(new_values);
+        for (size_t i = 0; i < new_values.size(); ++i) {
+            state_packer.set(buffer, i, new_values[i]);
+        }
+        ::StateID id = insert_id_or_pop_state();
+        return task_proxy.create_state(*this, id, buffer, move(new_values));
+    } else {
+        for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
+            if (does_fire(effect, predecessor)) {
+                FactPair effect_pair = effect.get_fact().get_pair();
+                state_packer.set(buffer, effect_pair.var, effect_pair.value);
+            }
+        }
+        ::StateID id = insert_id_or_pop_state();
         return task_proxy.create_state(*this, id, buffer);
     }
 }

@@ -200,6 +200,11 @@ public:
     {
     }
 
+    int get_determinization_id() const
+    {
+        return task->get_operator_outcome_id(op_index, outcome_index);
+    }
+
     ProbabilisticEffectsProxy get_effects() const
     {
         return ProbabilisticEffectsProxy(*task, op_index, outcome_index);
@@ -324,6 +329,15 @@ public:
             *static_cast<const ProbabilisticTask*>(task));
     }
 };
+
+inline bool
+does_fire(const ProbabilisticEffectProxy& effect, const State& state)
+{
+    for (FactProxy condition : effect.get_conditions()) {
+        if (state[condition.get_variable()] != condition) return false;
+    }
+    return true;
+}
 
 } // namespace probfd
 

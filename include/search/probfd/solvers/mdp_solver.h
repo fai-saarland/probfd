@@ -6,15 +6,15 @@
 #include "probfd/solvers/solver_interface.h"
 
 #include "probfd/action_id_map.h"
-#include "probfd/probabilistic_operator.h"
 #include "probfd/progress_report.h"
 #include "probfd/reward_function.h"
 #include "probfd/state_evaluator.h"
 #include "probfd/state_id_map.h"
+#include "probfd/task_proxy.h"
 #include "probfd/transition_generator.h"
 
-#include "legacy/global_state.h"
-#include "legacy/state_registry.h"
+
+#include "state_registry.h"
 
 #include <memory>
 #include <string>
@@ -46,8 +46,7 @@ public:
      * @tparam Engine - The engine type to construct.
      */
     template <typename Engine, typename... Args>
-    engines::MDPEngine<legacy::GlobalState, const ProbabilisticOperator*>*
-    engine_factory(Args&&... args)
+    engines::MDPEngine<State, OperatorID>* engine_factory(Args&&... args)
     {
         return new Engine(
             &state_id_map_,
@@ -60,8 +59,7 @@ public:
     /**
      * @brief Factory method a new instance of the encapsulated MDP engine.
      */
-    virtual engines::MDPEngineInterface<legacy::GlobalState>*
-    create_engine() = 0;
+    virtual engines::MDPEngineInterface<State>* create_engine() = 0;
 
     /**
      * @brief Returns the name of the encapsulated MDP engine.
@@ -86,44 +84,41 @@ public:
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
-    engine_interfaces::StateIDMap<legacy::GlobalState>* get_state_id_map()
+    engine_interfaces::StateIDMap<State>* get_state_id_map()
     {
         return &state_id_map_;
     }
 
-    engine_interfaces::ActionIDMap<const ProbabilisticOperator*>*
-    get_action_id_map()
+    engine_interfaces::ActionIDMap<OperatorID>* get_action_id_map()
     {
         return &action_id_map_;
     }
 
-    engine_interfaces::
-        RewardFunction<legacy::GlobalState, const ProbabilisticOperator*>*
-        get_reward_function()
+    engine_interfaces::RewardFunction<State, OperatorID>* get_reward_function()
     {
         return reward_function_;
     }
 
-    engine_interfaces::TransitionGenerator<const ProbabilisticOperator*>*
+    engine_interfaces::TransitionGenerator<OperatorID>*
     get_transition_generator()
     {
         return &transition_generator_;
     }
 
-    legacy::StateRegistry* get_state_registry() { return &state_registry_; }
+    StateRegistry* get_state_registry() { return &state_registry_; }
 
     ProgressReport progress_;
 
 private:
-    legacy::StateRegistry state_registry_;
+    const std::shared_ptr<ProbabilisticTask> task;
+    ProbabilisticTaskProxy task_proxy;
 
-    engine_interfaces::StateIDMap<legacy::GlobalState> state_id_map_;
-    engine_interfaces::ActionIDMap<const ProbabilisticOperator*> action_id_map_;
-    engine_interfaces::RewardFunction<
-        legacy::GlobalState,
-        const ProbabilisticOperator*>* reward_function_;
-    engine_interfaces::TransitionGenerator<const ProbabilisticOperator*>
-        transition_generator_;
+    StateRegistry state_registry_;
+
+    engine_interfaces::StateIDMap<State> state_id_map_;
+    engine_interfaces::ActionIDMap<OperatorID> action_id_map_;
+    engine_interfaces::RewardFunction<State, OperatorID>* reward_function_;
+    engine_interfaces::TransitionGenerator<OperatorID> transition_generator_;
 };
 
 } // namespace solvers

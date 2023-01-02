@@ -21,7 +21,7 @@ State::State(
     , buffer(buffer)
     , values(nullptr)
     , state_packer(&registry.get_state_packer())
-    , num_variables(state_packer->get_num_bins())
+    , num_variables(registry.get_num_variables())
 {
     assert(id != StateID::no_state);
     assert(buffer);
@@ -66,14 +66,15 @@ State State::get_unregistered_successor(const OperatorProxy& op) const
     }
 
     if (task->get_num_axioms() > 0) {
-        // AxiomEvaluator &axiom_evaluator =
-        // g_axiom_evaluators[TaskProxy(*task)];
-        // axiom_evaluator.evaluate(new_values);
+        AxiomEvaluator& axiom_evaluator =
+            g_axiom_evaluators[TaskBaseProxy(*task)];
+        axiom_evaluator.evaluate(new_values);
     }
     return State(*task, move(new_values));
 }
 
 const causal_graph::CausalGraph& TaskProxy::get_causal_graph() const
 {
-    return causal_graph::get_causal_graph(static_cast<const AbstractTask*>(task));
+    return causal_graph::get_causal_graph(
+        static_cast<const AbstractTask*>(task));
 }

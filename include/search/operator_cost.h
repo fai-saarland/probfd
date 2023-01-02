@@ -13,6 +13,9 @@ int get_adjusted_action_cost(
     const AxiomOrOperatorProxy& op,
     OperatorCost cost_type,
     bool is_unit_cost);
+
+int get_adjusted_action_reward(int reward, OperatorCost cost_type);
+
 void add_cost_type_option_to_parser(options::OptionParser &parser);
 
 #endif

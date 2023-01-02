@@ -6,18 +6,24 @@
 
 #include "utils/rng.h"
 
-#include "legacy/globals.h"
-
 namespace probfd {
 namespace distribution_random_sampler {
 
-struct DistributionRandomSampler {
+class DistributionRandomSampler {
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
+
+public:
+    DistributionRandomSampler(std::shared_ptr<utils::RandomNumberGenerator> rng)
+        : rng(rng)
+    {
+    }
+
     template <typename T>
-    const T& operator()(const Distribution<T>& distribution) const
+    const T& operator()(const Distribution<T>& distribution)
     {
         assert(!distribution.empty());
         value_type::value_t p = value_type::cap(
-            value_type::from_double(legacy::g_rng.random()),
+            value_type::from_double(rng->random()),
             value_type::one);
         assert(!value_type::approx_greater()(p, value_type::one));
         assert(

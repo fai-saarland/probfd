@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINE_INTERACES_TRANSITION_GENERATOR_H
-#define MDPS_ENGINE_INTERACES_TRANSITION_GENERATOR_H
+#ifndef MDPS_ENGINE_INTERFACES_TRANSITION_GENERATOR_H
+#define MDPS_ENGINE_INTERFACES_TRANSITION_GENERATOR_H
 
 #include "probfd/distribution.h"
 #include "probfd/types.h"
@@ -29,6 +29,7 @@ struct TransitionGenerator {
         const StateID& state,
         const Action& action,
         Distribution<StateID>& result);
+
     void operator()(
         const StateID& state,
         std::vector<Action>& aops,

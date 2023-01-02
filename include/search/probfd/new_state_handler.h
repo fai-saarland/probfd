@@ -3,17 +3,15 @@
 
 #include "probfd/engine_interfaces/new_state_handler.h"
 
-#include "legacy/global_state.h"
+#include "../task_proxy.h"
 
 #include <memory>
 #include <vector>
 
 namespace probfd {
 
-using NewGlobalStateHandler =
-    engine_interfaces::NewStateHandler<legacy::GlobalState>;
-using NewGlobalStateHandlerList =
-    engine_interfaces::NewStateHandlerList<legacy::GlobalState>;
+using NewGlobalStateHandler = engine_interfaces::NewStateHandler<State>;
+using NewGlobalStateHandlerList = engine_interfaces::NewStateHandlerList<State>;
 
 } // namespace probfd
 

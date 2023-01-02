@@ -12,8 +12,7 @@ namespace solvers {
 
 using namespace engine_interfaces;
 
-using AVIEngine = engines::acyclic_vi::
-    AcyclicValueIteration<legacy::GlobalState, const ProbabilisticOperator*>;
+using AVIEngine = engines::acyclic_vi::AcyclicValueIteration<State, OperatorID>;
 
 class AcyclicVISolver : public MDPSolver {
 public:
@@ -40,8 +39,7 @@ public:
         return "acyclic_value_iteration";
     }
 
-    virtual engines::MDPEngineInterface<legacy::GlobalState>*
-    create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         return engine_factory<AVIEngine>(prune_.get());
     }

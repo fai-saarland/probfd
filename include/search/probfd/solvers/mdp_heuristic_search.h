@@ -20,7 +20,6 @@
 #include "option_parser.h"
 #include "state_space_interface_wrappers.h"
 
-
 #include <memory>
 
 namespace probfd {
@@ -77,14 +76,11 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngine<legacy::GlobalState, const ProbabilisticOperator*>*
+    engines::MDPEngine<State, OperatorID>*
     heuristic_search_engine_factory(Args&&... args)
     {
         if (dual_bounds_) {
-            using HeuristicSearchType =
-                HS<legacy::GlobalState,
-                   const ProbabilisticOperator*,
-                   std::true_type>;
+            using HeuristicSearchType = HS<State, OperatorID, std::true_type>;
             return engine_factory<HeuristicSearchType>(
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -95,10 +91,7 @@ public:
                 stable_policy_,
                 std::forward<Args>(args)...);
         } else {
-            using HeuristicSearchType =
-                HS<legacy::GlobalState,
-                   const ProbabilisticOperator*,
-                   std::false_type>;
+            using HeuristicSearchType = HS<State, OperatorID, std::false_type>;
             return engine_factory<HeuristicSearchType>(
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -132,21 +125,17 @@ protected:
 template <typename Bisimulation>
 class MDPHeuristicSearch<Bisimulation, std::true_type>
     : public MDPHeuristicSearchBase {
-    using QAction =
-        quotient_system::QuotientAction<const ProbabilisticOperator*>;
+    using QAction = quotient_system::QuotientAction<OperatorID>;
 
 public:
     explicit MDPHeuristicSearch(const options::Options& opts)
         : MDPHeuristicSearchBase(opts)
-        , quotient_(
-              new quotient_system::QuotientSystem<const ProbabilisticOperator*>(
-                  this->get_action_id_map(),
-                  this->get_transition_generator()))
+        , quotient_(new quotient_system::QuotientSystem<OperatorID>(
+              this->get_action_id_map(),
+              this->get_transition_generator()))
         , q_reward_(new quotient_system::DefaultQuotientRewardFunction<
-                    legacy::GlobalState,
-                    const ProbabilisticOperator*>(
-              quotient_.get(),
-              this->get_reward_function()))
+                    State,
+                    OperatorID>(quotient_.get(), this->get_reward_function()))
         , q_action_id_map_(
               new engine_interfaces::ActionIDMap<QAction>(quotient_.get()))
         , q_transition_gen_(new engine_interfaces::TransitionGenerator<QAction>(
@@ -169,7 +158,7 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngine<legacy::GlobalState, const ProbabilisticOperator*>*
+    engines::MDPEngine<State, OperatorID>*
     heuristic_search_engine_factory(Args... args)
     {
         if (this->dual_bounds_) {
@@ -203,11 +192,11 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngine<legacy::GlobalState, QAction>*
+    engines::MDPEngine<State, QAction>*
     quotient_heuristic_search_factory(Args... args)
     {
         if (dual_bounds_) {
-            return new HS<legacy::GlobalState, QAction, std::true_type>(
+            return new HS<State, QAction, std::true_type>(
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
                 q_reward_.get(),
@@ -222,7 +211,7 @@ public:
                 this->quotient_.get(),
                 args...);
         } else {
-            return new HS<legacy::GlobalState, QAction, std::false_type>(
+            return new HS<State, QAction, std::false_type>(
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
                 q_reward_.get(),
@@ -267,8 +256,7 @@ protected:
         return Unwrapper<std::false_type, std::true_type, T>()(t);
     }
 
-    quotient_system::QuotientSystem<const ProbabilisticOperator*>*
-    get_quotient_system() const
+    quotient_system::QuotientSystem<OperatorID>* get_quotient_system() const
     {
         return quotient_.get();
     }
@@ -279,10 +267,10 @@ private:
         class HS,
         typename Bounds,
         typename... Args>
-    engines::fret::HeuristicSearchEngine<legacy::GlobalState, QAction, Bounds>*
+    engines::fret::HeuristicSearchEngine<State, QAction, Bounds>*
     quotient_heuristic_search_factory_wrapper(Args... args)
     {
-        return new HS<legacy::GlobalState, QAction, Bounds>(
+        return new HS<State, QAction, Bounds>(
             this->get_state_id_map(),
             q_action_id_map_.get(),
             q_reward_.get(),
@@ -304,20 +292,15 @@ private:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngine<legacy::GlobalState, const ProbabilisticOperator*>*
+    engines::MDPEngine<State, OperatorID>*
     heuristic_search_engine_factory_wrapper(Args... args)
     {
-        using FretVariant =
-            Fret<legacy::GlobalState, const ProbabilisticOperator*, Bounds>;
-        engines::fret::
-            HeuristicSearchEngine<legacy::GlobalState, QAction, Bounds>*
-                engine =
-                    this->template quotient_heuristic_search_factory_wrapper<
-                        HS,
-                        Bounds>(args...);
-        engine_ =
-            std::unique_ptr<engines::MDPEngine<legacy::GlobalState, QAction>>(
-                engine);
+        using FretVariant = Fret<State, OperatorID, Bounds>;
+        engines::fret::HeuristicSearchEngine<State, QAction, Bounds>* engine =
+            this->template quotient_heuristic_search_factory_wrapper<
+                HS,
+                Bounds>(args...);
+        engine_ = std::unique_ptr<engines::MDPEngine<State, QAction>>(engine);
         return new FretVariant(
             this->get_state_id_map(),
             this->get_action_id_map(),
@@ -328,12 +311,9 @@ private:
             engine);
     }
 
-    std::unique_ptr<
-        quotient_system::QuotientSystem<const ProbabilisticOperator*>>
-        quotient_;
+    std::unique_ptr<quotient_system::QuotientSystem<OperatorID>> quotient_;
 
-    std::unique_ptr<
-        engine_interfaces::RewardFunction<legacy::GlobalState, QAction>>
+    std::unique_ptr<engine_interfaces::RewardFunction<State, QAction>>
         q_reward_;
     std::unique_ptr<engine_interfaces::ActionIDMap<QAction>> q_action_id_map_;
     std::unique_ptr<engine_interfaces::TransitionGenerator<QAction>>
@@ -346,7 +326,7 @@ private:
 
     options::Options opts_; // keep copy
 
-    std::unique_ptr<engines::MDPEngine<legacy::GlobalState, QAction>> engine_;
+    std::unique_ptr<engines::MDPEngine<State, QAction>> engine_;
 };
 
 struct NoAdditionalOptions {

@@ -1,7 +1,10 @@
 #include "probfd/analysis_objectives/expected_cost_objective.h"
 
-#include "legacy/global_state.h"
-#include "legacy/globals.h"
+#include "task_utils/task_properties.h"
+
+#include "probfd/tasks/root_task.h"
+
+#include "probfd/task_proxy.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -11,26 +14,33 @@ namespace analysis_objectives {
 
 namespace {
 class SSPReward : public GlobalRewardFunction {
-protected:
-    TerminationInfo evaluate(const legacy::GlobalState& state) override
+    ProbabilisticTaskProxy task_proxy;
+
+public:
+    SSPReward(const ProbabilisticTaskProxy& task_proxy)
+        : task_proxy(task_proxy)
     {
-        if (legacy::test_goal(state)) {
+    }
+
+protected:
+    TerminationInfo evaluate(const State& state) override
+    {
+        if (task_properties::is_goal_state(task_proxy, state)) {
             return TerminationInfo(true, value_type::zero);
         } else {
             return TerminationInfo(false, -value_type::inf);
         }
     }
 
-    value_type::value_t
-    evaluate(StateID, const ProbabilisticOperator* op) override
+    value_type::value_t evaluate(StateID, OperatorID op) override
     {
-        return op->get_reward();
+        return task_proxy.get_operators()[op].get_reward();
     }
 };
 } // namespace
 
 ExpectedCostObjective::ExpectedCostObjective()
-    : reward_(new SSPReward())
+    : reward_(new SSPReward(ProbabilisticTaskProxy(*tasks::g_root_task)))
 {
 }
 

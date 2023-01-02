@@ -1,5 +1,7 @@
 #include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_generator_deterministic.h"
 
+#include "probfd/heuristics/pdbs/subcollections/subcollection_finder_factory.h"
+
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
 
@@ -10,6 +12,7 @@
 #include "option_parser.h"
 #include "plugin.h"
 
+#include "probfd/tasks/all_outcomes_determinization.h"
 #include "tasks/root_task.h"
 
 namespace probfd {
@@ -21,29 +24,37 @@ template <class PDBType>
 PatternCollectionGeneratorDeterministic<PDBType>::
     PatternCollectionGeneratorDeterministic(
         std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-        std::shared_ptr<SubCollectionFinder> finder)
+        std::shared_ptr<SubCollectionFinderFactory> finder_factory)
     : gen(gen)
-    , finder(finder)
+    , finder_factory(finder_factory)
 {
 }
 
 template <class PDBType>
-PatternCollectionGeneratorDeterministic<
-    PDBType>::PatternCollectionGeneratorDeterministic(options::Options& opts)
+PatternCollectionGeneratorDeterministic<PDBType>::
+    PatternCollectionGeneratorDeterministic(const options::Options& opts)
     : PatternCollectionGeneratorDeterministic(
           opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
               "generator"),
-          opts.get<std::shared_ptr<SubCollectionFinder>>(
-              "subcollection_finder"))
+          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+              "subcollection_finder_factory"))
 {
 }
 
 template <class PDBType>
 PatternCollectionInformation<PDBType>
-PatternCollectionGeneratorDeterministic<PDBType>::generate(OperatorCost)
+PatternCollectionGeneratorDeterministic<PDBType>::generate(
+    const std::shared_ptr<ProbabilisticTask>& task)
 {
+    ProbabilisticTaskProxy task_proxy(*task);
+    std::shared_ptr<tasks::AODDeterminizationTask> determinization(
+        new tasks::AODDeterminizationTask(task.get()));
+
+    std::shared_ptr<SubCollectionFinder> finder =
+        finder_factory->create_subcollection_finder(task_proxy);
     return PatternCollectionInformation<PDBType>(
-        gen->generate(tasks::g_root_task),
+        ProbabilisticTaskProxy(*task),
+        gen->generate(determinization),
         finder);
 }
 
@@ -72,10 +83,10 @@ _parse(OptionParser& parser)
         "The underlying pattern generator for the deterministic problem.",
         "systematic()");
 
-    parser.add_option<std::shared_ptr<SubCollectionFinder>>(
-        "subcollection_finder",
-        "The subcollection finder.",
-        "finder_max_orthogonality()");
+    parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+        "subcollection_finder_factory",
+        "The subcollection finder factory.",
+        "finder_max_orthogonality_factory()");
 
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;

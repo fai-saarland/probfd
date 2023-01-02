@@ -7,7 +7,7 @@
 #include "../algorithms/int_packer.h"
 
 namespace task_properties {
-inline bool is_applicable(AxiomOrOperatorProxy op, const State& state)
+inline bool is_applicable(const AxiomOrOperatorProxy& op, const State& state)
 {
     for (FactProxy precondition : op.get_preconditions()) {
         if (state[precondition.get_variable()] != precondition) return false;
@@ -15,7 +15,7 @@ inline bool is_applicable(AxiomOrOperatorProxy op, const State& state)
     return true;
 }
 
-inline bool is_applicable(OperatorLightProxy op, const State& state)
+inline bool is_applicable(const OperatorLightProxy& op, const State& state)
 {
     for (FactProxy precondition : op.get_preconditions()) {
         if (state[precondition.get_variable()] != precondition) return false;
@@ -23,7 +23,7 @@ inline bool is_applicable(OperatorLightProxy op, const State& state)
     return true;
 }
 
-inline bool is_goal_state(TaskBaseProxy task, const State& state)
+inline bool is_goal_state(const TaskBaseProxy& task, const State& state)
 {
     for (FactProxy goal : task.get_goals()) {
         if (state[goal.get_variable()] != goal)
@@ -37,31 +37,30 @@ inline bool is_goal_state(TaskBaseProxy task, const State& state)
 
   Runtime: O(n), where n is the number of operators.
 */
-extern bool is_unit_cost();
-extern bool is_unit_cost(TaskBaseProxy task);
+extern bool is_unit_cost(const TaskBaseProxy& task);
 
 // Runtime: O(1)
-extern bool has_axioms(TaskBaseProxy task);
+extern bool has_axioms(const TaskBaseProxy& task);
 
 /*
   Report an error and exit with ExitCode::UNSUPPORTED if the task has axioms.
   Runtime: O(1)
 */
-extern void verify_no_axioms(TaskBaseProxy task);
+extern void verify_no_axioms(const TaskBaseProxy& task);
 
 // Runtime: O(n), where n is the number of operators.
-extern bool has_conditional_effects(TaskProxy task);
+extern bool has_conditional_effects(const TaskProxy& task);
 
 /*
   Report an error and exit with ExitCode::UNSUPPORTED if the task has
   conditional effects.
   Runtime: O(n), where n is the number of operators.
 */
-extern void verify_no_conditional_effects(TaskProxy task);
+extern void verify_no_conditional_effects(const TaskProxy& task);
 
 extern std::vector<int> get_operator_costs(const TaskBaseProxy& task_proxy);
-extern double get_average_operator_cost(TaskBaseProxy task_proxy);
-extern int get_min_operator_cost(TaskBaseProxy task_proxy);
+extern double get_average_operator_cost(const TaskBaseProxy& task_proxy);
+extern int get_min_operator_cost(const TaskBaseProxy& task_proxy);
 
 /*
   Return the number of facts of the task.

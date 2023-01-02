@@ -1,8 +1,5 @@
 #include "probfd/heuristics/occupation_measure/regrouped_operator_counting_heuristic.h"
 
-#include "legacy/global_operator.h"
-#include "legacy/globals.h"
-
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -11,9 +8,6 @@
 
 #include "probfd/analysis_objectives/expected_cost_objective.h"
 #include "probfd/analysis_objectives/goal_probability_objective.h"
-
-#include "probfd/globals.h"
-#include "probfd/probabilistic_operator.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -166,12 +160,12 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     std::cout << "Finished ROC LP setup after " << timer << std::endl;
 }
 
-EvaluationResult RegroupedOperatorCountingHeuristic::evaluate(
-    const legacy::GlobalState& state) const
+EvaluationResult
+RegroupedOperatorCountingHeuristic::evaluate(const State& state) const
 {
     // Set outflow of 1 for all state facts
     for (std::size_t var = 0; var < task_proxy.get_variables().size(); ++var) {
-        const int c_index = ncc_offsets_[var] + state[var];
+        const int c_index = ncc_offsets_[var] + state[var].get_value();
         lp_solver_.set_constraint_lower_bound(c_index, -1);
         reset_indices_.push_back(c_index);
     }

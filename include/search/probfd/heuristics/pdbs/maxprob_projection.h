@@ -6,7 +6,6 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/globals.h"
 #include "probfd/value_utils.h"
 
 namespace pdbs {
@@ -20,28 +19,31 @@ namespace pdbs {
 class MaxProbProjection : public ProbabilisticProjection {
 public:
     explicit MaxProbProjection(
+        const ProbabilisticTaskProxy& task_proxy,
         const Pattern& pattern,
-        const std::vector<int>& domains = legacy::g_variable_domain,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(value_type::one));
 
     explicit MaxProbProjection(
+        const ProbabilisticTaskProxy& task_proxy,
+        const ::pdbs::PatternDatabase& pdb,
+        bool operator_pruning = true);
+
+    explicit MaxProbProjection(
+        const ProbabilisticTaskProxy& task_proxy,
+        const MaxProbProjection& pdb,
+        int add_var,
+        bool operator_pruning = true);
+
+    explicit MaxProbProjection(
+        const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction* mapper,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(value_type::one));
 
-    explicit MaxProbProjection(
-        const ::pdbs::PatternDatabase& pdb,
-        bool operator_pruning = true);
-
-    explicit MaxProbProjection(
-        const MaxProbProjection& pdb,
-        int add_var,
-        bool operator_pruning = true);
-
-    [[nodiscard]] EvaluationResult evaluate(const legacy::GlobalState& s) const;
+    [[nodiscard]] EvaluationResult evaluate(const State& s) const;
     [[nodiscard]] EvaluationResult evaluate(const StateRank& s) const;
 
     AbstractPolicy get_optimal_abstract_policy(

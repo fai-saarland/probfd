@@ -4,7 +4,6 @@
 
 #include "probfd/engines/exhaustive_dfs.h"
 
-#include "probfd/globals.h"
 #include "probfd/heuristic_search_interfaceable.h"
 #include "probfd/new_state_handler.h"
 #include "probfd/progress_report.h"
@@ -23,15 +22,11 @@ using namespace engines::exhaustive_dfs;
 
 class ExhaustiveDFSSolver : public MDPSolver {
 public:
-    using Engine = ExhaustiveDepthFirstSearch<
-        legacy::GlobalState,
-        const ProbabilisticOperator*,
-        std::false_type>;
+    using Engine =
+        ExhaustiveDepthFirstSearch<State, OperatorID, std::false_type>;
 
-    using Engine2 = ExhaustiveDepthFirstSearch<
-        legacy::GlobalState,
-        const ProbabilisticOperator*,
-        std::true_type>;
+    using Engine2 =
+        ExhaustiveDepthFirstSearch<State, OperatorID, std::true_type>;
 
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
@@ -104,8 +99,7 @@ public:
         return "exhaustive_dfs";
     }
 
-    virtual engines::MDPEngineInterface<legacy::GlobalState>*
-    create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(

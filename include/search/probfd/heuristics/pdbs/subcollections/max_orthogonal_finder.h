@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/pdbs/subcollections/subcollection_finder.h"
 
-#include "probfd/heuristics/pdbs//types.h"
+#include "probfd/heuristics/pdbs/types.h"
 
 namespace probfd {
 namespace heuristics {
@@ -13,7 +13,7 @@ class MaxOrthogonalityFinder : public SubCollectionFinder {
     const VariableOrthogonality var_orthogonality;
 
 public:
-    MaxOrthogonalityFinder();
+    explicit MaxOrthogonalityFinder(const ProbabilisticTaskProxy& task_proxy);
 
     std::shared_ptr<std::vector<PatternSubCollection>>
     compute_subcollections(const PatternCollection&) override;

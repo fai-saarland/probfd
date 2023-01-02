@@ -35,6 +35,9 @@ public:
     get_operator_outcome_probability(int op_index, int outcome_index) const = 0;
 
     virtual int
+    get_operator_outcome_id(int op_index, int outcome_index) const = 0;
+
+    virtual int
     get_num_operator_outcome_effects(int op_index, int outcome_index) const = 0;
     virtual FactPair
     get_operator_outcome_effect(int op_index, int outcome_index, int eff_index)

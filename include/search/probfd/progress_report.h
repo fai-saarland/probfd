@@ -17,11 +17,11 @@ namespace probfd {
  * =======
  *
  ```
-class MyEngine : public MDPEngine<GlobalState, const ProbabilisticOperator*>
+class MyEngine : public MDPEngine<State, OperatorID>
 {
     // Constructors and other methods...
 
-    value_type::value_t solve(const GlobalState& state) {
+    value_type::value_t solve(const State& state) {
         int iterations = 0;
 
         // Print the number of iterations each time the

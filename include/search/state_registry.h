@@ -11,6 +11,8 @@
 #include "algorithms/subscriber.h"
 #include "utils/hash.h"
 
+#include "probfd/distribution.h"
+
 #include <set>
 
 /*
@@ -111,6 +113,9 @@ class IntPacker;
 
 using PackedStateBin = int_packer::IntPacker::Bin;
 
+namespace probfd {
+class ProbabilisticOutcomeProxy;
+}
 
 class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     struct StateIDSemanticHash {
@@ -201,19 +206,20 @@ public:
     */
     State get_successor_state(const State &predecessor, const OperatorProxy &op);
 
+    State get_successor_state(
+        const State& predecessor,
+        const probfd::ProbabilisticOutcomeProxy& op);
+
     /*
       Returns the number of states registered so far.
     */
-    size_t size() const {
-        return registered_states.size();
-    }
+    size_t size() const { return registered_states.size(); }
 
     int get_state_size_in_bytes() const;
 
     void print_statistics(utils::LogProxy &log) const;
 
-    class const_iterator : public std::iterator<
-                               std::forward_iterator_tag, StateID> {
+    class const_iterator {
         /*
           We intentionally omit parts of the forward iterator concept
           (e.g. default construction, copy assignment, post-increment)
@@ -222,15 +228,33 @@ public:
         */
 
         friend class StateRegistry;
-        const StateRegistry &registry;
+#ifndef NDEBUG
+        const StateRegistry* registry;
+#endif
         StateID pos;
 
-        const_iterator(const StateRegistry &registry, size_t start)
-            : registry(registry), pos(start) {
-            (void) this->registry;
+        const_iterator(const StateRegistry& registry, size_t start)
+#ifndef NDEBUG
+            : registry(&registry)
+            , pos(start)
+#else
+            : pos(start)
+#endif
+        {
+#ifdef NDEBUG
+            (void)registry;
+#endif
         }
-public:
-        const_iterator &operator++() {
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = StateID;
+        using pointer = const StateID*;
+        using reference = const StateID&;
+        using difference_type = void;
+
+        const_iterator& operator++()
+        {
             ++pos.value;
             return *this;
         }

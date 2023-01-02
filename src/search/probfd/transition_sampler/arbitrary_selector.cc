@@ -10,7 +10,7 @@ namespace transition_sampler {
 
 StateID ArbitrarySuccessorSelector::sample(
     const StateID&,
-    const ProbabilisticOperator*,
+    OperatorID,
     const Distribution<StateID>& successors)
 {
     auto it = successors.begin();

@@ -5,19 +5,16 @@
 
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
-#include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "option_parser.h"
 #include "plugin.h"
 
 #include "utils/collections.h"
 
+#include "task_utils/task_properties.h"
+
 using namespace std;
 using namespace utils;
-
-namespace {
-static const std::string token = "CEGAR_PDBs: ";
-}
 
 namespace probfd {
 namespace heuristics {
@@ -25,14 +22,14 @@ namespace pdbs {
 namespace pattern_selection {
 
 template <typename PDBType>
-BFSFlawFinder<PDBType>::BFSFlawFinder(options::Options& opts)
-    : BFSFlawFinder<PDBType>(opts.get<int>("violation_threshold"))
-{
-}
-
-template <typename PDBType>
-BFSFlawFinder<PDBType>::BFSFlawFinder(unsigned int violation_threshold)
-    : violation_threshold(violation_threshold)
+BFSFlawFinder<PDBType>::BFSFlawFinder(
+    const ProbabilisticTask* task,
+    unsigned int violation_threshold)
+    : FlawFindingStrategy<PDBType>(task)
+    , closed(
+          16,
+          typename FlawFindingStrategy<PDBType>::StateHash(this->task_proxy))
+    , violation_threshold(violation_threshold)
 {
 }
 
@@ -40,7 +37,7 @@ template <typename PDBType>
 std::pair<FlawList, bool> BFSFlawFinder<PDBType>::apply_policy(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
-    const ExplicitGState& init)
+    std::vector<int>& init)
 {
     assert(open.empty() && closed.empty());
 
@@ -49,21 +46,21 @@ std::pair<FlawList, bool> BFSFlawFinder<PDBType>::apply_policy(
     unsigned int violations = 0;
 
     open.push_back(init);
-    closed.insert(init.values);
+    closed.insert(init);
 
     while (!open.empty()) {
-        ExplicitGState current = open.front();
+        std::vector<int> current = open.front();
         open.pop_front();
 
         bool successful = expand(base, solution_index, current, flaw_list);
         executable = executable && successful;
 
         if (!successful && ++violations >= violation_threshold) {
+            open.clear();
             break;
         }
     }
 
-    open.clear();
     closed.clear();
     return {flaw_list, executable};
 }
@@ -72,14 +69,15 @@ template <typename PDBType>
 bool BFSFlawFinder<PDBType>::expand(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
-    ExplicitGState state,
+    std::vector<int>& state,
     FlawList& flaw_list)
 {
     AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
     const AbstractPolicy& policy = solution.get_policy();
     const PDBType& pdb = solution.get_pdb();
 
-    const StateRank abs = pdb.get_abstract_state(state.values);
+    // Check flaws, generate successors
+    const StateRank abs = pdb.get_abstract_state(state);
 
     // We reached a dead-end, the operator is irrelevant.
     if (pdb.is_dead_end(abs)) {
@@ -92,20 +90,26 @@ bool BFSFlawFinder<PDBType>::expand(
     if (abs_operators.empty()) {
         assert(pdb.is_goal(abs));
 
-        if (pdb.is_goal(abs) && !state.is_goal()) {
+        State terminal_state(*this->task, move(state));
+
+        if (pdb.is_goal(abs) &&
+            !task_properties::is_goal_state(this->task_proxy, terminal_state)) {
             if (!base.ignore_goal_violations) {
                 // Collect all non-satisfied goal variables that are still
                 // available.
-                for (const auto& [goal_var, goal_value] : legacy::g_goal) {
-                    if (state[goal_var] != goal_value &&
+                for (FactProxy fact : this->task_proxy.get_goals()) {
+                    const int goal_var = fact.get_variable().get_id();
+                    const int goal_val = fact.get_value();
+
+                    if (terminal_state[goal_var].get_value() != goal_val &&
                         !utils::contains(base.global_blacklist, goal_var) &&
                         utils::contains(base.remaining_goals, goal_var)) {
                         flaw_list.emplace_back(true, solution_index, goal_var);
                     }
                 }
-
-                return false;
             }
+
+            return false;
         }
 
         return true;
@@ -113,14 +117,20 @@ bool BFSFlawFinder<PDBType>::expand(
 
     FlawList local_flaws;
 
+    const ProbabilisticOperatorsProxy operators =
+        this->task_proxy.get_operators();
+
     for (const AbstractOperator* abs_op : abs_operators) {
         int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperator& op = g_operators[original_id];
+        ProbabilisticOperatorProxy op = operators[original_id];
 
         // Check whether all preconditions are fulfilled
         bool preconditions_ok = true;
 
-        for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
+        for (const FactProxy fact : op.get_preconditions()) {
+            const int pre_var = fact.get_variable().get_id();
+            const int pre_val = fact.get_value();
+
             // We ignore blacklisted variables
             const bool is_blacklist_var =
                 utils::contains(base.global_blacklist, pre_var);
@@ -144,8 +154,9 @@ bool BFSFlawFinder<PDBType>::expand(
         }
 
         // Generate the successors and add them to the open list
-        for (const auto& outcome : op) {
-            ExplicitGState successor = state.get_successor(*outcome.op);
+        for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
+            std::vector<int> successor =
+                this->apply_op_to_state(state, outcome);
 
             if (!utils::contains(closed, successor)) {
                 closed.insert(successor);
@@ -161,28 +172,6 @@ bool BFSFlawFinder<PDBType>::expand(
 
     return false;
 }
-
-template <typename PDBType>
-static std::shared_ptr<FlawFindingStrategy<PDBType>>
-_parse(options::OptionParser& parser)
-{
-    parser.add_option<int>(
-        "violation_threshold",
-        "Maximal number of states for which a flaw is tolerated before aborting"
-        "the search.",
-        "1",
-        options::Bounds("0", "infinity"));
-
-    Options opts = parser.parse();
-    if (parser.dry_run()) return nullptr;
-
-    return make_shared<BFSFlawFinder<PDBType>>(opts);
-}
-
-static Plugin<FlawFindingStrategy<MaxProbProjection>>
-    _plugin_maxprob("bfs_flaw_finder_mp", _parse<MaxProbProjection>);
-static Plugin<FlawFindingStrategy<ExpCostProjection>>
-    _plugin_expcost("bfs_flaw_finder_ec", _parse<ExpCostProjection>);
 
 template class BFSFlawFinder<MaxProbProjection>;
 template class BFSFlawFinder<ExpCostProjection>;

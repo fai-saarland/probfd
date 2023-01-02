@@ -6,7 +6,7 @@
 #include "probfd/heuristics/pdbs/state_rank.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/state_evaluator.h"
+#include "probfd/heuristics/task_dependent_heuristic.h"
 
 #include "utils/printable.h"
 
@@ -31,7 +31,7 @@ namespace pdbs {
  * @brief Additive Expected-Cost PDB heuristic.
  */
 template <class PDBType>
-class ProbabilisticPDBHeuristic : public GlobalStateEvaluator {
+class ProbabilisticPDBHeuristic : public TaskDependentHeuristic {
     struct Statistics {
         double generator_time = 0.0;
         double dominance_pruning_time = 0.0;
@@ -84,6 +84,7 @@ public:
     explicit ProbabilisticPDBHeuristic(const options::Options& opts);
 
     ProbabilisticPDBHeuristic(
+        std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<pattern_selection::PatternCollectionGenerator<PDBType>>
             generator,
         double max_time_dominance_pruning);
@@ -91,7 +92,7 @@ public:
     void print_statistics() const override;
 
 protected:
-    EvaluationResult evaluate(const legacy::GlobalState& state) const override;
+    EvaluationResult evaluate(const State& state) const override;
 
 public:
     static void add_options_to_parser(options::OptionParser& parser);

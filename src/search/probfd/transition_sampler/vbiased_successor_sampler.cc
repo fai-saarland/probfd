@@ -1,22 +1,34 @@
 #include "probfd/transition_sampler/vbiased_successor_sampler.h"
 
+#include "utils/rng.h"
+#include "utils/rng_options.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
 namespace probfd {
 namespace transition_sampler {
 
-VBiasedSuccessorSampler::VBiasedSuccessorSampler(const options::Options&)
+VBiasedSuccessorSampler::VBiasedSuccessorSampler(const options::Options& opts)
+    : sampler_(utils::parse_rng_from_options(opts))
 {
 }
 
-void VBiasedSuccessorSampler::add_options_to_parser(options::OptionParser&)
+VBiasedSuccessorSampler::VBiasedSuccessorSampler(
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : sampler_(rng)
 {
+}
+
+void VBiasedSuccessorSampler::add_options_to_parser(
+    options::OptionParser& parser)
+{
+    utils::add_rng_options(parser);
 }
 
 StateID VBiasedSuccessorSampler::sample(
     const StateID&,
-    const ProbabilisticOperator*,
+    OperatorID,
     const Distribution<StateID>& successors)
 {
     biased_.clear();

@@ -9,6 +9,8 @@
 
 #include "probfd/distribution.h"
 
+#include "task_utils/task_properties.h"
+
 #include "utils/collections.h"
 #include "utils/rng.h"
 
@@ -26,15 +28,14 @@ namespace pdbs {
 namespace pattern_selection {
 
 template <typename PDBType>
-SamplingFlawFinder<PDBType>::SamplingFlawFinder(options::Options& opts)
-    : SamplingFlawFinder<PDBType>(opts.get<int>("violation_threshold"))
-{
-}
-
-template <typename PDBType>
 SamplingFlawFinder<PDBType>::SamplingFlawFinder(
+    const ProbabilisticTask* task,
     unsigned int violation_threshold)
-    : violation_threshold(violation_threshold)
+    : FlawFindingStrategy<PDBType>(task)
+    , einfos(
+          16,
+          typename FlawFindingStrategy<PDBType>::StateHash(this->task_proxy))
+    , violation_threshold(violation_threshold)
 {
 }
 
@@ -42,7 +43,7 @@ template <typename PDBType>
 std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
-    const ExplicitGState& init)
+    std::vector<int>& init)
 {
     assert(stk.empty() && einfos.empty());
 
@@ -61,7 +62,7 @@ std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
     assert(!stk.empty());
 
     do {
-        const ExplicitGState& current = stk.top();
+        const std::vector<int>& current = stk.top();
         ExplorationInfo& einfo = einfos[current];
 
         while (!einfo.successors.empty()) {
@@ -101,7 +102,7 @@ std::pair<FlawList, bool> SamplingFlawFinder<PDBType>::apply_policy(
 
 break_exploration:;
 
-    std::stack<ExplicitGState>().swap(stk); // Clear stack
+    std::stack<std::vector<int>>().swap(stk); // Clear stack
     einfos.clear();
     return {flaw_list, executable};
 }
@@ -110,7 +111,7 @@ template <typename PDBType>
 unsigned int SamplingFlawFinder<PDBType>::push_state(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
-    const ExplicitGState& state,
+    std::vector<int>& state,
     FlawList& flaw_list)
 {
     AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
@@ -118,7 +119,7 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
     const PDBType& pdb = solution.get_pdb();
 
     // Check flaws, generate successors
-    const StateRank abs = pdb.get_abstract_state(state.values);
+    const StateRank abs = pdb.get_abstract_state(state);
 
     // We reached a dead-end, the operator is irrelevant.
     if (pdb.is_dead_end(abs)) {
@@ -131,12 +132,17 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
     if (abs_operators.empty()) {
         assert(pdb.is_goal(abs));
 
-        if (pdb.is_goal(abs) && !state.is_goal()) {
+        State terminal_state(*this->task, move(state));
+
+        if (pdb.is_goal(abs) &&
+            !task_properties::is_goal_state(this->task_proxy, terminal_state)) {
             if (!base.ignore_goal_violations) {
                 // Collect all non-satisfied goal variables that are
                 // still available.
-                for (const auto& [goal_var, goal_value] : legacy::g_goal) {
-                    if (state[goal_var] != goal_value &&
+                for (FactProxy fact : this->task_proxy.get_goals()) {
+                    const auto& [goal_var, goal_val] = fact.get_pair();
+
+                    if (state[goal_var] != goal_val &&
                         !utils::contains(base.global_blacklist, goal_var) &&
                         utils::contains(base.remaining_goals, goal_var)) {
                         flaw_list.emplace_back(true, solution_index, goal_var);
@@ -152,14 +158,19 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
 
     FlawList local_flaws;
 
+    const ProbabilisticOperatorsProxy operators =
+        this->task_proxy.get_operators();
+
     for (const AbstractOperator* abs_op : abs_operators) {
         int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperator& op = g_operators[original_id];
+        const ProbabilisticOperatorProxy op = operators[original_id];
 
         // Check whether precondition flaws occur
         bool preconditions_ok = true;
 
-        for (const auto& [pre_var, pre_val] : op.get_preconditions()) {
+        for (const FactProxy precondition : op.get_preconditions()) {
+            const auto& [pre_var, pre_val] = precondition.get_pair();
+
             // We ignore blacklisted variables
             const bool is_blacklist_var =
                 utils::contains(base.global_blacklist, pre_var);
@@ -185,8 +196,10 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
         // Generate the successors
         assert(einfos.find(state) == einfos.end());
         ExplorationInfo& einfo = einfos[state];
-        for (const auto& [det_op, prob] : op) {
-            einfo.successors.add_unique(state.get_successor(*det_op), prob);
+        for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
+            einfo.successors.add_unique(
+                this->apply_op_to_state(state, outcome),
+                outcome.get_probability());
         }
 
         stk.push(state);
@@ -198,28 +211,6 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
 
     return FLAW_OCCURED;
 }
-
-template <typename PDBType>
-static std::shared_ptr<FlawFindingStrategy<PDBType>>
-_parse(options::OptionParser& parser)
-{
-    parser.add_option<int>(
-        "violation_threshold",
-        "Maximal number of states for which a flaw is tolerated before aborting"
-        "the search.",
-        "1",
-        options::Bounds("0", "infinity"));
-
-    Options opts = parser.parse();
-    if (parser.dry_run()) return nullptr;
-
-    return make_shared<SamplingFlawFinder<PDBType>>(opts);
-}
-
-static Plugin<FlawFindingStrategy<MaxProbProjection>>
-    _plugin_maxprob("sampling_flaw_finder_mp", _parse<MaxProbProjection>);
-static Plugin<FlawFindingStrategy<ExpCostProjection>>
-    _plugin_expcost("sampling_flaw_finder_ec", _parse<ExpCostProjection>);
 
 template class SamplingFlawFinder<MaxProbProjection>;
 template class SamplingFlawFinder<ExpCostProjection>;

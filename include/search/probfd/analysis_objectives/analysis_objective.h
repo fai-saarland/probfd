@@ -39,6 +39,9 @@ public:
 };
 
 } // namespace analysis_objectives
+
+extern std::shared_ptr<analysis_objectives::AnalysisObjective>
+    g_analysis_objective;
 } // namespace probfd
 
 #endif // ANALYSIS_OBJECTIVE_H

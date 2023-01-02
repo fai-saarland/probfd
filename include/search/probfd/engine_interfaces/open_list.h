@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINE_INTERACES_OPEN_LIST_H
-#define MDPS_ENGINE_INTERACES_OPEN_LIST_H
+#ifndef MDPS_ENGINE_INTERFACES_OPEN_LIST_H
+#define MDPS_ENGINE_INTERFACES_OPEN_LIST_H
 
 #include "probfd/types.h"
 #include "probfd/value_type.h"

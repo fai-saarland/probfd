@@ -4,6 +4,7 @@
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/distribution.h"
+#include "probfd/task_proxy.h"
 
 #include <string>
 #include <vector>
@@ -26,12 +27,11 @@ struct AbstractOperator {
 
 class AbstractOperatorToString {
 public:
-    explicit AbstractOperatorToString(
-        const std::vector<ProbabilisticOperator>* ops);
+    explicit AbstractOperatorToString(ProbabilisticTaskProxy task_proxy);
     std::string operator()(const AbstractOperator* op) const;
 
 private:
-    const std::vector<ProbabilisticOperator>* ops_;
+    ProbabilisticTaskProxy task_proxy;
 };
 
 } // namespace pdbs

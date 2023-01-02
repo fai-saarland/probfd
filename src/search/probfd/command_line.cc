@@ -13,13 +13,12 @@
 
 #include "probfd/solvers/solver_interface.h"
 
-#include "probfd/globals.h"
 #include "probfd/value_type.h"
 
-#include "legacy/global_operator.h"
-#include "legacy/globals.h"
-#include "legacy/operator_cost.h"
-#include "legacy/successor_generator.h"
+#include "probfd/tasks/root_task.h"
+
+#include "operator_cost.h"
+#include "task_utils/successor_generator.h"
 
 #include "option_parser.h"
 #include "search_engine.h"
@@ -53,6 +52,7 @@ static string sanitize_arg_string(string s)
     return s;
 }
 
+/*
 static int parse_int_arg(const string& name, const string& value)
 {
     try {
@@ -63,6 +63,7 @@ static int parse_int_arg(const string& name, const string& value)
         throw ArgError("argument for " + name + " is out of range");
     }
 }
+*/
 
 static double parse_double_arg(const string& name, const string& value)
 {
@@ -159,10 +160,7 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
     vector<string> args;
     bool active = true;
 
-    bool build_causal_graph = true;
-    bool build_successor_generator = true;
-
-    bool expected_cost = false;
+    bool expected_cost = true;
 
     for (int i = 1; i < argc; ++i) {
         string arg = sanitize_arg_string(argv[i]);
@@ -173,89 +171,46 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             active = !is_unit_cost;
         } else if (arg == "--always") {
             active = true;
-        } else if (
-            arg == "--horizon" || arg == "--budget" || arg == "--step-bound") {
-            active = true;
-            if (i + 1 == argc) {
-                throw ArgError("missing argument after " + arg);
-            }
-            const std::string budget = argv[++i];
-            if (budget != "infinity") {
-                probfd::g_step_bound = parse_int_arg(arg, budget);
-                probfd::g_steps_bounded = true;
-                if (probfd::g_step_bound < 0) {
-                    throw ArgError("budget must be non-negative");
-                }
-            }
-        } else if (arg == "--step-cost-type" || arg == "--budget-cost-type") {
-            active = true;
-            if (i + 1 == argc) {
-                throw ArgError("missing argument after " + arg);
-            }
-            string type = sanitize_arg_string(argv[++i]);
-            if (type == "normal") {
-                probfd::g_step_cost_type = legacy::NORMAL;
-            } else if (type == "one") {
-                probfd::g_step_cost_type = legacy::ONE;
-            } else if (type == "plusone") {
-                probfd::g_step_cost_type = legacy::PLUSONE;
-            } else if (type == "zero") {
-                probfd::g_step_cost_type = legacy::ZERO;
-            } else if (type == "minone") {
-                probfd::g_step_cost_type = legacy::MINONE;
-            } else {
-                throw ArgError("unknown operator cost type " + type);
-            }
-        } else if (arg == "-d" || arg == "--define") {
-            active = true;
-            if (i + 1 < argc) {
-                string defs = sanitize_arg_string(argv[i + 1]);
-                size_t j = defs.find(',');
-                while (true) {
-                    string def = defs.substr(0, j);
-                    if (def == "no_cg") {
-                        build_causal_graph = false;
-                    } else if (def == "no_sg") {
-                        build_successor_generator = false;
-                    } else {
-                        throw ArgError("Unknown define " + def);
-                    }
-                    if (j == string::npos) {
-                        break;
-                    }
-                    defs = defs.substr(j + 1, string::npos);
-                    j = defs.find(',');
-                }
-                i++;
-            }
-        } else if (arg == "--seed") {
-            active = true;
-            if (i + 1 == argc) {
-                throw ArgError("missing argument after " + arg);
-            }
-            int seed = parse_int_arg(arg, argv[i + 1]);
-            cout << "Setting RNG seed: " << seed << endl;
-            legacy::g_rng.seed(seed);
-            ++i;
-        } else if (arg == "--epsilon") {
+        } /* else if (
+             arg == "--horizon" || arg == "--budget" || arg == "--step-bound") {
+             active = true;
+             if (i + 1 == argc) {
+                 throw ArgError("missing argument after " + arg);
+             }
+             const std::string budget = argv[++i];
+             if (budget != "infinity") {
+                 probfd::g_step_bound = parse_int_arg(arg, budget);
+                 probfd::g_steps_bounded = true;
+                 if (probfd::g_step_bound < 0) {
+                     throw ArgError("budget must be non-negative");
+                 }
+             }
+         } else if (arg == "--step-cost-type" || arg == "--budget-cost-type") {
+             active = true;
+             if (i + 1 == argc) {
+                 throw ArgError("missing argument after " + arg);
+             }
+             string type = sanitize_arg_string(argv[++i]);
+             if (type == "normal") {
+                 probfd::g_step_cost_type = OperatorCost::NORMAL;
+             } else if (type == "one") {
+                 probfd::g_step_cost_type = OperatorCost::ONE;
+             } else if (type == "plusone") {
+                 probfd::g_step_cost_type = OperatorCost::PLUSONE;
+             } else if (type == "max") {
+                 probfd::g_step_cost_type = OperatorCost::MAX_OPERATOR_COST;
+                 throw ArgError("unknown operator cost type " + type);
+             }
+         }*/
+        else if (arg == "--epsilon") {
             active = true;
             if (i + 1 == argc) {
                 throw ArgError("missing argument after " + arg);
             }
             probfd::value_type::g_epsilon = parse_double_arg(arg, argv[i + 1]);
             ++i;
-        } else if (arg == "--property") {
-            active = true;
-            if (i + 1 == argc) {
-                throw ArgError("missing argument after " + arg);
-            }
-            string prop = sanitize_arg_string(argv[i + 1]);
-            if (prop == "maxprob") {
-            } else if (prop == "expcost") {
-                expected_cost = true;
-            } else {
-                throw ArgError("unknown property " + prop);
-            }
+        } else if (arg == "--maxprob") {
+            expected_cost = false;
             ++i;
         } else if (active) {
             // We use the unsanitized arguments because sanitizing is
@@ -265,33 +220,13 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
     }
 
     if (!dry_run) {
-        if (build_causal_graph) {
-            cout << "building causal graph..." << flush;
-            legacy::g_causal_graph = new causal_graph::CausalGraph;
-            cout << "done! [t=" << utils::g_timer << "]" << endl;
-        }
-
-        if (build_successor_generator) {
-            cout << "building successor generator..." << flush;
-            legacy::successor_generator::g_successor_generator =
-                std::make_shared<
-                    legacy::successor_generator::SuccessorGenerator<
-                        const legacy::GlobalOperator*>>();
-            cout << "done! [t=" << utils::g_timer << "]" << endl;
-        }
-
-        std::shared_ptr<probfd::analysis_objectives::AnalysisObjective> obj =
-            nullptr;
         if (expected_cost) {
-            obj.reset(new ExpectedCostObjective());
+            g_analysis_objective.reset(new ExpectedCostObjective());
             std::cout << "expected cost analysis." << std::endl;
         } else {
-            obj.reset(new GoalProbabilityObjective());
+            g_analysis_objective.reset(new GoalProbabilityObjective());
             std::cout << "max goal prob analysis." << std::endl;
         }
-
-        probfd::prepare_globals(obj);
-        probfd::print_task_info();
     }
 
     return parse_cmd_line_aux(args, registry, dry_run);

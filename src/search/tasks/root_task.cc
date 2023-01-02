@@ -369,8 +369,8 @@ RootTask::RootTask(istream &in) {
       HACK: We use a TaskProxy to access g_axiom_evaluators here which assumes
       that this task is completely constructed.
     */
-    //AxiomEvaluator &axiom_evaluator = g_axiom_evaluators[TaskProxy(*this)];
-    //axiom_evaluator.evaluate(initial_state_values);
+    AxiomEvaluator &axiom_evaluator = g_axiom_evaluators[TaskBaseProxy(*this)];
+    axiom_evaluator.evaluate(initial_state_values);
 }
 
 const ExplicitVariable &RootTask::get_variable(int var) const {

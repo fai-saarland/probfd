@@ -1,25 +1,23 @@
 #include "probfd/state_id_map.h"
 
-#include "legacy/state_registry.h"
+#include "state_registry.h"
 
 namespace probfd {
 namespace engine_interfaces {
 
-StateIDMap<legacy::GlobalState>::StateIDMap(legacy::StateRegistry* reg)
+StateIDMap<State>::StateIDMap(StateRegistry* reg)
     : reg_(reg)
 {
 }
 
-StateID
-StateIDMap<legacy::GlobalState>::get_state_id(const legacy::GlobalState& state)
+StateID StateIDMap<State>::get_state_id(const State& state)
 {
-    return state.get_id().hash();
+    return state.get_id();
 }
 
-legacy::GlobalState
-StateIDMap<legacy::GlobalState>::get_state(const StateID& state_id)
+State StateIDMap<State>::get_state(const StateID& state_id)
 {
-    return reg_->lookup_state(legacy::StateID(state_id));
+    return reg_->lookup_state(::StateID(state_id));
 }
 
 } // namespace engine_interfaces

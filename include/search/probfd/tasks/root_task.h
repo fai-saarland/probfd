@@ -6,7 +6,7 @@
 namespace probfd {
 namespace tasks {
 extern std::shared_ptr<ProbabilisticTask> g_root_task;
-extern void read_root_task(std::istream& in);
+extern void read_root_tasks(std::istream& in);
 } // namespace tasks
 } // namespace probfd
 

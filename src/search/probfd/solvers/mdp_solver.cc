@@ -4,16 +4,14 @@
 
 #include "probfd/utils/logging.h"
 
-#include "probfd/globals.h"
-
 #include "utils/timer.h"
 
+#include "heuristic.h"
 #include "operator_cost.h"
 #include "option_parser.h"
 #include "plugin.h"
 
-#include "legacy/globals.h"
-#include "legacy/heuristic.h"
+#include "probfd/tasks/root_task.h"
 
 #include <iomanip>
 #include <vector>
@@ -26,21 +24,19 @@ MDPSolver::MDPSolver(const options::Options& opts)
           opts.get<double>("report_epsilon"),
           std::cout,
           opts.get<bool>("report_enabled"))
-    , state_registry_(
-          g_state_packer,
-          legacy::g_axiom_evaluator,
-          g_initial_state_values)
+    , task(tasks::g_root_task)
+    , task_proxy(*task)
+    , state_registry_(task_proxy)
     , state_id_map_(&state_registry_)
-    , action_id_map_(g_operators)
     , reward_function_(g_analysis_objective->reward())
     , transition_generator_(
+          task,
           &state_registry_,
-          g_operators,
-          opts.get_list<std::shared_ptr<legacy::Heuristic>>(
-              "path_dependent_heuristics"),
+          opts.get_list<std::shared_ptr<Evaluator>>(
+              "path_dependent_evaluators"),
           opts.get<bool>("cache"))
 {
-    legacy::StateRegistry* state_registry = &state_registry_;
+    StateRegistry* state_registry = &state_registry_;
     progress_.register_print([state_registry](std::ostream& out) {
         out << "registered=" << state_registry->size();
     });
@@ -51,11 +47,9 @@ void MDPSolver::solve()
     logging::out << "Running MDP engine " << get_engine_name() << "..."
                  << std::endl;
     utils::Timer total_timer;
-    std::unique_ptr<engines::MDPEngineInterface<legacy::GlobalState>> engine(
-        create_engine());
+    std::unique_ptr<engines::MDPEngineInterface<State>> engine(create_engine());
 
-    const legacy::GlobalState initial_state =
-        state_registry_.get_initial_state();
+    const State initial_state = state_registry_.get_initial_state();
 
     value_type::value_t val = engine->solve(initial_state);
     progress_.print();
@@ -87,8 +81,8 @@ void MDPSolver::solve()
 void MDPSolver::add_options_to_parser(options::OptionParser& parser)
 {
     parser.add_option<bool>("cache", "", "false");
-    parser.add_list_option<std::shared_ptr<legacy::Heuristic>>(
-        "path_dependent_heuristics",
+    parser.add_list_option<std::shared_ptr<Evaluator>>(
+        "path_dependent_evaluators",
         "",
         "[]");
     parser.add_option<double>("report_epsilon", "", "1e-4");

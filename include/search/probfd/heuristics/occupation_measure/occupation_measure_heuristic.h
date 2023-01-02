@@ -45,8 +45,7 @@ public:
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
-    virtual EvaluationResult
-    evaluate(const legacy::GlobalState& state) const override;
+    virtual EvaluationResult evaluate(const State& state) const override;
 
     mutable lp::LPSolver lp_solver_;
     std::vector<int> offset_;

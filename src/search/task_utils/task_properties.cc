@@ -4,9 +4,6 @@
 #include "utils/memory.h"
 #include "utils/system.h"
 
-#include "legacy/global_operator.h"
-#include "legacy/globals.h"
-
 #include <algorithm>
 #include <iostream>
 #include <limits>
@@ -16,15 +13,7 @@ using utils::ExitCode;
 
 namespace task_properties {
 
-bool is_unit_cost()
-{
-    for (const legacy::GlobalOperator& op : legacy::g_operators) {
-        if (op.get_cost() != 1) return false;
-    }
-    return true;
-}
-
-bool is_unit_cost(TaskBaseProxy task)
+bool is_unit_cost(const TaskBaseProxy& task)
 {
     for (OperatorLightProxy op : task.get_light_operators()) {
         if (op.get_cost() != 1) return false;
@@ -32,12 +21,12 @@ bool is_unit_cost(TaskBaseProxy task)
     return true;
 }
 
-bool has_axioms(TaskBaseProxy task)
+bool has_axioms(const TaskBaseProxy& task)
 {
     return !task.get_axioms().empty();
 }
 
-void verify_no_axioms(TaskBaseProxy task)
+void verify_no_axioms(const TaskBaseProxy& task)
 {
     if (has_axioms(task)) {
         cerr << "This configuration does not support axioms!" << endl
@@ -46,7 +35,7 @@ void verify_no_axioms(TaskBaseProxy task)
     }
 }
 
-static int get_first_conditional_effects_op_id(TaskProxy task)
+static int get_first_conditional_effects_op_id(const TaskProxy& task)
 {
     for (OperatorProxy op : task.get_operators()) {
         for (EffectProxy effect : op.get_effects()) {
@@ -56,12 +45,12 @@ static int get_first_conditional_effects_op_id(TaskProxy task)
     return -1;
 }
 
-bool has_conditional_effects(TaskProxy task)
+bool has_conditional_effects(const TaskProxy& task)
 {
     return get_first_conditional_effects_op_id(task) != -1;
 }
 
-void verify_no_conditional_effects(TaskProxy task)
+void verify_no_conditional_effects(const TaskProxy& task)
 {
     int op_id = get_first_conditional_effects_op_id(task);
     if (op_id != -1) {
@@ -83,7 +72,7 @@ vector<int> get_operator_costs(const TaskBaseProxy& task_proxy)
     return costs;
 }
 
-double get_average_operator_cost(TaskBaseProxy task_proxy)
+double get_average_operator_cost(const TaskBaseProxy& task_proxy)
 {
     double average_operator_cost = 0;
     for (OperatorLightProxy op : task_proxy.get_light_operators()) {
@@ -93,7 +82,7 @@ double get_average_operator_cost(TaskBaseProxy task_proxy)
     return average_operator_cost;
 }
 
-int get_min_operator_cost(TaskBaseProxy task_proxy)
+int get_min_operator_cost(const TaskBaseProxy& task_proxy)
 {
     int min_cost = numeric_limits<int>::max();
     for (OperatorLightProxy op : task_proxy.get_light_operators()) {

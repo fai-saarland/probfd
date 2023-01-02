@@ -167,15 +167,14 @@ void dump_task(const TaskProxy &task_proxy) {
     dump_goals(task_proxy.get_goals());
 }
 
-PerTaskInformation<int_packer::IntPacker> g_state_packers(
-    [](const TaskProxy &task_proxy) {
+PerTaskInformation<int_packer::IntPacker>
+    g_state_packers([](const TaskBaseProxy& task_proxy) {
         VariablesProxy variables = task_proxy.get_variables();
         vector<int> variable_ranges;
         variable_ranges.reserve(variables.size());
         for (VariableProxy var : variables) {
             variable_ranges.push_back(var.get_domain_size());
         }
-        return utils::make_unique_ptr<int_packer::IntPacker>(variable_ranges);
-    }
-    );
+        return std::make_unique<int_packer::IntPacker>(variable_ranges);
+    });
 }

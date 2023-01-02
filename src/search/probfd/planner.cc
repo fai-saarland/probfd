@@ -1,5 +1,3 @@
-#include "legacy/globals.h"
-
 #include "option_parser.h"
 
 #include "probfd/command_line.h"
@@ -12,9 +10,9 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 
-#include "task_proxy.h"
-#include "task_utils/task_properties.h"
-#include "tasks/root_task.h"
+#include "probfd/task_proxy.h"
+#include "probfd/task_utils/task_properties.h"
+#include "probfd/tasks/root_task.h"
 
 #include <iostream>
 
@@ -35,15 +33,10 @@ int main(int argc, const char** argv)
     bool unit_cost = false;
     if (static_cast<string>(argv[1]) != "--help") {
         utils::g_log << "reading input..." << endl;
-        tasks::read_root_task(cin);
+        probfd::tasks::read_root_tasks(cin);
         utils::g_log << "done reading input!" << endl;
-        TaskProxy task_proxy(*tasks::g_root_task);
-        unit_cost = task_properties::is_unit_cost(task_proxy);
-
-        cin.clear();
-        cin.seekg(0);
-
-        legacy::read_everything(cin);
+        ProbabilisticTaskProxy task_proxy(*probfd::tasks::g_root_task);
+        unit_cost = ::task_properties::is_unit_cost(task_proxy);
     }
 
     shared_ptr<SolverInterface> engine;

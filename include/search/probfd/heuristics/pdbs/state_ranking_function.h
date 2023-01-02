@@ -4,6 +4,7 @@
 #include "probfd/heuristics/pdbs/state_rank.h"
 #include "probfd/heuristics/pdbs/types.h"
 
+#include "probfd/task_proxy.h"
 #include "probfd/types.h"
 
 #include "utils/iterators.h"
@@ -13,8 +14,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-class GlobalState;
 
 namespace probfd {
 namespace heuristics {
@@ -46,19 +45,19 @@ class StateRankingFunction {
 public:
     class PartialAssignmentIterator {
         using difference_type = void;
-        using value_type = std::vector<std::pair<int, int>>;
-        using pointer = std::vector<std::pair<int, int>>*;
-        using reference = std::vector<std::pair<int, int>>&;
+        using value_type = std::vector<FactPair>;
+        using pointer = std::vector<FactPair>*;
+        using reference = std::vector<FactPair>&;
         using iterator_category = std::forward_iterator_tag;
 
-        std::vector<std::pair<int, int>> partial_state_;
+        std::vector<FactPair> partial_state_;
         const std::vector<VariableInfo>& var_infos_;
 
         bool done;
 
     public:
         PartialAssignmentIterator(
-            std::vector<std::pair<int, int>> partial_state,
+            std::vector<FactPair> partial_state,
             const std::vector<VariableInfo>& var_infos);
 
         PartialAssignmentIterator& operator++();
@@ -113,7 +112,9 @@ public:
      * @brief Constructs the ranking function for a pattern database as
      * specified by a given pattern and the corresponding variable domains.
      */
-    StateRankingFunction(Pattern pattern, const std::vector<int>& domains);
+    StateRankingFunction(
+        const ProbabilisticTaskProxy& task_proxy,
+        Pattern pattern);
 
     unsigned int num_states() const;
 
@@ -135,32 +136,44 @@ public:
     }
 
     /**
+     * @brief Ranks a given state.
+     */
+    StateRank rank(const State& state) const
+    {
+        StateRank res(0);
+        for (size_t i = 0; i != pattern_.size(); ++i) {
+            res.id += var_infos_[i].multiplier * state[pattern_[i]].get_value();
+        }
+        return res;
+    }
+
+    /**
      * @brief Unranks a given state rank. The state is returned as a vector.
      */
     std::vector<int> unrank(StateRank abstract_state) const;
 
-    StateRank from_values_partial(
-        const std::vector<std::pair<int, int>>& sparse_values) const;
+    StateRank
+    from_values_partial(const std::vector<FactPair>& sparse_values) const;
     StateRank from_values_partial(
         const std::vector<int>& indices,
-        const std::vector<std::pair<int, int>>& sparse_values) const;
+        const std::vector<FactPair>& sparse_values) const;
     StateRank from_fact(int idx, int val) const;
 
     /**
      * @brief Ranks a given partial state.
      */
-    long long int get_unique_partial_state_id(
-        const std::vector<std::pair<int, int>>& pstate) const;
+    long long int
+    get_unique_partial_state_id(const std::vector<FactPair>& pstate) const;
 
     StateRank convert(StateRank abstract_state, const Pattern& values) const;
 
-    PartialAssignmentIterator partial_assignments_begin(
-        std::vector<std::pair<int, int>> partial_state) const;
+    PartialAssignmentIterator
+    partial_assignments_begin(std::vector<FactPair> partial_state) const;
 
     utils::default_sentinel_t partial_assignments_end() const;
 
     utils::RangeProxy<PartialAssignmentIterator, utils::default_sentinel_t>
-    partial_assignments(std::vector<std::pair<int, int>> partial_state) const;
+    partial_assignments(std::vector<FactPair> partial_state) const;
 
     StateRankIterator
     state_ranks_begin(StateRank offset, std::vector<int> indices) const;

@@ -2,9 +2,6 @@
 
 #include "task_proxy.h"
 
-// TODO remove
-#include "legacy/global_operator.h"
-
 #include "utils/logging.h"
 #include "utils/memory.h"
 #include "utils/timer.h"
@@ -171,66 +168,7 @@ struct CausalGraphBuilder {
             }
         }
     }
-
-    // TODO remove
-    void handle_operator(const legacy::GlobalOperator& op)
-    {
-        const vector<legacy::GlobalCondition>& preconditions =
-            op.get_preconditions();
-        const vector<legacy::GlobalEffect>& effects = op.get_effects();
-
-        // Handle pre->eff links from preconditions.
-        for (size_t i = 0; i < preconditions.size(); ++i) {
-            int pre_var = preconditions[i].var;
-            for (size_t j = 0; j < effects.size(); ++j) {
-                int eff_var = effects[j].var;
-                if (pre_var != eff_var) handle_pre_eff_arc(pre_var, eff_var);
-            }
-        }
-
-        // Handle pre->eff links from effect conditions.
-        for (size_t i = 0; i < effects.size(); ++i) {
-            int eff_var = effects[i].var;
-            const vector<legacy::GlobalCondition>& conditions =
-                effects[i].conditions;
-            for (size_t j = 0; j < conditions.size(); ++j) {
-                int pre_var = conditions[j].var;
-                if (pre_var != eff_var) handle_pre_eff_arc(pre_var, eff_var);
-            }
-        }
-
-        // Handle eff->eff links.
-        for (size_t i = 0; i < effects.size(); ++i) {
-            int eff1_var = effects[i].var;
-            for (size_t j = i + 1; j < effects.size(); ++j) {
-                int eff2_var = effects[j].var;
-                if (eff1_var != eff2_var)
-                    handle_eff_eff_edge(eff1_var, eff2_var);
-            }
-        }
-    }
 };
-
-// TODO remove
-CausalGraph::CausalGraph()
-{
-    CausalGraphBuilder cg_builder(legacy::g_variable_domain.size());
-
-    for (size_t i = 0; i < legacy::g_operators.size(); ++i)
-        cg_builder.handle_operator(legacy::g_operators[i]);
-
-    for (size_t i = 0; i < legacy::g_axioms.size(); ++i)
-        cg_builder.handle_operator(legacy::g_axioms[i]);
-
-    cg_builder.pre_eff_builder.compute_relation(pre_to_eff);
-    cg_builder.eff_pre_builder.compute_relation(eff_to_pre);
-    cg_builder.eff_eff_builder.compute_relation(eff_to_eff);
-
-    cg_builder.pred_builder.compute_relation(predecessors);
-    cg_builder.succ_builder.compute_relation(successors);
-
-    // dump();
-}
 
 CausalGraph::CausalGraph(const TaskProxy& task_proxy)
 {
@@ -258,20 +196,6 @@ CausalGraph::CausalGraph(const TaskProxy& task_proxy)
 
 CausalGraph::~CausalGraph()
 {
-}
-
-// TODO remove
-void CausalGraph::dump() const
-{
-    cout << "Causal graph: " << endl;
-    for (size_t var = 0; var < legacy::g_variable_domain.size(); ++var)
-        cout << "#" << var << " [" << legacy::g_variable_name[var]
-             << "]:" << endl
-             << "    pre->eff arcs: " << pre_to_eff[var] << endl
-             << "    eff->pre arcs: " << eff_to_pre[var] << endl
-             << "    eff->eff arcs: " << eff_to_eff[var] << endl
-             << "    successors: " << successors[var] << endl
-             << "    predecessors: " << predecessors[var] << endl;
 }
 
 void CausalGraph::dump(const TaskProxy& task_proxy) const

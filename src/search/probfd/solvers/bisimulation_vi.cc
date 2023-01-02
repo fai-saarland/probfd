@@ -12,11 +12,11 @@
 
 #include "probfd/utils/logging.h"
 
-#include "probfd/globals.h"
+#include "probfd/tasks/root_task.h"
 
 #include "utils/timer.h"
 
-#include "legacy/state_registry.h"
+#include "state_registry.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -31,13 +31,11 @@ using namespace engine_interfaces;
 struct BisimulationTimer {
     utils::Timer timer;
     unsigned states;
-    unsigned extended_states;
     unsigned transitions;
     void print(std::ostream& out) const
     {
         out << "  Bisimulation time: " << timer << std::endl;
-        out << "  Bisimilar states: " << states << " (" << extended_states
-            << ")" << std::endl;
+        out << "  Bisimilar states: " << states << std::endl;
         out << "  Transitions in bisimulation: " << transitions << std::endl;
     }
 };
@@ -68,11 +66,7 @@ public:
         logging::out << "Building bisimulation..." << std::endl;
 
         BisimulationTimer stats;
-        legacy::StateRegistry state_registry;
-        bisimulation::BisimilarStateSpace bs(
-            state_registry.get_initial_state(),
-            g_step_bound,
-            g_step_cost_type);
+        bisimulation::BisimilarStateSpace bs(tasks::g_root_task.get());
         StateIDMap<QState> state_id_map;
         ActionIDMap<QAction> action_id_map;
         TransitionGenerator<QAction> tgen(&bs);
@@ -88,10 +82,6 @@ public:
         logging::out << "Bisimilar state space contains "
                      << bs.num_bisimilar_states() << " states and "
                      << bs.num_transitions() << " transitions." << std::endl;
-        // std::ofstream out; out.open("bisim.dot");
-        // bs.dump(out);
-        // out.close();
-
         logging::out << std::endl;
         logging::out << "Running " << get_engine_name()
                      << " on the bisimulation..." << std::endl;
@@ -119,7 +109,6 @@ public:
                     false);
         }
         value_type::value_t val = solver->solve(bs.get_initial_state());
-        stats.extended_states = bs.num_extended_states();
         logging::out << "analysis done! [t=" << total_timer << "]" << std::endl;
         logging::out << std::endl;
 

@@ -35,8 +35,7 @@ public:
         return "exhaustive_ao";
     }
 
-    virtual engines::MDPEngineInterface<legacy::GlobalState>*
-    create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         return this->template heuristic_search_engine_factory<
             engines::exhaustive_ao::ExhaustiveAOSearch>(open_list_.get());

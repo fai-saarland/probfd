@@ -76,53 +76,8 @@ fast_downward_plugin(
         state_registry
         task_id
         task_proxy
-
-        legacy/axioms
-        legacy/evaluator
-        legacy/global_operator
-        legacy/global_state
-        legacy/globals
-        legacy/heuristic
-        legacy/operator_cost
-        legacy/partial_state
-        legacy/sampling
-        legacy/state_id
-        legacy/state_registry
-        legacy/successor_generator
     DEPENDS CAUSAL_GRAPH INT_HASH_SET INT_PACKER ORDERED_SET SEGMENTED_VECTOR SUBSCRIBER SUCCESSOR_GENERATOR TASK_PROPERTIES
     CORE_PLUGIN
-)
-
-fast_downward_plugin(
-    NAME LEGACY_MAS_HEURISTIC
-    HELP "The Merge-and-Shrink heuristic (legacy code)"
-    SOURCES
-        legacy/merge_and_shrink/relaxation_heuristic
-        legacy/merge_and_shrink/max_heuristic
-        legacy/merge_and_shrink/additive_heuristic
-        legacy/merge_and_shrink/ff_heuristic
-        legacy/merge_and_shrink/abstraction
-        legacy/merge_and_shrink/label
-        legacy/merge_and_shrink/label_reducer
-        legacy/merge_and_shrink/linear_merge_strategy
-        legacy/merge_and_shrink/max_regression_operators
-        legacy/merge_and_shrink/merge_and_shrink_heuristic
-        legacy/merge_and_shrink/merge_strategy
-        legacy/merge_and_shrink/relaxed_plan_operators
-        legacy/merge_and_shrink/scc
-        legacy/merge_and_shrink/shrink_bisimulation
-        legacy/merge_and_shrink/shrink_bucket_based
-        legacy/merge_and_shrink/shrink_empty_labels
-        legacy/merge_and_shrink/shrink_fh
-        legacy/merge_and_shrink/shrink_label_subset_bisimulation
-        legacy/merge_and_shrink/shrink_none
-        legacy/merge_and_shrink/shrink_random
-        legacy/merge_and_shrink/shrink_budget_based
-        legacy/merge_and_shrink/shrink_strategy
-        legacy/merge_and_shrink/variable_order_finder
-        legacy/merge_and_shrink/multiple_shrinking_strategies
-        legacy/merge_and_shrink/utils
-    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES VARIABLE_ORDER_FINDER
 )
 
 fast_downward_plugin(
@@ -759,20 +714,15 @@ fast_downward_plugin(
 
         probfd/task_utils/task_properties
 
-        # Globals
-        probfd/globals
-
         # Utility
         probfd/utils/logging
 
         # Basic types
         probfd/evaluation_result
-        probfd/probabilistic_operator
         probfd/value_type
         probfd/value_utils
         
         # Engine interfaces
-        probfd/action_id_map
         probfd/state_id_map
         probfd/state_evaluator
         probfd/reward_function
@@ -808,7 +758,7 @@ fast_downward_plugin(
     SOURCES
         probfd/bisimulation/bisimilar_state_space
         probfd/bisimulation/engine_interfaces
-    DEPENDS MDP LEGACY_MAS_HEURISTIC
+    DEPENDS MDP
     DEPENDENCY_ONLY
 )
 
@@ -865,16 +815,10 @@ fast_downward_plugin(
         probfd/open_list
         probfd/open_lists/lifo_open_list
         probfd/open_lists/fifo_open_list
-        probfd/open_lists/h_open_list
-        probfd/open_lists/lifo_h_open_list
-        probfd/open_lists/lifo_preferred_operators_open_list
 
         probfd/new_state_handler
-        probfd/new_state_handlers/store_heuristic
-        probfd/new_state_handlers/store_preferred_operators
 
         probfd/transition_sampler
-        probfd/transition_sampler/hbiased_successor_sampler
         probfd/transition_sampler/most_likely_selector
         probfd/transition_sampler/arbitrary_selector
         probfd/transition_sampler/uniform_successor_sampler
@@ -884,15 +828,11 @@ fast_downward_plugin(
 
         probfd/policy_picker
         probfd/policy_picker/arbitrary_tiebreaker
-        probfd/policy_picker/hbased_tiebreaker
         probfd/policy_picker/operator_id_tiebreaker
-        probfd/policy_picker/preferred_operators_tiebreaker
         probfd/policy_picker/random_tiebreaker
         probfd/policy_picker/vdiff_tiebreaker
 
         probfd/successor_sorting
-        probfd/successor_sorting/hbased_sorter
-        probfd/successor_sorting/preferred_operators_sorter
         probfd/successor_sorting/vdiff_sorter
 
         probfd/solvers/mdp_heuristic_search
@@ -966,14 +906,6 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME BUDGET_PRUNING_HEURISTIC
-    HELP "Budget pruning heuristic"
-    SOURCES
-        probfd/heuristics/budget_pruning
-    DEPENDS SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
-)
-
-fast_downward_plugin(
     NAME DETERMINIZATION_HEURISTIC
     HELP "All-outcomes determinization heuristic"
     SOURCES
@@ -1020,8 +952,10 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/pattern_selection/pattern_collection_information
         probfd/heuristics/pdbs/pattern_selection/pattern_generator
 
-        probfd/heuristics/pdbs/subcollections/subcollection_finder
+        probfd/heuristics/pdbs/subcollections/subcollection_finder_factory
+        probfd/heuristics/pdbs/subcollections/max_orthogonal_finder_factory
         probfd/heuristics/pdbs/subcollections/max_orthogonal_finder
+        probfd/heuristics/pdbs/subcollections/trivial_finder_factory
         probfd/heuristics/pdbs/subcollections/trivial_finder
         probfd/heuristics/pdbs/subcollections/orthogonality
         probfd/heuristics/pdbs/subcollections/weak_orthogonality
@@ -1054,7 +988,11 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/pattern_selection/cegar/bfs_flaw_finder
         probfd/heuristics/pdbs/pattern_selection/cegar/pucs_flaw_finder
         probfd/heuristics/pdbs/pattern_selection/cegar/sampling_flaw_finder
+        probfd/heuristics/pdbs/pattern_selection/cegar/bfs_flaw_finder_factory
+        probfd/heuristics/pdbs/pattern_selection/cegar/pucs_flaw_finder_factory
+        probfd/heuristics/pdbs/pattern_selection/cegar/sampling_flaw_finder_factory
         probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy
+        probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy_factory
         probfd/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_cegar
     DEPENDS PPDBS_PATTERN_GENERATORS
 )

@@ -5,6 +5,7 @@
 #include "probfd/task_proxy.h"
 
 namespace probfd {
+namespace tasks {
 
 class AODDeterminizationTask : public AbstractTask {
     const ProbabilisticTask* parent_task;
@@ -231,4 +232,5 @@ private:
     }
 };
 
+} // namespace tasks
 } // namespace probfd

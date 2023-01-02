@@ -5,6 +5,8 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
+#include "probfd/task_proxy.h"
+
 #include "operator_cost.h"
 
 #include <memory>
@@ -32,6 +34,8 @@ namespace pattern_selection {
 */
 template <typename PDBType>
 class PatternCollectionInformation {
+    ProbabilisticTaskProxy task_proxy;
+
     std::shared_ptr<PatternCollection> patterns_;
     std::shared_ptr<PPDBCollection<PDBType>> pdbs_;
     std::shared_ptr<std::vector<PatternSubCollection>> subcollections_;
@@ -45,11 +49,16 @@ class PatternCollectionInformation {
 
 public:
     PatternCollectionInformation(
+        const ProbabilisticTaskProxy& task_proxy,
         ::pdbs::PatternCollectionInformation det_info,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
-    PatternCollectionInformation(std::shared_ptr<PatternCollection> patterns);
     PatternCollectionInformation(
+        const ProbabilisticTaskProxy& task_proxy,
+        std::shared_ptr<PatternCollection> patterns);
+
+    PatternCollectionInformation(
+        const ProbabilisticTaskProxy& task_proxy,
         std::shared_ptr<PatternCollection> patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 

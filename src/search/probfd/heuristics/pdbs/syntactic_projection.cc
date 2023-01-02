@@ -44,11 +44,15 @@ bool ProjectionOperator::is_pseudo_deterministic() const
 
 std::vector<std::pair<int, int>> project_effects(
     const Pattern& pattern,
-    const std::vector<legacy::GlobalEffect>& effects)
+    const ProbabilisticEffectsProxy& effects)
 {
     std::vector<std::pair<int, int>> projected_effects;
 
-    for (const auto& [var, val, _] : effects) {
+    for (const ProbabilisticEffectProxy& effect : effects) {
+        const FactProxy fact = effect.get_fact();
+        const int var = fact.get_variable().get_id();
+        const int val = fact.get_value();
+
         const auto it = std::find(pattern.begin(), pattern.end(), var);
         if (it != pattern.end()) {
             projected_effects.emplace_back(var, val);
@@ -59,13 +63,13 @@ std::vector<std::pair<int, int>> project_effects(
 }
 
 ProjectionOperator
-project_operator(const Pattern& pattern, const ProbabilisticOperator& op)
+project_operator(const Pattern& pattern, const ProbabilisticOperatorProxy& op)
 {
     ProjectionOperator abs_operator;
 
-    for (const ProbabilisticOutcome& outcome : op) {
-        const auto& effects = outcome.op->get_effects();
-        const value_type::value_t probability = outcome.prob;
+    for (const ProbabilisticOutcomeProxy& outcome : op.get_outcomes()) {
+        const auto& effects = outcome.get_effects();
+        const value_type::value_t probability = outcome.get_probability();
 
         std::vector<std::pair<int, int>> abstract_effects =
             project_effects(pattern, effects);

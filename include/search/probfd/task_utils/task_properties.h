@@ -37,6 +37,13 @@ extern int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy);
 
 extern void dump_probabilistic_task(const ProbabilisticTaskProxy& task_proxy);
 
+/*
+   Create or retrieve a determinization from cache. If determinizations are
+   created with this function, we build at most one determinization per
+   ProbabilisticTask.
+*/
+extern const AbstractTask& get_determinization(const ProbabilisticTask* task);
+
 } // namespace task_properties
 } // namespace probfd
 

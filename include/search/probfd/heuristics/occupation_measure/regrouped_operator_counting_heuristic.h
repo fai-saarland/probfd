@@ -35,7 +35,7 @@ public:
 
 protected:
     virtual EvaluationResult
-    evaluate(const legacy::GlobalState& state) const override;
+    evaluate(const State& state) const override;
 
     mutable lp::LPSolver lp_solver_;
     std::vector<std::size_t> ncc_offsets_;

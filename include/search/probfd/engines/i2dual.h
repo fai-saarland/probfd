@@ -12,7 +12,6 @@
 
 #include "probfd/utils/logging.h"
 
-#include "probfd/globals.h"
 #include "probfd/progress_report.h"
 #include "probfd/value_type.h"
 
@@ -20,7 +19,10 @@
 
 #include "utils/timer.h"
 
-#include "legacy/global_state.h"
+#include "task_proxy.h"
+#include "task_utils/task_properties.h"
+
+#include "probfd/task_utils/task_properties.h"
 
 #include "probfd/tasks/root_task.h"
 
@@ -117,6 +119,7 @@ public:
               action_id_map,
               reward_function,
               transition_generator)
+        , task_proxy(*tasks::g_root_task)
         , progress_(progress)
         , heuristic_(heuristic)
         , hpom_enabled_(hpom_enabled)
@@ -147,7 +150,8 @@ public:
         }
 
         if (hpom_enabled_) {
-            legacy::verify_no_axioms_no_conditional_effects();
+            ::task_properties::verify_no_axioms(task_proxy);
+            probfd::task_properties::verify_no_conditional_effects(task_proxy);
         }
 
         storage::PerStateStorage<IDualData> idual_data;
@@ -462,9 +466,9 @@ private:
         const IDualData& data,
         std::vector<lp::LPConstraint>& constraints) const
     {
-        for (size_t var = 0; var != legacy::g_variable_domain.size(); ++var) {
-            const int val = state[var];
-            lp::LPConstraint& c = constraints[offset_[var] + val];
+        for (VariableProxy var : task_proxy.get_variables()) {
+            const int val = state[var].get_value();
+            lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
             for (const auto& om : data.incoming) {
                 c.remove(om.second);
             }
@@ -476,15 +480,16 @@ private:
         const IDualData& data,
         std::vector<lp::LPConstraint>& constraints) const
     {
-        for (size_t var = 0; var != legacy::g_variable_domain.size(); ++var) {
-            const int val = state[var];
-            lp::LPConstraint& c = constraints[offset_[var] + val];
+        for (VariableProxy var : task_proxy.get_variables()) {
+            const int val = state[var].get_value();
+            lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
             for (const auto& om : data.incoming) {
                 c.insert(om.second, om.first);
             }
         }
     }
 
+    ProbabilisticTaskProxy task_proxy;
     ProgressReport* progress_;
 
     engine_interfaces::StateEvaluator<State>* heuristic_;

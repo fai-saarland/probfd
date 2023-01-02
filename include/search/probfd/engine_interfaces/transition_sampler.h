@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINE_INTERACES_TRANSITION_SAMPLER_H
-#define MDPS_ENGINE_INTERACES_TRANSITION_SAMPLER_H
+#ifndef MDPS_ENGINE_INTERFACES_TRANSITION_SAMPLER_H
+#define MDPS_ENGINE_INTERFACES_TRANSITION_SAMPLER_H
 
 #include "probfd/utils/distribution_random_sampler.h"
 
@@ -17,13 +17,21 @@ namespace engine_interfaces {
  */
 template <typename Action>
 struct TransitionSampler {
+    distribution_random_sampler::DistributionRandomSampler sampler;
+
+    // FIXME This should be converted to a pure interface once wrappers
+    // for the bisimulation engines are introduced
+    TransitionSampler()
+        : sampler(std::make_shared<utils::RandomNumberGenerator>(4000))
+    {
+    }
+
     StateID operator()(
         const StateID&,
         const Action&,
         const Distribution<StateID>& transition)
     {
-        return distribution_random_sampler::DistributionRandomSampler()(
-            transition);
+        return sampler(transition);
     }
 };
 

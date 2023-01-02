@@ -5,17 +5,24 @@
 
 #include "utils/rng.h"
 
-#include "legacy/globals.h"
-
 namespace probfd {
 namespace distribution_uniform_sampler {
 
-struct DistributionUniformSampler {
+class DistributionUniformSampler {
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
+
+public:
+    DistributionUniformSampler(
+        std::shared_ptr<utils::RandomNumberGenerator> rng)
+        : rng(rng)
+    {
+    }
+
     template <typename T>
-    const T& operator()(const Distribution<T>& distribution) const
+    const T& operator()(const Distribution<T>& distribution)
     {
         assert(!distribution.empty());
-        unsigned selection = legacy::g_rng.random(distribution.size());
+        unsigned selection = rng->random(distribution.size());
         auto it = distribution.begin();
         for (; selection > 0; it++) {
             assert(it != distribution.end());

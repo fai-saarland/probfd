@@ -39,6 +39,11 @@ int get_adjusted_action_cost(
             is_unit_cost);
 }
 
+int get_adjusted_action_reward(int reward, OperatorCost cost_type)
+{
+    return -get_adjusted_action_cost(-reward, cost_type, false);
+}
+
 void add_cost_type_option_to_parser(OptionParser &parser) {
     vector<string> cost_types;
     vector<string> cost_types_doc;

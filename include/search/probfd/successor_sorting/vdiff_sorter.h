@@ -22,7 +22,7 @@ public:
 protected:
     virtual void sort(
         const StateID& state,
-        const std::vector<const ProbabilisticOperator*>& action_choices,
+        const std::vector<OperatorID>& action_choices,
         std::vector<Distribution<StateID>>& successors) override;
 
     const value_type::value_t favor_large_gaps_;

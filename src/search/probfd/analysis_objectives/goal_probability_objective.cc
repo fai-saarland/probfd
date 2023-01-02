@@ -1,7 +1,10 @@
 #include "probfd/analysis_objectives/goal_probability_objective.h"
 
-#include "legacy/global_state.h"
-#include "legacy/globals.h"
+#include "task_utils/task_properties.h"
+
+#include "probfd/tasks/root_task.h"
+
+#include "probfd/task_proxy.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -11,17 +14,26 @@ namespace analysis_objectives {
 
 namespace {
 class MaxProbReward : public GlobalRewardFunction {
-protected:
-    virtual TerminationInfo evaluate(const legacy::GlobalState& state) override
+    ProbabilisticTaskProxy task_proxy;
+
+public:
+    MaxProbReward(const ProbabilisticTaskProxy& task_proxy)
+        : task_proxy(task_proxy)
     {
-        if (legacy::test_goal(state)) {
+    }
+
+protected:
+    virtual TerminationInfo evaluate(const State& state) override
+    {
+        ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
+        if (task_properties::is_goal_state(task_proxy, state)) {
             return TerminationInfo(true, value_type::one);
         } else {
             return TerminationInfo(false, value_type::zero);
         }
     }
 
-    value_type::value_t evaluate(StateID, const ProbabilisticOperator*) override
+    value_type::value_t evaluate(StateID, OperatorID) override
     {
         return value_type::zero;
     }
@@ -29,7 +41,7 @@ protected:
 } // namespace
 
 GoalProbabilityObjective::GoalProbabilityObjective()
-    : reward_(new MaxProbReward())
+    : reward_(new MaxProbReward(ProbabilisticTaskProxy(*tasks::g_root_task)))
 {
 }
 

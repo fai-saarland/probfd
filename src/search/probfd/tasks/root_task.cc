@@ -1,4 +1,7 @@
 #include "probfd/tasks/root_task.h"
+#include "probfd/tasks/all_outcomes_determinization.h"
+
+#include "tasks/root_task.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -39,24 +42,49 @@ struct ExplicitEffect {
     vector<FactPair> conditions;
 
     ExplicitEffect(int var, int value, vector<FactPair>&& conditions);
+
+    friend bool
+    operator<(const ExplicitEffect& eff1, const ExplicitEffect& eff2)
+    {
+        return std::tie(eff1.fact, eff1.conditions) <
+               std::tie(eff2.fact, eff2.conditions);
+    }
+};
+
+struct DeterministicOperator {
+    vector<FactPair> preconditions;
+    vector<ExplicitEffect> effects;
+    int cost;
+    string name;
+
+    DeterministicOperator(std::istream& in, bool use_metric);
+
+    void read_pre_post(std::istream& in);
 };
 
 struct ProbabilisticOutcome {
     value_type::value_t probability;
     vector<ExplicitEffect> effects;
+    string name;
 
-    explicit ProbabilisticOutcome(std::istream& in);
-
-    void read_pre_post(std::istream& in);
+    ProbabilisticOutcome(
+        std::istream& in,
+        const vector<DeterministicOperator>& deterministic_operators,
+        int& cost,
+        vector<FactPair>& preconditions);
 };
 
-struct ExplicitOperator {
+struct ProbabilisticOperator {
     vector<FactPair> preconditions;
     vector<ProbabilisticOutcome> outcomes;
     int cost;
     string name;
+    int outcomes_start_index;
 
-    ExplicitOperator(std::istream& in, bool use_metric);
+    ProbabilisticOperator(
+        std::istream& in,
+        int outcomes_start_index,
+        const vector<DeterministicOperator>& deterministic_operators);
 };
 
 struct ExplicitAxiom {
@@ -73,14 +101,14 @@ class RootTask : public ProbabilisticTask {
     vector<ExplicitVariable> variables;
     // TODO: think about using hash sets here.
     vector<vector<set<FactPair>>> mutexes;
-    vector<ExplicitOperator> operators;
+    vector<ProbabilisticOperator> operators;
     vector<ExplicitAxiom> axioms;
     vector<int> initial_state_values;
     vector<FactPair> goals;
 
     const ExplicitVariable& get_variable(int var) const;
     const ExplicitAxiom& get_axiom(int index) const;
-    const ExplicitOperator& get_operator(int index) const;
+    const ProbabilisticOperator& get_operator(int index) const;
     const ProbabilisticOutcome& get_outcome(int op_id, int outcome_index) const;
     const ExplicitEffect& get_axiom_effect_(int op_id, int effect_id) const;
     const ExplicitEffect&
@@ -124,6 +152,8 @@ public:
     value_type::value_t
     get_operator_outcome_probability(int index, int outcome_index)
         const override;
+
+    int get_operator_outcome_id(int index, int outcome_index) const override;
 
     int get_num_operator_outcome_effects(int op_index, int outcome_index)
         const override;
@@ -190,7 +220,7 @@ static void check_facts(
 }
 
 static void check_facts(
-    const ExplicitOperator& action,
+    const ProbabilisticOperator& action,
     const vector<ExplicitVariable>& variables)
 {
     check_facts(action.preconditions, variables);
@@ -217,7 +247,7 @@ static void check_facts(
         total_prob += prob;
     }
 
-    if (value_type::approx_equal()(total_prob, value_type::one)) {
+    if (!value_type::approx_equal()(total_prob, value_type::one)) {
         cerr << "Total outcome probabilities must sum up to one. Sum was: "
              << total_prob << endl;
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
@@ -274,10 +304,38 @@ ExplicitEffect::ExplicitEffect(
     : fact(var, value)
     , conditions(move(conditions))
 {
+    std::sort(this->conditions.begin(), this->conditions.end());
 }
 
-ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
+ProbabilisticOutcome::ProbabilisticOutcome(
+    std::istream& in,
+    const vector<DeterministicOperator>& deterministic_operators,
+    int& cost,
+    vector<FactPair>& preconditions)
 {
+    // Read deterministic operator index
+    int det_index;
+    in >> det_index;
+
+    const DeterministicOperator& det_op = deterministic_operators[det_index];
+    name = det_op.name;
+    effects = det_op.effects;
+    cost = det_op.cost;
+    preconditions = det_op.preconditions;
+
+    // Read probability
+    std::string p;
+    in >> p;
+    probability = value_type::from_string(p);
+}
+
+DeterministicOperator::DeterministicOperator(std::istream& in, bool use_metric)
+{
+    check_magic(in, "begin_operator");
+    in >> ws;
+    getline(in, name);
+    preconditions = read_facts(in);
+
     // Read number of effects
     int count;
     in >> count;
@@ -287,28 +345,6 @@ ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
     for (int i = 0; i < count; ++i) {
         read_pre_post(in);
     }
-}
-
-void ProbabilisticOutcome::read_pre_post(std::istream& in)
-{
-    vector<FactPair> conditions = read_facts(in);
-    int var, value_post;
-    in >> var >> value_post;
-    effects.emplace_back(var, value_post, move(conditions));
-}
-
-ExplicitOperator::ExplicitOperator(std::istream& in, bool use_metric)
-{
-    check_magic(in, "begin_operator");
-    in >> ws;
-    getline(in, name);
-    preconditions = read_facts(in);
-    int count;
-    in >> count;
-    outcomes.reserve(count);
-    for (int i = 0; i < count; ++i) {
-        outcomes.emplace_back(in);
-    }
 
     int op_cost;
     in >> op_cost;
@@ -316,6 +352,49 @@ ExplicitOperator::ExplicitOperator(std::istream& in, bool use_metric)
     check_magic(in, "end_operator");
 
     assert(cost >= 0);
+
+    std::sort(preconditions.begin(), preconditions.end());
+    std::sort(effects.begin(), effects.end());
+}
+
+void DeterministicOperator::read_pre_post(std::istream& in)
+{
+    vector<FactPair> conditions = read_facts(in);
+    int var, pre, value_post;
+    in >> var >> pre >> value_post;
+    if (pre != -1) {
+        preconditions.emplace_back(var, pre);
+    }
+    effects.emplace_back(var, value_post, move(conditions));
+}
+
+ProbabilisticOperator::ProbabilisticOperator(
+    std::istream& in,
+    int outcomes_start_index,
+    const vector<DeterministicOperator>& deterministic_operators)
+    : outcomes_start_index(outcomes_start_index)
+{
+    check_magic(in, "begin_probabilistic_operator");
+    in >> ws;
+    getline(in, name);
+
+    // Read number of outcomes
+    int num_outcomes;
+    in >> num_outcomes;
+    this->outcomes.reserve(num_outcomes);
+
+    assert(num_outcomes >= 1);
+
+    int cost = 0;
+    std::vector<FactPair> preconditions;
+    for (int i = 0; i < num_outcomes; ++i) {
+        outcomes.emplace_back(in, deterministic_operators, cost, preconditions);
+    }
+
+    this->cost = cost;
+    this->preconditions = preconditions;
+
+    check_magic(in, "end_probabilistic_operator");
 }
 
 ExplicitAxiom::ExplicitAxiom(std::istream& in)
@@ -334,8 +413,11 @@ ExplicitAxiom::ExplicitAxiom(std::istream& in)
 void ExplicitAxiom::read_pre_post(std::istream& in)
 {
     vector<FactPair> conditions = read_facts(in);
-    int var, value_post;
-    in >> var >> value_post;
+    int var, pre, value_post;
+    in >> var >> pre >> value_post;
+    if (pre != -1) {
+        preconditions.emplace_back(var, pre);
+    }
     effects.emplace_back(var, value_post, move(conditions));
 }
 
@@ -451,18 +533,33 @@ read_axioms(std::istream& in, const vector<ExplicitVariable>& variables)
     return axioms;
 }
 
-vector<ExplicitOperator> read_operators(
+vector<DeterministicOperator> read_operators(std::istream& in, bool use_metric)
+{
+    int count;
+    in >> count;
+    vector<DeterministicOperator> actions;
+    actions.reserve(count);
+    for (int i = 0; i < count; ++i) {
+        actions.emplace_back(in, use_metric);
+    }
+    return actions;
+}
+
+vector<ProbabilisticOperator> read_probabilistic_operators(
     std::istream& in,
-    bool use_metric,
+    const vector<DeterministicOperator>& deterministic_operators,
     const vector<ExplicitVariable>& variables)
 {
     int count;
     in >> count;
-    vector<ExplicitOperator> actions;
+    vector<ProbabilisticOperator> actions;
     actions.reserve(count);
+    int outcomes_index = 0;
     for (int i = 0; i < count; ++i) {
-        actions.emplace_back(in, use_metric);
-        check_facts(actions.back(), variables);
+        auto& new_op =
+            actions.emplace_back(in, outcomes_index, deterministic_operators);
+        outcomes_index += new_op.outcomes.size();
+        check_facts(new_op, variables);
     }
     return actions;
 }
@@ -489,17 +586,19 @@ RootTask::RootTask(std::istream& in)
 
     goals = read_goal(in);
     check_facts(goals, variables);
-    operators = read_operators(in, use_metric, variables);
+    std::vector<DeterministicOperator> det_operators;
+    det_operators = read_operators(in, use_metric);
     axioms = read_axioms(in, variables);
+    operators = read_probabilistic_operators(in, det_operators, variables);
     /* TODO: We should be stricter here and verify that we
        have reached the end of "in". */
 
     /*
-      HACK: We use a TaskProxy to access g_axiom_evaluators here which assumes
-      that this task is completely constructed.
+      HACK: We use a TaskProxy to access g_axiom_evaluators here which
+      assumes that this task is completely constructed.
     */
-    // AxiomEvaluator &axiom_evaluator = g_axiom_evaluators[TaskProxy(*this)];
-    // axiom_evaluator.evaluate(initial_state_values);
+    AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[TaskBaseProxy(*this)];
+    axiom_evaluator.evaluate(initial_state_values);
 }
 
 const ExplicitVariable& RootTask::get_variable(int var) const
@@ -511,7 +610,7 @@ const ExplicitVariable& RootTask::get_variable(int var) const
 const ProbabilisticOutcome&
 RootTask::get_outcome(int op_id, int outcome_index) const
 {
-    const ExplicitOperator& op = get_operator(op_id);
+    const ProbabilisticOperator& op = get_operator(op_id);
     assert(utils::in_bounds(outcome_index, op.outcomes));
     return op.outcomes[outcome_index];
 }
@@ -538,7 +637,7 @@ const ExplicitAxiom& RootTask::get_axiom(int index) const
     return axioms[index];
 }
 
-const ExplicitOperator& RootTask::get_operator(int index) const
+const ProbabilisticOperator& RootTask::get_operator(int index) const
 {
     assert(utils::in_bounds(index, operators));
     return operators[index];
@@ -656,7 +755,7 @@ int RootTask::get_num_operator_preconditions(int index) const
 
 FactPair RootTask::get_operator_precondition(int op_index, int fact_index) const
 {
-    const ExplicitOperator& op = get_operator(op_index);
+    const ProbabilisticOperator& op = get_operator(op_index);
     assert(utils::in_bounds(fact_index, op.preconditions));
     return op.preconditions[fact_index];
 }
@@ -670,6 +769,11 @@ value_type::value_t
 RootTask::get_operator_outcome_probability(int index, int outcome_index) const
 {
     return get_outcome(index, outcome_index).probability;
+}
+
+int RootTask::get_operator_outcome_id(int index, int outcome_index) const
+{
+    return get_operator(index).outcomes_start_index + outcome_index;
 }
 
 int RootTask::get_num_operator_outcome_effects(int op_index, int outcome_index)
@@ -742,10 +846,11 @@ int RootTask::convert_operator_index(
     return index;
 }
 
-void read_root_task(std::istream& in)
+void read_root_tasks(std::istream& in)
 {
     assert(!g_root_task);
     g_root_task.reset(new RootTask(in));
+    ::tasks::g_root_task.reset(new AODDeterminizationTask(g_root_task.get()));
 }
 
 static shared_ptr<ProbabilisticTask> _parse(OptionParser& parser)

@@ -13,8 +13,9 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-MaxOrthogonalityFinder::MaxOrthogonalityFinder()
-    : var_orthogonality(compute_prob_orthogonal_vars(false))
+MaxOrthogonalityFinder::MaxOrthogonalityFinder(
+    const ProbabilisticTaskProxy& task_proxy)
+    : var_orthogonality(compute_prob_orthogonal_vars(task_proxy, false))
 {
 }
 
@@ -45,15 +46,6 @@ MaxOrthogonalityFinder::compute_subcollections_with_pattern(
         new_pattern,
         var_orthogonality);
 }
-
-static std::shared_ptr<MaxOrthogonalityFinder> _parse(OptionParser& parser)
-{
-    if (parser.dry_run()) return nullptr;
-
-    return std::make_shared<MaxOrthogonalityFinder>();
-}
-
-static Plugin<SubCollectionFinder> _plugin("finder_max_orthogonality", _parse);
 
 } // namespace pdbs
 } // namespace heuristics

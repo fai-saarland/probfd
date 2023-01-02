@@ -13,8 +13,6 @@
 #include "utils/countdown_timer.h"
 #include "utils/logging.h"
 
-#include "legacy/globals.h"
-
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -77,6 +75,7 @@ template <typename PDBType>
 ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
     const options::Options& opts)
     : ProbabilisticPDBHeuristic(
+          opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
           opts.get<std::shared_ptr<PatternCollectionGenerator<PDBType>>>(
               "patterns"),
           opts.get<double>("max_time_dominance_pruning"))
@@ -85,13 +84,15 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
 
 template <typename PDBType>
 ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
+    std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<PatternCollectionGenerator<PDBType>> generator,
     double max_time_dominance_pruning)
+    : TaskDependentHeuristic(task)
 {
     utils::Timer construction_timer;
 
     utils::Timer generator_timer;
-    auto pattern_collection_info = generator->generate(NORMAL);
+    auto pattern_collection_info = generator->generate(task);
     const double generator_time = generator_timer();
 
     this->patterns = pattern_collection_info.get_patterns();
@@ -107,7 +108,7 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
             *patterns,
             *pdbs,
             *subcollections,
-            legacy::g_variable_domain.size(),
+            task_proxy.get_variables().size(),
             max_time_dominance_pruning,
             utils::g_log);
 
@@ -143,8 +144,8 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
 }
 
 template <typename PDBType>
-EvaluationResult ProbabilisticPDBHeuristic<PDBType>::evaluate(
-    const legacy::GlobalState& state) const
+EvaluationResult
+ProbabilisticPDBHeuristic<PDBType>::evaluate(const State& state) const
 {
     return pdbs::evaluate<PDBType>(*pdbs, *subcollections, state);
 }
@@ -163,6 +164,7 @@ template <>
 void ProbabilisticPDBHeuristic<ExpCostProjection>::add_options_to_parser(
     options::OptionParser& parser)
 {
+    TaskDependentHeuristic::add_options_to_parser(parser);
     parser.add_option<
         std::shared_ptr<PatternCollectionGenerator<ExpCostProjection>>>(
         "patterns",
@@ -175,6 +177,7 @@ template <>
 void ProbabilisticPDBHeuristic<MaxProbProjection>::add_options_to_parser(
     options::OptionParser& parser)
 {
+    TaskDependentHeuristic::add_options_to_parser(parser);
     parser.add_option<
         std::shared_ptr<PatternCollectionGenerator<MaxProbProjection>>>(
         "patterns",

@@ -21,7 +21,7 @@ void VDiffTiebreaker::add_options_to_parser(options::OptionParser& parser)
 int VDiffTiebreaker::pick(
     const StateID&,
     const ActionID&,
-    const std::vector<const ProbabilisticOperator*>&,
+    const std::vector<OperatorID>&,
     const std::vector<Distribution<StateID>>& successors)
 {
     value_type::value_t best = value_type::inf;

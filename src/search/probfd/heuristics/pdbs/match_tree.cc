@@ -3,8 +3,6 @@
 #include "probfd/heuristics/pdbs/abstract_operator.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 
-#include "legacy/globals.h"
-
 #include <cassert>
 #include <iostream>
 #include <utility>
@@ -73,8 +71,12 @@ bool MatchTree::Node::is_leaf_node() const
     return var_id == LEAF_NODE;
 }
 
-MatchTree::MatchTree(const Pattern& pattern, const StateRankingFunction& mapper)
-    : pattern(pattern)
+MatchTree::MatchTree(
+    ProbabilisticTaskProxy task_proxy,
+    const Pattern& pattern,
+    const StateRankingFunction& mapper)
+    : task_proxy(task_proxy)
+    , pattern(pattern)
     , mapper(mapper)
     , root(nullptr)
 {
@@ -87,7 +89,7 @@ MatchTree::~MatchTree()
 
 void MatchTree::insert_recursive(
     const size_t op_index,
-    const vector<std::pair<int, int>>& progression_preconditions,
+    const vector<FactPair>& progression_preconditions,
     int pre_index,
     Node** edge_from_parent)
 {
@@ -101,10 +103,12 @@ void MatchTree::insert_recursive(
         // All preconditions have been checked, insert operator ID.
         node->applicable_operator_ids.push_back(op_index);
     } else {
-        const std::pair<int, int>& fact = progression_preconditions[pre_index];
-        int pattern_var_id = fact.first;
+        const FactPair& fact = progression_preconditions[pre_index];
+        int pattern_var_id = fact.var;
         int var_id = pattern[pattern_var_id];
-        int var_domain_size = legacy::g_variable_domain[var_id];
+
+        VariablesProxy variables = task_proxy.get_variables();
+        int var_domain_size = variables[var_id].get_domain_size();
 
         // Set up node correctly or insert a new node if necessary.
         if (node->is_leaf_node()) {
@@ -124,14 +128,14 @@ void MatchTree::insert_recursive(
         /* Set up edge to the correct child (for which we want to call
            this function recursively). */
         Node** edge_to_child = 0;
-        if (node->var_id == fact.first) {
+        if (node->var_id == fact.var) {
             // Operator has a precondition on the variable tested by node.
-            edge_to_child = &node->successors[fact.second];
+            edge_to_child = &node->successors[fact.value];
             ++pre_index;
         } else {
             // Operator doesn't have a precondition on the variable tested by
             // node: follow/create the star-edge.
-            assert(node->var_id < fact.first);
+            assert(node->var_id < fact.var);
             edge_to_child = &node->star_successor;
         }
 
@@ -145,7 +149,7 @@ void MatchTree::insert_recursive(
 
 void MatchTree::insert(
     const size_t op_index,
-    const vector<std::pair<int, int>>& progression_preconditions)
+    const vector<FactPair>& progression_preconditions)
 {
     insert_recursive(op_index, progression_preconditions, 0, &root);
 }
@@ -199,38 +203,40 @@ void MatchTree::dump_recursive(Node* node) const
 {
     if (!node) {
         // Node is the root node.
-        cout << "Empty MatchTree" << endl;
+        std::cout << "Empty MatchTree" << endl;
         return;
     }
-    cout << endl;
-    cout << "node->var_id = " << node->var_id << endl;
-    cout << "Number of applicable operators at this node: "
-         << node->applicable_operator_ids.size() << endl;
+    std::cout << endl;
+    std::cout << "node->var_id = " << node->var_id << endl;
+    std::cout << "Number of applicable operators at this node: "
+              << node->applicable_operator_ids.size() << endl;
     for (const size_t op_index : node->applicable_operator_ids) {
-        cout << "AbstractOperator #" << op_index << endl;
+        std::cout << "AbstractOperator #" << op_index << endl;
     }
     if (node->is_leaf_node()) {
-        cout << "leaf node." << endl;
+        std::cout << "leaf node." << endl;
         assert(!node->successors);
         assert(!node->star_successor);
     } else {
         for (int val = 0; val < node->var_domain_size; ++val) {
             if (node->successors[val]) {
-                cout << "recursive call for child with value " << val << endl;
+                std::cout << "recursive call for child with value " << val
+                          << endl;
                 dump_recursive(node->successors[val]);
-                cout << "back from recursive call (for successors[" << val
-                     << "]) to node with var_id = " << node->var_id << endl;
+                std::cout << "back from recursive call (for successors[" << val
+                          << "]) to node with var_id = " << node->var_id
+                          << endl;
             } else {
-                cout << "no child for value " << val << endl;
+                std::cout << "no child for value " << val << endl;
             }
         }
         if (node->star_successor) {
-            cout << "recursive call for star_successor" << endl;
+            std::cout << "recursive call for star_successor" << endl;
             dump_recursive(node->star_successor);
-            cout << "back from recursive call (for star_successor) "
-                 << "to node with var_id = " << node->var_id << endl;
+            std::cout << "back from recursive call (for star_successor) "
+                      << "to node with var_id = " << node->var_id << endl;
         } else {
-            cout << "no star_successor" << endl;
+            std::cout << "no star_successor" << endl;
         }
     }
 }

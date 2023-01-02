@@ -25,7 +25,7 @@ void TaskDependentHeuristic::add_options_to_parser(
         "transform",
         "Optional task transformation for the heuristic. "
         "Currently, only root_ppt() is available.",
-        "no_transform()");
+        "root_ppt()");
 }
 
 } // namespace heuristics

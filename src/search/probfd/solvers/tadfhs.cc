@@ -100,7 +100,7 @@ public:
         return "";
     }
 
-    virtual engines::MDPEngineInterface<legacy::GlobalState>*
+    virtual engines::MDPEngineInterface<State>*
     create_engine() override
     {
         return this->template quotient_heuristic_search_factory<Engine>(

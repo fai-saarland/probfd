@@ -1,11 +1,10 @@
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/tasks/all_outcomes_determinization.h"
+
 #include "utils/logging.h"
 #include "utils/memory.h"
 #include "utils/system.h"
-
-#include "legacy/global_operator.h"
-#include "legacy/globals.h"
 
 #include <algorithm>
 #include <iostream>
@@ -84,6 +83,21 @@ void dump_task(const TaskProxy& task_proxy)
     utils::g_log << "Initial state (FDR):" << endl;
     ::task_properties::dump_fdr(initial_state);
     ::task_properties::dump_goals(task_proxy.get_goals());
+}
+
+static std::
+    unordered_map<const ProbabilisticTask*, std::unique_ptr<AbstractTask>>
+        determinizations_cache;
+
+const AbstractTask& get_determinization(const ProbabilisticTask* task)
+{
+    if (determinizations_cache.find(task) == determinizations_cache.end()) {
+        determinizations_cache.insert(make_pair(
+            task,
+            std::make_unique<tasks::AODDeterminizationTask>(task)));
+    }
+
+    return *determinizations_cache[task];
 }
 
 } // namespace task_properties

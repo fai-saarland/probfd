@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "probfd/types.h"
+
 // For documentation on classes relevant to storing and working with registered
 // states see the file state_registry.h.
 
@@ -23,6 +25,12 @@ class StateID {
     // No implementation to prevent default construction
     StateID();
 public:
+    StateID(probfd::StateID id)
+        : value(id.id)
+    {
+    }
+    operator probfd::StateID() { return probfd::StateID(value); }
+
     ~StateID() {
     }
 

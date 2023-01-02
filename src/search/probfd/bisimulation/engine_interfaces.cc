@@ -6,7 +6,7 @@ namespace engine_interfaces {
 StateID StateIDMap<bisimulation::QuotientState>::get_state_id(
     const bisimulation::QuotientState& s) const
 {
-    return s.hash();
+    return s;
 }
 
 bisimulation::QuotientState

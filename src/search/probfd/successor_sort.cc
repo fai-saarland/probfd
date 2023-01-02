@@ -1,7 +1,5 @@
 #include "probfd/successor_sort.h"
 
-#include "legacy/global_state.h"
-
 #include "plugin.h"
 
 #include <cassert>
@@ -9,9 +7,9 @@
 namespace probfd {
 namespace engine_interfaces {
 
-void SuccessorSorting<const ProbabilisticOperator*>::operator()(
+void SuccessorSorting<OperatorID>::operator()(
     const StateID& state,
-    const std::vector<const ProbabilisticOperator*>& action_choices,
+    const std::vector<OperatorID>& action_choices,
     std::vector<Distribution<StateID>>& successors)
 {
     return sort(state, action_choices, successors);

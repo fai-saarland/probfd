@@ -2,9 +2,18 @@
 
 #include "probfd/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs.h"
 
+#include "probfd/heuristics/pdbs/subcollections/subcollection_finder_factory.h"
+
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
 #include "probfd/heuristics/pdbs/utils.h"
+
+#include "probfd/task_proxy.h"
+
+#include "probfd/tasks/all_outcomes_determinization.h"
+#include "probfd/tasks/root_task.h"
+
+#include "probfd/task_utils/task_properties.h"
 
 #include "pdbs/utils.h"
 
@@ -19,12 +28,9 @@
 #include "utils/timer.h"
 
 #include "task_utils/causal_graph.h"
+#include "task_utils/sampling.h"
 
-#include "legacy/sampling.h"
-#include "legacy/state_registry.h"
-
-#include "legacy/global_state.h"
-#include "legacy/globals.h"
+#include "state_registry.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -49,13 +55,15 @@ namespace pattern_selection {
    utils::Exception. */
 class HillClimbingTimeout {};
 
-static std::vector<int> get_goal_variables()
+static std::vector<int> get_goal_variables(const TaskBaseProxy& task_proxy)
 {
     std::vector<int> goal_vars;
-    for (const auto& g : legacy::g_goal) {
-        goal_vars.push_back(g.first);
+    GoalsProxy goals = task_proxy.get_goals();
+    goal_vars.reserve(goals.size());
+    for (FactProxy goal : goals) {
+        goal_vars.push_back(goal.get_variable().get_id());
     }
-    std::sort(goal_vars.begin(), goal_vars.end());
+    assert(utils::is_sorted_unique(goal_vars));
     return goal_vars;
 }
 
@@ -90,17 +98,22 @@ static std::vector<int> get_goal_variables()
   This method precomputes all variables which satisfy conditions 1. or
   2. for a given neighbour variable already in the pattern.
 */
-static std::vector<std::vector<int>> compute_relevant_neighbours()
+static std::vector<std::vector<int>>
+compute_relevant_neighbours(const ProbabilisticTask* task)
 {
-    const causal_graph::CausalGraph& causal_graph = *legacy::g_causal_graph;
-    const std::vector<int> goal_vars = get_goal_variables();
+    const AbstractTask& determinization =
+        task_properties::get_determinization(task);
+    TaskProxy task_proxy(determinization);
+    const causal_graph::CausalGraph& causal_graph =
+        task_proxy.get_causal_graph();
+    const std::vector<int> goal_vars = get_goal_variables(task_proxy);
 
     std::vector<std::vector<int>> connected_vars_by_variable;
-    connected_vars_by_variable.reserve(legacy::g_variable_domain.size());
+    VariablesProxy variables = task_proxy.get_variables();
+    connected_vars_by_variable.reserve(variables.size());
+    for (VariableProxy var : variables) {
+        int var_id = var.get_id();
 
-    const int num_variables =
-        static_cast<int>(legacy::g_variable_domain.size());
-    for (int var_id = 0; var_id < num_variables; ++var_id) {
         // Consider variables connected backwards via pre->eff arcs.
         const std::vector<int>& pre_to_eff_predecessors =
             causal_graph.get_eff_to_pre(var_id);
@@ -109,16 +122,25 @@ static std::vector<std::vector<int>> compute_relevant_neighbours()
         // pre->eff arcs.
         const std::vector<int>& causal_graph_successors =
             causal_graph.get_successors(var_id);
-
-        std::vector<int> relevant_neighbours =
-            utils::set_intersection(causal_graph_successors, goal_vars);
+        std::vector<int> goal_variable_successors;
+        set_intersection(
+            causal_graph_successors.begin(),
+            causal_graph_successors.end(),
+            goal_vars.begin(),
+            goal_vars.end(),
+            back_inserter(goal_variable_successors));
 
         // Combine relevant goal and non-goal variables.
-        utils::insert_set(relevant_neighbours, pre_to_eff_predecessors);
+        std::vector<int> relevant_neighbours;
+        set_union(
+            pre_to_eff_predecessors.begin(),
+            pre_to_eff_predecessors.end(),
+            goal_variable_successors.begin(),
+            goal_variable_successors.end(),
+            back_inserter(relevant_neighbours));
 
-        connected_vars_by_variable.push_back(move(relevant_neighbours));
+        connected_vars_by_variable.push_back(std::move(relevant_neighbours));
     }
-
     return connected_vars_by_variable;
 }
 
@@ -146,8 +168,9 @@ PatternCollectionGeneratorHillclimbing<
     , initial_generator(
           opts.get<std::shared_ptr<PatternCollectionGenerator<PDBType>>>(
               "initial_generator"))
-    , subcollection_finder(opts.get<std::shared_ptr<SubCollectionFinder>>(
-          "subcollection_finder"))
+    , subcollection_finder_factory(
+          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+              "subcollection_finder_factory"))
     , pdb_max_size(opts.get<int>("pdb_max_size"))
     , collection_max_size(opts.get<int>("collection_max_size"))
     , num_samples(opts.get<int>("num_samples"))
@@ -155,18 +178,19 @@ PatternCollectionGeneratorHillclimbing<
     , max_time(opts.get<double>("max_time"))
     , rng(utils::parse_rng_from_options(opts))
     , num_rejected(0)
-    , cost_type(opts.get<OperatorCost>("cost_type"))
 {
 }
 
 template <typename PDBType>
 int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
+    const ProbabilisticTaskProxy& task_proxy,
     utils::CountdownTimer& hill_climbing_timer,
     const std::vector<std::vector<int>>& relevant_neighbours,
     const PDBType& pdb,
     std::set<Pattern>& generated_patterns,
     PPDBCollection<PDBType>& candidate_pdbs)
 {
+    const VariablesProxy variables = task_proxy.get_variables();
     const Pattern& pattern = pdb.get_pattern();
     int pdb_size = pdb.num_states();
     int max_pdb_size = 0;
@@ -186,7 +210,7 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
                 throw HillClimbingTimeout();
             }
 
-            int rel_var_size = legacy::g_variable_domain[rel_var_id];
+            int rel_var_size = variables[rel_var_id].get_domain_size();
             if (utils::is_product_within_limit(
                     pdb_size,
                     rel_var_size,
@@ -201,7 +225,7 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
                       surpass the size limit.
                     */
                     auto& new_pdb = candidate_pdbs.emplace_back(
-                        new PDBType(pdb, rel_var_id));
+                        new PDBType(task_proxy, pdb, rel_var_id));
                     generated_patterns.insert(new_pattern);
                     max_pdb_size =
                         std::max(max_pdb_size, (int)new_pdb->num_states());
@@ -218,15 +242,15 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
 template <typename PDBType>
 void PatternCollectionGeneratorHillclimbing<PDBType>::sample_states(
     utils::CountdownTimer& hill_climbing_timer,
-    const legacy::sampling::RandomWalkSampler& sampler,
+    const sampling::RandomWalkSampler& sampler,
     value_t init_h,
-    std::vector<legacy::GlobalState>& samples)
+    std::vector<State>& samples)
 {
     assert(samples.empty());
 
     samples.reserve(num_samples);
     for (int i = 0; i < num_samples; ++i) {
-        auto f = [this](const legacy::GlobalState& state) {
+        auto f = [this](const State& state) {
             return current_pdbs->is_dead_end(state);
         };
 
@@ -246,7 +270,7 @@ template <typename PDBType>
 std::pair<int, int>
 PatternCollectionGeneratorHillclimbing<PDBType>::find_best_improving_pdb(
     utils::CountdownTimer& hill_climbing_timer,
-    const std::vector<legacy::GlobalState>& samples,
+    const std::vector<State>& samples,
     const std::vector<EvaluationResult>& samples_h_values,
     PPDBCollection<PDBType>& candidate_pdbs)
 {
@@ -294,7 +318,7 @@ PatternCollectionGeneratorHillclimbing<PDBType>::find_best_improving_pdb(
         std::vector<PatternSubCollection> pattern_subcollections =
             current_pdbs->get_pattern_subcollections(pdb->get_pattern());
         for (int sample_id = 0; sample_id < num_samples; ++sample_id) {
-            const legacy::GlobalState& sample = samples[sample_id];
+            const State& sample = samples[sample_id];
             assert(utils::in_bounds(sample_id, samples_h_values));
             EvaluationResult h_collection = samples_h_values[sample_id];
             if (is_heuristic_improved(
@@ -324,7 +348,7 @@ PatternCollectionGeneratorHillclimbing<PDBType>::find_best_improving_pdb(
 template <typename PDBType>
 bool PatternCollectionGeneratorHillclimbing<PDBType>::is_heuristic_improved(
     const PDBType& pdb,
-    const legacy::GlobalState& sample,
+    const State& sample,
     EvaluationResult h_collection_eval,
     const PPDBCollection<PDBType>& pdbs,
     const std::vector<PatternSubCollection>& pattern_subcollections)
@@ -368,12 +392,15 @@ bool PatternCollectionGeneratorHillclimbing<PDBType>::is_heuristic_improved(
 }
 
 template <typename PDBType>
-void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing()
+void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing(
+    const ProbabilisticTask* task,
+    const ProbabilisticTaskProxy& task_proxy)
 {
     int num_iterations = 0;
     utils::CountdownTimer hill_climbing_timer(max_time);
 
-    const PatternCollection relevant_neighbours = compute_relevant_neighbours();
+    const PatternCollection relevant_neighbours =
+        compute_relevant_neighbours(task);
 
     // Candidate patterns generated so far (used to avoid duplicates).
     std::set<Pattern> generated_patterns;
@@ -386,6 +413,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing()
     try {
         for (const auto& current_pdb : *current_pdbs->get_pattern_databases()) {
             int new_max_pdb_size = generate_candidate_pdbs(
+                task_proxy,
                 hill_climbing_timer,
                 relevant_neighbours,
                 *current_pdb,
@@ -402,11 +430,14 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing()
             std::cout << "Done calculating initial candidate PDBs" << std::endl;
         }
 
-        legacy::StateRegistry state_registry;
-        legacy::GlobalState initial_state = state_registry.get_initial_state();
+        StateRegistry state_registry(task_proxy);
+        State initial_state = state_registry.get_initial_state();
 
-        legacy::sampling::RandomWalkSampler sampler(state_registry, *rng);
-        std::vector<legacy::GlobalState> samples;
+        const AbstractTask& aod = task_properties::get_determinization(task);
+        TaskProxy aod_task_proxy(aod);
+
+        sampling::RandomWalkSampler sampler(aod_task_proxy, *rng);
+        std::vector<State> samples;
         std::vector<EvaluationResult> samples_h_values;
 
         while (true) {
@@ -467,6 +498,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing()
 
             // Generate candidate patterns and PDBs for next iteration.
             int new_max_pdb_size = generate_candidate_pdbs(
+                task_proxy,
                 hill_climbing_timer,
                 relevant_neighbours,
                 *best_pdb,
@@ -506,10 +538,8 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing()
 template <typename PDBType>
 PatternCollectionInformation<PDBType>
 PatternCollectionGeneratorHillclimbing<PDBType>::generate(
-    OperatorCost cost_type)
+    const std::shared_ptr<ProbabilisticTask>& task)
 {
-    this->cost_type = cost_type;
-
     utils::Timer timer;
 
     if (verbosity >= Verbosity::NORMAL) {
@@ -520,8 +550,14 @@ PatternCollectionGeneratorHillclimbing<PDBType>::generate(
     // Generate initial collection
     assert(initial_generator);
 
-    auto collection = initial_generator->generate(cost_type);
+    ProbabilisticTaskProxy task_proxy(*task);
+
+    auto collection = initial_generator->generate(task);
+    std::shared_ptr<SubCollectionFinder> subcollection_finder =
+        subcollection_finder_factory->create_subcollection_finder(task_proxy);
+
     current_pdbs = std::make_unique<IncrementalPPDBs<PDBType>>(
+        task_proxy,
         collection,
         subcollection_finder);
 
@@ -530,9 +566,10 @@ PatternCollectionGeneratorHillclimbing<PDBType>::generate(
                   << std::endl;
     }
 
-    legacy::GlobalState initial_state = legacy::g_initial_state();
+    const State initial_state = task_proxy.get_initial_state();
+    initial_state.unpack();
     if (!current_pdbs->is_dead_end(initial_state) && max_time > 0) {
-        hill_climbing();
+        hill_climbing(task.get(), task_proxy);
     }
 
     PatternCollectionInformation<PDBType> pci =
@@ -577,10 +614,10 @@ void add_hillclimbing_common_options(OptionParser& parser)
 {
     utils::add_log_options_to_parser(parser);
 
-    parser.add_option<std::shared_ptr<SubCollectionFinder>>(
-        "subcollection_finder",
-        "The subcollection finder.",
-        "finder_max_orthogonality()");
+    parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+        "subcollection_finder_factory",
+        "The subcollection finder factory.",
+        "finder_max_orthogonality_factory()");
 
     parser.add_option<int>(
         "pdb_max_size",
@@ -614,7 +651,6 @@ void add_hillclimbing_common_options(OptionParser& parser)
         "spent for pruning dominated patterns.",
         "infinity",
         Bounds("0.0", "infinity"));
-    add_cost_type_option_to_parser(parser);
     utils::add_rng_options(parser);
 }
 

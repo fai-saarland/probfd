@@ -1,21 +1,17 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_PATTERN_COLLECTION_GENERATOR_CEGAR_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_CEGAR_PATTERN_COLLECTION_GENERATOR_CEGAR_H
 
-#include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
-
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/types.h"
-
+#include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/globals.h"
-#include "probfd/probabilistic_operator.h"
+
+#include "probfd/task_proxy.h"
 
 #include "options/options.h"
 
 #include "utils/logging.h"
 #include "utils/rng.h"
-
-#include "legacy/global_state.h"
 
 #include <string>
 #include <unordered_set>
@@ -32,10 +28,15 @@ class CountdownTimer;
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
+class SubCollectionFinderFactory;
+
 namespace pattern_selection {
 
 template <typename PDBType>
 class AbstractSolutionData;
+
+template <typename PDBType>
+class FlawFindingStrategyFactory;
 
 template <typename PDBType>
 class FlawFindingStrategy;
@@ -56,10 +57,10 @@ class PatternCollectionGeneratorCegar
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     // Subcollection finder
-    std::shared_ptr<SubCollectionFinder> subcollection_finder;
+    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // Flaw finding strategy
-    std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy;
+    std::shared_ptr<FlawFindingStrategyFactory<PDBType>> flaw_strategy_factory;
 
     // behavior defining parameters
     const bool wildcard;
@@ -104,8 +105,10 @@ public:
 
     PatternCollectionGeneratorCegar(
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        std::shared_ptr<SubCollectionFinder> subcollection_finder,
-        std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_finder,
+        std::shared_ptr<SubCollectionFinderFactory>
+            subcollection_finder_factory,
+        std::shared_ptr<FlawFindingStrategyFactory<PDBType>>
+            flaw_strategy_factory,
         bool wildcard,
         int arg_max_refinements,
         int arg_max_pdb_size,
@@ -122,11 +125,12 @@ public:
     virtual ~PatternCollectionGeneratorCegar() = default;
 
     PatternCollectionInformation<PDBType>
-    generate(OperatorCost cost_type) override;
+    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 
 private:
     void print_collection() const;
-    void generate_trivial_solution_collection();
+    void generate_trivial_solution_collection(
+        const ProbabilisticTaskProxy& task_proxy);
     bool time_limit_reached(const utils::CountdownTimer& timer) const;
     bool termination_conditions_met(
         const utils::CountdownTimer& timer,
@@ -141,21 +145,46 @@ private:
       The second element of the returned pair is a list of variables
       that caused the solution to fail.
      */
-    FlawList apply_policy(int solution_index, const ExplicitGState& init);
-    FlawList get_flaws();
+    FlawList apply_policy(
+        FlawFindingStrategy<PDBType>& flaw_strategy,
+        int solution_index,
+        std::vector<int>& state);
+    void get_flaws(
+        FlawFindingStrategy<PDBType>& flaw_strategy,
+        const State& initial_state,
+        FlawList& flaws);
 
     // Methods related to refining (and adding patterns to the collection
     // generally).
     void update_goals(int added_var);
-    bool can_add_singleton_pattern(int var) const;
-    void add_pattern_for_var(int var);
-    void handle_goal_violation(const Flaw& flaw);
+    bool
+    can_add_singleton_pattern(const VariablesProxy& variables, int var) const;
+    void add_pattern_for_var(const ProbabilisticTaskProxy& task_proxy, int var);
+    void handle_goal_violation(
+        const ProbabilisticTaskProxy& task_proxy,
+        const VariablesProxy& variables,
+        const Flaw& flaw);
     bool can_merge_patterns(int index1, int index2) const;
-    void merge_patterns(int index1, int index2);
-    bool can_add_variable_to_pattern(int index, int var) const;
-    void add_variable_to_pattern(int index, int var);
-    void handle_precondition_violation(const Flaw& flaw);
-    void refine(const FlawList& flaws);
+    void merge_patterns(
+        const ProbabilisticTaskProxy& task_proxy,
+        int index1,
+        int index2);
+    bool can_add_variable_to_pattern(
+        const VariablesProxy& variables,
+        int index,
+        int var) const;
+    void add_variable_to_pattern(
+        const ProbabilisticTaskProxy& task_proxy,
+        int index,
+        int var);
+    void handle_precondition_violation(
+        const ProbabilisticTaskProxy& task_proxy,
+        const VariablesProxy& variables,
+        const Flaw& flaw);
+    void refine(
+        const ProbabilisticTaskProxy& task_proxy,
+        const VariablesProxy& variables,
+        const FlawList& flaws);
 };
 
 template <typename PDBType>

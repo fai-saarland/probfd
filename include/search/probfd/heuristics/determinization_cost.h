@@ -5,9 +5,7 @@
 
 #include <memory>
 
-namespace legacy {
-class Heuristic;
-}
+class Evaluator;
 
 namespace options {
 class Options;
@@ -25,7 +23,7 @@ namespace heuristics {
  * heuristic is also admissible/heuristic.
  */
 class DeterminizationCostHeuristic : public GlobalStateEvaluator {
-    std::shared_ptr<legacy::Heuristic> heuristic_;
+    std::shared_ptr<Evaluator> evaluator_;
 
 public:
     /**
@@ -41,8 +39,7 @@ public:
      *
      * @param heuristic - The classical heuristic.
      */
-    explicit DeterminizationCostHeuristic(
-        std::shared_ptr<legacy::Heuristic> heuristic);
+    explicit DeterminizationCostHeuristic(std::shared_ptr<Evaluator> heuristic);
 
     ~DeterminizationCostHeuristic() override;
 
@@ -51,7 +48,7 @@ public:
     void print_statistics() const override;
 
 protected:
-    EvaluationResult evaluate(const legacy::GlobalState& state) const override;
+    EvaluationResult evaluate(const State& state) const override;
 };
 
 } // namespace heuristics

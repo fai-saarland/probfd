@@ -1,8 +1,5 @@
 #include "probfd/heuristics/occupation_measure/occupation_measure_heuristic.h"
 
-#include "legacy/global_operator.h"
-#include "legacy/globals.h"
-
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -11,9 +8,6 @@
 
 #include "probfd/analysis_objectives/expected_cost_objective.h"
 #include "probfd/analysis_objectives/goal_probability_objective.h"
-
-#include "probfd/globals.h"
-#include "probfd/probabilistic_operator.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -282,8 +276,8 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     std::cout << "Finished POM LP setup after " << timer << std::endl;
 }
 
-EvaluationResult ProjectionOccupationMeasureHeuristic::evaluate(
-    const legacy::GlobalState& state) const
+EvaluationResult
+ProjectionOccupationMeasureHeuristic::evaluate(const State& state) const
 {
     using namespace analysis_objectives;
 
@@ -291,7 +285,7 @@ EvaluationResult ProjectionOccupationMeasureHeuristic::evaluate(
 
     // Set to initial state in LP
     for (size_t var = 0; var < num_variables; ++var) {
-        const std::size_t index = offset_[var] + state[var];
+        const std::size_t index = offset_[var] + state[var].get_value();
         lp_solver_.set_constraint_upper_bound(index, 1.0);
     }
 
@@ -315,7 +309,7 @@ EvaluationResult ProjectionOccupationMeasureHeuristic::evaluate(
     }
 
     for (size_t var = 0; var < num_variables; ++var) {
-        const std::size_t index = offset_[var] + state[var];
+        const std::size_t index = offset_[var] + state[var].get_value();
         lp_solver_.set_constraint_upper_bound(index, 0.0);
     }
 

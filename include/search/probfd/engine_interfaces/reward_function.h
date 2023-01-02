@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINE_INTERACES_REWARD_FUNCTION_H
-#define MDPS_ENGINE_INTERACES_REWARD_FUNCTION_H
+#ifndef MDPS_ENGINE_INTERFACES_REWARD_FUNCTION_H
+#define MDPS_ENGINE_INTERFACES_REWARD_FUNCTION_H
 
 #include "probfd/types.h"
 #include "probfd/value_type.h"
@@ -46,12 +46,12 @@ namespace engine_interfaces {
  *
  * ```
 class MaxProbStateReward :
-public RewardFunction<GlobalState, const ProbabilisticOperator*>
+public RewardFunction<State, OperatorID>
 {
 protected:
     StateReward evaluate(const GlobalState& state) override
     {
-        bool is_goal = ::test_goal(state);
+        bool is_goal = ...;
 
         // Receive a reward in goal states, no reward otherwise.
         return is_goal ?
@@ -59,9 +59,7 @@ protected:
             StateReward(false, value_type::zero);
     }
 
-    StateReward evaluate(
-        const GlobalState& state,
-        const ProbabilisticOperator* const& action) override
+    StateReward evaluate(const State& state, OperatorID) override
     {
         // Actions do not give a reward.
         return 0;

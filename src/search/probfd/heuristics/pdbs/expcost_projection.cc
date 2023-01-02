@@ -9,13 +9,9 @@
 #include "probfd/utils/graph_visualization.h"
 #include "probfd/utils/logging.h"
 
-#include "probfd/globals.h"
-
 #include "pdbs/pattern_database.h"
 
 #include "utils/collections.h"
-
-#include "legacy/successor_generator.h"
 
 #include "lp/lp_solver.h"
 
@@ -56,44 +52,38 @@ public:
 using namespace value_utils;
 
 ExpCostProjection::ExpCostProjection(
+    const ProbabilisticTaskProxy& task_proxy,
     const Pattern& variables,
-    const std::vector<int>& domains,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
     : ExpCostProjection(
-          new StateRankingFunction(variables, domains),
+          task_proxy,
+          new StateRankingFunction(task_proxy, variables),
           operator_pruning,
           heuristic)
 {
 }
 
 ExpCostProjection::ExpCostProjection(
-    StateRankingFunction* mapper,
-    bool operator_pruning,
-    const StateRankEvaluator& heuristic)
-    : ProbabilisticProjection(mapper, operator_pruning, -value_type::inf)
-{
-    compute_value_table(heuristic);
-}
-
-ExpCostProjection::ExpCostProjection(
+    const ProbabilisticTaskProxy& task_proxy,
     const ::pdbs::PatternDatabase& pdb,
     bool operator_pruning)
     : ExpCostProjection(
+          task_proxy,
           pdb.get_pattern(),
-          legacy::g_variable_domain,
           operator_pruning,
           PDBEvaluator(pdb))
 {
 }
 
 ExpCostProjection::ExpCostProjection(
+    const ProbabilisticTaskProxy& task_proxy,
     const ExpCostProjection& pdb,
     int add_var,
     bool operator_pruning)
     : ProbabilisticProjection(
+          task_proxy,
           utils::insert(pdb.get_pattern(), add_var),
-          legacy::g_variable_domain,
           operator_pruning,
           -value_type::inf)
 {
@@ -101,7 +91,21 @@ ExpCostProjection::ExpCostProjection(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
 }
 
-EvaluationResult ExpCostProjection::evaluate(const legacy::GlobalState& s) const
+ExpCostProjection::ExpCostProjection(
+    const ProbabilisticTaskProxy& task_proxy,
+    StateRankingFunction* mapper,
+    bool operator_pruning,
+    const StateRankEvaluator& heuristic)
+    : ProbabilisticProjection(
+          task_proxy,
+          mapper,
+          operator_pruning,
+          -value_type::inf)
+{
+    compute_value_table(heuristic);
+}
+
+EvaluationResult ExpCostProjection::evaluate(const State& s) const
 {
     return evaluate(get_abstract_state(s));
 }

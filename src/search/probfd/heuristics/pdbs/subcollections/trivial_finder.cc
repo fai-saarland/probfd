@@ -30,15 +30,6 @@ TrivialFinder::compute_subcollections_with_pattern(
     return {}; // There are no cliques.
 }
 
-static std::shared_ptr<TrivialFinder> _parse(OptionParser& parser)
-{
-    if (parser.dry_run()) return nullptr;
-
-    return std::make_shared<TrivialFinder>();
-}
-
-static Plugin<SubCollectionFinder> _plugin("finder_trivial", _parse);
-
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd

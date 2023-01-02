@@ -2,8 +2,6 @@
 
 #include "probfd/analysis_objectives/analysis_objective.h"
 
-#include "probfd/globals.h"
-
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -21,10 +19,10 @@ _parse(options::OptionParser& parser)
         return nullptr;
     }
     if (opts.contains("value")) {
-        return std::make_shared<ConstantEvaluator<legacy::GlobalState>>(
+        return std::make_shared<ConstantEvaluator<State>>(
             value_type::from_double(opts.get<double>("value")));
     } else {
-        return std::make_shared<ConstantEvaluator<legacy::GlobalState>>(
+        return std::make_shared<ConstantEvaluator<State>>(
             g_analysis_objective->reward_bound().upper);
     }
 }

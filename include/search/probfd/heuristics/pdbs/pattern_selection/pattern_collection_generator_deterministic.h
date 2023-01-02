@@ -15,25 +15,25 @@ class OptionParser;
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
+class SubCollectionFinderFactory;
 namespace pattern_selection {
 
 template <class PDBType>
 class PatternCollectionGeneratorDeterministic
     : public PatternCollectionGenerator<PDBType> {
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen;
-    std::shared_ptr<SubCollectionFinder> finder;
+    std::shared_ptr<SubCollectionFinderFactory> finder_factory;
 
     PatternCollectionGeneratorDeterministic(
         std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-        std::shared_ptr<SubCollectionFinder> finder);
+        std::shared_ptr<SubCollectionFinderFactory> finder);
 
 public:
-    PatternCollectionGeneratorDeterministic(options::Options& opts);
+    PatternCollectionGeneratorDeterministic(const options::Options& opts);
+    ~PatternCollectionGeneratorDeterministic() override = default;
 
-    virtual ~PatternCollectionGeneratorDeterministic() override = default;
-
-    virtual PatternCollectionInformation<PDBType>
-    generate(OperatorCost cost_type) override;
+    PatternCollectionInformation<PDBType>
+    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 
     std::shared_ptr<utils::Printable> get_report() const override;
 };

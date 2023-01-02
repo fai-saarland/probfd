@@ -47,8 +47,7 @@ public:
         return name_;
     }
 
-    virtual engines::MDPEngineInterface<legacy::GlobalState>*
-    create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         return this->template heuristic_search_engine_factory<Engine>(
             labeling_,
