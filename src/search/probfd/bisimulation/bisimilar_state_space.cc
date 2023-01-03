@@ -12,8 +12,13 @@
 #include "merge_and_shrink/distances.h"
 #include "merge_and_shrink/factored_transition_system.h"
 #include "merge_and_shrink/label_equivalence_relation.h"
+#include "merge_and_shrink/label_reduction.h"
 #include "merge_and_shrink/merge_and_shrink_algorithm.h"
 #include "merge_and_shrink/merge_and_shrink_representation.h"
+#include "merge_and_shrink/merge_strategy_factory_precomputed.h"
+#include "merge_and_shrink/merge_tree.h"
+#include "merge_and_shrink/merge_tree_factory_linear.h"
+#include "merge_and_shrink/shrink_bisimulation.h"
 #include "merge_and_shrink/transition_system.h"
 
 #include "utils/hash.h"
@@ -45,8 +50,91 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
     std::cout << "Computing all-outcomes determinization bisimulation..."
               << std::endl;
 
-    options::Options opts;
-    // TODO add options
+    // Construct a linear merge tree
+    options::Options merge_tree_options;
+    merge_tree_options.set<int>("random_seed", -1);
+    merge_tree_options.set<utils::Verbosity>(
+        "verbosity",
+        utils::Verbosity::SILENT);
+    merge_tree_options.set<merge_and_shrink::UpdateOption>(
+        "update_option",
+        merge_and_shrink::UpdateOption::USE_FIRST);
+    merge_tree_options.set<variable_order_finder::VariableOrderType>(
+        "variable_order",
+        variable_order_finder::VariableOrderType::LEVEL);
+
+    std::shared_ptr<MergeTreeFactory> linear_merge_tree_factory(
+        new MergeTreeFactoryLinear(merge_tree_options));
+
+    // Construct the merge strategy factory
+    options::Options merge_strategy_opts;
+    merge_strategy_opts.set<utils::Verbosity>(
+        "verbosity",
+        utils::Verbosity::SILENT);
+    merge_strategy_opts.set<std::shared_ptr<MergeTreeFactory>>(
+        "merge_tree",
+        linear_merge_tree_factory);
+
+    std::shared_ptr<MergeStrategyFactory> merge_strategy_factory(
+        new MergeStrategyFactoryPrecomputed(merge_strategy_opts));
+
+    // Construct a bisimulation-based shrinking strategy
+    options::Options opts_bisim;
+    opts_bisim.set<bool>("greedy", false);
+    opts_bisim.set<AtLimit>("at_limit", AtLimit::RETURN);
+
+    std::shared_ptr<ShrinkStrategy> shrinking(
+        new ShrinkBisimulation(opts_bisim));
+
+    /*
+    options::Options opts_label_reduction;
+    opts_label_reduction.set<bool>("before_shrinking", true);
+    opts_label_reduction.set<bool>("before_merging", false);
+    opts_label_reduction.set<LabelReductionMethod>(
+        "method",
+        LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT);
+    opts_label_reduction.set<LabelReductionSystemOrder>(
+        "system_order",
+        LabelReductionSystemOrder::REGULAR);
+    opts_label_reduction.set<int>("random_seed", -1);
+
+    std::shared_ptr<LabelReduction> label_reduction(
+        new LabelReduction(opts_label_reduction));
+    */
+
+    // Finally, set MnS algorithm options (no label reduction)
+    options::Options opts_algorithm;
+
+    opts_algorithm.set<utils::Verbosity>("verbosity", utils::Verbosity::SILENT);
+
+    opts_algorithm.set<std::shared_ptr<MergeStrategyFactory>>(
+        "merge_strategy",
+        merge_strategy_factory);
+
+    opts_algorithm.set<std::shared_ptr<ShrinkStrategy>>(
+        "shrink_strategy",
+        shrinking);
+
+    /*
+    opts_algorithm.set<std::shared_ptr<LabelReduction>>(
+        "label_reduction",
+        label_reduction);
+    */
+
+    opts_algorithm.set<bool>("prune_unreachable_states", true);
+    opts_algorithm.set<bool>("prune_irrelevant_states", true);
+
+    opts_algorithm.set<double>(
+        "main_loop_max_time",
+        std::numeric_limits<double>::infinity());
+
+    opts_algorithm.set<int>("max_states", std::numeric_limits<int>::max());
+    opts_algorithm.set<int>(
+        "max_states_before_merge",
+        std::numeric_limits<int>::max());
+    opts_algorithm.set<int>(
+        "threshold_before_merge",
+        std::numeric_limits<int>::max());
 
     num_cached_transitions_ = 0;
 
@@ -55,16 +143,19 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
 
     TaskProxy det_task_proxy(determinization);
 
-    MergeAndShrinkAlgorithm mns_algorithm(opts);
+    MergeAndShrinkAlgorithm mns_algorithm(opts_algorithm);
     this->fts_.reset(new FactoredTransitionSystem(
         mns_algorithm.build_factored_transition_system(det_task_proxy)));
 
     std::cout << "AOD-bisimulation was constructed in " << timer << std::endl;
     timer.reset();
 
-    if (fts_->is_factor_solvable(0)) {
-        assert(fts_->get_size() == 1);
-        abstraction_ = &fts_->get_transition_system(0);
+    assert(fts_->get_num_active_entries() == 1);
+
+    const size_t last_index = fts_->get_size() - 1;
+
+    if (fts_->is_factor_solvable(last_index)) {
+        abstraction_ = &fts_->get_transition_system(last_index);
 
         transitions_.resize(
             abstraction_->get_size(),
@@ -103,11 +194,13 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
 
         for (GroupAndTransitions grouped_transitions : *abstraction_) {
             LabelGroup label_group = grouped_transitions.label_group;
-            assert(std::distance(label_group.begin(), label_group.end()) == 1);
-            const int g_op_id = *label_group.begin();
-            for (const Transition& trans : grouped_transitions.transitions) {
-                std::vector<CachedTransition>& ts = transitions_[trans.src];
-                if (trans.target != PRUNED_STATE && trans.target != trans.src) {
+            for (const int g_op_id : label_group) {
+                for (const Transition& trans :
+                     grouped_transitions.transitions) {
+                    std::vector<CachedTransition>& ts = transitions_[trans.src];
+                    assert(trans.target != PRUNED_STATE);
+                    // if (trans.target != PRUNED_STATE &&
+                    //     trans.target != trans.src) {
                     const auto& op = g_to_p[g_op_id];
 
                     CachedTransition* t = nullptr;
@@ -131,11 +224,12 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
                     }
 
                     t->successors[op.second] = trans.target;
+                    //}
                 }
             }
         }
 
-        auto factor_info = fts_->extract_factor(0);
+        auto factor_info = fts_->extract_factor(last_index);
         std::unique_ptr<MergeAndShrinkRepresentation> state_mapping =
             std::move(factor_info.first);
         distances_ = std::move(factor_info.second);

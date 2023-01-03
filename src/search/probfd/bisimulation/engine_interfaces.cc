@@ -84,7 +84,7 @@ EvaluationResult DefaultQuotientStateEvaluator::evaluate(
         return EvaluationResult(true, bound_.lower);
     }
     if (bisim_->is_goal_state(s)) {
-        return EvaluationResult(true, bound_.upper);
+        return EvaluationResult(false, bound_.upper);
     }
     return EvaluationResult(false, default_);
 }
@@ -103,7 +103,7 @@ TerminationInfo
 DefaultQuotientRewardFunction::evaluate(const bisimulation::QuotientState& s)
 {
     if (bisim_->is_dead_end(s)) {
-        return TerminationInfo(true, bound_.lower);
+        return TerminationInfo(false, bound_.lower);
     }
     if (bisim_->is_goal_state(s)) {
         return TerminationInfo(true, bound_.upper);

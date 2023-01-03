@@ -72,7 +72,8 @@ public:
         TransitionGenerator<QAction> tgen(&bs);
         bisimulation::DefaultQuotientRewardFunction reward(
             &bs,
-            g_analysis_objective->reward_bound());
+            g_analysis_objective->reward_bound(),
+            -value_type::inf);
 
         stats.timer.stop();
         stats.states = bs.num_bisimilar_states();
