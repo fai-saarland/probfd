@@ -693,6 +693,22 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME POTENTIALS
+    HELP "Plugin containing the code for potential heuristics"
+    SOURCES
+        potentials/diverse_potential_heuristics
+        potentials/plugin_group
+        potentials/potential_function
+        potentials/potential_heuristic
+        potentials/potential_max_heuristic
+        potentials/potential_optimizer
+        potentials/sample_based_potential_heuristics
+        potentials/single_potential_heuristics
+        potentials/util
+    DEPENDS LP_SOLVER SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES
+)
+
+fast_downward_plugin(
     NAME SCCS
     HELP "Algorithm to compute the strongly connected components (SCCs) of a "
          "directed graph."
