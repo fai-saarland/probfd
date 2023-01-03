@@ -574,6 +574,29 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME CEGAR
+    HELP "Plugin containing the code for CEGAR heuristics"
+    SOURCES
+        cegar/abstraction
+        cegar/abstract_search
+        cegar/abstract_state
+        cegar/additive_cartesian_heuristic
+        cegar/cartesian_heuristic_function
+        cegar/cartesian_set
+        cegar/cegar
+        cegar/cost_saturation
+        cegar/refinement_hierarchy
+        cegar/split_selector
+        cegar/subtask_generators
+        cegar/transition
+        cegar/transition_system
+        cegar/types
+        cegar/utils
+        cegar/utils_landmarks
+    DEPENDS ADDITIVE_HEURISTIC DYNAMIC_BITSET EXTRA_TASKS LANDMARKS PRIORITY_QUEUES TASK_PROPERTIES
+)
+
+fast_downward_plugin(
     NAME MAS_HEURISTIC
     HELP "The Merge-and-Shrink heuristic"
     SOURCES

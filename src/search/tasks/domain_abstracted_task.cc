@@ -14,10 +14,10 @@ namespace extra_tasks {
 static bool has_conditional_effects(const AbstractTask &task) {
     int num_ops = task.get_num_operators();
     for (int op_index = 0; op_index < num_ops; ++op_index) {
-        int num_effs = task.get_num_operator_effects(op_index, false);
+        int num_effs = task.get_num_operator_effects(op_index);
         for (int eff_index = 0; eff_index < num_effs; ++eff_index) {
             int num_conditions = task.get_num_operator_effect_conditions(
-                op_index, eff_index, false);
+                op_index, eff_index);
             if (num_conditions > 0) {
                 return true;
             }

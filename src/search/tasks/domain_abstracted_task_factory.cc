@@ -3,7 +3,6 @@
 #include "tasks/domain_abstracted_task.h"
 
 #include "task_utils/task_properties.h"
-#include "utils/language.h"
 
 #include <sstream>
 #include <string>
@@ -52,7 +51,7 @@ DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
         assert(utils::in_bounds(var, domain_size));
         for (const ValueGroup &group : groups) {
             for (int value : group) {
-                utils::unused_variable(value);
+                (void) value;
                 assert(0 <= value && value < domain_size[var]);
             }
         }
@@ -107,7 +106,7 @@ void DomainAbstractedTaskFactory::combine_values(int var, const ValueGroups &gro
     vector<string> combined_fact_names;
     unordered_set<int> groups_union;
     int num_merged_values = 0;
-    utils::unused_variable(num_merged_values);
+    (void) num_merged_values;
     for (const ValueGroup &group : groups) {
         combined_fact_names.push_back(get_combined_fact_name(var, group));
         groups_union.insert(group.begin(), group.end());

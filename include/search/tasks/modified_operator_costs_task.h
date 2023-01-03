@@ -15,7 +15,7 @@ public:
         std::vector<int> &&costs);
     virtual ~ModifiedOperatorCostsTask() override = default;
 
-    virtual int get_operator_cost(int index, bool is_axiom) const override;
+    virtual int get_operator_cost(int index) const override;
 };
 }
 
