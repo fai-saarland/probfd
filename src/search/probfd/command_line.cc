@@ -211,7 +211,6 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             ++i;
         } else if (arg == "--maxprob") {
             expected_cost = false;
-            ++i;
         } else if (active) {
             // We use the unsanitized arguments because sanitizing is
             // inappropriate for things like filenames.
