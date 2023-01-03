@@ -311,6 +311,63 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME NULL_PRUNING_METHOD
+    HELP "Pruning method that does nothing"
+    SOURCES
+        pruning/null_pruning_method
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
+    NAME LIMITED_PRUNING
+    HELP "Method for limiting another pruning method"
+    SOURCES
+        pruning/limited_pruning
+)
+
+fast_downward_plugin(
+    NAME STUBBORN_SETS
+    HELP "Base class for all stubborn set partial order reduction methods"
+    SOURCES
+        pruning/stubborn_sets
+    DEPENDS TASK_PROPERTIES
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
+    NAME STUBBORN_SETS_ACTION_CENTRIC
+    HELP "Base class for all action-centric stubborn set partial order reduction methods"
+    SOURCES
+        pruning/stubborn_sets_action_centric
+    DEPENDS STUBBORN_SETS
+    DEPENDENCY_ONLY
+)
+
+fast_downward_plugin(
+    NAME STUBBORN_SETS_ATOM_CENTRIC
+    HELP "Atom-centric stubborn sets"
+    SOURCES
+        pruning/stubborn_sets_atom_centric
+    DEPENDS STUBBORN_SETS
+)
+
+fast_downward_plugin(
+    NAME STUBBORN_SETS_SIMPLE
+    HELP "Stubborn sets simple"
+    SOURCES
+        pruning/stubborn_sets_simple
+    DEPENDS STUBBORN_SETS_ACTION_CENTRIC
+)
+
+fast_downward_plugin(
+    NAME STUBBORN_SETS_EC
+    HELP "Stubborn set method that dominates expansion core"
+    SOURCES
+        pruning/stubborn_sets_ec
+    DEPENDS STUBBORN_SETS_ACTION_CENTRIC TASK_PROPERTIES
+)
+
+fast_downward_plugin(
     NAME SEARCH_COMMON
     HELP "Basic classes used for all search engines"
     SOURCES
