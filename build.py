@@ -118,7 +118,7 @@ def try_run(cmd, cwd):
 def build(config_name, cmake_parameters, make_parameters):
     print("Building configuration {config_name}.".format(**locals()))
     build_path = get_build_path(config_name)
-    rel_src_path = os.path.relpath(get_src_path(), build_path)
+    rel_root_path = os.path.relpath(get_project_root_path(), build_path)
     try:
         os.makedirs(build_path)
     except OSError as exc:
@@ -127,7 +127,8 @@ def build(config_name, cmake_parameters, make_parameters):
         else:
             raise
 
-    try_run([CMAKE, "-G", CMAKE_GENERATOR] + cmake_parameters + [rel_src_path],
+    try_run([CMAKE, "-G", CMAKE_GENERATOR] + cmake_parameters +
+            [rel_root_path],
             cwd=build_path)
     try_run([MAKE] + make_parameters, cwd=build_path)
 

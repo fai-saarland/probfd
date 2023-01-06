@@ -35,11 +35,11 @@ find_program(CMAKE_C_COMPILER NAMES $ENV{CC} gcc PATHS ENV PATH NO_DEFAULT_PATH)
 find_program(CMAKE_CXX_COMPILER NAMES $ENV{CXX} g++ PATHS ENV PATH NO_DEFAULT_PATH)
 
 # Path containing custom CMake modules
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(FastDownwardMacros)
 
 fast_downward_default_to_release_build()
-project(fast-downward)
+project(probfd)
 fast_downward_report_bitwidth()
 # Due to a bug in cmake, configuration types are only set up correctly on the second cmake run.
 # This means that cmake has to be called twice for multi-config generators like Visual Studio.
@@ -62,8 +62,8 @@ mark_as_advanced(DOWNWARD_CXX_COMPILER_ID DOWNWARD_CXX_COMPILER_VERSION)
 add_custom_target(translate ALL)
 add_custom_command(TARGET translate POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/translate
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/translate
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/translate
     COMMENT "Copying translator module into output directory")
 
-add_subdirectory(search)
+add_subdirectory(src/search)

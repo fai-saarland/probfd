@@ -11,7 +11,6 @@ endif()
 
 ## == Project ==
 
-project(downward)
 cmake_policy(SET CMP0074 NEW)
 
 fast_downward_set_compiler_flags()
@@ -19,14 +18,15 @@ fast_downward_set_linker_flags()
 #add_definitions(-Wfatal-errors)
 
 # Collect source files needed for the active plugins.
-include("${CMAKE_CURRENT_SOURCE_DIR}/DownwardFiles.cmake")
+include(DownwardFiles)
+
 add_executable(downward ${PLANNER_SOURCES})
 
 ## == Includes ==
 
 include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/search
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include/search/ext)
+    ${PROJECT_SOURCE_DIR}/include/search
+    ${PROJECT_SOURCE_DIR}/include/search/ext)
 
 ## == Libraries ==
 
