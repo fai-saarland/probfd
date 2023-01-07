@@ -9,6 +9,8 @@
 namespace probfd {
 namespace engine_interfaces {
 
+class HeuristicSearchInterface;
+
 /**
  * @brief Function object used to sort the possible successors of a transition
  * in the MDP model.
@@ -26,7 +28,8 @@ public:
     virtual void sort(
         const StateID& state,
         const std::vector<Action>& aops,
-        std::vector<Distribution<StateID>>& successors) = 0;
+        std::vector<Distribution<StateID>>& successors,
+        HeuristicSearchInterface& hs_interface) = 0;
 };
 
 } // namespace engine_interfaces

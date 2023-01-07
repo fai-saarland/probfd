@@ -1,5 +1,7 @@
 #include "probfd/transition_sampler/vbiased_successor_sampler.h"
 
+#include "probfd/engine_interfaces/heuristic_search_interface.h"
+
 #include "utils/rng.h"
 #include "utils/rng_options.h"
 
@@ -19,12 +21,13 @@ VBiasedSuccessorSampler::VBiasedSuccessorSampler(
 StateID VBiasedSuccessorSampler::sample(
     const StateID&,
     const OperatorID&,
-    const Distribution<StateID>& successors)
+    const Distribution<StateID>& successors,
+    engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
     biased_.clear();
     value_type::value_t sum = 0;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
-        const auto p = it->probability * connector_->lookup_value(it->element);
+        const auto p = it->probability * hs_interface.lookup_value(it->element);
         if (p > value_type::zero) {
             sum += p;
             biased_.add(it->element, p);

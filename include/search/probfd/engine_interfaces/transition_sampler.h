@@ -9,6 +9,8 @@
 namespace probfd {
 namespace engine_interfaces {
 
+class HeuristicSearchInterface;
+
 /**
  * @brief Function object used to sample a possible successor state for the
  * given source state, applied action and successor distribution.
@@ -23,9 +25,10 @@ public:
     StateID operator()(
         const StateID& state,
         const Action& op,
-        const Distribution<StateID>& transition)
+        const Distribution<StateID>& transition,
+        HeuristicSearchInterface& hs_interface)
     {
-        return this->sample(state, op, transition);
+        return this->sample(state, op, transition, hs_interface);
     }
 
     virtual void print_statistics(std::ostream&) const {}
@@ -34,7 +37,8 @@ protected:
     virtual StateID sample(
         const StateID& state,
         const Action& op,
-        const Distribution<StateID>& transition) = 0;
+        const Distribution<StateID>& transition,
+        HeuristicSearchInterface& hs_interface) = 0;
 };
 
 } // namespace engine_interfaces

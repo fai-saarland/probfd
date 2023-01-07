@@ -13,7 +13,8 @@ protected:
         const StateID&,
         const ActionID&,
         const std::vector<Action>&,
-        const std::vector<Distribution<StateID>>&) override
+        const std::vector<Distribution<StateID>>&,
+        engine_interfaces::HeuristicSearchInterface&) override
     {
         return 0;
     }

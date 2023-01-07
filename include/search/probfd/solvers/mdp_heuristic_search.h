@@ -3,7 +3,6 @@
 
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engine_interfaces/heuristic_search_connector.h"
 #include "probfd/engine_interfaces/new_state_handler.h"
 #include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/engine_interfaces/policy_picker.h"
@@ -43,8 +42,6 @@ public:
     virtual void print_additional_statistics() const override;
 
 protected:
-    engine_interfaces::HeuristicSearchConnector connector_;
-
     std::shared_ptr<TaskPolicyPicker> policy_tiebreaker_;
     std::shared_ptr<TaskNewStateHandler> new_state_handler_;
     std::shared_ptr<TaskStateEvaluator> heuristic_;
@@ -74,7 +71,6 @@ public:
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
-                &connector_,
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
@@ -85,7 +81,6 @@ public:
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
-                &connector_,
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
@@ -193,7 +188,6 @@ public:
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
-                &connector_,
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
@@ -208,7 +202,6 @@ public:
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
-                &connector_,
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
@@ -267,7 +260,6 @@ private:
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
             heuristic_.get(),
-            &connector_,
             &progress_,
             interval_comparison_,
             stable_policy_,

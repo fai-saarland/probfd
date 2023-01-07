@@ -76,12 +76,6 @@ struct PerStateBaseInformation
     value_utils::IncumbentSolution<TwoValuesT> value;
 };
 
-class PerStateInformationLookup {
-public:
-    virtual ~PerStateInformationLookup() = default;
-    virtual const void* lookup(const StateID& state_id) = 0;
-};
-
 } // namespace heuristic_search
 } // namespace engines
 } // namespace probfd

@@ -16,7 +16,8 @@ int OperatorIdTiebreaker::pick(
     const StateID&,
     const ActionID&,
     const std::vector<OperatorID>& choices,
-    const std::vector<Distribution<StateID>>&)
+    const std::vector<Distribution<StateID>>&,
+    engine_interfaces::HeuristicSearchInterface&)
 {
     int min_id = std::numeric_limits<int>::max();
     unsigned min_idx = -1;

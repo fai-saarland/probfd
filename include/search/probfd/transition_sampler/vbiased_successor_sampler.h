@@ -1,7 +1,6 @@
 #ifndef PROBFD_TRANSITION_SAMPLER_VBIASED_SUCCESSOR_SAMPLER_H
 #define PROBFD_TRANSITION_SAMPLER_VBIASED_SUCCESSOR_SAMPLER_H
 
-#include "probfd/engine_interfaces/heuristic_search_connector.h"
 #include "probfd/engine_interfaces/transition_sampler.h"
 
 #include "probfd/utils/distribution_random_sampler.h"
@@ -17,7 +16,6 @@ namespace probfd {
 namespace transition_sampler {
 
 class VBiasedSuccessorSampler : public TaskTransitionSampler {
-    engine_interfaces::HeuristicSearchConnector* connector_;
     Distribution<StateID> biased_;
     distribution_random_sampler::DistributionRandomSampler sampler_;
 
@@ -29,7 +27,8 @@ protected:
     virtual StateID sample(
         const StateID& state,
         const OperatorID& op,
-        const Distribution<StateID>& successors) override;
+        const Distribution<StateID>& successors,
+        engine_interfaces::HeuristicSearchInterface& hs_interface) override;
 };
 
 } // namespace transition_sampler

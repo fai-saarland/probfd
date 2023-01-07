@@ -7,6 +7,8 @@
 namespace probfd {
 namespace engine_interfaces {
 
+class HeuristicSearchInterface;
+
 /**
  * @brief Interface specifying a strategy to choose a greedy action for a state
  * in case of ties.
@@ -61,13 +63,15 @@ public:
         const StateID& state_id,
         const ActionID& previous_greedy_id,
         const std::vector<Action>& greedy_action_candidates,
-        const std::vector<Distribution<StateID>>& candidate_successors)
+        const std::vector<Distribution<StateID>>& candidate_successors,
+        HeuristicSearchInterface& hs_interface)
     {
         return this->pick(
             state_id,
             previous_greedy_id,
             greedy_action_candidates,
-            candidate_successors);
+            candidate_successors,
+            hs_interface);
     }
 
     virtual void print_statistics(std::ostream&) {}
@@ -77,7 +81,8 @@ protected:
         const StateID&,
         const ActionID&,
         const std::vector<Action>&,
-        const std::vector<Distribution<StateID>>&) = 0;
+        const std::vector<Distribution<StateID>>&,
+        HeuristicSearchInterface&) = 0;
 };
 
 } // namespace engine_interfaces

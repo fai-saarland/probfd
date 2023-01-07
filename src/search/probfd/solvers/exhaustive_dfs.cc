@@ -42,7 +42,6 @@ public:
                   ? opts.get<std::shared_ptr<TaskSuccessorSorterFactory>>(
                             "order")
                         ->create_successor_sorter(
-                            &this->connector_,
                             this->get_state_id_map(),
                             this->get_action_id_map())
                   : nullptr)
@@ -101,7 +100,6 @@ public:
     {
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
-                &connector_,
                 reward_bound_,
                 heuristic_.get(),
                 reevaluate_,
@@ -113,7 +111,6 @@ public:
                 &progress_);
         } else {
             return this->template engine_factory<Engine>(
-                &connector_,
                 reward_bound_,
                 heuristic_.get(),
                 reevaluate_,
@@ -127,8 +124,6 @@ public:
     }
 
 private:
-    HeuristicSearchConnector connector_;
-
     const value_utils::IntervalValue reward_bound_;
 
     std::shared_ptr<TaskNewStateHandlerList> new_state_handler_;

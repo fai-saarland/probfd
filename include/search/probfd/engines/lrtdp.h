@@ -169,7 +169,6 @@ public:
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         engine_interfaces::StateEvaluator<State>* value_init,
-        engine_interfaces::HeuristicSearchConnector* connector,
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy,
@@ -183,7 +182,6 @@ public:
               policy_chooser,
               new_state_handler,
               value_init,
-              connector,
               report,
               interval_comparison,
               stable_policy)
@@ -291,7 +289,8 @@ private:
             this->current_trial_.push_back(sample_->operator()(
                 state_id,
                 this->get_policy(state_id),
-                this->selected_transition_));
+                this->selected_transition_,
+                *this));
             this->selected_transition_.clear();
         }
 

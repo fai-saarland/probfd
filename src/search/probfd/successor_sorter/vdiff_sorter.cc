@@ -1,22 +1,20 @@
 #include "probfd/successor_sorter/vdiff_sorter.h"
 
-#include "probfd/engines/heuristic_search_state_information.h"
+#include "probfd/engine_interfaces/heuristic_search_interface.h"
 
 namespace probfd {
 namespace successor_sorting {
 
-VDiffSorter::VDiffSorter(
-    engine_interfaces::HeuristicSearchConnector* connector,
-    const value_type::value_t favor_large_gaps)
-    : connector_(connector)
-    , favor_large_gaps_(favor_large_gaps)
+VDiffSorter::VDiffSorter(const value_type::value_t favor_large_gaps)
+    : favor_large_gaps_(favor_large_gaps)
 {
 }
 
 void VDiffSorter::sort(
     const StateID&,
     const std::vector<OperatorID>&,
-    std::vector<Distribution<StateID>>& successors)
+    std::vector<Distribution<StateID>>& successors,
+    engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
     std::vector<std::pair<double, unsigned>> k0;
     k0.reserve(successors.size());
@@ -29,7 +27,7 @@ void VDiffSorter::sort(
             k1.emplace_back(
                 std::abs(
                     favor_large_gaps_ *
-                    connector_->lookup_dual_bounds(suc.element)->error_bound()),
+                    hs_interface.lookup_dual_bounds(suc.element).error_bound()),
                 j);
             sum += suc.probability * k1.back().first;
         }

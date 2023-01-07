@@ -5,7 +5,7 @@
 
 #include "probfd/engines/heuristic_search_state_information.h"
 
-#include "probfd/engine_interfaces/heuristic_search_connector.h"
+#include "probfd/engine_interfaces/heuristic_search_interface.h"
 #include "probfd/engine_interfaces/new_state_handler.h"
 #include "probfd/engine_interfaces/successor_sorter.h"
 
@@ -16,6 +16,7 @@
 #include "probfd/progress_report.h"
 #include "probfd/value_utils.h"
 
+#include "utils/system.h"
 #include "utils/timer.h"
 
 #include <cassert>
@@ -113,7 +114,7 @@ update_lower_bound(value_utils::IntervalValue& x, value_type::value_t v)
 template <typename State, typename Action, typename DualBounds>
 class ExhaustiveDepthFirstSearch
     : public MDPEngine<State, Action>
-    , public heuristic_search::PerStateInformationLookup {
+    , public engine_interfaces::HeuristicSearchInterface {
     using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
 
     struct SearchNodeInformation {
@@ -173,7 +174,6 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
-        engine_interfaces::HeuristicSearchConnector* connector,
         value_utils::IntervalValue reward_bound,
         engine_interfaces::StateEvaluator<State>* evaluator,
         bool reevaluate,
@@ -200,12 +200,36 @@ public:
         , notify_initial_state_(notify_initial)
         , successor_sort_(successor_sorting)
     {
-        connector->set_lookup_function(this);
     }
 
-    virtual const void* lookup(const StateID& state_id) override
+    engines::heuristic_search::StateFlags&
+    lookup_state_flags(const StateID&) override
     {
-        return &search_space_[state_id];
+        ABORT("Exhaustive DFS does not store state flags.");
+    }
+
+    value_type::value_t lookup_value(const StateID& state_id) override
+    {
+        if constexpr (DualBounds::value) {
+            return search_space_[state_id].value.upper;
+        } else {
+            return search_space_[state_id].value;
+        }
+    }
+
+    value_utils::IntervalValue
+    lookup_dual_bounds(const StateID& state_id) override
+    {
+        if constexpr (!DualBounds::value) {
+            ABORT("Search algorithm does not support interval bounds!");
+        } else {
+            return search_space_[state_id].value;
+        }
+    }
+
+    ActionID lookup_policy(const StateID&) override
+    {
+        ABORT("Search algorithm does not store policy information!");
     }
 
     virtual value_type::value_t solve(const State& state) override
@@ -372,7 +396,7 @@ private:
         statistics_.expanded++;
 
         if (successor_sort_ != nullptr) {
-            successor_sort_->sort(state_id, aops, successors);
+            successor_sort_->sort(state_id, aops, successors, *this);
         }
 
         expansion_infos_.emplace_back(stack_infos_.size(), neighbors_.size());

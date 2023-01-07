@@ -396,7 +396,8 @@ private:
             const StateID,
             const ActionID,
             const std::vector<QAction>&,
-            const std::vector<Distribution<StateID>>& transitions)
+            const std::vector<Distribution<StateID>>& transitions,
+            engine_interfaces::HeuristicSearchInterface&)
         {
             for (const auto& transition : transitions) {
                 for (const StateID& sid : transition.elements()) {

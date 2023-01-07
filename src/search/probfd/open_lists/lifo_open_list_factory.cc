@@ -6,7 +6,6 @@ namespace open_lists {
 
 std::shared_ptr<engine_interfaces::OpenList<OperatorID>>
 LifoOpenListFactory::create_open_list(
-    engine_interfaces::HeuristicSearchConnector*,
     engine_interfaces::StateIDMap<State>*,
     engine_interfaces::ActionIDMap<OperatorID>*)
 {

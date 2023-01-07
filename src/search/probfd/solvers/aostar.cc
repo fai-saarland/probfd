@@ -29,7 +29,6 @@ public:
               opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
                       "successor_sampler")
                   ->create_sampler(
-                      &this->connector_,
                       this->get_state_id_map(),
                       this->get_action_id_map())))
     {

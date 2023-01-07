@@ -21,7 +21,8 @@ UniformSuccessorSampler::UniformSuccessorSampler(
 StateID UniformSuccessorSampler::sample(
     const StateID&,
     const OperatorID&,
-    const Distribution<StateID>& successors)
+    const Distribution<StateID>& successors,
+    engine_interfaces::HeuristicSearchInterface&)
 {
     return sampler_(successors);
 }

@@ -17,7 +17,8 @@ int RandomTiebreaker::pick(
     const StateID&,
     const ActionID&,
     const std::vector<OperatorID>& options,
-    const std::vector<Distribution<StateID>>&)
+    const std::vector<Distribution<StateID>>&,
+    engine_interfaces::HeuristicSearchInterface&)
 {
     return rng->random(options.size());
 }

@@ -28,7 +28,8 @@ public:
         const StateID& state,
         const ActionID& prev_policy,
         const std::vector<QuotientAction>& action_choices,
-        const std::vector<Distribution<StateID>>& successors)
+        const std::vector<Distribution<StateID>>& successors,
+        HeuristicSearchInterface& hs_interface)
     {
         const ActionID oprev =
             (prev_policy == ActionID::undefined
@@ -40,7 +41,8 @@ public:
             choices_.push_back(
                 quotient_->get_original_action(state, action_choices[i]));
         }
-        return original_->operator()(state, oprev, choices_, successors);
+        return original_->
+        operator()(state, oprev, choices_, successors, hs_interface);
     }
 
     std::shared_ptr<PolicyPicker<OperatorID>> real() const { return original_; }
@@ -67,10 +69,11 @@ public:
     StateID operator()(
         const StateID& state,
         const QuotientAction& action,
-        const Distribution<StateID>& transition)
+        const Distribution<StateID>& transition,
+        HeuristicSearchInterface& hs_interface)
     {
         const OperatorID op_id = quotient_->get_original_action(state, action);
-        return original_->operator()(state, op_id, transition);
+        return original_->operator()(state, op_id, transition, hs_interface);
     }
 
     std::shared_ptr<TransitionSampler<OperatorID>> real() const

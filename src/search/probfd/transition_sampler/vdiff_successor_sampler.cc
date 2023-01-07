@@ -1,6 +1,6 @@
 #include "probfd/transition_sampler/vdiff_successor_sampler.h"
 
-#include "probfd/engines/heuristic_search_state_information.h"
+#include "probfd/engine_interfaces/heuristic_search_interface.h"
 
 #include "utils/rng.h"
 #include "utils/rng_options.h"
@@ -22,13 +22,14 @@ VDiffSuccessorSampler::VDiffSuccessorSampler(
 StateID VDiffSuccessorSampler::sample(
     const StateID&,
     const OperatorID&,
-    const Distribution<StateID>& successors)
+    const Distribution<StateID>& successors,
+    engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
     biased_.clear();
     value_type::value_t sum = 0;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
         const value_type::value_t error =
-            connector_->lookup_dual_bounds(it->element)->error_bound();
+            hs_interface.lookup_dual_bounds(it->element).error_bound();
         const value_type::value_t p =
             it->probability *
             (prefer_large_gaps_ ? error : (value_type::one - error));

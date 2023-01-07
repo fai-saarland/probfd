@@ -26,7 +26,6 @@ public:
 
     std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>>
     create_policy_tiebreaker(
-        engine_interfaces::HeuristicSearchConnector* connector,
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<OperatorID>* op_id_map) override;
 };

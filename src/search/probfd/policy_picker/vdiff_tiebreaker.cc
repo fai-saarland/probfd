@@ -1,15 +1,12 @@
 #include "probfd/policy_picker/vdiff_tiebreaker.h"
 
-#include "probfd/engines/heuristic_search_state_information.h"
+#include "probfd/engine_interfaces/heuristic_search_interface.h"
 
 namespace probfd {
 namespace policy_tiebreaking {
 
-VDiffTiebreaker::VDiffTiebreaker(
-    engine_interfaces::HeuristicSearchConnector* connector,
-    value_type::value_t favor_large_gaps)
-    : connector_(connector)
-    , favor_large_gaps_(favor_large_gaps)
+VDiffTiebreaker::VDiffTiebreaker(value_type::value_t favor_large_gaps)
+    : favor_large_gaps_(favor_large_gaps)
 {
 }
 
@@ -17,7 +14,8 @@ int VDiffTiebreaker::pick(
     const StateID&,
     const ActionID&,
     const std::vector<OperatorID>&,
-    const std::vector<Distribution<StateID>>& successors)
+    const std::vector<Distribution<StateID>>& successors,
+    engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
     value_type::value_t best = value_type::inf;
     unsigned choice = 1;
@@ -25,8 +23,8 @@ int VDiffTiebreaker::pick(
         const Distribution<StateID>& t = successors[i];
         value_type::value_t sum = value_type::zero;
         for (auto it = t.begin(); it != t.end(); ++it) {
-            const auto& value = connector_->lookup_dual_bounds(it->element);
-            sum += it->probability * value->error_bound();
+            auto value = hs_interface.lookup_dual_bounds(it->element);
+            sum += it->probability * value.error_bound();
         }
         if (value_type::approx_less()(favor_large_gaps_ * sum, best)) {
             best = sum;

@@ -13,12 +13,10 @@ using namespace engine_interfaces;
 
 MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
     : MDPSolver(opts)
-    , connector_()
     , policy_tiebreaker_(
           opts.contains("policy")
               ? opts.get<std::shared_ptr<TaskPolicyPickerFactory>>("policy")
                     ->create_policy_tiebreaker(
-                        &connector_,
                         this->get_state_id_map(),
                         this->get_action_id_map())
               : nullptr)

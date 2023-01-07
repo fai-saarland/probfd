@@ -62,7 +62,6 @@ public:
     static BisimulationBasedHeuristicSearchEngine* Constructor(
         const DualValues&,
         const std::string& engine_name,
-        engine_interfaces::HeuristicSearchConnector& con,
         ProgressReport& progress,
         bool interval,
         bool stable_policy,
@@ -78,7 +77,6 @@ public:
             res->policy_.get(),
             &res->new_state_handler_,
             res->heuristic_.get(),
-            &con,
             &progress,
             interval,
             stable_policy,
@@ -174,7 +172,6 @@ public:
     static QBisimulationBasedHeuristicSearchEngine* QConstructor(
         const DualValues&,
         const std::string& engine_name,
-        engine_interfaces::HeuristicSearchConnector& con,
         ProgressReport& progress,
         bool interval,
         bool stable_policy,
@@ -189,7 +186,6 @@ public:
                 res->q_policy_tiebreaker_.get(),
                 &res->new_state_handler_,
                 res->heuristic_.get(),
-                &con,
                 &progress,
                 interval,
                 stable_policy,
@@ -213,7 +209,6 @@ public:
     static QBisimulationBasedHeuristicSearchEngine* Constructor(
         const DualValues&,
         const std::string& engine_name,
-        engine_interfaces::HeuristicSearchConnector& con,
         ProgressReport& progress,
         bool interval,
         bool stable_policy,
@@ -229,7 +224,6 @@ public:
             res->q_policy_tiebreaker_.get(),
             &res->new_state_handler_,
             res->heuristic_.get(),
-            &con,
             &progress,
             interval,
             stable_policy,
@@ -307,7 +301,6 @@ public:
                 HS>(
                 std::true_type(),
                 this->get_heuristic_search_name(),
-                this->connector_,
                 this->progress_,
                 this->interval_comparison_,
                 this->stable_policy_,
@@ -317,7 +310,6 @@ public:
                 HS>(
                 std::false_type(),
                 this->get_heuristic_search_name(),
-                this->connector_,
                 this->progress_,
                 this->interval_comparison_,
                 this->stable_policy_,
@@ -402,7 +394,6 @@ public:
                 template QConstructor<HS>(
                     std::true_type(),
                     this->get_heuristic_search_name(),
-                    this->connector_,
                     this->progress_,
                     this->interval_comparison_,
                     this->stable_policy_,
@@ -412,7 +403,6 @@ public:
                 template QConstructor<HS>(
                     std::false_type(),
                     this->get_heuristic_search_name(),
-                    this->connector_,
                     this->progress_,
                     this->interval_comparison_,
                     this->stable_policy_,
@@ -462,7 +452,6 @@ private:
             template Constructor<Fret, HS>(
                 DualValues(),
                 this->get_heuristic_search_name(),
-                this->connector_,
                 this->progress_,
                 this->interval_comparison_,
                 this->stable_policy_,

@@ -20,11 +20,10 @@ void VDiffTiebreakerFactory::add_options_to_parser(
 
 std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>>
 VDiffTiebreakerFactory::create_policy_tiebreaker(
-    engine_interfaces::HeuristicSearchConnector* connector,
     engine_interfaces::StateIDMap<State>*,
     engine_interfaces::ActionIDMap<OperatorID>*)
 {
-    return std::make_shared<VDiffTiebreaker>(connector, favor_large_gaps_);
+    return std::make_shared<VDiffTiebreaker>(favor_large_gaps_);
 }
 
 } // namespace policy_tiebreaking

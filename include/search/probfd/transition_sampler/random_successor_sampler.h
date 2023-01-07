@@ -28,7 +28,8 @@ protected:
     StateID sample(
         const StateID&,
         const Action&,
-        const Distribution<StateID>& successors) override
+        const Distribution<StateID>& successors,
+        engine_interfaces::HeuristicSearchInterface&) override
     {
         return sampler_(successors);
     }

@@ -4,7 +4,7 @@
 #include "probfd/engines/engine.h"
 #include "probfd/engines/heuristic_search_state_information.h"
 
-#include "probfd/engine_interfaces/heuristic_search_connector.h"
+#include "probfd/engine_interfaces/heuristic_search_interface.h"
 #include "probfd/engine_interfaces/new_state_handler.h"
 #include "probfd/engine_interfaces/policy_picker.h"
 
@@ -15,8 +15,10 @@
 #include "probfd/progress_report.h"
 #include "probfd/value_utils.h"
 
+#include "utils/system.h"
+
 #if defined(EXPENSIVE_STATISTICS)
-#include "../../utils/timer.h"
+#include "utils/timer.h"
 #endif
 
 #include <cassert>
@@ -128,7 +130,7 @@ struct Statistics : public CoreStatistics {
 template <typename StateT, typename ActionT, typename StateInfoT>
 class HeuristicSearchBase
     : public MDPEngine<StateT, ActionT>
-    , public PerStateInformationLookup {
+    , public engine_interfaces::HeuristicSearchInterface {
 public:
     using State = StateT;
     using Action = ActionT;
@@ -146,7 +148,6 @@ public:
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         engine_interfaces::StateEvaluator<State>* value_init,
-        engine_interfaces::HeuristicSearchConnector* connector,
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy)
@@ -163,7 +164,6 @@ public:
         , on_new_state_(new_state_handler)
     {
         statistics_.state_info_bytes = sizeof(StateInfo);
-        connector->set_lookup_function(this);
     }
 
     virtual ~HeuristicSearchBase() = default;
@@ -197,12 +197,38 @@ public:
         statistics_.print(out);
     }
 
-    /**
-     * @copydoc PerStateInformationLookup::lookup(const StateID&)
-     */
-    virtual const void* lookup(const StateID& state_id) override
+    const engines::heuristic_search::StateFlags&
+    lookup_state_flags(const StateID& state_id) override
     {
-        return &state_infos_[state_id];
+        return state_infos_[state_id];
+    }
+
+    value_type::value_t lookup_value(const StateID& state_id) override
+    {
+        if constexpr (DualBounds::value) {
+            return state_infos_[state_id].value.upper;
+        } else {
+            return state_infos_[state_id].value;
+        }
+    }
+
+    value_utils::IntervalValue
+    lookup_dual_bounds(const StateID& state_id) override
+    {
+        if constexpr (!DualBounds::value) {
+            ABORT("Search algorithm does not support interval bounds!");
+        } else {
+            return state_infos_[state_id].value;
+        }
+    }
+
+    ActionID lookup_policy(const StateID& state_id) override
+    {
+        if constexpr (!StorePolicy::value) {
+            ABORT("Search algorithm does not store policy information!");
+        } else {
+            return state_infos_[state_id].policy;
+        }
     }
 
     /**
@@ -897,7 +923,8 @@ private:
 
         ++statistics_.policy_updates;
 
-        int index = greedy_picker(state_id, previous_greedy, aops, transitions);
+        int index =
+            greedy_picker(state_id, previous_greedy, aops, transitions, *this);
         assert(index < 0 || index < static_cast<int>(aops.size()));
 
         if (index >= 0) {
