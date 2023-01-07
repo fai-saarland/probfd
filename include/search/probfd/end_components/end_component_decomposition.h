@@ -142,7 +142,9 @@ class EndComponentDecomposition {
             engine_interfaces::RewardFunction<State, Action>& rew)
             : stck(stck)
             , lstck(stck)
-            , nz_or_leaves_scc(rew(state_id, aops.back()) != value_type::zero)
+            , nz_or_leaves_scc(
+                  rew.get_action_reward(state_id, aops.back()) !=
+                  value_type::zero)
             , aops(std::move(aops))
             , successors(std::move(successors))
         {
@@ -167,7 +169,8 @@ class EndComponentDecomposition {
 
             if (!aops.empty()) {
                 nz_or_leaves_scc =
-                    rew(state_id, aops.back()) != value_type::zero;
+                    rew.get_action_reward(state_id, aops.back()) !=
+                    value_type::zero;
                 return true;
             }
 
@@ -280,7 +283,7 @@ private:
         state_info.explored = 1;
         State state = state_id_map_->get_state(state_id);
 
-        if (rewards_->operator()(state).is_goal_state()) {
+        if (rewards_->get_termination_info(state).is_goal_state()) {
             ++stats_.terminals;
             ++stats_.goals;
 
@@ -291,13 +294,13 @@ private:
             state_info.expandable_goal = 1;
         } else if (
             pruning_function_ != nullptr &&
-            pruning_function_->operator()(state).is_unsolvable()) {
+            pruning_function_->evaluate(state).is_unsolvable()) {
             ++stats_.terminals;
             return false;
         }
 
         std::vector<Action> aops;
-        transition_gen_->operator()(state_id, aops);
+        transition_gen_->generate_applicable_actions(state_id, aops);
 
         if (aops.empty()) {
             if (expand_goals_ && state_info.expandable_goal) {
@@ -315,7 +318,10 @@ private:
         unsigned non_loop_actions = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
             Distribution<StateID> transition;
-            transition_gen_->operator()(state_id, aops[i], transition);
+            transition_gen_->generate_action_transitions(
+                state_id,
+                aops[i],
+                transition);
 
             std::vector<StateID> succ_ids;
 

@@ -184,7 +184,7 @@ private:
             return false;
         }
 
-        if (prune_ && prune_->operator()(state).is_unsolvable()) {
+        if (prune_ && prune_->evaluate(state).is_unsolvable()) {
             ++statistics_.pruned;
             return false;
         }

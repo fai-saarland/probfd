@@ -380,7 +380,7 @@ private:
         const TerminationInfo state_eval = this->get_state_reward(state);
         const auto t_reward = state_eval.get_reward();
 
-        const EvaluationResult h_eval = value_initializer_->operator()(state);
+        const EvaluationResult h_eval = value_initializer_->evaluate(state);
         const auto estimate = h_eval.get_estimate();
 
         if (state_eval.is_goal_state()) {

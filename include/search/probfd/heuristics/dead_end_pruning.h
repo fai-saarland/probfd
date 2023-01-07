@@ -23,6 +23,10 @@ namespace heuristics {
  * safe.
  */
 class DeadEndPruningHeuristic : public TaskStateEvaluator {
+    const value_type::value_t default_value_;
+    const value_type::value_t dead_end_value_;
+    std::shared_ptr<Evaluator> pruning_function_;
+
 public:
     /**
      * @brief Construct with the given clasical heuristic.
@@ -53,13 +57,7 @@ public:
 
     virtual void print_statistics() const override;
 
-protected:
-    virtual EvaluationResult
-    evaluate(const State& state) const override;
-
-    const value_type::value_t default_value_;
-    const value_type::value_t dead_end_value_;
-    std::shared_ptr<Evaluator> pruning_function_;
+    virtual EvaluationResult evaluate(const State& state) const override;
 };
 
 } // namespace heuristics

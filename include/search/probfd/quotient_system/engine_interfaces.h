@@ -26,15 +26,16 @@ public:
     {
     }
 
-    virtual TerminationInfo evaluate(const State& s) override
+    virtual TerminationInfo get_termination_info(const State& s) override
     {
-        return eval_->operator()(s);
+        return eval_->get_termination_info(s);
     }
 
     virtual value_type::value_t
-    evaluate(StateID s, quotient_system::QuotientAction<Action> qa) override
+    get_action_reward(StateID s, quotient_system::QuotientAction<Action> qa)
+        override
     {
-        return eval_->operator()(
+        return eval_->get_action_reward(
             qa.state_id,
             quotient_->get_original_action(s, qa));
     }
@@ -86,14 +87,14 @@ public:
     {
     }
 
-    void operator()(
+    void generate_applicable_actions(
         const StateID& sid,
         std::vector<quotient_system::QuotientAction<Action>>& res) const
     {
         return quotient_->generate_applicable_ops(sid, res);
     }
 
-    void operator()(
+    void generate_action_transitions(
         const StateID& sid,
         const quotient_system::QuotientAction<Action>& a,
         Distribution<StateID>& res) const
@@ -101,7 +102,7 @@ public:
         quotient_->generate_successors(sid, a, res);
     }
 
-    void operator()(
+    void generate_all_transitions(
         const StateID& sid,
         std::vector<quotient_system::QuotientAction<Action>>& aops,
         std::vector<Distribution<StateID>>& succs) const

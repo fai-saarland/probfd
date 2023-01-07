@@ -102,7 +102,10 @@ struct ExpansionInfo {
     {
         for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
             transition.clear();
-            transition_gen(state_id, aops.back(), transition);
+            transition_gen.generate_action_transitions(
+                state_id,
+                aops.back(),
+                transition);
             transition.make_unique();
 
             if (!transition.is_dirac(state_id)) {
@@ -290,7 +293,7 @@ private:
 
         State state = state_id_map_->get_state(state_id);
 
-        if (rewards_->operator()(state).is_goal_state()) {
+        if (rewards_->get_termination_info(state).is_goal_state()) {
             ++stats_.terminals;
             ++stats_.goals;
             ++stats_.ones;
@@ -307,14 +310,14 @@ private:
             state_info.expandable_goal = 1;
         } else if (
             pruning_function_ != nullptr &&
-            pruning_function_->operator()(state).is_unsolvable()) {
+            pruning_function_->evaluate(state).is_unsolvable()) {
             ++stats_.terminals;
             *zero_states_out = state_id;
             return false;
         }
 
         std::vector<Action> aops;
-        transition_gen_->operator()(state_id, aops);
+        transition_gen_->generate_applicable_actions(state_id, aops);
 
         if (aops.empty()) {
             if (state_info.expandable_goal) {
@@ -331,7 +334,10 @@ private:
         Distribution<StateID> transition;
 
         do {
-            transition_gen_->operator()(state_id, aops.back(), transition);
+            transition_gen_->generate_action_transitions(
+                state_id,
+                aops.back(),
+                transition);
             transition.make_unique();
 
             assert(!transition.empty());

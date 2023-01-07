@@ -43,15 +43,9 @@ class StateEvaluator {
 public:
     virtual ~StateEvaluator() = default;
 
-    EvaluationResult operator()(const State& state) const
-    {
-        return this->evaluate(state);
-    }
+    virtual EvaluationResult evaluate(const State& state) const = 0;
 
     virtual void print_statistics() const {}
-
-protected:
-    virtual EvaluationResult evaluate(const State& state) const = 0;
 };
 
 } // namespace engine_interfaces

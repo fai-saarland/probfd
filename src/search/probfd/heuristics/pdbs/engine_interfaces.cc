@@ -74,7 +74,7 @@ TransitionGenerator<const AbstractOperator*>::TransitionGenerator(
 {
 }
 
-void TransitionGenerator<const AbstractOperator*>::operator()(
+void TransitionGenerator<const AbstractOperator*>::generate_applicable_actions(
     const StateID& sid,
     std::vector<const AbstractOperator*>& aops)
 {
@@ -82,7 +82,7 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
     aops_gen_.get_applicable_operators(abstract_state, aops);
 }
 
-void TransitionGenerator<const AbstractOperator*>::operator()(
+void TransitionGenerator<const AbstractOperator*>::generate_action_transitions(
     const StateID& state,
     const AbstractOperator* op,
     Distribution<StateID>& result)
@@ -94,7 +94,7 @@ void TransitionGenerator<const AbstractOperator*>::operator()(
     }
 }
 
-void TransitionGenerator<const AbstractOperator*>::operator()(
+void TransitionGenerator<const AbstractOperator*>::generate_all_transitions(
     const StateID& state,
     std::vector<const AbstractOperator*>& aops,
     std::vector<Distribution<StateID>>& result)

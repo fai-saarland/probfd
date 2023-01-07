@@ -11,6 +11,8 @@ namespace heuristics {
  */
 template <typename State>
 class ConstantEvaluator : public engine_interfaces::StateEvaluator<State> {
+    const value_type::value_t value_;
+
 public:
     /**
      * @brief Construct with constant estimate \p value .
@@ -20,13 +22,10 @@ public:
     {
     }
 
-protected:
     virtual EvaluationResult evaluate(const State&) const override
     {
         return EvaluationResult(false, value_);
     }
-
-    const value_type::value_t value_;
 };
 
 } // namespace heuristics

@@ -22,8 +22,7 @@ public:
     {
     }
 
-protected:
-    TerminationInfo evaluate(const State& state) override
+    TerminationInfo get_termination_info(const State& state) override
     {
         if (task_properties::is_goal_state(task_proxy, state)) {
             return TerminationInfo(true, value_type::zero);
@@ -32,7 +31,7 @@ protected:
         }
     }
 
-    value_type::value_t evaluate(StateID, OperatorID op) override
+    value_type::value_t get_action_reward(StateID, OperatorID op) override
     {
         return task_proxy.get_operators()[op].get_reward();
     }

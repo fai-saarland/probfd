@@ -124,7 +124,7 @@ public:
      */
     TerminationInfo get_state_reward(const State& s) const
     {
-        return reward_function_->operator()(s);
+        return reward_function_->get_termination_info(s);
     }
 
     /**
@@ -134,7 +134,7 @@ public:
     value_type::value_t
     get_action_reward(const StateID& sid, const Action& a) const
     {
-        return reward_function_->operator()(sid, a);
+        return reward_function_->get_action_reward(sid, a);
     }
 
     /**
@@ -144,7 +144,7 @@ public:
     void
     generate_applicable_ops(const StateID& sid, std::vector<Action>& ops) const
     {
-        transition_generator_->operator()(sid, ops);
+        transition_generator_->generate_applicable_actions(sid, ops);
     }
 
     /**
@@ -156,7 +156,7 @@ public:
         const Action& a,
         Distribution<StateID>& successors) const
     {
-        transition_generator_->operator()(sid, a, successors);
+        transition_generator_->generate_action_transitions(sid, a, successors);
     }
 
     /**
@@ -172,7 +172,7 @@ public:
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors) const
     {
-        transition_generator_->operator()(sid, aops, successors);
+        transition_generator_->generate_all_transitions(sid, aops, successors);
     }
 
     /**

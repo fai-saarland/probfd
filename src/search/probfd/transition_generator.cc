@@ -34,7 +34,7 @@ TransitionGenerator<OperatorID>::TransitionGenerator(
 {
 }
 
-void TransitionGenerator<OperatorID>::operator()(
+void TransitionGenerator<OperatorID>::generate_applicable_actions(
     const StateID& state_id,
     std::vector<OperatorID>& result)
 {
@@ -61,7 +61,7 @@ void TransitionGenerator<OperatorID>::operator()(
     statistics_.generated_operators += result.size();
 }
 
-void TransitionGenerator<OperatorID>::operator()(
+void TransitionGenerator<OperatorID>::generate_action_transitions(
     const StateID& state_id,
     OperatorID op_id,
     Distribution<StateID>& result)
@@ -119,7 +119,7 @@ void TransitionGenerator<OperatorID>::operator()(
     statistics_.generated_states += result.size();
 }
 
-void TransitionGenerator<OperatorID>::operator()(
+void TransitionGenerator<OperatorID>::generate_all_transitions(
     const StateID& state_id,
     std::vector<OperatorID>& aops,
     std::vector<Distribution<StateID>>& successors)

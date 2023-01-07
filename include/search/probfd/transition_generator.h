@@ -92,14 +92,16 @@ public:
             path_dependent_evaluators,
         bool enable_caching);
 
-    void operator()(const StateID& state_id, std::vector<OperatorID>& result);
+    void generate_applicable_actions(
+        const StateID& state_id,
+        std::vector<OperatorID>& result);
 
-    void operator()(
+    void generate_action_transitions(
         const StateID& state,
         OperatorID operator_id,
         Distribution<StateID>& result);
 
-    void operator()(
+    void generate_all_transitions(
         const StateID& state,
         std::vector<OperatorID>& aops,
         std::vector<Distribution<StateID>>& successors);

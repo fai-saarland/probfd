@@ -348,7 +348,7 @@ private:
             return true;
         }
 
-        const EvaluationResult eval = heuristic_->operator()(state);
+        const EvaluationResult eval = heuristic_->evaluate(state);
         if (eval.is_unsolvable()) {
             data.set_terminal(0);
             return true;

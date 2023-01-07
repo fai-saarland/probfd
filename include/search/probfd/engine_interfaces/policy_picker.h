@@ -59,30 +59,14 @@ public:
      *
      * @return An integer specifying the list index of the selected action.
      */
-    int operator()(
+    virtual int pick(
         const StateID& state_id,
         const ActionID& previous_greedy_id,
         const std::vector<Action>& greedy_action_candidates,
         const std::vector<Distribution<StateID>>& candidate_successors,
-        HeuristicSearchInterface& hs_interface)
-    {
-        return this->pick(
-            state_id,
-            previous_greedy_id,
-            greedy_action_candidates,
-            candidate_successors,
-            hs_interface);
-    }
+        HeuristicSearchInterface& hs_interface) = 0;
 
     virtual void print_statistics(std::ostream&) {}
-
-protected:
-    virtual int pick(
-        const StateID&,
-        const ActionID&,
-        const std::vector<Action>&,
-        const std::vector<Distribution<StateID>>&,
-        HeuristicSearchInterface&) = 0;
 };
 
 } // namespace engine_interfaces

@@ -42,7 +42,7 @@ public:
             return EvaluationResult{false, value_type::zero};
         }
 
-        return parent(state);
+        return parent.evaluate(state);
     }
 };
 } // namespace

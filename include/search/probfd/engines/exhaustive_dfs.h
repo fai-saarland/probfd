@@ -285,7 +285,7 @@ private:
     EvaluationResult evaluate(const State& state)
     {
         TIMERS_ENABLED(statistics_.evaluation_started();)
-        const EvaluationResult res = evaluator_->operator()(state);
+        const EvaluationResult res = evaluator_->evaluate(state);
         TIMERS_ENABLED(statistics_.evaluation_finished();)
         return res;
     }

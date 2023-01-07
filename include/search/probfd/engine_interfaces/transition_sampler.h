@@ -22,23 +22,13 @@ class TransitionSampler {
 public:
     virtual ~TransitionSampler() = default;
 
-    StateID operator()(
-        const StateID& state,
-        const Action& op,
-        const Distribution<StateID>& transition,
-        HeuristicSearchInterface& hs_interface)
-    {
-        return this->sample(state, op, transition, hs_interface);
-    }
-
-    virtual void print_statistics(std::ostream&) const {}
-
-protected:
     virtual StateID sample(
         const StateID& state,
         const Action& op,
         const Distribution<StateID>& transition,
         HeuristicSearchInterface& hs_interface) = 0;
+
+    virtual void print_statistics(std::ostream&) const {}
 };
 
 } // namespace engine_interfaces

@@ -128,7 +128,7 @@ public:
         {
             // initialize lp
             const EvaluationResult eval =
-                value_initializer_->operator()(initial_state);
+                value_initializer_->evaluate(initial_state);
             const auto estimate = eval.get_estimate();
             if (eval.is_unsolvable()) {
                 objective_ = estimate;
@@ -212,7 +212,7 @@ public:
 
                             State succ_state = this->lookup_state(succ_id);
                             const auto eval =
-                                value_initializer_->operator()(succ_state);
+                                value_initializer_->evaluate(succ_state);
                             const auto value = eval.get_estimate();
 
                             if (eval.is_unsolvable()) {

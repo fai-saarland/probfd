@@ -79,16 +79,16 @@ public:
         StateIDMap<heuristics::pdbs::StateRank>& id_map,
         const heuristics::pdbs::MatchTree& aops_gen);
 
-    void operator()(
+    void generate_applicable_actions(
         const StateID& state,
         std::vector<const heuristics::pdbs::AbstractOperator*>& aops);
 
-    void operator()(
+    void generate_action_transitions(
         const StateID& state,
         const heuristics::pdbs::AbstractOperator* op,
         Distribution<StateID>& result);
 
-    void operator()(
+    void generate_all_transitions(
         const StateID& state,
         std::vector<const heuristics::pdbs::AbstractOperator*>& aops,
         std::vector<Distribution<StateID>>& result);
@@ -116,7 +116,6 @@ class PDBEvaluator : public StateRankEvaluator {
 public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
-protected:
     EvaluationResult evaluate(const StateRank& state) const override;
 
 private:
@@ -127,7 +126,6 @@ class DeadendPDBEvaluator : public StateRankEvaluator {
 public:
     explicit DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
-protected:
     EvaluationResult evaluate(const StateRank& state) const override;
 
 private:
@@ -158,7 +156,6 @@ public:
         const StateRankingFunction* mapper,
         int add_var);
 
-protected:
     EvaluationResult evaluate(const StateRank& state) const override;
 };
 
@@ -179,8 +176,7 @@ public:
     {
     }
 
-protected:
-    TerminationInfo evaluate(const StateRank& state) override
+    TerminationInfo get_termination_info(const StateRank& state) override
     {
         const bool is_contained = goal_state_flags_[state.id];
         return TerminationInfo(
@@ -193,8 +189,8 @@ class ZeroCostAbstractRewardFunction : public BaseAbstractRewardFunction {
 public:
     using BaseAbstractRewardFunction::BaseAbstractRewardFunction;
 
-protected:
-    value_type::value_t evaluate(StateID, const AbstractOperator*) override
+    value_type::value_t
+    get_action_reward(StateID, const AbstractOperator*) override
     {
         return 0;
     }
@@ -204,8 +200,8 @@ class NormalCostAbstractRewardFunction : public BaseAbstractRewardFunction {
 public:
     using BaseAbstractRewardFunction::BaseAbstractRewardFunction;
 
-protected:
-    value_type::value_t evaluate(StateID, const AbstractOperator* op) override
+    value_type::value_t
+    get_action_reward(StateID, const AbstractOperator* op) override
     {
         return op->reward;
     }

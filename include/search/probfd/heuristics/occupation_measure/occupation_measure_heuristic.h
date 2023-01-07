@@ -24,6 +24,10 @@ namespace occupation_measure_heuristic {
  * \cite trevizan:etal:icaps-17 .
  */
 class ProjectionOccupationMeasureHeuristic : public TaskDependentHeuristic {
+    mutable lp::LPSolver lp_solver_;
+    std::vector<int> offset_;
+    bool is_maxprob_;
+
 public:
     /**
      * @brief Construct from options.
@@ -44,12 +48,7 @@ public:
 
     static void add_options_to_parser(options::OptionParser& parser);
 
-protected:
     virtual EvaluationResult evaluate(const State& state) const override;
-
-    mutable lp::LPSolver lp_solver_;
-    std::vector<int> offset_;
-    bool is_maxprob_;
 };
 
 } // namespace occupation_measure_heuristic

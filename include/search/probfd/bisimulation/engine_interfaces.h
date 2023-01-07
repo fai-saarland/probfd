@@ -26,25 +26,28 @@ struct ActionIDMap<bisimulation::QuotientAction> {
     ActionID get_action_id(
         const StateID& state_id,
         const bisimulation::QuotientAction& action) const;
+
     bisimulation::QuotientAction
     get_action(const StateID& state_id, const ActionID& action) const;
 };
 
 template <>
 struct TransitionGenerator<bisimulation::QuotientAction> {
+    bisimulation::BisimilarStateSpace* bisim_;
+
     explicit TransitionGenerator(bisimulation::BisimilarStateSpace* bisim);
-    void operator()(
+
+    void generate_applicable_actions(
         const StateID& state,
         std::vector<bisimulation::QuotientAction>& result) const;
-    void operator()(
+    void generate_action_transitions(
         const StateID& state,
         const bisimulation::QuotientAction& action,
         Distribution<StateID>& result) const;
-    void operator()(
+    void generate_all_transitions(
         const StateID& state,
         std::vector<bisimulation::QuotientAction>& aops,
         std::vector<Distribution<StateID>>& result) const;
-    bisimulation::BisimilarStateSpace* bisim_;
 };
 } // namespace engine_interfaces
 
@@ -56,6 +59,10 @@ using QuotientStateEvaluator =
     engine_interfaces::StateEvaluator<bisimulation::QuotientState>;
 
 struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
+    bisimulation::BisimilarStateSpace* bisim_;
+    const value_utils::IntervalValue bound_;
+    const value_type::value_t default_;
+
     explicit DefaultQuotientStateEvaluator(
         bisimulation::BisimilarStateSpace* bisim,
         const value_utils::IntervalValue bound,
@@ -63,26 +70,24 @@ struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
 
     EvaluationResult
     evaluate(const bisimulation::QuotientState& state) const override;
-
-    bisimulation::BisimilarStateSpace* bisim_;
-    const value_utils::IntervalValue bound_;
-    const value_type::value_t default_;
 };
 
 struct DefaultQuotientRewardFunction : public QuotientRewardFunction {
+    bisimulation::BisimilarStateSpace* bisim_;
+    const value_utils::IntervalValue bound_;
+    const value_type::value_t default_;
+
     explicit DefaultQuotientRewardFunction(
         bisimulation::BisimilarStateSpace* bisim,
         const value_utils::IntervalValue bound,
         value_type::value_t default_value = 0);
 
-    TerminationInfo evaluate(const bisimulation::QuotientState& state) override;
+    TerminationInfo
+    get_termination_info(const bisimulation::QuotientState& state) override;
 
     value_type::value_t
-    evaluate(StateID state, bisimulation::QuotientAction action) override;
-
-    bisimulation::BisimilarStateSpace* bisim_;
-    const value_utils::IntervalValue bound_;
-    const value_type::value_t default_;
+    get_action_reward(StateID state, bisimulation::QuotientAction action)
+        override;
 };
 
 } // namespace bisimulation

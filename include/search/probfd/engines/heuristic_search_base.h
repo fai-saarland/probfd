@@ -684,7 +684,7 @@ private:
                 return;
             }
 
-            EvaluationResult estimate = value_initializer_->operator()(state);
+            EvaluationResult estimate = value_initializer_->evaluate(state);
             if (estimate.is_unsolvable()) {
                 statistics_.pruned_states++;
                 notify_dead_end(state_info);
@@ -924,7 +924,8 @@ private:
         ++statistics_.policy_updates;
 
         int index =
-            greedy_picker(state_id, previous_greedy, aops, transitions, *this);
+            greedy_picker
+                .pick(state_id, previous_greedy, aops, transitions, *this);
         assert(index < 0 || index < static_cast<int>(aops.size()));
 
         if (index >= 0) {

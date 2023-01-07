@@ -194,7 +194,7 @@ private:
                     value_type::one / (value_type::one - normalize_factor));
             }
 
-            state = this->outcome_selection_->operator()(
+            state = this->outcome_selection_->sample(
                 state,
                 this->get_policy(state),
                 this->selected_transition_,

@@ -22,8 +22,7 @@ public:
     {
     }
 
-protected:
-    virtual TerminationInfo evaluate(const State& state) override
+    virtual TerminationInfo get_termination_info(const State& state) override
     {
         ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
         if (task_properties::is_goal_state(task_proxy, state)) {
@@ -33,7 +32,7 @@ protected:
         }
     }
 
-    value_type::value_t evaluate(StateID, OperatorID) override
+    value_type::value_t get_action_reward(StateID, OperatorID) override
     {
         return value_type::zero;
     }

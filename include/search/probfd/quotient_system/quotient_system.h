@@ -161,7 +161,7 @@ public:
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
             std::vector<Action> orig;
-            this->transition_gen_->operator()(sid, orig);
+            transition_gen_->generate_applicable_actions(sid, orig);
 
             result.reserve(orig.size());
 
@@ -189,7 +189,7 @@ public:
         const auto act = action_id_map_->get_action(a.state_id, a.action_id);
 
         Distribution<StateID> orig;
-        this->transition_gen_->operator()(a.state_id, act, orig);
+        transition_gen_->generate_action_transitions(a.state_id, act, orig);
 
         for (const auto& [state_id, probability] : orig) {
             result.add(get_masked_state_id(state_id) & MASK, probability);
@@ -204,7 +204,7 @@ public:
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
             std::vector<Action> orig_a;
-            this->transition_gen_->operator()(sid, orig_a);
+            transition_gen_->generate_applicable_actions(sid, orig_a);
 
             aops.reserve(orig_a.size());
             successors.resize(orig_a.size());
@@ -335,7 +335,7 @@ public:
 
             // Generate the applicable actions
             std::vector<Action> gen_aops;
-            transition_gen_->operator()(rid, gen_aops);
+            transition_gen_->generate_applicable_actions(rid, gen_aops);
 
             // Filter actions
             filter_actions(gen_aops, ignore_actions[ridx]);
@@ -396,7 +396,9 @@ public:
 
                 // Generate the applicable actions
                 std::vector<Action> gen_aops;
-                transition_gen_->operator()(state_id, gen_aops);
+                transition_gen_->generate_applicable_actions(
+                    state_id,
+                    gen_aops);
 
                 // Filter actions
                 filter_actions(gen_aops, *ignore_actions);

@@ -91,7 +91,6 @@ public:
 
     void print_statistics() const override;
 
-protected:
     EvaluationResult evaluate(const State& state) const override;
 
 public:

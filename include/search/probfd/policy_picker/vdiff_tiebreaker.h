@@ -14,7 +14,6 @@ class VDiffTiebreaker : public TaskPolicyPicker {
 public:
     VDiffTiebreaker(value_type::value_t favor_large_gaps_);
 
-protected:
     virtual int pick(
         const StateID& state,
         const ActionID& prev_policy,

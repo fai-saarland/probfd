@@ -357,14 +357,14 @@ void dump(
         node->setAttribute("label", sstr(state_id, state));
         node->setAttribute("shape", "circle");
 
-        const auto rew = reward_fn->operator()(state);
+        const auto rew = reward_fn->get_termination_info(state);
         bool expand = expand_terminal || !rew.is_goal_state();
 
         if (rew.is_goal_state()) {
             node->setAttribute("peripheries", std::to_string(2));
         } else if (
             expand && prune != nullptr &&
-            prune->operator()(state).is_unsolvable()) {
+            prune->evaluate(state).is_unsolvable()) {
             expand = false;
             node->setAttribute("peripheries", std::to_string(3));
         }
@@ -377,7 +377,10 @@ void dump(
 
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> all_successors;
-        transition_gen->operator()(state_id, aops, all_successors);
+        transition_gen->generate_all_transitions(
+            state_id,
+            aops,
+            all_successors);
 
         for (auto& dist : all_successors) {
             dist.make_unique();
@@ -403,7 +406,7 @@ void dump(
             transitions.end());
 
         for (const auto& [act, successors] : transitions) {
-            const auto a_reward = reward_fn->operator()(state_id, act);
+            const auto a_reward = reward_fn->get_action_reward(state_id, act);
             if (a_reward != value_type::zero) {
                 ss << a_reward << "\\n";
             }

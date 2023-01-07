@@ -45,10 +45,9 @@ public:
 
     static void add_options_to_parser(options::OptionParser& parser);
 
-    void print_statistics() const override;
-
-protected:
     EvaluationResult evaluate(const State& state) const override;
+
+    void print_statistics() const override;
 };
 
 } // namespace heuristics

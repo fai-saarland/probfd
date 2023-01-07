@@ -22,6 +22,12 @@ namespace occupation_measure_heuristic {
  * \cite trevizan:etal:icaps-17 .
  */
 class RegroupedOperatorCountingHeuristic : public TaskDependentHeuristic {
+    mutable lp::LPSolver lp_solver_;
+    std::vector<std::size_t> ncc_offsets_;
+    const bool is_maxprob;
+
+    mutable std::vector<int> reset_indices_;
+
 public:
     /**
      * @brief Construct from options.
@@ -33,15 +39,7 @@ public:
     explicit RegroupedOperatorCountingHeuristic(const options::Options& opts);
     static void add_options_to_parser(options::OptionParser& parser);
 
-protected:
-    virtual EvaluationResult
-    evaluate(const State& state) const override;
-
-    mutable lp::LPSolver lp_solver_;
-    std::vector<std::size_t> ncc_offsets_;
-    const bool is_maxprob;
-
-    mutable std::vector<int> reset_indices_;
+    EvaluationResult evaluate(const State& state) const override;
 };
 
 } // namespace occupation_measure_heuristic

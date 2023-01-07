@@ -36,25 +36,28 @@ TransitionGenerator<bisimulation::QuotientAction>::TransitionGenerator(
 {
 }
 
-void TransitionGenerator<bisimulation::QuotientAction>::operator()(
-    const StateID& s,
-    std::vector<bisimulation::QuotientAction>& res) const
+void TransitionGenerator<bisimulation::QuotientAction>::
+    generate_applicable_actions(
+        const StateID& s,
+        std::vector<bisimulation::QuotientAction>& res) const
 {
     bisim_->get_applicable_actions(s, res);
 }
 
-void TransitionGenerator<bisimulation::QuotientAction>::operator()(
-    const StateID& s,
-    const bisimulation::QuotientAction& a,
-    Distribution<StateID>& res) const
+void TransitionGenerator<bisimulation::QuotientAction>::
+    generate_action_transitions(
+        const StateID& s,
+        const bisimulation::QuotientAction& a,
+        Distribution<StateID>& res) const
 {
     bisim_->get_successors(s, a, res);
 }
 
-void TransitionGenerator<bisimulation::QuotientAction>::operator()(
-    const StateID& state,
-    std::vector<bisimulation::QuotientAction>& aops,
-    std::vector<Distribution<StateID>>& result) const
+void TransitionGenerator<bisimulation::QuotientAction>::
+    generate_all_transitions(
+        const StateID& state,
+        std::vector<bisimulation::QuotientAction>& aops,
+        std::vector<Distribution<StateID>>& result) const
 {
     bisim_->get_applicable_actions(state, aops);
     result.resize(aops.size());
@@ -99,8 +102,8 @@ DefaultQuotientRewardFunction::DefaultQuotientRewardFunction(
 {
 }
 
-TerminationInfo
-DefaultQuotientRewardFunction::evaluate(const bisimulation::QuotientState& s)
+TerminationInfo DefaultQuotientRewardFunction::get_termination_info(
+    const bisimulation::QuotientState& s)
 {
     if (bisim_->is_dead_end(s)) {
         return TerminationInfo(false, bound_.lower);
@@ -111,8 +114,9 @@ DefaultQuotientRewardFunction::evaluate(const bisimulation::QuotientState& s)
     return TerminationInfo(false, default_);
 }
 
-value_type::value_t
-DefaultQuotientRewardFunction::evaluate(StateID, bisimulation::QuotientAction)
+value_type::value_t DefaultQuotientRewardFunction::get_action_reward(
+    StateID,
+    bisimulation::QuotientAction)
 {
     return 0;
 }

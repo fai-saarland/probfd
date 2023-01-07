@@ -253,7 +253,7 @@ private:
                 info.set_on_trial();
             }
 
-            current_trial_.push_back(sample_->operator()(
+            current_trial_.push_back(sample_->sample(
                 stateid,
                 this->get_policy(stateid),
                 selected_transition_,

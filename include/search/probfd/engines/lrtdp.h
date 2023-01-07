@@ -286,7 +286,7 @@ private:
                 break;
             }
 
-            this->current_trial_.push_back(sample_->operator()(
+            this->current_trial_.push_back(sample_->sample(
                 state_id,
                 this->get_policy(state_id),
                 this->selected_transition_,

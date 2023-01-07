@@ -78,27 +78,18 @@ public:
     /**
      * @brief Get the terminal state reward of the input state.
      */
-    TerminationInfo operator()(const State& state)
-    {
-        return this->evaluate(state);
-    }
+    virtual TerminationInfo get_termination_info(const State& state) = 0;
 
     /**
      * @brief Get the action reward of the action when applied in a state.
      */
-    value_type::value_t operator()(StateID state_id, Action action)
-    {
-        return this->evaluate(state_id, action);
-    }
+    virtual value_type::value_t
+    get_action_reward(StateID state_id, Action action) = 0;
 
     /**
      * @brief Prints statistics.
      */
     virtual void print_statistics() const {}
-
-protected:
-    virtual TerminationInfo evaluate(const State& state) = 0;
-    virtual value_type::value_t evaluate(StateID state, Action action) = 0;
 };
 
 } // namespace engine_interfaces

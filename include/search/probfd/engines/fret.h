@@ -392,7 +392,7 @@ private:
     // TODO Find a better way to access the states
     class StateCollector {
     public:
-        int operator()(
+        int pick(
             const StateID,
             const ActionID,
             const std::vector<QAction>&,

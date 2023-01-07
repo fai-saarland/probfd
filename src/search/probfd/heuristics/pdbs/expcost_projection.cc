@@ -41,7 +41,7 @@ public:
     virtual EvaluationResult evaluate(const StateRank& state) const
     {
         if (utils::contains(one_states, StateID(state.id))) {
-            return parent(state);
+            return parent.evaluate(state);
         }
 
         return EvaluationResult{true, -value_type::inf};
