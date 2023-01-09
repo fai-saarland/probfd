@@ -3,7 +3,7 @@
 
 #include "probfd/engine_interfaces/transition_generator.h"
 
-#include "probfd/storage/dynamic_segmented_vector.h"
+#include "probfd/storage/per_state_storage.h"
 #include "probfd/storage/segmented_memory_pool.h"
 
 #include "probfd/task_proxy.h"
@@ -64,7 +64,7 @@ protected:
         StateID* succs = nullptr;
     };
 
-    using Cache = storage::DynamicSegmentedVector<CacheEntry>;
+    using Cache = storage::PerStateStorage<CacheEntry>;
 
 protected:
     std::shared_ptr<ProbabilisticTask> task;

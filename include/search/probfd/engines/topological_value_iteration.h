@@ -230,7 +230,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
     };
 
 public:
-    using Store = storage::PersistentPerStateStorage<IncumbentSolution>;
+    using Store = storage::PerStateStorage<IncumbentSolution>;
 
     explicit TopologicalValueIteration(
         engine_interfaces::StateIDMap<State>* state_id_map,

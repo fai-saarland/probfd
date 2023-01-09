@@ -1,10 +1,10 @@
-#ifndef MDPS_STORAGE_PER_STATE_STORAGE_H
-#define MDPS_STORAGE_PER_STATE_STORAGE_H
+#ifndef PROBFD_STORAGE_PER_STATE_STORAGE_H
+#define PROBFD_STORAGE_PER_STATE_STORAGE_H
 
 #include "probfd/types.h"
 #include "probfd/value_type.h"
 
-#include "probfd/storage/dynamic_segmented_vector.h"
+#include "algorithms/segmented_vector.h"
 
 #include "utils/iterators.h"
 
@@ -18,8 +18,6 @@ namespace probfd {
 /// Namespace dedicated to commonly used storage and container types.
 namespace storage {
 
-using size_type = std::size_t;
-
 template <typename T, typename Alloc>
 struct resizing_vector : public std::vector<T, Alloc> {
     explicit resizing_vector(
@@ -30,13 +28,19 @@ struct resizing_vector : public std::vector<T, Alloc> {
     {
     }
 
-    typename std::vector<T, Alloc>::const_reference
-    operator[](size_type idx) const = delete;
-
-    typename std::vector<T, Alloc>::reference operator[](size_type idx)
+    typename std::vector<T, Alloc>::reference operator[](StateID idx)
     {
         if (idx >= this->size()) {
             this->resize(idx + 1, default_value_);
+        }
+        return std::vector<T, Alloc>::operator[](idx);
+    }
+
+    typename std::vector<T, Alloc>::const_reference
+    operator[](StateID idx) const
+    {
+        if (idx >= this->size()) {
+            return default_value_;
         }
         return std::vector<T, Alloc>::operator[](idx);
     }
@@ -45,35 +49,79 @@ private:
     const T default_value_;
 };
 
-template <typename T, typename Alloc>
-class HashMap {
-public:
-    using Hash = std::hash<size_type>;
-    using Equal = std::equal_to<size_type>;
-    using Allocator = std::allocator<std::pair<const size_type, T>>;
-    using reference = T&;
-    using internal_storage =
-        std::unordered_map<size_type, T, Hash, Equal, Allocator>;
-    using iterator = typename internal_storage::iterator;
+template <class Element, class Allocator = std::allocator<Element>>
+class PerStateStorage
+    : public segmented_vector::SegmentedVector<Element, Allocator> {
+    Element default_value_;
 
-    HashMap(const T& default_value, const Alloc&)
-        : store_(1024, Hash(), Equal(), Allocator())
+public:
+    PerStateStorage(
+        const Element& default_value = Element(),
+        const Allocator& alloc = Allocator())
+        : segmented_vector::SegmentedVector<Element>(alloc)
         , default_value_(default_value)
     {
     }
 
-    T& operator[](size_type idx)
+    Element& operator[](size_t index)
+    {
+        if (index >= this->size()) {
+            this->resize(index + 1, default_value_);
+        }
+        return segmented_vector::SegmentedVector<Element, Allocator>::
+        operator[](index);
+    }
+
+    const Element& operator[](size_t index) const
+    {
+        if (index >= this->size()) {
+            return default_value_;
+        }
+        return segmented_vector::SegmentedVector<Element, Allocator>::
+        operator[](index);
+    }
+
+    bool empty() const { return this->size() == 0; }
+};
+
+template <
+    typename T,
+    typename Hash = std::hash<StateID>,
+    typename Equal = std::equal_to<StateID>,
+    typename Alloc = std::allocator<std::pair<const StateID, T>>>
+class StateHashMap {
+public:
+    using iterator =
+        typename std::unordered_map<StateID, T, Hash, Equal, Alloc>::iterator;
+
+    StateHashMap(
+        const T& default_value = T(),
+        const Hash& H = Hash(),
+        const Equal& E = Equal(),
+        const Alloc& A = Alloc())
+        : store_(1024, H, E, A)
+        , default_value_(default_value)
+    {
+    }
+
+    T& operator[](StateID idx)
     {
         auto res = store_.emplace(idx, default_value_);
         return res.first->second;
     }
 
-    bool contains(size_type idx) const
+    const T& operator[](StateID idx) const
+    {
+        auto it = store_.find(idx);
+        return it != store_.end() ? it->second : default_value_;
+    }
+
+    bool contains(StateID idx) const
     {
         return store_.find(idx) != store_.end();
     }
 
-    size_type size() const { return store_.size(); }
+    StateID size() const { return store_.size(); }
 
     bool empty() const { return store_.empty(); }
 
@@ -86,112 +134,14 @@ public:
     iterator erase(iterator it) { return store_.erase(it); }
 
 private:
-    internal_storage store_;
+    std::unordered_map<StateID, T, Hash, Equal, Alloc> store_;
     const T default_value_;
 };
 
-template <template <typename...> class Container>
-struct is_container_persistent : std::false_type {
-};
-
-template <>
-struct is_container_persistent<HashMap> : std::true_type {
-};
-
-template <>
-struct is_container_persistent<storage::DynamicSegmentedVector>
-    : std::true_type {
-};
-
-namespace internal {
-
-template <
-    typename T,
-    typename Alloc,
-    template <typename, typename>
-    class Container>
-class PerStateStorage {
-public:
-    using IsPersistent = is_container_persistent<Container>;
-    using internal_storage = Container<T, Alloc>;
-    using reference = typename internal_storage::reference;
-
-    explicit PerStateStorage(
-        const T& default_value = T(),
-        const Alloc& allocator = Alloc())
-        : store_(default_value, allocator)
-    {
-    }
-
-    reference operator[](const StateID& stateid) { return store_[stateid]; }
-
-    bool contains(const StateID& stateid) const
-    {
-        return store_.contains(stateid);
-    }
-
-    bool empty() const { return size() == 0; }
-
-    size_type size() const { return store_.size(); }
-
-    void clear() { store_.clear(); }
-
-protected:
-    internal_storage store_;
-};
-
-} // namespace internal
-
-template <typename T, typename Alloc = std::allocator<T>>
-using PersistentPerStateStorage = internal::
-    PerStateStorage<T, Alloc, probfd::storage::DynamicSegmentedVector>;
-
-template <typename T, typename Alloc = std::allocator<T>>
-class PerStateStorage : public PersistentPerStateStorage<T, Alloc> {
-public:
-    using typename PersistentPerStateStorage<T, Alloc>::IsPersistent;
-    using PersistentPerStateStorage<T, Alloc>::PersistentPerStateStorage;
-};
-
 template <typename Alloc>
-class PerStateStorage<bool, Alloc>
-    : public internal::PerStateStorage<bool, Alloc, resizing_vector> {
+class PerStateStorage<bool, Alloc> : public resizing_vector<bool, Alloc> {
 public:
-    using typename internal::PerStateStorage<bool, Alloc, resizing_vector>::
-        IsPersistent;
-    using internal::PerStateStorage<bool, Alloc, resizing_vector>::
-        PerStateStorage;
-};
-
-template <typename Alloc>
-class PerStateStorage<value_type::value_t, Alloc>
-    : public internal::
-          PerStateStorage<value_type::value_t, Alloc, resizing_vector> {
-public:
-    using typename internal::PerStateStorage<
-        value_type::value_t,
-        Alloc,
-        resizing_vector>::IsPersistent;
-    using internal::PerStateStorage<
-        value_type::value_t,
-        Alloc,
-        resizing_vector>::PerStateStorage;
-};
-
-template <typename T, typename Alloc = std::allocator<T>>
-class StateHashMap : public internal::PerStateStorage<T, Alloc, HashMap> {
-public:
-    using typename internal::PerStateStorage<T, Alloc, HashMap>::IsPersistent;
-    using internal::PerStateStorage<T, Alloc, HashMap>::PerStateStorage;
-    using internal_hash_map =
-        typename internal::PerStateStorage<T, Alloc, HashMap>::internal_storage;
-    using iterator = typename internal_hash_map::iterator;
-
-    iterator begin() { return this->store_.begin(); }
-
-    iterator end() { return this->store_.end(); }
-
-    iterator erase(iterator it) { return this->store_.erase(it); }
+    using resizing_vector<bool, Alloc>::resizing_vector;
 };
 
 template <typename State>
