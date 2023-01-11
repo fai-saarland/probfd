@@ -86,8 +86,6 @@ class PatternCollectionGeneratorHillclimbing
     const double max_time;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
-    std::unique_ptr<IncrementalPPDBs<PDBType>> current_pdbs;
-
     // for stats only
     int num_rejected;
 
@@ -120,6 +118,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     void sample_states(
         utils::CountdownTimer& hill_climbing_timer,
+        IncrementalPPDBs<PDBType>& current_pdbs,
         const sampling::RandomWalkSampler& sampler,
         value_type::value_t init_h,
         std::vector<State>& samples);
@@ -131,6 +130,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     std::pair<int, int> find_best_improving_pdb(
         utils::CountdownTimer& hill_climbing_timer,
+        IncrementalPPDBs<PDBType>& current_pdbs,
         const std::vector<State>& samples,
         const std::vector<EvaluationResult>& samples_h_values,
         PPDBCollection<PDBType>& candidate_pdbs);
@@ -172,7 +172,8 @@ class PatternCollectionGeneratorHillclimbing
     */
     void hill_climbing(
         const ProbabilisticTask* task,
-        const ProbabilisticTaskProxy& task_proxy);
+        const ProbabilisticTaskProxy& task_proxy,
+        IncrementalPPDBs<PDBType>& current_pdbs);
 
 public:
     explicit PatternCollectionGeneratorHillclimbing(
