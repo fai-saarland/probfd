@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs.h"
+#include "probfd/heuristics/pdbs/pattern_selection/incremental_ppdbs.h"
 #include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_information.h"
 
 #include "probfd/heuristics/pdbs/subcollections/max_orthogonal_finder.h"

@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_generator_hillclimbing.h"
 
-#include "probfd/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs.h"
+#include "probfd/heuristics/pdbs/pattern_selection/incremental_ppdbs.h"
 
 #include "probfd/heuristics/pdbs/subcollections/subcollection_finder_factory.h"
 
@@ -180,6 +180,10 @@ PatternCollectionGeneratorHillclimbing<
     , num_rejected(0)
 {
 }
+
+template <typename PDBType>
+PatternCollectionGeneratorHillclimbing<
+    PDBType>::~PatternCollectionGeneratorHillclimbing() = default;
 
 template <typename PDBType>
 int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(

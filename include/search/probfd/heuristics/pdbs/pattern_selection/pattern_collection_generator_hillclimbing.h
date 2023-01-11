@@ -1,7 +1,6 @@
 #ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
 #define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
 
-#include "probfd/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs.h"
 #include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
 
 #include "probfd/heuristics/pdbs/types.h"
@@ -37,6 +36,9 @@ namespace pdbs {
 class SubCollectionFinderFactory;
 
 namespace pattern_selection {
+
+template <typename>
+class IncrementalPPDBs;
 
 // Implementation of the pattern generation algorithm by Haslum et al.
 template <typename PDBType>
@@ -175,7 +177,7 @@ class PatternCollectionGeneratorHillclimbing
 public:
     explicit PatternCollectionGeneratorHillclimbing(
         const options::Options& opts);
-    ~PatternCollectionGeneratorHillclimbing() override = default;
+    ~PatternCollectionGeneratorHillclimbing();
 
     /*
       Runs the hill climbing algorithm. Note that the

@@ -1,5 +1,5 @@
-#ifndef MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_INCREMENTAL_CANONICAL_PDBS_H
-#define MDPS_HEURISTICS_PDBS_PATTERN_SELECTION_INCREMENTAL_CANONICAL_PDBS_H
+#ifndef PROBFD_HEURISTICS_PDBS_PATTERN_SELECTION_INCREMENTAL_PDBS_H
+#define PROBFD_HEURISTICS_PDBS_PATTERN_SELECTION_INCREMENTAL_PDBS_H
 
 #include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_information.h"
 
@@ -10,8 +10,6 @@
 
 #include "probfd/task_proxy.h"
 
-#include "operator_cost.h"
-
 #include <memory>
 
 class State;
@@ -19,9 +17,6 @@ class State;
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
-
-class CombinationStrategy;
-
 namespace pattern_selection {
 
 template <class PDBType>

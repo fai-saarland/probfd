@@ -1062,7 +1062,7 @@ fast_downward_plugin(
     NAME PPDBS_PATTERN_GENERATORS
     HELP "Base classes for pattern collection generation"
     SOURCES
-        probfd/heuristics/pdbs/pattern_selection/incremental_canonical_pdbs
+        probfd/heuristics/pdbs/pattern_selection/incremental_ppdbs
         probfd/heuristics/pdbs/pattern_selection/pattern_collection_information
         probfd/heuristics/pdbs/pattern_selection/pattern_generator
 
