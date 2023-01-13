@@ -1,10 +1,9 @@
 #include "probfd/heuristics/pdbs/incremental_ppdbs.h"
-#include "probfd/heuristics/pdbs/pattern_collection_information.h"
-
-#include "probfd/heuristics/pdbs/subcollections/max_orthogonal_finder.h"
 
 #include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/max_orthogonal_finder.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "pdbs/pattern_collection_information.h"

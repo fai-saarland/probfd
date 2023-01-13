@@ -1,6 +1,6 @@
-#include "probfd/heuristics/pdbs/subcollections/max_orthogonal_finder.h"
+#include "probfd/heuristics/pdbs/max_orthogonal_finder.h"
 
-#include "probfd/heuristics/pdbs/subcollections/orthogonality.h"
+#include "probfd/heuristics/pdbs/subcollections.h"
 
 #include "algorithms/max_cliques.h"
 

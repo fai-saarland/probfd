@@ -5,10 +5,9 @@
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy_factory.h"
 
-#include "probfd/heuristics/pdbs/subcollections/subcollection_finder_factory.h"
-
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/tasks/root_task.h"

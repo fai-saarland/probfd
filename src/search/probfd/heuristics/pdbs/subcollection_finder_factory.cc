@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/subcollections/subcollection_finder_factory.h"
+#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
 #include "plugin.h"
 

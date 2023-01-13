@@ -1,11 +1,9 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing.h"
 
-#include "probfd/heuristics/pdbs/incremental_ppdbs.h"
-
-#include "probfd/heuristics/pdbs/subcollections/subcollection_finder_factory.h"
-
 #include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/incremental_ppdbs.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/task_proxy.h"

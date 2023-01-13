@@ -1,5 +1,5 @@
-#ifndef MDPS_HEURISTICS_PDBS_TYPES_H
-#define MDPS_HEURISTICS_PDBS_TYPES_H
+#ifndef PROBFD_HEURISTICS_PDBS_TYPES_H
+#define PROBFD_HEURISTICS_PDBS_TYPES_H
 
 #include "pdbs/types.h"
 
@@ -20,8 +20,6 @@ using PatternCollection = ::pdbs::PatternCollection;
 using Pattern = ::pdbs::Pattern;
 using PatternID = ::pdbs::PatternID;
 using PatternSubCollection = ::pdbs::PatternClique;
-
-using VariableOrthogonality = std::vector<std::vector<bool>>;
 
 template <class PDBType>
 using PPDBCollection = std::vector<std::shared_ptr<PDBType>>;

@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/subcollections/trivial_finder.h"
+#include "probfd/heuristics/pdbs/trivial_finder.h"
 
 #include "option_parser.h"
 #include "plugin.h"

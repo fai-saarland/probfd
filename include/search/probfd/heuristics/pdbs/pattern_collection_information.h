@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_INFORMATION_H
 #define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_INFORMATION_H
 
-#include "probfd/heuristics/pdbs/subcollections/subcollection_finder.h"
+#include "probfd/heuristics/pdbs/subcollection_finder.h"
 
 #include "probfd/heuristics/pdbs/types.h"
 

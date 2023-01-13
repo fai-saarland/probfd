@@ -1,9 +1,8 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_deterministic.h"
 
-#include "probfd/heuristics/pdbs/subcollections/subcollection_finder_factory.h"
-
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
 #include "options/options.h"
 

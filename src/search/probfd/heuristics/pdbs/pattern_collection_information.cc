@@ -1,9 +1,8 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 
-#include "probfd/heuristics/pdbs/subcollections/trivial_finder.h"
-
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/trivial_finder.h"
 
 #include "pdbs/pattern_cliques.h"
 #include "pdbs/pattern_collection_information.h"

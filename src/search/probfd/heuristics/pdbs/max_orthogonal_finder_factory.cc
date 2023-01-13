@@ -1,5 +1,5 @@
-#include "probfd/heuristics/pdbs/subcollections/max_orthogonal_finder_factory.h"
-#include "probfd/heuristics/pdbs/subcollections/max_orthogonal_finder.h"
+#include "probfd/heuristics/pdbs/max_orthogonal_finder_factory.h"
+#include "probfd/heuristics/pdbs/max_orthogonal_finder.h"
 
 #include "option_parser.h"
 #include "plugin.h"

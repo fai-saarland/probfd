@@ -1,5 +1,5 @@
-#ifndef MDPS_HEURISTICS_PDBS_UTILS_H
-#define MDPS_HEURISTICS_PDBS_UTILS_H
+#ifndef PROBFD_HEURISTICS_PDBS_UTILS_H
+#define PROBFD_HEURISTICS_PDBS_UTILS_H
 
 #include "probfd/heuristics/pdbs/types.h"
 

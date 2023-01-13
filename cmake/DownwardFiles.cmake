@@ -1064,15 +1064,12 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/pattern_collection_information
         probfd/heuristics/pdbs/pattern_generator
 
-        probfd/heuristics/pdbs/subcollections/subcollection_finder_factory
-        probfd/heuristics/pdbs/subcollections/max_orthogonal_finder_factory
-        probfd/heuristics/pdbs/subcollections/max_orthogonal_finder
-        probfd/heuristics/pdbs/subcollections/trivial_finder_factory
-        probfd/heuristics/pdbs/subcollections/trivial_finder
-        probfd/heuristics/pdbs/subcollections/orthogonality
-        probfd/heuristics/pdbs/subcollections/weak_orthogonality
-        probfd/heuristics/pdbs/subcollections/independence
-        probfd/heuristics/pdbs/subcollections/syntactic_projection
+        probfd/heuristics/pdbs/subcollection_finder_factory
+        probfd/heuristics/pdbs/max_orthogonal_finder_factory
+        probfd/heuristics/pdbs/max_orthogonal_finder
+        probfd/heuristics/pdbs/trivial_finder_factory
+        probfd/heuristics/pdbs/trivial_finder
+        probfd/heuristics/pdbs/subcollections
     DEPENDS PROBABILISTIC_PDBS CAUSAL_GRAPH MAX_CLIQUES
     DEPENDENCY_ONLY
 )
@@ -1106,7 +1103,7 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/cegar/sampling_flaw_finder_factory
         probfd/heuristics/pdbs/cegar/flaw_finding_strategy
         probfd/heuristics/pdbs/cegar/flaw_finding_strategy_factory
-        
+
         probfd/heuristics/pdbs/pattern_collection_generator_cegar
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
