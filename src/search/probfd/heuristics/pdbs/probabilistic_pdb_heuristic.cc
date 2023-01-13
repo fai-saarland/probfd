@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/probabilistic_pdb_heuristic.h"
 
-#include "probfd/heuristics/pdbs/pattern_selection/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/pattern_collection_information.h"
 
 #include "probfd/heuristics/pdbs/utils.h"
 #include "probfd/heuristics/pdbs/expcost_projection.h"
@@ -24,8 +24,6 @@
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
-
-using namespace pattern_selection;
 
 template <typename PDBType>
 void ProbabilisticPDBHeuristic<PDBType>::Statistics::print_construction_info(

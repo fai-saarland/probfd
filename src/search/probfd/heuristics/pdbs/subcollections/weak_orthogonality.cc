@@ -1,5 +1,5 @@
 #include "probfd/heuristics/pdbs/subcollections/weak_orthogonality.h"
-#include "probfd/heuristics/pdbs/syntactic_projection.h"
+#include "probfd/heuristics/pdbs/subcollections/syntactic_projection.h"
 
 #include "pdbs/pattern_cliques.h"
 
@@ -25,14 +25,10 @@ bool are_disjoint(const std::vector<T>& A, const std::vector<T>& B)
 }
 } // namespace
 
-using namespace syntactic_projection;
-
 std::vector<std::vector<int>> build_compatibility_graph_weak_orthogonality(
     const ProbabilisticTaskProxy& task_proxy,
     const PatternCollection& patterns)
 {
-    using namespace syntactic_projection;
-
     std::vector<std::vector<int>> cgraph;
     cgraph.resize(patterns.size());
 

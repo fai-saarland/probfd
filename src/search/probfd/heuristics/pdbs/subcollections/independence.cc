@@ -1,12 +1,10 @@
 #include "probfd/heuristics/pdbs/subcollections/independence.h"
 
-#include "probfd/heuristics/pdbs/syntactic_projection.h"
+#include "probfd/heuristics/pdbs/subcollections/syntactic_projection.h"
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
-
-using namespace syntactic_projection;
 
 namespace {
 

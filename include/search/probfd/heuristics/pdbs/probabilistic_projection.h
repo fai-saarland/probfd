@@ -1,5 +1,5 @@
-#ifndef MDPS_HEURISTICS_PDBS_PROBABILISTIC_PROJECTION_H
-#define MDPS_HEURISTICS_PDBS_PROBABILISTIC_PROJECTION_H
+#ifndef PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PROJECTION_H
+#define PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PROJECTION_H
 
 #include "probfd/heuristics/pdbs/abstract_operator.h"
 #include "probfd/heuristics/pdbs/engine_interfaces.h"

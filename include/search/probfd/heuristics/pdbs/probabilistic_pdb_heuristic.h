@@ -1,7 +1,7 @@
-#ifndef MDPS_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
-#define MDPS_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
+#ifndef PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
+#define PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
 
-#include "probfd/heuristics/pdbs/pattern_selection/pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_generator.h"
 
 #include "probfd/heuristics/pdbs/state_rank.h"
 #include "probfd/heuristics/pdbs/types.h"
@@ -85,8 +85,7 @@ public:
 
     ProbabilisticPDBHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<pattern_selection::PatternCollectionGenerator<PDBType>>
-            generator,
+        std::shared_ptr<PatternCollectionGenerator<PDBType>> generator,
         double max_time_dominance_pruning);
 
     void print_statistics() const override;

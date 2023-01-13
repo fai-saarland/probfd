@@ -1045,15 +1045,14 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/engine_interfaces
         probfd/heuristics/pdbs/match_tree
         probfd/heuristics/pdbs/orthogonality
-        probfd/heuristics/pdbs/probabilistic_projection
         probfd/heuristics/pdbs/state_rank
         probfd/heuristics/pdbs/state_ranking_function
-        probfd/heuristics/pdbs/syntactic_projection
         probfd/heuristics/pdbs/types
         probfd/heuristics/pdbs/utils
 
         probfd/heuristics/pdbs/maxprob_projection
         probfd/heuristics/pdbs/expcost_projection
+        probfd/heuristics/pdbs/probabilistic_projection
     DEPENDS PDBS MDP SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
     DEPENDENCY_ONLY
 )
@@ -1062,9 +1061,8 @@ fast_downward_plugin(
     NAME PPDBS_PATTERN_GENERATORS
     HELP "Base classes for pattern collection generation"
     SOURCES
-        probfd/heuristics/pdbs/pattern_selection/incremental_ppdbs
-        probfd/heuristics/pdbs/pattern_selection/pattern_collection_information
-        probfd/heuristics/pdbs/pattern_selection/pattern_generator
+        probfd/heuristics/pdbs/pattern_collection_information
+        probfd/heuristics/pdbs/pattern_generator
 
         probfd/heuristics/pdbs/subcollections/subcollection_finder_factory
         probfd/heuristics/pdbs/subcollections/max_orthogonal_finder_factory
@@ -1074,6 +1072,7 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/subcollections/orthogonality
         probfd/heuristics/pdbs/subcollections/weak_orthogonality
         probfd/heuristics/pdbs/subcollections/independence
+        probfd/heuristics/pdbs/subcollections/syntactic_projection
     DEPENDS PROBABILISTIC_PDBS CAUSAL_GRAPH MAX_CLIQUES
     DEPENDENCY_ONLY
 )
@@ -1082,7 +1081,7 @@ fast_downward_plugin(
     NAME DETERMINISTIC_GENERATOR
     HELP "Deterministic pattern collection generator"
     SOURCES
-        probfd/heuristics/pdbs/pattern_selection/pattern_collection_generator_deterministic
+        probfd/heuristics/pdbs/pattern_collection_generator_deterministic
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
@@ -1090,7 +1089,8 @@ fast_downward_plugin(
     NAME PROBABILISTIC_HILLCLIMBING_GENERATOR
     HELP "Probabilistic Hillclimbing pattern collection generator"
     SOURCES
-        probfd/heuristics/pdbs/pattern_selection/pattern_collection_generator_hillclimbing
+        probfd/heuristics/pdbs/incremental_ppdbs
+        probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
@@ -1098,16 +1098,16 @@ fast_downward_plugin(
     NAME POLICY_CEGAR_GENERATOR
     HELP "Policy CEGAR pattern collection generator"
     SOURCES
-        probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data
-        probfd/heuristics/pdbs/pattern_selection/cegar/bfs_flaw_finder
-        probfd/heuristics/pdbs/pattern_selection/cegar/pucs_flaw_finder
-        probfd/heuristics/pdbs/pattern_selection/cegar/sampling_flaw_finder
-        probfd/heuristics/pdbs/pattern_selection/cegar/bfs_flaw_finder_factory
-        probfd/heuristics/pdbs/pattern_selection/cegar/pucs_flaw_finder_factory
-        probfd/heuristics/pdbs/pattern_selection/cegar/sampling_flaw_finder_factory
-        probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy
-        probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy_factory
-        probfd/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_cegar
+        probfd/heuristics/pdbs/cegar/bfs_flaw_finder
+        probfd/heuristics/pdbs/cegar/pucs_flaw_finder
+        probfd/heuristics/pdbs/cegar/sampling_flaw_finder
+        probfd/heuristics/pdbs/cegar/bfs_flaw_finder_factory
+        probfd/heuristics/pdbs/cegar/pucs_flaw_finder_factory
+        probfd/heuristics/pdbs/cegar/sampling_flaw_finder_factory
+        probfd/heuristics/pdbs/cegar/flaw_finding_strategy
+        probfd/heuristics/pdbs/cegar/flaw_finding_strategy_factory
+        
+        probfd/heuristics/pdbs/pattern_collection_generator_cegar
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
@@ -1115,7 +1115,7 @@ fast_downward_plugin(
     NAME POLICY_FAST_CEGAR_GENERATOR
     HELP "Policy CEGAR pattern collection generator"
     SOURCES
-        probfd/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_fast_cegar
+        probfd/heuristics/pdbs/pattern_collection_generator_fast_cegar
     DEPENDS POLICY_CEGAR_GENERATOR
 )
 
