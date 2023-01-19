@@ -168,7 +168,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
                 successors.push_back(t);
             }
 
-            if (value_type::approx_equal()(value, op_value)) {
+            if (value_type::is_approx_equal(value, op_value)) {
                 greedy_operator = op;
                 greedy_successors = std::move(successors);
                 break;
@@ -408,8 +408,10 @@ void ExpCostProjection::verify(
          ++s.id) {
         if (utils::contains(proper_states, StateID(s.id)) &&
             utils::contains(seen, s)) {
-            assert(value_type::approx_equal(
-                0.001)(solution[s.id], value_table[s.id]));
+            assert(value_type::is_approx_equal(
+                solution[s.id],
+                value_table[s.id],
+                0.001));
         } else {
             assert(value_table[s.id] == -value_type::inf);
         }

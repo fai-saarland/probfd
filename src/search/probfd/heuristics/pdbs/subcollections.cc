@@ -315,7 +315,7 @@ bool is_independent_collection(
 
             union_effects.clear();
 
-            if (!value_type::approx_equal()(indep_prob, union_prob)) {
+            if (!value_type::is_approx_equal(indep_prob, union_prob)) {
                 return false;
             }
         } while (proj_outcomes_permutation.get_next());

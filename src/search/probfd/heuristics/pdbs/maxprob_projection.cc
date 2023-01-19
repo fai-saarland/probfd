@@ -230,7 +230,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
                 successors.push_back(t);
             }
 
-            if (value_type::approx_equal()(value, op_value)) {
+            if (value_type::is_approx_equal(value, op_value)) {
                 for (const StateRank& succ : successors) {
                     if (abstract_state_space_.goal_state_flags_[succ.id]) {
                         goals.push_back(succ);
@@ -435,8 +435,10 @@ void MaxProbProjection::verify(
 
     for (StateRank s(0); s.id != static_cast<int>(value_table.size()); ++s.id) {
         if (utils::contains(seen, s)) {
-            assert(value_type::approx_equal(
-                0.001)(solution[s.id], value_table[s.id]));
+            assert(value_type::is_approx_equal(
+                solution[s.id],
+                value_table[s.id],
+                0.001));
         } else {
             assert(value_type::zero == value_table[s.id]);
         }

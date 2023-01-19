@@ -145,7 +145,7 @@ struct IntervalValue {
      */
     bool bounds_equal() const
     {
-        return value_type::approx_equal()(lower, upper);
+        return value_type::is_approx_equal(lower, upper);
     }
 
     /**
@@ -158,47 +158,6 @@ struct IntervalValue {
      */
     friend std::ostream& operator<<(std::ostream&, const IntervalValue&);
 };
-
-/*
-struct SingleValue {
-    using DualBounds = std::false_type;
-
-    value_type::value_t value;
-
-    explicit SingleValue(value_type::value_t val = value_type::zero);
-
-    SingleValue& operator+=(const SingleValue& rhs);
-    SingleValue& operator-=(const SingleValue& rhs);
-
-    SingleValue& operator*=(value_type::value_t val);
-    SingleValue& operator/=(value_type::value_t val);
-
-    friend SingleValue
-    operator+(const SingleValue& lhs, const SingleValue& rhs);
-
-    friend SingleValue
-    operator-(const SingleValue& lhs, const SingleValue& rhs);
-
-    friend SingleValue
-    operator*(value_type::value_t val, const SingleValue& rhs);
-
-    friend SingleValue
-    operator*(const SingleValue& rhs, value_type::value_t val);
-
-    friend SingleValue
-    operator/(const SingleValue& rhs, value_type::value_t val);
-
-    friend int
-    compare(const SingleValue& lhs, const SingleValue& rhs);
-
-    friend bool
-    update_check(SingleValue& lhs, const SingleValue& rhs);
-
-    operator value_type::value_t() const;
-
-    friend bool operator==(const SingleValue& lhs, const SingleValue& rhs);
-};
-*/
 
 template <typename Dual>
 using IncumbentSolution =
@@ -218,8 +177,6 @@ void set_max(value_type::value_t& new_value, const value_type::value_t& tval);
 
 // Value update
 
-bool update(IntervalValue& lhs, const IntervalValue& rhs);
-bool update(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper);
 bool update(value_type::value_t& lhs, const value_type::value_t& rhs);
 
 value_type::value_t as_lower_bound(const value_type::value_t& single);

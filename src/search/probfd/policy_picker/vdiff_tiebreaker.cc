@@ -26,7 +26,7 @@ int VDiffTiebreaker::pick(
             auto value = hs_interface.lookup_dual_bounds(it->element);
             sum += it->probability * value.error_bound();
         }
-        if (value_type::approx_less()(favor_large_gaps_ * sum, best)) {
+        if (value_type::is_approx_less(favor_large_gaps_ * sum, best)) {
             best = sum;
             choice = i;
         }

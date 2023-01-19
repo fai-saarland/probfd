@@ -247,7 +247,7 @@ static void check_facts(
         total_prob += prob;
     }
 
-    if (!value_type::approx_equal()(total_prob, value_type::one)) {
+    if (!value_type::is_approx_equal(total_prob, value_type::one)) {
         cerr << "Total outcome probabilities must sum up to one. Sum was: "
              << total_prob << endl;
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);

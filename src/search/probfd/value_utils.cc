@@ -75,10 +75,8 @@ IntervalValue operator/(const IntervalValue& rhs, value_t val)
 
 int compare(const IntervalValue& lhs, const IntervalValue& rhs)
 {
-    if (approx_greater(eps)(lhs.lower, rhs.lower)) return 1;
-
-    if (approx_equal(eps)(lhs.lower, rhs.lower)) return 0;
-
+    if (is_approx_greater(lhs.lower, rhs.lower, eps)) return 1;
+    if (is_approx_equal(lhs.lower, rhs.lower, eps)) return 0;
     return -1;
 }
 
@@ -89,12 +87,11 @@ bool update(IntervalValue& lhs, const IntervalValue& rhs)
 
 bool update(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper)
 {
-    const bool result =
-        value_type::approx_greater()(rhs.lower, lhs.lower) ||
-        (check_upper && value_type::approx_less()(rhs.upper, lhs.upper));
+    const bool result = is_approx_greater(rhs.lower, lhs.lower) ||
+                        (check_upper && is_approx_less(rhs.upper, lhs.upper));
     lhs.lower = std::max(lhs.lower, rhs.lower);
     lhs.upper = std::min(lhs.upper, rhs.upper);
-    assert(!value_type::approx_less()(lhs.upper, lhs.lower));
+    assert(!is_approx_less(lhs.upper, lhs.lower));
     return result;
 }
 
@@ -124,104 +121,24 @@ value_type::value_t as_upper_bound(const value_utils::IntervalValue& interval)
     return interval.upper;
 }
 
-/*
-SingleValue::SingleValue(value_type::value_t val)
-    : value(val)
-{
-}
-
-SingleValue&
-SingleValue::operator+=(const SingleValue& rhs)
-{
-    value += rhs.value;
-    return *this;
-}
-
-SingleValue&
-SingleValue::operator-=(const SingleValue& rhs)
-{
-    value -= rhs.value;
-    return *this;
-}
-
-SingleValue&
-SingleValue::operator*=(value_t prob)
-{
-    value *= prob;
-    return *this;
-}
-
-SingleValue&
-SingleValue::operator/=(value_t prob)
-{
-    value /= prob;
-    return *this;
-}
-
-SingleValue operator+(const SingleValue& lhs, const SingleValue& rhs)
-{
-    return SingleValue(lhs.value + rhs.value);
-}
-
-SingleValue operator-(const SingleValue& lhs, const SingleValue& rhs)
-{
-    return SingleValue(lhs.value - rhs.value);
-}
-
-SingleValue operator*(value_t val, const SingleValue& rhs)
-{
-    return SingleValue(val * rhs.value);
-}
-
-SingleValue operator*(const SingleValue& rhs, value_t val)
-{
-    return SingleValue(rhs.value * val);
-}
-
-SingleValue operator/(const SingleValue& rhs, value_t val)
-{
-    return SingleValue(rhs.value / val);
-}
-
-*/
-
 int compare(const value_type::value_t& lhs, const value_type::value_t& rhs)
 {
-    if (approx_greater(eps)(lhs, rhs)) return 1;
-
-    if (approx_equal(eps)(lhs, rhs)) return 0;
-
+    if (is_approx_greater(lhs, rhs, eps)) return 1;
+    if (is_approx_equal(lhs, rhs, eps)) return 0;
     return -1;
 }
 
 bool update(value_type::value_t& lhs, const value_type::value_t& rhs)
 {
-    const bool result = !value_type::approx_equal()(lhs, rhs);
+    const bool result = !is_approx_equal(lhs, rhs);
     lhs = rhs;
     return result;
 }
-
-/*
-
-SingleValue::operator value_type::value_t() const {
-    return value;
-}
-
-*/
 
 void set_max(value_type::value_t& new_value, const value_type::value_t& tval)
 {
     new_value = std::max(tval, new_value);
 }
-
-/*
-
-bool operator==(const SingleValue& lhs, const SingleValue& rhs)
-{
-    return lhs.value == rhs.value;
-}
-
-*/
 
 value_type::value_t as_lower_bound(const value_type::value_t& single)
 {

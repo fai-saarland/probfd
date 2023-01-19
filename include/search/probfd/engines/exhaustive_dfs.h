@@ -672,7 +672,7 @@ private:
                                 if (best > value_utils::as_lower_bound(
                                                snode_info.value)) {
                                     changed = changed ||
-                                              !value_type::approx_equal()(
+                                              !value_type::is_approx_equal(
                                                   value_utils::as_lower_bound(
                                                       snode_info.value),
                                                   best);

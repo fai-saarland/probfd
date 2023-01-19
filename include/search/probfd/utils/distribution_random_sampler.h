@@ -24,18 +24,17 @@ public:
     const T& operator()(const Distribution<T>& distribution)
     {
         assert(!distribution.empty());
-        value_type::value_t p = value_type::cap(
-            value_type::from_double(rng->random()),
-            value_type::one);
-        assert(!value_type::approx_greater()(p, value_type::one));
+        value_type::value_t p =
+            std::min(value_type::from_double(rng->random()), value_type::one);
+        assert(!value_type::is_approx_greater(p, value_type::one));
         assert(
-            value_type::approx_greater()(p, value_type::zero) ||
-            value_type::approx_equal()(p, value_type::zero));
+            value_type::is_approx_greater(p, value_type::zero) ||
+            value_type::is_approx_equal(p, value_type::zero));
         auto it = distribution.begin();
         while (true) {
             assert(it != distribution.end());
             p -= it->probability;
-            if (!value_type::approx_greater()(p, value_type::zero)) {
+            if (!value_type::is_approx_greater(p, value_type::zero)) {
                 break;
             }
             it++;

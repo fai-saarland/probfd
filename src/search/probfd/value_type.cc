@@ -13,7 +13,7 @@ value_t from_double(double d)
 
 value_t from_fraction(int nom, int denom)
 {
-    return (((value_t)nom) / (value_t)denom);
+    return static_cast<value_t>(nom) / static_cast<value_t>(denom);
 }
 
 value_t from_string(const std::string& str)
@@ -28,44 +28,24 @@ value_t from_string(const std::string& str)
     return std::stod(str);
 }
 
-value_t cap(const value_t& val, const value_t& maxval)
-{
-    return val < maxval ? val : maxval;
-}
-
-value_t abs(const value_t& val)
+value_t abs(value_t val)
 {
     return std::abs(val);
 }
 
-approx_equal::approx_equal(const value_t& epsilon)
-    : eps_(epsilon)
+bool is_approx_equal(value_t v1, value_t v2, value_t tolerance)
 {
+    return std::abs(v1 - v2) <= tolerance;
 }
 
-approx_less::approx_less(const value_t& epsilon)
-    : eps_(epsilon)
+bool is_approx_less(value_t v1, value_t v2, value_t tolerance)
 {
+    return v1 + tolerance <= v2;
 }
 
-approx_greater::approx_greater(const value_t& epsilon)
-    : eps_(epsilon)
+bool is_approx_greater(value_t v1, value_t v2, value_t tolerance)
 {
-}
-
-bool approx_equal::operator()(const value_t& v1, const value_t& v2) const
-{
-    return std::abs(v1 - v2) <= eps_;
-}
-
-bool approx_less::operator()(const value_t& v1, const value_t& v2) const
-{
-    return v1 + eps_ <= v2;
-}
-
-bool approx_greater::operator()(const value_t& v1, const value_t& v2) const
-{
-    return v1 - eps_ >= v2;
+    return v1 - tolerance >= v2;
 }
 
 const value_t one = 1;
