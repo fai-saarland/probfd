@@ -159,9 +159,9 @@ struct IntervalValue {
     friend std::ostream& operator<<(std::ostream&, const IntervalValue&);
 };
 
-template <typename Dual>
+template <bool Interval>
 using IncumbentSolution =
-    std::conditional_t<Dual::value, IntervalValue, value_type::value_t>;
+    std::conditional_t<Interval, IntervalValue, value_type::value_t>;
 
 // Comparisons
 

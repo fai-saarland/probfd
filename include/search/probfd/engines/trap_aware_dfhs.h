@@ -68,27 +68,25 @@ struct PerStateInformation : public BaseInfo {
 
 } // namespace internal
 
-template <typename StateT, typename QActionT, typename BoundsType>
+template <typename State, typename QAction, bool Interval>
 class DepthFirstHeuristicSearch
     : public heuristic_search::HeuristicSearchBase<
-          StateT,
-          QActionT,
-          BoundsType,
-          std::true_type,
+          State,
+          QAction,
+          Interval,
+          true,
           internal::PerStateInformation> {
     static constexpr int STATE_UNSEEN = -1;
     static constexpr int STATE_CLOSED = -2;
 
 public:
-    using QAction = QActionT;
-    using State = StateT;
-    using Action = typename quotient_system::unwrap_action_type<QAction>::type;
+    using Action = typename quotient_system::unwrap_qaction_type<QAction>;
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
-        StateT,
-        QActionT,
-        BoundsType,
-        std::true_type,
+        State,
+        QAction,
+        Interval,
+        true,
         internal::PerStateInformation>;
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 

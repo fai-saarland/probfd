@@ -14,17 +14,16 @@ namespace solvers {
 
 using namespace engine_interfaces;
 
-template <typename Bisimulation>
-class ExhaustiveAOSolver
-    : public MDPHeuristicSearch<Bisimulation, std::false_type> {
+template <bool Bisimulation>
+class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
 public:
     template <typename T>
     using WrappedType =
-        typename MDPHeuristicSearch<Bisimulation, std::false_type>::
-            template WrappedType<T>;
+        typename MDPHeuristicSearch<Bisimulation, false>::template WrappedType<
+            T>;
 
     explicit ExhaustiveAOSolver(const options::Options& opts)
-        : MDPHeuristicSearch<Bisimulation, std::false_type>(opts)
+        : MDPHeuristicSearch<Bisimulation, false>(opts)
         , open_list_(this->wrap(
               opts.get<std::shared_ptr<TaskOpenListFactory>>("open_list")
                   ->create_open_list(

@@ -4,8 +4,8 @@
 #include "probfd/solvers/mdp_solver.h"
 
 #include "probfd/engine_interfaces/new_state_handler.h"
-#include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
 
 #include "probfd/engines/fret.h"
 
@@ -23,14 +23,14 @@
 namespace probfd {
 namespace solvers {
 
-template <typename Bisimulation, typename Fret>
+template <bool Bisimulation, bool Fret>
 class MDPHeuristicSearch;
 
 class MDPHeuristicSearchBase : public MDPSolver {
-    friend class MDPHeuristicSearch<std::false_type, std::true_type>;
-    friend class MDPHeuristicSearch<std::false_type, std::false_type>;
-    friend class MDPHeuristicSearch<std::true_type, std::true_type>;
-    friend class MDPHeuristicSearch<std::true_type, std::false_type>;
+    friend class MDPHeuristicSearch<false, true>;
+    friend class MDPHeuristicSearch<false, false>;
+    friend class MDPHeuristicSearch<true, true>;
+    friend class MDPHeuristicSearch<true, false>;
 
 public:
     explicit MDPHeuristicSearchBase(const options::Options& opts);
@@ -51,22 +51,18 @@ protected:
     const bool stable_policy_;
 };
 
-template <typename Bisimulation>
-class MDPHeuristicSearch<Bisimulation, std::false_type>
-    : public MDPHeuristicSearchBase {
+template <bool Bisimulation>
+class MDPHeuristicSearch<Bisimulation, false> : public MDPHeuristicSearchBase {
 public:
     using MDPHeuristicSearchBase::add_options_to_parser;
     using MDPHeuristicSearchBase::MDPHeuristicSearchBase;
 
-    template <
-        template <typename, typename, typename>
-        class HS,
-        typename... Args>
+    template <template <typename, typename, bool> class HS, typename... Args>
     engines::MDPEngine<State, OperatorID>*
     heuristic_search_engine_factory(Args&&... args)
     {
         if (dual_bounds_) {
-            using HeuristicSearchType = HS<State, OperatorID, std::true_type>;
+            using HeuristicSearchType = HS<State, OperatorID, true>;
             return engine_factory<HeuristicSearchType>(
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -76,7 +72,7 @@ public:
                 stable_policy_,
                 std::forward<Args>(args)...);
         } else {
-            using HeuristicSearchType = HS<State, OperatorID, std::false_type>;
+            using HeuristicSearchType = HS<State, OperatorID, false>;
             return engine_factory<HeuristicSearchType>(
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -90,8 +86,7 @@ public:
 
 protected:
     template <typename T>
-    using WrappedType =
-        typename Wrapper<std::false_type, std::false_type, T>::type;
+    using WrappedType = typename Wrapper<false, false, T>::type;
 
     template <typename T>
     T wrap(T t) const
@@ -106,9 +101,8 @@ protected:
     }
 };
 
-template <typename Bisimulation>
-class MDPHeuristicSearch<Bisimulation, std::true_type>
-    : public MDPHeuristicSearchBase {
+template <bool Bisimulation>
+class MDPHeuristicSearch<Bisimulation, true> : public MDPHeuristicSearchBase {
     using QAction = quotient_system::QuotientAction<OperatorID>;
 
 public:
@@ -138,10 +132,7 @@ public:
     {
     }
 
-    template <
-        template <typename, typename, typename>
-        class HS,
-        typename... Args>
+    template <template <typename, typename, bool> class HS, typename... Args>
     engines::MDPEngine<State, OperatorID>*
     heuristic_search_engine_factory(Args... args)
     {
@@ -149,38 +140,35 @@ public:
             if (this->fret_on_policy_) {
                 return this->template heuristic_search_engine_factory_wrapper<
                     engines::fret::FRETPi,
-                    std::true_type,
+                    true,
                     HS>(args...);
             } else {
                 return this->template heuristic_search_engine_factory_wrapper<
                     engines::fret::FRETV,
-                    std::true_type,
+                    true,
                     HS>(args...);
             }
         } else {
             if (this->fret_on_policy_) {
                 return this->template heuristic_search_engine_factory_wrapper<
                     engines::fret::FRETPi,
-                    std::false_type,
+                    false,
                     HS>(args...);
             } else {
                 return this->template heuristic_search_engine_factory_wrapper<
                     engines::fret::FRETV,
-                    std::false_type,
+                    false,
                     HS>(args...);
             }
         }
     }
 
-    template <
-        template <typename, typename, typename>
-        class HS,
-        typename... Args>
+    template <template <typename, typename, bool> class HS, typename... Args>
     engines::MDPEngine<State, QAction>*
     quotient_heuristic_search_factory(Args... args)
     {
         if (dual_bounds_) {
-            return new HS<State, QAction, std::true_type>(
+            return new HS<State, QAction, true>(
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
                 q_reward_.get(),
@@ -194,7 +182,7 @@ public:
                 this->quotient_.get(),
                 args...);
         } else {
-            return new HS<State, QAction, std::false_type>(
+            return new HS<State, QAction, false>(
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
                 q_reward_.get(),
@@ -220,22 +208,18 @@ public:
 
 protected:
     template <typename T>
-    using WrappedType =
-        typename Wrapper<std::false_type, std::true_type, T>::type;
+    using WrappedType = typename Wrapper<false, true, T>::type;
 
     template <typename T>
-    typename Wrapper<std::false_type, std::true_type, T>::type wrap(T t) const
+    typename Wrapper<false, true, T>::type wrap(T t) const
     {
-        return Wrapper<std::false_type, std::true_type, T>()(
-            quotient_.get(),
-            t);
+        return Wrapper<false, true, T>()(quotient_.get(), t);
     }
 
     template <typename T>
-    typename Unwrapper<std::false_type, std::true_type, T>::type
-    unwrap(T t) const
+    typename Unwrapper<false, true, T>::type unwrap(T t) const
     {
-        return Unwrapper<std::false_type, std::true_type, T>()(t);
+        return Unwrapper<false, true, T>()(t);
     }
 
     quotient_system::QuotientSystem<OperatorID>* get_quotient_system() const
@@ -245,14 +229,14 @@ protected:
 
 private:
     template <
-        template <typename, typename, typename>
+        template <typename, typename, bool>
         class HS,
-        typename Bounds,
+        bool Interval,
         typename... Args>
-    engines::fret::HeuristicSearchEngine<State, QAction, Bounds>*
+    engines::fret::HeuristicSearchEngine<State, QAction, Interval>*
     quotient_heuristic_search_factory_wrapper(Args... args)
     {
-        return new HS<State, QAction, Bounds>(
+        return new HS<State, QAction, Interval>(
             this->get_state_id_map(),
             q_action_id_map_.get(),
             q_reward_.get(),
@@ -267,20 +251,20 @@ private:
     }
 
     template <
-        template <typename, typename, typename>
+        template <typename, typename, bool>
         class Fret,
-        typename Bounds,
-        template <typename, typename, typename>
+        bool Interval,
+        template <typename, typename, bool>
         class HS,
         typename... Args>
     engines::MDPEngine<State, OperatorID>*
     heuristic_search_engine_factory_wrapper(Args... args)
     {
-        using FretVariant = Fret<State, OperatorID, Bounds>;
-        engines::fret::HeuristicSearchEngine<State, QAction, Bounds>* engine =
+        using FretVariant = Fret<State, OperatorID, Interval>;
+        engines::fret::HeuristicSearchEngine<State, QAction, Interval>* engine =
             this->template quotient_heuristic_search_factory_wrapper<
                 HS,
-                Bounds>(args...);
+                Interval>(args...);
         engine_ = std::unique_ptr<engines::MDPEngine<State, QAction>>(engine);
         return new FretVariant(
             this->get_state_id_map(),
@@ -319,7 +303,7 @@ struct NoOptionsPostprocessing {
 };
 
 template <
-    template <typename>
+    template <bool>
     class SolverClass,
     typename AddOptions = NoAdditionalOptions,
     typename OptionsPostprocessing = NoOptionsPostprocessing>
@@ -338,9 +322,9 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
 
     if (!parser.dry_run()) {
         if (opts.get<bool>("bisimulation")) {
-            return std::make_shared<SolverClass<std::true_type>>(opts);
+            return std::make_shared<SolverClass<true>>(opts);
         } else {
-            return std::make_shared<SolverClass<std::false_type>>(opts);
+            return std::make_shared<SolverClass<false>>(opts);
         }
     }
 
@@ -348,7 +332,7 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
 }
 
 template <
-    template <typename, typename>
+    template <bool, bool>
     class SolverClass,
     typename AddOptions = NoAdditionalOptions,
     typename OptionsPostprocessing = NoOptionsPostprocessing>
@@ -372,21 +356,17 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
         const int fret_type = opts.get<int>("fret");
         if (opts.get<bool>("bisimulation")) {
             if (fret_type == 0) {
-                return std::make_shared<
-                    SolverClass<std::true_type, std::false_type>>(opts);
+                return std::make_shared<SolverClass<true, false>>(opts);
             } else {
                 opts.set<bool>("fret_on_policy", fret_type == 1);
-                return std::make_shared<
-                    SolverClass<std::true_type, std::true_type>>(opts);
+                return std::make_shared<SolverClass<true, true>>(opts);
             }
         } else {
             if (fret_type == 0) {
-                return std::make_shared<
-                    SolverClass<std::false_type, std::false_type>>(opts);
+                return std::make_shared<SolverClass<false, false>>(opts);
             } else {
                 opts.set<bool>("fret_on_policy", fret_type == 1);
-                return std::make_shared<
-                    SolverClass<std::false_type, std::true_type>>(opts);
+                return std::make_shared<SolverClass<false, true>>(opts);
             }
         }
     }

@@ -16,7 +16,7 @@ namespace solvers {
 using namespace engine_interfaces;
 using namespace engines::lrtdp;
 
-template <typename Bisimulation, typename Fret>
+template <bool Bisimulation, bool Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
 public:
     template <typename T>
@@ -24,8 +24,8 @@ public:
         typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
             T>;
 
-    template <typename State, typename Action, typename Bounds>
-    using LRTDP = LRTDP<State, Action, Bounds, Fret>;
+    template <typename State, typename Action, bool Interval>
+    using LRTDP = LRTDP<State, Action, Interval, Fret>;
 
     explicit LRTDPSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
@@ -38,7 +38,7 @@ public:
                       this->get_state_id_map(),
                       this->get_action_id_map())))
     {
-        if constexpr (Fret::value) {
+        if constexpr (Fret) {
             if (stop_consistent_ != TrialTerminationCondition::Consistent) {
                 logging::out << std::endl;
                 logging::out

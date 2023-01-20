@@ -73,28 +73,26 @@ struct PerStateInformation : public StateInfo {
 
 } // namespace internal
 
-template <typename StateT, typename QActionT, typename BoundsType>
+template <typename State, typename QAction, bool Interval>
 class LRTDP
     : public heuristic_search::HeuristicSearchBase<
-          StateT,
-          QActionT,
-          BoundsType,
-          std::true_type,
+          State,
+          QAction,
+          Interval,
+          true,
           internal::PerStateInformation> {
 
     static constexpr int STATE_UNSEEN = -1;
     static constexpr int STATE_CLOSED = -2;
 
 public:
-    using State = StateT;
-    using Action = typename quotient_system::unwrap_action_type<QActionT>::type;
+    using Action = typename quotient_system::unwrap_qaction_type<QAction>;
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
-    using QAction = QActionT;
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
         QAction,
-        BoundsType,
-        std::true_type,
+        Interval,
+        true,
         internal::PerStateInformation>;
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 

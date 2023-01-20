@@ -23,7 +23,6 @@
 
 #include "utils/timer.h"
 
-
 // #include "mdp_heuristic_search.h"
 
 namespace probfd {
@@ -55,12 +54,11 @@ class BisimulationBasedHeuristicSearchEngine
 
 public:
     template <
-        template <typename, typename, typename>
+        template <typename, typename, bool>
         class HS,
-        typename DualValues,
+        bool Interval,
         typename... Args>
     static BisimulationBasedHeuristicSearchEngine* Constructor(
-        const DualValues&,
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
@@ -69,7 +67,7 @@ public:
     {
         auto* res = new BisimulationBasedHeuristicSearchEngine(engine_name);
 
-        res->engine_.reset(new HS<QState, QAction, DualValues>(
+        res->engine_.reset(new HS<QState, QAction, Interval>(
             &res->state_id_map,
             &res->action_id_map,
             res->reward.get(),
@@ -165,12 +163,11 @@ class QBisimulationBasedHeuristicSearchEngine
 
 public:
     template <
-        template <typename, typename, typename>
+        template <typename, typename, bool>
         class HS,
-        typename DualValues,
+        bool Interval,
         typename... Args>
     static QBisimulationBasedHeuristicSearchEngine* QConstructor(
-        const DualValues&,
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
@@ -180,7 +177,7 @@ public:
         auto* res = new QBisimulationBasedHeuristicSearchEngine(engine_name);
 
         res->engine_ = std::unique_ptr<MDPEngineInterface<QState>>(
-            new HS<QState, QQAction, DualValues>(
+            new HS<QState, QQAction, Interval>(
                 args...,
                 res->quotient_.get(),
                 res->q_policy_tiebreaker_.get(),
@@ -200,14 +197,13 @@ public:
     }
 
     template <
-        template <typename, typename, typename>
+        template <typename, typename, bool>
         class Fret,
-        template <typename, typename, typename>
+        template <typename, typename, bool>
         class HS,
-        typename DualValues,
+        bool Interval,
         typename... Args>
     static QBisimulationBasedHeuristicSearchEngine* Constructor(
-        const DualValues&,
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
@@ -216,7 +212,7 @@ public:
     {
         auto* res = new QBisimulationBasedHeuristicSearchEngine(engine_name);
 
-        auto* engine = new HS<QState, QQAction, DualValues>(
+        auto* engine = new HS<QState, QQAction, Interval>(
             &res->state_id_map,
             res->q_action_id_map_.get(),
             res->q_reward_.get(),
@@ -231,7 +227,7 @@ public:
 
         res->engine2_.reset(engine);
 
-        res->engine_.reset(new Fret<QState, QAction, DualValues>(
+        res->engine_.reset(new Fret<QState, QAction, Interval>(
             &res->state_id_map,
             &res->action_id_map,
             res->reward.get(),
@@ -278,8 +274,7 @@ private:
 };
 
 template <>
-class MDPHeuristicSearch<std::true_type, std::false_type>
-    : public MDPHeuristicSearchBase {
+class MDPHeuristicSearch<true, false> : public MDPHeuristicSearchBase {
 public:
     using MDPHeuristicSearchBase::add_options_to_parser;
     using MDPHeuristicSearchBase::MDPHeuristicSearchBase;
@@ -289,56 +284,48 @@ public:
         return get_heuristic_search_name() + "(bisimulation)";
     }
 
-    template <
-        template <typename, typename, typename>
-        class HS,
-        typename... Args>
+    template <template <typename, typename, bool> class HS, typename... Args>
     engines::MDPEngineInterface<State>*
     heuristic_search_engine_factory(Args... args)
     {
         if (dual_bounds_) {
-            return BisimulationBasedHeuristicSearchEngine::template Constructor<
-                HS>(
-                std::true_type(),
-                this->get_heuristic_search_name(),
-                this->progress_,
-                this->interval_comparison_,
-                this->stable_policy_,
-                args...);
+            return BisimulationBasedHeuristicSearchEngine::
+                template Constructor<HS, true>(
+                    this->get_heuristic_search_name(),
+                    this->progress_,
+                    this->interval_comparison_,
+                    this->stable_policy_,
+                    args...);
         } else {
-            return BisimulationBasedHeuristicSearchEngine::template Constructor<
-                HS>(
-                std::false_type(),
-                this->get_heuristic_search_name(),
-                this->progress_,
-                this->interval_comparison_,
-                this->stable_policy_,
-                args...);
+            return BisimulationBasedHeuristicSearchEngine::
+                template Constructor<HS, false>(
+                    this->get_heuristic_search_name(),
+                    this->progress_,
+                    this->interval_comparison_,
+                    this->stable_policy_,
+                    args...);
         }
     }
 
 protected:
     template <typename T>
-    using WrappedType =
-        typename Wrapper<std::true_type, std::false_type, T>::type;
+    using WrappedType = typename Wrapper<true, false, T>::type;
 
     template <typename T>
-    typename Wrapper<std::true_type, std::false_type, T>::type wrap(T t) const
+    typename Wrapper<true, false, T>::type wrap(T t) const
     {
-        return Wrapper<std::true_type, std::false_type, T>()(t);
+        return Wrapper<true, false, T>()(t);
     }
 
     template <typename T>
-    typename Unwrapper<std::true_type, std::false_type, T>::type
-    unwrap(T t) const
+    typename Unwrapper<true, false, T>::type unwrap(T t) const
     {
-        return Unwrapper<std::true_type, std::false_type, T>()(t);
+        return Unwrapper<true, false, T>()(t);
     }
 };
 
 template <>
-class MDPHeuristicSearch<std::true_type, std::true_type>
-    : public MDPHeuristicSearchBase {
+class MDPHeuristicSearch<true, true> : public MDPHeuristicSearchBase {
 public:
     explicit MDPHeuristicSearch(const options::Options& opts)
         : MDPHeuristicSearchBase(opts)
@@ -348,10 +335,7 @@ public:
 
     using MDPHeuristicSearchBase::add_options_to_parser;
 
-    template <
-        template <typename, typename, typename>
-        class HS,
-        typename... Args>
+    template <template <typename, typename, bool> class HS, typename... Args>
     engines::MDPEngineInterface<State>*
     heuristic_search_engine_factory(Args... args)
     {
@@ -359,24 +343,24 @@ public:
             if (this->fret_on_policy_) {
                 return this->template heuristic_search_engine_factory_wrapper<
                     engines::fret::FRETPi,
-                    std::true_type,
+                    true,
                     HS>(args...);
             } else {
                 return this->template heuristic_search_engine_factory_wrapper<
                     engines::fret::FRETV,
-                    std::true_type,
+                    true,
                     HS>(args...);
             }
         } else {
             if (this->fret_on_policy_) {
                 return this->template heuristic_search_engine_factory_wrapper<
                     engines::fret::FRETPi,
-                    std::false_type,
+                    false,
                     HS>(args...);
             } else {
                 return this->template heuristic_search_engine_factory_wrapper<
                     engines::fret::FRETV,
-                    std::false_type,
+                    false,
                     HS>(args...);
             }
         }
@@ -391,8 +375,7 @@ public:
     {
         if (dual_bounds_) {
             return QBisimulationBasedHeuristicSearchEngine::
-                template QConstructor<HS>(
-                    std::true_type(),
+                template QConstructor<HS, true>(
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
@@ -400,8 +383,7 @@ public:
                     args...);
         } else {
             return QBisimulationBasedHeuristicSearchEngine::
-                template QConstructor<HS>(
-                    std::false_type(),
+                template QConstructor<HS, false>(
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
@@ -421,36 +403,33 @@ public:
 
 protected:
     template <typename T>
-    using WrappedType =
-        typename Wrapper<std::true_type, std::true_type, T>::type;
+    using WrappedType = typename Wrapper<true, true, T>::type;
 
     template <typename T>
-    typename Wrapper<std::true_type, std::true_type, T>::type wrap(T t) const
+    typename Wrapper<true, true, T>::type wrap(T t) const
     {
-        return Wrapper<std::true_type, std::true_type, T>()(t);
+        return Wrapper<true, true, T>()(t);
     }
 
     template <typename T>
-    typename Unwrapper<std::true_type, std::true_type, T>::type
-    unwrap(T t) const
+    typename Unwrapper<true, true, T>::type unwrap(T t) const
     {
-        return Unwrapper<std::true_type, std::true_type, T>()(t);
+        return Unwrapper<true, true, T>()(t);
     }
 
 private:
     template <
-        template <typename, typename, typename>
+        template <typename, typename, bool>
         class Fret,
-        typename DualValues,
-        template <typename, typename, typename>
+        bool Interval,
+        template <typename, typename, bool>
         class HS,
         typename... Args>
     engines::MDPEngineInterface<State>*
     heuristic_search_engine_factory_wrapper(Args... args)
     {
         return QBisimulationBasedHeuristicSearchEngine::
-            template Constructor<Fret, HS>(
-                DualValues(),
+            template Constructor<Fret, HS, Interval>(
                 this->get_heuristic_search_name(),
                 this->progress_,
                 this->interval_comparison_,

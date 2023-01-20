@@ -13,20 +13,8 @@ namespace probfd {
 namespace engines {
 
 /// Namespace dedicated to the AO* algorithm.
+namespace ao_search {
 namespace ao_star {
-
-namespace internal {
-
-template <typename State, typename Action, typename DualBounds>
-using AOBase = ao_search::AOBase<
-    State,
-    Action,
-    DualBounds,
-    std::true_type,
-    ao_search::PerStateInformation,
-    true>;
-
-}
 
 /**
  * @brief Implementation of the AO* algorithm.
@@ -36,14 +24,13 @@ using AOBase = ao_search::AOBase<
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
- * @tparam DualBounds - Whether bounded value iteration shall be used.
+ * @tparam Interval - Whether bounded value iteration shall be used.
  *
  * @remark Does not validate that the input model is acyclic.
  */
-template <typename State, typename Action, typename DualBounds>
-class AOStar : public internal::AOBase<State, Action, DualBounds> {
-    using AOBase = internal::AOBase<State, Action, DualBounds>;
-    using StateInfo = typename AOBase::StateInfo;
+template <typename State, typename Action, bool Interval>
+class AOStar
+    : public AOBase<State, Action, Interval, true, PerStateInformation, true> {
 
 public:
     AOStar(
@@ -58,7 +45,7 @@ public:
         bool interval_comparison,
         bool stable_policy,
         engine_interfaces::TransitionSampler<Action>* outcome_selection)
-        : AOBase(
+        : AOBase<State, Action, Interval, true, PerStateInformation, true>(
               state_id_map,
               action_id_map,
               reward_function,
@@ -209,6 +196,7 @@ private:
 };
 
 } // namespace ao_star
+} // namespace ao_search
 } // namespace engines
 } // namespace probfd
 

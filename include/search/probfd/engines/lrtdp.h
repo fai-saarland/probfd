@@ -91,23 +91,22 @@ struct PerStateInformation : public StateInfo {
 // When FRET is enabled, store the LRTDP-specific state information seperately
 // so it can be easily reset between FRET iterations. Otherwise, store the
 // LRTDP-specific state information with the basic state information.
-template <typename State, typename Action, typename DualBounds, bool Fret>
+template <typename State, typename Action, bool Interval, bool Fret>
 using LRTDPBase = std::conditional_t<
     Fret,
-    heuristic_search::
-        HeuristicSearchBase<State, Action, DualBounds, std::true_type>,
+    heuristic_search::HeuristicSearchBase<State, Action, Interval, true>,
     heuristic_search::HeuristicSearchBase<
         State,
         Action,
-        DualBounds,
-        std::true_type,
+        Interval,
+        true,
         internal::PerStateInformation>>;
 
-template <typename State, typename Action, typename DualBounds, bool Fret>
+template <typename State, typename Action, bool Interval, bool Fret>
 using LRTDPStateInfo = std::conditional_t<
     Fret,
     internal::PerStateInformation<internal::EmptyStateInfo>,
-    typename LRTDPBase<State, Action, DualBounds, Fret>::StateInfo>;
+    typename LRTDPBase<State, Action, Interval, Fret>::StateInfo>;
 
 } // namespace internal
 
@@ -143,17 +142,15 @@ using LRTDPStateInfo = std::conditional_t<
  *
  * @tparam State - The state type of the MDP model.
  * @tparam Action - The action type of the MDP model.
- * @tparam DualBounds - Whether intervals or real values are used as state
+ * @tparam Interval - Whether intervals or real values are used as state
  * values.
  * @tparam Fret - Specifies whether the algorithm should be usable within FRET.
  */
-template <typename State, typename Action, typename DualBounds, typename Fret>
-class LRTDP
-    : public internal::LRTDPBase<State, Action, DualBounds, Fret::value> {
+template <typename State, typename Action, bool Interval, bool Fret>
+class LRTDP : public internal::LRTDPBase<State, Action, Interval, Fret> {
     using HeuristicSearchBase =
-        internal::LRTDPBase<State, Action, DualBounds, Fret::value>;
-    using StateInfoT =
-        internal::LRTDPStateInfo<State, Action, DualBounds, Fret::value>;
+        internal::LRTDPBase<State, Action, Interval, Fret>;
+    using StateInfoT = internal::LRTDPStateInfo<State, Action, Interval, Fret>;
 
     using Statistics = internal::Statistics;
 

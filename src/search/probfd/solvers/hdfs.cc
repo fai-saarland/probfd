@@ -17,7 +17,7 @@ namespace solvers {
 using namespace engine_interfaces;
 using namespace engines::heuristic_depth_first_search;
 
-template <typename Bisimulation, typename Fret>
+template <bool Bisimulation, bool Fret>
 class HDFSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
 public:
     template <typename T>
@@ -25,8 +25,8 @@ public:
         typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
             T>;
 
-    template <typename State, typename Action, typename Bounds>
-    using Engine = HeuristicDepthFirstSearch<State, Action, Bounds, Fret>;
+    template <typename State, typename Action, bool Interval>
+    using Engine = HeuristicDepthFirstSearch<State, Action, Interval, Fret>;
 
     explicit HDFSSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)

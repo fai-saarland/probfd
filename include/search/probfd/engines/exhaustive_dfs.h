@@ -111,11 +111,11 @@ update_lower_bound(value_utils::IntervalValue& x, value_type::value_t v)
     return false;
 }
 
-template <typename State, typename Action, typename DualBounds>
+template <typename State, typename Action, bool Interval>
 class ExhaustiveDepthFirstSearch
     : public MDPEngine<State, Action>
     , public engine_interfaces::HeuristicSearchInterface {
-    using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
+    using IncumbentSolution = value_utils::IncumbentSolution<Interval>;
 
     struct SearchNodeInformation {
         static constexpr uint8_t NEW = 0;
@@ -210,7 +210,7 @@ public:
 
     value_type::value_t lookup_value(const StateID& state_id) override
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             return search_space_[state_id].value.upper;
         } else {
             return search_space_[state_id].value;
@@ -220,7 +220,7 @@ public:
     value_utils::IntervalValue
     lookup_dual_bounds(const StateID& state_id) override
     {
-        if constexpr (!DualBounds::value) {
+        if constexpr (!Interval) {
             ABORT("Search algorithm does not support interval bounds!");
         } else {
             return search_space_[state_id].value;
@@ -251,7 +251,7 @@ public:
 
     virtual value_type::value_t get_error(const State& s) override
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             const SearchNodeInformation& info =
                 search_space_[this->get_state_id(s)];
             return std::abs(info.value.error_bound());
@@ -268,7 +268,7 @@ public:
 private:
     void register_value_reports(const SearchNodeInformation* info)
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             this->report_->register_value("vl", [info]() {
                 return info->value.lower;
             });
@@ -292,7 +292,7 @@ private:
 
     IncumbentSolution get_trivial_bound() const
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             return reward_bound_;
         } else {
             return reward_bound_.lower;
@@ -369,7 +369,7 @@ private:
             return false;
         }
 
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             info.value.upper = eval_result.get_estimate();
         }
 
@@ -631,7 +631,7 @@ private:
                         auto& info = search_space_[rend->state_ref];
                         info.close();
 
-                        if constexpr (DualBounds::value) {
+                        if constexpr (Interval) {
                             val_changed =
                                 value_utils::update(
                                     info.value,
@@ -1009,7 +1009,7 @@ private:
 
     bool check_early_convergence(const SearchNodeInformation& node) const
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             return node.value.lower >= node.value.upper;
         } else {
             return value_utils::as_lower_bound(node.value) >=

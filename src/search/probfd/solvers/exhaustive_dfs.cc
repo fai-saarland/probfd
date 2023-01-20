@@ -24,11 +24,8 @@ using namespace engines::exhaustive_dfs;
 
 class ExhaustiveDFSSolver : public MDPSolver {
 public:
-    using Engine =
-        ExhaustiveDepthFirstSearch<State, OperatorID, std::false_type>;
-
-    using Engine2 =
-        ExhaustiveDepthFirstSearch<State, OperatorID, std::true_type>;
+    using Engine = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
+    using Engine2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
 
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)

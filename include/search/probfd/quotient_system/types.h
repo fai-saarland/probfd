@@ -21,13 +21,15 @@ struct QuotientAction {
 };
 
 template <typename T>
-struct unwrap_action_type {
+struct unwrap_qaction;
+
+template <typename T>
+struct unwrap_qaction<QuotientAction<T>> {
+    using type = T;
 };
 
 template <typename T>
-struct unwrap_action_type<QuotientAction<T>> {
-    using type = T;
-};
+using unwrap_qaction_type = typename unwrap_qaction<T>::type;
 
 } // namespace quotient_system
 } // namespace probfd

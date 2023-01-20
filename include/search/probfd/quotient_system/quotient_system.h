@@ -500,10 +500,9 @@ private:
     engine_interfaces::TransitionGenerator<Action>* transition_gen_;
 };
 
-template <typename ActionT>
-class QuotientSystem : public DefaultQuotientSystem<ActionT> {
+template <typename Action>
+class QuotientSystem : public DefaultQuotientSystem<Action> {
 public:
-    using Action = ActionT;
     using QAction = QuotientAction<Action>;
     using QuotientStateIDIterator =
         typename DefaultQuotientSystem<Action>::QuotientStateIDIterator;

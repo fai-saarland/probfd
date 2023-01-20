@@ -12,11 +12,12 @@ namespace probfd {
 namespace engines {
 namespace heuristic_search {
 
-template <typename StoresPolicyT = std::false_type>
-struct StatesPolicy {};
+template <bool StoresPolicyT = false>
+struct StatesPolicy {
+};
 
 template <>
-struct StatesPolicy<std::true_type> {
+struct StatesPolicy<true> {
     void set_policy(const ActionID& aid) { policy = aid; }
 
     ActionID get_policy() const { return policy; }
@@ -66,14 +67,14 @@ struct StateFlags {
     value_type::value_t state_reward;
 };
 
-template <typename StoresPolicyT, typename TwoValuesT>
+template <bool StoresPolicyT, bool IsInterval>
 struct PerStateBaseInformation
     : public StatesPolicy<StoresPolicyT>
     , public StateFlags {
-    using StoresPolicy = StoresPolicyT;
-    using DualBounds = TwoValuesT;
+    static constexpr bool StoresPolicy = StoresPolicyT;
+    static constexpr bool Interval = IsInterval;
 
-    value_utils::IncumbentSolution<TwoValuesT> value;
+    value_utils::IncumbentSolution<Interval> value;
 };
 
 } // namespace heuristic_search

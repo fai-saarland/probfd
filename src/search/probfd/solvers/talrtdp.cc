@@ -13,19 +13,17 @@ namespace solvers {
 using namespace engine_interfaces;
 using namespace engines::trap_aware_lrtdp;
 
-class TrapAwareLRTDPSolver
-    : public MDPHeuristicSearch<std::false_type, std::true_type> {
+class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
 public:
     template <typename T>
     using WrappedType =
-        typename MDPHeuristicSearch<std::false_type, std::true_type>::
-            WrappedType<T>;
+        typename MDPHeuristicSearch<false, true>::WrappedType<T>;
 
-    template <typename State, typename Action, typename Bounds>
-    using Engine = LRTDP<State, Action, Bounds>;
+    template <typename State, typename Action, bool Interval>
+    using Engine = LRTDP<State, Action, Interval>;
 
     explicit TrapAwareLRTDPSolver(const options::Options& opts)
-        : MDPHeuristicSearch<std::false_type, std::true_type>(opts)
+        : MDPHeuristicSearch<false, true>(opts)
         , stop_consistent_(
               opts.get<TrialTerminationCondition>("terminate_trial"))
         , reexpand_traps_(opts.get<bool>("reexpand_traps"))
@@ -90,8 +88,7 @@ protected:
         if (s != nullptr) {
             s->print_statistics(logging::out);
         }
-        MDPHeuristicSearch<std::false_type, std::true_type>::
-            print_additional_statistics();
+        MDPHeuristicSearch<false, true>::print_additional_statistics();
     }
 
     const TrialTerminationCondition stop_consistent_;

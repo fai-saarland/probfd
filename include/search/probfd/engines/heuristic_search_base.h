@@ -135,10 +135,11 @@ public:
     using State = StateT;
     using Action = ActionT;
     using StateInfo = StateInfoT;
-    using StorePolicy = typename StateInfo::StoresPolicy;
-    using DualBounds = typename StateInfo::DualBounds;
 
-    using IncumbentSolution = value_utils::IncumbentSolution<DualBounds>;
+    static constexpr bool StorePolicy = StateInfo::StoresPolicy;
+    static constexpr bool Interval = StateInfo::Interval;
+
+    using IncumbentSolution = value_utils::IncumbentSolution<Interval>;
 
     explicit HeuristicSearchBase(
         engine_interfaces::StateIDMap<State>* state_id_map,
@@ -171,17 +172,14 @@ public:
     /**
      * @copydoc MDPEngineInterface<State>::supports_error_bound()
      */
-    virtual bool supports_error_bound() const override
-    {
-        return DualBounds::value;
-    }
+    virtual bool supports_error_bound() const override { return Interval; }
 
     /**
      * @copydoc MDPEngineInterface<State>::get_error()
      */
     virtual value_type::value_t get_error(const State& s) override
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             const StateInfo& info = state_infos_[this->get_state_id(s)];
             return info.value.error_bound();
         } else {
@@ -205,7 +203,7 @@ public:
 
     value_type::value_t lookup_value(const StateID& state_id) override
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             return state_infos_[state_id].value.upper;
         } else {
             return state_infos_[state_id].value;
@@ -215,7 +213,7 @@ public:
     value_utils::IntervalValue
     lookup_dual_bounds(const StateID& state_id) override
     {
-        if constexpr (!DualBounds::value) {
+        if constexpr (!Interval) {
             ABORT("Search algorithm does not support interval bounds!");
         } else {
             return state_infos_[state_id].value;
@@ -224,7 +222,7 @@ public:
 
     ActionID lookup_policy(const StateID& state_id) override
     {
-        if constexpr (!StorePolicy::value) {
+        if constexpr (!StorePolicy) {
             ABORT("Search algorithm does not store policy information!");
         } else {
             return state_infos_[state_id].policy;
@@ -262,7 +260,7 @@ public:
      */
     void clear_policy(const StateID& state_id)
     {
-        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+        static_assert(StorePolicy, "Policy not stored by algorithm!");
 
         state_infos_[state_id].set_policy(ActionID::undefined);
     }
@@ -273,7 +271,7 @@ public:
      */
     Action get_policy(const StateID& state_id)
     {
-        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+        static_assert(StorePolicy, "Policy not stored by algorithm!");
 
         const ActionID aid = state_infos_[state_id].get_policy();
         assert(aid != ActionID::undefined);
@@ -290,7 +288,7 @@ public:
      */
     bool apply_policy(const StateID& state, Distribution<StateID>& result)
     {
-        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+        static_assert(StorePolicy, "Policy not stored by algorithm!");
 
         const StateInfo& info = state_infos_[state];
         if (info.policy == ActionID::undefined) {
@@ -360,7 +358,7 @@ public:
      */
     bool async_update(const StateID& s)
     {
-        if constexpr (!StorePolicy::value) {
+        if constexpr (!StorePolicy) {
             return compute_value_update(s);
         } else {
             return async_update(s, nullptr, nullptr).first;
@@ -449,7 +447,7 @@ protected:
      */
     bool update(StateInfo& state_info, const IncumbentSolution& other)
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             return value_utils::update(
                 state_info.value,
                 other,
@@ -576,7 +574,7 @@ protected:
     template <typename Info>
     bool do_bounds_disagree(const StateID& state_id, const Info& info)
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             if constexpr (std::is_same_v<Info, StateInfo>) {
                 return interval_comparison_ && !info.value.bounds_equal();
             } else {
@@ -644,7 +642,7 @@ protected:
 private:
     void add_values_to_report(const StateInfo* info)
     {
-        if constexpr (DualBounds::value) {
+        if constexpr (Interval) {
             report_->register_value("vl", [info]() {
                 return value_utils::as_lower_bound(info->value);
             });
@@ -692,7 +690,7 @@ private:
             } else {
                 state_info.set_on_fringe();
 
-                if constexpr (DualBounds::value) {
+                if constexpr (Interval) {
                     state_info.value.upper = estimate.get_estimate();
                 } else {
                     state_info.value = estimate.get_estimate();
@@ -834,7 +832,7 @@ private:
         ActionID* greedy_action,
         Distribution<StateID>* greedy_transition)
     {
-        static_assert(StorePolicy::value, "Policy not stored by algorithm!");
+        static_assert(StorePolicy, "Policy not stored by algorithm!");
 
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> transitions;
@@ -982,13 +980,13 @@ struct NoAdditionalStateData : public T {};
 template <
     typename State,
     typename Action,
-    typename DualValueBounds = std::false_type,
-    typename StorePolicy = std::false_type,
+    bool Interval = false,
+    bool StorePolicy = false,
     template <typename> class StateInfo = NoAdditionalStateData>
 using HeuristicSearchBase = internal::HeuristicSearchBase<
     State,
     Action,
-    StateInfo<PerStateBaseInformation<StorePolicy, DualValueBounds>>>;
+    StateInfo<PerStateBaseInformation<StorePolicy, Interval>>>;
 
 } // namespace heuristic_search
 } // namespace engines

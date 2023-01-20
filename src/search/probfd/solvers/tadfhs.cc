@@ -12,19 +12,17 @@ namespace solvers {
 using namespace engine_interfaces;
 using namespace engines::trap_aware_dfhs;
 
-class TrapAwareDFHSSolver
-    : public MDPHeuristicSearch<std::false_type, std::true_type> {
+class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
 public:
     template <typename T>
     using WrappedType =
-        typename MDPHeuristicSearch<std::false_type, std::true_type>::
-            WrappedType<T>;
+        typename MDPHeuristicSearch<false, true>::WrappedType<T>;
 
-    template <typename State, typename Action, typename Bounds>
-    using Engine = DepthFirstHeuristicSearch<State, Action, Bounds>;
+    template <typename State, typename Action, bool Interval>
+    using Engine = DepthFirstHeuristicSearch<State, Action, Interval>;
 
     explicit TrapAwareDFHSSolver(const options::Options& opts)
-        : MDPHeuristicSearch<std::false_type, std::true_type>(opts)
+        : MDPHeuristicSearch<false, true>(opts)
         , open_list_(
               opts.contains("open_list")
                   ? this->wrap(
@@ -100,8 +98,7 @@ public:
         return "";
     }
 
-    virtual engines::MDPEngineInterface<State>*
-    create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         return this->template quotient_heuristic_search_factory<Engine>(
             forward_updates_,
@@ -118,8 +115,7 @@ public:
 protected:
     virtual void print_additional_statistics() const override
     {
-        MDPHeuristicSearch<std::false_type, std::true_type>::
-            print_additional_statistics();
+        MDPHeuristicSearch<false, true>::print_additional_statistics();
     }
 
     WrappedType<std::shared_ptr<TaskOpenList>> open_list_;

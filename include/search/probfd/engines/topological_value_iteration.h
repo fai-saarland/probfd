@@ -65,7 +65,7 @@ struct Statistics {
  * @tparam Action - The action type of the underlying MDP model.
  * @tparam Interval - Whether bounded value iteration is used.
  */
-template <typename State, typename Action, typename Interval = std::false_type>
+template <typename State, typename Action, bool Interval = false>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
     using IncumbentSolution = value_utils::IncumbentSolution<Interval>;
 
@@ -221,7 +221,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
                 value_utils::set_max(v, info.compute_q_value());
             }
 
-            if constexpr (Interval::value) {
+            if constexpr (Interval) {
                 return value_utils::update(*value, v) || !value->bounds_equal();
             } else {
                 return value_utils::update(*value, v);
@@ -431,7 +431,7 @@ private:
 
             // Check for self loop
             if (!transition.is_dirac(state_id)) {
-                if constexpr (Interval::value) {
+                if constexpr (Interval) {
                     assert(t_reward <= estimate);
                     state_value.lower = t_reward;
                     state_value.upper = estimate;

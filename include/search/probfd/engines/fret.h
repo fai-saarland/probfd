@@ -29,9 +29,9 @@ namespace engines {
 /// Namespace dedicated to the Find, Revise, Eliminate Traps (FRET) framework.
 namespace fret {
 
-template <typename State, typename Action, typename B2>
+template <typename State, typename Action, bool Interval>
 using HeuristicSearchEngine =
-    heuristic_search::HeuristicSearchBase<State, Action, B2, std::true_type>;
+    heuristic_search::HeuristicSearchBase<State, Action, Interval, true>;
 
 namespace internal {
 
@@ -63,7 +63,7 @@ struct Statistics {
 template <
     typename State,
     typename Action,
-    typename B2,
+    bool Interval,
     typename GreedyGraphGenerator>
 class FRET : public MDPEngine<State, Action> {
     struct TarjanStateInformation {
@@ -103,7 +103,7 @@ public:
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         QuotientSystem* quotient,
         ProgressReport* report,
-        HeuristicSearchEngine<State, QAction, B2>* engine)
+        HeuristicSearchEngine<State, QAction, Interval>* engine)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
@@ -360,7 +360,7 @@ private:
     GreedyGraphGenerator greedy_graph_;
     ProgressReport* report_;
     QuotientSystem* quotient_;
-    HeuristicSearchEngine<State, QAction, B2>* base_engine_;
+    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
 
     Statistics statistics_;
     bool last_dead_;
@@ -368,13 +368,13 @@ private:
     unsigned unexpanded_;
 };
 
-template <typename State, typename Action, typename B2>
+template <typename State, typename Action, bool Interval>
 class ValueGraph {
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
-    explicit ValueGraph(HeuristicSearchEngine<State, QAction, B2>* hs)
+    explicit ValueGraph(HeuristicSearchEngine<State, QAction, Interval>* hs)
         : base_engine_(hs)
     {
     }
@@ -416,17 +416,17 @@ private:
         std::unordered_set<StateID> ids;
     };
 
-    HeuristicSearchEngine<State, QAction, B2>* base_engine_;
+    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
     StateCollector collector_;
 };
 
-template <typename State, typename Action, typename B2>
+template <typename State, typename Action, bool Interval>
 class PolicyGraph {
 public:
     using QuotientSystem = quotient_system::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
-    explicit PolicyGraph(HeuristicSearchEngine<State, QAction, B2>* hs)
+    explicit PolicyGraph(HeuristicSearchEngine<State, QAction, Interval>* hs)
         : base_engine_(hs)
     {
     }
@@ -442,19 +442,25 @@ public:
     }
 
 private:
-    HeuristicSearchEngine<State, QAction, B2>* base_engine_;
+    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
     Distribution<StateID> t_;
 };
 
 } // namespace internal
 
-template <typename State, typename Action, typename B2>
-using FRETV = internal::
-    FRET<State, Action, B2, typename internal::ValueGraph<State, Action, B2>>;
+template <typename State, typename Action, bool Interval>
+using FRETV = internal::FRET<
+    State,
+    Action,
+    Interval,
+    typename internal::ValueGraph<State, Action, Interval>>;
 
-template <typename State, typename Action, typename B2>
-using FRETPi = internal::
-    FRET<State, Action, B2, typename internal::PolicyGraph<State, Action, B2>>;
+template <typename State, typename Action, bool Interval>
+using FRETPi = internal::FRET<
+    State,
+    Action,
+    Interval,
+    typename internal::PolicyGraph<State, Action, Interval>>;
 
 } // namespace fret
 } // namespace engines

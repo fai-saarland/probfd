@@ -21,28 +21,28 @@
 namespace probfd {
 namespace solvers {
 
-template <typename Bisimulation, typename Fret, typename T>
+template <bool Bisimulation, bool Fret, typename T>
 struct Wrapper {
     using type = T;
     type operator()(T t) const { return t; }
 };
 
-template <typename Bisimulation, typename Fret, typename T>
+template <bool Bisimulation, bool Fret, typename T>
 struct Unwrapper {
     using type = T;
     type operator()(T t) const { return t; }
 };
 
-template <typename Fret, typename Op>
+template <bool Fret, typename Op>
 struct translate_action;
 
 template <typename Op>
-struct translate_action<std::true_type, Op> {
+struct translate_action<true, Op> {
     using type = quotient_system::QuotientAction<Op>;
 };
 
 template <typename Op>
-struct translate_action<std::false_type, Op> {
+struct translate_action<false, Op> {
     using type = Op;
 };
 
@@ -51,8 +51,8 @@ struct translate_action<std::false_type, Op> {
 
 template <>
 struct Wrapper<
-    std::false_type,
-    std::true_type,
+    false,
+    true,
     std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>> {
 
     using type = std::shared_ptr<engine_interfaces::TransitionSampler<
@@ -70,8 +70,8 @@ struct Wrapper<
 
 template <>
 struct Unwrapper<
-    std::false_type,
-    std::true_type,
+    false,
+    true,
     std::shared_ptr<engine_interfaces::TransitionSampler<
         quotient_system::QuotientAction<OperatorID>>>> {
 
@@ -85,9 +85,9 @@ struct Unwrapper<
     }
 };
 
-template <typename Fret>
+template <bool Fret>
 struct Wrapper<
-    std::true_type,
+    true,
     Fret,
     std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>> {
     using type = std::shared_ptr<engine_interfaces::TransitionSampler<
@@ -107,9 +107,9 @@ struct Wrapper<
     }
 };
 
-template <typename Fret>
+template <bool Fret>
 struct Unwrapper<
-    std::true_type,
+    true,
     Fret,
     std::shared_ptr<engine_interfaces::TransitionSampler<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>> {
@@ -128,8 +128,8 @@ struct Unwrapper<
 
 template <>
 struct Wrapper<
-    std::false_type,
-    std::true_type,
+    false,
+    true,
     std::shared_ptr<engine_interfaces::OpenList<OperatorID>>> {
 
     using type = std::shared_ptr<engine_interfaces::OpenList<
@@ -146,8 +146,8 @@ struct Wrapper<
 
 template <>
 struct Unwrapper<
-    std::false_type,
-    std::true_type,
+    false,
+    true,
     std::shared_ptr<engine_interfaces::OpenList<
         quotient_system::QuotientAction<OperatorID>>>> {
 
@@ -160,9 +160,9 @@ struct Unwrapper<
     }
 };
 
-template <typename Fret>
+template <bool Fret>
 struct Wrapper<
-    std::true_type,
+    true,
     Fret,
     std::shared_ptr<engine_interfaces::OpenList<OperatorID>>> {
     using type = std::shared_ptr<engine_interfaces::OpenList<
@@ -177,9 +177,9 @@ struct Wrapper<
     }
 };
 
-template <typename Fret>
+template <bool Fret>
 struct Unwrapper<
-    std::true_type,
+    true,
     Fret,
     std::shared_ptr<engine_interfaces::OpenList<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>> {

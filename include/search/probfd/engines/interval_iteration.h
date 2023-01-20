@@ -59,8 +59,8 @@ public:
     using QuotientSystem = typename Decomposer::QuotientSystem;
     using QAction = typename QuotientSystem::QAction;
 
-    using ValueIteration = topological_vi::
-        TopologicalValueIteration<State, QAction, std::true_type>;
+    using ValueIteration =
+        topological_vi::TopologicalValueIteration<State, QAction, true>;
 
     using ValueStore = typename ValueIteration::Store;
     using BoolStore = std::vector<StateID>;

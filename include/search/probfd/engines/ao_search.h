@@ -59,7 +59,7 @@ struct PerStateInformation : public StateInfo {
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
- * @tparam DualBounds - Determines whether bounded value iteration is performed.
+ * @tparam Interval - Determines whether interval bounds are used.
  * @tparam StorePolicy - Determines whether the optimal policy is stored.
  * @tparam StateInfoExtension - The extended state information struct used by
  * the derived algorithm.
@@ -68,8 +68,8 @@ struct PerStateInformation : public StateInfo {
 template <
     typename State,
     typename Action,
-    typename DualBounds,
-    typename StorePolicy,
+    bool Interval,
+    bool StorePolicy,
     template <typename>
     class StateInfoExtension,
     bool Greedy>
@@ -77,14 +77,14 @@ class AOBase
     : public heuristic_search::HeuristicSearchBase<
           State,
           Action,
-          DualBounds,
+          Interval,
           StorePolicy,
           StateInfoExtension> {
     /// The heuristic search base class.
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
         Action,
-        DualBounds,
+        Interval,
         StorePolicy,
         StateInfoExtension>;
 

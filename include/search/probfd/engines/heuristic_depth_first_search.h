@@ -79,39 +79,37 @@ using StandalonePerStateInformation =
 
 // Store HDFS-specific state information seperately when FRET is enabled to
 // make resetting the solver state easier.
-template <typename State, typename Action, typename Interval, bool Fret>
+template <typename State, typename Action, bool Interval, bool Fret>
 using HDFSBase = std::conditional_t<
     Fret,
     heuristic_search::HeuristicSearchBase<
         State,
         Action,
         Interval,
-        std::true_type,
+        true,
         heuristic_search::NoAdditionalStateData>,
     heuristic_search::HeuristicSearchBase<
         State,
         Action,
         Interval,
-        std::true_type,
+        true,
         internal::PerStateInformation>>;
 
 } // namespace internal
 
-template <typename State, typename Action, typename Interval, typename Fret>
+template <typename State, typename Action, bool Interval, bool Fret>
 class HeuristicDepthFirstSearch
-    : public internal::HDFSBase<State, Action, Interval, Fret::value> {
+    : public internal::HDFSBase<State, Action, Interval, Fret> {
 
     using Statistics = internal::Statistics;
 
     using HeuristicSearchBase =
-        internal::HDFSBase<State, Action, Interval, Fret::value>;
+        internal::HDFSBase<State, Action, Interval, Fret>;
 
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 
-    using AdditionalStateInfo = std::conditional_t<
-        Fret::value,
-        internal::StandalonePerStateInformation,
-        StateInfo>;
+    using AdditionalStateInfo = std::
+        conditional_t<Fret, internal::StandalonePerStateInformation, StateInfo>;
 
 public:
     HeuristicDepthFirstSearch(
@@ -505,7 +503,7 @@ private:
                 this->async_update(stateid, nullptr, &transition_).first;
             einfo.value_changed = updated;
 
-            if constexpr (Interval::value) {
+            if constexpr (Interval) {
                 parent_value_changed = parent_value_changed ||
                                        einfo.value_changed ||
                                        (this->interval_comparison_ &&
@@ -582,7 +580,7 @@ private:
                     this->async_update(id, nullptr, nullptr);
                 value_changed = val_change || value_changed;
 
-                if constexpr (Interval::value) {
+                if constexpr (Interval) {
                     all_converged =
                         all_converged &&
                         (!this->interval_comparison_ ||

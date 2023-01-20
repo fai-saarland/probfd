@@ -27,14 +27,9 @@ struct PerStateInformation : public ao_search::PerStateInformation<StateInfo> {
     unsigned alive : 1;
 };
 
-template <typename State, typename Action, typename DualBounds>
-using AOBase = ao_search::AOBase<
-    State,
-    Action,
-    DualBounds,
-    std::false_type,
-    PerStateInformation,
-    false>;
+template <typename State, typename Action, bool Interval>
+using AOBase = ao_search::
+    AOBase<State, Action, Interval, false, PerStateInformation, false>;
 
 } // namespace internal
 
@@ -43,11 +38,11 @@ using AOBase = ao_search::AOBase<
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam DualBounds - Whether bounded value iteration is used.
+ * @tparam Interval - Whether bounded value iteration is used.
  */
-template <typename State, typename Action, typename DualBounds>
-class ExhaustiveAOSearch : public internal::AOBase<State, Action, DualBounds> {
-    using AOBase = internal::AOBase<State, Action, DualBounds>;
+template <typename State, typename Action, bool Interval>
+class ExhaustiveAOSearch : public internal::AOBase<State, Action, Interval> {
+    using AOBase = internal::AOBase<State, Action, Interval>;
 
 public:
     ExhaustiveAOSearch(
