@@ -14,7 +14,7 @@ namespace transition_sampler {
 
 UniformSuccessorSampler::UniformSuccessorSampler(
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : sampler_(rng)
+    : rng_(rng)
 {
 }
 
@@ -24,7 +24,8 @@ StateID UniformSuccessorSampler::sample(
     const Distribution<StateID>& successors,
     engine_interfaces::HeuristicSearchInterface&)
 {
-    return sampler_(successors);
+    assert(!successors.empty());
+    return successors.begin()[rng_->random(successors.size())].element;
 }
 
 } // namespace transition_sampler

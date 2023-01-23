@@ -1,8 +1,6 @@
 #ifndef MDPS_ENGINE_INTERFACES_TRANSITION_SAMPLER_H
 #define MDPS_ENGINE_INTERFACES_TRANSITION_SAMPLER_H
 
-#include "probfd/utils/distribution_random_sampler.h"
-
 #include "probfd/distribution.h"
 #include "probfd/types.h"
 

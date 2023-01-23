@@ -3,8 +3,6 @@
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 
-#include "probfd/utils/distribution_random_sampler.h"
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -15,12 +13,12 @@ namespace transition_sampler {
 template <typename Action>
 class RandomSuccessorSampler
     : public engine_interfaces::TransitionSampler<Action> {
-    distribution_random_sampler::DistributionRandomSampler sampler_;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
     explicit RandomSuccessorSampler(
         std::shared_ptr<utils::RandomNumberGenerator> rng)
-        : sampler_(rng)
+        : rng_(rng)
     {
     }
 
@@ -31,7 +29,7 @@ protected:
         const Distribution<StateID>& successors,
         engine_interfaces::HeuristicSearchInterface&) override
     {
-        return sampler_(successors);
+        return successors.sample(*rng_)->element;
     }
 };
 

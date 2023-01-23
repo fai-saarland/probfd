@@ -3,8 +3,6 @@
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 
-#include "probfd/utils/distribution_random_sampler.h"
-
 #include <memory>
 
 namespace utils {
@@ -17,7 +15,7 @@ namespace transition_sampler {
 
 class VBiasedSuccessorSampler : public TaskTransitionSampler {
     Distribution<StateID> biased_;
-    distribution_random_sampler::DistributionRandomSampler sampler_;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
     explicit VBiasedSuccessorSampler(

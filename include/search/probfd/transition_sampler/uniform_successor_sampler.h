@@ -3,8 +3,6 @@
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 
-#include "probfd/utils/distribution_uniform_sampler.h"
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -13,7 +11,7 @@ namespace probfd {
 namespace transition_sampler {
 
 class UniformSuccessorSampler : public TaskTransitionSampler {
-    distribution_uniform_sampler::DistributionUniformSampler sampler_;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
     explicit UniformSuccessorSampler(
@@ -24,7 +22,8 @@ protected:
         const StateID& state,
         const OperatorID& op,
         const Distribution<StateID>& successors,
-        engine_interfaces::HeuristicSearchInterface& hs_interface) override;
+        engine_interfaces::HeuristicSearchInterface& hs_interface)
+        override final;
 };
 
 } // namespace transition_sampler

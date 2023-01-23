@@ -14,7 +14,7 @@ namespace transition_sampler {
 
 VBiasedSuccessorSampler::VBiasedSuccessorSampler(
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : sampler_(rng)
+    : rng_(rng)
 {
 }
 
@@ -34,10 +34,10 @@ StateID VBiasedSuccessorSampler::sample(
         }
     }
     if (biased_.empty()) {
-        return sampler_(successors);
+        return successors.sample(*rng_)->element;
     }
     biased_.normalize(value_type::one / sum);
-    return sampler_(biased_);
+    return biased_.sample(*rng_)->element;
 }
 
 } // namespace transition_sampler

@@ -14,7 +14,7 @@ namespace transition_sampler {
 VDiffSuccessorSampler::VDiffSuccessorSampler(
     std::shared_ptr<utils::RandomNumberGenerator> rng,
     bool prefer_large_gaps)
-    : sampler_(rng)
+    : rng_(rng)
     , prefer_large_gaps_(prefer_large_gaps)
 {
 }
@@ -39,10 +39,10 @@ StateID VDiffSuccessorSampler::sample(
         }
     }
     if (biased_.empty()) {
-        return sampler_(successors);
+        return successors.sample(*rng_)->element;
     }
     biased_.normalize(value_type::one / sum);
-    return sampler_(biased_);
+    return biased_.sample(*rng_)->element;
 }
 
 } // namespace transition_sampler
