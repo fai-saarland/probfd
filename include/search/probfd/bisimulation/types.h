@@ -8,9 +8,7 @@ namespace probfd {
 /// Namespace dedicated to probabilistic bisimulation.
 namespace bisimulation {
 
-/** \class QuotientState
- * Class representing a state in a quotient MDP.
- */
+/// Represents a state in the probabilistic bisimulation quotient.
 class QuotientState : public StateID {
 public:
     explicit QuotientState(StateID id = StateID::undefined)
@@ -29,9 +27,7 @@ public:
     bool operator<(const StateID& s) const { return id < s.id; }
 };
 
-/** \struct QuotientAction
- * Struct representing an action in a quotient MDP.
- */
+/// Represents an action in the probabilistic bisimulation quotient.
 struct QuotientAction {
     explicit QuotientAction(unsigned idx)
         : idx(idx)
