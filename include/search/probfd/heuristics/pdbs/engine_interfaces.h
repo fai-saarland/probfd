@@ -20,13 +20,6 @@
 #include <unordered_set>
 #include <vector>
 
-namespace legacy {
-namespace successor_generator {
-template <typename T>
-class SuccessorGenerator;
-}
-} // namespace legacy
-
 namespace pdbs {
 class PatternDatabase;
 }
