@@ -30,7 +30,6 @@ namespace end_components {
 
 /**
  * @brief Contains printable statistics for the end component decomposition.
- *
  */
 struct Statistics {
     void print(std::ostream& out) const
@@ -71,34 +70,36 @@ struct Statistics {
 /**
  * @brief A builder class that implements end component decomposition.
  *
- * An end component is a sub-MDP \f$M = (S, E)\f$ where \f$S\f$ is a subset
- * of states and \f$E : S \to 2^A \f$ is a mapping from states to (enabled)
- * actions. \f$M\f$ must satisfy:
+ * An (non-trivial) end component is a sub-MDP \f$M = (S, E)\f$ where \f$S\f$
+ * is a subset of states and \f$E : S \to 2^A \f$ is a mapping from states to
+ * a non-empty set of enabled actions. \f$M\f$ must satisfy:
  * 1. The directed graph induced by \f$M\f$ is strongly connected.
  * 2. \f$E(s) \subseteq A(s)\f$ for every state \f$s \in S\f$.
  * 3. \f$M\f$ is closed under probabilistic branching. If \f$s \in S\f$, \f$a
  * \in E(s)\f$ and \f$\Pr(t \mid s, a) > 0\f$, then \f$t \in S\f$.
  *
- * An end component is trivial if it contains a single state \f$S = \{s\}\f$
- * and \f$E(s) = \emptyset\f$. Furthermore, a maximal end component (MEC) is an
+ * A <em>zero EC</em> is an end component which only contains actions that have
+ * a reward of zero. Furthermore, a <em>maximal end component</em> (MEC) is an
  * end component that is maximal with respect to set inclusion.
  *
- * This algorithm computes the maximal end components of an MDP and builds the
- * MDP quotient in which every maximal end component \f$M\f$ is collapsed into
- * a single state.
+ * This algorithm computes all maximal zero ECs of the MDP in time O(m*n),
+ * where $m$ is the number of edges and $n$ is the number of nodes in the
+ * induced graph of the MDP. The returned quotient collapses all zero ECs
+ * into a single state.
  *
- * In MaxProb analysis, the existence of non-trivial end components prevents
- * algorithms based on value iteration from converging against the optimal value
- * function when started with a non-admissible value function.
- * However, the end component decomposition quotient has only trivial end
- * components, therefore standard value iteration algorithms converge from any
- * initial value function. Every state in a maximal end component has the same
- * MaxProb value, which makes it easy to extract the optimal value function.
+ * The existence of zero ECs prevents ordinary algorithms based on value
+ * iteration from converging against the optimal value function, unless a
+ * pessimistic heuristic is used to initialize the value function. However, the
+ * end component decomposition quotient has no zero ECs, therefore standard
+ * value iteration algorithms converge with any initialization of the value
+ * function. Since every state in a zero EC has the same optimal state value,
+ * it easy to extendt the final potimal value function for the quotient to
+ * the optimal value function for the original MDP.
  *
  * @see engines::interval_iteration::IntervalIteration
  *
- * @tparam State - The state type of the underlying MDP model.
- * @tparam Action - The action type of the underlying MDP model.
+ * @tparam State - The state type of the underlying state space.
+ * @tparam Action - The action type of the underlying state space.
  */
 template <typename State, typename Action>
 class EndComponentDecomposition {
