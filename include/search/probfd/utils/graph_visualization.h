@@ -1,5 +1,5 @@
-#ifndef MDPS_UTILS_GRAPH_VISUALIZATION_H
-#define MDPS_UTILS_GRAPH_VISUALIZATION_H
+#ifndef PROBFD_UTILS_GRAPH_VISUALIZATION_H
+#define PROBFD_UTILS_GRAPH_VISUALIZATION_H
 
 #include "probfd/engine_interfaces/reward_function.h"
 #include "probfd/engine_interfaces/state_evaluator.h"
@@ -18,8 +18,11 @@
 #include <vector>
 
 namespace probfd {
+
+/// This namespace contains code used for dumping search spaces as dot graphs.
 namespace graphviz {
 
+namespace internal {
 class GraphBuilder {
 public:
     class Configurable {
@@ -28,7 +31,7 @@ public:
         std::map<std::string, std::string> attributes_;
 
     public:
-        Configurable(std::string name)
+        explicit Configurable(std::string name)
             : name_(std::move(name))
         {
         }
@@ -54,6 +57,7 @@ public:
         int getRank() const { return rank_; }
     };
 
+private:
     class StateNode : public Node {
         friend class GraphBuilder;
         StateID id_;
@@ -86,6 +90,16 @@ public:
         }
     };
 
+    std::vector<std::unique_ptr<DummyNode>> dummynodes_;
+    std::vector<std::unique_ptr<StateNode>> nodes_;
+    std::vector<std::unique_ptr<Edge>> edges_;
+
+    std::map<StateID, StateNode*> id_to_nodes_;
+    StateID initial_;
+
+    std::map<int, std::vector<Node*>> ranked_nodes_;
+
+public:
     explicit GraphBuilder(StateID initial)
         : GraphBuilder(initial, getDefaultNodeName())
     {
@@ -150,12 +164,13 @@ public:
         return std::make_pair(CreateStateNode(id, rank, std::move(name)), true);
     }
 
-    Edge& createEdge(Node& source, Node& target)
+    Configurable& createEdge(Node& source, Node& target)
     {
         return createEdge(source, target, getDefaultEdgeName());
     }
 
-    Edge& createEdge(Node& source_node, Node& target_node, std::string name)
+    Configurable&
+    createEdge(Node& source_node, Node& target_node, std::string name)
     {
         return *edges_.emplace_back(
             new Edge(std::move(name), source_node, target_node));
@@ -273,65 +288,32 @@ private:
     {
         return "edge_" + std::to_string(edges_.size());
     }
-
-private:
-    struct Comparator {
-        bool operator()(
-            const GraphBuilder::Node* left,
-            const GraphBuilder::Node* right)
-        {
-            return left->getRank() < right->getRank();
-        }
-    };
-
-    std::vector<std::unique_ptr<DummyNode>> dummynodes_;
-    std::vector<std::unique_ptr<StateNode>> nodes_;
-    std::vector<std::unique_ptr<Edge>> edges_;
-
-    std::map<StateID, StateNode*> id_to_nodes_;
-    StateID initial_;
-
-    std::map<int, std::vector<Node*>> ranked_nodes_;
 };
+} // namespace internal
 
-struct DefaultSTS {
-    template <typename State>
-    std::string operator()(const StateID& id, const State&)
-    {
-        return std::to_string(id);
-    }
-};
-
-struct DefaultATS {
-    template <typename Action>
-    std::string operator()(const Action&)
-    {
-        return "";
-    }
-};
-
-template <
-    typename State,
-    typename Action,
-    typename StateToString,
-    typename ActionToString>
-void dump(
+template <typename State, typename Action>
+void dump_state_space_dot_graph(
     std::ostream& out,
     const State& initial_state,
     engine_interfaces::StateIDMap<State>* state_id_map,
-    engine_interfaces::RewardFunction<State, Action>* reward_fn,
     engine_interfaces::TransitionGenerator<Action>* transition_gen,
-    const StateToString& sstr = DefaultSTS(),
-    const ActionToString& astr = DefaultATS(),
+    engine_interfaces::RewardFunction<State, Action>* reward_fn,
     engine_interfaces::StateEvaluator<State>* prune = nullptr,
+    std::function<std::string(const State&)> sstr =
+        [](const State&) { return ""; },
+    std::function<std::string(const Action&)> astr =
+        [](const Action&) { return ""; },
     bool expand_terminal = false)
 {
     struct SearchInfo {
         StateID state_id;
         State state;
-        GraphBuilder::Node* node;
+        internal::GraphBuilder::Node* node;
 
-        SearchInfo(StateID state_id, State state, GraphBuilder::Node* node)
+        SearchInfo(
+            StateID state_id,
+            State state,
+            internal::GraphBuilder::Node* node)
             : state_id(state_id)
             , state(state)
             , node(node)
@@ -340,7 +322,7 @@ void dump(
     };
 
     StateID istateid = state_id_map->get_state_id(initial_state);
-    GraphBuilder builder(istateid);
+    internal::GraphBuilder builder(istateid);
     std::stringstream ss;
     ss << std::setprecision(3);
 
@@ -354,7 +336,7 @@ void dump(
         const StateID state_id = s.state_id;
         auto* node = s.node;
 
-        node->setAttribute("label", sstr(state_id, state));
+        node->setAttribute("label", sstr(state));
         node->setAttribute("shape", "circle");
 
         const auto rew = reward_fn->get_termination_info(state);
@@ -432,7 +414,7 @@ void dump(
                 continue;
             }
 
-            Distribution<GraphBuilder::Node*> successor_nodes;
+            Distribution<internal::GraphBuilder::Node*> successor_nodes;
             int my_rank = node->getRank();
             int max_rank = 0;
 

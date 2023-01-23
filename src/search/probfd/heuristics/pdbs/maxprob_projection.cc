@@ -304,10 +304,10 @@ void MaxProbProjection::dump_graphviz(
     const std::string& path,
     bool transition_labels)
 {
-    auto s2str = [this](const StateID& id, const StateRank& x) {
+    auto s2str = [this](const StateRank& x) {
         std::ostringstream out;
         out.precision(3);
-        out << id.id;
+        out << x.id;
 
         if (utils::contains(dead_ends_, StateID(x.id))) {
             out << "\\nh = 0 (dead)";

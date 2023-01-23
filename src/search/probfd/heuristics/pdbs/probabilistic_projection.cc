@@ -321,6 +321,41 @@ const Pattern& ProbabilisticProjection::get_pattern() const
     return state_mapper_->get_pattern();
 }
 
+void ProbabilisticProjection::dump_graphviz(
+    const std::string& path,
+    std::function<std::string(const StateRank&)> sts,
+    AbstractRewardFunction& rewards,
+    bool transition_labels) const
+{
+    using namespace engine_interfaces;
+
+    ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
+    AbstractOperatorToString op_names(task_proxy);
+
+    auto ats = [=](const AbstractOperator* const& op) {
+        return transition_labels ? op_names(op) : "";
+    };
+
+    StateIDMap<StateRank> state_id_map;
+
+    TransitionGenerator<const AbstractOperator*> transition_gen(
+        state_id_map,
+        abstract_state_space_.match_tree_);
+
+    std::ofstream out(path);
+
+    graphviz::dump_state_space_dot_graph<StateRank, const AbstractOperator*>(
+        out,
+        abstract_state_space_.initial_state_,
+        &state_id_map,
+        &transition_gen,
+        &rewards,
+        nullptr,
+        sts,
+        ats,
+        true);
+}
+
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd

@@ -26,8 +26,6 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class MatchTree;
-
 class ProbabilisticProjection {
     struct StateRankSpace {
         StateRank initial_state_;
@@ -85,41 +83,11 @@ public:
     const Pattern& get_pattern() const;
 
 protected:
-    template <typename StateToString>
     void dump_graphviz(
         const std::string& path,
-        const StateToString& sts,
+        std::function<std::string(const StateRank&)> sts,
         AbstractRewardFunction& rewards,
-        bool transition_labels) const
-    {
-        using namespace engine_interfaces;
-
-        ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
-        AbstractOperatorToString op_names(task_proxy);
-
-        auto ats = [=](const AbstractOperator* op) {
-            return transition_labels ? op_names(op) : "";
-        };
-
-        StateIDMap<StateRank> state_id_map;
-
-        TransitionGenerator<const AbstractOperator*> transition_gen(
-            state_id_map,
-            abstract_state_space_.match_tree_);
-
-        std::ofstream out(path);
-
-        graphviz::dump<StateRank>(
-            out,
-            abstract_state_space_.initial_state_,
-            &state_id_map,
-            &rewards,
-            &transition_gen,
-            sts,
-            ats,
-            nullptr,
-            true);
-        }
+        bool transition_labels) const;
 };
 
 } // namespace pdbs
