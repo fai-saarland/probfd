@@ -8,7 +8,7 @@
 
 #include "probfd/policy_picker/arbitrary_tiebreaker.h"
 
-#include "probfd/analysis_objectives/analysis_objective.h"
+#include "probfd/reward_model.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 #include "probfd/bisimulation/engine_interfaces.h"
@@ -118,11 +118,11 @@ protected:
         , tgen(new engine_interfaces::TransitionGenerator<QAction>(bs.get()))
         , reward(new bisimulation::DefaultQuotientRewardFunction(
               bs.get(),
-              g_analysis_objective->reward_bound()))
+              g_reward_model->reward_bound()))
         , heuristic_(new bisimulation::DefaultQuotientStateEvaluator(
               bs.get(),
-              g_analysis_objective->reward_bound(),
-              g_analysis_objective->reward_bound().upper))
+              g_reward_model->reward_bound(),
+              g_reward_model->reward_bound().upper))
         , policy_(new policy_tiebreaking::ArbitraryTiebreaker<QAction>())
     {
         stats.timer.stop();
@@ -190,7 +190,7 @@ public:
                 res->q_action_id_map_.get(),
                 res->reward.get(),
                 res->q_reward_.get(),
-                g_analysis_objective->reward_bound(),
+                g_reward_model->reward_bound(),
                 res->q_transition_gen_.get()));
 
         return res;

@@ -1,6 +1,6 @@
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/analysis_objectives/analysis_objective.h"
+#include "probfd/reward_model.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -23,7 +23,7 @@ _parse(options::OptionParser& parser)
             value_type::from_double(opts.get<double>("value")));
     } else {
         return std::make_shared<ConstantEvaluator<State>>(
-            g_analysis_objective->reward_bound().upper);
+            g_reward_model->reward_bound().upper);
     }
 }
 

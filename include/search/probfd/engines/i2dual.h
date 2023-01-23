@@ -3,8 +3,7 @@
 
 #include "probfd/engines/engine.h"
 
-#include "probfd/analysis_objectives/analysis_objective.h"
-#include "probfd/analysis_objectives/goal_probability_objective.h"
+#include "probfd/reward_models/maxprob_reward_model.h"
 
 #include "probfd/heuristics/occupation_measure/occupation_measure_heuristic.h"
 
@@ -137,12 +136,10 @@ public:
     {
         statistics_ = Statistics();
 
-        using namespace analysis_objectives;
-
         logging::out << "Initializing I2-Dual..." << std::endl;
 
-        if (std::dynamic_pointer_cast<GoalProbabilityObjective>(
-                g_analysis_objective) == nullptr) {
+        if (!std::dynamic_pointer_cast<reward_models::MaxProbRewardModel>(
+                g_reward_model)) {
             logging::err
                 << "I2-Dual currently only supports goal probability analysis"
                 << std::endl;

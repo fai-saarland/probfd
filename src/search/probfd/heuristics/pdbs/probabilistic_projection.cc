@@ -1,7 +1,5 @@
 #include "probfd/heuristics/pdbs/probabilistic_projection.h"
 
-#include "probfd/analysis_objectives/goal_probability_objective.h"
-
 #include "probfd/task_utils/task_properties.h"
 
 #include <algorithm>

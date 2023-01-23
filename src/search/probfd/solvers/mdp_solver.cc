@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/analysis_objectives/analysis_objective.h"
+#include "probfd/reward_model.h"
 
 #include "probfd/utils/logging.h"
 
@@ -28,7 +28,7 @@ MDPSolver::MDPSolver(const options::Options& opts)
     , task_proxy(*task)
     , state_registry_(task_proxy)
     , state_id_map_(&state_registry_)
-    , reward_function_(g_analysis_objective->reward())
+    , reward_function_(g_reward_model->get_reward_function())
     , transition_generator_(
           task,
           &state_registry_,

@@ -1,4 +1,4 @@
-#include "probfd/analysis_objectives/analysis_objective.h"
+#include "probfd/reward_model.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 #include "probfd/bisimulation/engine_interfaces.h"
@@ -72,7 +72,7 @@ public:
         TransitionGenerator<QAction> tgen(&bs);
         bisimulation::DefaultQuotientRewardFunction reward(
             &bs,
-            g_analysis_objective->reward_bound(),
+            g_reward_model->reward_bound(),
             -value_type::inf);
 
         stats.timer.stop();

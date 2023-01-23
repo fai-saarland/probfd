@@ -826,10 +826,10 @@ fast_downward_plugin(
         probfd/progress_report
         probfd/quotient_system
 
-        # Analysis objectives
-        probfd/analysis_objectives/analysis_objective
-        probfd/analysis_objectives/goal_probability_objective
-        probfd/analysis_objectives/expected_cost_objective
+        # Reward Models
+        probfd/reward_model
+        probfd/reward_models/maxprob_reward_model
+        probfd/reward_models/ssp_reward_model
 
         # Constant evaluator (default)
         probfd/heuristics/constant_evaluator

@@ -1,4 +1,4 @@
-#include "probfd/analysis_objectives/goal_probability_objective.h"
+#include "probfd/reward_models/maxprob_reward_model.h"
 
 #include "task_utils/task_properties.h"
 
@@ -10,14 +10,14 @@
 #include "plugin.h"
 
 namespace probfd {
-namespace analysis_objectives {
+namespace reward_models {
 
 namespace {
-class MaxProbReward : public TaskRewardFunction {
+class MaxProbRewardFunction : public TaskRewardFunction {
     ProbabilisticTaskProxy task_proxy;
 
 public:
-    MaxProbReward(const ProbabilisticTaskProxy& task_proxy)
+    MaxProbRewardFunction(const ProbabilisticTaskProxy& task_proxy)
         : task_proxy(task_proxy)
     {
     }
@@ -39,20 +39,21 @@ public:
 };
 } // namespace
 
-GoalProbabilityObjective::GoalProbabilityObjective()
-    : reward_(new MaxProbReward(ProbabilisticTaskProxy(*tasks::g_root_task)))
+MaxProbRewardModel::MaxProbRewardModel()
+    : reward_(new MaxProbRewardFunction(
+          ProbabilisticTaskProxy(*tasks::g_root_task)))
 {
 }
 
-value_utils::IntervalValue GoalProbabilityObjective::reward_bound()
+value_utils::IntervalValue MaxProbRewardModel::reward_bound()
 {
     return value_utils::IntervalValue(value_type::zero, value_type::one);
 }
 
-TaskRewardFunction* GoalProbabilityObjective::reward()
+TaskRewardFunction* MaxProbRewardModel::get_reward_function()
 {
     return reward_.get();
 }
 
-} // namespace analysis_objectives
+} // namespace reward_models
 } // namespace probfd

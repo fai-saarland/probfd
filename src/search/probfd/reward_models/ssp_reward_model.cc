@@ -1,4 +1,4 @@
-#include "probfd/analysis_objectives/expected_cost_objective.h"
+#include "probfd/reward_models/ssp_reward_model.h"
 
 #include "task_utils/task_properties.h"
 
@@ -10,14 +10,14 @@
 #include "plugin.h"
 
 namespace probfd {
-namespace analysis_objectives {
+namespace reward_models {
 
 namespace {
-class SSPReward : public TaskRewardFunction {
+class SSPRewardFunction : public TaskRewardFunction {
     ProbabilisticTaskProxy task_proxy;
 
 public:
-    SSPReward(const ProbabilisticTaskProxy& task_proxy)
+    SSPRewardFunction(const ProbabilisticTaskProxy& task_proxy)
         : task_proxy(task_proxy)
     {
     }
@@ -38,20 +38,21 @@ public:
 };
 } // namespace
 
-ExpectedCostObjective::ExpectedCostObjective()
-    : reward_(new SSPReward(ProbabilisticTaskProxy(*tasks::g_root_task)))
+SSPRewardModel::SSPRewardModel()
+    : reward_(
+          new SSPRewardFunction(ProbabilisticTaskProxy(*tasks::g_root_task)))
 {
 }
 
-value_utils::IntervalValue ExpectedCostObjective::reward_bound()
+value_utils::IntervalValue SSPRewardModel::reward_bound()
 {
     return value_utils::IntervalValue(-value_type::inf, value_type::zero);
 }
 
-TaskRewardFunction* ExpectedCostObjective::reward()
+TaskRewardFunction* SSPRewardModel::get_reward_function()
 {
     return reward_.get();
 }
 
-} // namespace analysis_objectives
+} // namespace reward_models
 } // namespace probfd

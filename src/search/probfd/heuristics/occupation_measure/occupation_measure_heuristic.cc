@@ -6,8 +6,7 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 
-#include "probfd/analysis_objectives/expected_cost_objective.h"
-#include "probfd/analysis_objectives/goal_probability_objective.h"
+#include "probfd/reward_models/maxprob_reward_model.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -246,12 +245,9 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     : TaskDependentHeuristic(opts)
     , lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
     , is_maxprob_(
-          std::dynamic_pointer_cast<
-              analysis_objectives::GoalProbabilityObjective>(
-              g_analysis_objective) != nullptr)
+          std::dynamic_pointer_cast<reward_models::MaxProbRewardModel>(
+              g_reward_model) != nullptr)
 {
-    using namespace analysis_objectives;
-
     std::cout << "Initializing projection occupation measure heuristic ..."
               << std::endl;
     utils::Timer timer;
@@ -279,8 +275,6 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
 EvaluationResult
 ProjectionOccupationMeasureHeuristic::evaluate(const State& state) const
 {
-    using namespace analysis_objectives;
-
     const size_t num_variables = task_proxy.get_variables().size();
 
     // Set to initial state in LP

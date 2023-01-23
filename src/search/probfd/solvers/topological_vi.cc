@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/analysis_objectives/analysis_objective.h"
+#include "probfd/reward_model.h"
 
 #include "probfd/engines/topological_value_iteration.h"
 
@@ -23,7 +23,7 @@ std::shared_ptr<TaskStateEvaluator> get_evaluator(const options::Options& opts)
     }
 
     return std::make_shared<heuristics::ConstantEvaluator<State>>(
-        g_analysis_objective->reward_bound().upper);
+        g_reward_model->reward_bound().upper);
 }
 
 class TopologicalVISolver : public MDPSolver {

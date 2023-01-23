@@ -8,8 +8,8 @@
 #include "utils/strings.h"
 #include "utils/timer.h"
 
-#include "probfd/analysis_objectives/expected_cost_objective.h"
-#include "probfd/analysis_objectives/goal_probability_objective.h"
+#include "probfd/reward_models/maxprob_reward_model.h"
+#include "probfd/reward_models/ssp_reward_model.h"
 
 #include "probfd/solvers/solver_interface.h"
 
@@ -155,8 +155,6 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
     bool dry_run,
     bool is_unit_cost)
 {
-    using namespace probfd::analysis_objectives;
-
     vector<string> args;
     bool active = true;
 
@@ -220,11 +218,11 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
 
     if (!dry_run) {
         if (expected_cost) {
-            g_analysis_objective.reset(new ExpectedCostObjective());
-            std::cout << "expected cost analysis." << std::endl;
+            g_reward_model.reset(new reward_models::SSPRewardModel());
+            std::cout << "Using SSP reward model." << std::endl;
         } else {
-            g_analysis_objective.reset(new GoalProbabilityObjective());
-            std::cout << "max goal prob analysis." << std::endl;
+            g_reward_model.reset(new reward_models::MaxProbRewardModel());
+            std::cout << "Using MaxProb reward model." << std::endl;
         }
     }
 

@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/analysis_objectives/analysis_objective.h"
+#include "probfd/reward_model.h"
 
 #include "probfd/engines/exhaustive_dfs.h"
 
@@ -29,7 +29,7 @@ public:
 
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
-        , reward_bound_(g_analysis_objective->reward_bound())
+        , reward_bound_(g_reward_model->reward_bound())
         , new_state_handler_(new TaskNewStateHandlerList(
               opts.get_list<std::shared_ptr<TaskNewStateHandler>>(
                   "on_new_state")))

@@ -6,8 +6,7 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 
-#include "probfd/analysis_objectives/expected_cost_objective.h"
-#include "probfd/analysis_objectives/goal_probability_objective.h"
+#include "probfd/reward_models/maxprob_reward_model.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -49,9 +48,8 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     : TaskDependentHeuristic(opts)
     , lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
     , is_maxprob(
-          std::dynamic_pointer_cast<
-              analysis_objectives::GoalProbabilityObjective>(
-              g_analysis_objective) != nullptr)
+          std::dynamic_pointer_cast<reward_models::MaxProbRewardModel>(
+              g_reward_model) != nullptr)
 {
     ::task_properties::verify_no_axioms(task_proxy);
     task_properties::verify_no_conditional_effects(task_proxy);
