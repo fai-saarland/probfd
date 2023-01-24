@@ -5,7 +5,7 @@
 namespace probfd {
 namespace policy_tiebreaking {
 
-VDiffTiebreaker::VDiffTiebreaker(value_type::value_t favor_large_gaps)
+VDiffTiebreaker::VDiffTiebreaker(value_t favor_large_gaps)
     : favor_large_gaps_(favor_large_gaps)
 {
 }
@@ -17,16 +17,16 @@ int VDiffTiebreaker::pick(
     const std::vector<Distribution<StateID>>& successors,
     engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
-    value_type::value_t best = value_type::inf;
+    value_t best = INFINITE_VALUE;
     unsigned choice = 1;
     for (int i = successors.size() - 1; i >= 0; --i) {
         const Distribution<StateID>& t = successors[i];
-        value_type::value_t sum = value_type::zero;
+        value_t sum = 0_vt;
         for (auto it = t.begin(); it != t.end(); ++it) {
             auto value = hs_interface.lookup_dual_bounds(it->element);
-            sum += it->probability * value.error_bound();
+            sum += it->probability * value.length();
         }
-        if (value_type::is_approx_less(favor_large_gaps_ * sum, best)) {
+        if (is_approx_less(favor_large_gaps_ * sum, best)) {
             best = sum;
             choice = i;
         }

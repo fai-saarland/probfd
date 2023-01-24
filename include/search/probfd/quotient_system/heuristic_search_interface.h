@@ -106,7 +106,7 @@ public:
     void push(
         const StateID& parent,
         const QuotientAction& action,
-        const value_type::value_t& prob,
+        const value_t& prob,
         const StateID& state_id)
     {
         const OperatorID op_id =

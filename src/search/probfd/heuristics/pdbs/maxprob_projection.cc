@@ -39,7 +39,7 @@ public:
         auto it = goal_distances.find(state);
 
         if (it != goal_distances.end()) {
-            return EvaluationResult{false, value_type::zero};
+            return EvaluationResult{false, 0_vt};
         }
 
         return parent.evaluate(state);
@@ -81,7 +81,7 @@ MaxProbProjection::MaxProbProjection(
           task_proxy,
           utils::insert(pdb.get_pattern(), add_var),
           operator_pruning,
-          value_type::zero)
+          0_vt)
 {
     compute_value_table(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
@@ -92,11 +92,7 @@ MaxProbProjection::MaxProbProjection(
     StateRankingFunction* mapper,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
-    : ProbabilisticProjection(
-          task_proxy,
-          mapper,
-          operator_pruning,
-          value_type::zero)
+    : ProbabilisticProjection(task_proxy, mapper, operator_pruning, 0_vt)
 {
     compute_value_table(heuristic);
 }
@@ -108,8 +104,8 @@ void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
 
     ZeroCostAbstractRewardFunction reward(
         abstract_state_space_.goal_state_flags_,
-        value_type::one,
-        value_type::zero);
+        1_vt,
+        0_vt);
 
     StateIDMap<StateRank> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(
@@ -130,8 +126,7 @@ void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
 
     std::vector<StateID> proper_states;
 
-    std::vector<value_utils::IntervalValue> interval_value_table(
-        state_mapper_->num_states());
+    std::vector<Interval> interval_value_table(state_mapper_->num_states());
 
     vi.solve(
         abstract_state_space_.initial_state_,
@@ -169,7 +164,7 @@ EvaluationResult MaxProbProjection::evaluate(const State& s) const
 EvaluationResult MaxProbProjection::evaluate(const StateRank& s) const
 {
     if (is_dead_end(s)) {
-        return {true, value_type::zero};
+        return {true, 0_vt};
     }
 
     const auto v = this->lookup(s);
@@ -212,7 +207,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
             continue;
         }
 
-        const value_type::value_t value = value_table[s.id];
+        const value_t value = value_table[s.id];
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
@@ -220,7 +215,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
         // Select the greedy operators and add their successors
         for (const AbstractOperator* op : aops) {
-            value_type::value_t op_value = value_type::zero;
+            value_t op_value = 0_vt;
 
             std::vector<StateRank> successors;
 
@@ -230,7 +225,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
                 successors.push_back(t);
             }
 
-            if (value_type::is_approx_equal(value, op_value)) {
+            if (is_approx_equal(value, op_value)) {
                 for (const StateRank& succ : successors) {
                     if (abstract_state_space_.goal_state_flags_[succ.id]) {
                         goals.push_back(succ);
@@ -320,8 +315,8 @@ void MaxProbProjection::dump_graphviz(
 
     ZeroCostAbstractRewardFunction reward(
         abstract_state_space_.goal_state_flags_,
-        value_type::one,
-        value_type::zero);
+        1_vt,
+        0_vt);
 
     ProbabilisticProjection::dump_graphviz(
         path,
@@ -363,10 +358,7 @@ void MaxProbProjection::verify(
     for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
-        variables.emplace_back(
-            value_type::zero,
-            value_type::one,
-            value_type::one);
+        variables.emplace_back(0_vt, 1_vt, 1_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
@@ -382,9 +374,8 @@ void MaxProbProjection::verify(
         visited.erase(StateID(s.id));
 
         if (abstract_state_space_.goal_state_flags_[s.id]) {
-            auto& g =
-                constraints.emplace_back(value_type::one, value_type::one);
-            g.insert(s.id, value_type::one);
+            auto& g = constraints.emplace_back(1_vt, 1_vt);
+            g.insert(s.id, 1_vt);
         }
 
         // Generate operators...
@@ -393,9 +384,9 @@ void MaxProbProjection::verify(
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
-            auto& constr = constraints.emplace_back(value_type::zero, inf);
+            auto& constr = constraints.emplace_back(0_vt, inf);
 
-            std::unordered_map<StateRank, value_type::value_t> successor_dist;
+            std::unordered_map<StateRank, value_t> successor_dist;
 
             for (const auto& [eff, prob] : op->outcomes) {
                 successor_dist[s + eff] -= prob;
@@ -406,7 +397,7 @@ void MaxProbProjection::verify(
                 continue;
             }
 
-            successor_dist[s] += value_type::one;
+            successor_dist[s] += 1_vt;
 
             for (const auto& [succ, prob] : successor_dist) {
                 constr.insert(succ.id, prob);
@@ -435,12 +426,9 @@ void MaxProbProjection::verify(
 
     for (StateRank s(0); s.id != static_cast<int>(value_table.size()); ++s.id) {
         if (utils::contains(seen, s)) {
-            assert(value_type::is_approx_equal(
-                solution[s.id],
-                value_table[s.id],
-                0.001));
+            assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {
-            assert(value_type::zero == value_table[s.id]);
+            assert(0_vt == value_table[s.id]);
         }
     }
 }

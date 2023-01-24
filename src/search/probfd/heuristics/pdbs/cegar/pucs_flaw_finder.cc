@@ -77,7 +77,7 @@ bool PUCSFlawFinder<PDBType>::expand(
     PatternCollectionGeneratorCegar<PDBType>& base,
     int solution_index,
     std::vector<int>& state,
-    value_type::value_t priority,
+    value_t priority,
     std::vector<Flaw>& flaw_list)
 {
     AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];

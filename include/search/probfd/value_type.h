@@ -1,37 +1,42 @@
-#ifndef MDPS_VALUE_TYPE_H
-#define MDPS_VALUE_TYPE_H
+#ifndef PROBFD_VALUE_TYPE_H
+#define PROBFD_VALUE_TYPE_H
 
 #include <string>
 
-/// The main namespace of the probabilistic Fast Downward implementations.
+/// The top-level namespace of probabilistic Fast Downward.
 namespace probfd {
-
-/// Namespace dedicated to state value types.
-namespace value_type {
 
 /// Typedef for the state value type
 using value_t = double;
 
-extern const value_t one;  ///< A constant representing state value one.
-extern const value_t zero; ///< A constant representing state value zero.
-extern const value_t inf;  ///< A constant representing state value +infinity.
+/// A constant representing state value plus infinity
+static constexpr value_t INFINITE_VALUE =
+    std::numeric_limits<double>::infinity();
 
-/// A constant representing the machine epsilon for the value type.
-extern const value_t eps;
-
-/// The global epsilon precision value.
+/// The default tolerance value for approximate comparisons.
 extern value_t g_epsilon;
 
-extern value_t from_double(double d);
-extern value_t from_fraction(int nom, int denom);
-extern value_t from_string(const std::string& str);
+extern value_t fraction_to_value(int nom, int denom);
+extern value_t string_to_value(const std::string& str);
 extern value_t abs(value_t val);
 
-bool is_approx_equal(value_t v1, value_t v2, value_t tolerance = g_epsilon);
-bool is_approx_less(value_t v1, value_t v2, value_t tolerance = g_epsilon);
-bool is_approx_greater(value_t v1, value_t v2, value_t tolerance = g_epsilon);
+constexpr value_t double_to_value(double d)
+{
+    return d;
+}
 
-} // namespace value_type
+// User-defined floating-point literals for state values.
+constexpr value_t operator"" _vt(long double value)
+{
+    return double_to_value(value);
+}
+
+// User-defined integer literals for state values.
+constexpr value_t operator"" _vt(unsigned long long value)
+{
+    return double_to_value(static_cast<double>(value));
+}
+
 } // namespace probfd
 
 #endif // __VALUE_TYPE_H__

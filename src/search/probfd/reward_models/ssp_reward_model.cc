@@ -25,13 +25,13 @@ public:
     TerminationInfo get_termination_info(const State& state) override
     {
         if (task_properties::is_goal_state(task_proxy, state)) {
-            return TerminationInfo(true, value_type::zero);
+            return TerminationInfo(true, 0_vt);
         } else {
-            return TerminationInfo(false, -value_type::inf);
+            return TerminationInfo(false, -INFINITE_VALUE);
         }
     }
 
-    value_type::value_t get_action_reward(StateID, OperatorID op) override
+    value_t get_action_reward(StateID, OperatorID op) override
     {
         return task_proxy.get_operators()[op].get_reward();
     }
@@ -44,9 +44,9 @@ SSPRewardModel::SSPRewardModel()
 {
 }
 
-value_utils::IntervalValue SSPRewardModel::reward_bound()
+Interval SSPRewardModel::reward_bound()
 {
-    return value_utils::IntervalValue(-value_type::inf, value_type::zero);
+    return Interval(-INFINITE_VALUE, 0_vt);
 }
 
 TaskRewardFunction* SSPRewardModel::get_reward_function()

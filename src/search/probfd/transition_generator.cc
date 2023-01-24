@@ -101,7 +101,7 @@ void TransitionGenerator<OperatorID>::generate_action_transitions(
             assert(test.size() == num_outcomes);
 #endif
             for (unsigned j = 0; j < num_outcomes; ++j, ++succs) {
-                value_type::value_t probability = outcomes[j].get_probability();
+                value_t probability = outcomes[j].get_probability();
                 assert(test[j] == WeightedElement(*succs, probability));
                 result.add(*succs, probability);
             }
@@ -156,7 +156,7 @@ void TransitionGenerator<OperatorID>::generate_all_transitions(
             const size_t num_outcomes = outcomes.size();
 
             for (unsigned j = 0; j < num_outcomes; ++j, ++succs) {
-                value_type::value_t probability = outcomes[j].get_probability();
+                value_t probability = outcomes[j].get_probability();
                 assert(test[j] == WeightedElement(*succs, probability));
                 result.add(*succs, probability);
             }
@@ -268,7 +268,7 @@ void TransitionGenerator<OperatorID>::compute_successor_states(
     succs.reserve(op.get_outcomes().size());
 
     for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
-        value_type::value_t probability = outcome.get_probability();
+        value_t probability = outcome.get_probability();
         State succ = state_registry_->get_successor_state(state, outcome);
 
         for (const auto& h : notify_) {

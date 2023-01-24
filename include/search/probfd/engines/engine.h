@@ -31,7 +31,7 @@ public:
     /**
      * @brief Runs the MDP algorithm with the initial state \p state .
      */
-    virtual value_type::value_t solve(const State& state) = 0;
+    virtual value_t solve(const State& state) = 0;
 
     /**
      * @brief Checks if the algorithm enforces an error bound on the computed
@@ -46,7 +46,7 @@ public:
      *
      * @see supports_error_bound()
      */
-    virtual value_type::value_t get_error(const State&) { return 0; }
+    virtual value_t get_error(const State&) { return 0; }
 
     /**
      * @brief Prints algorithm statistics to the specified std::ostream.
@@ -131,7 +131,7 @@ public:
      * @brief Get the action reward for action \p a when applied in the state
      * with id \p sid .
      */
-    value_type::value_t
+    value_t
     get_action_reward(const StateID& sid, const Action& a) const
     {
         return reward_function_->get_action_reward(sid, a);

@@ -29,7 +29,7 @@ public:
      * The reward model may specify infinite upper or lower bounds in case the
      * state values may be infinite or if a conservative bound is not available.
      */
-    virtual value_utils::IntervalValue reward_bound() = 0;
+    virtual Interval reward_bound() = 0;
 
     /// Returns a reward function to be used to analyze the input task.
     virtual TaskRewardFunction* get_reward_function() = 0;

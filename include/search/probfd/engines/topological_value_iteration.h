@@ -67,7 +67,7 @@ struct Statistics {
  */
 template <typename State, typename Action, bool Interval = false>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
-    using IncumbentSolution = value_utils::IncumbentSolution<Interval>;
+    using IncumbentSolution = IncumbentSolution<Interval>;
 
     struct StateInfo {
         // Status Flags
@@ -135,7 +135,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
     struct QValueInfo {
         // Probability to remain in the same state.
         // Casted to the self-loop normalization factor after finalize().
-        value_type::value_t self_loop_prob = value_type::zero;
+        value_t self_loop_prob = 0_vt;
 
         // Precomputed part of the Q-value.
         // Sum of action reward plus those weighted successor values which
@@ -146,17 +146,16 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // self-loops excluded.
         std::vector<WeightedElement<IncumbentSolution*>> nconv_successors;
 
-        explicit QValueInfo(value_type::value_t action_reward)
+        explicit QValueInfo(value_t action_reward)
             : conv_part(action_reward)
         {
         }
 
         bool finalize()
         {
-            if (self_loop_prob != value_type::zero) {
+            if (self_loop_prob != 0_vt) {
                 // Calculate self-loop normalization factor
-                self_loop_prob =
-                    value_type::one / (value_type::one - self_loop_prob);
+                self_loop_prob = 1_vt / (1_vt - self_loop_prob);
 
                 if (nconv_successors.empty()) {
                     // Apply self-loop normalization immediately
@@ -175,7 +174,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
                 res += prob * (*value);
             }
 
-            if (self_loop_prob != value_type::zero) {
+            if (self_loop_prob != 0_vt) {
                 res *= self_loop_prob;
             }
 
@@ -203,7 +202,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         StackInfo(
             const StateID& state_id,
             IncumbentSolution& value_ref,
-            value_type::value_t state_reward,
+            value_t state_reward,
             unsigned num_aops)
             : state_id(state_id)
             , value(&value_ref)
@@ -218,13 +217,14 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
             IncumbentSolution v = conv_part;
 
             for (const QValueInfo& info : nconv_qs) {
-                value_utils::set_max(v, info.compute_q_value());
+                set_max(v, info.compute_q_value());
             }
 
             if constexpr (Interval) {
-                return value_utils::update(*value, v) || !value->bounds_equal();
+                return update(*value, v) ||
+                       !value->bounds_approximately_equal();
             } else {
-                return value_utils::update(*value, v);
+                return update(*value, v);
             }
         }
     };
@@ -252,7 +252,7 @@ public:
     /**
      * \copydoc MDPEngine::solve(const State&)
      */
-    virtual value_type::value_t solve(const State& state) override
+    virtual value_t solve(const State& state) override
     {
         Store value_store;
         return this->solve(this->get_state_id(state), value_store);
@@ -279,13 +279,13 @@ public:
      * output parameter \p value_store. Returns the value of the initial state.
      */
     template <typename ValueStore>
-    value_type::value_t solve(StateID init_state_id, ValueStore& value_store)
+    value_t solve(StateID init_state_id, ValueStore& value_store)
     {
         StateInfo& iinfo = state_information_[init_state_id];
         IncumbentSolution& init_value = value_store[init_state_id];
 
         if (!push_state(init_state_id, iinfo, init_value)) {
-            return value_utils::as_upper_bound(init_value);
+            return as_upper_bound(init_value);
         }
 
         ExplorationInfo* explore = &exploration_stack_.back();
@@ -341,9 +341,7 @@ public:
                 }
 
                 if (tinfo.finalize()) {
-                    value_utils::set_max(
-                        stack_info->conv_part,
-                        tinfo.conv_part);
+                    set_max(stack_info->conv_part, tinfo.conv_part);
                     stack_info->nconv_qs.pop_back();
                 }
 
@@ -359,7 +357,7 @@ public:
 
     break_exploration:;
 
-        return value_utils::as_upper_bound(init_value);
+        return as_upper_bound(init_value);
     }
 
 private:
@@ -518,7 +516,7 @@ private:
             } while (explore.next_successor());
 
             if (tinfo.finalize()) {
-                value_utils::set_max(stack_info.conv_part, tinfo.conv_part);
+                set_max(stack_info.conv_part, tinfo.conv_part);
                 stack_info.nconv_qs.pop_back();
             }
 
@@ -550,7 +548,7 @@ private:
             // The state value is therefore the base value.
             ++statistics_.singleton_sccs;
             StateInfo& state_info = state_information_[begin->state_id];
-            value_utils::update(*begin->value, begin->conv_part);
+            update(*begin->value, begin->conv_part);
             assert(state_info.status == StateInfo::ONSTACK);
             state_info.status = StateInfo::CLOSED;
         } else {

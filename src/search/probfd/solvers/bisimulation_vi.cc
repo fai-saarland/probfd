@@ -73,7 +73,7 @@ public:
         bisimulation::DefaultQuotientRewardFunction reward(
             &bs,
             g_reward_model->reward_bound(),
-            -value_type::inf);
+            -INFINITE_VALUE);
 
         stats.timer.stop();
         stats.states = bs.num_bisimilar_states();
@@ -99,7 +99,7 @@ public:
                     false,
                     false);
         } else {
-            heuristics::ConstantEvaluator<QState> initializer(value_type::zero);
+            heuristics::ConstantEvaluator<QState> initializer(0_vt);
             solver = new engines::topological_vi::
                 TopologicalValueIteration<QState, QAction>(
                     &state_id_map,
@@ -109,7 +109,7 @@ public:
                     &initializer,
                     false);
         }
-        value_type::value_t val = solver->solve(bs.get_initial_state());
+        value_t val = solver->solve(bs.get_initial_state());
         logging::out << "analysis done! [t=" << total_timer << "]" << std::endl;
         logging::out << std::endl;
 

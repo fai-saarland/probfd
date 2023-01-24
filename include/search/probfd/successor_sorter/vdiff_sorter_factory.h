@@ -16,7 +16,7 @@ namespace probfd {
 namespace successor_sorting {
 
 class VDiffSorterFactory : public TaskSuccessorSorterFactory {
-    const value_type::value_t favor_large_gaps_;
+    const value_t favor_large_gaps_;
 
 public:
     explicit VDiffSorterFactory(const options::Options&);

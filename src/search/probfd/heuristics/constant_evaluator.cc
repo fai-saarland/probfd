@@ -20,7 +20,7 @@ _parse(options::OptionParser& parser)
     }
     if (opts.contains("value")) {
         return std::make_shared<ConstantEvaluator<State>>(
-            value_type::from_double(opts.get<double>("value")));
+            double_to_value(opts.get<double>("value")));
     } else {
         return std::make_shared<ConstantEvaluator<State>>(
             g_reward_model->reward_bound().upper);

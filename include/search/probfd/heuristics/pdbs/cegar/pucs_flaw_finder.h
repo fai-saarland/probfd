@@ -19,10 +19,10 @@ namespace cegar {
 
 template <typename PDBType>
 class PUCSFlawFinder : public FlawFindingStrategy<PDBType> {
-    priority_queues::HeapQueue<value_type::value_t, std::vector<int>> pq;
+    priority_queues::HeapQueue<value_t, std::vector<int>> pq;
     std::unordered_map<
         std::vector<int>,
-        value_type::value_t,
+        value_t,
         typename FlawFindingStrategy<PDBType>::StateHash>
         probabilities;
 
@@ -45,7 +45,7 @@ private:
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,
         std::vector<int>& state,
-        value_type::value_t priority,
+        value_t priority,
         std::vector<Flaw>& flaw_list);
 };
 

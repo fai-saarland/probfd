@@ -389,7 +389,7 @@ void dump_state_space_dot_graph(
 
         for (const auto& [act, successors] : transitions) {
             const auto a_reward = reward_fn->get_action_reward(state_id, act);
-            if (a_reward != value_type::zero) {
+            if (a_reward != 0_vt) {
                 ss << a_reward << "\\n";
             }
             ss << astr(act);

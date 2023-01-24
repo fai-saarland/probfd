@@ -5,7 +5,7 @@
 namespace probfd {
 
 ProgressReport::ProgressReport(
-    const value_type::value_t min_change,
+    const value_t min_change,
     std::ostream& out,
     const bool enabled)
     : min_change_(min_change)
@@ -31,11 +31,11 @@ void ProgressReport::register_print(std::function<void(std::ostream&)> f)
 
 void ProgressReport::register_value(
     const std::string& val_name,
-    std::function<value_type::value_t()> getter)
+    std::function<value_t()> getter)
 {
     value_names_.push_back(val_name);
     value_getters_.push_back(getter);
-    extracted_values_.push_back(value_type::zero);
+    extracted_values_.push_back(0_vt);
 }
 
 void ProgressReport::print()
@@ -66,11 +66,10 @@ void ProgressReport::print_progress()
 bool ProgressReport::extract_values()
 {
     bool print = last_printed_values_.size() != value_getters_.size();
-    last_printed_values_.resize(value_getters_.size(), value_type::zero);
+    last_printed_values_.resize(value_getters_.size(), 0_vt);
     for (int i = value_getters_.size() - 1; i >= 0; --i) {
-        const value_type::value_t val = value_getters_[i]();
-        print = print ||
-                (value_type::abs(last_printed_values_[i] - val) >= min_change_);
+        const value_t val = value_getters_[i]();
+        print = print || (abs(last_printed_values_[i] - val) >= min_change_);
         extracted_values_[i] = val;
     }
     return print;

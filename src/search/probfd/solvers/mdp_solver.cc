@@ -51,7 +51,7 @@ void MDPSolver::solve()
 
     const State initial_state = state_registry_.get_initial_state();
 
-    value_type::value_t val = engine->solve(initial_state);
+    value_t val = engine->solve(initial_state);
     progress_.print();
     total_timer.stop();
 

@@ -50,12 +50,9 @@ struct FrontierStateInfo {
 
 class ValueGroup {
 public:
-    const value_type::value_t& operator[](unsigned i) const
-    {
-        return values[i];
-    }
+    const value_t& operator[](unsigned i) const { return values[i]; }
 
-    unsigned get_id(value_type::value_t val)
+    unsigned get_id(value_t val)
     {
         values.push_back(val);
         auto it = indices.insert(values.size() - 1);
@@ -68,7 +65,7 @@ public:
 
 private:
     struct Comparator {
-        explicit Comparator(const std::vector<value_type::value_t>& values)
+        explicit Comparator(const std::vector<value_t>& values)
             : values(values)
         {
         }
@@ -78,10 +75,10 @@ private:
             return values[x] < values[y];
         }
 
-        const std::vector<value_type::value_t>& values;
+        const std::vector<value_t>& values;
     };
 
-    std::vector<value_type::value_t> values;
+    std::vector<value_t> values;
     std::set<unsigned, Comparator> indices =
         std::set<unsigned, Comparator>(Comparator(values));
 };
@@ -114,9 +111,9 @@ public:
     {
     }
 
-    virtual value_type::value_t solve(const State& initial_state) override
+    virtual value_t solve(const State& initial_state) override
     {
-        const double eps = value_type::g_epsilon;
+        const double eps = g_epsilon;
         const double inf = lp_solver_.get_infinity();
 
         StateID prev_state = StateID::undefined;
@@ -255,7 +252,7 @@ public:
 
                     prev_state = next_prev_state;
 
-                    assert(w > value_type::zero);
+                    assert(w > 0_vt);
                     c.insert(var_id, w);
                     c.set_lower_bound(base_val);
                     lp_solver_.add_constraint(c);
@@ -313,7 +310,7 @@ private:
 
     Statistics statistics_;
 
-    value_type::value_t objective_;
+    value_t objective_;
 };
 
 } // namespace idual

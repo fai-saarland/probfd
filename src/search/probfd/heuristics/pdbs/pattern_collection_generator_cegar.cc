@@ -200,7 +200,7 @@ const AbstractPolicy& AbstractSolutionData<PDBType>::get_policy() const
 }
 
 template <typename PDBType>
-value_type::value_t AbstractSolutionData<PDBType>::get_policy_cost() const
+value_t AbstractSolutionData<PDBType>::get_policy_cost() const
 {
     ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
     return pdb->lookup(task_proxy.get_initial_state());

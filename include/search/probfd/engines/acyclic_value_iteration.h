@@ -50,13 +50,13 @@ template <typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
     struct StateInfo {
         bool expanded = false;
-        value_type::value_t value;
+        value_t value;
     };
 
     struct IncrementalExpansionInfo {
         IncrementalExpansionInfo(
             const StateID& state,
-            value_type::value_t reward,
+            value_t reward,
             std::vector<Action> remaining_aops)
             : state(state)
             , reward(reward)
@@ -66,7 +66,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         }
 
         const StateID state;
-        const value_type::value_t reward;
+        const value_t reward;
 
         // Applicable operators left to expand
         std::vector<Action> remaining_aops;
@@ -76,7 +76,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         typename Distribution<StateID>::const_iterator successor;
 
         // The current transition Q-value
-        value_type::value_t t_value;
+        value_t t_value;
     };
 
 public:
@@ -103,7 +103,7 @@ public:
     {
     }
 
-    virtual value_type::value_t solve(const State& initial_state) override
+    virtual value_t solve(const State& initial_state) override
     {
         if (!push_state(this->get_state_id(initial_state))) {
             return state_infos_[this->get_state_id(initial_state)].value;
@@ -171,7 +171,7 @@ private:
 
         const State state = this->lookup_state(state_id);
         const TerminationInfo term_info = this->get_state_reward(state);
-        const value_type::value_t value = term_info.get_reward();
+        const value_t value = term_info.get_reward();
 
         StateInfo& info = state_infos_[state_id];
 

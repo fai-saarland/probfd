@@ -155,14 +155,14 @@ public:
 class BaseAbstractRewardFunction : public AbstractRewardFunction {
 protected:
     const std::vector<bool>& goal_state_flags_;
-    const value_type::value_t value_in_;
-    const value_type::value_t value_not_in_;
+    const value_t value_in_;
+    const value_t value_not_in_;
 
 public:
     explicit BaseAbstractRewardFunction(
         const std::vector<bool>& goal_state_flags,
-        value_type::value_t value_in,
-        value_type::value_t value_not_in)
+        value_t value_in,
+        value_t value_not_in)
         : goal_state_flags_(goal_state_flags)
         , value_in_(value_in)
         , value_not_in_(value_not_in)
@@ -182,8 +182,7 @@ class ZeroCostAbstractRewardFunction : public BaseAbstractRewardFunction {
 public:
     using BaseAbstractRewardFunction::BaseAbstractRewardFunction;
 
-    value_type::value_t
-    get_action_reward(StateID, const AbstractOperator*) override
+    value_t get_action_reward(StateID, const AbstractOperator*) override
     {
         return 0;
     }
@@ -193,8 +192,7 @@ class NormalCostAbstractRewardFunction : public BaseAbstractRewardFunction {
 public:
     using BaseAbstractRewardFunction::BaseAbstractRewardFunction;
 
-    value_type::value_t
-    get_action_reward(StateID, const AbstractOperator* op) override
+    value_t get_action_reward(StateID, const AbstractOperator* op) override
     {
         return op->reward;
     }

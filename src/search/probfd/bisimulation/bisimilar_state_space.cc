@@ -297,7 +297,7 @@ void BisimilarStateSpace::get_successors(
 
     for (unsigned i = 0; i < outcomes.size(); ++i) {
         const ProbabilisticOutcomeProxy outcome = outcomes[i];
-        const value_type::value_t probability = outcome.get_probability();
+        const value_t probability = outcome.get_probability();
         if (t.successors[i] == PRUNED_STATE) {
             result.add(StateID(dead_end_state_.id), probability);
         } else {

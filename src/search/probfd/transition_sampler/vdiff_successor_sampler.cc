@@ -26,14 +26,13 @@ StateID VDiffSuccessorSampler::sample(
     engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
     biased_.clear();
-    value_type::value_t sum = 0;
+    value_t sum = 0;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
-        const value_type::value_t error =
-            hs_interface.lookup_dual_bounds(it->element).error_bound();
-        const value_type::value_t p =
-            it->probability *
-            (prefer_large_gaps_ ? error : (value_type::one - error));
-        if (p > value_type::zero) {
+        const value_t error =
+            hs_interface.lookup_dual_bounds(it->element).length();
+        const value_t p =
+            it->probability * (prefer_large_gaps_ ? error : (1_vt - error));
+        if (p > 0_vt) {
             sum += p;
             biased_.add(it->element, p);
         }
@@ -41,7 +40,7 @@ StateID VDiffSuccessorSampler::sample(
     if (biased_.empty()) {
         return successors.sample(*rng_)->element;
     }
-    biased_.normalize(value_type::one / sum);
+    biased_.normalize(1_vt / sum);
     return biased_.sample(*rng_)->element;
 }
 

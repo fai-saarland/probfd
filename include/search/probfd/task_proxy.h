@@ -210,7 +210,7 @@ public:
         return ProbabilisticEffectsProxy(*task, op_index, outcome_index);
     }
 
-    value_type::value_t get_probability() const
+    value_t get_probability() const
     {
         return task->get_operator_outcome_probability(op_index, outcome_index);
     }

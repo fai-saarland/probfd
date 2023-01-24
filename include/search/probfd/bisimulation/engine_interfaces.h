@@ -60,13 +60,13 @@ using QuotientStateEvaluator =
 
 struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
     bisimulation::BisimilarStateSpace* bisim_;
-    const value_utils::IntervalValue bound_;
-    const value_type::value_t default_;
+    const Interval bound_;
+    const value_t default_;
 
     explicit DefaultQuotientStateEvaluator(
         bisimulation::BisimilarStateSpace* bisim,
-        const value_utils::IntervalValue bound,
-        value_type::value_t default_value = 0);
+        Interval bound,
+        value_t default_value = 0);
 
     EvaluationResult
     evaluate(const bisimulation::QuotientState& state) const override;
@@ -74,18 +74,18 @@ struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
 
 struct DefaultQuotientRewardFunction : public QuotientRewardFunction {
     bisimulation::BisimilarStateSpace* bisim_;
-    const value_utils::IntervalValue bound_;
-    const value_type::value_t default_;
+    const Interval bound_;
+    const value_t default_;
 
     explicit DefaultQuotientRewardFunction(
         bisimulation::BisimilarStateSpace* bisim,
-        const value_utils::IntervalValue bound,
-        value_type::value_t default_value = 0);
+        Interval bound,
+        value_t default_value = 0);
 
     TerminationInfo
     get_termination_info(const bisimulation::QuotientState& state) override;
 
-    value_type::value_t
+    value_t
     get_action_reward(StateID state, bisimulation::QuotientAction action)
         override;
 };

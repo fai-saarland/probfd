@@ -90,7 +90,7 @@ enum class BacktrackingUpdateType {
     FullValueUpdatesOnStack,
 };
 
-inline bool update_lower_bound(value_type::value_t& x, value_type::value_t v)
+inline bool update_lower_bound(value_t& x, value_t v)
 {
     if (v > x) {
         x = v;
@@ -100,8 +100,7 @@ inline bool update_lower_bound(value_type::value_t& x, value_type::value_t v)
     return false;
 }
 
-inline bool
-update_lower_bound(value_utils::IntervalValue& x, value_type::value_t v)
+inline bool update_lower_bound(Interval& x, value_t v)
 {
     if (v > x.lower) {
         x.lower = v;
@@ -111,11 +110,11 @@ update_lower_bound(value_utils::IntervalValue& x, value_type::value_t v)
     return false;
 }
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 class ExhaustiveDepthFirstSearch
     : public MDPEngine<State, Action>
     , public engine_interfaces::HeuristicSearchInterface {
-    using IncumbentSolution = value_utils::IncumbentSolution<Interval>;
+    using IncumbentSolution = IncumbentSolution<UseInterval>;
 
     struct SearchNodeInformation {
         static constexpr uint8_t NEW = 0;
@@ -165,7 +164,7 @@ class ExhaustiveDepthFirstSearch
         unsigned lowlink = -1;
         uint8_t status = NEW;
         IncumbentSolution value;
-        value_type::value_t state_reward;
+        value_t state_reward;
     };
 
 public:
@@ -174,7 +173,7 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::RewardFunction<State, Action>* reward_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
-        value_utils::IntervalValue reward_bound,
+        Interval reward_bound,
         engine_interfaces::StateEvaluator<State>* evaluator,
         bool reevaluate,
         bool notify_initial,
@@ -208,19 +207,18 @@ public:
         ABORT("Exhaustive DFS does not store state flags.");
     }
 
-    value_type::value_t lookup_value(const StateID& state_id) override
+    value_t lookup_value(const StateID& state_id) override
     {
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             return search_space_[state_id].value.upper;
         } else {
             return search_space_[state_id].value;
         }
     }
 
-    value_utils::IntervalValue
-    lookup_dual_bounds(const StateID& state_id) override
+    Interval lookup_dual_bounds(const StateID& state_id) override
     {
-        if constexpr (!Interval) {
+        if constexpr (!UseInterval) {
             ABORT("Search algorithm does not support interval bounds!");
         } else {
             return search_space_[state_id].value;
@@ -232,7 +230,7 @@ public:
         ABORT("Search algorithm does not store policy information!");
     }
 
-    virtual value_type::value_t solve(const State& state) override
+    virtual value_t solve(const State& state) override
     {
         StateID stateid = this->get_state_id(state);
         SearchNodeInformation& info = search_space_[stateid];
@@ -244,19 +242,19 @@ public:
             run_exploration();
         }
 
-        return value_utils::as_lower_bound(info.value);
+        return as_lower_bound(info.value);
     }
 
     virtual bool supports_error_bound() const override { return false; }
 
-    virtual value_type::value_t get_error(const State& s) override
+    virtual value_t get_error(const State& s) override
     {
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             const SearchNodeInformation& info =
                 search_space_[this->get_state_id(s)];
-            return std::abs(info.value.error_bound());
+            return std::abs(info.value.length());
         } else {
-            return std::numeric_limits<value_type::value_t>::infinity();
+            return std::numeric_limits<value_t>::infinity();
         }
     }
 
@@ -268,7 +266,7 @@ public:
 private:
     void register_value_reports(const SearchNodeInformation* info)
     {
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             this->report_->register_value("vl", [info]() {
                 return info->value.lower;
             });
@@ -292,7 +290,7 @@ private:
 
     IncumbentSolution get_trivial_bound() const
     {
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             return reward_bound_;
         } else {
             return reward_bound_.lower;
@@ -320,8 +318,8 @@ private:
 
     struct SCCTransition {
         Distribution<StateID> successors;
-        value_type::value_t base = value_type::zero;
-        value_type::value_t self_loop = value_type::zero;
+        value_t base = 0_vt;
+        value_t self_loop = 0_vt;
     };
 
     struct StackInformation {
@@ -369,7 +367,7 @@ private:
             return false;
         }
 
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             info.value.upper = eval_result.get_estimate();
         }
 
@@ -407,7 +405,7 @@ private:
 
         si.successors.resize(aops.size());
 
-        const auto reward = value_utils::as_lower_bound(info.value);
+        const auto reward = as_lower_bound(info.value);
 
         bool pure_self_loop = true;
 
@@ -433,8 +431,7 @@ private:
                 }
 
                 if (succ_info.is_closed()) {
-                    t.base +=
-                        prob * value_utils::as_lower_bound(succ_info.value);
+                    t.base += prob * as_lower_bound(succ_info.value);
                     exp.all_successors_are_dead =
                         exp.all_successors_are_dead && succ_info.is_dead_end();
                     exp.all_successors_marked_dead =
@@ -453,18 +450,17 @@ private:
                 if (!all_self_loops) {
                     pure_self_loop = false;
                     t.base += reward + this->get_action_reward(state_id, a);
-                    auto non_loop = value_type::one - t.self_loop;
+                    auto non_loop = 1_vt - t.self_loop;
                     update_lower_bound(info.value, t.base / non_loop);
                 }
             } else {
                 t.base += reward + this->get_action_reward(state_id, a);
 
-                if (t.self_loop == value_type::zero) {
-                    t.self_loop = value_type::one;
+                if (t.self_loop == 0_vt) {
+                    t.self_loop = 1_vt;
                 } else {
-                    assert(t.self_loop < value_type::one);
-                    t.self_loop =
-                        value_type::one / (value_type::one - t.self_loop);
+                    assert(t.self_loop < 1_vt);
+                    t.self_loop = 1_vt / (1_vt - t.self_loop);
                 }
 
                 if (i != j) {
@@ -484,8 +480,7 @@ private:
                 info.set_dead_end();
                 ++statistics_.self_loop;
             } else {
-                info.value =
-                    IncumbentSolution(value_utils::as_lower_bound(info.value));
+                info.value = IncumbentSolution(as_lower_bound(info.value));
                 info.close();
             }
 
@@ -546,8 +541,7 @@ private:
                             expanding.all_successors_marked_dead =
                                 expanding.all_successors_are_dead &&
                                 succ_info.is_marked_dead_end();
-                            inc->base += prob * value_utils::as_lower_bound(
-                                                    succ_info.value);
+                            inc->base += prob * as_lower_bound(succ_info.value);
                         }
                     } else if (succ_info.is_onstack()) {
                         node_info.lowlink =
@@ -561,8 +555,7 @@ private:
                         expanding.all_successors_marked_dead =
                             expanding.all_successors_are_dead &&
                             succ_info.is_marked_dead_end();
-                        inc->base +=
-                            prob * value_utils::as_lower_bound(succ_info.value);
+                        inc->base += prob * as_lower_bound(succ_info.value);
                     }
                 }
 
@@ -631,9 +624,9 @@ private:
                         auto& info = search_space_[rend->state_ref];
                         info.close();
 
-                        if constexpr (Interval) {
+                        if constexpr (UseInterval) {
                             val_changed =
-                                value_utils::update(
+                                update(
                                     info.value,
                                     IncumbentSolution(info.value.lower)) ||
                                 val_changed;
@@ -651,16 +644,15 @@ private:
                                  ++it) {
                                 StackInformation& s = *it;
                                 assert(!s.successors.empty());
-                                value_type::value_t best =
-                                    s.successors.back().base;
+                                value_t best = s.successors.back().base;
                                 for (int i = s.successors.size() - 1; i >= 0;
                                      --i) {
                                     const auto& t = s.successors[i];
-                                    value_type::value_t t_first = t.base;
+                                    value_t t_first = t.base;
                                     for (auto [succ_id, prob] : t.successors) {
                                         t_first +=
                                             prob *
-                                            value_utils::as_lower_bound(
+                                            as_lower_bound(
                                                 search_space_[succ_id].value);
                                     }
                                     t_first = t_first * t.self_loop;
@@ -669,13 +661,12 @@ private:
 
                                 SearchNodeInformation& snode_info =
                                     search_space_[s.state_ref];
-                                if (best > value_utils::as_lower_bound(
-                                               snode_info.value)) {
-                                    changed = changed ||
-                                              !value_type::is_approx_equal(
-                                                  value_utils::as_lower_bound(
-                                                      snode_info.value),
-                                                  best);
+                                if (best > as_lower_bound(snode_info.value)) {
+                                    changed =
+                                        changed ||
+                                        !is_approx_equal(
+                                            as_lower_bound(snode_info.value),
+                                            best);
                                     snode_info.value = IncumbentSolution(best);
                                 }
                             }
@@ -701,7 +692,7 @@ private:
                 case BacktrackingUpdateType::SimplePropagation:
                     propagate_value_along_trace(
                         completely_explored,
-                        value_utils::as_lower_bound(node_info.value));
+                        as_lower_bound(node_info.value));
                     break;
                 case BacktrackingUpdateType::FullValueUpdatesOnTrace:
                     value_updates_along_trace(completely_explored);
@@ -714,7 +705,7 @@ private:
         }
     }
 
-    void propagate_value_along_trace(bool was_poped, value_type::value_t val)
+    void propagate_value_along_trace(bool was_poped, value_t val)
     {
         auto it = expansion_infos_.rbegin();
         if (!was_poped) {
@@ -725,7 +716,7 @@ private:
             StackInformation& st = stack_infos_[it->stack_index];
             SearchNodeInformation& sn = search_space_[st.state_ref];
             const auto& t = st.successors[st.successors.size() - st.i - 1];
-            const value_type::value_t v = t.base + it->succ->probability * val;
+            const value_t v = t.base + it->succ->probability * val;
             if (!update_lower_bound(sn.value, v)) {
                 break;
             }
@@ -749,7 +740,7 @@ private:
 
             StackInformation& st = stack_infos_[it->stack_index];
             SearchNodeInformation& sn = search_space_[st.state_ref];
-            IncumbentSolution new_val(value_utils::as_lower_bound(sn.value));
+            IncumbentSolution new_val(as_lower_bound(sn.value));
             {
                 const int i = it->successors.size() - 1;
                 const auto& succs = it->successors[i];
@@ -770,7 +761,7 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::set_max(new_val, val);
+                set_max(new_val, val);
             }
 
             for (int i = it->successors.size() - 2; i >= 0; --i) {
@@ -795,8 +786,7 @@ private:
                         succ = succs.erase(succ);
                     } else {
                         assert(succ_info.is_closed());
-                        t.base +=
-                            value_utils::as_lower_bound(succ_info.value) * prob;
+                        t.base += as_lower_bound(succ_info.value) * prob;
                         val += prob * succ_info.value;
                         it->all_successors_are_dead =
                             it->all_successors_are_dead &&
@@ -809,7 +799,7 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::set_max(new_val, val);
+                set_max(new_val, val);
             }
 
             for (unsigned i = st.successors.size() - 1;
@@ -822,11 +812,10 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::set_max(new_val, val);
+                set_max(new_val, val);
             }
 
-            if (!value_utils::update(sn.value, new_val) &&
-                only_propagate_when_changed_) {
+            if (!update(sn.value, new_val) && only_propagate_when_changed_) {
                 return;
             }
         }
@@ -849,8 +838,7 @@ private:
 
                 StackInformation& st = stack_infos_[stack_index];
                 SearchNodeInformation& sn = search_space_[st.state_ref];
-                IncumbentSolution new_val(
-                    value_utils::as_lower_bound(sn.value));
+                IncumbentSolution new_val(as_lower_bound(sn.value));
                 for (int i = st.successors.size() - 1; i >= 0; --i) {
                     const auto& t = st.successors[i];
                     IncumbentSolution val(t.base);
@@ -859,10 +847,10 @@ private:
                     }
 
                     val *= t.self_loop;
-                    value_utils::set_max(new_val, val);
+                    set_max(new_val, val);
                 }
 
-                value_utils::update(sn.value, new_val);
+                update(sn.value, new_val);
             }
 
             ++statistics_.value_updates;
@@ -870,7 +858,7 @@ private:
 
             StackInformation& st = stack_infos_[it->stack_index];
             SearchNodeInformation& sn = search_space_[st.state_ref];
-            IncumbentSolution new_val(value_utils::as_lower_bound(sn.value));
+            IncumbentSolution new_val(as_lower_bound(sn.value));
             {
                 const int i = it->successors.size() - 1;
                 const auto& succs = it->successors[i];
@@ -891,7 +879,7 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::set_max(new_val, val);
+                set_max(new_val, val);
             }
 
             for (int i = it->successors.size() - 2; i >= 0; --i) {
@@ -917,8 +905,7 @@ private:
                         succ = succs.erase(succ);
                     } else {
                         assert(succ_info.is_closed());
-                        t.base +=
-                            value_utils::as_lower_bound(succ_info.value) * prob;
+                        t.base += as_lower_bound(succ_info.value) * prob;
                         val += prob * succ_info.value;
                         it->all_successors_are_dead =
                             it->all_successors_are_dead &&
@@ -931,7 +918,7 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::set_max(new_val, val);
+                set_max(new_val, val);
             }
 
             for (unsigned i = st.successors.size() - 1;
@@ -945,11 +932,10 @@ private:
                 }
 
                 val *= t.self_loop;
-                value_utils::set_max(new_val, val);
+                set_max(new_val, val);
             }
 
-            if (!value_utils::update(sn.value, new_val) &&
-                only_propagate_when_changed_) {
+            if (!update(sn.value, new_val) && only_propagate_when_changed_) {
                 return;
             }
         }
@@ -1009,18 +995,17 @@ private:
 
     bool check_early_convergence(const SearchNodeInformation& node) const
     {
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             return node.value.lower >= node.value.upper;
         } else {
-            return value_utils::as_lower_bound(node.value) >=
-                   reward_bound_.upper;
+            return as_lower_bound(node.value) >= reward_bound_.upper;
         }
     }
 
     Statistics statistics_;
 
     ProgressReport* report_;
-    const value_utils::IntervalValue reward_bound_;
+    const Interval reward_bound_;
     const IncumbentSolution trivial_bound_;
 
     engine_interfaces::StateEvaluator<State>* evaluator_;

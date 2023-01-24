@@ -72,7 +72,7 @@ public:
     {
     }
 
-    virtual value_type::value_t solve(const State& state) override
+    virtual value_t solve(const State& state) override
     {
         this->initialize_report(state);
         StateID stateid = this->get_state_id(state);

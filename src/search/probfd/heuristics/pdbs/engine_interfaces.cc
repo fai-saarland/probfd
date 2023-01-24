@@ -125,12 +125,10 @@ EvaluationResult PDBEvaluator::evaluate(const StateRank& state) const
     int deterministic_val = pdb.get_value_for_index(state.id);
 
     if (deterministic_val == std::numeric_limits<int>::max()) {
-        return EvaluationResult(true, -value_type::inf);
+        return EvaluationResult(true, -INFINITE_VALUE);
     }
 
-    return EvaluationResult(
-        false,
-        -static_cast<value_type::value_t>(deterministic_val));
+    return EvaluationResult(false, -static_cast<value_t>(deterministic_val));
 }
 
 DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)
@@ -143,8 +141,7 @@ EvaluationResult DeadendPDBEvaluator::evaluate(const StateRank& state) const
     bool dead =
         pdb.get_value_for_index(state.id) == std::numeric_limits<int>::max();
 
-    return dead ? EvaluationResult(true, value_type::zero)
-                : EvaluationResult(false, value_type::one);
+    return dead ? EvaluationResult(true, 0_vt) : EvaluationResult(false, 1_vt);
 }
 
 IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(

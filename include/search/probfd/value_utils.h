@@ -1,5 +1,5 @@
-#ifndef MDPS_VALUE_UTILS_H
-#define MDPS_VALUE_UTILS_H
+#ifndef PROBFD_VALUE_UTILS_H
+#define PROBFD_VALUE_UTILS_H
 
 #include "value_type.h"
 
@@ -8,108 +8,76 @@
 #include <utility>
 
 namespace probfd {
-namespace value_utils {
 
-/**
- * @brief Represents an interval of state values as a pair of lower and upper
- * bound.
- */
-struct IntervalValue {
-    value_type::value_t lower; ///< Lower bound of the interval
-    value_type::value_t upper; ///< Upper bound of the interval
+/// Equivalent to $|v_1 - v_2| <= \epsilon$
+bool is_approx_equal(value_t v1, value_t v2, value_t epsilon = g_epsilon);
+
+/// Equivalent to $v_1 - v_2 < -\epsilon$
+bool is_approx_less(value_t v1, value_t v2, value_t epsilon = g_epsilon);
+
+/// Equivalent to $v_1 - v_2 > \epsilon$
+bool is_approx_greater(value_t v1, value_t v2, value_t epsilon = g_epsilon);
+
+/// Represents a closed interval over the extended reals.
+struct Interval {
+    value_t lower; ///< The Lower bound of the interval
+    value_t upper; ///< The upper bound of the interval
+
+    /// Constructs an interval consisting of a single point p.
+    explicit Interval(value_t val = 0_vt);
+
+    /// Constructs an interval from a specified lower and upper bound.
+    explicit Interval(value_t lb, value_t ub);
+
+    /// Equivalent to *this = *this + rhs
+    Interval& operator+=(Interval rhs);
+
+    /// Equivalent to *this = *this - rhs
+    Interval& operator-=(Interval rhs);
+
+    /// Equivalent to *this = factor * (*this)
+    Interval& operator*=(value_t scale_factor);
+
+    /// Equivalent to *this = (*this) / dividend
+    Interval& operator/=(value_t divisor);
 
     /**
-     * @brief Constructs a singleton interval with specified lower and upper
-     * bound.
+     * @brief Recieves two intervals $[a, b]$ and $[c, d]$ and computes the
+     * interval $[a + c, b + d]$.
+     */
+    friend Interval operator+(Interval lhs, Interval rhs);
+
+    /**
+     * @brief Recieves two intervals $[a, b]$ and $[c, d]$ and computes the
+     * interval $[a - c, b - d]$.
+     */
+    friend Interval operator-(Interval lhs, Interval rhs);
+
+    /**
+     * @brief Recieves a scaling factor $n$ and an interval $[a, b]$ and
+     * computes the interval $[n * a, n * b]$.
+     */
+    friend Interval operator*(value_t scale_factor, Interval rhs);
+
+    /**
+     * @copydoc operator*(value_t, const Interval&)
+     */
+    friend Interval operator*(Interval lhs, value_t scale_factor);
+
+    /**
+     * @brief Recieves a divisor $n$ and an interval $[a, b]$ and
+     * computes the interval $[a / n, b / n]$.
      *
-     * @param val - The only element of the interval.
+     * @note The behaviour is undefined if $n$ is zero.
      */
-    explicit IntervalValue(value_type::value_t val = value_type::zero);
+    friend Interval operator/(Interval lhs, value_t inv_scale_factor);
 
     /**
-     * @brief Constructs an interval from a lower and upper bound.
+     * @brief Calls `Interval::update(lhs, rhs, true)`.
      *
-     * @param lb - Lower bound of the interval.
-     * @param ub - Upper bound of the interval.
+     * @see update(Interval&, const Interval&, bool)
      */
-    explicit IntervalValue(value_type::value_t lb, value_type::value_t ub);
-
-    /**
-     * @brief Adds another interval by componentwise addition of its interval
-     * bounds to this objects own interval bounds.
-     */
-    IntervalValue& operator+=(const IntervalValue& rhs);
-
-    /**
-     * @brief Substracts another interval by componentwise substraction of its
-     * interval bounds from this objects own interval bounds.
-     */
-    IntervalValue& operator-=(const IntervalValue& rhs);
-
-    /**
-     * @brief Scales the interval bounds by muliplying with a factor.
-     */
-    IntervalValue& operator*=(value_type::value_t scale_factor);
-
-    /**
-     * @brief Scales down the interval bounds by dividing with a factor.
-     */
-    IntervalValue& operator/=(value_type::value_t inv_scale_factor);
-
-    /**
-     * @brief Computes the component-wise addition of two intervals.
-     */
-    friend IntervalValue
-    operator+(const IntervalValue& lhs, const IntervalValue& rhs);
-
-    /**
-     * @brief Computes the component-wise substraction of two intervals.
-     */
-    friend IntervalValue
-    operator-(const IntervalValue& lhs, const IntervalValue& rhs);
-
-    /**
-     * @brief Computes an interval with scaled bounds.
-     */
-    friend IntervalValue
-    operator*(value_type::value_t scale_factor, const IntervalValue& rhs);
-
-    /**
-     * @copydoc operator*(value_type::value_t, const IntervalValue&)
-     */
-    friend IntervalValue
-    operator*(const IntervalValue& lhs, value_type::value_t scale_factor);
-
-    /**
-     * @brief Computes an interval with bounds inversely scaled by some factor.
-     */
-    friend IntervalValue
-    operator/(const IntervalValue& lhs, value_type::value_t inv_scale_factor);
-
-    /**
-     * @brief Compares the lower bounds of two intervals.
-     *
-     * @note This method does not use floating-point comparison, but
-     * instead considers floating points which are value_type::g_epsilon
-     * -close to each other as equal.
-     *
-     * @returns 1 - If the lower bound of the left interval is approximately
-     * greater then the lower bound of the second interval
-     * @returns -1 - If the lower bound of the left interval is approximately
-     * smaller then the lower bound of the second interval
-     * @returns 0 - Otherwise, i.e. the lower bounds of the left interval and
-     * right interval are approximately equal
-     *
-     * @todo Rename to `approx_compare_lower_bounds`
-     */
-    friend int compare(const IntervalValue& lhs, const IntervalValue& rhs);
-
-    /**
-     * @brief Calls `IntervalValue::update(lhs, rhs, true)`.
-     *
-     * @see update(IntervalValue&, const IntervalValue&, bool)
-     */
-    friend bool update(IntervalValue& lhs, const IntervalValue& rhs);
+    friend bool update(Interval& lhs, Interval rhs);
 
     /**
      * @brief Intersects two intervals and assigns the result to the left
@@ -119,73 +87,54 @@ struct IntervalValue {
      * non-intersecting intervals.
      *
      * @returns \b true if the lower bound of the left operand changed by more
-     * than value_type::g_epsilon or if check_upper is true and the greater
+     * than g_epsilon or if check_upper is true and the greater
      * bound of the left operand changed by more than epsilon. \b false
      * otherwise.
      */
-    friend bool
-    update(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper);
+    friend bool update(Interval& lhs, Interval rhs, bool check_upper);
+
+    /// Returns the length $b - a$ of the interval.
+    double length() const { return upper - lower; }
 
     /**
-     * @brief Returns the distance between the upper and lower bound.
-     *
-     * @todo Rename to `gap`, `distance` etc.
+     * @brief Checks if the bounds of the interval are approximately equal with
+     * respect to the given tolerance.
      */
-    double error_bound() const { return upper - lower; }
-
-    /**
-     * @brief Checks if the bounds of the interval are approximately equal.
-     *
-     * @note This method does not check for exact floating-point equality, but
-     * instead checks whether the bounds are farther than value_type::g_epsilon
-     * apart.
-     *
-     * @todo Rename this method to bounds_approx_equal and make the precision
-     * a parameter, defaulting to value_type::g_epsilon.
-     */
-    bool bounds_equal() const
+    bool bounds_approximately_equal(value_t epsilon = g_epsilon) const
     {
-        return value_type::is_approx_equal(lower, upper);
+        return is_approx_equal(lower, upper, epsilon);
     }
 
-    /**
-     * @brief Checks for floating-point equality of the respective bounds.
-     */
-    friend bool operator==(const IntervalValue& lhs, const IntervalValue& rhs);
-
-    /**
-     * @brief Stream output operator.
-     */
-    friend std::ostream& operator<<(std::ostream&, const IntervalValue&);
+    /// Stream output operator.
+    friend std::ostream& operator<<(std::ostream&, Interval);
 };
 
-template <bool Interval>
-using IncumbentSolution =
-    std::conditional_t<Interval, IntervalValue, value_type::value_t>;
+template <bool UseInterval>
+using IncumbentSolution = std::conditional_t<UseInterval, Interval, value_t>;
 
-// Comparisons
+/// Approximately compares the lower bounds of the intervals.
+int approx_compare(Interval lhs, Interval rhs, value_t epsilon = g_epsilon);
 
-int compare(const IntervalValue& value0, const IntervalValue& value1);
-int compare(
-    const value_type::value_t& value0,
-    const value_type::value_t& value1);
+/**
+ * @brief Compares two state values approximately.
+ *
+ * @returns 0 if the values are approximately equal with respect to the
+ * given epsilon, otherwise 1 if @p v2 is larger than @p v1 and otherwise -1.
+ */
+int approx_compare(value_t v1, value_t v2, value_t epsilon = g_epsilon);
 
-// Value update (old)
-
-void set_max(IntervalValue& new_value, const IntervalValue& tval);
-void set_max(value_type::value_t& new_value, const value_type::value_t& tval);
+void set_max(Interval& new_value, Interval tval);
+void set_max(value_t& new_value, value_t tval);
 
 // Value update
+bool update(value_t& lhs, value_t rhs);
 
-bool update(value_type::value_t& lhs, const value_type::value_t& rhs);
+value_t as_lower_bound(value_t single);
+value_t as_lower_bound(Interval interval);
 
-value_type::value_t as_lower_bound(const value_type::value_t& single);
-value_type::value_t as_lower_bound(const IntervalValue& interval);
+value_t as_upper_bound(value_t single);
+value_t as_upper_bound(Interval interval);
 
-value_type::value_t as_upper_bound(const value_type::value_t& single);
-value_type::value_t as_upper_bound(const IntervalValue& interval);
-
-} // namespace value_utils
 } // namespace probfd
 
 #endif // __VALUE_UTILS_H__

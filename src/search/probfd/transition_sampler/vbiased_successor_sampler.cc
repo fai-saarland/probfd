@@ -25,10 +25,10 @@ StateID VBiasedSuccessorSampler::sample(
     engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
     biased_.clear();
-    value_type::value_t sum = 0;
+    value_t sum = 0;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
         const auto p = it->probability * hs_interface.lookup_value(it->element);
-        if (p > value_type::zero) {
+        if (p > 0_vt) {
             sum += p;
             biased_.add(it->element, p);
         }
@@ -36,7 +36,7 @@ StateID VBiasedSuccessorSampler::sample(
     if (biased_.empty()) {
         return successors.sample(*rng_)->element;
     }
-    biased_.normalize(value_type::one / sum);
+    biased_.normalize(1_vt / sum);
     return biased_.sample(*rng_)->element;
 }
 

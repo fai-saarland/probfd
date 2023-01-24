@@ -98,8 +98,7 @@ IncrementalPPDBs<PDBType>::get_pattern_subcollections(
 }
 
 template <class PDBType>
-value_type::value_t
-IncrementalPPDBs<PDBType>::get_value(const State& state) const
+value_t IncrementalPPDBs<PDBType>::get_value(const State& state) const
 {
     return evaluate(state).get_estimate();
 }

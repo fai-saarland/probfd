@@ -3,6 +3,7 @@
 #include "pdbs/pattern_cliques.h"
 
 #include "probfd/task_proxy.h"
+#include "probfd/value_utils.h"
 
 #include <utility>
 
@@ -13,7 +14,7 @@ namespace pdbs {
 namespace {
 
 class ProjectionOperator {
-    std::map<std::vector<FactPair>, value_type::value_t> effects_to_probs;
+    std::map<std::vector<FactPair>, value_t> effects_to_probs;
 
 public:
     using const_iterator = decltype(std::as_const(effects_to_probs).begin());
@@ -46,11 +47,10 @@ public:
         }
     }
 
-    value_type::value_t
-    get_probability(const std::vector<FactPair>& effects) const
+    value_t get_probability(const std::vector<FactPair>& effects) const
     {
         auto it = effects_to_probs.find(effects);
-        return it != effects_to_probs.end() ? it->second : value_type::zero;
+        return it != effects_to_probs.end() ? it->second : 0_vt;
     }
 
     bool is_stochastic() const { return effects_to_probs.size() > 1; }
@@ -297,7 +297,7 @@ bool is_independent_collection(
             proj_outcomes_values);
 
         do {
-            value_type::value_t indep_prob = value_type::one;
+            value_t indep_prob = 1_vt;
 
             for (std::size_t i = 0; i != num_patterns; ++i) {
                 const auto& [effects, prob] = *proj_outcomes_permutation[i];
@@ -310,12 +310,11 @@ bool is_independent_collection(
                 indep_prob *= prob;
             }
 
-            value_type::value_t union_prob =
-                abs_op_union.get_probability(union_effects);
+            value_t union_prob = abs_op_union.get_probability(union_effects);
 
             union_effects.clear();
 
-            if (!value_type::is_approx_equal(indep_prob, union_prob)) {
+            if (!is_approx_equal(indep_prob, union_prob)) {
                 return false;
             }
         } while (proj_outcomes_permutation.get_next());

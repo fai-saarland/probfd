@@ -45,14 +45,14 @@ private:
 extern std::ostream out;
 extern std::ostream err;
 
-void print_analysis_result(const value_type::value_t);
+void print_analysis_result(const value_t);
 
 void print_analysis_result(
-    const value_type::value_t,
+    const value_t,
     const bool error_supported,
-    const value_type::value_t error);
+    const value_t error);
 
-void print_initial_state_value(const value_type::value_t, int spaces = 0);
+void print_initial_state_value(const value_t, int spaces = 0);
 
 } // namespace logging
 } // namespace probfd

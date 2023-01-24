@@ -144,8 +144,7 @@ class EndComponentDecomposition {
             : stck(stck)
             , lstck(stck)
             , nz_or_leaves_scc(
-                  rew.get_action_reward(state_id, aops.back()) !=
-                  value_type::zero)
+                  rew.get_action_reward(state_id, aops.back()) != 0_vt)
             , aops(std::move(aops))
             , successors(std::move(successors))
         {
@@ -170,8 +169,7 @@ class EndComponentDecomposition {
 
             if (!aops.empty()) {
                 nz_or_leaves_scc =
-                    rew.get_action_reward(state_id, aops.back()) !=
-                    value_type::zero;
+                    rew.get_action_reward(state_id, aops.back()) != 0_vt;
                 return true;
             }
 

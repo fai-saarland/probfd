@@ -205,7 +205,7 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
             if (i + 1 == argc) {
                 throw ArgError("missing argument after " + arg);
             }
-            probfd::value_type::g_epsilon = parse_double_arg(arg, argv[i + 1]);
+            probfd::g_epsilon = parse_double_arg(arg, argv[i + 1]);
             ++i;
         } else if (arg == "--maxprob") {
             expected_cost = false;

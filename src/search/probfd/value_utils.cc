@@ -4,88 +4,88 @@
 #include <cassert>
 
 namespace probfd {
-namespace value_utils {
 
-using namespace value_type;
-
-IntervalValue::IntervalValue(value_type::value_t val)
-    : IntervalValue(val, val)
+Interval::Interval(value_t val)
+    : Interval(val, val)
 {
 }
 
-IntervalValue::IntervalValue(value_type::value_t lb, value_type::value_t ub)
+Interval::Interval(value_t lb, value_t ub)
     : lower(lb)
     , upper(ub)
 {
 }
 
-IntervalValue& IntervalValue::operator+=(const IntervalValue& rhs)
+Interval& Interval::operator+=(Interval rhs)
 {
     lower += rhs.lower;
     upper += rhs.upper;
     return *this;
 }
 
-IntervalValue& IntervalValue::operator-=(const IntervalValue& rhs)
+Interval& Interval::operator-=(Interval rhs)
 {
     lower -= rhs.lower;
     upper -= rhs.upper;
     return *this;
 }
 
-IntervalValue& IntervalValue::operator*=(value_t prob)
+Interval& Interval::operator*=(value_t prob)
 {
     lower *= prob;
     upper *= prob;
     return *this;
 }
 
-IntervalValue& IntervalValue::operator/=(value_t prob)
+Interval& Interval::operator/=(value_t prob)
 {
     lower /= prob;
     upper /= prob;
     return *this;
 }
 
-IntervalValue operator+(const IntervalValue& lhs, const IntervalValue& rhs)
+Interval operator+(Interval lhs, Interval rhs)
 {
-    return IntervalValue(lhs.lower + rhs.lower, lhs.upper + rhs.upper);
+    return Interval(lhs.lower + rhs.lower, lhs.upper + rhs.upper);
 }
 
-IntervalValue operator-(const IntervalValue& lhs, const IntervalValue& rhs)
+Interval operator-(Interval lhs, Interval rhs)
 {
-    return IntervalValue(lhs.lower - rhs.lower, lhs.upper - rhs.upper);
+    return Interval(lhs.lower - rhs.lower, lhs.upper - rhs.upper);
 }
 
-IntervalValue operator*(value_t val, const IntervalValue& rhs)
+Interval operator*(value_t val, Interval rhs)
 {
-    return IntervalValue(val * rhs.lower, val * rhs.upper);
+    return Interval(val * rhs.lower, val * rhs.upper);
 }
 
-IntervalValue operator*(const IntervalValue& rhs, value_t val)
+Interval operator*(Interval rhs, value_t val)
 {
-    return IntervalValue(rhs.lower * val, rhs.upper * val);
+    return Interval(rhs.lower * val, rhs.upper * val);
 }
 
-IntervalValue operator/(const IntervalValue& rhs, value_t val)
+Interval operator/(Interval rhs, value_t val)
 {
     assert(val != 0.0);
-    return IntervalValue(rhs.lower / val, rhs.upper / val);
+    return Interval(rhs.lower / val, rhs.upper / val);
 }
 
-int compare(const IntervalValue& lhs, const IntervalValue& rhs)
+int approx_compare(Interval lhs, Interval rhs, value_t epsilon)
 {
-    if (is_approx_greater(lhs.lower, rhs.lower, eps)) return 1;
-    if (is_approx_equal(lhs.lower, rhs.lower, eps)) return 0;
-    return -1;
+    return approx_compare(lhs.lower, rhs.lower, epsilon);
 }
 
-bool update(IntervalValue& lhs, const IntervalValue& rhs)
+int approx_compare(value_t v1, value_t v2, value_t epsilon)
+{
+    return is_approx_equal(v1, v2, epsilon) ? 0 : v1 > v2 ? 1 : -1;
+}
+
+bool update(Interval& lhs, Interval rhs)
 {
     return update(lhs, rhs, true);
 }
 
-bool update(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper)
+bool update(Interval& lhs, Interval rhs, bool check_upper)
 {
     const bool result = is_approx_greater(rhs.lower, lhs.lower) ||
                         (check_upper && is_approx_less(rhs.upper, lhs.upper));
@@ -95,60 +95,52 @@ bool update(IntervalValue& lhs, const IntervalValue& rhs, bool check_upper)
     return result;
 }
 
-void set_max(IntervalValue& new_value, const IntervalValue& tval)
+void set_max(Interval& new_value, Interval tval)
 {
     new_value.lower = std::max(tval.lower, new_value.lower);
     new_value.upper = std::max(tval.upper, new_value.upper);
 }
 
-bool operator==(const IntervalValue& lhs, const IntervalValue& rhs)
+bool operator==(Interval lhs, Interval rhs)
 {
     return lhs.lower == rhs.lower && lhs.upper == rhs.upper;
 }
 
-std::ostream& operator<<(std::ostream& out, const IntervalValue& value)
+std::ostream& operator<<(std::ostream& out, Interval value)
 {
     return out << "[" << value.lower << ", " << value.upper << "]";
 }
 
-value_type::value_t as_lower_bound(const value_utils::IntervalValue& interval)
+value_t as_lower_bound(Interval interval)
 {
     return interval.lower;
 }
 
-value_type::value_t as_upper_bound(const value_utils::IntervalValue& interval)
+value_t as_upper_bound(Interval interval)
 {
     return interval.upper;
 }
 
-int compare(const value_type::value_t& lhs, const value_type::value_t& rhs)
-{
-    if (is_approx_greater(lhs, rhs, eps)) return 1;
-    if (is_approx_equal(lhs, rhs, eps)) return 0;
-    return -1;
-}
-
-bool update(value_type::value_t& lhs, const value_type::value_t& rhs)
+bool update(value_t& lhs, value_t rhs)
 {
     const bool result = !is_approx_equal(lhs, rhs);
     lhs = rhs;
     return result;
 }
 
-void set_max(value_type::value_t& new_value, const value_type::value_t& tval)
+void set_max(value_t& new_value, value_t tval)
 {
     new_value = std::max(tval, new_value);
 }
 
-value_type::value_t as_lower_bound(const value_type::value_t& single)
+value_t as_lower_bound(value_t single)
 {
     return single;
 }
 
-value_type::value_t as_upper_bound(const value_type::value_t& single)
+value_t as_upper_bound(value_t single)
 {
     return single;
 }
 
-} // namespace value_utils
 } // namespace probfd

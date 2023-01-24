@@ -98,7 +98,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     }
 
     for (const ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
-        const int reward = is_maxprob ? value_type::zero : op.get_reward();
+        const int reward = is_maxprob ? 0_vt : op.get_reward();
 
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 
@@ -112,7 +112,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 
         for (std::size_t i = 0; i < outcomes.size(); ++i) {
             const ProbabilisticOutcomeProxy outcome = outcomes[i];
-            const value_type::value_t probability = outcome.get_probability();
+            const value_t probability = outcome.get_probability();
 
             const int lp_var = lp_vars.size();
 
@@ -175,12 +175,12 @@ RegroupedOperatorCountingHeuristic::evaluate(const State& state) const
     if (is_maxprob) {
         assert(lp_solver_.has_optimal_solution());
         const double estimate = lp_solver_.get_objective_value();
-        result = EvaluationResult(estimate == value_type::zero, estimate);
+        result = EvaluationResult(estimate == 0_vt, estimate);
     } else {
         bool was_feasible = lp_solver_.has_optimal_solution();
         assert(lp_solver_.has_optimal_solution());
         const double estimate =
-            was_feasible ? lp_solver_.get_objective_value() : -value_type::inf;
+            was_feasible ? lp_solver_.get_objective_value() : -INFINITE_VALUE;
         result = EvaluationResult(!was_feasible, estimate);
     }
 

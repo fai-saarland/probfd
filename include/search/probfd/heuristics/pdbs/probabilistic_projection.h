@@ -48,20 +48,20 @@ protected:
     std::shared_ptr<StateRankingFunction> state_mapper_;
     StateRankSpace abstract_state_space_;
     std::vector<StateID> dead_ends_;
-    std::vector<value_type::value_t> value_table;
+    std::vector<value_t> value_table;
 
 protected:
     ProbabilisticProjection(
         const ProbabilisticTaskProxy& task_proxy,
         const Pattern& pattern,
         bool operator_pruning,
-        value_type::value_t fill);
+        value_t fill);
 
     ProbabilisticProjection(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction* mapper,
         bool operator_pruning,
-        value_type::value_t fill);
+        value_t fill);
 
 public:
     std::shared_ptr<StateRankingFunction> get_abstract_state_mapper() const;
@@ -76,8 +76,8 @@ public:
     StateRank get_abstract_state(const State& s) const;
     StateRank get_abstract_state(const std::vector<int>& s) const;
 
-    [[nodiscard]] value_type::value_t lookup(const State& s) const;
-    [[nodiscard]] value_type::value_t lookup(const StateRank& s) const;
+    [[nodiscard]] value_t lookup(const State& s) const;
+    [[nodiscard]] value_t lookup(const StateRank& s) const;
 
     // Returns the pattern (i.e. all variables used) of the PDB
     const Pattern& get_pattern() const;

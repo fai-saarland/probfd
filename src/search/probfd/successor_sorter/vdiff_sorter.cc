@@ -5,7 +5,7 @@
 namespace probfd {
 namespace successor_sorting {
 
-VDiffSorter::VDiffSorter(const value_type::value_t favor_large_gaps)
+VDiffSorter::VDiffSorter(const value_t favor_large_gaps)
     : favor_large_gaps_(favor_large_gaps)
 {
 }
@@ -21,13 +21,13 @@ void VDiffSorter::sort(
     std::vector<std::pair<double, unsigned>> k1;
     for (int i = successors.size() - 1; i >= 0; --i) {
         const auto& t = successors[i].data();
-        value_type::value_t sum = 0;
+        value_t sum = 0;
         for (unsigned j = 0; j < t.size(); ++j) {
             const auto& suc = t[j];
             k1.emplace_back(
                 std::abs(
                     favor_large_gaps_ *
-                    hs_interface.lookup_dual_bounds(suc.element).error_bound()),
+                    hs_interface.lookup_dual_bounds(suc.element).length()),
                 j);
             sum += suc.probability * k1.back().first;
         }

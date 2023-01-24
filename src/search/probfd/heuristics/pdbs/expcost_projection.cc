@@ -44,12 +44,10 @@ public:
             return parent.evaluate(state);
         }
 
-        return EvaluationResult{true, -value_type::inf};
+        return EvaluationResult{true, -INFINITE_VALUE};
     }
 };
 } // namespace
-
-using namespace value_utils;
 
 ExpCostProjection::ExpCostProjection(
     const ProbabilisticTaskProxy& task_proxy,
@@ -85,7 +83,7 @@ ExpCostProjection::ExpCostProjection(
           task_proxy,
           utils::insert(pdb.get_pattern(), add_var),
           operator_pruning,
-          -value_type::inf)
+          -INFINITE_VALUE)
 {
     compute_value_table(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
@@ -100,7 +98,7 @@ ExpCostProjection::ExpCostProjection(
           task_proxy,
           mapper,
           operator_pruning,
-          -value_type::inf)
+          -INFINITE_VALUE)
 {
     compute_value_table(heuristic);
 }
@@ -113,7 +111,7 @@ EvaluationResult ExpCostProjection::evaluate(const State& s) const
 EvaluationResult ExpCostProjection::evaluate(const StateRank& s) const
 {
     const auto v = this->lookup(s);
-    return {v == -value_type::inf, v};
+    return {v == -INFINITE_VALUE, v};
 }
 
 AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
@@ -122,7 +120,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 {
     AbstractPolicy policy(state_mapper_->num_states());
 
-    assert(lookup(abstract_state_space_.initial_state_) != -value_type::inf);
+    assert(lookup(abstract_state_space_.initial_state_) != -INFINITE_VALUE);
 
     if (abstract_state_space_
             .goal_state_flags_[abstract_state_space_.initial_state_.id]) {
@@ -139,14 +137,14 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
         StateRank s = open.front();
         open.pop_front();
 
-        const value_type::value_t value = value_table[s.id];
+        const value_t value = value_table[s.id];
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
         abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
 
         if (aops.empty()) {
-            assert(value == -value_type::inf);
+            assert(value == -INFINITE_VALUE);
             continue;
         }
 
@@ -158,7 +156,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 
         // Select first greedy operator
         for (const AbstractOperator* op : aops) {
-            value_type::value_t op_value = op->reward;
+            value_t op_value = op->reward;
 
             std::vector<StateRank> successors;
 
@@ -168,7 +166,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
                 successors.push_back(t);
             }
 
-            if (value_type::is_approx_equal(value, op_value)) {
+            if (is_approx_equal(value, op_value)) {
                 greedy_operator = op;
                 greedy_successors = std::move(successors);
                 break;
@@ -221,7 +219,7 @@ void ExpCostProjection::dump_graphviz(
         out << x.id;
 
         const auto v = value_table[x.id];
-        if (v == -value_type::inf) {
+        if (v == -INFINITE_VALUE) {
             out << "\\nh = -&infin;";
         } else {
             out << "\\nh = " << v;
@@ -232,8 +230,8 @@ void ExpCostProjection::dump_graphviz(
 
     NormalCostAbstractRewardFunction reward(
         abstract_state_space_.goal_state_flags_,
-        value_type::zero,
-        -value_type::inf);
+        0_vt,
+        -INFINITE_VALUE);
 
     ProbabilisticProjection::dump_graphviz(
         path,
@@ -250,8 +248,8 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
 
     NormalCostAbstractRewardFunction reward(
         abstract_state_space_.goal_state_flags_,
-        value_type::zero,
-        -value_type::inf);
+        0_vt,
+        -INFINITE_VALUE);
 
     StateIDMap<StateRank> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(
@@ -331,10 +329,7 @@ void ExpCostProjection::verify(
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
         const bool in = utils::contains(proper_states, StateID(s.id));
-        variables.emplace_back(
-            -inf,
-            value_type::zero,
-            in ? value_type::one : value_type::zero);
+        variables.emplace_back(-inf, 0_vt, in ? 1_vt : 0_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
@@ -350,9 +345,8 @@ void ExpCostProjection::verify(
         visited.erase(StateID(s.id));
 
         if (abstract_state_space_.goal_state_flags_[s.id]) {
-            auto& g =
-                constraints.emplace_back(value_type::zero, value_type::zero);
-            g.insert(s.id, value_type::one);
+            auto& g = constraints.emplace_back(0_vt, 0_vt);
+            g.insert(s.id, 1_vt);
         }
 
         // Generate operators...
@@ -361,11 +355,11 @@ void ExpCostProjection::verify(
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
-            value_type::value_t reward = op->reward;
+            value_t reward = op->reward;
 
             auto& constr = constraints.emplace_back(reward, inf);
 
-            std::unordered_map<StateRank, value_type::value_t> successor_dist;
+            std::unordered_map<StateRank, value_t> successor_dist;
 
             for (const auto& [eff, prob] : op->outcomes) {
                 successor_dist[s + eff] -= prob;
@@ -376,7 +370,7 @@ void ExpCostProjection::verify(
                 continue;
             }
 
-            successor_dist[s] += value_type::one;
+            successor_dist[s] += 1_vt;
 
             for (const auto& [succ, prob] : successor_dist) {
                 constr.insert(succ.id, prob);
@@ -408,12 +402,9 @@ void ExpCostProjection::verify(
          ++s.id) {
         if (utils::contains(proper_states, StateID(s.id)) &&
             utils::contains(seen, s)) {
-            assert(value_type::is_approx_equal(
-                solution[s.id],
-                value_table[s.id],
-                0.001));
+            assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {
-            assert(value_table[s.id] == -value_type::inf);
+            assert(value_table[s.id] == -inf);
         }
     }
 }

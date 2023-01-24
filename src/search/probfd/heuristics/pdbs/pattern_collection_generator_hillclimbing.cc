@@ -42,8 +42,6 @@ using namespace utils;
 
 namespace probfd {
 
-using namespace value_type;
-
 namespace heuristics {
 namespace pdbs {
 

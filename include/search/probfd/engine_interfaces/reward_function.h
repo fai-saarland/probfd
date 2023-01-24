@@ -12,12 +12,12 @@ namespace probfd {
  */
 class TerminationInfo {
     bool is_goal_;
-    value_type::value_t terminal_reward_;
+    value_t terminal_reward_;
 
 public:
     TerminationInfo() = default;
 
-    TerminationInfo(bool is_goal, value_type::value_t terminal_reward)
+    TerminationInfo(bool is_goal, value_t terminal_reward)
         : is_goal_(is_goal)
         , terminal_reward_(terminal_reward)
     {
@@ -27,7 +27,7 @@ public:
     bool is_goal_state() const { return is_goal_; }
 
     /// Obtains the reward received upon termination in the state.
-    value_type::value_t get_reward() const { return terminal_reward_; }
+    value_t get_reward() const { return terminal_reward_; }
 };
 
 namespace engine_interfaces {
@@ -55,8 +55,8 @@ protected:
 
         // Receive a reward in goal states, no reward otherwise.
         return is_goal ?
-            StateReward(true, value_type::one) :
-            StateReward(false, value_type::zero);
+            StateReward(true, one) :
+            StateReward(false, zero);
     }
 
     StateReward evaluate(const State& state, OperatorID) override
@@ -83,8 +83,7 @@ public:
     /**
      * @brief Get the action reward of the action when applied in a state.
      */
-    virtual value_type::value_t
-    get_action_reward(StateID state_id, Action action) = 0;
+    virtual value_t get_action_reward(StateID state_id, Action action) = 0;
 
     /**
      * @brief Prints statistics.

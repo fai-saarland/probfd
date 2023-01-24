@@ -72,8 +72,8 @@ namespace bisimulation {
 
 DefaultQuotientStateEvaluator::DefaultQuotientStateEvaluator(
     bisimulation::BisimilarStateSpace* bisim,
-    const value_utils::IntervalValue bound,
-    value_type::value_t def)
+    Interval bound,
+    value_t def)
     : bisim_(bisim)
     , bound_(bound)
     , default_(def)
@@ -94,8 +94,8 @@ EvaluationResult DefaultQuotientStateEvaluator::evaluate(
 
 DefaultQuotientRewardFunction::DefaultQuotientRewardFunction(
     bisimulation::BisimilarStateSpace* bisim,
-    const value_utils::IntervalValue bound,
-    value_type::value_t def)
+    Interval bound,
+    value_t def)
     : bisim_(bisim)
     , bound_(bound)
     , default_(def)
@@ -114,7 +114,7 @@ TerminationInfo DefaultQuotientRewardFunction::get_termination_info(
     return TerminationInfo(false, default_);
 }
 
-value_type::value_t DefaultQuotientRewardFunction::get_action_reward(
+value_t DefaultQuotientRewardFunction::get_action_reward(
     StateID,
     bisimulation::QuotientAction)
 {

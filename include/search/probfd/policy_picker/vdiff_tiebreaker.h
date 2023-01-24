@@ -9,10 +9,10 @@ namespace probfd {
 namespace policy_tiebreaking {
 
 class VDiffTiebreaker : public TaskPolicyPicker {
-    const value_type::value_t favor_large_gaps_;
+    const value_t favor_large_gaps_;
 
 public:
-    VDiffTiebreaker(value_type::value_t favor_large_gaps_);
+    explicit VDiffTiebreaker(value_t favor_large_gaps_);
 
     virtual int pick(
         const StateID& state,

@@ -11,13 +11,13 @@ namespace heuristics {
  */
 template <typename State>
 class ConstantEvaluator : public engine_interfaces::StateEvaluator<State> {
-    const value_type::value_t value_;
+    const value_t value_;
 
 public:
     /**
      * @brief Construct with constant estimate \p value .
      */
-    explicit ConstantEvaluator(value_type::value_t value)
+    explicit ConstantEvaluator(value_t value)
         : value_(value)
     {
     }

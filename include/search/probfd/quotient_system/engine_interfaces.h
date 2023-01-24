@@ -31,7 +31,7 @@ public:
         return eval_->get_termination_info(s);
     }
 
-    virtual value_type::value_t
+    virtual value_t
     get_action_reward(StateID s, quotient_system::QuotientAction<Action> qa)
         override
     {

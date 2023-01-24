@@ -1,6 +1,8 @@
 #include "probfd/tasks/root_task.h"
 #include "probfd/tasks/all_outcomes_determinization.h"
 
+#include "probfd/value_utils.h"
+
 #include "tasks/root_task.h"
 
 #include "option_parser.h"
@@ -63,7 +65,7 @@ struct DeterministicOperator {
 };
 
 struct ProbabilisticOutcome {
-    value_type::value_t probability;
+    value_t probability;
     vector<ExplicitEffect> effects;
     string name;
 
@@ -149,8 +151,7 @@ public:
 
     int get_num_operator_outcomes(int index) const override;
 
-    value_type::value_t
-    get_operator_outcome_probability(int index, int outcome_index)
+    value_t get_operator_outcome_probability(int index, int outcome_index)
         const override;
 
     int get_operator_outcome_id(int index, int outcome_index) const override;
@@ -225,15 +226,15 @@ static void check_facts(
 {
     check_facts(action.preconditions, variables);
 
-    value_type::value_t total_prob = value_type::zero;
+    value_t total_prob = 0_vt;
 
     for (const auto& outcome : action.outcomes) {
         const auto prob = outcome.probability;
 
-        if (prob <= value_type::zero) {
+        if (prob <= 0_vt) {
             cerr << "Probability must be greater than zero: " << prob << endl;
             utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-        } else if (prob > value_type::one) {
+        } else if (prob > 1_vt) {
             cerr << "Probability must be less or equal to one: " << prob
                  << endl;
             utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
@@ -247,7 +248,7 @@ static void check_facts(
         total_prob += prob;
     }
 
-    if (!value_type::is_approx_equal(total_prob, value_type::one)) {
+    if (!is_approx_equal(total_prob, 1_vt)) {
         cerr << "Total outcome probabilities must sum up to one. Sum was: "
              << total_prob << endl;
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
@@ -326,7 +327,7 @@ ProbabilisticOutcome::ProbabilisticOutcome(
     // Read probability
     std::string p;
     in >> p;
-    probability = value_type::from_string(p);
+    probability = string_to_value(p);
 }
 
 DeterministicOperator::DeterministicOperator(std::istream& in, bool use_metric)
@@ -765,7 +766,7 @@ int RootTask::get_num_operator_outcomes(int index) const
     return get_operator(index).outcomes.size();
 }
 
-value_type::value_t
+value_t
 RootTask::get_operator_outcome_probability(int index, int outcome_index) const
 {
     return get_outcome(index, outcome_index).probability;

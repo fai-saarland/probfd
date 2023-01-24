@@ -19,7 +19,7 @@ struct WeightedElement {
     template <class Tuple, size_t... Indices>
     WeightedElement(
         Tuple& args,
-        value_type::value_t probability,
+        value_t probability,
         std::index_sequence<Indices...>)
         : element(std::get<Indices>(std::move(args))...)
         , probability(probability)
@@ -28,11 +28,11 @@ struct WeightedElement {
 
 public:
     T element;
-    value_type::value_t probability;
+    value_t probability;
 
     WeightedElement() = default;
 
-    WeightedElement(T element, value_type::value_t probability)
+    WeightedElement(T element, value_t probability)
         : element(std::move(element))
         , probability(probability)
     {
@@ -42,7 +42,7 @@ public:
     WeightedElement(
         std::piecewise_construct_t,
         std::tuple<Args...> constructor_args,
-        value_type::value_t probability)
+        value_t probability)
         : WeightedElement(
               constructor_args,
               probability,
@@ -125,13 +125,13 @@ public:
      *
      * @see make_unique
      */
-    void add(T t, value_type::value_t prob)
+    void add(T t, value_t prob)
     {
         assert(prob > 0.0);
         distribution_.emplace_back(std::move(t), prob);
     }
 
-    std::pair<iterator, bool> add_unique(T t, value_type::value_t prob)
+    std::pair<iterator, bool> add_unique(T t, value_t prob)
     {
         assert(prob > 0.0);
 
@@ -153,8 +153,7 @@ public:
      * @see make_unique
      */
     template <typename... Args>
-    WeightedElement<T>&
-    emplace(std::tuple<Args...> args, value_type::value_t prob)
+    WeightedElement<T>& emplace(std::tuple<Args...> args, value_t prob)
     {
         assert(prob > 0.0);
         return distribution_.emplace_back(std::piecewise_construct, args, prob);
@@ -191,7 +190,7 @@ public:
     /**
      * @brief Scales all element probablities by a common factor.
      */
-    void normalize(const value_type::value_t& scale)
+    void normalize(const value_t& scale)
     {
         for (auto it = distribution_.begin(); it != distribution_.end(); it++) {
             it->probability *= scale;
@@ -206,11 +205,11 @@ public:
         if (empty()) {
             return;
         }
-        value_type::value_t sum = 0;
+        value_t sum = 0;
         for (auto it = begin(); it != end(); it++) {
             sum += it->probability;
         }
-        normalize(value_type::one / sum);
+        normalize(1_vt / sum);
     }
 
     /**
@@ -249,10 +248,10 @@ public:
         // Important!
         normalize();
 
-        const value_type::value_t r = rng.random();
+        const value_t r = rng.random();
 
         auto it = distribution_.begin();
-        value_type::value_t sum = it->probability;
+        value_t sum = it->probability;
 
         while (sum <= r) {
             sum += (++it)->probability;

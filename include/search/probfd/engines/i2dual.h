@@ -132,7 +132,7 @@ public:
         statistics_.print(out);
     }
 
-    virtual value_type::value_t solve(const State& state) override
+    virtual value_t solve(const State& state) override
     {
         statistics_ = Statistics();
 
@@ -175,7 +175,7 @@ public:
         std::vector<StateID> frontier;
         std::vector<StateID> frontier_candidates;
 
-        objective_ = value_type::one;
+        objective_ = 1_vt;
 
         {
             const StateID init_id = this->get_state_id(state);
@@ -209,7 +209,7 @@ public:
                     for (const auto& [prob, var_id] : state_data.incoming) {
                         const double amount = state_data.estimate * prob;
                         obj_coef[var_id] -= amount;
-                        assert(obj_coef[var_id] >= -value_type::g_epsilon);
+                        assert(obj_coef[var_id] >= -g_epsilon);
                         lp_solver_.set_objective_coefficient(
                             var_id,
                             std::abs(obj_coef[var_id]));
@@ -301,7 +301,7 @@ public:
                 const auto& state_data = idual_data[frontier_candidates[i]];
 
                 for (const auto& [_, var_id] : state_data.incoming) {
-                    if (solution[var_id] > value_type::g_epsilon) {
+                    if (solution[var_id] > g_epsilon) {
                         frontier.push_back(frontier_candidates[i]);
                         goto continue_outer;
                     }
@@ -506,7 +506,7 @@ private:
 
     Statistics statistics_;
 
-    value_type::value_t objective_;
+    value_t objective_;
 
     std::vector<Action> aops_;
     Distribution<StateID> succs_;

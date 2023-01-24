@@ -47,7 +47,7 @@ std::vector<int> get_precondition_explicit(
 }
 
 // Compute an explicit transition probability matrix
-std::vector<std::vector<value_type::value_t>> get_transition_probs_explicit(
+std::vector<std::vector<value_t>> get_transition_probs_explicit(
     const ProbabilisticTaskProxy& task_proxy,
     const ProbabilisticOperatorProxy& op_proxy,
     std::set<int>& possibly_updated)
@@ -55,15 +55,15 @@ std::vector<std::vector<value_type::value_t>> get_transition_probs_explicit(
     const VariablesProxy variables = task_proxy.get_variables();
     const size_t num_variables = variables.size();
 
-    std::vector<std::vector<value_type::value_t>> p(num_variables);
+    std::vector<std::vector<value_t>> p(num_variables);
 
     for (std::size_t i = 0; i < num_variables; ++i) {
-        p[i].resize(variables[i].get_domain_size() + 1, value_type::zero);
-        p[i].back() = value_type::one;
+        p[i].resize(variables[i].get_domain_size() + 1, 0_vt);
+        p[i].back() = 1_vt;
     }
 
     for (const ProbabilisticOutcomeProxy& out : op_proxy.get_outcomes()) {
-        const value_type::value_t prob = out.get_probability();
+        const value_t prob = out.get_probability();
 
         for (const ProbabilisticEffectProxy effect : out.get_effects()) {
             const FactProxy fact = effect.get_fact();
@@ -112,7 +112,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     const std::size_t num_facts = offset;
 
     // One flow constraint for every state of every atomic projections
-    constraints.resize(num_facts, lp::LPConstraint(-inf, value_type::zero));
+    constraints.resize(num_facts, lp::LPConstraint(-inf, 0_vt));
 
     // Variable representing total inflow to artificial goal
     // Maximized in MaxProb, must be constant 1 for SSPs
@@ -151,7 +151,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
         // Get transition matrix and possibly updated variables
         std::set<int> possibly_updated;
-        const std::vector<std::vector<value_type::value_t>> post =
+        const std::vector<std::vector<value_t>> post =
             get_transition_probs_explicit(task_proxy, op, possibly_updated);
 
         // For tying constraints, contains lp variable ranges of projections
@@ -181,8 +181,8 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
                     for (std::size_t j = 0; j < domain; ++j) {
                         if (j == i) continue;
 
-                        const value_type::value_t prob = tr_probs[j];
-                        if (prob > value_type::zero) {
+                        const value_t prob = tr_probs[j];
+                        if (prob > 0_vt) {
                             flow[j].insert(lpvar, -prob);
                         }
                     }
@@ -202,7 +202,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
                 for (std::size_t j = 0; j < domain; ++j) {
                     if (j == i) continue;
 
-                    const value_type::value_t prob = tr_probs[j];
+                    const value_t prob = tr_probs[j];
                     if (prob > 0) {
                         flow[j].insert(lpvar, -prob);
                     }
@@ -291,14 +291,14 @@ ProjectionOccupationMeasureHeuristic::evaluate(const State& state) const
         assert(lp_solver_.has_optimal_solution());
 
         const double estimate = lp_solver_.get_objective_value();
-        result = EvaluationResult(estimate == value_type::zero, estimate);
+        result = EvaluationResult(estimate == 0_vt, estimate);
 
     } else {
         bool was_feasible = lp_solver_.has_optimal_solution();
 
         // Costs are negative rewards, return negative solution.
         const double estimate =
-            was_feasible ? lp_solver_.get_objective_value() : -value_type::inf;
+            was_feasible ? lp_solver_.get_objective_value() : -INFINITE_VALUE;
         result = EvaluationResult(!was_feasible, estimate);
     }
 

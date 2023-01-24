@@ -247,7 +247,7 @@ ProbabilisticProjection::ProbabilisticProjection(
     const ProbabilisticTaskProxy& task_proxy,
     const Pattern& pattern,
     bool operator_pruning,
-    value_type::value_t fill)
+    value_t fill)
     : ProbabilisticProjection(
           task_proxy,
           new StateRankingFunction(task_proxy, pattern),
@@ -260,7 +260,7 @@ ProbabilisticProjection::ProbabilisticProjection(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction* mapper,
     bool operator_pruning,
-    value_type::value_t fill)
+    value_t fill)
     : state_mapper_(mapper)
     , abstract_state_space_(task_proxy, *state_mapper_, operator_pruning)
     , value_table(state_mapper_->num_states(), fill)
@@ -295,12 +295,12 @@ bool ProbabilisticProjection::is_goal(const StateRank& s) const
     return abstract_state_space_.is_goal(s);
 }
 
-value_type::value_t ProbabilisticProjection::lookup(const State& s) const
+value_t ProbabilisticProjection::lookup(const State& s) const
 {
     return lookup(get_abstract_state(s));
 }
 
-value_type::value_t ProbabilisticProjection::lookup(const StateRank& s) const
+value_t ProbabilisticProjection::lookup(const StateRank& s) const
 {
     return value_table[s.id];
 }

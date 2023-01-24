@@ -36,7 +36,7 @@ public:
     virtual void push(
         const StateID&,
         const Action&,
-        const value_type::value_t&,
+        const value_t&,
         const StateID& state_id)
     {
         push(state_id);

@@ -121,7 +121,7 @@ public:
     }
 
 private:
-    const value_utils::IntervalValue reward_bound_;
+    const Interval reward_bound_;
 
     std::shared_ptr<TaskNewStateHandlerList> new_state_handler_;
     std::shared_ptr<TaskStateEvaluator> heuristic_;

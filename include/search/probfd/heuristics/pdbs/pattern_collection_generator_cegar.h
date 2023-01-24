@@ -88,7 +88,7 @@ public:
 
     const AbstractPolicy& get_policy() const;
 
-    value_type::value_t get_policy_cost() const;
+    value_t get_policy_cost() const;
 
     bool is_solved() const;
 

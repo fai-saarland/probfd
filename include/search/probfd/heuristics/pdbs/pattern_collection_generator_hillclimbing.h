@@ -118,7 +118,7 @@ class PatternCollectionGeneratorHillclimbing
         utils::CountdownTimer& hill_climbing_timer,
         IncrementalPPDBs<PDBType>& current_pdbs,
         const sampling::RandomWalkSampler& sampler,
-        value_type::value_t init_h,
+        value_t init_h,
         std::vector<State>& samples);
 
     /*

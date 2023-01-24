@@ -9,10 +9,10 @@ namespace probfd {
 namespace successor_sorting {
 
 class VDiffSorter : public TaskSuccessorSorter {
-    const value_type::value_t favor_large_gaps_;
+    const value_t favor_large_gaps_;
 
 public:
-    explicit VDiffSorter(const value_type::value_t favor_large_gaps);
+    explicit VDiffSorter(const value_t favor_large_gaps);
 
 protected:
     virtual void sort(

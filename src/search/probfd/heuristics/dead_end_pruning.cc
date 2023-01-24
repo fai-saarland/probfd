@@ -15,8 +15,8 @@ namespace probfd {
 namespace heuristics {
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(
-    value_type::value_t default_value,
-    value_type::value_t dead_end_value,
+    value_t default_value,
+    value_t dead_end_value,
     std::shared_ptr<Evaluator> pruning_function)
     : default_value_(default_value)
     , dead_end_value_(dead_end_value)

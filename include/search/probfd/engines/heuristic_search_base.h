@@ -57,10 +57,10 @@ struct CoreStatistics {
  */
 struct Statistics : public CoreStatistics {
     unsigned state_info_bytes = 0;
-    value_type::value_t initial_state_estimate = 0;
+    value_t initial_state_estimate = 0;
     bool initial_state_found_terminal = 0;
 
-    value_type::value_t value = value_type::zero;
+    value_t value = 0_vt;
     CoreStatistics before_last_update;
 
 #if defined(EXPENSIVE_STATISTICS)
@@ -136,10 +136,10 @@ public:
     using Action = ActionT;
     using StateInfo = StateInfoT;
 
-    static constexpr bool StorePolicy = StateInfo::StoresPolicy;
-    static constexpr bool Interval = StateInfo::Interval;
+    static constexpr bool StorePolicy = StateInfo::StorePolicy;
+    static constexpr bool UseInterval = StateInfo::UseInterval;
 
-    using IncumbentSolution = value_utils::IncumbentSolution<Interval>;
+    using IncumbentSolution = IncumbentSolution<UseInterval>;
 
     explicit HeuristicSearchBase(
         engine_interfaces::StateIDMap<State>* state_id_map,
@@ -172,18 +172,18 @@ public:
     /**
      * @copydoc MDPEngineInterface<State>::supports_error_bound()
      */
-    virtual bool supports_error_bound() const override { return Interval; }
+    virtual bool supports_error_bound() const override { return UseInterval; }
 
     /**
      * @copydoc MDPEngineInterface<State>::get_error()
      */
-    virtual value_type::value_t get_error(const State& s) override
+    virtual value_t get_error(const State& s) override
     {
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             const StateInfo& info = state_infos_[this->get_state_id(s)];
-            return info.value.error_bound();
+            return info.value.length();
         } else {
-            return std::numeric_limits<value_type::value_t>::infinity();
+            return std::numeric_limits<value_t>::infinity();
         }
     }
 
@@ -201,19 +201,18 @@ public:
         return state_infos_[state_id];
     }
 
-    value_type::value_t lookup_value(const StateID& state_id) override
+    value_t lookup_value(const StateID& state_id) override
     {
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             return state_infos_[state_id].value.upper;
         } else {
             return state_infos_[state_id].value;
         }
     }
 
-    value_utils::IntervalValue
-    lookup_dual_bounds(const StateID& state_id) override
+    Interval lookup_dual_bounds(const StateID& state_id) override
     {
-        if constexpr (!Interval) {
+        if constexpr (!UseInterval) {
             ABORT("Search algorithm does not support interval bounds!");
         } else {
             return state_infos_[state_id].value;
@@ -240,9 +239,9 @@ public:
     /**
      * @brief Gets the current value of the state represented by \p state_id
      */
-    value_type::value_t get_value(const StateID& state_id)
+    value_t get_value(const StateID& state_id)
     {
-        return value_utils::as_upper_bound(state_infos_[state_id].value);
+        return as_upper_bound(state_infos_[state_id].value);
     }
 
     /**
@@ -427,12 +426,12 @@ public:
     }
 
 protected:
-    value_type::value_t get_state_reward(const StateID& id)
+    value_t get_state_reward(const StateID& id)
     {
         return get_state_info(id).state_reward;
     }
 
-    value_type::value_t get_value(const State& s)
+    value_t get_value(const State& s)
     {
         return get_value(this->get_state_id(s));
     }
@@ -441,19 +440,19 @@ protected:
      * @brief Updates the value of a state in its info object.
      *
      * @return true if the single state value changed by more than epsilon, the
-     * lower bounding state value changed by more than epslon (interval bounds
+     * lower bounding state value changed by more than epsilon (interval bounds
      * without interval comparison) or either value bound changed by more than
      * epsilon (interval bounds with interval comparison). False otherwise.
      */
     bool update(StateInfo& state_info, const IncumbentSolution& other)
     {
-        if constexpr (Interval) {
-            return value_utils::update(
+        if constexpr (UseInterval) {
+            return probfd::update(
                 state_info.value,
                 other,
                 interval_comparison_);
         } else {
-            return value_utils::update(state_info.value, other);
+            return probfd::update(state_info.value, other);
         }
     }
 
@@ -472,10 +471,9 @@ protected:
 
         const StateInfo& info = lookup_initialize(this->get_state_id(state));
         this->add_values_to_report(&info);
-        statistics_.value = value_utils::as_upper_bound(info.value);
+        statistics_.value = as_upper_bound(info.value);
         statistics_.before_last_update = statistics_;
-        statistics_.initial_state_estimate =
-            value_utils::as_upper_bound(info.value);
+        statistics_.initial_state_estimate = as_upper_bound(info.value);
         statistics_.initial_state_found_terminal = info.is_terminal();
 
         setup_custom_reports(state);
@@ -574,12 +572,14 @@ protected:
     template <typename Info>
     bool do_bounds_disagree(const StateID& state_id, const Info& info)
     {
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             if constexpr (std::is_same_v<Info, StateInfo>) {
-                return interval_comparison_ && !info.value.bounds_equal();
+                return interval_comparison_ &&
+                       !info.value.bounds_approximately_equal();
             } else {
                 return interval_comparison_ &&
-                       !state_infos_[state_id].value.bounds_equal();
+                       !state_infos_[state_id]
+                            .value.bounds_approximately_equal();
             }
         } else {
             return false;
@@ -642,16 +642,16 @@ protected:
 private:
     void add_values_to_report(const StateInfo* info)
     {
-        if constexpr (Interval) {
+        if constexpr (UseInterval) {
             report_->register_value("vl", [info]() {
-                return value_utils::as_lower_bound(info->value);
+                return as_lower_bound(info->value);
             });
             report_->register_value("vu", [info]() {
-                return value_utils::as_upper_bound(info->value);
+                return as_upper_bound(info->value);
             });
         } else {
             report_->register_value("v", [info]() {
-                return value_utils::as_upper_bound(info->value);
+                return as_upper_bound(info->value);
             });
         }
     }
@@ -671,8 +671,8 @@ private:
             State state = this->lookup_state(state_id);
             TerminationInfo term =
                 MDPEngine<StateT, ActionT>::get_state_reward(state);
-            const value_type::value_t t_reward = term.get_reward();
-            
+            const value_t t_reward = term.get_reward();
+
             state_info.state_reward = t_reward;
             if (term.is_goal_state()) {
                 state_info.set_goal();
@@ -690,7 +690,7 @@ private:
             } else {
                 state_info.set_on_fringe();
 
-                if constexpr (Interval) {
+                if constexpr (UseInterval) {
                     state_info.value.upper = estimate.get_estimate();
                 } else {
                     state_info.value = estimate.get_estimate();
@@ -769,7 +769,7 @@ private:
             Distribution<StateID>& transition = transitions[i];
 
             IncumbentSolution t_value(this->get_action_reward(state_id, op));
-            value_type::value_t self_loop = value_type::zero;
+            value_t self_loop = 0_vt;
             bool non_loop = false;
 
             for (const auto& [succ_id, prob] : transition) {
@@ -783,12 +783,12 @@ private:
             }
 
             if (non_loop) {
-                if (self_loop > value_type::zero) {
-                    t_value *= value_type::one / (value_type::one - self_loop);
+                if (self_loop > 0_vt) {
+                    t_value *= 1_vt / (1_vt - self_loop);
                 }
 
                 values.push_back(t_value);
-                value_utils::set_max(new_value, t_value);
+                set_max(new_value, t_value);
 
                 if (non_loop_end != i) {
                     aops[non_loop_end] = std::move(op);
@@ -889,7 +889,7 @@ private:
 
         unsigned optimal_end = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
-            if (value_utils::compare(values[i], new_value) >= 0) {
+            if (approx_compare(values[i], new_value) >= 0) {
                 if (stable) {
                     const auto aid = this->get_action_id(state_id, aops[i]);
                     if (aid == previous_greedy) {
@@ -980,13 +980,13 @@ struct NoAdditionalStateData : public T {};
 template <
     typename State,
     typename Action,
-    bool Interval = false,
+    bool UseInterval = false,
     bool StorePolicy = false,
     template <typename> class StateInfo = NoAdditionalStateData>
 using HeuristicSearchBase = internal::HeuristicSearchBase<
     State,
     Action,
-    StateInfo<PerStateBaseInformation<StorePolicy, Interval>>>;
+    StateInfo<PerStateBaseInformation<StorePolicy, UseInterval>>>;
 
 } // namespace heuristic_search
 } // namespace engines

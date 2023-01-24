@@ -26,15 +26,15 @@ public:
     {
         ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
         if (task_properties::is_goal_state(task_proxy, state)) {
-            return TerminationInfo(true, value_type::one);
+            return TerminationInfo(true, 1_vt);
         } else {
-            return TerminationInfo(false, value_type::zero);
+            return TerminationInfo(false, 0_vt);
         }
     }
 
-    value_type::value_t get_action_reward(StateID, OperatorID) override
+    value_t get_action_reward(StateID, OperatorID) override
     {
-        return value_type::zero;
+        return 0_vt;
     }
 };
 } // namespace
@@ -45,9 +45,9 @@ MaxProbRewardModel::MaxProbRewardModel()
 {
 }
 
-value_utils::IntervalValue MaxProbRewardModel::reward_bound()
+Interval MaxProbRewardModel::reward_bound()
 {
-    return value_utils::IntervalValue(value_type::zero, value_type::one);
+    return Interval(0_vt, 1_vt);
 }
 
 TaskRewardFunction* MaxProbRewardModel::get_reward_function()

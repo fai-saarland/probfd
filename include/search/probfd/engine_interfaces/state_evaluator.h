@@ -11,12 +11,12 @@ namespace probfd {
  */
 class EvaluationResult {
     bool is_unsolvable_;
-    value_type::value_t estimate_;
+    value_t estimate_;
 
 public:
     EvaluationResult() = default;
 
-    EvaluationResult(bool is_unsolvable, value_type::value_t estimate)
+    EvaluationResult(bool is_unsolvable, value_t estimate)
         : is_unsolvable_(is_unsolvable)
         , estimate_(estimate)
     {
@@ -26,7 +26,7 @@ public:
     bool is_unsolvable() const { return is_unsolvable_; }
 
     /// Converts to a value_t representing the state value.
-    value_type::value_t get_estimate() const { return estimate_; }
+    value_t get_estimate() const { return estimate_; }
 };
 
 namespace engine_interfaces {

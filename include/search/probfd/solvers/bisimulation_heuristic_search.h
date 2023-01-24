@@ -83,10 +83,10 @@ public:
         return res;
     }
 
-    virtual value_type::value_t solve(const State&) override
+    virtual value_t solve(const State&) override
     {
         logging::out << "Running " << engine_name_ << "..." << std::endl;
-        const value_type::value_t val = engine_->solve(bs->get_initial_state());
+        const value_t val = engine_->solve(bs->get_initial_state());
         return val;
     }
 
@@ -95,7 +95,7 @@ public:
         return engine_->supports_error_bound();
     }
 
-    virtual value_type::value_t get_error(const State&) override
+    virtual value_t get_error(const State&) override
     {
         return engine_->get_error(bs->get_initial_state());
     }

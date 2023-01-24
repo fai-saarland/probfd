@@ -25,7 +25,7 @@ public:
     explicit MaxProbRewardModel();
 
     /// Returns the interval [0, 1]
-    virtual value_utils::IntervalValue reward_bound() override;
+    virtual Interval reward_bound() override;
 
     virtual TaskRewardFunction* get_reward_function() override;
 };

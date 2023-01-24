@@ -116,7 +116,7 @@ public:
     {
     }
 
-    virtual value_type::value_t solve(const State& state) override
+    virtual value_t solve(const State& state) override
     {
         report_->register_print([&](std::ostream& out) {
             out << "fret=" << statistics_.iterations
@@ -124,7 +124,7 @@ public:
         });
 
         do {
-            value_type::value_t value = heuristic_search(state);
+            value_t value = heuristic_search(state);
 
             find_and_remove_traps(state);
 
@@ -138,7 +138,7 @@ public:
         } while (true);
     }
 
-    value_type::value_t heuristic_search(const State& state)
+    value_t heuristic_search(const State& state)
     {
 #if defined(EXPENSIVE_STATISTICS)
         statistics_.heuristic_search.resume();
@@ -155,7 +155,7 @@ public:
         return base_engine_->supports_error_bound();
     }
 
-    virtual value_type::value_t get_error(const State& state) override
+    virtual value_t get_error(const State& state) override
     {
         return base_engine_->get_error(state);
     }

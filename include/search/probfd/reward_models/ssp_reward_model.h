@@ -28,7 +28,7 @@ public:
     explicit SSPRewardModel();
 
     /// Returns the interval [-infinity, 0]
-    virtual value_utils::IntervalValue reward_bound() override;
+    virtual Interval reward_bound() override;
 
     virtual TaskRewardFunction* get_reward_function() override;
 };

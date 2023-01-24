@@ -16,7 +16,7 @@ namespace probfd {
 namespace policy_tiebreaking {
 
 class VDiffTiebreakerFactory : public TaskPolicyPickerFactory {
-    const value_type::value_t favor_large_gaps_;
+    const value_t favor_large_gaps_;
 
 public:
     explicit VDiffTiebreakerFactory(const options::Options&);

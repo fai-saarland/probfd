@@ -31,7 +31,7 @@ public:
 
     virtual int get_num_operator_outcomes(int op_index) const = 0;
 
-    virtual value_type::value_t
+    virtual value_t
     get_operator_outcome_probability(int op_index, int outcome_index) const = 0;
 
     virtual int

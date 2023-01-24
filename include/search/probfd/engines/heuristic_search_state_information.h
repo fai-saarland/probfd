@@ -12,7 +12,7 @@ namespace probfd {
 namespace engines {
 namespace heuristic_search {
 
-template <bool StoresPolicyT = false>
+template <bool StorePolicy = false>
 struct StatesPolicy {
 };
 
@@ -64,17 +64,17 @@ struct StateFlags {
     }
 
     uint8_t info = 0;
-    value_type::value_t state_reward;
+    value_t state_reward;
 };
 
-template <bool StoresPolicyT, bool IsInterval>
+template <bool StorePolicy_, bool UseInterval_>
 struct PerStateBaseInformation
-    : public StatesPolicy<StoresPolicyT>
+    : public StatesPolicy<StorePolicy_>
     , public StateFlags {
-    static constexpr bool StoresPolicy = StoresPolicyT;
-    static constexpr bool Interval = IsInterval;
+    static constexpr bool StorePolicy = StorePolicy_;
+    static constexpr bool UseInterval = UseInterval_;
 
-    value_utils::IncumbentSolution<Interval> value;
+    IncumbentSolution<UseInterval> value;
 };
 
 } // namespace heuristic_search

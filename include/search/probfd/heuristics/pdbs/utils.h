@@ -17,20 +17,18 @@ namespace heuristics {
 namespace pdbs {
 
 template <class PDBType>
-value_type::value_t evaluate_subcollection(
-    const std::vector<value_type::value_t>& pdb_estimates,
+value_t evaluate_subcollection(
+    const std::vector<value_t>& pdb_estimates,
     const std::vector<int>& subcollection)
 {
     constexpr bool is_expcost = std::is_same_v<PDBType, ExpCostProjection>;
 
     auto transformer = [&pdb_estimates](int i) { return pdb_estimates[i]; };
 
-    auto neutral_element = is_expcost ? value_type::zero : value_type::one;
+    auto neutral_element = is_expcost ? 0_vt : 1_vt;
 
-    using R = std::conditional_t<
-        is_expcost,
-        std::plus<value_type::value_t>,
-        std::multiplies<value_type::value_t>>;
+    using R = std::
+        conditional_t<is_expcost, std::plus<value_t>, std::multiplies<value_t>>;
 
     return std::transform_reduce(
         subcollection.begin(),
@@ -41,7 +39,7 @@ value_type::value_t evaluate_subcollection(
 }
 
 template <class PDBType>
-value_type::value_t combine(value_type::value_t left, value_type::value_t right)
+value_t combine(value_t left, value_t right)
 {
     if constexpr (std::is_same_v<PDBType, ExpCostProjection>) {
         return left + right;
@@ -56,13 +54,11 @@ EvaluationResult evaluate(
     const std::vector<PatternSubCollection>& subcollections,
     const State& state)
 {
-    value_type::value_t result = std::is_same_v<PDBType, ExpCostProjection>
-                                     ? value_type::zero
-                                     : value_type::one;
+    value_t result = std::is_same_v<PDBType, ExpCostProjection> ? 0_vt : 1_vt;
 
     if (!database.empty()) {
         // Get pattern estimates
-        std::vector<value_type::value_t> estimates(database.size());
+        std::vector<value_t> estimates(database.size());
         for (std::size_t i = 0; i != database.size(); ++i) {
             const EvaluationResult eval_result = database[i]->evaluate(state);
 
@@ -82,10 +78,8 @@ EvaluationResult evaluate(
             subcollections.begin(),
             subcollections.end(),
             result,
-            static_cast<
-                const value_type::
-                    value_t& (*)(const value_type::value_t&, const value_type::value_t&)>(
-                std::min<value_type::value_t>),
+            static_cast<const value_t& (*)(const value_t&, const value_t&)>(
+                std::min<value_t>),
             transformer);
     }
 

@@ -21,7 +21,7 @@ public:
         const Pattern& variables,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(value_type::zero));
+            ConstantEvaluator<StateRank>(0_vt));
 
     explicit ExpCostProjection(
         const ProbabilisticTaskProxy& task_proxy,
@@ -39,7 +39,7 @@ public:
         StateRankingFunction* mapper,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(value_type::zero));
+            ConstantEvaluator<StateRank>(0_vt));
 
     [[nodiscard]] EvaluationResult evaluate(const State& s) const;
     [[nodiscard]] EvaluationResult evaluate(const StateRank& s) const;

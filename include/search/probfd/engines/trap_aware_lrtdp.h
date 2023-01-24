@@ -139,7 +139,7 @@ public:
     /**
      * @copydoc MDPEngineInterface::solve(const State& state)
      */
-    virtual value_type::value_t solve(const State& s) override
+    virtual value_t solve(const State& s) override
     {
         this->initialize_report(s);
         const StateID state_id = this->get_state_id(s);

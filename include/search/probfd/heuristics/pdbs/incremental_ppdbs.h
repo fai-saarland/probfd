@@ -55,7 +55,7 @@ public:
     std::vector<PatternSubCollection>
     get_pattern_subcollections(const Pattern& new_pattern);
 
-    value_type::value_t get_value(const State& state) const;
+    value_t get_value(const State& state) const;
 
     EvaluationResult evaluate(const State& state) const;
 

@@ -60,7 +60,7 @@ public:
     {
     }
 
-    virtual value_type::value_t solve(const State& state) override
+    virtual value_t solve(const State& state) override
     {
         this->initialize_report(state);
         const StateID stateid = this->get_state_id(state);
@@ -163,7 +163,7 @@ private:
 
             this->apply_policy(state, this->selected_transition_);
 
-            value_type::value_t normalize_factor = 0;
+            value_t normalize_factor = 0;
             auto succ = this->selected_transition_.begin();
             while (succ != this->selected_transition_.end()) {
                 if (this->get_state_info(succ->element).is_solved()) {
@@ -178,7 +178,7 @@ private:
 
             if (normalize_factor > 0) {
                 this->selected_transition_.normalize(
-                    value_type::one / (value_type::one - normalize_factor));
+                    1_vt / (1_vt - normalize_factor));
             }
 
             state = this->outcome_selection_->sample(

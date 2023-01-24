@@ -158,7 +158,7 @@ public:
         state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();
     }
 
-    virtual value_type::value_t solve(const State& state) override
+    virtual value_t solve(const State& state) override
     {
         this->initialize_report(state);
         const StateID stateid = this->get_state_id(state);
@@ -504,11 +504,11 @@ private:
             einfo.value_changed = updated;
 
             if constexpr (Interval) {
-                parent_value_changed = parent_value_changed ||
-                                       einfo.value_changed ||
-                                       (this->interval_comparison_ &&
-                                        !this->get_state_info(stateid, sinfo)
-                                             .value.bounds_equal());
+                parent_value_changed =
+                    parent_value_changed || einfo.value_changed ||
+                    (this->interval_comparison_ &&
+                     !this->get_state_info(stateid, sinfo)
+                          .value.bounds_approximately_equal());
             } else {
                 parent_value_changed =
                     parent_value_changed || einfo.value_changed;
@@ -581,10 +581,10 @@ private:
                 value_changed = val_change || value_changed;
 
                 if constexpr (Interval) {
-                    all_converged =
-                        all_converged &&
-                        (!this->interval_comparison_ ||
-                         this->get_state_info(id).value.bounds_equal());
+                    all_converged = all_converged &&
+                                    (!this->interval_comparison_ ||
+                                     this->get_state_info(id)
+                                         .value.bounds_approximately_equal());
                 }
 
                 policy_graph_changed = policy_graph_changed || policy_changed;

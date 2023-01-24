@@ -23,7 +23,7 @@ public:
         const Pattern& pattern,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(value_type::one));
+            ConstantEvaluator<StateRank>(1_vt));
 
     explicit MaxProbProjection(
         const ProbabilisticTaskProxy& task_proxy,
@@ -41,7 +41,7 @@ public:
         StateRankingFunction* mapper,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(value_type::one));
+            ConstantEvaluator<StateRank>(1_vt));
 
     [[nodiscard]] EvaluationResult evaluate(const State& s) const;
     [[nodiscard]] EvaluationResult evaluate(const StateRank& s) const;
