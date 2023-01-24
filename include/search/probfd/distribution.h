@@ -16,7 +16,7 @@ namespace probfd {
 
 /// An item-probability pair.
 template <typename T>
-struct ItemProbabilityPair {
+class ItemProbabilityPair {
     template <typename... Args, size_t... Indices>
     ItemProbabilityPair(
         std::tuple<Args...>& args,
