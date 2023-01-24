@@ -397,7 +397,7 @@ void dump_state_space_dot_graph(
             ss.str("");
 
             if (successors.is_dirac()) {
-                const auto succ_id = successors.begin()->element;
+                const auto succ_id = successors.begin()->item;
                 auto [succ_node, inserted] = builder.insertNode(succ_id);
 
                 auto& direct_edge = builder.createEdge(*node, *succ_node);

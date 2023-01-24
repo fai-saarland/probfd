@@ -96,13 +96,13 @@ void TransitionGenerator<OperatorID>::generate_action_transitions(
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
             State state = state_registry_->lookup_state(::StateID(state_id));
-            std::vector<WeightedElement<StateID>> test;
+            std::vector<ItemProbabilityPair<StateID>> test;
             compute_successor_states(state, op_id, test);
             assert(test.size() == num_outcomes);
 #endif
             for (unsigned j = 0; j < num_outcomes; ++j, ++succs) {
                 value_t probability = outcomes[j].get_probability();
-                assert(test[j] == WeightedElement(*succs, probability));
+                assert(test[j] == ItemProbabilityPair(*succs, probability));
                 result.add(*succs, probability);
             }
 
@@ -110,7 +110,7 @@ void TransitionGenerator<OperatorID>::generate_action_transitions(
         }
     } else {
         State state = state_registry_->lookup_state(::StateID(state_id));
-        std::vector<WeightedElement<StateID>> temp;
+        std::vector<ItemProbabilityPair<StateID>> temp;
         compute_successor_states(state, op_id, temp);
         result = Distribution<StateID>(std::move(temp));
     }
@@ -145,7 +145,7 @@ void TransitionGenerator<OperatorID>::generate_all_transitions(
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
             assert(aops[i] == test_aops[i]);
-            std::vector<WeightedElement<StateID>> test;
+            std::vector<ItemProbabilityPair<StateID>> test;
             compute_successor_states(state, aops[i], test);
 #endif
 
@@ -157,7 +157,7 @@ void TransitionGenerator<OperatorID>::generate_all_transitions(
 
             for (unsigned j = 0; j < num_outcomes; ++j, ++succs) {
                 value_t probability = outcomes[j].get_probability();
-                assert(test[j] == WeightedElement(*succs, probability));
+                assert(test[j] == ItemProbabilityPair(*succs, probability));
                 result.add(*succs, probability);
             }
 
@@ -168,7 +168,7 @@ void TransitionGenerator<OperatorID>::generate_all_transitions(
         compute_applicable_operators(state, aops);
         successors.reserve(aops.size());
 
-        std::vector<WeightedElement<StateID>> temp;
+        std::vector<ItemProbabilityPair<StateID>> temp;
         for (const auto& op : aops) {
             compute_successor_states(state, op, temp);
             const auto& new_dist = successors.emplace_back(std::move(temp));
@@ -193,7 +193,7 @@ bool TransitionGenerator<OperatorID>::setup_cache(
         if (entry.naops > 0) {
             entry.aops = cache_data_.allocate<OperatorID>(aops_.size());
 
-            std::vector<WeightedElement<StateID>> succs;
+            std::vector<ItemProbabilityPair<StateID>> succs;
             for (size_t i = 0; i < aops_.size(); ++i) {
                 OperatorID op = aops_[i];
                 entry.aops[i] = op;
@@ -201,7 +201,7 @@ bool TransitionGenerator<OperatorID>::setup_cache(
                 compute_successor_states(state, op, succs);
 
                 for (const auto& s : succs) {
-                    successors_.push_back(s.element);
+                    successors_.push_back(s.item);
                 }
 
                 succs.clear();
@@ -262,7 +262,7 @@ void TransitionGenerator<OperatorID>::Statistics::print(std::ostream& out) const
 void TransitionGenerator<OperatorID>::compute_successor_states(
     const State& state,
     OperatorID op_id,
-    std::vector<WeightedElement<StateID>>& succs)
+    std::vector<ItemProbabilityPair<StateID>>& succs)
 {
     const ProbabilisticOperatorProxy op = task_proxy.get_operators()[op_id];
     succs.reserve(op.get_outcomes().size());

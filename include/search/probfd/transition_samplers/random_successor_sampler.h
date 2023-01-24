@@ -29,7 +29,7 @@ protected:
         const Distribution<StateID>& successors,
         engine_interfaces::HeuristicSearchInterface&) override
     {
-        return successors.sample(*rng_)->element;
+        return successors.sample(*rng_)->item;
     }
 };
 

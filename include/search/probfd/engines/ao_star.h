@@ -166,7 +166,7 @@ private:
             value_t normalize_factor = 0;
             auto succ = this->selected_transition_.begin();
             while (succ != this->selected_transition_.end()) {
-                if (this->get_state_info(succ->element).is_solved()) {
+                if (this->get_state_info(succ->item).is_solved()) {
                     normalize_factor += succ->probability;
                     succ = this->selected_transition_.erase(succ);
                 } else {

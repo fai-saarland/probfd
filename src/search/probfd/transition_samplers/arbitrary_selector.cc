@@ -10,7 +10,7 @@ StateID ArbitrarySuccessorSelector::sample(
     engine_interfaces::HeuristicSearchInterface&)
 {
     auto it = successors.begin();
-    return it->element;
+    return it->item;
 }
 
 } // namespace transition_samplers

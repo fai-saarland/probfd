@@ -14,79 +14,90 @@
 
 namespace probfd {
 
+/// An item-probability pair.
 template <typename T>
-struct WeightedElement {
-    template <class Tuple, size_t... Indices>
-    WeightedElement(
-        Tuple& args,
+struct ItemProbabilityPair {
+    template <typename... Args, size_t... Indices>
+    ItemProbabilityPair(
+        std::tuple<Args...>& args,
         value_t probability,
         std::index_sequence<Indices...>)
-        : element(std::get<Indices>(std::move(args))...)
+        : item(std::get<Indices>(std::move(args))...)
         , probability(probability)
     {
     }
 
 public:
-    T element;
-    value_t probability;
+    T item;              ///< The item.
+    value_t probability; ///< The probability of the item.
 
-    WeightedElement() = default;
+    /// Pairs a default-constructed item with an indeterminate probability.
+    ItemProbabilityPair() = default;
 
-    WeightedElement(T element, value_t probability)
-        : element(std::move(element))
+    /// Pairs a given item with a given probability.
+    ItemProbabilityPair(T item, value_t probability)
+        : item(std::move(item))
         , probability(probability)
     {
     }
 
+    /// Pairs an item constructed from a tuple of constructor arguments with a
+    /// given probability.
     template <typename... Args>
-    WeightedElement(
-        std::piecewise_construct_t,
+    ItemProbabilityPair(
         std::tuple<Args...> constructor_args,
         value_t probability)
-        : WeightedElement(
+        : ItemProbabilityPair(
               constructor_args,
               probability,
               std::index_sequence_for<Args...>{})
     {
     }
 
-    friend bool
-    operator<(const WeightedElement<T>& left, const WeightedElement<T>& right)
+    /// Compares two item-probability pairs lexigographically by operator<.
+    friend bool operator<(
+        const ItemProbabilityPair<T>& left,
+        const ItemProbabilityPair<T>& right)
     {
-        return std::tie(left.element, left.probability) <
-               std::tie(right.element, right.probability);
+        return std::tie(left.item, left.probability) <
+               std::tie(right.item, right.probability);
     }
 
-    friend bool
-    operator==(const WeightedElement<T>& left, const WeightedElement<T>& right)
+    /// Checks for equality of two item-probability pairs.
+    friend bool operator==(
+        const ItemProbabilityPair<T>& left,
+        const ItemProbabilityPair<T>& right)
     {
-        return std::tie(left.element, left.probability) ==
-               std::tie(right.element, right.probability);
+        return std::tie(left.item, left.probability) ==
+               std::tie(right.item, right.probability);
     }
 
-    static bool
-    key_less(const WeightedElement<T>& left, const WeightedElement<T>& right)
+    /// Compares the items of two item-probability pairs by operator<.
+    static bool key_less(
+        const ItemProbabilityPair<T>& left,
+        const ItemProbabilityPair<T>& right)
     {
-        return left.element < right.element;
+        return left.item < right.item;
     }
 
-    static bool
-    key_equal(const WeightedElement<T>& left, const WeightedElement<T>& right)
+    /// Compares the items of two item-probability pairs by operator==.
+    static bool key_equal(
+        const ItemProbabilityPair<T>& left,
+        const ItemProbabilityPair<T>& right)
     {
-        return left.element == right.element;
+        return left.item == right.item;
     }
 };
 
 /**
- * @brief A convenience class that wraps a list of element-probability
- * pairs.
+ * @brief A convenience class that wraps a list of item-probability pairs.
  *
- * @tparam T - The element type.
+ * @tparam T - The item type.
  */
 template <typename T>
 class Distribution {
 private:
-    using distribution_t = std::vector<WeightedElement<T>>;
+    using distribution_t = std::vector<ItemProbabilityPair<T>>;
     distribution_t distribution_;
 
 public:
@@ -153,10 +164,10 @@ public:
      * @see make_unique
      */
     template <typename... Args>
-    WeightedElement<T>& emplace(std::tuple<Args...> args, value_t prob)
+    ItemProbabilityPair<T>& emplace(std::tuple<Args...> args, value_t prob)
     {
         assert(prob > 0.0);
-        return distribution_.emplace_back(std::piecewise_construct, args, prob);
+        return distribution_.emplace_back(args, prob);
     }
 
     iterator find(const T& t)
@@ -224,13 +235,13 @@ public:
         std::sort(
             distribution_.begin(),
             distribution_.end(),
-            WeightedElement<T>::key_less);
+            ItemProbabilityPair<T>::key_less);
 
         auto last = std::unique(
             distribution_.begin(),
             distribution_.end(),
             [](auto& left, auto& right) {
-                if (left.element == right.element) {
+                if (left.item == right.item) {
                     left.probability += right.probability;
                     return true;
                 }
@@ -286,28 +297,28 @@ public:
     {
         return utils::make_transform_iterator(
             begin(),
-            &WeightedElement<T>::element);
+            &ItemProbabilityPair<T>::item);
     }
 
     auto elem_begin() const
     {
         return utils::make_transform_iterator(
             begin(),
-            &WeightedElement<T>::element);
+            &ItemProbabilityPair<T>::item);
     }
 
     auto elem_end()
     {
         return utils::make_transform_iterator(
             end(),
-            &WeightedElement<T>::element);
+            &ItemProbabilityPair<T>::item);
     }
 
     auto elem_end() const
     {
         return utils::make_transform_iterator(
             end(),
-            &WeightedElement<T>::element);
+            &ItemProbabilityPair<T>::item);
     }
 
     auto elements() { return utils::make_range(elem_begin(), elem_end()); }
@@ -321,28 +332,28 @@ public:
     {
         return utils::make_transform_iterator(
             begin(),
-            &WeightedElement<T>::probability);
+            &ItemProbabilityPair<T>::probability);
     }
 
     auto prob_begin() const
     {
         return utils::make_transform_iterator(
             begin(),
-            &WeightedElement<T>::probability);
+            &ItemProbabilityPair<T>::probability);
     }
 
     auto prob_end()
     {
         return utils::make_transform_iterator(
             end(),
-            &WeightedElement<T>::probability);
+            &ItemProbabilityPair<T>::probability);
     }
 
     auto prob_end() const
     {
         return utils::make_transform_iterator(
             end(),
-            &WeightedElement<T>::probability);
+            &ItemProbabilityPair<T>::probability);
     }
 
     auto probabilities() { return utils::make_range(prob_begin(), prob_end()); }

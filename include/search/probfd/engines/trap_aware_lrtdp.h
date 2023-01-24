@@ -448,8 +448,8 @@ private:
         for (auto it = this->selected_transition_.begin();
              it != this->selected_transition_.end();
              ++it) {
-            if (it->element != state) {
-                e.successors.push_back(it->element);
+            if (it->item != state) {
+                e.successors.push_back(it->item);
             }
         }
 

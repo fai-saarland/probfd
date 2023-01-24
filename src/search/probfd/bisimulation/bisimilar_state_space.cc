@@ -368,7 +368,7 @@ void BisimilarStateSpace::dump(std::ostream& out) const
                     outcome.get_probability());
             }
             for (auto it = succs.begin(); it != succs.end(); ++it) {
-                out << "t" << t << " -> n" << it->element << "\n";
+                out << "t" << t << " -> n" << it->item << "\n";
             }
             ++t;
         }

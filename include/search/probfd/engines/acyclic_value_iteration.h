@@ -116,7 +116,7 @@ public:
                 // Topological order: Push all successors, recurse if
                 // one has not been expanded before
                 for (; e.successor != e.transition.end(); ++e.successor) {
-                    const auto& succ_id = e.successor->element;
+                    const auto& succ_id = e.successor->item;
                     if (push_state(succ_id)) {
                         goto continue_outer; // DFS recursion
                     }

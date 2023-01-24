@@ -9,8 +9,6 @@
 
 namespace probfd {
 
-/// Namespace dedicated to MDP planning analysis objectives
-
 /**
  * @brief Represents the reward model of the overall analysis.
  *

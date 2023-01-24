@@ -27,13 +27,13 @@ void VDiffSorter::sort(
             k1.emplace_back(
                 std::abs(
                     favor_large_gaps_ *
-                    hs_interface.lookup_dual_bounds(suc.element).length()),
+                    hs_interface.lookup_dual_bounds(suc.item).length()),
                 j);
             sum += suc.probability * k1.back().first;
         }
         k0.emplace_back(sum, i);
         std::sort(k1.begin(), k1.end());
-        std::vector<WeightedElement<StateID>> sor;
+        std::vector<ItemProbabilityPair<StateID>> sor;
         sor.reserve(t.size());
         for (unsigned j = 0; j < k1.size(); ++j) {
             sor.push_back(t[k1[j].second]);

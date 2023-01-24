@@ -29,19 +29,19 @@ StateID VDiffSuccessorSampler::sample(
     value_t sum = 0;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
         const value_t error =
-            hs_interface.lookup_dual_bounds(it->element).length();
+            hs_interface.lookup_dual_bounds(it->item).length();
         const value_t p =
             it->probability * (prefer_large_gaps_ ? error : (1_vt - error));
         if (p > 0_vt) {
             sum += p;
-            biased_.add(it->element, p);
+            biased_.add(it->item, p);
         }
     }
     if (biased_.empty()) {
-        return successors.sample(*rng_)->element;
+        return successors.sample(*rng_)->item;
     }
     biased_.normalize(1_vt / sum);
-    return biased_.sample(*rng_)->element;
+    return biased_.sample(*rng_)->item;
 }
 
 } // namespace transition_samplers

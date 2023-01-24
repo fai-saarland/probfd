@@ -15,7 +15,7 @@ namespace {
 // Footprint used for detecting duplicate operators.
 struct ProgressionOperatorFootprint {
     long long int precondition_hash;
-    std::vector<WeightedElement<StateRank>> successors;
+    std::vector<ItemProbabilityPair<StateRank>> successors;
 
     ProgressionOperatorFootprint(
         long long int precondition_hash,

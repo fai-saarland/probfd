@@ -129,7 +129,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
         Action& get_current_action() { return aops.back(); }
 
-        WeightedElement<StateID> get_current_successor() { return *successor; }
+        ItemProbabilityPair<StateID> get_current_successor() { return *successor; }
     };
 
     struct QValueInfo {
@@ -144,7 +144,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
         // Pointers to successor values which have not yet converged,
         // self-loops excluded.
-        std::vector<WeightedElement<IncumbentSolution*>> nconv_successors;
+        std::vector<ItemProbabilityPair<IncumbentSolution*>> nconv_successors;
 
         explicit QValueInfo(value_t action_reward)
             : conv_part(action_reward)

@@ -25,7 +25,7 @@ StateID UniformSuccessorSampler::sample(
     engine_interfaces::HeuristicSearchInterface&)
 {
     assert(!successors.empty());
-    return successors.begin()[rng_->random(successors.size())].element;
+    return successors.begin()[rng_->random(successors.size())].item;
 }
 
 } // namespace transition_samplers

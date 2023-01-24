@@ -112,7 +112,7 @@ protected:
     void compute_successor_states(
         const State& s,
         OperatorID op_id,
-        std::vector<WeightedElement<StateID>>& successors);
+        std::vector<ItemProbabilityPair<StateID>>& successors);
 
     void
     compute_applicable_operators(const State& s, std::vector<OperatorID>& ops);

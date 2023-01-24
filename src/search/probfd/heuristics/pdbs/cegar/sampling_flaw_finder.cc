@@ -66,7 +66,7 @@ bool SamplingFlawFinder<PDBType>::apply_policy(
         while (!einfo.successors.empty()) {
             // Sample next successor
             auto it = einfo.successors.sample(*base.rng);
-            auto& succ = it->element;
+            auto& succ = it->item;
 
             // Ignore states already seen
             if (einfos.find(succ) == einfos.end()) {

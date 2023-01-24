@@ -89,7 +89,7 @@ void TransitionGenerator<const AbstractOperator*>::generate_action_transitions(
 {
     StateRank abstract_state = id_map_.get_state(state);
     for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-        const StateRank succ = abstract_state + it->element;
+        const StateRank succ = abstract_state + it->item;
         result.add(id_map_.get_state_id(succ), it->probability);
     }
 }
@@ -105,7 +105,7 @@ void TransitionGenerator<const AbstractOperator*>::generate_all_transitions(
     for (int i = aops.size() - 1; i >= 0; --i) {
         const AbstractOperator* op = aops[i];
         for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-            const StateRank succ = abstract_state + it->element;
+            const StateRank succ = abstract_state + it->item;
             result[i].add(id_map_.get_state_id(succ), it->probability);
         }
     }

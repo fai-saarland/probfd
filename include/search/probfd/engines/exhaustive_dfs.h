@@ -752,7 +752,7 @@ private:
                 }
 
                 for (auto succ = it->succ; succ != succs.end(); ++succ) {
-                    const auto& succ_info = search_space_[succ->element];
+                    const auto& succ_info = search_space_[succ->item];
                     if (succ_info.is_new()) {
                         val += succ->probability * trivial_bound_;
                     } else {
@@ -870,7 +870,7 @@ private:
                 }
 
                 for (auto succ = it->succ; succ != succs.end(); ++succ) {
-                    const auto& succ_info = search_space_[succ->element];
+                    const auto& succ_info = search_space_[succ->item];
                     if (succ_info.is_new()) {
                         val += succ->probability * trivial_bound_;
                     } else {

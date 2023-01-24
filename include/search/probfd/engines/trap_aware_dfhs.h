@@ -258,15 +258,15 @@ private:
 
         if (open_list_ == nullptr) {
             for (auto it = transition_.begin(); it != transition_.end(); ++it) {
-                if (it->element != state) {
-                    info.successors.push_back(it->element);
+                if (it->item != state) {
+                    info.successors.push_back(it->item);
                 }
             }
         } else {
             const QAction a = this->get_policy(state);
             for (auto it = transition_.begin(); it != transition_.end(); ++it) {
-                if (it->element != state) {
-                    open_list_->push(state, a, it->probability, it->element);
+                if (it->item != state) {
+                    open_list_->push(state, a, it->probability, it->item);
                 }
             }
             info.successors.resize(open_list_->size(), StateID::undefined);

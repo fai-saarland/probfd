@@ -124,7 +124,7 @@ struct ExpansionInfo {
 
     bool next_successor() { return ++successor != transition.end(); }
 
-    StateID get_current_successor() { return successor->element; }
+    StateID get_current_successor() { return successor->item; }
 
     // Tarjan's SCC algorithm: stack id and lowlink
     const unsigned stck;

@@ -10,11 +10,11 @@ StateID MostLikelySuccessorSelector::sample(
     engine_interfaces::HeuristicSearchInterface&)
 {
     value_t max = 0_vt;
-    StateID res = successors.begin()->element;
+    StateID res = successors.begin()->item;
     for (auto it = successors.begin(); it != successors.end(); ++it) {
         if (it->probability > max) {
             max = it->probability;
-            res = it->element;
+            res = it->item;
         }
     }
     return res;
