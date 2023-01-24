@@ -24,7 +24,7 @@ class Evaluator;
 namespace probfd {
 class ProbabilisticTask;
 
-namespace quotient_system {
+namespace quotients {
 template <typename T>
 class QuotientSystem;
 }
@@ -33,7 +33,7 @@ namespace engine_interfaces {
 
 template <>
 class TransitionGenerator<OperatorID> {
-    friend class quotient_system::QuotientSystem<OperatorID>;
+    friend class quotients::QuotientSystem<OperatorID>;
 
 protected:
     struct Statistics {

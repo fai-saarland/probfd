@@ -6,7 +6,7 @@
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/transition_sampler.h"
 
-#include "probfd/policy_picker/arbitrary_tiebreaker.h"
+#include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
 #include "probfd/reward_model.h"
 
@@ -50,7 +50,7 @@ class BisimulationBasedHeuristicSearchEngine
     : public engines::MDPEngineInterface<State> {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
-    using QQAction = quotient_system::QuotientAction<QAction>;
+    using QQAction = quotients::QuotientAction<QAction>;
 
 public:
     template <
@@ -123,7 +123,7 @@ protected:
               bs.get(),
               g_reward_model->reward_bound(),
               g_reward_model->reward_bound().upper))
-        , policy_(new policy_tiebreaking::ArbitraryTiebreaker<QAction>())
+        , policy_(new policy_pickers::ArbitraryTiebreaker<QAction>())
     {
         stats.timer.stop();
         stats.states = bs->num_bisimilar_states();
@@ -159,7 +159,7 @@ class QBisimulationBasedHeuristicSearchEngine
     : public BisimulationBasedHeuristicSearchEngine {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
-    using QQAction = quotient_system::QuotientAction<QAction>;
+    using QQAction = quotients::QuotientAction<QAction>;
 
 public:
     template <
@@ -243,10 +243,10 @@ private:
     explicit QBisimulationBasedHeuristicSearchEngine(
         const std::string& engine_name)
         : BisimulationBasedHeuristicSearchEngine(engine_name)
-        , quotient_(new quotient_system::QuotientSystem<QAction>(
+        , quotient_(new quotients::QuotientSystem<QAction>(
               &action_id_map,
               tgen.get()))
-        , q_reward_(new quotient_system::DefaultQuotientRewardFunction(
+        , q_reward_(new quotients::DefaultQuotientRewardFunction(
               quotient_.get(),
               reward.get()))
         , q_action_id_map_(
@@ -254,12 +254,12 @@ private:
         , q_transition_gen_(
               new engine_interfaces::TransitionGenerator<QQAction>(
                   quotient_.get()))
-        , q_policy_tiebreaker_(new policy_tiebreaking::ArbitraryTiebreaker<
-                               quotient_system::QuotientAction<QAction>>())
+        , q_policy_tiebreaker_(new policy_pickers::ArbitraryTiebreaker<
+                               quotients::QuotientAction<QAction>>())
     {
     }
 
-    std::unique_ptr<quotient_system::QuotientSystem<QAction>> quotient_;
+    std::unique_ptr<quotients::QuotientSystem<QAction>> quotient_;
 
     std::unique_ptr<engine_interfaces::RewardFunction<QState, QQAction>>
         q_reward_;

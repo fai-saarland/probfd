@@ -6,6 +6,8 @@
 #include <memory>
 
 namespace probfd {
+
+/// This namespace contains reward model specifications.
 namespace reward_models {
 
 /**

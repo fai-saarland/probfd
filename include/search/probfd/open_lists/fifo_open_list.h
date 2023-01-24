@@ -6,6 +6,8 @@
 #include <deque>
 
 namespace probfd {
+
+/// This namespace contains implementations of open lists.
 namespace open_lists {
 
 template <typename Action>

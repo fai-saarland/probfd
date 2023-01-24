@@ -7,7 +7,7 @@
 #define DEBUG(x)
 
 namespace probfd {
-namespace quotient_system {
+namespace quotients {
 
 using namespace engine_interfaces;
 
@@ -366,7 +366,7 @@ void QuotientSystem<OperatorID>::verify_cache_consistency()
 }
 #endif
 
-} // namespace quotient_system
+} // namespace quotients
 } // namespace probfd
 
 #undef DEBUG

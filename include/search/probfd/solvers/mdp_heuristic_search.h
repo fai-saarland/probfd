@@ -9,9 +9,9 @@
 
 #include "probfd/engines/fret.h"
 
-#include "probfd/quotient_system/engine_interfaces.h"
-#include "probfd/quotient_system/heuristic_search_interface.h"
-#include "probfd/quotient_system/quotient_system.h"
+#include "probfd/quotients/engine_interfaces.h"
+#include "probfd/quotients/heuristic_search_interface.h"
+#include "probfd/quotients/quotient_system.h"
 
 #include "probfd/quotient_system.h"
 
@@ -103,17 +103,18 @@ protected:
 
 template <bool Bisimulation>
 class MDPHeuristicSearch<Bisimulation, true> : public MDPHeuristicSearchBase {
-    using QAction = quotient_system::QuotientAction<OperatorID>;
+    using QAction = quotients::QuotientAction<OperatorID>;
 
 public:
     explicit MDPHeuristicSearch(const options::Options& opts)
         : MDPHeuristicSearchBase(opts)
-        , quotient_(new quotient_system::QuotientSystem<OperatorID>(
+        , quotient_(new quotients::QuotientSystem<OperatorID>(
               this->get_action_id_map(),
               this->get_transition_generator()))
-        , q_reward_(new quotient_system::DefaultQuotientRewardFunction<
-                    State,
-                    OperatorID>(quotient_.get(), this->get_reward_function()))
+        , q_reward_(
+              new quotients::DefaultQuotientRewardFunction<State, OperatorID>(
+                  quotient_.get(),
+                  this->get_reward_function()))
         , q_action_id_map_(
               new engine_interfaces::ActionIDMap<QAction>(quotient_.get()))
         , q_transition_gen_(new engine_interfaces::TransitionGenerator<QAction>(
@@ -222,7 +223,7 @@ protected:
         return Unwrapper<false, true, T>()(t);
     }
 
-    quotient_system::QuotientSystem<OperatorID>* get_quotient_system() const
+    quotients::QuotientSystem<OperatorID>* get_quotient_system() const
     {
         return quotient_.get();
     }
@@ -276,7 +277,7 @@ private:
             engine);
     }
 
-    std::unique_ptr<quotient_system::QuotientSystem<OperatorID>> quotient_;
+    std::unique_ptr<quotients::QuotientSystem<OperatorID>> quotient_;
 
     std::unique_ptr<engine_interfaces::RewardFunction<State, QAction>>
         q_reward_;

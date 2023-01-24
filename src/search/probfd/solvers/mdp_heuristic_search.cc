@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/policy_picker/task_policy_picker_factory.h"
+#include "probfd/policy_pickers/task_policy_picker_factory.h"
 
 #include "probfd/utils/logging.h"
 

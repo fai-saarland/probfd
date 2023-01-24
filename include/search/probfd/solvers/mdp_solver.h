@@ -25,7 +25,7 @@ class OptionParser;
 
 namespace probfd {
 
-/// Namespace dedicated to MDP solver interfaces.
+/// This namespace contains the solver plugins for various search engines.
 namespace solvers {
 
 /**

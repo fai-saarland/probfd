@@ -8,7 +8,7 @@
 #include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/engine_interfaces/successor_sorter.h"
 
-#include "probfd/successor_sorter/task_successor_sorter_factory.h"
+#include "probfd/successor_sorters/task_successor_sorter_factory.h"
 
 #include "probfd/progress_report.h"
 

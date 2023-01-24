@@ -4,11 +4,11 @@
 #include "probfd/engines/engine.h"
 #include "probfd/engines/topological_value_iteration.h"
 
-#include "probfd/end_components/end_component_decomposition.h"
-#include "probfd/end_components/qualitative_reachability_analysis.h"
+#include "probfd/preprocessing/end_component_decomposition.h"
+#include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
-#include "probfd/quotient_system/engine_interfaces.h"
-#include "probfd/quotient_system/quotient_system.h"
+#include "probfd/quotients/engine_interfaces.h"
+#include "probfd/quotients/quotient_system.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -55,7 +55,7 @@ namespace interval_iteration {
 template <typename State, typename Action>
 class IntervalIteration : public MDPEngine<State, Action> {
 public:
-    using Decomposer = end_components::EndComponentDecomposition<State, Action>;
+    using Decomposer = preprocessing::EndComponentDecomposition<State, Action>;
     using QuotientSystem = typename Decomposer::QuotientSystem;
     using QAction = typename QuotientSystem::QAction;
 
@@ -165,12 +165,12 @@ private:
         using namespace engine_interfaces;
 
         TransitionGenerator<QAction> q_transition_gen(sys);
-        quotient_system::DefaultQuotientRewardFunction<State, Action> q_reward(
+        quotients::DefaultQuotientRewardFunction<State, Action> q_reward(
             sys,
             this->get_reward_function());
         ActionIDMap<QAction> q_action_id_map(sys);
 
-        reachability::QualitativeReachabilityAnalysis<State, QAction> analysis(
+        preprocessing::QualitativeReachabilityAnalysis<State, QAction> analysis(
             this->get_state_id_map(),
             &q_action_id_map,
             &q_reward,
@@ -217,7 +217,7 @@ private:
     const bool extract_probability_one_states_;
     const bool expand_goals_;
 
-    end_components::Statistics ecd_statistics_;
+    preprocessing::ECDStatistics ecd_statistics_;
     topological_vi::Statistics tvi_statistics_;
 
     ValueStore value_store_;

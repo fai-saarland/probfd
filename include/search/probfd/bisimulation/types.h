@@ -1,11 +1,12 @@
-#ifndef MDPS_BISIMULATION_TYPES_H
-#define MDPS_BISIMULATION_TYPES_H
+#ifndef PROBFD_BISIMULATION_TYPES_H
+#define PROBFD_BISIMULATION_TYPES_H
 
 #include "probfd/types.h"
 
 namespace probfd {
 
-/// Namespace dedicated to probabilistic bisimulation.
+/// This namespace contains the implementation of deterministic bisimulation
+/// quotients for SSPs, based on merge-and-shrink.
 namespace bisimulation {
 
 /// Represents a state in the probabilistic bisimulation quotient.

@@ -15,7 +15,7 @@
 
 namespace probfd {
 
-/// Namespace dedicated to commonly used storage and container types.
+/// This namespace contains commonly used storage and container types.
 namespace storage {
 
 template <typename T, typename Alloc>

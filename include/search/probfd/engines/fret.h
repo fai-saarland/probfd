@@ -7,7 +7,7 @@
 #include "probfd/utils/graph_visualization.h"
 
 #include "probfd/progress_report.h"
-#include "probfd/quotient_system/quotient_system.h"
+#include "probfd/quotients/quotient_system.h"
 
 #if defined(EXPENSIVE_STATISTICS)
 #include "../../utils/timer.h"
@@ -93,7 +93,7 @@ class FRET : public MDPEngine<State, Action> {
     };
 
 public:
-    using QuotientSystem = quotient_system::QuotientSystem<Action>;
+    using QuotientSystem = quotients::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
     explicit FRET(
@@ -371,7 +371,7 @@ private:
 template <typename State, typename Action, bool Interval>
 class ValueGraph {
 public:
-    using QuotientSystem = quotient_system::QuotientSystem<Action>;
+    using QuotientSystem = quotients::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
     explicit ValueGraph(HeuristicSearchEngine<State, QAction, Interval>* hs)
@@ -423,7 +423,7 @@ private:
 template <typename State, typename Action, bool Interval>
 class PolicyGraph {
 public:
-    using QuotientSystem = quotient_system::QuotientSystem<Action>;
+    using QuotientSystem = quotients::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
     explicit PolicyGraph(HeuristicSearchEngine<State, QAction, Interval>* hs)

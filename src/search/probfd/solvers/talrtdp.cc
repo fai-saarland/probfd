@@ -1,7 +1,7 @@
 #include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/engines/trap_aware_lrtdp.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
-#include "probfd/transition_sampler/task_transition_sampler_factory.h"
+#include "probfd/transition_samplers/task_transition_sampler_factory.h"
 #include "probfd/utils/logging.h"
 
 #include "option_parser.h"

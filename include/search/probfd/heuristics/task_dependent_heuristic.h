@@ -11,6 +11,8 @@ class OptionParser;
 } // namespace options
 
 namespace probfd {
+
+/// This namespace contains heuristic implementations.
 namespace heuristics {
 
 class TaskDependentHeuristic : public TaskStateEvaluator {

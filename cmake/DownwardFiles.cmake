@@ -914,39 +914,39 @@ fast_downward_plugin(
 
         # Transition Samplers
         probfd/transition_sampler
-        probfd/transition_sampler/arbitrary_selector
-        probfd/transition_sampler/most_likely_selector
-        probfd/transition_sampler/uniform_successor_sampler
-        probfd/transition_sampler/vbiased_successor_sampler
-        probfd/transition_sampler/vdiff_successor_sampler
+        probfd/transition_samplers/arbitrary_selector
+        probfd/transition_samplers/most_likely_selector
+        probfd/transition_samplers/uniform_successor_sampler
+        probfd/transition_samplers/vbiased_successor_sampler
+        probfd/transition_samplers/vdiff_successor_sampler
 
-        probfd/transition_sampler/arbitrary_selector_factory
-        probfd/transition_sampler/most_likely_selector_factory
-        probfd/transition_sampler/uniform_successor_sampler_factory
-        probfd/transition_sampler/random_successor_sampler_factory
-        probfd/transition_sampler/vbiased_successor_sampler_factory
-        probfd/transition_sampler/vdiff_successor_sampler_factory
+        probfd/transition_samplers/arbitrary_selector_factory
+        probfd/transition_samplers/most_likely_selector_factory
+        probfd/transition_samplers/uniform_successor_sampler_factory
+        probfd/transition_samplers/random_successor_sampler_factory
+        probfd/transition_samplers/vbiased_successor_sampler_factory
+        probfd/transition_samplers/vdiff_successor_sampler_factory
 
-        probfd/transition_sampler/plugins
+        probfd/transition_samplers/plugins
 
         # Policy Tiebreakers
-        probfd/policy_picker/operator_id_tiebreaker
-        probfd/policy_picker/random_tiebreaker
-        probfd/policy_picker/vdiff_tiebreaker
+        probfd/policy_pickers/operator_id_tiebreaker
+        probfd/policy_pickers/random_tiebreaker
+        probfd/policy_pickers/vdiff_tiebreaker
 
-        probfd/policy_picker/arbitrary_tiebreaker_factory
-        probfd/policy_picker/operator_id_tiebreaker_factory
-        probfd/policy_picker/random_tiebreaker_factory
-        probfd/policy_picker/vdiff_tiebreaker_factory
+        probfd/policy_pickers/arbitrary_tiebreaker_factory
+        probfd/policy_pickers/operator_id_tiebreaker_factory
+        probfd/policy_pickers/random_tiebreaker_factory
+        probfd/policy_pickers/vdiff_tiebreaker_factory
 
-        probfd/policy_picker/plugins
+        probfd/policy_pickers/plugins
 
         # Successor Sorters
-        probfd/successor_sorter/vdiff_sorter
+        probfd/successor_sorters/vdiff_sorter
 
-        probfd/successor_sorter/vdiff_sorter_factory
+        probfd/successor_sorters/vdiff_sorter_factory
 
-        probfd/successor_sorter/plugins
+        probfd/successor_sorters/plugins
 
         # Base heuristic search solver
         probfd/solvers/mdp_heuristic_search

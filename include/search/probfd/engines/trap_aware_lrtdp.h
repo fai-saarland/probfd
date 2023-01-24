@@ -3,7 +3,7 @@
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/engines/heuristic_search_base.h"
-#include "probfd/quotient_system/quotient_system.h"
+#include "probfd/quotients/quotient_system.h"
 #include "probfd/storage/per_state_storage.h"
 
 #include "utils/timer.h"
@@ -86,8 +86,8 @@ class LRTDP
     static constexpr int STATE_CLOSED = -2;
 
 public:
-    using Action = typename quotient_system::unwrap_qaction_type<QAction>;
-    using QuotientSystem = quotient_system::QuotientSystem<Action>;
+    using Action = typename quotients::unwrap_qaction_type<QAction>;
+    using QuotientSystem = quotients::QuotientSystem<Action>;
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
         QAction,

@@ -48,7 +48,7 @@ The planner currently implements the following families of heuristics:
 - Determinization-based heuristics by usage of a classical heuristic on the
 all-outcomes determinization.
 - Occupation measure heuristics: The regrouped operator counting heuristic
-$h^{roc}$ and the projection occupation measure heuristic $h^{pom}$
+h<sup>roc</sup> and the projection occupation measure heuristic h<sup>pom</sup>
 - Pattern database heuristics for SSPs. Multiple pattern generators are
 supported, including classical pattern generators that operator on the
 all-outcomes determinization, as well as adaptations of the CEGAR and

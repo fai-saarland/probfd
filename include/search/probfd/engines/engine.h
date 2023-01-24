@@ -14,7 +14,7 @@
 
 namespace probfd {
 
-/// Namespace dedicated to MDP engines and algorithms.
+/// This namespace contains implementations of SSP search algorithms.
 namespace engines {
 
 /**

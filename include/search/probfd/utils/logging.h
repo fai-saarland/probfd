@@ -6,6 +6,8 @@
 #include <iostream>
 
 namespace probfd {
+
+/// This namespace contains utility for logging purposes.
 namespace logging {
 
 struct Discard

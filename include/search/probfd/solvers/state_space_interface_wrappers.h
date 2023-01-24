@@ -6,13 +6,13 @@
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/transition_sampler.h"
 
-#include "probfd/quotient_system/engine_interfaces.h"
-#include "probfd/quotient_system/heuristic_search_interface.h"
-#include "probfd/quotient_system/quotient_system.h"
+#include "probfd/quotients/engine_interfaces.h"
+#include "probfd/quotients/heuristic_search_interface.h"
+#include "probfd/quotients/quotient_system.h"
 
 #include "probfd/open_lists/lifo_open_list.h"
 
-#include "probfd/transition_sampler/random_successor_sampler.h"
+#include "probfd/transition_samplers/random_successor_sampler.h"
 
 #include "utils/rng_options.h"
 
@@ -38,7 +38,7 @@ struct translate_action;
 
 template <typename Op>
 struct translate_action<true, Op> {
-    using type = quotient_system::QuotientAction<Op>;
+    using type = quotients::QuotientAction<Op>;
 };
 
 template <typename Op>
@@ -56,15 +56,15 @@ struct Wrapper<
     std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>> {
 
     using type = std::shared_ptr<engine_interfaces::TransitionSampler<
-        quotient_system::QuotientAction<OperatorID>>>;
+        quotients::QuotientAction<OperatorID>>>;
 
     type operator()(
-        quotient_system::QuotientSystem<OperatorID>* q,
+        quotients::QuotientSystem<OperatorID>* q,
         std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>> t)
         const
     {
         return std::make_shared<engine_interfaces::TransitionSampler<
-            quotient_system::QuotientAction<OperatorID>>>(q, t);
+            quotients::QuotientAction<OperatorID>>>(q, t);
     }
 };
 
@@ -73,13 +73,13 @@ struct Unwrapper<
     false,
     true,
     std::shared_ptr<engine_interfaces::TransitionSampler<
-        quotient_system::QuotientAction<OperatorID>>>> {
+        quotients::QuotientAction<OperatorID>>>> {
 
     using type =
         std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>;
 
     type operator()(std::shared_ptr<engine_interfaces::TransitionSampler<
-                        quotient_system::QuotientAction<OperatorID>>> t) const
+                        quotients::QuotientAction<OperatorID>>> t) const
     {
         return t->real();
     }
@@ -101,7 +101,7 @@ struct Wrapper<
         opts.set<int>("random_seed", -1);
         auto rng = utils::parse_rng_from_options(opts);
 
-        return std::make_shared<transition_sampler::RandomSuccessorSampler<
+        return std::make_shared<transition_samplers::RandomSuccessorSampler<
             typename translate_action<Fret, bisimulation::QuotientAction>::
                 type>>(rng);
     }
@@ -132,15 +132,17 @@ struct Wrapper<
     true,
     std::shared_ptr<engine_interfaces::OpenList<OperatorID>>> {
 
-    using type = std::shared_ptr<engine_interfaces::OpenList<
-        quotient_system::QuotientAction<OperatorID>>>;
+    using type = std::shared_ptr<
+        engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>;
 
     type operator()(
-        quotient_system::QuotientSystem<OperatorID>* q,
+        quotients::QuotientSystem<OperatorID>* q,
         std::shared_ptr<engine_interfaces::OpenList<OperatorID>> t) const
     {
-        return std::make_shared<engine_interfaces::OpenList<
-            quotient_system::QuotientAction<OperatorID>>>(q, t);
+        return std::make_shared<
+            engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>(
+            q,
+            t);
     }
 };
 
@@ -148,13 +150,13 @@ template <>
 struct Unwrapper<
     false,
     true,
-    std::shared_ptr<engine_interfaces::OpenList<
-        quotient_system::QuotientAction<OperatorID>>>> {
+    std::shared_ptr<
+        engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>> {
 
     using type = std::shared_ptr<engine_interfaces::OpenList<OperatorID>>;
 
     type operator()(std::shared_ptr<engine_interfaces::OpenList<
-                        quotient_system::QuotientAction<OperatorID>>> t) const
+                        quotients::QuotientAction<OperatorID>>> t) const
     {
         return t->real();
     }

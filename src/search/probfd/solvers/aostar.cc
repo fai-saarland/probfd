@@ -5,7 +5,7 @@
 #include "probfd/utils/logging.h"
 
 #include "probfd/engine_interfaces/transition_sampler.h"
-#include "probfd/transition_sampler/task_transition_sampler_factory.h"
+#include "probfd/transition_samplers/task_transition_sampler_factory.h"
 
 #include "option_parser.h"
 #include "plugin.h"

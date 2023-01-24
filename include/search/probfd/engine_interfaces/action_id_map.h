@@ -5,7 +5,8 @@
 
 namespace probfd {
 
-/// Namespace dedicated to MDP engine interfaces.
+/// This namespace contains the interfaces used to communicate the state space
+/// and the algorithm configurations to the search engines.
 namespace engine_interfaces {
 
 /**

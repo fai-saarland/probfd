@@ -2,7 +2,7 @@
 
 #include "probfd/heuristics/pdbs/match_tree.h"
 
-#include "probfd/end_components/qualitative_reachability_analysis.h"
+#include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
 #include "probfd/engines/topological_value_iteration.h"
 
@@ -242,7 +242,7 @@ void ExpCostProjection::dump_graphviz(
 
 void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
 {
-    using namespace reachability;
+    using namespace preprocessing;
     using namespace engine_interfaces;
     using namespace engines::topological_vi;
 

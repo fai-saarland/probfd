@@ -3,8 +3,8 @@
 
 #include "algorithms/segmented_vector.h"
 
-#include "probfd/quotient_system/engine_interfaces.h"
-#include "probfd/quotient_system/quotient_system.h"
+#include "probfd/quotients/engine_interfaces.h"
+#include "probfd/quotients/quotient_system.h"
 
 #include "probfd/transition_generator.h"
 
@@ -16,7 +16,7 @@
 #include <vector>
 
 namespace probfd {
-namespace quotient_system {
+namespace quotients {
 
 template <>
 class QuotientSystem<OperatorID> {
@@ -346,7 +346,7 @@ private:
     std::unique_ptr<DefaultQuotientSystem<OperatorID>> fallback_;
 };
 
-} // namespace quotient_system
+} // namespace quotients
 } // namespace probfd
 
 #endif // __QUOTIENT_SYSTEM_H__
