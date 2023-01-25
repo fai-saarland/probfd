@@ -1,5 +1,7 @@
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/value_utils.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 #include "state_registry.h"
@@ -42,7 +44,7 @@ struct ExplicitEffect {
 };
 
 struct ProbabilisticOutcome {
-    value_type::value_t probability;
+    value_t probability;
     vector<ExplicitEffect> effects;
 
     explicit ProbabilisticOutcome(std::istream& in);
@@ -73,7 +75,7 @@ struct ExplicitAxiom {
     void read_pre_post(std::istream& in);
 };
 
-class RootTask : public ProbabilisticTask {
+class UnusedRootTask : public ProbabilisticTask {
     vector<ExplicitVariable> variables;
     // TODO: think about using hash sets here.
     vector<vector<set<FactPair>>> mutexes;
@@ -91,7 +93,7 @@ class RootTask : public ProbabilisticTask {
     get_operator_effect(int op_id, int outcome_index, int effect_id) const;
 
 public:
-    explicit RootTask(std::istream& in);
+    explicit UnusedRootTask(std::istream& in);
 
     int get_num_variables() const override;
     string get_variable_name(int var) const override;
@@ -125,8 +127,7 @@ public:
 
     int get_num_operator_outcomes(int index) const override;
 
-    value_type::value_t
-    get_operator_outcome_probability(int index, int outcome_index)
+    value_t get_operator_outcome_probability(int index, int outcome_index)
         const override;
 
     int get_operator_outcome_id(int index, int outcome_index) const override;
@@ -201,15 +202,15 @@ static void check_facts(
 {
     check_facts(action.preconditions, variables);
 
-    value_type::value_t total_prob = value_type::zero;
+    value_t total_prob = 0_vt;
 
     for (const auto& outcome : action.outcomes) {
         const auto prob = outcome.probability;
 
-        if (prob <= value_type::zero) {
+        if (prob <= 0_vt) {
             cerr << "Probability must be greater than zero: " << prob << endl;
             utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-        } else if (prob > value_type::one) {
+        } else if (prob > 1_vt) {
             cerr << "Probability must be less or equal to one: " << prob
                  << endl;
             utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
@@ -223,7 +224,7 @@ static void check_facts(
         total_prob += prob;
     }
 
-    if (value_type::approx_equal()(total_prob, value_type::one)) {
+    if (is_approx_equal(total_prob, 1_vt)) {
         cerr << "Total outcome probabilities must sum up to one. Sum was: "
              << total_prob << endl;
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
@@ -479,7 +480,7 @@ vector<ExplicitOperator> read_operators(
     return actions;
 }
 
-RootTask::RootTask(std::istream& in)
+UnusedRootTask::UnusedRootTask(std::istream& in)
 {
     read_and_verify_version(in);
     bool use_metric = read_metric(in);
@@ -514,14 +515,14 @@ RootTask::RootTask(std::istream& in)
     axiom_evaluator.evaluate(initial_state_values);
 }
 
-const ExplicitVariable& RootTask::get_variable(int var) const
+const ExplicitVariable& UnusedRootTask::get_variable(int var) const
 {
     assert(utils::in_bounds(var, variables));
     return variables[var];
 }
 
 const ProbabilisticOutcome&
-RootTask::get_outcome(int op_id, int outcome_index) const
+UnusedRootTask::get_outcome(int op_id, int outcome_index) const
 {
     const ExplicitOperator& op = get_operator(op_id);
     assert(utils::in_bounds(outcome_index, op.outcomes));
@@ -529,7 +530,7 @@ RootTask::get_outcome(int op_id, int outcome_index) const
 }
 
 const ExplicitEffect&
-RootTask::get_axiom_effect_(int op_id, int effect_id) const
+UnusedRootTask::get_axiom_effect_(int op_id, int effect_id) const
 {
     const ExplicitAxiom& axiom = get_axiom(op_id);
     assert(utils::in_bounds(effect_id, axiom.effects));
@@ -537,58 +538,60 @@ RootTask::get_axiom_effect_(int op_id, int effect_id) const
 }
 
 const ExplicitEffect&
-RootTask::get_operator_effect(int op_id, int outcome_index, int effect_id) const
+UnusedRootTask::get_operator_effect(int op_id, int outcome_index, int effect_id)
+    const
 {
     const ProbabilisticOutcome& outcome = get_outcome(op_id, outcome_index);
     assert(utils::in_bounds(effect_id, outcome.effects));
     return outcome.effects[effect_id];
 }
 
-const ExplicitAxiom& RootTask::get_axiom(int index) const
+const ExplicitAxiom& UnusedRootTask::get_axiom(int index) const
 {
     assert(utils::in_bounds(index, axioms));
     return axioms[index];
 }
 
-const ExplicitOperator& RootTask::get_operator(int index) const
+const ExplicitOperator& UnusedRootTask::get_operator(int index) const
 {
     assert(utils::in_bounds(index, operators));
     return operators[index];
 }
 
-int RootTask::get_num_variables() const
+int UnusedRootTask::get_num_variables() const
 {
     return variables.size();
 }
 
-string RootTask::get_variable_name(int var) const
+string UnusedRootTask::get_variable_name(int var) const
 {
     return get_variable(var).name;
 }
 
-int RootTask::get_variable_domain_size(int var) const
+int UnusedRootTask::get_variable_domain_size(int var) const
 {
     return get_variable(var).domain_size;
 }
 
-int RootTask::get_variable_axiom_layer(int var) const
+int UnusedRootTask::get_variable_axiom_layer(int var) const
 {
     return get_variable(var).axiom_layer;
 }
 
-int RootTask::get_variable_default_axiom_value(int var) const
+int UnusedRootTask::get_variable_default_axiom_value(int var) const
 {
     return get_variable(var).axiom_default_value;
 }
 
-string RootTask::get_fact_name(const FactPair& fact) const
+string UnusedRootTask::get_fact_name(const FactPair& fact) const
 {
     assert(utils::in_bounds(fact.value, get_variable(fact.var).fact_names));
     return get_variable(fact.var).fact_names[fact.value];
 }
 
-bool RootTask::are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
-    const
+bool UnusedRootTask::are_facts_mutex(
+    const FactPair& fact1,
+    const FactPair& fact2) const
 {
     if (fact1.var == fact2.var) {
         // Same variable: mutex iff different value.
@@ -599,44 +602,46 @@ bool RootTask::are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
     return bool(mutexes[fact1.var][fact1.value].count(fact2));
 }
 
-int RootTask::get_num_axioms() const
+int UnusedRootTask::get_num_axioms() const
 {
     return axioms.size();
 }
 
-string RootTask::get_axiom_name(int index) const
+string UnusedRootTask::get_axiom_name(int index) const
 {
     return get_axiom(index).name;
 }
 
-int RootTask::get_num_axiom_preconditions(int index) const
+int UnusedRootTask::get_num_axiom_preconditions(int index) const
 {
     return get_axiom(index).preconditions.size();
 }
 
-FactPair RootTask::get_axiom_precondition(int op_index, int fact_index) const
+FactPair
+UnusedRootTask::get_axiom_precondition(int op_index, int fact_index) const
 {
     const ExplicitAxiom& axiom = get_axiom(op_index);
     assert(utils::in_bounds(fact_index, axiom.preconditions));
     return axiom.preconditions[fact_index];
 }
 
-int RootTask::get_num_axiom_effects(int op_index) const
+int UnusedRootTask::get_num_axiom_effects(int op_index) const
 {
     return get_axiom(op_index).effects.size();
 }
 
-FactPair RootTask::get_axiom_effect(int op_index, int eff_index) const
+FactPair UnusedRootTask::get_axiom_effect(int op_index, int eff_index) const
 {
     return get_axiom_effect_(op_index, eff_index).fact;
 }
 
-int RootTask::get_num_axiom_effect_conditions(int op_index, int eff_index) const
+int UnusedRootTask::get_num_axiom_effect_conditions(int op_index, int eff_index)
+    const
 {
     return get_axiom_effect_(op_index, eff_index).conditions.size();
 }
 
-FactPair RootTask::get_axiom_effect_condition(
+FactPair UnusedRootTask::get_axiom_effect_condition(
     int op_index,
     int eff_index,
     int cond_index) const
@@ -646,56 +651,59 @@ FactPair RootTask::get_axiom_effect_condition(
     return effect.conditions[cond_index];
 }
 
-int RootTask::get_num_operators() const
+int UnusedRootTask::get_num_operators() const
 {
     return operators.size();
 }
 
-int RootTask::get_operator_cost(int index) const
+int UnusedRootTask::get_operator_cost(int index) const
 {
     return get_operator(index).cost;
 }
 
-string RootTask::get_operator_name(int index) const
+string UnusedRootTask::get_operator_name(int index) const
 {
     return get_operator(index).name;
 }
 
-int RootTask::get_num_operator_preconditions(int index) const
+int UnusedRootTask::get_num_operator_preconditions(int index) const
 {
     return get_operator(index).preconditions.size();
 }
 
-FactPair RootTask::get_operator_precondition(int op_index, int fact_index) const
+FactPair
+UnusedRootTask::get_operator_precondition(int op_index, int fact_index) const
 {
     const ExplicitOperator& op = get_operator(op_index);
     assert(utils::in_bounds(fact_index, op.preconditions));
     return op.preconditions[fact_index];
 }
 
-int RootTask::get_num_operator_outcomes(int index) const
+int UnusedRootTask::get_num_operator_outcomes(int index) const
 {
     return get_operator(index).outcomes.size();
 }
 
-value_type::value_t
-RootTask::get_operator_outcome_probability(int index, int outcome_index) const
+value_t
+UnusedRootTask::get_operator_outcome_probability(int index, int outcome_index)
+    const
 {
     return get_outcome(index, outcome_index).probability;
 }
 
-int RootTask::get_operator_outcome_id(int index, int outcome_index) const
+int UnusedRootTask::get_operator_outcome_id(int index, int outcome_index) const
 {
     return get_operator(index).outcomes_start_index + outcome_index;
 }
 
-int RootTask::get_num_operator_outcome_effects(int op_index, int outcome_index)
-    const
+int UnusedRootTask::get_num_operator_outcome_effects(
+    int op_index,
+    int outcome_index) const
 {
     return get_outcome(op_index, outcome_index).effects.size();
 }
 
-FactPair RootTask::get_operator_outcome_effect(
+FactPair UnusedRootTask::get_operator_outcome_effect(
     int op_index,
     int outcome_index,
     int eff_index) const
@@ -703,7 +711,7 @@ FactPair RootTask::get_operator_outcome_effect(
     return get_operator_effect(op_index, outcome_index, eff_index).fact;
 }
 
-int RootTask::get_num_operator_outcome_effect_conditions(
+int UnusedRootTask::get_num_operator_outcome_effect_conditions(
     int op_index,
     int outcome_index,
     int eff_index) const
@@ -712,7 +720,7 @@ int RootTask::get_num_operator_outcome_effect_conditions(
         .conditions.size();
 }
 
-FactPair RootTask::get_operator_outcome_effect_condition(
+FactPair UnusedRootTask::get_operator_outcome_effect_condition(
     int op_index,
     int outcome_index,
     int eff_index,
@@ -724,23 +732,23 @@ FactPair RootTask::get_operator_outcome_effect_condition(
     return effect.conditions[cond_index];
 }
 
-int RootTask::get_num_goals() const
+int UnusedRootTask::get_num_goals() const
 {
     return goals.size();
 }
 
-FactPair RootTask::get_goal_fact(int index) const
+FactPair UnusedRootTask::get_goal_fact(int index) const
 {
     assert(utils::in_bounds(index, goals));
     return goals[index];
 }
 
-vector<int> RootTask::get_initial_state_values() const
+vector<int> UnusedRootTask::get_initial_state_values() const
 {
     return initial_state_values;
 }
 
-void RootTask::convert_ancestor_state_values(
+void UnusedRootTask::convert_ancestor_state_values(
     vector<int>&,
     const AbstractTaskBase* ancestor_task) const
 {
@@ -749,7 +757,7 @@ void RootTask::convert_ancestor_state_values(
     }
 }
 
-int RootTask::convert_operator_index(
+int UnusedRootTask::convert_operator_index(
     int index,
     const AbstractTaskBase* ancestor_task) const
 {
@@ -758,22 +766,6 @@ int RootTask::convert_operator_index(
     }
     return index;
 }
-
-void read_root_task(std::istream& in)
-{
-    assert(!g_root_task);
-    g_root_task.reset(new RootTask(in));
-}
-
-static shared_ptr<ProbabilisticTask> _parse(OptionParser& parser)
-{
-    if (parser.dry_run())
-        return nullptr;
-    else
-        return g_root_task;
-}
-
-static Plugin<ProbabilisticTask> _plugin("root_ppt", _parse);
 
 } // namespace tasks
 } // namespace probfd

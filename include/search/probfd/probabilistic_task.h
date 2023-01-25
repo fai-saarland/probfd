@@ -21,39 +21,62 @@ class Options;
 
 namespace probfd {
 
-class ProbabilisticTask
-    : public AbstractTaskBase {
+/**
+ * @brief Represents a probabilistic planning task with axioms and conditional
+ * effects.
+ *
+ * This class should not be used directly to access the information of a
+ * probabilistic planning task. To this end, use ProbabilisticTaskProxy.
+ */
+class ProbabilisticTask : public AbstractTaskBase {
 public:
-    ProbabilisticTask() = default;
     virtual ~ProbabilisticTask() override = default;
 
+    /// Creates the all-outcomes determinization task.
     std::unique_ptr<AbstractTask> build_all_outcomes_determinization();
 
+    /// Get the number of probabilistic outcomes of the probabilistic operator
+    /// with index \p op_index.
     virtual int get_num_operator_outcomes(int op_index) const = 0;
 
+    /// Get the probabilistic outcome probability of the outcome with index
+    /// \p outcome_index of the probabilistic operator with index \p op_index.
     virtual value_t
     get_operator_outcome_probability(int op_index, int outcome_index) const = 0;
 
+    /// Get the global outcome index for the outcome with index \p outcome_index
+    /// of the probabilistic operator with index \p op_index.
     virtual int
     get_operator_outcome_id(int op_index, int outcome_index) const = 0;
 
+    /// Get the number of effects of the outcome with index \p outcome_index of
+    /// the probabilistic operator with index \p op_index.
     virtual int
     get_num_operator_outcome_effects(int op_index, int outcome_index) const = 0;
+
+    /// Get the effect with index \p eff_index of the outcome with index
+    /// \p outcome_index of the probabilistic operator with index \p op_index.
     virtual FactPair
     get_operator_outcome_effect(int op_index, int outcome_index, int eff_index)
         const = 0;
 
+    /// Get the number of effect conditions for the effect with index
+    /// \p eff_index of the outcome with index \p outcome_index of the
+    /// probabilistic operator with index \p op_index.
     virtual int get_num_operator_outcome_effect_conditions(
         int op_index,
         int outcome_index,
         int eff_index) const = 0;
+
+    /// Get the number of effect conditions for the effects with given index of
+    /// outcome with given index of the probabilistic operator with given index.
     virtual FactPair get_operator_outcome_effect_condition(
         int op_index,
         int outcome_index,
         int eff_index,
         int cond_index) const = 0;
 
-    // Convenience function returning the negative operator cost
+    /// Convenience function returning the negative operator cost
     int get_operator_reward(int op_index) const
     {
         return -this->get_operator_cost(op_index);
