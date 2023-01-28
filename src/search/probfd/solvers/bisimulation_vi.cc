@@ -10,8 +10,6 @@
 
 #include "probfd/solvers/solver_interface.h"
 
-#include "probfd/utils/logging.h"
-
 #include "probfd/tasks/root_task.h"
 
 #include "utils/timer.h"
@@ -63,7 +61,7 @@ public:
     {
         utils::Timer total_timer;
 
-        logging::out << "Building bisimulation..." << std::endl;
+        std::cout << "Building bisimulation..." << std::endl;
 
         BisimulationTimer stats;
         bisimulation::BisimilarStateSpace bs(tasks::g_root_task.get());
@@ -79,13 +77,13 @@ public:
         stats.states = bs.num_bisimilar_states();
         stats.transitions = bs.num_transitions();
 
-        logging::out << "Bisimulation built after " << stats.timer << std::endl;
-        logging::out << "Bisimilar state space contains "
-                     << bs.num_bisimilar_states() << " states and "
-                     << bs.num_transitions() << " transitions." << std::endl;
-        logging::out << std::endl;
-        logging::out << "Running " << get_engine_name()
-                     << " on the bisimulation..." << std::endl;
+        std::cout << "Bisimulation built after " << stats.timer << std::endl;
+        std::cout << "Bisimilar state space contains "
+                  << bs.num_bisimilar_states() << " states and "
+                  << bs.num_transitions() << " transitions." << std::endl;
+        std::cout << std::endl;
+        std::cout << "Running " << get_engine_name()
+                  << " on the bisimulation..." << std::endl;
         utils::Timer vi_timer;
         engines::MDPEngine<QState, QAction>* solver = nullptr;
         if (interval_iteration_) {
@@ -110,20 +108,20 @@ public:
                     false);
         }
         value_t val = solver->solve(bs.get_initial_state());
-        logging::out << "analysis done! [t=" << total_timer << "]" << std::endl;
-        logging::out << std::endl;
+        std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
+        std::cout << std::endl;
 
-        logging::print_analysis_result(val);
+        print_analysis_result(val);
 
-        logging::out << std::endl;
-        logging::out << "Bisimulation:" << std::endl;
-        stats.print(logging::out);
+        std::cout << std::endl;
+        std::cout << "Bisimulation:" << std::endl;
+        stats.print(std::cout);
 
-        logging::out << std::endl;
-        logging::out << "Engine " << get_engine_name()
-                     << " statistics:" << std::endl;
-        logging::out << "  Actual solver time: " << vi_timer << std::endl;
-        solver->print_statistics(logging::out);
+        std::cout << std::endl;
+        std::cout << "Engine " << get_engine_name()
+                  << " statistics:" << std::endl;
+        std::cout << "  Actual solver time: " << vi_timer << std::endl;
+        solver->print_statistics(std::cout);
 
         delete (solver);
     }

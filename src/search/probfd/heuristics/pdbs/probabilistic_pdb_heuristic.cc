@@ -6,8 +6,6 @@
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
 
-#include "probfd/utils/logging.h"
-
 #include "pdbs/dominance_pruning.h"
 
 #include "utils/countdown_timer.h"
@@ -136,7 +134,7 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
         statistics_.total_subcollections_size += subcollection.size();
     }
 
-    statistics_.print_construction_info(logging::out);
+    statistics_.print_construction_info(std::cout);
 
     this->generator_report = generator->get_report();
 }
@@ -152,10 +150,10 @@ template <typename PDBType>
 void ProbabilisticPDBHeuristic<PDBType>::print_statistics() const
 {
     if (generator_report) {
-        generator_report->print(logging::out);
+        generator_report->print(std::cout);
     }
 
-    statistics_.print(logging::out);
+    statistics_.print(std::cout);
 }
 
 template <>

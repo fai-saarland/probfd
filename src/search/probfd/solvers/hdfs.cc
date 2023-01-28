@@ -2,8 +2,6 @@
 
 #include "probfd/engines/heuristic_depth_first_search.h"
 
-#include "probfd/utils/logging.h"
-
 #include "utils/system.h"
 
 #include "option_parser.h"
@@ -100,11 +98,9 @@ public:
             valid = false;
         }
         if (!valid) {
-            logging::err << std::endl;
-            logging::err
-                << "depth-oriented heuristic search has been misconfigured!"
-                << std::endl;
-            logging::err << error_msg.str();
+            std::cerr
+                << "\nDepth-oriented heuristic search has been misconfigured!\n"
+                << error_msg.str();
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
     }

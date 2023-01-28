@@ -2,8 +2,6 @@
 
 #include "probfd/policy_pickers/task_policy_picker_factory.h"
 
-#include "probfd/utils/logging.h"
-
 #include <sstream>
 
 namespace probfd {
@@ -36,7 +34,7 @@ MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
 void MDPHeuristicSearchBase::print_additional_statistics() const
 {
     if (policy_tiebreaker_) {
-        policy_tiebreaker_->print_statistics(logging::out);
+        policy_tiebreaker_->print_statistics(std::cout);
     }
     heuristic_->print_statistics();
 }

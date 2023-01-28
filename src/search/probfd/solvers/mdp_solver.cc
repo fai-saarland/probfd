@@ -2,8 +2,6 @@
 
 #include "probfd/reward_model.h"
 
-#include "probfd/utils/logging.h"
-
 #include "utils/timer.h"
 
 #include "heuristic.h"
@@ -44,8 +42,8 @@ MDPSolver::MDPSolver(const options::Options& opts)
 
 void MDPSolver::solve()
 {
-    logging::out << "Running MDP engine " << get_engine_name() << "..."
-                 << std::endl;
+    std::cout << "Running MDP engine " << get_engine_name() << "..."
+              << std::endl;
     utils::Timer total_timer;
     std::unique_ptr<engines::MDPEngineInterface<State>> engine(create_engine());
 
@@ -55,25 +53,22 @@ void MDPSolver::solve()
     progress_.print();
     total_timer.stop();
 
-    logging::out << "analysis done. [t=" << utils::g_timer << "]" << std::endl;
+    std::cout << "analysis done. [t=" << utils::g_timer << "]" << std::endl;
 
-    logging::out << std::endl;
-    logging::print_analysis_result(
-        val,
-        engine->supports_error_bound(),
-        engine->get_error(initial_state));
+    std::cout << std::endl;
 
-    logging::out << std::endl;
-    logging::out << "State space interface:" << std::endl;
-    logging::out << "  Registered state(s): " << state_registry_.size()
-                 << std::endl;
-    transition_generator_.print_statistics(logging::out);
+    print_analysis_result(val, engine->get_error(initial_state));
 
-    logging::out << std::endl;
-    logging::out << "Engine " << get_engine_name()
-                 << " statistics:" << std::endl;
-    logging::out << "  Actual solver time: " << total_timer << std::endl;
-    engine->print_statistics(logging::out);
+    std::cout << std::endl;
+    std::cout << "State space interface:" << std::endl;
+    std::cout << "  Registered state(s): " << state_registry_.size()
+              << std::endl;
+    transition_generator_.print_statistics(std::cout);
+
+    std::cout << std::endl;
+    std::cout << "Engine " << get_engine_name() << " statistics:" << std::endl;
+    std::cout << "  Actual solver time: " << total_timer << std::endl;
+    engine->print_statistics(std::cout);
 
     print_additional_statistics();
 }

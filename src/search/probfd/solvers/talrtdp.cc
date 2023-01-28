@@ -2,7 +2,6 @@
 #include "probfd/engines/trap_aware_lrtdp.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 #include "probfd/transition_samplers/task_transition_sampler_factory.h"
-#include "probfd/utils/logging.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -86,7 +85,7 @@ protected:
     {
         auto s = this->unwrap(successor_sampler_);
         if (s != nullptr) {
-            s->print_statistics(logging::out);
+            s->print_statistics(std::cout);
         }
         MDPHeuristicSearch<false, true>::print_additional_statistics();
     }

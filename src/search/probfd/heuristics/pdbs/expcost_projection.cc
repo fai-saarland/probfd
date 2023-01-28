@@ -7,7 +7,6 @@
 #include "probfd/engines/topological_value_iteration.h"
 
 #include "probfd/utils/graph_visualization.h"
-#include "probfd/utils/logging.h"
 
 #include "pdbs/pattern_database.h"
 
@@ -279,14 +278,14 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
         value_table);
 
 #if !defined(NDEBUG)
-    logging::out << "(II) Pattern [";
+    std::cout << "(II) Pattern [";
     for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
-        logging::out << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
+        std::cout << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
     }
 
-    logging::out << "]: value="
-                 << value_table[abstract_state_space_.initial_state_.id]
-                 << std::endl;
+    std::cout << "]: value="
+              << value_table[abstract_state_space_.initial_state_.id]
+              << std::endl;
 
 #if defined(USE_LP)
     verify(state_id_map, proper_states);

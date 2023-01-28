@@ -150,12 +150,7 @@ public:
         return val;
     }
 
-    virtual bool supports_error_bound() const override
-    {
-        return base_engine_->supports_error_bound();
-    }
-
-    virtual value_t get_error(const State& state) override
+    virtual std::optional<value_t> get_error(const State& state) override
     {
         return base_engine_->get_error(state);
     }

@@ -810,9 +810,6 @@ fast_downward_plugin(
 
         probfd/task_utils/task_properties
 
-        # Utility
-        probfd/utils/logging
-
         # Basic types
         probfd/evaluation_result
         probfd/value_type

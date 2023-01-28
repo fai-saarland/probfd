@@ -2,8 +2,6 @@
 
 #include "probfd/engines/lrtdp.h"
 
-#include "probfd/utils/logging.h"
-
 #include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/transition_samplers/task_transition_sampler_factory.h"
 
@@ -40,8 +38,8 @@ public:
     {
         if constexpr (Fret) {
             if (stop_consistent_ != TrialTerminationCondition::Consistent) {
-                logging::out << std::endl;
-                logging::out
+                std::cout << std::endl;
+                std::cout
                     << "Warning: LRTDP is run within FRET without "
                        "stop_consistent being enabled! LRTDP's trials may "
                        "get stuck in cycles."
@@ -68,7 +66,7 @@ protected:
     {
         auto ts = this->unwrap(successor_sampler_);
         if (ts != nullptr) {
-            ts->print_statistics(logging::out);
+            ts->print_statistics(std::cout);
         }
         MDPHeuristicSearch<Bisimulation, Fret>::print_additional_statistics();
     }

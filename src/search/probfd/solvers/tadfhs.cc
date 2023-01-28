@@ -1,7 +1,6 @@
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engines/trap_aware_dfhs.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
-#include "probfd/utils/logging.h"
 
 #include "option_parser.h"
 #include "plugin.h"

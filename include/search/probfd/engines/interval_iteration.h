@@ -94,9 +94,7 @@ public:
         return as_upper_bound(value_store_[state_id]);
     }
 
-    virtual bool supports_error_bound() const override { return true; }
-
-    virtual value_t get_error(const State& s) override
+    virtual std::optional<value_t> get_error(const State& s) override
     {
         const StateID state_id = this->get_state_id(s);
         return value_store_[state_id].length();

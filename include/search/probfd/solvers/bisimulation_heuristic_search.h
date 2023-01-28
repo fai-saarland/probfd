@@ -13,8 +13,6 @@
 #include "probfd/bisimulation/bisimilar_state_space.h"
 #include "probfd/bisimulation/engine_interfaces.h"
 
-#include "probfd/utils/logging.h"
-
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/task_proxy.h"
@@ -35,7 +33,7 @@ struct BisimulationTimer {
 
     BisimulationTimer()
     {
-        logging::out << "Building bisimulation..." << std::endl;
+        std::cout << "Building bisimulation..." << std::endl;
     }
 
     void print(std::ostream& out) const
@@ -85,17 +83,12 @@ public:
 
     virtual value_t solve(const State&) override
     {
-        logging::out << "Running " << engine_name_ << "..." << std::endl;
+        std::cout << "Running " << engine_name_ << "..." << std::endl;
         const value_t val = engine_->solve(bs->get_initial_state());
         return val;
     }
 
-    virtual bool supports_error_bound() const override
-    {
-        return engine_->supports_error_bound();
-    }
-
-    virtual value_t get_error(const State&) override
+    virtual std::optional<value_t> get_error(const State&) override
     {
         return engine_->get_error(bs->get_initial_state());
     }
@@ -129,11 +122,11 @@ protected:
         stats.states = bs->num_bisimilar_states();
         stats.transitions = bs->num_transitions();
 
-        logging::out << "Bisimulation built after " << stats.timer << std::endl;
-        logging::out << "Bisimilar state space contains "
-                     << bs->num_bisimilar_states() << " states and "
-                     << bs->num_transitions() << " transitions." << std::endl;
-        logging::out << std::endl;
+        std::cout << "Bisimulation built after " << stats.timer << std::endl;
+        std::cout << "Bisimilar state space contains "
+                  << bs->num_bisimilar_states() << " states and "
+                  << bs->num_transitions() << " transitions." << std::endl;
+        std::cout << std::endl;
     }
 
     const std::shared_ptr<ProbabilisticTask> task;

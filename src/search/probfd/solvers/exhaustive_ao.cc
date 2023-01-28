@@ -2,8 +2,6 @@
 
 #include "probfd/engines/exhaustive_ao.h"
 
-#include "probfd/utils/logging.h"
-
 #include "probfd/open_lists/task_open_list_factory.h"
 
 #include "option_parser.h"

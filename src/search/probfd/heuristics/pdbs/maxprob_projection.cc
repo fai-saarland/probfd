@@ -3,7 +3,6 @@
 #include "probfd/engines/interval_iteration.h"
 
 #include "probfd/utils/graph_visualization.h"
-#include "probfd/utils/logging.h"
 
 #include "pdbs/pattern_database.h"
 
@@ -140,15 +139,14 @@ void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
     }
 
 #if !defined(NDEBUG)
-    logging::out << "(II) Pattern [";
+    std::cout << "(II) Pattern [";
     for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
-        logging::out << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
+        std::cout << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
     }
 
-    logging::out
-        << "]: value="
-        << interval_value_table[abstract_state_space_.initial_state_.id]
-        << std::endl;
+    std::cout << "]: value="
+              << interval_value_table[abstract_state_space_.initial_state_.id]
+              << std::endl;
 
 #if defined(USE_LP)
     verify(state_id_map);

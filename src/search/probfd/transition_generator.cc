@@ -1,6 +1,5 @@
 #include "probfd/transition_generator.h"
 #include "probfd/task_proxy.h"
-#include "probfd/utils/logging.h"
 
 #include "algorithms/int_packer.h"
 
@@ -248,11 +247,10 @@ void TransitionGenerator<OperatorID>::print_statistics(std::ostream& out) const
 
 void TransitionGenerator<OperatorID>::Statistics::print(std::ostream& out) const
 {
-    out << logging::whitespace(2)
-        << "Applicable operators: " << generated_operators << " generated, "
+    out << "  Applicable operators: " << generated_operators << " generated, "
         << computed_operators << " computed, " << aops_generator_calls
         << " generator calls." << std::endl;
-    out << logging::whitespace(2) << "Generated " << generated_states
+    out << "  Generated " << generated_states
         << " successor state(s): " << computed_successors << " computed, "
         << single_transition_generator_calls << " single-transition calls, "
         << all_transitions_generator_calls << " all-transitions calls."

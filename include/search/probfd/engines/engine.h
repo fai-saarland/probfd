@@ -10,6 +10,7 @@
 #include "probfd/distribution.h"
 #include "probfd/value_utils.h"
 
+#include <optional>
 #include <vector>
 
 namespace probfd {
@@ -34,19 +35,13 @@ public:
     virtual value_t solve(const State& state) = 0;
 
     /**
-     * @brief Checks if the algorithm enforces an error bound on the computed
-     * value(s).
-     */
-    virtual bool supports_error_bound() const { return false; }
-
-    /**
      * @brief Returns the error bound on the value computed for a state, if the
-     * underlying engine supports it. It is an error to call this function if
-     * supports_error_bound() returns false.
-     *
-     * @see supports_error_bound()
+     * underlying engine supports it.
      */
-    virtual value_t get_error(const State&) { return 0; }
+    virtual std::optional<value_t> get_error(const State&)
+    {
+        return std::nullopt;
+    }
 
     /**
      * @brief Prints algorithm statistics to the specified std::ostream.

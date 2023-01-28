@@ -170,20 +170,15 @@ public:
     virtual ~HeuristicSearchBase() = default;
 
     /**
-     * @copydoc MDPEngineInterface<State>::supports_error_bound()
-     */
-    virtual bool supports_error_bound() const override { return UseInterval; }
-
-    /**
      * @copydoc MDPEngineInterface<State>::get_error()
      */
-    virtual value_t get_error(const State& s) override
+    virtual std::optional<value_t> get_error(const State& s) override
     {
         if constexpr (UseInterval) {
             const StateInfo& info = state_infos_[this->get_state_id(s)];
             return info.value.length();
         } else {
-            return std::numeric_limits<value_t>::infinity();
+            return std::nullopt;
         }
     }
 

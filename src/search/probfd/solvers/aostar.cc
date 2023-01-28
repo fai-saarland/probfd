@@ -2,8 +2,6 @@
 
 #include "probfd/engines/ao_star.h"
 
-#include "probfd/utils/logging.h"
-
 #include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/transition_samplers/task_transition_sampler_factory.h"
 
@@ -50,7 +48,7 @@ protected:
     {
         auto sampler = this->template unwrap<>(successor_sampler_);
         if (sampler != nullptr) {
-            sampler->print_statistics(logging::out);
+            sampler->print_statistics(std::cout);
         }
         MDPHeuristicSearch<Bisimulation, false>::print_additional_statistics();
     }

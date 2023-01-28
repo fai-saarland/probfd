@@ -9,8 +9,6 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/utils/logging.h"
-
 #include "probfd/progress_report.h"
 #include "probfd/value_type.h"
 
@@ -136,11 +134,11 @@ public:
     {
         statistics_ = Statistics();
 
-        logging::out << "Initializing I2-Dual..." << std::endl;
+        std::cout << "Initializing I2-Dual..." << std::endl;
 
         if (!std::dynamic_pointer_cast<reward_models::MaxProbRewardModel>(
                 g_reward_model)) {
-            logging::err
+            std::cerr
                 << "I2-Dual currently only supports goal probability analysis"
                 << std::endl;
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);

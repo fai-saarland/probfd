@@ -11,8 +11,6 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/utils/logging.h"
-
 #include "probfd/progress_report.h"
 #include "probfd/value_utils.h"
 
@@ -236,7 +234,7 @@ public:
         SearchNodeInformation& info = search_space_[stateid];
         if (!initialize_search_node(state, info)) {
         } else if (!push_state(stateid, info)) {
-            logging::out << "initial state is dead end!" << std::endl;
+            std::cout << "initial state is dead end!" << std::endl;
         } else {
             register_value_reports(&info);
             run_exploration();
@@ -245,16 +243,14 @@ public:
         return as_lower_bound(info.value);
     }
 
-    virtual bool supports_error_bound() const override { return false; }
-
-    virtual value_t get_error(const State& s) override
+    virtual std::optional<value_t> get_error(const State& s) override
     {
         if constexpr (UseInterval) {
             const SearchNodeInformation& info =
                 search_space_[this->get_state_id(s)];
             return std::abs(info.value.length());
         } else {
-            return std::numeric_limits<value_t>::infinity();
+            return std::nullopt;
         }
     }
 
