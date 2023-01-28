@@ -27,6 +27,8 @@ namespace probfd {
  *
  * This class should not be used directly to access the information of a
  * probabilistic planning task. To this end, use ProbabilisticTaskProxy.
+ *
+ * @see ProbabilisticTaskProxy
  */
 class ProbabilisticTask : public AbstractTaskBase {
 public:

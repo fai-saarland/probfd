@@ -17,10 +17,12 @@ template <typename>
 class OpenList;
 } // namespace engine_interfaces
 
+/// Factory interface for open lists.
 class TaskOpenListFactory {
 public:
     virtual ~TaskOpenListFactory() = default;
 
+    /// Creates a open list from a given state and action id map.
     virtual std::shared_ptr<engine_interfaces::OpenList<OperatorID>>
     create_open_list(
         engine_interfaces::StateIDMap<State>* state_id_map,

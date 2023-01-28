@@ -64,7 +64,6 @@ public:
      * @param state_id_map - The state id mapping (populated by the engine).
      * @param action_id_map - The action id mapping (populated by the engine).
      * @param reward_function - The reward interface.
-     * @param reward_bound - A bound on reward values.
      * @param transition_generator - The transition generator.
      */
     explicit MDPEngine(

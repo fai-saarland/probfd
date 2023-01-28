@@ -30,65 +30,47 @@ class ProbabilisticOutcomeProxy;
 class ProbabilisticOutcomesProxy;
 class ProbabilisticTaskProxy;
 
-/*
- * Proxy Iterator suppport
- */
+/// Returns the begin iterator of a proxy collection.
 template <class ProxyCollection>
 inline ProxyIterator<ProxyCollection> begin(ProxyCollection& collection)
 {
     return ProxyIterator<ProxyCollection>(collection, 0);
 }
 
+/// Returns the end iterator for a proxy collection.
 template <class ProxyCollection>
 inline ProxyIterator<ProxyCollection> end(ProxyCollection& collection)
 {
     return ProxyIterator<ProxyCollection>(collection, collection.size());
 }
 
-template <typename Derived>
-class ConditionsProxy {
-protected:
+/// Proxy class used to inspect the list of effect conditions of a conditional
+/// effect of a probabilistic operator. Can be used as a range of FactProxies,
+/// one for each effect condition.
+class ProbabilisticEffectConditionsProxy {
     const ProbabilisticTask* task;
 
-public:
-    using ItemType = FactProxy;
-    explicit ConditionsProxy(const ProbabilisticTask& task)
-        : task(&task)
-    {
-    }
-
-    std::size_t size() const
-    {
-        return static_cast<const Derived*>(this)->size();
-    }
-
-    FactProxy operator[](std::size_t index) const
-    {
-        return static_cast<const Derived*>(this)->operator[](index);
-    }
-
-    bool empty() const { return size() == 0; }
-};
-
-class ProbabilisticEffectConditionsProxy
-    : public ConditionsProxy<ProbabilisticEffectConditionsProxy> {
     int op_index;
     int outcome_index;
     int eff_index;
 
 public:
+    /// The item type for ProxyIterator to support usage as a range.
+    using ItemType = FactProxy;
+
     ProbabilisticEffectConditionsProxy(
         const ProbabilisticTask& task,
         int op_index,
         int outcome_index,
         int eff_index)
-        : ConditionsProxy<ProbabilisticEffectConditionsProxy>(task)
+        : task(&task)
         , op_index(op_index)
         , outcome_index(outcome_index)
         , eff_index(eff_index)
     {
     }
 
+    /// Returns the number of effect conditions.
     std::size_t size() const
     {
         return task->get_num_operator_outcome_effect_conditions(
@@ -97,6 +79,7 @@ public:
             eff_index);
     }
 
+    /// Accesses a specific effect condition by its list index.
     FactProxy operator[](std::size_t index) const
     {
         assert(index < size());
@@ -108,8 +91,13 @@ public:
                 eff_index,
                 index));
     }
+
+    /// Checks if the list of effect conditions is empty.
+    bool empty() const { return size() == 0; }
 };
 
+/// Proxy class used to inspect a probabilistic effect of a probabilistic
+/// operator.
 class ProbabilisticEffectProxy {
     const ProbabilisticTask* task;
     int op_index;
@@ -131,6 +119,7 @@ public:
 
     ~ProbabilisticEffectProxy() = default;
 
+    /// Get a proxy for the conditions of the probabilistic effect.
     ProbabilisticEffectConditionsProxy get_conditions() const
     {
         return ProbabilisticEffectConditionsProxy(
@@ -140,6 +129,7 @@ public:
             eff_index);
     }
 
+    /// Get a proxy for the established fact of the probabilistic effect.
     FactProxy get_fact() const
     {
         return FactProxy(
@@ -151,13 +141,18 @@ public:
     }
 };
 
+/// Proxy class used to inspect the list of probabilistic effects of a
+/// probabilistic operator. Can be used as a range of
+/// ProbabilisticEffectProxies, one for each probabilistic effect.
 class ProbabilisticEffectsProxy {
     const ProbabilisticTask* task;
     int op_index;
     int outcome_index;
 
 public:
+    /// The item type for ProxyIterator to support usage as a range.
     using ItemType = ProbabilisticEffectProxy;
+
     ProbabilisticEffectsProxy(
         const ProbabilisticTask& task,
         int op_index,
@@ -168,11 +163,13 @@ public:
     {
     }
 
+    /// Returns the number of probabilistic effects.
     std::size_t size() const
     {
         return task->get_num_operator_outcome_effects(op_index, outcome_index);
     }
 
+    /// Accesses a specific probabilistic effect by its list index.
     ProbabilisticEffectProxy operator[](std::size_t eff_index) const
     {
         assert(eff_index < size());
@@ -184,6 +181,8 @@ public:
     }
 };
 
+/// Proxy class used to inspect a single probabilistic outcome of a
+/// probabilistic operator.
 class ProbabilisticOutcomeProxy {
     const ProbabilisticTask* task;
     int op_index;
@@ -200,39 +199,49 @@ public:
     {
     }
 
+    /// Get the ID of this outcome's operator in the determinization.
     int get_determinization_id() const
     {
         return task->get_operator_outcome_id(op_index, outcome_index);
     }
 
+    /// Get a proxy to the probabilistic effects of this outcome.
     ProbabilisticEffectsProxy get_effects() const
     {
         return ProbabilisticEffectsProxy(*task, op_index, outcome_index);
     }
 
+    /// Get the probability of this outcome.
     value_t get_probability() const
     {
         return task->get_operator_outcome_probability(op_index, outcome_index);
     }
 };
 
+/// Proxy class used to inspect the list of probabilistic outcomes of a
+/// probabilistic operator. Can be used as a range of
+/// ProbabilisticOutcomeProxies, one for each probabilistic outcome.
 class ProbabilisticOutcomesProxy {
     const ProbabilisticTask* task;
     int op_index;
 
 public:
+    /// The item type for ProxyIterator to support usage as a range.
     using ItemType = ProbabilisticOutcomeProxy;
+
     ProbabilisticOutcomesProxy(const ProbabilisticTask& task, int op_index)
         : task(&task)
         , op_index(op_index)
     {
     }
 
+    /// Returns the number of outcomes of the probabilistic operator.
     std::size_t size() const
     {
         return task->get_num_operator_outcomes(op_index);
     }
 
+    /// Get a proxy to a specific outcome by its list index.
     ProbabilisticOutcomeProxy operator[](std::size_t eff_index) const
     {
         assert(eff_index < size());
@@ -240,6 +249,7 @@ public:
     }
 };
 
+/// Proxy class used to inspect a single probabilistic operator.
 class ProbabilisticOperatorProxy {
     const ProbabilisticTask* task;
     int index;
@@ -251,31 +261,38 @@ public:
     {
     }
 
+    /// Checks if two proxies reference the same probabilistic operator.
     bool operator==(const ProbabilisticOperatorProxy& other) const
     {
         assert(task == other.task);
         return index == other.index;
     }
 
+    /// Checks if two proxies reference the same probabilistic operator.
     bool operator!=(const ProbabilisticOperatorProxy& other) const
     {
         return !(*this == other);
     }
 
+    /// Get a proxy to the preconditions of the operator.
     OperatorPreconditionsProxy get_preconditions() const
     {
         return OperatorPreconditionsProxy(*task, index);
     }
 
+    /// Get a proxy to the outcomes of the operator.
     ProbabilisticOutcomesProxy get_outcomes() const
     {
         return ProbabilisticOutcomesProxy(*task, index);
     }
 
+    /// Get the reward of the operator.
     int get_reward() const { return task->get_operator_reward(index); }
 
+    /// Get the name of the operator.
     std::string get_name() const { return task->get_operator_name(index); }
 
+    /// Get the operator id of the operator.
     int get_id() const { return index; }
 
     /*
@@ -290,32 +307,42 @@ public:
     }
 };
 
+/// Proxy class used to inspect a list of probabilistic operators of a
+/// probabilistic task. Can be used as a range of ProbabilisticOperatorProxies,
+/// one for each probabilistic operator.
 class ProbabilisticOperatorsProxy {
     const ProbabilisticTask* task;
 
 public:
+    /// The item type for ProxyIterator to support usage as a range.
     using ItemType = ProbabilisticOperatorProxy;
+
     explicit ProbabilisticOperatorsProxy(const ProbabilisticTask& task)
         : task(&task)
     {
     }
 
+    /// Returns the number of probabilistic operators in the list.
     std::size_t size() const { return task->get_num_operators(); }
 
+    /// Checks if the list of operators is empty.
     bool empty() const { return size() == 0; }
 
+    /// Get a proxy for a specific probabilistic operator by list index.
     ProbabilisticOperatorProxy operator[](std::size_t index) const
     {
         assert(index < size());
         return ProbabilisticOperatorProxy(*task, index);
     }
 
+    /// Get a proxy for a specific probabilistic operator by operator id.
     ProbabilisticOperatorProxy operator[](OperatorID id) const
     {
         return (*this)[id.get_index()];
     }
 };
 
+/// Proxy class used to inspect a probabilistic planning task.
 class ProbabilisticTaskProxy : public TaskBaseProxy {
 public:
     explicit ProbabilisticTaskProxy(const ProbabilisticTask& task)
@@ -323,6 +350,7 @@ public:
     {
     }
 
+    /// Returns a proxy for the list of probabilistic operators.
     ProbabilisticOperatorsProxy get_operators() const
     {
         return ProbabilisticOperatorsProxy(
@@ -330,6 +358,7 @@ public:
     }
 };
 
+/// Checks if the conditions of a probabilistic effect are fulfilled in a state.
 inline bool
 does_fire(const ProbabilisticEffectProxy& effect, const State& state)
 {

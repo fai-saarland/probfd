@@ -5,7 +5,7 @@
 
 namespace probfd {
 
-/// This namespace contains implmenetations of transition successor samplers.
+/// This namespace contains implementations of transition successor samplers.
 namespace transition_samplers {
 
 class ArbitrarySuccessorSelector : public TaskTransitionSampler {

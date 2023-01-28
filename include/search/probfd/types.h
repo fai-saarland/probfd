@@ -7,6 +7,16 @@
 
 namespace probfd {
 
+/// Integer ID used to represent a state cheaply.
+
+/**
+ * @brief A StateID represents a state within a StateIDMap. Just like Fast
+ * Downward's StateID type, it is trivial to copy and intended for long term
+ * storage.
+ *
+ * @see StateIDMap
+ */
+
 struct StateID {
     using size_type = unsigned long long;
     static constexpr size_type undefined = -1;
@@ -21,6 +31,12 @@ struct StateID {
     size_type id;
 };
 
+/**
+ * @brief An ActionID represents an action within an ActionIDMap. It is trivial
+ * to copy and intended for long term storage.
+ *
+ * @see engine_interfaces::ActionIDMap
+ */
 struct ActionID {
     using size_type = std::make_unsigned_t<std::ptrdiff_t>;
     static constexpr size_type undefined = -1;

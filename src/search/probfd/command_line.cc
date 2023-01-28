@@ -11,7 +11,7 @@
 #include "probfd/reward_models/maxprob_reward_model.h"
 #include "probfd/reward_models/ssp_reward_model.h"
 
-#include "probfd/solvers/solver_interface.h"
+#include "probfd/solver_interface.h"
 
 #include "probfd/value_type.h"
 

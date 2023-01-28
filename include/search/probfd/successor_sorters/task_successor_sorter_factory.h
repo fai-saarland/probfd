@@ -17,10 +17,12 @@ template <typename>
 class SuccessorSorter;
 } // namespace engine_interfaces
 
+/// Factory interface for successor sorters.
 class TaskSuccessorSorterFactory {
 public:
     virtual ~TaskSuccessorSorterFactory() = default;
 
+    /// Creates a successor sorter from a given state and action id map.
     virtual std::shared_ptr<engine_interfaces::SuccessorSorter<OperatorID>>
     create_successor_sorter(
         engine_interfaces::StateIDMap<State>* state_id_map,

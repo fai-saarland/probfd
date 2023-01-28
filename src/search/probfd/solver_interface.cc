@@ -1,4 +1,4 @@
-#include "probfd/solvers/solver_interface.h"
+#include "probfd/solver_interface.h"
 
 #include "plugin.h"
 

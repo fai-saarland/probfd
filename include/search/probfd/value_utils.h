@@ -9,13 +9,13 @@
 
 namespace probfd {
 
-/// Equivalent to $|v_1 - v_2| <= \epsilon$
+/// Equivalent to \f$|v_1 - v_2| \leq \epsilon\f$
 bool is_approx_equal(value_t v1, value_t v2, value_t epsilon = g_epsilon);
 
-/// Equivalent to $v_1 - v_2 < -\epsilon$
+/// Equivalent to \f$v_2 - v_1 > \epsilon\f$
 bool is_approx_less(value_t v1, value_t v2, value_t epsilon = g_epsilon);
 
-/// Equivalent to $v_1 - v_2 > \epsilon$
+/// Equivalent to \f$v_1 - v_2 > \epsilon\f$
 bool is_approx_greater(value_t v1, value_t v2, value_t epsilon = g_epsilon);
 
 /// Represents a closed interval over the extended reals.
@@ -42,20 +42,20 @@ struct Interval {
     Interval& operator/=(value_t divisor);
 
     /**
-     * @brief Recieves two intervals $[a, b]$ and $[c, d]$ and computes the
-     * interval $[a + c, b + d]$.
+     * @brief Recieves two intervals \f$[a, b]\f$ and \f$[c, d]\f$ and computes
+     * the interval \f$[a + c, b + d]\f$.
      */
     friend Interval operator+(Interval lhs, Interval rhs);
 
     /**
-     * @brief Recieves two intervals $[a, b]$ and $[c, d]$ and computes the
-     * interval $[a - c, b - d]$.
+     * @brief Recieves two intervals \f$[a, b]\f$ and \f$[c, d]\f$ and computes
+     * the interval \f$[a - c, b - d]\f$.
      */
     friend Interval operator-(Interval lhs, Interval rhs);
 
     /**
-     * @brief Recieves a scaling factor $n$ and an interval $[a, b]$ and
-     * computes the interval $[n * a, n * b]$.
+     * @brief Recieves a scaling factor \f$n\f$ and an interval \f$[a, b]\f$ and
+     * computes the interval \f$[n * a, n * b]\f$.
      */
     friend Interval operator*(value_t scale_factor, Interval rhs);
 
@@ -65,10 +65,10 @@ struct Interval {
     friend Interval operator*(Interval lhs, value_t scale_factor);
 
     /**
-     * @brief Recieves a divisor $n$ and an interval $[a, b]$ and
-     * computes the interval $[a / n, b / n]$.
+     * @brief Recieves a divisor \f$n\f$ and an interval \f$[a, b]\f$ and
+     * computes the interval \f$[a / n, b / n]\f$.
      *
-     * @note The behaviour is undefined if $n$ is zero.
+     * @note The behaviour is undefined if \f$n\f$ is zero.
      */
     friend Interval operator/(Interval lhs, value_t inv_scale_factor);
 
@@ -93,7 +93,7 @@ struct Interval {
      */
     friend bool update(Interval& lhs, Interval rhs, bool check_upper);
 
-    /// Returns the length $b - a$ of the interval.
+    /// Returns the length \f$b - a\f$ of the interval.
     double length() const { return upper - lower; }
 
     /**

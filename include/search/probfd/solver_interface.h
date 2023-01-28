@@ -7,6 +7,8 @@
 #include <ostream>
 
 namespace probfd {
+
+/// An interface that describes an MDP solver.
 class SolverInterface {
 public:
     virtual ~SolverInterface() = default;

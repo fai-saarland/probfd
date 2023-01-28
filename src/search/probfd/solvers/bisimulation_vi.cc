@@ -1,5 +1,7 @@
 #include "probfd/reward_model.h"
 
+#include "probfd/solver_interface.h"
+
 #include "probfd/bisimulation/bisimilar_state_space.h"
 #include "probfd/bisimulation/engine_interfaces.h"
 
@@ -7,8 +9,6 @@
 #include "probfd/engines/topological_value_iteration.h"
 
 #include "probfd/heuristics/constant_evaluator.h"
-
-#include "probfd/solvers/solver_interface.h"
 
 #include "probfd/tasks/root_task.h"
 

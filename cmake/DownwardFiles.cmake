@@ -831,7 +831,8 @@ fast_downward_plugin(
         # Constant evaluator (default)
         probfd/heuristics/constant_evaluator
 
-        probfd/solvers/solver_interface
+        probfd/solver_interface
+        
         probfd/solvers/mdp_solver
     DEPENDS SUCCESSOR_GENERATOR
     CORE_PLUGIN

@@ -142,9 +142,6 @@ public:
     {
     }
 
-    /**
-     * @copydoc MDPEngineInterface::solve(const State& state)
-     */
     virtual value_t solve(const State& qstate) override
     {
         this->initialize_report(qstate);
@@ -157,9 +154,6 @@ public:
         return this->get_value(state_id);
     }
 
-    /**
-     * @copydoc MDPEngineInterface::print_statistics(std::ostream& out) const
-     */
     virtual void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);

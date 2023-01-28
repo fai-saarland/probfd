@@ -169,9 +169,6 @@ public:
 
     virtual ~HeuristicSearchBase() = default;
 
-    /**
-     * @copydoc MDPEngineInterface<State>::get_error()
-     */
     virtual std::optional<value_t> get_error(const State& s) override
     {
         if constexpr (UseInterval) {
@@ -182,9 +179,6 @@ public:
         }
     }
 
-    /**
-     * @copydoc MDPEngineInterface<State>::print_statistics(std::ostream&)
-     */
     virtual void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);

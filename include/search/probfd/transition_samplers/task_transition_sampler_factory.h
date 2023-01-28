@@ -18,10 +18,12 @@ template <typename>
 class TransitionSampler;
 } // namespace engine_interfaces
 
+/// Factory interface for transition samplers.
 class TaskTransitionSamplerFactory {
 public:
     virtual ~TaskTransitionSamplerFactory() = default;
 
+    /// Creates a transition sampler from a given state and action id map.
     virtual std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>
     create_sampler(
         engine_interfaces::StateIDMap<State>* state_id_map,

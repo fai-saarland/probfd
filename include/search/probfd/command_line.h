@@ -14,6 +14,7 @@ namespace probfd {
 
 class SolverInterface;
 
+/// Exception type for errors during command line parsing.
 class ArgError : public utils::Exception {
     std::string msg;
 
@@ -30,6 +31,8 @@ extern std::shared_ptr<SolverInterface> parse_cmd_line(
     bool dry_run,
     bool is_unit_cost);
 
+/// Returns a string documenting usage of the planner. Receives the
+/// program name as input.
 extern std::string usage(const std::string& progname);
 
 } // namespace probfd

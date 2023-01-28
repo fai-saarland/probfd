@@ -17,10 +17,12 @@ template <typename>
 class PolicyPicker;
 } // namespace engine_interfaces
 
+/// Factory interface for policy pickers.
 class TaskPolicyPickerFactory {
 public:
     virtual ~TaskPolicyPickerFactory() = default;
 
+    /// Creates a policy picker from a given state and action id map.
     virtual std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>>
     create_policy_tiebreaker(
         engine_interfaces::StateIDMap<State>* state_id_map,

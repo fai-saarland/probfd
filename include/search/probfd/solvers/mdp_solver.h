@@ -3,7 +3,7 @@
 
 #include "probfd/engines/engine.h"
 
-#include "probfd/solvers/solver_interface.h"
+#include "probfd/solver_interface.h"
 
 #include "probfd/action_id_map.h"
 #include "probfd/engine_interfaces/reward_function.h"
