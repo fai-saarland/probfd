@@ -90,8 +90,8 @@ void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
     IntervalIteration<StateRank, const AbstractOperator*> vi(
         &state_id_map,
         &action_id_map,
-        &cost,
         &transition_gen,
+        &cost,
         &heuristic,
         true,
         true);

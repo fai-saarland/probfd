@@ -259,7 +259,7 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
         abstract_state_space_.match_tree_);
 
     QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
-        analysis(&state_id_map, &action_id_map, &cost, &transition_gen, true);
+        analysis(&state_id_map, &action_id_map, &transition_gen, &cost, true);
 
     std::vector<StateID> proper_states;
 
@@ -273,7 +273,7 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
     state_id_map.clear();
 
     TopologicalValueIteration<StateRank, const AbstractOperator*>
-        vi(&state_id_map, &action_id_map, &cost, &transition_gen, &h, true);
+        vi(&state_id_map, &action_id_map, &transition_gen, &cost, &h, true);
 
     vi.solve(
         state_id_map.get_state_id(abstract_state_space_.initial_state_),

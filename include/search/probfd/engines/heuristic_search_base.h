@@ -144,8 +144,8 @@ public:
     explicit HeuristicSearchBase(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         engine_interfaces::StateEvaluator<State>* value_init,
@@ -155,8 +155,8 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              cost_function,
-              transition_generator)
+              transition_generator,
+              cost_function)
         , report_(report)
         , interval_comparison_(interval_comparison)
         , stable_policy_(stable_policy)

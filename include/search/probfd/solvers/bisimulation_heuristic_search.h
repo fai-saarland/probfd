@@ -68,8 +68,8 @@ public:
         res->engine_.reset(new HS<QState, QAction, Interval>(
             &res->state_id_map,
             &res->action_id_map,
-            res->cost.get(),
             res->tgen.get(),
+            res->cost.get(),
             res->policy_.get(),
             &res->new_state_handler_,
             res->heuristic_.get(),
@@ -208,8 +208,8 @@ public:
         auto* engine = new HS<QState, QQAction, Interval>(
             &res->state_id_map,
             res->q_action_id_map_.get(),
-            res->q_cost_.get(),
             res->q_transition_gen_.get(),
+            res->q_cost_.get(),
             res->q_policy_tiebreaker_.get(),
             &res->new_state_handler_,
             res->heuristic_.get(),
@@ -223,8 +223,8 @@ public:
         res->engine_.reset(new Fret<QState, QAction, Interval>(
             &res->state_id_map,
             &res->action_id_map,
-            res->cost.get(),
             res->tgen.get(),
+            res->cost.get(),
             res->quotient_.get(),
             &progress,
             engine));

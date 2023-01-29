@@ -95,16 +95,16 @@ public:
     explicit IDual(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         lp::LPSolverType solver_type,
         engine_interfaces::StateEvaluator<State>* value_initializer,
         ProgressReport* report)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              cost_function,
-              transition_generator)
+              transition_generator,
+              cost_function)
         , report_(report)
         , value_initializer_(value_initializer)
         , lp_solver_(solver_type)

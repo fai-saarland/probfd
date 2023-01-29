@@ -63,18 +63,18 @@ public:
      *
      * @param state_id_map - The state id mapping (populated by the engine).
      * @param action_id_map - The action id mapping (populated by the engine).
-     * @param cost_function - The cost function.
      * @param transition_generator - The transition generator.
+     * @param cost_function - The cost function.
      */
     explicit MDPEngine(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
-        engine_interfaces::TransitionGenerator<Action>* transition_generator)
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::CostFunction<State, Action>* cost_function)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
-        , cost_function_(cost_function)
         , transition_generator_(transition_generator)
+        , cost_function_(cost_function)
     {
     }
 
@@ -111,23 +111,6 @@ public:
     Action lookup_action(const StateID& sid, const ActionID& aid) const
     {
         return action_id_map_->get_action(sid, aid);
-    }
-
-    /**
-     * @brief Get the termination info for state \p s .
-     */
-    TerminationInfo get_termination_info(const State& s) const
-    {
-        return cost_function_->get_termination_info(s);
-    }
-
-    /**
-     * @brief Get the action cost for action \p a when applied in the state
-     * with id \p sid .
-     */
-    value_t get_action_cost(const StateID& sid, const Action& a) const
-    {
-        return cost_function_->get_action_cost(sid, a);
     }
 
     /**
@@ -169,6 +152,23 @@ public:
     }
 
     /**
+     * @brief Get the termination info for state \p s .
+     */
+    TerminationInfo get_termination_info(const State& s) const
+    {
+        return cost_function_->get_termination_info(s);
+    }
+
+    /**
+     * @brief Get the action cost for action \p a when applied in the state
+     * with id \p sid .
+     */
+    value_t get_action_cost(const StateID& sid, const Action& a) const
+    {
+        return cost_function_->get_action_cost(sid, a);
+    }
+
+    /**
      * @brief Get the state id map object.
      */
     engine_interfaces::StateIDMap<State>* get_state_id_map() const
@@ -185,14 +185,6 @@ public:
     }
 
     /**
-     * @brief Get the cost function.
-     */
-    engine_interfaces::CostFunction<State, Action>* get_cost_function() const
-    {
-        return cost_function_;
-    }
-
-    /**
      * @brief Get the transition generator.
      */
     engine_interfaces::TransitionGenerator<Action>*
@@ -201,11 +193,19 @@ public:
         return transition_generator_;
     }
 
+    /**
+     * @brief Get the cost function.
+     */
+    engine_interfaces::CostFunction<State, Action>* get_cost_function() const
+    {
+        return cost_function_;
+    }
+
 private:
     engine_interfaces::StateIDMap<State>* state_id_map_;
     engine_interfaces::ActionIDMap<Action>* action_id_map_;
-    engine_interfaces::CostFunction<State, Action>* cost_function_;
     engine_interfaces::TransitionGenerator<Action>* transition_generator_;
+    engine_interfaces::CostFunction<State, Action>* cost_function_;
 };
 
 } // namespace engines

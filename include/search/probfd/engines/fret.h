@@ -99,16 +99,16 @@ public:
     explicit FRET(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         QuotientSystem* quotient,
         ProgressReport* report,
         HeuristicSearchEngine<State, QAction, Interval>* engine)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              cost_function,
-              transition_generator)
+              transition_generator,
+              cost_function)
         , greedy_graph_(engine)
         , report_(report)
         , quotient_(quotient)

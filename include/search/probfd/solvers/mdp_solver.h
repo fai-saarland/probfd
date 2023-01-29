@@ -50,8 +50,8 @@ public:
         return new Engine(
             &state_id_map_,
             &action_id_map_,
-            cost_function_,
             &transition_generator_,
+            cost_function_,
             std::forward<Args>(args)...);
     }
 

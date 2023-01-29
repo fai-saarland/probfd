@@ -104,8 +104,8 @@ public:
     explicit I2Dual(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         ProgressReport* progress,
         engine_interfaces::StateEvaluator<State>* heuristic,
         bool hpom_enabled,
@@ -114,8 +114,8 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              cost_function,
-              transition_generator)
+              transition_generator,
+              cost_function)
         , task_proxy(*tasks::g_root_task)
         , progress_(progress)
         , heuristic_(heuristic)

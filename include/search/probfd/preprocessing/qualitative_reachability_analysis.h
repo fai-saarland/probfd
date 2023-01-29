@@ -182,15 +182,15 @@ public:
     QualitativeReachabilityAnalysis(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::CostFunction<State, Action>* costs,
         engine_interfaces::TransitionGenerator<Action>* transition_gen,
+        engine_interfaces::CostFunction<State, Action>* costs,
         bool expand_goals,
         const engine_interfaces::StateEvaluator<State>* pruning_function =
             nullptr)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
-        , costs_(costs)
         , transition_gen_(transition_gen)
+        , costs_(costs)
         , expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
     {
@@ -581,8 +581,8 @@ private:
 
     engine_interfaces::StateIDMap<State>* state_id_map_;
     engine_interfaces::ActionIDMap<Action>* action_id_map_;
-    engine_interfaces::CostFunction<State, Action>* costs_;
     engine_interfaces::TransitionGenerator<Action>* transition_gen_;
+    engine_interfaces::CostFunction<State, Action>* costs_;
 
     bool expand_goals_;
 

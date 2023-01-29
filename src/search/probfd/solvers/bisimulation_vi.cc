@@ -91,8 +91,8 @@ public:
                 IntervalIteration<QState, QAction>(
                     &state_id_map,
                     &action_id_map,
-                    &cost,
                     &tgen,
+                    &cost,
                     nullptr,
                     false,
                     false);
@@ -102,8 +102,8 @@ public:
                 TopologicalValueIteration<QState, QAction>(
                     &state_id_map,
                     &action_id_map,
-                    &cost,
                     &tgen,
+                    &cost,
                     &initializer,
                     false);
         }

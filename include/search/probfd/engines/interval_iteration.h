@@ -68,16 +68,16 @@ public:
     explicit IntervalIteration(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         const engine_interfaces::StateEvaluator<State>* prune,
         bool extract_probability_one_states,
         bool expand_goals)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              cost_function,
-              transition_generator)
+              transition_generator,
+              cost_function)
         , prune_(prune)
         , extract_probability_one_states_(extract_probability_one_states)
         , expand_goals_(expand_goals)
@@ -140,8 +140,8 @@ private:
         Decomposer ec_decomposer(
             this->get_state_id_map(),
             this->get_action_id_map(),
-            this->get_cost_function(),
             this->get_transition_generator(),
+            this->get_cost_function(),
             expand_goals_,
             prune_);
 
@@ -171,8 +171,8 @@ private:
         preprocessing::QualitativeReachabilityAnalysis<State, QAction> analysis(
             this->get_state_id_map(),
             &q_action_id_map,
-            &q_cost,
             &q_transition_gen,
+            &q_cost,
             expand_goals_);
 
         if (extract_probability_one_states_) {
@@ -201,8 +201,8 @@ private:
         ValueIteration vi(
             this->get_state_id_map(),
             &q_action_id_map,
-            &q_cost,
             &q_transition_gen,
+            &q_cost,
             prune_,
             expand_goals_);
 

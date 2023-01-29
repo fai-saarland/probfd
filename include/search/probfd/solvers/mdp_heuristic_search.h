@@ -171,8 +171,8 @@ public:
             return new HS<State, QAction, true>(
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
-                q_cost_.get(),
                 q_transition_gen_.get(),
+                q_cost_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -185,8 +185,8 @@ public:
             return new HS<State, QAction, false>(
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
-                q_cost_.get(),
                 q_transition_gen_.get(),
+                q_cost_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 heuristic_.get(),
@@ -239,8 +239,8 @@ private:
         return new HS<State, QAction, Interval>(
             this->get_state_id_map(),
             q_action_id_map_.get(),
-            q_cost_.get(),
             q_transition_gen_.get(),
+            q_cost_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
             heuristic_.get(),
@@ -269,8 +269,8 @@ private:
         return new FretVariant(
             this->get_state_id_map(),
             this->get_action_id_map(),
-            this->get_cost_function(),
             this->get_transition_generator(),
+            this->get_cost_function(),
             quotient_.get(),
             &progress_,
             engine);
