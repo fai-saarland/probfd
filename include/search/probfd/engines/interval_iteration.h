@@ -68,7 +68,7 @@ public:
     explicit IntervalIteration(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         const engine_interfaces::StateEvaluator<State>* prune,
         bool extract_probability_one_states,
@@ -76,7 +76,7 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator)
         , prune_(prune)
         , extract_probability_one_states_(extract_probability_one_states)
@@ -140,7 +140,7 @@ private:
         Decomposer ec_decomposer(
             this->get_state_id_map(),
             this->get_action_id_map(),
-            this->get_reward_function(),
+            this->get_cost_function(),
             this->get_transition_generator(),
             expand_goals_,
             prune_);
@@ -163,15 +163,15 @@ private:
         using namespace engine_interfaces;
 
         TransitionGenerator<QAction> q_transition_gen(sys);
-        quotients::DefaultQuotientRewardFunction<State, Action> q_reward(
+        quotients::DefaultQuotientCostFunction<State, Action> q_cost(
             sys,
-            this->get_reward_function());
+            this->get_cost_function());
         ActionIDMap<QAction> q_action_id_map(sys);
 
         preprocessing::QualitativeReachabilityAnalysis<State, QAction> analysis(
             this->get_state_id_map(),
             &q_action_id_map,
-            &q_reward,
+            &q_cost,
             &q_transition_gen,
             expand_goals_);
 
@@ -180,9 +180,9 @@ private:
                 state,
                 std::back_inserter(dead_ends),
                 std::back_inserter(one_states));
-            assert(
-                this->get_state_reward(this->lookup_state(one_states.front()))
-                    .is_goal_state());
+            assert(this->get_termination_info(
+                           this->lookup_state(one_states.front()))
+                       .is_goal_state());
         } else {
             analysis.run_analysis(
                 state,
@@ -201,7 +201,7 @@ private:
         ValueIteration vi(
             this->get_state_id_map(),
             &q_action_id_map,
-            &q_reward,
+            &q_cost,
             &q_transition_gen,
             prune_,
             expand_goals_);

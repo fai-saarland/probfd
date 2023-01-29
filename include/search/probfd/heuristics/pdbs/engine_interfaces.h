@@ -6,7 +6,7 @@
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 
 #include "probfd/engine_interfaces/action_id_map.h"
-#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
@@ -99,8 +99,8 @@ namespace heuristics {
 namespace pdbs {
 
 using StateRankEvaluator = engine_interfaces::StateEvaluator<StateRank>;
-using AbstractRewardFunction =
-    engine_interfaces::RewardFunction<StateRank, const AbstractOperator*>;
+using AbstractCostFunction =
+    engine_interfaces::CostFunction<StateRank, const AbstractOperator*>;
 
 class QualitativeResultStore;
 
@@ -154,14 +154,14 @@ public:
     EvaluationResult evaluate(const StateRank& state) const override;
 };
 
-class BaseAbstractRewardFunction : public AbstractRewardFunction {
+class BaseAbstractCostFunction : public AbstractCostFunction {
 protected:
     const std::vector<bool>& goal_state_flags_;
     const value_t value_in_;
     const value_t value_not_in_;
 
 public:
-    explicit BaseAbstractRewardFunction(
+    explicit BaseAbstractCostFunction(
         const std::vector<bool>& goal_state_flags,
         value_t value_in,
         value_t value_not_in)
@@ -180,23 +180,23 @@ public:
     }
 };
 
-class ZeroCostAbstractRewardFunction : public BaseAbstractRewardFunction {
+class ZeroCostAbstractCostFunction : public BaseAbstractCostFunction {
 public:
-    using BaseAbstractRewardFunction::BaseAbstractRewardFunction;
+    using BaseAbstractCostFunction::BaseAbstractCostFunction;
 
-    value_t get_action_reward(StateID, const AbstractOperator*) override
+    value_t get_action_cost(StateID, const AbstractOperator*) override
     {
         return 0;
     }
 };
 
-class NormalCostAbstractRewardFunction : public BaseAbstractRewardFunction {
+class NormalCostAbstractCostFunction : public BaseAbstractCostFunction {
 public:
-    using BaseAbstractRewardFunction::BaseAbstractRewardFunction;
+    using BaseAbstractCostFunction::BaseAbstractCostFunction;
 
-    value_t get_action_reward(StateID, const AbstractOperator* op) override
+    value_t get_action_cost(StateID, const AbstractOperator* op) override
     {
-        return op->reward;
+        return op->cost;
     }
 };
 

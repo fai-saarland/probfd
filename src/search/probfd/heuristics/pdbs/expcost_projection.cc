@@ -43,7 +43,7 @@ public:
             return parent.evaluate(state);
         }
 
-        return EvaluationResult{true, -INFINITE_VALUE};
+        return EvaluationResult{true, INFINITE_VALUE};
     }
 };
 } // namespace
@@ -82,7 +82,7 @@ ExpCostProjection::ExpCostProjection(
           task_proxy,
           utils::insert(pdb.get_pattern(), add_var),
           operator_pruning,
-          -INFINITE_VALUE)
+          INFINITE_VALUE)
 {
     compute_value_table(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
@@ -97,7 +97,7 @@ ExpCostProjection::ExpCostProjection(
           task_proxy,
           mapper,
           operator_pruning,
-          -INFINITE_VALUE)
+          INFINITE_VALUE)
 {
     compute_value_table(heuristic);
 }
@@ -110,7 +110,7 @@ EvaluationResult ExpCostProjection::evaluate(const State& s) const
 EvaluationResult ExpCostProjection::evaluate(const StateRank& s) const
 {
     const auto v = this->lookup(s);
-    return {v == -INFINITE_VALUE, v};
+    return {v == INFINITE_VALUE, v};
 }
 
 AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
@@ -119,7 +119,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 {
     AbstractPolicy policy(state_mapper_->num_states());
 
-    assert(lookup(abstract_state_space_.initial_state_) != -INFINITE_VALUE);
+    assert(lookup(abstract_state_space_.initial_state_) != INFINITE_VALUE);
 
     if (abstract_state_space_
             .goal_state_flags_[abstract_state_space_.initial_state_.id]) {
@@ -143,7 +143,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
         abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
 
         if (aops.empty()) {
-            assert(value == -INFINITE_VALUE);
+            assert(value == INFINITE_VALUE);
             continue;
         }
 
@@ -155,7 +155,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
 
         // Select first greedy operator
         for (const AbstractOperator* op : aops) {
-            value_t op_value = op->reward;
+            value_t op_value = op->cost;
 
             std::vector<StateRank> successors;
 
@@ -218,7 +218,7 @@ void ExpCostProjection::dump_graphviz(
         out << x.id;
 
         const auto v = value_table[x.id];
-        if (v == -INFINITE_VALUE) {
+        if (v == INFINITE_VALUE) {
             out << "\\nh = -&infin;";
         } else {
             out << "\\nh = " << v;
@@ -227,15 +227,15 @@ void ExpCostProjection::dump_graphviz(
         return out.str();
     };
 
-    NormalCostAbstractRewardFunction reward(
+    NormalCostAbstractCostFunction cost(
         abstract_state_space_.goal_state_flags_,
         0_vt,
-        -INFINITE_VALUE);
+        INFINITE_VALUE);
 
     ProbabilisticProjection::dump_graphviz(
         path,
         s2str,
-        reward,
+        cost,
         transition_labels);
 }
 
@@ -245,10 +245,10 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
     using namespace engine_interfaces;
     using namespace engines::topological_vi;
 
-    NormalCostAbstractRewardFunction reward(
+    NormalCostAbstractCostFunction cost(
         abstract_state_space_.goal_state_flags_,
         0_vt,
-        -INFINITE_VALUE);
+        INFINITE_VALUE);
 
     StateIDMap<StateRank> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(
@@ -259,7 +259,7 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
         abstract_state_space_.match_tree_);
 
     QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
-        analysis(&state_id_map, &action_id_map, &reward, &transition_gen, true);
+        analysis(&state_id_map, &action_id_map, &cost, &transition_gen, true);
 
     std::vector<StateID> proper_states;
 
@@ -273,7 +273,7 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
     state_id_map.clear();
 
     TopologicalValueIteration<StateRank, const AbstractOperator*>
-        vi(&state_id_map, &action_id_map, &reward, &transition_gen, &h, true);
+        vi(&state_id_map, &action_id_map, &cost, &transition_gen, &h, true);
 
     vi.solve(
         state_id_map.get_state_id(abstract_state_space_.initial_state_),
@@ -329,7 +329,7 @@ void ExpCostProjection::verify(
     for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
-        variables.emplace_back(-inf, 0_vt, 0_vt);
+        variables.emplace_back(0_vt, inf, 0_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
@@ -361,7 +361,7 @@ void ExpCostProjection::verify(
 
         // Push successors
         for (const AbstractOperator* op : aops) {
-            value_t reward = op->reward;
+            value_t cost = op->cost;
 
             std::unordered_map<StateRank, value_t> successor_dist;
 
@@ -376,7 +376,7 @@ void ExpCostProjection::verify(
 
             successor_dist[s] += 1_vt;
 
-            auto& constr = constraints.emplace_back(reward, inf);
+            auto& constr = constraints.emplace_back(-inf, cost);
 
             for (const auto& [succ, prob] : successor_dist) {
                 constr.insert(succ.id, prob);
@@ -392,7 +392,7 @@ void ExpCostProjection::verify(
     assert(visited.empty());
 
     solver.load_problem(lp::LinearProgram(
-        lp::LPObjectiveSense::MINIMIZE,
+        lp::LPObjectiveSense::MAXIMIZE,
         std::move(variables),
         std::move(constraints),
         inf));
@@ -410,7 +410,7 @@ void ExpCostProjection::verify(
             utils::contains(seen, s)) {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {
-            assert(value_table[s.id] == -INFINITE_VALUE);
+            assert(value_table[s.id] == INFINITE_VALUE);
         }
     }
 }

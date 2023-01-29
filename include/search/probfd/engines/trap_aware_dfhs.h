@@ -96,7 +96,7 @@ public:
     DepthFirstHeuristicSearch(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<QAction>* action_id_map,
-        engine_interfaces::RewardFunction<State, QAction>* reward_function,
+        engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::TransitionGenerator<QAction>* transition_generator,
         engine_interfaces::PolicyPicker<QAction>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
@@ -117,7 +117,7 @@ public:
         : HeuristicSearchBase(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator,
               policy_chooser,
               new_state_handler,
@@ -175,7 +175,7 @@ private:
         /// were all reached outside-SCC states marked dead end?
         bool dead = true;
         /// are there any outside-SCC states reachable, and do all transitions
-        /// within the SCC generate 0-reward?
+        /// within the SCC generate 0-cost?
         bool is_trap = true;
 
         void clear()
@@ -273,7 +273,7 @@ private:
 
         assert(!info.successors.empty());
         transition_.clear();
-        info.flags.is_trap = has_zero_reward_;
+        info.flags.is_trap = has_zero_cost_;
     }
 
     bool push_state(const StateID& state, StateInfo& state_info, Flags& flags)
@@ -303,14 +303,14 @@ private:
                 flags.complete = false;
                 return false;
             }
-            has_zero_reward_ =
-                this->get_action_reward(
+            has_zero_cost_ =
+                this->get_action_cost(
                     state,
                     this->lookup_action(state, greedy_action)) == 0;
         } else {
             QAction action = this->get_policy(state);
             this->generate_successors(state, action, transition_);
-            has_zero_reward_ = this->get_action_reward(state, action) == 0;
+            has_zero_cost_ = this->get_action_cost(state, action) == 0;
         }
 
         enqueue(state);
@@ -360,9 +360,9 @@ private:
         }
 
         flags.clear();
-        has_zero_reward_ = this->get_action_reward(
-                               state,
-                               this->lookup_action(state, greedy_action)) == 0;
+        has_zero_cost_ = this->get_action_cost(
+                             state,
+                             this->lookup_action(state, greedy_action)) == 0;
         enqueue(state);
         return true;
     }
@@ -638,7 +638,7 @@ private:
     storage::StateHashMap<int> stack_index_;
 
     Distribution<StateID> transition_;
-    bool has_zero_reward_;
+    bool has_zero_cost_;
 
     internal::Statistics statistics_;
 };

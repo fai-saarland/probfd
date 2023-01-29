@@ -1,7 +1,7 @@
 #ifndef PROBFD_UTILS_GRAPH_VISUALIZATION_H
 #define PROBFD_UTILS_GRAPH_VISUALIZATION_H
 
-#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
@@ -297,7 +297,7 @@ void dump_state_space_dot_graph(
     const State& initial_state,
     engine_interfaces::StateIDMap<State>* state_id_map,
     engine_interfaces::TransitionGenerator<Action>* transition_gen,
-    engine_interfaces::RewardFunction<State, Action>* reward_fn,
+    engine_interfaces::CostFunction<State, Action>* cost_fn,
     engine_interfaces::StateEvaluator<State>* prune = nullptr,
     std::function<std::string(const State&)> sstr =
         [](const State&) { return ""; },
@@ -339,7 +339,7 @@ void dump_state_space_dot_graph(
         node->setAttribute("label", sstr(state));
         node->setAttribute("shape", "circle");
 
-        const auto rew = reward_fn->get_termination_info(state);
+        const auto rew = cost_fn->get_termination_info(state);
         bool expand = expand_terminal || !rew.is_goal_state();
 
         if (rew.is_goal_state()) {
@@ -388,9 +388,9 @@ void dump_state_space_dot_graph(
             transitions.end());
 
         for (const auto& [act, successors] : transitions) {
-            const auto a_reward = reward_fn->get_action_reward(state_id, act);
-            if (a_reward != 0_vt) {
-                ss << a_reward << "\\n";
+            const auto a_cost = cost_fn->get_action_cost(state_id, act);
+            if (a_cost != 0_vt) {
+                ss << a_cost << "\\n";
             }
             ss << astr(act);
             std::string label_text = ss.str();

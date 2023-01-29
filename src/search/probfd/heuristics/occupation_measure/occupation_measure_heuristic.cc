@@ -6,7 +6,7 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 
-#include "probfd/reward_models/maxprob_reward_model.h"
+#include "probfd/cost_models/maxprob_cost_model.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -115,7 +115,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
     // Variable representing total inflow to artificial goal
     // Maximized in MaxProb, must be constant 1 for SSPs
-    lp_vars.emplace_back(maxprob ? 0 : 1, 1, maxprob ? 1 : 0);
+    lp_vars.emplace_back(maxprob ? 0 : 1, 1, maxprob ? -1 : 0);
 
     std::vector<int> the_goal = get_goal_explicit(task_proxy);
 
@@ -143,7 +143,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
     // Now ordinary actions
     for (const ProbabilisticOperatorProxy& op : task_proxy.get_operators()) {
-        const auto reward = maxprob ? 0 : op.get_reward();
+        const auto cost = maxprob ? 0 : op.get_cost();
 
         // Get dense precondition
         const std::vector<int> pre = get_precondition_explicit(task_proxy, op);
@@ -219,7 +219,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
             // Set objective coefficients for occ. measures of first projection
             for (int i = base_range.first; i < base_range.second; ++i) {
-                lp_vars[i].objective_coefficient = reward;
+                lp_vars[i].objective_coefficient = cost;
             }
 
             for (std::size_t j = 1; j < tieing_equality.size(); ++j) {
@@ -244,8 +244,8 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
     : TaskDependentHeuristic(opts)
     , lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
     , is_maxprob_(
-          std::dynamic_pointer_cast<reward_models::MaxProbRewardModel>(
-              g_reward_model) != nullptr)
+          std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
+              g_cost_model) != nullptr)
 {
     std::cout << "Initializing projection occupation measure heuristic ..."
               << std::endl;
@@ -263,7 +263,7 @@ ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
         is_maxprob_);
 
     lp_solver_.load_problem(lp::LinearProgram(
-        lp::LPObjectiveSense::MAXIMIZE,
+        lp::LPObjectiveSense::MINIMIZE,
         std::move(lp_vars),
         std::move(constraints),
         lp_solver_.get_infinity()));
@@ -291,13 +291,11 @@ ProjectionOccupationMeasureHeuristic::evaluate(const State& state) const
 
         const double estimate = lp_solver_.get_objective_value();
         result = EvaluationResult(estimate == 0_vt, estimate);
-
     } else {
         bool was_feasible = lp_solver_.has_optimal_solution();
 
-        // Costs are negative rewards, return negative solution.
         const double estimate =
-            was_feasible ? lp_solver_.get_objective_value() : -INFINITE_VALUE;
+            was_feasible ? lp_solver_.get_objective_value() : INFINITE_VALUE;
         result = EvaluationResult(!was_feasible, estimate);
     }
 

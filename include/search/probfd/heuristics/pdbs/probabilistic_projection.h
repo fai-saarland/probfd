@@ -86,7 +86,7 @@ protected:
     void dump_graphviz(
         const std::string& path,
         std::function<std::string(const StateRank&)> sts,
-        AbstractRewardFunction& rewards,
+        AbstractCostFunction& costs,
         bool transition_labels) const;
 };
 

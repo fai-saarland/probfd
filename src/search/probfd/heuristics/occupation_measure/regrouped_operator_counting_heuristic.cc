@@ -6,7 +6,7 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 
-#include "probfd/reward_models/maxprob_reward_model.h"
+#include "probfd/cost_models/maxprob_cost_model.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -48,8 +48,8 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     : TaskDependentHeuristic(opts)
     , lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
     , is_maxprob(
-          std::dynamic_pointer_cast<reward_models::MaxProbRewardModel>(
-              g_reward_model) != nullptr)
+          std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
+              g_cost_model) != nullptr)
 {
     ::task_properties::verify_no_axioms(task_proxy);
     task_properties::verify_no_conditional_effects(task_proxy);
@@ -87,7 +87,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 
     // Insert flow absorption variable into goal fact constraints
     if (is_maxprob) {
-        lp_vars.emplace_back(0, 1, 1);
+        lp_vars.emplace_back(0, 1, -1);
     } else {
         lp_vars.emplace_back(1, 1, 0);
     }
@@ -98,7 +98,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     }
 
     for (const ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
-        const int reward = is_maxprob ? 0_vt : op.get_reward();
+        const int cost = is_maxprob ? 0_vt : op.get_cost();
 
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 
@@ -117,7 +117,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
             const int lp_var = lp_vars.size();
 
             // introduce variable Y_{a,e}
-            lp_vars.emplace_back(0, inf, reward);
+            lp_vars.emplace_back(0, inf, cost);
 
             for (const auto& effect : outcome.get_effects()) {
                 const FactProxy fact = effect.get_fact();
@@ -150,7 +150,7 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     }
 
     lp_solver_.load_problem(lp::LinearProgram(
-        lp::LPObjectiveSense::MAXIMIZE,
+        lp::LPObjectiveSense::MINIMIZE,
         std::move(lp_vars),
         std::move(constraints),
         inf));
@@ -180,7 +180,7 @@ RegroupedOperatorCountingHeuristic::evaluate(const State& state) const
         bool was_feasible = lp_solver_.has_optimal_solution();
         assert(lp_solver_.has_optimal_solution());
         const double estimate =
-            was_feasible ? lp_solver_.get_objective_value() : -INFINITE_VALUE;
+            was_feasible ? lp_solver_.get_objective_value() : INFINITE_VALUE;
         result = EvaluationResult(!was_feasible, estimate);
     }
 

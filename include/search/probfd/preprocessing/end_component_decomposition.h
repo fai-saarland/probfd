@@ -5,7 +5,7 @@
 #include "utils/timer.h"
 
 #include "probfd/engine_interfaces/action_id_map.h"
-#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
@@ -79,7 +79,7 @@ struct ECDStatistics {
  * \in E(s)\f$ and \f$\Pr(t \mid s, a) > 0\f$, then \f$t \in S\f$.
  *
  * A <em>zero EC</em> is an end component which only contains actions that have
- * a reward of zero. Furthermore, a <em>maximal end component</em> (MEC) is an
+ * a cost of zero. Furthermore, a <em>maximal end component</em> (MEC) is an
  * end component that is maximal with respect to set inclusion.
  *
  * This algorithm computes all maximal zero ECs of the MDP in time O(m*n),
@@ -140,11 +140,11 @@ class EndComponentDecomposition {
             std::vector<Action> aops,
             std::vector<std::vector<StateID>> successors,
             StateID state_id,
-            engine_interfaces::RewardFunction<State, Action>& rew)
+            engine_interfaces::CostFunction<State, Action>& rew)
             : stck(stck)
             , lstck(stck)
             , nz_or_leaves_scc(
-                  rew.get_action_reward(state_id, aops.back()) != 0_vt)
+                  rew.get_action_cost(state_id, aops.back()) != 0_vt)
             , aops(std::move(aops))
             , successors(std::move(successors))
         {
@@ -161,7 +161,7 @@ class EndComponentDecomposition {
 
         bool next_action(
             StateID state_id,
-            engine_interfaces::RewardFunction<State, Action>& rew)
+            engine_interfaces::CostFunction<State, Action>& rew)
         {
             assert(aops.size() == successors.size());
             aops.pop_back();
@@ -169,7 +169,7 @@ class EndComponentDecomposition {
 
             if (!aops.empty()) {
                 nz_or_leaves_scc =
-                    rew.get_action_reward(state_id, aops.back()) != 0_vt;
+                    rew.get_action_cost(state_id, aops.back()) != 0_vt;
                 return true;
             }
 
@@ -191,11 +191,11 @@ class EndComponentDecomposition {
         const unsigned stck;
         unsigned lstck;
 
-        // whether the transition has non-zero reward or can leave the scc
+        // whether the transition has non-zero cost or can leave the scc
         bool nz_or_leaves_scc;
 
         // recursive decomposition flag
-        // Recursively decompose the SCC if there is a zero-reward transition
+        // Recursively decompose the SCC if there is a zero-cost transition
         // in it that can leave and remain in the scc.
         bool recurse = false;
 
@@ -223,13 +223,13 @@ public:
     EndComponentDecomposition(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* rewards,
+        engine_interfaces::CostFunction<State, Action>* costs,
         engine_interfaces::TransitionGenerator<Action>* transition_gen,
         bool expand_goals,
         const engine_interfaces::StateEvaluator<State>* pruning_function =
             nullptr)
         : state_id_map_(state_id_map)
-        , rewards_(rewards)
+        , costs_(costs)
         , transition_gen_(transition_gen)
         , expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
@@ -282,7 +282,7 @@ private:
         state_info.explored = 1;
         State state = state_id_map_->get_state(state_id);
 
-        if (rewards_->get_termination_info(state).is_goal_state()) {
+        if (costs_->get_termination_info(state).is_goal_state()) {
             ++stats_.terminals;
             ++stats_.goals;
 
@@ -360,7 +360,7 @@ private:
             std::move(aops),
             std::move(successors),
             state_id,
-            *rewards_);
+            *costs_);
 
         state_info.stackid_ = stack_.size();
         stack_.emplace_back(state_id);
@@ -464,7 +464,7 @@ private:
                 bool next_action;
 
                 if constexpr (RootIteration) {
-                    next_action = e->next_action(s->stateid, *rewards_);
+                    next_action = e->next_action(s->stateid, *costs_);
                 } else {
                     next_action = e->next_action();
                 }
@@ -526,7 +526,7 @@ private:
             bool next_action;
 
             if constexpr (RootIteration) {
-                next_action = e.next_action(s.stateid, *rewards_);
+                next_action = e.next_action(s.stateid, *costs_);
             } else {
                 next_action = e.next_action();
             }
@@ -644,7 +644,7 @@ private:
     }
 
     engine_interfaces::StateIDMap<State>* state_id_map_;
-    engine_interfaces::RewardFunction<State, Action>* rewards_;
+    engine_interfaces::CostFunction<State, Action>* costs_;
     engine_interfaces::TransitionGenerator<Action>* transition_gen_;
 
     bool expand_goals_;

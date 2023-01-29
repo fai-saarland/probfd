@@ -72,7 +72,7 @@ Interval operator/(Interval rhs, value_t val)
 
 int approx_compare(Interval lhs, Interval rhs, value_t epsilon)
 {
-    return approx_compare(lhs.lower, rhs.lower, epsilon);
+    return approx_compare(lhs.upper, rhs.upper, epsilon);
 }
 
 int approx_compare(value_t v1, value_t v2, value_t epsilon)
@@ -95,10 +95,10 @@ bool update(Interval& lhs, Interval rhs, bool check_upper)
     return result;
 }
 
-void set_max(Interval& new_value, Interval tval)
+void set_min(Interval& new_value, Interval tval)
 {
-    new_value.lower = std::max(tval.lower, new_value.lower);
-    new_value.upper = std::max(tval.upper, new_value.upper);
+    new_value.lower = std::min(tval.lower, new_value.lower);
+    new_value.upper = std::min(tval.upper, new_value.upper);
 }
 
 bool operator==(Interval lhs, Interval rhs)
@@ -128,9 +128,9 @@ bool update(value_t& lhs, value_t rhs)
     return result;
 }
 
-void set_max(value_t& new_value, value_t tval)
+void set_min(value_t& new_value, value_t tval)
 {
-    new_value = std::max(tval, new_value);
+    new_value = std::min(tval, new_value);
 }
 
 value_t as_lower_bound(value_t single)

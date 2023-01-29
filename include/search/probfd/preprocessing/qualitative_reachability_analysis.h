@@ -5,7 +5,7 @@
 #include "utils/timer.h"
 
 #include "probfd/engine_interfaces/action_id_map.h"
-#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
@@ -182,14 +182,14 @@ public:
     QualitativeReachabilityAnalysis(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* rewards,
+        engine_interfaces::CostFunction<State, Action>* costs,
         engine_interfaces::TransitionGenerator<Action>* transition_gen,
         bool expand_goals,
         const engine_interfaces::StateEvaluator<State>* pruning_function =
             nullptr)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
-        , rewards_(rewards)
+        , costs_(costs)
         , transition_gen_(transition_gen)
         , expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
@@ -304,7 +304,7 @@ private:
 
         State state = state_id_map_->get_state(state_id);
 
-        if (rewards_->get_termination_info(state).is_goal_state()) {
+        if (costs_->get_termination_info(state).is_goal_state()) {
             ++stats_.terminals;
             ++stats_.goals;
             ++stats_.ones;
@@ -581,7 +581,7 @@ private:
 
     engine_interfaces::StateIDMap<State>* state_id_map_;
     engine_interfaces::ActionIDMap<Action>* action_id_map_;
-    engine_interfaces::RewardFunction<State, Action>* rewards_;
+    engine_interfaces::CostFunction<State, Action>* costs_;
     engine_interfaces::TransitionGenerator<Action>* transition_gen_;
 
     bool expand_goals_;

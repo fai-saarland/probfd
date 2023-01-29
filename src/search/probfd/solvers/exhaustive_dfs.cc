@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/reward_model.h"
+#include "probfd/cost_model.h"
 
 #include "probfd/engines/exhaustive_dfs.h"
 
@@ -29,7 +29,7 @@ public:
 
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
-        , reward_bound_(g_reward_model->reward_bound())
+        , cost_bound_(g_cost_model->optimal_value_bound())
         , new_state_handler_(new TaskNewStateHandlerList(
               opts.get_list<std::shared_ptr<TaskNewStateHandler>>(
                   "on_new_state")))
@@ -87,7 +87,7 @@ public:
     {
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
-                reward_bound_,
+                cost_bound_,
                 heuristic_.get(),
                 reevaluate_,
                 notify_s0_,
@@ -98,7 +98,7 @@ public:
                 &progress_);
         } else {
             return this->template engine_factory<Engine>(
-                reward_bound_,
+                cost_bound_,
                 heuristic_.get(),
                 reevaluate_,
                 notify_s0_,
@@ -111,7 +111,7 @@ public:
     }
 
 private:
-    const Interval reward_bound_;
+    const Interval cost_bound_;
 
     std::shared_ptr<TaskNewStateHandlerList> new_state_handler_;
     std::shared_ptr<TaskStateEvaluator> heuristic_;

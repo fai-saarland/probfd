@@ -115,7 +115,7 @@ public:
     HeuristicDepthFirstSearch(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
@@ -133,7 +133,7 @@ public:
         : HeuristicSearchBase(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator,
               policy_chooser,
               new_state_handler,

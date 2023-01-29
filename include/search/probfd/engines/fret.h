@@ -99,7 +99,7 @@ public:
     explicit FRET(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         QuotientSystem* quotient,
         ProgressReport* report,
@@ -107,7 +107,7 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator)
         , greedy_graph_(engine)
         , report_(report)

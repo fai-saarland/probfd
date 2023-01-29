@@ -2,7 +2,7 @@
 #define MDPS_ENGINES_ENGINE_H
 
 #include "probfd/engine_interfaces/action_id_map.h"
-#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
@@ -63,17 +63,17 @@ public:
      *
      * @param state_id_map - The state id mapping (populated by the engine).
      * @param action_id_map - The action id mapping (populated by the engine).
-     * @param reward_function - The reward interface.
+     * @param cost_function - The cost function.
      * @param transition_generator - The transition generator.
      */
     explicit MDPEngine(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
-        , reward_function_(reward_function)
+        , cost_function_(cost_function)
         , transition_generator_(transition_generator)
     {
     }
@@ -114,21 +114,20 @@ public:
     }
 
     /**
-     * @brief Get the state reward for successor state \p s .
+     * @brief Get the termination info for state \p s .
      */
-    TerminationInfo get_state_reward(const State& s) const
+    TerminationInfo get_termination_info(const State& s) const
     {
-        return reward_function_->get_termination_info(s);
+        return cost_function_->get_termination_info(s);
     }
 
     /**
-     * @brief Get the action reward for action \p a when applied in the state
+     * @brief Get the action cost for action \p a when applied in the state
      * with id \p sid .
      */
-    value_t
-    get_action_reward(const StateID& sid, const Action& a) const
+    value_t get_action_cost(const StateID& sid, const Action& a) const
     {
-        return reward_function_->get_action_reward(sid, a);
+        return cost_function_->get_action_cost(sid, a);
     }
 
     /**
@@ -186,12 +185,11 @@ public:
     }
 
     /**
-     * @brief Get the reward interface.
+     * @brief Get the cost function.
      */
-    engine_interfaces::RewardFunction<State, Action>*
-    get_reward_function() const
+    engine_interfaces::CostFunction<State, Action>* get_cost_function() const
     {
-        return reward_function_;
+        return cost_function_;
     }
 
     /**
@@ -206,7 +204,7 @@ public:
 private:
     engine_interfaces::StateIDMap<State>* state_id_map_;
     engine_interfaces::ActionIDMap<Action>* action_id_map_;
-    engine_interfaces::RewardFunction<State, Action>* reward_function_;
+    engine_interfaces::CostFunction<State, Action>* cost_function_;
     engine_interfaces::TransitionGenerator<Action>* transition_generator_;
 };
 

@@ -2,7 +2,7 @@
 #define PROBFD_QUOTIENTS_ENGINE_INTERFACES_H
 
 #include "probfd/engine_interfaces/action_id_map.h"
-#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/transition_generator.h"
 
 #include "probfd/quotients/quotient_system.h"
@@ -11,16 +11,15 @@ namespace probfd {
 namespace quotients {
 
 template <typename State, typename Action>
-using QuotientRewardFunction =
-    engine_interfaces::RewardFunction<State, quotients::QuotientAction<Action>>;
+using QuotientCostFunction =
+    engine_interfaces::CostFunction<State, quotients::QuotientAction<Action>>;
 
 template <typename State, typename Action>
-class DefaultQuotientRewardFunction
-    : public QuotientRewardFunction<State, Action> {
+class DefaultQuotientCostFunction : public QuotientCostFunction<State, Action> {
 public:
-    explicit DefaultQuotientRewardFunction(
+    explicit DefaultQuotientCostFunction(
         quotients::QuotientSystem<Action>* quotient,
-        engine_interfaces::RewardFunction<State, Action>* orig)
+        engine_interfaces::CostFunction<State, Action>* orig)
         : quotient_(quotient)
         , eval_(orig)
     {
@@ -32,21 +31,21 @@ public:
     }
 
     virtual value_t
-    get_action_reward(StateID s, quotients::QuotientAction<Action> qa) override
+    get_action_cost(StateID s, quotients::QuotientAction<Action> qa) override
     {
-        return eval_->get_action_reward(
+        return eval_->get_action_cost(
             qa.state_id,
             quotient_->get_original_action(s, qa));
     }
 
-    engine_interfaces::RewardFunction<State, Action>* real() const
+    engine_interfaces::CostFunction<State, Action>* real() const
     {
         return eval_;
     }
 
 private:
     quotients::QuotientSystem<Action>* quotient_;
-    engine_interfaces::RewardFunction<State, Action>* eval_;
+    engine_interfaces::CostFunction<State, Action>* eval_;
 };
 
 } // namespace quotients

@@ -19,33 +19,6 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-namespace {
-class WrapperHeuristic : public StateRankEvaluator {
-    const std::unordered_map<StateRank, int>& goal_distances;
-    const StateRankEvaluator& parent;
-
-public:
-    WrapperHeuristic(
-        const std::unordered_map<StateRank, int>& goal_distances,
-        const StateRankEvaluator& parent)
-        : goal_distances(goal_distances)
-        , parent(parent)
-    {
-    }
-
-    virtual EvaluationResult evaluate(const StateRank& state) const
-    {
-        auto it = goal_distances.find(state);
-
-        if (it != goal_distances.end()) {
-            return EvaluationResult{false, 0_vt};
-        }
-
-        return parent.evaluate(state);
-    }
-};
-} // namespace
-
 MaxProbProjection::MaxProbProjection(
     const ProbabilisticTaskProxy& task_proxy,
     const Pattern& pattern,
@@ -101,9 +74,9 @@ void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
     using namespace engine_interfaces;
     using namespace engines::interval_iteration;
 
-    ZeroCostAbstractRewardFunction reward(
+    ZeroCostAbstractCostFunction cost(
         abstract_state_space_.goal_state_flags_,
-        1_vt,
+        -1_vt,
         0_vt);
 
     StateIDMap<StateRank> state_id_map;
@@ -117,7 +90,7 @@ void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
     IntervalIteration<StateRank, const AbstractOperator*> vi(
         &state_id_map,
         &action_id_map,
-        &reward,
+        &cost,
         &transition_gen,
         &heuristic,
         true,
@@ -311,15 +284,15 @@ void MaxProbProjection::dump_graphviz(
         return out.str();
     };
 
-    ZeroCostAbstractRewardFunction reward(
+    ZeroCostAbstractCostFunction cost(
         abstract_state_space_.goal_state_flags_,
-        1_vt,
+        -1_vt,
         0_vt);
 
     ProbabilisticProjection::dump_graphviz(
         path,
         s2str,
-        reward,
+        cost,
         transition_labels);
 }
 
@@ -356,7 +329,7 @@ void MaxProbProjection::verify(
     for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
-        variables.emplace_back(0_vt, 1_vt, 1_vt);
+        variables.emplace_back(-1_vt, 0_vt, 1_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
@@ -372,7 +345,7 @@ void MaxProbProjection::verify(
         visited.erase(StateID(s.id));
 
         if (abstract_state_space_.goal_state_flags_[s.id]) {
-            auto& g = constraints.emplace_back(1_vt, 1_vt);
+            auto& g = constraints.emplace_back(-1_vt, -1_vt);
             g.insert(s.id, 1_vt);
         }
 
@@ -382,7 +355,7 @@ void MaxProbProjection::verify(
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
-            auto& constr = constraints.emplace_back(0_vt, inf);
+            auto& constr = constraints.emplace_back(-inf, 0_vt);
 
             std::unordered_map<StateRank, value_t> successor_dist;
 
@@ -411,7 +384,7 @@ void MaxProbProjection::verify(
     assert(visited.empty());
 
     solver.load_problem(lp::LinearProgram(
-        lp::LPObjectiveSense::MINIMIZE,
+        lp::LPObjectiveSense::MAXIMIZE,
         std::move(variables),
         std::move(constraints),
         inf));

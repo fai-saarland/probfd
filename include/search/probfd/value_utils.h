@@ -123,8 +123,8 @@ int approx_compare(Interval lhs, Interval rhs, value_t epsilon = g_epsilon);
  */
 int approx_compare(value_t v1, value_t v2, value_t epsilon = g_epsilon);
 
-void set_max(Interval& new_value, Interval tval);
-void set_max(value_t& new_value, value_t tval);
+void set_min(Interval& new_value, Interval tval);
+void set_min(value_t& new_value, value_t tval);
 
 // Value update
 bool update(value_t& lhs, value_t rhs);

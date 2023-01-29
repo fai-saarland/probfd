@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/reward_model.h"
+#include "probfd/cost_model.h"
 
 #include "utils/timer.h"
 
@@ -26,7 +26,7 @@ MDPSolver::MDPSolver(const options::Options& opts)
     , task_proxy(*task)
     , state_registry_(task_proxy)
     , state_id_map_(&state_registry_)
-    , reward_function_(g_reward_model->get_reward_function())
+    , cost_function_(g_cost_model->get_cost_function())
     , transition_generator_(
           task,
           &state_registry_,

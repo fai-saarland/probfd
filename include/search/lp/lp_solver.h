@@ -163,6 +163,8 @@ public:
     LP_METHOD(void load_problem(const LinearProgram& lp))
     LP_METHOD(void add_temporary_constraints(
         const std::vector<LPConstraint>& constraints))
+    LP_METHOD(void add_temporary_constraints(
+        const named_vector::NamedVector<LPConstraint>& constraints))
     LP_METHOD(void clear_temporary_constraints())
     LP_METHOD(double get_infinity() const)
 

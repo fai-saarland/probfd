@@ -93,11 +93,11 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         // End component decomposition state
 
         // recursive decomposition flag
-        // Recursively decompose the SCC if there is a zero-reward transition
+        // Recursively decompose the SCC if there is a zero-cost transition
         // in it that can leave and remain in the scc.
         bool recurse = false;
 
-        // whether the transition has non-zero reward or can leave the scc
+        // whether the transition has non-zero cost or can leave the scc
         bool nz_or_leaves_scc;
 
         ExplorationInfo(
@@ -149,7 +149,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         value_t self_loop_prob = 0.0_vt;
 
         // Precomputed part of the Q-value.
-        // Sum of action reward plus those weighted successor values which
+        // Sum of action cost plus those weighted successor values which
         // have already converged due to topological ordering.
         IncumbentSolution conv_part;
 
@@ -157,8 +157,8 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         // self-loops excluded.
         std::vector<ItemProbabilityPair<StateID>> scc_successors;
 
-        explicit QValueInfo(value_t action_reward)
-            : conv_part(action_reward)
+        explicit QValueInfo(value_t action_cost)
+            : conv_part(action_cost)
         {
         }
 
@@ -217,11 +217,11 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         StackInfo(
             const StateID& state_id,
             IncumbentSolution& value_ref,
-            value_t state_reward,
+            value_t state_cost,
             unsigned num_aops)
             : state_id(state_id)
             , value(&value_ref)
-            , conv_part(state_reward)
+            , conv_part(state_cost)
         {
             non_ec_transitions.reserve(num_aops);
             ec_transitions.reserve(num_aops);
@@ -233,7 +233,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
             IncumbentSolution v = conv_part;
 
             for (const QValueInfo& info : non_ec_transitions) {
-                set_max(v, info.compute_q_value(value_store));
+                set_min(v, info.compute_q_value(value_store));
             }
 
             if constexpr (Interval) {
@@ -337,13 +337,13 @@ public:
     explicit TATopologicalValueIteration(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         const engine_interfaces::StateEvaluator<State>* value_initializer)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator)
         , value_initializer_(value_initializer)
     {
@@ -457,10 +457,10 @@ public:
                     // Universally exiting -> Not part of scc
                     // Update converged portion of q value and ignore this
                     // transition
-                    set_max(stack_info->conv_part, tinfo.conv_part);
+                    set_min(stack_info->conv_part, tinfo.conv_part);
                     stack_info->ec_transitions.pop_back();
                 } else if (explore->nz_or_leaves_scc) {
-                    // Only some exiting or reward is non-zero ->
+                    // Only some exiting or cost is non-zero ->
                     // Not part of an end component
                     // Move the transition to the set of non-EC transitions
                     stack_info->non_ec_transitions.push_back(std::move(tinfo));
@@ -469,11 +469,11 @@ public:
 
                 // Has next action -> stop backtracking
                 if (explore->next_action(this, state_id)) {
-                    const auto reward = this->get_action_reward(
+                    const auto cost = this->get_action_cost(
                         state_id,
                         explore->get_current_action());
-                    explore->nz_or_leaves_scc = reward != 0.0_vt;
-                    stack_info->ec_transitions.emplace_back(reward);
+                    explore->nz_or_leaves_scc = cost != 0.0_vt;
+                    stack_info->ec_transitions.emplace_back(cost);
 
                     break;
                 }
@@ -544,7 +544,7 @@ private:
             } while (explore.next_successor());
 
             if (tinfo.finalize()) {
-                set_max(stack_info.conv_part, tinfo.conv_part);
+                set_min(stack_info.conv_part, tinfo.conv_part);
                 stack_info.ec_transitions.pop_back();
             } else if (explore.nz_or_leaves_scc) {
                 stack_info.non_ec_transitions.push_back(std::move(tinfo));
@@ -555,11 +555,11 @@ private:
                 return false;
             }
 
-            const auto reward =
-                this->get_action_reward(state_id, explore.get_current_action());
+            const auto cost =
+                this->get_action_cost(state_id, explore.get_current_action());
 
-            explore.nz_or_leaves_scc = reward != 0.0_vt;
-            stack_info.ec_transitions.emplace_back(reward);
+            explore.nz_or_leaves_scc = cost != 0.0_vt;
+            stack_info.ec_transitions.emplace_back(cost);
         }
     }
 
@@ -577,8 +577,8 @@ private:
 
         const State state = this->lookup_state(state_id);
 
-        const TerminationInfo state_term = this->get_state_reward(state);
-        const auto t_reward = state_term.get_reward();
+        const TerminationInfo state_term = this->get_termination_info(state);
+        const auto t_cost = state_term.get_cost();
 
         if (state_term.is_goal_state()) {
             ++statistics_.goal_states;
@@ -602,7 +602,7 @@ private:
 
         if (aops.empty()) {
             ++statistics_.terminal_states;
-            state_value = IncumbentSolution(t_reward);
+            state_value = IncumbentSolution(t_cost);
             state_info.status = StateInfo::CLOSED;
             return false;
         }
@@ -623,26 +623,26 @@ private:
                 state_info.stack_id = stack_size;
 
                 // Found non self loop action, push and return success.
-                const auto reward =
-                    this->get_action_reward(state_id, aops.back());
+                const auto cost =
+                    this->get_action_cost(state_id, aops.back());
 
                 ExplorationInfo& explore = exploration_stack_.emplace_back(
                     stack_size,
                     std::move(aops),
                     std::move(transition));
 
-                explore.nz_or_leaves_scc = reward != 0.0_vt;
+                explore.nz_or_leaves_scc = cost != 0.0_vt;
 
                 auto& s_info = stack_.emplace_back(
                     state_id,
                     state_value,
-                    t_reward,
+                    t_cost,
                     aops.size());
 
-                s_info.ec_transitions.emplace_back(reward);
+                s_info.ec_transitions.emplace_back(cost);
 
                 if constexpr (Interval) {
-                    state_value.lower = t_reward;
+                    state_value.lower = t_cost;
                     state_value.upper = estimate;
                 } else {
                     state_value = estimate;
@@ -655,7 +655,7 @@ private:
             transition.clear();
         } while (!aops.empty());
 
-        state_value = IncumbentSolution(t_reward);
+        state_value = IncumbentSolution(t_cost);
         state_info.status = StateInfo::CLOSED;
 
         return false;
@@ -731,11 +731,11 @@ private:
                 // Free memory
                 std::vector<QValueInfo>().swap(succ_stk.non_ec_transitions);
 
-                set_max(repr_stk.conv_part, succ_stk.conv_part);
+                set_min(repr_stk.conv_part, succ_stk.conv_part);
 
                 succ_stk.conv_part = IncumbentSolution(-INFINITE_VALUE);
 
-                // Connect to representative state with zero reward action
+                // Connect to representative state with zero cost action
                 auto& t = succ_stk.non_ec_transitions.emplace_back(0.0_vt);
                 t.scc_successors.emplace_back(scc_repr_id, 1.0_vt);
             }
@@ -904,10 +904,10 @@ private:
                 // Free memory
                 std::vector<QValueInfo>().swap(succ_stk.non_ec_transitions);
 
-                set_max(repr_stk.conv_part, succ_stk.conv_part);
+                set_min(repr_stk.conv_part, succ_stk.conv_part);
                 succ_stk.conv_part = IncumbentSolution(-INFINITE_VALUE);
 
-                // Connect to representative state with zero reward action
+                // Connect to representative state with zero cost action
                 auto& t = succ_stk.non_ec_transitions.emplace_back(0.0_vt);
                 t.scc_successors.emplace_back(scc_repr_id, 1.0_vt);
             }

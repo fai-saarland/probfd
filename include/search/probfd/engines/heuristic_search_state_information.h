@@ -64,7 +64,7 @@ struct StateFlags {
     }
 
     uint8_t info = 0;
-    value_t state_reward;
+    value_t state_cost;
 };
 
 template <bool StorePolicy_, bool UseInterval_>

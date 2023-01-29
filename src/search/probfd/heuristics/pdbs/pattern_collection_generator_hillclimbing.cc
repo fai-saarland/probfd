@@ -257,7 +257,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::sample_states(
         // TODO Hack for MaxProb
         int absval = std::is_same_v<PDBType, MaxProbProjection>
                          ? 100
-                         : static_cast<int>(std::abs(init_h));
+                         : static_cast<int>(init_h);
 
         samples.push_back(sampler.sample_state(absval, f));
         if (hill_climbing_timer.is_expired()) {
@@ -380,7 +380,7 @@ bool PatternCollectionGeneratorHillclimbing<PDBType>::is_heuristic_improved(
         value_t h_subcollection =
             pdbs::evaluate_subcollection<PDBType>(h_values, subcollection);
 
-        if (pdbs::combine<PDBType>(h_subcollection, h_pattern) < h_collection) {
+        if (pdbs::combine<PDBType>(h_subcollection, h_pattern) > h_collection) {
             /*
               return true if a pattern clique is found for
               which the condition is met

@@ -4,9 +4,9 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-AbstractOperator::AbstractOperator(unsigned id, int reward)
+AbstractOperator::AbstractOperator(unsigned id, int cost)
     : original_operator_id(id)
-    , reward(reward)
+    , cost(cost)
 {
 }
 

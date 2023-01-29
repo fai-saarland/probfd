@@ -111,10 +111,9 @@ public:
         , quotient_(new quotients::QuotientSystem<OperatorID>(
               this->get_action_id_map(),
               this->get_transition_generator()))
-        , q_reward_(
-              new quotients::DefaultQuotientRewardFunction<State, OperatorID>(
-                  quotient_.get(),
-                  this->get_reward_function()))
+        , q_cost_(new quotients::DefaultQuotientCostFunction<State, OperatorID>(
+              quotient_.get(),
+              this->get_cost_function()))
         , q_action_id_map_(
               new engine_interfaces::ActionIDMap<QAction>(quotient_.get()))
         , q_transition_gen_(new engine_interfaces::TransitionGenerator<QAction>(
@@ -172,7 +171,7 @@ public:
             return new HS<State, QAction, true>(
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
-                q_reward_.get(),
+                q_cost_.get(),
                 q_transition_gen_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -186,7 +185,7 @@ public:
             return new HS<State, QAction, false>(
                 this->get_state_id_map(),
                 q_action_id_map_.get(),
-                q_reward_.get(),
+                q_cost_.get(),
                 q_transition_gen_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -240,7 +239,7 @@ private:
         return new HS<State, QAction, Interval>(
             this->get_state_id_map(),
             q_action_id_map_.get(),
-            q_reward_.get(),
+            q_cost_.get(),
             q_transition_gen_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
@@ -270,7 +269,7 @@ private:
         return new FretVariant(
             this->get_state_id_map(),
             this->get_action_id_map(),
-            this->get_reward_function(),
+            this->get_cost_function(),
             this->get_transition_generator(),
             quotient_.get(),
             &progress_,
@@ -279,8 +278,7 @@ private:
 
     std::unique_ptr<quotients::QuotientSystem<OperatorID>> quotient_;
 
-    std::unique_ptr<engine_interfaces::RewardFunction<State, QAction>>
-        q_reward_;
+    std::unique_ptr<engine_interfaces::CostFunction<State, QAction>> q_cost_;
     std::unique_ptr<engine_interfaces::ActionIDMap<QAction>> q_action_id_map_;
     std::unique_ptr<engine_interfaces::TransitionGenerator<QAction>>
         q_transition_gen_;

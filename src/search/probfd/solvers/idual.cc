@@ -32,7 +32,7 @@ public:
         parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
             "eval",
             "",
-            "const");
+            "const_eval");
         lp::add_lp_solver_option_to_parser(parser);
         MDPSolver::add_options_to_parser(parser);
     }

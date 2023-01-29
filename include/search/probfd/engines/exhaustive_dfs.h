@@ -164,16 +164,16 @@ class ExhaustiveDepthFirstSearch
         unsigned lowlink = -1;
         uint8_t status = NEW;
         IncumbentSolution value;
-        value_t state_reward;
+        value_t state_cost;
     };
 
 public:
     explicit ExhaustiveDepthFirstSearch(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
-        Interval reward_bound,
+        Interval cost_bound,
         engine_interfaces::StateEvaluator<State>* evaluator,
         bool reevaluate,
         bool notify_initial,
@@ -185,11 +185,11 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator)
         , statistics_()
         , report_(progress)
-        , reward_bound_(reward_bound)
+        , cost_bound_(cost_bound)
         , trivial_bound_(get_trivial_bound())
         , evaluator_(evaluator)
         , new_state_handler_(new_state_handler)
@@ -289,9 +289,9 @@ private:
     IncumbentSolution get_trivial_bound() const
     {
         if constexpr (UseInterval) {
-            return reward_bound_;
+            return cost_bound_;
         } else {
-            return reward_bound_.lower;
+            return cost_bound_.upper;
         }
     }
 
@@ -342,11 +342,11 @@ private:
         assert(info.is_new());
         info.value = trivial_bound_;
 
-        TerminationInfo term_info = this->get_state_reward(state);
-        info.state_reward = term_info.get_reward();
+        TerminationInfo term_info = this->get_termination_info(state);
+        info.state_cost = term_info.get_cost();
         if (term_info.is_goal_state()) {
             info.close();
-            info.value = IncumbentSolution(term_info.get_reward());
+            info.value = IncumbentSolution(term_info.get_cost());
             ++statistics_.goal_states;
             if (new_state_handler_) {
                 new_state_handler_->touch_goal(state);
@@ -356,7 +356,7 @@ private:
 
         EvaluationResult eval_result = evaluate(state);
         if (eval_result.is_unsolvable()) {
-            info.value = IncumbentSolution(info.state_reward);
+            info.value = IncumbentSolution(info.state_cost);
             info.mark_dead_end();
             ++statistics_.dead_ends;
             if (new_state_handler_) {
@@ -383,7 +383,7 @@ private:
         std::vector<Distribution<StateID>> successors;
         this->generate_all_successors(state_id, aops, successors);
         if (successors.empty()) {
-            info.value = IncumbentSolution(info.state_reward);
+            info.value = IncumbentSolution(info.state_cost);
             info.set_dead_end();
             statistics_.terminal++;
             return false;
@@ -403,7 +403,7 @@ private:
 
         si.successors.resize(aops.size());
 
-        const auto reward = as_lower_bound(info.value);
+        const auto cost = as_lower_bound(info.value);
 
         bool pure_self_loop = true;
 
@@ -447,12 +447,12 @@ private:
             if (succs.empty()) {
                 if (!all_self_loops) {
                     pure_self_loop = false;
-                    t.base += reward + this->get_action_reward(state_id, a);
+                    t.base += cost + this->get_action_cost(state_id, a);
                     auto non_loop = 1_vt - t.self_loop;
                     update_lower_bound(info.value, t.base / non_loop);
                 }
             } else {
-                t.base += reward + this->get_action_reward(state_id, a);
+                t.base += cost + this->get_action_cost(state_id, a);
 
                 if (t.self_loop == 0_vt) {
                     t.self_loop = 1_vt;
@@ -474,7 +474,7 @@ private:
             stack_infos_.pop_back();
 
             if (pure_self_loop) {
-                info.value = IncumbentSolution(info.state_reward);
+                info.value = IncumbentSolution(info.state_cost);
                 info.set_dead_end();
                 ++statistics_.self_loop;
             } else {
@@ -610,7 +610,7 @@ private:
                     do {
                         ++scc_size;
                         auto& info = search_space_[rend->state_ref];
-                        info.value = IncumbentSolution(info.state_reward);
+                        info.value = IncumbentSolution(info.state_cost);
                         info.set_dead_end();
                     } while ((rend++)->state_ref != stateid);
 
@@ -736,7 +736,7 @@ private:
             for (const auto& successors : exp.successors) {
                 for (const StateID sid : successors.elements()) {
                     SearchNodeInformation& succ_info = search_space_[sid];
-                    succ_info.value = succ_info.state_reward;
+                    succ_info.value = succ_info.state_cost;
                     succ_info.mark_dead_end();
 
                     if (succ_info.is_onstack()) {
@@ -752,7 +752,7 @@ private:
                 auto it = stack_infos_.rbegin();
                 do {
                     SearchNodeInformation& info = search_space_[it->state_ref];
-                    info.value = info.state_reward;
+                    info.value = info.state_cost;
                     info.mark_dead_end();
                 } while ((it++)->state_ref != stateid);
 
@@ -768,16 +768,16 @@ private:
     bool check_early_convergence(const SearchNodeInformation& node) const
     {
         if constexpr (UseInterval) {
-            return node.value.lower >= node.value.upper;
+            return node.value.upper <= node.value.lower;
         } else {
-            return as_lower_bound(node.value) >= reward_bound_.upper;
+            return as_upper_bound(node.value) <= cost_bound_.lower;
         }
     }
 
     Statistics statistics_;
 
     ProgressReport* report_;
-    const Interval reward_bound_;
+    const Interval cost_bound_;
     const IncumbentSolution trivial_bound_;
 
     engine_interfaces::StateEvaluator<State>* evaluator_;

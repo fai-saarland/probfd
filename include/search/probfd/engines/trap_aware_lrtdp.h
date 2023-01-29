@@ -102,7 +102,7 @@ public:
     LRTDP(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<QAction>* action_id_map,
-        engine_interfaces::RewardFunction<State, QAction>* reward_function,
+        engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::TransitionGenerator<QAction>* transition_generator,
         engine_interfaces::PolicyPicker<QAction>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
@@ -117,7 +117,7 @@ public:
         : HeuristicSearchBase(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator,
               policy_chooser,
               new_state_handler,
@@ -449,7 +449,7 @@ private:
 
         assert(!e.successors.empty());
         this->selected_transition_.clear();
-        e.flags.is_trap = this->get_action_reward(
+        e.flags.is_trap = this->get_action_cost(
                               state,
                               this->lookup_action(state, greedy_action)) == 0;
         stack_index_[state] = stack_.size();

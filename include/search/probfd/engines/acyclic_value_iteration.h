@@ -56,17 +56,17 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
     struct IncrementalExpansionInfo {
         IncrementalExpansionInfo(
             const StateID& state,
-            value_t reward,
+            value_t cost,
             std::vector<Action> remaining_aops)
             : state(state)
-            , reward(reward)
+            , cost(cost)
             , remaining_aops(std::move(remaining_aops))
         {
             assert(!this->remaining_aops.empty());
         }
 
         const StateID state;
-        const value_t reward;
+        const value_t cost;
 
         // Applicable operators left to expand
         std::vector<Action> remaining_aops;
@@ -91,13 +91,13 @@ public:
     explicit AcyclicValueIteration(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::StateEvaluator<State>* prune = nullptr)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator)
         , prune_(prune)
     {
@@ -156,7 +156,7 @@ private:
     void setup_next_transition(IncrementalExpansionInfo& e)
     {
         auto& next_action = e.remaining_aops.back();
-        e.t_value = e.reward + this->get_action_reward(e.state, next_action);
+        e.t_value = e.cost + this->get_action_cost(e.state, next_action);
         e.transition.clear();
         this->generate_successors(e.state, next_action, e.transition);
         e.remaining_aops.pop_back();
@@ -170,8 +170,8 @@ private:
         }
 
         const State state = this->lookup_state(state_id);
-        const TerminationInfo term_info = this->get_state_reward(state);
-        const value_t value = term_info.get_reward();
+        const TerminationInfo term_info = this->get_termination_info(state);
+        const value_t value = term_info.get_cost();
 
         StateInfo& info = state_infos_[state_id];
 

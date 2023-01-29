@@ -30,7 +30,7 @@ public:
         parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
             "eval",
             "",
-            "const");
+            "const_eval");
         parser.add_option<bool>("disable_hpom", "", "false");
         parser.add_option<bool>("incremental_updates", "", "true");
         lp::add_lp_solver_option_to_parser(parser);

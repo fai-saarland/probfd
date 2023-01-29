@@ -286,8 +286,8 @@ public:
         return ProbabilisticOutcomesProxy(*task, index);
     }
 
-    /// Get the reward of the operator.
-    int get_reward() const { return task->get_operator_reward(index); }
+    /// Get the cost of the operator.
+    int get_cost() const { return task->get_operator_cost(index); }
 
     /// Get the name of the operator.
     std::string get_name() const { return task->get_operator_name(index); }

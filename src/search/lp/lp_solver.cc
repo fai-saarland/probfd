@@ -351,6 +351,37 @@ void LPSolver::add_temporary_constraints(
     }
 }
 
+void LPSolver::add_temporary_constraints(
+    const named_vector::NamedVector<LPConstraint>& constraints)
+{
+    if (!constraints.empty()) {
+        clear_temporary_data();
+        int num_rows = constraints.size();
+        for (const LPConstraint& constraint : constraints) {
+            row_lb.push_back(constraint.get_lower_bound());
+            row_ub.push_back(constraint.get_upper_bound());
+            rows.push_back(new CoinShallowPackedVector(
+                constraint.get_variables().size(),
+                constraint.get_variables().data(),
+                constraint.get_coefficients().data(),
+                false));
+        }
+
+        try {
+            lp_solver
+                ->addRows(num_rows, rows.data(), row_lb.data(), row_ub.data());
+        } catch (CoinError& error) {
+            handle_coin_error(error);
+        }
+        for (CoinPackedVectorBase* row : rows) {
+            delete row;
+        }
+        clear_temporary_data();
+        has_temporary_constraints_ = true;
+        is_solved = false;
+    }
+}
+
 void LPSolver::clear_temporary_constraints()
 {
     if (has_temporary_constraints_) {

@@ -5,7 +5,7 @@
 #include "probfd/bisimulation/types.h"
 
 #include "probfd/engine_interfaces/action_id_map.h"
-#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
@@ -53,8 +53,8 @@ struct TransitionGenerator<bisimulation::QuotientAction> {
 
 namespace bisimulation {
 
-using QuotientRewardFunction = engine_interfaces::
-    RewardFunction<bisimulation::QuotientState, bisimulation::QuotientAction>;
+using QuotientCostFunction = engine_interfaces::
+    CostFunction<bisimulation::QuotientState, bisimulation::QuotientAction>;
 using QuotientStateEvaluator =
     engine_interfaces::StateEvaluator<bisimulation::QuotientState>;
 
@@ -72,12 +72,12 @@ struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
     evaluate(const bisimulation::QuotientState& state) const override;
 };
 
-struct DefaultQuotientRewardFunction : public QuotientRewardFunction {
+struct DefaultQuotientCostFunction : public QuotientCostFunction {
     bisimulation::BisimilarStateSpace* bisim_;
     const Interval bound_;
     const value_t default_;
 
-    explicit DefaultQuotientRewardFunction(
+    explicit DefaultQuotientCostFunction(
         bisimulation::BisimilarStateSpace* bisim,
         Interval bound,
         value_t default_value = 0);
@@ -85,8 +85,7 @@ struct DefaultQuotientRewardFunction : public QuotientRewardFunction {
     TerminationInfo
     get_termination_info(const bisimulation::QuotientState& state) override;
 
-    value_t
-    get_action_reward(StateID state, bisimulation::QuotientAction action)
+    value_t get_action_cost(StateID state, bisimulation::QuotientAction action)
         override;
 };
 

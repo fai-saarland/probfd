@@ -138,7 +138,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         value_t self_loop_prob = 0_vt;
 
         // Precomputed part of the Q-value.
-        // Sum of action reward plus those weighted successor values which
+        // Sum of action cost plus those weighted successor values which
         // have already converged due to topological ordering.
         IncumbentSolution conv_part;
 
@@ -146,8 +146,8 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // self-loops excluded.
         std::vector<ItemProbabilityPair<IncumbentSolution*>> nconv_successors;
 
-        explicit QValueInfo(value_t action_reward)
-            : conv_part(action_reward)
+        explicit QValueInfo(value_t action_cost)
+            : conv_part(action_cost)
         {
         }
 
@@ -188,8 +188,8 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // Reference to the state value of the state.
         IncumbentSolution* value;
 
-        // The state reward
-        IncumbentSolution state_reward;
+        // The state cost
+        IncumbentSolution state_cost;
 
         // Precomputed part of the max of the value update.
         // Maximum over all Q values which have already converged due to
@@ -202,12 +202,12 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         StackInfo(
             const StateID& state_id,
             IncumbentSolution& value_ref,
-            value_t state_reward,
+            value_t state_cost,
             unsigned num_aops)
             : state_id(state_id)
             , value(&value_ref)
-            , state_reward(state_reward)
-            , conv_part(state_reward)
+            , state_cost(state_cost)
+            , conv_part(state_cost)
         {
             nconv_qs.reserve(num_aops);
         }
@@ -217,7 +217,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
             IncumbentSolution v = conv_part;
 
             for (const QValueInfo& info : nconv_qs) {
-                set_max(v, info.compute_q_value());
+                set_min(v, info.compute_q_value());
             }
 
             if constexpr (Interval) {
@@ -235,14 +235,14 @@ public:
     explicit TopologicalValueIteration(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         const engine_interfaces::StateEvaluator<State>* value_initializer,
         bool expand_goals)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator)
         , value_initializer_(value_initializer)
         , expand_goals_(expand_goals)
@@ -341,12 +341,12 @@ public:
                 }
 
                 if (tinfo.finalize()) {
-                    set_max(stack_info->conv_part, tinfo.conv_part);
+                    set_min(stack_info->conv_part, tinfo.conv_part);
                     stack_info->nconv_qs.pop_back();
                 }
 
                 if (explore->next_action(this, state_id)) {
-                    stack_info->nconv_qs.emplace_back(this->get_action_reward(
+                    stack_info->nconv_qs.emplace_back(this->get_action_cost(
                         state_id,
                         explore->get_current_action()));
 
@@ -375,8 +375,8 @@ private:
 
         const State state = this->lookup_state(state_id);
 
-        const TerminationInfo state_eval = this->get_state_reward(state);
-        const auto t_reward = state_eval.get_reward();
+        const TerminationInfo state_eval = this->get_termination_info(state);
+        const auto t_cost = state_eval.get_cost();
 
         const EvaluationResult h_eval = value_initializer_->evaluate(state);
         const auto estimate = h_eval.get_estimate();
@@ -387,7 +387,7 @@ private:
             if (!expand_goals_) {
                 ++statistics_.terminal_states;
 
-                state_value = IncumbentSolution(t_reward);
+                state_value = IncumbentSolution(t_cost);
                 state_info.status = StateInfo::CLOSED;
 
                 return false;
@@ -412,7 +412,7 @@ private:
         if (aops.empty()) {
             ++statistics_.terminal_states;
 
-            state_value = IncumbentSolution(t_reward);
+            state_value = IncumbentSolution(t_cost);
             state_info.status = StateInfo::CLOSED;
 
             return false;
@@ -430,9 +430,9 @@ private:
             // Check for self loop
             if (!transition.is_dirac(state_id)) {
                 if constexpr (Interval) {
-                    assert(t_reward <= estimate);
-                    state_value.lower = t_reward;
-                    state_value.upper = estimate;
+                    assert(t_cost >= estimate);
+                    state_value.lower = estimate;
+                    state_value.upper = t_cost;
                 } else {
                     state_value = estimate;
                 }
@@ -445,11 +445,11 @@ private:
                 auto& s_info = stack_.emplace_back(
                     state_id,
                     state_value,
-                    t_reward,
+                    t_cost,
                     aops.size());
 
                 s_info.nconv_qs.emplace_back(
-                    this->get_action_reward(state_id, aops.back()));
+                    this->get_action_cost(state_id, aops.back()));
 
                 exploration_stack_.emplace_back(
                     state_id,
@@ -465,7 +465,7 @@ private:
         } while (!aops.empty());
         /*****************************************************************/
 
-        state_value = IncumbentSolution(t_reward);
+        state_value = IncumbentSolution(t_cost);
         state_info.status = StateInfo::CLOSED;
 
         return false;
@@ -516,7 +516,7 @@ private:
             } while (explore.next_successor());
 
             if (tinfo.finalize()) {
-                set_max(stack_info.conv_part, tinfo.conv_part);
+                set_min(stack_info.conv_part, tinfo.conv_part);
                 stack_info.nconv_qs.pop_back();
             }
 
@@ -524,9 +524,8 @@ private:
                 return false;
             }
 
-            stack_info.nconv_qs.emplace_back(this->get_action_reward(
-                state_id,
-                explore.get_current_action()));
+            stack_info.nconv_qs.emplace_back(
+                this->get_action_cost(state_id, explore.get_current_action()));
         }
     }
 

@@ -31,9 +31,10 @@ DeterminizationCostHeuristic::evaluate(const State& state) const
     EvaluationContext context(state);
     ::EvaluationResult result = evaluator_->compute_result(context);
 
-    return result.is_infinite()
-               ? EvaluationResult(true, -INFINITE_VALUE)
-               : EvaluationResult(false, -result.get_evaluator_value());
+    const bool infinite = result.is_infinite();
+    return EvaluationResult(
+        infinite,
+        infinite ? INFINITE_VALUE : result.get_evaluator_value());
 }
 
 void DeterminizationCostHeuristic::print_statistics() const

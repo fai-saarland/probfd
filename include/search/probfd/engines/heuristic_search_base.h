@@ -144,7 +144,7 @@ public:
     explicit HeuristicSearchBase(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
@@ -155,7 +155,7 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator)
         , report_(report)
         , interval_comparison_(interval_comparison)
@@ -305,7 +305,7 @@ public:
     {
         if (!state_info.is_dead_end()) {
             state_info.set_dead_end();
-            state_info.value = IncumbentSolution(state_info.state_reward);
+            state_info.value = IncumbentSolution(state_info.state_cost);
             return true;
         }
 
@@ -415,9 +415,9 @@ public:
     }
 
 protected:
-    value_t get_state_reward(const StateID& id)
+    value_t get_state_cost(const StateID& id)
     {
-        return get_state_info(id).state_reward;
+        return get_state_info(id).state_cost;
     }
 
     value_t get_value(const State& s)
@@ -619,7 +619,7 @@ protected:
             out,
             this->lookup_state(initial_state_id_),
             this->get_state_id_map(),
-            this->get_state_reward_function(),
+            this->get_state_cost_function(),
             this->get_applicable_actions_generator(),
             this->get_transition_generator(),
             sstr,
@@ -659,13 +659,13 @@ private:
 
             State state = this->lookup_state(state_id);
             TerminationInfo term =
-                MDPEngine<StateT, ActionT>::get_state_reward(state);
-            const value_t t_reward = term.get_reward();
+                MDPEngine<StateT, ActionT>::get_termination_info(state);
+            const value_t t_cost = term.get_cost();
 
-            state_info.state_reward = t_reward;
+            state_info.state_cost = t_cost;
             if (term.is_goal_state()) {
                 state_info.set_goal();
-                state_info.value = IncumbentSolution(t_reward);
+                state_info.value = IncumbentSolution(t_cost);
                 statistics_.goal_states++;
                 if (on_new_state_) on_new_state_->touch_goal(state);
                 return;
@@ -749,7 +749,7 @@ private:
             return result;
         }
 
-        new_value = IncumbentSolution(this->get_state_reward(state_id));
+        new_value = IncumbentSolution(this->get_state_cost(state_id));
         values.reserve(aops.size());
 
         unsigned non_loop_end = 0;
@@ -757,7 +757,7 @@ private:
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
-            IncumbentSolution t_value(this->get_action_reward(state_id, op));
+            IncumbentSolution t_value(this->get_action_cost(state_id, op));
             value_t self_loop = 0_vt;
             bool non_loop = false;
 
@@ -777,7 +777,7 @@ private:
                 }
 
                 values.push_back(t_value);
-                set_max(new_value, t_value);
+                set_min(new_value, t_value);
 
                 if (non_loop_end != i) {
                     aops[non_loop_end] = std::move(op);
@@ -878,7 +878,7 @@ private:
 
         unsigned optimal_end = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
-            if (approx_compare(values[i], new_value) >= 0) {
+            if (approx_compare(values[i], new_value) <= 0) {
                 if (stable) {
                     const auto aid = this->get_action_id(state_id, aops[i]);
                     if (aid == previous_greedy) {

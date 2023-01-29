@@ -1,6 +1,6 @@
 #include "probfd/heuristics/dead_end_pruning.h"
 
-#include "probfd/reward_model.h"
+#include "probfd/cost_model.h"
 
 #include "utils/system.h"
 
@@ -32,9 +32,10 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(const options::Options& opts)
     : DeadEndPruningHeuristic(
-          opts.get<bool>("pessimistic") ? g_reward_model->reward_bound().lower
-                                        : g_reward_model->reward_bound().upper,
-          g_reward_model->reward_bound().lower,
+          opts.get<bool>("pessimistic")
+              ? g_cost_model->optimal_value_bound().upper
+              : g_cost_model->optimal_value_bound().lower,
+          g_cost_model->optimal_value_bound().upper,
           opts.get<std::shared_ptr<Evaluator>>("heuristic"))
 {
 }

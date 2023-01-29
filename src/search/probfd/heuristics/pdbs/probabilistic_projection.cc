@@ -79,7 +79,7 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
     // Generate the abstract operators for each probabilistic operator
     for (const ProbabilisticOperatorProxy& op : operators) {
         const int operator_id = op.get_id();
-        const int reward = op.get_reward();
+        const int cost = op.get_cost();
 
         // Precondition partial state and partial state to enumerate
         // effect values not appearing in precondition
@@ -149,7 +149,7 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
 
         for (const std::vector<FactPair>& values : ran) {
             // Generate the progression operator
-            AbstractOperator new_op(operator_id, reward);
+            AbstractOperator new_op(operator_id, cost);
 
             for (const auto& [info, prob] : outcomes) {
                 const auto& [base_effect, missing_pres] = info;
@@ -324,7 +324,7 @@ const Pattern& ProbabilisticProjection::get_pattern() const
 void ProbabilisticProjection::dump_graphviz(
     const std::string& path,
     std::function<std::string(const StateRank&)> sts,
-    AbstractRewardFunction& rewards,
+    AbstractCostFunction& costs,
     bool transition_labels) const
 {
     using namespace engine_interfaces;
@@ -349,7 +349,7 @@ void ProbabilisticProjection::dump_graphviz(
         abstract_state_space_.initial_state_,
         &state_id_map,
         &transition_gen,
-        &rewards,
+        &costs,
         nullptr,
         sts,
         ats,

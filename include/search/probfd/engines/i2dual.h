@@ -3,7 +3,7 @@
 
 #include "probfd/engines/engine.h"
 
-#include "probfd/reward_models/maxprob_reward_model.h"
+#include "probfd/cost_models/maxprob_cost_model.h"
 
 #include "probfd/heuristics/occupation_measure/occupation_measure_heuristic.h"
 
@@ -104,7 +104,7 @@ public:
     explicit I2Dual(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         ProgressReport* progress,
         engine_interfaces::StateEvaluator<State>* heuristic,
@@ -114,7 +114,7 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator)
         , task_proxy(*tasks::g_root_task)
         , progress_(progress)
@@ -136,8 +136,8 @@ public:
 
         std::cout << "Initializing I2-Dual..." << std::endl;
 
-        if (!std::dynamic_pointer_cast<reward_models::MaxProbRewardModel>(
-                g_reward_model)) {
+        if (!std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
+                g_cost_model)) {
             std::cerr
                 << "I2-Dual currently only supports goal probability analysis"
                 << std::endl;
@@ -173,7 +173,7 @@ public:
         std::vector<StateID> frontier;
         std::vector<StateID> frontier_candidates;
 
-        objective_ = 1_vt;
+        objective_ = -1_vt;
 
         {
             const StateID init_id = this->get_state_id(state);
@@ -291,7 +291,7 @@ public:
             statistics_.lp_solver_timer_.stop();
 
             assert(lp_solver_.has_optimal_solution());
-            objective_ = lp_solver_.get_objective_value();
+            objective_ = -lp_solver_.get_objective_value();
             std::vector<double> solution = lp_solver_.extract_solution();
 
             unsigned j = 0;
@@ -337,9 +337,9 @@ private:
     {
         assert(data.is_new());
 
-        const TerminationInfo term_info = this->get_state_reward(state);
+        const TerminationInfo term_info = this->get_termination_info(state);
         if (term_info.is_goal_state()) {
-            data.set_terminal(term_info.get_reward());
+            data.set_terminal(-term_info.get_cost());
             return true;
         }
 
@@ -349,7 +349,7 @@ private:
             return true;
         }
 
-        data.open(next_lp_constr_id_++, eval.get_estimate());
+        data.open(next_lp_constr_id_++, -eval.get_estimate());
         return false;
     }
 
@@ -390,10 +390,6 @@ private:
         statistics_.hpom_num_vars_ = vars.size();
         statistics_.hpom_num_constraints_ = hpom_constraints_.size();
 
-        // constraints.insert(
-        //     constraints.end(), hpom_constraints_.begin(),
-        //     hpom_constraints_.end());
-
         statistics_.hpom_timer_.stop();
     }
 
@@ -411,7 +407,7 @@ private:
                 remove_fringe_state_from_hpom(
                     this->lookup_state(state_id),
                     data[state_id],
-                    frontier_constraints_);
+                    hpom_constraints_);
             }
 
             statistics_.hpom_timer_.stop();
@@ -431,27 +427,15 @@ private:
 
         statistics_.hpom_timer_.resume();
 
-        if (incremental_hpom_updates_) {
-            for (size_t i = start; i < frontier.size(); ++i) {
-                const StateID& state_id = frontier[i];
-                State s = this->lookup_state(state_id);
-                add_fringe_state_to_hpom(
-                    s,
-                    data[state_id],
-                    frontier_constraints_);
-            }
+        size_t i = incremental_hpom_updates_ ? start : 0;
 
-            lp_solver_.add_temporary_constraints(frontier_constraints_);
-        } else {
-            std::vector<lp::LPConstraint> constraints(frontier_constraints_);
-            for (size_t i = 0; i < frontier.size(); ++i) {
-                const StateID& state_id = frontier[i];
-                State s = this->lookup_state(state_id);
-                add_fringe_state_to_hpom(s, data[state_id], constraints);
-            }
-
-            lp_solver_.add_temporary_constraints(constraints);
+        for (; i < frontier.size(); ++i) {
+            const StateID& state_id = frontier[i];
+            State s = this->lookup_state(state_id);
+            add_fringe_state_to_hpom(s, data[state_id], hpom_constraints_);
         }
+
+        lp_solver_.add_temporary_constraints(hpom_constraints_);
 
         statistics_.hpom_timer_.stop();
     }
@@ -459,7 +443,7 @@ private:
     void remove_fringe_state_from_hpom(
         const State& state,
         const IDualData& data,
-        std::vector<lp::LPConstraint>& constraints) const
+        named_vector::NamedVector<lp::LPConstraint>& constraints) const
     {
         for (VariableProxy var : task_proxy.get_variables()) {
             const int val = state[var].get_value();
@@ -473,7 +457,7 @@ private:
     void add_fringe_state_to_hpom(
         const State& state,
         const IDualData& data,
-        std::vector<lp::LPConstraint>& constraints) const
+        named_vector::NamedVector<lp::LPConstraint>& constraints) const
     {
         for (VariableProxy var : task_proxy.get_variables()) {
             const int val = state[var].get_value();
@@ -500,7 +484,6 @@ private:
     bool hpom_initialized_ = false;
     std::vector<int> offset_;
     named_vector::NamedVector<lp::LPConstraint> hpom_constraints_;
-    std::vector<lp::LPConstraint> frontier_constraints_;
 
     Statistics statistics_;
 

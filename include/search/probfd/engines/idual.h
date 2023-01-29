@@ -95,7 +95,7 @@ public:
     explicit IDual(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::RewardFunction<State, Action>* reward_function,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         lp::LPSolverType solver_type,
         engine_interfaces::StateEvaluator<State>* value_initializer,
@@ -103,7 +103,7 @@ public:
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
-              reward_function,
+              cost_function,
               transition_generator)
         , report_(report)
         , value_initializer_(value_initializer)
@@ -135,7 +135,7 @@ public:
             named_vector::NamedVector<lp::LPVariable> vars;
             named_vector::NamedVector<lp::LPConstraint> constraints;
 
-            vars.emplace_back(estimate, inf, 1.0);
+            vars.emplace_back(-estimate, inf, 1.0);
             constraints.emplace_back(-inf, inf);
 
             lp_solver_.load_problem(lp::LinearProgram(
@@ -167,13 +167,14 @@ public:
 
             for (const StateID state_id : frontier) {
                 const State state = this->lookup_state(state_id);
-                const TerminationInfo term_info = this->get_state_reward(state);
-                const auto t_rew = term_info.get_reward();
+                const TerminationInfo term_info =
+                    this->get_termination_info(state);
+                const auto t_cost = term_info.get_cost();
 
                 const unsigned var_id = state_infos_[state_id].idx;
                 assert(state_infos_[state_id].status == PerStateInfo::CLOSED);
 
-                lp_solver_.set_variable_lower_bound(var_id, t_rew);
+                lp_solver_.set_variable_lower_bound(var_id, -t_cost);
 
                 if (term_info.is_goal_state()) {
                     continue;
@@ -191,8 +192,7 @@ public:
 
                     lp::LPConstraint c(-inf, inf);
 
-                    double base_val =
-                        this->get_action_reward(state_id, aops[j]);
+                    double base_val = -this->get_action_cost(state_id, aops[j]);
                     StateID next_prev_state = prev_state;
                     double w = 1.0;
 
@@ -210,7 +210,7 @@ public:
                             State succ_state = this->lookup_state(succ_id);
                             const auto eval =
                                 value_initializer_->evaluate(succ_state);
-                            const auto value = eval.get_estimate();
+                            const auto value = -eval.get_estimate();
 
                             if (eval.is_unsolvable()) {
                                 succ_info.status = PerStateInfo::TERMINAL;
@@ -268,7 +268,7 @@ public:
             lp_solver_.solve();
             assert(lp_solver_.has_optimal_solution());
             lp_sol = lp_solver_.extract_dual_solution();
-            objective_ = lp_solver_.get_objective_value();
+            objective_ = -lp_solver_.get_objective_value();
 
             auto it = open_states.begin();
             while (it != open_states.end()) {

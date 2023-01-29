@@ -55,7 +55,7 @@ class State;
 
 namespace probfd {
 
-/// Type alias for state reward functions for planning tasks.
+/// Type alias for evaluators of planning tasks.
 using TaskStateEvaluator = engine_interfaces::StateEvaluator<State>;
 
 } // namespace probfd

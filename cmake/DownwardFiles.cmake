@@ -818,15 +818,15 @@ fast_downward_plugin(
         # Engine interfaces
         probfd/state_id_map
         probfd/state_evaluator
-        probfd/reward_function
+        probfd/cost_function
         probfd/transition_generator
         probfd/progress_report
         probfd/quotient_system
 
-        # Reward Models
-        probfd/reward_model
-        probfd/reward_models/maxprob_reward_model
-        probfd/reward_models/ssp_reward_model
+        # Cost Models
+        probfd/cost_model
+        probfd/cost_models/maxprob_cost_model
+        probfd/cost_models/ssp_cost_model
 
         # Constant evaluator (default)
         probfd/heuristics/constant_evaluator

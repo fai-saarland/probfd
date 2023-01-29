@@ -25,17 +25,24 @@ value_t evaluate_subcollection(
 
     auto transformer = [&pdb_estimates](int i) { return pdb_estimates[i]; };
 
-    auto neutral_element = is_expcost ? 0_vt : 1_vt;
+    auto result = is_expcost ? 0_vt : 1_vt;
 
     using R = std::
         conditional_t<is_expcost, std::plus<value_t>, std::multiplies<value_t>>;
 
-    return std::transform_reduce(
-        subcollection.begin(),
-        subcollection.end(),
-        neutral_element,
-        R(),
-        transformer);
+    for (int pattern_id : subcollection) {
+        if constexpr (is_expcost) {
+            result += pdb_estimates[pattern_id];
+        } else {
+            result *= pdb_estimates[pattern_id];
+        }
+    }
+
+    if constexpr (!is_expcost) {
+        result = -std::abs(result);
+    }
+
+    return result;
 }
 
 template <class PDBType>
@@ -54,7 +61,7 @@ EvaluationResult evaluate(
     const std::vector<PatternSubCollection>& subcollections,
     const State& state)
 {
-    value_t result = std::is_same_v<PDBType, ExpCostProjection> ? 0_vt : 1_vt;
+    value_t result = std::is_same_v<PDBType, ExpCostProjection> ? 0_vt : -1_vt;
 
     if (!database.empty()) {
         // Get pattern estimates
@@ -79,7 +86,7 @@ EvaluationResult evaluate(
             subcollections.end(),
             result,
             static_cast<const value_t& (*)(const value_t&, const value_t&)>(
-                std::min<value_t>),
+                std::max<value_t>),
             transformer);
     }
 

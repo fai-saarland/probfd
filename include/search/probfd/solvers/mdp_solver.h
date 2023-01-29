@@ -6,7 +6,7 @@
 #include "probfd/solver_interface.h"
 
 #include "probfd/action_id_map.h"
-#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/progress_report.h"
 #include "probfd/state_id_map.h"
@@ -50,7 +50,7 @@ public:
         return new Engine(
             &state_id_map_,
             &action_id_map_,
-            reward_function_,
+            cost_function_,
             &transition_generator_,
             std::forward<Args>(args)...);
     }
@@ -93,9 +93,9 @@ protected:
         return &action_id_map_;
     }
 
-    engine_interfaces::RewardFunction<State, OperatorID>* get_reward_function()
+    engine_interfaces::CostFunction<State, OperatorID>* get_cost_function()
     {
-        return reward_function_;
+        return cost_function_;
     }
 
     engine_interfaces::TransitionGenerator<OperatorID>*
@@ -116,7 +116,7 @@ private:
 
     engine_interfaces::StateIDMap<State> state_id_map_;
     engine_interfaces::ActionIDMap<OperatorID> action_id_map_;
-    engine_interfaces::RewardFunction<State, OperatorID>* reward_function_;
+    engine_interfaces::CostFunction<State, OperatorID>* cost_function_;
     engine_interfaces::TransitionGenerator<OperatorID> transition_generator_;
 };
 

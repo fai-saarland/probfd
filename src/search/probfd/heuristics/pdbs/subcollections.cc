@@ -146,6 +146,7 @@ std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
             for (const auto& effect : outcome.get_effects()) {
                 const int new_var = effect.get_fact().get_variable().get_id();
                 if (affected_vars.insert(new_var).second) {
+                    are_orthogonal[new_var][new_var] = false;
                     for (const int old_var : affected_vars) {
                         if (old_var == new_var) continue;
                         are_orthogonal[old_var][new_var] = false;

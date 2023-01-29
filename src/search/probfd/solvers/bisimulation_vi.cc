@@ -1,4 +1,4 @@
-#include "probfd/reward_model.h"
+#include "probfd/cost_model.h"
 
 #include "probfd/solver_interface.h"
 
@@ -68,10 +68,10 @@ public:
         StateIDMap<QState> state_id_map;
         ActionIDMap<QAction> action_id_map;
         TransitionGenerator<QAction> tgen(&bs);
-        bisimulation::DefaultQuotientRewardFunction reward(
+        bisimulation::DefaultQuotientCostFunction cost(
             &bs,
-            g_reward_model->reward_bound(),
-            -INFINITE_VALUE);
+            g_cost_model->optimal_value_bound(),
+            g_cost_model->optimal_value_bound().upper);
 
         stats.timer.stop();
         stats.states = bs.num_bisimilar_states();
@@ -91,7 +91,7 @@ public:
                 IntervalIteration<QState, QAction>(
                     &state_id_map,
                     &action_id_map,
-                    &reward,
+                    &cost,
                     &tgen,
                     nullptr,
                     false,
@@ -102,7 +102,7 @@ public:
                 TopologicalValueIteration<QState, QAction>(
                     &state_id_map,
                     &action_id_map,
-                    &reward,
+                    &cost,
                     &tgen,
                     &initializer,
                     false);

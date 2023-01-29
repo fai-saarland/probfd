@@ -8,7 +8,7 @@
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
-#include "probfd/reward_model.h"
+#include "probfd/cost_model.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 #include "probfd/bisimulation/engine_interfaces.h"
@@ -68,7 +68,7 @@ public:
         res->engine_.reset(new HS<QState, QAction, Interval>(
             &res->state_id_map,
             &res->action_id_map,
-            res->reward.get(),
+            res->cost.get(),
             res->tgen.get(),
             res->policy_.get(),
             &res->new_state_handler_,
@@ -109,13 +109,13 @@ protected:
         , engine_name_(engine_name)
         , bs(new bisimulation::BisimilarStateSpace(task.get()))
         , tgen(new engine_interfaces::TransitionGenerator<QAction>(bs.get()))
-        , reward(new bisimulation::DefaultQuotientRewardFunction(
+        , cost(new bisimulation::DefaultQuotientCostFunction(
               bs.get(),
-              g_reward_model->reward_bound()))
+              g_cost_model->optimal_value_bound()))
         , heuristic_(new bisimulation::DefaultQuotientStateEvaluator(
               bs.get(),
-              g_reward_model->reward_bound(),
-              g_reward_model->reward_bound().upper))
+              g_cost_model->optimal_value_bound(),
+              g_cost_model->optimal_value_bound().upper))
         , policy_(new policy_pickers::ArbitraryTiebreaker<QAction>())
     {
         stats.timer.stop();
@@ -140,7 +140,7 @@ protected:
     engine_interfaces::StateIDMap<QState> state_id_map;
     engine_interfaces::ActionIDMap<QAction> action_id_map;
     std::unique_ptr<engine_interfaces::TransitionGenerator<QAction>> tgen;
-    std::unique_ptr<bisimulation::QuotientRewardFunction> reward;
+    std::unique_ptr<bisimulation::QuotientCostFunction> cost;
     engine_interfaces::NewStateHandler<QState> new_state_handler_;
     std::unique_ptr<engine_interfaces::StateEvaluator<QState>> heuristic_;
     std::unique_ptr<engine_interfaces::PolicyPicker<QAction>> policy_;
@@ -181,9 +181,9 @@ public:
                 stable_policy,
                 &res->state_id_map,
                 res->q_action_id_map_.get(),
-                res->reward.get(),
-                res->q_reward_.get(),
-                g_reward_model->reward_bound(),
+                res->cost.get(),
+                res->q_cost_.get(),
+                g_cost_model->optimal_value_bound(),
                 res->q_transition_gen_.get()));
 
         return res;
@@ -208,7 +208,7 @@ public:
         auto* engine = new HS<QState, QQAction, Interval>(
             &res->state_id_map,
             res->q_action_id_map_.get(),
-            res->q_reward_.get(),
+            res->q_cost_.get(),
             res->q_transition_gen_.get(),
             res->q_policy_tiebreaker_.get(),
             &res->new_state_handler_,
@@ -223,7 +223,7 @@ public:
         res->engine_.reset(new Fret<QState, QAction, Interval>(
             &res->state_id_map,
             &res->action_id_map,
-            res->reward.get(),
+            res->cost.get(),
             res->tgen.get(),
             res->quotient_.get(),
             &progress,
@@ -239,9 +239,9 @@ private:
         , quotient_(new quotients::QuotientSystem<QAction>(
               &action_id_map,
               tgen.get()))
-        , q_reward_(new quotients::DefaultQuotientRewardFunction(
+        , q_cost_(new quotients::DefaultQuotientCostFunction(
               quotient_.get(),
-              reward.get()))
+              cost.get()))
         , q_action_id_map_(
               new engine_interfaces::ActionIDMap<QQAction>(quotient_.get()))
         , q_transition_gen_(
@@ -254,8 +254,7 @@ private:
 
     std::unique_ptr<quotients::QuotientSystem<QAction>> quotient_;
 
-    std::unique_ptr<engine_interfaces::RewardFunction<QState, QQAction>>
-        q_reward_;
+    std::unique_ptr<engine_interfaces::CostFunction<QState, QQAction>> q_cost_;
     std::unique_ptr<engine_interfaces::ActionIDMap<QQAction>> q_action_id_map_;
     std::unique_ptr<engine_interfaces::TransitionGenerator<QQAction>>
         q_transition_gen_;

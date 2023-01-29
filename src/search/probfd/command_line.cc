@@ -8,8 +8,8 @@
 #include "utils/strings.h"
 #include "utils/timer.h"
 
-#include "probfd/reward_models/maxprob_reward_model.h"
-#include "probfd/reward_models/ssp_reward_model.h"
+#include "probfd/cost_models/maxprob_cost_model.h"
+#include "probfd/cost_models/ssp_cost_model.h"
 
 #include "probfd/solver_interface.h"
 
@@ -218,11 +218,11 @@ std::shared_ptr<SolverInterface> parse_cmd_line(
 
     if (!dry_run) {
         if (expected_cost) {
-            g_reward_model.reset(new reward_models::SSPRewardModel());
-            std::cout << "Using SSP reward model." << std::endl;
+            g_cost_model.reset(new cost_models::SSPCostModel());
+            std::cout << "Using SSP cost model." << std::endl;
         } else {
-            g_reward_model.reset(new reward_models::MaxProbRewardModel());
-            std::cout << "Using MaxProb reward model." << std::endl;
+            g_cost_model.reset(new cost_models::MaxProbCostModel());
+            std::cout << "Using MaxProb cost model." << std::endl;
         }
     }
 
