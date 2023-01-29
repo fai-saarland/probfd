@@ -236,6 +236,9 @@ string usage(const string& progname)
            "* SEARCH (SearchEngine): configuration of the search algorithm\n"
            "* OUTPUT (filename): translator output\n\n"
            "Options:\n"
+           "--maxprob\n"
+           "    Use the MaxProb cost model, specifying a termination cost\n"
+           "    of -1 for goal states and 0 otherwise, an no action costs.\n"
            "--help [NAME]\n"
            "    Prints help for all heuristics, open lists, etc. called NAME.\n"
            "    Without parameter: prints help for everything available\n"
@@ -246,14 +249,8 @@ string usage(const string& progname)
            "--evaluator EVALUATOR_PREDEFINITION\n"
            "    Predefines an evaluator that can afterwards be referenced\n"
            "    by the name that is specified in the definition.\n"
-           "--internal-plan-file FILENAME\n"
-           "    Plan will be output to a file called FILENAME\n\n"
-           "--internal-previous-portfolio-plans COUNTER\n"
-           "    This planner call is part of a portfolio which already "
-           "created\n"
            "    plan files FILENAME.1 up to FILENAME.COUNTER.\n"
            "    Start enumerating plan files with COUNTER+1, i.e. "
-           "FILENAME.COUNTER+1\n\n"
-           "See http://www.fast-downward.org/ for details.";
+           "FILENAME.COUNTER+1";
 }
 } // namespace probfd
