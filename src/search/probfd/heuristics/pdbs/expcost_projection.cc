@@ -270,6 +270,8 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
 
     WrapperHeuristic h(proper_states, heuristic);
 
+    state_id_map.clear();
+
     TopologicalValueIteration<StateRank, const AbstractOperator*>
         vi(&state_id_map, &action_id_map, &reward, &transition_gen, &h, true);
 
@@ -327,8 +329,7 @@ void ExpCostProjection::verify(
     for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
-        const bool in = utils::contains(proper_states, StateID(s.id));
-        variables.emplace_back(-inf, 0_vt, in ? 1_vt : 0_vt);
+        variables.emplace_back(-inf, 0_vt, 0_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
@@ -343,6 +344,12 @@ void ExpCostProjection::verify(
         assert(utils::contains(visited, StateID(s.id)));
         visited.erase(StateID(s.id));
 
+        if (!utils::contains(proper_states, StateID(s.id))) {
+            continue;
+        }
+
+        variables[s.id].objective_coefficient = 1_vt;
+
         if (abstract_state_space_.goal_state_flags_[s.id]) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
@@ -352,11 +359,9 @@ void ExpCostProjection::verify(
         std::vector<const AbstractOperator*> aops;
         abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
 
-        // Select a greedy operators and add its successors
+        // Push successors
         for (const AbstractOperator* op : aops) {
             value_t reward = op->reward;
-
-            auto& constr = constraints.emplace_back(reward, inf);
 
             std::unordered_map<StateRank, value_t> successor_dist;
 
@@ -370,6 +375,8 @@ void ExpCostProjection::verify(
             }
 
             successor_dist[s] += 1_vt;
+
+            auto& constr = constraints.emplace_back(reward, inf);
 
             for (const auto& [succ, prob] : successor_dist) {
                 constr.insert(succ.id, prob);

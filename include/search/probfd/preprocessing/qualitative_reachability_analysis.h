@@ -114,6 +114,7 @@ struct ExpansionInfo {
                 // Reset transition flags
                 exits_only_proper = true;
                 transitions_in_scc = false;
+                exits_scc = false;
 
                 return true;
             }
@@ -132,6 +133,7 @@ struct ExpansionInfo {
 
     bool exits_only_proper = true;
     bool transitions_in_scc = false;
+    bool exits_scc = false;
 
     // Mutable info
     std::vector<Action> aops;         // Remaining unexpanded operators
@@ -148,9 +150,11 @@ struct StackInfo {
 
     StateID stateid;
 
-    unsigned scc_transitions = 0;
+    unsigned proper_transitions = 0;
+    unsigned exit_transitions = 0;
 
     std::vector<bool> active;
+    std::vector<bool> exiting;
     std::vector<std::pair<unsigned, unsigned>> parents;
 };
 
@@ -256,6 +260,7 @@ public:
                     }
                 } else {
                     e->exits_only_proper = e->exits_only_proper && bt_info.one;
+                    e->exits_scc = true;
                 }
 
                 st->dead = st->dead && bt_info.dead;
@@ -267,8 +272,14 @@ public:
 
                 // Finalize fully explored action successors.
                 if (e->transitions_in_scc) {
-                    if (e->exits_only_proper) ++s->scc_transitions;
+                    if (e->exits_only_proper) {
+                        if (e->exits_scc) {
+                            ++s->exit_transitions;
+                        }
+                        ++s->proper_transitions;
+                    }
                     s->active.push_back(e->exits_only_proper);
+                    s->exiting.push_back(e->exits_only_proper && e->exits_scc);
                 } else if (e->exits_only_proper) {
                     st->one = true;
                 }
@@ -363,6 +374,12 @@ private:
         } while (!aops.empty());
         /*****************************************************************/
 
+        if (state_info.expandable_goal) {
+            state_info.expandable_goal = 0;
+        } else {
+            *zero_states_out = state_id;
+        }
+
         return false;
     }
 
@@ -395,14 +412,21 @@ private:
                     return true;
                 } else {
                     e.exits_only_proper = e.exits_only_proper && succ_info.one;
+                    e.exits_scc = true;
                 }
 
                 st.dead = st.dead && succ_info.dead;
             } while (e.next_successor());
 
             if (e.transitions_in_scc) {
-                if (e.exits_only_proper) ++s.scc_transitions;
+                if (e.exits_only_proper) {
+                    if (e.exits_scc) {
+                        ++s.exit_transitions;
+                    }
+                    ++s.proper_transitions;
+                }
                 s.active.push_back(e.exits_only_proper);
+                s.exiting.push_back(e.exits_only_proper && e.exits_scc);
             } else if (e.exits_only_proper) {
                 st.one = true;
             }
@@ -428,57 +452,127 @@ private:
                 *zero_states_out = it->stateid;
             }
         } else {
-            // Collect non-proper states
-            std::deque<StackInfo*> non_one;
-            {
-                for (auto stk_it = begin; stk_it != end; ++stk_it) {
-                    auto sid = stk_it->stateid;
-                    StateInfo& sinfo = state_infos_[sid];
+            std::set<StackInfo*> proper_states;
+            std::set<StackInfo*> exits;
 
-                    if (!sinfo.one && stk_it->scc_transitions == 0 &&
-                        !stk_it->parents.empty()) {
-                        non_one.push_back(&*stk_it);
-                    }
+            for (auto stk_it = begin; stk_it != end; ++stk_it) {
+                proper_states.insert(&*stk_it);
+
+                StateInfo& state_info = state_infos_[stk_it->stateid];
+                state_info.stackid_ = StateInfo::UNDEF;
+                state_info.dead = false;
+
+                if (stk_it->exit_transitions > 0 || state_info.one) {
+                    exits.insert(&*stk_it);
                 }
             }
 
-            // Fix-point iteration to throw out actions which do not
-            // uniformly lead to proper states. If no action remains the state
-            // is not proper.
-            while (!non_one.empty()) {
-                StackInfo* scc_elem = non_one.back();
-                non_one.pop_back();
+            std::size_t prev_size;
+            std::size_t current_size = proper_states.size();
 
-                for (const auto& [first, second] : scc_elem->parents) {
-                    StackInfo& pinfo = stack_[first];
-                    const StateInfo& sinfo = state_infos_[pinfo.stateid];
+            // Compute the set of proper states by iterative pruning of certain
+            // states and transitions from a sub-SSP of the SCC. Initially,
+            // this sub-SSP consists of all states and transitions except those
+            // transitions which can lead to a non-proper state in a child SCC.
+            do {
+                // Collect states that can currently reach a proper scc exit
+                // or a goal state within the sub-SSP.
+                std::set<StackInfo*> can_reach_exits(
+                    exits.begin(),
+                    exits.end());
 
-                    if (!sinfo.one && pinfo.active[second]) {
-                        pinfo.active[second] = false;
-                        if (--pinfo.scc_transitions == 0 &&
-                            !pinfo.parents.empty()) {
-                            non_one.push_back(&pinfo);
+                {
+                    std::vector<StackInfo*> queue(exits.begin(), exits.end());
+
+                    while (!queue.empty()) {
+                        StackInfo* scc_elem = queue.back();
+                        queue.pop_back();
+
+                        for (const auto& [first, second] : scc_elem->parents) {
+                            StackInfo& pinfo = stack_[first];
+
+                            if (can_reach_exits.insert(&pinfo).second) {
+                                queue.push_back(&pinfo);
+                            }
                         }
                     }
                 }
-            }
 
-            // Report the proper states
-            for (auto stk_it = begin; stk_it != end; ++stk_it) {
-                auto sid = stk_it->stateid;
-                StateInfo& sinfo = state_infos_[sid];
+                // The complement is improper.
+                std::set<StackInfo*> proven_improper;
+                std::set_difference(
+                    proper_states.begin(),
+                    proper_states.end(),
+                    can_reach_exits.begin(),
+                    can_reach_exits.end(),
+                    std::inserter(proven_improper, proven_improper.end()));
 
-                sinfo.dead = false;
+                // Iteratively prune improper states and transitions which
+                // have these states as a target. If no transition remains for
+                // a former parent in the process, the state becomes improper
+                // as well and is added to the queue. Do this until nothing
+                // changes anymore.
+                std::vector<StackInfo*> queue(
+                    proven_improper.begin(),
+                    proven_improper.end());
 
-                if (sinfo.one || stk_it->scc_transitions) {
-                    if (!sinfo.expandable_goal) {
-                        sinfo.one = true;
-                        *one_states_out = sid;
-                        ++stats_.ones;
+                while (!queue.empty()) {
+                    StackInfo* scc_elem = queue.back();
+                    queue.pop_back();
+
+                    // The state is not proper
+                    assert(proper_states.find(scc_elem) != proper_states.end());
+                    proper_states.erase(scc_elem);
+
+                    for (const auto& [first, second] : scc_elem->parents) {
+                        StackInfo& pinfo = stack_[first];
+                        const StateInfo& sinfo = state_infos_[pinfo.stateid];
+
+                        if (sinfo.one ||
+                            utils::contains(proven_improper, &pinfo)) {
+                            continue;
+                        }
+
+                        if (pinfo.exiting[second]) {
+                            assert(pinfo.active[second]);
+                            pinfo.active[second] = false;
+                            pinfo.exiting[second] = false;
+
+                            if (--pinfo.proper_transitions == 0) {
+                                assert(
+                                    !utils::contains(proven_improper, &pinfo));
+                                queue.push_back(&pinfo);
+                            }
+
+                            if (--pinfo.exit_transitions == 0) {
+                                exits.erase(&pinfo);
+                            }
+                        } else if (pinfo.active[second]) {
+                            pinfo.active[second] = false;
+
+                            if (--pinfo.proper_transitions == 0) {
+                                assert(
+                                    !utils::contains(proven_improper, &pinfo));
+                                queue.push_back(&pinfo);
+                            }
+                        }
                     }
                 }
 
-                sinfo.stackid_ = StateInfo::UNDEF;
+                prev_size = current_size;
+                current_size = proper_states.size();
+            } while (prev_size != current_size);
+
+            // Report the proper states
+            for (StackInfo* stkinfo : proper_states) {
+                auto sid = stkinfo->stateid;
+                auto& sinfo = state_infos_[sid];
+
+                if (!sinfo.expandable_goal) {
+                    sinfo.one = true;
+                    *one_states_out = sid;
+                    ++stats_.ones;
+                }
             }
         }
 

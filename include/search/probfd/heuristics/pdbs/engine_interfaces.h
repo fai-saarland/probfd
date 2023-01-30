@@ -44,6 +44,8 @@ public:
 
     visited_range visited() const;
 
+    void clear() { seen.clear(); }
+
 private:
     std::set<int> seen;
 };
