@@ -17,7 +17,7 @@ class I2DualSolver : public MDPSolver {
 public:
     explicit I2DualSolver(const options::Options& opts)
         : MDPSolver(opts)
-        , heuristic_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
+        , heuristic_(opts.get<std::shared_ptr<TaskStateEvaluator>>("eval"))
         , hpom_enabled_(!opts.get<bool>("disable_hpom"))
         , incremental_hpom_updates_(opts.get<bool>("incremental_updates"))
         , solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
@@ -27,7 +27,7 @@ public:
     static void add_options_to_parser(options::OptionParser& parser)
     {
         MDPSolver::add_options_to_parser(parser);
-        parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
+        parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
             "eval",
             "",
             "const");
@@ -49,7 +49,7 @@ public:
     }
 
 private:
-    std::shared_ptr<GlobalStateEvaluator> heuristic_;
+    std::shared_ptr<TaskStateEvaluator> heuristic_;
     bool hpom_enabled_;
     bool incremental_hpom_updates_;
     lp::LPSolverType solver_type_;

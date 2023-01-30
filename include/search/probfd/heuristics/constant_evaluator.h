@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_CONSTANT_EVALUATOR_H
 #define MDPS_HEURISTICS_CONSTANT_EVALUATOR_H
 
-#include "probfd/state_evaluator.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
 
 namespace probfd {
 namespace heuristics {
@@ -15,7 +15,7 @@ public:
     /**
      * @brief Construct with constant estimate \p value .
      */
-    ConstantEvaluator(value_type::value_t value)
+    explicit ConstantEvaluator(value_type::value_t value)
         : value_(value)
     {
     }

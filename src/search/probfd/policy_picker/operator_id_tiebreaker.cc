@@ -1,21 +1,15 @@
 #include "probfd/policy_picker/operator_id_tiebreaker.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "operator_id.h"
 
 #include <limits>
 
 namespace probfd {
 namespace policy_tiebreaking {
 
-OperatorIdTiebreaker::OperatorIdTiebreaker(const options::Options& opts)
-    : ascending_(opts.get<bool>("prefer_smaller") ? 1 : -1)
+OperatorIdTiebreaker::OperatorIdTiebreaker(int ascending)
+    : ascending_(ascending)
 {
-}
-
-void OperatorIdTiebreaker::add_options_to_parser(options::OptionParser& p)
-{
-    p.add_option<bool>("prefer_smaller", "", "true");
 }
 
 int OperatorIdTiebreaker::pick(
@@ -35,10 +29,6 @@ int OperatorIdTiebreaker::pick(
     }
     return min_idx;
 }
-
-static Plugin<ProbabilisticOperatorPolicyPicker> _plugin(
-    "operator_id_policy_tiebreaker",
-    options::parse<ProbabilisticOperatorPolicyPicker, OperatorIdTiebreaker>);
 
 } // namespace policy_tiebreaking
 } // namespace probfd

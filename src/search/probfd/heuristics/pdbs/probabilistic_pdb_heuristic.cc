@@ -189,13 +189,13 @@ void ProbabilisticPDBHeuristic<MaxProbProjection>::add_options_to_parser(
 template class ProbabilisticPDBHeuristic<ExpCostProjection>;
 template class ProbabilisticPDBHeuristic<MaxProbProjection>;
 
-static Plugin<GlobalStateEvaluator> _plugin_ec(
+static Plugin<TaskStateEvaluator> _plugin_ec(
     "ecpdb",
-    options::parse<GlobalStateEvaluator, ExpCostPDBHeuristic>);
+    options::parse<TaskStateEvaluator, ExpCostPDBHeuristic>);
 
-static Plugin<GlobalStateEvaluator> _plugin_mp(
+static Plugin<TaskStateEvaluator> _plugin_mp(
     "maxprob_pdb",
-    options::parse<GlobalStateEvaluator, MaxProbPDBHeuristic>);
+    options::parse<TaskStateEvaluator, MaxProbPDBHeuristic>);
 
 } // namespace pdbs
 } // namespace heuristics

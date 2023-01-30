@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_DETERMINIZATION_COST_H
 #define MDPS_HEURISTICS_DETERMINIZATION_COST_H
 
-#include "probfd/state_evaluator.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
 
 #include <memory>
 
@@ -22,7 +22,7 @@ namespace heuristics {
  * @note If the underlying classical heuristic is admissible/consistent, this
  * heuristic is also admissible/heuristic.
  */
-class DeterminizationCostHeuristic : public GlobalStateEvaluator {
+class DeterminizationCostHeuristic : public TaskStateEvaluator {
     std::shared_ptr<Evaluator> evaluator_;
 
 public:

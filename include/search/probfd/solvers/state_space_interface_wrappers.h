@@ -10,8 +10,11 @@
 #include "probfd/quotient_system/heuristic_search_interface.h"
 #include "probfd/quotient_system/quotient_system.h"
 
-#include "probfd/open_list.h"
-#include "probfd/transition_sampler.h"
+#include "probfd/open_lists/lifo_open_list.h"
+
+#include "probfd/transition_sampler/random_successor_sampler.h"
+
+#include "utils/rng_options.h"
 
 #include <memory>
 
@@ -61,7 +64,7 @@ struct Wrapper<
         const
     {
         return std::make_shared<engine_interfaces::TransitionSampler<
-            quotient_system::QuotientAction<OperatorID>>>(q, t.get());
+            quotient_system::QuotientAction<OperatorID>>>(q, t);
     }
 };
 
@@ -72,7 +75,8 @@ struct Unwrapper<
     std::shared_ptr<engine_interfaces::TransitionSampler<
         quotient_system::QuotientAction<OperatorID>>>> {
 
-    using type = engine_interfaces::TransitionSampler<OperatorID>*;
+    using type =
+        std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>;
 
     type operator()(std::shared_ptr<engine_interfaces::TransitionSampler<
                         quotient_system::QuotientAction<OperatorID>>> t) const
@@ -92,9 +96,14 @@ struct Wrapper<
     type operator()(
         std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>) const
     {
-        return std::make_shared<engine_interfaces::TransitionSampler<
+        // HACK to access the global rng...
+        options::Options opts;
+        opts.set<int>("random_seed", -1);
+        auto rng = utils::parse_rng_from_options(opts);
+
+        return std::make_shared<transition_sampler::RandomSuccessorSampler<
             typename translate_action<Fret, bisimulation::QuotientAction>::
-                type>>();
+                type>>(rng);
     }
 };
 
@@ -131,7 +140,7 @@ struct Wrapper<
         std::shared_ptr<engine_interfaces::OpenList<OperatorID>> t) const
     {
         return std::make_shared<engine_interfaces::OpenList<
-            quotient_system::QuotientAction<OperatorID>>>(q, t.get());
+            quotient_system::QuotientAction<OperatorID>>>(q, t);
     }
 };
 
@@ -142,7 +151,7 @@ struct Unwrapper<
     std::shared_ptr<engine_interfaces::OpenList<
         quotient_system::QuotientAction<OperatorID>>>> {
 
-    using type = engine_interfaces::OpenList<OperatorID>*;
+    using type = std::shared_ptr<engine_interfaces::OpenList<OperatorID>>;
 
     type operator()(std::shared_ptr<engine_interfaces::OpenList<
                         quotient_system::QuotientAction<OperatorID>>> t) const
@@ -162,7 +171,7 @@ struct Wrapper<
     type
     operator()(std::shared_ptr<engine_interfaces::OpenList<OperatorID>>) const
     {
-        return std::make_shared<engine_interfaces::OpenList<
+        return std::make_shared<open_lists::LifoOpenList<
             typename translate_action<Fret, bisimulation::QuotientAction>::
                 type>>();
     }

@@ -42,6 +42,8 @@ public:
     {
     }
 
+    virtual ~NewStateHandlerList() = default;
+
     virtual void touch(const State& s) override
     {
         for (auto& handler : handlers_) {
@@ -68,6 +70,15 @@ private:
 };
 
 } // namespace engine_interfaces
+} // namespace probfd
+
+// Convenience type aliases
+
+class State;
+
+namespace probfd {
+using TaskNewStateHandler = engine_interfaces::NewStateHandler<State>;
+using TaskNewStateHandlerList = engine_interfaces::NewStateHandlerList<State>;
 } // namespace probfd
 
 #endif // __NEW_STATE_HANDLER_H__

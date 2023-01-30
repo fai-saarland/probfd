@@ -2,20 +2,15 @@
 
 #include "probfd/engines/heuristic_search_state_information.h"
 
-#include "option_parser.h"
-#include "plugin.h"
-
 namespace probfd {
 namespace policy_tiebreaking {
 
-VDiffTiebreaker::VDiffTiebreaker(const options::Options& opts)
-    : favor_large_gaps_(opts.get<bool>("prefer_large_gaps") ? -1 : 1)
+VDiffTiebreaker::VDiffTiebreaker(
+    engine_interfaces::HeuristicSearchConnector* connector,
+    value_type::value_t favor_large_gaps)
+    : connector_(connector)
+    , favor_large_gaps_(favor_large_gaps)
 {
-}
-
-void VDiffTiebreaker::add_options_to_parser(options::OptionParser& parser)
-{
-    parser.add_option<bool>("prefer_large_gaps", "", "true");
 }
 
 int VDiffTiebreaker::pick(
@@ -30,7 +25,7 @@ int VDiffTiebreaker::pick(
         const Distribution<StateID>& t = successors[i];
         value_type::value_t sum = value_type::zero;
         for (auto it = t.begin(); it != t.end(); ++it) {
-            const auto& value = lookup_dual_bounds(it->element);
+            const auto& value = connector_->lookup_dual_bounds(it->element);
             sum += it->probability * value->error_bound();
         }
         if (value_type::approx_less()(favor_large_gaps_ * sum, best)) {
@@ -40,10 +35,6 @@ int VDiffTiebreaker::pick(
     }
     return choice;
 }
-
-static Plugin<ProbabilisticOperatorPolicyPicker> _plugin(
-    "value_gap_policy_tiebreaker",
-    options::parse<ProbabilisticOperatorPolicyPicker, VDiffTiebreaker>);
 
 } // namespace policy_tiebreaking
 } // namespace probfd

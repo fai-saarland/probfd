@@ -903,34 +903,52 @@ fast_downward_plugin(
     NAME MDP_HEURISTIC_SEARCH_BASE
     HELP "mdp heuristic search core"
     SOURCES
-        probfd/heuristic_search_interfaceable
+        # Engine interface plugins
+        probfd/engine_interfaces/plugins
 
-        probfd/successor_sort
-        probfd/dead_end_listener
+        # Open Lists
+        probfd/open_lists/fifo_open_list_factory
+        probfd/open_lists/lifo_open_list_factory
 
-        probfd/open_list
-        probfd/open_lists/lifo_open_list
-        probfd/open_lists/fifo_open_list
+        probfd/open_lists/plugins
 
-        probfd/new_state_handler
-
+        # Transition Samplers
         probfd/transition_sampler
-        probfd/transition_sampler/most_likely_selector
         probfd/transition_sampler/arbitrary_selector
+        probfd/transition_sampler/most_likely_selector
         probfd/transition_sampler/uniform_successor_sampler
-        probfd/transition_sampler/random_successor_sampler
         probfd/transition_sampler/vbiased_successor_sampler
         probfd/transition_sampler/vdiff_successor_sampler
 
-        probfd/policy_picker
-        probfd/policy_picker/arbitrary_tiebreaker
+        probfd/transition_sampler/arbitrary_selector_factory
+        probfd/transition_sampler/most_likely_selector_factory
+        probfd/transition_sampler/uniform_successor_sampler_factory
+        probfd/transition_sampler/random_successor_sampler_factory
+        probfd/transition_sampler/vbiased_successor_sampler_factory
+        probfd/transition_sampler/vdiff_successor_sampler_factory
+
+        probfd/transition_sampler/plugins
+
+        # Policy Tiebreakers
         probfd/policy_picker/operator_id_tiebreaker
         probfd/policy_picker/random_tiebreaker
         probfd/policy_picker/vdiff_tiebreaker
 
-        probfd/successor_sorting
-        probfd/successor_sorting/vdiff_sorter
+        probfd/policy_picker/arbitrary_tiebreaker_factory
+        probfd/policy_picker/operator_id_tiebreaker_factory
+        probfd/policy_picker/random_tiebreaker_factory
+        probfd/policy_picker/vdiff_tiebreaker_factory
 
+        probfd/policy_picker/plugins
+
+        # Successor Sorters
+        probfd/successor_sorter/vdiff_sorter
+
+        probfd/successor_sorter/vdiff_sorter_factory
+
+        probfd/successor_sorter/plugins
+
+        # Base heuristic search solver
         probfd/solvers/mdp_heuristic_search
     DEPENDENCY_ONLY
     DEPENDS MDP

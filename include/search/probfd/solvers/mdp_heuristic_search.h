@@ -4,7 +4,9 @@
 #include "probfd/solvers/mdp_solver.h"
 
 #include "probfd/engine_interfaces/heuristic_search_connector.h"
+#include "probfd/engine_interfaces/new_state_handler.h"
 #include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/policy_picker.h"
 
 #include "probfd/engines/fret.h"
 
@@ -12,9 +14,6 @@
 #include "probfd/quotient_system/heuristic_search_interface.h"
 #include "probfd/quotient_system/quotient_system.h"
 
-#include "probfd/heuristic_search_interfaceable.h"
-#include "probfd/new_state_handler.h"
-#include "probfd/policy_picker.h"
 #include "probfd/quotient_system.h"
 
 #include "option_parser.h"
@@ -44,21 +43,11 @@ public:
     virtual void print_additional_statistics() const override;
 
 protected:
-    engine_interfaces::HeuristicSearchConnector* get_connector()
-    {
-        return &connector_;
-    }
-
-    void initialize_interfaceable(HeuristicSearchInterfaceable* interfaceable);
-    void initialize_interfaceable(
-        std::shared_ptr<HeuristicSearchInterfaceable> interfaceable);
-
-private:
     engine_interfaces::HeuristicSearchConnector connector_;
 
-    std::shared_ptr<ProbabilisticOperatorPolicyPicker> policy_tiebreaker_;
-    std::shared_ptr<NewGlobalStateHandler> new_state_handler_;
-    std::shared_ptr<GlobalStateEvaluator> heuristic_;
+    std::shared_ptr<TaskPolicyPicker> policy_tiebreaker_;
+    std::shared_ptr<TaskNewStateHandler> new_state_handler_;
+    std::shared_ptr<TaskStateEvaluator> heuristic_;
 
     const bool dual_bounds_;
     const bool interval_comparison_;
@@ -144,7 +133,7 @@ public:
               this->policy_tiebreaker_ != nullptr
                   ? new engine_interfaces::PolicyPicker<QAction>(
                         quotient_.get(),
-                        this->policy_tiebreaker_.get())
+                        this->policy_tiebreaker_)
                   : nullptr)
         , fret_on_policy_(
               opts.contains("fret_on_policy") &&

@@ -1,7 +1,7 @@
 #ifndef MDPS_HEURISTICS_DEAD_END_PRUNING_H
 #define MDPS_HEURISTICS_DEAD_END_PRUNING_H
 
-#include "probfd/state_evaluator.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
 
 #include <memory>
 
@@ -22,7 +22,7 @@ namespace heuristics {
  * @note If the underlying classical heuristic is safe, this heuristic is also
  * safe.
  */
-class DeadEndPruningHeuristic : public GlobalStateEvaluator {
+class DeadEndPruningHeuristic : public TaskStateEvaluator {
 public:
     /**
      * @brief Construct with the given clasical heuristic.

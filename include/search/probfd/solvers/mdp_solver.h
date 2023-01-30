@@ -6,13 +6,12 @@
 #include "probfd/solvers/solver_interface.h"
 
 #include "probfd/action_id_map.h"
+#include "probfd/engine_interfaces/reward_function.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/progress_report.h"
-#include "probfd/reward_function.h"
-#include "probfd/state_evaluator.h"
 #include "probfd/state_id_map.h"
 #include "probfd/task_proxy.h"
 #include "probfd/transition_generator.h"
-
 
 #include "state_registry.h"
 

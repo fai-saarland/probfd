@@ -5,10 +5,7 @@
 #include "probfd/engine_interfaces/policy_picker.h"
 #include "probfd/engine_interfaces/transition_sampler.h"
 
-#include "probfd/open_list.h"
-#include "probfd/policy_picker.h"
 #include "probfd/quotient_system.h"
-#include "probfd/transition_sampler.h"
 
 namespace probfd {
 
@@ -21,7 +18,7 @@ class PolicyPicker<quotient_system::QuotientAction<OperatorID>> {
 public:
     explicit PolicyPicker(
         QuotientSystem* quotient,
-        PolicyPicker<OperatorID>* original)
+        std::shared_ptr<PolicyPicker<OperatorID>> original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -46,11 +43,11 @@ public:
         return original_->operator()(state, oprev, choices_, successors);
     }
 
-    PolicyPicker<OperatorID>* real() const { return original_; }
+    std::shared_ptr<PolicyPicker<OperatorID>> real() const { return original_; }
 
     std::vector<OperatorID> choices_;
     QuotientSystem* quotient_;
-    PolicyPicker<OperatorID>* original_;
+    std::shared_ptr<PolicyPicker<OperatorID>> original_;
 };
 
 template <>
@@ -61,7 +58,7 @@ class TransitionSampler<quotient_system::QuotientAction<OperatorID>> {
 public:
     explicit TransitionSampler(
         QuotientSystem* quotient,
-        TransitionSampler<OperatorID>* original)
+        std::shared_ptr<TransitionSampler<OperatorID>> original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -76,10 +73,13 @@ public:
         return original_->operator()(state, op_id, transition);
     }
 
-    TransitionSampler<OperatorID>* real() const { return original_; }
+    std::shared_ptr<TransitionSampler<OperatorID>> real() const
+    {
+        return original_;
+    }
 
     QuotientSystem* quotient_;
-    TransitionSampler<OperatorID>* original_;
+    std::shared_ptr<TransitionSampler<OperatorID>> original_;
 };
 
 template <>
@@ -88,7 +88,9 @@ class OpenList<quotient_system::QuotientAction<OperatorID>> {
     using QuotientAction = quotient_system::QuotientAction<OperatorID>;
 
 public:
-    explicit OpenList(QuotientSystem* quotient, OpenList<OperatorID>* original)
+    explicit OpenList(
+        QuotientSystem* quotient,
+        std::shared_ptr<OpenList<OperatorID>> original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -115,10 +117,10 @@ public:
 
     void clear() { original_->clear(); }
 
-    OpenList<OperatorID>* real() const { return original_; }
+    std::shared_ptr<OpenList<OperatorID>> real() const { return original_; }
 
     QuotientSystem* quotient_;
-    OpenList<OperatorID>* original_;
+    std::shared_ptr<OpenList<OperatorID>> original_;
 };
 
 } // namespace engine_interfaces

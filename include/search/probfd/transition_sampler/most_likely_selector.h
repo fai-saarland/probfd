@@ -1,17 +1,16 @@
-#ifndef MDPS_TRANSITION_SAMPLER_MOST_LIKELY_SELECTOR_H
-#define MDPS_TRANSITION_SAMPLER_MOST_LIKELY_SELECTOR_H
+#ifndef PROBFD_TRANSITION_SAMPLER_MOST_LIKELY_SELECTOR_H
+#define PROBFD_TRANSITION_SAMPLER_MOST_LIKELY_SELECTOR_H
 
-#include "probfd/transition_sampler.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
 
 namespace probfd {
 namespace transition_sampler {
 
-class MostLikelySuccessorSelector
-    : public ProbabilisticOperatorTransitionSampler {
+class MostLikelySuccessorSelector : public TaskTransitionSampler {
 protected:
     virtual StateID sample(
         const StateID& state,
-        OperatorID op,
+        const OperatorID& op,
         const Distribution<StateID>& successors) override;
 };
 

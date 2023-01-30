@@ -4,7 +4,8 @@
 
 #include "probfd/utils/logging.h"
 
-#include "probfd/transition_sampler.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/transition_sampler/task_transition_sampler_factory.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -25,10 +26,13 @@ public:
     explicit AOStarSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, std::false_type>(opts)
         , successor_sampler_(this->template wrap<>(
-              opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
-                  "successor_sampler")))
+              opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
+                      "successor_sampler")
+                  ->create_sampler(
+                      &this->connector_,
+                      this->get_state_id_map(),
+                      this->get_action_id_map())))
     {
-        this->initialize_interfaceable(this->unwrap(successor_sampler_));
     }
 
     virtual std::string get_heuristic_search_name() const override
@@ -53,19 +57,17 @@ protected:
             print_additional_statistics();
     }
 
-    WrappedType<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>
-        successor_sampler_;
+    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
 };
 
 struct AOStarOptions {
 
     void operator()(options::OptionParser& parser) const
     {
-        parser.add_option<
-            std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
+        parser.add_option<std::shared_ptr<TaskTransitionSamplerFactory>>(
             "successor_sampler",
             "",
-            "arbitrary_successor_selector");
+            "arbitrary_successor_selector_factory");
     }
 };
 

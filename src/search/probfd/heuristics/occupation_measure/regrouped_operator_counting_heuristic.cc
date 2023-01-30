@@ -203,9 +203,9 @@ void RegroupedOperatorCountingHeuristic::add_options_to_parser(
     lp::add_lp_solver_option_to_parser(parser);
 }
 
-static Plugin<GlobalStateEvaluator> _plugin(
+static Plugin<TaskStateEvaluator> _plugin(
     "hroc",
-    options::parse<GlobalStateEvaluator, RegroupedOperatorCountingHeuristic>);
+    options::parse<TaskStateEvaluator, RegroupedOperatorCountingHeuristic>);
 
 } // namespace occupation_measure_heuristic
 } // namespace heuristics

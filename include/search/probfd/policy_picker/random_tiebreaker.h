@@ -1,12 +1,9 @@
 #ifndef MDPS_POLICY_PICKER_RANDOM_TIEBREAKER_H
 #define MDPS_POLICY_PICKER_RANDOM_TIEBREAKER_H
 
-#include "probfd/policy_picker.h"
+#include "probfd/engine_interfaces/policy_picker.h"
 
-namespace options {
-class Options;
-class OptionParser;
-} // namespace options
+#include <memory>
 
 namespace utils {
 class RandomNumberGenerator;
@@ -15,13 +12,11 @@ class RandomNumberGenerator;
 namespace probfd {
 namespace policy_tiebreaking {
 
-class RandomTiebreaker : public ProbabilisticOperatorPolicyPicker {
+class RandomTiebreaker : public TaskPolicyPicker {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
-    explicit RandomTiebreaker(const options::Options& opts);
-    
-    static void add_options_to_parser(options::OptionParser&);
+    RandomTiebreaker(std::shared_ptr<utils::RandomNumberGenerator> rng);
 
 protected:
     virtual int pick(

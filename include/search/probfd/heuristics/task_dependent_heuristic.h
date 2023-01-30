@@ -1,7 +1,8 @@
 #ifndef PROBFD_HEURISTICS_TASK_DEPENDENT_HEURISTIC_H
 #define PROBFD_HEURISTICS_TASK_DEPENDENT_HEURISTIC_H
 
-#include "probfd/state_evaluator.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
+
 #include "probfd/task_proxy.h"
 
 namespace options {
@@ -12,7 +13,7 @@ class OptionParser;
 namespace probfd {
 namespace heuristics {
 
-class TaskDependentHeuristic : public GlobalStateEvaluator {
+class TaskDependentHeuristic : public TaskStateEvaluator {
 protected:
     std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;

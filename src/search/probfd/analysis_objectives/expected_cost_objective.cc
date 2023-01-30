@@ -13,7 +13,7 @@ namespace probfd {
 namespace analysis_objectives {
 
 namespace {
-class SSPReward : public GlobalRewardFunction {
+class SSPReward : public TaskRewardFunction {
     ProbabilisticTaskProxy task_proxy;
 
 public:
@@ -49,7 +49,7 @@ value_utils::IntervalValue ExpectedCostObjective::reward_bound()
     return value_utils::IntervalValue(-value_type::inf, value_type::zero);
 }
 
-GlobalRewardFunction* ExpectedCostObjective::reward()
+TaskRewardFunction* ExpectedCostObjective::reward()
 {
     return reward_.get();
 }

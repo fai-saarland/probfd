@@ -6,8 +6,7 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/state_evaluator.h"
-
+#include "probfd/engine_interfaces/state_evaluator.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -17,11 +16,10 @@ namespace solvers {
 using TVIEngine =
     engines::topological_vi::TopologicalValueIteration<State, OperatorID>;
 
-std::shared_ptr<GlobalStateEvaluator>
-get_evaluator(const options::Options& opts)
+std::shared_ptr<TaskStateEvaluator> get_evaluator(const options::Options& opts)
 {
     if (opts.contains("eval")) {
-        return opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval");
+        return opts.get<std::shared_ptr<TaskStateEvaluator>>("eval");
     }
 
     return std::make_shared<heuristics::ConstantEvaluator<State>>(
@@ -38,7 +36,7 @@ public:
 
     static void add_options_to_parser(options::OptionParser& parser)
     {
-        parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
+        parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
             "eval",
             "",
             options::OptionParser::NONE);
@@ -56,7 +54,7 @@ public:
     }
 
 private:
-    std::shared_ptr<GlobalStateEvaluator> prune_;
+    std::shared_ptr<TaskStateEvaluator> prune_;
 };
 
 static Plugin<SolverInterface> _plugin(

@@ -47,9 +47,9 @@ void DeterminizationCostHeuristic::add_options_to_parser(
     parser.add_option<std::shared_ptr<Evaluator>>("evaluator");
 }
 
-static Plugin<GlobalStateEvaluator> _plugin(
+static Plugin<TaskStateEvaluator> _plugin(
     "det",
-    options::parse<GlobalStateEvaluator, DeterminizationCostHeuristic>);
+    options::parse<TaskStateEvaluator, DeterminizationCostHeuristic>);
 
 } // namespace heuristics
 } // namespace probfd

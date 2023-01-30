@@ -4,11 +4,13 @@
 
 #include "probfd/engines/exhaustive_dfs.h"
 
-#include "probfd/heuristic_search_interfaceable.h"
-#include "probfd/new_state_handler.h"
+#include "probfd/engine_interfaces/new_state_handler.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/successor_sorter.h"
+
+#include "probfd/successor_sorter/task_successor_sorter_factory.h"
+
 #include "probfd/progress_report.h"
-#include "probfd/state_evaluator.h"
-#include "probfd/successor_sort.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -31,15 +33,18 @@ public:
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
         , reward_bound_(g_analysis_objective->reward_bound())
-        , new_state_handler_(new NewGlobalStateHandlerList(
-              opts.get_list<std::shared_ptr<NewGlobalStateHandler>>(
+        , new_state_handler_(new TaskNewStateHandlerList(
+              opts.get_list<std::shared_ptr<TaskNewStateHandler>>(
                   "on_new_state")))
-        , heuristic_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
+        , heuristic_(opts.get<std::shared_ptr<TaskStateEvaluator>>("eval"))
         , successor_sort_(
               opts.contains("order")
-                  ? opts.get<
-                        std::shared_ptr<ProbabilisticOperatorSuccessorSorting>>(
-                        "order")
+                  ? opts.get<std::shared_ptr<TaskSuccessorSorterFactory>>(
+                            "order")
+                        ->create_successor_sorter(
+                            &this->connector_,
+                            this->get_state_id_map(),
+                            this->get_action_id_map())
                   : nullptr)
         , dual_bounds_(
               opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
@@ -53,31 +58,24 @@ public:
         , only_propagate_when_changed_(
               opts.get<bool>("only_propagate_when_changed"))
     {
-        if (successor_sort_ != nullptr) {
-            successor_sort_->initialize(
-                &connector_,
-                this->get_state_id_map(),
-                this->get_action_id_map());
-        }
     }
 
     static void add_options_to_parser(options::OptionParser& parser)
     {
-        parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
+        parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
             "eval",
             "",
             "const");
-        parser.add_list_option<std::shared_ptr<NewGlobalStateHandler>>(
+        parser.add_list_option<std::shared_ptr<TaskNewStateHandler>>(
             "on_new_state",
             "",
             "[]");
         parser.add_option<bool>("interval_comparison", "", "false");
         parser.add_option<bool>("dual_bounds", "", "false");
-        parser
-            .add_option<std::shared_ptr<ProbabilisticOperatorSuccessorSorting>>(
-                "order",
-                "",
-                options::OptionParser::NONE);
+        parser.add_option<std::shared_ptr<TaskSuccessorSorterFactory>>(
+            "order",
+            "",
+            options::OptionParser::NONE);
         parser.add_option<bool>("reevaluate", "", "true");
         parser.add_option<bool>("initial_state_notification", "", "false");
         std::vector<std::string> t(
@@ -133,9 +131,9 @@ private:
 
     const value_utils::IntervalValue reward_bound_;
 
-    std::shared_ptr<NewGlobalStateHandlerList> new_state_handler_;
-    std::shared_ptr<GlobalStateEvaluator> heuristic_;
-    std::shared_ptr<ProbabilisticOperatorSuccessorSorting> successor_sort_;
+    std::shared_ptr<TaskNewStateHandlerList> new_state_handler_;
+    std::shared_ptr<TaskStateEvaluator> heuristic_;
+    std::shared_ptr<TaskSuccessorSorter> successor_sort_;
 
     const bool dual_bounds_;
     const bool interval_comparison_;

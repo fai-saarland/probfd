@@ -63,9 +63,9 @@ void DeadEndPruningHeuristic::print_statistics() const
     // pruning_function_->print_statistics();
 }
 
-static Plugin<GlobalStateEvaluator> _plugin(
+static Plugin<TaskStateEvaluator> _plugin(
     "prune_dead_ends",
-    options::parse<GlobalStateEvaluator, DeadEndPruningHeuristic>);
+    options::parse<TaskStateEvaluator, DeadEndPruningHeuristic>);
 
 } // namespace heuristics
 } // namespace probfd

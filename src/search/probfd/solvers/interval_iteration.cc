@@ -2,7 +2,7 @@
 
 #include "probfd/engines/interval_iteration.h"
 
-#include "probfd/state_evaluator.h"
+#include "probfd/engine_interfaces/state_evaluator.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -21,14 +21,14 @@ public:
         : MDPSolver(opts)
         , prune_(
               opts.contains("eval")
-                  ? opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval")
+                  ? opts.get<std::shared_ptr<TaskStateEvaluator>>("eval")
                   : nullptr)
     {
     }
 
     static void add_options_to_parser(options::OptionParser& parser)
     {
-        parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
+        parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
             "eval",
             "",
             options::OptionParser::NONE);
@@ -46,7 +46,7 @@ public:
     }
 
 private:
-    std::shared_ptr<GlobalStateEvaluator> prune_;
+    std::shared_ptr<TaskStateEvaluator> prune_;
 };
 
 static Plugin<SolverInterface> _plugin(

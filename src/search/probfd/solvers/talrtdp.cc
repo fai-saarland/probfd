@@ -1,6 +1,7 @@
-#include "probfd/solvers/mdp_heuristic_search.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/engines/trap_aware_lrtdp.h"
-#include "probfd/transition_sampler.h"
+#include "probfd/solvers/mdp_heuristic_search.h"
+#include "probfd/transition_sampler/task_transition_sampler_factory.h"
 #include "probfd/utils/logging.h"
 
 #include "option_parser.h"
@@ -29,10 +30,13 @@ public:
               opts.get<TrialTerminationCondition>("terminate_trial"))
         , reexpand_traps_(opts.get<bool>("reexpand_traps"))
         , successor_sampler_(this->wrap(
-              opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
-                  "successor_sampler")))
+              opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
+                      "successor_sampler")
+                  ->create_sampler(
+                      &this->connector_,
+                      this->get_state_id_map(),
+                      this->get_action_id_map())))
     {
-        this->initialize_interfaceable(this->unwrap(successor_sampler_));
     }
 
     static void add_options_to_parser(options::OptionParser& parser)
@@ -42,11 +46,10 @@ public:
             "Trap-aware LRTDP. Supports all MDP types "
             "(even non-SSPs) without FRET loop.",
             "");
-        parser.add_option<
-            std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
+        parser.add_option<std::shared_ptr<TaskTransitionSamplerFactory>>(
             "successor_sampler",
             "Successor bias for the trials.",
-            "random_successor_sampler");
+            "random_successor_sampler_factory");
         {
             std::vector<std::string> terminate_trial{
                 "disabled",
@@ -94,8 +97,7 @@ protected:
 
     const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;
-    WrappedType<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>
-        successor_sampler_;
+    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
 };
 
 static Plugin<SolverInterface>

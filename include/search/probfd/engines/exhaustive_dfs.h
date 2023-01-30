@@ -7,7 +7,7 @@
 
 #include "probfd/engine_interfaces/heuristic_search_connector.h"
 #include "probfd/engine_interfaces/new_state_handler.h"
-#include "probfd/engine_interfaces/successor_sorting.h"
+#include "probfd/engine_interfaces/successor_sorter.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -178,7 +178,7 @@ public:
         engine_interfaces::StateEvaluator<State>* evaluator,
         bool reevaluate,
         bool notify_initial,
-        engine_interfaces::SuccessorSorting<Action>* successor_sorting,
+        engine_interfaces::SuccessorSorter<Action>* successor_sorting,
         BacktrackingUpdateType path_updates,
         bool only_propagate_when_changed,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
@@ -372,7 +372,7 @@ private:
         statistics_.expanded++;
 
         if (successor_sort_ != nullptr) {
-            successor_sort_->operator()(state_id, aops, successors);
+            successor_sort_->sort(state_id, aops, successors);
         }
 
         expansion_infos_.emplace_back(stack_infos_.size(), neighbors_.size());
@@ -1007,7 +1007,7 @@ private:
     const bool evaluator_recomputation_;
     const bool notify_initial_state_;
 
-    engine_interfaces::SuccessorSorting<Action>* successor_sort_;
+    engine_interfaces::SuccessorSorter<Action>* successor_sort_;
 
     storage::PerStateStorage<SearchNodeInformation> search_space_;
 

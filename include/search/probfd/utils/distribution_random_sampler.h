@@ -6,6 +6,8 @@
 
 #include "utils/rng.h"
 
+#include <memory>
+
 namespace probfd {
 namespace distribution_random_sampler {
 

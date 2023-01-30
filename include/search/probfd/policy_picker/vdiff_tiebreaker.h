@@ -1,23 +1,22 @@
 #ifndef MDPS_POLICY_PICKER_VDIFF_TIEBREAKER_H
 #define MDPS_POLICY_PICKER_VDIFF_TIEBREAKER_H
 
-#include "probfd/policy_picker.h"
-
-namespace options {
-class Options;
-class OptionParser;
-} // namespace options
+#include "probfd/engine_interfaces/heuristic_search_connector.h"
+#include "probfd/engine_interfaces/policy_picker.h"
 
 namespace probfd {
 
 /// Namespace dedicated to policy tiebreaker implementations.
 namespace policy_tiebreaking {
 
-class VDiffTiebreaker : public ProbabilisticOperatorPolicyPicker {
-public:
-    explicit VDiffTiebreaker(const options::Options& opts);
+class VDiffTiebreaker : public TaskPolicyPicker {
+    engine_interfaces::HeuristicSearchConnector* connector_;
+    const value_type::value_t favor_large_gaps_;
 
-    static void add_options_to_parser(options::OptionParser& parser);
+public:
+    VDiffTiebreaker(
+        engine_interfaces::HeuristicSearchConnector* connector,
+        value_type::value_t favor_large_gaps_);
 
 protected:
     virtual int pick(
@@ -25,8 +24,6 @@ protected:
         const ActionID& prev_policy,
         const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors) override;
-
-    const value_type::value_t favor_large_gaps_;
 };
 
 } // namespace policy_tiebreaking

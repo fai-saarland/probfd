@@ -42,6 +42,8 @@ protected:
 template <typename Action>
 class PolicyPicker {
 public:
+    virtual ~PolicyPicker() = default;
+
     /**
      * @brief Select a greedy action from multiple candidates.
      *
@@ -68,18 +70,25 @@ public:
             candidate_successors);
     }
 
+    virtual void print_statistics(std::ostream&) {}
+
 protected:
-    int pick(
+    virtual int pick(
         const StateID&,
         const ActionID&,
         const std::vector<Action>&,
-        const std::vector<Distribution<StateID>>&)
-    {
-        return 0;
-    }
+        const std::vector<Distribution<StateID>>&) = 0;
 };
 
 } // namespace engine_interfaces
+} // namespace probfd
+
+class OperatorID;
+
+namespace probfd {
+
+using TaskPolicyPicker = engine_interfaces::PolicyPicker<OperatorID>;
+
 } // namespace probfd
 
 #endif // __POLICY_PICKER_H__

@@ -1,19 +1,18 @@
-#ifndef MDPS_TRANSITION_SAMPLER_ARBITRARY_SELECTOR_H
-#define MDPS_TRANSITION_SAMPLER_ARBITRARY_SELECTOR_H
+#ifndef PROBFD_TRANSITION_SAMPLER_ARBITRARY_SELECTOR_H
+#define PROBFD_TRANSITION_SAMPLER_ARBITRARY_SELECTOR_H
 
-#include "probfd/transition_sampler.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
 
 namespace probfd {
 
 /// Namespace dedicated to transition sampling.
 namespace transition_sampler {
 
-class ArbitrarySuccessorSelector
-    : public ProbabilisticOperatorTransitionSampler {
+class ArbitrarySuccessorSelector : public TaskTransitionSampler {
 protected:
     virtual StateID sample(
         const StateID& state,
-        OperatorID op,
+        const OperatorID& op,
         const Distribution<StateID>& successors) override;
 };
 

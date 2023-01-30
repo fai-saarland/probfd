@@ -323,9 +323,9 @@ void ProjectionOccupationMeasureHeuristic::add_options_to_parser(
     lp::add_lp_solver_option_to_parser(parser);
 }
 
-static Plugin<GlobalStateEvaluator> _plugin(
+static Plugin<TaskStateEvaluator> _plugin(
     "hpom",
-    options::parse<GlobalStateEvaluator, ProjectionOccupationMeasureHeuristic>);
+    options::parse<TaskStateEvaluator, ProjectionOccupationMeasureHeuristic>);
 
 } // namespace occupation_measure_heuristic
 } // namespace heuristics

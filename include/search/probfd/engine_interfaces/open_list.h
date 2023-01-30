@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINE_INTERFACES_OPEN_LIST_H
-#define MDPS_ENGINE_INTERFACES_OPEN_LIST_H
+#ifndef PROBFD_ENGINE_INTERFACES_OPEN_LIST_H
+#define PROBFD_ENGINE_INTERFACES_OPEN_LIST_H
 
 #include "probfd/types.h"
 #include "probfd/value_type.h"
@@ -22,52 +22,34 @@ namespace engine_interfaces {
 template <typename Action>
 class OpenList {
 public:
-    /**
-     * Pops and returns the next state to be expanded from the open list.
-     */
-    StateID pop()
-    {
-        const StateID res = queue_.back();
-        queue_.pop_back();
-        return res;
-    }
+    virtual ~OpenList() = default;
 
-    /**
-     * Pushes the new expansion candidate with id \p state_id onto the open
-     * list.
-     */
-    void push(const StateID& state_id) { queue_.push_back(state_id); }
+    virtual unsigned size() const = 0;
 
-    void push(
+    virtual void push(const StateID& state_id) = 0;
+    virtual StateID pop() = 0;
+
+    virtual void clear() = 0;
+
+    virtual bool empty() const { return size() == 0; }
+
+    virtual void push(
         const StateID&,
         const Action&,
         const value_type::value_t&,
         const StateID& state_id)
     {
-        queue_.push_back(state_id);
+        push(state_id);
     }
-
-    /**
-     * Returns the size of the open list, i.e. the number of states currently
-     * eligible for expansion.
-     */
-    unsigned size() const { return queue_.size(); }
-
-    /**
-     * Checks if the open list is empty.
-     */
-    bool empty() const { return queue_.empty(); }
-
-    /**
-     * Clears the open list.
-     */
-    void clear() { queue_.clear(); }
-
-private:
-    std::deque<StateID> queue_;
 };
 
 } // namespace engine_interfaces
 } // namespace probfd
+
+class OperatorID;
+
+namespace probfd {
+using TaskOpenList = engine_interfaces::OpenList<OperatorID>;
+}
 
 #endif // __OPEN_LIST_H__

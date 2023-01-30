@@ -12,7 +12,8 @@ namespace engine_interfaces {
  * @tparam State - The state type of the underlying MDP model.
  */
 template <typename State>
-struct StateIDMap {
+class StateIDMap {
+public:
     /**
      * @brief Get the state id for a given state.
      */

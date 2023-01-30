@@ -2,8 +2,9 @@
 
 #include "probfd/engines/idual.h"
 
+#include "probfd/engine_interfaces/state_evaluator.h"
+
 #include "probfd/progress_report.h"
-#include "probfd/state_evaluator.h"
 
 #include "lp/lp_solver.h"
 
@@ -21,14 +22,14 @@ class IDualSolver : public MDPSolver {
 public:
     explicit IDualSolver(const options::Options& opts)
         : MDPSolver(opts)
-        , eval_(opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval"))
+        , eval_(opts.get<std::shared_ptr<TaskStateEvaluator>>("eval"))
         , solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
     {
     }
 
     static void add_options_to_parser(options::OptionParser& parser)
     {
-        parser.add_option<std::shared_ptr<GlobalStateEvaluator>>(
+        parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
             "eval",
             "",
             "const");
@@ -47,7 +48,7 @@ public:
     }
 
 private:
-    std::shared_ptr<GlobalStateEvaluator> eval_;
+    std::shared_ptr<TaskStateEvaluator> eval_;
     lp::LPSolverType solver_type_;
 };
 

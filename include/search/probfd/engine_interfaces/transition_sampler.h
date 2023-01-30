@@ -16,26 +16,34 @@ namespace engine_interfaces {
  * @tparam Action - The action type of the underlying MDP model.
  */
 template <typename Action>
-struct TransitionSampler {
-    distribution_random_sampler::DistributionRandomSampler sampler;
-
-    // FIXME This should be converted to a pure interface once wrappers
-    // for the bisimulation engines are introduced
-    TransitionSampler()
-        : sampler(std::make_shared<utils::RandomNumberGenerator>(4000))
-    {
-    }
+class TransitionSampler {
+public:
+    virtual ~TransitionSampler() = default;
 
     StateID operator()(
-        const StateID&,
-        const Action&,
+        const StateID& state,
+        const Action& op,
         const Distribution<StateID>& transition)
     {
-        return sampler(transition);
+        return this->sample(state, op, transition);
     }
+
+    virtual void print_statistics(std::ostream&) const {}
+
+protected:
+    virtual StateID sample(
+        const StateID& state,
+        const Action& op,
+        const Distribution<StateID>& transition) = 0;
 };
 
 } // namespace engine_interfaces
 } // namespace probfd
+
+class OperatorID;
+
+namespace probfd {
+using TaskTransitionSampler = engine_interfaces::TransitionSampler<OperatorID>;
+}
 
 #endif // __TRANSITION_SAMPLER_H__

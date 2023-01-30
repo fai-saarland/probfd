@@ -24,10 +24,10 @@ public:
     explicit GoalProbabilityObjective();
 
     virtual value_utils::IntervalValue reward_bound() override;
-    virtual GlobalRewardFunction* reward() override;
+    virtual TaskRewardFunction* reward() override;
 
 private:
-    std::unique_ptr<GlobalRewardFunction> reward_;
+    std::unique_ptr<TaskRewardFunction> reward_;
 };
 
 } // namespace analysis_objectives

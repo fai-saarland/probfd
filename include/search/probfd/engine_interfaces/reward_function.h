@@ -104,4 +104,14 @@ protected:
 } // namespace engine_interfaces
 } // namespace probfd
 
+class State;
+class OperatorID;
+
+namespace probfd {
+
+/// Type alias for state reward functions for planning tasks.
+using TaskRewardFunction = engine_interfaces::RewardFunction<State, OperatorID>;
+
+} // namespace probfd
+
 #endif // __STATE_REWARD_FUNCTION_H__

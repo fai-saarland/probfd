@@ -4,7 +4,8 @@
 
 #include "probfd/utils/logging.h"
 
-#include "probfd/transition_sampler.h"
+#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/transition_sampler/task_transition_sampler_factory.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -31,8 +32,12 @@ public:
         , stop_consistent_(
               opts.get<TrialTerminationCondition>("terminate_trial"))
         , successor_sampler_(this->wrap(
-              opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
-                  "successor_sampler")))
+              opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
+                      "successor_sampler")
+                  ->create_sampler(
+                      &this->connector_,
+                      this->get_state_id_map(),
+                      this->get_action_id_map())))
     {
         if constexpr (Fret::value) {
             if (stop_consistent_ != TrialTerminationCondition::Consistent) {
@@ -44,7 +49,6 @@ public:
                     << std::endl;
             }
         }
-        this->initialize_interfaceable(this->unwrap(successor_sampler_));
     }
 
     virtual std::string get_heuristic_search_name() const override
@@ -71,18 +75,16 @@ protected:
     }
 
     const TrialTerminationCondition stop_consistent_;
-    WrappedType<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>
-        successor_sampler_;
+    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
 };
 
 struct LRTDPOptions {
     void operator()(options::OptionParser& parser) const
     {
-        parser.add_option<
-            std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
+        parser.add_option<std::shared_ptr<TaskTransitionSamplerFactory>>(
             "successor_sampler",
             "",
-            "random_successor_sampler");
+            "random_successor_sampler_factory");
         {
             std::vector<std::string> opts(
                 {"false", "consistent", "inconsistent"});

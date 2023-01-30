@@ -4,7 +4,7 @@
 
 #include "probfd/utils/logging.h"
 
-#include "probfd/open_list.h"
+#include "probfd/open_lists/task_open_list_factory.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -26,7 +26,11 @@ public:
     explicit ExhaustiveAOSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, std::false_type>(opts)
         , open_list_(this->wrap(
-              opts.get<std::shared_ptr<GlobalStateOpenList>>("open_list")))
+              opts.get<std::shared_ptr<TaskOpenListFactory>>("open_list")
+                  ->create_open_list(
+                      &this->connector_,
+                      this->get_state_id_map(),
+                      this->get_action_id_map())))
     {
     }
 
@@ -42,17 +46,17 @@ public:
     }
 
 protected:
-    WrappedType<std::shared_ptr<GlobalStateOpenList>> open_list_;
+    WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
 };
 
 struct ExhaustiveAOOptions {
     void operator()(options::OptionParser& parser) const
     {
         MDPHeuristicSearchBase::add_options_to_parser(parser);
-        parser.add_option<std::shared_ptr<GlobalStateOpenList>>(
+        parser.add_option<std::shared_ptr<TaskOpenListFactory>>(
             "open_list",
             "",
-            "lifo_open_list");
+            "lifo_open_list_factory");
     }
 };
 

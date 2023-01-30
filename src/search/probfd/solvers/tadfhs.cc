@@ -1,5 +1,5 @@
+#include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engines/trap_aware_dfhs.h"
-#include "probfd/open_list.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 #include "probfd/utils/logging.h"
 
@@ -27,8 +27,8 @@ public:
         : MDPHeuristicSearch<std::false_type, std::true_type>(opts)
         , open_list_(
               opts.contains("open_list")
-                  ? this->wrap(opts.get<std::shared_ptr<GlobalStateOpenList>>(
-                        "open_list"))
+                  ? this->wrap(
+                        opts.get<std::shared_ptr<TaskOpenList>>("open_list"))
                   : nullptr)
         , forward_updates_(opts.get<bool>("fwup"))
         , backward_updates_(opts.get<BacktrackingUpdateType>("bwup"))
@@ -86,7 +86,7 @@ public:
             "reexpand_traps",
             "Immediately re-expand the collapsed trap state.",
             "true");
-        parser.add_option<std::shared_ptr<GlobalStateOpenList>>(
+        parser.add_option<std::shared_ptr<TaskOpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
@@ -122,7 +122,7 @@ protected:
             print_additional_statistics();
     }
 
-    WrappedType<std::shared_ptr<GlobalStateOpenList>> open_list_;
+    WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
     const bool forward_updates_;
     const BacktrackingUpdateType backward_updates_;
     const bool cutoff_tip_;

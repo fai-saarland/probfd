@@ -6,6 +6,8 @@
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/transition_sampler.h"
 
+#include "probfd/policy_picker/arbitrary_tiebreaker.h"
+
 #include "probfd/analysis_objectives/analysis_objective.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
@@ -73,7 +75,7 @@ public:
             &res->action_id_map,
             res->reward.get(),
             res->tgen.get(),
-            &res->policy_,
+            res->policy_.get(),
             &res->new_state_handler_,
             res->heuristic_.get(),
             &con,
@@ -125,6 +127,7 @@ protected:
               bs.get(),
               g_analysis_objective->reward_bound(),
               g_analysis_objective->reward_bound().upper))
+        , policy_(new policy_tiebreaking::ArbitraryTiebreaker<QAction>())
     {
         stats.timer.stop();
         stats.states = bs->num_bisimilar_states();
@@ -151,7 +154,7 @@ protected:
     std::unique_ptr<bisimulation::QuotientRewardFunction> reward;
     engine_interfaces::NewStateHandler<QState> new_state_handler_;
     std::unique_ptr<engine_interfaces::StateEvaluator<QState>> heuristic_;
-    engine_interfaces::PolicyPicker<QAction> policy_;
+    std::unique_ptr<engine_interfaces::PolicyPicker<QAction>> policy_;
 
     std::unique_ptr<MDPEngineInterface<QState>> engine_;
 };
@@ -261,7 +264,7 @@ private:
         , q_transition_gen_(
               new engine_interfaces::TransitionGenerator<QQAction>(
                   quotient_.get()))
-        , q_policy_tiebreaker_(new engine_interfaces::PolicyPicker<
+        , q_policy_tiebreaker_(new policy_tiebreaking::ArbitraryTiebreaker<
                                quotient_system::QuotientAction<QAction>>())
     {
     }

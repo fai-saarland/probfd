@@ -57,4 +57,13 @@ protected:
 } // namespace engine_interfaces
 } // namespace probfd
 
+class State;
+
+namespace probfd {
+
+/// Type alias for state reward functions for planning tasks.
+using TaskStateEvaluator = engine_interfaces::StateEvaluator<State>;
+
+} // namespace probfd
+
 #endif // __STATE_EVALUATOR_H__

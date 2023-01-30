@@ -25,6 +25,32 @@ public:
         return lookup_->lookup(state_id);
     }
 
+    const engines::heuristic_search::StateFlags*
+    lookup_state_flags(const StateID& state_id) const
+    {
+        return reinterpret_cast<const engines::heuristic_search::StateFlags*>(
+            lookup(state_id));
+    }
+
+    const value_type::value_t& lookup_value(const StateID& state_id) const
+    {
+        return *reinterpret_cast<const value_type::value_t*>(lookup(state_id));
+    }
+
+    const value_utils::IntervalValue*
+    lookup_dual_bounds(const StateID& state_id) const
+    {
+        return reinterpret_cast<const value_utils::IntervalValue*>(
+            lookup(state_id));
+    }
+
+    ActionID lookup_policy(const StateID& state_id) const
+    {
+        return reinterpret_cast<const engines::heuristic_search::StatesPolicy<
+            std::true_type>*>(lookup(state_id))
+            ->get_policy();
+    }
+
 private:
     engines::heuristic_search::PerStateInformationLookup* lookup_ = nullptr;
 };

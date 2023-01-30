@@ -1,20 +1,16 @@
 #ifndef MDPS_POLICY_PICKER_OPERATOR_ID_TIEBREAKER_H
 #define MDPS_POLICY_PICKER_OPERATOR_ID_TIEBREAKER_H
 
-#include "probfd/policy_picker.h"
-
-namespace options {
-class Options;
-class OptionParser;
-} // namespace options
+#include "probfd/engine_interfaces/policy_picker.h"
 
 namespace probfd {
 namespace policy_tiebreaking {
 
-class OperatorIdTiebreaker : public ProbabilisticOperatorPolicyPicker {
+class OperatorIdTiebreaker : public TaskPolicyPicker {
+    const int ascending_;
+
 public:
-    OperatorIdTiebreaker(const options::Options&);
-    static void add_options_to_parser(options::OptionParser&);
+    explicit OperatorIdTiebreaker(int ascending);
 
 protected:
     virtual int pick(
@@ -22,9 +18,6 @@ protected:
         const ActionID& prev_policy,
         const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors) override;
-
-private:
-    const int ascending_;
 };
 
 } // namespace policy_tiebreaking

@@ -14,7 +14,8 @@ namespace engine_interfaces {
  * @tparam Action - The action type of the underlying MDP model.
  */
 template <typename Action>
-struct ActionIDMap {
+class ActionIDMap {
+public:
     /**
      * @brief Get the action id of a given state action.
      *

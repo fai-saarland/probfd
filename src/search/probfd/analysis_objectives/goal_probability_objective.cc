@@ -13,7 +13,7 @@ namespace probfd {
 namespace analysis_objectives {
 
 namespace {
-class MaxProbReward : public GlobalRewardFunction {
+class MaxProbReward : public TaskRewardFunction {
     ProbabilisticTaskProxy task_proxy;
 
 public:
@@ -50,7 +50,7 @@ value_utils::IntervalValue GoalProbabilityObjective::reward_bound()
     return value_utils::IntervalValue(value_type::zero, value_type::one);
 }
 
-GlobalRewardFunction* GoalProbabilityObjective::reward()
+TaskRewardFunction* GoalProbabilityObjective::reward()
 {
     return reward_.get();
 }
