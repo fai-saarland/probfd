@@ -403,7 +403,7 @@ void ExpCostProjection::verify(
             utils::contains(seen, s)) {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {
-            assert(value_table[s.id] == -inf);
+            assert(value_table[s.id] == -INFINITE_VALUE);
         }
     }
 }
