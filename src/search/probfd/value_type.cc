@@ -29,7 +29,7 @@ value_t abs(value_t val)
 
 bool is_approx_equal(value_t v1, value_t v2, value_t tolerance)
 {
-    return std::abs(v1 - v2) <= tolerance;
+    return v1 == v2 || std::abs(v1 - v2) <= tolerance;
 }
 
 bool is_approx_less(value_t v1, value_t v2, value_t tolerance)
