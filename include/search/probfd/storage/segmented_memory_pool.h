@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <memory>
 #include <vector>
 
 namespace probfd {
@@ -18,7 +19,7 @@ public:
     ~SegmentedMemoryPool()
     {
         for (void* segment : segments_) {
-            delete[](segment);
+            delete[] (reinterpret_cast<char*>(segment));
         }
     }
 
