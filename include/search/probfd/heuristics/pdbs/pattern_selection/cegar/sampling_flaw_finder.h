@@ -8,10 +8,6 @@
 #include <stack>
 #include <unordered_map>
 
-namespace options {
-class Options;
-}
-
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
@@ -20,11 +16,15 @@ namespace pattern_selection {
 template <typename PDBType>
 class SamplingFlawFinder : public FlawFindingStrategy<PDBType> {
     struct ExplorationInfo {
-        Distribution<ExplicitGState> successors;
+        Distribution<std::vector<int>> successors;
     };
 
-    std::stack<ExplicitGState> stk;
-    std::unordered_map<ExplicitGState, ExplorationInfo> einfos;
+    std::stack<std::vector<int>> stk;
+    std::unordered_map<
+        std::vector<int>,
+        ExplorationInfo,
+        typename FlawFindingStrategy<PDBType>::StateHash>
+        einfos;
 
     unsigned int violation_threshold;
 
@@ -32,23 +32,22 @@ class SamplingFlawFinder : public FlawFindingStrategy<PDBType> {
     static constexpr unsigned int FLAW_OCCURED = 1 << 1;
 
 public:
-    SamplingFlawFinder(options::Options& parser);
+    SamplingFlawFinder(
+        const ProbabilisticTask* task,
+        unsigned int violation_threshold);
 
-    SamplingFlawFinder(unsigned int violation_threshold = 1);
     ~SamplingFlawFinder() override = default;
 
     virtual std::pair<FlawList, bool> apply_policy(
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,
-        const ExplicitGState& init) override;
-
-    std::string get_name() const override { return "Sampling Flaw Finder"; }
+        std::vector<int>& state) override;
 
 private:
     unsigned int push_state(
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,
-        const ExplicitGState& state,
+        std::vector<int>& state,
         FlawList& flaw_list);
 };
 

@@ -1,13 +1,14 @@
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data.h"
 
-#include "global_state.h"
-
 #include "utils/hash.h"
 #include "utils/rng.h"
 
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
+
+#include "probfd/task_proxy.h"
+#include "probfd/tasks/root_task.h"
 
 #include <functional>
 #include <limits>
@@ -61,37 +62,10 @@ protected:
         return {false, std::min(leval.get_estimate(), reval.get_estimate())};
     }
 };
-} // namespace
-
-template <typename PDBType>
-AbstractSolutionData<PDBType>::AbstractSolutionData(
-    const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const Pattern& pattern,
-    set<int> blacklist,
-    bool wildcard)
-    : pdb(new PDBType(pattern, ::g_variable_domain, !wildcard))
-    , blacklist(std::move(blacklist))
-    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
-    , solved(false)
-{
-}
-
-template <typename PDBType>
-AbstractSolutionData<PDBType>::AbstractSolutionData(
-    const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const PDBType& previous,
-    int add_var,
-    std::set<int> blacklist,
-    bool wildcard)
-    : pdb(new PDBType(previous, add_var, !wildcard))
-    , blacklist(std::move(blacklist))
-    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
-    , solved(false)
-{
-}
 
 template <typename PDBType>
 PDBType* construct_merge_pdb(
+    const ProbabilisticTaskProxy& task_proxy,
     const PDBType& merge_left,
     const PDBType& merge_right,
     bool operator_pruning)
@@ -110,22 +84,55 @@ PDBType* construct_merge_pdb(
         std::back_inserter(merge_pattern));
 
     StateRankingFunction* mapper =
-        new StateRankingFunction(merge_pattern, ::g_variable_domain);
+        new StateRankingFunction(task_proxy, merge_pattern);
 
     return new PDBType(
+        task_proxy,
         mapper,
         operator_pruning,
         MergeEvaluator<PDBType>(mapper, merge_left, merge_right));
 }
 
+} // namespace
+
 template <typename PDBType>
 AbstractSolutionData<PDBType>::AbstractSolutionData(
+    const ProbabilisticTaskProxy& task_proxy,
+    const shared_ptr<utils::RandomNumberGenerator>& rng,
+    const Pattern& pattern,
+    set<int> blacklist,
+    bool wildcard)
+    : pdb(new PDBType(task_proxy, pattern, !wildcard))
+    , blacklist(std::move(blacklist))
+    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
+    , solved(false)
+{
+}
+
+template <typename PDBType>
+AbstractSolutionData<PDBType>::AbstractSolutionData(
+    const ProbabilisticTaskProxy& task_proxy,
+    const shared_ptr<utils::RandomNumberGenerator>& rng,
+    const PDBType& previous,
+    int add_var,
+    std::set<int> blacklist,
+    bool wildcard)
+    : pdb(new PDBType(task_proxy, previous, add_var, !wildcard))
+    , blacklist(std::move(blacklist))
+    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
+    , solved(false)
+{
+}
+
+template <typename PDBType>
+AbstractSolutionData<PDBType>::AbstractSolutionData(
+    const ProbabilisticTaskProxy& task_proxy,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const PDBType& merge_left,
     const PDBType& merge_right,
     std::set<int> blacklist,
     bool wildcard)
-    : pdb(construct_merge_pdb(merge_left, merge_right, !wildcard))
+    : pdb(construct_merge_pdb(task_proxy, merge_left, merge_right, !wildcard))
     , blacklist(std::move(blacklist))
     , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
     , solved(false)
@@ -178,7 +185,8 @@ const AbstractPolicy& AbstractSolutionData<PDBType>::get_policy() const
 template <typename PDBType>
 value_type::value_t AbstractSolutionData<PDBType>::get_policy_cost() const
 {
-    return pdb->lookup(g_initial_state());
+    ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
+    return pdb->lookup(task_proxy.get_initial_state());
 }
 
 template <typename PDBType>
@@ -196,7 +204,8 @@ void AbstractSolutionData<PDBType>::mark_as_solved()
 template <typename PDBType>
 bool AbstractSolutionData<PDBType>::solution_exists() const
 {
-    return !pdb->evaluate(g_initial_state()).is_unsolvable();
+    ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
+    return !pdb->evaluate(task_proxy.get_initial_state()).is_unsolvable();
 }
 
 template class AbstractSolutionData<MaxProbProjection>;

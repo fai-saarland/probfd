@@ -3,10 +3,6 @@
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
 
-#include "probfd/globals.h"
-
-#include "globals.h"
-
 #include <sstream>
 
 namespace probfd {
@@ -28,17 +24,6 @@ void dump_pattern_short(std::ostream& out, PatternID i, const Pattern& p)
     dump_pattern_vars(out, p);
 }
 
-void dump_pattern(std::ostream& out, PatternID i, const Pattern& p)
-{
-    dump_pattern_short(out, i, p);
-
-    out << " ({";
-    for (unsigned j = 0; j < p.size(); j++) {
-        out << (j > 0 ? ", " : "") << ::g_fact_names[p[j]][0];
-    }
-    out << "})" << std::flush;
-}
-
 template value_type::value_t evaluate_subcollection<ExpCostProjection>(
     const std::vector<value_type::value_t>& pdb_estimates,
     const std::vector<int>& subcollection);
@@ -56,12 +41,12 @@ combine<MaxProbProjection>(value_type::value_t left, value_type::value_t right);
 template EvaluationResult evaluate<ExpCostProjection>(
     const PPDBCollection<ExpCostProjection>& database,
     const std::vector<PatternSubCollection>& subcollections,
-    const GlobalState& state);
+    const State& state);
 
 template EvaluationResult evaluate<MaxProbProjection>(
     const PPDBCollection<MaxProbProjection>& database,
     const std::vector<PatternSubCollection>& subcollections,
-    const GlobalState& state);
+    const State& state);
 
 } // namespace pdbs
 } // namespace heuristics

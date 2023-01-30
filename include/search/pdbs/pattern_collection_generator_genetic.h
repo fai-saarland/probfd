@@ -7,9 +7,7 @@
 #include <memory>
 #include <vector>
 
-namespace options {
-class Options;
-}
+class AbstractTask;
 
 namespace utils {
 class RandomNumberGenerator;
@@ -33,14 +31,14 @@ class PatternCollectionGeneratorGenetic : public PatternCollectionGenerator {
     const bool disjoint_patterns;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
+    std::shared_ptr<AbstractTask> task;
+
     // All current pattern collections.
     std::vector<std::vector<std::vector<bool>>> pattern_collections;
 
     // Store best pattern collection over all episodes and its fitness value.
     std::shared_ptr<PatternCollection> best_patterns;
     double best_fitness;
-
-    OperatorCost cost_type;
 
     /*
       The fitness values (from evaluate) are used as probabilities. Then
@@ -112,11 +110,12 @@ class PatternCollectionGeneratorGenetic : public PatternCollectionGenerator {
     */
     void genetic_algorithm();
 
+    virtual std::string name() const override;
+    virtual PatternCollectionInformation
+    compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
+
 public:
     explicit PatternCollectionGeneratorGenetic(const options::Options& opts);
-
-    virtual PatternCollectionInformation
-    generate(OperatorCost cost_type) override;
 };
 } // namespace pdbs
 

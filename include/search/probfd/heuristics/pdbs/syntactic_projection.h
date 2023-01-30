@@ -3,9 +3,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/globals.h"
-
-#include "global_operator.h"
+#include "probfd/task_proxy.h"
 
 #include <map>
 #include <vector>
@@ -44,12 +42,11 @@ public:
     bool is_pseudo_deterministic() const;
 };
 
-std::vector<std::pair<int, int>> project_effects(
-    const Pattern& pattern,
-    const std::vector<GlobalEffect>& effects);
+std::vector<std::pair<int, int>>
+project_effects(const Pattern& pattern, const ProbabilisticEffectsProxy& op);
 
 ProjectionOperator
-project_operator(const Pattern& pattern, const ProbabilisticOperator& op);
+project_operator(const Pattern& pattern, const ProbabilisticOperatorProxy& op);
 
 } // namespace syntactic_projection
 } // namespace pdbs

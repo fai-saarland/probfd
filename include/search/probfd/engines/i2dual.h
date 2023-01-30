@@ -12,7 +12,6 @@
 
 #include "probfd/utils/logging.h"
 
-#include "probfd/globals.h"
 #include "probfd/progress_report.h"
 #include "probfd/value_type.h"
 
@@ -20,7 +19,12 @@
 
 #include "utils/timer.h"
 
-#include "global_state.h"
+#include "task_proxy.h"
+#include "task_utils/task_properties.h"
+
+#include "probfd/task_utils/task_properties.h"
+
+#include "probfd/tasks/root_task.h"
 
 #include <memory>
 #include <vector>
@@ -115,6 +119,7 @@ public:
               action_id_map,
               reward_function,
               transition_generator)
+        , task_proxy(*tasks::g_root_task)
         , progress_(progress)
         , heuristic_(heuristic)
         , hpom_enabled_(hpom_enabled)
@@ -144,11 +149,9 @@ public:
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
 
-        if (hpom_enabled_ && (::has_axioms() || ::has_conditional_effects())) {
-            logging::err
-                << "hpom doesn't support axioms and conditional effects!"
-                << std::endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        if (hpom_enabled_) {
+            ::task_properties::verify_no_axioms(task_proxy);
+            probfd::task_properties::verify_no_conditional_effects(task_proxy);
         }
 
         storage::PerStateStorage<IDualData> idual_data;
@@ -358,31 +361,37 @@ private:
     void prepare_lp()
     {
         // setup empty LP
-        std::vector<lp::LPVariable> vars;
-        std::vector<lp::LPConstraint> constr;
+        named_vector::NamedVector<lp::LPVariable> vars;
+        named_vector::NamedVector<lp::LPConstraint> constr;
         prepare_hpom(vars);
 
         next_lp_var_ = vars.size();
         next_lp_constr_id_ = constr.size();
 
         constr.emplace_back(-lp_solver_.get_infinity(), 1);
-        lp_solver_.load_problem(lp::LPObjectiveSense::MAXIMIZE, vars, constr);
+        lp_solver_.load_problem(lp::LinearProgram(
+            lp::LPObjectiveSense::MAXIMIZE,
+            std::move(vars),
+            std::move(constr),
+            lp_solver_.get_infinity()));
     }
 
-    void prepare_hpom(std::vector<lp::LPVariable>& vars)
+    void prepare_hpom(named_vector::NamedVector<lp::LPVariable>& vars)
     {
+        using namespace heuristics::occupation_measure_heuristic;
+
         if (!hpom_enabled_) {
             return;
         }
 
         statistics_.hpom_timer_.resume();
-        occupation_measure_heuristic::ProjectionOccupationMeasureHeuristic::
-            generate_hpom_lp(
-                lp_solver_,
-                vars,
-                hpom_constraints_,
-                offset_,
-                true);
+        ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
+            ProbabilisticTaskProxy(*tasks::g_root_task),
+            lp_solver_,
+            vars,
+            hpom_constraints_,
+            offset_,
+            true);
         statistics_.hpom_num_vars_ = vars.size();
         statistics_.hpom_num_constraints_ = hpom_constraints_.size();
 
@@ -407,7 +416,7 @@ private:
                 remove_fringe_state_from_hpom(
                     this->lookup_state(state_id),
                     data[state_id],
-                    hpom_constraints_);
+                    frontier_constraints_);
             }
 
             statistics_.hpom_timer_.stop();
@@ -431,12 +440,15 @@ private:
             for (size_t i = start; i < frontier.size(); ++i) {
                 const StateID& state_id = frontier[i];
                 State s = this->lookup_state(state_id);
-                add_fringe_state_to_hpom(s, data[state_id], hpom_constraints_);
+                add_fringe_state_to_hpom(
+                    s,
+                    data[state_id],
+                    frontier_constraints_);
             }
 
-            lp_solver_.add_temporary_constraints(hpom_constraints_);
+            lp_solver_.add_temporary_constraints(frontier_constraints_);
         } else {
-            std::vector<lp::LPConstraint> constraints(hpom_constraints_);
+            std::vector<lp::LPConstraint> constraints(frontier_constraints_);
             for (size_t i = 0; i < frontier.size(); ++i) {
                 const StateID& state_id = frontier[i];
                 State s = this->lookup_state(state_id);
@@ -454,9 +466,9 @@ private:
         const IDualData& data,
         std::vector<lp::LPConstraint>& constraints) const
     {
-        for (size_t var = 0; var != g_variable_domain.size(); ++var) {
-            const int val = state[var];
-            lp::LPConstraint& c = constraints[offset_[var] + val];
+        for (VariableProxy var : task_proxy.get_variables()) {
+            const int val = state[var].get_value();
+            lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
             for (const auto& om : data.incoming) {
                 c.remove(om.second);
             }
@@ -468,15 +480,16 @@ private:
         const IDualData& data,
         std::vector<lp::LPConstraint>& constraints) const
     {
-        for (size_t var = 0; var != g_variable_domain.size(); ++var) {
-            const int val = state[var];
-            lp::LPConstraint& c = constraints[offset_[var] + val];
+        for (VariableProxy var : task_proxy.get_variables()) {
+            const int val = state[var].get_value();
+            lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
             for (const auto& om : data.incoming) {
                 c.insert(om.second, om.first);
             }
         }
     }
 
+    ProbabilisticTaskProxy task_proxy;
     ProgressReport* progress_;
 
     engine_interfaces::StateEvaluator<State>* heuristic_;
@@ -491,7 +504,8 @@ private:
 
     bool hpom_initialized_ = false;
     std::vector<int> offset_;
-    std::vector<lp::LPConstraint> hpom_constraints_;
+    named_vector::NamedVector<lp::LPConstraint> hpom_constraints_;
+    std::vector<lp::LPConstraint> frontier_constraints_;
 
     Statistics statistics_;
 

@@ -10,6 +10,7 @@ namespace probfd {
 namespace solvers {
 
 using namespace engine_interfaces;
+using namespace engines::trap_aware_lrtdp;
 
 class TrapAwareLRTDPSolver
     : public MDPHeuristicSearch<std::false_type, std::true_type> {
@@ -20,12 +21,12 @@ public:
             WrappedType<T>;
 
     template <typename State, typename Action, typename Bounds>
-    using Engine = engines::trap_aware_lrtdp::LRTDP<State, Action, Bounds>;
+    using Engine = LRTDP<State, Action, Bounds>;
 
     explicit TrapAwareLRTDPSolver(const options::Options& opts)
         : MDPHeuristicSearch<std::false_type, std::true_type>(opts)
-        , stop_consistent_(engines::trap_aware_lrtdp::TrialTerminationCondition(
-              opts.get_enum("terminate_trial")))
+        , stop_consistent_(
+              opts.get<TrialTerminationCondition>("terminate_trial"))
         , reexpand_traps_(opts.get<bool>("reexpand_traps"))
         , successor_sampler_(this->wrap(
               opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
@@ -52,7 +53,7 @@ public:
                 "consistent",
                 "inconsistent",
                 "doublyvisited"};
-            parser.add_enum_option(
+            parser.add_enum_option<TrialTerminationCondition>(
                 "terminate_trial",
                 terminate_trial,
                 "Stop trials at epsilon-consistent/inconsistent or doubly "
@@ -72,7 +73,7 @@ public:
         return "";
     }
 
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         return this->template quotient_heuristic_search_factory<Engine>(
             stop_consistent_,
@@ -91,7 +92,7 @@ protected:
             print_additional_statistics();
     }
 
-    const engines::trap_aware_lrtdp::TrialTerminationCondition stop_consistent_;
+    const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;
     WrappedType<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>
         successor_sampler_;

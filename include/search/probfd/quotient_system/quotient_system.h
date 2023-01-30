@@ -4,6 +4,8 @@
 #include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
 
+#include "probfd/quotient_system/types.h"
+
 #include "algorithms/segmented_vector.h"
 
 #include "utils/collections.h"
@@ -17,29 +19,7 @@
 #include <vector>
 
 namespace probfd {
-
-/// Namespace dedicated to the classes dealing with quotienting of an MDP.
 namespace quotient_system {
-
-template <typename Action>
-struct QuotientAction {
-    StateID state_id;
-    ActionID action_id;
-
-    explicit QuotientAction(const StateID& state_id, const ActionID& action_id)
-        : state_id(state_id)
-        , action_id(action_id)
-    {
-    }
-};
-
-template <typename T>
-struct unwrap_action_type {};
-
-template <typename T>
-struct unwrap_action_type<QuotientAction<T>> {
-    using type = T;
-};
 
 template <typename BaseActionT>
 class DefaultQuotientSystem {

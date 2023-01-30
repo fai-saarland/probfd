@@ -2,12 +2,18 @@
 
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data.h"
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy_factory.h"
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/pattern_collection_generator_cegar.h"
 
-#include "probfd/heuristics/pdbs/types.h"
+#include "probfd/heuristics/pdbs/subcollections/subcollection_finder_factory.h"
 
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/types.h"
+
+#include "probfd/tasks/root_task.h"
+
+#include "probfd/task_proxy.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -31,11 +37,13 @@ namespace pattern_selection {
 
 template <typename PDBType>
 PatternCollectionGeneratorFastCegar<
-    PDBType>::PatternCollectionGeneratorFastCegar(options::Options& opts)
-    : subcollection_finder(opts.get<std::shared_ptr<SubCollectionFinder>>(
-          "subcollection_finder"))
-    , flaw_strategy(opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
-          "flaw_strategy"))
+    PDBType>::PatternCollectionGeneratorFastCegar(const options::Options& opts)
+    : subcollection_finder_factory(
+          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+              "subcollection_finder_factory"))
+    , flaw_strategy_factory(
+          opts.get<std::shared_ptr<FlawFindingStrategyFactory<PDBType>>>(
+              "flaw_strategy_factory"))
     , single_generator_max_refinements(opts.get<int>("max_refinements"))
     , single_generator_max_pdb_size(opts.get<int>("max_pdb_size"))
     , single_generator_max_collection_size(opts.get<int>("max_collection_size"))
@@ -44,8 +52,7 @@ PatternCollectionGeneratorFastCegar<
           opts.get<bool>("treat_goal_violations_differently"))
     , single_generator_local_blacklisting(opts.get<bool>("local_blacklisting"))
     , single_generator_max_time(opts.get<double>("max_time"))
-    , single_generator_verbosity(
-          static_cast<Verbosity>(opts.get_enum("verbosity")))
+    , single_generator_verbosity(opts.get<Verbosity>("verbosity"))
     , initial_random_seed(opts.get<int>("initial_random_seed"))
     , total_collection_max_size(opts.get<int>("total_collection_max_size"))
     , stagnation_limit(opts.get<double>("stagnation_limit"))
@@ -57,8 +64,13 @@ PatternCollectionGeneratorFastCegar<
 
 template <typename PDBType>
 PatternCollectionInformation<PDBType>
-PatternCollectionGeneratorFastCegar<PDBType>::generate(OperatorCost cost_type)
+PatternCollectionGeneratorFastCegar<PDBType>::generate(
+    const std::shared_ptr<ProbabilisticTask>& task)
 {
+    const ProbabilisticTaskProxy task_proxy(*task);
+    const VariablesProxy variables = task_proxy.get_variables();
+    const GoalsProxy task_goals = task_proxy.get_goals();
+
     cout << "Fast CEGAR: generating patterns" << endl;
 
     utils::CountdownTimer timer(total_time_limit);
@@ -69,12 +81,12 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(OperatorCost cost_type)
     utils::HashSet<Pattern> pattern_set; // for checking if a pattern is
                                          // already in collection
 
-    size_t nvars = g_variable_domain.size();
+    const size_t nvars = variables.size();
     utils::RandomNumberGenerator rng(initial_random_seed);
 
     vector<int> goals;
-    for (auto& [goal_var, _] : g_goal) {
-        goals.push_back(goal_var);
+    for (const FactProxy fact : task_goals) {
+        goals.push_back(fact.get_variable().get_id());
     }
     rng.shuffle(goals);
 
@@ -96,7 +108,7 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(OperatorCost cost_type)
         int blacklist_size = 0;
         if (force_blacklisting || timer.get_elapsed_time() / total_time_limit >
                                       blacklist_trigger_time) {
-            blacklist_size = static_cast<int>(nvars * rng());
+            blacklist_size = static_cast<int>(nvars * rng.random());
             force_blacklisting = true;
         }
 
@@ -107,8 +119,8 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(OperatorCost cost_type)
         PatternCollectionGeneratorCegar<PDBType> generator(
             make_shared<utils::RandomNumberGenerator>(
                 initial_random_seed + num_iterations),
-            subcollection_finder,
-            flaw_strategy,
+            subcollection_finder_factory,
+            flaw_strategy_factory,
             single_generator_wildcard_policies,
             single_generator_max_refinements,
             single_generator_max_pdb_size,
@@ -123,7 +135,7 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(OperatorCost cost_type)
             single_generator_verbosity,
             min(remaining_time, single_generator_max_time));
 
-        auto collection_info = generator.generate(cost_type);
+        auto collection_info = generator.generate(task);
         auto pattern_collection = collection_info.get_patterns();
         auto pdb_collection = collection_info.get_pdbs();
 
@@ -213,7 +225,11 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(OperatorCost cost_type)
     cout << "Fast CEGAR: final collection summed PDB size: " << collection_size
          << endl;
 
+    std::shared_ptr<SubCollectionFinder> subcollection_finder =
+        subcollection_finder_factory->create_subcollection_finder(task_proxy);
+
     PatternCollectionInformation<PDBType> result(
+        task_proxy,
         union_patterns,
         subcollection_finder);
     result.set_pdbs(union_pdbs);

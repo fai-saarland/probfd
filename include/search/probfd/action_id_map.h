@@ -3,37 +3,30 @@
 
 #include "probfd/engine_interfaces/action_id_map.h"
 
-#include "probfd/probabilistic_operator.h"
+#include "operator_id.h"
 
 #include <cassert>
 
 namespace probfd {
 namespace engine_interfaces {
 
-/**
- * @brief The specialiation of ActionIDMap for ProbabilisticOperator.
- *
- * @see ActionIDMap
- */
 template <>
-class ActionIDMap<const ProbabilisticOperator*> {
-public:
-    explicit ActionIDMap(const std::vector<ProbabilisticOperator>& operators);
-    explicit ActionIDMap();
-
-    ActionID get_action_id(
-        const StateID& state_id,
-        const ProbabilisticOperator* const& op);
-
-    const ProbabilisticOperator*
-    get_action(const StateID& state_id, const ActionID& action_id);
-
-private:
-    const ProbabilisticOperator* first_;
-#ifndef NDEBUG
-    std::size_t num_operators_;
-#endif
+struct ActionIDMap<OperatorID> {
+    ActionID get_action_id(const StateID&, const OperatorID& op_id);
+    OperatorID get_action(const StateID&, const ActionID& action_id);
 };
+
+inline ActionID
+ActionIDMap<OperatorID>::get_action_id(const StateID&, const OperatorID& op_id)
+{
+    return ActionID(op_id.get_index());
+}
+
+inline OperatorID
+ActionIDMap<OperatorID>::get_action(const StateID&, const ActionID& action_id)
+{
+    return OperatorID(action_id);
+}
 
 } // namespace engine_interfaces
 } // namespace probfd

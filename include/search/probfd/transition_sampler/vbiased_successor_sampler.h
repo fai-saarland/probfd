@@ -12,6 +12,10 @@ class Options;
 class OptionParser;
 } // namespace options
 
+namespace utils {
+class RandomNumberGenerator;
+}
+
 namespace probfd {
 
 namespace new_state_handlers {
@@ -23,12 +27,15 @@ namespace transition_sampler {
 class VBiasedSuccessorSampler : public ProbabilisticOperatorTransitionSampler {
 public:
     explicit VBiasedSuccessorSampler(const options::Options&);
+    explicit VBiasedSuccessorSampler(
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
+
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
     virtual StateID sample(
         const StateID& state,
-        const ProbabilisticOperator* op,
+        OperatorID op,
         const Distribution<StateID>& successors) override;
 
     std::shared_ptr<new_state_handlers::StoreHeuristic> heuristic_;

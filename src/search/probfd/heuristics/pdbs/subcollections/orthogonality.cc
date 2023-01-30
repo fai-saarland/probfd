@@ -2,45 +2,50 @@
 
 #include "pdbs/pattern_cliques.h"
 
-#include "probfd/globals.h"
-#include "probfd/probabilistic_operator.h"
+#include "probfd/task_proxy.h"
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-std::vector<int>
-get_affected_vars(const ProbabilisticOperator& op, bool ignore_deterministic)
+std::vector<int> get_affected_vars(
+    const ProbabilisticOperatorProxy& op,
+    bool ignore_deterministic)
 {
+    ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
+
     std::vector<int> affected_vars;
 
     if (ignore_deterministic) {
-        if (!op.is_stochastic()) {
+        if (outcomes.size() == 1) {
             return affected_vars;
         }
     }
 
     // Compute the variables that may be changed by the operator
-    for (const ProbabilisticOutcome& outcome : op) {
-        const auto effects = outcome.op->get_effects();
+    for (const ProbabilisticOutcomeProxy& outcome : op.get_outcomes()) {
+        const auto effects = outcome.get_effects();
 
-        for (const ::GlobalEffect& eff : outcome.op->get_effects()) {
-            affected_vars.push_back(eff.var);
+        for (const ProbabilisticEffectProxy& effect : effects) {
+            affected_vars.push_back(effect.get_fact().get_variable().get_id());
         }
     }
 
     return affected_vars;
 }
 
-VariableOrthogonality compute_prob_orthogonal_vars(bool ignore_deterministic)
+VariableOrthogonality compute_prob_orthogonal_vars(
+    const ProbabilisticTaskProxy& task_proxy,
+    bool ignore_deterministic)
 {
-    const std::size_t num_vars = g_variable_domain.size();
+    const VariablesProxy variables = task_proxy.get_variables();
+    const size_t num_vars = variables.size();
 
     VariableOrthogonality are_orthogonal(
         num_vars,
         std::vector<bool>(num_vars, true));
 
-    for (const ProbabilisticOperator& op : g_operators) {
+    for (const ProbabilisticOperatorProxy& op : task_proxy.get_operators()) {
         const std::vector<int> affected_vars =
             get_affected_vars(op, ignore_deterministic);
 
@@ -59,12 +64,13 @@ VariableOrthogonality compute_prob_orthogonal_vars(bool ignore_deterministic)
 }
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
+    const ProbabilisticTaskProxy& task_proxy,
     const PatternCollection& patterns,
     bool ignore_deterministic)
 {
     return build_compatibility_graph_orthogonality(
         patterns,
-        compute_prob_orthogonal_vars(ignore_deterministic));
+        compute_prob_orthogonal_vars(task_proxy, ignore_deterministic));
 }
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(

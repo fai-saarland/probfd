@@ -6,7 +6,7 @@ namespace probfd {
 
 StateID ProbabilisticOperatorTransitionSampler::operator()(
     const StateID& state,
-    const ProbabilisticOperator* op,
+    OperatorID op,
     const Distribution<StateID>& transition)
 {
     return this->sample(state, op, transition);

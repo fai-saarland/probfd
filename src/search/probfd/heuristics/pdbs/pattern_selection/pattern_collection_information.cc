@@ -25,13 +25,15 @@ namespace pattern_selection {
 
 template <typename PDBType>
 PatternCollectionInformation<PDBType>::PatternCollectionInformation(
+    const ProbabilisticTaskProxy& task_proxy,
     ::pdbs::PatternCollectionInformation det_info,
     shared_ptr<SubCollectionFinder> subcollection_finder)
-    : patterns_(det_info.move_patterns())
-    , subcollections_(det_info.move_pattern_cliques())
+    : task_proxy(task_proxy)
+    , patterns_(det_info.get_patterns())
+    , subcollections_(det_info.get_pattern_cliques())
     , subcollection_finder_(std::move(subcollection_finder))
 {
-    auto pdbs = det_info.move_pdbs();
+    auto pdbs = det_info.get_pdbs();
 
     if (!pdbs) {
         return;
@@ -40,14 +42,16 @@ PatternCollectionInformation<PDBType>::PatternCollectionInformation(
     pdbs_ = make_shared<PPDBCollection<PDBType>>();
 
     for (size_t i = 0; i != pdbs->size(); ++i) {
-        pdbs_->emplace_back(new PDBType(*pdbs->operator[](i)));
+        pdbs_->emplace_back(new PDBType(task_proxy, *pdbs->operator[](i)));
     }
 }
 
 template <typename PDBType>
 PatternCollectionInformation<PDBType>::PatternCollectionInformation(
+    const ProbabilisticTaskProxy& task_proxy,
     shared_ptr<PatternCollection> patterns)
     : PatternCollectionInformation(
+          task_proxy,
           std::move(patterns),
           make_shared<TrivialFinder>())
 {
@@ -55,9 +59,11 @@ PatternCollectionInformation<PDBType>::PatternCollectionInformation(
 
 template <typename PDBType>
 PatternCollectionInformation<PDBType>::PatternCollectionInformation(
+    const ProbabilisticTaskProxy& task_proxy,
     shared_ptr<PatternCollection> patterns,
     shared_ptr<SubCollectionFinder> subcollection_finder)
-    : patterns_(std::move(patterns))
+    : task_proxy(task_proxy)
+    , patterns_(std::move(patterns))
     , subcollection_finder_(std::move(subcollection_finder))
 {
     assert(this->patterns_);
@@ -103,7 +109,7 @@ void PatternCollectionInformation<PDBType>::create_pdbs_if_missing()
         cout << "Computing PDBs for pattern collection..." << endl;
         pdbs_ = make_shared<PPDBCollection<PDBType>>();
         for (const Pattern& pattern : *patterns_) {
-            pdbs_->emplace_back(new PDBType(pattern));
+            pdbs_->emplace_back(new PDBType(task_proxy, pattern));
         }
         cout << "Done computing PDBs for pattern collection: " << timer << endl;
     }

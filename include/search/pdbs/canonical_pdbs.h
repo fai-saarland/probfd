@@ -5,7 +5,7 @@
 
 #include <memory>
 
-class GlobalState;
+class State;
 
 namespace pdbs {
 class CanonicalPDBs {
@@ -18,7 +18,7 @@ public:
         const std::shared_ptr<std::vector<PatternClique>> &pattern_cliques);
     ~CanonicalPDBs() = default;
 
-    int get_value(const GlobalState &state) const;
+    int get_value(const State &state) const;
 };
 }
 

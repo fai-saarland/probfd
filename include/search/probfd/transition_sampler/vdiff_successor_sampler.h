@@ -12,18 +12,26 @@ class Options;
 class OptionParser;
 } // namespace options
 
+namespace utils {
+class RandomNumberGenerator;
+}
+
 namespace probfd {
 namespace transition_sampler {
 
 class VDiffSuccessorSampler : public ProbabilisticOperatorTransitionSampler {
 public:
     explicit VDiffSuccessorSampler(const options::Options&);
+    explicit VDiffSuccessorSampler(
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
+        bool prefer_large_gaps);
+
     static void add_options_to_parser(options::OptionParser& parser);
 
 protected:
     virtual StateID sample(
         const StateID& state,
-        const ProbabilisticOperator* op,
+        OperatorID op,
         const Distribution<StateID>& successors) override;
 
     Distribution<StateID> biased_;

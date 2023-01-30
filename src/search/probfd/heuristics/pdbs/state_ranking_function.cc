@@ -1,10 +1,11 @@
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 
+#include "probfd/tasks/root_task.h"
+
+#include "probfd/task_proxy.h"
+
 #include "utils/collections.h"
 #include "utils/exceptions.h"
-
-#include "global_state.h"
-#include "globals.h"
 
 #include <algorithm>
 #include <cassert>
@@ -16,7 +17,7 @@ namespace heuristics {
 namespace pdbs {
 
 StateRankingFunction::PartialAssignmentIterator::PartialAssignmentIterator(
-    std::vector<std::pair<int, int>> partial_state,
+    std::vector<FactPair> partial_state,
     const std::vector<VariableInfo>& var_infos)
     : partial_state_(std::move(partial_state))
     , var_infos_(var_infos)
@@ -153,13 +154,15 @@ bool operator!=(
 }
 
 StateRankingFunction::StateRankingFunction(
-    Pattern pattern,
-    const std::vector<int>& domains)
+    const ProbabilisticTaskProxy& task_proxy,
+    Pattern pattern)
     : pattern_(std::move(pattern))
     , var_infos_(pattern_.size())
 {
     assert(!pattern_.empty());
     assert(std::is_sorted(pattern_.begin(), pattern_.end()));
+
+    const VariablesProxy variables = task_proxy.get_variables();
 
     constexpr long long int maxint = std::numeric_limits<long long int>::max();
 
@@ -173,7 +176,7 @@ StateRankingFunction::StateRankingFunction(
         VariableInfo& prev_info = var_infos_[i - 1];
         VariableInfo& cur_info = var_infos_[i];
 
-        const int d = domains[pattern_[i - 1]];
+        const int d = variables[pattern_[i - 1]].get_domain_size();
         prev_info.domain = d;
 
         if (prev_info.partial_multiplier > maxint / (d + 1)) {
@@ -187,7 +190,7 @@ StateRankingFunction::StateRankingFunction(
 
     VariableInfo& last_info = var_infos_.back();
 
-    const int d = domains[pattern_.back()];
+    const int d = variables[pattern_.back()].get_domain_size();
     last_info.domain = d;
 
     if (last_info.multiplier > maxint / d) {
@@ -214,7 +217,7 @@ const Pattern& StateRankingFunction::get_pattern() const
 }
 
 StateRank StateRankingFunction::from_values_partial(
-    const std::vector<std::pair<int, int>>& sparse_values) const
+    const std::vector<FactPair>& sparse_values) const
 {
     StateRank res(0);
     for (const auto& [idx, val] : sparse_values) {
@@ -227,7 +230,7 @@ StateRank StateRankingFunction::from_values_partial(
 
 StateRank StateRankingFunction::from_values_partial(
     const std::vector<int>& indices,
-    const std::vector<std::pair<int, int>>& sparse_values) const
+    const std::vector<FactPair>& sparse_values) const
 {
     StateRank res(0);
 
@@ -240,10 +243,10 @@ StateRank StateRankingFunction::from_values_partial(
     for (; ind_it != ind_end; ++it, ++ind_it) {
         const int idx = *ind_it;
 
-        it = std::find_if(it, end, [=](auto a) { return a.first == idx; });
+        it = std::find_if(it, end, [=](auto a) { return a.var == idx; });
         assert(it != end);
 
-        res.id += var_infos_[idx].multiplier * it->second;
+        res.id += var_infos_[idx].multiplier * it->value;
     }
 
     return res;
@@ -255,7 +258,7 @@ StateRank StateRankingFunction::from_fact(int idx, int val) const
 }
 
 long long int StateRankingFunction::get_unique_partial_state_id(
-    const std::vector<std::pair<int, int>>& pstate) const
+    const std::vector<FactPair>& pstate) const
 {
     long long int id = 0;
     for (const auto& [var, val] : pstate) {
@@ -316,7 +319,7 @@ StateRankingFunction::convert(StateRank state_rank, const Pattern& pattern)
 
 StateRankingFunction::PartialAssignmentIterator
 StateRankingFunction::partial_assignments_begin(
-    std::vector<std::pair<int, int>> partial_state) const
+    std::vector<FactPair> partial_state) const
 {
     return PartialAssignmentIterator(std::move(partial_state), var_infos_);
 }
@@ -330,7 +333,7 @@ utils::RangeProxy<
     StateRankingFunction::PartialAssignmentIterator,
     utils::default_sentinel_t>
 StateRankingFunction::partial_assignments(
-    std::vector<std::pair<int, int>> partial_state) const
+    std::vector<FactPair> partial_state) const
 {
     return utils::
         RangeProxy<PartialAssignmentIterator, utils::default_sentinel_t>(
@@ -385,11 +388,14 @@ StateRankToString::StateRankToString(
 
 std::string StateRankToString::operator()(const StateID&, StateRank state) const
 {
+    const ProbabilisticTask& task = *tasks::g_root_task;
+
     std::ostringstream out;
     std::vector<int> values = state_mapper_->unrank(state);
     for (unsigned i = 0; i < values.size(); i++) {
         const int var = state_mapper_->get_pattern()[i];
-        out << (i > 0 ? ", " : "") << ::g_fact_names[var][values[i]];
+        out << (i > 0 ? ", " : "")
+            << task.get_fact_name(FactPair(var, values[i]));
     }
     return out.str();
 }

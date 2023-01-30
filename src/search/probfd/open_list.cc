@@ -5,28 +5,26 @@
 namespace probfd {
 namespace engine_interfaces {
 
-bool OpenList<const ProbabilisticOperator*>::empty() const
+bool OpenList<OperatorID>::empty() const
 {
     return size() == 0;
 }
 
-void OpenList<const ProbabilisticOperator*>::push(
+void OpenList<OperatorID>::push(
     const StateID&,
-    const ProbabilisticOperator*,
+    OperatorID,
     const value_type::value_t&,
     const StateID& state_id)
 {
     push(state_id);
 }
 
-void OpenList<const ProbabilisticOperator*>::set_state_id_map(
-    StateIDMap<GlobalState>* state_id_map)
+void OpenList<OperatorID>::set_state_id_map(StateIDMap<State>* state_id_map)
 {
     this->state_id_map_ = state_id_map;
 }
 
-GlobalState
-OpenList<const ProbabilisticOperator*>::lookup_state(const StateID& state_id)
+State OpenList<OperatorID>::lookup_state(const StateID& state_id)
 {
     return this->state_id_map_->get_state(state_id);
 }

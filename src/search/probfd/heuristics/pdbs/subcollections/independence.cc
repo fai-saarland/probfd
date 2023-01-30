@@ -2,8 +2,6 @@
 
 #include "probfd/heuristics/pdbs/syntactic_projection.h"
 
-#include "probfd/globals.h"
-
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
@@ -56,7 +54,7 @@ struct Permutation {
 bool is_independent_operator(
     const PatternCollection& patterns,
     const Pattern& union_pattern,
-    const ProbabilisticOperator& op)
+    const ProbabilisticOperatorProxy& op)
 {
     using ProjectionOutcomeIterator = ProjectionOperator::const_iterator;
 
@@ -114,7 +112,9 @@ bool is_independent_operator(
     return true;
 }
 
-bool is_independent_collection(const PatternCollection& patterns)
+bool is_independent_collection(
+    const ProbabilisticTaskProxy& task_proxy,
+    const PatternCollection& patterns)
 {
     // Construct union pattern here
     Pattern union_pattern;
@@ -136,7 +136,7 @@ bool is_independent_collection(const PatternCollection& patterns)
         }
     }
 
-    for (const ProbabilisticOperator& op : g_operators) {
+    for (const ProbabilisticOperatorProxy& op : task_proxy.get_operators()) {
         if (!is_independent_operator(patterns, union_pattern, op)) {
             return false;
         }

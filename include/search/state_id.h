@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "probfd/types.h"
+
 // For documentation on classes relevant to storing and working with registered
 // states see the file state_registry.h.
 
@@ -11,14 +13,24 @@ class StateID {
     friend std::ostream &operator<<(std::ostream &os, StateID id);
     template<typename>
     friend class PerStateInformation;
+    template<typename>
+    friend class PerStateArray;
+    friend class PerStateBitset;
 
     int value;
-
-public:
-    StateID() : value(StateID::no_state.value) {}
     explicit StateID(int value_)
         : value(value_) {
     }
+
+    // No implementation to prevent default construction
+    StateID();
+public:
+    StateID(probfd::StateID id)
+        : value(id.id)
+    {
+    }
+    operator probfd::StateID() { return probfd::StateID(value); }
+
     ~StateID() {
     }
 
@@ -31,20 +43,7 @@ public:
     bool operator!=(const StateID &other) const {
         return !(*this == other);
     }
-
-    size_t hash() const {
-        return value;
-    }
 };
 
-std::ostream &operator<<(std::ostream &os, StateID id);
-
-namespace std {
-template<>
-struct hash<StateID> {
-    size_t operator()(const StateID& state_id) const { return state_id.hash(); }
-};
-
-}
 
 #endif

@@ -2,10 +2,7 @@
 
 #include "probfd/analysis_objectives/goal_probability_objective.h"
 
-#include "probfd/globals.h"
-
-#include "global_operator.h"
-#include "successor_generator.h"
+#include "probfd/task_utils/task_properties.h"
 
 #include <algorithm>
 #include <deque>
@@ -59,68 +56,73 @@ struct OutcomeInfo {
     }
 };
 
-// Views a global partial assignment as its projection with respect
-// to PDB variables, with variable indices mapped to the PDB index space
-template <typename FactRange>
-auto pdb_view(FactRange&& partial_state, const std::vector<int>& pdb_indices)
-{
-    const auto to_pdb_index = [&](const auto& p) {
-        return std::make_pair(pdb_indices[p.var], p.val);
-    };
-
-    const auto has_non_pdb_var = [&](const std::pair<int, int>& p) {
-        return p.first != -1;
-    };
-
-    return utils::filter(
-        utils::transform(partial_state, to_pdb_index),
-        has_non_pdb_var);
-}
-
 } // namespace
 
-using PartialAssignment = std::vector<std::pair<int, int>>;
-
 ProbabilisticProjection::StateRankSpace::StateRankSpace(
+    const ProbabilisticTaskProxy& task_proxy,
     const StateRankingFunction& mapper,
     bool operator_pruning)
-    : initial_state_(mapper.rank(::g_initial_state_data))
-    , match_tree_(mapper.get_pattern(), mapper)
+    : initial_state_(mapper.rank(task_proxy.get_initial_state()))
+    , match_tree_(task_proxy, mapper.get_pattern(), mapper)
     , goal_state_flags_(mapper.num_states())
 {
-    abstract_operators_.reserve(g_operators.size());
+    VariablesProxy variables = task_proxy.get_variables();
+    ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    abstract_operators_.reserve(operators.size());
 
     std::set<ProgressionOperatorFootprint> duplicate_set;
 
-    std::vector<int> pdb_indices(::g_variable_domain.size(), -1);
+    std::vector<int> pdb_indices(variables.size(), -1);
 
     for (size_t i = 0; i < mapper.get_pattern().size(); ++i) {
         pdb_indices[mapper.get_pattern()[i]] = i;
     }
 
     // Generate the abstract operators for each probabilistic operator
-    for (const ProbabilisticOperator& op : g_operators) {
+    for (const ProbabilisticOperatorProxy& op : operators) {
         const int operator_id = op.get_id();
         const int reward = op.get_reward();
 
         // Precondition partial state and partial state to enumerate
         // effect values not appearing in precondition
-        auto view =
-            utils::common(pdb_view(op.get_preconditions(), pdb_indices));
-        PartialAssignment local_precondition(view.begin(), view.end());
-        PartialAssignment vars_eff_not_pre;
+        std::vector<FactPair> local_precondition;
+
+        for (FactProxy fact : op.get_preconditions()) {
+            const int pre_var = fact.get_variable().get_id();
+            const int pdb_index = pdb_indices[pre_var];
+
+            if (pdb_index != -1) {
+                local_precondition.emplace_back(pdb_index, fact.get_value());
+            }
+        }
+
+        std::vector<FactPair> vars_eff_not_pre;
 
         // Info about each probabilistic outcome
         Distribution<OutcomeInfo> outcomes;
 
         // Collect info about the outcomes
-        for (const ProbabilisticOutcome& out : op) {
+        for (const ProbabilisticOutcomeProxy& out : op.get_outcomes()) {
             OutcomeInfo info;
 
-            for (const auto& [var, val] :
-                 pdb_view(out.effects(), pdb_indices)) {
-                auto beg = utils::make_key_iterator(local_precondition.begin());
-                auto end = utils::make_key_iterator(local_precondition.end());
+            std::vector<FactPair> local_effect;
+
+            for (ProbabilisticEffectProxy effect : out.get_effects()) {
+                FactProxy fact = effect.get_fact();
+                const int eff_var = fact.get_variable().get_id();
+                const int pdb_index = pdb_indices[eff_var];
+                if (pdb_index != -1) {
+                    local_effect.emplace_back(pdb_index, fact.get_value());
+                }
+            }
+
+            for (const auto& [var, val] : local_effect) {
+                auto beg = utils::make_transform_iterator(
+                    local_precondition.begin(),
+                    &FactPair::var);
+                auto end = utils::make_transform_iterator(
+                    local_precondition.end(),
+                    &FactPair::var);
                 auto pre_it = utils::find_sorted(beg, end, var);
 
                 int val_change = val;
@@ -129,13 +131,13 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
                     vars_eff_not_pre.emplace_back(var, 0);
                     info.missing_pres.push_back(var);
                 } else {
-                    val_change -= pre_it.base->second;
+                    val_change -= pre_it.base->value;
                 }
 
                 info.base_effect += mapper.from_fact(var, val_change);
             }
 
-            outcomes.add_unique(std::move(info), out.prob);
+            outcomes.add_unique(std::move(info), out.get_probability());
         }
 
         utils::sort_unique(vars_eff_not_pre);
@@ -147,7 +149,7 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
         // enabled.
         auto ran = mapper.partial_assignments(std::move(vars_eff_not_pre));
 
-        for (const PartialAssignment& values : ran) {
+        for (const std::vector<FactPair>& values : ran) {
             // Generate the progression operator
             AbstractOperator new_op(operator_id, reward);
 
@@ -161,7 +163,7 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
             // Construct the precondition by merging the original precondition
             // partial state with the partial state for the non-precondition
             // effects of this iteration
-            PartialAssignment precondition;
+            std::vector<FactPair> precondition;
             precondition.reserve(local_precondition.size() + values.size());
 
             std::merge(
@@ -188,32 +190,40 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
 
     match_tree_.set_first_aop(abstract_operators_.data());
 
-    setup_abstract_goal(mapper);
+    setup_abstract_goal(task_proxy, mapper);
 }
 
 void ProbabilisticProjection::StateRankSpace::setup_abstract_goal(
+    const ProbabilisticTaskProxy& task_proxy,
     const StateRankingFunction& mapper)
 {
+    GoalsProxy task_goals = task_proxy.get_goals();
+
     std::vector<int> non_goal_vars;
     StateRank base(0);
 
     // Translate sparse goal into pdb index space
     // and collect non-goal variables aswell.
     const Pattern& variables = mapper.get_pattern();
+
+    const int num_goal_facts = task_goals.size();
+    const int num_variables = variables.size();
+
     for (int v = 0, w = 0; v != static_cast<int>(variables.size());) {
         const int p_var = variables[v];
-        const int g_var = g_goal[w].first;
+        const FactProxy goal_fact = task_goals[w];
+        const int g_var = goal_fact.get_variable().get_id();
 
         if (p_var < g_var) {
             non_goal_vars.push_back(v++);
         } else {
             if (p_var == g_var) {
-                const int g_val = g_goal[w].second;
+                const int g_val = goal_fact.get_value();
                 base.id += mapper.get_multiplier(v++) * g_val;
             }
 
-            if (++w == static_cast<int>(g_goal.size())) {
-                while (v < static_cast<int>(variables.size())) {
+            if (++w == num_goal_facts) {
+                while (v < num_variables) {
                     non_goal_vars.push_back(v++);
                 }
                 break;
@@ -236,25 +246,29 @@ bool ProbabilisticProjection::StateRankSpace::is_goal(const StateRank& s) const
 }
 
 ProbabilisticProjection::ProbabilisticProjection(
+    const ProbabilisticTaskProxy& task_proxy,
     const Pattern& pattern,
-    const std::vector<int>& domains,
     bool operator_pruning,
     value_type::value_t fill)
     : ProbabilisticProjection(
-          new StateRankingFunction(pattern, domains),
+          task_proxy,
+          new StateRankingFunction(task_proxy, pattern),
           operator_pruning,
           fill)
 {
 }
 
 ProbabilisticProjection::ProbabilisticProjection(
+    const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction* mapper,
     bool operator_pruning,
     value_type::value_t fill)
     : state_mapper_(mapper)
-    , abstract_state_space_(*state_mapper_, operator_pruning)
+    , abstract_state_space_(task_proxy, *state_mapper_, operator_pruning)
     , value_table(state_mapper_->num_states(), fill)
 {
+    ::task_properties::verify_no_axioms(task_proxy);
+    task_properties::verify_no_conditional_effects(task_proxy);
 }
 
 std::shared_ptr<StateRankingFunction>
@@ -268,7 +282,7 @@ unsigned int ProbabilisticProjection::num_states() const
     return state_mapper_->num_states();
 }
 
-bool ProbabilisticProjection::is_dead_end(const GlobalState& s) const
+bool ProbabilisticProjection::is_dead_end(const State& s) const
 {
     return is_dead_end(get_abstract_state(s));
 }
@@ -283,7 +297,7 @@ bool ProbabilisticProjection::is_goal(const StateRank& s) const
     return abstract_state_space_.is_goal(s);
 }
 
-value_type::value_t ProbabilisticProjection::lookup(const GlobalState& s) const
+value_type::value_t ProbabilisticProjection::lookup(const State& s) const
 {
     return lookup(get_abstract_state(s));
 }
@@ -293,8 +307,7 @@ value_type::value_t ProbabilisticProjection::lookup(const StateRank& s) const
     return value_table[s.id];
 }
 
-StateRank
-ProbabilisticProjection::get_abstract_state(const GlobalState& s) const
+StateRank ProbabilisticProjection::get_abstract_state(const State& s) const
 {
     return state_mapper_->rank(s);
 }

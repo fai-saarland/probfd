@@ -12,19 +12,21 @@ class Options;
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
+class SubCollectionFinderFactory;
+
 namespace pattern_selection {
 
 template <typename PDBType>
-class FlawFindingStrategy;
+class FlawFindingStrategyFactory;
 
 template <typename PDBType>
 class PatternCollectionGeneratorFastCegar
     : public PatternCollectionGenerator<PDBType> {
     // Subcollection finder
-    std::shared_ptr<SubCollectionFinder> subcollection_finder;
+    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // Flaw finding strategy
-    std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy;
+    std::shared_ptr<FlawFindingStrategyFactory<PDBType>> flaw_strategy_factory;
 
     const int single_generator_max_refinements;
     const int single_generator_max_pdb_size;
@@ -45,11 +47,11 @@ class PatternCollectionGeneratorFastCegar
     const double total_time_limit;
 
 public:
-    explicit PatternCollectionGeneratorFastCegar(options::Options& opts);
-    virtual ~PatternCollectionGeneratorFastCegar() = default;
+    explicit PatternCollectionGeneratorFastCegar(const options::Options& opts);
+    ~PatternCollectionGeneratorFastCegar() override = default;
 
     PatternCollectionInformation<PDBType>
-    generate(OperatorCost cost_type) override;
+    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 };
 
 using ExpCostPatternCollectionGeneratorFastCegar =

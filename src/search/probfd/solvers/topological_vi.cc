@@ -6,7 +6,6 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/globals.h"
 #include "probfd/state_evaluator.h"
 
 
@@ -15,8 +14,8 @@
 namespace probfd {
 namespace solvers {
 
-using TVIEngine = engines::topological_vi::
-    TopologicalValueIteration<GlobalState, const ProbabilisticOperator*>;
+using TVIEngine =
+    engines::topological_vi::TopologicalValueIteration<State, OperatorID>;
 
 std::shared_ptr<GlobalStateEvaluator>
 get_evaluator(const options::Options& opts)
@@ -25,7 +24,7 @@ get_evaluator(const options::Options& opts)
         return opts.get<std::shared_ptr<GlobalStateEvaluator>>("eval");
     }
 
-    return std::make_shared<heuristics::ConstantEvaluator<GlobalState>>(
+    return std::make_shared<heuristics::ConstantEvaluator<State>>(
         g_analysis_objective->reward_bound().upper);
 }
 
@@ -51,7 +50,7 @@ public:
         return "topological_value_iteration";
     }
 
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         return engine_factory<TVIEngine>(prune_.get(), false);
     }

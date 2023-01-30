@@ -10,7 +10,7 @@ namespace transition_sampler {
 
 StateID MostLikelySuccessorSelector::sample(
     const StateID&,
-    const ProbabilisticOperator*,
+    OperatorID,
     const Distribution<StateID>& successors)
 {
     value_type::value_t max = value_type::zero;

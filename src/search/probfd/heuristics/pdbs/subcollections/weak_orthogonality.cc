@@ -1,9 +1,5 @@
 #include "probfd/heuristics/pdbs/subcollections/weak_orthogonality.h"
-
 #include "probfd/heuristics/pdbs/syntactic_projection.h"
-
-#include "probfd/globals.h"
-#include "probfd/probabilistic_operator.h"
 
 #include "pdbs/pattern_cliques.h"
 
@@ -31,25 +27,23 @@ bool are_disjoint(const std::vector<T>& A, const std::vector<T>& B)
 
 using namespace syntactic_projection;
 
-std::vector<std::vector<int>>
-build_compatibility_graph_weak_orthogonality(const PatternCollection& patterns)
+std::vector<std::vector<int>> build_compatibility_graph_weak_orthogonality(
+    const ProbabilisticTaskProxy& task_proxy,
+    const PatternCollection& patterns)
 {
     using namespace syntactic_projection;
-    using OperatorID = std::size_t;
 
     std::vector<std::vector<int>> cgraph;
     cgraph.resize(patterns.size());
 
-    std::vector<std::vector<OperatorID>> prob_operators;
+    std::vector<std::vector<size_t>> prob_operators;
     prob_operators.resize(patterns.size());
 
     // Compute operators that are probabilistic when projected for each pattern
-    for (std::size_t i = 0; i != g_operators.size(); ++i) {
-        const ProbabilisticOperator& op = g_operators[i];
-
+    for (const ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
         // A lot of actions are already deterministic in the first place, so
         // we can save some work
-        if (!op.is_stochastic()) {
+        if (op.get_outcomes().size() == 1) {
             continue;
         }
 
@@ -61,7 +55,7 @@ build_compatibility_graph_weak_orthogonality(const PatternCollection& patterns)
 
             // If the operator is "truly stochastic" add it to the set
             if (abs_op.is_stochastic() && !abs_op.is_pseudo_deterministic()) {
-                prob_operators[j].push_back(i);
+                prob_operators[j].push_back(op.get_id());
             }
         }
     }

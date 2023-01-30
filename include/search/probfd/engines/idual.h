@@ -135,11 +135,17 @@ public:
                 return objective_;
             }
 
-            lp::LPVariable var(estimate, inf, 1.0);
-            lp_solver_.load_problem(
+            named_vector::NamedVector<lp::LPVariable> vars;
+            named_vector::NamedVector<lp::LPConstraint> constraints;
+
+            vars.emplace_back(estimate, inf, 1.0);
+            constraints.emplace_back(-inf, inf);
+
+            lp_solver_.load_problem(lp::LinearProgram(
                 lp::LPObjectiveSense::MINIMIZE,
-                std::vector<lp::LPVariable>({var}),
-                std::vector<lp::LPConstraint>({lp::LPConstraint(-inf, inf)}));
+                std::move(vars),
+                std::move(constraints),
+                inf));
             prev_state = this->get_state_id(initial_state);
             PerStateInfo& info = state_infos_[prev_state];
             info.idx = next_var_id;

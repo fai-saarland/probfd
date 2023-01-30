@@ -11,7 +11,7 @@ class MostLikelySuccessorSelector
 protected:
     virtual StateID sample(
         const StateID& state,
-        const ProbabilisticOperator* op,
+        OperatorID op,
         const Distribution<StateID>& successors) override;
 };
 

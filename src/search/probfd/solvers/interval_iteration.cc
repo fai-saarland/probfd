@@ -12,8 +12,8 @@ namespace solvers {
 
 using namespace engine_interfaces;
 
-using IIEngine = engines::interval_iteration::
-    IntervalIteration<GlobalState, const ProbabilisticOperator*>;
+using IIEngine =
+    engines::interval_iteration::IntervalIteration<State, OperatorID>;
 
 class IntervalIterationSolver : public MDPSolver {
 public:
@@ -40,7 +40,7 @@ public:
         return "interval_iteration";
     }
 
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         return engine_factory<IIEngine>(prune_.get(), false, false);
     }

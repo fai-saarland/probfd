@@ -5,27 +5,31 @@
 #include "option_parser.h"
 #include "plugin.h"
 
+#include <limits>
+
 using namespace std;
 
 namespace pdbs {
 ZeroOnePDBs get_zero_one_pdbs_from_options(
-    const options::Options &opts) {
+    const shared_ptr<AbstractTask> &task, const Options &opts) {
     shared_ptr<PatternCollectionGenerator> pattern_generator =
         opts.get<shared_ptr<PatternCollectionGenerator>>("patterns");
     PatternCollectionInformation pattern_collection_info =
-        pattern_generator->generate(OperatorCost(opts.get_enum("cost_type")));
+        pattern_generator->generate(task);
     shared_ptr<PatternCollection> patterns =
         pattern_collection_info.get_patterns();
-    return ZeroOnePDBs(OperatorCost(opts.get_enum("cost_type")), *patterns);
+    TaskProxy task_proxy(*task);
+    return ZeroOnePDBs(task_proxy, *patterns);
 }
 
 ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(
     const options::Options &opts)
     : Heuristic(opts),
-      zero_one_pdbs(get_zero_one_pdbs_from_options(opts)) {
+      zero_one_pdbs(get_zero_one_pdbs_from_options(task, opts)) {
 }
 
-int ZeroOnePDBsHeuristic::compute_heuristic(const GlobalState &state)  {
+int ZeroOnePDBsHeuristic::compute_heuristic(const State &ancestor_state) {
+    State state = convert_ancestor_state(ancestor_state);
     int h = zero_one_pdbs.get_value(state);
     if (h == numeric_limits<int>::max())
         return DEAD_END;
@@ -65,5 +69,5 @@ static shared_ptr<Heuristic> _parse(OptionParser &parser) {
     return make_shared<ZeroOnePDBsHeuristic>(opts);
 }
 
-static Plugin<Heuristic> _plugin("zopdbs", _parse);
+static Plugin<Evaluator> _plugin("zopdbs", _parse, "heuristics_pdb");
 }

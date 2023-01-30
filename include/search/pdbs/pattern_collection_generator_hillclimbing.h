@@ -4,18 +4,12 @@
 #include "pdbs/pattern_generator.h"
 #include "pdbs/types.h"
 
-#include "utils/logging.h"
+#include "task_proxy.h"
 
 #include <cstdlib>
 #include <memory>
 #include <set>
 #include <vector>
-
-class GlobalState;
-
-namespace options {
-class Options;
-}
 
 namespace utils {
 class CountdownTimer;
@@ -33,36 +27,6 @@ class PatternDatabase;
 
 // Implementation of the pattern generation algorithm by Haslum et al.
 class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator {
-    struct Statistics : public utils::Printable {
-        unsigned long long int num_iterations;
-        unsigned long long int generated_patterns;
-        unsigned long long int rejected_patterns;
-        unsigned long long int max_pdb_size;
-
-        double hillclimbing_time;
-
-        Statistics(
-            unsigned long long int num_iterations,
-            unsigned long long int generated_patterns,
-            unsigned long long int rejected_patterns,
-            unsigned long long int max_pdb_size,
-            double hillclimbing_time)
-            : num_iterations(num_iterations)
-            , generated_patterns(generated_patterns)
-            , rejected_patterns(rejected_patterns)
-            , max_pdb_size(max_pdb_size)
-            , hillclimbing_time(hillclimbing_time)
-        {}
-
-        void print(std::ostream& out) const override;
-    };
-
-    utils::Verbosity verbosity;
-
-    std::shared_ptr<Statistics> statistics_;
-
-    std::shared_ptr<PatternCollectionGenerator> initial_generator;
-
     // maximum number of states for each pdb
     const int pdb_max_size;
     // maximum added size of all pdbs
@@ -79,8 +43,6 @@ class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator
     int num_rejected;
     utils::CountdownTimer *hill_climbing_timer;
 
-    OperatorCost cost_type;
-
     /*
       For the given PDB, all possible extensions of its pattern by one
       relevant variable are considered as candidate patterns. If the candidate
@@ -91,6 +53,7 @@ class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator
       The method returns the size of the largest PDB added to candidate_pdbs.
     */
     int generate_candidate_pdbs(
+        const TaskProxy &task_proxy,
         const std::vector<std::vector<int>> &relevant_neighbours,
         const PatternDatabase &pdb,
         std::set<Pattern> &generated_patterns,
@@ -109,7 +72,7 @@ class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator
     void sample_states(
         const sampling::RandomWalkSampler &sampler,
         int init_h,
-        std::vector<GlobalState> &samples);
+        std::vector<State> &samples);
 
     /*
       Searches for the best improving pdb in candidate_pdbs according to the
@@ -117,7 +80,7 @@ class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator
       the index of the best pdb in candidate_pdbs.
     */
     std::pair<int, int> find_best_improving_pdb(
-        const std::vector<GlobalState> &samples,
+        const std::vector<State> &samples,
         const std::vector<int> &samples_h_values,
         PDBCollection &candidate_pdbs);
 
@@ -129,7 +92,7 @@ class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator
     */
     bool is_heuristic_improved(
         const PatternDatabase &pdb,
-        const GlobalState &sample,
+        const State &sample,
         int h_collection,
         const PDBCollection &pdbs,
         const std::vector<PatternClique> &pattern_cliques);
@@ -156,11 +119,9 @@ class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator
       Storing the PDBs has the only purpose to avoid re-computation of the same
       PDBs. This is quite a large time gain, but may use a lot of memory.
     */
-    void hill_climbing();
+    void hill_climbing(const TaskProxy &task_proxy);
 
-public:
-    explicit PatternCollectionGeneratorHillclimbing(const options::Options &opts);
-    virtual ~PatternCollectionGeneratorHillclimbing() = default;
+    virtual std::string name() const override;
 
     /*
       Runs the hill climbing algorithm. Note that the
@@ -168,9 +129,11 @@ public:
       variable) may break the maximum collection size limit, if the latter is
       set too small or if there are many goal variables with a large domain.
     */
-    virtual PatternCollectionInformation generate(OperatorCost cost_type) override;
-
-    std::shared_ptr<utils::Printable> get_report() const override;
+    virtual PatternCollectionInformation compute_patterns(
+        const std::shared_ptr<AbstractTask> &task) override;
+public:
+    explicit PatternCollectionGeneratorHillclimbing(const options::Options &opts);
+    virtual ~PatternCollectionGeneratorHillclimbing() = default;
 };
 }
 

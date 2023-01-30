@@ -4,6 +4,8 @@
 #include "probfd/heuristics/pdbs/abstract_policy.h"
 #include "probfd/heuristics/pdbs/types.h"
 
+#include "probfd/task_proxy.h"
+
 #include "utils/logging.h"
 
 #include <memory>
@@ -29,12 +31,14 @@ class AbstractSolutionData {
 
 public:
     AbstractSolutionData(
+        const ProbabilisticTaskProxy& task_proxy,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const Pattern& pattern,
         std::set<int> blacklist,
         bool wildcard);
 
     AbstractSolutionData(
+        const ProbabilisticTaskProxy& task_proxy,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& previous,
         int add_var,
@@ -42,6 +46,7 @@ public:
         bool wildcard);
 
     AbstractSolutionData(
+        const ProbabilisticTaskProxy& task_proxy,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& merge_left,
         const PDBType& merge_right,

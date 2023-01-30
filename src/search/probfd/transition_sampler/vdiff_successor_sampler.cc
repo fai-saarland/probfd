@@ -2,6 +2,9 @@
 
 #include "probfd/engines/heuristic_search_state_information.h"
 
+#include "utils/rng.h"
+#include "utils/rng_options.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -9,18 +12,28 @@ namespace probfd {
 namespace transition_sampler {
 
 VDiffSuccessorSampler::VDiffSuccessorSampler(const options::Options& opts)
-    : prefer_large_gaps_(opts.get<bool>("prefer_large_gaps"))
+    : sampler_(utils::parse_rng_from_options(opts))
+    , prefer_large_gaps_(opts.get<bool>("prefer_large_gaps"))
+{
+}
+
+VDiffSuccessorSampler::VDiffSuccessorSampler(
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
+    bool prefer_large_gaps)
+    : sampler_(rng)
+    , prefer_large_gaps_(prefer_large_gaps)
 {
 }
 
 void VDiffSuccessorSampler::add_options_to_parser(options::OptionParser& parser)
 {
+    utils::add_rng_options(parser);
     parser.add_option<bool>("prefer_large_gaps", "", "true");
 }
 
 StateID VDiffSuccessorSampler::sample(
     const StateID&,
-    const ProbabilisticOperator*,
+    OperatorID,
     const Distribution<StateID>& successors)
 {
     biased_.clear();

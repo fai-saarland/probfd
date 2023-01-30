@@ -1,32 +1,39 @@
 #ifndef LANDMARKS_UTIL_H
 #define LANDMARKS_UTIL_H
 
-#include <cstddef>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
-struct GlobalCondition;
-class GlobalOperator;
+class AxiomOrOperatorProxy;
+class OperatorProxy;
+class TaskProxy;
+
+namespace utils {
+class LogProxy;
+}
+
+namespace landmarks {
+class Landmark;
 class LandmarkNode;
+class LandmarkGraph;
 
-class hash_pointer {
-public:
-    size_t operator()(const void *p) const {
-        //return size_t(reinterpret_cast<int>(p));
-        std::hash<const void *> my_hash_class;
-        return my_hash_class(p);
-    }
-};
-
-bool _possibly_fires(const std::vector<GlobalCondition> &conditions,
-                     const std::vector<std::vector<int> > &lvl_var);
-
-std::unordered_map<int, int> _intersect(
+extern std::unordered_map<int, int> _intersect(
     const std::unordered_map<int, int> &a,
     const std::unordered_map<int, int> &b);
 
-bool _possibly_reaches_lm(const GlobalOperator &o,
-                          const std::vector<std::vector<int> > &lvl_var,
-                          const LandmarkNode *lmp);
+extern bool possibly_reaches_lm(
+    const AxiomOrOperatorProxy& op,
+    const std::vector<std::vector<bool>>& reached,
+    const Landmark& landmark);
+
+extern AxiomOrOperatorProxy
+get_operator_or_axiom(const TaskProxy& task_proxy, int op_or_axiom_id);
+extern int get_operator_or_axiom_id(const AxiomOrOperatorProxy &op);
+
+extern void dump_landmark_graph(
+    const TaskProxy &task_proxy,
+    const LandmarkGraph &graph,
+    utils::LogProxy &log);
+}
 
 #endif

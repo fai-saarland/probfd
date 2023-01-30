@@ -8,19 +8,26 @@ class Options;
 class OptionParser;
 } // namespace options
 
+namespace utils {
+class RandomNumberGenerator;
+}
+
 namespace probfd {
 namespace policy_tiebreaking {
 
 class RandomTiebreaker : public ProbabilisticOperatorPolicyPicker {
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
+
 public:
-    explicit RandomTiebreaker(const options::Options&);
+    explicit RandomTiebreaker(const options::Options& opts);
+    
     static void add_options_to_parser(options::OptionParser&);
 
 protected:
     virtual int pick(
         const StateID& state,
         const ActionID& prev_policy,
-        const std::vector<const ProbabilisticOperator*>& action_choices,
+        const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors) override;
 };
 

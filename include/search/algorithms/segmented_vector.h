@@ -145,31 +145,6 @@ public:
             push_back(entry);
         }
     }
-
-    void clear() {
-        resize(0);
-    }
-};
-
-template<class Element, class Allocator = std::allocator<Element>>
-class DynamicSegmentedVector : public SegmentedVector<Element, Allocator>
-{
-public:
-    using reference = Element&;
-    // using SegmentedVector<Element, Allocator>::SegmentedVector;
-    DynamicSegmentedVector(const Element& default_value = Element(),
-            const Allocator& alloc = Allocator())
-        : SegmentedVector<Element>(alloc), default_value_(default_value)
-    {}
-    Element& operator[](size_t index) {
-        if (index >= this->size()) {
-            this->resize(index + 1, default_value_);
-        }
-        return SegmentedVector<Element, Allocator>::operator[](index);
-    }
-
-private:
-    Element default_value_;
 };
 
 template<class Element, class Allocator = std::allocator<Element>>

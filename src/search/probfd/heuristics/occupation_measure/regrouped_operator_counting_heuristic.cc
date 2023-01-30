@@ -1,7 +1,5 @@
 #include "probfd/heuristics/occupation_measure/regrouped_operator_counting_heuristic.h"
 
-#include "global_operator.h"
-#include "globals.h"
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -11,47 +9,52 @@
 #include "probfd/analysis_objectives/expected_cost_objective.h"
 #include "probfd/analysis_objectives/goal_probability_objective.h"
 
-#include "probfd/globals.h"
-#include "probfd/probabilistic_operator.h"
+#include "probfd/task_utils/task_properties.h"
 
 #include <algorithm>
 #include <cassert>
 #include <memory>
 
 namespace probfd {
+namespace heuristics {
 namespace occupation_measure_heuristic {
 
 namespace {
 
-template <typename T>
-std::vector<int> make_explicit(const std::vector<T>& partial_state)
+std::vector<int> make_explicit(
+    const ProbabilisticTaskProxy& task_proxy,
+    const OperatorPreconditionsProxy& preconditions_proxy)
 {
-    std::vector<int> pre(g_variable_domain.size(), -1);
+    std::vector<int> pre(task_proxy.get_variables().size(), -1);
 
-    for (const auto& [var, val] : partial_state) {
-        pre[var] = val;
+    for (const FactProxy fact : preconditions_proxy) {
+        pre[fact.get_variable().get_id()] = fact.get_value();
     }
 
     return pre;
 }
 
 // Explicit precondition values (-1 if no precondition for variable)
-std::vector<int> get_precondition_explicit(const ProbabilisticOperator& op)
+std::vector<int> get_precondition_explicit(
+    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticOperatorProxy& op)
 {
-    return make_explicit(op.get_preconditions());
+    return make_explicit(task_proxy, op.get_preconditions());
 }
 
 } // namespace
 
 RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
     const options::Options& opts)
-    : lp_solver_(lp::LPSolverType(opts.get_enum("lpsolver")))
+    : TaskDependentHeuristic(opts)
+    , lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
     , is_maxprob(
           std::dynamic_pointer_cast<
               analysis_objectives::GoalProbabilityObjective>(
               g_analysis_objective) != nullptr)
 {
-    ::verify_no_axioms_no_conditional_effects();
+    ::task_properties::verify_no_axioms(task_proxy);
+    task_properties::verify_no_conditional_effects(task_proxy);
 
     std::cout << "Initializing regrouped operator counting heuristic..."
               << std::endl;
@@ -60,26 +63,27 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
 
     // Construct LP...
 
-    const std::size_t num_variables = g_variable_domain.size();
+    const VariablesProxy variables = task_proxy.get_variables();
+
+    const std::size_t num_variables = variables.size();
 
     this->reset_indices_.reserve(2 * num_variables);
 
     const double inf = lp_solver_.get_infinity();
 
-    std::vector<lp::LPVariable> lp_vars;
-    std::vector<lp::LPConstraint> constraints;
+    named_vector::NamedVector<lp::LPVariable> lp_vars;
+    named_vector::NamedVector<lp::LPConstraint> constraints;
 
     // Set up net change constraint offsets, one constraint per fact
     ncc_offsets_.reserve(num_variables);
 
     std::size_t offset = 0;
-    ncc_offsets_.push_back(offset);
-    for (std::size_t var = 0; var < num_variables - 1; ++var) {
-        offset += g_variable_domain[var];
+    for (VariableProxy variable : variables) {
         ncc_offsets_.push_back(offset);
+        offset += variable.get_domain_size();
     }
 
-    const std::size_t num_facts = offset + g_variable_domain.back();
+    const std::size_t num_facts = offset;
 
     constraints.resize(num_facts, lp::LPConstraint(0.0, inf));
 
@@ -90,37 +94,39 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
         lp_vars.emplace_back(1, 1, 0);
     }
 
-    for (const auto& goal_fact : g_goal) {
-        const std::size_t off = ncc_offsets_[goal_fact.first];
-        constraints[off + goal_fact.second].insert(0, -1);
+    for (const FactProxy goal_fact : task_proxy.get_goals()) {
+        const std::size_t off = ncc_offsets_[goal_fact.get_variable().get_id()];
+        constraints[off + goal_fact.get_value()].insert(0, -1);
     }
 
-    for (const ProbabilisticOperator& op : g_operators) {
+    for (const ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
         const int reward = is_maxprob ? value_type::zero : op.get_reward();
 
-        assert(op.num_outcomes() >= 1);
+        const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 
-        const auto first_eff_probability = op[0].prob;
+        assert(outcomes.size() >= 1);
+
+        const auto first_eff_probability = outcomes[0].get_probability();
         const int first_eff_lpvar = lp_vars.size();
 
         // Get explicit precondition
-        const std::vector<int> pre = get_precondition_explicit(op);
+        const std::vector<int> pre = get_precondition_explicit(task_proxy, op);
 
-        for (std::size_t i = 0; i < op.num_outcomes(); ++i) {
-            const ProbabilisticOutcome& o = op[i];
-            const auto probability = o.prob;
-            const auto& effects = o.effects();
+        for (std::size_t i = 0; i < outcomes.size(); ++i) {
+            const ProbabilisticOutcomeProxy outcome = outcomes[i];
+            const value_type::value_t probability = outcome.get_probability();
 
             const int lp_var = lp_vars.size();
 
             // introduce variable Y_{a,e}
             lp_vars.emplace_back(0, inf, reward);
 
-            for (const auto& eff : effects) {
-                const int var = eff.var;
-                const int val = eff.val;
+            for (const auto& effect : outcome.get_effects()) {
+                const FactProxy fact = effect.get_fact();
+                const int var = fact.get_variable().get_id();
+                const int val = fact.get_value();
 
-                auto* var_constraints = constraints.data() + ncc_offsets_[var];
+                auto* var_constraints = &constraints[0] + ncc_offsets_[var];
 
                 // Always produces / Sometimes produces
                 var_constraints[val].insert(lp_var, 1);
@@ -145,20 +151,21 @@ RegroupedOperatorCountingHeuristic::RegroupedOperatorCountingHeuristic(
         }
     }
 
-    lp_solver_.load_problem(
+    lp_solver_.load_problem(lp::LinearProgram(
         lp::LPObjectiveSense::MAXIMIZE,
-        lp_vars,
-        constraints);
+        std::move(lp_vars),
+        std::move(constraints),
+        inf));
 
     std::cout << "Finished ROC LP setup after " << timer << std::endl;
 }
 
 EvaluationResult
-RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
+RegroupedOperatorCountingHeuristic::evaluate(const State& state) const
 {
     // Set outflow of 1 for all state facts
-    for (std::size_t var = 0; var < g_variable_domain.size(); ++var) {
-        const int c_index = ncc_offsets_[var] + state[var];
+    for (std::size_t var = 0; var < task_proxy.get_variables().size(); ++var) {
+        const int c_index = ncc_offsets_[var] + state[var].get_value();
         lp_solver_.set_constraint_lower_bound(c_index, -1);
         reset_indices_.push_back(c_index);
     }
@@ -192,6 +199,7 @@ RegroupedOperatorCountingHeuristic::evaluate(const GlobalState& state) const
 void RegroupedOperatorCountingHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
+    TaskDependentHeuristic::add_options_to_parser(parser);
     lp::add_lp_solver_option_to_parser(parser);
 }
 
@@ -200,4 +208,5 @@ static Plugin<GlobalStateEvaluator> _plugin(
     options::parse<GlobalStateEvaluator, RegroupedOperatorCountingHeuristic>);
 
 } // namespace occupation_measure_heuristic
+} // namespace heuristics
 } // namespace probfd

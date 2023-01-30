@@ -6,8 +6,6 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/globals.h"
-
 namespace pdbs {
 class PatternDatabase;
 }
@@ -19,28 +17,31 @@ namespace pdbs {
 class ExpCostProjection : public ProbabilisticProjection {
 public:
     explicit ExpCostProjection(
+        const ProbabilisticTaskProxy& task_proxy,
         const Pattern& variables,
-        const std::vector<int>& domains = ::g_variable_domain,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(value_type::zero));
 
     explicit ExpCostProjection(
+        const ProbabilisticTaskProxy& task_proxy,
+        const ::pdbs::PatternDatabase& pdb,
+        bool operator_pruning = true);
+
+    explicit ExpCostProjection(
+        const ProbabilisticTaskProxy& task_proxy,
+        const ExpCostProjection& pdb,
+        int add_var,
+        bool operator_pruning = true);
+
+    explicit ExpCostProjection(
+        const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction* mapper,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(value_type::zero));
 
-    explicit ExpCostProjection(
-        const ::pdbs::PatternDatabase& pdb,
-        bool operator_pruning = true);
-
-    explicit ExpCostProjection(
-        const ExpCostProjection& pdb,
-        int add_var,
-        bool operator_pruning = true);
-
-    [[nodiscard]] EvaluationResult evaluate(const GlobalState& s) const;
+    [[nodiscard]] EvaluationResult evaluate(const State& s) const;
     [[nodiscard]] EvaluationResult evaluate(const StateRank& s) const;
 
     AbstractPolicy get_optimal_abstract_policy(

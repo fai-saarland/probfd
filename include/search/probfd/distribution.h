@@ -249,7 +249,7 @@ public:
         // Important!
         normalize();
 
-        const value_type::value_t r = rng();
+        const value_type::value_t r = rng.random();
 
         auto it = distribution_.begin();
         value_type::value_t sum = it->probability;

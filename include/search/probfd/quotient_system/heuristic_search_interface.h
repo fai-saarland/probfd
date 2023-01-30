@@ -14,17 +14,14 @@ namespace probfd {
 
 namespace engine_interfaces {
 template <>
-class PolicyPicker<
-    quotient_system::QuotientAction<const ProbabilisticOperator*>> {
-    using QuotientSystem =
-        quotient_system::QuotientSystem<const ProbabilisticOperator*>;
-    using QuotientAction =
-        quotient_system::QuotientAction<const ProbabilisticOperator*>;
+class PolicyPicker<quotient_system::QuotientAction<OperatorID>> {
+    using QuotientSystem = quotient_system::QuotientSystem<OperatorID>;
+    using QuotientAction = quotient_system::QuotientAction<OperatorID>;
 
 public:
     explicit PolicyPicker(
         QuotientSystem* quotient,
-        PolicyPicker<const ProbabilisticOperator*>* original)
+        PolicyPicker<OperatorID>* original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -49,28 +46,22 @@ public:
         return original_->operator()(state, oprev, choices_, successors);
     }
 
-    PolicyPicker<const ProbabilisticOperator*>* real() const
-    {
-        return original_;
-    }
+    PolicyPicker<OperatorID>* real() const { return original_; }
 
-    std::vector<const ProbabilisticOperator*> choices_;
+    std::vector<OperatorID> choices_;
     QuotientSystem* quotient_;
-    PolicyPicker<const ProbabilisticOperator*>* original_;
+    PolicyPicker<OperatorID>* original_;
 };
 
 template <>
-class TransitionSampler<
-    quotient_system::QuotientAction<const ProbabilisticOperator*>> {
-    using QuotientSystem =
-        quotient_system::QuotientSystem<const ProbabilisticOperator*>;
-    using QuotientAction =
-        quotient_system::QuotientAction<const ProbabilisticOperator*>;
+class TransitionSampler<quotient_system::QuotientAction<OperatorID>> {
+    using QuotientSystem = quotient_system::QuotientSystem<OperatorID>;
+    using QuotientAction = quotient_system::QuotientAction<OperatorID>;
 
 public:
     explicit TransitionSampler(
         QuotientSystem* quotient,
-        TransitionSampler<const ProbabilisticOperator*>* original)
+        TransitionSampler<OperatorID>* original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -81,30 +72,23 @@ public:
         const QuotientAction& action,
         const Distribution<StateID>& transition)
     {
-        const auto* oa = quotient_->get_original_action(state, action);
-        return original_->operator()(state, oa, transition);
+        const OperatorID op_id = quotient_->get_original_action(state, action);
+        return original_->operator()(state, op_id, transition);
     }
 
-    TransitionSampler<const ProbabilisticOperator*>* real() const
-    {
-        return original_;
-    }
+    TransitionSampler<OperatorID>* real() const { return original_; }
 
     QuotientSystem* quotient_;
-    TransitionSampler<const ProbabilisticOperator*>* original_;
+    TransitionSampler<OperatorID>* original_;
 };
 
 template <>
-class OpenList<quotient_system::QuotientAction<const ProbabilisticOperator*>> {
-    using QuotientSystem =
-        quotient_system::QuotientSystem<const ProbabilisticOperator*>;
-    using QuotientAction =
-        quotient_system::QuotientAction<const ProbabilisticOperator*>;
+class OpenList<quotient_system::QuotientAction<OperatorID>> {
+    using QuotientSystem = quotient_system::QuotientSystem<OperatorID>;
+    using QuotientAction = quotient_system::QuotientAction<OperatorID>;
 
 public:
-    explicit OpenList(
-        QuotientSystem* quotient,
-        OpenList<const ProbabilisticOperator*>* original)
+    explicit OpenList(QuotientSystem* quotient, OpenList<OperatorID>* original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -120,8 +104,9 @@ public:
         const value_type::value_t& prob,
         const StateID& state_id)
     {
-        const auto* oa = this->quotient_->get_original_action(parent, action);
-        original_->push(parent, oa, prob, state_id);
+        const OperatorID op_id =
+            this->quotient_->get_original_action(parent, action);
+        original_->push(parent, op_id, prob, state_id);
     }
 
     unsigned size() const { return original_->size(); }
@@ -130,10 +115,10 @@ public:
 
     void clear() { original_->clear(); }
 
-    OpenList<const ProbabilisticOperator*>* real() const { return original_; }
+    OpenList<OperatorID>* real() const { return original_; }
 
     QuotientSystem* quotient_;
-    OpenList<const ProbabilisticOperator*>* original_;
+    OpenList<OperatorID>* original_;
 };
 
 } // namespace engine_interfaces

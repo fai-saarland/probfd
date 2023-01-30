@@ -9,7 +9,9 @@
 
 #include "probfd/utils/graph_visualization.h"
 
-#include "probfd/globals.h"
+#include "probfd/tasks/root_task.h"
+
+#include "probfd/task_proxy.h"
 
 #include <fstream>
 #include <iostream>
@@ -17,6 +19,8 @@
 #include <set>
 #include <string>
 #include <vector>
+
+class State;
 
 namespace probfd {
 namespace heuristics {
@@ -32,10 +36,13 @@ class ProbabilisticProjection {
         std::vector<bool> goal_state_flags_;
 
         StateRankSpace(
+            const ProbabilisticTaskProxy& task_proxy,
             const StateRankingFunction& mapper,
             bool operator_pruning = true);
 
-        void setup_abstract_goal(const StateRankingFunction& mapper);
+        void setup_abstract_goal(
+            const ProbabilisticTaskProxy& task_proxy,
+            const StateRankingFunction& mapper);
         bool is_goal(const StateRank& s) const;
     };
 
@@ -47,12 +54,13 @@ protected:
 
 protected:
     ProbabilisticProjection(
+        const ProbabilisticTaskProxy& task_proxy,
         const Pattern& pattern,
-        const std::vector<int>& domains,
         bool operator_pruning,
         value_type::value_t fill);
 
     ProbabilisticProjection(
+        const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction* mapper,
         bool operator_pruning,
         value_type::value_t fill);
@@ -62,15 +70,15 @@ public:
 
     unsigned int num_states() const;
 
-    bool is_dead_end(const GlobalState& s) const;
+    bool is_dead_end(const State& s) const;
     bool is_dead_end(const StateRank& s) const;
 
     bool is_goal(const StateRank& s) const;
 
-    StateRank get_abstract_state(const GlobalState& s) const;
+    StateRank get_abstract_state(const State& s) const;
     StateRank get_abstract_state(const std::vector<int>& s) const;
 
-    [[nodiscard]] value_type::value_t lookup(const GlobalState& s) const;
+    [[nodiscard]] value_type::value_t lookup(const State& s) const;
     [[nodiscard]] value_type::value_t lookup(const StateRank& s) const;
 
     // Returns the pattern (i.e. all variables used) of the PDB
@@ -86,7 +94,8 @@ protected:
     {
         using namespace engine_interfaces;
 
-        AbstractOperatorToString op_names(&g_operators);
+        ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
+        AbstractOperatorToString op_names(task_proxy);
 
         auto ats = [=](const AbstractOperator* op) {
             return transition_labels ? op_names(op) : "";

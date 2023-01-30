@@ -3,15 +3,13 @@
 
 #include "probfd/engine_interfaces/reward_function.h"
 
-#include "probfd/probabilistic_operator.h"
-
-#include "global_state.h"
+#include "task_proxy.h"
 
 namespace probfd {
 
 /// Type alias for state reward functions for GlobalState.
-using GlobalRewardFunction = engine_interfaces::
-    RewardFunction<GlobalState, const ProbabilisticOperator*>;
+using GlobalRewardFunction =
+    engine_interfaces::RewardFunction<State, OperatorID>;
 
 } // namespace probfd
 

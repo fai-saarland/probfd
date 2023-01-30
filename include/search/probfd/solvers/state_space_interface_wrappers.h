@@ -11,7 +11,6 @@
 #include "probfd/quotient_system/quotient_system.h"
 
 #include "probfd/open_list.h"
-#include "probfd/probabilistic_operator.h"
 #include "probfd/transition_sampler.h"
 
 #include <memory>
@@ -51,22 +50,18 @@ template <>
 struct Wrapper<
     std::false_type,
     std::true_type,
-    std::shared_ptr<
-        engine_interfaces::TransitionSampler<const ProbabilisticOperator*>>> {
+    std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>> {
 
     using type = std::shared_ptr<engine_interfaces::TransitionSampler<
-        quotient_system::QuotientAction<const ProbabilisticOperator*>>>;
+        quotient_system::QuotientAction<OperatorID>>>;
 
     type operator()(
-        quotient_system::QuotientSystem<const ProbabilisticOperator*>* q,
-        std::shared_ptr<
-            engine_interfaces::TransitionSampler<const ProbabilisticOperator*>>
-            t) const
+        quotient_system::QuotientSystem<OperatorID>* q,
+        std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>> t)
+        const
     {
         return std::make_shared<engine_interfaces::TransitionSampler<
-            quotient_system::QuotientAction<const ProbabilisticOperator*>>>(
-            q,
-            t.get());
+            quotient_system::QuotientAction<OperatorID>>>(q, t.get());
     }
 };
 
@@ -75,15 +70,12 @@ struct Unwrapper<
     std::false_type,
     std::true_type,
     std::shared_ptr<engine_interfaces::TransitionSampler<
-        quotient_system::QuotientAction<const ProbabilisticOperator*>>>> {
+        quotient_system::QuotientAction<OperatorID>>>> {
 
-    using type =
-        engine_interfaces::TransitionSampler<const ProbabilisticOperator*>*;
+    using type = engine_interfaces::TransitionSampler<OperatorID>*;
 
-    type operator()(
-        std::shared_ptr<engine_interfaces::TransitionSampler<
-            quotient_system::QuotientAction<const ProbabilisticOperator*>>> t)
-        const
+    type operator()(std::shared_ptr<engine_interfaces::TransitionSampler<
+                        quotient_system::QuotientAction<OperatorID>>> t) const
     {
         return t->real();
     }
@@ -93,13 +85,12 @@ template <typename Fret>
 struct Wrapper<
     std::true_type,
     Fret,
-    std::shared_ptr<
-        engine_interfaces::TransitionSampler<const ProbabilisticOperator*>>> {
+    std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>> {
     using type = std::shared_ptr<engine_interfaces::TransitionSampler<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>;
 
-    type operator()(std::shared_ptr<engine_interfaces::TransitionSampler<
-                        const ProbabilisticOperator*>>) const
+    type operator()(
+        std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>) const
     {
         return std::make_shared<engine_interfaces::TransitionSampler<
             typename translate_action<Fret, bisimulation::QuotientAction>::
@@ -113,8 +104,7 @@ struct Unwrapper<
     Fret,
     std::shared_ptr<engine_interfaces::TransitionSampler<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>> {
-    using type =
-        engine_interfaces::TransitionSampler<const ProbabilisticOperator*>*;
+    using type = engine_interfaces::TransitionSampler<OperatorID>*;
     type operator()(
         std::shared_ptr<engine_interfaces::TransitionSampler<
             typename translate_action<Fret, bisimulation::QuotientAction>::
@@ -131,21 +121,17 @@ template <>
 struct Wrapper<
     std::false_type,
     std::true_type,
-    std::shared_ptr<
-        engine_interfaces::OpenList<const ProbabilisticOperator*>>> {
+    std::shared_ptr<engine_interfaces::OpenList<OperatorID>>> {
 
     using type = std::shared_ptr<engine_interfaces::OpenList<
-        quotient_system::QuotientAction<const ProbabilisticOperator*>>>;
+        quotient_system::QuotientAction<OperatorID>>>;
 
     type operator()(
-        quotient_system::QuotientSystem<const ProbabilisticOperator*>* q,
-        std::shared_ptr<
-            engine_interfaces::OpenList<const ProbabilisticOperator*>> t) const
+        quotient_system::QuotientSystem<OperatorID>* q,
+        std::shared_ptr<engine_interfaces::OpenList<OperatorID>> t) const
     {
         return std::make_shared<engine_interfaces::OpenList<
-            quotient_system::QuotientAction<const ProbabilisticOperator*>>>(
-            q,
-            t.get());
+            quotient_system::QuotientAction<OperatorID>>>(q, t.get());
     }
 };
 
@@ -154,14 +140,12 @@ struct Unwrapper<
     std::false_type,
     std::true_type,
     std::shared_ptr<engine_interfaces::OpenList<
-        quotient_system::QuotientAction<const ProbabilisticOperator*>>>> {
+        quotient_system::QuotientAction<OperatorID>>>> {
 
-    using type = engine_interfaces::OpenList<const ProbabilisticOperator*>*;
+    using type = engine_interfaces::OpenList<OperatorID>*;
 
-    type operator()(
-        std::shared_ptr<engine_interfaces::OpenList<
-            quotient_system::QuotientAction<const ProbabilisticOperator*>>> t)
-        const
+    type operator()(std::shared_ptr<engine_interfaces::OpenList<
+                        quotient_system::QuotientAction<OperatorID>>> t) const
     {
         return t->real();
     }
@@ -171,14 +155,12 @@ template <typename Fret>
 struct Wrapper<
     std::true_type,
     Fret,
-    std::shared_ptr<
-        engine_interfaces::OpenList<const ProbabilisticOperator*>>> {
+    std::shared_ptr<engine_interfaces::OpenList<OperatorID>>> {
     using type = std::shared_ptr<engine_interfaces::OpenList<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>;
 
     type
-    operator()(std::shared_ptr<
-               engine_interfaces::OpenList<const ProbabilisticOperator*>>) const
+    operator()(std::shared_ptr<engine_interfaces::OpenList<OperatorID>>) const
     {
         return std::make_shared<engine_interfaces::OpenList<
             typename translate_action<Fret, bisimulation::QuotientAction>::
@@ -192,7 +174,7 @@ struct Unwrapper<
     Fret,
     std::shared_ptr<engine_interfaces::OpenList<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>> {
-    using type = engine_interfaces::OpenList<const ProbabilisticOperator*>*;
+    using type = engine_interfaces::OpenList<OperatorID>*;
     type operator()(
         std::shared_ptr<engine_interfaces::OpenList<typename translate_action<
             Fret,

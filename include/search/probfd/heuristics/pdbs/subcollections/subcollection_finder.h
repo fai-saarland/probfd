@@ -7,6 +7,8 @@
 #include <vector>
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace heuristics {
 namespace pdbs {
 
@@ -22,9 +24,9 @@ public:
         const PatternCollection& patterns,
         const std::vector<PatternSubCollection>& known_pattern_cliques,
         const Pattern& new_pattern) = 0;
-};
+    };
 
-} // namespace pdbs
-} // namespace heuristics
+    } // namespace pdbs
+    } // namespace heuristics
 } // namespace probfd
 #endif // __SUBCOLLECTION_FINDER_H__

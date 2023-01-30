@@ -15,7 +15,6 @@
 #include <set>
 #include <vector>
 
-class GlobalState;
 
 namespace options {
 class Options;
@@ -26,6 +25,8 @@ class CountdownTimer;
 class RandomNumberGenerator;
 } // namespace utils
 
+class State;
+
 namespace sampling {
 class RandomWalkSampler;
 }
@@ -33,6 +34,8 @@ class RandomWalkSampler;
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
+class SubCollectionFinderFactory;
+
 namespace pattern_selection {
 
 // Implementation of the pattern generation algorithm by Haslum et al.
@@ -69,7 +72,7 @@ class PatternCollectionGeneratorHillclimbing
     std::shared_ptr<Statistics> statistics_;
 
     std::shared_ptr<PatternCollectionGenerator<PDBType>> initial_generator;
-    std::shared_ptr<SubCollectionFinder> subcollection_finder;
+    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // maximum number of states for each pdb
     const int pdb_max_size;
@@ -86,8 +89,6 @@ class PatternCollectionGeneratorHillclimbing
     // for stats only
     int num_rejected;
 
-    OperatorCost cost_type;
-
     /*
       For the given PDB, all possible extensions of its pattern by one
       relevant variable are considered as candidate patterns. If the candidate
@@ -98,6 +99,7 @@ class PatternCollectionGeneratorHillclimbing
       The method returns the size of the largest PDB added to candidate_pdbs.
     */
     int generate_candidate_pdbs(
+        const ProbabilisticTaskProxy& task_proxy,
         utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const PDBType& pdb,
@@ -118,7 +120,7 @@ class PatternCollectionGeneratorHillclimbing
         utils::CountdownTimer& hill_climbing_timer,
         const sampling::RandomWalkSampler& sampler,
         value_type::value_t init_h,
-        std::vector<GlobalState>& samples);
+        std::vector<State>& samples);
 
     /*
       Searches for the best improving pdb in candidate_pdbs according to the
@@ -127,7 +129,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     std::pair<int, int> find_best_improving_pdb(
         utils::CountdownTimer& hill_climbing_timer,
-        const std::vector<GlobalState>& samples,
+        const std::vector<State>& samples,
         const std::vector<EvaluationResult>& samples_h_values,
         PPDBCollection<PDBType>& candidate_pdbs);
 
@@ -139,7 +141,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     bool is_heuristic_improved(
         const PDBType& pdb,
-        const GlobalState& sample,
+        const State& sample,
         EvaluationResult h_collection,
         const PPDBCollection<PDBType>& pdbs,
         const std::vector<PatternSubCollection>& pattern_subcollections);
@@ -166,7 +168,9 @@ class PatternCollectionGeneratorHillclimbing
       Storing the PDBs has the only purpose to avoid re-computation of the same
       PDBs. This is quite a large time gain, but may use a lot of memory.
     */
-    void hill_climbing();
+    void hill_climbing(
+        const ProbabilisticTask* task,
+        const ProbabilisticTaskProxy& task_proxy);
 
 public:
     explicit PatternCollectionGeneratorHillclimbing(
@@ -180,7 +184,7 @@ public:
       set too small or if there are many goal variables with a large domain.
     */
     PatternCollectionInformation<PDBType>
-    generate(OperatorCost cost_type) override;
+    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 
     std::shared_ptr<utils::Printable> get_report() const override;
 };

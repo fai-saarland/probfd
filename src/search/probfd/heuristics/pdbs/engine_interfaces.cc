@@ -3,11 +3,7 @@
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
 
-#include "probfd/probabilistic_operator.h"
-
 #include "pdbs/pattern_database.h"
-
-#include "successor_generator.h"
 
 #include <limits>
 
@@ -128,9 +124,13 @@ EvaluationResult PDBEvaluator::evaluate(const StateRank& state) const
 {
     int deterministic_val = pdb.get_value_for_index(state.id);
 
+    if (deterministic_val == std::numeric_limits<int>::max()) {
+        return EvaluationResult(true, -value_type::inf);
+    }
+
     return EvaluationResult(
-        deterministic_val == std::numeric_limits<int>::max(),
-        static_cast<value_type::value_t>(deterministic_val));
+        false,
+        -static_cast<value_type::value_t>(deterministic_val));
 }
 
 DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)

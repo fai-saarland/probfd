@@ -42,8 +42,7 @@ public:
     int get(const Bin *buffer, int var) const;
     void set(Bin *buffer, int var, int value) const;
 
-    int get_num_bins() const {return num_bins;}
-    static int get_bin_size_in_bytes() { return sizeof(Bin); }
+    int get_num_bins() const { return num_bins; }
 };
 }
 

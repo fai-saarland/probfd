@@ -13,6 +13,7 @@ namespace probfd {
 namespace solvers {
 
 using namespace engine_interfaces;
+using namespace engines::lrtdp;
 
 template <typename Bisimulation, typename Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
@@ -23,19 +24,18 @@ public:
             T>;
 
     template <typename State, typename Action, typename Bounds>
-    using LRTDP = engines::lrtdp::LRTDP<State, Action, Bounds, Fret>;
+    using LRTDP = LRTDP<State, Action, Bounds, Fret>;
 
     explicit LRTDPSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
-        , stop_consistent_(engines::lrtdp::TrialTerminationCondition(
-              opts.get_enum("terminate_trial")))
+        , stop_consistent_(
+              opts.get<TrialTerminationCondition>("terminate_trial"))
         , successor_sampler_(this->wrap(
               opts.get<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>(
                   "successor_sampler")))
     {
         if constexpr (Fret::value) {
-            if (stop_consistent_ !=
-                engines::lrtdp::TrialTerminationCondition::Consistent) {
+            if (stop_consistent_ != TrialTerminationCondition::Consistent) {
                 logging::out << std::endl;
                 logging::out
                     << "Warning: LRTDP is run within FRET without "
@@ -52,7 +52,8 @@ public:
         return "lrtdp";
     }
 
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<State>*
+    create_engine() override
     {
         return this->template heuristic_search_engine_factory<LRTDP>(
             stop_consistent_,
@@ -69,7 +70,7 @@ protected:
         MDPHeuristicSearch<Bisimulation, Fret>::print_additional_statistics();
     }
 
-    const engines::lrtdp::TrialTerminationCondition stop_consistent_;
+    const TrialTerminationCondition stop_consistent_;
     WrappedType<std::shared_ptr<ProbabilisticOperatorTransitionSampler>>
         successor_sampler_;
 };
@@ -85,7 +86,11 @@ struct LRTDPOptions {
         {
             std::vector<std::string> opts(
                 {"false", "consistent", "inconsistent"});
-            parser.add_enum_option("terminate_trial", opts, "", "false");
+            parser.add_enum_option<TrialTerminationCondition>(
+                "terminate_trial",
+                opts,
+                "",
+                "false");
         }
     }
 };

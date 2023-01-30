@@ -2,10 +2,9 @@
 
 #include "pdbs/pattern_database.h"
 
-#include "algorithms/max_cliques.h"
+#include "task_proxy.h"
 
-#include "global_operator.h"
-#include "globals.h"
+#include "algorithms/max_cliques.h"
 
 using namespace std;
 
@@ -23,20 +22,16 @@ bool are_patterns_additive(const Pattern &pattern1,
     return true;
 }
 
-VariableAdditivity compute_additive_vars() {
+VariableAdditivity compute_additive_vars(const TaskProxy &task_proxy) {
     VariableAdditivity are_additive;
-    int num_vars = g_variable_domain.size();
+    int num_vars = task_proxy.get_variables().size();
     are_additive.resize(num_vars, vector<bool>(num_vars, true));
-    for (unsigned op_num = 0; op_num < g_operators.size(); op_num++) {
-        const GlobalOperator& op = g_operators[op_num];
-        const auto& effects = op.get_effects();
-        for (unsigned e1 = 0; e1 < effects.size(); e1++) {
-            int var1 = effects[e1].var;
-            are_additive[var1][var1] = false;
-            for (unsigned e2 = e1 + 1; e2 < effects.size(); e2++) {
-                int var2 = effects[e2].var;
-                are_additive[var1][var2] = false;
-                are_additive[var2][var1] = false;
+    for (OperatorProxy op : task_proxy.get_operators()) {
+        for (EffectProxy e1 : op.get_effects()) {
+            for (EffectProxy e2 : op.get_effects()) {
+                int e1_var_id = e1.get_fact().get_variable().get_id();
+                int e2_var_id = e2.get_fact().get_variable().get_id();
+                are_additive[e1_var_id][e2_var_id] = false;
             }
         }
     }

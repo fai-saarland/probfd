@@ -6,10 +6,6 @@
 #include <stack>
 #include <unordered_set>
 
-namespace options {
-class Options;
-}
-
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
@@ -17,29 +13,31 @@ namespace pattern_selection {
 
 template <typename PDBType>
 class BFSFlawFinder : public FlawFindingStrategy<PDBType> {
-    std::deque<ExplicitGState> open;
-    std::unordered_set<ExplicitGState> closed;
+    std::deque<std::vector<int>> open;
+    std::unordered_set<
+        std::vector<int>,
+        typename FlawFindingStrategy<PDBType>::StateHash>
+        closed;
 
-    unsigned int violation_threshold;
+    const unsigned int violation_threshold;
 
 public:
-    BFSFlawFinder(options::Options& parser);
+    BFSFlawFinder(
+        const ProbabilisticTask* task,
+        unsigned int violation_threshold);
 
-    BFSFlawFinder(unsigned int violation_threshold = 1);
     ~BFSFlawFinder() override = default;
 
     virtual std::pair<FlawList, bool> apply_policy(
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,
-        const ExplicitGState& init) override;
-
-    std::string get_name() const override { return "BFS Flaw Finder"; }
+        std::vector<int>& state) override;
 
 private:
     bool expand(
         PatternCollectionGeneratorCegar<PDBType>& base,
         int solution_index,
-        ExplicitGState state,
+        std::vector<int>& state,
         FlawList& flaw_list);
 };
 

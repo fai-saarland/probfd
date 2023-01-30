@@ -3,6 +3,8 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
+#include "probfd/task_proxy.h"
+
 #include <cstddef>
 #include <vector>
 
@@ -21,6 +23,7 @@ class MatchTree {
     struct Node;
 
     // See PatternDatabase for documentation on pattern and hash_multipliers.
+    ProbabilisticTaskProxy task_proxy;
     Pattern pattern;
     const StateRankingFunction& mapper;
     Node* root;
@@ -30,7 +33,7 @@ class MatchTree {
 
     void insert_recursive(
         size_t op_index,
-        const std::vector<std::pair<int, int>>& progression_preconditions,
+        const std::vector<FactPair>& progression_preconditions,
         int pre_index,
         Node** edge_from_parent);
 
@@ -43,7 +46,10 @@ class MatchTree {
 
 public:
     // Initialize an empty match tree.
-    MatchTree(const Pattern& pattern, const StateRankingFunction& mapper);
+    MatchTree(
+        ProbabilisticTaskProxy task_proxy,
+        const Pattern& pattern,
+        const StateRankingFunction& mapper);
 
     ~MatchTree();
 
@@ -51,7 +57,7 @@ public:
        enlarging it. */
     void insert(
         size_t op_index,
-        const std::vector<std::pair<int, int>>& progression_preconditions);
+        const std::vector<FactPair>& progression_preconditions);
 
     /*
       Extracts all IDs of applicable abstract operators for the abstract state

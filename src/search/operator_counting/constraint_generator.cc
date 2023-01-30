@@ -5,7 +5,8 @@
 using namespace std;
 
 namespace operator_counting {
-void ConstraintGenerator::initialize_constraints(OperatorCost, vector<lp::LPConstraint> &, double) {
+void ConstraintGenerator::initialize_constraints(
+    const shared_ptr<AbstractTask> &, lp::LinearProgram &) {
 }
 
 static PluginTypePlugin<ConstraintGenerator> _type_plugin(

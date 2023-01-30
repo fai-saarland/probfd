@@ -14,17 +14,6 @@ using PatternID = int;
    in the literature. A pattern clique is an additive set of patterns,
    represented by their IDs (indices) in a pattern collection. */
 using PatternClique = std::vector<PatternID>;
-
-struct FactPair {
-    int var;
-    int value;
-    FactPair(int var, int value) : var(var), value(value) {}
-    FactPair(const FactPair&) = default;
-    FactPair(FactPair&&) = default;
-    FactPair& operator=(FactPair&&) = default;
-    FactPair& operator=(const FactPair&) = default;
-    bool operator<(const FactPair& other) const { return var < other.var || (var == other.var && value < other.value); }
-};
 }
 
 #endif

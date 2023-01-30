@@ -20,7 +20,7 @@ void VDiffSorter::add_options_to_parser(options::OptionParser& parser)
 
 void VDiffSorter::sort(
     const StateID&,
-    const std::vector<const ProbabilisticOperator*>&,
+    const std::vector<OperatorID>&,
     std::vector<Distribution<StateID>>& successors)
 {
     std::vector<std::pair<double, unsigned>> k0;

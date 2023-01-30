@@ -9,13 +9,9 @@
 #include "probfd/utils/graph_visualization.h"
 #include "probfd/utils/logging.h"
 
-#include "probfd/globals.h"
-
 #include "pdbs/pattern_database.h"
 
 #include "utils/collections.h"
-
-#include "successor_generator.h"
 
 #include "lp/lp_solver.h"
 
@@ -56,44 +52,38 @@ public:
 using namespace value_utils;
 
 ExpCostProjection::ExpCostProjection(
+    const ProbabilisticTaskProxy& task_proxy,
     const Pattern& variables,
-    const std::vector<int>& domains,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
     : ExpCostProjection(
-          new StateRankingFunction(variables, domains),
+          task_proxy,
+          new StateRankingFunction(task_proxy, variables),
           operator_pruning,
           heuristic)
 {
 }
 
 ExpCostProjection::ExpCostProjection(
-    StateRankingFunction* mapper,
-    bool operator_pruning,
-    const StateRankEvaluator& heuristic)
-    : ProbabilisticProjection(mapper, operator_pruning, -value_type::inf)
-{
-    compute_value_table(heuristic);
-}
-
-ExpCostProjection::ExpCostProjection(
+    const ProbabilisticTaskProxy& task_proxy,
     const ::pdbs::PatternDatabase& pdb,
     bool operator_pruning)
     : ExpCostProjection(
+          task_proxy,
           pdb.get_pattern(),
-          ::g_variable_domain,
           operator_pruning,
           PDBEvaluator(pdb))
 {
 }
 
 ExpCostProjection::ExpCostProjection(
+    const ProbabilisticTaskProxy& task_proxy,
     const ExpCostProjection& pdb,
     int add_var,
     bool operator_pruning)
     : ProbabilisticProjection(
+          task_proxy,
           utils::insert(pdb.get_pattern(), add_var),
-          ::g_variable_domain,
           operator_pruning,
           -value_type::inf)
 {
@@ -101,7 +91,21 @@ ExpCostProjection::ExpCostProjection(
         IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
 }
 
-EvaluationResult ExpCostProjection::evaluate(const GlobalState& s) const
+ExpCostProjection::ExpCostProjection(
+    const ProbabilisticTaskProxy& task_proxy,
+    StateRankingFunction* mapper,
+    bool operator_pruning,
+    const StateRankEvaluator& heuristic)
+    : ProbabilisticProjection(
+          task_proxy,
+          mapper,
+          operator_pruning,
+          -value_type::inf)
+{
+    compute_value_table(heuristic);
+}
+
+EvaluationResult ExpCostProjection::evaluate(const State& s) const
 {
     return evaluate(get_abstract_state(s));
 }
@@ -315,24 +319,25 @@ void ExpCostProjection::verify(
 #endif
 
     lp::LPSolver solver(type);
+    const double inf = solver.get_infinity();
 
     std::unordered_set<StateID> visited(
         state_id_map.visited_begin(),
         state_id_map.visited_end());
 
-    std::vector<lp::LPVariable> variables;
+    named_vector::NamedVector<lp::LPVariable> variables;
 
     for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
         const bool in = utils::contains(proper_states, StateID(s.id));
         variables.emplace_back(
-            -value_type::inf,
+            -inf,
             value_type::zero,
             in ? value_type::one : value_type::zero);
     }
 
-    std::vector<lp::LPConstraint> constraints;
+    named_vector::NamedVector<lp::LPConstraint> constraints;
 
     std::deque<StateRank> queue({abstract_state_space_.initial_state_});
     std::set<StateRank> seen({abstract_state_space_.initial_state_});
@@ -358,7 +363,7 @@ void ExpCostProjection::verify(
         for (const AbstractOperator* op : aops) {
             value_type::value_t reward = op->reward;
 
-            auto& constr = constraints.emplace_back(reward, value_type::inf);
+            auto& constr = constraints.emplace_back(reward, inf);
 
             std::unordered_map<StateRank, value_type::value_t> successor_dist;
 
@@ -386,7 +391,11 @@ void ExpCostProjection::verify(
 
     assert(visited.empty());
 
-    solver.load_problem(lp::LPObjectiveSense::MINIMIZE, variables, constraints);
+    solver.load_problem(lp::LinearProgram(
+        lp::LPObjectiveSense::MINIMIZE,
+        std::move(variables),
+        std::move(constraints),
+        inf));
 
     solver.solve();
 

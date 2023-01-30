@@ -6,7 +6,6 @@
 #include "probfd/quotient_system/engine_interfaces.h"
 #include "probfd/quotient_system/quotient_system.h"
 
-#include "probfd/probabilistic_operator.h"
 #include "probfd/transition_generator.h"
 
 #include <algorithm>
@@ -20,14 +19,13 @@ namespace probfd {
 namespace quotient_system {
 
 template <>
-class QuotientSystem<const ProbabilisticOperator*> {
+class QuotientSystem<OperatorID> {
     friend struct const_iterator;
 
 public:
-    using Action = const ProbabilisticOperator*;
-    using QAction = QuotientAction<Action>;
-    using QuotientStateIDIterator = DefaultQuotientSystem<
-        const ProbabilisticOperator*>::QuotientStateIDIterator;
+    using QAction = QuotientAction<OperatorID>;
+    using QuotientStateIDIterator =
+        DefaultQuotientSystem<OperatorID>::QuotientStateIDIterator;
 
     struct const_iterator {
         using iterator_type = std::forward_iterator_tag;
@@ -38,7 +36,7 @@ public:
 
         explicit const_iterator(
             const QuotientSystem* qs,
-            DefaultQuotientSystem<Action>::const_iterator x)
+            DefaultQuotientSystem<OperatorID>::const_iterator x)
             : qs_(qs)
             , i(x)
         {
@@ -82,19 +80,19 @@ public:
 
     private:
         const QuotientSystem* qs_;
-        DefaultQuotientSystem<Action>::const_iterator i;
+        DefaultQuotientSystem<OperatorID>::const_iterator i;
     };
 
     explicit QuotientSystem(
-        engine_interfaces::ActionIDMap<Action>* aid,
-        engine_interfaces::TransitionGenerator<Action>* transition_gen)
+        engine_interfaces::ActionIDMap<OperatorID>* aid,
+        engine_interfaces::TransitionGenerator<OperatorID>* transition_gen)
         : cache_(transition_gen->caching_)
         , gen_(transition_gen)
         , fallback_(nullptr)
     {
         if (!cache_) {
             fallback_.reset(
-                new DefaultQuotientSystem<Action>(aid, transition_gen));
+                new DefaultQuotientSystem<OperatorID>(aid, transition_gen));
         } else {
             state_infos_.push_back(QuotientInformation(0));
         }
@@ -126,7 +124,7 @@ public:
     QAction get_action(const StateID& sid, const ActionID& aid) const;
     ActionID get_action_id(const StateID& sid, const QAction& a) const;
 
-    Action get_original_action(const StateID&, const QAction& a) const;
+    OperatorID get_original_action(const StateID&, const QAction& a) const;
     ActionID
     get_original_action_id(const StateID& sid, const ActionID& a) const;
 
@@ -154,7 +152,7 @@ public:
             begin,
             end,
             rid,
-            utils::infinite_iterator<std::vector<Action>>());
+            utils::infinite_iterator<std::vector<OperatorID>>());
     }
 
     template <typename StateIDIterator, typename ActionFilterIterator>
@@ -232,6 +230,9 @@ public:
         utils::sort_unique(parents);
         parents.shrink_to_fit();
 
+        const ProbabilisticOperatorsProxy operators =
+            gen_->task_proxy.get_operators();
+
         for (const StateID& parent : parents) {
             assert(parent != rid);
             assert(state_infos_[parent].states[0] == parent);
@@ -240,12 +241,12 @@ public:
 
             for (const StateID& parent_state : parent_states) {
                 auto& entry = gen_->lookup(parent_state);
-                const ActionID* aop = entry.aops;
-                const ActionID* aop_end = entry.aops + entry.naops;
+                const OperatorID* aop = entry.aops;
+                const OperatorID* aop_end = entry.aops + entry.naops;
                 StateID* succ = entry.succs;
 
                 for (; aop != aop_end; ++aop) {
-                    auto succ_e = succ + gen_->first_op_[*aop].num_outcomes();
+                    auto succ_e = succ + operators[*aop].get_outcomes().size();
                     for (; succ != succ_e; ++succ) {
                         if (utils::contains(states_set, *succ)) {
                             *succ = rid;
@@ -288,28 +289,31 @@ private:
     };
 
     void update_cache(
-        const std::vector<Action>& exclude,
-        engine_interfaces::TransitionGenerator<Action>::CacheEntry& entry,
+        const std::vector<OperatorID>& exclude,
+        engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry& entry,
         const StateID rid,
         const std::unordered_set<StateID>& quotient_states)
     {
         unsigned new_size = 0;
-        ActionID* aops_src = entry.aops;
-        ActionID* aops_dest = entry.aops;
+        OperatorID* aops_src = entry.aops;
+        OperatorID* aops_dest = entry.aops;
         StateID* succ_src = entry.succs;
         StateID* succ_dest = entry.succs;
 
         auto aops_src_end = aops_src + entry.naops;
         for (; aops_src != aops_src_end; ++aops_src) {
-            const ProbabilisticOperator* op = gen_->first_op_ + *aops_src;
-            if (utils::contains(exclude, op)) {
+            OperatorID op_id = *aops_src;
+            if (utils::contains(exclude, op_id)) {
                 continue;
             }
 
             bool self_loop = true;
             StateID* k = succ_dest;
 
-            auto succ_src_end = succ_src + op->num_outcomes();
+            const ProbabilisticOperatorProxy op =
+                gen_->task_proxy.get_operators()[op_id];
+
+            auto succ_src_end = succ_src + op.get_outcomes().size();
             for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {
                 const bool member = utils::contains(quotient_states, *succ_src);
                 *succ_dest = member ? rid : *succ_src;
@@ -329,17 +333,17 @@ private:
 #endif
 
     const QuotientInformation* get_infos(const StateID& sid) const;
-    engine_interfaces::TransitionGenerator<Action>::CacheEntry&
+    engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
     lookup(const StateID& sid);
-    const engine_interfaces::TransitionGenerator<Action>::CacheEntry&
+    const engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
     lookup(const StateID& sid) const;
 
     const bool cache_;
 
     segmented_vector::SegmentedVector<QuotientInformation> state_infos_;
-    engine_interfaces::TransitionGenerator<Action>* gen_;
+    engine_interfaces::TransitionGenerator<OperatorID>* gen_;
 
-    std::unique_ptr<DefaultQuotientSystem<Action>> fallback_;
+    std::unique_ptr<DefaultQuotientSystem<OperatorID>> fallback_;
 };
 
 } // namespace quotient_system

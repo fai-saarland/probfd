@@ -3,7 +3,7 @@
 
 #include "probfd/engine_interfaces/state_id_map.h"
 
-#include "global_state.h"
+#include "../task_proxy.h"
 
 class StateRegistry;
 
@@ -11,11 +11,11 @@ namespace probfd {
 namespace engine_interfaces {
 
 template <>
-class StateIDMap<GlobalState> {
+class StateIDMap<State> {
 public:
     explicit StateIDMap(StateRegistry* reg);
-    StateID get_state_id(const GlobalState& state);
-    GlobalState get_state(const StateID& state_id);
+    StateID get_state_id(const State& state);
+    State get_state(const StateID& state_id);
 
 private:
     StateRegistry* reg_;

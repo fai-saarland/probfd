@@ -4,7 +4,6 @@
 
 #include "probfd/engines/exhaustive_dfs.h"
 
-#include "probfd/globals.h"
 #include "probfd/heuristic_search_interfaceable.h"
 #include "probfd/new_state_handler.h"
 #include "probfd/progress_report.h"
@@ -19,17 +18,15 @@ namespace solvers {
 
 using namespace engine_interfaces;
 
+using namespace engines::exhaustive_dfs;
+
 class ExhaustiveDFSSolver : public MDPSolver {
 public:
-    using Engine = engines::exhaustive_dfs::ExhaustiveDepthFirstSearch<
-        GlobalState,
-        const ProbabilisticOperator*,
-        std::false_type>;
+    using Engine =
+        ExhaustiveDepthFirstSearch<State, OperatorID, std::false_type>;
 
-    using Engine2 = engines::exhaustive_dfs::ExhaustiveDepthFirstSearch<
-        GlobalState,
-        const ProbabilisticOperator*,
-        std::true_type>;
+    using Engine2 =
+        ExhaustiveDepthFirstSearch<State, OperatorID, std::true_type>;
 
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
@@ -51,8 +48,8 @@ public:
               opts.get<bool>("interval_comparison"))
         , reevaluate_(opts.get<bool>("reevaluate"))
         , notify_s0_(opts.get<bool>("initial_state_notification"))
-        , path_updates_(engines::exhaustive_dfs::BacktrackingUpdateType(
-              opts.get_enum("reverse_path_updates")))
+        , path_updates_(BacktrackingUpdateType(
+              opts.get<BacktrackingUpdateType>("reverse_path_updates")))
         , only_propagate_when_changed_(
               opts.get<bool>("only_propagate_when_changed"))
     {
@@ -88,7 +85,7 @@ public:
              "cheap",
              "updates_along_trace",
              "updates_along_stack"});
-        parser.add_enum_option(
+        parser.add_enum_option<BacktrackingUpdateType>(
             "reverse_path_updates",
             t,
             "",
@@ -102,7 +99,7 @@ public:
         return "exhaustive_dfs";
     }
 
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
@@ -144,7 +141,7 @@ private:
     const bool interval_comparison_;
     const bool reevaluate_;
     const bool notify_s0_;
-    const engines::exhaustive_dfs::BacktrackingUpdateType path_updates_;
+    const BacktrackingUpdateType path_updates_;
     const bool only_propagate_when_changed_;
 };
 

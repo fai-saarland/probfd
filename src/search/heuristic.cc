@@ -1,9 +1,13 @@
 #include "heuristic.h"
 
-#include "global_operator.h"
+#include "evaluation_context.h"
+#include "evaluation_result.h"
 #include "option_parser.h"
-#include "operator_cost.h"
 #include "plugin.h"
+
+#include "task_utils/task_properties.h"
+#include "tasks/cost_adapted_task.h"
+#include "tasks/root_task.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -11,173 +15,99 @@
 
 using namespace std;
 
-Heuristic::Heuristic(const options::Options &opts)
-    : cost_type(OperatorCost(opts.get_enum("cost_type"))) {
-    heuristic = NOT_INITIALIZED;
+Heuristic::Heuristic(const Options &opts)
+    : Evaluator(opts, true, true, true),
+      heuristic_cache(HEntry(NO_VALUE, true)), //TODO: is true really a good idea here?
+      cache_evaluator_values(opts.get<bool>("cache_estimates")),
+      task(opts.get<shared_ptr<AbstractTask>>("transform")),
+      task_proxy(*task) {
 }
 
 Heuristic::~Heuristic() {
 }
 
-void Heuristic::ensure_initialized() {
-    if (heuristic == NOT_INITIALIZED) {
-        initialize();
-        heuristic = 0;
-    }
+void Heuristic::set_preferred(const OperatorProxy& op)
+{
+    preferred_operators.insert(op.get_ancestor_operator_id(tasks::g_root_task.get()));
 }
 
-void Heuristic::set_preferred(const GlobalOperator *op) {
-    if (!op->is_marked()) {
-        op->mark();
-        preferred_operators.push_back(op);
-    }
+State Heuristic::convert_ancestor_state(const State &ancestor_state) const {
+    return task_proxy.convert_ancestor_state(ancestor_state);
 }
 
-void Heuristic::evaluate(const GlobalState &state) {
-    if (heuristic == NOT_INITIALIZED)
-        initialize();
-    preferred_operators.clear();
-    heuristic = compute_heuristic(state);
-    for (size_t i = 0; i < preferred_operators.size(); ++i)
-        preferred_operators[i]->unmark();
+void Heuristic::add_options_to_parser(OptionParser &parser) {
+    add_evaluator_options_to_parser(parser);
+    parser.add_option<shared_ptr<AbstractTask>>(
+        "transform",
+        "Optional task transformation for the heuristic."
+        " Currently, adapt_costs() and no_transform() are available.",
+        "no_transform()");
+    parser.add_option<bool>("cache_estimates", "cache heuristic estimates", "true");
+}
+
+EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
+    EvaluationResult result;
+
+    assert(preferred_operators.empty());
+
+    const State &state = eval_context.get_state();
+    bool calculate_preferred = eval_context.get_calculate_preferred();
+
+    int heuristic = NO_VALUE;
+
+    if (!calculate_preferred && cache_evaluator_values &&
+        heuristic_cache[state].h != NO_VALUE && !heuristic_cache[state].dirty) {
+        heuristic = heuristic_cache[state].h;
+        result.set_count_evaluation(false);
+    } else {
+        heuristic = compute_heuristic(state);
+        if (cache_evaluator_values) {
+            heuristic_cache[state] = HEntry(heuristic, false);
+        }
+        result.set_count_evaluation(true);
+    }
+
     assert(heuristic == DEAD_END || heuristic >= 0);
 
     if (heuristic == DEAD_END) {
-        // It is ok to have preferred operators in dead-end states.
-        // This allows a heuristic to mark preferred operators on-the-fly,
-        // selecting the first ones before it is clear that all goals
-        // can be reached.
+        /*
+          It is permissible to mark preferred operators for dead-end
+          states (thus allowing a heuristic to mark them on-the-fly
+          before knowing the final result), but if it turns out we
+          have a dead end, we don't want to actually report any
+          preferred operators.
+        */
         preferred_operators.clear();
+        heuristic = EvaluationResult::INFTY;
     }
 
 #ifndef NDEBUG
-    if (heuristic != DEAD_END) {
-        for (size_t i = 0; i < preferred_operators.size(); ++i)
-            assert(preferred_operators[i]->is_applicable(state));
-    }
+    TaskBaseProxy global_task_proxy = state.get_task();
+    OperatorsLightProxy global_operators =
+        global_task_proxy.get_light_operators();
+    if (heuristic != EvaluationResult::INFTY) {
+        for (OperatorID op_id : preferred_operators)
+            assert(
+                task_properties::is_applicable(global_operators[op_id], state));
+        }
 #endif
-    evaluator_value = heuristic;
+
+        result.set_evaluator_value(heuristic);
+        result.set_preferred_operators(preferred_operators.pop_as_vector());
+        assert(preferred_operators.empty());
+
+        return result;
 }
 
-bool Heuristic::is_dead_end() const {
-    return evaluator_value == DEAD_END;
+bool Heuristic::does_cache_estimates() const {
+    return cache_evaluator_values;
 }
 
-int Heuristic::get_heuristic() {
-    // The -1 value for dead ends is an implementation detail which is
-    // not supposed to leak. Thus, calling this for dead ends is an
-    // error. Call "is_dead_end()" first.
-
-    /*
-      TODO: I've commented the assertion out for now because there is
-      currently code that calls get_heuristic for dead ends. For
-      example, if we use alternation with h^FF and h^cea and have an
-      instance where the initial state has infinite h^cea value, we
-      should expand this state since h^cea is unreliable. The search
-      progress class will then want to print the h^cea value of the
-      initial state since this is the "best know h^cea state" so far.
-
-      However, we should clean up the code again so that the assertion
-      is valid or rethink the interface so that we don't need it.
-     */
-
-    // assert(heuristic >= 0);
-    if (heuristic == DEAD_END)
-        return numeric_limits<int>::max();
-    return heuristic;
+bool Heuristic::is_estimate_cached(const State &state) const {
+    return heuristic_cache[state].h != NO_VALUE;
 }
 
-void Heuristic::get_preferred_operators(std::vector<const GlobalOperator *> &result) {
-    assert(heuristic >= 0);
-    result.insert(result.end(),
-                  preferred_operators.begin(),
-                  preferred_operators.end());
+int Heuristic::get_cached_estimate(const State &state) const {
+    assert(is_estimate_cached(state));
+    return heuristic_cache[state].h;
 }
-
-bool Heuristic::reach_state(const GlobalState & /*parent_state*/,
-                            const GlobalOperator & /*op*/, const GlobalState & /*state*/) {
-    return false;
-}
-
-int Heuristic::get_value() const {
-    return evaluator_value;
-}
-
-void Heuristic::evaluate(int, bool) {
-    return;
-    // if this is called, evaluate(const GlobalState &state) or set_evaluator_value(int val)
-    // should already have been called
-}
-
-bool Heuristic::dead_end_is_reliable() const {
-    return dead_ends_are_reliable();
-}
-
-void Heuristic::set_evaluator_value(int val) {
-    evaluator_value = val;
-}
-
-int Heuristic::get_adjusted_cost(const GlobalOperator &op) const {
-    return get_adjusted_action_cost(op, cost_type);
-}
-
-void Heuristic::add_options_to_parser(options::OptionParser &parser) {
-    ::add_cost_type_option_to_parser(parser);
-}
-
-bool
-Heuristic::supports_partial_state_evaluation() const
-{
-    return false;
-}
-
-int
-Heuristic::compute_heuristic(const PartialState& )
-{
-    return 0;
-}
-
-void
-Heuristic::evaluate(const PartialState& partial_state)
-{
-    assert(supports_partial_state_evaluation());
-    if (heuristic == NOT_INITIALIZED)
-        initialize();
-    preferred_operators.clear();
-    heuristic = compute_heuristic(partial_state);
-    for (size_t i = 0; i < preferred_operators.size(); ++i)
-        preferred_operators[i]->unmark();
-    assert(heuristic == DEAD_END || heuristic >= 0);
-    if (heuristic == DEAD_END) {
-        // It is ok to have preferred operators in dead-end states.
-        // This allows a heuristic to mark preferred operators on-the-fly,
-        // selecting the first ones before it is clear that all goals
-        // can be reached.
-        preferred_operators.clear();
-    }
-    evaluator_value = heuristic;
-}
-
-//this solution to get default values seems not optimal:
-options::Options Heuristic::default_options() {
-    options::Options opts = options::Options();
-    opts.set<int>("cost_type", 0);
-    return opts;
-}
-
-static PluginTypePlugin<Heuristic> _type_plugin(
-    "Heuristic",
-    "An evaluator specification is either a newly created evaluator "
-    "instance or an evaluator that has been defined previously. "
-    "This page describes how one can specify a new evaluator instance. "
-    "For re-using evaluators, see options::OptionSyntax#Evaluator_Predefinitions.\n\n"
-    "If the evaluator is a heuristic, "
-    "definitions of //properties// in the descriptions below:\n\n"
-    " * **admissible:** h(s) <= h*(s) for all states s\n"
-    " * **consistent:** h(s) <= c(s, s') + h(s') for all states s "
-    "connected to states s' by an action with cost c(s, s')\n"
-    " * **safe:** h(s) = infinity is only true for states "
-    "with h*(s) = infinity\n"
-    " * **preferred operators:** this heuristic identifies ",
-    "heuristic");
-

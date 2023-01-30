@@ -21,7 +21,7 @@ protected:
     virtual int pick(
         const StateID& state,
         const ActionID& prev_policy,
-        const std::vector<const ProbabilisticOperator*>& action_choices,
+        const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors) override;
 };
 

@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINE_INTERACES_POLICY_PICKER_H
-#define MDPS_ENGINE_INTERACES_POLICY_PICKER_H
+#ifndef MDPS_ENGINE_INTERFACES_POLICY_PICKER_H
+#define MDPS_ENGINE_INTERFACES_POLICY_PICKER_H
 
 #include "probfd/distribution.h"
 #include "probfd/types.h"

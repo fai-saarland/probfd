@@ -36,7 +36,7 @@ public:
         return "aostar";
     }
 
-    virtual engines::MDPEngineInterface<GlobalState>* create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         return this->template heuristic_search_engine_factory<
             engines::ao_star::AOStar>(successor_sampler_.get());

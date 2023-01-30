@@ -2,9 +2,16 @@
 
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/abstract_solution_data.h"
 #include "probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/pattern_selection/cegar/flaw_finding_strategy_factory.h"
+
+#include "probfd/heuristics/pdbs/subcollections/subcollection_finder_factory.h"
 
 #include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/maxprob_projection.h"
+
+#include "probfd/tasks/root_task.h"
+
+#include "probfd/task_proxy.h"
 
 #include "utils/collections.h"
 #include "utils/countdown_timer.h"
@@ -18,7 +25,8 @@
 
 #include "option_parser.h"
 #include "plugin.h"
-#include "successor_generator.h"
+
+#include "task_utils/successor_generator.h"
 
 #include <stack>
 
@@ -37,8 +45,8 @@ static const std::string token = "CEGAR_PDBs: ";
 template <typename PDBType>
 PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
-    std::shared_ptr<SubCollectionFinder> subcollection_finder,
-    std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy,
+    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory,
+    std::shared_ptr<FlawFindingStrategyFactory<PDBType>> flaw_strategy_factory,
     bool wildcard,
     int arg_max_refinements,
     int arg_max_pdb_size,
@@ -52,8 +60,8 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     Verbosity verbosity,
     double arg_max_time)
     : rng(arg_rng)
-    , subcollection_finder(subcollection_finder)
-    , flaw_strategy(flaw_strategy)
+    , subcollection_finder_factory(subcollection_finder_factory)
+    , flaw_strategy_factory(flaw_strategy_factory)
     , wildcard(wildcard)
     , max_refinements(arg_max_refinements)
     , max_pdb_size(arg_max_pdb_size)
@@ -84,7 +92,9 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     if (verbosity >= Verbosity::NORMAL) {
         cout << token << "options: " << endl;
 
-        cout << token << "flaw strategy: " << flaw_strategy->get_name() << endl;
+        cout << token
+             << "flaw strategy factory: " << flaw_strategy_factory->get_name()
+             << endl;
 
         cout << token << "max refinements: " << max_refinements << endl;
         cout << token << "max pdb size: " << max_pdb_size << endl;
@@ -134,10 +144,10 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     const options::Options& opts)
     : PatternCollectionGeneratorCegar(
           utils::parse_rng_from_options(opts),
-          opts.get<std::shared_ptr<SubCollectionFinder>>(
-              "subcollection_finder"),
-          opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
-              "flaw_strategy"),
+          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+                  "subcollection_finder_factory"),
+          opts.get<std::shared_ptr<FlawFindingStrategyFactory<PDBType>>>(
+              "flaw_strategy_factory"),
           opts.get<bool>("wildcard"),
           opts.get<int>("max_refinements"),
           opts.get<int>("max_pdb_size"),
@@ -146,9 +156,9 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
           opts.get<bool>("treat_goal_violations_differently"),
           opts.get<bool>("local_blacklisting"),
           opts.get<int>("global_blacklist_size"),
-          static_cast<InitialCollectionType>(opts.get_enum("initial")),
+          opts.get<InitialCollectionType>("initial"),
           opts.get<int>("given_goal"),
-          static_cast<Verbosity>(opts.get_enum("verbosity")),
+          opts.get<Verbosity>("verbosity"),
           opts.get<double>("max_time"))
 {
 }
@@ -173,7 +183,8 @@ void PatternCollectionGeneratorCegar<PDBType>::print_collection() const
 
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<
-    PDBType>::generate_trivial_solution_collection()
+    PDBType>::generate_trivial_solution_collection(const ProbabilisticTaskProxy&
+                                                       task_proxy)
 {
     assert(!remaining_goals.empty());
 
@@ -181,20 +192,20 @@ void PatternCollectionGeneratorCegar<
     case InitialCollectionType::GIVEN_GOAL: {
         assert(given_goal != -1);
         update_goals(given_goal);
-        add_pattern_for_var(given_goal);
+        add_pattern_for_var(task_proxy, given_goal);
         break;
     }
     case InitialCollectionType::RANDOM_GOAL: {
         int var = remaining_goals.back();
         remaining_goals.pop_back();
-        add_pattern_for_var(var);
+        add_pattern_for_var(task_proxy, var);
         break;
     }
     case InitialCollectionType::ALL_GOALS: {
         while (!remaining_goals.empty()) {
             int var = remaining_goals.back();
             remaining_goals.pop_back();
-            add_pattern_for_var(var);
+            add_pattern_for_var(task_proxy, var);
         }
 
         break;
@@ -249,11 +260,12 @@ bool PatternCollectionGeneratorCegar<PDBType>::termination_conditions_met(
 
 template <typename PDBType>
 FlawList PatternCollectionGeneratorCegar<PDBType>::apply_policy(
+    FlawFindingStrategy<PDBType>& flaw_strategy,
     int solution_index,
-    const ExplicitGState& init)
+    std::vector<int>& state)
 {
     auto [flaws, executable] =
-        flaw_strategy->apply_policy(*this, solution_index, init);
+        flaw_strategy.apply_policy(*this, solution_index, state);
 
     auto& solution = *solutions[solution_index];
 
@@ -281,10 +293,12 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::apply_policy(
 }
 
 template <typename PDBType>
-FlawList PatternCollectionGeneratorCegar<PDBType>::get_flaws()
+void PatternCollectionGeneratorCegar<PDBType>::get_flaws(
+    FlawFindingStrategy<PDBType>& flaw_strategy,
+    const State& initial_state,
+    FlawList& flaws)
 {
-    FlawList flaws;
-    ExplicitGState concrete_init(g_initial_state_data);
+    std::vector<int> concrete_init = initial_state.get_unpacked_values();
 
     const int num_solutions = static_cast<int>(solutions.size());
     for (int sol_idx = 0; sol_idx < num_solutions; ++sol_idx) {
@@ -293,8 +307,6 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::get_flaws()
         if (!sol || sol->is_solved()) {
             continue;
         }
-
-        // AbstractSolutionData<PDBType>& solution = *solutions[sol_idx];
 
         // abort here if no abstract solution could be found
         if (!sol->solution_exists()) {
@@ -305,21 +317,20 @@ FlawList PatternCollectionGeneratorCegar<PDBType>::get_flaws()
         // find out if and why the abstract solution
         // would not work for the concrete task.
         // We always start with the initial state.
-        FlawList new_flaws = apply_policy(sol_idx, concrete_init);
+        FlawList new_flaws =
+            apply_policy(flaw_strategy, sol_idx, concrete_init);
 
         if (concrete_solution_index != -1) {
             assert(new_flaws.empty());
             assert(sol_idx == concrete_solution_index);
             flaws.clear();
-            return flaws;
+            return;
         }
 
         for (Flaw& flaw : new_flaws) {
             flaws.push_back(move(flaw));
         }
     }
-
-    return flaws;
 }
 
 template <typename PDBType>
@@ -339,24 +350,33 @@ void PatternCollectionGeneratorCegar<PDBType>::update_goals(int added_var)
 
 template <typename PDBType>
 bool PatternCollectionGeneratorCegar<PDBType>::can_add_singleton_pattern(
+    const VariablesProxy& variables,
     int var) const
 {
-    int pdb_size = g_variable_domain[var];
+    int pdb_size = variables[var].get_domain_size();
     return pdb_size <= max_pdb_size &&
            collection_size <= max_collection_size - pdb_size;
 }
 
 template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::add_pattern_for_var(int var)
+void PatternCollectionGeneratorCegar<PDBType>::add_pattern_for_var(
+    const ProbabilisticTaskProxy& task_proxy,
+    int var)
 {
-    auto& sol = solutions.emplace_back(
-        new AbstractSolutionData<PDBType>(rng, {var}, {}, wildcard));
+    auto& sol = solutions.emplace_back(new AbstractSolutionData<PDBType>(
+        task_proxy,
+        rng,
+        {var},
+        {},
+        wildcard));
     solution_lookup[var] = solutions.size() - 1;
     collection_size += sol->get_pdb().num_states();
 }
 
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::handle_goal_violation(
+    const ProbabilisticTaskProxy& task_proxy,
+    const VariablesProxy& variables,
     const Flaw& flaw)
 {
     int var = flaw.variable;
@@ -368,9 +388,9 @@ void PatternCollectionGeneratorCegar<PDBType>::handle_goal_violation(
 
     // check for the edge case where the single-variable pattern
     // causes the collection to grow larger than the allowed limit
-    if (can_add_singleton_pattern(var)) {
+    if (can_add_singleton_pattern(variables, var)) {
         update_goals(var);
-        add_pattern_for_var(var);
+        add_pattern_for_var(task_proxy, var);
     } else {
         if (verbosity >= Verbosity::VERBOSE) {
             cout << token
@@ -402,6 +422,7 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_merge_patterns(
 
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
+    const ProbabilisticTaskProxy& task_proxy,
     int index1,
     int index2)
 {
@@ -429,12 +450,8 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
 
     // compute merge solution
     unique_ptr<AbstractSolutionData<PDBType>> merged(
-        new AbstractSolutionData<PDBType>(
-            rng,
-            pdb1,
-            pdb2,
-            new_blacklist,
-            wildcard));
+        new AbstractSolutionData<
+            PDBType>(task_proxy, rng, pdb1, pdb2, new_blacklist, wildcard));
 
     // update collection size
     collection_size -= pdb_size1;
@@ -448,11 +465,12 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
 
 template <typename PDBType>
 bool PatternCollectionGeneratorCegar<PDBType>::can_add_variable_to_pattern(
+    const VariablesProxy& variables,
     int index,
     int var) const
 {
     int pdb_size = solutions[index]->get_pdb().num_states();
-    int domain_size = g_variable_domain[var];
+    int domain_size = variables[var].get_domain_size();
 
     if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size)) {
         return false;
@@ -464,14 +482,16 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_variable_to_pattern(
 
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
+    const ProbabilisticTaskProxy& task_proxy,
     int index,
     int var)
 {
     AbstractSolutionData<PDBType>& solution = *solutions[index];
 
     // compute new solution
-    unique_ptr<AbstractSolutionData<PDBType>> new_solution(
+    std::unique_ptr<AbstractSolutionData<PDBType>> new_solution(
         new AbstractSolutionData<PDBType>(
+            task_proxy,
             rng,
             solution.get_pdb(),
             var,
@@ -490,6 +510,8 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
 
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::handle_precondition_violation(
+    const ProbabilisticTaskProxy& task_proxy,
+    const VariablesProxy& variables,
     const Flaw& flaw)
 {
     int sol_index = flaw.solution_index;
@@ -514,7 +536,7 @@ void PatternCollectionGeneratorCegar<PDBType>::handle_precondition_violation(
                 cout << token << "merge the two patterns" << endl;
             }
 
-            merge_patterns(sol_index, other_index);
+            merge_patterns(task_proxy, sol_index, other_index);
             added_var = true;
         }
     } else {
@@ -527,12 +549,12 @@ void PatternCollectionGeneratorCegar<PDBType>::handle_precondition_violation(
                  << endl;
         }
 
-        if (can_add_variable_to_pattern(sol_index, var)) {
+        if (can_add_variable_to_pattern(variables, sol_index, var)) {
             if (verbosity >= Verbosity::VERBOSE) {
                 cout << token << "add it to the pattern" << endl;
             }
 
-            add_variable_to_pattern(sol_index, var);
+            add_variable_to_pattern(task_proxy, sol_index, var);
             added_var = true;
         }
     }
@@ -561,12 +583,15 @@ void PatternCollectionGeneratorCegar<PDBType>::handle_precondition_violation(
 }
 
 template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::refine(const FlawList& flaws)
+void PatternCollectionGeneratorCegar<PDBType>::refine(
+    const ProbabilisticTaskProxy& task_proxy,
+    const VariablesProxy& variables,
+    const FlawList& flaws)
 {
     assert(!flaws.empty());
 
     // pick a random flaw
-    int random_flaw_index = (*rng)(flaws.size());
+    int random_flaw_index = rng->random(flaws.size());
     const Flaw& flaw = flaws[random_flaw_index];
 
     if (verbosity >= Verbosity::VERBOSE) {
@@ -579,32 +604,40 @@ void PatternCollectionGeneratorCegar<PDBType>::refine(const FlawList& flaws)
             cout << " with a goal violation on " << flaw.variable << endl;
         }
 
-        handle_goal_violation(flaw);
+        handle_goal_violation(task_proxy, variables, flaw);
     } else {
         if (verbosity >= Verbosity::VERBOSE) {
             cout << " with a violated precondition on " << flaw.variable
                  << endl;
         }
 
-        handle_precondition_violation(flaw);
+        handle_precondition_violation(task_proxy, variables, flaw);
     }
 }
 
 template <typename PDBType>
 PatternCollectionInformation<PDBType>
-PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
+PatternCollectionGeneratorCegar<PDBType>::generate(
+    const std::shared_ptr<ProbabilisticTask>& task)
 {
     utils::CountdownTimer timer(max_time);
 
-    if (given_goal != -1 &&
-        given_goal >= static_cast<int>(g_variable_domain.size())) {
+    std::unique_ptr<FlawFindingStrategy<PDBType>> flaw_strategy =
+        flaw_strategy_factory->create_flaw_finder(task.get());
+
+    const ProbabilisticTaskProxy task_proxy(*task);
+    const VariablesProxy variables = task_proxy.get_variables();
+    const GoalsProxy goals = task_proxy.get_goals();
+
+    if (given_goal != -1 && given_goal >= static_cast<int>(goals.size())) {
         cerr << "Goal variable out of range of task's variables" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 
     // save all goals in random order for refinement later
     bool found_given_goal = false;
-    for (auto& [goal_var, _] : g_goal) {
+    for (FactProxy fact : goals) {
+        const int goal_var = fact.get_variable().get_id();
         remaining_goals.push_back(goal_var);
         if (given_goal != -1 && goal_var == given_goal) {
             found_given_goal = true;
@@ -619,7 +652,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
     rng->shuffle(remaining_goals);
 
     if (global_blacklist_size) {
-        int num_vars = g_variable_domain.size();
+        const int num_vars = variables.size();
         vector<int> nongoals;
         nongoals.reserve(num_vars - remaining_goals.size());
         for (int var_id = 0; var_id < num_vars; ++var_id) {
@@ -646,7 +679,10 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
     }
 
     // Start with a solution of the trivial abstraction
-    generate_trivial_solution_collection();
+    generate_trivial_solution_collection(task_proxy);
+
+    State initial_state = task_proxy.get_initial_state();
+    initial_state.unpack();
 
     // main loop of the algorithm
     int refinement_counter = 0;
@@ -656,7 +692,8 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
         }
 
         // vector of solution indices and flaws associated with said solutions
-        FlawList flaws = get_flaws();
+        FlawList flaws;
+        get_flaws(*flaw_strategy, initial_state, flaws);
 
         if (flaws.empty()) {
             if (concrete_solution_index != -1) {
@@ -669,10 +706,6 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
                     cout << token
                          << "Task solved during computation of abstract"
                          << "policies." << endl;
-                    // sol->print_plan(cout);
-                    // cout << token
-                    //     << "length of plan: " << sol->get_plan().size()
-                    //     << " step(s)." << endl;
                     cout << token
                          << "Cost of policy: " << sol->get_policy_cost()
                          << endl;
@@ -693,7 +726,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
 
         // if there was a flaw, then refine the abstraction
         // such that said flaw does not occur again
-        refine(flaws);
+        refine(task_proxy, variables, flaws);
 
         ++refinement_counter;
 
@@ -744,7 +777,11 @@ PatternCollectionGeneratorCegar<PDBType>::generate(OperatorCost)
              << endl;
     }
 
+    std::shared_ptr<SubCollectionFinder> subcollection_finder =
+        subcollection_finder_factory->create_subcollection_finder(task_proxy);
+
     PatternCollectionInformation<PDBType> pattern_collection_information(
+        task_proxy,
         patterns,
         subcollection_finder);
     pattern_collection_information.set_pdbs(pdbs);
@@ -758,9 +795,10 @@ template <>
 void add_flaw_finder_options_to_parser<ExpCostProjection>(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<FlawFindingStrategy<ExpCostProjection>>>(
-        "flaw_strategy",
-        "strategy used to find flaws in a policy",
+    parser.add_option<
+        std::shared_ptr<FlawFindingStrategyFactory<ExpCostProjection>>>(
+        "flaw_strategy_factory",
+        "strategy factory creating the strategy used to find flaws in a policy",
         "pucs_flaw_finder_ec()");
 }
 
@@ -768,9 +806,10 @@ template <>
 void add_flaw_finder_options_to_parser<MaxProbProjection>(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<FlawFindingStrategy<MaxProbProjection>>>(
-        "flaw_strategy",
-        "strategy used to find flaws in a policy",
+    parser.add_option<
+        std::shared_ptr<FlawFindingStrategyFactory<MaxProbProjection>>>(
+        "flaw_strategy_factory",
+        "strategy factory creating the strategy used to find flaws in a policy",
         "pucs_flaw_finder_mp()");
 }
 
@@ -778,7 +817,7 @@ template <typename PDBType>
 void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser& parser)
 {
-    utils::add_verbosity_option_to_parser(parser);
+    utils::add_log_options_to_parser(parser);
 
     parser.add_option<bool>(
         "wildcard",
@@ -822,7 +861,7 @@ void add_pattern_collection_generator_cegar_options_to_parser(
     initial_collection_options.emplace_back("GIVEN_GOAL");
     initial_collection_options.emplace_back("RANDOM_GOAL");
     initial_collection_options.emplace_back("ALL_GOALS");
-    parser.add_enum_option(
+    parser.add_enum_option<InitialCollectionType>(
         "initial",
         initial_collection_options,
         "initial collection for refinement",
@@ -845,10 +884,10 @@ void add_pattern_collection_generator_cegar_options_to_parser(
         "thus added to the pattern in question or merging two patterns if "
         "already in the collection.",
         "true");
-    parser.add_option<std::shared_ptr<SubCollectionFinder>>(
-        "subcollection_finder",
-        "The subcollection finder.",
-        "finder_max_orthogonality()");
+    parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+        "subcollection_finder_factory",
+        "The subcollection finder factory.",
+        "finder_max_orthogonality_factory()");
 
     add_flaw_finder_options_to_parser<PDBType>(parser);
 }

@@ -1,69 +1,86 @@
 #ifndef LANDMARKS_LANDMARK_FACTORY_H
 #define LANDMARKS_LANDMARK_FACTORY_H
 
-#include "landmarks/exploration.h"
 #include "landmarks/landmark_graph.h"
 
+#include "utils/logging.h"
+
+#include <list>
+#include <map>
+#include <memory>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
-#include <map>
-#include <set>
 #include <vector>
 
+class TaskProxy;
+
+namespace options {
+class OptionParser;
+class Options;
+}
+
+namespace landmarks {
+/*
+  TODO: Change order to private -> protected -> public
+   (omitted so far to minimize diff)
+*/
 class LandmarkFactory {
 public:
-    LandmarkFactory(const options::Options &opts);
-    virtual ~LandmarkFactory() {}
-    // compute_lm_graph *must* be called to avoid memory leeks!
-    // returns a landmarkgraph created by a factory class.
-    // take care to delete the pointer when you don't need it anymore!
-    // (method should principally anyways be called by every inheriting class)
-    LandmarkGraph *compute_lm_graph();
-protected:
-    LandmarkGraph *lm_graph;
-    virtual void generate_landmarks() = 0;
-    void generate();
-    void discard_noncausal_landmarks();
-    void discard_disjunctive_landmarks();
-    void discard_conjunctive_landmarks();
-    void discard_all_orderings();
-    inline bool relaxed_task_solvable(bool level_out,
-                                      const LandmarkNode *exclude,
-                                      bool compute_lvl_op = false) const {
-        std::vector<std::vector<int> > lvl_var;
-        std::vector<std::unordered_map<std::pair<int, int>, int, hash_int_pair> > lvl_op;
-        return relaxed_task_solvable(lvl_var, lvl_op, level_out, exclude, compute_lvl_op);
-    }
-    void edge_add(LandmarkNode &from, LandmarkNode &to, edge_type type);
-    void compute_predecessor_information(LandmarkNode *bp,
-                                         std::vector<std::vector<int> > &lvl_var,
-                                         std::vector<std::unordered_map<std::pair<int, int>, int, hash_int_pair> > &lvl_op);
+    virtual ~LandmarkFactory() = default;
+    LandmarkFactory(const LandmarkFactory &) = delete;
 
-    // protected not private for LandmarkFactoryRpgSearch
-    bool achieves_non_conditional(const GlobalOperator &o, const LandmarkNode *lmp) const;
-    bool is_landmark_precondition(const GlobalOperator &o, const LandmarkNode *lmp) const;
+    std::shared_ptr<LandmarkGraph> compute_lm_graph(const std::shared_ptr<AbstractTask> &task);
+
+    /*
+      TODO: Currently reasonable orders are not supported for admissible landmark count
+      heuristics, which is why the heuristic needs to know whether the factory computes
+      reasonable orders. Once issue383 is dealt with we should be able to use reasonable
+      orders for admissible heuristics and this method can be removed.
+    */
+    virtual bool computes_reasonable_orders() const = 0;
+    virtual bool supports_conditional_effects() const = 0;
+
+    bool achievers_are_calculated() const {
+        return achievers_calculated;
+    }
+
+protected:
+    explicit LandmarkFactory(const options::Options &opts);
+    mutable utils::LogProxy log;
+    std::shared_ptr<LandmarkGraph> lm_graph;
+    bool achievers_calculated = false;
+
+    void edge_add(LandmarkNode &from, LandmarkNode &to, EdgeType type);
+
+    void discard_all_orderings();
+    void mk_acyclic_graph();
+
+    bool is_landmark_precondition(const OperatorProxy &op,
+                                  const Landmark &landmark) const;
+
+    const std::vector<int> &get_operators_including_eff(const FactPair &eff) const {
+        return operators_eff_lookup[eff.var][eff.value];
+    }
 
 private:
-    bool interferes(const LandmarkNode *, const LandmarkNode *) const;
-    bool effect_always_happens(const std::vector<GlobalEffect> &effects,
-                               std::set<std::pair<int, int> > &eff) const;
-    void approximate_reasonable_orders(bool obedient_orders);
-    void mk_acyclic_graph();
+    AbstractTask *lm_graph_task;
+
+    virtual void generate_landmarks(const std::shared_ptr<AbstractTask> &task) = 0;
+
+    std::vector<std::vector<std::vector<int>>> operators_eff_lookup;
+
     int loop_acyclic_graph(LandmarkNode &lmn,
-                           std::unordered_set<LandmarkNode *, hash_pointer> &acyclic_node_set);
-    bool remove_first_weakest_cycle_edge(LandmarkNode *cur,
-                                         std::list<std::pair<LandmarkNode *, edge_type> > &path,
-                                         std::list<std::pair<LandmarkNode *, edge_type> >::iterator it);
-    int calculate_lms_cost() const;
-    void collect_ancestors(std::unordered_set<LandmarkNode *, hash_pointer> &result, LandmarkNode &node,
-                           bool use_reasonable);
-    bool relaxed_task_solvable(std::vector<std::vector<int> > &lvl_var,
-                               std::vector<std::unordered_map<std::pair<int, int>, int, hash_int_pair> > &lvl_op,
-                               bool level_out,
-                               const LandmarkNode *exclude,
-                               bool compute_lvl_op = false) const;
-    bool is_causal_landmark(const LandmarkNode &landmark) const;
-    virtual void calc_achievers(); // keep this virtual because HMLandmarks overrides it!
+                           std::unordered_set<LandmarkNode *> &acyclic_node_set);
+    void remove_first_weakest_cycle_edge(
+        std::list<std::pair<LandmarkNode *, EdgeType>> &path,
+        std::list<std::pair<LandmarkNode *, EdgeType>>::iterator it);
+    void generate_operators_lookups(const TaskProxy &task_proxy);
 };
+
+extern void add_landmark_factory_options_to_parser(options::OptionParser &parser);
+extern void add_use_orders_option_to_parser(options::OptionParser &parser);
+extern void add_only_causal_landmarks_option_to_parser(options::OptionParser &parser);
+}
 
 #endif

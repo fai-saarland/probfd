@@ -7,11 +7,7 @@
 #include "probfd/action_id_map.h"
 #include "probfd/state_id_map.h"
 
-#include "probfd/probabilistic_operator.h"
-
-#include "global_state.h"
-
-class GlobalState;
+#include "../task_proxy.h"
 
 namespace probfd {
 
@@ -21,18 +17,17 @@ public:
 
     void initialize(
         engine_interfaces::HeuristicSearchConnector* connector,
-        engine_interfaces::StateIDMap<GlobalState>* state_id_map,
-        engine_interfaces::ActionIDMap<const ProbabilisticOperator*>*
-            op_id_map);
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<OperatorID>* op_id_map);
 
     virtual void print_statistics(std::ostream&) const {}
 
 protected:
     virtual void initialize() {}
 
-    GlobalState lookup_state(const StateID& state_id) const;
+    State lookup_state(const StateID& state_id) const;
 
-    const ProbabilisticOperator*
+    OperatorID
     lookup_operator(const StateID& state_id, const ActionID& action_id) const;
 
     const engines::heuristic_search::StateFlags*
@@ -64,9 +59,8 @@ protected:
 
 private:
     engine_interfaces::HeuristicSearchConnector* connector_ = nullptr;
-    engine_interfaces::StateIDMap<GlobalState>* state_id_map_ = nullptr;
-    engine_interfaces::ActionIDMap<const ProbabilisticOperator*>* op_id_map_ =
-        nullptr;
+    engine_interfaces::StateIDMap<State>* state_id_map_ = nullptr;
+    engine_interfaces::ActionIDMap<OperatorID>* op_id_map_ = nullptr;
 };
 
 } // namespace probfd

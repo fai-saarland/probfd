@@ -1,17 +1,21 @@
 #include "operator_counting/state_equation_constraints.h"
 
-#include "lp/lp_solver.h"
-#include "utils/markup.h"
-
-#include "global_operator.h"
-#include "global_state.h"
-#include "globals.h"
 #include "option_parser.h"
 #include "plugin.h"
+
+#include "lp/lp_solver.h"
+#include "task_utils/task_properties.h"
+#include "utils/logging.h"
+#include "utils/markup.h"
 
 using namespace std;
 
 namespace operator_counting {
+StateEquationConstraints::StateEquationConstraints(const options::Options& opts)
+    : log(utils::get_log_from_options(opts))
+{
+}
+
 void add_indices_to_constraint(lp::LPConstraint &constraint,
                                const set<int> &indices,
                                double coefficient) {
@@ -20,22 +24,26 @@ void add_indices_to_constraint(lp::LPConstraint &constraint,
     }
 }
 
-void StateEquationConstraints::build_propositions() {
-    propositions.reserve(g_variable_domain.size());
-    for (unsigned var = 0; var < g_variable_domain.size(); var++) {
-        propositions.push_back(vector<Proposition>(g_variable_domain[var]));
+void StateEquationConstraints::build_propositions(const TaskProxy& task_proxy)
+{
+    VariablesProxy vars = task_proxy.get_variables();
+    propositions.reserve(vars.size());
+    for (VariableProxy var : vars) {
+        propositions.push_back(vector<Proposition>(var.get_domain_size()));
     }
-    for (size_t op_id = 0; op_id < g_operators.size(); ++op_id) {
-        const GlobalOperator &op = g_operators[op_id];
-        vector<int> precondition(g_variable_domain.size(), -1);
-        for (const auto& condition : op.get_preconditions()) {
-            int pre_var_id = condition.var;
-            precondition[pre_var_id] = condition.val;
+    OperatorsProxy ops = task_proxy.get_operators();
+    for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
+        const OperatorProxy& op = ops[op_id];
+        vector<int> precondition(vars.size(), -1);
+        for (FactProxy condition : op.get_preconditions()) {
+            int pre_var_id = condition.get_variable().get_id();
+            precondition[pre_var_id] = condition.get_value();
         }
-        for (const auto& effect : op.get_effects()) {
-            int var = effect.var;
+        for (EffectProxy effect_proxy : op.get_effects()) {
+            FactProxy effect = effect_proxy.get_fact();
+            int var = effect.get_variable().get_id();
             int pre = precondition[var];
-            int post = effect.val;
+            int post = effect.get_value();
             assert(post != -1);
             assert(pre != post);
 
@@ -50,7 +58,9 @@ void StateEquationConstraints::build_propositions() {
 }
 
 void StateEquationConstraints::add_constraints(
-    vector<lp::LPConstraint> &constraints, double infinity) {
+    named_vector::NamedVector<lp::LPConstraint>& constraints,
+    double infinity)
+{
     for (vector<Proposition> &var_propositions : propositions) {
         for (Proposition &prop : var_propositions) {
             lp::LPConstraint constraint(-infinity, infinity);
@@ -66,23 +76,30 @@ void StateEquationConstraints::add_constraints(
 }
 
 void StateEquationConstraints::initialize_constraints(
-    OperatorCost , vector<lp::LPConstraint> &constraints,
-    double infinity) {
-    cout << "Initializing constraints from state equation." << endl;
-    ::verify_no_axioms();
-    ::verify_no_conditional_effects();
-    build_propositions();
-    add_constraints(constraints, infinity);
+    const shared_ptr<AbstractTask>& task,
+    lp::LinearProgram& lp)
+{
+    if (log.is_at_least_normal()) {
+        log << "Initializing constraints from state equation." << endl;
+    }
+    TaskProxy task_proxy(*task);
+    task_properties::verify_no_axioms(task_proxy);
+    task_properties::verify_no_conditional_effects(task_proxy);
+    build_propositions(task_proxy);
+    add_constraints(lp.get_constraints(), lp.get_infinity());
 
     // Initialize goal state.
-    goal_state = vector<int>(g_variable_domain.size(), numeric_limits<int>::max());
-    for (const auto& goal : g_goal) {
-        goal_state[goal.first] = goal.second;
+    VariablesProxy variables = task_proxy.get_variables();
+    goal_state = vector<int>(variables.size(), numeric_limits<int>::max());
+    for (FactProxy goal : task_proxy.get_goals()) {
+        goal_state[goal.get_variable().get_id()] = goal.get_value();
     }
 }
 
-bool StateEquationConstraints::update_constraints(const GlobalState &state,
-                                                  lp::LPSolver &lp_solver) {
+bool StateEquationConstraints::update_constraints(
+    const State& state,
+    lp::LPSolver& lp_solver)
+{
     // Compute the bounds for the rows in the LP.
     for (size_t var = 0; var < propositions.size(); ++var) {
         int num_values = propositions[var].size();
@@ -93,7 +110,7 @@ bool StateEquationConstraints::update_constraints(const GlobalState &state,
                 double lower_bound = 0;
                 /* If we consider the current value of var, there must be an
                    additional consumer. */
-                if (state[var] == value) {
+                if (state[var].get_value() == value) {
                     --lower_bound;
                 }
                 /* If we consider the goal value of var, there must be an
@@ -145,9 +162,13 @@ static shared_ptr<ConstraintGenerator> _parse(OptionParser &parser) {
             "AAAI Press",
             "2014"));
 
+    utils::add_log_options_to_parser(parser);
+
     if (parser.dry_run())
         return nullptr;
-    return make_shared<StateEquationConstraints>();
+
+    options::Options opts = parser.parse();
+    return make_shared<StateEquationConstraints>(opts);
 }
 
 static Plugin<ConstraintGenerator> _plugin("state_equation_constraints", _parse);
