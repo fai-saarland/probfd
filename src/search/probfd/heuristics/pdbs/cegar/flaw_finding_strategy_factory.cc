@@ -5,6 +5,8 @@
 
 #include "plugin.h"
 
+#include <limits>
+
 namespace probfd {
 namespace heuristics {
 namespace pdbs {

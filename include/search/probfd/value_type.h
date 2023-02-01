@@ -2,6 +2,7 @@
 #define PROBFD_VALUE_TYPE_H
 
 #include <string>
+#include <limits>
 
 /// The top-level namespace of probabilistic Fast Downward.
 namespace probfd {

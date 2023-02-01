@@ -3,6 +3,8 @@
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 
+#include <memory>
+
 namespace utils {
 class RandomNumberGenerator;
 }

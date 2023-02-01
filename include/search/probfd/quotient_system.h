@@ -6,6 +6,7 @@
 #include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
 
+#include "probfd/action_id_map.h"
 #include "probfd/transition_generator.h"
 
 #include <algorithm>
