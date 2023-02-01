@@ -114,7 +114,7 @@ template <typename State, typename Action, bool UseInterval>
 class ExhaustiveDepthFirstSearch
     : public MDPEngine<State, Action>
     , public engine_interfaces::HeuristicSearchInterface {
-    using IncumbentSolution = IncumbentSolution<UseInterval>;
+    using IncumbentSolution = probfd::IncumbentSolution<UseInterval>;
 
     struct SearchNodeInformation {
         static constexpr uint8_t NEW = 0;

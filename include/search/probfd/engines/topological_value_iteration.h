@@ -67,7 +67,7 @@ struct Statistics {
  */
 template <typename State, typename Action, bool Interval = false>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
-    using IncumbentSolution = IncumbentSolution<Interval>;
+    using IncumbentSolution = probfd::IncumbentSolution<Interval>;
 
     struct StateInfo {
         // Status Flags

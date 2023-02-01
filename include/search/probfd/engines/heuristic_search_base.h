@@ -139,7 +139,7 @@ public:
     static constexpr bool StorePolicy = StateInfo::StorePolicy;
     static constexpr bool UseInterval = StateInfo::UseInterval;
 
-    using IncumbentSolution = IncumbentSolution<UseInterval>;
+    using IncumbentSolution = probfd::IncumbentSolution<UseInterval>;
 
     explicit HeuristicSearchBase(
         engine_interfaces::StateIDMap<State>* state_id_map,
@@ -585,10 +585,10 @@ protected:
      * @param file_name - The output file name.
      * @param sstr -The state-to-string lambda function.
      */
-    template <typename StateToString>
     void dump_search_space(
         const std::string& file_name,
-        const StateToString& sstr = graphviz::DefaultSTS())
+        const std::function<std::string(const State&)> sstr =
+            [](const State&){ return ""; })
     {
         struct ExpansionCondition
             : public engine_interfaces::StateEvaluator<State> {
@@ -615,7 +615,7 @@ protected:
 
         std::ofstream out(file_name);
 
-        graphviz::dump<State>(
+        graphviz::dump_state_space_dot_graph<State, Action>(
             out,
             this->lookup_state(initial_state_id_),
             this->get_state_id_map(),
@@ -623,7 +623,7 @@ protected:
             this->get_applicable_actions_generator(),
             this->get_transition_generator(),
             sstr,
-            graphviz::DefaultATS(),
+            [](const Action&){ return ""; },
             &prune,
             false);
     }
