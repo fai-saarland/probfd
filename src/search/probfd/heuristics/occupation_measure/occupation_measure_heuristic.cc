@@ -95,7 +95,6 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     task_properties::verify_no_conditional_effects(task_proxy);
 
     const VariablesProxy variables = task_proxy.get_variables();
-    const GoalsProxy goals = task_proxy.get_goals();
 
     const std::size_t num_variables = variables.size();
     const double inf = lp_solver_.get_infinity();
