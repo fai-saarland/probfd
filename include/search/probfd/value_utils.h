@@ -128,6 +128,8 @@ void set_max(value_t& new_value, value_t tval);
 
 // Value update
 bool update(value_t& lhs, value_t rhs);
+bool update(Interval& lhs, Interval rhs);
+bool update(Interval& lhs, Interval rhs, bool check_upper);
 
 value_t as_lower_bound(value_t single);
 value_t as_lower_bound(Interval interval);
