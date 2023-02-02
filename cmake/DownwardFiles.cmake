@@ -1162,6 +1162,15 @@ fast_downward_plugin(
     DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
 )
 
+fast_downward_plugin(
+    NAME SCP_PDB_HEURISTIC
+    HELP "Saturated Cost-Partitioning heuristic for probabilistic PDBs"
+    SOURCES
+        probfd/heuristics/cost_partitioning/scp_heuristic
+
+    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+)
+
 fast_downward_add_plugin_sources(PLANNER_SOURCES)
 
 # The order in PLANNER_SOURCES influences the order in which object
