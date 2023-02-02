@@ -1067,6 +1067,7 @@ fast_downward_plugin(
         probfd/heuristics/occupation_measures/higher_order_hpom_constraints
         probfd/heuristics/occupation_measures/occupation_measure_heuristic
         probfd/heuristics/occupation_measures/pho_constraints
+        probfd/heuristics/occupation_measures/plugins
     DEPENDS MDP LP_BASED_HEURISTICS
 )
 

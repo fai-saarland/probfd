@@ -84,28 +84,6 @@ void PHOGenerator::reset_constraints(const State&, lp::LPSolver&)
     // No need to reset, constraints are overwritten in the next iteration
 }
 
-static std::shared_ptr<ConstraintGenerator>
-_parse(options::OptionParser& parser)
-{
-    parser.document_synopsis(
-        "Post-hoc optimization constraints",
-        "Post-hoc optimization constraints for a collection of pattern "
-        "databases.");
-
-    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
-        "patterns",
-        "The pattern generator used to construct the PDB collection which is "
-        "subject to post-hoc optimization.",
-        "det_adapter_ec(generator=systematic(pattern_max_size=2))");
-
-    Options opts = parser.parse();
-
-    if (parser.dry_run()) return nullptr;
-    return std::make_shared<PHOGenerator>(opts);
-}
-
-static Plugin<ConstraintGenerator> _plugin("om_pho_constraints", _parse);
-
 } // namespace occupation_measures
 } // namespace heuristics
 } // namespace probfd
