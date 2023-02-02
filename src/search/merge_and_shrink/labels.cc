@@ -12,9 +12,10 @@
 using namespace std;
 
 namespace merge_and_shrink {
-Labels::Labels(vector<unique_ptr<Label>> &&labels)
-    : labels(move(labels)),
-      max_size(0) {
+Labels::Labels(vector<unique_ptr<Label>>&& labels)
+    : labels(std::move(labels))
+    , max_size(0)
+{
     if (!this->labels.empty()) {
         max_size = this->labels.size() * 2 - 1;
     }

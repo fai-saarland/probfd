@@ -8,10 +8,11 @@ using namespace std;
 
 namespace potentials {
 PotentialMaxHeuristic::PotentialMaxHeuristic(
-    const Options &opts,
-    vector<unique_ptr<PotentialFunction>> &&functions)
-    : Heuristic(opts),
-      functions(move(functions)) {
+    const Options& opts,
+    vector<unique_ptr<PotentialFunction>>&& functions)
+    : Heuristic(opts)
+    , functions(std::move(functions))
+{
 }
 
 int PotentialMaxHeuristic::compute_heuristic(const State &ancestor_state) {

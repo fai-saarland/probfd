@@ -303,7 +303,7 @@ ExplicitEffect::ExplicitEffect(
     int value,
     vector<FactPair>&& conditions)
     : fact(var, value)
-    , conditions(move(conditions))
+    , conditions(std::move(conditions))
 {
     std::sort(this->conditions.begin(), this->conditions.end());
 }
@@ -366,7 +366,7 @@ void DeterministicOperator::read_pre_post(std::istream& in)
     if (pre != -1) {
         preconditions.emplace_back(var, pre);
     }
-    effects.emplace_back(var, value_post, move(conditions));
+    effects.emplace_back(var, value_post, std::move(conditions));
 }
 
 ProbabilisticOperator::ProbabilisticOperator(
@@ -419,7 +419,7 @@ void ExplicitAxiom::read_pre_post(std::istream& in)
     if (pre != -1) {
         preconditions.emplace_back(var, pre);
     }
-    effects.emplace_back(var, value_post, move(conditions));
+    effects.emplace_back(var, value_post, std::move(conditions));
 }
 
 void read_and_verify_version(std::istream& in)

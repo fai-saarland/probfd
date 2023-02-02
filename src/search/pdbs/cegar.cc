@@ -36,8 +36,8 @@ public:
         const shared_ptr<PatternDatabase>&& pdb,
         const vector<vector<OperatorID>>&& plan,
         bool unsolvable)
-        : pdb(move(pdb))
-        , plan(move(plan))
+        : pdb(std::move(pdb))
+        , plan(std::move(plan))
         , unsolvable(unsolvable)
         , solved(false)
     {
@@ -171,7 +171,7 @@ CEGAR::CEGAR(
     , task(task)
     , task_proxy(*task)
     , goals(goals)
-    , blacklisted_variables(move(blacklisted_variables))
+    , blacklisted_variables(std::move(blacklisted_variables))
     , collection_size(0)
 {
 #ifndef NDEBUG
@@ -258,7 +258,10 @@ unique_ptr<PatternInfo> CEGAR::compute_pattern_info(Pattern&& pattern) const
             log << "##### End of plan #####" << endl;
         }
     }
-    return std::make_unique<PatternInfo>(move(pdb), move(plan), unsolvable);
+    return std::make_unique<PatternInfo>(
+        std::move(pdb),
+        std::move(plan),
+        unsolvable);
 }
 
 void CEGAR::compute_initial_collection()
@@ -376,7 +379,7 @@ bool CEGAR::get_flaws_for_pattern(
     vector<int> current_state = concrete_init.get_unpacked_values();
     FlawList new_flaws = apply_plan(collection_index, current_state);
     if (new_flaws.empty()) {
-        State final_state(*task, move(current_state));
+        State final_state(*task, std::move(current_state));
         if (task_properties::is_goal_state(task_proxy, final_state)) {
             if (log.is_at_least_verbose()) {
                 log << "plan led to a concrete goal state: ";
@@ -489,7 +492,7 @@ void CEGAR::merge_patterns(int index1, int index2)
 
     // Compute merged_pattern_info pattern.
     unique_ptr<PatternInfo> merged_pattern_info =
-        compute_pattern_info(move(new_pattern));
+        compute_pattern_info(std::move(new_pattern));
 
     // Update collection size.
     collection_size -= pdb_size1;
@@ -497,7 +500,7 @@ void CEGAR::merge_patterns(int index1, int index2)
     collection_size += merged_pattern_info->get_pdb()->get_size();
 
     // Clean up.
-    pattern_collection[index1] = move(merged_pattern_info);
+    pattern_collection[index1] = std::move(merged_pattern_info);
     pattern_collection[index2] = nullptr;
 }
 
@@ -521,13 +524,13 @@ void CEGAR::add_variable_to_pattern(int collection_index, int var)
     sort(new_pattern.begin(), new_pattern.end());
 
     unique_ptr<PatternInfo> new_pattern_info =
-        compute_pattern_info(move(new_pattern));
+        compute_pattern_info(std::move(new_pattern));
 
     collection_size -= pattern_info.get_pdb()->get_size();
     collection_size += new_pattern_info->get_pdb()->get_size();
 
     variable_to_collection_index[var] = collection_index;
-    pattern_collection[collection_index] = move(new_pattern_info);
+    pattern_collection[collection_index] = std::move(new_pattern_info);
 }
 
 void CEGAR::refine(const FlawList& flaws)
@@ -707,7 +710,7 @@ PatternCollectionInformation generate_pattern_collection_with_cegar(
         rng,
         task,
         goals,
-        move(blacklisted_variables));
+        std::move(blacklisted_variables));
     return cegar.compute_pattern_collection();
 }
 
@@ -731,7 +734,7 @@ PatternInformation generate_pattern_with_cegar(
         rng,
         task,
         goals,
-        move(blacklisted_variables));
+        std::move(blacklisted_variables));
     PatternCollectionInformation collection_info =
         cegar.compute_pattern_collection();
     shared_ptr<PatternCollection> new_patterns = collection_info.get_patterns();
@@ -744,7 +747,7 @@ PatternInformation generate_pattern_with_cegar(
     Pattern& pattern = new_patterns->front();
     shared_ptr<PDBCollection> new_pdbs = collection_info.get_pdbs();
     shared_ptr<PatternDatabase>& pdb = new_pdbs->front();
-    PatternInformation result(TaskProxy(*task), move(pattern), log);
+    PatternInformation result(TaskProxy(*task), std::move(pattern), log);
     result.set_pdb(pdb);
     return result;
 }

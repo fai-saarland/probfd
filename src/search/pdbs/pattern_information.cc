@@ -9,12 +9,13 @@ using namespace std;
 
 namespace pdbs {
 PatternInformation::PatternInformation(
-    const TaskProxy &task_proxy,
+    const TaskProxy& task_proxy,
     Pattern pattern,
-    utils::LogProxy &log)
-    : task_proxy(task_proxy),
-      pattern(move(pattern)),
-      pdb(nullptr) {
+    utils::LogProxy& log)
+    : task_proxy(task_proxy)
+    , pattern(std::move(pattern))
+    , pdb(nullptr)
+{
     validate_and_normalize_pattern(task_proxy, this->pattern, log);
 }
 

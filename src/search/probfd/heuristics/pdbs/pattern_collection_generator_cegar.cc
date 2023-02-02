@@ -685,7 +685,7 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
     // update look-up table and possibly remaining_goals, clean-up
     solution_lookup[var] = index;
     update_goals(var);
-    solutions[index] = move(new_solution);
+    solutions[index] = std::move(new_solution);
 }
 
 template <typename PDBType>

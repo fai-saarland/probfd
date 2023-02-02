@@ -42,7 +42,7 @@ LandmarkCutLandmarks::LandmarkCutLandmarks(const TaskProxy &task_proxy) {
     goal_op_eff.push_back(&artificial_goal);
     /* Use the invalid operator ID -1 so accessing
        the artificial operator will generate an error. */
-    add_relaxed_operator(move(goal_op_pre), move(goal_op_eff), -1, 0);
+    add_relaxed_operator(std::move(goal_op_pre), std::move(goal_op_eff), -1, 0);
 
     // Cross-reference relaxed operators.
     for (RelaxedOperator &op : relaxed_operators) {
@@ -66,7 +66,10 @@ void LandmarkCutLandmarks::build_relaxed_operator(const OperatorProxy &op) {
         effects.push_back(get_proposition(eff.get_fact()));
     }
     add_relaxed_operator(
-        move(precondition), move(effects), op.get_id(), op.get_cost());
+        std::move(precondition),
+        std::move(effects),
+        op.get_id(),
+        op.get_cost());
 }
 
 void LandmarkCutLandmarks::add_relaxed_operator(
@@ -74,7 +77,10 @@ void LandmarkCutLandmarks::add_relaxed_operator(
     vector<RelaxedProposition *> &&effects,
     int op_id, int base_cost) {
     RelaxedOperator relaxed_op(
-        move(precondition), move(effects), op_id, base_cost);
+        std::move(precondition),
+        std::move(effects),
+        op_id,
+        base_cost);
     if (relaxed_op.preconditions.empty())
         relaxed_op.preconditions.push_back(&artificial_precondition);
     relaxed_operators.push_back(relaxed_op);
@@ -291,9 +297,7 @@ bool LandmarkCutLandmarks::compute_landmarks(
     if (artificial_goal.status == UNREACHED)
         return true;
 
-    int num_iterations = 0;
     while (artificial_goal.h_max_cost != 0) {
-        ++num_iterations;
         mark_goal_plateau(&artificial_goal);
         assert(cut.empty());
         second_exploration(state, second_exploration_queue, cut);

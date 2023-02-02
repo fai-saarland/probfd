@@ -250,7 +250,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::sample_states(
 
     samples.reserve(num_samples);
     for (int i = 0; i < num_samples; ++i) {
-        auto f = [this, &current_pdbs](const State& state) {
+        auto f = [&current_pdbs](const State& state) {
             return current_pdbs.is_dead_end(state);
         };
 

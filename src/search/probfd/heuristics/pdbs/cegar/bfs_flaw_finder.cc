@@ -88,7 +88,7 @@ bool BFSFlawFinder<PDBType>::expand(
     if (abs_operators.empty()) {
         assert(pdb.is_goal(abs));
 
-        State terminal_state(*this->task, move(state));
+        State terminal_state(*this->task, std::move(state));
 
         if (pdb.is_goal(abs) &&
             !task_properties::is_goal_state(this->task_proxy, terminal_state)) {

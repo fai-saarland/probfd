@@ -46,10 +46,10 @@ FactoredTransitionSystem::FactoredTransitionSystem(
     const bool compute_init_distances,
     const bool compute_goal_distances,
     utils::LogProxy& log)
-    : labels(move(labels))
-    , transition_systems(move(transition_systems))
-    , mas_representations(move(mas_representations))
-    , distances(move(distances))
+    : labels(std::move(labels))
+    , transition_systems(std::move(transition_systems))
+    , mas_representations(std::move(mas_representations))
+    , distances(std::move(distances))
     , compute_init_distances(compute_init_distances)
     , compute_goal_distances(compute_goal_distances)
     , num_active_entries(this->transition_systems.size())
@@ -67,13 +67,13 @@ FactoredTransitionSystem::FactoredTransitionSystem(
 
 FactoredTransitionSystem::FactoredTransitionSystem(
     FactoredTransitionSystem&& other)
-    : labels(move(other.labels))
-    , transition_systems(move(other.transition_systems))
-    , mas_representations(move(other.mas_representations))
-    , distances(move(other.distances))
-    , compute_init_distances(move(other.compute_init_distances))
-    , compute_goal_distances(move(other.compute_goal_distances))
-    , num_active_entries(move(other.num_active_entries))
+    : labels(std::move(other.labels))
+    , transition_systems(std::move(other.transition_systems))
+    , mas_representations(std::move(other.mas_representations))
+    , distances(std::move(other.distances))
+    , compute_init_distances(std::move(other.compute_init_distances))
+    , compute_goal_distances(std::move(other.compute_goal_distances))
+    , num_active_entries(std::move(other.num_active_entries))
 {
     /*
       This is just a default move constructor. Unfortunately Visual
@@ -197,8 +197,8 @@ int FactoredTransitionSystem::merge(
     transition_systems[index2] = nullptr;
     mas_representations.push_back(
         std::make_unique<MergeAndShrinkRepresentationMerge>(
-            move(mas_representations[index1]),
-            move(mas_representations[index2])));
+            std::move(mas_representations[index1]),
+            std::move(mas_representations[index2])));
     mas_representations[index1] = nullptr;
     mas_representations[index2] = nullptr;
     const TransitionSystem& new_ts = *transition_systems.back();
@@ -220,7 +220,9 @@ pair<unique_ptr<MergeAndShrinkRepresentation>, unique_ptr<Distances>>
 FactoredTransitionSystem::extract_factor(int index)
 {
     assert(is_component_valid(index));
-    return make_pair(move(mas_representations[index]), move(distances[index]));
+    return make_pair(
+        std::move(mas_representations[index]),
+        std::move(distances[index]));
 }
 
 void FactoredTransitionSystem::statistics(int index, utils::LogProxy& log) const

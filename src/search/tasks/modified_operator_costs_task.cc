@@ -9,7 +9,7 @@ ModifiedOperatorCostsTask::ModifiedOperatorCostsTask(
     const shared_ptr<AbstractTask>& parent,
     vector<int>&& costs)
     : DelegatingTask(parent)
-    , operator_costs(move(costs))
+    , operator_costs(std::move(costs))
 {
     assert(static_cast<int>(operator_costs.size()) == get_num_operators());
 }

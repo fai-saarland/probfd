@@ -33,14 +33,6 @@ struct ProgressionOperatorFootprint {
         return std::tie(a.precondition_hash, a.successors) <
                std::tie(b.precondition_hash, b.successors);
     }
-
-    friend bool operator==(
-        const ProgressionOperatorFootprint& a,
-        const ProgressionOperatorFootprint& b)
-    {
-        return std::tie(a.precondition_hash, a.successors) ==
-               std::tie(b.precondition_hash, b.successors);
-    }
 };
 
 struct OutcomeInfo {

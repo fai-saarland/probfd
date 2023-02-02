@@ -24,7 +24,7 @@ get_preconditions_by_operator(const OperatorsProxy& ops)
         vector<FactPair> preconditions =
             task_properties::get_fact_pairs(op.get_preconditions());
         sort(preconditions.begin(), preconditions.end());
-        preconditions_by_operator.push_back(move(preconditions));
+        preconditions_by_operator.push_back(std::move(preconditions));
     }
     return preconditions_by_operator;
 }
@@ -305,9 +305,9 @@ void TransitionSystem::rewire(
     int var)
 {
     // Retrieve old transitions and make space for new transitions.
-    Transitions old_incoming = move(incoming[v_id]);
-    Transitions old_outgoing = move(outgoing[v_id]);
-    Loops old_loops = move(loops[v_id]);
+    Transitions old_incoming = std::move(incoming[v_id]);
+    Transitions old_outgoing = std::move(outgoing[v_id]);
+    Loops old_loops = std::move(loops[v_id]);
     enlarge_vectors_by_one();
     int v1_id = v1.get_id();
     int v2_id = v2.get_id();

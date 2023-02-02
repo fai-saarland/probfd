@@ -37,7 +37,7 @@ State::State(
     : State(task, registry, id, buffer)
 {
     assert(num_variables == static_cast<int>(values.size()));
-    this->values = make_shared<vector<int>>(move(values));
+    this->values = make_shared<vector<int>>(std::move(values));
 }
 
 State::State(const AbstractTaskBase& task, vector<int>&& values)
@@ -45,7 +45,7 @@ State::State(const AbstractTaskBase& task, vector<int>&& values)
     , registry(nullptr)
     , id(StateID::no_state)
     , buffer(nullptr)
-    , values(make_shared<vector<int>>(move(values)))
+    , values(make_shared<vector<int>>(std::move(values)))
     , state_packer(nullptr)
     , num_variables(this->values->size())
 {
@@ -70,7 +70,7 @@ State State::get_unregistered_successor(const OperatorProxy& op) const
             g_axiom_evaluators[TaskBaseProxy(*task)];
         axiom_evaluator.evaluate(new_values);
     }
-    return State(*task, move(new_values));
+    return State(*task, std::move(new_values));
 }
 
 const causal_graph::CausalGraph& TaskProxy::get_causal_graph() const
