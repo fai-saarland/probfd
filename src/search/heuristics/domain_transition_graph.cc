@@ -96,10 +96,9 @@ void DTGFactory::process_effect(
             ValueTransitionLabel(op.get_id(), op.is_axiom(), transition_condition, side_effect));
     } else {
         int domain_size = fact.get_variable().get_domain_size();
-        for (int origin = 0; origin < domain_size; ++origin) {
-            if (origin == target)
-                continue;
-            ValueTransition *trans = get_transition(origin, target, dtg);
+        for (int origin2 = 0; origin2 < domain_size; ++origin2) {
+            if (origin2 == target) continue;
+            ValueTransition* trans = get_transition(origin2, target, dtg);
             trans->labels.push_back(
                 ValueTransitionLabel(op.get_id(), op.is_axiom(), transition_condition, side_effect));
         }

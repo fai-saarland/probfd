@@ -351,10 +351,9 @@ void LandmarkFactoryHM::print_pm_op(const VariablesProxy &variables, const PMOp 
         for (size_t i = 0; i < op.cond_noops.size(); ++i) {
             cond_pc.clear();
             cond_eff.clear();
-            int pm_fluent;
-            size_t j;
+            size_t j = 0;
             log << "PC:" << endl;
-            for (j = 0; (pm_fluent = op.cond_noops[i][j]) != -1; ++j) {
+            for (int pm_fluent; (pm_fluent = op.cond_noops[i][j]) != -1; ++j) {
                 print_fluentset(variables, h_m_table_[pm_fluent].fluents);
                 log << endl;
 
