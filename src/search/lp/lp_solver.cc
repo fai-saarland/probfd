@@ -11,13 +11,24 @@
 #ifdef __GNUG__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wregister"
 #endif
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wregister"
+#endif
+
 #include <CoinPackedMatrix.hpp>
 #include <CoinPackedVector.hpp>
 #include <OsiSolverInterface.hpp>
 
 #ifdef __GNUG__
 #pragma GCC diagnostic pop
+#endif
+
+#ifdef __clang__
+#pragma clang diagnostic pop
 #endif
 #endif
 

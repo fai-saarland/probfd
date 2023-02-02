@@ -11,13 +11,18 @@
 #pragma GCC diagnostic ignored "-Woverflow"
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wregister"
 #if __GNUC__ >= 6
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
 #endif
 #endif
+
 #ifdef __clang__
-#pragma GCC diagnostic ignored "-Wconstant-conversion"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconstant-conversion"
+#pragma clang diagnostic ignored "-Wregister"
 #endif
+
 #include <OsiSolverInterface.hpp>
 
 #ifdef COIN_HAS_CLP
@@ -40,6 +45,10 @@
 
 #ifdef __GNUG__
 #pragma GCC diagnostic pop
+#endif
+
+#ifdef __clang__
+#pragma clang diagnostic pop
 #endif
 
 using namespace std;
