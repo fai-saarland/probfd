@@ -2,7 +2,7 @@ include(CMakeParseArguments)
 
 macro(fast_downward_set_compiler_flags)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
-    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
 
     # Note: on CMake >= 3.0 the compiler ID of Apple-provided clang is AppleClang.
     # If we change the required CMake version from 2.8.3 to 3.0 or greater,
@@ -39,6 +39,7 @@ macro(fast_downward_set_compiler_flags)
 
         # Shadowing warnings
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4458") # declaration hides class member
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4459") # declaration of 'identifier' hides global declaration
 
         # Integer conversion warnings
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4245") # initializing unsigned with signed
