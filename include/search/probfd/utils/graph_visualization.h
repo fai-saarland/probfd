@@ -14,6 +14,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <ranges>
 #include <sstream>
 #include <vector>
 
@@ -189,7 +190,7 @@ public:
 
         out << "\n    # Node Ranking\n";
 
-        for (const auto& group : utils::values(ranked_nodes_)) {
+        for (const auto& group : std::views::values(ranked_nodes_)) {
             out << "    { ";
             emitAttribute(out, "rank", "same");
             out << "; ";

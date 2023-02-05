@@ -25,10 +25,6 @@ struct StateRank {
     {
     }
 
-    bool operator==(const StateRank& x) const { return id == x.id; }
-    bool operator<(const StateRank& x) const { return id < x.id; }
-    bool operator>(const StateRank& x) const { return id > x.id; }
-
     StateRank operator+(const StateRank& x) const
     {
         return StateRank(x.id + id);
@@ -50,6 +46,8 @@ struct StateRank {
         id -= x.id;
         return *this;
     }
+
+    friend auto operator<=>(StateRank a, StateRank b) = default;
 };
 
 extern std::ostream& operator<<(std::ostream& out, const StateRank& s);

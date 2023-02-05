@@ -4,11 +4,12 @@
 #include "probfd/value_type.h"
 
 #include "utils/iterators.h"
-#include "utils/range_proxy.h"
 #include "utils/rng.h"
 
 #include <algorithm>
 #include <cassert>
+#include <compare>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -54,39 +55,10 @@ public:
     {
     }
 
-    /// Compares two item-probability pairs lexigographically by operator<.
-    friend bool operator<(
+    /// Comparison of two item-probability pairs.
+    friend auto operator<=>(
         const ItemProbabilityPair<T>& left,
-        const ItemProbabilityPair<T>& right)
-    {
-        return std::tie(left.item, left.probability) <
-               std::tie(right.item, right.probability);
-    }
-
-    /// Checks for equality of two item-probability pairs.
-    friend bool operator==(
-        const ItemProbabilityPair<T>& left,
-        const ItemProbabilityPair<T>& right)
-    {
-        return std::tie(left.item, left.probability) ==
-               std::tie(right.item, right.probability);
-    }
-
-    /// Compares the items of two item-probability pairs by operator<.
-    static bool key_less(
-        const ItemProbabilityPair<T>& left,
-        const ItemProbabilityPair<T>& right)
-    {
-        return left.item < right.item;
-    }
-
-    /// Compares the items of two item-probability pairs by operator==.
-    static bool key_equal(
-        const ItemProbabilityPair<T>& left,
-        const ItemProbabilityPair<T>& right)
-    {
-        return left.item == right.item;
-    }
+        const ItemProbabilityPair<T>& right) = default;
 };
 
 /**
@@ -172,12 +144,18 @@ public:
 
     iterator find(const T& t)
     {
-        return std::find(elem_begin(), elem_end(), t).base;
+        return std::ranges::find(
+            distribution_,
+            t,
+            &ItemProbabilityPair<T>::item);
     }
 
     const_iterator find(const T& t) const
     {
-        return std::find(elem_begin(), elem_end(), t).base;
+        return std::ranges::find(
+            distribution_,
+            t,
+            &ItemProbabilityPair<T>::item);
     }
 
     /**
@@ -190,7 +168,7 @@ public:
      */
     bool is_dirac(const T& t) const
     {
-        return size() == 1 && *elem_begin() == t;
+        return size() == 1 && distribution_.front().item == t;
     }
 
     /**
@@ -232,10 +210,10 @@ public:
             return;
         }
 
-        std::sort(
-            distribution_.begin(),
-            distribution_.end(),
-            ItemProbabilityPair<T>::key_less);
+        std::ranges::sort(
+            distribution_,
+            std::ranges::less{},
+            &ItemProbabilityPair<T>::item);
 
         auto last = std::unique(
             distribution_.begin(),
@@ -293,74 +271,32 @@ public:
 
     auto end() const { return distribution_.end(); }
 
-    auto elem_begin()
+    auto elements()
     {
-        return utils::make_transform_iterator(
-            begin(),
+        return std::views::transform(
+            distribution_,
             &ItemProbabilityPair<T>::item);
     }
-
-    auto elem_begin() const
-    {
-        return utils::make_transform_iterator(
-            begin(),
-            &ItemProbabilityPair<T>::item);
-    }
-
-    auto elem_end()
-    {
-        return utils::make_transform_iterator(
-            end(),
-            &ItemProbabilityPair<T>::item);
-    }
-
-    auto elem_end() const
-    {
-        return utils::make_transform_iterator(
-            end(),
-            &ItemProbabilityPair<T>::item);
-    }
-
-    auto elements() { return utils::make_range(elem_begin(), elem_end()); }
 
     auto elements() const
     {
-        return utils::make_range(elem_begin(), elem_end());
+        return std::views::transform(
+            distribution_,
+            &ItemProbabilityPair<T>::item);
     }
 
-    auto prob_begin()
+    auto probabilities()
     {
-        return utils::make_transform_iterator(
-            begin(),
+        return std::ranges::transform(
+            distribution_,
             &ItemProbabilityPair<T>::probability);
     }
-
-    auto prob_begin() const
-    {
-        return utils::make_transform_iterator(
-            begin(),
-            &ItemProbabilityPair<T>::probability);
-    }
-
-    auto prob_end()
-    {
-        return utils::make_transform_iterator(
-            end(),
-            &ItemProbabilityPair<T>::probability);
-    }
-
-    auto prob_end() const
-    {
-        return utils::make_transform_iterator(
-            end(),
-            &ItemProbabilityPair<T>::probability);
-    }
-
-    auto probabilities() { return utils::make_range(prob_begin(), prob_end()); }
 
     auto probabilities() const
     {
-        return utils::make_range(prob_begin(), prob_end());
+        return std::ranges::transform(
+            distribution_,
+            &ItemProbabilityPair<T>::probability);
     }
 
     /**
@@ -373,17 +309,8 @@ public:
      */
     const distribution_t& data() const { return distribution_; }
 
-    friend bool
-    operator<(const Distribution<T>& left, const Distribution<T>& right)
-    {
-        return left.distribution_ < right.distribution_;
-    }
-
-    friend bool
-    operator==(const Distribution<T>& left, const Distribution<T>& right)
-    {
-        return left.distribution_ == right.distribution_;
-    }
+    friend auto
+    operator<=>(const Distribution<T>&, const Distribution<T>&) = default;
 };
 
 } // namespace probfd

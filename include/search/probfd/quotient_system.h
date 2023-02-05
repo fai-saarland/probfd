@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <ranges>
 #include <set>
 #include <unordered_set>
 #include <vector>
@@ -104,7 +105,7 @@ public:
     const_iterator begin() const;
     const_iterator end() const;
 
-    utils::RangeProxy<QuotientStateIDIterator>
+    std::ranges::subrange<QuotientStateIDIterator, QuotientStateIDIterator>
     quotient_range(const StateID& state_id) const;
 
     StateID translate_state_id(const StateID& sid) const;
@@ -132,7 +133,7 @@ public:
     template <typename Range>
     void build_quotient(Range& range)
     {
-        this->build_quotient(range.begin(), range.end());
+        this->build_quotient(std::begin(range), std::end(range));
     }
 
     template <typename StateIDIterator>

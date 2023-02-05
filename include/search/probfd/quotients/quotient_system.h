@@ -12,6 +12,7 @@
 
 #include <deque>
 #include <iterator>
+#include <ranges>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -144,12 +145,12 @@ public:
         const QuotientInformation* info = this->get_quotient_info(state_id);
 
         if (info) {
-            return utils::make_range(
+            return std::ranges::subrange(
                 QuotientStateIDIterator(info->state_begin()),
                 QuotientStateIDIterator(info->state_end()));
         }
 
-        return utils::make_range(
+        return std::ranges::subrange(
             QuotientStateIDIterator(&state_id),
             QuotientStateIDIterator(&state_id + 1));
     }

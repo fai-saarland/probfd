@@ -1,7 +1,5 @@
 #include "probfd/quotient_system.h"
 
-#include "utils/range_proxy.h"
-
 #include "state_registry.h"
 
 #define DEBUG(x)
@@ -48,7 +46,7 @@ QuotientSystem<OperatorID>::end() const
     return const_iterator(this, fallback_->end());
 }
 
-utils::RangeProxy<QuotientSystem<OperatorID>::QuotientStateIDIterator>
+std::ranges::subrange<QuotientSystem<OperatorID>::QuotientStateIDIterator>
 QuotientSystem<OperatorID>::quotient_range(const StateID& state_id) const
 {
     if (cache_) {
@@ -64,7 +62,7 @@ QuotientSystem<OperatorID>::quotient_range(const StateID& state_id) const
             end = start + 1;
         }
 
-        return utils::RangeProxy<QuotientStateIDIterator>(
+        return std::ranges::subrange<QuotientStateIDIterator>(
             QuotientStateIDIterator(start),
             QuotientStateIDIterator(end));
     }

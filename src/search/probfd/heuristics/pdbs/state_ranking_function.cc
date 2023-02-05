@@ -20,7 +20,7 @@ StateRankingFunction::PartialAssignmentIterator::PartialAssignmentIterator(
     std::vector<FactPair> partial_state,
     const std::vector<VariableInfo>& var_infos)
     : partial_state_(std::move(partial_state))
-    , var_infos_(var_infos)
+    , var_infos_(&var_infos)
     , done(false)
 {
 }
@@ -32,7 +32,7 @@ StateRankingFunction::PartialAssignmentIterator::operator++()
         auto& [var, val] = partial_state_[i];
         const int next = val + 1;
 
-        if (next < var_infos_[var].domain) {
+        if (next < (*var_infos_)[var].domain) {
             val = next;
             return *this;
         }
@@ -57,12 +57,28 @@ StateRankingFunction::PartialAssignmentIterator::operator--()
             return *this;
         }
 
-        val = var_infos_[var].domain - 1;
+        val = (*var_infos_)[var].domain - 1;
     }
 
     done = true;
 
     return *this;
+}
+
+StateRankingFunction::PartialAssignmentIterator
+StateRankingFunction::PartialAssignmentIterator::operator++(int)
+{
+    auto r = *this;
+    ++(*this);
+    return r;
+}
+
+StateRankingFunction::PartialAssignmentIterator
+StateRankingFunction::PartialAssignmentIterator::operator--(int)
+{
+    auto r = *this;
+    --(*this);
+    return r;
 }
 
 StateRankingFunction::PartialAssignmentIterator::reference
@@ -79,14 +95,14 @@ StateRankingFunction::PartialAssignmentIterator::operator->()
 
 bool operator==(
     const StateRankingFunction::PartialAssignmentIterator& a,
-    const utils::default_sentinel_t&)
+    std::default_sentinel_t)
 {
     return a.done;
 }
 
 bool operator!=(
     const StateRankingFunction::PartialAssignmentIterator& a,
-    const utils::default_sentinel_t&)
+    std::default_sentinel_t)
 {
     return !a.done;
 }
@@ -129,6 +145,14 @@ StateRankingFunction::StateRankIterator::operator++()
     return *this;
 }
 
+StateRankingFunction::StateRankIterator
+StateRankingFunction::StateRankIterator::operator++(int)
+{
+    auto r = *this;
+    ++(*this);
+    return r;
+}
+
 const StateRank& StateRankingFunction::StateRankIterator::operator*()
 {
     return state_;
@@ -141,14 +165,14 @@ const StateRank* StateRankingFunction::StateRankIterator::operator->()
 
 bool operator==(
     const StateRankingFunction::StateRankIterator& a,
-    const utils::default_sentinel_t&)
+    std::default_sentinel_t)
 {
     return a.done;
 }
 
 bool operator!=(
     const StateRankingFunction::StateRankIterator& a,
-    const utils::default_sentinel_t&)
+    std::default_sentinel_t)
 {
     return !a.done;
 }
@@ -324,19 +348,19 @@ StateRankingFunction::partial_assignments_begin(
     return PartialAssignmentIterator(std::move(partial_state), var_infos_);
 }
 
-utils::default_sentinel_t StateRankingFunction::partial_assignments_end() const
+std::default_sentinel_t StateRankingFunction::partial_assignments_end() const
 {
-    return utils::default_sentinel_t();
+    return std::default_sentinel;
 }
 
-utils::RangeProxy<
+std::ranges::subrange<
     StateRankingFunction::PartialAssignmentIterator,
-    utils::default_sentinel_t>
+    std::default_sentinel_t>
 StateRankingFunction::partial_assignments(
     std::vector<FactPair> partial_state) const
 {
-    return utils::
-        RangeProxy<PartialAssignmentIterator, utils::default_sentinel_t>(
+    return std::ranges::
+        subrange<PartialAssignmentIterator, std::default_sentinel_t>(
             partial_assignments_begin(std::move(partial_state)),
             partial_assignments_end());
 }
@@ -348,18 +372,18 @@ StateRankingFunction::StateRankIterator StateRankingFunction::state_ranks_begin(
     return StateRankIterator(offset, indices, var_infos_);
 }
 
-utils::default_sentinel_t StateRankingFunction::state_ranks_end() const
+std::default_sentinel_t StateRankingFunction::state_ranks_end() const
 {
-    return utils::default_sentinel_t();
+    return std::default_sentinel;
 }
 
-utils::RangeProxy<
-    StateRankingFunction::StateRankIterator,
-    utils::default_sentinel_t>
-StateRankingFunction::state_ranks(StateRank offset, std::vector<int> indices)
-    const
+std::ranges::
+    subrange<StateRankingFunction::StateRankIterator, std::default_sentinel_t>
+    StateRankingFunction::state_ranks(
+        StateRank offset,
+        std::vector<int> indices) const
 {
-    return utils::RangeProxy<StateRankIterator, utils::default_sentinel_t>(
+    return std::ranges::subrange<StateRankIterator, std::default_sentinel_t>(
         state_ranks_begin(offset, indices),
         state_ranks_end());
 }

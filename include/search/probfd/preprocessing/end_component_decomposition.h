@@ -20,6 +20,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <ranges>
 #include <type_traits>
 #include <vector>
 
@@ -600,15 +601,15 @@ private:
                     transitions += it->aops.size();
                 }
 
-                auto begin = utils::make_transform_iterator(
-                    scc_begin,
-                    &StackInfo::stateid);
-                auto end = utils::make_transform_iterator(
-                    scc_end,
-                    &StackInfo::stateid);
+                auto sid_range = std::ranges::subrange(scc_begin, scc_end) |
+                                 std::views::transform(&StackInfo::stateid);
                 auto abegin =
                     utils::make_transform_iterator(scc_begin, &StackInfo::aops);
-                sys_->build_quotient(begin, end, scc_repr_id, abegin);
+                sys_->build_quotient(
+                    sid_range.begin(),
+                    sid_range.end(),
+                    scc_repr_id,
+                    abegin);
                 stack_.erase(scc_begin, scc_end);
 
                 // Update stats
