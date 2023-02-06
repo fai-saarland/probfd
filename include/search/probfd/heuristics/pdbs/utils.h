@@ -23,12 +23,7 @@ value_t evaluate_subcollection(
 {
     constexpr bool is_expcost = std::is_same_v<PDBType, ExpCostProjection>;
 
-    auto transformer = [&pdb_estimates](int i) { return pdb_estimates[i]; };
-
     auto result = is_expcost ? 0_vt : 1_vt;
-
-    using R = std::
-        conditional_t<is_expcost, std::plus<value_t>, std::multiplies<value_t>>;
 
     for (int pattern_id : subcollection) {
         if constexpr (is_expcost) {

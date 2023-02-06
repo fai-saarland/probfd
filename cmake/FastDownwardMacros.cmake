@@ -12,6 +12,7 @@ macro(fast_downward_set_compiler_flags)
 
         if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-range-loop-analysis")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unqualified-std-cast-call")
         endif()
 
         ## Configuration-specific flags
