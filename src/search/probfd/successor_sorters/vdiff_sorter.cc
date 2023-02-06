@@ -2,6 +2,8 @@
 
 #include "probfd/engine_interfaces/heuristic_search_interface.h"
 
+#include <algorithm>
+
 namespace probfd {
 namespace successor_sorters {
 
@@ -32,7 +34,7 @@ void VDiffSorter::sort(
             sum += suc.probability * k1.back().first;
         }
         k0.emplace_back(sum, i);
-        std::sort(k1.begin(), k1.end());
+        std::ranges::sort(k1);
         std::vector<ItemProbabilityPair<StateID>> sor;
         sor.reserve(t.size());
         for (unsigned j = 0; j < k1.size(); ++j) {
@@ -40,7 +42,7 @@ void VDiffSorter::sort(
         }
         k1.clear();
     }
-    std::sort(k0.begin(), k0.end());
+    std::ranges::sort(k0);
     std::vector<Distribution<StateID>> res;
     res.reserve(successors.size());
     for (unsigned i = 0; i < k0.size(); ++i) {

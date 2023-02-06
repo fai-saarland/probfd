@@ -383,10 +383,7 @@ public:
                 }
 
                 // Move the actions to the new quotient
-                std::move(
-                    q.aops.begin(),
-                    q.aops.end(),
-                    std::back_inserter(qinfo.aops));
+                std::ranges::move(q.aops, std::back_inserter(qinfo.aops));
 
                 // Erase the old quotient
                 quotients_.erase(qit);

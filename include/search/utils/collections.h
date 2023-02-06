@@ -35,10 +35,10 @@ void insert_set(std::vector<T, A>& lhs, const std::vector<T, A>& rhs)
     }
 }
 
-template <typename T, typename A>
-bool contains(const std::vector<T, A>& vec, const T& val)
+template <std::ranges::input_range T>
+bool contains(T&& range, const std::ranges::range_value_t<T>& val)
 {
-    return std::ranges::find(vec, val) != vec.end();
+    return std::ranges::find(range, val) != std::ranges::end(range);
 }
 
 template <class T, class A>

@@ -65,10 +65,10 @@ public:
 
 template <typename T>
 class infinite_iterator {
-    const T value;
+    T value;
 
 public:
-    using difference_type = void;
+    using difference_type = std::ptrdiff_t;
     using value_type = T;
     using pointer = const T*;
     using reference = const T&;

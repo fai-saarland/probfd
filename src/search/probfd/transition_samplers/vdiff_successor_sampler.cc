@@ -26,15 +26,15 @@ StateID VDiffSuccessorSampler::sample(
     engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
     biased_.clear();
+
     value_t sum = 0;
-    for (auto it = successors.begin(); it != successors.end(); ++it) {
-        const value_t error =
-            hs_interface.lookup_dual_bounds(it->item).length();
+    for (const auto& [item, probability] : successors) {
+        const value_t error = hs_interface.lookup_dual_bounds(item).length();
         const value_t p =
-            it->probability * (prefer_large_gaps_ ? error : (1_vt - error));
+            probability * (prefer_large_gaps_ ? error : (1_vt - error));
         if (p > 0_vt) {
             sum += p;
-            biased_.add(it->item, p);
+            biased_.add(item, p);
         }
     }
     if (biased_.empty()) {

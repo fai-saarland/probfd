@@ -9,14 +9,17 @@ StateID MostLikelySuccessorSelector::sample(
     const Distribution<StateID>& successors,
     engine_interfaces::HeuristicSearchInterface&)
 {
-    value_t max = 0_vt;
-    StateID res = successors.begin()->item;
-    for (auto it = successors.begin(); it != successors.end(); ++it) {
-        if (it->probability > max) {
-            max = it->probability;
-            res = it->item;
+    value_t max = -INFINITE_VALUE;
+
+    StateID res;
+
+    for (const auto& [item, probability] : successors) {
+        if (probability > max) {
+            max = probability;
+            res = item;
         }
     }
+
     return res;
 }
 

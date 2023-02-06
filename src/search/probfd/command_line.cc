@@ -46,9 +46,9 @@ void ArgError::print() const
 static string sanitize_arg_string(string s)
 {
     // Convert newlines to spaces.
-    replace(s.begin(), s.end(), '\n', ' ');
+    ranges::replace(s, '\n', ' ');
     // Convert string to lower case.
-    transform(s.begin(), s.end(), s.begin(), ::tolower);
+    ranges::transform(s, s.begin(), ::tolower);
     return s;
 }
 

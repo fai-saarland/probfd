@@ -181,8 +181,8 @@ public:
      */
     void normalize(const value_t& scale)
     {
-        for (auto it = distribution_.begin(); it != distribution_.end(); it++) {
-            it->probability *= scale;
+        for (auto& pair : distribution_) {
+            pair.probability *= scale;
         }
     }
 
@@ -195,8 +195,8 @@ public:
             return;
         }
         value_t sum = 0;
-        for (auto it = begin(); it != end(); it++) {
-            sum += it->probability;
+        for (auto& pair : distribution_) {
+            sum += pair.probability;
         }
         normalize(1_vt / sum);
     }
@@ -215,10 +215,8 @@ public:
             std::ranges::less{},
             &ItemProbabilityPair<T>::item);
 
-        auto last = std::unique(
-            distribution_.begin(),
-            distribution_.end(),
-            [](auto& left, auto& right) {
+        const auto [first, last] =
+            std::ranges::unique(distribution_, [](auto& left, auto& right) {
                 if (left.item == right.item) {
                     left.probability += right.probability;
                     return true;
@@ -227,7 +225,7 @@ public:
                 return false;
             });
 
-        distribution_.erase(last, distribution_.end());
+        distribution_.erase(first, last);
     }
 
     auto sample(utils::RandomNumberGenerator& rng)

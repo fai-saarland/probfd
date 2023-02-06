@@ -48,8 +48,7 @@ void TransitionGenerator<OperatorID>::generate_applicable_actions(
         State state = state_registry_->lookup_state(::StateID(state_id));
         std::vector<OperatorID> test;
         compute_applicable_operators(state, test);
-        assert(
-            std::equal(test.begin(), test.end(), result.begin(), result.end()));
+        assert(std::ranges::equal(test, result));
 #endif
     } else {
         State state = state_registry_->lookup_state(::StateID(state_id));
