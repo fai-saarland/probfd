@@ -200,8 +200,11 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
             relevant_neighbours[pattern_var];
 
         // Only use variables which are not already in the pattern.
-        std::vector relevant_vars =
-            utils::set_difference(connected_vars, pattern);
+        std::vector<int> relevant_vars;
+        std::ranges::set_difference(
+            connected_vars,
+            pattern,
+            std::back_inserter(relevant_vars));
 
         for (int rel_var_id : relevant_vars) {
             if (hill_climbing_timer.is_expired()) {
@@ -217,7 +220,7 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
                 Pattern new_pattern(pattern);
                 utils::insert_set(new_pattern, rel_var_id);
 
-                if (!utils::contains(generated_patterns, new_pattern)) {
+                if (generated_patterns.insert(new_pattern).second) {
                     /*
                       If we haven't seen this pattern before, generate a PDB
                       for it and add it to candidate_pdbs if its size does not
@@ -225,7 +228,6 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
                     */
                     auto& new_pdb = candidate_pdbs.emplace_back(
                         new PDBType(task_proxy, pdb, rel_var_id));
-                    generated_patterns.insert(new_pattern);
                     max_pdb_size =
                         std::max(max_pdb_size, (int)new_pdb->num_states());
                 }

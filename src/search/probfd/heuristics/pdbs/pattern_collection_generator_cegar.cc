@@ -171,7 +171,7 @@ void AbstractSolutionData<PDBType>::blacklist_variable(int var)
 template <typename PDBType>
 bool AbstractSolutionData<PDBType>::is_blacklisted(int var) const
 {
-    return utils::contains(blacklist, var);
+    return blacklist.contains(var);
 }
 
 template <typename PDBType>
@@ -560,7 +560,7 @@ void PatternCollectionGeneratorCegar<PDBType>::handle_goal_violation(
     const Flaw& flaw)
 {
     int var = flaw.variable;
-    assert(!utils::contains_key(solution_lookup, var));
+    assert(!solution_lookup.contains(var));
 
     if (verbosity >= Verbosity::VERBOSE) {
         cout << token << "introducing goal variable " << var << endl;

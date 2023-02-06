@@ -250,7 +250,7 @@ public:
                 for (; aop != aop_end; ++aop) {
                     auto succ_e = succ + operators[*aop].get_outcomes().size();
                     for (; succ != succ_e; ++succ) {
-                        if (utils::contains(states_set, *succ)) {
+                        if (states_set.contains(*succ)) {
                             *succ = rid;
                         }
                         // *succ = state_infos_[*succ].states[0];
@@ -317,7 +317,7 @@ private:
 
             auto succ_src_end = succ_src + op.get_outcomes().size();
             for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {
-                const bool member = utils::contains(quotient_states, *succ_src);
+                const bool member = quotient_states.contains(*succ_src);
                 *succ_dest = member ? rid : *succ_src;
                 self_loop = self_loop && (*succ_dest == rid);
                 succ_dest = k;

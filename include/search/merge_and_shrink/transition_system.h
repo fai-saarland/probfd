@@ -3,6 +3,7 @@
 
 #include "merge_and_shrink/types.h"
 
+#include <compare>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -27,18 +28,7 @@ struct Transition {
         : src(src), target(target) {
     }
 
-    bool operator==(const Transition &other) const {
-        return src == other.src && target == other.target;
-    }
-
-    bool operator<(const Transition &other) const {
-        return src < other.src || (src == other.src && target < other.target);
-    }
-
-    // Required for "is_sorted_unique" in utilities
-    bool operator>=(const Transition &other) const {
-        return !(*this < other);
-    }
+    friend auto operator<=>(const Transition&, const Transition&) = default;
 };
 
 struct GroupAndTransitions {

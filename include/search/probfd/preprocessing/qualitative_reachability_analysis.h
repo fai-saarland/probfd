@@ -528,8 +528,7 @@ private:
                         StackInfo& pinfo = stack_[first];
                         const StateInfo& sinfo = state_infos_[pinfo.stateid];
 
-                        if (sinfo.one ||
-                            utils::contains(proven_improper, &pinfo)) {
+                        if (sinfo.one || proven_improper.contains(&pinfo)) {
                             continue;
                         }
 
@@ -539,8 +538,7 @@ private:
                             pinfo.exiting[second] = false;
 
                             if (--pinfo.proper_transitions == 0) {
-                                assert(
-                                    !utils::contains(proven_improper, &pinfo));
+                                assert(!proven_improper.contains(&pinfo));
                                 queue.push_back(&pinfo);
                             }
 
@@ -551,8 +549,7 @@ private:
                             pinfo.active[second] = false;
 
                             if (--pinfo.proper_transitions == 0) {
-                                assert(
-                                    !utils::contains(proven_improper, &pinfo));
+                                assert(!proven_improper.contains(&pinfo));
                                 queue.push_back(&pinfo);
                             }
                         }

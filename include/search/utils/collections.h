@@ -3,73 +3,18 @@
 
 #include <algorithm>
 #include <cassert>
+#include <concepts>
 #include <cstddef>
 #include <functional>
 #include <iterator>
 #include <map>
+#include <ranges>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 namespace utils {
-
-template <typename T, typename A>
-std::vector<T, A>
-set_intersection(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs)
-{
-    assert(std::is_sorted(lhs.begin(), lhs.end()));
-    assert(std::is_sorted(rhs.begin(), rhs.end()));
-
-    std::vector<T, A> intersection;
-
-    set_intersection(
-        lhs.begin(),
-        lhs.end(),
-        rhs.begin(),
-        rhs.end(),
-        back_inserter(intersection));
-
-    return intersection;
-}
-
-template <typename T, typename A>
-std::vector<T, A>
-set_union(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs)
-{
-    assert(std::is_sorted(lhs.begin(), lhs.end()));
-    assert(std::is_sorted(rhs.begin(), rhs.end()));
-
-    std::vector<T, A> _union;
-
-    set_union(
-        lhs.begin(),
-        lhs.end(),
-        rhs.begin(),
-        rhs.end(),
-        back_inserter(_union));
-
-    return _union;
-}
-
-template <typename T, typename A>
-std::vector<T, A>
-set_difference(const std::vector<T, A>& lhs, const std::vector<T, A>& rhs)
-{
-    assert(std::is_sorted(lhs.begin(), lhs.end()));
-    assert(std::is_sorted(rhs.begin(), rhs.end()));
-
-    std::vector<T, A> _difference;
-
-    set_difference(
-        lhs.begin(),
-        lhs.end(),
-        rhs.begin(),
-        rhs.end(),
-        back_inserter(_difference));
-
-    return _difference;
-}
 
 template <typename T, typename A>
 void insert_set(std::vector<T, A>& lhs, T element)
@@ -93,73 +38,41 @@ void insert_set(std::vector<T, A>& lhs, const std::vector<T, A>& rhs)
 template <typename T, typename A>
 bool contains(const std::vector<T, A>& vec, const T& val)
 {
-    return std::find(vec.begin(), vec.end(), val) != vec.end();
-}
-
-template <typename T, typename C, typename A>
-bool contains(const std::set<T, C, A>& set, const T& val)
-{
-    return set.find(val) != set.end();
-}
-
-template <typename T, typename H, typename KEq, typename A>
-bool contains(const std::unordered_set<T, H, KEq, A>& set, const T& val)
-{
-    return set.find(val) != set.end();
-}
-
-template <typename K, typename V, typename H, typename KEq, typename A>
-bool contains_key(const std::unordered_map<K, V, H, KEq, A>& map, const K& key)
-{
-    return map.find(key) != map.end();
-}
-
-template <typename K, typename V, typename C, typename A>
-bool contains_key(const std::map<K, V, C, A>& map, const K& key)
-{
-    return map.find(key) != map.end();
+    return std::ranges::find(vec, val) != vec.end();
 }
 
 template <class T, class A>
 extern void sort_unique(std::vector<T, A>& vec)
 {
-    std::sort(vec.begin(), vec.end());
-    vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
+    std::ranges::sort(vec);
+    const auto [first, last] = std::ranges::unique(vec);
+    vec.erase(first, last);
+}
+
+template <class T>
+extern bool is_sorted_unique(const std::vector<T>& values)
+{
+    return std::ranges::adjacent_find(values) != values.end();
 }
 
 template <class T>
 extern bool is_unique(const std::vector<T>& values)
 {
     std::vector<T> temp(values.begin(), values.end());
-    std::sort(temp.begin(), temp.end());
-    return std::adjacent_find(temp.begin(), temp.end()) == temp.end();
+    std::ranges::sort(temp);
+    return is_sorted_unique(temp);
 }
 
 template <class T>
-extern bool is_sorted_unique(const std::vector<T>& values)
-{
-    for (size_t i = 1; i < values.size(); ++i) {
-        if (values[i - 1] >= values[i]) return false;
-    }
-    return true;
-}
-
-template <class T>
-bool in_bounds(int index, const T& container)
+bool in_bounds(std::signed_integral auto index, const T& container)
 {
     return index >= 0 && static_cast<size_t>(index) < container.size();
 }
 
 template <class T>
-bool in_bounds(long index, const T& container)
+bool in_bounds(std::unsigned_integral auto index, const T& container)
 {
-    return index >= 0 && static_cast<size_t>(index) < container.size();
-}
-
-template <class T>
-bool in_bounds(size_t index, const T& container)
-{
-    return index < container.size();
+    return static_cast<size_t>(index) < container.size();
 }
 
 template <typename Iterator, typename Sentinel, typename T>

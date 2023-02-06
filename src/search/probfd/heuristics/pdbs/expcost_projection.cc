@@ -177,7 +177,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
         // Generate successors
         for (const StateRank& succ : greedy_successors) {
             if (!abstract_state_space_.goal_state_flags_[succ.id] &&
-                !utils::contains(closed, succ)) {
+                !closed.contains(succ)) {
                 closed.insert(succ);
                 open.push_back(succ);
             }
@@ -341,7 +341,7 @@ void ExpCostProjection::verify(
         StateRank s = queue.front();
         queue.pop_front();
 
-        assert(utils::contains(visited, StateID(s.id)));
+        assert(visited.contains(StateID(s.id)));
         visited.erase(StateID(s.id));
 
         if (!utils::contains(proper_states, StateID(s.id))) {
@@ -381,9 +381,8 @@ void ExpCostProjection::verify(
             for (const auto& [succ, prob] : successor_dist) {
                 constr.insert(succ.id, prob);
 
-                if (!utils::contains(seen, succ)) {
+                if (seen.insert(succ).second) {
                     queue.push_back(succ);
-                    seen.insert(succ);
                 }
             }
         }
@@ -407,7 +406,7 @@ void ExpCostProjection::verify(
          s.id != static_cast<int>(state_mapper_->num_states());
          ++s.id) {
         if (utils::contains(proper_states, StateID(s.id)) &&
-            utils::contains(seen, s)) {
+            seen.contains(s)) {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {
             assert(value_table[s.id] == INFINITE_VALUE);

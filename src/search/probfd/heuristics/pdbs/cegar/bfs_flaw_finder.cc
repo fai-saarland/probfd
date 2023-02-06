@@ -100,7 +100,7 @@ bool BFSFlawFinder<PDBType>::expand(
                     const int goal_val = fact.get_value();
 
                     if (terminal_state[goal_var].get_value() != goal_val &&
-                        !utils::contains(base.global_blacklist, goal_var) &&
+                        !base.global_blacklist.contains(goal_var) &&
                         utils::contains(base.remaining_goals, goal_var)) {
                         flaw_list.emplace_back(true, solution_index, goal_var);
                     }
@@ -131,7 +131,7 @@ bool BFSFlawFinder<PDBType>::expand(
 
             // We ignore blacklisted variables
             const bool is_blacklist_var =
-                utils::contains(base.global_blacklist, pre_var);
+                base.global_blacklist.contains(pre_var);
 
             if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
                 assert(
@@ -156,7 +156,7 @@ bool BFSFlawFinder<PDBType>::expand(
             std::vector<int> successor =
                 this->apply_op_to_state(state, outcome);
 
-            if (!utils::contains(closed, successor)) {
+            if (!closed.contains(successor)) {
                 closed.insert(successor);
                 open.push_back(successor);
             }
