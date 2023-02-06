@@ -200,8 +200,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
                 for (const StateRank& succ : successors) {
                     if (abstract_state_space_.goal_state_flags_[succ.id]) {
                         goals.push_back(succ);
-                    } else if (!utils::contains(closed, succ)) {
-                        closed.insert(succ);
+                    } else if (closed.insert(succ).second) {
                         open.push_back(succ);
                         predecessors[succ] = PredecessorList();
                     }
@@ -231,8 +230,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
         rng->shuffle(predecessors[s]);
 
         for (const auto& [pstate, sel_op] : predecessors[s]) {
-            if (!utils::contains(closed, pstate)) {
-                closed.insert(pstate);
+            if (closed.insert(pstate).second) {
                 open.push_back(pstate);
 
                 // Collect all equivalent greedy operators
@@ -341,7 +339,7 @@ void MaxProbProjection::verify(
         StateRank s = queue.front();
         queue.pop_front();
 
-        assert(utils::contains(visited, StateID(s.id)));
+        assert(visited.contains(StateID(s.id)));
         visited.erase(StateID(s.id));
 
         if (abstract_state_space_.goal_state_flags_[s.id]) {
@@ -373,9 +371,8 @@ void MaxProbProjection::verify(
             for (const auto& [succ, prob] : successor_dist) {
                 constr.insert(succ.id, prob);
 
-                if (!utils::contains(seen, succ)) {
+                if (seen.insert(succ).second) {
                     queue.push_back(succ);
-                    seen.insert(succ);
                 }
             }
         }
@@ -396,7 +393,7 @@ void MaxProbProjection::verify(
     std::vector<double> solution = solver.extract_solution();
 
     for (StateRank s(0); s.id != static_cast<int>(value_table.size()); ++s.id) {
-        if (utils::contains(seen, s)) {
+        if (seen.contains(s)) {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {
             assert(0_vt == value_table[s.id]);

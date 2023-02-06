@@ -147,10 +147,9 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
         // TODO: this is not very efficient since each pattern is stored twice.
         // Needs some optimization
         const Pattern& pattern = pattern_collection->front();
-        if (!utils::contains(pattern_set, pattern)) {
+        if (pattern_set.insert(pattern).second) {
             // new pattern detected, so no stagnation
             stagnation = false;
-            pattern_set.insert(pattern);
 
             // decrease size limit
             shared_ptr<PDBType>& pdb = pdb_collection->front();

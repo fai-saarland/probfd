@@ -12,9 +12,9 @@
 #include "probfd/engine_interfaces/transition_generator.h"
 
 #include "utils/collections.h"
-#include "utils/range_proxy.h"
 
 #include <memory>
+#include <ranges>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -30,7 +30,7 @@ template <>
 class StateIDMap<heuristics::pdbs::StateRank> {
 public:
     using visited_iterator = std::set<int>::const_iterator;
-    using visited_range = utils::RangeProxy<visited_iterator>;
+    using visited_range = std::ranges::subrange<visited_iterator>;
 
     explicit StateIDMap() = default;
 

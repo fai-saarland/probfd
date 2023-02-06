@@ -255,9 +255,8 @@ private:
 
         statistics_.trial_length += current_trial_.size();
         if (stop_at_consistent_ == TrialTerminationCondition::DoublyVisited) {
-            for (auto it = current_trial_.begin(); it != current_trial_.end();
-                 ++it) {
-                auto& info = this->get_state_info(*it);
+            for (const StateID state : current_trial_) {
+                auto& info = this->get_state_info(state);
                 assert(info.is_on_trial());
                 info.clear_trial_flag();
             }
@@ -439,11 +438,9 @@ private:
 
         queue_.emplace_back(state);
         ExplorationInformation& e = queue_.back();
-        for (auto it = this->selected_transition_.begin();
-             it != this->selected_transition_.end();
-             ++it) {
-            if (it->item != state) {
-                e.successors.push_back(it->item);
+        for (const StateID sel : this->selected_transition_.elements()) {
+            if (sel != state) {
+                e.successors.push_back(sel);
             }
         }
 

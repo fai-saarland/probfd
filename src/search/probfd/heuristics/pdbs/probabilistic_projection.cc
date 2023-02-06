@@ -3,6 +3,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include <algorithm>
+#include <compare>
 #include <deque>
 #include <numeric>
 #include <set>
@@ -23,27 +24,20 @@ struct ProgressionOperatorFootprint {
         : precondition_hash(precondition_hash)
         , successors(op.outcomes.begin(), op.outcomes.end())
     {
-        std::sort(successors.begin(), successors.end());
+        std::ranges::sort(successors);
     }
 
-    friend bool operator<(
+    friend auto operator<=>(
         const ProgressionOperatorFootprint& a,
-        const ProgressionOperatorFootprint& b)
-    {
-        return std::tie(a.precondition_hash, a.successors) <
-               std::tie(b.precondition_hash, b.successors);
-    }
+        const ProgressionOperatorFootprint& b) = default;
 };
 
 struct OutcomeInfo {
     StateRank base_effect = StateRank(0);
     std::vector<int> missing_pres;
 
-    friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b)
-    {
-        return std::tie(a.base_effect, a.missing_pres) ==
-               std::tie(b.base_effect, b.missing_pres);
-    }
+    friend auto
+    operator<=>(const OutcomeInfo& a, const OutcomeInfo& b) = default;
 };
 
 } // namespace
@@ -107,13 +101,11 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
             }
 
             for (const auto& [var, val] : local_effect) {
-                auto beg = utils::make_transform_iterator(
-                    local_precondition.begin(),
+                auto pre_it = std::ranges::lower_bound(
+                    local_precondition,
+                    var,
+                    std::ranges::less(),
                     &FactPair::var);
-                auto end = utils::make_transform_iterator(
-                    local_precondition.end(),
-                    &FactPair::var);
-                auto pre_it = utils::find_sorted(beg, end, var);
 
                 int val_change = val;
 
@@ -121,7 +113,7 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
                     vars_eff_not_pre.emplace_back(var, 0);
                     info.missing_pres.push_back(var);
                 } else {
-                    val_change -= pre_it.base->value;
+                    val_change -= pre_it->value;
                 }
 
                 info.base_effect += mapper.from_fact(var, val_change);
@@ -156,11 +148,9 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
             std::vector<FactPair> precondition;
             precondition.reserve(local_precondition.size() + values.size());
 
-            std::merge(
-                local_precondition.begin(),
-                local_precondition.end(),
-                values.begin(),
-                values.end(),
+            std::ranges::merge(
+                local_precondition,
+                values,
                 std::back_inserter(precondition));
 
             if (operator_pruning) {

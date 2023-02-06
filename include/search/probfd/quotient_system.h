@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <ranges>
 #include <set>
 #include <unordered_set>
 #include <vector>
@@ -104,7 +105,7 @@ public:
     const_iterator begin() const;
     const_iterator end() const;
 
-    utils::RangeProxy<QuotientStateIDIterator>
+    std::ranges::subrange<QuotientStateIDIterator, QuotientStateIDIterator>
     quotient_range(const StateID& state_id) const;
 
     StateID translate_state_id(const StateID& sid) const;
@@ -129,25 +130,31 @@ public:
     ActionID
     get_original_action_id(const StateID& sid, const ActionID& a) const;
 
-    template <typename Range>
-    void build_quotient(Range& range)
+    template <std::ranges::input_range StateIDRange>
+    void build_quotient(StateIDRange&& range)
+        requires(
+            std::is_same_v<std::ranges::range_value_t<StateIDRange>, StateID>)
     {
-        this->build_quotient(range.begin(), range.end());
+        this->build_quotient(
+            std::ranges::begin(range),
+            std::ranges::end(range));
     }
 
-    template <typename StateIDIterator>
+    template <std::input_iterator StateIDIterator>
     void build_quotient(StateIDIterator begin, StateIDIterator end)
+        requires(std::is_same_v<std::iter_value_t<StateIDIterator>, StateID>)
     {
         if (begin != end) {
             this->build_quotient(begin, end, *begin);
         }
     }
 
-    template <typename StateIDIterator>
+    template <std::input_iterator StateIDIterator>
     void build_quotient(
         StateIDIterator begin,
         StateIDIterator end,
         const StateID& rid)
+        requires(std::is_same_v<std::iter_value_t<StateIDIterator>, StateID>)
     {
         this->build_quotient(
             begin,
@@ -156,14 +163,21 @@ public:
             utils::infinite_iterator<std::vector<OperatorID>>());
     }
 
-    template <typename StateIDIterator, typename ActionFilterIterator>
+    template <
+        std::input_iterator StateIDIterator,
+        std::input_iterator ActionFilterIterator>
     void build_quotient(
         StateIDIterator begin,
         StateIDIterator end,
         const StateID& rid,
         ActionFilterIterator filter_it)
+        requires(
+            std::is_same_v<std::iter_value_t<StateIDIterator>, StateID> &&
+            std::is_same_v<
+                std::iter_value_t<ActionFilterIterator>,
+                std::vector<OperatorID>>)
     {
-        assert(std::find(begin, end, rid) != end);
+        assert(utils::contains(std::ranges::subrange(begin, end), rid));
 
         if (!cache_) {
             fallback_->build_quotient(begin, end, rid, filter_it);
@@ -187,10 +201,7 @@ public:
             QuotientInformation& info = state_infos_[state_id];
             assert(info.states[0] == state_id);
 
-            std::move(
-                info.parents.begin(),
-                info.parents.end(),
-                std::back_inserter(parents));
+            std::ranges::move(info.parents, std::back_inserter(parents));
 
             // Release Memory
             decltype(info.parents)().swap(info.parents);
@@ -220,14 +231,12 @@ public:
             }
         }
 
-        auto rem_it = std::remove_if(
-            parents.begin(),
-            parents.end(),
-            [rid, this](StateID parent) {
+        const auto [first, last] =
+            std::ranges::remove_if(parents, [rid, this](StateID parent) {
                 return state_infos_[parent].states[0] != rid;
             });
 
-        parents.erase(rem_it, parents.end());
+        parents.erase(first, last);
         utils::sort_unique(parents);
         parents.shrink_to_fit();
 
@@ -249,7 +258,7 @@ public:
                 for (; aop != aop_end; ++aop) {
                     auto succ_e = succ + operators[*aop].get_outcomes().size();
                     for (; succ != succ_e; ++succ) {
-                        if (utils::contains(states_set, *succ)) {
+                        if (states_set.contains(*succ)) {
                             *succ = rid;
                         }
                         // *succ = state_infos_[*succ].states[0];
@@ -259,22 +268,13 @@ public:
             }
         }
 
+        assert(!state_infos_[rid].states.empty());
+        assert(state_infos_[rid].states[0] == rid);
+        assert(!utils::contains(state_infos_[rid].parents, rid));
+        assert(utils::is_unique(state_infos_[rid].states));
+        assert(utils::is_unique(state_infos_[rid].parents));
+
 #ifndef NDEBUG
-        {
-            const QuotientInformation& qinfo = state_infos_[rid];
-            assert(!qinfo.states.empty());
-            assert(qinfo.states[0] == rid);
-            assert(!utils::contains(qinfo.parents, rid));
-
-            std::vector<StateID> uqs = qinfo.states;
-            std::sort(uqs.begin(), uqs.end());
-            assert(std::unique(uqs.begin(), uqs.end()) == uqs.end());
-
-            uqs = qinfo.parents;
-            std::sort(uqs.begin(), uqs.end());
-            assert(std::unique(uqs.begin(), uqs.end()) == uqs.end());
-        }
-
         verify_cache_consistency();
 #endif
     }
@@ -316,7 +316,7 @@ private:
 
             auto succ_src_end = succ_src + op.get_outcomes().size();
             for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {
-                const bool member = utils::contains(quotient_states, *succ_src);
+                const bool member = quotient_states.contains(*succ_src);
                 *succ_dest = member ? rid : *succ_src;
                 self_loop = self_loop && (*succ_dest == rid);
                 succ_dest = k;

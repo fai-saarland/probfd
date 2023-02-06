@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <compare>
 #include <istream>
 #include <memory>
 #include <set>
@@ -45,12 +46,8 @@ struct ExplicitEffect {
 
     ExplicitEffect(int var, int value, vector<FactPair>&& conditions);
 
-    friend bool
-    operator<(const ExplicitEffect& eff1, const ExplicitEffect& eff2)
-    {
-        return std::tie(eff1.fact, eff1.conditions) <
-               std::tie(eff2.fact, eff2.conditions);
-    }
+    friend auto
+    operator<=>(const ExplicitEffect&, const ExplicitEffect&) = default;
 };
 
 struct DeterministicOperator {
@@ -305,7 +302,7 @@ ExplicitEffect::ExplicitEffect(
     : fact(var, value)
     , conditions(std::move(conditions))
 {
-    std::sort(this->conditions.begin(), this->conditions.end());
+    std::ranges::sort(this->conditions);
 }
 
 ProbabilisticOutcome::ProbabilisticOutcome(
@@ -354,8 +351,8 @@ DeterministicOperator::DeterministicOperator(std::istream& in, bool use_metric)
 
     assert(cost >= 0);
 
-    std::sort(preconditions.begin(), preconditions.end());
-    std::sort(effects.begin(), effects.end());
+    std::ranges::sort(preconditions);
+    std::ranges::sort(effects);
 }
 
 void DeterministicOperator::read_pre_post(std::istream& in)

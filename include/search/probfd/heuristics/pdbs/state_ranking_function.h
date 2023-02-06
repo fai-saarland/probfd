@@ -7,10 +7,8 @@
 #include "probfd/task_proxy.h"
 #include "probfd/types.h"
 
-#include "utils/iterators.h"
-#include "utils/range_proxy.h"
-
 #include <memory>
+#include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
@@ -44,18 +42,18 @@ class StateRankingFunction {
 
 public:
     class PartialAssignmentIterator {
-        using difference_type = void;
+        std::vector<FactPair> partial_state_;
+        const std::vector<VariableInfo>* var_infos_;
+
+        bool done;
+
+    public:
+        using difference_type = std::ptrdiff_t;
         using value_type = std::vector<FactPair>;
         using pointer = std::vector<FactPair>*;
         using reference = std::vector<FactPair>&;
         using iterator_category = std::forward_iterator_tag;
 
-        std::vector<FactPair> partial_state_;
-        const std::vector<VariableInfo>& var_infos_;
-
-        bool done;
-
-    public:
         PartialAssignmentIterator(
             std::vector<FactPair> partial_state,
             const std::vector<VariableInfo>& var_infos);
@@ -63,25 +61,20 @@ public:
         PartialAssignmentIterator& operator++();
         PartialAssignmentIterator& operator--();
 
+        PartialAssignmentIterator operator++(int);
+        PartialAssignmentIterator operator--(int);
+
         reference operator*();
         pointer operator->();
 
-        friend bool operator==(
-            const PartialAssignmentIterator& a,
-            const utils::default_sentinel_t&);
+        friend bool
+        operator==(const PartialAssignmentIterator& a, std::default_sentinel_t);
 
-        friend bool operator!=(
-            const PartialAssignmentIterator& a,
-            const utils::default_sentinel_t&);
+        friend bool
+        operator!=(const PartialAssignmentIterator& a, std::default_sentinel_t);
     };
 
     class StateRankIterator {
-        using difference_type = void;
-        using value_type = const StateRank;
-        using pointer = const StateRank*;
-        using reference = const StateRank&;
-        using iterator_category = std::forward_iterator_tag;
-
         std::vector<int> values_;
         std::vector<int> domains_;
         std::vector<long long int> multipliers_;
@@ -90,21 +83,28 @@ public:
         bool done;
 
     public:
+        using difference_type = std::ptrdiff_t;
+        using value_type = const StateRank;
+        using pointer = const StateRank*;
+        using reference = const StateRank&;
+        using iterator_category = std::forward_iterator_tag;
+
         StateRankIterator(
             StateRank state,
             const std::vector<int>& indices,
             const std::vector<VariableInfo>& var_infos);
 
         StateRankIterator& operator++();
+        StateRankIterator operator++(int);
 
         reference operator*();
         pointer operator->();
 
         friend bool
-        operator==(const StateRankIterator&, const utils::default_sentinel_t&);
+        operator==(const StateRankIterator&, std::default_sentinel_t);
 
         friend bool
-        operator!=(const StateRankIterator&, const utils::default_sentinel_t&);
+        operator!=(const StateRankIterator&, std::default_sentinel_t);
     };
 
 public:
@@ -170,17 +170,17 @@ public:
     PartialAssignmentIterator
     partial_assignments_begin(std::vector<FactPair> partial_state) const;
 
-    utils::default_sentinel_t partial_assignments_end() const;
+    std::default_sentinel_t partial_assignments_end() const;
 
-    utils::RangeProxy<PartialAssignmentIterator, utils::default_sentinel_t>
+    std::ranges::subrange<PartialAssignmentIterator, std::default_sentinel_t>
     partial_assignments(std::vector<FactPair> partial_state) const;
 
     StateRankIterator
     state_ranks_begin(StateRank offset, std::vector<int> indices) const;
 
-    utils::default_sentinel_t state_ranks_end() const;
+    std::default_sentinel_t state_ranks_end() const;
 
-    utils::RangeProxy<StateRankIterator, utils::default_sentinel_t>
+    std::ranges::subrange<StateRankIterator, std::default_sentinel_t>
     state_ranks(StateRank offset, std::vector<int> indices) const;
 
     long long int get_multiplier(int var) const;

@@ -9,6 +9,7 @@
 #include <cassert>
 #include <iterator>
 #include <limits>
+#include <ranges>
 #include <type_traits>
 #include <vector>
 
@@ -219,9 +220,7 @@ private:
         do {
             const bool is_complete = policy_exploration(state);
             if (is_complete) {
-                vi_res = value_iteration<false>(
-                    visited_states_.begin(),
-                    visited_states_.end());
+                vi_res = value_iteration<false>(visited_states_);
             }
             visited_states_.clear();
             ++statistics_.iterations;
@@ -251,16 +250,16 @@ private:
         info.successors.reserve(transition_.size());
 
         if (open_list_ == nullptr) {
-            for (auto it = transition_.begin(); it != transition_.end(); ++it) {
-                if (it->item != state) {
-                    info.successors.push_back(it->item);
+            for (const StateID item : transition_.elements()) {
+                if (item != state) {
+                    info.successors.push_back(item);
                 }
             }
         } else {
             const QAction a = this->get_policy(state);
-            for (auto it = transition_.begin(); it != transition_.end(); ++it) {
-                if (it->item != state) {
-                    open_list_->push(state, a, it->probability, it->item);
+            for (const auto& [item, probability] : transition_) {
+                if (item != state) {
+                    open_list_->push(state, a, probability, item);
                 }
             }
             info.successors.resize(open_list_->size(), StateID::undefined);
@@ -466,9 +465,10 @@ private:
                     } else {
                         if (backtrack_update_type_ ==
                             BacktrackingUpdateType::UntilConvergence) {
-                            auto res = value_iteration<true>(
-                                stack_.begin() + recursiveBacklink,
-                                stack_.end());
+                            auto res =
+                                value_iteration<true>(std::ranges::subrange(
+                                    stack_.begin() + recursiveBacklink,
+                                    stack_.end()));
                             last_value_changed_ = res.first;
                             last_policy_changed_ = res.second;
                             flags.complete = flags.complete && !res.second;
@@ -586,22 +586,22 @@ private:
         stack_.erase(scc_begin, stack_.end());
     }
 
-    template <bool Convergence, typename StateIterator>
+    template <bool Convergence>
     std::pair<bool, bool>
-    value_iteration(StateIterator begin, StateIterator end)
+    value_iteration(const std::ranges::input_range auto& range)
     {
         bool gvc = false;
         bool gpc = false;
         do {
             bool changed = false;
-            for (auto it = begin; it != end; ++it) {
-                auto updated = this->async_update(*it, nullptr, nullptr);
+            for (const StateID state : range) {
+                auto updated = this->async_update(state, nullptr, nullptr);
                 changed = changed || updated.first;
                 gvc = gvc || updated.first;
                 gpc = gpc || updated.second;
                 ++statistics_.bw_updates;
             }
-            
+
             if constexpr (!Convergence) {
                 break;
             } else {

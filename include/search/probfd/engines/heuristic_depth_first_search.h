@@ -240,8 +240,7 @@ private:
                 // statistics_.convergence_value_iterations
                 //           << " on " << visited.size() << " SCCs" <<
                 //           std::endl;
-                auto x =
-                    value_iteration(visited_.begin(), visited_.end(), false);
+                auto x = value_iteration(visited_, false);
                 terminate = !x.first && !x.second;
                 statistics_.convergence_updates +=
                     (statistics_.backtracking_updates - ups);
@@ -442,8 +441,9 @@ private:
                     if (BackwardUpdates ==
                             BacktrackingUpdateType::UntilConvergence &&
                         last_unsolved_successors) {
-                        auto result =
-                            value_iteration(stack_.begin(), end, true);
+                        auto result = value_iteration(
+                            std::ranges::subrange(stack_.begin(), end),
+                            true);
                         last_value_changed = result.first;
                         last_unsolved_successors =
                             result.second || last_unsolved_successors;
@@ -554,9 +554,9 @@ private:
         return LocalStateInfo::ONSTACK;
     }
 
-    template <typename Iterator>
-    std::pair<bool, bool>
-    value_iteration(Iterator begin, Iterator end, bool until_convergence)
+    std::pair<bool, bool> value_iteration(
+        const std::ranges::input_range auto& range,
+        bool until_convergence)
     {
         std::pair<bool, bool> updated_all(false, false);
         bool value_changed = true;
@@ -568,9 +568,7 @@ private:
             value_changed = false;
             policy_graph_changed = false;
 
-            for (auto it = begin; it != end; ++it) {
-                StateID id = *it;
-
+            for (const StateID id : range) {
                 statistics_.backtracking_updates++;
 
                 DMSG(std::cout << "updating " << id << " "
