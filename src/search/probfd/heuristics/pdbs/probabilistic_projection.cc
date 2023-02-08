@@ -109,7 +109,7 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
 
                 int val_change = val;
 
-                if (pre_it == local_precondition.end()) {
+                if (pre_it == local_precondition.end() || pre_it->var != var) {
                     vars_eff_not_pre.emplace_back(var, 0);
                     info.missing_pres.push_back(var);
                 } else {
