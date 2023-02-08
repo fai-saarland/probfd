@@ -56,17 +56,14 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
     struct IncrementalExpansionInfo {
         IncrementalExpansionInfo(
             const StateID& state,
-            value_t cost,
             std::vector<Action> remaining_aops)
             : state(state)
-            , cost(cost)
             , remaining_aops(std::move(remaining_aops))
         {
             assert(!this->remaining_aops.empty());
         }
 
         const StateID state;
-        const value_t cost;
 
         // Applicable operators left to expand
         std::vector<Action> remaining_aops;
@@ -126,9 +123,15 @@ public:
                     e.t_value += succ_prob * state_infos_[succ_id].value;
                 }
 
-                // Maximum Q-value
+                // Minimum Q-value
                 StateInfo& info = state_infos_[e.state];
-                info.value = std::max(e.t_value, info.value);
+
+                if (e.t_value < info.value) {
+                    info.value = e.t_value;
+                }
+
+                assert(!e.remaining_aops.empty());
+                e.remaining_aops.pop_back();
 
                 // If no operators are remaining, we are done.
                 if (e.remaining_aops.empty()) {
@@ -156,24 +159,23 @@ private:
     void setup_next_transition(IncrementalExpansionInfo& e)
     {
         auto& next_action = e.remaining_aops.back();
-        e.t_value = e.cost + this->get_action_cost(e.state, next_action);
+        e.t_value = this->get_action_cost(e.state, next_action);
         e.transition.clear();
         this->generate_successors(e.state, next_action, e.transition);
-        e.remaining_aops.pop_back();
         e.successor = e.transition.begin();
     }
 
     bool push_state(const StateID& state_id)
     {
-        if (state_infos_[state_id].expanded) {
+        StateInfo& info = state_infos_[state_id];
+
+        if (info.expanded) {
             return false;
         }
 
         const State state = this->lookup_state(state_id);
         const TerminationInfo term_info = this->get_termination_info(state);
         const value_t value = term_info.get_cost();
-
-        StateInfo& info = state_infos_[state_id];
 
         info.expanded = true;
         info.value = value;
@@ -197,10 +199,7 @@ private:
         }
 
         ++statistics_.state_expansions;
-        auto& e = expansion_stack_.emplace(
-            state_id,
-            value,
-            std::move(remaining_aops));
+        auto& e = expansion_stack_.emplace(state_id, std::move(remaining_aops));
 
         setup_next_transition(e);
         return true;
