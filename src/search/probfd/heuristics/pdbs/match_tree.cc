@@ -15,31 +15,24 @@ namespace pdbs {
 
 struct MatchTree::Node {
     static const int LEAF_NODE = -1;
-    Node();
+    Node() = default;
     ~Node();
     vector<size_t> applicable_operator_ids;
     // The variable which this node represents.
-    int var_id;
-    int var_domain_size;
+    int var_id = LEAF_NODE;
+    int var_multiplier = 0;
+    int var_domain_size = 0;
     /*
       Each node has one outgoing edge for each possible value of the variable
       and one "star-edge" that is used when the value of the variable is
       undefined.
     */
-    Node** successors;
-    Node* star_successor;
+    Node** successors = nullptr;
+    Node* star_successor = nullptr;
 
-    void initialize(int var_id, int var_domain_size);
+    void initialize(int var_id, int var_multiplier, int var_domain_size);
     bool is_leaf_node() const;
 };
-
-MatchTree::Node::Node()
-    : var_id(LEAF_NODE)
-    , var_domain_size(0)
-    , successors(nullptr)
-    , star_successor(nullptr)
-{
-}
 
 MatchTree::Node::~Node()
 {
@@ -52,11 +45,15 @@ MatchTree::Node::~Node()
     delete star_successor;
 }
 
-void MatchTree::Node::initialize(int var_id_, int var_domain_size_)
+void MatchTree::Node::initialize(
+    int var_id_,
+    int var_multiplier_,
+    int var_domain_size_)
 {
     assert(is_leaf_node());
     assert(var_id_ >= 0);
     var_id = var_id_;
+    var_multiplier = var_multiplier_;
     var_domain_size = var_domain_size_;
     if (var_domain_size > 0) {
         successors = new Node*[var_domain_size];
@@ -71,13 +68,9 @@ bool MatchTree::Node::is_leaf_node() const
     return var_id == LEAF_NODE;
 }
 
-MatchTree::MatchTree(
-    ProbabilisticTaskProxy task_proxy,
-    const Pattern& pattern,
-    const StateRankingFunction& mapper)
+MatchTree::MatchTree(ProbabilisticTaskProxy task_proxy, const Pattern& pattern)
     : task_proxy(task_proxy)
     , pattern(pattern)
-    , mapper(mapper)
     , root(nullptr)
 {
 }
@@ -88,6 +81,7 @@ MatchTree::~MatchTree()
 }
 
 void MatchTree::insert_recursive(
+    const StateRankingFunction& mapper,
     const size_t op_index,
     const vector<FactPair>& progression_preconditions,
     int pre_index,
@@ -106,18 +100,22 @@ void MatchTree::insert_recursive(
         const FactPair& fact = progression_preconditions[pre_index];
         int pattern_var_id = fact.var;
         int var_id = pattern[pattern_var_id];
+        int var_multiplier = mapper.get_multiplier(pattern_var_id);
 
         VariablesProxy variables = task_proxy.get_variables();
         int var_domain_size = variables[var_id].get_domain_size();
 
         // Set up node correctly or insert a new node if necessary.
         if (node->is_leaf_node()) {
-            node->initialize(pattern_var_id, var_domain_size);
+            node->initialize(pattern_var_id, var_multiplier, var_domain_size);
         } else if (node->var_id > pattern_var_id) {
             /* The variable to test has been left out: must insert new
                node and treat it as the "node". */
             Node* new_node = new Node();
-            new_node->initialize(pattern_var_id, var_domain_size);
+            new_node->initialize(
+                pattern_var_id,
+                var_multiplier,
+                var_domain_size);
             // The new node gets the left out variable as its variable.
             *edge_from_parent = new_node;
             new_node->star_successor = node;
@@ -140,6 +138,7 @@ void MatchTree::insert_recursive(
         }
 
         insert_recursive(
+            mapper,
             op_index,
             progression_preconditions,
             pre_index,
@@ -148,10 +147,11 @@ void MatchTree::insert_recursive(
 }
 
 void MatchTree::insert(
+    const StateRankingFunction& mapper,
     const size_t op_index,
     const vector<FactPair>& progression_preconditions)
 {
-    insert_recursive(op_index, progression_preconditions, 0, &root);
+    insert_recursive(mapper, op_index, progression_preconditions, 0, &root);
 }
 
 void MatchTree::get_applicable_operators_recursive(
@@ -172,7 +172,7 @@ void MatchTree::get_applicable_operators_recursive(
 
     if (node->is_leaf_node()) return;
 
-    int temp = abstract_state.id / mapper.get_multiplier(node->var_id);
+    int temp = abstract_state.id / node->var_multiplier;
     int val = temp % node->var_domain_size;
 
     if (node->successors[val]) {

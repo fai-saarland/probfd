@@ -154,6 +154,22 @@ public:
     EvaluationResult evaluate(const StateRank& state) const override;
 };
 
+template <typename PDBType>
+class MergeEvaluator : public engine_interfaces::StateEvaluator<StateRank> {
+    const StateRankingFunction& mapper;
+    const PDBType& left;
+    const PDBType& right;
+
+public:
+    MergeEvaluator(
+        const StateRankingFunction& mapper,
+        const PDBType& left,
+        const PDBType& right);
+
+protected:
+    EvaluationResult evaluate(const StateRank& state) const override;
+};
+
 class BaseAbstractCostFunction : public AbstractCostFunction {
 protected:
     const std::vector<bool>& goal_state_flags_;

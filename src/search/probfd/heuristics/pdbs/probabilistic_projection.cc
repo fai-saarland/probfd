@@ -47,7 +47,7 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
     const StateRankingFunction& mapper,
     bool operator_pruning)
     : initial_state_(mapper.rank(task_proxy.get_initial_state()))
-    , match_tree_(task_proxy, mapper.get_pattern(), mapper)
+    , match_tree_(task_proxy, mapper.get_pattern())
     , goal_state_flags_(mapper.num_states())
 {
     VariablesProxy variables = task_proxy.get_variables();
@@ -163,7 +163,10 @@ ProbabilisticProjection::StateRankSpace::StateRankSpace(
             }
 
             // Now add the progression operators to the match tree
-            match_tree_.insert(abstract_operators_.size(), precondition);
+            match_tree_.insert(
+                mapper,
+                abstract_operators_.size(),
+                precondition);
             abstract_operators_.emplace_back(std::move(new_op));
         }
     }
@@ -230,28 +233,13 @@ ProbabilisticProjection::ProbabilisticProjection(
     const Pattern& pattern,
     bool operator_pruning,
     value_t fill)
-    : ProbabilisticProjection(
-          task_proxy,
-          new StateRankingFunction(task_proxy, pattern),
-          operator_pruning,
-          fill)
+    : state_mapper_(task_proxy, pattern)
+    , abstract_state_space_(task_proxy, state_mapper_, operator_pruning)
+    , value_table(state_mapper_.num_states(), fill)
 {
 }
 
-ProbabilisticProjection::ProbabilisticProjection(
-    const ProbabilisticTaskProxy& task_proxy,
-    StateRankingFunction* mapper,
-    bool operator_pruning,
-    value_t fill)
-    : state_mapper_(mapper)
-    , abstract_state_space_(task_proxy, *state_mapper_, operator_pruning)
-    , value_table(state_mapper_->num_states(), fill)
-{
-    ::task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
-}
-
-std::shared_ptr<StateRankingFunction>
+const StateRankingFunction&
 ProbabilisticProjection::get_abstract_state_mapper() const
 {
     return state_mapper_;
@@ -259,7 +247,7 @@ ProbabilisticProjection::get_abstract_state_mapper() const
 
 unsigned int ProbabilisticProjection::num_states() const
 {
-    return state_mapper_->num_states();
+    return state_mapper_.num_states();
 }
 
 bool ProbabilisticProjection::is_dead_end(const State& s) const
@@ -289,18 +277,18 @@ value_t ProbabilisticProjection::lookup(const StateRank& s) const
 
 StateRank ProbabilisticProjection::get_abstract_state(const State& s) const
 {
-    return state_mapper_->rank(s);
+    return state_mapper_.rank(s);
 }
 
 StateRank
 ProbabilisticProjection::get_abstract_state(const std::vector<int>& s) const
 {
-    return state_mapper_->rank(s);
+    return state_mapper_.rank(s);
 }
 
 const Pattern& ProbabilisticProjection::get_pattern() const
 {
-    return state_mapper_->get_pattern();
+    return state_mapper_.get_pattern();
 }
 
 void ProbabilisticProjection::dump_graphviz(

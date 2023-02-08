@@ -50,15 +50,16 @@ public:
 
 ExpCostProjection::ExpCostProjection(
     const ProbabilisticTaskProxy& task_proxy,
-    const Pattern& variables,
+    const Pattern& pattern,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
-    : ExpCostProjection(
+    : ProbabilisticProjection(
           task_proxy,
-          new StateRankingFunction(task_proxy, variables),
+          pattern,
           operator_pruning,
-          heuristic)
+          INFINITE_VALUE)
 {
+    compute_value_table(heuristic);
 }
 
 ExpCostProjection::ExpCostProjection(
@@ -84,22 +85,21 @@ ExpCostProjection::ExpCostProjection(
           operator_pruning,
           INFINITE_VALUE)
 {
-    compute_value_table(
-        IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
+    compute_value_table(IncrementalPPDBEvaluator(pdb, &state_mapper_, add_var));
 }
 
 ExpCostProjection::ExpCostProjection(
     const ProbabilisticTaskProxy& task_proxy,
-    StateRankingFunction* mapper,
-    bool operator_pruning,
-    const StateRankEvaluator& heuristic)
+    const ExpCostProjection& left,
+    const ExpCostProjection& right,
+    bool operator_pruning)
     : ProbabilisticProjection(
           task_proxy,
-          mapper,
+          utils::merge_sorted(left.get_pattern(), right.get_pattern()),
           operator_pruning,
           INFINITE_VALUE)
 {
-    compute_value_table(heuristic);
+    compute_value_table(MergeEvaluator(state_mapper_, left, right));
 }
 
 EvaluationResult ExpCostProjection::evaluate(const State& s) const
@@ -117,7 +117,7 @@ AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
-    AbstractPolicy policy(state_mapper_->num_states());
+    AbstractPolicy policy(state_mapper_.num_states());
 
     assert(lookup(abstract_state_space_.initial_state_) != INFINITE_VALUE);
 
@@ -281,8 +281,8 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
 
 #if !defined(NDEBUG)
     std::cout << "(II) Pattern [";
-    for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
-        std::cout << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
+    for (unsigned i = 0; i < state_mapper_.get_pattern().size(); ++i) {
+        std::cout << (i > 0 ? ", " : "") << state_mapper_.get_pattern()[i];
     }
 
     std::cout << "]: value="
@@ -327,7 +327,7 @@ void ExpCostProjection::verify(
     named_vector::NamedVector<lp::LPVariable> variables;
 
     for (StateRank s = StateRank(0);
-         s.id != static_cast<int>(state_mapper_->num_states());
+         s.id != static_cast<int>(state_mapper_.num_states());
          ++s.id) {
         variables.emplace_back(0_vt, inf, 0_vt);
     }
@@ -403,7 +403,7 @@ void ExpCostProjection::verify(
     std::vector<double> solution = solver.extract_solution();
 
     for (StateRank s = StateRank(0);
-         s.id != static_cast<int>(state_mapper_->num_states());
+         s.id != static_cast<int>(state_mapper_.num_states());
          ++s.id) {
         if (utils::contains(proper_states, StateID(s.id)) &&
             seen.contains(s)) {

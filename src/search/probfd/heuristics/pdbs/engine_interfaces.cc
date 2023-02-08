@@ -183,8 +183,44 @@ IncrementalPPDBEvaluator<PDBType>::evaluate(const StateRank& state) const
     return pdb.evaluate(to_parent_state(state));
 }
 
+template <typename PDBType>
+MergeEvaluator<PDBType>::MergeEvaluator(
+    const StateRankingFunction& mapper,
+    const PDBType& left,
+    const PDBType& right)
+    : mapper(mapper)
+    , left(left)
+    , right(right)
+{
+}
+
+template <typename PDBType>
+EvaluationResult MergeEvaluator<PDBType>::evaluate(const StateRank& state) const
+{
+    StateRank lstate = mapper.convert(state, left.get_pattern());
+
+    auto leval = left.evaluate(lstate);
+
+    if (leval.is_unsolvable()) {
+        return leval;
+    }
+
+    StateRank rstate = mapper.convert(state, right.get_pattern());
+
+    auto reval = right.evaluate(rstate);
+
+    if (reval.is_unsolvable()) {
+        return reval;
+    }
+
+    return {false, std::min(leval.get_estimate(), reval.get_estimate())};
+}
+
 template class IncrementalPPDBEvaluator<ExpCostProjection>;
 template class IncrementalPPDBEvaluator<MaxProbProjection>;
+
+template class MergeEvaluator<ExpCostProjection>;
+template class MergeEvaluator<MaxProbProjection>;
 
 } // namespace pdbs
 } // namespace heuristics

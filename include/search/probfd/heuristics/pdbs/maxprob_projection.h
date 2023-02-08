@@ -18,30 +18,29 @@ namespace pdbs {
 
 class MaxProbProjection : public ProbabilisticProjection {
 public:
-    explicit MaxProbProjection(
+    MaxProbProjection(
         const ProbabilisticTaskProxy& task_proxy,
         const Pattern& pattern,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(-1_vt));
 
-    explicit MaxProbProjection(
+    MaxProbProjection(
         const ProbabilisticTaskProxy& task_proxy,
         const ::pdbs::PatternDatabase& pdb,
         bool operator_pruning = true);
 
-    explicit MaxProbProjection(
+    MaxProbProjection(
         const ProbabilisticTaskProxy& task_proxy,
         const MaxProbProjection& pdb,
         int add_var,
         bool operator_pruning = true);
 
-    explicit MaxProbProjection(
+    MaxProbProjection(
         const ProbabilisticTaskProxy& task_proxy,
-        StateRankingFunction* mapper,
-        bool operator_pruning = true,
-        const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(-1_vt));
+        const MaxProbProjection& left,
+        const MaxProbProjection& right,
+        bool operator_pruning = true);
 
     [[nodiscard]] EvaluationResult evaluate(const State& s) const;
     [[nodiscard]] EvaluationResult evaluate(const StateRank& s) const;

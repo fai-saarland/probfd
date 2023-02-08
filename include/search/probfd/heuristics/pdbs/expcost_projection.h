@@ -16,30 +16,29 @@ namespace pdbs {
 
 class ExpCostProjection : public ProbabilisticProjection {
 public:
-    explicit ExpCostProjection(
+    ExpCostProjection(
         const ProbabilisticTaskProxy& task_proxy,
         const Pattern& variables,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(0_vt));
 
-    explicit ExpCostProjection(
+    ExpCostProjection(
         const ProbabilisticTaskProxy& task_proxy,
         const ::pdbs::PatternDatabase& pdb,
         bool operator_pruning = true);
 
-    explicit ExpCostProjection(
+    ExpCostProjection(
         const ProbabilisticTaskProxy& task_proxy,
         const ExpCostProjection& pdb,
         int add_var,
         bool operator_pruning = true);
 
-    explicit ExpCostProjection(
+    ExpCostProjection(
         const ProbabilisticTaskProxy& task_proxy,
-        StateRankingFunction* mapper,
-        bool operator_pruning = true,
-        const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(0_vt));
+        const ExpCostProjection& left,
+        const ExpCostProjection& right,
+        bool operator_pruning = true);
 
     [[nodiscard]] EvaluationResult evaluate(const State& s) const;
     [[nodiscard]] EvaluationResult evaluate(const StateRank& s) const;

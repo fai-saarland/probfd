@@ -25,13 +25,13 @@ class MatchTree {
     // See PatternDatabase for documentation on pattern and hash_multipliers.
     ProbabilisticTaskProxy task_proxy;
     Pattern pattern;
-    const StateRankingFunction& mapper;
     Node* root;
 
     // Pointer to first operator
     const AbstractOperator* first;
 
     void insert_recursive(
+        const StateRankingFunction& mapper,
         size_t op_index,
         const std::vector<FactPair>& progression_preconditions,
         int pre_index,
@@ -46,16 +46,14 @@ class MatchTree {
 
 public:
     // Initialize an empty match tree.
-    MatchTree(
-        ProbabilisticTaskProxy task_proxy,
-        const Pattern& pattern,
-        const StateRankingFunction& mapper);
+    MatchTree(ProbabilisticTaskProxy task_proxy, const Pattern& pattern);
 
     ~MatchTree();
 
     /* Insert an abstract operator into the match tree, creating or
        enlarging it. */
     void insert(
+        const StateRankingFunction& mapper,
         size_t op_index,
         const std::vector<FactPair>& progression_preconditions);
 

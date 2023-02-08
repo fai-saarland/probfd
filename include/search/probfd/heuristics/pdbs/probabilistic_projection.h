@@ -45,7 +45,7 @@ class ProbabilisticProjection {
     };
 
 protected:
-    std::shared_ptr<StateRankingFunction> state_mapper_;
+    StateRankingFunction state_mapper_;
     StateRankSpace abstract_state_space_;
     std::vector<StateID> dead_ends_;
     std::vector<value_t> value_table;
@@ -57,14 +57,8 @@ protected:
         bool operator_pruning,
         value_t fill);
 
-    ProbabilisticProjection(
-        const ProbabilisticTaskProxy& task_proxy,
-        StateRankingFunction* mapper,
-        bool operator_pruning,
-        value_t fill);
-
 public:
-    std::shared_ptr<StateRankingFunction> get_abstract_state_mapper() const;
+    const StateRankingFunction& get_abstract_state_mapper() const;
 
     unsigned int num_states() const;
 

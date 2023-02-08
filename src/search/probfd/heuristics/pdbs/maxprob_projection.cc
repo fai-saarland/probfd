@@ -24,12 +24,9 @@ MaxProbProjection::MaxProbProjection(
     const Pattern& pattern,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
-    : MaxProbProjection(
-          task_proxy,
-          new StateRankingFunction(task_proxy, pattern),
-          operator_pruning,
-          heuristic)
+    : ProbabilisticProjection(task_proxy, pattern, operator_pruning, 0_vt)
 {
+    compute_value_table(heuristic);
 }
 
 MaxProbProjection::MaxProbProjection(
@@ -55,18 +52,21 @@ MaxProbProjection::MaxProbProjection(
           operator_pruning,
           0_vt)
 {
-    compute_value_table(
-        IncrementalPPDBEvaluator(pdb, state_mapper_.get(), add_var));
+    compute_value_table(IncrementalPPDBEvaluator(pdb, &state_mapper_, add_var));
 }
 
 MaxProbProjection::MaxProbProjection(
     const ProbabilisticTaskProxy& task_proxy,
-    StateRankingFunction* mapper,
-    bool operator_pruning,
-    const StateRankEvaluator& heuristic)
-    : ProbabilisticProjection(task_proxy, mapper, operator_pruning, 0_vt)
+    const MaxProbProjection& left,
+    const MaxProbProjection& right,
+    bool operator_pruning)
+    : ProbabilisticProjection(
+          task_proxy,
+          utils::merge_sorted(left.get_pattern(), right.get_pattern()),
+          operator_pruning,
+          0_vt)
 {
-    compute_value_table(heuristic);
+    compute_value_table(MergeEvaluator(state_mapper_, left, right));
 }
 
 void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
@@ -98,7 +98,7 @@ void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
 
     std::vector<StateID> proper_states;
 
-    std::vector<Interval> interval_value_table(state_mapper_->num_states());
+    std::vector<Interval> interval_value_table(state_mapper_.num_states());
 
     vi.solve(
         abstract_state_space_.initial_state_,
@@ -113,8 +113,8 @@ void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
 
 #if !defined(NDEBUG)
     std::cout << "(II) Pattern [";
-    for (unsigned i = 0; i < state_mapper_->get_pattern().size(); ++i) {
-        std::cout << (i > 0 ? ", " : "") << state_mapper_->get_pattern()[i];
+    for (unsigned i = 0; i < state_mapper_.get_pattern().size(); ++i) {
+        std::cout << (i > 0 ? ", " : "") << state_mapper_.get_pattern()[i];
     }
 
     std::cout << "]: value="
@@ -151,7 +151,7 @@ AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
 
     assert(!is_dead_end(abstract_state_space_.initial_state_));
 
-    AbstractPolicy policy(state_mapper_->num_states());
+    AbstractPolicy policy(state_mapper_.num_states());
 
     // return empty policy indicating unsolvable
     if (abstract_state_space_
@@ -325,7 +325,7 @@ void MaxProbProjection::verify(
     named_vector::NamedVector<lp::LPVariable> variables;
 
     for (StateRank s = StateRank(0);
-         s.id != static_cast<int>(state_mapper_->num_states());
+         s.id != static_cast<int>(state_mapper_.num_states());
          ++s.id) {
         variables.emplace_back(-1_vt, 0_vt, 1_vt);
     }

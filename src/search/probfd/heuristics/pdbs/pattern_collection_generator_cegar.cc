@@ -39,77 +39,6 @@ using namespace cegar;
 
 namespace {
 static const std::string token = "CEGAR_PDBs: ";
-
-template <typename PDBType>
-class MergeEvaluator : public engine_interfaces::StateEvaluator<StateRank> {
-    const StateRankingFunction* mapper;
-    const PDBType& left;
-    const PDBType& right;
-
-public:
-    explicit MergeEvaluator(
-        const StateRankingFunction* mapper,
-        const PDBType& left,
-        const PDBType& right)
-        : mapper(mapper)
-        , left(left)
-        , right(right)
-    {
-    }
-
-protected:
-    EvaluationResult evaluate(const StateRank& state) const override
-    {
-        StateRank lstate = mapper->convert(state, left.get_pattern());
-
-        auto leval = left.evaluate(lstate);
-
-        if (leval.is_unsolvable()) {
-            return leval;
-        }
-
-        StateRank rstate = mapper->convert(state, right.get_pattern());
-
-        auto reval = right.evaluate(rstate);
-
-        if (reval.is_unsolvable()) {
-            return reval;
-        }
-
-        return {false, std::min(leval.get_estimate(), reval.get_estimate())};
-    }
-};
-
-template <typename PDBType>
-PDBType* construct_merge_pdb(
-    const ProbabilisticTaskProxy& task_proxy,
-    const PDBType& merge_left,
-    const PDBType& merge_right,
-    bool operator_pruning)
-{
-    const Pattern& left_pattern = merge_left.get_pattern();
-    const Pattern& right_pattern = merge_right.get_pattern();
-
-    Pattern merge_pattern;
-    merge_pattern.reserve(left_pattern.size() + right_pattern.size());
-
-    std::merge(
-        left_pattern.begin(),
-        left_pattern.end(),
-        right_pattern.begin(),
-        right_pattern.end(),
-        std::back_inserter(merge_pattern));
-
-    StateRankingFunction* mapper =
-        new StateRankingFunction(task_proxy, merge_pattern);
-
-    return new PDBType(
-        task_proxy,
-        mapper,
-        operator_pruning,
-        MergeEvaluator<PDBType>(mapper, merge_left, merge_right));
-}
-
 } // namespace
 
 template <typename PDBType>
@@ -145,11 +74,11 @@ template <typename PDBType>
 AbstractSolutionData<PDBType>::AbstractSolutionData(
     const ProbabilisticTaskProxy& task_proxy,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const PDBType& merge_left,
-    const PDBType& merge_right,
+    const PDBType& left,
+    const PDBType& right,
     std::set<int> blacklist,
     bool wildcard)
-    : pdb(construct_merge_pdb(task_proxy, merge_left, merge_right, !wildcard))
+    : pdb(new PDBType(task_proxy, left, right, !wildcard))
     , blacklist(std::move(blacklist))
     , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
     , solved(false)

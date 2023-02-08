@@ -17,6 +17,16 @@
 namespace utils {
 
 template <typename T, typename A>
+std::vector<T, A>
+merge_sorted(const std::vector<T, A>& left, const std::vector<T, A>& right)
+{
+    std::vector<T, A> merged;
+    merged.reserve(left.size() + right.size());
+    std::ranges::merge(left, right, std::back_inserter(merged));
+    return merged;
+}
+
+template <typename T, typename A>
 void insert_set(std::vector<T, A>& lhs, T element)
 {
     assert(std::is_sorted(lhs.begin(), lhs.end()));
