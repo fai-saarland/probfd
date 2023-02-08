@@ -52,7 +52,8 @@ extern void sort_unique(std::vector<T, A>& vec)
 template <class T>
 extern bool is_sorted_unique(const std::vector<T>& values)
 {
-    return std::ranges::adjacent_find(values) != values.end();
+    return std::ranges::is_sorted(values) &&
+           std::ranges::adjacent_find(values) == values.end();
 }
 
 template <class T>
