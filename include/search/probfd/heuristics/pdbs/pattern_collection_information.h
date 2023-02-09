@@ -72,10 +72,10 @@ public:
 };
 
 using ExpCostPatternCollectionInformation =
-    PatternCollectionInformation<ExpCostProjection>;
+    PatternCollectionInformation<SSPPatternDatabase>;
 
 using MaxProbPatternCollectionInformation =
-    PatternCollectionInformation<MaxProbProjection>;
+    PatternCollectionInformation<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

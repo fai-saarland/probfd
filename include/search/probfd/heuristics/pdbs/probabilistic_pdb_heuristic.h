@@ -96,8 +96,8 @@ public:
     static void add_options_to_parser(options::OptionParser& parser);
 };
 
-using MaxProbPDBHeuristic = ProbabilisticPDBHeuristic<MaxProbProjection>;
-using ExpCostPDBHeuristic = ProbabilisticPDBHeuristic<ExpCostProjection>;
+using MaxProbPDBHeuristic = ProbabilisticPDBHeuristic<MaxProbPatternDatabase>;
+using ExpCostPDBHeuristic = ProbabilisticPDBHeuristic<SSPPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

@@ -263,9 +263,9 @@ void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser& parser);
 
 using ExpCostPatternCollectionGeneratorCegar =
-    PatternCollectionGeneratorCegar<ExpCostProjection>;
+    PatternCollectionGeneratorCegar<SSPPatternDatabase>;
 using MaxProbPatternCollectionGeneratorCegar =
-    PatternCollectionGeneratorCegar<MaxProbProjection>;
+    PatternCollectionGeneratorCegar<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

@@ -1,7 +1,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_deterministic.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
 #include "options/options.h"
@@ -93,14 +93,14 @@ _parse(OptionParser& parser)
         opts);
 }
 
-template class PatternCollectionGeneratorDeterministic<MaxProbProjection>;
-template class PatternCollectionGeneratorDeterministic<ExpCostProjection>;
+template class PatternCollectionGeneratorDeterministic<MaxProbPatternDatabase>;
+template class PatternCollectionGeneratorDeterministic<SSPPatternDatabase>;
 
-static Plugin<PatternCollectionGenerator<MaxProbProjection>>
-    _plugin_mp("det_adapter_mp", _parse<MaxProbProjection>);
+static Plugin<PatternCollectionGenerator<MaxProbPatternDatabase>>
+    _plugin_mp("det_adapter_mp", _parse<MaxProbPatternDatabase>);
 
-static Plugin<PatternCollectionGenerator<ExpCostProjection>>
-    _plugin_ec("det_adapter_ec", _parse<ExpCostProjection>);
+static Plugin<PatternCollectionGenerator<SSPPatternDatabase>>
+    _plugin_ec("det_adapter_ec", _parse<SSPPatternDatabase>);
 
 } // namespace pdbs
 } // namespace heuristics

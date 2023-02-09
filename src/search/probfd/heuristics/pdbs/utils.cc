@@ -1,7 +1,8 @@
 #include "probfd/heuristics/pdbs/utils.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
+
 
 #include <sstream>
 
@@ -24,25 +25,25 @@ void dump_pattern_short(std::ostream& out, PatternID i, const Pattern& p)
     dump_pattern_vars(out, p);
 }
 
-template value_t evaluate_subcollection<ExpCostProjection>(
+template value_t evaluate_subcollection<SSPPatternDatabase>(
     const std::vector<value_t>& pdb_estimates,
     const std::vector<int>& subcollection);
 
-template value_t evaluate_subcollection<MaxProbProjection>(
+template value_t evaluate_subcollection<MaxProbPatternDatabase>(
     const std::vector<value_t>& pdb_estimates,
     const std::vector<int>& subcollection);
 
-template value_t combine<ExpCostProjection>(value_t left, value_t right);
+template value_t combine<SSPPatternDatabase>(value_t left, value_t right);
 
-template value_t combine<MaxProbProjection>(value_t left, value_t right);
+template value_t combine<MaxProbPatternDatabase>(value_t left, value_t right);
 
-template EvaluationResult evaluate<ExpCostProjection>(
-    const PPDBCollection<ExpCostProjection>& database,
+template EvaluationResult evaluate<SSPPatternDatabase>(
+    const PPDBCollection<SSPPatternDatabase>& database,
     const std::vector<PatternSubCollection>& subcollections,
     const State& state);
 
-template EvaluationResult evaluate<MaxProbProjection>(
-    const PPDBCollection<MaxProbProjection>& database,
+template EvaluationResult evaluate<MaxProbPatternDatabase>(
+    const PPDBCollection<MaxProbPatternDatabase>& database,
     const std::vector<PatternSubCollection>& subcollections,
     const State& state);
 

@@ -1,7 +1,8 @@
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
+
 
 namespace probfd {
 namespace heuristics {
@@ -15,8 +16,8 @@ FlawFindingStrategy<PDBType>::FlawFindingStrategy(const ProbabilisticTask* task)
 {
 }
 
-template class FlawFindingStrategy<MaxProbProjection>;
-template class FlawFindingStrategy<ExpCostProjection>;
+template class FlawFindingStrategy<MaxProbPatternDatabase>;
+template class FlawFindingStrategy<SSPPatternDatabase>;
 
 }
 } // namespace pdbs

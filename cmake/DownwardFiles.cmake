@@ -1048,9 +1048,9 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/types
         probfd/heuristics/pdbs/utils
 
-        probfd/heuristics/pdbs/maxprob_projection
-        probfd/heuristics/pdbs/expcost_projection
-        probfd/heuristics/pdbs/probabilistic_projection
+        probfd/heuristics/pdbs/maxprob_pattern_database
+        probfd/heuristics/pdbs/ssp_pattern_database
+        probfd/heuristics/pdbs/probabilistic_pattern_database
     DEPENDS PDBS MDP SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
     DEPENDENCY_ONLY
 )

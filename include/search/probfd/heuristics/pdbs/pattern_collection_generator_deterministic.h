@@ -39,10 +39,10 @@ public:
 };
 
 using ExpCostPatternCollectionGeneratorDeterministic =
-    PatternCollectionGeneratorDeterministic<ExpCostProjection>;
+    PatternCollectionGeneratorDeterministic<SSPPatternDatabase>;
 
 using MaxProbPatternCollectionGeneratorDeterministic =
-    PatternCollectionGeneratorDeterministic<MaxProbProjection>;
+    PatternCollectionGeneratorDeterministic<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

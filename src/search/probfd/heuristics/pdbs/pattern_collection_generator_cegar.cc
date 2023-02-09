@@ -3,9 +3,10 @@
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy_factory.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
+
 
 #include "probfd/tasks/root_task.h"
 
@@ -155,8 +156,8 @@ bool AbstractSolutionData<PDBType>::solution_exists() const
 }
 
 // Instantiations
-template class AbstractSolutionData<MaxProbProjection>;
-template class AbstractSolutionData<ExpCostProjection>;
+template class AbstractSolutionData<MaxProbPatternDatabase>;
+template class AbstractSolutionData<SSPPatternDatabase>;
 
 template <typename PDBType>
 PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
@@ -901,22 +902,22 @@ template <typename PDBType>
 void add_flaw_finder_options_to_parser(options::OptionParser& parser);
 
 template <>
-void add_flaw_finder_options_to_parser<ExpCostProjection>(
+void add_flaw_finder_options_to_parser<SSPPatternDatabase>(
     options::OptionParser& parser)
 {
     parser.add_option<
-        std::shared_ptr<FlawFindingStrategyFactory<ExpCostProjection>>>(
+        std::shared_ptr<FlawFindingStrategyFactory<SSPPatternDatabase>>>(
         "flaw_strategy_factory",
         "strategy factory creating the strategy used to find flaws in a policy",
         "pucs_flaw_finder_factory_ec()");
 }
 
 template <>
-void add_flaw_finder_options_to_parser<MaxProbProjection>(
+void add_flaw_finder_options_to_parser<MaxProbPatternDatabase>(
     options::OptionParser& parser)
 {
     parser.add_option<
-        std::shared_ptr<FlawFindingStrategyFactory<MaxProbProjection>>>(
+        std::shared_ptr<FlawFindingStrategyFactory<MaxProbPatternDatabase>>>(
         "flaw_strategy_factory",
         "strategy factory creating the strategy used to find flaws in a policy",
         "pucs_flaw_finder_factory_mp()");
@@ -1001,11 +1002,10 @@ void add_pattern_collection_generator_cegar_options_to_parser(
     add_flaw_finder_options_to_parser<PDBType>(parser);
 }
 
+template void add_pattern_collection_generator_cegar_options_to_parser<
+    MaxProbPatternDatabase>(options::OptionParser& parser);
 template void
-add_pattern_collection_generator_cegar_options_to_parser<MaxProbProjection>(
-    options::OptionParser& parser);
-template void
-add_pattern_collection_generator_cegar_options_to_parser<ExpCostProjection>(
+add_pattern_collection_generator_cegar_options_to_parser<SSPPatternDatabase>(
     options::OptionParser& parser);
 
 template <typename PDBType>
@@ -1021,13 +1021,13 @@ _parse(options::OptionParser& parser)
     return make_shared<PatternCollectionGeneratorCegar<PDBType>>(opts);
 }
 
-static Plugin<PatternCollectionGenerator<MaxProbProjection>>
-    _plugin_maxprob("cegar_maxprob_pdbs", _parse<MaxProbProjection>);
-static Plugin<PatternCollectionGenerator<ExpCostProjection>>
-    _plugin_expcost("cegar_ecpdbs", _parse<ExpCostProjection>);
+static Plugin<PatternCollectionGenerator<MaxProbPatternDatabase>>
+    _plugin_maxprob("cegar_maxprob_pdbs", _parse<MaxProbPatternDatabase>);
+static Plugin<PatternCollectionGenerator<SSPPatternDatabase>>
+    _plugin_expcost("cegar_ecpdbs", _parse<SSPPatternDatabase>);
 
-template class PatternCollectionGeneratorCegar<MaxProbProjection>;
-template class PatternCollectionGeneratorCegar<ExpCostProjection>;
+template class PatternCollectionGeneratorCegar<MaxProbPatternDatabase>;
+template class PatternCollectionGeneratorCegar<SSPPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

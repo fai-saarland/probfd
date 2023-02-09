@@ -13,8 +13,8 @@ namespace heuristics {
 
 namespace pdbs {
 
-class ExpCostProjection;
-class MaxProbProjection;
+class SSPPatternDatabase;
+class MaxProbPatternDatabase;
 
 using PatternCollection = ::pdbs::PatternCollection;
 using Pattern = ::pdbs::Pattern;
@@ -24,8 +24,8 @@ using PatternSubCollection = ::pdbs::PatternClique;
 template <class PDBType>
 using PPDBCollection = std::vector<std::shared_ptr<PDBType>>;
 
-using ExpCostPDBCollection = PPDBCollection<ExpCostProjection>;
-using MaxProbPDBCollection = PPDBCollection<MaxProbProjection>;
+using ExpCostPDBCollection = PPDBCollection<SSPPatternDatabase>;
+using MaxProbPDBCollection = PPDBCollection<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

@@ -2,9 +2,9 @@
 
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/utils.h"
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
 
 #include "pdbs/dominance_pruning.h"
 
@@ -33,7 +33,7 @@ void ProbabilisticPDBHeuristic<PDBType>::Statistics::print_construction_info(
     const double avg_subcollection_size =
         (double)total_subcollections_size / num_subcollections;
 
-    constexpr auto prefix = std::is_same_v<PDBType, MaxProbProjection>
+    constexpr auto prefix = std::is_same_v<PDBType, MaxProbPatternDatabase>
                                 ? "MaxProb"
                                 : "Expected Cost";
 
@@ -157,12 +157,12 @@ void ProbabilisticPDBHeuristic<PDBType>::print_statistics() const
 }
 
 template <>
-void ProbabilisticPDBHeuristic<ExpCostProjection>::add_options_to_parser(
+void ProbabilisticPDBHeuristic<SSPPatternDatabase>::add_options_to_parser(
     options::OptionParser& parser)
 {
     TaskDependentHeuristic::add_options_to_parser(parser);
     parser.add_option<
-        std::shared_ptr<PatternCollectionGenerator<ExpCostProjection>>>(
+        std::shared_ptr<PatternCollectionGenerator<SSPPatternDatabase>>>(
         "patterns",
         "",
         "det_adapter_ec(generator=systematic(pattern_max_size=2))");
@@ -170,20 +170,20 @@ void ProbabilisticPDBHeuristic<ExpCostProjection>::add_options_to_parser(
 }
 
 template <>
-void ProbabilisticPDBHeuristic<MaxProbProjection>::add_options_to_parser(
+void ProbabilisticPDBHeuristic<MaxProbPatternDatabase>::add_options_to_parser(
     options::OptionParser& parser)
 {
     TaskDependentHeuristic::add_options_to_parser(parser);
     parser.add_option<
-        std::shared_ptr<PatternCollectionGenerator<MaxProbProjection>>>(
+        std::shared_ptr<PatternCollectionGenerator<MaxProbPatternDatabase>>>(
         "patterns",
         "",
         "det_adapter_mp(generator=systematic(pattern_max_size=2))");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
-template class ProbabilisticPDBHeuristic<ExpCostProjection>;
-template class ProbabilisticPDBHeuristic<MaxProbProjection>;
+template class ProbabilisticPDBHeuristic<SSPPatternDatabase>;
+template class ProbabilisticPDBHeuristic<MaxProbPatternDatabase>;
 
 static Plugin<TaskStateEvaluator> _plugin_ec(
     "ecpdb",

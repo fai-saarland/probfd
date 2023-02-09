@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
 
 #include "probfd/engines/interval_iteration.h"
 
@@ -19,21 +19,21 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-MaxProbProjection::MaxProbProjection(
+MaxProbPatternDatabase::MaxProbPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const Pattern& pattern,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
-    : ProbabilisticProjection(task_proxy, pattern, operator_pruning, 0_vt)
+    : ProbabilisticPatternDatabase(task_proxy, pattern, operator_pruning, 0_vt)
 {
     compute_value_table(heuristic);
 }
 
-MaxProbProjection::MaxProbProjection(
+MaxProbPatternDatabase::MaxProbPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const ::pdbs::PatternDatabase& pdb,
     bool operator_pruning)
-    : MaxProbProjection(
+    : MaxProbPatternDatabase(
           task_proxy,
           pdb.get_pattern(),
           operator_pruning,
@@ -41,12 +41,12 @@ MaxProbProjection::MaxProbProjection(
 {
 }
 
-MaxProbProjection::MaxProbProjection(
+MaxProbPatternDatabase::MaxProbPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
-    const MaxProbProjection& pdb,
+    const MaxProbPatternDatabase& pdb,
     int add_var,
     bool operator_pruning)
-    : ProbabilisticProjection(
+    : ProbabilisticPatternDatabase(
           task_proxy,
           utils::insert(pdb.get_pattern(), add_var),
           operator_pruning,
@@ -55,12 +55,12 @@ MaxProbProjection::MaxProbProjection(
     compute_value_table(IncrementalPPDBEvaluator(pdb, &state_mapper_, add_var));
 }
 
-MaxProbProjection::MaxProbProjection(
+MaxProbPatternDatabase::MaxProbPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
-    const MaxProbProjection& left,
-    const MaxProbProjection& right,
+    const MaxProbPatternDatabase& left,
+    const MaxProbPatternDatabase& right,
     bool operator_pruning)
-    : ProbabilisticProjection(
+    : ProbabilisticPatternDatabase(
           task_proxy,
           utils::merge_sorted(left.get_pattern(), right.get_pattern()),
           operator_pruning,
@@ -69,7 +69,8 @@ MaxProbProjection::MaxProbProjection(
     compute_value_table(MergeEvaluator(state_mapper_, left, right));
 }
 
-void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
+void MaxProbPatternDatabase::compute_value_table(
+    const StateRankEvaluator& heuristic)
 {
     using namespace engine_interfaces;
     using namespace engines::interval_iteration;
@@ -127,144 +128,21 @@ void MaxProbProjection::compute_value_table(const StateRankEvaluator& heuristic)
 #endif
 }
 
-EvaluationResult MaxProbProjection::evaluate(const State& s) const
+EvaluationResult MaxProbPatternDatabase::evaluate(const State& s) const
 {
     return evaluate(get_abstract_state(s));
 }
 
-EvaluationResult MaxProbProjection::evaluate(const StateRank& s) const
+EvaluationResult MaxProbPatternDatabase::evaluate(StateRank s) const
 {
     if (is_dead_end(s)) {
         return {true, 0_vt};
     }
 
-    const auto v = this->lookup(s);
-    return {false, v};
+    return {false, this->lookup(s)};
 }
 
-AbstractPolicy MaxProbProjection::get_optimal_abstract_policy(
-    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard) const
-{
-    using PredecessorList =
-        std::vector<std::pair<StateRank, const AbstractOperator*>>;
-
-    assert(!is_dead_end(abstract_state_space_.initial_state_));
-
-    AbstractPolicy policy(state_mapper_.num_states());
-
-    // return empty policy indicating unsolvable
-    if (abstract_state_space_
-            .goal_state_flags_[abstract_state_space_.initial_state_.id]) {
-        return policy;
-    }
-
-    std::map<StateRank, PredecessorList> predecessors;
-
-    std::deque<StateRank> open;
-    std::unordered_set<StateRank> closed;
-    open.push_back(abstract_state_space_.initial_state_);
-    closed.insert(abstract_state_space_.initial_state_);
-
-    std::vector<StateRank> goals;
-
-    // Build the greedy policy graph
-    while (!open.empty()) {
-        StateRank s = open.front();
-        open.pop_front();
-
-        // Skip dead-ends, the operator is irrelevant
-        if (is_dead_end(s)) {
-            continue;
-        }
-
-        const value_t value = value_table[s.id];
-
-        // Generate operators...
-        std::vector<const AbstractOperator*> aops;
-        abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
-
-        // Select the greedy operators and add their successors
-        for (const AbstractOperator* op : aops) {
-            value_t op_value = 0_vt;
-
-            std::vector<StateRank> successors;
-
-            for (const auto& [eff, prob] : op->outcomes) {
-                StateRank t = s + eff;
-                op_value += prob * value_table[t.id];
-                successors.push_back(t);
-            }
-
-            if (is_approx_equal(value, op_value)) {
-                for (const StateRank& succ : successors) {
-                    if (abstract_state_space_.goal_state_flags_[succ.id]) {
-                        goals.push_back(succ);
-                    } else if (closed.insert(succ).second) {
-                        open.push_back(succ);
-                        predecessors[succ] = PredecessorList();
-                    }
-
-                    predecessors[succ].emplace_back(s, op);
-                }
-            }
-        }
-    }
-
-    // Do regression search with duplicate checking through the constructed
-    // graph, expanding predecessors randomly to select an optimal policy
-    assert(open.empty());
-    open.insert(open.end(), goals.begin(), goals.end());
-    closed.clear();
-    closed.insert(goals.begin(), goals.end());
-
-    while (!open.empty()) {
-        // Choose a random successor
-        auto it = rng->choose(open);
-        StateRank s = *it;
-
-        std::swap(*it, open.back());
-        open.pop_back();
-
-        // Consider predecessors in random order
-        rng->shuffle(predecessors[s]);
-
-        for (const auto& [pstate, sel_op] : predecessors[s]) {
-            if (closed.insert(pstate).second) {
-                open.push_back(pstate);
-
-                // Collect all equivalent greedy operators
-                std::vector<const AbstractOperator*> aops;
-                abstract_state_space_.match_tree_.get_applicable_operators(
-                    pstate,
-                    aops);
-
-                std::vector<const AbstractOperator*> equivalent_operators;
-
-                for (const AbstractOperator* op : aops) {
-                    if (op->outcomes.data() == sel_op->outcomes.data()) {
-                        equivalent_operators.push_back(op);
-                    }
-                }
-
-                // If wildcard consider all, else randomly pick one
-                if (wildcard) {
-                    policy[pstate].insert(
-                        policy[pstate].end(),
-                        equivalent_operators.begin(),
-                        equivalent_operators.end());
-                } else {
-                    policy[pstate].push_back(
-                        *rng->choose(equivalent_operators));
-                }
-            }
-        }
-    }
-
-    return policy;
-}
-
-void MaxProbProjection::dump_graphviz(
+void MaxProbPatternDatabase::dump_graphviz(
     const std::string& path,
     bool transition_labels)
 {
@@ -287,7 +165,7 @@ void MaxProbProjection::dump_graphviz(
         -1_vt,
         0_vt);
 
-    ProbabilisticProjection::dump_graphviz(
+    ProbabilisticPatternDatabase::dump_graphviz(
         path,
         s2str,
         cost,
@@ -295,7 +173,7 @@ void MaxProbProjection::dump_graphviz(
 }
 
 #if !defined(NDEBUG) && defined(USE_LP)
-void MaxProbProjection::verify(
+void MaxProbPatternDatabase::verify(
     const engine_interfaces::StateIDMap<StateRank>& state_id_map)
 {
     lp::LPSolverType type;

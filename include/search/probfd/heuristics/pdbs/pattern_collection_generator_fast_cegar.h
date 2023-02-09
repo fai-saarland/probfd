@@ -57,9 +57,9 @@ public:
 };
 
 using ExpCostPatternCollectionGeneratorFastCegar =
-    PatternCollectionGeneratorFastCegar<ExpCostProjection>;
+    PatternCollectionGeneratorFastCegar<SSPPatternDatabase>;
 using MaxProbPatternCollectionGeneratorFastCegar =
-    PatternCollectionGeneratorFastCegar<MaxProbProjection>;
+    PatternCollectionGeneratorFastCegar<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

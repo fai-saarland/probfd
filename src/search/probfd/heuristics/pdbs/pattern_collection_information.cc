@@ -1,8 +1,9 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
+
 
 #include "pdbs/pattern_cliques.h"
 #include "pdbs/pattern_collection_information.h"
@@ -166,8 +167,8 @@ PatternCollectionInformation<PDBType>::get_subcollections()
     return subcollections_;
 }
 
-template class PatternCollectionInformation<MaxProbProjection>;
-template class PatternCollectionInformation<ExpCostProjection>;
+template class PatternCollectionInformation<MaxProbPatternDatabase>;
+template class PatternCollectionInformation<SSPPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

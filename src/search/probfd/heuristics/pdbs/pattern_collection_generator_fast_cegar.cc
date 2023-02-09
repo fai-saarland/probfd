@@ -5,10 +5,11 @@
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy_factory.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/types.h"
+
 
 #include "probfd/tasks/root_task.h"
 
@@ -283,13 +284,13 @@ _parse(options::OptionParser& parser)
     return make_shared<PatternCollectionGeneratorFastCegar<PDBType>>(opts);
 }
 
-static Plugin<PatternCollectionGenerator<MaxProbProjection>>
-    _plugin_mp("fast_cegar_mp", _parse<MaxProbProjection>);
-static Plugin<PatternCollectionGenerator<ExpCostProjection>>
-    _plugin_ec("fast_cegar_ec", _parse<ExpCostProjection>);
+static Plugin<PatternCollectionGenerator<MaxProbPatternDatabase>>
+    _plugin_mp("fast_cegar_mp", _parse<MaxProbPatternDatabase>);
+static Plugin<PatternCollectionGenerator<SSPPatternDatabase>>
+    _plugin_ec("fast_cegar_ec", _parse<SSPPatternDatabase>);
 
-template class PatternCollectionGeneratorFastCegar<MaxProbProjection>;
-template class PatternCollectionGeneratorFastCegar<ExpCostProjection>;
+template class PatternCollectionGeneratorFastCegar<MaxProbPatternDatabase>;
+template class PatternCollectionGeneratorFastCegar<SSPPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

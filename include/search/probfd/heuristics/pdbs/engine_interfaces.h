@@ -104,8 +104,8 @@ using AbstractCostFunction =
 
 class QualitativeResultStore;
 
-class ExpCostProjection;
-class MaxProbProjection;
+class SSPPatternDatabase;
+class MaxProbPatternDatabase;
 
 class PDBEvaluator : public StateRankEvaluator {
 public:

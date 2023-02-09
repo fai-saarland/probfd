@@ -75,8 +75,8 @@ public:
     long long get_size() const;
 };
 
-using IncrementalExpCostPDBs = IncrementalPPDBs<ExpCostProjection>;
-using IncrementalMaxProbPDBs = IncrementalPPDBs<MaxProbProjection>;
+using IncrementalExpCostPDBs = IncrementalPPDBs<SSPPatternDatabase>;
+using IncrementalMaxProbPDBs = IncrementalPPDBs<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

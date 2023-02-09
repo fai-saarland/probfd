@@ -1,9 +1,9 @@
 #include "probfd/heuristics/pdbs/incremental_ppdbs.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/max_orthogonal_finder.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "pdbs/pattern_collection_information.h"
@@ -147,8 +147,8 @@ long long IncrementalPPDBs<PDBType>::get_size() const
     return size;
 }
 
-template class IncrementalPPDBs<MaxProbProjection>;
-template class IncrementalPPDBs<ExpCostProjection>;
+template class IncrementalPPDBs<MaxProbPatternDatabase>;
+template class IncrementalPPDBs<SSPPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

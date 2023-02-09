@@ -1,8 +1,8 @@
 #include "probfd/heuristics/pdbs/cegar/sampling_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
 #include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/distribution.h"
@@ -210,8 +210,8 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
     return FLAW_OCCURED;
 }
 
-template class SamplingFlawFinder<MaxProbProjection>;
-template class SamplingFlawFinder<ExpCostProjection>;
+template class SamplingFlawFinder<MaxProbPatternDatabase>;
+template class SamplingFlawFinder<SSPPatternDatabase>;
 
 } // namespace cegar
 } // namespace pdbs

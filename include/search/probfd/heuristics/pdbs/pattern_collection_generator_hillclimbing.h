@@ -191,10 +191,10 @@ public:
 };
 
 using ExpCostPatternCollectionGeneratorHillclimbing =
-    PatternCollectionGeneratorHillclimbing<ExpCostProjection>;
+    PatternCollectionGeneratorHillclimbing<SSPPatternDatabase>;
 
 using MaxProbPatternCollectionGeneratorHillclimbing =
-    PatternCollectionGeneratorHillclimbing<MaxProbProjection>;
+    PatternCollectionGeneratorHillclimbing<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

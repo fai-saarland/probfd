@@ -28,10 +28,10 @@ public:
 };
 
 using ExpCostPatternCollectionGenerator =
-    PatternCollectionGenerator<ExpCostProjection>;
+    PatternCollectionGenerator<SSPPatternDatabase>;
 
 using MaxProbPatternCollectionGenerator =
-    PatternCollectionGenerator<MaxProbProjection>;
+    PatternCollectionGenerator<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

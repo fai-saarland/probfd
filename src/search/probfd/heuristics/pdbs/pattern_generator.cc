@@ -13,15 +13,15 @@ PatternCollectionGenerator<PDBType>::get_report() const
     return nullptr;
 };
 
-template class PatternCollectionGenerator<ExpCostProjection>;
-template class PatternCollectionGenerator<MaxProbProjection>;
+template class PatternCollectionGenerator<SSPPatternDatabase>;
+template class PatternCollectionGenerator<MaxProbPatternDatabase>;
 
-static PluginTypePlugin<PatternCollectionGenerator<ExpCostProjection>>
+static PluginTypePlugin<PatternCollectionGenerator<SSPPatternDatabase>>
     _type_plugin_collection_ec(
         "PatternCollectionGenerator_ec",
         "Factory for pattern collections in the expected-cost setting");
 
-static PluginTypePlugin<PatternCollectionGenerator<MaxProbProjection>>
+static PluginTypePlugin<PatternCollectionGenerator<MaxProbPatternDatabase>>
     _type_plugin_collection_mp(
         "PatternCollectionGenerator_mp",
         "Factory for pattern collections in the MaxProb setting");

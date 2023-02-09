@@ -1,7 +1,7 @@
 #include "probfd/heuristics/pdbs/engine_interfaces.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 
 #include "pdbs/pattern_database.h"
 
@@ -216,11 +216,11 @@ EvaluationResult MergeEvaluator<PDBType>::evaluate(const StateRank& state) const
     return {false, std::min(leval.get_estimate(), reval.get_estimate())};
 }
 
-template class IncrementalPPDBEvaluator<ExpCostProjection>;
-template class IncrementalPPDBEvaluator<MaxProbProjection>;
+template class IncrementalPPDBEvaluator<SSPPatternDatabase>;
+template class IncrementalPPDBEvaluator<MaxProbPatternDatabase>;
 
-template class MergeEvaluator<ExpCostProjection>;
-template class MergeEvaluator<MaxProbProjection>;
+template class MergeEvaluator<SSPPatternDatabase>;
+template class MergeEvaluator<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

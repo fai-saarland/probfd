@@ -1,9 +1,10 @@
 #include "probfd/heuristics/pdbs/cegar/pucs_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
 #include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
+
 
 #include "task_utils/task_properties.h"
 
@@ -185,8 +186,8 @@ bool PUCSFlawFinder<PDBType>::expand(
     return false;
 }
 
-template class PUCSFlawFinder<MaxProbProjection>;
-template class PUCSFlawFinder<ExpCostProjection>;
+template class PUCSFlawFinder<MaxProbPatternDatabase>;
+template class PUCSFlawFinder<SSPPatternDatabase>;
 
 } // namespace cegar
 } // namespace pdbs

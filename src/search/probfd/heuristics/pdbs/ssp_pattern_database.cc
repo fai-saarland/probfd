@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/expcost_projection.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 
 #include "probfd/heuristics/pdbs/match_tree.h"
 
@@ -48,25 +48,25 @@ public:
 };
 } // namespace
 
-ExpCostProjection::ExpCostProjection(
+SSPPatternDatabase::SSPPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
-    const Pattern& pattern,
+    Pattern pattern,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
-    : ProbabilisticProjection(
+    : ProbabilisticPatternDatabase(
           task_proxy,
-          pattern,
+          std::move(pattern),
           operator_pruning,
           INFINITE_VALUE)
 {
     compute_value_table(heuristic);
 }
 
-ExpCostProjection::ExpCostProjection(
+SSPPatternDatabase::SSPPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const ::pdbs::PatternDatabase& pdb,
     bool operator_pruning)
-    : ExpCostProjection(
+    : SSPPatternDatabase(
           task_proxy,
           pdb.get_pattern(),
           operator_pruning,
@@ -74,12 +74,12 @@ ExpCostProjection::ExpCostProjection(
 {
 }
 
-ExpCostProjection::ExpCostProjection(
+SSPPatternDatabase::SSPPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
-    const ExpCostProjection& pdb,
+    const SSPPatternDatabase& pdb,
     int add_var,
     bool operator_pruning)
-    : ProbabilisticProjection(
+    : ProbabilisticPatternDatabase(
           task_proxy,
           utils::insert(pdb.get_pattern(), add_var),
           operator_pruning,
@@ -88,12 +88,12 @@ ExpCostProjection::ExpCostProjection(
     compute_value_table(IncrementalPPDBEvaluator(pdb, &state_mapper_, add_var));
 }
 
-ExpCostProjection::ExpCostProjection(
+SSPPatternDatabase::SSPPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
-    const ExpCostProjection& left,
-    const ExpCostProjection& right,
+    const SSPPatternDatabase& left,
+    const SSPPatternDatabase& right,
     bool operator_pruning)
-    : ProbabilisticProjection(
+    : ProbabilisticPatternDatabase(
           task_proxy,
           utils::merge_sorted(left.get_pattern(), right.get_pattern()),
           operator_pruning,
@@ -102,113 +102,18 @@ ExpCostProjection::ExpCostProjection(
     compute_value_table(MergeEvaluator(state_mapper_, left, right));
 }
 
-EvaluationResult ExpCostProjection::evaluate(const State& s) const
+EvaluationResult SSPPatternDatabase::evaluate(const State& s) const
 {
     return evaluate(get_abstract_state(s));
 }
 
-EvaluationResult ExpCostProjection::evaluate(const StateRank& s) const
+EvaluationResult SSPPatternDatabase::evaluate(StateRank s) const
 {
     const auto v = this->lookup(s);
     return {v == INFINITE_VALUE, v};
 }
 
-AbstractPolicy ExpCostProjection::get_optimal_abstract_policy(
-    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard) const
-{
-    AbstractPolicy policy(state_mapper_.num_states());
-
-    assert(lookup(abstract_state_space_.initial_state_) != INFINITE_VALUE);
-
-    if (abstract_state_space_
-            .goal_state_flags_[abstract_state_space_.initial_state_.id]) {
-        return policy;
-    }
-
-    std::deque<StateRank> open;
-    std::unordered_set<StateRank> closed;
-    open.push_back(abstract_state_space_.initial_state_);
-    closed.insert(abstract_state_space_.initial_state_);
-
-    // Build the greedy policy graph
-    while (!open.empty()) {
-        StateRank s = open.front();
-        open.pop_front();
-
-        const value_t value = value_table[s.id];
-
-        // Generate operators...
-        std::vector<const AbstractOperator*> aops;
-        abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
-
-        if (aops.empty()) {
-            assert(value == INFINITE_VALUE);
-            continue;
-        }
-
-        // Look at the (greedy) operators in random order.
-        rng->shuffle(aops);
-
-        const AbstractOperator* greedy_operator = nullptr;
-        std::vector<StateRank> greedy_successors;
-
-        // Select first greedy operator
-        for (const AbstractOperator* op : aops) {
-            value_t op_value = op->cost;
-
-            std::vector<StateRank> successors;
-
-            for (const auto& [eff, prob] : op->outcomes) {
-                StateRank t = s + eff;
-                op_value += prob * value_table[t.id];
-                successors.push_back(t);
-            }
-
-            if (is_approx_equal(value, op_value)) {
-                greedy_operator = op;
-                greedy_successors = std::move(successors);
-                break;
-            }
-        }
-
-        assert(greedy_operator != nullptr);
-
-        // Generate successors
-        for (const StateRank& succ : greedy_successors) {
-            if (!abstract_state_space_.goal_state_flags_[succ.id] &&
-                !closed.contains(succ)) {
-                closed.insert(succ);
-                open.push_back(succ);
-            }
-        }
-
-        // Collect all equivalent greedy operators
-        std::vector<const AbstractOperator*> equivalent_operators;
-
-        for (const AbstractOperator* op : aops) {
-            if (op->outcomes.data() == greedy_operator->outcomes.data()) {
-                equivalent_operators.push_back(op);
-            }
-        }
-
-        // If wildcard consider all, else randomly pick one
-        if (wildcard) {
-            policy[s].insert(
-                policy[s].end(),
-                equivalent_operators.begin(),
-                equivalent_operators.end());
-        } else {
-            policy[s].push_back(*rng->choose(equivalent_operators));
-        }
-
-        assert(!policy[s].empty());
-    }
-
-    return policy;
-}
-
-void ExpCostProjection::dump_graphviz(
+void SSPPatternDatabase::dump_graphviz(
     const std::string& path,
     bool transition_labels) const
 {
@@ -232,14 +137,15 @@ void ExpCostProjection::dump_graphviz(
         0_vt,
         INFINITE_VALUE);
 
-    ProbabilisticProjection::dump_graphviz(
+    ProbabilisticPatternDatabase::dump_graphviz(
         path,
         s2str,
         cost,
         transition_labels);
 }
 
-void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
+void SSPPatternDatabase::compute_value_table(
+    const StateRankEvaluator& heuristic)
 {
     using namespace preprocessing;
     using namespace engine_interfaces;
@@ -296,7 +202,7 @@ void ExpCostProjection::compute_value_table(const StateRankEvaluator& heuristic)
 }
 
 #if !defined(NDEBUG) && defined(USE_LP)
-void ExpCostProjection::verify(
+void SSPPatternDatabase::verify(
     const engine_interfaces::StateIDMap<StateRank>& state_id_map,
     const std::vector<StateID>& proper_states)
 {
@@ -405,8 +311,7 @@ void ExpCostProjection::verify(
     for (StateRank s = StateRank(0);
          s.id != static_cast<int>(state_mapper_.num_states());
          ++s.id) {
-        if (utils::contains(proper_states, StateID(s.id)) &&
-            seen.contains(s)) {
+        if (utils::contains(proper_states, StateID(s.id)) && seen.contains(s)) {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {
             assert(value_table[s.id] == INFINITE_VALUE);

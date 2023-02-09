@@ -21,7 +21,7 @@ value_t evaluate_subcollection(
     const std::vector<value_t>& pdb_estimates,
     const std::vector<int>& subcollection)
 {
-    constexpr bool is_expcost = std::is_same_v<PDBType, ExpCostProjection>;
+    constexpr bool is_expcost = std::is_same_v<PDBType, SSPPatternDatabase>;
 
     auto result = is_expcost ? 0_vt : 1_vt;
 
@@ -43,7 +43,7 @@ value_t evaluate_subcollection(
 template <class PDBType>
 value_t combine(value_t left, value_t right)
 {
-    if constexpr (std::is_same_v<PDBType, ExpCostProjection>) {
+    if constexpr (std::is_same_v<PDBType, SSPPatternDatabase>) {
         return left + right;
     } else {
         return left * right;
@@ -56,7 +56,7 @@ EvaluationResult evaluate(
     const std::vector<PatternSubCollection>& subcollections,
     const State& state)
 {
-    value_t result = std::is_same_v<PDBType, ExpCostProjection> ? 0_vt : -1_vt;
+    value_t result = std::is_same_v<PDBType, SSPPatternDatabase> ? 0_vt : -1_vt;
 
     if (!database.empty()) {
         // Get pattern estimates

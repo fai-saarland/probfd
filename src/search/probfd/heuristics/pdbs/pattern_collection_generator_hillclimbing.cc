@@ -1,8 +1,8 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
 #include "probfd/heuristics/pdbs/incremental_ppdbs.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
@@ -143,7 +143,7 @@ template <typename PDBType>
 void PatternCollectionGeneratorHillclimbing<PDBType>::Statistics::print(
     std::ostream& out) const
 {
-    constexpr auto prefix = std::is_same_v<PDBType, MaxProbProjection>
+    constexpr auto prefix = std::is_same_v<PDBType, MaxProbPatternDatabase>
                                 ? "MaxProb"
                                 : "Expected Cost";
 
@@ -257,7 +257,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::sample_states(
         };
 
         // TODO Hack for MaxProb
-        int absval = std::is_same_v<PDBType, MaxProbProjection>
+        int absval = std::is_same_v<PDBType, MaxProbPatternDatabase>
                          ? 100
                          : static_cast<int>(init_h);
 
@@ -600,22 +600,22 @@ template <typename PDBType>
 void add_hillclimbing_initial_generator_option(OptionParser& parser);
 
 template <>
-void add_hillclimbing_initial_generator_option<ExpCostProjection>(
+void add_hillclimbing_initial_generator_option<SSPPatternDatabase>(
     OptionParser& parser)
 {
     parser.add_option<
-        std::shared_ptr<PatternCollectionGenerator<ExpCostProjection>>>(
+        std::shared_ptr<PatternCollectionGenerator<SSPPatternDatabase>>>(
         "initial_generator",
         "generator for the initial pattern database ",
         "det_adapter_ec(generator=systematic(pattern_max_size=1))");
 }
 
 template <>
-void add_hillclimbing_initial_generator_option<MaxProbProjection>(
+void add_hillclimbing_initial_generator_option<MaxProbPatternDatabase>(
     OptionParser& parser)
 {
     parser.add_option<
-        std::shared_ptr<PatternCollectionGenerator<MaxProbProjection>>>(
+        std::shared_ptr<PatternCollectionGenerator<MaxProbPatternDatabase>>>(
         "initial_generator",
         "generator for the initial pattern database ",
         "det_adapter_mp(generator=systematic(pattern_max_size=1))");
@@ -689,13 +689,13 @@ _parse(OptionParser& parser)
         opts);
 }
 
-template class PatternCollectionGeneratorHillclimbing<ExpCostProjection>;
-template class PatternCollectionGeneratorHillclimbing<MaxProbProjection>;
+template class PatternCollectionGeneratorHillclimbing<SSPPatternDatabase>;
+template class PatternCollectionGeneratorHillclimbing<MaxProbPatternDatabase>;
 
-static Plugin<PatternCollectionGenerator<ExpCostProjection>>
-    _plugin_ec("hillclimbing_ec", _parse<ExpCostProjection>);
-static Plugin<PatternCollectionGenerator<MaxProbProjection>>
-    _plugin_mp("hillclimbing_mp", _parse<MaxProbProjection>);
+static Plugin<PatternCollectionGenerator<SSPPatternDatabase>>
+    _plugin_ec("hillclimbing_ec", _parse<SSPPatternDatabase>);
+static Plugin<PatternCollectionGenerator<MaxProbPatternDatabase>>
+    _plugin_mp("hillclimbing_mp", _parse<MaxProbPatternDatabase>);
 
 } // namespace pdbs
 } // namespace heuristics

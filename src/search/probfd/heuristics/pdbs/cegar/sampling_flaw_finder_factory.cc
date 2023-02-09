@@ -1,8 +1,8 @@
 #include "probfd/heuristics/pdbs/cegar/sampling_flaw_finder_factory.h"
 #include "probfd/heuristics/pdbs/cegar/sampling_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -55,15 +55,16 @@ _parse(options::OptionParser& parser)
     return make_shared<SamplingFlawFinderFactory<PDBType>>(opts);
 }
 
-static Plugin<FlawFindingStrategyFactory<MaxProbProjection>> _plugin_maxprob(
-    "sampling_flaw_finder_factory_mp",
-    _parse<MaxProbProjection>);
-static Plugin<FlawFindingStrategyFactory<ExpCostProjection>> _plugin_expcost(
+static Plugin<FlawFindingStrategyFactory<MaxProbPatternDatabase>>
+    _plugin_maxprob(
+        "sampling_flaw_finder_factory_mp",
+        _parse<MaxProbPatternDatabase>);
+static Plugin<FlawFindingStrategyFactory<SSPPatternDatabase>> _plugin_expcost(
     "sampling_flaw_finder_factory_ec",
-    _parse<ExpCostProjection>);
+    _parse<SSPPatternDatabase>);
 
-template class SamplingFlawFinderFactory<MaxProbProjection>;
-template class SamplingFlawFinderFactory<ExpCostProjection>;
+template class SamplingFlawFinderFactory<MaxProbPatternDatabase>;
+template class SamplingFlawFinderFactory<SSPPatternDatabase>;
 
 } // namespace cegar
 } // namespace pdbs

@@ -1,8 +1,8 @@
 #include "probfd/heuristics/pdbs/cegar/bfs_flaw_finder_factory.h"
 #include "probfd/heuristics/pdbs/cegar/bfs_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/expcost_projection.h"
-#include "probfd/heuristics/pdbs/maxprob_projection.h"
+#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
+#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -49,13 +49,15 @@ _parse(options::OptionParser& parser)
     return std::make_shared<BFSFlawFinderFactory<PDBType>>(opts);
 }
 
-static Plugin<FlawFindingStrategyFactory<MaxProbProjection>>
-    _plugin_maxprob("bfs_flaw_finder_factory_mp", _parse<MaxProbProjection>);
-static Plugin<FlawFindingStrategyFactory<ExpCostProjection>>
-    _plugin_expcost("bfs_flaw_finder_factory_ec", _parse<ExpCostProjection>);
+static Plugin<FlawFindingStrategyFactory<MaxProbPatternDatabase>>
+    _plugin_maxprob(
+        "bfs_flaw_finder_factory_mp",
+        _parse<MaxProbPatternDatabase>);
+static Plugin<FlawFindingStrategyFactory<SSPPatternDatabase>>
+    _plugin_expcost("bfs_flaw_finder_factory_ec", _parse<SSPPatternDatabase>);
 
-template class BFSFlawFinderFactory<MaxProbProjection>;
-template class BFSFlawFinderFactory<ExpCostProjection>;
+template class BFSFlawFinderFactory<MaxProbPatternDatabase>;
+template class BFSFlawFinderFactory<SSPPatternDatabase>;
 
 } // namespace cegar
 } // namespace pdbs
