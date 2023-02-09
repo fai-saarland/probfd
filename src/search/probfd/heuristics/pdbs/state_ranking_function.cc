@@ -383,7 +383,7 @@ int StateRankingFunction::get_domain_size(int var) const
 
 int StateRankingFunction::get_index(int var) const
 {
-    auto it = std::find(pattern_.begin(), pattern_.end(), var);
+    auto it = std::ranges::lower_bound(pattern_, var);
     return it != pattern_.end() ? std::distance(pattern_.begin(), it) : -1;
 }
 

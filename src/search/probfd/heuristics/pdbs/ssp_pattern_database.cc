@@ -56,10 +56,22 @@ SSPPatternDatabase::SSPPatternDatabase(
     : ProbabilisticPatternDatabase(
           task_proxy,
           std::move(pattern),
-          operator_pruning,
           INFINITE_VALUE)
 {
-    compute_value_table(heuristic);
+    ProjectionStateSpace state_space(
+        task_proxy,
+        ranking_function_,
+        operator_pruning);
+    compute_value_table(state_space, heuristic);
+}
+
+SSPPatternDatabase::SSPPatternDatabase(
+    const ProjectionStateSpace& state_space,
+    StateRankingFunction ranking_function,
+    const StateRankEvaluator& heuristic)
+    : ProbabilisticPatternDatabase(std::move(ranking_function), INFINITE_VALUE)
+{
+    compute_value_table(state_space, heuristic);
 }
 
 SSPPatternDatabase::SSPPatternDatabase(
@@ -75,6 +87,17 @@ SSPPatternDatabase::SSPPatternDatabase(
 }
 
 SSPPatternDatabase::SSPPatternDatabase(
+    const ProjectionStateSpace& state_space,
+    StateRankingFunction ranking_function,
+    const ::pdbs::PatternDatabase& pdb)
+    : SSPPatternDatabase(
+          state_space,
+          std::move(ranking_function),
+          PDBEvaluator(pdb))
+{
+}
+
+SSPPatternDatabase::SSPPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const SSPPatternDatabase& pdb,
     int add_var,
@@ -82,10 +105,27 @@ SSPPatternDatabase::SSPPatternDatabase(
     : ProbabilisticPatternDatabase(
           task_proxy,
           utils::insert(pdb.get_pattern(), add_var),
-          operator_pruning,
           INFINITE_VALUE)
 {
-    compute_value_table(IncrementalPPDBEvaluator(pdb, &state_mapper_, add_var));
+    ProjectionStateSpace state_space(
+        task_proxy,
+        ranking_function_,
+        operator_pruning);
+    compute_value_table(
+        state_space,
+        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
+}
+
+SSPPatternDatabase::SSPPatternDatabase(
+    const ProjectionStateSpace& state_space,
+    StateRankingFunction ranking_function,
+    const SSPPatternDatabase& pdb,
+    int add_var)
+    : ProbabilisticPatternDatabase(std::move(ranking_function), INFINITE_VALUE)
+{
+    compute_value_table(
+        state_space,
+        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
 }
 
 SSPPatternDatabase::SSPPatternDatabase(
@@ -96,10 +136,27 @@ SSPPatternDatabase::SSPPatternDatabase(
     : ProbabilisticPatternDatabase(
           task_proxy,
           utils::merge_sorted(left.get_pattern(), right.get_pattern()),
-          operator_pruning,
           INFINITE_VALUE)
 {
-    compute_value_table(MergeEvaluator(state_mapper_, left, right));
+    ProjectionStateSpace state_space(
+        task_proxy,
+        ranking_function_,
+        operator_pruning);
+    compute_value_table(
+        state_space,
+        MergeEvaluator(ranking_function_, left, right));
+}
+
+SSPPatternDatabase::SSPPatternDatabase(
+    const ProjectionStateSpace& state_space,
+    StateRankingFunction ranking_function,
+    const SSPPatternDatabase& left,
+    const SSPPatternDatabase& right)
+    : ProbabilisticPatternDatabase(std::move(ranking_function), INFINITE_VALUE)
+{
+    compute_value_table(
+        state_space,
+        MergeEvaluator(ranking_function_, left, right));
 }
 
 EvaluationResult SSPPatternDatabase::evaluate(const State& s) const
@@ -113,27 +170,33 @@ EvaluationResult SSPPatternDatabase::evaluate(StateRank s) const
     return {v == INFINITE_VALUE, v};
 }
 
-AbstractPolicy SSPPatternDatabase::get_optimal_abstract_policy(
+std::unique_ptr<AbstractPolicy> SSPPatternDatabase::get_optimal_abstract_policy(
+    const ProjectionStateSpace& state_space,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
     return ProbabilisticPatternDatabase::get_optimal_abstract_policy(
+        state_space,
         rng,
         wildcard,
         true);
 }
 
-AbstractPolicy SSPPatternDatabase::get_optimal_abstract_policy_no_traps(
+std::unique_ptr<AbstractPolicy>
+SSPPatternDatabase::get_optimal_abstract_policy_no_traps(
+    const ProjectionStateSpace& state_space,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
     return ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
+        state_space,
         rng,
         wildcard,
         true);
 }
 
 void SSPPatternDatabase::dump_graphviz(
+    const ProjectionStateSpace& state_space,
     const std::string& path,
     bool transition_labels) const
 {
@@ -153,11 +216,12 @@ void SSPPatternDatabase::dump_graphviz(
     };
 
     NormalCostAbstractCostFunction cost(
-        abstract_state_space_.goal_state_flags_,
+        state_space.goal_state_flags_,
         0_vt,
         INFINITE_VALUE);
 
     ProbabilisticPatternDatabase::dump_graphviz(
+        state_space,
         path,
         s2str,
         cost,
@@ -165,6 +229,7 @@ void SSPPatternDatabase::dump_graphviz(
 }
 
 void SSPPatternDatabase::compute_value_table(
+    const ProjectionStateSpace& state_space,
     const StateRankEvaluator& heuristic)
 {
     using namespace preprocessing;
@@ -172,17 +237,17 @@ void SSPPatternDatabase::compute_value_table(
     using namespace engines::topological_vi;
 
     NormalCostAbstractCostFunction cost(
-        abstract_state_space_.goal_state_flags_,
+        state_space.goal_state_flags_,
         0_vt,
         INFINITE_VALUE);
 
     StateIDMap<StateRank> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(
-        abstract_state_space_.abstract_operators_);
+        state_space.abstract_operators_);
 
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map,
-        abstract_state_space_.match_tree_);
+        state_space.match_tree_);
 
     QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
         analysis(&state_id_map, &action_id_map, &transition_gen, &cost, true);
@@ -190,7 +255,7 @@ void SSPPatternDatabase::compute_value_table(
     std::vector<StateID> proper_states;
 
     analysis.run_analysis(
-        abstract_state_space_.initial_state_,
+        state_space.initial_state_,
         std::back_inserter(dead_ends_),
         std::back_inserter(proper_states));
 
@@ -202,27 +267,27 @@ void SSPPatternDatabase::compute_value_table(
         vi(&state_id_map, &action_id_map, &transition_gen, &cost, &h, true);
 
     vi.solve(
-        state_id_map.get_state_id(abstract_state_space_.initial_state_),
+        state_id_map.get_state_id(state_space.initial_state_),
         value_table);
 
 #if !defined(NDEBUG)
     std::cout << "(II) Pattern [";
-    for (unsigned i = 0; i < state_mapper_.get_pattern().size(); ++i) {
-        std::cout << (i > 0 ? ", " : "") << state_mapper_.get_pattern()[i];
+    for (unsigned i = 0; i < ranking_function_.get_pattern().size(); ++i) {
+        std::cout << (i > 0 ? ", " : "") << ranking_function_.get_pattern()[i];
     }
 
-    std::cout << "]: value="
-              << value_table[abstract_state_space_.initial_state_.id]
+    std::cout << "]: value=" << value_table[state_space.initial_state_.id]
               << std::endl;
 
 #if defined(USE_LP)
-    verify(state_id_map, proper_states);
+    verify(state_space, state_id_map, proper_states);
 #endif
 #endif
 }
 
 #if !defined(NDEBUG) && defined(USE_LP)
 void SSPPatternDatabase::verify(
+    const ProjectionStateSpace& state_space,
     const engine_interfaces::StateIDMap<StateRank>& state_id_map,
     const std::vector<StateID>& proper_states)
 {
@@ -253,15 +318,15 @@ void SSPPatternDatabase::verify(
     named_vector::NamedVector<lp::LPVariable> variables;
 
     for (StateRank s = StateRank(0);
-         s.id != static_cast<int>(state_mapper_.num_states());
+         s.id != static_cast<int>(ranking_function_.num_states());
          ++s.id) {
         variables.emplace_back(0_vt, inf, 0_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
 
-    std::deque<StateRank> queue({abstract_state_space_.initial_state_});
-    std::set<StateRank> seen({abstract_state_space_.initial_state_});
+    std::deque<StateRank> queue({state_space.initial_state_});
+    std::set<StateRank> seen({state_space.initial_state_});
 
     while (!queue.empty()) {
         StateRank s = queue.front();
@@ -276,14 +341,14 @@ void SSPPatternDatabase::verify(
 
         variables[s.id].objective_coefficient = 1_vt;
 
-        if (abstract_state_space_.goal_state_flags_[s.id]) {
+        if (state_space.goal_state_flags_[s.id]) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
         }
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
+        state_space.match_tree_.get_applicable_operators(s, aops);
 
         // Push successors
         for (const AbstractOperator* op : aops) {
@@ -329,7 +394,7 @@ void SSPPatternDatabase::verify(
     std::vector<double> solution = solver.extract_solution();
 
     for (StateRank s = StateRank(0);
-         s.id != static_cast<int>(state_mapper_.num_states());
+         s.id != static_cast<int>(ranking_function_.num_states());
          ++s.id) {
         if (utils::contains(proper_states, StateID(s.id)) && seen.contains(s)) {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));

@@ -37,6 +37,24 @@ public:
             ConstantEvaluator<StateRank>(0_vt));
 
     /**
+     * @brief Constructs a pattern database from a given task and pattern, using
+     * the specified construction options.
+     *
+     * @param task_proxy The input task with respect to which the projection is
+     * constructed.
+     * @param pattern The pattern of the pattern database.
+     * @param operator_pruning Whether equivalent operators shall be pruned
+     * during construction of the projection.
+     * @param heuristic A heuristic used to accelerate the computation of the
+     * value table.
+     */
+    SSPPatternDatabase(
+        const ProjectionStateSpace& state_space,
+        StateRankingFunction ranking_function,
+        const StateRankEvaluator& heuristic =
+            ConstantEvaluator<StateRank>(0_vt));
+
+    /**
      * @brief Constructs a pattern database from a given task and the pattern of
      * a given deterministic PDB, using the specified construction options.
      *
@@ -56,6 +74,25 @@ public:
         bool operator_pruning = true);
 
     /**
+     * @brief Constructs a pattern database from a given task and the pattern of
+     * a given deterministic PDB, using the specified construction options.
+     *
+     * This constructor makes use of the supplied deterministic PDB by using its
+     * induced heuristic to accelerate the value table computation.
+     *
+     * @param task_proxy The input task with respect to which the projection is
+     * constructed.
+     * @param pdb A previous deterministic pattern database for the all-outcomes
+     * determinization of the given task.
+     * @param operator_pruning Whether equivalent operators shall be pruned
+     * during construction of the projection.
+     */
+    SSPPatternDatabase(
+        const ProjectionStateSpace& state_space,
+        StateRankingFunction ranking_function,
+        const ::pdbs::PatternDatabase& pdb);
+
+    /**
      * @brief Constructs a pattern database for the pattern of a previous
      * pattern database with one additional variable.
      *
@@ -73,6 +110,25 @@ public:
         const SSPPatternDatabase& pdb,
         int add_var,
         bool operator_pruning = true);
+
+    /**
+     * @brief Constructs a pattern database for the pattern of a previous
+     * pattern database with one additional variable.
+     *
+     * This constructor makes use of the supplied PDB by using its
+     * induced heuristic to accelerate the value table computation.
+     *
+     * @param task_proxy The input task with respect to which the projection is
+     * constructed.
+     * @param pdb A previous pattern database for the given task.
+     * @param operator_pruning Whether equivalent operators shall be pruned
+     * during construction of the projection.
+     */
+    SSPPatternDatabase(
+        const ProjectionStateSpace& state_space,
+        StateRankingFunction ranking_function,
+        const SSPPatternDatabase& pdb,
+        int add_var);
 
     /**
      * @brief Constructs a pattern database for the union of the two patterns
@@ -97,6 +153,29 @@ public:
         const SSPPatternDatabase& right,
         bool operator_pruning = true);
 
+    /**
+     * @brief Constructs a pattern database for the union of the two patterns
+     * of two previous PDBs.
+     *
+     * This constructor makes use of the supplied PDBs by using the minimum
+     * over their induced heuristics to accelerate the value table computation.
+     *
+     * \todo One could do even better by exploiting potential additivity of the
+     * two patterns.
+     *
+     * @param task_proxy The input task with respect to which the projection is
+     * constructed.
+     * @param left A previous pattern database for the given task.
+     * @param right A previous pattern database for the given task.
+     * @param operator_pruning Whether equivalent operators shall be pruned
+     * during construction of the projection.
+     */
+    SSPPatternDatabase(
+        const ProjectionStateSpace& state_space,
+        StateRankingFunction ranking_function,
+        const SSPPatternDatabase& left,
+        const SSPPatternDatabase& right);
+
     /// Get a heuristic evaluation for an input state.
     [[nodiscard]] EvaluationResult evaluate(const State& s) const;
 
@@ -113,7 +192,8 @@ public:
      *
      * \todo Use flag to specify whether traps can be assumed absent...
      */
-    AbstractPolicy get_optimal_abstract_policy(
+    std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy(
+        const ProjectionStateSpace& state_space,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard = false) const;
 
@@ -127,20 +207,26 @@ public:
      *
      * \todo Use flag to specify whether traps can be assumed absent...
      */
-    AbstractPolicy get_optimal_abstract_policy_no_traps(
+    std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy_no_traps(
+        const ProjectionStateSpace& state_space,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard = false) const;
 
     /// Dump the PDB's projection as a dot graph to a specified path with or
     /// without transition labels shown.
-    void
-    dump_graphviz(const std::string& path, bool transition_labels = true) const;
+    void dump_graphviz(
+        const ProjectionStateSpace& state_space,
+        const std::string& path,
+        bool transition_labels = true) const;
 
 private:
-    void compute_value_table(const StateRankEvaluator& heuristic);
+    void compute_value_table(
+        const ProjectionStateSpace& state_space,
+        const StateRankEvaluator& heuristic);
 
 #if !defined(NDEBUG) && defined(USE_LP)
     void verify(
+        const ProjectionStateSpace& state_space,
         const engine_interfaces::StateIDMap<StateRank>& state_id_map,
         const std::vector<StateID>& proper_states);
 #endif

@@ -44,36 +44,40 @@ struct OutcomeInfo {
 
 } // namespace
 
-ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
+ProjectionStateSpace::ProjectionStateSpace(
     const ProbabilisticTaskProxy& task_proxy,
-    const StateRankingFunction& mapper,
+    const StateRankingFunction& ranking_function,
     bool operator_pruning)
-    : initial_state_(mapper.rank(task_proxy.get_initial_state()))
-    , match_tree_(task_proxy, mapper.get_pattern())
-    , goal_state_flags_(mapper.num_states())
+    : initial_state_(ranking_function.rank(task_proxy.get_initial_state()))
+    , match_tree_(task_proxy, ranking_function.get_pattern())
+    , goal_state_flags_(ranking_function.num_states())
 {
-    VariablesProxy variables = task_proxy.get_variables();
-    ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const Pattern& pattern = ranking_function.get_pattern();
+
+    const VariablesProxy variables = task_proxy.get_variables();
+    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const GoalsProxy task_goals = task_proxy.get_goals();
+
     abstract_operators_.reserve(operators.size());
 
     std::set<ProgressionOperatorFootprint> duplicate_set;
 
     std::vector<int> pdb_indices(variables.size(), -1);
 
-    for (size_t i = 0; i < mapper.get_pattern().size(); ++i) {
-        pdb_indices[mapper.get_pattern()[i]] = i;
+    for (size_t i = 0; i < pattern.size(); ++i) {
+        pdb_indices[pattern[i]] = i;
     }
 
     // Construct partial assignment ranking function for operator pruning
     std::vector<long long int> partial_multipliers;
     if (operator_pruning) {
-        partial_multipliers.reserve(mapper.num_vars());
+        partial_multipliers.reserve(pattern.size());
 
         int p = 1;
         partial_multipliers.push_back(1);
 
-        for (size_t i = 1; i != mapper.num_vars(); ++i) {
-            p *= mapper.get_domain_size(i - 1) + 1;
+        for (size_t i = 1; i != pattern.size(); ++i) {
+            p *= ranking_function.get_domain_size(i - 1) + 1;
             partial_multipliers.push_back(p);
         }
     }
@@ -132,7 +136,7 @@ ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
                     val_change -= pre_it->value;
                 }
 
-                info.base_effect += mapper.from_fact(var, val_change);
+                info.base_effect += ranking_function.from_fact(var, val_change);
             }
 
             outcomes.add_unique(std::move(info), out.get_probability());
@@ -145,7 +149,8 @@ ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
         // variable, the value change caused by the abstract operator would
         // be different, hence we generate on operator for each state where
         // enabled.
-        auto ran = mapper.partial_assignments(std::move(vars_eff_not_pre));
+        auto ran =
+            ranking_function.partial_assignments(std::move(vars_eff_not_pre));
 
         for (const std::vector<FactPair>& values : ran) {
             // Generate the progression operator
@@ -153,7 +158,8 @@ ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
 
             for (const auto& [info, prob] : outcomes) {
                 const auto& [base_effect, missing_pres] = info;
-                auto a = mapper.from_values_partial(missing_pres, values);
+                auto a =
+                    ranking_function.from_values_partial(missing_pres, values);
 
                 new_op.outcomes.add_unique(base_effect - a, prob);
             }
@@ -186,7 +192,7 @@ ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
 
             // Now add the progression operators to the match tree
             match_tree_.insert(
-                mapper,
+                ranking_function,
                 abstract_operators_.size(),
                 precondition);
             abstract_operators_.emplace_back(std::move(new_op));
@@ -195,27 +201,16 @@ ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
 
     match_tree_.set_first_aop(abstract_operators_.data());
 
-    setup_abstract_goal(task_proxy, mapper);
-}
-
-void ProbabilisticPatternDatabase::StateRankSpace::setup_abstract_goal(
-    const ProbabilisticTaskProxy& task_proxy,
-    const StateRankingFunction& mapper)
-{
-    GoalsProxy task_goals = task_proxy.get_goals();
-
     std::vector<int> non_goal_vars;
     StateRank base(0);
 
     // Translate sparse goal into pdb index space
     // and collect non-goal variables aswell.
-    const Pattern& variables = mapper.get_pattern();
-
     const int num_goal_facts = task_goals.size();
-    const int num_variables = variables.size();
+    const int num_variables = pattern.size();
 
-    for (int v = 0, w = 0; v != static_cast<int>(variables.size());) {
-        const int p_var = variables[v];
+    for (int v = 0, w = 0; v != static_cast<int>(pattern.size());) {
+        const int p_var = pattern[v];
         const FactProxy goal_fact = task_goals[w];
         const int g_var = goal_fact.get_variable().get_id();
 
@@ -224,7 +219,7 @@ void ProbabilisticPatternDatabase::StateRankSpace::setup_abstract_goal(
         } else {
             if (p_var == g_var) {
                 const int g_val = goal_fact.get_value();
-                base.id += mapper.get_multiplier(v++) * g_val;
+                base.id += ranking_function.get_multiplier(v++) * g_val;
             }
 
             if (++w == num_goal_facts) {
@@ -236,40 +231,41 @@ void ProbabilisticPatternDatabase::StateRankSpace::setup_abstract_goal(
         }
     }
 
-    assert(non_goal_vars.size() != variables.size()); // No goal no fun.
+    assert(non_goal_vars.size() != pattern.size()); // No goal no fun.
 
-    auto goals = mapper.state_ranks(base, std::move(non_goal_vars));
+    auto goals = ranking_function.state_ranks(base, std::move(non_goal_vars));
 
     for (const auto& g : goals) {
         goal_state_flags_[g.id] = true;
     }
 }
 
-bool ProbabilisticPatternDatabase::StateRankSpace::is_goal(StateRank s) const
-{
-    return goal_state_flags_[s.id];
-}
-
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     Pattern pattern,
-    bool operator_pruning,
     value_t fill)
-    : state_mapper_(task_proxy, std::move(pattern))
-    , abstract_state_space_(task_proxy, state_mapper_, operator_pruning)
-    , value_table(state_mapper_.num_states(), fill)
+    : ranking_function_(task_proxy, std::move(pattern))
+    , value_table(ranking_function_.num_states(), fill)
+{
+}
+
+ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+    StateRankingFunction ranking_function,
+    value_t fill)
+    : ranking_function_(std::move(ranking_function))
+    , value_table(ranking_function_.num_states(), fill)
 {
 }
 
 const StateRankingFunction&
 ProbabilisticPatternDatabase::get_abstract_state_mapper() const
 {
-    return state_mapper_;
+    return ranking_function_;
 }
 
 unsigned int ProbabilisticPatternDatabase::num_states() const
 {
-    return state_mapper_.num_states();
+    return ranking_function_.num_states();
 }
 
 bool ProbabilisticPatternDatabase::is_dead_end(const State& s) const
@@ -280,11 +276,6 @@ bool ProbabilisticPatternDatabase::is_dead_end(const State& s) const
 bool ProbabilisticPatternDatabase::is_dead_end(StateRank s) const
 {
     return utils::contains(dead_ends_, StateID(s.id));
-}
-
-bool ProbabilisticPatternDatabase::is_goal(StateRank s) const
-{
-    return abstract_state_space_.is_goal(s);
 }
 
 value_t ProbabilisticPatternDatabase::lookup(const State& s) const
@@ -299,21 +290,23 @@ value_t ProbabilisticPatternDatabase::lookup(StateRank s) const
 
 StateRank ProbabilisticPatternDatabase::get_abstract_state(const State& s) const
 {
-    return state_mapper_.rank(s);
+    return ranking_function_.rank(s);
 }
 
 StateRank ProbabilisticPatternDatabase::get_abstract_state(
     const std::vector<int>& s) const
 {
-    return state_mapper_.rank(s);
+    return ranking_function_.rank(s);
 }
 
 const Pattern& ProbabilisticPatternDatabase::get_pattern() const
 {
-    return state_mapper_.get_pattern();
+    return ranking_function_.get_pattern();
 }
 
-AbstractPolicy ProbabilisticPatternDatabase::get_optimal_abstract_policy(
+std::unique_ptr<AbstractPolicy>
+ProbabilisticPatternDatabase::get_optimal_abstract_policy(
+    const ProjectionStateSpace& state_space,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard,
     bool use_cost) const
@@ -321,22 +314,21 @@ AbstractPolicy ProbabilisticPatternDatabase::get_optimal_abstract_policy(
     using PredecessorList =
         std::vector<std::pair<StateRank, const AbstractOperator*>>;
 
-    assert(!is_dead_end(abstract_state_space_.initial_state_));
+    assert(!is_dead_end(state_space.initial_state_));
 
-    AbstractPolicy policy(state_mapper_.num_states());
+    AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
 
     // return empty policy indicating unsolvable
-    if (abstract_state_space_
-            .goal_state_flags_[abstract_state_space_.initial_state_.id]) {
-        return policy;
+    if (state_space.goal_state_flags_[state_space.initial_state_.id]) {
+        return std::unique_ptr<AbstractPolicy>(policy);
     }
 
     std::map<StateRank, PredecessorList> predecessors;
 
     std::deque<StateRank> open;
     std::unordered_set<StateRank> closed;
-    open.push_back(abstract_state_space_.initial_state_);
-    closed.insert(abstract_state_space_.initial_state_);
+    open.push_back(state_space.initial_state_);
+    closed.insert(state_space.initial_state_);
 
     std::vector<StateRank> goals;
 
@@ -354,7 +346,7 @@ AbstractPolicy ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
+        state_space.match_tree_.get_applicable_operators(s, aops);
 
         // Select the greedy operators and add their successors
         for (const AbstractOperator* op : aops) {
@@ -370,7 +362,7 @@ AbstractPolicy ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
             if (is_approx_equal(value, op_value)) {
                 for (const StateRank& succ : successors) {
-                    if (abstract_state_space_.goal_state_flags_[succ.id]) {
+                    if (state_space.goal_state_flags_[succ.id]) {
                         goals.push_back(succ);
                     } else if (closed.insert(succ).second) {
                         open.push_back(succ);
@@ -407,9 +399,7 @@ AbstractPolicy ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
                 // Collect all equivalent greedy operators
                 std::vector<const AbstractOperator*> aops;
-                abstract_state_space_.match_tree_.get_applicable_operators(
-                    pstate,
-                    aops);
+                state_space.match_tree_.get_applicable_operators(pstate, aops);
 
                 std::vector<const AbstractOperator*> equivalent_operators;
 
@@ -421,40 +411,40 @@ AbstractPolicy ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
                 // If wildcard consider all, else randomly pick one
                 if (wildcard) {
-                    policy[pstate].insert(
-                        policy[pstate].end(),
+                    (*policy)[pstate].insert(
+                        (*policy)[pstate].end(),
                         equivalent_operators.begin(),
                         equivalent_operators.end());
                 } else {
-                    policy[pstate].push_back(
+                    (*policy)[pstate].push_back(
                         *rng->choose(equivalent_operators));
                 }
             }
         }
     }
 
-    return policy;
+    return std::unique_ptr<AbstractPolicy>(policy);
 }
 
-AbstractPolicy
+std::unique_ptr<AbstractPolicy>
 ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
+    const ProjectionStateSpace& state_space,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard,
     bool use_cost) const
 {
-    AbstractPolicy policy(state_mapper_.num_states());
+    AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
 
-    assert(lookup(abstract_state_space_.initial_state_) != INFINITE_VALUE);
+    assert(lookup(state_space.initial_state_) != INFINITE_VALUE);
 
-    if (abstract_state_space_
-            .goal_state_flags_[abstract_state_space_.initial_state_.id]) {
-        return policy;
+    if (state_space.goal_state_flags_[state_space.initial_state_.id]) {
+        return std::unique_ptr<AbstractPolicy>(policy);
     }
 
     std::deque<StateRank> open;
     std::unordered_set<StateRank> closed;
-    open.push_back(abstract_state_space_.initial_state_);
-    closed.insert(abstract_state_space_.initial_state_);
+    open.push_back(state_space.initial_state_);
+    closed.insert(state_space.initial_state_);
 
     // Build the greedy policy graph
     while (!open.empty()) {
@@ -465,7 +455,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        abstract_state_space_.match_tree_.get_applicable_operators(s, aops);
+        state_space.match_tree_.get_applicable_operators(s, aops);
 
         if (aops.empty()) {
             assert(value == INFINITE_VALUE);
@@ -501,7 +491,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
         // Generate successors
         for (const StateRank& succ : greedy_successors) {
-            if (!abstract_state_space_.goal_state_flags_[succ.id] &&
+            if (!state_space.goal_state_flags_[succ.id] &&
                 !closed.contains(succ)) {
                 closed.insert(succ);
                 open.push_back(succ);
@@ -519,21 +509,22 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
         // If wildcard consider all, else randomly pick one
         if (wildcard) {
-            policy[s].insert(
-                policy[s].end(),
+            (*policy)[s].insert(
+                (*policy)[s].end(),
                 equivalent_operators.begin(),
                 equivalent_operators.end());
         } else {
-            policy[s].push_back(*rng->choose(equivalent_operators));
+            (*policy)[s].push_back(*rng->choose(equivalent_operators));
         }
 
-        assert(!policy[s].empty());
+        assert(!(*policy)[s].empty());
     }
 
-    return policy;
+    return std::unique_ptr<AbstractPolicy>(policy);
 }
 
 void ProbabilisticPatternDatabase::dump_graphviz(
+    const ProjectionStateSpace& state_space,
     const std::string& path,
     std::function<std::string(const StateRank&)> sts,
     AbstractCostFunction& costs,
@@ -552,13 +543,13 @@ void ProbabilisticPatternDatabase::dump_graphviz(
 
     TransitionGenerator<const AbstractOperator*> transition_gen(
         state_id_map,
-        abstract_state_space_.match_tree_);
+        state_space.match_tree_);
 
     std::ofstream out(path);
 
     graphviz::dump_state_space_dot_graph<StateRank, const AbstractOperator*>(
         out,
-        abstract_state_space_.initial_state_,
+        state_space.initial_state_,
         &state_id_map,
         &transition_gen,
         &costs,

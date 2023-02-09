@@ -13,8 +13,9 @@ namespace heuristics {
 
 namespace pdbs {
 
-class SSPPatternDatabase;
+class ProbabilisticPatternDatabase;
 class MaxProbPatternDatabase;
+class SSPPatternDatabase;
 
 using PatternCollection = ::pdbs::PatternCollection;
 using Pattern = ::pdbs::Pattern;

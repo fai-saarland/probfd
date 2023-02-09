@@ -128,11 +128,11 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
 
     // We reached a terminal state, check if it is a goal
     if (abs_operators.empty()) {
-        assert(pdb.is_goal(abs));
+        assert(solution.is_goal(abs));
 
         State terminal_state(*this->task, std::move(state));
 
-        if (pdb.is_goal(abs) &&
+        if (solution.is_goal(abs) &&
             !task_properties::is_goal_state(this->task_proxy, terminal_state)) {
             if (!base.ignore_goal_violations) {
                 // Collect all non-satisfied goal variables that are

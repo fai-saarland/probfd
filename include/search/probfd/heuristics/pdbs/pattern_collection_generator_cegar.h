@@ -3,6 +3,8 @@
 
 #include "probfd/heuristics/pdbs/abstract_policy.h"
 #include "probfd/heuristics/pdbs/pattern_generator.h"
+#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/task_proxy.h"
@@ -45,21 +47,26 @@ struct Flaw {
 
 template <typename PDBType>
 class AbstractSolutionData {
+    // The state space needs to be kept because it contains the operators and
+    // deleting it invalidates the returned policy actions
+    ProjectionStateSpace state_space;
     std::unique_ptr<PDBType> pdb;
+    std::unique_ptr<AbstractPolicy> policy;
+
     std::set<int> blacklist;
-    AbstractPolicy policy;
-    bool solved;
+    bool solved = false;
 
 public:
     AbstractSolutionData(
         const ProbabilisticTaskProxy& task_proxy,
+        StateRankingFunction ranking_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const Pattern& pattern,
         std::set<int> blacklist,
         bool wildcard);
 
     AbstractSolutionData(
         const ProbabilisticTaskProxy& task_proxy,
+        StateRankingFunction ranking_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& previous,
         int add_var,
@@ -68,6 +75,7 @@ public:
 
     AbstractSolutionData(
         const ProbabilisticTaskProxy& task_proxy,
+        StateRankingFunction ranking_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& merge_left,
         const PDBType& merge_right,
@@ -88,13 +96,15 @@ public:
 
     const AbstractPolicy& get_policy() const;
 
-    value_t get_policy_cost() const;
+    value_t get_policy_cost(const State& state) const;
 
     bool is_solved() const;
 
     void mark_as_solved();
 
     bool solution_exists() const;
+
+    bool is_goal(StateRank rank) const;
 };
 
 namespace cegar {

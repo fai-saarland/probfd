@@ -45,44 +45,50 @@ static const std::string token = "CEGAR_PDBs: ";
 template <typename PDBType>
 AbstractSolutionData<PDBType>::AbstractSolutionData(
     const ProbabilisticTaskProxy& task_proxy,
+    StateRankingFunction ranking_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const Pattern& pattern,
     set<int> blacklist,
     bool wildcard)
-    : pdb(new PDBType(task_proxy, pattern, !wildcard))
+    : state_space(task_proxy, ranking_function, !wildcard)
+    , pdb(new PDBType(state_space, std::move(ranking_function)))
+    , policy(pdb->get_optimal_abstract_policy(state_space, rng, wildcard))
     , blacklist(std::move(blacklist))
-    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
-    , solved(false)
 {
 }
 
 template <typename PDBType>
 AbstractSolutionData<PDBType>::AbstractSolutionData(
     const ProbabilisticTaskProxy& task_proxy,
+    StateRankingFunction ranking_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const PDBType& previous,
     int add_var,
     std::set<int> blacklist,
     bool wildcard)
-    : pdb(new PDBType(task_proxy, previous, add_var, !wildcard))
+    : state_space(task_proxy, ranking_function, !wildcard)
+    , pdb(new PDBType(
+          state_space,
+          std::move(ranking_function),
+          previous,
+          add_var))
+    , policy(pdb->get_optimal_abstract_policy(state_space, rng, wildcard))
     , blacklist(std::move(blacklist))
-    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
-    , solved(false)
 {
 }
 
 template <typename PDBType>
 AbstractSolutionData<PDBType>::AbstractSolutionData(
     const ProbabilisticTaskProxy& task_proxy,
+    StateRankingFunction ranking_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const PDBType& left,
     const PDBType& right,
     std::set<int> blacklist,
     bool wildcard)
-    : pdb(new PDBType(task_proxy, left, right, !wildcard))
+    : state_space(task_proxy, ranking_function, !wildcard)
+    , pdb(new PDBType(state_space, std::move(ranking_function), left, right))
+    , policy(pdb->get_optimal_abstract_policy(state_space, rng, wildcard))
     , blacklist(std::move(blacklist))
-    , policy(pdb->get_optimal_abstract_policy(rng, wildcard))
-    , solved(false)
 {
 }
 
@@ -126,14 +132,13 @@ std::unique_ptr<PDBType> AbstractSolutionData<PDBType>::steal_pdb()
 template <typename PDBType>
 const AbstractPolicy& AbstractSolutionData<PDBType>::get_policy() const
 {
-    return policy;
+    return *policy;
 }
 
 template <typename PDBType>
-value_t AbstractSolutionData<PDBType>::get_policy_cost() const
+value_t AbstractSolutionData<PDBType>::get_policy_cost(const State& state) const
 {
-    ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
-    return pdb->lookup(task_proxy.get_initial_state());
+    return pdb->lookup(state);
 }
 
 template <typename PDBType>
@@ -153,6 +158,12 @@ bool AbstractSolutionData<PDBType>::solution_exists() const
 {
     ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
     return !pdb->evaluate(task_proxy.get_initial_state()).is_unsolvable();
+}
+
+template <typename PDBType>
+bool AbstractSolutionData<PDBType>::is_goal(StateRank rank) const
+{
+    return state_space.goal_state_flags_[rank.id];
 }
 
 // Instantiations
@@ -475,8 +486,8 @@ void PatternCollectionGeneratorCegar<PDBType>::add_pattern_for_var(
 {
     auto& sol = solutions.emplace_back(new AbstractSolutionData<PDBType>(
         task_proxy,
+        StateRankingFunction(task_proxy, {var}),
         rng,
-        {var},
         {},
         wildcard));
     solution_lookup[var] = solutions.size() - 1;
@@ -560,8 +571,16 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
 
     // compute merge solution
     unique_ptr<AbstractSolutionData<PDBType>> merged(
-        new AbstractSolutionData<
-            PDBType>(task_proxy, rng, pdb1, pdb2, new_blacklist, wildcard));
+        new AbstractSolutionData<PDBType>(
+            task_proxy,
+            StateRankingFunction(
+                task_proxy,
+                utils::merge_sorted(pdb1.get_pattern(), pdb2.get_pattern())),
+            rng,
+            pdb1,
+            pdb2,
+            new_blacklist,
+            wildcard));
 
     // update collection size
     collection_size -= pdb_size1;
@@ -598,18 +617,23 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
 {
     AbstractSolutionData<PDBType>& solution = *solutions[index];
 
+    auto pdb = solution.get_pdb();
+
     // compute new solution
     std::unique_ptr<AbstractSolutionData<PDBType>> new_solution(
         new AbstractSolutionData<PDBType>(
             task_proxy,
+            StateRankingFunction(
+                task_proxy,
+                utils::insert(pdb.get_pattern(), var)),
             rng,
-            solution.get_pdb(),
+            pdb,
             var,
             solution.get_blacklist(),
             wildcard));
 
     // update collection size
-    collection_size -= solution.get_pdb().num_states();
+    collection_size -= pdb.num_states();
     collection_size += new_solution->get_pdb().num_states();
 
     // update look-up table and possibly remaining_goals, clean-up
@@ -816,9 +840,8 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
                     cout << token
                          << "Task solved during computation of abstract"
                          << "policies." << endl;
-                    cout << token
-                         << "Cost of policy: " << sol->get_policy_cost()
-                         << endl;
+                    cout << token << "Cost of policy: "
+                         << sol->get_policy_cost(initial_state) << endl;
                 }
             } else {
                 if (verbosity >= Verbosity::VERBOSE) {

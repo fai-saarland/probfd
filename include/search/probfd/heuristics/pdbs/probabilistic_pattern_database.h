@@ -27,52 +27,55 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
+/// Represents the state space of a projection of a probabilistic planning task.
+class ProjectionStateSpace {
+    friend ProbabilisticPatternDatabase;
+    friend MaxProbPatternDatabase;
+    friend SSPPatternDatabase;
+
+    std::vector<AbstractOperator> abstract_operators_;
+    MatchTree match_tree_;
+    StateRank initial_state_;
+
+public:
+    std::vector<bool> goal_state_flags_;
+
+    ProjectionStateSpace(
+        const ProbabilisticTaskProxy& task_proxy,
+        const StateRankingFunction& ranking_function,
+        bool operator_pruning = true);
+};
+
 /**
  * @brief Base class for the probabilistic pattern database implementations for
  * SSPs and MaxProb.
  *
  * This class currently bundles four objects:
- * - The state ranking function converting states to state ranks.
+ * - The state ranking function converting states to state ranks (also contains
+ * the pattern).
  * - The lookup table containing the optimal state value for every state,
  * accessed by state rank.
  * - A lookup table of flags specifying whether a specific abstract state is
  * a dead end in the projection, accessed by state rank.
- * - The state space of the projection.
  *
- * \todo The state space should be stored seperately since it can be free'd
- * much earlier than the PDB. Also, is the dead end information really relevant?
+ * \todo Is the dead end information really relevant?
  * We probably only need to know whether a state is unsolvable, and that could
  * be deduced from the state estimate already...
  */
 class ProbabilisticPatternDatabase {
-    struct StateRankSpace {
-        StateRank initial_state_;
-        std::vector<AbstractOperator> abstract_operators_;
-        MatchTree match_tree_;
-        std::vector<bool> goal_state_flags_;
-
-        StateRankSpace(
-            const ProbabilisticTaskProxy& task_proxy,
-            const StateRankingFunction& mapper,
-            bool operator_pruning = true);
-
-        void setup_abstract_goal(
-            const ProbabilisticTaskProxy& task_proxy,
-            const StateRankingFunction& mapper);
-        bool is_goal(StateRank s) const;
-    };
-
 protected:
-    StateRankingFunction state_mapper_;
-    StateRankSpace abstract_state_space_;
-    std::vector<StateID> dead_ends_;
+    StateRankingFunction ranking_function_;
     std::vector<value_t> value_table;
+    std::vector<StateID> dead_ends_;
 
 protected:
     ProbabilisticPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         Pattern pattern,
-        bool operator_pruning,
+        value_t fill);
+
+    ProbabilisticPatternDatabase(
+        StateRankingFunction ranking_function,
         value_t fill);
 
 public:
@@ -89,10 +92,6 @@ public:
     /// Check if the abstract state in the PDB's projection corresponging to an
     /// input state rank is a dead end.
     bool is_dead_end(StateRank rank) const;
-
-    /// Check if the abstract state in the PDB's projection corresponging to an
-    /// input state rank is a goal state.
-    bool is_goal(StateRank rank) const;
 
     /// Compute the state rank of the abstract state of an input state.
     StateRank get_abstract_state(const State& state) const;
@@ -112,17 +111,20 @@ public:
     const Pattern& get_pattern() const;
 
 protected:
-    AbstractPolicy get_optimal_abstract_policy(
+    std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy(
+        const ProjectionStateSpace& state_space,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard,
         bool use_cost) const;
 
-    AbstractPolicy get_optimal_abstract_policy_no_traps(
+    std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy_no_traps(
+        const ProjectionStateSpace& state_space,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard,
         bool use_cost) const;
 
     void dump_graphviz(
+        const ProjectionStateSpace& state_space,
         const std::string& path,
         std::function<std::string(const StateRank&)> sts,
         AbstractCostFunction& costs,
