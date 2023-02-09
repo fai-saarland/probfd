@@ -33,7 +33,7 @@ public:
         const Pattern& pattern,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(-1_vt));
+            ConstantEvaluator<StateRank>(0_vt));
 
     /**
      * @brief Constructs a pattern database from a preconstructed projection
@@ -48,7 +48,7 @@ public:
         const ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
         const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(-1_vt));
+            ConstantEvaluator<StateRank>(0_vt));
 
     /**
      * @brief Constructs a pattern database from a given task and the pattern of

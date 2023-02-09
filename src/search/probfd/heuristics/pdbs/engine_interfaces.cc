@@ -141,7 +141,7 @@ EvaluationResult DeadendPDBEvaluator::evaluate(const StateRank& state) const
     bool dead =
         pdb.get_value_for_index(state.id) == std::numeric_limits<int>::max();
 
-    return dead ? EvaluationResult(true, 0_vt) : EvaluationResult(false, -1_vt);
+    return dead ? EvaluationResult(true, 1_vt) : EvaluationResult(false, 0_vt);
 }
 
 IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(

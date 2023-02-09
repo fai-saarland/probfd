@@ -26,9 +26,9 @@ public:
     {
         ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
         if (task_properties::is_goal_state(task_proxy, state)) {
-            return TerminationInfo(true, -1_vt);
+            return TerminationInfo(true, 0_vt);
         } else {
-            return TerminationInfo(false, 0_vt);
+            return TerminationInfo(false, 1_vt);
         }
     }
 
@@ -44,7 +44,7 @@ MaxProbCostModel::MaxProbCostModel()
 
 Interval MaxProbCostModel::optimal_value_bound() const
 {
-    return Interval(-1_vt, 0_vt);
+    return Interval(0_vt, 1_vt);
 }
 
 TaskCostFunction* MaxProbCostModel::get_cost_function()

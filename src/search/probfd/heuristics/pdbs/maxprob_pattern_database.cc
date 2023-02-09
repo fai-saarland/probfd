@@ -24,7 +24,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
     const Pattern& pattern,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
-    : ProbabilisticPatternDatabase(task_proxy, pattern, 0_vt)
+    : ProbabilisticPatternDatabase(task_proxy, pattern, 1_vt)
 {
     ProjectionStateSpace state_space(
         task_proxy,
@@ -37,7 +37,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
     const ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     const StateRankEvaluator& heuristic)
-    : ProbabilisticPatternDatabase(std::move(ranking_function), 0_vt)
+    : ProbabilisticPatternDatabase(std::move(ranking_function), 1_vt)
 {
     compute_value_table(state_space, heuristic);
 }
@@ -73,7 +73,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
     : ProbabilisticPatternDatabase(
           task_proxy,
           utils::insert(pdb.get_pattern(), add_var),
-          0_vt)
+          1_vt)
 {
     ProjectionStateSpace state_space(
         task_proxy,
@@ -89,7 +89,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
     StateRankingFunction ranking_function,
     const MaxProbPatternDatabase& pdb,
     int add_var)
-    : ProbabilisticPatternDatabase(std::move(ranking_function), 0_vt)
+    : ProbabilisticPatternDatabase(std::move(ranking_function), 1_vt)
 {
     compute_value_table(
         state_space,
@@ -104,7 +104,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
     : ProbabilisticPatternDatabase(
           task_proxy,
           utils::merge_sorted(left.get_pattern(), right.get_pattern()),
-          0_vt)
+          1_vt)
 {
     ProjectionStateSpace state_space(
         task_proxy,
@@ -120,7 +120,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
     StateRankingFunction ranking_function,
     const MaxProbPatternDatabase& left,
     const MaxProbPatternDatabase& right)
-    : ProbabilisticPatternDatabase(std::move(ranking_function), 0_vt)
+    : ProbabilisticPatternDatabase(std::move(ranking_function), 1_vt)
 {
     compute_value_table(
         state_space,
@@ -136,8 +136,8 @@ void MaxProbPatternDatabase::compute_value_table(
 
     ZeroCostAbstractCostFunction cost(
         state_space.goal_state_flags_,
-        -1_vt,
-        0_vt);
+        0_vt,
+        1_vt);
 
     StateIDMap<StateRank> state_id_map;
     ActionIDMap<const AbstractOperator*> action_id_map(
@@ -158,7 +158,9 @@ void MaxProbPatternDatabase::compute_value_table(
 
     std::vector<StateID> proper_states;
 
-    std::vector<Interval> interval_value_table(ranking_function_.num_states());
+    std::vector<Interval> interval_value_table(
+        ranking_function_.num_states(),
+        Interval(1_vt));
 
     vi.solve(
         state_space.initial_state_,
@@ -195,7 +197,7 @@ EvaluationResult MaxProbPatternDatabase::evaluate(const State& s) const
 EvaluationResult MaxProbPatternDatabase::evaluate(StateRank s) const
 {
     if (is_dead_end(s)) {
-        return {true, 0_vt};
+        return {true, 1_vt};
     }
 
     return {false, this->lookup(s)};
@@ -248,8 +250,8 @@ void MaxProbPatternDatabase::dump_graphviz(
 
     ZeroCostAbstractCostFunction cost(
         state_space.goal_state_flags_,
-        -1_vt,
-        0_vt);
+        0_vt,
+        1_vt);
 
     ProbabilisticPatternDatabase::dump_graphviz(
         state_space,
@@ -293,7 +295,7 @@ void MaxProbPatternDatabase::verify(
     for (StateRank s = StateRank(0);
          s.id != static_cast<int>(ranking_function_.num_states());
          ++s.id) {
-        variables.emplace_back(-1_vt, 0_vt, 1_vt);
+        variables.emplace_back(0_vt, 1_vt, 1_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
@@ -309,7 +311,7 @@ void MaxProbPatternDatabase::verify(
         visited.erase(StateID(s.id));
 
         if (state_space.goal_state_flags_[s.id]) {
-            auto& g = constraints.emplace_back(-1_vt, -1_vt);
+            auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
         }
 
@@ -362,7 +364,7 @@ void MaxProbPatternDatabase::verify(
         if (seen.contains(s)) {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {
-            assert(0_vt == value_table[s.id]);
+            assert(1_vt == value_table[s.id]);
         }
     }
 }
