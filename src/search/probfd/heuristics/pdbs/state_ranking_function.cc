@@ -193,7 +193,6 @@ StateRankingFunction::StateRankingFunction(
     {
         VariableInfo& first_info = var_infos_[0];
         first_info.multiplier = 1;
-        first_info.partial_multiplier = 1;
     }
 
     for (unsigned i = 1; i < var_infos_.size(); ++i) {
@@ -203,13 +202,12 @@ StateRankingFunction::StateRankingFunction(
         const int d = variables[pattern_[i - 1]].get_domain_size();
         prev_info.domain = d;
 
-        if (prev_info.partial_multiplier > maxint / (d + 1)) {
+        if (prev_info.multiplier > maxint / d) {
             throw std::range_error("Construction of PDB would exceed "
                                    "std::numeric_limits<long long int>::max()");
         }
 
         cur_info.multiplier = prev_info.multiplier * d;
-        cur_info.partial_multiplier = prev_info.partial_multiplier * (d + 1);
     }
 
     VariableInfo& last_info = var_infos_.back();
@@ -281,16 +279,6 @@ StateRank StateRankingFunction::from_fact(int idx, int val) const
     return StateRank(var_infos_[idx].multiplier * val);
 }
 
-long long int StateRankingFunction::get_unique_partial_state_id(
-    const std::vector<FactPair>& pstate) const
-{
-    long long int id = 0;
-    for (const auto& [var, val] : pstate) {
-        id += var_infos_[var].partial_multiplier * (val + 1);
-    }
-    return id;
-}
-
 std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
 {
     std::vector<int> values(var_infos_.size());
@@ -305,12 +293,7 @@ StateRank
 StateRankingFunction::convert(StateRank state_rank, const Pattern& pattern)
     const
 {
-    assert(std::includes(
-        pattern_.begin(),
-        pattern_.end(),
-        pattern.begin(),
-        pattern.end()));
-
+    assert(std::ranges::includes(pattern_, pattern));
     assert(!pattern.empty());
 
     StateRank converted_state(0);

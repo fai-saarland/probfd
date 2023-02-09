@@ -33,7 +33,6 @@ class StateRankingFunction {
     struct VariableInfo {
         int domain;
         long long int multiplier;
-        long long int partial_multiplier;
     };
 
     Pattern pattern_;
@@ -158,12 +157,6 @@ public:
         const std::vector<int>& indices,
         const std::vector<FactPair>& sparse_values) const;
     StateRank from_fact(int idx, int val) const;
-
-    /**
-     * @brief Ranks a given partial state.
-     */
-    long long int
-    get_unique_partial_state_id(const std::vector<FactPair>& pstate) const;
 
     StateRank convert(StateRank abstract_state, const Pattern& values) const;
 

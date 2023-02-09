@@ -64,6 +64,20 @@ ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
         pdb_indices[mapper.get_pattern()[i]] = i;
     }
 
+    // Construct partial assignment ranking function for operator pruning
+    std::vector<long long int> partial_multipliers;
+    if (operator_pruning) {
+        partial_multipliers.reserve(mapper.num_vars());
+
+        int p = 1;
+        partial_multipliers.push_back(1);
+
+        for (size_t i = 1; i != mapper.num_vars(); ++i) {
+            p *= mapper.get_domain_size(i - 1) + 1;
+            partial_multipliers.push_back(p);
+        }
+    }
+
     // Generate the abstract operators for each probabilistic operator
     for (const ProbabilisticOperatorProxy& op : operators) {
         const int operator_id = op.get_id();
@@ -128,8 +142,8 @@ ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
 
         // We enumerate all values for variables that are not part of
         // the precondition but in an effect. Depending on the value of the
-        // variable, the value change caused by the abstract operator would be
-        // different, hence we generate on operator for each state where
+        // variable, the value change caused by the abstract operator would
+        // be different, hence we generate on operator for each state where
         // enabled.
         auto ran = mapper.partial_assignments(std::move(vars_eff_not_pre));
 
@@ -144,9 +158,9 @@ ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
                 new_op.outcomes.add_unique(base_effect - a, prob);
             }
 
-            // Construct the precondition by merging the original precondition
-            // partial state with the partial state for the non-precondition
-            // effects of this iteration
+            // Construct the precondition by merging the original
+            // precondition partial state with the partial state for the
+            // non-precondition effects of this iteration
             std::vector<FactPair> precondition;
             precondition.reserve(local_precondition.size() + values.size());
 
@@ -156,10 +170,16 @@ ProbabilisticPatternDatabase::StateRankSpace::StateRankSpace(
                 std::back_inserter(precondition));
 
             if (operator_pruning) {
-                // Generate a hash for the precondition to check for duplicates
-                const long long int pre_hash =
-                    mapper.get_unique_partial_state_id(precondition);
-                if (!duplicate_set.emplace(pre_hash, new_op).second) {
+                // Generate a rank for the precondition to check for
+                // duplicates
+                long long int pre_rank = 0;
+                for (const auto& [var, val] : precondition) {
+                    // Missing preconditions are -1, so we add 1 to adjust to
+                    // the range [0, d + 1] where d is the domain size
+                    pre_rank += partial_multipliers[var] * (val + 1);
+                }
+
+                if (!duplicate_set.emplace(pre_rank, new_op).second) {
                     continue;
                 }
             }
