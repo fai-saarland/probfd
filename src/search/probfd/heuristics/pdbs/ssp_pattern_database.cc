@@ -113,6 +113,26 @@ EvaluationResult SSPPatternDatabase::evaluate(StateRank s) const
     return {v == INFINITE_VALUE, v};
 }
 
+AbstractPolicy SSPPatternDatabase::get_optimal_abstract_policy(
+    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    bool wildcard) const
+{
+    return ProbabilisticPatternDatabase::get_optimal_abstract_policy(
+        rng,
+        wildcard,
+        true);
+}
+
+AbstractPolicy SSPPatternDatabase::get_optimal_abstract_policy_no_traps(
+    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    bool wildcard) const
+{
+    return ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
+        rng,
+        wildcard,
+        true);
+}
+
 void SSPPatternDatabase::dump_graphviz(
     const std::string& path,
     bool transition_labels) const

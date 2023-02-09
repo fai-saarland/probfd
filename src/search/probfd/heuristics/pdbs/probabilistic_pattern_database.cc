@@ -315,7 +315,8 @@ const Pattern& ProbabilisticPatternDatabase::get_pattern() const
 
 AbstractPolicy ProbabilisticPatternDatabase::get_optimal_abstract_policy(
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard) const
+    bool wildcard,
+    bool use_cost) const
 {
     using PredecessorList =
         std::vector<std::pair<StateRank, const AbstractOperator*>>;
@@ -357,7 +358,7 @@ AbstractPolicy ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
         // Select the greedy operators and add their successors
         for (const AbstractOperator* op : aops) {
-            value_t op_value = 0_vt;
+            value_t op_value = use_cost ? op->cost : 0_vt;
 
             std::vector<StateRank> successors;
 
@@ -438,7 +439,8 @@ AbstractPolicy ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 AbstractPolicy
 ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard) const
+    bool wildcard,
+    bool use_cost) const
 {
     AbstractPolicy policy(state_mapper_.num_states());
 
@@ -478,7 +480,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
         // Select first greedy operator
         for (const AbstractOperator* op : aops) {
-            value_t op_value = op->cost;
+            value_t op_value = use_cost ? op->cost : 0;
 
             std::vector<StateRank> successors;
 

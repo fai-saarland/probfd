@@ -102,6 +102,34 @@ public:
     /// Get a heuristic evaluation for an abstract state given by a state rank.
     [[nodiscard]] EvaluationResult evaluate(StateRank s) const;
 
+    /**
+     * @brief Extracts an abstract optimal policy for the PDB's projection from
+     * the PDB value table.
+     *
+     * Tie-breaking is performed randomly using the input RNG. If the \p
+     * wildcard option is specified, a wildcard policy will be returned, i.e., a
+     * policy that assigns multiple equivalent operators to a abstract state.
+     *
+     * \todo Use flag to specify whether traps can be assumed absent...
+     */
+    AbstractPolicy get_optimal_abstract_policy(
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        bool wildcard = false) const;
+
+    /**
+     * @brief Extracts an abstract optimal policy for the PDB's projection from
+     * the PDB value table, assuming traps are absent.
+     *
+     * Tie-breaking is performed randomly using the input RNG. If the \p
+     * wildcard option is specified, a wildcard policy will be returned, i.e., a
+     * policy that assigns multiple equivalent operators to a abstract state.
+     *
+     * \todo Use flag to specify whether traps can be assumed absent...
+     */
+    AbstractPolicy get_optimal_abstract_policy_no_traps(
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        bool wildcard = false) const;
+
     /// Dump the PDB's projection as a dot graph to a specified path with or
     /// without transition labels shown.
     void dump_graphviz(const std::string& path, bool transition_labels = true);

@@ -5,7 +5,7 @@ namespace heuristics {
 namespace pdbs {
 
 AbstractPolicy::AbstractPolicy(std::size_t num_abstract_states)
-    : optimal_operators(num_abstract_states, OperatorList())
+    : optimal_operators(num_abstract_states)
 {
 }
 

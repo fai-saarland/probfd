@@ -142,6 +142,26 @@ EvaluationResult MaxProbPatternDatabase::evaluate(StateRank s) const
     return {false, this->lookup(s)};
 }
 
+AbstractPolicy MaxProbPatternDatabase::get_optimal_abstract_policy(
+    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    bool wildcard) const
+{
+    return ProbabilisticPatternDatabase::get_optimal_abstract_policy(
+        rng,
+        wildcard,
+        false);
+}
+
+AbstractPolicy MaxProbPatternDatabase::get_optimal_abstract_policy_no_traps(
+    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    bool wildcard) const
+{
+    return ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
+        rng,
+        wildcard,
+        false);
+}
+
 void MaxProbPatternDatabase::dump_graphviz(
     const std::string& path,
     bool transition_labels)
