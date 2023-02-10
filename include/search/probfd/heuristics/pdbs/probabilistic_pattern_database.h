@@ -53,12 +53,9 @@ protected:
 protected:
     ProbabilisticPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
-        Pattern pattern,
-        value_t fill);
+        Pattern pattern);
 
-    ProbabilisticPatternDatabase(
-        StateRankingFunction ranking_function,
-        value_t fill);
+    ProbabilisticPatternDatabase(StateRankingFunction ranking_function);
 
 public:
     /// Get the state ranking function of the PDB.

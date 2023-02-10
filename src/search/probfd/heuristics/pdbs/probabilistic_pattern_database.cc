@@ -16,18 +16,16 @@ namespace pdbs {
 
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
-    Pattern pattern,
-    value_t fill)
+    Pattern pattern)
     : ranking_function_(task_proxy, std::move(pattern))
-    , value_table(ranking_function_.num_states(), fill)
+    , value_table(ranking_function_.num_states(), INFINITE_VALUE)
 {
 }
 
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
-    StateRankingFunction ranking_function,
-    value_t fill)
+    StateRankingFunction ranking_function)
     : ranking_function_(std::move(ranking_function))
-    , value_table(ranking_function_.num_states(), fill)
+    , value_table(ranking_function_.num_states(), INFINITE_VALUE)
 {
 }
 

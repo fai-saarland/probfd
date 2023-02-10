@@ -53,10 +53,7 @@ SSPPatternDatabase::SSPPatternDatabase(
     Pattern pattern,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
-    : ProbabilisticPatternDatabase(
-          task_proxy,
-          std::move(pattern),
-          INFINITE_VALUE)
+    : ProbabilisticPatternDatabase(task_proxy, std::move(pattern))
 {
     ProjectionStateSpace state_space(
         task_proxy,
@@ -69,7 +66,7 @@ SSPPatternDatabase::SSPPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     const StateRankEvaluator& heuristic)
-    : ProbabilisticPatternDatabase(std::move(ranking_function), INFINITE_VALUE)
+    : ProbabilisticPatternDatabase(std::move(ranking_function))
 {
     compute_value_table(state_space, heuristic);
 }
@@ -104,8 +101,7 @@ SSPPatternDatabase::SSPPatternDatabase(
     bool operator_pruning)
     : ProbabilisticPatternDatabase(
           task_proxy,
-          utils::insert(pdb.get_pattern(), add_var),
-          INFINITE_VALUE)
+          utils::insert(pdb.get_pattern(), add_var))
 {
     ProjectionStateSpace state_space(
         task_proxy,
@@ -121,7 +117,7 @@ SSPPatternDatabase::SSPPatternDatabase(
     StateRankingFunction ranking_function,
     const SSPPatternDatabase& pdb,
     int add_var)
-    : ProbabilisticPatternDatabase(std::move(ranking_function), INFINITE_VALUE)
+    : ProbabilisticPatternDatabase(std::move(ranking_function))
 {
     compute_value_table(
         state_space,
@@ -135,8 +131,7 @@ SSPPatternDatabase::SSPPatternDatabase(
     bool operator_pruning)
     : ProbabilisticPatternDatabase(
           task_proxy,
-          utils::merge_sorted(left.get_pattern(), right.get_pattern()),
-          INFINITE_VALUE)
+          utils::merge_sorted(left.get_pattern(), right.get_pattern()))
 {
     ProjectionStateSpace state_space(
         task_proxy,
@@ -152,7 +147,7 @@ SSPPatternDatabase::SSPPatternDatabase(
     StateRankingFunction ranking_function,
     const SSPPatternDatabase& left,
     const SSPPatternDatabase& right)
-    : ProbabilisticPatternDatabase(std::move(ranking_function), INFINITE_VALUE)
+    : ProbabilisticPatternDatabase(std::move(ranking_function))
 {
     compute_value_table(
         state_space,
