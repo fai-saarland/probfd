@@ -10,13 +10,16 @@ namespace pdbs {
 namespace {
 // Footprint used for detecting duplicate operators.
 struct ProgressionOperatorFootprint {
+    value_t cost;
     long long int precondition_hash;
     std::vector<ItemProbabilityPair<StateRank>> successors;
 
     ProgressionOperatorFootprint(
+        value_t cost,
         long long int precondition_hash,
         const AbstractOperator& op)
-        : precondition_hash(precondition_hash)
+        : cost(cost)
+        , precondition_hash(precondition_hash)
         , successors(op.outcomes.begin(), op.outcomes.end())
     {
         std::ranges::sort(successors);
@@ -178,7 +181,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                     pre_rank += partial_multipliers[var] * (val + 1);
                 }
 
-                if (!duplicate_set.emplace(pre_rank, new_op).second) {
+                if (!duplicate_set.emplace(cost, pre_rank, new_op).second) {
                     continue;
                 }
             }
