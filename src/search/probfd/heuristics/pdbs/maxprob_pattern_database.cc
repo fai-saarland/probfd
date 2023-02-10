@@ -34,7 +34,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 }
 
 MaxProbPatternDatabase::MaxProbPatternDatabase(
-    const ProjectionStateSpace& state_space,
+    ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     const StateRankEvaluator& heuristic)
     : ProbabilisticPatternDatabase(std::move(ranking_function), 1_vt)
@@ -55,7 +55,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 }
 
 MaxProbPatternDatabase::MaxProbPatternDatabase(
-    const ProjectionStateSpace& state_space,
+    ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     const ::pdbs::PatternDatabase& pdb)
     : MaxProbPatternDatabase(
@@ -85,7 +85,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 }
 
 MaxProbPatternDatabase::MaxProbPatternDatabase(
-    const ProjectionStateSpace& state_space,
+    ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     const MaxProbPatternDatabase& pdb,
     int add_var)
@@ -116,7 +116,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 }
 
 MaxProbPatternDatabase::MaxProbPatternDatabase(
-    const ProjectionStateSpace& state_space,
+    ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     const MaxProbPatternDatabase& left,
     const MaxProbPatternDatabase& right)
@@ -128,10 +128,9 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 }
 
 void MaxProbPatternDatabase::compute_value_table(
-    const ProjectionStateSpace& state_space,
+    ProjectionStateSpace& state_space,
     const StateRankEvaluator& heuristic)
 {
-    using namespace engine_interfaces;
     using namespace engines::interval_iteration;
 
     ZeroCostAbstractCostFunction cost(
@@ -139,18 +138,10 @@ void MaxProbPatternDatabase::compute_value_table(
         0_vt,
         1_vt);
 
-    StateIDMap<StateRank> state_id_map;
-    ActionIDMap<const AbstractOperator*> action_id_map(
-        state_space.abstract_operators_);
-
-    TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_id_map,
-        state_space.match_tree_);
-
     IntervalIteration<StateRank, const AbstractOperator*> vi(
-        &state_id_map,
-        &action_id_map,
-        &transition_gen,
+        &state_space.state_id_map,
+        &state_space.action_id_map,
+        &state_space.transition_gen,
         &cost,
         &heuristic,
         true,
@@ -184,7 +175,7 @@ void MaxProbPatternDatabase::compute_value_table(
               << std::endl;
 
 #if defined(USE_LP)
-    verify(state_space, state_id_map);
+    verify(state_space);
 #endif
 #endif
 }
@@ -205,7 +196,7 @@ EvaluationResult MaxProbPatternDatabase::evaluate(StateRank s) const
 
 std::unique_ptr<AbstractPolicy>
 MaxProbPatternDatabase::get_optimal_abstract_policy(
-    const ProjectionStateSpace& state_space,
+    ProjectionStateSpace& state_space,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
@@ -218,7 +209,7 @@ MaxProbPatternDatabase::get_optimal_abstract_policy(
 
 std::unique_ptr<AbstractPolicy>
 MaxProbPatternDatabase::get_optimal_abstract_policy_no_traps(
-    const ProjectionStateSpace& state_space,
+    ProjectionStateSpace& state_space,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
@@ -230,7 +221,7 @@ MaxProbPatternDatabase::get_optimal_abstract_policy_no_traps(
 }
 
 void MaxProbPatternDatabase::dump_graphviz(
-    const ProjectionStateSpace& state_space,
+    ProjectionStateSpace& state_space,
     const std::string& path,
     bool transition_labels)
 {
@@ -262,9 +253,7 @@ void MaxProbPatternDatabase::dump_graphviz(
 }
 
 #if !defined(NDEBUG) && defined(USE_LP)
-void MaxProbPatternDatabase::verify(
-    const ProjectionStateSpace& state_space,
-    const engine_interfaces::StateIDMap<StateRank>& state_id_map)
+void MaxProbPatternDatabase::verify(ProjectionStateSpace& state_space)
 {
     lp::LPSolverType type;
 
@@ -286,10 +275,6 @@ void MaxProbPatternDatabase::verify(
     lp::LPSolver solver(type);
     const double inf = solver.get_infinity();
 
-    std::unordered_set<StateID> visited(
-        state_id_map.visited_begin(),
-        state_id_map.visited_end());
-
     named_vector::NamedVector<lp::LPVariable> variables;
 
     for (StateRank s = StateRank(0);
@@ -306,9 +291,6 @@ void MaxProbPatternDatabase::verify(
     while (!queue.empty()) {
         StateRank s = queue.front();
         queue.pop_front();
-
-        assert(visited.contains(StateID(s.id)));
-        visited.erase(StateID(s.id));
 
         if (state_space.goal_state_flags_[s.id]) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
@@ -345,8 +327,6 @@ void MaxProbPatternDatabase::verify(
             }
         }
     }
-
-    assert(visited.empty());
 
     solver.load_problem(lp::LinearProgram(
         lp::LPObjectiveSense::MAXIMIZE,

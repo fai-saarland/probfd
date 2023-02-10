@@ -68,11 +68,9 @@ bool MatchTree::Node::is_leaf_node() const
     return var_id == LEAF_NODE;
 }
 
-MatchTree::MatchTree(ProbabilisticTaskProxy task_proxy, const Pattern& pattern)
-    : task_proxy(task_proxy)
-    , pattern(pattern)
-    , root(nullptr)
+MatchTree::MatchTree(size_t hint_num_operators)
 {
+    abstract_operators.reserve(hint_num_operators);
 }
 
 MatchTree::~MatchTree()
@@ -81,7 +79,8 @@ MatchTree::~MatchTree()
 }
 
 void MatchTree::insert_recursive(
-    const StateRankingFunction& mapper,
+    const VariablesProxy& task_variables,
+    const StateRankingFunction& ranking_function,
     const size_t op_index,
     const vector<FactPair>& progression_preconditions,
     int pre_index,
@@ -99,11 +98,9 @@ void MatchTree::insert_recursive(
     } else {
         const FactPair& fact = progression_preconditions[pre_index];
         int pattern_var_id = fact.var;
-        int var_id = pattern[pattern_var_id];
-        int var_multiplier = mapper.get_multiplier(pattern_var_id);
-
-        VariablesProxy variables = task_proxy.get_variables();
-        int var_domain_size = variables[var_id].get_domain_size();
+        int var_id = ranking_function.get_pattern()[pattern_var_id];
+        int var_multiplier = ranking_function.get_multiplier(pattern_var_id);
+        int var_domain_size = task_variables[var_id].get_domain_size();
 
         // Set up node correctly or insert a new node if necessary.
         if (node->is_leaf_node()) {
@@ -138,7 +135,8 @@ void MatchTree::insert_recursive(
         }
 
         insert_recursive(
-            mapper,
+            task_variables,
+            ranking_function,
             op_index,
             progression_preconditions,
             pre_index,
@@ -147,11 +145,19 @@ void MatchTree::insert_recursive(
 }
 
 void MatchTree::insert(
-    const StateRankingFunction& mapper,
-    const size_t op_index,
+    const VariablesProxy& task_variables,
+    const StateRankingFunction& ranking_function,
+    AbstractOperator op,
     const vector<FactPair>& progression_preconditions)
 {
-    insert_recursive(mapper, op_index, progression_preconditions, 0, &root);
+    insert_recursive(
+        task_variables,
+        ranking_function,
+        abstract_operators.size(),
+        progression_preconditions,
+        0,
+        &root);
+    abstract_operators.push_back(std::move(op));
 }
 
 void MatchTree::get_applicable_operators_recursive(
@@ -167,7 +173,7 @@ void MatchTree::get_applicable_operators_recursive(
      */
 
     for (size_t op_index : node->applicable_operator_ids) {
-        operator_ids.push_back(first + op_index);
+        operator_ids.push_back(abstract_operators.data() + op_index);
     }
 
     if (node->is_leaf_node()) return;
@@ -197,6 +203,16 @@ void MatchTree::get_applicable_operators(
 {
     if (root)
         get_applicable_operators_recursive(root, abstract_state, operator_ids);
+}
+
+ActionID MatchTree::get_operator_index(const AbstractOperator& op) const
+{
+    return &op - abstract_operators.data();
+}
+
+const AbstractOperator& MatchTree::get_index_operator(int index) const
+{
+    return abstract_operators[index];
 }
 
 void MatchTree::dump_recursive(Node* node) const
@@ -239,11 +255,6 @@ void MatchTree::dump_recursive(Node* node) const
             std::cout << "no star_successor" << endl;
         }
     }
-}
-
-void MatchTree::set_first_aop(const AbstractOperator* first)
-{
-    this->first = first;
 }
 
 void MatchTree::dump() const

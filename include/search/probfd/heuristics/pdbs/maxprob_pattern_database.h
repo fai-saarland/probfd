@@ -45,7 +45,7 @@ public:
      * value table.
      */
     MaxProbPatternDatabase(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(0_vt));
@@ -79,7 +79,7 @@ public:
      * @param pdb A deterministic pattern database for the same pattern.
      */
     MaxProbPatternDatabase(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
         const ::pdbs::PatternDatabase& pdb);
 
@@ -117,7 +117,7 @@ public:
      * @param add_var The additional variable to consider for this PDB.
      */
     MaxProbPatternDatabase(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
         const MaxProbPatternDatabase& pdb,
         int add_var);
@@ -161,7 +161,7 @@ public:
      * @param right A previous pattern database for the given task.
      */
     MaxProbPatternDatabase(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
         const MaxProbPatternDatabase& left,
         const MaxProbPatternDatabase& right);
@@ -183,7 +183,7 @@ public:
      * \todo Use flag to specify whether traps can be assumed absent...
      */
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard = false) const;
 
@@ -198,26 +198,24 @@ public:
      * \todo Use flag to specify whether traps can be assumed absent...
      */
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy_no_traps(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard = false) const;
 
     /// Dump the PDB's projection as a dot graph to a specified path with or
     /// without transition labels shown.
     void dump_graphviz(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         const std::string& path,
         bool transition_labels = true);
 
 private:
     void compute_value_table(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         const StateRankEvaluator& heuristic);
 
 #if !defined(NDEBUG) && defined(USE_LP)
-    void verify(
-        const ProjectionStateSpace& state_space,
-        const engine_interfaces::StateIDMap<StateRank>& state_id_map);
+    void verify(ProjectionStateSpace& state_space);
 #endif
 };
 

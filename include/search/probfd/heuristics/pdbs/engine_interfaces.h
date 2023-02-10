@@ -29,68 +29,60 @@ namespace engine_interfaces {
 template <>
 class StateIDMap<heuristics::pdbs::StateRank> {
 public:
-    using visited_iterator = std::set<int>::const_iterator;
-    using visited_range = std::ranges::subrange<visited_iterator>;
+    StateID get_state_id(heuristics::pdbs::StateRank state) const
+    {
+        return state.id;
+    }
 
-    explicit StateIDMap() = default;
-
-    StateID get_state_id(const heuristics::pdbs::StateRank& state);
-    heuristics::pdbs::StateRank get_state(const StateID& id);
-
-    unsigned size() const;
-
-    visited_iterator visited_begin() const;
-    visited_iterator visited_end() const;
-
-    visited_range visited() const;
-
-    void clear() { seen.clear(); }
-
-private:
-    std::set<int> seen;
+    heuristics::pdbs::StateRank get_state(StateID id) const
+    {
+        return heuristics::pdbs::StateRank(id);
+    }
 };
 
 template <>
 class ActionIDMap<const heuristics::pdbs::AbstractOperator*> {
-public:
-    explicit ActionIDMap(
-        const std::vector<heuristics::pdbs::AbstractOperator>& ops);
+    const heuristics::pdbs::MatchTree& aops_gen_;
 
-    ActionID get_action_id(
-        const StateID& state_id,
-        const heuristics::pdbs::AbstractOperator* action) const;
+public:
+    explicit ActionIDMap(const heuristics::pdbs::MatchTree& aops_gen)
+        : aops_gen_(aops_gen)
+    {
+    }
+
+    ActionID
+    get_action_id(StateID, const heuristics::pdbs::AbstractOperator* op) const
+    {
+        return aops_gen_.get_operator_index(*op);
+    }
 
     const heuristics::pdbs::AbstractOperator*
-    get_action(const StateID& state_id, const ActionID& action_id) const;
-
-private:
-    const std::vector<heuristics::pdbs::AbstractOperator>& ops_;
+    get_action(StateID, ActionID action_id) const
+    {
+        return &aops_gen_.get_index_operator(action_id.id);
+    }
 };
 
 template <>
 class TransitionGenerator<const heuristics::pdbs::AbstractOperator*> {
+    const heuristics::pdbs::MatchTree& aops_gen_;
+
 public:
-    explicit TransitionGenerator(
-        StateIDMap<heuristics::pdbs::StateRank>& id_map,
-        const heuristics::pdbs::MatchTree& aops_gen);
+    explicit TransitionGenerator(const heuristics::pdbs::MatchTree& aops_gen);
 
     void generate_applicable_actions(
-        const StateID& state,
+        StateID state,
         std::vector<const heuristics::pdbs::AbstractOperator*>& aops);
 
     void generate_action_transitions(
-        const StateID& state,
+        StateID state,
         const heuristics::pdbs::AbstractOperator* op,
         Distribution<StateID>& result);
 
     void generate_all_transitions(
-        const StateID& state,
+        StateID state,
         std::vector<const heuristics::pdbs::AbstractOperator*>& aops,
         std::vector<Distribution<StateID>>& result);
-
-private:
-    StateIDMap<heuristics::pdbs::StateRank>& id_map_;
-    const heuristics::pdbs::MatchTree& aops_gen_;
 };
 
 } // namespace engine_interfaces

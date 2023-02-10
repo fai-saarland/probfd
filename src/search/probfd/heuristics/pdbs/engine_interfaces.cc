@@ -12,101 +12,45 @@ namespace probfd {
 using namespace heuristics::pdbs;
 
 namespace engine_interfaces {
-unsigned StateIDMap<StateRank>::size() const
-{
-    return seen.size();
-}
-
-StateIDMap<StateRank>::visited_iterator
-StateIDMap<StateRank>::visited_begin() const
-{
-    return seen.cbegin();
-}
-
-StateIDMap<StateRank>::visited_iterator
-StateIDMap<StateRank>::visited_end() const
-{
-    return seen.cend();
-}
-
-StateIDMap<StateRank>::visited_range StateIDMap<StateRank>::visited() const
-{
-    return visited_range(visited_begin(), visited_end());
-}
-
-StateID StateIDMap<StateRank>::get_state_id(const StateRank& state)
-{
-    seen.insert(state.id);
-    return StateID(state.id);
-}
-
-StateRank StateIDMap<StateRank>::get_state(const StateID& id)
-{
-    seen.insert(id);
-    return StateRank(id);
-}
-
-ActionIDMap<const AbstractOperator*>::ActionIDMap(
-    const std::vector<AbstractOperator>& ops)
-    : ops_(ops)
-{
-}
-
-ActionID ActionIDMap<const AbstractOperator*>::get_action_id(
-    const StateID&,
-    const AbstractOperator* op) const
-{
-    return op - (&ops_[0]);
-}
-
-const AbstractOperator* ActionIDMap<const AbstractOperator*>::get_action(
-    const StateID&,
-    const ActionID& idx) const
-{
-    return (&ops_[0]) + idx;
-}
 
 TransitionGenerator<const AbstractOperator*>::TransitionGenerator(
-    StateIDMap<StateRank>& id_map,
     const MatchTree& aops_gen)
-    : id_map_(id_map)
-    , aops_gen_(aops_gen)
+    : aops_gen_(aops_gen)
 {
 }
 
 void TransitionGenerator<const AbstractOperator*>::generate_applicable_actions(
-    const StateID& sid,
+    StateID state_id,
     std::vector<const AbstractOperator*>& aops)
 {
-    StateRank abstract_state = id_map_.get_state(sid);
-    aops_gen_.get_applicable_operators(abstract_state, aops);
+    aops_gen_.get_applicable_operators(
+        heuristics::pdbs::StateRank(state_id),
+        aops);
 }
 
 void TransitionGenerator<const AbstractOperator*>::generate_action_transitions(
-    const StateID& state,
+    StateID state_id,
     const AbstractOperator* op,
     Distribution<StateID>& result)
 {
-    StateRank abstract_state = id_map_.get_state(state);
-    for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-        const StateRank succ = abstract_state + it->item;
-        result.add(id_map_.get_state_id(succ), it->probability);
+    for (const auto& [item, probability] : op->outcomes) {
+        result.add(state_id + item.id, probability);
     }
 }
 
 void TransitionGenerator<const AbstractOperator*>::generate_all_transitions(
-    const StateID& state,
+    StateID state_id,
     std::vector<const AbstractOperator*>& aops,
     std::vector<Distribution<StateID>>& result)
 {
-    StateRank abstract_state = id_map_.get_state(state);
-    aops_gen_.get_applicable_operators(abstract_state, aops);
-    result.resize(aops.size());
-    for (int i = aops.size() - 1; i >= 0; --i) {
-        const AbstractOperator* op = aops[i];
-        for (auto it = op->outcomes.begin(); it != op->outcomes.end(); it++) {
-            const StateRank succ = abstract_state + it->item;
-            result[i].add(id_map_.get_state_id(succ), it->probability);
+    aops_gen_.get_applicable_operators(
+        heuristics::pdbs::StateRank(state_id),
+        aops);
+    result.reserve(aops.size());
+    for (const AbstractOperator* op : aops) {
+        auto& ops = result.emplace_back();
+        for (const auto& [item, probability] : op->outcomes) {
+            ops.add(state_id + item.id, probability);
         }
     }
 }

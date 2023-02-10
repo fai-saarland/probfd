@@ -1043,6 +1043,7 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/engine_interfaces
         probfd/heuristics/pdbs/match_tree
         probfd/heuristics/pdbs/orthogonality
+        probfd/heuristics/pdbs/projection_state_space
         probfd/heuristics/pdbs/state_rank
         probfd/heuristics/pdbs/state_ranking_function
         probfd/heuristics/pdbs/types

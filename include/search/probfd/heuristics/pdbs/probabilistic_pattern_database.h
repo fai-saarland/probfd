@@ -5,6 +5,7 @@
 #include "probfd/heuristics/pdbs/abstract_policy.h"
 #include "probfd/heuristics/pdbs/engine_interfaces.h"
 #include "probfd/heuristics/pdbs/match_tree.h"
+#include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
 
@@ -26,25 +27,6 @@ class State;
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
-
-/// Represents the state space of a projection of a probabilistic planning task.
-class ProjectionStateSpace {
-    friend ProbabilisticPatternDatabase;
-    friend MaxProbPatternDatabase;
-    friend SSPPatternDatabase;
-
-    std::vector<AbstractOperator> abstract_operators_;
-    MatchTree match_tree_;
-    StateRank initial_state_;
-
-public:
-    std::vector<bool> goal_state_flags_;
-
-    ProjectionStateSpace(
-        const ProbabilisticTaskProxy& task_proxy,
-        const StateRankingFunction& ranking_function,
-        bool operator_pruning = true);
-};
 
 /**
  * @brief Base class for the probabilistic pattern database implementations for
@@ -112,19 +94,19 @@ public:
 
 protected:
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard,
         bool use_cost) const;
 
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy_no_traps(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard,
         bool use_cost) const;
 
     void dump_graphviz(
-        const ProjectionStateSpace& state_space,
+        ProjectionStateSpace& state_space,
         const std::string& path,
         std::function<std::string(const StateRank&)> sts,
         AbstractCostFunction& costs,
