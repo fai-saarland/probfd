@@ -843,6 +843,7 @@ fast_downward_plugin(
     HELP "Core probabilistic task transformations"
     SOURCES
         probfd/tasks/root_task
+        probfd/tasks/all_outcomes_determinization
     CORE_PLUGIN
 )
 
