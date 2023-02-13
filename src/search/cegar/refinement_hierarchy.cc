@@ -44,9 +44,10 @@ ostream &operator<<(ostream &os, const Node &node) {
               << " right=" << node.right_child << ">";
 }
 
-
-RefinementHierarchy::RefinementHierarchy(const shared_ptr<AbstractTask> &task)
-    : task(task) {
+RefinementHierarchy::RefinementHierarchy(
+    const shared_ptr<AbstractTaskBase>& task)
+    : task(task)
+{
     nodes.emplace_back(0);
 }
 
@@ -78,7 +79,7 @@ pair<NodeID, NodeID> RefinementHierarchy::split(
 }
 
 int RefinementHierarchy::get_abstract_state_id(const State &state) const {
-    TaskProxy subtask_proxy(*task);
+    TaskBaseProxy subtask_proxy(*task);
     State subtask_state = subtask_proxy.convert_ancestor_state(state);
     return nodes[get_node_id(subtask_state)].get_state_id();
 }

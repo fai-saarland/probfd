@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-class AbstractTask;
+class AbstractTaskBase;
 class State;
 
 namespace cegar {
@@ -28,14 +28,14 @@ class Node;
   this structure a directed acyclic graph (instead of a tree).
 */
 class RefinementHierarchy {
-    std::shared_ptr<AbstractTask> task;
+    std::shared_ptr<AbstractTaskBase> task;
     std::vector<Node> nodes;
 
     NodeID add_node(int state_id);
     NodeID get_node_id(const State &state) const;
 
 public:
-    explicit RefinementHierarchy(const std::shared_ptr<AbstractTask> &task);
+    explicit RefinementHierarchy(const std::shared_ptr<AbstractTaskBase>& task);
 
     /*
       Update the split tree for the new split. Additionally to the left
