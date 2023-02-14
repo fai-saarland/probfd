@@ -802,7 +802,6 @@ fast_downward_plugin(
     HELP "Core source files for supporting MDPs"
     SOURCES
         # Main
-        probfd/planner
         probfd/command_line
 
         # Tasks

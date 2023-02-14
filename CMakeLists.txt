@@ -49,6 +49,11 @@ fast_downward_add_profile_build()
 set(FAST_DOWNWARD_MAIN_CMAKELISTS_READ TRUE)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+
+if (MSVC)
+    set(CMAKE_PDB_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+endif()
 
 # Write compiler ID and version to the cache to allow retrieving this information
 # with "cmake -LA" (see test-memory-leaks.py).

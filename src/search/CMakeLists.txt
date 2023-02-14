@@ -17,7 +17,7 @@ fast_downward_set_linker_flags()
 # Collect source files needed for the active plugins.
 include(DownwardFiles)
 
-add_executable(downward ${PLANNER_SOURCES})
+add_library(downward_lib STATIC ${PLANNER_SOURCES})
 
 ## == Includes ==
 
@@ -29,12 +29,12 @@ include_directories(
 
 # On Linux, find the rt library for clock_gettime().
 if(UNIX AND NOT APPLE)
-    target_link_libraries(downward rt)
+    target_link_libraries(downward_lib rt)
 endif()
 
 # On Windows, find the psapi library for determining peak memory.
 if(WIN32)
-    target_link_libraries(downward psapi)
+    target_link_libraries(downward_lib psapi)
 endif()
 
 # If any enabled plugin requires an LP solver, compile with all
@@ -56,27 +56,30 @@ if(PLUGIN_LP_SOLVER_ENABLED AND USE_LP)
                 mark_as_advanced(TMP_SOLVER_UPPER_CASE)
                 add_definitions("-D COIN_HAS_${TMP_SOLVER_UPPER_CASE}")
                 include_directories(${OSI_${SOLVER}_INCLUDE_DIRS})
-                target_link_libraries(downward ${OSI_${SOLVER}_LIBRARIES})
+                target_link_libraries(downward_lib ${OSI_${SOLVER}_LIBRARIES})
             endif()
         endforeach()
 
         # Note that basic OSI libs must be added after (!) all OSI solver libs.
         add_definitions("-D USE_LP")
         include_directories(${OSI_INCLUDE_DIRS})
-        target_link_libraries(downward ${OSI_LIBRARIES})
+        target_link_libraries(downward_lib ${OSI_LIBRARIES})
 
         find_package(ZLIB REQUIRED)
         if(ZLIB_FOUND)
             include_directories(${ZLIB_INCLUDE_DIRS})
-            target_link_libraries(downward ${ZLIB_LIBRARIES})
+            target_link_libraries(downward_lib ${ZLIB_LIBRARIES})
         endif()
     endif()
 
     if(OSI_Cpx_FOUND AND CPLEX_RUNTIME_LIBRARY)
-        add_custom_command(TARGET downward POST_BUILD
+        add_custom_command(TARGET downward_lib POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
             ${CPLEX_RUNTIME_LIBRARY}
-            $<TARGET_FILE_DIR:downward>
+            $<TARGET_FILE_DIR:downward_lib>
         )
     endif()
 endif()
+
+add_executable(downward ${CMAKE_CURRENT_SOURCE_DIR}/probfd/planner.cc)
+target_do_force_link_libraries(downward PUBLIC downward_lib)
