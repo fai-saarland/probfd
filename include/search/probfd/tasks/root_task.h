@@ -11,6 +11,8 @@ namespace tasks {
 /// The input probabilistic planning task.
 extern std::shared_ptr<ProbabilisticTask> g_root_task;
 
+std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in);
+
 extern void read_root_tasks(std::istream& in);
 } // namespace tasks
 } // namespace probfd

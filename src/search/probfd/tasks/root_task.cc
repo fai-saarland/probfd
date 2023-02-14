@@ -844,10 +844,15 @@ int RootTask::convert_operator_index(
     return index;
 }
 
+std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in)
+{
+    return std::make_unique<RootTask>(in);
+}
+
 void read_root_tasks(std::istream& in)
 {
     assert(!g_root_task);
-    g_root_task.reset(new RootTask(in));
+    g_root_task = read_sas_task(in);
     ::tasks::g_root_task.reset(new AODDeterminizationTask(g_root_task.get()));
 }
 
