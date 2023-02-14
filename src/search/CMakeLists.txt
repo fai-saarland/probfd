@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.20)
 
 if(NOT FAST_DOWNWARD_MAIN_CMAKELISTS_READ)
     message(
@@ -11,11 +11,8 @@ endif()
 
 ## == Project ==
 
-cmake_policy(SET CMP0074 NEW)
-
 fast_downward_set_compiler_flags()
 fast_downward_set_linker_flags()
-#add_definitions(-Wfatal-errors)
 
 # Collect source files needed for the active plugins.
 include(DownwardFiles)
