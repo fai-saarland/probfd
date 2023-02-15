@@ -119,7 +119,7 @@ struct Interval {
 template <bool UseInterval>
 using IncumbentSolution = std::conditional_t<UseInterval, Interval, value_t>;
 
-/// Approximately compares the lower bounds of the intervals.
+/// Approximately compares the upper bounds of the intervals.
 int approx_compare(Interval lhs, Interval rhs, value_t epsilon = g_epsilon);
 
 /**
