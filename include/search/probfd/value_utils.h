@@ -32,9 +32,6 @@ struct Interval {
     /// Equivalent to *this = *this + rhs
     Interval& operator+=(Interval rhs);
 
-    /// Equivalent to *this = *this - rhs
-    Interval& operator-=(Interval rhs);
-
     /// Equivalent to *this = factor * (*this)
     Interval& operator*=(value_t scale_factor);
 
@@ -46,12 +43,6 @@ struct Interval {
      * the interval \f$[a + c, b + d]\f$.
      */
     friend Interval operator+(Interval lhs, Interval rhs);
-
-    /**
-     * @brief Recieves two intervals \f$[a, b]\f$ and \f$[c, d]\f$ and computes
-     * the interval \f$[a - c, b - d]\f$.
-     */
-    friend Interval operator-(Interval lhs, Interval rhs);
 
     /**
      * @brief Recieves a scaling factor \f$n\f$ and an interval \f$[a, b]\f$ and

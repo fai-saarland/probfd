@@ -23,13 +23,6 @@ Interval& Interval::operator+=(Interval rhs)
     return *this;
 }
 
-Interval& Interval::operator-=(Interval rhs)
-{
-    lower -= rhs.lower;
-    upper -= rhs.upper;
-    return *this;
-}
-
 Interval& Interval::operator*=(value_t prob)
 {
     lower *= prob;
@@ -47,11 +40,6 @@ Interval& Interval::operator/=(value_t prob)
 Interval operator+(Interval lhs, Interval rhs)
 {
     return Interval(lhs.lower + rhs.lower, lhs.upper + rhs.upper);
-}
-
-Interval operator-(Interval lhs, Interval rhs)
-{
-    return Interval(lhs.lower - rhs.lower, lhs.upper - rhs.upper);
 }
 
 Interval operator*(value_t val, Interval rhs)
