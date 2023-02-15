@@ -94,7 +94,14 @@ struct Interval {
     friend bool update(Interval& lhs, Interval rhs, bool check_upper);
 
     /// Returns the length \f$b - a\f$ of the interval.
-    double length() const { return upper - lower; }
+    double length() const
+    {
+        // Handles infinities!
+        if (upper == lower) {
+            return 0.0;
+        }
+        return upper - lower;
+    }
 
     /**
      * @brief Checks if the bounds of the interval are approximately equal with
