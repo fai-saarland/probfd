@@ -24,12 +24,32 @@ template <>
 class QuotientSystem<OperatorID> {
     friend struct const_iterator;
 
+    struct QuotientInformation {
+        std::vector<StateID> parents;
+        std::vector<StateID> states;
+        explicit QuotientInformation(const StateID& s)
+            : states({s})
+        {
+        }
+    };
+
+    const bool cache_;
+
+    segmented_vector::SegmentedVector<QuotientInformation> state_infos_;
+    engine_interfaces::TransitionGenerator<OperatorID>* gen_;
+
+    std::unique_ptr<DefaultQuotientSystem<OperatorID>> fallback_;
+
 public:
     using QAction = QuotientAction<OperatorID>;
     using QuotientStateIDIterator =
         DefaultQuotientSystem<OperatorID>::QuotientStateIDIterator;
 
-    struct const_iterator {
+    class const_iterator {
+        const QuotientSystem* qs_;
+        DefaultQuotientSystem<OperatorID>::const_iterator i;
+
+    public:
         using iterator_type = std::forward_iterator_tag;
         using value_type = StateID::size_type;
         using difference_type = std::ptrdiff_t;
@@ -38,67 +58,20 @@ public:
 
         explicit const_iterator(
             const QuotientSystem* qs,
-            DefaultQuotientSystem<OperatorID>::const_iterator x)
-            : qs_(qs)
-            , i(x)
-        {
-        }
+            DefaultQuotientSystem<OperatorID>::const_iterator x);
 
-        const_iterator& operator++()
-        {
-            if (qs_->cache_) {
-                while (++i.i < qs_->state_infos_.size()) {
-                    const StateID::size_type ref =
-                        qs_->state_infos_[i.i].states[0];
-                    if (ref == i.i) {
-                        break;
-                    }
-                }
-            } else {
-                ++i;
-            }
-            return *this;
-        }
+        const_iterator& operator++();
+        const_iterator operator+=(int x);
 
-        const_iterator operator+=(int x)
-        {
-            const_iterator res = *this;
-            while (x-- > 0)
-                this->operator++();
-            return res;
-        }
+        friend bool operator==(const const_iterator&, const const_iterator&);
+        friend bool operator!=(const const_iterator&, const const_iterator&);
 
-        bool operator==(const const_iterator& other) const
-        {
-            return i == other.i;
-        }
-
-        bool operator!=(const const_iterator& other) const
-        {
-            return i != other.i;
-        }
-
-        reference operator*() const { return i.i; }
-
-    private:
-        const QuotientSystem* qs_;
-        DefaultQuotientSystem<OperatorID>::const_iterator i;
+        reference operator*() const;
     };
 
-    explicit QuotientSystem(
+    QuotientSystem(
         engine_interfaces::ActionIDMap<OperatorID>* aid,
-        engine_interfaces::TransitionGenerator<OperatorID>* transition_gen)
-        : cache_(transition_gen->caching_)
-        , gen_(transition_gen)
-        , fallback_(nullptr)
-    {
-        if (!cache_) {
-            fallback_.reset(
-                new DefaultQuotientSystem<OperatorID>(aid, transition_gen));
-        } else {
-            state_infos_.push_back(QuotientInformation(0));
-        }
-    }
+        engine_interfaces::TransitionGenerator<OperatorID>* transition_gen);
 
     unsigned quotient_size(StateID state_id) const;
 
@@ -275,71 +248,23 @@ public:
     }
 
 private:
-    struct QuotientInformation {
-        std::vector<StateID> parents;
-        std::vector<StateID> states;
-        explicit QuotientInformation(StateID s)
-            : states({s})
-        {
-        }
-    };
+    const QuotientInformation* get_infos(StateID sid) const;
+
+    engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
+    lookup(StateID sid);
+
+    const engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
+    lookup(StateID sid) const;
 
     void update_cache(
         const std::vector<OperatorID>& exclude,
         engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry& entry,
         const StateID rid,
-        const std::unordered_set<StateID>& quotient_states)
-    {
-        unsigned new_size = 0;
-        OperatorID* aops_src = entry.aops;
-        OperatorID* aops_dest = entry.aops;
-        StateID* succ_src = entry.succs;
-        StateID* succ_dest = entry.succs;
-
-        auto aops_src_end = aops_src + entry.naops;
-        for (; aops_src != aops_src_end; ++aops_src) {
-            OperatorID op_id = *aops_src;
-            if (utils::contains(exclude, op_id)) {
-                continue;
-            }
-
-            bool self_loop = true;
-            StateID* k = succ_dest;
-
-            const ProbabilisticOperatorProxy op =
-                gen_->task_proxy.get_operators()[op_id];
-
-            auto succ_src_end = succ_src + op.get_outcomes().size();
-            for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {
-                const bool member = quotient_states.contains(*succ_src);
-                *succ_dest = member ? rid : *succ_src;
-                self_loop = self_loop && (*succ_dest == rid);
-                succ_dest = k;
-                *aops_dest = *aops_src;
-                ++aops_dest;
-                ++new_size;
-            }
-        }
-
-        entry.naops = new_size;
-    }
+        const std::unordered_set<StateID>& quotient_states);
 
 #ifndef NDEBUG
     void verify_cache_consistency();
 #endif
-
-    const QuotientInformation* get_infos(StateID sid) const;
-    engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
-    lookup(StateID sid);
-    const engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
-    lookup(StateID sid) const;
-
-    const bool cache_;
-
-    segmented_vector::SegmentedVector<QuotientInformation> state_infos_;
-    engine_interfaces::TransitionGenerator<OperatorID>* gen_;
-
-    std::unique_ptr<DefaultQuotientSystem<OperatorID>> fallback_;
 };
 
 } // namespace quotients

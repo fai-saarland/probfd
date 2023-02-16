@@ -2,12 +2,78 @@
 
 #include "state_registry.h"
 
-#define DEBUG(x)
-
 namespace probfd {
 namespace quotients {
 
 using namespace engine_interfaces;
+
+QuotientSystem<OperatorID>::const_iterator::const_iterator(
+    const QuotientSystem<OperatorID>* qs,
+    DefaultQuotientSystem<OperatorID>::const_iterator x)
+    : qs_(qs)
+    , i(x)
+{
+}
+
+QuotientSystem<OperatorID>::const_iterator&
+QuotientSystem<OperatorID>::const_iterator::operator++()
+{
+    if (qs_->cache_) {
+        while (++i.i < qs_->state_infos_.size()) {
+            const StateID::size_type ref = qs_->state_infos_[i.i].states[0];
+            if (ref == i.i) {
+                break;
+            }
+        }
+    } else {
+        ++i;
+    }
+    return *this;
+}
+
+QuotientSystem<OperatorID>::const_iterator
+QuotientSystem<OperatorID>::const_iterator::operator+=(int x)
+{
+    const_iterator res = *this;
+    while (x-- > 0)
+        this->operator++();
+    return res;
+}
+
+bool operator==(
+    const QuotientSystem<OperatorID>::const_iterator& left,
+    const QuotientSystem<OperatorID>::const_iterator& right)
+{
+    return left.i == right.i;
+}
+
+bool operator!=(
+    const QuotientSystem<OperatorID>::const_iterator& left,
+    const QuotientSystem<OperatorID>::const_iterator& right)
+{
+    return left.i != right.i;
+}
+
+QuotientSystem<OperatorID>::const_iterator::reference
+QuotientSystem<OperatorID>::const_iterator::operator*() const
+{
+    return i.i;
+}
+
+QuotientSystem<OperatorID>::QuotientSystem(
+    engine_interfaces::ActionIDMap<OperatorID>* aid,
+    engine_interfaces::TransitionGenerator<OperatorID>* transition_gen)
+    : cache_(transition_gen->caching_)
+    , gen_(transition_gen)
+    , fallback_(nullptr)
+{
+    if (!cache_) {
+        fallback_.reset(
+            new DefaultQuotientSystem<OperatorID>(aid, transition_gen));
+    } else {
+        state_infos_.push_back(QuotientInformation(0));
+    }
+}
 
 unsigned QuotientSystem<OperatorID>::quotient_size(StateID state_id) const
 {
@@ -278,10 +344,6 @@ QuotientSystem<OperatorID>::lookup(StateID sid)
         return entry;
     }
 
-    DEBUG(std::cout << "cache for " << sid
-                    << " has been initialized -> applying abstraction ..."
-                    << std::endl;)
-
     for (auto i = state_infos_.size(); i < gen_->state_registry_->size(); ++i) {
         state_infos_.push_back(QuotientInformation(StateID(i)));
     }
@@ -293,22 +355,17 @@ QuotientSystem<OperatorID>::lookup(StateID sid)
         const OperatorID* aop = entry.aops;
         const OperatorID* aop_end = entry.aops + entry.naops;
         StateID* succ = entry.succs;
-        DEBUG(std::cout << "   ";);
         for (; aop != aop_end; ++aop) {
             auto succ_end = succ + operators[*aop].get_outcomes().size();
             for (; succ != succ_end; ++succ) {
                 const StateID x = state_infos_[*succ].states[0];
-                DEBUG(std::cout << " " << *succ << ":=" << x);
                 *succ = x;
-                DEBUG(std::cout << "(" << *succ << ")");
                 unique_successors.insert(x);
             }
         }
     }
 
-    DEBUG(std::cout << std::endl;)
-
-    for (StateID succ : unique_successors) {
+    for (const StateID succ : unique_successors) {
         if (succ != sid) {
             assert(!utils::contains(state_infos_[succ].parents, sid));
             state_infos_[succ].parents.push_back(sid);
@@ -323,12 +380,49 @@ QuotientSystem<OperatorID>::lookup(StateID sid)
     return entry;
 }
 
+void QuotientSystem<OperatorID>::update_cache(
+    const std::vector<OperatorID>& exclude,
+    engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry& entry,
+    const StateID rid,
+    const std::unordered_set<StateID>& quotient_states)
+{
+    unsigned new_size = 0;
+    OperatorID* aops_src = entry.aops;
+    OperatorID* aops_dest = entry.aops;
+    StateID* succ_src = entry.succs;
+    StateID* succ_dest = entry.succs;
+
+    auto aops_src_end = aops_src + entry.naops;
+    for (; aops_src != aops_src_end; ++aops_src) {
+        OperatorID op_id = *aops_src;
+        if (utils::contains(exclude, op_id)) {
+            continue;
+        }
+
+        bool self_loop = true;
+        StateID* k = succ_dest;
+
+        const ProbabilisticOperatorProxy op =
+            gen_->task_proxy.get_operators()[op_id];
+
+        auto succ_src_end = succ_src + op.get_outcomes().size();
+        for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {
+            const bool member = quotient_states.contains(*succ_src);
+            *succ_dest = member ? rid : *succ_src;
+            self_loop = self_loop && (*succ_dest == rid);
+            succ_dest = k;
+            *aops_dest = *aops_src;
+            ++aops_dest;
+            ++new_size;
+        }
+    }
+
+    entry.naops = new_size;
+}
+
 #ifndef NDEBUG
 void QuotientSystem<OperatorID>::verify_cache_consistency()
 {
-    DEBUG(std::cout << "  current cache size: " << gen_->cache_.size()
-                    << std::endl;)
-
     const auto operators = gen_->task_proxy.get_operators();
 
     for (unsigned i = 0; i < gen_->cache_.size(); ++i) {
@@ -338,10 +432,7 @@ void QuotientSystem<OperatorID>::verify_cache_consistency()
             continue;
         }
 
-        DEBUG(std::cout << "  checking cache[" << i << "] ..." << std::flush;)
         assert(i < state_infos_.size() && !state_infos_[i].states.empty());
-        DEBUG(std::cout << " -> represented by " << state_infos_[i].states[0]
-                        << "; naops=" << entry.naops << ": " << std::flush;)
 
         const OperatorID* opid = entry.aops;
         const StateID* succ = entry.succs;
@@ -350,18 +441,12 @@ void QuotientSystem<OperatorID>::verify_cache_consistency()
             for (int k = aop.get_outcomes().size() - 1; k >= 0; --k, ++succ) {
                 assert(*succ < state_infos_.size());
                 const QuotientInformation& info = state_infos_[*succ];
-                DEBUG(std::cout << " {succ:" << (*succ) << "->"
-                                << info.states[0] << "}" << std::flush;)
                 assert(!info.states.empty() && info.states[0] == *succ);
             }
         }
-
-        DEBUG(std::cout << std::endl;)
     }
 }
 #endif
 
 } // namespace quotients
 } // namespace probfd
-
-#undef DEBUG
