@@ -19,6 +19,8 @@
 #include <utility>
 #include <vector>
 
+class OperatorID;
+
 namespace probfd {
 namespace quotients {
 
@@ -502,6 +504,9 @@ public:
         typename DefaultQuotientSystem<Action>::QuotientStateIDIterator;
     using DefaultQuotientSystem<Action>::DefaultQuotientSystem;
 };
+
+template <>
+class QuotientSystem<OperatorID>;
 
 } // namespace quotients
 } // namespace probfd

@@ -4,6 +4,8 @@
 
 #include "probfd/engine_interfaces/evaluator.h"
 
+#include "probfd/quotient_system.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
