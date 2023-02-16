@@ -17,6 +17,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 
@@ -129,5 +130,6 @@ static Plugin<SolverInterface> _plugin(
     "exhaustive_dfs",
     options::parse<SolverInterface, ExhaustiveDFSSolver>);
 
+} // namespace
 } // namespace solvers
 } // namespace probfd

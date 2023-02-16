@@ -9,6 +9,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 
@@ -60,5 +61,6 @@ static Plugin<SolverInterface> _plugin(
     "exhaustive_ao",
     parse_mdp_heuristic_search_solver<ExhaustiveAOSolver, ExhaustiveAOOptions>);
 
+} // namespace
 } // namespace solvers
 } // namespace probfd

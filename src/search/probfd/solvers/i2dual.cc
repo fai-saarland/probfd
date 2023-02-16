@@ -8,6 +8,7 @@
 namespace probfd {
 namespace solvers {
 namespace i2dual {
+namespace {
 
 using namespace engine_interfaces;
 
@@ -58,6 +59,7 @@ private:
 static Plugin<SolverInterface>
     _plugin("i2dual", options::parse<SolverInterface, I2DualSolver>);
 
+} // namespace
 } // namespace i2dual
 } // namespace solvers
 } // namespace probfd

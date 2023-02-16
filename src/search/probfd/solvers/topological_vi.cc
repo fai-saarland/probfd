@@ -10,8 +10,10 @@
 
 #include "option_parser.h"
 #include "plugin.h"
+
 namespace probfd {
 namespace solvers {
+namespace {
 
 using TVIEngine =
     engines::topological_vi::TopologicalValueIteration<State, OperatorID>;
@@ -61,5 +63,6 @@ static Plugin<SolverInterface> _plugin(
     "topological_value_iteration",
     options::parse<SolverInterface, TopologicalVISolver>);
 
+} // namespace
 } // namespace solvers
 } // namespace probfd

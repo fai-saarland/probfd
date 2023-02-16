@@ -10,6 +10,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 
@@ -71,5 +72,6 @@ static Plugin<SolverInterface> _plugin(
     "aostar",
     parse_mdp_heuristic_search_solver<AOStarSolver, AOStarOptions>);
 
+} // namespace
 } // namespace solvers
 } // namespace probfd

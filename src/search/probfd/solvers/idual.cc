@@ -13,6 +13,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 
@@ -55,5 +56,6 @@ private:
 static Plugin<SolverInterface>
     _plugin("idual", options::parse<SolverInterface, IDualSolver>);
 
+} // namespace
 } // namespace solvers
 } // namespace probfd

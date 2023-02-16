@@ -11,6 +11,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 using namespace engines::heuristic_depth_first_search;
@@ -212,5 +213,6 @@ static Plugin<SolverInterface> _plugin4(
         NoAdditionalOptions,
         HDPOptions>);
 
+}
 } // namespace solvers
 } // namespace probfd

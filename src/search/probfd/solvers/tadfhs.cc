@@ -7,6 +7,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 using namespace engines::trap_aware_dfhs;
@@ -196,5 +197,6 @@ static Plugin<SolverInterface>
 static Plugin<SolverInterface>
     _plugin4("tahdp", parse_with_default<HDPOptions>);
 
+}
 } // namespace solvers
 } // namespace probfd

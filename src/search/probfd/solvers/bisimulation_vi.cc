@@ -23,6 +23,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 
@@ -155,5 +156,6 @@ static Plugin<SolverInterface> _plugin_ii(
     "bisimulation_ii",
     options::parse<SolverInterface, BisimulationIntervalIteration>);
 
+} // namespace
 } // namespace solvers
 } // namespace probfd

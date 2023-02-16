@@ -8,6 +8,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 using namespace engines::trap_aware_lrtdp;
@@ -98,5 +99,6 @@ protected:
 static Plugin<SolverInterface>
     _plugin("talrtdp", options::parse<SolverInterface, TrapAwareLRTDPSolver>);
 
+} // namespace
 } // namespace solvers
 } // namespace probfd

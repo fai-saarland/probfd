@@ -10,6 +10,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 using namespace engines::lrtdp;
@@ -53,8 +54,7 @@ public:
         return "lrtdp";
     }
 
-    virtual engines::MDPEngineInterface<State>*
-    create_engine() override
+    virtual engines::MDPEngineInterface<State>* create_engine() override
     {
         return this->template heuristic_search_engine_factory<LRTDP>(
             stop_consistent_,
@@ -98,5 +98,6 @@ static Plugin<SolverInterface> _plugin(
     "lrtdp",
     parse_mdp_heuristic_search_solver<LRTDPSolver, LRTDPOptions>);
 
+} // namespace
 } // namespace solvers
 } // namespace probfd

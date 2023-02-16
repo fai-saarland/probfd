@@ -9,6 +9,7 @@
 
 namespace probfd {
 namespace solvers {
+namespace {
 
 using namespace engine_interfaces;
 
@@ -53,5 +54,6 @@ static Plugin<SolverInterface> _plugin(
     "interval_iteration",
     options::parse<SolverInterface, IntervalIterationSolver>);
 
+} // namespace
 } // namespace solvers
 } // namespace probfd
