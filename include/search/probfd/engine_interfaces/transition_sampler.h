@@ -21,7 +21,7 @@ public:
     virtual ~TransitionSampler() = default;
 
     virtual StateID sample(
-        const StateID& state,
+        StateID state,
         const Action& op,
         const Distribution<StateID>& transition,
         HeuristicSearchInterface& hs_interface) = 0;

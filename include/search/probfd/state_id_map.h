@@ -15,7 +15,7 @@ class StateIDMap<State> {
 public:
     explicit StateIDMap(StateRegistry* reg);
     StateID get_state_id(const State& state);
-    State get_state(const StateID& state_id);
+    State get_state(StateID state_id);
 
 private:
     StateRegistry* reg_;

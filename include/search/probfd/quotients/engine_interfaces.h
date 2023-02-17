@@ -59,15 +59,15 @@ public:
     {
     }
 
-    ActionID get_action_id(
-        const StateID& sid,
-        const quotients::QuotientAction<Action>& qa) const
+    ActionID
+    get_action_id(StateID sid, const quotients::QuotientAction<Action>& qa)
+        const
     {
         return quotient_->get_action_id(sid, qa);
     }
 
     quotients::QuotientAction<Action>
-    get_action(const StateID& state_id, const ActionID& action_id) const
+    get_action(StateID state_id, const ActionID& action_id) const
     {
         return quotient_->get_action(state_id, action_id);
     }
@@ -85,14 +85,14 @@ public:
     }
 
     void generate_applicable_actions(
-        const StateID& sid,
+        StateID sid,
         std::vector<quotients::QuotientAction<Action>>& res) const
     {
         return quotient_->generate_applicable_ops(sid, res);
     }
 
     void generate_action_transitions(
-        const StateID& sid,
+        StateID sid,
         const quotients::QuotientAction<Action>& a,
         Distribution<StateID>& res) const
     {
@@ -100,7 +100,7 @@ public:
     }
 
     void generate_all_transitions(
-        const StateID& sid,
+        StateID sid,
         std::vector<quotients::QuotientAction<Action>>& aops,
         std::vector<Distribution<StateID>>& succs) const
     {

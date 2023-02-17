@@ -62,16 +62,15 @@ public:
     bool is_dead_end(const QuotientState& s) const;
 
     /// Returns the applicable actions for the quotient state \p s in \p result.
-    void get_applicable_actions(
-        const StateID& s,
-        std::vector<QuotientAction>& result) const;
+    void get_applicable_actions(StateID s, std::vector<QuotientAction>& result)
+        const;
 
     /**
      * @brief Returns the successor distribution for the quotient state with ID
      * \p s and quotient action \p action in \p succs .
      */
     void get_successors(
-        const StateID& s,
+        StateID s,
         const QuotientAction& action,
         Distribution<StateID>& succs);
 

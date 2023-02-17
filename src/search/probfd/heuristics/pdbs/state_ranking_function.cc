@@ -393,7 +393,7 @@ StateRankToString::StateRankToString(
 {
 }
 
-std::string StateRankToString::operator()(const StateID&, StateRank state) const
+std::string StateRankToString::operator()(StateID, StateRank state) const
 {
     const ProbabilisticTask& task = *tasks::g_root_task;
 

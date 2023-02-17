@@ -240,7 +240,7 @@ private:
         } while (!is_complete);
     }
 
-    void enqueue(const StateID& state)
+    void enqueue(StateID state)
     {
         queue_.emplace_back(state, stack_.size());
         stack_index_[state] = stack_.size();
@@ -275,7 +275,7 @@ private:
         info.flags.is_trap = has_zero_cost_;
     }
 
-    bool push_state(const StateID& state, StateInfo& state_info, Flags& flags)
+    bool push_state(StateID state, StateInfo& state_info, Flags& flags)
     {
         assert(!terminated_);
         last_value_changed_ = false;
@@ -316,7 +316,7 @@ private:
         return true;
     }
 
-    bool push_state(const StateID& state, Flags& flags)
+    bool push_state(StateID state, Flags& flags)
     {
         StateInfo& state_info = this->get_state_info(state);
         if (state_info.is_terminal() || state_info.is_solved()) {
@@ -328,7 +328,7 @@ private:
         return push_state(state, state_info, flags);
     }
 
-    bool repush_trap(const StateID& state, Flags& flags)
+    bool repush_trap(StateID state, Flags& flags)
     {
         last_value_changed_ = false;
         last_policy_changed_ = false;
@@ -366,7 +366,7 @@ private:
         return true;
     }
 
-    bool policy_exploration(const StateID& start_state)
+    bool policy_exploration(StateID start_state)
     {
         assert(visited_states_.empty());
         terminated_ = false;

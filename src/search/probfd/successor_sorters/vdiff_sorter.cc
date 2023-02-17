@@ -13,7 +13,7 @@ VDiffSorter::VDiffSorter(const value_t favor_large_gaps)
 }
 
 void VDiffSorter::sort(
-    const StateID&,
+    StateID,
     const std::vector<OperatorID>&,
     std::vector<Distribution<StateID>>& successors,
     engine_interfaces::HeuristicSearchInterface& hs_interface)

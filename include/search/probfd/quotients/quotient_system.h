@@ -134,13 +134,13 @@ public:
         return const_iterator(this, quotient_ids_.size());
     }
 
-    unsigned quotient_size(const StateID& state_id) const
+    unsigned quotient_size(StateID state_id) const
     {
         const QuotientInformation* info = get_quotient_info(state_id);
         return info ? info->states_naops.size() : 1;
     }
 
-    auto quotient_range(const StateID& state_id) const
+    auto quotient_range(StateID state_id) const
     {
         const QuotientInformation* info = this->get_quotient_info(state_id);
 
@@ -156,8 +156,7 @@ public:
     }
 
     void
-    generate_applicable_ops(const StateID& sid, std::vector<QAction>& result)
-        const
+    generate_applicable_ops(StateID sid, std::vector<QAction>& result) const
     {
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
@@ -183,7 +182,7 @@ public:
     }
 
     void generate_successors(
-        const StateID&,
+        StateID,
         const QAction& a,
         Distribution<StateID>& result) const
     {
@@ -198,7 +197,7 @@ public:
     }
 
     void generate_all_successors(
-        const StateID& sid,
+        StateID sid,
         std::vector<QAction>& aops,
         std::vector<Distribution<StateID>>& successors) const
     {
@@ -231,18 +230,18 @@ public:
         }
     }
 
-    StateID translate_state_id(const StateID& sid) const
+    StateID translate_state_id(StateID sid) const
     {
         return StateID(get_masked_state_id(sid) & MASK);
     }
 
-    ActionID get_original_action_id(const StateID& sid, const ActionID& a) const
+    ActionID get_original_action_id(StateID sid, const ActionID& a) const
     {
         const QuotientInformation* info = get_quotient_info(sid);
         return info ? info->aops[a] : a;
     }
 
-    ActionID get_action_id(const StateID& sid, const QAction& a) const
+    ActionID get_action_id(StateID sid, const QAction& a) const
     {
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
@@ -264,12 +263,12 @@ public:
         return aop - info->aops.begin();
     }
 
-    Action get_original_action(const StateID&, const QAction& a) const
+    Action get_original_action(StateID, const QAction& a) const
     {
         return action_id_map_->get_action(a.state_id, a.action_id);
     }
 
-    QAction get_action(const StateID& sid, const ActionID& aid) const
+    QAction get_action(StateID sid, const ActionID& aid) const
     {
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
@@ -302,10 +301,7 @@ public:
     }
 
     template <typename StateIDIterator>
-    void build_quotient(
-        StateIDIterator begin,
-        StateIDIterator end,
-        const StateID& rid)
+    void build_quotient(StateIDIterator begin, StateIDIterator end, StateID rid)
     {
         this->build_quotient(
             begin,
@@ -318,7 +314,7 @@ public:
     void build_quotient(
         StateIDIterator begin,
         StateIDIterator end,
-        const StateID& rid, // representative id
+        StateID rid, // representative id
         IgnoreActionsIterator ignore_actions)
     {
         // Get or create quotient
@@ -464,24 +460,24 @@ private:
         aops.erase(it, aops.end());
     }
 
-    QuotientInformation* get_quotient_info(const StateID& state_id)
+    QuotientInformation* get_quotient_info(StateID state_id)
     {
         const StateID::size_type qid = quotient_ids_[state_id];
         return qid & FLAG ? &quotients_.find(qid & MASK)->second : nullptr;
     }
 
-    const QuotientInformation* get_quotient_info(const StateID& state_id) const
+    const QuotientInformation* get_quotient_info(StateID state_id) const
     {
         const StateID::size_type qid = get_masked_state_id(state_id);
         return qid & FLAG ? &quotients_.find(qid & MASK)->second : nullptr;
     }
 
-    StateID::size_type get_masked_state_id(const StateID& sid) const
+    StateID::size_type get_masked_state_id(StateID sid) const
     {
         return sid < quotient_ids_.size() ? quotient_ids_[sid] : sid.id;
     }
 
-    void set_masked_state_id(const StateID& sid, const StateID::size_type& qsid)
+    void set_masked_state_id(StateID sid, const StateID::size_type& qsid)
     {
         if (sid >= quotient_ids_.size()) {
             for (auto idx = quotient_ids_.size(); idx <= sid; ++idx) {

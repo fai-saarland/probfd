@@ -18,17 +18,17 @@ namespace engine_interfaces {
 template <>
 struct StateIDMap<bisimulation::QuotientState> {
     StateID get_state_id(const bisimulation::QuotientState& state) const;
-    bisimulation::QuotientState get_state(const StateID& state_id) const;
+    bisimulation::QuotientState get_state(StateID state_id) const;
 };
 
 template <>
 struct ActionIDMap<bisimulation::QuotientAction> {
-    ActionID get_action_id(
-        const StateID& state_id,
-        const bisimulation::QuotientAction& action) const;
+    ActionID
+    get_action_id(StateID state_id, const bisimulation::QuotientAction& action)
+        const;
 
     bisimulation::QuotientAction
-    get_action(const StateID& state_id, const ActionID& action) const;
+    get_action(StateID state_id, const ActionID& action) const;
 };
 
 template <>
@@ -38,14 +38,14 @@ struct TransitionGenerator<bisimulation::QuotientAction> {
     explicit TransitionGenerator(bisimulation::BisimilarStateSpace* bisim);
 
     void generate_applicable_actions(
-        const StateID& state,
+        StateID state,
         std::vector<bisimulation::QuotientAction>& result) const;
     void generate_action_transitions(
-        const StateID& state,
+        StateID state,
         const bisimulation::QuotientAction& action,
         Distribution<StateID>& result) const;
     void generate_all_transitions(
-        const StateID& state,
+        StateID state,
         std::vector<bisimulation::QuotientAction>& aops,
         std::vector<Distribution<StateID>>& result) const;
 };

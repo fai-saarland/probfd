@@ -15,7 +15,7 @@ StateID StateIDMap<State>::get_state_id(const State& state)
     return state.get_id();
 }
 
-State StateIDMap<State>::get_state(const StateID& state_id)
+State StateIDMap<State>::get_state(StateID state_id)
 {
     return reg_->lookup_state(::StateID(state_id));
 }

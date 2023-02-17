@@ -10,13 +10,13 @@ StateID StateIDMap<bisimulation::QuotientState>::get_state_id(
 }
 
 bisimulation::QuotientState
-StateIDMap<bisimulation::QuotientState>::get_state(const StateID& s) const
+StateIDMap<bisimulation::QuotientState>::get_state(StateID s) const
 {
     return bisimulation::QuotientState(s);
 }
 
 ActionID ActionIDMap<bisimulation::QuotientAction>::get_action_id(
-    const StateID&,
+    StateID,
     const bisimulation::QuotientAction& action) const
 {
     return action.idx;
@@ -24,7 +24,7 @@ ActionID ActionIDMap<bisimulation::QuotientAction>::get_action_id(
 
 bisimulation::QuotientAction
 ActionIDMap<bisimulation::QuotientAction>::get_action(
-    const StateID&,
+    StateID,
     const ActionID& action) const
 {
     return bisimulation::QuotientAction(action);
@@ -38,7 +38,7 @@ TransitionGenerator<bisimulation::QuotientAction>::TransitionGenerator(
 
 void TransitionGenerator<bisimulation::QuotientAction>::
     generate_applicable_actions(
-        const StateID& s,
+        StateID s,
         std::vector<bisimulation::QuotientAction>& res) const
 {
     bisim_->get_applicable_actions(s, res);
@@ -46,7 +46,7 @@ void TransitionGenerator<bisimulation::QuotientAction>::
 
 void TransitionGenerator<bisimulation::QuotientAction>::
     generate_action_transitions(
-        const StateID& s,
+        StateID s,
         const bisimulation::QuotientAction& a,
         Distribution<StateID>& res) const
 {
@@ -55,7 +55,7 @@ void TransitionGenerator<bisimulation::QuotientAction>::
 
 void TransitionGenerator<bisimulation::QuotientAction>::
     generate_all_transitions(
-        const StateID& state,
+        StateID state,
         std::vector<bisimulation::QuotientAction>& aops,
         std::vector<Distribution<StateID>>& result) const
 {

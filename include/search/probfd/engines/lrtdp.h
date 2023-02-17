@@ -238,7 +238,7 @@ protected:
     }
 
 private:
-    void trial(const StateID& initial_state)
+    void trial(StateID initial_state)
     {
         assert(
             this->current_trial_.empty() && this->selected_transition_.empty());
@@ -305,7 +305,7 @@ private:
         this->current_trial_.clear();
     }
 
-    bool check_and_solve(const StateID& init_state_id)
+    bool check_and_solve(StateID init_state_id)
     {
         assert(!this->current_trial_.empty());
         assert(this->selected_transition_.empty());
@@ -382,7 +382,7 @@ private:
                     mark_solved = false;
                 }
 
-                for (const StateID& succ_id : selected_transition_.elements()) {
+                for (StateID succ_id : selected_transition_.elements()) {
                     auto& succ_info = get_lrtdp_state_info(succ_id);
                     if (succ_info.is_solved()) {
                         auto& succsi = this->get_state_info(succ_id, succ_info);
@@ -399,11 +399,11 @@ private:
         }
 
         if (epsilon_consistent && mark_solved) {
-            for (const StateID& sid : this->visited_) {
+            for (StateID sid : this->visited_) {
                 get_lrtdp_state_info(sid).set_solved();
             }
         } else {
-            for (const StateID& sid : this->visited_) {
+            for (StateID sid : this->visited_) {
                 statistics_.check_and_solve_bellman_backups++;
                 this->async_update(sid);
                 get_lrtdp_state_info(sid).unmark();
@@ -415,7 +415,7 @@ private:
         return epsilon_consistent && mark_solved;
     }
 
-    bool check_and_solve_original(const StateID& init_state_id)
+    bool check_and_solve_original(StateID init_state_id)
     {
         bool rv = true;
 
@@ -441,7 +441,7 @@ private:
             if (value_changed) {
                 rv = false;
             } else if (rv && !this->selected_transition_.empty()) {
-                for (const StateID& succid : selected_transition_.elements()) {
+                for (StateID succid : selected_transition_.elements()) {
                     auto& succ_info = get_lrtdp_state_info(succid);
                     if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
                         succ_info.mark_open();
@@ -474,7 +474,7 @@ private:
         return rv;
     }
 
-    StateInfoT& get_lrtdp_state_info(const StateID& sid)
+    StateInfoT& get_lrtdp_state_info(StateID sid)
     {
         using HSBInfo = typename HeuristicSearchBase::StateInfo;
 

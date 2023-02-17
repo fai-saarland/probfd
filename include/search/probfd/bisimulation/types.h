@@ -23,9 +23,9 @@ public:
         return *this;
     }
 
-    bool operator==(const StateID& s) const { return id == s.id; }
-    bool operator!=(const StateID& s) const { return id != s.id; }
-    bool operator<(const StateID& s) const { return id < s.id; }
+    bool operator==(StateID s) const { return id == s.id; }
+    bool operator!=(StateID s) const { return id != s.id; }
+    bool operator<(StateID s) const { return id < s.id; }
 };
 
 /// Represents an action in the probabilistic bisimulation quotient.

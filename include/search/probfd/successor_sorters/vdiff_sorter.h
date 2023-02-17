@@ -14,7 +14,7 @@ public:
 
 protected:
     virtual void sort(
-        const StateID& state,
+        StateID state,
         const std::vector<OperatorID>& action_choices,
         std::vector<Distribution<StateID>>& successors,
         engine_interfaces::HeuristicSearchInterface& hs_interface) override;

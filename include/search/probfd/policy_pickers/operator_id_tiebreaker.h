@@ -14,7 +14,7 @@ public:
 
 protected:
     virtual int pick(
-        const StateID& state,
+        StateID state,
         const ActionID& prev_policy,
         const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors,

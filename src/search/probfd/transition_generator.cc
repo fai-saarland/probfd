@@ -34,7 +34,7 @@ TransitionGenerator<OperatorID>::TransitionGenerator(
 }
 
 void TransitionGenerator<OperatorID>::generate_applicable_actions(
-    const StateID& state_id,
+    StateID state_id,
     std::vector<OperatorID>& result)
 {
     if (caching_) {
@@ -60,7 +60,7 @@ void TransitionGenerator<OperatorID>::generate_applicable_actions(
 }
 
 void TransitionGenerator<OperatorID>::generate_action_transitions(
-    const StateID& state_id,
+    StateID state_id,
     OperatorID op_id,
     Distribution<StateID>& result)
 {
@@ -118,7 +118,7 @@ void TransitionGenerator<OperatorID>::generate_action_transitions(
 }
 
 void TransitionGenerator<OperatorID>::generate_all_transitions(
-    const StateID& state_id,
+    StateID state_id,
     std::vector<OperatorID>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
@@ -179,7 +179,7 @@ void TransitionGenerator<OperatorID>::generate_all_transitions(
 }
 
 bool TransitionGenerator<OperatorID>::setup_cache(
-    const StateID& state_id,
+    StateID state_id,
     CacheEntry& entry)
 {
     if (!entry.is_initialized()) {
@@ -222,7 +222,7 @@ bool TransitionGenerator<OperatorID>::setup_cache(
 }
 
 TransitionGenerator<OperatorID>::CacheEntry&
-TransitionGenerator<OperatorID>::lookup(const StateID& sid)
+TransitionGenerator<OperatorID>::lookup(StateID sid)
 {
     CacheEntry& entry = cache_[sid];
     setup_cache(sid, entry);
@@ -230,7 +230,7 @@ TransitionGenerator<OperatorID>::lookup(const StateID& sid)
 }
 
 TransitionGenerator<OperatorID>::CacheEntry&
-TransitionGenerator<OperatorID>::lookup(const StateID& sid, bool& setup)
+TransitionGenerator<OperatorID>::lookup(StateID sid, bool& setup)
 {
     CacheEntry& entry = cache_[sid];
     setup = setup_cache(sid, entry);

@@ -23,17 +23,16 @@ struct TransitionGenerator {
      * Generates all applicable actions of the state \p state and outputs them
      * in \p result.
      */
-    void generate_applicable_actions(
-        const StateID& state,
-        std::vector<Action>& result);
+    void
+    generate_applicable_actions(StateID state, std::vector<Action>& result);
 
     void generate_action_transitions(
-        const StateID& state,
+        StateID state,
         const Action& action,
         Distribution<StateID>& result);
 
     void generate_all_transitions(
-        const StateID& state,
+        StateID state,
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors);
 };

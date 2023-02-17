@@ -93,16 +93,16 @@ public:
         bool enable_caching);
 
     void generate_applicable_actions(
-        const StateID& state_id,
+        StateID state_id,
         std::vector<OperatorID>& result);
 
     void generate_action_transitions(
-        const StateID& state,
+        StateID state,
         OperatorID operator_id,
         Distribution<StateID>& result);
 
     void generate_all_transitions(
-        const StateID& state,
+        StateID state,
         std::vector<OperatorID>& aops,
         std::vector<Distribution<StateID>>& successors);
 
@@ -117,10 +117,10 @@ protected:
     void
     compute_applicable_operators(const State& s, std::vector<OperatorID>& ops);
 
-    bool setup_cache(const StateID& state_id, CacheEntry& entry);
+    bool setup_cache(StateID state_id, CacheEntry& entry);
 
-    CacheEntry& lookup(const StateID& state_id);
-    CacheEntry& lookup(const StateID& state_id, bool& initialized);
+    CacheEntry& lookup(StateID state_id);
+    CacheEntry& lookup(StateID state_id, bool& initialized);
 };
 
 } // namespace engine_interfaces

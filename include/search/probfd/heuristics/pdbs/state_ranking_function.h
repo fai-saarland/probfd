@@ -189,7 +189,7 @@ class StateRankToString {
 public:
     explicit StateRankToString(
         std::shared_ptr<StateRankingFunction> state_mapper);
-    std::string operator()(const StateID& id, StateRank state) const;
+    std::string operator()(StateID id, StateRank state) const;
 };
 
 } // namespace pdbs

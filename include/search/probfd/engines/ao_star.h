@@ -118,7 +118,7 @@ private:
                     this->transitions_);
 
                 for (const auto& transition : this->transitions_) {
-                    for (const StateID& succ_id : transition.elements()) {
+                    for (StateID succ_id : transition.elements()) {
                         auto& succ_info = this->get_state_info(succ_id);
 
                         if (succ_info.is_unflagged()) {

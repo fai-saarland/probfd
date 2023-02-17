@@ -24,7 +24,7 @@ public:
      * @param action - The action.
      * @return ActionID - An ID representing this state action.
      */
-    ActionID get_action_id(const StateID& state_id, const Action& action);
+    ActionID get_action_id(StateID state_id, const Action& action);
 
     /**
      * @brief Get the action for a given state and action ID.
@@ -34,7 +34,7 @@ public:
      * @param action_id - The action ID.
      * @returns Action - The represented action.
      */
-    Action get_action(const StateID& state_id, const ActionID& action_id);
+    Action get_action(StateID state_id, const ActionID& action_id);
 };
 
 } // namespace engine_interfaces

@@ -10,7 +10,7 @@ template <typename Action>
 class ArbitraryTiebreaker : public engine_interfaces::PolicyPicker<Action> {
 protected:
     virtual int pick(
-        const StateID&,
+        StateID,
         const ActionID&,
         const std::vector<Action>&,
         const std::vector<Distribution<StateID>>&,

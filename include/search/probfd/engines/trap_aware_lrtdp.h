@@ -192,7 +192,7 @@ private:
     };
 
     struct ExplorationInformation {
-        explicit ExplorationInformation(const StateID& state_id)
+        explicit ExplorationInformation(StateID state_id)
             : state(state_id)
         {
         }
@@ -203,7 +203,7 @@ private:
         Flags flags;
     };
 
-    bool trial(const StateID& start_state)
+    bool trial(StateID start_state)
     {
         assert(current_trial_.empty());
         assert(selected_transition_.empty());

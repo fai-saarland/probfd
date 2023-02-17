@@ -26,7 +26,7 @@ public:
         return s;
     }
 
-    void push(const StateID& state_id) override { queue_.push_back(state_id); }
+    void push(StateID state_id) override { queue_.push_back(state_id); }
 
     void clear() override { queue_.clear(); }
 };

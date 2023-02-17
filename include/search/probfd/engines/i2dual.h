@@ -192,7 +192,7 @@ public:
             statistics_.expansions_ += frontier.size();
             unsigned start_new_states = frontier_candidates.size();
 
-            for (const StateID& state_id : frontier) {
+            for (StateID state_id : frontier) {
                 IDualData& state_data = idual_data[state_id];
                 assert(state_data.is_frontier());
 
@@ -430,7 +430,7 @@ private:
         size_t i = incremental_hpom_updates_ ? start : 0;
 
         for (; i < frontier.size(); ++i) {
-            const StateID& state_id = frontier[i];
+            StateID state_id = frontier[i];
             State s = this->lookup_state(state_id);
             add_fringe_state_to_hpom(s, data[state_id], hpom_constraints_);
         }

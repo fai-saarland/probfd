@@ -71,36 +71,36 @@ public:
         bucket_map_.clear();
     }
 
-    virtual void push(const StateID& state_id) override
+    virtual void push(StateID state_id) override
     {
         Key k = get_key(state_id);
         push(k, state_id);
     }
 
     virtual void push(
-        const StateID& parent,
+        StateID parent,
         const ProbabilisticOperator* op,
         const value_type::value_t& prob,
-        const StateID& state_id) override
+        StateID state_id) override
     {
         Key k = get_key(parent, op, prob, state_id);
         push(k, state_id);
     }
 
 protected:
-    virtual Key get_key(const StateID& state_id) = 0;
+    virtual Key get_key(StateID state_id) = 0;
 
     virtual Key get_key(
-        const StateID&,
+        StateID,
         const ProbabilisticOperator*,
         const value_type::value_t&,
-        const StateID& state_id)
+        StateID state_id)
     {
         return this->get_key(state_id);
     }
 
 private:
-    void push(const Key& key, const StateID& stateid)
+    void push(const Key& key, StateID stateid)
     {
         BucketRef b = bucket(key);
         bucket_push(b, stateid);
@@ -114,7 +114,7 @@ private:
 
     inline void remove(BucketRef ref) { bucket_map_.erase(ref); }
 
-    inline void bucket_push(BucketRef ref, const StateID& stateid)
+    inline void bucket_push(BucketRef ref, StateID stateid)
     {
         ref->second.push_back(stateid);
     }

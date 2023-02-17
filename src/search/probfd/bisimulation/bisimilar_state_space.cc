@@ -267,7 +267,7 @@ bool BisimilarStateSpace::is_dead_end(const QuotientState& s) const
 }
 
 void BisimilarStateSpace::get_applicable_actions(
-    const StateID& s,
+    StateID s,
     std::vector<QuotientAction>& result) const
 {
     if (s == dead_end_state_.id) {
@@ -282,7 +282,7 @@ void BisimilarStateSpace::get_applicable_actions(
 }
 
 void BisimilarStateSpace::get_successors(
-    const StateID& s,
+    StateID s,
     const QuotientAction& a,
     Distribution<StateID>& result)
 {

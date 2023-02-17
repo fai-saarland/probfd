@@ -12,12 +12,6 @@ template <typename Action>
 struct QuotientAction {
     StateID state_id;
     ActionID action_id;
-
-    explicit QuotientAction(const StateID& state_id, const ActionID& action_id)
-        : state_id(state_id)
-        , action_id(action_id)
-    {
-    }
 };
 
 template <typename T>

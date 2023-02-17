@@ -292,7 +292,7 @@ public:
 private:
     template <typename ZeroOutputIt, typename OneOutputIt>
     bool push(
-        const StateID& state_id,
+        StateID state_id,
         StateInfo& state_info,
         ZeroOutputIt zero_states_out,
         OneOutputIt one_states_out)

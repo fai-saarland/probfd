@@ -201,13 +201,12 @@ public:
     {
     }
 
-    engines::heuristic_search::StateFlags&
-    lookup_state_flags(const StateID&) override
+    engines::heuristic_search::StateFlags& lookup_state_flags(StateID) override
     {
         ABORT("Exhaustive DFS does not store state flags.");
     }
 
-    value_t lookup_value(const StateID& state_id) override
+    value_t lookup_value(StateID state_id) override
     {
         if constexpr (UseInterval) {
             return search_space_[state_id].value.upper;
@@ -216,7 +215,7 @@ public:
         }
     }
 
-    Interval lookup_dual_bounds(const StateID& state_id) override
+    Interval lookup_dual_bounds(StateID state_id) override
     {
         if constexpr (!UseInterval) {
             ABORT("Search algorithm does not support interval bounds!");
@@ -225,7 +224,7 @@ public:
         }
     }
 
-    ActionID lookup_policy(const StateID&) override
+    ActionID lookup_policy(StateID) override
     {
         ABORT("Search algorithm does not store policy information!");
     }
@@ -321,7 +320,7 @@ private:
     };
 
     struct StackInformation {
-        explicit StackInformation(const StateID& state_ref)
+        explicit StackInformation(StateID state_ref)
             : state_ref(state_ref)
         {
         }
@@ -331,8 +330,7 @@ private:
         int i = -1;
     };
 
-    bool
-    initialize_search_node(const StateID& state_id, SearchNodeInformation& info)
+    bool initialize_search_node(StateID state_id, SearchNodeInformation& info)
     {
         return initialize_search_node(this->lookup_state(state_id), info);
     }
@@ -377,7 +375,7 @@ private:
         return true;
     }
 
-    bool push_state(const StateID& state_id, SearchNodeInformation& info)
+    bool push_state(StateID state_id, SearchNodeInformation& info)
     {
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> successors;

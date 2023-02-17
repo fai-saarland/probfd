@@ -100,35 +100,33 @@ public:
         }
     }
 
-    unsigned quotient_size(const StateID& state_id) const;
+    unsigned quotient_size(StateID state_id) const;
 
     const_iterator begin() const;
     const_iterator end() const;
 
     std::ranges::subrange<QuotientStateIDIterator, QuotientStateIDIterator>
-    quotient_range(const StateID& state_id) const;
+    quotient_range(StateID state_id) const;
 
-    StateID translate_state_id(const StateID& sid) const;
+    StateID translate_state_id(StateID sid) const;
 
-    void
-    generate_applicable_ops(const StateID& sid, std::vector<QAction>& result);
+    void generate_applicable_ops(StateID sid, std::vector<QAction>& result);
 
     void generate_successors(
-        const StateID&,
+        StateID,
         const QAction& a,
         Distribution<StateID>& result);
 
     void generate_all_successors(
-        const StateID& sid,
+        StateID sid,
         std::vector<QAction>& aops,
         std::vector<Distribution<StateID>>& successors);
 
-    QAction get_action(const StateID& sid, const ActionID& aid) const;
-    ActionID get_action_id(const StateID& sid, const QAction& a) const;
+    QAction get_action(StateID sid, const ActionID& aid) const;
+    ActionID get_action_id(StateID sid, const QAction& a) const;
 
-    OperatorID get_original_action(const StateID&, const QAction& a) const;
-    ActionID
-    get_original_action_id(const StateID& sid, const ActionID& a) const;
+    OperatorID get_original_action(StateID, const QAction& a) const;
+    ActionID get_original_action_id(StateID sid, const ActionID& a) const;
 
     template <std::ranges::input_range StateIDRange>
     void build_quotient(StateIDRange&& range)
@@ -150,10 +148,7 @@ public:
     }
 
     template <std::input_iterator StateIDIterator>
-    void build_quotient(
-        StateIDIterator begin,
-        StateIDIterator end,
-        const StateID& rid)
+    void build_quotient(StateIDIterator begin, StateIDIterator end, StateID rid)
         requires(std::is_same_v<std::iter_value_t<StateIDIterator>, StateID>)
     {
         this->build_quotient(
@@ -169,7 +164,7 @@ public:
     void build_quotient(
         StateIDIterator begin,
         StateIDIterator end,
-        const StateID& rid,
+        StateID rid,
         ActionFilterIterator filter_it)
         requires(
             std::is_same_v<std::iter_value_t<StateIDIterator>, StateID> &&
@@ -243,13 +238,13 @@ public:
         const ProbabilisticOperatorsProxy operators =
             gen_->task_proxy.get_operators();
 
-        for (const StateID& parent : parents) {
+        for (StateID parent : parents) {
             assert(parent != rid);
             assert(state_infos_[parent].states[0] == parent);
 
             const auto& parent_states = state_infos_[parent].states;
 
-            for (const StateID& parent_state : parent_states) {
+            for (StateID parent_state : parent_states) {
                 auto& entry = gen_->lookup(parent_state);
                 const OperatorID* aop = entry.aops;
                 const OperatorID* aop_end = entry.aops + entry.naops;
@@ -283,7 +278,7 @@ private:
     struct QuotientInformation {
         std::vector<StateID> parents;
         std::vector<StateID> states;
-        explicit QuotientInformation(const StateID& s)
+        explicit QuotientInformation(StateID s)
             : states({s})
         {
         }
@@ -333,11 +328,11 @@ private:
     void verify_cache_consistency();
 #endif
 
-    const QuotientInformation* get_infos(const StateID& sid) const;
+    const QuotientInformation* get_infos(StateID sid) const;
     engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
-    lookup(const StateID& sid);
+    lookup(StateID sid);
     const engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
-    lookup(const StateID& sid) const;
+    lookup(StateID sid) const;
 
     const bool cache_;
 

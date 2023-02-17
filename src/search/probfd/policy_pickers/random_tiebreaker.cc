@@ -14,7 +14,7 @@ RandomTiebreaker::RandomTiebreaker(
 }
 
 int RandomTiebreaker::pick(
-    const StateID&,
+    StateID,
     const ActionID&,
     const std::vector<OperatorID>& options,
     const std::vector<Distribution<StateID>>&,

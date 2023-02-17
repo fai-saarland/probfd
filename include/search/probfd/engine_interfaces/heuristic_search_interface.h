@@ -11,13 +11,13 @@ public:
     virtual ~HeuristicSearchInterface() = default;
 
     virtual const engines::heuristic_search::StateFlags&
-    lookup_state_flags(const StateID& state_id) = 0;
+    lookup_state_flags(StateID state_id) = 0;
 
-    virtual value_t lookup_value(const StateID& state_id) = 0;
+    virtual value_t lookup_value(StateID state_id) = 0;
 
-    virtual Interval lookup_dual_bounds(const StateID& state_id) = 0;
+    virtual Interval lookup_dual_bounds(StateID state_id) = 0;
 
-    virtual ActionID lookup_policy(const StateID& state_id) = 0;
+    virtual ActionID lookup_policy(StateID state_id) = 0;
 };
 
 } // namespace engine_interfaces

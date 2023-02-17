@@ -24,7 +24,7 @@ public:
 
 protected:
     StateID sample(
-        const StateID&,
+        StateID,
         const Action&,
         const Distribution<StateID>& successors,
         engine_interfaces::HeuristicSearchInterface&) override

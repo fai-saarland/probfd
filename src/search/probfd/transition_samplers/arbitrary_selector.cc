@@ -4,7 +4,7 @@ namespace probfd {
 namespace transition_samplers {
 
 StateID ArbitrarySuccessorSelector::sample(
-    const StateID&,
+    StateID,
     const OperatorID&,
     const Distribution<StateID>& successors,
     engine_interfaces::HeuristicSearchInterface&)

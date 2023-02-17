@@ -13,7 +13,7 @@ public:
     explicit VDiffTiebreaker(value_t favor_large_gaps_);
 
     virtual int pick(
-        const StateID& state,
+        StateID state,
         const ActionID& prev_policy,
         const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors,

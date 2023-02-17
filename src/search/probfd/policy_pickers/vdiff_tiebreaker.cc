@@ -11,7 +11,7 @@ VDiffTiebreaker::VDiffTiebreaker(value_t favor_large_gaps)
 }
 
 int VDiffTiebreaker::pick(
-    const StateID&,
+    StateID,
     const ActionID&,
     const std::vector<OperatorID>&,
     const std::vector<Distribution<StateID>>& successors,

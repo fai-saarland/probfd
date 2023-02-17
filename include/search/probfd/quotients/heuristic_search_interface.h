@@ -25,7 +25,7 @@ public:
     }
 
     int pick(
-        const StateID& state,
+        StateID state,
         const ActionID& prev_policy,
         const std::vector<QuotientAction>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
@@ -67,7 +67,7 @@ public:
     }
 
     StateID sample(
-        const StateID& state,
+        StateID state,
         const QuotientAction& action,
         const Distribution<StateID>& transition,
         HeuristicSearchInterface& hs_interface)
@@ -101,13 +101,13 @@ public:
 
     StateID pop() { return original_->pop(); }
 
-    void push(const StateID& state_id) { original_->push(state_id); }
+    void push(StateID state_id) { original_->push(state_id); }
 
     void push(
-        const StateID& parent,
+        StateID parent,
         const QuotientAction& action,
         const value_t& prob,
-        const StateID& state_id)
+        StateID state_id)
     {
         const OperatorID op_id =
             this->quotient_->get_original_action(parent, action);

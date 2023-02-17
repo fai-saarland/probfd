@@ -22,7 +22,7 @@ public:
     /**
      * @brief Get the state for a given state id.
      */
-    State get_state(const StateID& state_id);
+    State get_state(StateID state_id);
 };
 
 } // namespace engine_interfaces

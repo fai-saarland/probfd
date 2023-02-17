@@ -55,7 +55,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
 
     struct IncrementalExpansionInfo {
         IncrementalExpansionInfo(
-            const StateID& state,
+            StateID state,
             std::vector<Action> remaining_aops)
             : state(state)
             , remaining_aops(std::move(remaining_aops))
@@ -165,7 +165,7 @@ private:
         e.successor = e.transition.begin();
     }
 
-    bool push_state(const StateID& state_id)
+    bool push_state(StateID state_id)
     {
         StateInfo& info = state_infos_[state_id];
 

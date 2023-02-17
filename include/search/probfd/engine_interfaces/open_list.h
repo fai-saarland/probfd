@@ -26,18 +26,14 @@ public:
 
     virtual unsigned size() const = 0;
 
-    virtual void push(const StateID& state_id) = 0;
+    virtual void push(StateID state_id) = 0;
     virtual StateID pop() = 0;
 
     virtual void clear() = 0;
 
     virtual bool empty() const { return size() == 0; }
 
-    virtual void push(
-        const StateID&,
-        const Action&,
-        const value_t&,
-        const StateID& state_id)
+    virtual void push(StateID, const Action&, const value_t&, StateID state_id)
     {
         push(state_id);
     }

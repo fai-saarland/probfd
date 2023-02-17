@@ -215,7 +215,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         std::vector<QValueInfo> ec_transitions;
 
         StackInfo(
-            const StateID& state_id,
+            StateID state_id,
             IncumbentSolution& value_ref,
             value_t state_cost,
             unsigned num_aops)
@@ -498,7 +498,7 @@ private:
     bool successor_loop(
         ExplorationInfo& explore,
         StackInfo& stack_info,
-        const StateID& state_id,
+        StateID state_id,
         ValueStore& value_store)
     {
         for (;;) {

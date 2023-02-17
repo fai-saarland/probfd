@@ -21,7 +21,7 @@ public:
 
 protected:
     virtual StateID sample(
-        const StateID& state,
+        StateID state,
         const OperatorID& op,
         const Distribution<StateID>& successors,
         engine_interfaces::HeuristicSearchInterface& hs_interface)

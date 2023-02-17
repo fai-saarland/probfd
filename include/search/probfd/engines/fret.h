@@ -82,7 +82,7 @@ class FRET : public MDPEngine<State, Action> {
     };
 
     struct ExplorationInfo {
-        ExplorationInfo(const StateID& state_id)
+        ExplorationInfo(StateID state_id)
             : state_id(state_id)
         {
         }
@@ -333,7 +333,7 @@ private:
                            << " unexpanded = " << unexpanded_ << std::endl;)
     }
 
-    bool push(std::deque<ExplorationInfo>& queue, const StateID& state_id)
+    bool push(std::deque<ExplorationInfo>& queue, StateID state_id)
     {
         if (base_engine_->is_terminal(state_id)) {
             return false;
@@ -374,7 +374,7 @@ public:
     {
     }
 
-    bool operator()(const StateID& qstate, std::vector<StateID>& successors)
+    bool operator()(StateID qstate, std::vector<StateID>& successors)
     {
         collector_.states.clear();
         auto result =
@@ -395,7 +395,7 @@ private:
             engine_interfaces::HeuristicSearchInterface&)
         {
             for (const auto& transition : transitions) {
-                for (const StateID& sid : transition.elements()) {
+                for (StateID sid : transition.elements()) {
                     if (ids.insert(sid).second) {
                         states.push_back(sid);
                     }
@@ -426,11 +426,11 @@ public:
     {
     }
 
-    bool operator()(const StateID& qstate, std::vector<StateID>& successors)
+    bool operator()(StateID qstate, std::vector<StateID>& successors)
     {
         t_.clear();
         bool result = base_engine_->apply_policy(qstate, t_);
-        for (const StateID& sid : t_.elements()) {
+        for (StateID sid : t_.elements()) {
             successors.push_back(sid);
         }
         return result;

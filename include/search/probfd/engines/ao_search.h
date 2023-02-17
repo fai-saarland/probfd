@@ -48,7 +48,7 @@ struct PerStateInformation : public StateInfo {
 
     const std::vector<StateID>& get_parents() const { return parents; }
     std::vector<StateID>& get_parents() { return parents; }
-    void add_parent(const StateID& s) { parents.push_back(s); }
+    void add_parent(StateID s) { parents.push_back(s); }
 
     unsigned update_order = 0;
     std::vector<StateID> parents;
@@ -175,7 +175,7 @@ protected:
         }
     }
 
-    void backpropagate_update_order(const StateID& tip)
+    void backpropagate_update_order(StateID tip)
     {
         queue_.emplace(this->get_state_info(tip).update_order, tip);
 
@@ -208,7 +208,7 @@ protected:
     }
 
     void initialize_tip_state_value(
-        const StateID& state,
+        StateID state,
         StateInfo& info,
         bool& terminal,
         bool& solved,
@@ -242,7 +242,7 @@ protected:
     void push_parents_to_queue(StateInfo& info)
     {
         auto& parents = info.get_parents();
-        for (const StateID& parent : parents) {
+        for (StateID parent : parents) {
             auto& pinfo = this->get_state_info(parent);
             assert(!pinfo.is_dead_end() || pinfo.is_solved());
 
@@ -267,10 +267,8 @@ protected:
         }
     }
 
-    void mark_solved_push_parents(
-        const StateID& state,
-        StateInfo& info,
-        const bool dead)
+    void
+    mark_solved_push_parents(StateID state, StateInfo& info, const bool dead)
     {
         assert(!info.is_terminal());
 
@@ -285,7 +283,7 @@ protected:
 
 private:
     bool update_value_check_solved(
-        const StateID& state,
+        StateID state,
         const StateInfo& info,
         bool& solved,
         bool& dead)
@@ -296,7 +294,7 @@ private:
             solved = true;
             dead = !selected_transition_.empty() || info.is_dead_end();
 
-            for (const StateID& succ_id : selected_transition_.elements()) {
+            for (StateID succ_id : selected_transition_.elements()) {
                 const auto& succ_info = this->get_state_info(succ_id);
                 solved = solved && succ_info.is_solved();
                 dead = dead && succ_info.is_dead_end();

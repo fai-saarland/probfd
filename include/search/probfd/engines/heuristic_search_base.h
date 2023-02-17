@@ -185,12 +185,12 @@ public:
     }
 
     const engines::heuristic_search::StateFlags&
-    lookup_state_flags(const StateID& state_id) override
+    lookup_state_flags(StateID state_id) override
     {
         return state_infos_[state_id];
     }
 
-    value_t lookup_value(const StateID& state_id) override
+    value_t lookup_value(StateID state_id) override
     {
         if constexpr (UseInterval) {
             return state_infos_[state_id].value.upper;
@@ -199,7 +199,7 @@ public:
         }
     }
 
-    Interval lookup_dual_bounds(const StateID& state_id) override
+    Interval lookup_dual_bounds(StateID state_id) override
     {
         if constexpr (!UseInterval) {
             ABORT("Search algorithm does not support interval bounds!");
@@ -208,7 +208,7 @@ public:
         }
     }
 
-    ActionID lookup_policy(const StateID& state_id) override
+    ActionID lookup_policy(StateID state_id) override
     {
         if constexpr (!StorePolicy) {
             ABORT("Search algorithm does not store policy information!");
@@ -220,7 +220,7 @@ public:
     /**
      * @brief Checks if the state \p state_id is terminal.
      */
-    bool is_terminal(const StateID& state_id)
+    bool is_terminal(StateID state_id)
     {
         return state_infos_[state_id].is_terminal();
     }
@@ -228,7 +228,7 @@ public:
     /**
      * @brief Gets the current value of the state represented by \p state_id
      */
-    value_t get_value(const StateID& state_id)
+    value_t get_value(StateID state_id)
     {
         return as_upper_bound(state_infos_[state_id].value);
     }
@@ -237,7 +237,7 @@ public:
      * @brief Chekcs if the state represented by \p state_id is marked as a
      * dead-end.
      */
-    bool is_marked_dead_end(const StateID& state)
+    bool is_marked_dead_end(StateID state)
     {
         return state_infos_[state].is_dead_end();
     }
@@ -246,7 +246,7 @@ public:
      * @brief Clears the currently selected greedy action for the state
      * represented by \p state_id
      */
-    void clear_policy(const StateID& state_id)
+    void clear_policy(StateID state_id)
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
@@ -257,7 +257,7 @@ public:
      * @brief Gets the currently selected greedy action for the state
      * represented by \p state_id
      */
-    Action get_policy(const StateID& state_id)
+    Action get_policy(StateID state_id)
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
@@ -274,7 +274,7 @@ public:
      * @param[out] result - The returned successor distribution when applying
      * the current greedy action in the state represented by \p state
      */
-    bool apply_policy(const StateID& state, Distribution<StateID>& result)
+    bool apply_policy(StateID state, Distribution<StateID>& result)
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
@@ -289,10 +289,10 @@ public:
     }
 
     /**
-     * @brief Calls notify_dead_end(const StateID&, StateInfo&) with the
+     * @brief Calls notify_dead_end(StateID, StateInfo&) with the
      * respective state info object
      */
-    bool notify_dead_end(const StateID& state_id)
+    bool notify_dead_end(StateID state_id)
     {
         return notify_dead_end(state_infos_[state_id]);
     }
@@ -313,10 +313,10 @@ public:
     }
 
     /**
-     * @brief Calls notify_dead_end_ifnot_goal(const StateID&, StateInfo&) for
+     * @brief Calls notify_dead_end_ifnot_goal(StateID, StateInfo&) for
      * the internal state info object of \p state_id.
      */
-    bool notify_dead_end_ifnot_goal(const StateID& state_id)
+    bool notify_dead_end_ifnot_goal(StateID state_id)
     {
         return notify_dead_end_ifnot_goal(state_infos_[state_id]);
     }
@@ -344,7 +344,7 @@ public:
      * If the policy is stored, the greedy action for s is also updated using
      * the internal policy tiebreaking settings.
      */
-    bool async_update(const StateID& s)
+    bool async_update(StateID s)
     {
         if constexpr (!StorePolicy) {
             return compute_value_update(s);
@@ -369,7 +369,7 @@ public:
      * transition.
      */
     std::pair<bool, bool> async_update(
-        const StateID& s,
+        StateID s,
         ActionID* policy_action,
         Distribution<StateID>* policy_transition)
     {
@@ -401,7 +401,7 @@ public:
      */
     template <typename T>
     std::pair<bool, bool> async_update(
-        const StateID& s,
+        StateID s,
         T& greedy_picker,
         ActionID* policy_action,
         Distribution<StateID>* policy_transition)
@@ -415,10 +415,7 @@ public:
     }
 
 protected:
-    value_t get_state_cost(const StateID& id)
-    {
-        return get_state_info(id).state_cost;
-    }
+    value_t get_state_cost(StateID id) { return get_state_info(id).state_cost; }
 
     value_t get_value(const State& s)
     {
@@ -497,15 +494,12 @@ protected:
     /**
      * @brief Get the state info object of a state.
      */
-    StateInfo& get_state_info(const StateID& id) { return state_infos_[id]; }
+    StateInfo& get_state_info(StateID id) { return state_infos_[id]; }
 
     /**
      * @brief Get the state info object of a state.
      */
-    StateInfo& get_state_info(const StateID& id) const
-    {
-        return state_infos_[id];
-    }
+    StateInfo& get_state_info(StateID id) const { return state_infos_[id]; }
 
     /**
      * @brief Get the state info object of a state, if needed.
@@ -559,7 +553,7 @@ protected:
      * Otherwise returns true if and only if the value bounds are epsilon-close.
      */
     template <typename Info>
-    bool do_bounds_disagree(const StateID& state_id, const Info& info)
+    bool do_bounds_disagree(StateID state_id, const Info& info)
     {
         if constexpr (UseInterval) {
             if constexpr (std::is_same_v<Info, StateInfo>) {
@@ -645,14 +639,14 @@ private:
         }
     }
 
-    StateInfo& lookup_initialize(const StateID& state_id)
+    StateInfo& lookup_initialize(StateID state_id)
     {
         StateInfo& info = state_infos_[state_id];
         initialize(state_id, info);
         return info;
     }
 
-    void initialize(const StateID& state_id, StateInfo& state_info)
+    void initialize(StateID state_id, StateInfo& state_info)
     {
         if (!state_info.is_value_initialized()) {
             statistics_.evaluated_states++;
@@ -690,7 +684,7 @@ private:
         }
     }
 
-    bool compute_value_update(const StateID& state_id)
+    bool compute_value_update(StateID state_id)
     {
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> transitions;
@@ -707,7 +701,7 @@ private:
     }
 
     bool compute_value_update(
-        const StateID& state_id,
+        StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& transitions,
@@ -815,7 +809,7 @@ private:
 
     template <typename T>
     std::pair<bool, bool> compute_value_policy_update(
-        const StateID& state_id,
+        StateID state_id,
         T& greedy_picker,
         bool stable_policy,
         ActionID* greedy_action,
@@ -860,7 +854,7 @@ private:
 
     template <typename T>
     bool compute_policy_update(
-        const StateID& state_id,
+        StateID state_id,
         StateInfo& state_info,
         T& greedy_picker,
         bool stable,

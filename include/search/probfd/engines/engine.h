@@ -90,7 +90,7 @@ public:
      * @brief Looks up the state corresponding to id \p sid in the state id
      * mapping.
      */
-    State lookup_state(const StateID& sid) const
+    State lookup_state(StateID sid) const
     {
         return state_id_map_->get_state(sid);
     }
@@ -99,7 +99,7 @@ public:
      * @brief Looks up the action id of action \p a when applied in the state
      * with id \p sid in the action id mapping.
      */
-    ActionID get_action_id(const StateID& sid, const Action& a) const
+    ActionID get_action_id(StateID sid, const Action& a) const
     {
         return action_id_map_->get_action_id(sid, a);
     }
@@ -108,7 +108,7 @@ public:
      * @brief Lookup the action corresponding to action id \p aid when applied
      * in the state with id \p sid in the action id mapping.
      */
-    Action lookup_action(const StateID& sid, const ActionID& aid) const
+    Action lookup_action(StateID sid, const ActionID& aid) const
     {
         return action_id_map_->get_action(sid, aid);
     }
@@ -117,8 +117,7 @@ public:
      * @brief Output the list of applicable operators in the state with id
      * \p sid via \p ops.
      */
-    void
-    generate_applicable_ops(const StateID& sid, std::vector<Action>& ops) const
+    void generate_applicable_ops(StateID sid, std::vector<Action>& ops) const
     {
         transition_generator_->generate_applicable_actions(sid, ops);
     }
@@ -128,7 +127,7 @@ public:
      * and applicable action \p a in \p successors .
      */
     void generate_successors(
-        const StateID& sid,
+        StateID sid,
         const Action& a,
         Distribution<StateID>& successors) const
     {
@@ -144,7 +143,7 @@ public:
      * all applicable actions.
      */
     void generate_all_successors(
-        const StateID& sid,
+        StateID sid,
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors) const
     {
@@ -163,7 +162,7 @@ public:
      * @brief Get the action cost for action \p a when applied in the state
      * with id \p sid .
      */
-    value_t get_action_cost(const StateID& sid, const Action& a) const
+    value_t get_action_cost(StateID sid, const Action& a) const
     {
         return cost_function_->get_action_cost(sid, a);
     }

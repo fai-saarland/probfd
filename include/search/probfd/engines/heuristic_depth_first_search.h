@@ -199,7 +199,7 @@ private:
     };
 
     struct ExpansionInfo {
-        explicit ExpansionInfo(const StateID& state)
+        explicit ExpansionInfo(StateID state)
             : stateid(state)
         {
         }
@@ -229,7 +229,7 @@ private:
         }
     }
 
-    void solve_with_vi_termination(const StateID& stateid)
+    void solve_with_vi_termination(StateID stateid)
     {
         bool terminate = false;
         do {
@@ -253,7 +253,7 @@ private:
         } while (!terminate);
     }
 
-    void solve_without_vi_termination(const StateID& stateid)
+    void solve_without_vi_termination(StateID stateid)
     {
         bool terminate = false;
         do {
@@ -265,7 +265,7 @@ private:
     }
 
     template <bool GetVisited>
-    bool policy_exploration(const StateID& state)
+    bool policy_exploration(StateID state)
     {
         assert(state_infos_.empty());
         {
@@ -486,7 +486,7 @@ private:
     }
 
     uint8_t push(
-        const StateID& stateid,
+        StateID stateid,
         AdditionalStateInfo& sinfo,
         bool& parent_value_changed,
         bool& parent_unsolved_successors)

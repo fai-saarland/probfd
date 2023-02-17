@@ -13,7 +13,7 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(int ascending)
 }
 
 int OperatorIdTiebreaker::pick(
-    const StateID&,
+    StateID,
     const ActionID&,
     const std::vector<OperatorID>& choices,
     const std::vector<Distribution<StateID>>&,

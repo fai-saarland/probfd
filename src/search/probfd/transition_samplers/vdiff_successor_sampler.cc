@@ -20,7 +20,7 @@ VDiffSuccessorSampler::VDiffSuccessorSampler(
 }
 
 StateID VDiffSuccessorSampler::sample(
-    const StateID&,
+    StateID,
     const OperatorID&,
     const Distribution<StateID>& successors,
     engine_interfaces::HeuristicSearchInterface& hs_interface)

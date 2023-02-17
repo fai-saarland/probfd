@@ -205,7 +205,7 @@ class EndComponentDecomposition {
     };
 
     struct StackInfo {
-        explicit StackInfo(const StateID& sid)
+        explicit StackInfo(StateID sid)
             : stateid(sid)
             , successors(1)
         {
@@ -325,7 +325,7 @@ private:
 
             std::vector<StateID> succ_ids;
 
-            for (const StateID& succ_id : transition.elements()) {
+            for (StateID succ_id : transition.elements()) {
                 if (succ_id != state_id) {
                     succ_ids.push_back(succ_id);
                 }
