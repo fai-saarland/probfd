@@ -50,7 +50,7 @@ struct FrontierStateInfo {
 
 class ValueGroup {
 public:
-    const value_t& operator[](unsigned i) const { return values[i]; }
+    value_t operator[](unsigned i) const { return values[i]; }
 
     unsigned get_id(value_t val)
     {

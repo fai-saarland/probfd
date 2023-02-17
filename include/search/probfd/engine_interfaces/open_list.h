@@ -33,7 +33,7 @@ public:
 
     virtual bool empty() const { return size() == 0; }
 
-    virtual void push(StateID, const Action&, const value_t&, StateID state_id)
+    virtual void push(StateID, const Action&, value_t, StateID state_id)
     {
         push(state_id);
     }

@@ -179,7 +179,7 @@ public:
     /**
      * @brief Scales all element probablities by a common factor.
      */
-    void normalize(const value_t& scale)
+    void normalize(value_t scale)
     {
         for (auto& pair : distribution_) {
             pair.probability *= scale;
