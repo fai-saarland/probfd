@@ -1,5 +1,5 @@
-#ifndef MDPS_PROGRESS_REPORT_H
-#define MDPS_PROGRESS_REPORT_H
+#ifndef PROBFD_PROGRESS_REPORT_H
+#define PROBFD_PROGRESS_REPORT_H
 
 #include "probfd/value_type.h"
 

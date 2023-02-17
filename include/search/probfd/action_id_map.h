@@ -1,5 +1,5 @@
-#ifndef MDPS_ACTION_ID_MAP_H
-#define MDPS_ACTION_ID_MAP_H
+#ifndef PROBFD_ACTION_ID_MAP_H
+#define PROBFD_ACTION_ID_MAP_H
 
 #include "probfd/engine_interfaces/action_id_map.h"
 

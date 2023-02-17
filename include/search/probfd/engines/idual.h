@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_IDUAL_H
-#define MDPS_ENGINES_IDUAL_H
+#ifndef PROBFD_ENGINES_IDUAL_H
+#define PROBFD_ENGINES_IDUAL_H
 
 #include "probfd/engines/engine.h"
 

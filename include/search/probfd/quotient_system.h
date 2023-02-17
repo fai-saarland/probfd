@@ -1,5 +1,5 @@
-#ifndef MDPS_QUOTIENT_SYSTEM_H
-#define MDPS_QUOTIENT_SYSTEM_H
+#ifndef PROBFD_QUOTIENT_SYSTEM_H
+#define PROBFD_QUOTIENT_SYSTEM_H
 
 #include "algorithms/segmented_vector.h"
 

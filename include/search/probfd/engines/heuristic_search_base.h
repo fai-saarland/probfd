@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_HEURISTIC_SEARCH_BASE_H
-#define MDPS_ENGINES_HEURISTIC_SEARCH_BASE_H
+#ifndef PROBFD_ENGINES_HEURISTIC_SEARCH_BASE_H
+#define PROBFD_ENGINES_HEURISTIC_SEARCH_BASE_H
 
 #include "probfd/engines/engine.h"
 #include "probfd/engines/heuristic_search_state_information.h"

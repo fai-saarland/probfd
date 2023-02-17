@@ -1,5 +1,5 @@
-#ifndef MDPS_BISIMULATION_ENGINE_INTERFACES_H
-#define MDPS_BISIMULATION_ENGINE_INTERFACES_H
+#ifndef PROBFD_BISIMULATION_ENGINE_INTERFACES_H
+#define PROBFD_BISIMULATION_ENGINE_INTERFACES_H
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 #include "probfd/bisimulation/types.h"

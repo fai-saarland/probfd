@@ -1,5 +1,5 @@
-#ifndef MDPS_HEURISTICS_PDBS_EXPCOST_PROJECTION_H
-#define MDPS_HEURISTICS_PDBS_EXPCOST_PROJECTION_H
+#ifndef PROBFD_HEURISTICS_PDBS_EXPCOST_PROJECTION_H
+#define PROBFD_HEURISTICS_PDBS_EXPCOST_PROJECTION_H
 
 #include "probfd/heuristics/pdbs/abstract_policy.h"
 #include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"

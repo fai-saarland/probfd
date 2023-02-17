@@ -1,5 +1,5 @@
-#ifndef MDPS_TYPES_H
-#define MDPS_TYPES_H
+#ifndef PROBFD_TYPES_H
+#define PROBFD_TYPES_H
 
 #include <cstdint>
 #include <functional>

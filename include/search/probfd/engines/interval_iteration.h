@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_INTERVAL_ITERATION_H
-#define MDPS_ENGINES_INTERVAL_ITERATION_H
+#ifndef PROBFD_ENGINES_INTERVAL_ITERATION_H
+#define PROBFD_ENGINES_INTERVAL_ITERATION_H
 
 #include "probfd/engines/engine.h"
 #include "probfd/engines/topological_value_iteration.h"

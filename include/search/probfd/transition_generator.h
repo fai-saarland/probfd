@@ -1,5 +1,5 @@
-#ifndef MDPS_TRANSITION_GENERATOR_H
-#define MDPS_TRANSITION_GENERATOR_H
+#ifndef PROBFD_TRANSITION_GENERATOR_H
+#define PROBFD_TRANSITION_GENERATOR_H
 
 #include "probfd/engine_interfaces/transition_generator.h"
 

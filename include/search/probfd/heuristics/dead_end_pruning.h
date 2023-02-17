@@ -1,5 +1,5 @@
-#ifndef MDPS_HEURISTICS_DEAD_END_PRUNING_H
-#define MDPS_HEURISTICS_DEAD_END_PRUNING_H
+#ifndef PROBFD_HEURISTICS_DEAD_END_PRUNING_H
+#define PROBFD_HEURISTICS_DEAD_END_PRUNING_H
 
 #include "probfd/engine_interfaces/state_evaluator.h"
 

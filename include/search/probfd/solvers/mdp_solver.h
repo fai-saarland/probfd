@@ -1,5 +1,5 @@
-#ifndef MDPS_SOLVERS_MDP_SOLVER_H
-#define MDPS_SOLVERS_MDP_SOLVER_H
+#ifndef PROBFD_SOLVERS_MDP_SOLVER_H
+#define PROBFD_SOLVERS_MDP_SOLVER_H
 
 #include "probfd/engines/engine.h"
 

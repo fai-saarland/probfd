@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_ENGINE_H
-#define MDPS_ENGINES_ENGINE_H
+#ifndef PROBFD_ENGINES_ENGINE_H
+#define PROBFD_ENGINES_ENGINE_H
 
 #include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"

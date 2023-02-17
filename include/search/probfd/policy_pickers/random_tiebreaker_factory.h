@@ -1,5 +1,5 @@
-#ifndef MDPS_POLICY_PICKER_RANDOM_TIEBREAKER_FACTORY_H
-#define MDPS_POLICY_PICKER_RANDOM_TIEBREAKER_FACTORY_H
+#ifndef PROBFD_POLICY_PICKER_RANDOM_TIEBREAKER_FACTORY_H
+#define PROBFD_POLICY_PICKER_RANDOM_TIEBREAKER_FACTORY_H
 
 #include "probfd/engine_interfaces/policy_picker.h"
 #include "probfd/policy_pickers/task_policy_picker_factory.h"

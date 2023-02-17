@@ -1,5 +1,5 @@
-#ifndef MDPS_STATE_ID_MAP_H
-#define MDPS_STATE_ID_MAP_H
+#ifndef PROBFD_STATE_ID_MAP_H
+#define PROBFD_STATE_ID_MAP_H
 
 #include "probfd/engine_interfaces/state_id_map.h"
 

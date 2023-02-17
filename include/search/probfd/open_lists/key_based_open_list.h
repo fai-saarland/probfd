@@ -1,5 +1,5 @@
-#ifndef MDPS_OPEN_LISTS_KEY_BASED_OPEN_LIST_H
-#define MDPS_OPEN_LISTS_KEY_BASED_OPEN_LIST_H
+#ifndef PROBFD_OPEN_LISTS_KEY_BASED_OPEN_LIST_H
+#define PROBFD_OPEN_LISTS_KEY_BASED_OPEN_LIST_H
 
 #include "probfd/engine_interfaces/open_list.h"
 

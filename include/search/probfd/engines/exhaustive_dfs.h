@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_EXHAUSTIVE_DFS_H
-#define MDPS_ENGINES_EXHAUSTIVE_DFS_H
+#ifndef PROBFD_ENGINES_EXHAUSTIVE_DFS_H
+#define PROBFD_ENGINES_EXHAUSTIVE_DFS_H
 
 #include "probfd/engines/engine.h"
 

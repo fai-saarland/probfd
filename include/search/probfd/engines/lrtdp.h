@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_LRTDP_H
-#define MDPS_ENGINES_LRTDP_H
+#ifndef PROBFD_ENGINES_LRTDP_H
+#define PROBFD_ENGINES_LRTDP_H
 
 #include "probfd/engines/heuristic_search_base.h"
 

@@ -1,5 +1,5 @@
-#ifndef MDPS_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
-#define MDPS_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
+#ifndef PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
+#define PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/policy_picker.h"

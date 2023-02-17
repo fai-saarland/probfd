@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_TRAP_AWARE_LRTDP_H
-#define MDPS_ENGINES_TRAP_AWARE_LRTDP_H
+#ifndef PROBFD_ENGINES_TRAP_AWARE_LRTDP_H
+#define PROBFD_ENGINES_TRAP_AWARE_LRTDP_H
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/engines/heuristic_search_base.h"

@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_EXHAUSTIVE_AO_H
-#define MDPS_ENGINES_EXHAUSTIVE_AO_H
+#ifndef PROBFD_ENGINES_EXHAUSTIVE_AO_H
+#define PROBFD_ENGINES_EXHAUSTIVE_AO_H
 
 #include "probfd/engines/ao_search.h"
 

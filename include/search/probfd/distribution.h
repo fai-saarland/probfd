@@ -1,5 +1,5 @@
-#ifndef MDPS_DISTRIBUTION_H
-#define MDPS_DISTRIBUTION_H
+#ifndef PROBFD_DISTRIBUTION_H
+#define PROBFD_DISTRIBUTION_H
 
 #include "probfd/value_type.h"
 

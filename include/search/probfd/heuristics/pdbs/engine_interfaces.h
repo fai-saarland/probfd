@@ -1,5 +1,5 @@
-#ifndef MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
-#define MDPS_HEURISTICS_PDBS_ENGINE_INTERFACES_H
+#ifndef PROBFD_HEURISTICS_PDBS_ENGINE_INTERFACES_H
+#define PROBFD_HEURISTICS_PDBS_ENGINE_INTERFACES_H
 
 #include "probfd/heuristics/pdbs/abstract_operator.h"
 #include "probfd/heuristics/pdbs/match_tree.h"

@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_AO_STAR_H
-#define MDPS_ENGINES_AO_STAR_H
+#ifndef PROBFD_ENGINES_AO_STAR_H
+#define PROBFD_ENGINES_AO_STAR_H
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/engines/ao_search.h"

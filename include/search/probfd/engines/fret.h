@@ -1,5 +1,5 @@
-#ifndef MDPS_ENGINES_FRET_H
-#define MDPS_ENGINES_FRET_H
+#ifndef PROBFD_ENGINES_FRET_H
+#define PROBFD_ENGINES_FRET_H
 
 #include "probfd/engines/engine.h"
 #include "probfd/engines/heuristic_search_base.h"
