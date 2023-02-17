@@ -14,7 +14,7 @@ public:
 
     virtual int pick(
         StateID state,
-        const ActionID& prev_policy,
+        ActionID prev_policy,
         const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
         engine_interfaces::HeuristicSearchInterface& hs_interface) override;

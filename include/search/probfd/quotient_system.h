@@ -122,11 +122,11 @@ public:
         std::vector<QAction>& aops,
         std::vector<Distribution<StateID>>& successors);
 
-    QAction get_action(StateID sid, const ActionID& aid) const;
+    QAction get_action(StateID sid, ActionID aid) const;
     ActionID get_action_id(StateID sid, const QAction& a) const;
 
     OperatorID get_original_action(StateID, const QAction& a) const;
-    ActionID get_original_action_id(StateID sid, const ActionID& a) const;
+    ActionID get_original_action_id(StateID sid, ActionID a) const;
 
     template <std::ranges::input_range StateIDRange>
     void build_quotient(StateIDRange&& range)

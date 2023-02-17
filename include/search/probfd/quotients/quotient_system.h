@@ -235,7 +235,7 @@ public:
         return StateID(get_masked_state_id(sid) & MASK);
     }
 
-    ActionID get_original_action_id(StateID sid, const ActionID& a) const
+    ActionID get_original_action_id(StateID sid, ActionID a) const
     {
         const QuotientInformation* info = get_quotient_info(sid);
         return info ? info->aops[a] : a;
@@ -268,7 +268,7 @@ public:
         return action_id_map_->get_action(a.state_id, a.action_id);
     }
 
-    QAction get_action(StateID sid, const ActionID& aid) const
+    QAction get_action(StateID sid, ActionID aid) const
     {
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {

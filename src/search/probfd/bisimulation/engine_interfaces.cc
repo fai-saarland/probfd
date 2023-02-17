@@ -23,9 +23,8 @@ ActionID ActionIDMap<bisimulation::QuotientAction>::get_action_id(
 }
 
 bisimulation::QuotientAction
-ActionIDMap<bisimulation::QuotientAction>::get_action(
-    StateID,
-    const ActionID& action) const
+ActionIDMap<bisimulation::QuotientAction>::get_action(StateID, ActionID action)
+    const
 {
     return bisimulation::QuotientAction(action);
 }

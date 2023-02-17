@@ -34,7 +34,7 @@ public:
      * @param action_id - The action ID.
      * @returns Action - The represented action.
      */
-    Action get_action(StateID state_id, const ActionID& action_id);
+    Action get_action(StateID state_id, ActionID action_id);
 };
 
 } // namespace engine_interfaces

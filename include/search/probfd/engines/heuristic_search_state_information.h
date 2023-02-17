@@ -18,7 +18,7 @@ struct StatesPolicy {
 
 template <>
 struct StatesPolicy<true> {
-    void set_policy(const ActionID& aid) { policy = aid; }
+    void set_policy(ActionID aid) { policy = aid; }
 
     ActionID get_policy() const { return policy; }
 

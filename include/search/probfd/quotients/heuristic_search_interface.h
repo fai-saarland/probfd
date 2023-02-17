@@ -26,7 +26,7 @@ public:
 
     int pick(
         StateID state,
-        const ActionID& prev_policy,
+        ActionID prev_policy,
         const std::vector<QuotientAction>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
         HeuristicSearchInterface& hs_interface)

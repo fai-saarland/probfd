@@ -108,7 +108,7 @@ public:
      * @brief Lookup the action corresponding to action id \p aid when applied
      * in the state with id \p sid in the action id mapping.
      */
-    Action lookup_action(StateID sid, const ActionID& aid) const
+    Action lookup_action(StateID sid, ActionID aid) const
     {
         return action_id_map_->get_action(sid, aid);
     }

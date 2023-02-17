@@ -12,18 +12,18 @@ namespace engine_interfaces {
 
 template <>
 struct ActionIDMap<OperatorID> {
-    ActionID get_action_id(StateID, const OperatorID& op_id);
-    OperatorID get_action(StateID, const ActionID& action_id);
+    ActionID get_action_id(StateID, OperatorID op_id);
+    OperatorID get_action(StateID, ActionID action_id);
 };
 
 inline ActionID
-ActionIDMap<OperatorID>::get_action_id(StateID, const OperatorID& op_id)
+ActionIDMap<OperatorID>::get_action_id(StateID, OperatorID op_id)
 {
     return ActionID(op_id.get_index());
 }
 
 inline OperatorID
-ActionIDMap<OperatorID>::get_action(StateID, const ActionID& action_id)
+ActionIDMap<OperatorID>::get_action(StateID, ActionID action_id)
 {
     return OperatorID(action_id);
 }

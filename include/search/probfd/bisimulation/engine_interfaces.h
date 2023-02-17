@@ -28,7 +28,7 @@ struct ActionIDMap<bisimulation::QuotientAction> {
         const;
 
     bisimulation::QuotientAction
-    get_action(StateID state_id, const ActionID& action) const;
+    get_action(StateID state_id, ActionID action) const;
 };
 
 template <>

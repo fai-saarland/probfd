@@ -67,7 +67,7 @@ public:
     }
 
     quotients::QuotientAction<Action>
-    get_action(StateID state_id, const ActionID& action_id) const
+    get_action(StateID state_id, ActionID action_id) const
     {
         return quotient_->get_action(state_id, action_id);
     }

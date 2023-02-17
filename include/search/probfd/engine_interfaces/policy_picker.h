@@ -19,7 +19,7 @@ class HeuristicSearchInterface;
  * breaks the ties by choosing one of the candidate actions.
  *
  * Users of this interface must implement the protected method
- * `pick(StateID, const ActionID&, const std::vector<Action>&, const
+ * `pick(StateID, ActionID, const std::vector<Action>&, const
  * std::vector<Distribution<StateID>>&)`.
  *
  * Example
@@ -30,7 +30,7 @@ class AlwaysFirstPicker : public PolicyPicker<const ProbabilisticOperator*> {
 protected:
     int pick(
         StateID state_id,
-        const ActionID& previous_greedy_id,
+        ActionID previous_greedy_id,
         const std::vector<const ProbabilisticOperator*>& greedy_actions,
         const std::vector<Distribution<StateID>>& candidate_successors) override
     {
@@ -61,7 +61,7 @@ public:
      */
     virtual int pick(
         StateID state_id,
-        const ActionID& previous_greedy_id,
+        ActionID previous_greedy_id,
         const std::vector<Action>& greedy_action_candidates,
         const std::vector<Distribution<StateID>>& candidate_successors,
         HeuristicSearchInterface& hs_interface) = 0;

@@ -11,7 +11,7 @@ class ArbitraryTiebreaker : public engine_interfaces::PolicyPicker<Action> {
 protected:
     virtual int pick(
         StateID,
-        const ActionID&,
+        ActionID,
         const std::vector<Action>&,
         const std::vector<Distribution<StateID>>&,
         engine_interfaces::HeuristicSearchInterface&) override

@@ -170,7 +170,7 @@ void QuotientSystem<OperatorID>::generate_all_successors(
 }
 
 QuotientSystem<OperatorID>::QAction
-QuotientSystem<OperatorID>::get_action(StateID sid, const ActionID& aid) const
+QuotientSystem<OperatorID>::get_action(StateID sid, ActionID aid) const
 {
     if (cache_) {
         const auto& qstates = get_infos(sid)->states;
@@ -227,9 +227,9 @@ QuotientSystem<OperatorID>::get_original_action(StateID sid, const QAction& a)
     return fallback_->get_original_action(sid, a);
 }
 
-ActionID QuotientSystem<OperatorID>::get_original_action_id(
-    StateID sid,
-    const ActionID& a) const
+ActionID
+QuotientSystem<OperatorID>::get_original_action_id(StateID sid, ActionID a)
+    const
 {
     if (cache_) {
         const auto& qstates = get_infos(sid)->states;

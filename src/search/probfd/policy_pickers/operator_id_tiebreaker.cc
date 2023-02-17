@@ -14,7 +14,7 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(int ascending)
 
 int OperatorIdTiebreaker::pick(
     StateID,
-    const ActionID&,
+    ActionID,
     const std::vector<OperatorID>& choices,
     const std::vector<Distribution<StateID>>&,
     engine_interfaces::HeuristicSearchInterface&)

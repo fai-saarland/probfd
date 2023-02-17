@@ -16,7 +16,7 @@ class Policy {
 public:
     ActionID& operator[](StateID sid) { return state_to_action_[sid]; }
 
-    const ActionID& operator[](StateID sid) const
+    ActionID operator[](StateID sid) const
     {
         return state_to_action_.find(sid)->second;
     }

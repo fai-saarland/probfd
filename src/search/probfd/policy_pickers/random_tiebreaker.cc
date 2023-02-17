@@ -15,7 +15,7 @@ RandomTiebreaker::RandomTiebreaker(
 
 int RandomTiebreaker::pick(
     StateID,
-    const ActionID&,
+    ActionID,
     const std::vector<OperatorID>& options,
     const std::vector<Distribution<StateID>>&,
     engine_interfaces::HeuristicSearchInterface&)
