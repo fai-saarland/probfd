@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_DEAD_END_PRUNING_H
 #define PROBFD_HEURISTICS_DEAD_END_PRUNING_H
 
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 
 #include <memory>
 
@@ -22,10 +22,10 @@ namespace heuristics {
  * @note If the underlying classical heuristic is safe, this heuristic is also
  * safe.
  */
-class DeadEndPruningHeuristic : public TaskStateEvaluator {
+class DeadEndPruningHeuristic : public TaskEvaluator {
     const value_t default_value_;
     const value_t dead_end_value_;
-    std::shared_ptr<Evaluator> pruning_function_;
+    std::shared_ptr<::Evaluator> pruning_function_;
 
 public:
     /**
@@ -40,7 +40,7 @@ public:
     DeadEndPruningHeuristic(
         value_t default_value,
         value_t dead_end_value,
-        std::shared_ptr<Evaluator> pruning_function);
+        std::shared_ptr<::Evaluator> pruning_function);
 
     /**
      * @brief Construct from options.

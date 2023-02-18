@@ -27,7 +27,7 @@ namespace solvers {
 
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
-    std::shared_ptr<TaskStateEvaluator> heuristic_;
+    std::shared_ptr<TaskEvaluator> heuristic_;
     std::shared_ptr<TaskPolicyPicker> policy_tiebreaker_;
     std::shared_ptr<TaskNewStateHandler> new_state_handler_;
 
@@ -137,25 +137,25 @@ public:
             if (this->fret_on_policy_) {
                 return this->template create_heuristic_search_engine_wrapper<
                     engines::fret::FRETPi,
-                    true,
-                    HS>(std::forward<Args>(args)...);
+                    HS,
+                    true>(std::forward<Args>(args)...);
             } else {
                 return this->template create_heuristic_search_engine_wrapper<
                     engines::fret::FRETV,
-                    true,
-                    HS>(std::forward<Args>(args)...);
+                    HS,
+                    true>(std::forward<Args>(args)...);
             }
         } else {
             if (this->fret_on_policy_) {
                 return this->template create_heuristic_search_engine_wrapper<
                     engines::fret::FRETPi,
-                    false,
-                    HS>(std::forward<Args>(args)...);
+                    HS,
+                    false>(std::forward<Args>(args)...);
             } else {
                 return this->template create_heuristic_search_engine_wrapper<
                     engines::fret::FRETV,
-                    false,
-                    HS>(std::forward<Args>(args)...);
+                    HS,
+                    false>(std::forward<Args>(args)...);
             }
         }
     }
@@ -216,42 +216,27 @@ protected:
 private:
     template <
         template <typename, typename, bool>
-        class HS,
-        bool Interval,
-        typename... Args>
-    engines::fret::HeuristicSearchEngine<State, QAction, Interval>*
-    create_quotient_heuristic_search_engine_wrapper(Args&&... args)
-    {
-        return new HS<State, QAction, Interval>(
-            &this->state_id_map_,
-            &q_action_id_map_,
-            &q_transition_gen_,
-            q_cost_.get(),
-            heuristic_.get(),
-            q_policy_tiebreaker_.get(),
-            new_state_handler_.get(),
-            &progress_,
-            interval_comparison_,
-            stable_policy_,
-            std::forward<Args>(args)...);
-    }
-
-    template <
-        template <typename, typename, bool>
         class Fret,
-        bool Interval,
         template <typename, typename, bool>
         class HS,
+        bool Interval,
         typename... Args>
     engines::MDPEngine<State, OperatorID>*
     create_heuristic_search_engine_wrapper(Args&&... args)
     {
-        std::shared_ptr<
-            engines::fret::HeuristicSearchEngine<State, QAction, Interval>>
-            engine(
-                this->template create_quotient_heuristic_search_engine_wrapper<
-                    HS,
-                    Interval>(std::forward<Args>(args)...));
+        std::shared_ptr<HS<State, QAction, Interval>> engine(
+            new HS<State, QAction, Interval>(
+                &this->state_id_map_,
+                &q_action_id_map_,
+                &q_transition_gen_,
+                q_cost_.get(),
+                heuristic_.get(),
+                q_policy_tiebreaker_.get(),
+                new_state_handler_.get(),
+                &progress_,
+                interval_comparison_,
+                stable_policy_,
+                std::forward<Args>(args)...));
         return new Fret<State, OperatorID, Interval>(
             &this->state_id_map_,
             &this->action_id_map_,

@@ -203,7 +203,7 @@ class ExhaustiveDepthFirstSearch
         int i = -1;
     };
 
-    engine_interfaces::StateEvaluator<State>* evaluator_;
+    engine_interfaces::Evaluator<State>* evaluator_;
     engine_interfaces::NewStateHandler<State>* new_state_handler_;
     engine_interfaces::SuccessorSorter<Action>* successor_sort_;
 
@@ -233,7 +233,7 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        engine_interfaces::StateEvaluator<State>* evaluator,
+        engine_interfaces::Evaluator<State>* evaluator,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         engine_interfaces::SuccessorSorter<Action>* successor_sorting,
         Interval cost_bound,

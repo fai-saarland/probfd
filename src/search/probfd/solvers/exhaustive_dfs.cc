@@ -4,9 +4,10 @@
 
 #include "probfd/engines/exhaustive_dfs.h"
 
+#include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/new_state_handler.h"
-#include "probfd/engine_interfaces/state_evaluator.h"
 #include "probfd/engine_interfaces/successor_sorter.h"
+
 
 #include "probfd/successor_sorters/task_successor_sorter_factory.h"
 
@@ -26,7 +27,7 @@ using namespace engines::exhaustive_dfs;
 class ExhaustiveDFSSolver : public MDPSolver {
     const Interval cost_bound_;
 
-    std::shared_ptr<TaskStateEvaluator> heuristic_;
+    std::shared_ptr<TaskEvaluator> heuristic_;
     std::shared_ptr<TaskNewStateHandlerList> new_state_handler_;
     std::shared_ptr<TaskSuccessorSorter> successor_sort_;
 
@@ -40,7 +41,7 @@ class ExhaustiveDFSSolver : public MDPSolver {
 public:
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
-        , heuristic_(opts.get<std::shared_ptr<TaskStateEvaluator>>("eval"))
+        , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
         , new_state_handler_(new TaskNewStateHandlerList(
               opts.get_list<std::shared_ptr<TaskNewStateHandler>>(
                   "on_new_state")))
@@ -68,7 +69,7 @@ public:
 
     static void add_options_to_parser(options::OptionParser& parser)
     {
-        parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
+        parser.add_option<std::shared_ptr<TaskEvaluator>>(
             "eval",
             "",
             "const_eval");

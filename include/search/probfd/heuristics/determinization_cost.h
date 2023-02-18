@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_DETERMINIZATION_COST_H
 #define PROBFD_HEURISTICS_DETERMINIZATION_COST_H
 
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 
 #include <memory>
 
@@ -22,8 +22,8 @@ namespace heuristics {
  * @note If the underlying classical heuristic is admissible/consistent, this
  * heuristic is also admissible/heuristic.
  */
-class DeterminizationCostHeuristic : public TaskStateEvaluator {
-    std::shared_ptr<Evaluator> evaluator_;
+class DeterminizationCostHeuristic : public TaskEvaluator {
+    std::shared_ptr<::Evaluator> evaluator_;
 
 public:
     /**
@@ -39,7 +39,8 @@ public:
      *
      * @param heuristic - The classical heuristic.
      */
-    explicit DeterminizationCostHeuristic(std::shared_ptr<Evaluator> heuristic);
+    explicit DeterminizationCostHeuristic(
+        std::shared_ptr<::Evaluator> heuristic);
 
     ~DeterminizationCostHeuristic() override;
 

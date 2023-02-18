@@ -2,7 +2,7 @@
 
 #include "probfd/engines/interval_iteration.h"
 
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -14,21 +14,21 @@ namespace {
 using namespace engine_interfaces;
 
 class IntervalIterationSolver : public MDPSolver {
-    std::shared_ptr<TaskStateEvaluator> prune_;
+    std::shared_ptr<TaskEvaluator> prune_;
 
 public:
     explicit IntervalIterationSolver(const options::Options& opts)
         : MDPSolver(opts)
         , prune_(
               opts.contains("eval")
-                  ? opts.get<std::shared_ptr<TaskStateEvaluator>>("eval")
+                  ? opts.get<std::shared_ptr<TaskEvaluator>>("eval")
                   : nullptr)
     {
     }
 
     static void add_options_to_parser(options::OptionParser& parser)
     {
-        parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
+        parser.add_option<std::shared_ptr<TaskEvaluator>>(
             "eval",
             "",
             options::OptionParser::NONE);

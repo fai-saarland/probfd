@@ -185,13 +185,12 @@ void ProbabilisticPDBHeuristic<MaxProbPatternDatabase>::add_options_to_parser(
 template class ProbabilisticPDBHeuristic<SSPPatternDatabase>;
 template class ProbabilisticPDBHeuristic<MaxProbPatternDatabase>;
 
-static Plugin<TaskStateEvaluator> _plugin_ec(
-    "ecpdb",
-    options::parse<TaskStateEvaluator, ExpCostPDBHeuristic>);
+static Plugin<TaskEvaluator>
+    _plugin_ec("ecpdb", options::parse<TaskEvaluator, ExpCostPDBHeuristic>);
 
-static Plugin<TaskStateEvaluator> _plugin_mp(
+static Plugin<TaskEvaluator> _plugin_mp(
     "maxprob_pdb",
-    options::parse<TaskStateEvaluator, MaxProbPDBHeuristic>);
+    options::parse<TaskEvaluator, MaxProbPDBHeuristic>);
 
 } // namespace pdbs
 } // namespace heuristics

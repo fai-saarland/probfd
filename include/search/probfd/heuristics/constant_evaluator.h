@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H
 #define PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H
 
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 
 namespace probfd {
 namespace heuristics {
@@ -10,7 +10,7 @@ namespace heuristics {
  * @brief Returns a constant estimate for each state.
  */
 template <typename State>
-class ConstantEvaluator : public engine_interfaces::StateEvaluator<State> {
+class ConstantEvaluator : public engine_interfaces::Evaluator<State> {
     const value_t value_;
 
 public:

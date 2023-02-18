@@ -6,7 +6,7 @@
 
 #include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
 
@@ -185,8 +185,7 @@ public:
         engine_interfaces::TransitionGenerator<Action>* transition_gen,
         engine_interfaces::CostFunction<State, Action>* costs,
         bool expand_goals,
-        const engine_interfaces::StateEvaluator<State>* pruning_function =
-            nullptr)
+        const engine_interfaces::Evaluator<State>* pruning_function = nullptr)
         : state_id_map_(state_id_map)
         , action_id_map_(action_id_map)
         , transition_gen_(transition_gen)
@@ -583,7 +582,7 @@ private:
 
     bool expand_goals_;
 
-    const engine_interfaces::StateEvaluator<State>* pruning_function_;
+    const engine_interfaces::Evaluator<State>* pruning_function_;
 
     StateInfoStore state_infos_;
     ExpansionQueue expansion_queue_;

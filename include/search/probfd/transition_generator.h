@@ -74,7 +74,7 @@ protected:
     StateRegistry* state_registry_;
 
     const bool caching_;
-    const std::vector<std::shared_ptr<Evaluator>> notify_;
+    const std::vector<std::shared_ptr<::Evaluator>> notify_;
 
     Cache cache_;
     storage::SegmentedMemoryPool<> cache_data_;
@@ -88,7 +88,7 @@ public:
     TransitionGenerator(
         std::shared_ptr<ProbabilisticTask> task,
         StateRegistry* state_registry,
-        const std::vector<std::shared_ptr<Evaluator>>&
+        const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators,
         bool enable_caching);
 

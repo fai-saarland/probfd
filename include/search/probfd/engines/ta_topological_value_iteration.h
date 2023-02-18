@@ -331,7 +331,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         }
     };
 
-    const engine_interfaces::StateEvaluator<State>* value_initializer_;
+    const engine_interfaces::Evaluator<State>* value_initializer_;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::deque<ExplorationInfo> exploration_stack_;
@@ -348,7 +348,7 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        const engine_interfaces::StateEvaluator<State>* value_initializer)
+        const engine_interfaces::Evaluator<State>* value_initializer)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,

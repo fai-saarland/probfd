@@ -6,7 +6,7 @@
 
 #include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
 
@@ -55,15 +55,15 @@ namespace bisimulation {
 
 using QuotientCostFunction = engine_interfaces::
     CostFunction<bisimulation::QuotientState, bisimulation::QuotientAction>;
-using QuotientStateEvaluator =
-    engine_interfaces::StateEvaluator<bisimulation::QuotientState>;
+using QuotientEvaluator =
+    engine_interfaces::Evaluator<bisimulation::QuotientState>;
 
-struct DefaultQuotientStateEvaluator : public QuotientStateEvaluator {
+struct DefaultQuotientEvaluator : public QuotientEvaluator {
     bisimulation::BisimilarStateSpace* bisim_;
     const Interval bound_;
     const value_t default_;
 
-    explicit DefaultQuotientStateEvaluator(
+    explicit DefaultQuotientEvaluator(
         bisimulation::BisimilarStateSpace* bisim,
         Interval bound,
         value_t default_value = 0);

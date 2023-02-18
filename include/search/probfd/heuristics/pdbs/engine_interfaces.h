@@ -7,7 +7,7 @@
 
 #include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
 
@@ -90,7 +90,7 @@ public:
 namespace heuristics {
 namespace pdbs {
 
-using StateRankEvaluator = engine_interfaces::StateEvaluator<StateRank>;
+using StateRankEvaluator = engine_interfaces::Evaluator<StateRank>;
 using AbstractCostFunction =
     engine_interfaces::CostFunction<StateRank, const AbstractOperator*>;
 
@@ -147,7 +147,7 @@ public:
 };
 
 template <typename PDBType>
-class MergeEvaluator : public engine_interfaces::StateEvaluator<StateRank> {
+class MergeEvaluator : public engine_interfaces::Evaluator<StateRank> {
     const StateRankingFunction& mapper;
     const PDBType& left;
     const PDBType& right;

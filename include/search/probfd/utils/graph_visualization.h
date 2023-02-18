@@ -2,7 +2,7 @@
 #define PROBFD_UTILS_GRAPH_VISUALIZATION_H
 
 #include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
 
@@ -299,7 +299,7 @@ void dump_state_space_dot_graph(
     engine_interfaces::StateIDMap<State>* state_id_map,
     engine_interfaces::TransitionGenerator<Action>* transition_gen,
     engine_interfaces::CostFunction<State, Action>* cost_fn,
-    engine_interfaces::StateEvaluator<State>* prune = nullptr,
+    engine_interfaces::Evaluator<State>* prune = nullptr,
     std::function<std::string(const State&)> sstr =
         [](const State&) { return ""; },
     std::function<std::string(const Action&)> astr =

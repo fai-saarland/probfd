@@ -10,8 +10,7 @@
 namespace probfd {
 namespace heuristics {
 
-static std::shared_ptr<TaskStateEvaluator>
-_parse(options::OptionParser& parser)
+static std::shared_ptr<TaskEvaluator> _parse(options::OptionParser& parser)
 {
     parser.add_option<double>("value", "", options::OptionParser::NONE);
     options::Options opts = parser.parse();
@@ -27,7 +26,7 @@ _parse(options::OptionParser& parser)
     }
 }
 
-static Plugin<TaskStateEvaluator> _plugin("const_eval", _parse);
+static Plugin<TaskEvaluator> _plugin("const_eval", _parse);
 
 } // namespace heuristics
 } // namespace probfd

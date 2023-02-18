@@ -158,7 +158,7 @@ public:
         engine_interfaces::ActionIDMap<QAction>* action_id_map,
         engine_interfaces::TransitionGenerator<QAction>* transition_generator,
         engine_interfaces::CostFunction<State, QAction>* cost_function,
-        engine_interfaces::StateEvaluator<State>* value_init,
+        engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<QAction>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,

@@ -17,7 +17,7 @@ namespace heuristics {
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     value_t default_value,
     value_t dead_end_value,
-    std::shared_ptr<Evaluator> pruning_function)
+    std::shared_ptr<::Evaluator> pruning_function)
     : default_value_(default_value)
     , dead_end_value_(dead_end_value)
     , pruning_function_(pruning_function)
@@ -36,14 +36,14 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(const options::Options& opts)
               ? g_cost_model->optimal_value_bound().upper
               : g_cost_model->optimal_value_bound().lower,
           g_cost_model->optimal_value_bound().upper,
-          opts.get<std::shared_ptr<Evaluator>>("heuristic"))
+          opts.get<std::shared_ptr<::Evaluator>>("heuristic"))
 {
 }
 
 void DeadEndPruningHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<Evaluator>>("evaluator");
+    parser.add_option<std::shared_ptr<::Evaluator>>("evaluator");
     parser.add_option<bool>("pessimistic", "", "false");
 }
 
@@ -63,9 +63,9 @@ void DeadEndPruningHeuristic::print_statistics() const
     // pruning_function_->print_statistics();
 }
 
-static Plugin<TaskStateEvaluator> _plugin(
+static Plugin<TaskEvaluator> _plugin(
     "prune_dead_ends",
-    options::parse<TaskStateEvaluator, DeadEndPruningHeuristic>);
+    options::parse<TaskEvaluator, DeadEndPruningHeuristic>);
 
 } // namespace heuristics
 } // namespace probfd

@@ -13,7 +13,7 @@ namespace {
 using namespace engine_interfaces;
 
 class I2DualSolver : public MDPSolver {
-    std::shared_ptr<TaskStateEvaluator> heuristic_;
+    std::shared_ptr<TaskEvaluator> heuristic_;
     bool hpom_enabled_;
     bool incremental_hpom_updates_;
     lp::LPSolverType solver_type_;
@@ -21,7 +21,7 @@ class I2DualSolver : public MDPSolver {
 public:
     explicit I2DualSolver(const options::Options& opts)
         : MDPSolver(opts)
-        , heuristic_(opts.get<std::shared_ptr<TaskStateEvaluator>>("eval"))
+        , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
         , hpom_enabled_(!opts.get<bool>("disable_hpom"))
         , incremental_hpom_updates_(opts.get<bool>("incremental_updates"))
         , solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
@@ -31,7 +31,7 @@ public:
     static void add_options_to_parser(options::OptionParser& parser)
     {
         MDPSolver::add_options_to_parser(parser);
-        parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
+        parser.add_option<std::shared_ptr<TaskEvaluator>>(
             "eval",
             "",
             "const_eval");

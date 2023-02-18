@@ -69,7 +69,7 @@ void TransitionGenerator<bisimulation::QuotientAction>::
 
 namespace bisimulation {
 
-DefaultQuotientStateEvaluator::DefaultQuotientStateEvaluator(
+DefaultQuotientEvaluator::DefaultQuotientEvaluator(
     bisimulation::BisimilarStateSpace* bisim,
     Interval bound,
     value_t def)
@@ -79,8 +79,8 @@ DefaultQuotientStateEvaluator::DefaultQuotientStateEvaluator(
 {
 }
 
-EvaluationResult DefaultQuotientStateEvaluator::evaluate(
-    const bisimulation::QuotientState& s) const
+EvaluationResult
+DefaultQuotientEvaluator::evaluate(const bisimulation::QuotientState& s) const
 {
     if (bisim_->is_dead_end(s)) {
         return EvaluationResult(true, bound_.upper);

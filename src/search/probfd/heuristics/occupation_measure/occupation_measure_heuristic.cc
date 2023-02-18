@@ -314,9 +314,9 @@ void ProjectionOccupationMeasureHeuristic::add_options_to_parser(
     lp::add_lp_solver_option_to_parser(parser);
 }
 
-static Plugin<TaskStateEvaluator> _plugin(
+static Plugin<TaskEvaluator> _plugin(
     "hpom",
-    options::parse<TaskStateEvaluator, ProjectionOccupationMeasureHeuristic>);
+    options::parse<TaskEvaluator, ProjectionOccupationMeasureHeuristic>);
 
 } // namespace occupation_measure_heuristic
 } // namespace heuristics

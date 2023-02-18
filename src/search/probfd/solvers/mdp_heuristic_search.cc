@@ -11,7 +11,7 @@ using namespace engine_interfaces;
 
 MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
     : MDPSolver(opts)
-    , heuristic_(opts.get<std::shared_ptr<TaskStateEvaluator>>("eval"))
+    , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
     , policy_tiebreaker_(
           opts.contains("policy")
               ? opts.get<std::shared_ptr<TaskPolicyPickerFactory>>("policy")
@@ -43,7 +43,7 @@ void MDPHeuristicSearchBase::print_additional_statistics() const
 void MDPHeuristicSearchBase::add_options_to_parser(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<TaskStateEvaluator>>("eval", "", "const");
+    parser.add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "const");
     parser.add_list_option<std::shared_ptr<TaskNewStateHandler>>(
         "on_new_state",
         "",

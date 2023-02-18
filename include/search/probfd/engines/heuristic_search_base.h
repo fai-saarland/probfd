@@ -142,7 +142,7 @@ public:
     using IncumbentSolution = probfd::IncumbentSolution<UseInterval>;
 
 private:
-    engine_interfaces::StateEvaluator<State>* value_initializer_;
+    engine_interfaces::Evaluator<State>* value_initializer_;
     engine_interfaces::PolicyPicker<Action>* policy_chooser_;
     engine_interfaces::NewStateHandler<State>* on_new_state_;
 
@@ -163,7 +163,7 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        engine_interfaces::StateEvaluator<State>* value_init,
+        engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,
@@ -600,8 +600,7 @@ protected:
         const std::function<std::string(const State&)> sstr =
             [](const State&){ return ""; })
     {
-        struct ExpansionCondition
-            : public engine_interfaces::StateEvaluator<State> {
+        struct ExpansionCondition : public engine_interfaces::Evaluator<State> {
             explicit ExpansionCondition(
                 const MDPEngine<State, Action>* hs,
                 storage::PerStateStorage<StateInfo>* infos)

@@ -62,7 +62,7 @@ protected:
     engine_interfaces::TransitionGenerator<QAction> tgen;
 
     std::shared_ptr<bisimulation::QuotientCostFunction> cost;
-    std::shared_ptr<engine_interfaces::StateEvaluator<QState>> heuristic_;
+    std::shared_ptr<engine_interfaces::Evaluator<QState>> heuristic_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QAction>> policy_;
     std::shared_ptr<engine_interfaces::NewStateHandler<QState>>
         new_state_handler_;
@@ -79,7 +79,7 @@ protected:
         , cost(new bisimulation::DefaultQuotientCostFunction(
               &bs,
               g_cost_model->optimal_value_bound()))
-        , heuristic_(new bisimulation::DefaultQuotientStateEvaluator(
+        , heuristic_(new bisimulation::DefaultQuotientEvaluator(
               &bs,
               g_cost_model->optimal_value_bound(),
               g_cost_model->optimal_value_bound().upper))

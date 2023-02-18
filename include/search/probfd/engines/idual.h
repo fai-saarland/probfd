@@ -91,7 +91,7 @@ private:
  */
 template <typename State, typename Action>
 class IDual : public MDPEngine<State, Action> {
-    engine_interfaces::StateEvaluator<State>* value_initializer_;
+    engine_interfaces::Evaluator<State>* value_initializer_;
 
     ProgressReport* report_;
 
@@ -109,7 +109,7 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        engine_interfaces::StateEvaluator<State>* value_initializer,
+        engine_interfaces::Evaluator<State>* value_initializer,
         ProgressReport* report,
         lp::LPSolverType solver_type)
         : MDPEngine<State, Action>(

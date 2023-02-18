@@ -13,12 +13,12 @@ namespace heuristics {
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
     const options::Options& opts)
     : DeterminizationCostHeuristic(
-          opts.get<std::shared_ptr<Evaluator>>("evaluator"))
+          opts.get<std::shared_ptr<::Evaluator>>("evaluator"))
 {
 }
 
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
-    std::shared_ptr<Evaluator> evaluator)
+    std::shared_ptr<::Evaluator> evaluator)
     : evaluator_(std::move(evaluator))
 {
 }
@@ -45,12 +45,11 @@ void DeterminizationCostHeuristic::print_statistics() const
 void DeterminizationCostHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<Evaluator>>("evaluator");
+    parser.add_option<std::shared_ptr<::Evaluator>>("evaluator");
 }
 
-static Plugin<TaskStateEvaluator> _plugin(
-    "det",
-    options::parse<TaskStateEvaluator, DeterminizationCostHeuristic>);
+static Plugin<TaskEvaluator>
+    _plugin("det", options::parse<TaskEvaluator, DeterminizationCostHeuristic>);
 
 } // namespace heuristics
 } // namespace probfd

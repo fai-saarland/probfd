@@ -7,7 +7,7 @@
 
 #include "probfd/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/progress_report.h"
 #include "probfd/state_id_map.h"
 #include "probfd/task_proxy.h"

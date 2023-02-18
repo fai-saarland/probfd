@@ -3,7 +3,7 @@
 
 #include "probfd/engines/engine.h"
 
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -76,7 +76,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         value_t t_value;
     };
 
-    engine_interfaces::StateEvaluator<State>* prune_;
+    engine_interfaces::Evaluator<State>* prune_;
 
     Statistics statistics_;
 
@@ -97,7 +97,7 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        engine_interfaces::StateEvaluator<State>* prune = nullptr)
+        engine_interfaces::Evaluator<State>* prune = nullptr)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,

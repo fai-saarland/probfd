@@ -6,7 +6,7 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/engine_interfaces/state_evaluator.h"
+#include "probfd/engine_interfaces/evaluator.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -15,10 +15,10 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-std::shared_ptr<TaskStateEvaluator> get_evaluator(const options::Options& opts)
+std::shared_ptr<TaskEvaluator> get_evaluator(const options::Options& opts)
 {
     if (opts.contains("eval")) {
-        return opts.get<std::shared_ptr<TaskStateEvaluator>>("eval");
+        return opts.get<std::shared_ptr<TaskEvaluator>>("eval");
     }
 
     return std::make_shared<heuristics::ConstantEvaluator<State>>(
@@ -26,7 +26,7 @@ std::shared_ptr<TaskStateEvaluator> get_evaluator(const options::Options& opts)
 }
 
 class TopologicalVISolver : public MDPSolver {
-    std::shared_ptr<TaskStateEvaluator> prune_;
+    std::shared_ptr<TaskEvaluator> prune_;
 
 public:
     explicit TopologicalVISolver(const options::Options& opts)
@@ -37,7 +37,7 @@ public:
 
     static void add_options_to_parser(options::OptionParser& parser)
     {
-        parser.add_option<std::shared_ptr<TaskStateEvaluator>>(
+        parser.add_option<std::shared_ptr<TaskEvaluator>>(
             "eval",
             "",
             options::OptionParser::NONE);

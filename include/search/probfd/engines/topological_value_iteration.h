@@ -229,7 +229,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         }
     };
 
-    const engine_interfaces::StateEvaluator<State>* value_initializer_;
+    const engine_interfaces::Evaluator<State>* value_initializer_;
     const bool expand_goals_;
 
     storage::PerStateStorage<StateInfo> state_information_;
@@ -244,7 +244,7 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        const engine_interfaces::StateEvaluator<State>* value_initializer,
+        const engine_interfaces::Evaluator<State>* value_initializer,
         bool expand_goals)
         : MDPEngine<State, Action>(
               state_id_map,

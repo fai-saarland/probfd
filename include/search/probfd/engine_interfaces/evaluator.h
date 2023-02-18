@@ -1,5 +1,5 @@
-#ifndef PROBFD_ENGINE_INTERFACES_STATE_EVALUATOR_H
-#define PROBFD_ENGINE_INTERFACES_STATE_EVALUATOR_H
+#ifndef PROBFD_ENGINE_INTERFACES_EVALUATOR_H
+#define PROBFD_ENGINE_INTERFACES_EVALUATOR_H
 
 #include "probfd/value_type.h"
 
@@ -39,9 +39,9 @@ namespace engine_interfaces {
  * @see EvaluationResult
  */
 template <typename State>
-class StateEvaluator {
+class Evaluator {
 public:
-    virtual ~StateEvaluator() = default;
+    virtual ~Evaluator() = default;
 
     virtual EvaluationResult evaluate(const State& state) const = 0;
 
@@ -56,7 +56,7 @@ class State;
 namespace probfd {
 
 /// Type alias for evaluators of planning tasks.
-using TaskStateEvaluator = engine_interfaces::StateEvaluator<State>;
+using TaskEvaluator = engine_interfaces::Evaluator<State>;
 
 } // namespace probfd
 

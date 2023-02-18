@@ -54,7 +54,7 @@ namespace interval_iteration {
  */
 template <typename State, typename Action>
 class IntervalIteration : public MDPEngine<State, Action> {
-    const engine_interfaces::StateEvaluator<State>* heuristic_;
+    const engine_interfaces::Evaluator<State>* heuristic_;
     const bool extract_probability_one_states_;
     const bool expand_goals_;
 
@@ -78,7 +78,7 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        const engine_interfaces::StateEvaluator<State>* heuristic,
+        const engine_interfaces::Evaluator<State>* heuristic,
         bool extract_probability_one_states,
         bool expand_goals)
         : MDPEngine<State, Action>(
