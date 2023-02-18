@@ -515,7 +515,10 @@ protected:
     /**
      * @brief Get the state info object of a state.
      */
-    StateInfo& get_state_info(StateID id) const { return state_infos_[id]; }
+    const StateInfo& get_state_info(StateID id) const
+    {
+        return state_infos_[id];
+    }
 
     /**
      * @brief Get the state info object of a state, if needed.
@@ -724,14 +727,11 @@ private:
         IncumbentSolution& new_value)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        statistics_.update_time.resume();
+        utils::TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
         statistics_.backups++;
 
         if (state_info.is_terminal()) {
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.update_time.stop();
-#endif
             return false;
         }
 
@@ -745,10 +745,7 @@ private:
 
         if (aops.empty()) {
             statistics_.terminal_states++;
-            bool result = notify_dead_end(state_info);
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.update_time.stop();
-#endif
+            const bool result = notify_dead_end(state_info);
             if (result) {
                 ++statistics_.value_changes;
                 if (state_id == initial_state_id_) {
@@ -801,10 +798,6 @@ private:
         transitions.erase(
             transitions.begin() + non_loop_end,
             transitions.end());
-
-#if defined(EXPENSIVE_STATISTICS)
-        statistics_.update_time.stop();
-#endif
 
         if (aops.empty()) {
             statistics_.self_loop_states++;
@@ -881,7 +874,7 @@ private:
         Distribution<StateID>* greedy_transition)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        statistics_.policy_selection_time.resume();
+        utils::TimerScope scoped(statistics_.policy_selection_time);
 #endif
         auto previous_greedy = state_info.get_policy();
 
@@ -939,17 +932,8 @@ private:
                 state_info.set_policy(aid);
                 return true;
             }
-
-#if defined(EXPENSIVE_STATISTICS)
-            statistics_.policy_selection_time.stop();
-#endif
-
-            return false;
         }
 
-#if defined(EXPENSIVE_STATISTICS)
-        statistics_.policy_selection_time.stop();
-#endif
         return false;
     }
 };

@@ -179,7 +179,7 @@ public:
         next_lp_var_ = 0;
         next_lp_constr_id_ = 0;
 
-        statistics_.idual_timer_.resume();
+        utils::TimerScope scope(statistics_.idual_timer_);
 
         prepare_lp();
 
@@ -303,9 +303,10 @@ public:
                 frontier_candidates,
                 start_new_states);
 
-            statistics_.lp_solver_timer_.resume();
-            lp_solver_.solve();
-            statistics_.lp_solver_timer_.stop();
+            {
+                utils::TimerScope lp_scope(statistics_.lp_solver_timer_);
+                lp_solver_.solve();
+            }
 
             assert(lp_solver_.has_optimal_solution());
             objective_ = -lp_solver_.get_objective_value();
@@ -329,8 +330,6 @@ public:
             statistics_.open_states_ =
                 frontier_candidates.size() + frontier.size();
         }
-
-        statistics_.idual_timer_.stop();
 
         statistics_.num_lp_vars_ = next_lp_var_;
         statistics_.num_lp_constraints_ = next_lp_constr_id_;
@@ -385,7 +384,7 @@ private:
             return;
         }
 
-        statistics_.hpom_timer_.resume();
+        utils::TimerScope scope(statistics_.hpom_timer_);
         ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
             ProbabilisticTaskProxy(*tasks::g_root_task),
             lp_solver_,
@@ -395,8 +394,6 @@ private:
             true);
         statistics_.hpom_num_vars_ = vars.size();
         statistics_.hpom_num_constraints_ = hpom_constraints_.size();
-
-        statistics_.hpom_timer_.stop();
     }
 
     void update_hpom_constraints_expanded(
@@ -408,15 +405,13 @@ private:
         }
 
         if (hpom_initialized_) {
-            statistics_.hpom_timer_.resume();
+            utils::TimerScope scope(statistics_.hpom_timer_);
             for (const StateID state_id : expanded) {
                 remove_fringe_state_from_hpom(
                     this->lookup_state(state_id),
                     data[state_id],
                     hpom_constraints_);
             }
-
-            statistics_.hpom_timer_.stop();
         }
 
         hpom_initialized_ = true;
@@ -431,7 +426,7 @@ private:
             return;
         }
 
-        statistics_.hpom_timer_.resume();
+        utils::TimerScope scope(statistics_.hpom_timer_);
 
         size_t i = incremental_hpom_updates_ ? start : 0;
 
@@ -442,8 +437,6 @@ private:
         }
 
         lp_solver_.add_temporary_constraints(hpom_constraints_);
-
-        statistics_.hpom_timer_.stop();
     }
 
     void remove_fringe_state_from_hpom(

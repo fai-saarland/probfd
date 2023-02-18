@@ -22,8 +22,6 @@
 #include <limits>
 #include <memory>
 
-#define TIMERS_ENABLED(x)
-
 namespace probfd {
 namespace engines {
 
@@ -47,7 +45,9 @@ struct Statistics {
     unsigned long long pruned_dead_end_sccs = 0;
     unsigned long long summed_dead_end_scc_sizes = 0;
 
-    TIMERS_ENABLED(utils::Timer evaluation_time = utils::Timer(true);)
+#if defined(EXPENSIVE_STATISTICS)
+    utils::Timer evaluation_time = utils::Timer(true);
+#endif
 
     void print(std::ostream& out) const
     {
@@ -64,21 +64,14 @@ struct Statistics {
         out << "  Found " << dead_end_sccs << " dead-end SCC(s)." << std::endl;
         out << "  Partially pruned " << pruned_dead_end_sccs
             << " dead-end SCC(s)." << std::endl;
-        TIMERS_ENABLED(out << "  Evaluator time: " << evaluation_time
-                           << std::endl;)
+#if defined(EXPENSIVE_STATISTICS)
+        out << "  Evaluator time: " << evaluation_time << std::endl;
+#endif
         out << "  Average dead-end SCC size: "
             << (static_cast<double>(summed_dead_end_scc_sizes) /
                 static_cast<int>(dead_end_sccs))
             << std::endl;
     }
-
-    void evaluation_started()
-    {
-        evaluations++;
-        TIMERS_ENABLED(evaluation_time.resume();)
-    }
-
-    void evaluation_finished() { TIMERS_ENABLED(evaluation_time.stop();) }
 };
 
 inline bool update_lower_bound(value_t& x, value_t v)
@@ -338,10 +331,11 @@ private:
 
     EvaluationResult evaluate(const State& state)
     {
-        TIMERS_ENABLED(statistics_.evaluation_started();)
-        const EvaluationResult res = evaluator_->evaluate(state);
-        TIMERS_ENABLED(statistics_.evaluation_finished();)
-        return res;
+#if defined(EXPENSIVE_STATISTICS)
+        utils::TimerScope t(statistics_.evaluation_time);
+#endif
+        ++statistics_.evaluations;
+        return evaluator_->evaluate(state);
     }
 
     IncumbentSolution get_trivial_bound() const
@@ -796,7 +790,5 @@ private:
 } // namespace exhaustive_dfs
 } // namespace engines
 } // namespace probfd
-
-#undef TIMERS_ENABLED
 
 #endif // __EXHAUSTIVE_DFS_H__

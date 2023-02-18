@@ -18,12 +18,6 @@
 #include <sstream>
 #include <type_traits>
 
-#if !defined(NDEBUG)
-#define FRET_DEBUG_MSG(x) // x
-#else
-#define FRET_DEBUG_MSG(x)
-#endif
-
 namespace probfd {
 namespace engines {
 
@@ -153,13 +147,9 @@ public:
     value_t heuristic_search(const State& state)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        statistics_.heuristic_search.resume();
+        utils::TimerScope scoped(statistics_.heuristic_search);
 #endif
-        auto val = base_engine_->solve(state);
-#if defined(EXPENSIVE_STATISTICS)
-        statistics_.heuristic_search.stop();
-#endif
-        return val;
+        return base_engine_->solve(state);
     }
 
     virtual std::optional<value_t> get_error(const State& state) override
@@ -177,11 +167,8 @@ private:
     void find_and_remove_traps(const State& state)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        statistics_.trap_identification.resume();
+        utils::TimerScope scoped(statistics_.trap_identification);
 #endif
-        FRET_DEBUG_MSG(std::cout << "................. find&remove traps"
-                                 << std::endl;)
-
         trap_counter_ = 0;
         unexpanded_ = 0;
 
@@ -202,7 +189,8 @@ private:
 
         while (!exploration_queue.empty()) {
             ExplorationInfo& einfo = exploration_queue.back();
-            TarjanStateInformation& sinfo = state_infos[einfo.state_id];
+            const auto state_id = einfo.state_id;
+            TarjanStateInformation& sinfo = state_infos[state_id];
             sinfo.lowlink = std::min(sinfo.lowlink, last_lowlink);
             einfo.is_leaf = einfo.is_leaf && !backtracked;
             bool fully_explored = true;
@@ -242,36 +230,16 @@ private:
                     do {
                         state_infos[*it].onstack = false;
                         ++scc_size;
-                    } while (*(it++) != einfo.state_id);
+                    } while (*(it++) != state_id);
 
                     if (einfo.is_leaf) {
                         if (scc_size > 1) {
-                            FRET_DEBUG_MSG(
-                                std::cout << "=====> TRAP = [";
-                                for (auto x = stack.begin(); x != it;
-                                     ++x) { std::cout << " " << *x; } std::cout
-                                << " ] ... " << std::flush;)
                             trap_counter_++;
-#if defined(EXPENSIVE_STATISTICS)
-                            statistics_.trap_removal.resume();
-#endif
-                            quotient_->build_quotient(
-                                stack.begin(),
-                                it,
-                                einfo.state_id);
-                            base_engine_->clear_policy(einfo.state_id);
-#if defined(EXPENSIVE_STATISTICS)
-                            statistics_.trap_removal.stop();
-#endif
-                            FRET_DEBUG_MSG(std::cout << " ... -> "
-                                                     << einfo.state_id
-                                                     << std::endl;)
-                            base_engine_->async_update(einfo.state_id);
-
+                            collapse_trap(stack.begin(), it, state_id);
+                            base_engine_->async_update(state_id);
                             statistics_.traps++;
                         } else {
-                            base_engine_->notify_dead_end_ifnot_goal(
-                                einfo.state_id);
+                            base_engine_->notify_dead_end_ifnot_goal(state_id);
                         }
                     }
 
@@ -281,13 +249,17 @@ private:
                 exploration_queue.pop_back();
             }
         }
+    }
 
+    using StackIterator = std::deque<StateID>::iterator;
+
+    void collapse_trap(StackIterator first, StackIterator last, StateID repr)
+    {
 #if defined(EXPENSIVE_STATISTICS)
-        statistics_.trap_identification.stop();
+        utils::TimerScope t(statistics_.trap_removal);
 #endif
-        FRET_DEBUG_MSG(std::cout
-                           << "................. -> traps = " << trap_counter_
-                           << " unexpanded = " << unexpanded_ << std::endl;)
+        quotient_->build_quotient(first, last, repr);
+        base_engine_->clear_policy(repr);
     }
 
     bool push(std::deque<ExplorationInfo>& queue, StateID state_id)
@@ -401,7 +373,5 @@ using FRETPi = internal::FRET<
 } // namespace fret
 } // namespace engines
 } // namespace probfd
-
-#undef FRET_DEBUG_MSG
 
 #endif // __FRET_H__

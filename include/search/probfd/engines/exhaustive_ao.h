@@ -18,13 +18,8 @@ namespace internal {
 
 template <typename StateInfo>
 struct PerStateInformation : public ao_search::PerStateInformation<StateInfo> {
-    PerStateInformation()
-        : unsolved(0)
-        , alive(0)
-    {
-    }
-    unsigned unsolved : 31;
-    unsigned alive : 1;
+    unsigned unsolved : 31 = 0;
+    unsigned alive : 1 = 0;
 };
 
 template <typename State, typename Action, bool Interval>

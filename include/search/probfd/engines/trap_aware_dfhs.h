@@ -30,8 +30,6 @@ enum class BacktrackingUpdateType {
 namespace internal {
 
 struct Statistics {
-    explicit Statistics() { trap_timer.stop(); }
-
     void print(std::ostream& out) const
     {
         out << "  Iterations: " << iterations << std::endl;
@@ -49,7 +47,7 @@ struct Statistics {
         });
     }
 
-    utils::Timer trap_timer;
+    utils::Timer trap_timer = utils::Timer(true);
     unsigned long long iterations = 0;
     unsigned long long traps = 0;
     unsigned long long reexpansions = 0;
@@ -567,12 +565,11 @@ private:
             stack_index_[*it] = STATE_CLOSED;
         }
 
-        statistics_.trap_timer.resume();
+        utils::TimerScope scope(statistics_.trap_timer);
         quotient_->build_quotient(scc_begin, stack_.end(), state);
         this->get_state_info(state).set_policy(ActionID::undefined);
         stack_.erase(scc_begin, stack_.end());
         repush_trap(state, flags);
-        statistics_.trap_timer.stop();
     }
 
     void backtrack_solved(

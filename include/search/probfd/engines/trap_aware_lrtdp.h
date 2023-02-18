@@ -367,12 +367,13 @@ private:
                                     minstate = *it;
                                 }
                             }
-                            statistics_.trap_timer.resume();
+                            utils::TimerScope scope(statistics_.trap_timer);
                             quotient_->build_quotient(
                                 stack_.begin(),
                                 scc_end,
                                 minstate);
-                            this->get_state_info(minstate).set_policy(ActionID::undefined);
+                            this->get_state_info(minstate).set_policy(
+                                ActionID::undefined);
                             ++this->statistics_.traps;
                             ++this->statistics_.check_and_solve_bellman_backups;
                             stack_.erase(stack_.begin(), scc_end);
@@ -382,12 +383,10 @@ private:
                                 if (!push_to_queue(minstate, flags)) {
                                     flags.is_trap = false;
                                 }
-                                statistics_.trap_timer.stop();
                                 continue;
                             } else {
                                 this->async_update(minstate);
                                 einfo.flags.rv = false;
-                                statistics_.trap_timer.stop();
                             }
                         } else if (einfo.flags.rv) {
                             for (auto it = stack_.begin(); it != scc_end;
