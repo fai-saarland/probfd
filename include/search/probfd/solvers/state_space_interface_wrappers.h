@@ -1,5 +1,5 @@
-#ifndef PROBFD_SOLVERS_STATE_SPACE_INTERFACE_WRAPPERS_H
-#define PROBFD_SOLVERS_STATE_SPACE_INTERFACE_WRAPPERS_H
+#ifndef MDPS_SOLVERS_STATE_SPACE_INTERFACE_WRAPPERS_H
+#define MDPS_SOLVERS_STATE_SPACE_INTERFACE_WRAPPERS_H
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
@@ -23,12 +23,6 @@ namespace solvers {
 
 template <bool Bisimulation, bool Fret, typename T>
 struct Wrapper {
-    using type = T;
-    type operator()(T t) const { return t; }
-};
-
-template <bool Bisimulation, bool Fret, typename T>
-struct Unwrapper {
     using type = T;
     type operator()(T t) const { return t; }
 };
@@ -63,25 +57,9 @@ struct Wrapper<
         std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>> t)
         const
     {
-        return std::make_shared<engine_interfaces::TransitionSampler<
-            quotients::QuotientAction<OperatorID>>>(q, t);
-    }
-};
-
-template <>
-struct Unwrapper<
-    false,
-    true,
-    std::shared_ptr<engine_interfaces::TransitionSampler<
-        quotients::QuotientAction<OperatorID>>>> {
-
-    using type =
-        std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>;
-
-    type operator()(std::shared_ptr<engine_interfaces::TransitionSampler<
-                        quotients::QuotientAction<OperatorID>>> t) const
-    {
-        return t->real();
+        return std::make_shared<quotients::RepresentativeTransitionSampler>(
+            q,
+            t);
     }
 };
 
@@ -107,22 +85,6 @@ struct Wrapper<
     }
 };
 
-template <bool Fret>
-struct Unwrapper<
-    true,
-    Fret,
-    std::shared_ptr<engine_interfaces::TransitionSampler<
-        typename translate_action<Fret, bisimulation::QuotientAction>::type>>> {
-    using type = engine_interfaces::TransitionSampler<OperatorID>*;
-    type operator()(
-        std::shared_ptr<engine_interfaces::TransitionSampler<
-            typename translate_action<Fret, bisimulation::QuotientAction>::
-                type>>) const
-    {
-        return nullptr;
-    }
-};
-
 /****************************************************************************/
 /* OpenList */
 
@@ -139,26 +101,7 @@ struct Wrapper<
         quotients::QuotientSystem<OperatorID>* q,
         std::shared_ptr<engine_interfaces::OpenList<OperatorID>> t) const
     {
-        return std::make_shared<
-            engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>(
-            q,
-            t);
-    }
-};
-
-template <>
-struct Unwrapper<
-    false,
-    true,
-    std::shared_ptr<
-        engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>> {
-
-    using type = std::shared_ptr<engine_interfaces::OpenList<OperatorID>>;
-
-    type operator()(std::shared_ptr<engine_interfaces::OpenList<
-                        quotients::QuotientAction<OperatorID>>> t) const
-    {
-        return t->real();
+        return std::make_shared<quotients::RepresentativeOpenList>(q, t);
     }
 };
 
@@ -176,22 +119,6 @@ struct Wrapper<
         return std::make_shared<open_lists::LifoOpenList<
             typename translate_action<Fret, bisimulation::QuotientAction>::
                 type>>();
-    }
-};
-
-template <bool Fret>
-struct Unwrapper<
-    true,
-    Fret,
-    std::shared_ptr<engine_interfaces::OpenList<
-        typename translate_action<Fret, bisimulation::QuotientAction>::type>>> {
-    using type = engine_interfaces::OpenList<OperatorID>*;
-    type operator()(
-        std::shared_ptr<engine_interfaces::OpenList<typename translate_action<
-            Fret,
-            bisimulation::QuotientAction>::type>>) const
-    {
-        return nullptr;
     }
 };
 

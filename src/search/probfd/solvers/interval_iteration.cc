@@ -13,10 +13,9 @@ namespace {
 
 using namespace engine_interfaces;
 
-using IIEngine =
-    engines::interval_iteration::IntervalIteration<State, OperatorID>;
-
 class IntervalIterationSolver : public MDPSolver {
+    std::shared_ptr<TaskStateEvaluator> prune_;
+
 public:
     explicit IntervalIterationSolver(const options::Options& opts)
         : MDPSolver(opts)
@@ -43,11 +42,10 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
+        using IIEngine =
+            engines::interval_iteration::IntervalIteration<State, OperatorID>;
         return engine_factory<IIEngine>(prune_.get(), false, false);
     }
-
-private:
-    std::shared_ptr<TaskStateEvaluator> prune_;
 };
 
 static Plugin<SolverInterface> _plugin(

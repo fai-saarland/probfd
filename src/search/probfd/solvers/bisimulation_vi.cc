@@ -43,6 +43,8 @@ class BisimulationIteration : public SolverInterface {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
 
+    const bool interval_iteration_;
+
 public:
     explicit BisimulationIteration(bool interval)
         : interval_iteration_(interval)
@@ -53,7 +55,9 @@ public:
 
     std::string get_engine_name() const
     {
-        return (interval_iteration_ ? "interval iteration" : "value iteration");
+        return (
+            interval_iteration_ ? "bisimulation interval iteration"
+                                : "bisimulation value iteration");
     }
 
     virtual bool found_solution() const override { return true; }
@@ -85,30 +89,33 @@ public:
         std::cout << std::endl;
         std::cout << "Running " << get_engine_name()
                   << " on the bisimulation..." << std::endl;
+
         utils::Timer vi_timer;
-        engines::MDPEngine<QState, QAction>* solver = nullptr;
+        std::unique_ptr<engines::MDPEngine<QState, QAction>> solver;
+        value_t val;
         if (interval_iteration_) {
-            solver = new engines::interval_iteration::
-                IntervalIteration<QState, QAction>(
-                    &state_id_map,
-                    &action_id_map,
-                    &tgen,
-                    &cost,
-                    nullptr,
-                    false,
-                    false);
+            solver.reset(new engines::interval_iteration::
+                             IntervalIteration<QState, QAction>(
+                                 &state_id_map,
+                                 &action_id_map,
+                                 &tgen,
+                                 &cost,
+                                 nullptr,
+                                 false,
+                                 false));
+            val = solver->solve(bs.get_initial_state());
         } else {
             heuristics::ConstantEvaluator<QState> initializer(0_vt);
-            solver = new engines::topological_vi::
-                TopologicalValueIteration<QState, QAction>(
-                    &state_id_map,
-                    &action_id_map,
-                    &tgen,
-                    &cost,
-                    &initializer,
-                    false);
+            solver.reset(new engines::topological_vi::
+                             TopologicalValueIteration<QState, QAction>(
+                                 &state_id_map,
+                                 &action_id_map,
+                                 &tgen,
+                                 &cost,
+                                 &initializer,
+                                 false));
+            val = solver->solve(bs.get_initial_state());
         }
-        value_t val = solver->solve(bs.get_initial_state());
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
         std::cout << std::endl;
 
@@ -123,11 +130,7 @@ public:
                   << " statistics:" << std::endl;
         std::cout << "  Actual solver time: " << vi_timer << std::endl;
         solver->print_statistics(std::cout);
-
-        delete (solver);
     }
-
-    const bool interval_iteration_;
 };
 
 class BisimulationValueIteration : public BisimulationIteration {

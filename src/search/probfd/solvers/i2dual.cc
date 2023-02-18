@@ -12,9 +12,12 @@ namespace {
 
 using namespace engine_interfaces;
 
-using I2DualEngine = engines::i2dual::I2Dual<State, OperatorID>;
-
 class I2DualSolver : public MDPSolver {
+    std::shared_ptr<TaskStateEvaluator> heuristic_;
+    bool hpom_enabled_;
+    bool incremental_hpom_updates_;
+    lp::LPSolverType solver_type_;
+
 public:
     explicit I2DualSolver(const options::Options& opts)
         : MDPSolver(opts)
@@ -41,6 +44,8 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
+        using I2DualEngine = engines::i2dual::I2Dual<State, OperatorID>;
+
         return engine_factory<I2DualEngine>(
             &progress_,
             heuristic_.get(),
@@ -48,12 +53,6 @@ public:
             incremental_hpom_updates_,
             solver_type_);
     }
-
-private:
-    std::shared_ptr<TaskStateEvaluator> heuristic_;
-    bool hpom_enabled_;
-    bool incremental_hpom_updates_;
-    lp::LPSolverType solver_type_;
 };
 
 static Plugin<SolverInterface>

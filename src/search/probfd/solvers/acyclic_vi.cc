@@ -16,6 +16,8 @@ using namespace engine_interfaces;
 using AVIEngine = engines::acyclic_vi::AcyclicValueIteration<State, OperatorID>;
 
 class AcyclicVISolver : public MDPSolver {
+    std::shared_ptr<TaskStateEvaluator> prune_;
+
 public:
     explicit AcyclicVISolver(const options::Options& opts)
         : MDPSolver(opts)
@@ -44,9 +46,6 @@ public:
     {
         return engine_factory<AVIEngine>(prune_.get());
     }
-
-private:
-    std::shared_ptr<TaskStateEvaluator> prune_;
 };
 
 static Plugin<SolverInterface> _plugin(

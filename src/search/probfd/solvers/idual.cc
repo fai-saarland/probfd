@@ -17,9 +17,10 @@ namespace {
 
 using namespace engine_interfaces;
 
-using IDualEngine = engines::idual::IDual<State, OperatorID>;
-
 class IDualSolver : public MDPSolver {
+    std::shared_ptr<TaskStateEvaluator> eval_;
+    lp::LPSolverType solver_type_;
+
 public:
     explicit IDualSolver(const options::Options& opts)
         : MDPSolver(opts)
@@ -42,15 +43,13 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
+        using IDualEngine = engines::idual::IDual<State, OperatorID>;
+
         return engine_factory<IDualEngine>(
             solver_type_,
             eval_.get(),
             &progress_);
     }
-
-private:
-    std::shared_ptr<TaskStateEvaluator> eval_;
-    lp::LPSolverType solver_type_;
 };
 
 static Plugin<SolverInterface>

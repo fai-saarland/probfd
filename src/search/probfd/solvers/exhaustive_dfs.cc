@@ -24,10 +24,20 @@ using namespace engine_interfaces;
 using namespace engines::exhaustive_dfs;
 
 class ExhaustiveDFSSolver : public MDPSolver {
-public:
-    using Engine = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
-    using Engine2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
+    const Interval cost_bound_;
 
+    std::shared_ptr<TaskNewStateHandlerList> new_state_handler_;
+    std::shared_ptr<TaskStateEvaluator> heuristic_;
+    std::shared_ptr<TaskSuccessorSorter> successor_sort_;
+
+    const bool dual_bounds_;
+    const bool interval_comparison_;
+    const bool reevaluate_;
+    const bool notify_s0_;
+    const bool path_updates_;
+    const bool only_propagate_when_changed_;
+
+public:
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
         , cost_bound_(g_cost_model->optimal_value_bound())
@@ -40,8 +50,8 @@ public:
                   ? opts.get<std::shared_ptr<TaskSuccessorSorterFactory>>(
                             "order")
                         ->create_successor_sorter(
-                            this->get_state_id_map(),
-                            this->get_action_id_map())
+                            &this->state_id_map_,
+                            &this->action_id_map_)
                   : nullptr)
         , dual_bounds_(
               opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
@@ -86,6 +96,9 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
+        using Engine = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
+        using Engine2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
+
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
                 cost_bound_,
@@ -110,20 +123,6 @@ public:
                 &progress_);
         }
     }
-
-private:
-    const Interval cost_bound_;
-
-    std::shared_ptr<TaskNewStateHandlerList> new_state_handler_;
-    std::shared_ptr<TaskStateEvaluator> heuristic_;
-    std::shared_ptr<TaskSuccessorSorter> successor_sort_;
-
-    const bool dual_bounds_;
-    const bool interval_comparison_;
-    const bool reevaluate_;
-    const bool notify_s0_;
-    const bool path_updates_;
-    const bool only_propagate_when_changed_;
 };
 
 static Plugin<SolverInterface> _plugin(

@@ -14,6 +14,7 @@
 #endif
 
 #include <fstream>
+#include <memory>
 #include <sstream>
 #include <type_traits>
 
@@ -103,13 +104,13 @@ public:
         engine_interfaces::CostFunction<State, Action>* cost_function,
         QuotientSystem* quotient,
         ProgressReport* report,
-        HeuristicSearchEngine<State, QAction, Interval>* engine)
+        std::shared_ptr<HeuristicSearchEngine<State, QAction, Interval>> engine)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
               transition_generator,
               cost_function)
-        , greedy_graph_(engine)
+        , greedy_graph_(engine.get())
         , report_(report)
         , quotient_(quotient)
         , base_engine_(engine)
@@ -355,7 +356,8 @@ private:
     GreedyGraphGenerator greedy_graph_;
     ProgressReport* report_;
     QuotientSystem* quotient_;
-    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
+    std::shared_ptr<HeuristicSearchEngine<State, QAction, Interval>>
+        base_engine_;
 
     Statistics statistics_;
     bool last_dead_;

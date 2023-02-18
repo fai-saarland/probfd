@@ -16,20 +16,22 @@ using namespace engine_interfaces;
 
 template <bool Bisimulation>
 class AOStarSolver : public MDPHeuristicSearch<Bisimulation, false> {
-public:
     template <typename T>
     using WrappedType =
         typename MDPHeuristicSearch<Bisimulation, false>::template WrappedType<
             T>;
 
+    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
+
+public:
     explicit AOStarSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
         , successor_sampler_(this->template wrap<>(
               opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
                       "successor_sampler")
                   ->create_sampler(
-                      this->get_state_id_map(),
-                      this->get_action_id_map())))
+                      &this->state_id_map_,
+                      &this->action_id_map_)))
     {
     }
 
@@ -40,25 +42,19 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
-        return this->template heuristic_search_engine_factory<
+        return this->template create_heuristic_search_engine<
             engines::ao_search::ao_star::AOStar>(successor_sampler_.get());
     }
 
 protected:
     virtual void print_additional_statistics() const override
     {
-        auto sampler = this->template unwrap<>(successor_sampler_);
-        if (sampler != nullptr) {
-            sampler->print_statistics(std::cout);
-        }
+        successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<Bisimulation, false>::print_additional_statistics();
     }
-
-    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
 };
 
 struct AOStarOptions {
-
     void operator()(options::OptionParser& parser) const
     {
         parser.add_option<std::shared_ptr<TaskTransitionSamplerFactory>>(

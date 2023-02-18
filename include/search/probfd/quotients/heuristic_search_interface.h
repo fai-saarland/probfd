@@ -9,16 +9,21 @@
 
 namespace probfd {
 
-namespace engine_interfaces {
-template <>
-class PolicyPicker<quotients::QuotientAction<OperatorID>> {
+namespace quotients {
+class RepresentativePolicyPicker
+    : public engine_interfaces::PolicyPicker<
+          quotients::QuotientAction<OperatorID>> {
     using QuotientSystem = quotients::QuotientSystem<OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
+    std::vector<OperatorID> choices_;
+    QuotientSystem* quotient_;
+    std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>> original_;
+
 public:
-    explicit PolicyPicker(
+    RepresentativePolicyPicker(
         QuotientSystem* quotient,
-        std::shared_ptr<PolicyPicker<OperatorID>> original)
+        std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>> original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -29,7 +34,7 @@ public:
         ActionID prev_policy,
         const std::vector<QuotientAction>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
-        HeuristicSearchInterface& hs_interface)
+        engine_interfaces::HeuristicSearchInterface& hs_interface) override
     {
         const ActionID oprev =
             (prev_policy == ActionID::undefined
@@ -45,22 +50,26 @@ public:
             ->pick(state, oprev, choices_, successors, hs_interface);
     }
 
-    std::shared_ptr<PolicyPicker<OperatorID>> real() const { return original_; }
-
-    std::vector<OperatorID> choices_;
-    QuotientSystem* quotient_;
-    std::shared_ptr<PolicyPicker<OperatorID>> original_;
+    void print_statistics(std::ostream& out) override
+    {
+        original_->print_statistics(out);
+    }
 };
 
-template <>
-class TransitionSampler<quotients::QuotientAction<OperatorID>> {
+class RepresentativeTransitionSampler
+    : public engine_interfaces::TransitionSampler<
+          quotients::QuotientAction<OperatorID>> {
     using QuotientSystem = quotients::QuotientSystem<OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
+    QuotientSystem* quotient_;
+    std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>> original_;
+
 public:
-    explicit TransitionSampler(
+    RepresentativeTransitionSampler(
         QuotientSystem* quotient,
-        std::shared_ptr<TransitionSampler<OperatorID>> original)
+        std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>
+            original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -70,63 +79,59 @@ public:
         StateID state,
         const QuotientAction& action,
         const Distribution<StateID>& transition,
-        HeuristicSearchInterface& hs_interface)
+        engine_interfaces::HeuristicSearchInterface& hs_interface) override
     {
         const OperatorID op_id = quotient_->get_original_action(state, action);
         return original_->sample(state, op_id, transition, hs_interface);
     }
 
-    std::shared_ptr<TransitionSampler<OperatorID>> real() const
+    void print_statistics(std::ostream& out) const override
     {
-        return original_;
+        original_->print_statistics(out);
     }
-
-    QuotientSystem* quotient_;
-    std::shared_ptr<TransitionSampler<OperatorID>> original_;
 };
 
-template <>
-class OpenList<quotients::QuotientAction<OperatorID>> {
+class RepresentativeOpenList
+    : public engine_interfaces::OpenList<
+          quotients::QuotientAction<OperatorID>> {
     using QuotientSystem = quotients::QuotientSystem<OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
+    QuotientSystem* quotient_;
+    std::shared_ptr<engine_interfaces::OpenList<OperatorID>> original_;
+
 public:
-    explicit OpenList(
+    RepresentativeOpenList(
         QuotientSystem* quotient,
-        std::shared_ptr<OpenList<OperatorID>> original)
+        std::shared_ptr<engine_interfaces::OpenList<OperatorID>> original)
         : quotient_(quotient)
         , original_(original)
     {
     }
 
-    StateID pop() { return original_->pop(); }
+    StateID pop() override { return original_->pop(); }
 
-    void push(StateID state_id) { original_->push(state_id); }
+    void push(StateID state_id) override { original_->push(state_id); }
 
     void push(
         StateID parent,
         const QuotientAction& action,
         value_t prob,
-        StateID state_id)
+        StateID state_id) override
     {
         const OperatorID op_id =
             this->quotient_->get_original_action(parent, action);
         original_->push(parent, op_id, prob, state_id);
     }
 
-    unsigned size() const { return original_->size(); }
+    unsigned size() const override { return original_->size(); }
 
-    bool empty() const { return original_->empty(); }
+    bool empty() const override { return original_->empty(); }
 
-    void clear() { original_->clear(); }
-
-    std::shared_ptr<OpenList<OperatorID>> real() const { return original_; }
-
-    QuotientSystem* quotient_;
-    std::shared_ptr<OpenList<OperatorID>> original_;
+    void clear() override { original_->clear(); }
 };
 
-} // namespace engine_interfaces
+} // namespace quotients
 } // namespace probfd
 
 #endif // __HEURISTIC_SEARCH_INTERFACE_H__

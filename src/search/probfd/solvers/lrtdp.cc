@@ -17,7 +17,6 @@ using namespace engines::lrtdp;
 
 template <bool Bisimulation, bool Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
-public:
     template <typename T>
     using WrappedType =
         typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
@@ -26,6 +25,10 @@ public:
     template <typename State, typename Action, bool Interval>
     using LRTDP = LRTDP<State, Action, Interval, Fret>;
 
+    const TrialTerminationCondition stop_consistent_;
+    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
+
+public:
     explicit LRTDPSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
         , stop_consistent_(
@@ -34,8 +37,8 @@ public:
               opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
                       "successor_sampler")
                   ->create_sampler(
-                      this->get_state_id_map(),
-                      this->get_action_id_map())))
+                      &this->state_id_map_,
+                      &this->action_id_map_)))
     {
         if constexpr (Fret) {
             if (stop_consistent_ != TrialTerminationCondition::Consistent) {
@@ -56,7 +59,7 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
-        return this->template heuristic_search_engine_factory<LRTDP>(
+        return this->template create_heuristic_search_engine<LRTDP>(
             stop_consistent_,
             successor_sampler_.get());
     }
@@ -64,15 +67,9 @@ public:
 protected:
     virtual void print_additional_statistics() const override
     {
-        auto ts = this->unwrap(successor_sampler_);
-        if (ts != nullptr) {
-            ts->print_statistics(std::cout);
-        }
+        successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<Bisimulation, Fret>::print_additional_statistics();
     }
-
-    const TrialTerminationCondition stop_consistent_;
-    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
 };
 
 struct LRTDPOptions {

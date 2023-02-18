@@ -14,7 +14,6 @@ using namespace engine_interfaces;
 using namespace engines::trap_aware_lrtdp;
 
 class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
-public:
     template <typename T>
     using WrappedType =
         typename MDPHeuristicSearch<false, true>::WrappedType<T>;
@@ -22,6 +21,11 @@ public:
     template <typename State, typename Action, bool Interval>
     using Engine = LRTDP<State, Action, Interval>;
 
+    const TrialTerminationCondition stop_consistent_;
+    const bool reexpand_traps_;
+    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
+
+public:
     explicit TrapAwareLRTDPSolver(const options::Options& opts)
         : MDPHeuristicSearch<false, true>(opts)
         , stop_consistent_(
@@ -31,8 +35,8 @@ public:
               opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
                       "successor_sampler")
                   ->create_sampler(
-                      this->get_state_id_map(),
-                      this->get_action_id_map())))
+                      &this->state_id_map_,
+                      &this->action_id_map_)))
     {
     }
 
@@ -75,7 +79,7 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
-        return this->template quotient_heuristic_search_factory<Engine>(
+        return this->template create_quotient_heuristic_search_engine<Engine>(
             stop_consistent_,
             reexpand_traps_,
             successor_sampler_.get());
@@ -84,16 +88,9 @@ public:
 protected:
     virtual void print_additional_statistics() const override
     {
-        auto s = this->unwrap(successor_sampler_);
-        if (s != nullptr) {
-            s->print_statistics(std::cout);
-        }
+        successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<false, true>::print_additional_statistics();
     }
-
-    const TrialTerminationCondition stop_consistent_;
-    const bool reexpand_traps_;
-    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
 };
 
 static Plugin<SolverInterface>

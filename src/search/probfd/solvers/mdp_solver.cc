@@ -18,11 +18,7 @@ namespace probfd {
 namespace solvers {
 
 MDPSolver::MDPSolver(const options::Options& opts)
-    : progress_(
-          opts.get<double>("report_epsilon"),
-          std::cout,
-          opts.get<bool>("report_enabled"))
-    , task(tasks::g_root_task)
+    : task(tasks::g_root_task)
     , task_proxy(*task)
     , state_registry_(task_proxy)
     , state_id_map_(&state_registry_)
@@ -33,6 +29,10 @@ MDPSolver::MDPSolver(const options::Options& opts)
           opts.get_list<std::shared_ptr<Evaluator>>(
               "path_dependent_evaluators"),
           opts.get<bool>("cache"))
+    , progress_(
+          opts.get<double>("report_epsilon"),
+          std::cout,
+          opts.get<bool>("report_enabled"))
 {
     StateRegistry* state_registry = &state_registry_;
     progress_.register_print([state_registry](std::ostream& out) {

@@ -18,7 +18,6 @@ using namespace engines::heuristic_depth_first_search;
 
 template <bool Bisimulation, bool Fret>
 class HDFSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
-public:
     template <typename T>
     using WrappedType =
         typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
@@ -27,6 +26,17 @@ public:
     template <typename State, typename Action, bool Interval>
     using Engine = HeuristicDepthFirstSearch<State, Action, Interval, Fret>;
 
+    const std::string name_;
+
+    const bool labeling_;
+    const bool forward_updates_;
+    const BacktrackingUpdateType backward_updates_;
+    const bool cutoff_inconsistent_;
+    const bool partial_exploration_;
+    const bool value_iteration_;
+    const bool expand_tip_states_;
+
+public:
     explicit HDFSSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
         , name_(opts.contains("name") ? opts.get<std::string>("name") : "hdfs")
@@ -48,7 +58,7 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
-        return this->template heuristic_search_engine_factory<Engine>(
+        return this->template create_heuristic_search_engine<Engine>(
             labeling_,
             forward_updates_,
             backward_updates_,
@@ -105,17 +115,6 @@ public:
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
     }
-
-protected:
-    const std::string name_;
-
-    const bool labeling_;
-    const bool forward_updates_;
-    const BacktrackingUpdateType backward_updates_;
-    const bool cutoff_inconsistent_;
-    const bool partial_exploration_;
-    const bool value_iteration_;
-    const bool expand_tip_states_;
 };
 
 struct HDFSOptions {

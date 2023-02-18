@@ -26,8 +26,8 @@ public:
         , open_list_(this->wrap(
               opts.get<std::shared_ptr<TaskOpenListFactory>>("open_list")
                   ->create_open_list(
-                      this->get_state_id_map(),
-                      this->get_action_id_map())))
+                      &this->state_id_map_,
+                      &this->action_id_map_)))
     {
     }
 
@@ -38,7 +38,7 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
-        return this->template heuristic_search_engine_factory<
+        return this->template create_heuristic_search_engine<
             engines::exhaustive_ao::ExhaustiveAOSearch>(open_list_.get());
     }
 

@@ -15,9 +15,6 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using TVIEngine =
-    engines::topological_vi::TopologicalValueIteration<State, OperatorID>;
-
 std::shared_ptr<TaskStateEvaluator> get_evaluator(const options::Options& opts)
 {
     if (opts.contains("eval")) {
@@ -29,6 +26,8 @@ std::shared_ptr<TaskStateEvaluator> get_evaluator(const options::Options& opts)
 }
 
 class TopologicalVISolver : public MDPSolver {
+    std::shared_ptr<TaskStateEvaluator> prune_;
+
 public:
     explicit TopologicalVISolver(const options::Options& opts)
         : MDPSolver(opts)
@@ -52,11 +51,10 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
+        using TVIEngine = engines::topological_vi::
+            TopologicalValueIteration<State, OperatorID>;
         return engine_factory<TVIEngine>(prune_.get(), false);
     }
-
-private:
-    std::shared_ptr<TaskStateEvaluator> prune_;
 };
 
 static Plugin<SolverInterface> _plugin(

@@ -15,22 +15,25 @@
 
 #include "probfd/quotient_system.h"
 
+#include "probfd/solvers/bisimulation_heuristic_search_engine.h"
+#include "probfd/solvers/state_space_interface_wrappers.h"
+
 #include "option_parser.h"
-#include "state_space_interface_wrappers.h"
 
 #include <memory>
 
 namespace probfd {
 namespace solvers {
 
-template <bool Bisimulation, bool Fret>
-class MDPHeuristicSearch;
-
 class MDPHeuristicSearchBase : public MDPSolver {
-    friend class MDPHeuristicSearch<false, true>;
-    friend class MDPHeuristicSearch<false, false>;
-    friend class MDPHeuristicSearch<true, true>;
-    friend class MDPHeuristicSearch<true, false>;
+protected:
+    std::shared_ptr<TaskPolicyPicker> policy_tiebreaker_;
+    std::shared_ptr<TaskNewStateHandler> new_state_handler_;
+    std::shared_ptr<TaskStateEvaluator> heuristic_;
+
+    const bool dual_bounds_;
+    const bool interval_comparison_;
+    const bool stable_policy_;
 
 public:
     explicit MDPHeuristicSearchBase(const options::Options& opts);
@@ -40,26 +43,21 @@ public:
     virtual std::string get_engine_name() const override;
     virtual std::string get_heuristic_search_name() const = 0;
     virtual void print_additional_statistics() const override;
-
-protected:
-    std::shared_ptr<TaskPolicyPicker> policy_tiebreaker_;
-    std::shared_ptr<TaskNewStateHandler> new_state_handler_;
-    std::shared_ptr<TaskStateEvaluator> heuristic_;
-
-    const bool dual_bounds_;
-    const bool interval_comparison_;
-    const bool stable_policy_;
 };
 
-template <bool Bisimulation>
-class MDPHeuristicSearch<Bisimulation, false> : public MDPHeuristicSearchBase {
+template <bool Bisimulation, bool Fret>
+class MDPHeuristicSearch;
+
+template <>
+class MDPHeuristicSearch<false, false> : public MDPHeuristicSearchBase {
 public:
-    using MDPHeuristicSearchBase::add_options_to_parser;
     using MDPHeuristicSearchBase::MDPHeuristicSearchBase;
+
+    using MDPHeuristicSearchBase::add_options_to_parser;
 
     template <template <typename, typename, bool> class HS, typename... Args>
     engines::MDPEngine<State, OperatorID>*
-    heuristic_search_engine_factory(Args&&... args)
+    create_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
             using HeuristicSearchType = HS<State, OperatorID, true>;
@@ -89,89 +87,88 @@ protected:
     using WrappedType = typename Wrapper<false, false, T>::type;
 
     template <typename T>
-    T wrap(T t) const
-    {
-        return t;
-    }
-
-    template <typename T>
-    T unwrap(T t) const
+    T wrap(T t)
     {
         return t;
     }
 };
 
-template <bool Bisimulation>
-class MDPHeuristicSearch<Bisimulation, true> : public MDPHeuristicSearchBase {
+template <>
+class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
     using QAction = quotients::QuotientAction<OperatorID>;
+
+    quotients::QuotientSystem<OperatorID> quotient_;
+
+    engine_interfaces::ActionIDMap<QAction> q_action_id_map_;
+    engine_interfaces::TransitionGenerator<QAction> q_transition_gen_;
+
+    std::shared_ptr<engine_interfaces::CostFunction<State, QAction>> q_cost_;
+    std::shared_ptr<engine_interfaces::PolicyPicker<QAction>>
+        q_policy_tiebreaker_;
+
+    const bool fret_on_policy_;
 
 public:
     explicit MDPHeuristicSearch(const options::Options& opts)
         : MDPHeuristicSearchBase(opts)
-        , quotient_(new quotients::QuotientSystem<OperatorID>(
-              this->get_action_id_map(),
-              this->get_transition_generator()))
+        , quotient_(&this->action_id_map_, &this->transition_generator_)
+        , q_action_id_map_(&quotient_)
+        , q_transition_gen_(&quotient_)
         , q_cost_(new quotients::DefaultQuotientCostFunction<State, OperatorID>(
-              quotient_.get(),
-              this->get_cost_function()))
-        , q_action_id_map_(
-              new engine_interfaces::ActionIDMap<QAction>(quotient_.get()))
-        , q_transition_gen_(new engine_interfaces::TransitionGenerator<QAction>(
-              quotient_.get()))
+              &quotient_,
+              this->cost_function_))
         , q_policy_tiebreaker_(
               this->policy_tiebreaker_ != nullptr
-                  ? new engine_interfaces::PolicyPicker<QAction>(
-                        quotient_.get(),
+                  ? new quotients::RepresentativePolicyPicker(
+                        &quotient_,
                         this->policy_tiebreaker_)
                   : nullptr)
         , fret_on_policy_(
               opts.contains("fret_on_policy") &&
               opts.get<bool>("fret_on_policy"))
-        , opts_(opts)
-        , engine_(nullptr)
     {
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
     engines::MDPEngine<State, OperatorID>*
-    heuristic_search_engine_factory(Args... args)
+    create_heuristic_search_engine(Args&&... args)
     {
         if (this->dual_bounds_) {
             if (this->fret_on_policy_) {
-                return this->template heuristic_search_engine_factory_wrapper<
+                return this->template create_heuristic_search_engine_wrapper<
                     engines::fret::FRETPi,
                     true,
-                    HS>(args...);
+                    HS>(std::forward<Args>(args)...);
             } else {
-                return this->template heuristic_search_engine_factory_wrapper<
+                return this->template create_heuristic_search_engine_wrapper<
                     engines::fret::FRETV,
                     true,
-                    HS>(args...);
+                    HS>(std::forward<Args>(args)...);
             }
         } else {
             if (this->fret_on_policy_) {
-                return this->template heuristic_search_engine_factory_wrapper<
+                return this->template create_heuristic_search_engine_wrapper<
                     engines::fret::FRETPi,
                     false,
-                    HS>(args...);
+                    HS>(std::forward<Args>(args)...);
             } else {
-                return this->template heuristic_search_engine_factory_wrapper<
+                return this->template create_heuristic_search_engine_wrapper<
                     engines::fret::FRETV,
                     false,
-                    HS>(args...);
+                    HS>(std::forward<Args>(args)...);
             }
         }
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
     engines::MDPEngine<State, QAction>*
-    quotient_heuristic_search_factory(Args... args)
+    create_quotient_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
             return new HS<State, QAction, true>(
-                this->get_state_id_map(),
-                q_action_id_map_.get(),
-                q_transition_gen_.get(),
+                &this->state_id_map_,
+                &q_action_id_map_,
+                &q_transition_gen_,
                 q_cost_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -179,13 +176,13 @@ public:
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
-                this->quotient_.get(),
-                args...);
+                &this->quotient_,
+                std::forward<Args>(args)...);
         } else {
             return new HS<State, QAction, false>(
-                this->get_state_id_map(),
-                q_action_id_map_.get(),
-                q_transition_gen_.get(),
+                &this->state_id_map_,
+                &q_action_id_map_,
+                &q_transition_gen_,
                 q_cost_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -193,8 +190,8 @@ public:
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
-                this->quotient_.get(),
-                args...);
+                &this->quotient_,
+                std::forward<Args>(args)...);
         }
     }
 
@@ -211,20 +208,9 @@ protected:
     using WrappedType = typename Wrapper<false, true, T>::type;
 
     template <typename T>
-    typename Wrapper<false, true, T>::type wrap(T t) const
+    typename Wrapper<false, true, T>::type wrap(T t)
     {
-        return Wrapper<false, true, T>()(quotient_.get(), t);
-    }
-
-    template <typename T>
-    typename Unwrapper<false, true, T>::type unwrap(T t) const
-    {
-        return Unwrapper<false, true, T>()(t);
-    }
-
-    quotients::QuotientSystem<OperatorID>* get_quotient_system() const
-    {
-        return quotient_.get();
+        return Wrapper<false, true, T>()(&quotient_, t);
     }
 
 private:
@@ -234,12 +220,12 @@ private:
         bool Interval,
         typename... Args>
     engines::fret::HeuristicSearchEngine<State, QAction, Interval>*
-    quotient_heuristic_search_factory_wrapper(Args... args)
+    create_quotient_heuristic_search_engine_wrapper(Args&&... args)
     {
         return new HS<State, QAction, Interval>(
-            this->get_state_id_map(),
-            q_action_id_map_.get(),
-            q_transition_gen_.get(),
+            &this->state_id_map_,
+            &q_action_id_map_,
+            &q_transition_gen_,
             q_cost_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
@@ -247,7 +233,7 @@ private:
             &progress_,
             interval_comparison_,
             stable_policy_,
-            args...);
+            std::forward<Args>(args)...);
     }
 
     template <
@@ -258,39 +244,178 @@ private:
         class HS,
         typename... Args>
     engines::MDPEngine<State, OperatorID>*
-    heuristic_search_engine_factory_wrapper(Args... args)
+    create_heuristic_search_engine_wrapper(Args&&... args)
     {
-        using FretVariant = Fret<State, OperatorID, Interval>;
-        engines::fret::HeuristicSearchEngine<State, QAction, Interval>* engine =
-            this->template quotient_heuristic_search_factory_wrapper<
-                HS,
-                Interval>(args...);
-        engine_ = std::unique_ptr<engines::MDPEngine<State, QAction>>(engine);
-        return new FretVariant(
-            this->get_state_id_map(),
-            this->get_action_id_map(),
-            this->get_transition_generator(),
-            this->get_cost_function(),
-            quotient_.get(),
+        std::shared_ptr<
+            engines::fret::HeuristicSearchEngine<State, QAction, Interval>>
+            engine(
+                this->template create_quotient_heuristic_search_engine_wrapper<
+                    HS,
+                    Interval>(std::forward<Args>(args)...));
+        return new Fret<State, OperatorID, Interval>(
+            &this->state_id_map_,
+            &this->action_id_map_,
+            &this->transition_generator_,
+            this->cost_function_,
+            &quotient_,
             &progress_,
-            engine);
+            std::move(engine));
+    }
+};
+
+template <>
+class MDPHeuristicSearch<true, false> : public MDPHeuristicSearchBase {
+public:
+    using MDPHeuristicSearchBase::add_options_to_parser;
+    using MDPHeuristicSearchBase::MDPHeuristicSearchBase;
+
+    virtual std::string get_engine_name() const override
+    {
+        return get_heuristic_search_name() + "(bisimulation)";
     }
 
-    std::unique_ptr<quotients::QuotientSystem<OperatorID>> quotient_;
+    template <template <typename, typename, bool> class HS, typename... Args>
+    engines::MDPEngineInterface<State>*
+    create_heuristic_search_engine(Args&&... args)
+    {
+        if (dual_bounds_) {
+            return BisimulationBasedHeuristicSearchEngine::
+                template Constructor<HS, true>(
+                    this->get_heuristic_search_name(),
+                    this->progress_,
+                    this->interval_comparison_,
+                    this->stable_policy_,
+                    std::forward<Args>(args)...);
+        } else {
+            return BisimulationBasedHeuristicSearchEngine::
+                template Constructor<HS, false>(
+                    this->get_heuristic_search_name(),
+                    this->progress_,
+                    this->interval_comparison_,
+                    this->stable_policy_,
+                    std::forward<Args>(args)...);
+        }
+    }
 
-    std::unique_ptr<engine_interfaces::CostFunction<State, QAction>> q_cost_;
-    std::unique_ptr<engine_interfaces::ActionIDMap<QAction>> q_action_id_map_;
-    std::unique_ptr<engine_interfaces::TransitionGenerator<QAction>>
-        q_transition_gen_;
+protected:
+    template <typename T>
+    using WrappedType = typename Wrapper<true, false, T>::type;
 
-    std::unique_ptr<engine_interfaces::PolicyPicker<QAction>>
-        q_policy_tiebreaker_;
+    template <typename T>
+    WrappedType<T> wrap(T t) const
+    {
+        return Wrapper<true, false, T>()(t);
+    }
+};
 
+template <>
+class MDPHeuristicSearch<true, true> : public MDPHeuristicSearchBase {
     const bool fret_on_policy_;
 
-    options::Options opts_; // keep copy
+public:
+    explicit MDPHeuristicSearch(const options::Options& opts)
+        : MDPHeuristicSearchBase(opts)
+        , fret_on_policy_(opts.get<bool>("fret_on_policy"))
+    {
+    }
 
-    std::unique_ptr<engines::MDPEngine<State, QAction>> engine_;
+    using MDPHeuristicSearchBase::add_options_to_parser;
+
+    template <template <typename, typename, bool> class HS, typename... Args>
+    engines::MDPEngineInterface<State>*
+    create_heuristic_search_engine(Args&&... args)
+    {
+        if (this->dual_bounds_) {
+            if (this->fret_on_policy_) {
+                return this->template heuristic_search_engine_factory_wrapper<
+                    engines::fret::FRETPi,
+                    true,
+                    HS>(std::forward<Args>(args)...);
+            } else {
+                return this->template heuristic_search_engine_factory_wrapper<
+                    engines::fret::FRETV,
+                    true,
+                    HS>(std::forward<Args>(args)...);
+            }
+        } else {
+            if (this->fret_on_policy_) {
+                return this->template heuristic_search_engine_factory_wrapper<
+                    engines::fret::FRETPi,
+                    false,
+                    HS>(std::forward<Args>(args)...);
+            } else {
+                return this->template heuristic_search_engine_factory_wrapper<
+                    engines::fret::FRETV,
+                    false,
+                    HS>(std::forward<Args>(args)...);
+            }
+        }
+    }
+
+    template <
+        template <typename, typename, typename>
+        class HS,
+        typename... Args>
+    engines::MDPEngineInterface<State>*
+    create_quotient_heuristic_search_engine(Args&&... args)
+    {
+        if (dual_bounds_) {
+            return QBisimulationBasedHeuristicSearchEngine::
+                template QConstructor<HS, true>(
+                    this->get_heuristic_search_name(),
+                    this->progress_,
+                    this->interval_comparison_,
+                    this->stable_policy_,
+                    std::forward<Args>(args)...);
+        } else {
+            return QBisimulationBasedHeuristicSearchEngine::
+                template QConstructor<HS, false>(
+                    this->get_heuristic_search_name(),
+                    this->progress_,
+                    this->interval_comparison_,
+                    this->stable_policy_,
+                    std::forward<Args>(args)...);
+        }
+    }
+
+    virtual std::string get_engine_name() const override
+    {
+        std::ostringstream out;
+        out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
+            << this->get_heuristic_search_name() << "(bisimulation)"
+            << ")";
+        return out.str();
+    }
+
+protected:
+    template <typename T>
+    using WrappedType = typename Wrapper<true, true, T>::type;
+
+    template <typename T>
+    typename WrappedType<T> wrap(T t) const
+    {
+        return Wrapper<true, true, T>()(t);
+    }
+
+private:
+    template <
+        template <typename, typename, bool>
+        class Fret,
+        bool Interval,
+        template <typename, typename, bool>
+        class HS,
+        typename... Args>
+    engines::MDPEngineInterface<State>*
+    heuristic_search_engine_factory_wrapper(Args&&... args)
+    {
+        return QBisimulationBasedHeuristicSearchEngine::
+            template Constructor<Fret, HS, Interval>(
+                this->get_heuristic_search_name(),
+                this->progress_,
+                this->interval_comparison_,
+                this->stable_policy_,
+                std::forward<Args>(args)...);
+    }
 };
 
 struct NoAdditionalOptions {
@@ -319,15 +444,15 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
 
     OptionsPostprocessing()(opts);
 
-    if (!parser.dry_run()) {
-        if (opts.get<bool>("bisimulation")) {
-            return std::make_shared<SolverClass<true>>(opts);
-        } else {
-            return std::make_shared<SolverClass<false>>(opts);
-        }
+    if (parser.dry_run()) {
+        return nullptr;
     }
 
-    return nullptr;
+    if (opts.get<bool>("bisimulation")) {
+        return std::make_shared<SolverClass<true>>(opts);
+    } else {
+        return std::make_shared<SolverClass<false>>(opts);
+    }
 }
 
 template <
@@ -351,31 +476,29 @@ parse_mdp_heuristic_search_solver(options::OptionParser& parser)
 
     OptionsPostprocessing()(opts);
 
-    if (!parser.dry_run()) {
-        const int fret_type = opts.get<int>("fret");
-        if (opts.get<bool>("bisimulation")) {
-            if (fret_type == 0) {
-                return std::make_shared<SolverClass<true, false>>(opts);
-            } else {
-                opts.set<bool>("fret_on_policy", fret_type == 1);
-                return std::make_shared<SolverClass<true, true>>(opts);
-            }
-        } else {
-            if (fret_type == 0) {
-                return std::make_shared<SolverClass<false, false>>(opts);
-            } else {
-                opts.set<bool>("fret_on_policy", fret_type == 1);
-                return std::make_shared<SolverClass<false, true>>(opts);
-            }
-        }
+    if (parser.dry_run()) {
+        return nullptr;
     }
 
-    return nullptr;
+    const int fret_type = opts.get<int>("fret");
+    if (opts.get<bool>("bisimulation")) {
+        if (fret_type == 0) {
+            return std::make_shared<SolverClass<true, false>>(opts);
+        } else {
+            opts.set<bool>("fret_on_policy", fret_type == 1);
+            return std::make_shared<SolverClass<true, true>>(opts);
+        }
+    } else {
+        if (fret_type == 0) {
+            return std::make_shared<SolverClass<false, false>>(opts);
+        } else {
+            opts.set<bool>("fret_on_policy", fret_type == 1);
+            return std::make_shared<SolverClass<false, true>>(opts);
+        }
+    }
 }
 
 } // namespace solvers
 } // namespace probfd
-
-#include "bisimulation_heuristic_search.h"
 
 #endif // __MDP_HEURISTIC_SEARCH_H__

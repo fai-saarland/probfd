@@ -13,7 +13,6 @@ using namespace engine_interfaces;
 using namespace engines::trap_aware_dfhs;
 
 class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
-public:
     template <typename T>
     using WrappedType =
         typename MDPHeuristicSearch<false, true>::WrappedType<T>;
@@ -21,6 +20,16 @@ public:
     template <typename State, typename Action, bool Interval>
     using Engine = DepthFirstHeuristicSearch<State, Action, Interval>;
 
+    WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
+    const bool forward_updates_;
+    const BacktrackingUpdateType backward_updates_;
+    const bool cutoff_tip_;
+    const bool cutoff_inconsistent_;
+    const bool terminate_exploration_;
+    const bool value_iteration_;
+    const bool reexpand_traps_;
+
+public:
     explicit TrapAwareDFHSSolver(const options::Options& opts)
         : MDPHeuristicSearch<false, true>(opts)
         , open_list_(
@@ -100,7 +109,7 @@ public:
 
     virtual engines::MDPEngineInterface<State>* create_engine() override
     {
-        return this->template quotient_heuristic_search_factory<Engine>(
+        return this->template create_quotient_heuristic_search_engine<Engine>(
             forward_updates_,
             backward_updates_,
             !cutoff_tip_,
@@ -117,15 +126,6 @@ protected:
     {
         MDPHeuristicSearch<false, true>::print_additional_statistics();
     }
-
-    WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
-    const bool forward_updates_;
-    const BacktrackingUpdateType backward_updates_;
-    const bool cutoff_tip_;
-    const bool cutoff_inconsistent_;
-    const bool terminate_exploration_;
-    const bool value_iteration_;
-    const bool reexpand_traps_;
 };
 
 struct ILAOOptions {

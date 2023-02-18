@@ -32,6 +32,19 @@ namespace solvers {
  * @brief Base interface for MDP solvers.
  */
 class MDPSolver : public SolverInterface {
+protected:
+    const std::shared_ptr<ProbabilisticTask> task;
+    ProbabilisticTaskProxy task_proxy;
+
+    StateRegistry state_registry_;
+
+    engine_interfaces::StateIDMap<State> state_id_map_;
+    engine_interfaces::ActionIDMap<OperatorID> action_id_map_;
+    engine_interfaces::TransitionGenerator<OperatorID> transition_generator_;
+    engine_interfaces::CostFunction<State, OperatorID>* cost_function_;
+
+    ProgressReport progress_;
+
 public:
     /**
      * @brief Constructs the MDP solver from the given options.
@@ -39,8 +52,8 @@ public:
     explicit MDPSolver(const options::Options& opts);
 
     /**
-     * @brief Factory method that constructs an new MDP engine from the given
-     * arguments.
+     * @brief Factory method that constructs an new MDP engine from the
+     * given arguments.
      *
      * @tparam Engine - The engine type to construct.
      */
@@ -81,43 +94,6 @@ public:
     virtual bool found_solution() const override { return true; }
 
     static void add_options_to_parser(options::OptionParser& parser);
-
-protected:
-    engine_interfaces::StateIDMap<State>* get_state_id_map()
-    {
-        return &state_id_map_;
-    }
-
-    engine_interfaces::ActionIDMap<OperatorID>* get_action_id_map()
-    {
-        return &action_id_map_;
-    }
-
-    engine_interfaces::CostFunction<State, OperatorID>* get_cost_function()
-    {
-        return cost_function_;
-    }
-
-    engine_interfaces::TransitionGenerator<OperatorID>*
-    get_transition_generator()
-    {
-        return &transition_generator_;
-    }
-
-    StateRegistry* get_state_registry() { return &state_registry_; }
-
-    ProgressReport progress_;
-
-private:
-    const std::shared_ptr<ProbabilisticTask> task;
-    ProbabilisticTaskProxy task_proxy;
-
-    StateRegistry state_registry_;
-
-    engine_interfaces::StateIDMap<State> state_id_map_;
-    engine_interfaces::ActionIDMap<OperatorID> action_id_map_;
-    engine_interfaces::CostFunction<State, OperatorID>* cost_function_;
-    engine_interfaces::TransitionGenerator<OperatorID> transition_generator_;
 };
 
 } // namespace solvers
