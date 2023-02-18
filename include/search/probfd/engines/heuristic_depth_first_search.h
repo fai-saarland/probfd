@@ -10,12 +10,6 @@
 #include <type_traits>
 #include <vector>
 
-#ifndef NDEBUG
-#define DMSG(x) // x
-#else
-#define DMSG(x)
-#endif
-
 namespace probfd {
 namespace engines {
 
@@ -111,73 +105,6 @@ class HeuristicDepthFirstSearch
     using AdditionalStateInfo = std::
         conditional_t<Fret, internal::StandalonePerStateInformation, StateInfo>;
 
-public:
-    HeuristicDepthFirstSearch(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_generator,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
-        engine_interfaces::PolicyPicker<Action>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
-        engine_interfaces::StateEvaluator<State>* value_init,
-        ProgressReport* report,
-        bool interval_comparison,
-        bool stable_policy,
-        bool LabelSolved,
-        bool ForwardUpdates,
-        BacktrackingUpdateType BackwardUpdates,
-        bool CutoffInconsistent,
-        bool GreedyExploration,
-        bool PerformValueIteration,
-        bool ExpandTipStates)
-        : HeuristicSearchBase(
-              state_id_map,
-              action_id_map,
-              transition_generator,
-              cost_function,
-              policy_chooser,
-              new_state_handler,
-              value_init,
-              report,
-              interval_comparison,
-              stable_policy)
-        , LabelSolved(LabelSolved)
-        , ForwardUpdates(ForwardUpdates)
-        , BackwardUpdates(BackwardUpdates)
-        , CutoffInconsistent(CutoffInconsistent)
-        , GreedyExploration(GreedyExploration)
-        , PerformValueIteration(PerformValueIteration)
-        , ExpandTipStates(ExpandTipStates)
-    {
-        initialize_persistent_state_storage();
-    }
-
-    virtual void reset_solver_state() override
-    {
-        delete (this->state_flags_);
-        state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();
-    }
-
-    virtual value_t solve(const State& state) override
-    {
-        this->initialize_report(state);
-        const StateID stateid = this->get_state_id(state);
-        if (PerformValueIteration) {
-            solve_with_vi_termination(stateid);
-        } else {
-            solve_without_vi_termination(stateid);
-        }
-
-        return this->get_value(state);
-    }
-
-    virtual void print_statistics(std::ostream& out) const override
-    {
-        HeuristicSearchBase::print_statistics(out);
-        statistics_.print(out);
-    }
-
-private:
     struct LocalStateInfo {
         static constexpr const uint8_t NEW = 0;
         static constexpr const uint8_t ONSTACK = 1;
@@ -220,6 +147,92 @@ private:
         bool value_changed = false;
         bool leaf = true;
     };
+
+    const bool LabelSolved;
+    const bool ForwardUpdates;
+    const BacktrackingUpdateType BackwardUpdates;
+    const bool CutoffInconsistent;
+    const bool GreedyExploration;
+    const bool PerformValueIteration;
+    const bool ExpandTipStates;
+
+    storage::PerStateStorage<AdditionalStateInfo>* state_flags_;
+
+    storage::StateHashMap<LocalStateInfo> state_infos_;
+    std::vector<StateID> visited_;
+    std::deque<ExpansionInfo> expansion_queue_;
+    std::deque<StateID> stack_;
+    Distribution<StateID> transition_;
+
+    Statistics statistics_;
+
+public:
+    HeuristicDepthFirstSearch(
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<Action>* action_id_map,
+        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::StateEvaluator<State>* value_init,
+        engine_interfaces::PolicyPicker<Action>* policy_chooser,
+        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        ProgressReport* report,
+        bool interval_comparison,
+        bool stable_policy,
+        bool LabelSolved,
+        bool ForwardUpdates,
+        BacktrackingUpdateType BackwardUpdates,
+        bool CutoffInconsistent,
+        bool GreedyExploration,
+        bool PerformValueIteration,
+        bool ExpandTipStates)
+        : HeuristicSearchBase(
+              state_id_map,
+              action_id_map,
+              transition_generator,
+              cost_function,
+              value_init,
+              policy_chooser,
+              new_state_handler,
+              report,
+              interval_comparison,
+              stable_policy)
+        , LabelSolved(LabelSolved)
+        , ForwardUpdates(ForwardUpdates)
+        , BackwardUpdates(BackwardUpdates)
+        , CutoffInconsistent(CutoffInconsistent)
+        , GreedyExploration(GreedyExploration)
+        , PerformValueIteration(PerformValueIteration)
+        , ExpandTipStates(ExpandTipStates)
+    {
+        initialize_persistent_state_storage();
+    }
+
+    virtual void reset_solver_state() override
+    {
+        delete (this->state_flags_);
+        state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();
+    }
+
+    virtual value_t solve(const State& state) override
+    {
+        this->initialize_report(state);
+        const StateID stateid = this->get_state_id(state);
+        if (PerformValueIteration) {
+            solve_with_vi_termination(stateid);
+        } else {
+            solve_without_vi_termination(stateid);
+        }
+
+        return this->get_value(state);
+    }
+
+    virtual void print_statistics(std::ostream& out) const override
+    {
+        HeuristicSearchBase::print_statistics(out);
+        statistics_.print(out);
+    }
+
+private:
     void initialize_persistent_state_storage()
     {
         if constexpr (std::is_same_v<AdditionalStateInfo, StateInfo>) {
@@ -236,10 +249,6 @@ private:
             if (!policy_exploration<true>(stateid)) {
                 unsigned ups = statistics_.backtracking_updates;
                 statistics_.convergence_value_iterations++;
-                // std::cout << "VI#" <<
-                // statistics_.convergence_value_iterations
-                //           << " on " << visited.size() << " SCCs" <<
-                //           std::endl;
                 auto x = value_iteration(visited_, false);
                 terminate = !x.first && !x.second;
                 statistics_.convergence_updates +=
@@ -288,9 +297,6 @@ private:
             state_infos_[state].open(0);
         }
 
-        DMSG(std::cout << "Policy depth-first exploration starting from "
-                       << state << std::endl;)
-
         unsigned current_index = 0;
         bool keep_expanding = true;
         bool last_unsolved_successors = false;
@@ -309,18 +315,11 @@ private:
             einfo.dead = einfo.dead && last_dead;
             einfo.leaf = einfo.leaf && last_leaf;
 
-            DMSG(std::cout << "   " << einfo.stateid << ": "
-                           << "..." << std::endl;)
-
             bool fully_explored = true;
             if (keep_expanding) {
                 while (!einfo.successors.empty()) {
                     StateID succid = einfo.successors.back();
                     einfo.successors.pop_back();
-
-                    DMSG(std::cout << einfo.stateid << " -> " << succid
-                                   << (state_infos_[succid].status)
-                                   << std::endl;)
 
                     AdditionalStateInfo& pers_succ_info =
                         state_flags_->operator[](succid);
@@ -344,9 +343,6 @@ private:
                                 succ_info.open(++current_index);
                                 fully_explored = false;
 
-                                DMSG(std::cout << "  => is onstack"
-                                               << std::endl;)
-
                                 break;
                             }
 
@@ -359,11 +355,6 @@ private:
                             } else if (status == LocalStateInfo::CLOSED) {
                                 einfo.dead = false;
                             }
-
-                            DMSG(std::cout
-                                     << "  => status=" << succ_info.status
-                                     << " | unsl=" << einfo.unsolved_successor
-                                     << " | dead=" << einfo.dead << std::endl;)
 
                             if (GreedyExploration && einfo.unsolved_successor) {
                                 keep_expanding = false;
@@ -392,95 +383,77 @@ private:
                 }
             }
 
-            if (fully_explored) {
-                last_lowlink = sinfo.lowlink;
-                last_unsolved_successors = einfo.unsolved_successor;
-                last_dead = einfo.dead;
-                last_value_changed = einfo.value_changed;
-                last_leaf = einfo.leaf;
+            if (!fully_explored) {
+                continue;
+            }
 
-                DMSG(std::cout << "backtracking out of " << einfo.stateid
-                               << std::endl;)
+            last_lowlink = sinfo.lowlink;
+            last_unsolved_successors = einfo.unsolved_successor;
+            last_dead = einfo.dead;
+            last_value_changed = einfo.value_changed;
+            last_leaf = einfo.leaf;
 
-                if (BackwardUpdates == BacktrackingUpdateType::Single ||
-                    (last_value_changed &&
-                     BackwardUpdates == BacktrackingUpdateType::OnDemand)) {
-                    statistics_.backtracking_updates++;
-                    auto result =
-                        this->async_update(einfo.stateid, nullptr, nullptr);
+            if (BackwardUpdates == BacktrackingUpdateType::Single ||
+                (last_value_changed &&
+                 BackwardUpdates == BacktrackingUpdateType::OnDemand)) {
+                statistics_.backtracking_updates++;
+                auto result =
+                    this->async_update(einfo.stateid, nullptr, nullptr);
+                last_value_changed = result.first;
+                last_unsolved_successors =
+                    last_unsolved_successors || result.second;
+            }
+
+            if (sinfo.index == sinfo.lowlink) {
+                last_leaf = false;
+
+                auto end = stack_.begin();
+                do {
+                    state_infos_[*end].status = LocalStateInfo::UNSOLVED;
+                } while (*(end++) != einfo.stateid);
+
+                if constexpr (GetVisited) {
+                    if (!last_unsolved_successors && !last_value_changed) {
+                        visited_.insert(visited_.end(), stack_.begin(), end);
+                    }
+                }
+
+                if (BackwardUpdates ==
+                        BacktrackingUpdateType::UntilConvergence &&
+                    last_unsolved_successors) {
+                    auto result = value_iteration(
+                        std::ranges::subrange(stack_.begin(), end),
+                        true);
                     last_value_changed = result.first;
                     last_unsolved_successors =
-                        last_unsolved_successors || result.second;
+                        result.second || last_unsolved_successors;
                 }
 
-                if (sinfo.index == sinfo.lowlink) {
-                    last_leaf = false;
-                    unsigned scc_size = 0;
+                last_dead = false;
 
-                    DMSG(std::cout << "backtracking from [";)
+                last_unsolved_successors =
+                    last_unsolved_successors || last_value_changed;
 
-                    auto end = stack_.begin();
-                    do {
-                        state_infos_[*end].status = LocalStateInfo::UNSOLVED;
-                        DMSG(std::cout << " " << *end;)
-                        ++scc_size;
-                    } while (*(end++) != einfo.stateid);
+                if (!last_unsolved_successors) {
+                    const uint8_t closed = last_dead
+                                               ? LocalStateInfo::CLOSED_DEAD
+                                               : LocalStateInfo::CLOSED;
+                    for (auto it = stack_.begin(); it != end; ++it) {
+                        state_infos_[*it].status = closed;
 
-                    DMSG(std::cout << " ] -> " << last_unsolved_successors
-                                   << "|" << last_dead << std::endl;)
-
-                    if constexpr (GetVisited) {
-                        if (!last_unsolved_successors && !last_value_changed) {
-                            visited_.reserve(visited_.size() + scc_size);
-                            for (auto it = stack_.begin(); it != end; ++it) {
-                                visited_.push_back(*it);
-                            }
+                        if (LabelSolved) {
+                            state_flags_->operator[](*it).set_solved();
                         }
                     }
-
-                    if (BackwardUpdates ==
-                            BacktrackingUpdateType::UntilConvergence &&
-                        last_unsolved_successors) {
-                        auto result = value_iteration(
-                            std::ranges::subrange(stack_.begin(), end),
-                            true);
-                        last_value_changed = result.first;
-                        last_unsolved_successors =
-                            result.second || last_unsolved_successors;
-                    }
-
-                    last_dead = false;
-
-                    last_unsolved_successors =
-                        last_unsolved_successors || last_value_changed;
-
-                    if (!last_unsolved_successors) {
-                        const uint8_t closed = last_dead
-                                                   ? LocalStateInfo::CLOSED_DEAD
-                                                   : LocalStateInfo::CLOSED;
-                        for (auto it = stack_.begin(); it != end; ++it) {
-                            state_infos_[*it].status = closed;
-
-                            if (LabelSolved) {
-                                state_flags_->operator[](*it).set_solved();
-                                // std::cout << "marking " << (*it2) << "
-                                // solved" << std::endl;
-                            }
-                        }
-                    }
-
-                    stack_.erase(stack_.begin(), end);
                 }
 
-                expansion_queue_.pop_back();
+                stack_.erase(stack_.begin(), end);
             }
+
+            expansion_queue_.pop_back();
         } while (!expansion_queue_.empty());
 
         state_infos_.clear();
-
-        // std::cout << "====> POLICY FULLY EXPLORED: " <<
-        // last_unsolved_successors
-        // << std::endl;
 
         return last_unsolved_successors || last_value_changed;
     }
@@ -514,12 +487,7 @@ private:
                     parent_value_changed || einfo.value_changed;
             }
 
-            DMSG(std::cout << "TIP " << stateid << " -> " << einfo.value_changed
-                           << std::endl;)
-
             if (transition_.empty()) {
-                DMSG(std::cout << stateid << " is a leaf" << std::endl;)
-
                 expansion_queue_.pop_back();
                 sinfo.set_solved();
                 uint8_t closed = LocalStateInfo::CLOSED;
@@ -571,9 +539,6 @@ private:
             for (const StateID id : range) {
                 statistics_.backtracking_updates++;
 
-                DMSG(std::cout << "updating " << id << " "
-                               << (get_state_info(id).get_value()) << " ... ";)
-
                 const auto [val_change, policy_changed] =
                     this->async_update(id, nullptr, nullptr);
                 value_changed = val_change || value_changed;
@@ -586,9 +551,6 @@ private:
                 }
 
                 policy_graph_changed = policy_graph_changed || policy_changed;
-
-                DMSG(std::cout << (get_state_info(id).get_value()) << " ["
-                               << valupd << "|" << policy_changed << std::endl;)
             }
 
             updated_all.first =
@@ -598,30 +560,10 @@ private:
 
         return updated_all;
     }
-
-    const bool LabelSolved;
-    const bool ForwardUpdates;
-    const BacktrackingUpdateType BackwardUpdates;
-    const bool CutoffInconsistent;
-    const bool GreedyExploration;
-    const bool PerformValueIteration;
-    const bool ExpandTipStates;
-
-    storage::PerStateStorage<AdditionalStateInfo>* state_flags_;
-
-    storage::StateHashMap<LocalStateInfo> state_infos_;
-    std::vector<StateID> visited_;
-    std::deque<ExpansionInfo> expansion_queue_;
-    std::deque<StateID> stack_;
-    Distribution<StateID> transition_;
-
-    Statistics statistics_;
 };
 
 } // namespace heuristic_depth_first_search
 } // namespace engines
 } // namespace probfd
-
-#undef DMSG
 
 #endif // __HEURISTIC_DEPTH_FIRST_SEARCH_H__

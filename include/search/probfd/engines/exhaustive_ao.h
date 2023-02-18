@@ -44,15 +44,18 @@ template <typename State, typename Action, bool Interval>
 class ExhaustiveAOSearch : public internal::AOBase<State, Action, Interval> {
     using AOBase = internal::AOBase<State, Action, Interval>;
 
+    engine_interfaces::OpenList<Action>* open_list_;
+    std::vector<Distribution<StateID>> transitions_;
+
 public:
     ExhaustiveAOSearch(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::StateEvaluator<State>* value_init,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
-        engine_interfaces::StateEvaluator<State>* value_init,
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy,
@@ -62,9 +65,9 @@ public:
               action_id_map,
               transition_generator,
               cost_function,
+              value_init,
               policy_chooser,
               new_state_handler,
-              value_init,
               report,
               interval_comparison,
               stable_policy)
@@ -177,9 +180,6 @@ private:
             }
         }
     }
-
-    engine_interfaces::OpenList<Action>* open_list_;
-    std::vector<Distribution<StateID>> transitions_;
 };
 
 } // namespace exhaustive_ao

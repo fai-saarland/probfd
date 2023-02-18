@@ -331,10 +331,19 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         }
     };
 
-public:
-    using Store = storage::PerStateStorage<IncumbentSolution>;
+    const engine_interfaces::StateEvaluator<State>* value_initializer_;
 
-    explicit TATopologicalValueIteration(
+    storage::PerStateStorage<StateInfo> state_information_;
+    std::deque<ExplorationInfo> exploration_stack_;
+    std::vector<StackInfo> stack_;
+
+    std::deque<ECDExplorationInfo> exploration_stack_ecd_;
+    std::deque<StateID> stack_ecd_;
+
+    Statistics statistics_;
+
+public:
+    TATopologicalValueIteration(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
@@ -354,7 +363,7 @@ public:
      */
     virtual value_t solve(const State& state) override
     {
-        Store value_store;
+        storage::PerStateStorage<IncumbentSolution> value_store;
         return this->solve(this->get_state_id(state), value_store);
     }
 
@@ -918,17 +927,6 @@ private:
 
         assert(stack_ecd_.size() == e.stackidx);
     }
-
-    const engine_interfaces::StateEvaluator<State>* value_initializer_;
-
-    storage::PerStateStorage<StateInfo> state_information_;
-    std::deque<ExplorationInfo> exploration_stack_;
-    std::vector<StackInfo> stack_;
-
-    std::deque<ECDExplorationInfo> exploration_stack_ecd_;
-    std::deque<StateID> stack_ecd_;
-
-    Statistics statistics_;
 };
 
 } // namespace ta_topological_vi

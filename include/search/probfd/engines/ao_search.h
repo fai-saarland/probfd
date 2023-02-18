@@ -88,22 +88,27 @@ class AOBase
         StorePolicy,
         StateInfoExtension>;
 
-    struct QueueComparator {
-        bool operator()(
-            const std::pair<unsigned, StateID>& s,
-            const std::pair<unsigned, StateID>& t) const
+    struct PrioritizedStateID {
+        unsigned update_order;
+        StateID state_id;
+
+        friend bool operator<(
+            const PrioritizedStateID& left,
+            const PrioritizedStateID& right)
         {
-            return s.first > t.first;
+            return left.update_order > right.update_order;
         }
     };
 
-    using TopoQueue = std::priority_queue<
-        std::pair<unsigned, StateID>,
-        std::vector<std::pair<unsigned, StateID>>,
-        QueueComparator>;
+    std::priority_queue<PrioritizedStateID> queue_;
 
 protected:
     using StateInfo = typename HeuristicSearchBase::StateInfo;
+
+    std::vector<Action> aops_;
+    Distribution<StateID> selected_transition_;
+
+    Statistics statistics_;
 
 public:
     AOBase(
@@ -111,9 +116,9 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::StateEvaluator<State>* value_init,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
-        engine_interfaces::StateEvaluator<State>* value_init,
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy)
@@ -122,9 +127,9 @@ public:
               action_id_map,
               transition_generator,
               cost_function,
+              value_init,
               policy_chooser,
               new_state_handler,
-              value_init,
               report,
               interval_comparison,
               stable_policy)
@@ -150,7 +155,7 @@ protected:
             auto elem = queue_.top();
             queue_.pop();
 
-            auto& info = this->get_state_info(elem.second);
+            auto& info = this->get_state_info(elem.state_id);
             assert(!info.is_goal_state());
             assert(!info.is_terminal() || info.is_solved());
 
@@ -165,10 +170,10 @@ protected:
             bool solved = false;
             bool dead = false;
             bool value_changed =
-                update_value_check_solved(elem.second, info, solved, dead);
+                update_value_check_solved(elem.state_id, info, solved, dead);
 
             if (solved) {
-                mark_solved_push_parents(elem.second, info, dead);
+                mark_solved_push_parents(elem.state_id, info, dead);
             } else if (value_changed) {
                 push_parents_to_queue(info);
             }
@@ -183,27 +188,24 @@ protected:
             auto elem = queue_.top();
             queue_.pop();
 
-            auto& info = this->get_state_info(elem.second);
-            if (info.update_order > elem.first) {
+            auto& info = this->get_state_info(elem.state_id);
+            if (info.update_order > elem.update_order) {
                 continue;
             }
 
-            auto& parents = info.get_parents();
-            auto it = parents.begin();
-            while (it != parents.end()) {
-                auto& pinfo = this->get_state_info(*it);
+            std::erase_if(info.get_parents(), [this, elem](StateID state_id) {
+                auto& pinfo = this->get_state_info(state_id);
                 if (pinfo.is_solved()) {
-                    it = parents.erase(it);
-                    continue;
+                    return true;
                 }
 
-                if (pinfo.update_order <= elem.first) {
-                    pinfo.update_order = elem.first + 1;
-                    queue_.emplace(elem.first + 1, *it);
+                if (pinfo.update_order <= elem.update_order) {
+                    pinfo.update_order = elem.update_order + 1;
+                    queue_.emplace(elem.update_order + 1, state_id);
                 }
 
-                ++it;
-            }
+                return false;
+            });
         }
     }
 
@@ -294,7 +296,7 @@ private:
             solved = true;
             dead = !selected_transition_.empty() || info.is_dead_end();
 
-            for (StateID succ_id : selected_transition_.elements()) {
+            for (const StateID succ_id : selected_transition_.elements()) {
                 const auto& succ_info = this->get_state_info(succ_id);
                 solved = solved && succ_info.is_solved();
                 dead = dead && succ_info.is_dead_end();
@@ -311,15 +313,6 @@ private:
             return result;
         }
     }
-
-protected:
-    std::vector<Action> aops_;
-    Distribution<StateID> selected_transition_;
-
-    Statistics statistics_;
-
-private:
-    TopoQueue queue_;
 };
 
 } // namespace ao_search

@@ -124,16 +124,18 @@ class ExhaustiveDepthFirstSearch
         static constexpr uint8_t DEAD = 3;
         static constexpr uint8_t MARKED = 7;
 
+        // TODO store lowlink in hash map -> only required for states still on
+        // stack
+        unsigned lowlink = -1;
+        uint8_t status = NEW;
+        IncumbentSolution value;
+        value_t state_cost;
+
         bool is_new() const { return status == NEW; }
-
         bool is_open() const { return status == OPEN; }
-
         bool is_onstack() const { return status == ONSTACK; }
-
         bool is_closed() const { return status & CLOSED; }
-
         bool is_dead_end() const { return status == DEAD || status == MARKED; }
-
         bool is_marked_dead_end() const { return status == MARKED; }
 
         void open()
@@ -158,14 +160,72 @@ class ExhaustiveDepthFirstSearch
         }
 
         void mark_dead_end() { status = MARKED; }
-
-        // TODO store lowlink in hash map -> only required for states still on
-        // stack
-        unsigned lowlink = -1;
-        uint8_t status = NEW;
-        IncumbentSolution value;
-        value_t state_cost;
     };
+
+    struct ExpansionInformation {
+        explicit ExpansionInformation(
+            unsigned stack_index,
+            unsigned neighbors_size)
+            : stack_index(stack_index)
+            , neighbors_size(neighbors_size)
+        {
+        }
+
+        std::vector<Distribution<StateID>> successors;
+        Distribution<StateID>::const_iterator succ;
+        unsigned stack_index;
+        unsigned neighbors_size;
+
+        bool all_successors_are_dead = true;
+        bool all_successors_marked_dead = true;
+
+        void update_successors_dead(bool successors_dead)
+        {
+            all_successors_are_dead =
+                all_successors_are_dead && successors_dead;
+        }
+    };
+
+    struct SCCTransition {
+        Distribution<StateID> successors;
+        value_t base = 0_vt;
+        value_t self_loop = 0_vt;
+    };
+
+    struct StackInformation {
+        explicit StackInformation(StateID state_ref)
+            : state_ref(state_ref)
+        {
+        }
+
+        std::vector<SCCTransition> successors;
+        StateID state_ref;
+        int i = -1;
+    };
+
+    engine_interfaces::StateEvaluator<State>* evaluator_;
+    engine_interfaces::NewStateHandler<State>* new_state_handler_;
+    engine_interfaces::SuccessorSorter<Action>* successor_sort_;
+
+    ProgressReport* report_;
+    const Interval cost_bound_;
+    const IncumbentSolution trivial_bound_;
+
+    const bool value_propagation_;
+    const bool only_propagate_when_changed_;
+    const bool evaluator_recomputation_;
+    const bool notify_initial_state_;
+
+    Statistics statistics_;
+    storage::PerStateStorage<SearchNodeInformation> search_space_;
+
+    std::deque<ExpansionInformation> expansion_infos_;
+    std::deque<StackInformation> stack_infos_;
+    std::vector<StateID> neighbors_;
+
+    bool last_all_dead_ = true;
+    bool last_all_marked_dead_ = true;
+    bool backtracked_from_dead_end_scc_ = false;
 
 public:
     explicit ExhaustiveDepthFirstSearch(
@@ -173,31 +233,30 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        Interval cost_bound,
         engine_interfaces::StateEvaluator<State>* evaluator,
+        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::SuccessorSorter<Action>* successor_sorting,
+        Interval cost_bound,
         bool reevaluate,
         bool notify_initial,
-        engine_interfaces::SuccessorSorter<Action>* successor_sorting,
         bool path_updates,
         bool only_propagate_when_changed,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* progress)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
               transition_generator,
               cost_function)
-        , statistics_()
+        , evaluator_(evaluator)
+        , new_state_handler_(new_state_handler)
+        , successor_sort_(successor_sorting)
         , report_(progress)
         , cost_bound_(cost_bound)
         , trivial_bound_(get_trivial_bound())
-        , evaluator_(evaluator)
-        , new_state_handler_(new_state_handler)
         , value_propagation_(path_updates)
         , only_propagate_when_changed_(only_propagate_when_changed)
         , evaluator_recomputation_(reevaluate)
         , notify_initial_state_(notify_initial)
-        , successor_sort_(successor_sorting)
     {
     }
 
@@ -294,42 +353,6 @@ private:
         }
     }
 
-private:
-    struct ExpansionInformation {
-        explicit ExpansionInformation(
-            unsigned stack_index,
-            unsigned neighbors_size)
-            : stack_index(stack_index)
-            , neighbors_size(neighbors_size)
-        {
-        }
-
-        std::vector<Distribution<StateID>> successors;
-        Distribution<StateID>::const_iterator succ;
-        unsigned stack_index;
-        unsigned neighbors_size;
-
-        bool all_successors_are_dead = true;
-        bool all_successors_marked_dead = true;
-    };
-
-    struct SCCTransition {
-        Distribution<StateID> successors;
-        value_t base = 0_vt;
-        value_t self_loop = 0_vt;
-    };
-
-    struct StackInformation {
-        explicit StackInformation(StateID state_ref)
-            : state_ref(state_ref)
-        {
-        }
-
-        std::vector<SCCTransition> successors;
-        StateID state_ref;
-        int i = -1;
-    };
-
     bool initialize_search_node(StateID state_id, SearchNodeInformation& info)
     {
         return initialize_search_node(this->lookup_state(state_id), info);
@@ -407,18 +430,18 @@ private:
 
         unsigned j = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
-            const auto& a = aops[i];
             auto& succs = successors[i];
             auto& t = si.successors[i];
             bool all_self_loops = true;
 
-            for (auto it = succs.begin(); it != succs.end();) {
-                const auto [succ_id, prob] = *it;
+            succs.remove_if([this, &exp, &t, &all_self_loops, state_id](
+                                auto& elem) {
+                const auto [succ_id, prob] = elem;
 
+                // Remove self loops
                 if (succ_id == state_id) {
                     t.self_loop += prob;
-                    it = succs.erase(it);
-                    continue;
+                    return true;
                 }
 
                 SearchNodeInformation& succ_info = search_space_[succ_id];
@@ -428,20 +451,20 @@ private:
 
                 if (succ_info.is_closed()) {
                     t.base += prob * as_lower_bound(succ_info.value);
-                    exp.all_successors_are_dead =
-                        exp.all_successors_are_dead && succ_info.is_dead_end();
+                    exp.update_successors_dead(succ_info.is_dead_end());
                     exp.all_successors_marked_dead =
                         exp.all_successors_marked_dead &&
                         succ_info.is_marked_dead_end();
 
                     all_self_loops = false;
 
-                    it = succs.erase(it);
-                } else {
-                    ++it;
+                    return true;
                 }
-            }
 
+                return false;
+            });
+
+            const auto& a = aops[i];
             if (succs.empty()) {
                 if (!all_self_loops) {
                     pure_self_loop = false;
@@ -460,8 +483,8 @@ private:
                 }
 
                 if (i != j) {
-                    std::swap(si.successors[i], si.successors[j]);
-                    successors[i].swap(successors[j]);
+                    si.successors[j] = std::move(si.successors[i]);
+                    successors[j] = std::move(successors[i]);
                 }
                 ++j;
             }
@@ -483,8 +506,8 @@ private:
             return false;
         }
 
-        successors.resize(j);
-        si.successors.resize(j);
+        successors.erase(successors.begin() + j, successors.end());
+        si.successors.erase(si.successors.begin() + j, si.successors.end());
         si.i = 0;
 
         info.set_onstack(stack_infos_.size() - 1);
@@ -508,8 +531,7 @@ private:
             const StateID stateid = stack_info.state_ref;
             SearchNodeInformation& node_info = search_space_[stateid];
 
-            expanding.all_successors_are_dead =
-                expanding.all_successors_are_dead && last_all_dead_;
+            expanding.update_successors_dead(last_all_dead_);
             expanding.all_successors_marked_dead =
                 expanding.all_successors_marked_dead && last_all_marked_dead_;
 
@@ -518,7 +540,7 @@ private:
             bool val_changed = false;
             bool completely_explored = false;
 
-            do {
+            for (;;) {
                 for (; expanding.succ != expanding.successors.back().end();
                      ++expanding.succ) {
                     const auto [succ_id, prob] = *expanding.succ;
@@ -530,24 +552,22 @@ private:
                     if (succ_info.is_open()) {
                         if (push_state(succ_id, succ_info)) {
                             goto skip;
-                        } else {
-                            expanding.all_successors_are_dead =
-                                expanding.all_successors_are_dead &&
-                                succ_info.is_dead_end();
-                            expanding.all_successors_marked_dead =
-                                expanding.all_successors_are_dead &&
-                                succ_info.is_marked_dead_end();
-                            inc->base += prob * as_lower_bound(succ_info.value);
                         }
+
+                        expanding.update_successors_dead(
+                            succ_info.is_dead_end());
+                        expanding.all_successors_marked_dead =
+                            expanding.all_successors_are_dead &&
+                            succ_info.is_marked_dead_end();
+                        inc->base += prob * as_lower_bound(succ_info.value);
                     } else if (succ_info.is_onstack()) {
                         node_info.lowlink =
                             std::min(node_info.lowlink, succ_info.lowlink);
                         inc->successors.add(succ_id, prob);
                     } else {
                         assert(succ_info.is_closed());
-                        expanding.all_successors_are_dead =
-                            expanding.all_successors_are_dead &&
-                            succ_info.is_dead_end();
+                        expanding.update_successors_dead(
+                            succ_info.is_dead_end());
                         expanding.all_successors_marked_dead =
                             expanding.all_successors_are_dead &&
                             succ_info.is_marked_dead_end();
@@ -589,7 +609,7 @@ private:
                 }
 
                 expanding.succ = expanding.successors.back().begin();
-            } while (true);
+            }
 
             backtracked_from_dead_end_scc_ = false;
             last_all_dead_ = true;
@@ -689,7 +709,7 @@ private:
                         as_lower_bound(node_info.value));
             }
         }
-}
+    }
 
     void propagate_value_along_trace(bool was_poped, value_t val)
     {
@@ -711,7 +731,7 @@ private:
         }
 
         if (it == expansion_infos_.rend()) {
-            report_->operator()();
+            (*report_)();
         }
     }
 
@@ -724,7 +744,7 @@ private:
         assert(!expansion_infos_.empty());
         unsigned lowlink = -1;
 
-        do {
+        for (;;) {
             ExpansionInformation& exp = expansion_infos_.back();
             StackInformation& stack_info = stack_infos_[exp.stack_index];
             const StateID stateid = stack_info.state_ref;
@@ -756,11 +776,11 @@ private:
 
                 stack_infos_.erase(it.base(), stack_infos_.end());
                 expansion_infos_.pop_back();
-                break;
+                return;
             }
 
             expansion_infos_.pop_back();
-        } while (true);
+        }
     }
 
     bool check_early_convergence(const SearchNodeInformation& node) const
@@ -771,32 +791,6 @@ private:
             return as_upper_bound(node.value) <= cost_bound_.lower;
         }
     }
-
-    Statistics statistics_;
-
-    ProgressReport* report_;
-    const Interval cost_bound_;
-    const IncumbentSolution trivial_bound_;
-
-    engine_interfaces::StateEvaluator<State>* evaluator_;
-    engine_interfaces::NewStateHandler<State>* new_state_handler_;
-
-    const bool value_propagation_;
-    const bool only_propagate_when_changed_;
-    const bool evaluator_recomputation_;
-    const bool notify_initial_state_;
-
-    engine_interfaces::SuccessorSorter<Action>* successor_sort_;
-
-    storage::PerStateStorage<SearchNodeInformation> search_space_;
-
-    std::deque<ExpansionInformation> expansion_infos_;
-    std::deque<StackInformation> stack_infos_;
-    std::vector<StateID> neighbors_;
-
-    bool last_all_dead_ = true;
-    bool last_all_marked_dead_ = true;
-    bool backtracked_from_dead_end_scc_ = false;
 };
 
 } // namespace exhaustive_dfs

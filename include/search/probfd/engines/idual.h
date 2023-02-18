@@ -91,22 +91,34 @@ private:
  */
 template <typename State, typename Action>
 class IDual : public MDPEngine<State, Action> {
+    engine_interfaces::StateEvaluator<State>* value_initializer_;
+
+    ProgressReport* report_;
+
+    lp::LPSolver lp_solver_;
+    storage::PerStateStorage<PerStateInfo> state_infos_;
+    ValueGroup terminals_;
+
+    Statistics statistics_;
+
+    value_t objective_;
+
 public:
     explicit IDual(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        lp::LPSolverType solver_type,
         engine_interfaces::StateEvaluator<State>* value_initializer,
-        ProgressReport* report)
+        ProgressReport* report,
+        lp::LPSolverType solver_type)
         : MDPEngine<State, Action>(
               state_id_map,
               action_id_map,
               transition_generator,
               cost_function)
-        , report_(report)
         , value_initializer_(value_initializer)
+        , report_(report)
         , lp_solver_(solver_type)
     {
     }
@@ -299,18 +311,6 @@ public:
 
         return objective_;
     }
-
-private:
-    ProgressReport* report_;
-    engine_interfaces::StateEvaluator<State>* value_initializer_;
-
-    lp::LPSolver lp_solver_;
-    storage::PerStateStorage<PerStateInfo> state_infos_;
-    ValueGroup terminals_;
-
-    Statistics statistics_;
-
-    value_t objective_;
 };
 
 } // namespace idual

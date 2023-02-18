@@ -32,9 +32,7 @@ struct Statistics {
     unsigned long long check_and_solve_bellman_backups = 0;
     unsigned long long traps = 0;
     unsigned long long trial_length = 0;
-    utils::Timer trap_timer;
-
-    explicit Statistics() { trap_timer.stop(); }
+    utils::Timer trap_timer = utils::Timer(true);
 
     void print(std::ostream& out) const
     {
@@ -74,96 +72,24 @@ struct PerStateInformation : public StateInfo {
 } // namespace internal
 
 template <typename State, typename QAction, bool Interval>
-class LRTDP
+class TALRTDP
     : public heuristic_search::HeuristicSearchBase<
           State,
           QAction,
           Interval,
           true,
           internal::PerStateInformation> {
-
-    static constexpr int STATE_UNSEEN = -1;
-    static constexpr int STATE_CLOSED = -2;
-
-public:
-    using Action = typename quotients::unwrap_qaction_type<QAction>;
-    using QuotientSystem = quotients::QuotientSystem<Action>;
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
         QAction,
         Interval,
         true,
         internal::PerStateInformation>;
+
+    using Action = typename quotients::unwrap_qaction_type<QAction>;
+    using QuotientSystem = quotients::QuotientSystem<Action>;
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 
-    /**
-     * @brief Constructs a trap-aware LRTDP solver object.
-     */
-    LRTDP(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<QAction>* action_id_map,
-        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
-        engine_interfaces::CostFunction<State, QAction>* cost_function,
-        engine_interfaces::PolicyPicker<QAction>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
-        engine_interfaces::StateEvaluator<State>* value_init,
-        ProgressReport* report,
-        bool interval_comparison,
-        bool stable_policy,
-        QuotientSystem* quotient,
-        TrialTerminationCondition stop_consistent,
-        bool reexpand_traps,
-        engine_interfaces::TransitionSampler<QAction>* succ_sampler)
-        : HeuristicSearchBase(
-              state_id_map,
-              action_id_map,
-              transition_generator,
-              cost_function,
-              policy_chooser,
-              new_state_handler,
-              value_init,
-              report,
-              interval_comparison,
-              stable_policy)
-        , quotient_(quotient)
-        , stop_at_consistent_(stop_consistent)
-        , reexpand_traps_(reexpand_traps)
-        , sample_(succ_sampler)
-        , selected_transition_()
-        , current_trial_()
-        , stack_index_(STATE_UNSEEN)
-        , statistics_()
-    {
-    }
-
-    virtual value_t solve(const State& s) override
-    {
-        this->initialize_report(s);
-        const StateID state_id = this->get_state_id(s);
-        bool terminate = false;
-        do {
-            terminate = trial(state_id);
-            statistics_.trials++;
-            assert(state_id == quotient_->translate_state_id(state_id));
-            this->report(state_id);
-        } while (!terminate);
-
-        return this->get_value(state_id);
-    }
-
-    virtual void print_statistics(std::ostream& out) const override
-    {
-        statistics_.print(out);
-        HeuristicSearchBase::print_statistics(out);
-    }
-
-protected:
-    virtual void setup_custom_reports(const State&) override
-    {
-        this->statistics_.register_report(this->report_);
-    }
-
-private:
     struct Flags {
         bool is_dead = true;
         bool is_trap = true;
@@ -203,13 +129,99 @@ private:
         Flags flags;
     };
 
+    static constexpr int STATE_UNSEEN = -1;
+    static constexpr int STATE_CLOSED = -2;
+
+    QuotientSystem* quotient_;
+
+    const TrialTerminationCondition stop_at_consistent_;
+    const bool reexpand_traps_;
+
+    engine_interfaces::TransitionSampler<QAction>* sample_;
+
+    Distribution<StateID> selected_transition_;
+
+    std::deque<StateID> current_trial_;
+
+    std::deque<ExplorationInformation> queue_;
+    std::deque<StateID> stack_;
+    storage::StateHashMap<int> stack_index_;
+
+    internal::Statistics statistics_;
+
+public:
+    /**
+     * @brief Constructs a trap-aware LRTDP solver object.
+     */
+    TALRTDP(
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<QAction>* action_id_map,
+        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
+        engine_interfaces::CostFunction<State, QAction>* cost_function,
+        engine_interfaces::StateEvaluator<State>* value_init,
+        engine_interfaces::PolicyPicker<QAction>* policy_chooser,
+        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        ProgressReport* report,
+        bool interval_comparison,
+        bool stable_policy,
+        QuotientSystem* quotient,
+        TrialTerminationCondition stop_consistent,
+        bool reexpand_traps,
+        engine_interfaces::TransitionSampler<QAction>* succ_sampler)
+        : HeuristicSearchBase(
+              state_id_map,
+              action_id_map,
+              transition_generator,
+              cost_function,
+              value_init,
+              policy_chooser,
+              new_state_handler,
+              report,
+              interval_comparison,
+              stable_policy)
+        , quotient_(quotient)
+        , stop_at_consistent_(stop_consistent)
+        , reexpand_traps_(reexpand_traps)
+        , sample_(succ_sampler)
+        , stack_index_(STATE_UNSEEN)
+    {
+    }
+
+    virtual value_t solve(const State& s) override
+    {
+        this->initialize_report(s);
+        const StateID state_id = this->get_state_id(s);
+        bool terminate = false;
+        do {
+            terminate = trial(state_id);
+            statistics_.trials++;
+            assert(state_id == quotient_->translate_state_id(state_id));
+            this->report(state_id);
+        } while (!terminate);
+
+        return this->get_value(state_id);
+    }
+
+    virtual void print_statistics(std::ostream& out) const override
+    {
+        statistics_.print(out);
+        HeuristicSearchBase::print_statistics(out);
+    }
+
+protected:
+    virtual void setup_custom_reports(const State&) override
+    {
+        this->statistics_.register_report(this->report_);
+    }
+
+private:
     bool trial(StateID start_state)
     {
         assert(current_trial_.empty());
         assert(selected_transition_.empty());
 
         current_trial_.push_back(start_state);
-        while (true) {
+        for (;;) {
             StateID stateid = current_trial_.back();
             auto& info = this->get_state_info(stateid);
             if (info.is_solved()) {
@@ -453,23 +465,6 @@ private:
         stack_.push_front(state);
         return true;
     }
-
-    QuotientSystem* quotient_;
-
-    const TrialTerminationCondition stop_at_consistent_;
-    const bool reexpand_traps_;
-
-    engine_interfaces::TransitionSampler<QAction>* sample_;
-
-    Distribution<StateID> selected_transition_;
-
-    std::deque<StateID> current_trial_;
-
-    std::deque<ExplorationInformation> queue_;
-    std::deque<StateID> stack_;
-    storage::StateHashMap<int> stack_index_;
-
-    internal::Statistics statistics_;
 };
 
 } // namespace trap_aware_lrtdp

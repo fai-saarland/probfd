@@ -76,6 +76,13 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         value_t t_value;
     };
 
+    engine_interfaces::StateEvaluator<State>* prune_;
+
+    Statistics statistics_;
+
+    storage::PerStateStorage<StateInfo> state_infos_;
+    std::stack<IncrementalExpansionInfo> expansion_stack_;
+
 public:
     /**
      * @brief Constructs an instance of acyclic value iteration.
@@ -85,7 +92,7 @@ public:
      *
      * @see MDPEngine
      */
-    explicit AcyclicValueIteration(
+    AcyclicValueIteration(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
@@ -109,18 +116,17 @@ public:
         do {
             IncrementalExpansionInfo& e = expansion_stack_.top();
 
-            do {
+            for (;;) {
                 // Topological order: Push all successors, recurse if
                 // one has not been expanded before
                 for (; e.successor != e.transition.end(); ++e.successor) {
-                    const auto& succ_id = e.successor->item;
+                    const auto [succ_id, probability] = *e.successor;
                     if (push_state(succ_id)) {
                         goto continue_outer; // DFS recursion
                     }
 
                     // Already seen -> update transition Q-value
-                    const auto& succ_prob = e.successor->probability;
-                    e.t_value += succ_prob * state_infos_[succ_id].value;
+                    e.t_value += probability * state_infos_[succ_id].value;
                 }
 
                 // Minimum Q-value
@@ -140,7 +146,7 @@ public:
 
                 // Otherwise set up the next transition to handle.
                 setup_next_transition(e);
-            } while (true);
+            }
 
             expansion_stack_.pop();
 
@@ -204,13 +210,6 @@ private:
         setup_next_transition(e);
         return true;
     }
-
-    engine_interfaces::StateEvaluator<State>* prune_;
-
-    Statistics statistics_;
-
-    storage::PerStateStorage<StateInfo> state_infos_;
-    std::stack<IncrementalExpansionInfo> expansion_stack_;
 };
 
 } // namespace acyclic_vi

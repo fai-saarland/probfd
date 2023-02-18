@@ -62,10 +62,10 @@ protected:
     engine_interfaces::TransitionGenerator<QAction> tgen;
 
     std::shared_ptr<bisimulation::QuotientCostFunction> cost;
-    std::shared_ptr<engine_interfaces::NewStateHandler<QState>>
-        new_state_handler_;
     std::shared_ptr<engine_interfaces::StateEvaluator<QState>> heuristic_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QAction>> policy_;
+    std::shared_ptr<engine_interfaces::NewStateHandler<QState>>
+        new_state_handler_;
 
     std::shared_ptr<MDPEngineInterface<QState>> engine_;
 
@@ -79,12 +79,12 @@ protected:
         , cost(new bisimulation::DefaultQuotientCostFunction(
               &bs,
               g_cost_model->optimal_value_bound()))
-        , new_state_handler_(new engine_interfaces::NewStateHandler<QState>())
         , heuristic_(new bisimulation::DefaultQuotientStateEvaluator(
               &bs,
               g_cost_model->optimal_value_bound(),
               g_cost_model->optimal_value_bound().upper))
         , policy_(new policy_pickers::ArbitraryTiebreaker<QAction>())
+        , new_state_handler_(new engine_interfaces::NewStateHandler<QState>())
     {
         stats.timer.stop();
         stats.states = bs.num_bisimilar_states();
@@ -117,9 +117,9 @@ public:
             &res->action_id_map,
             &res->tgen,
             res->cost.get(),
+            res->heuristic_.get(),
             res->policy_.get(),
             res->new_state_handler_.get(),
-            res->heuristic_.get(),
             &progress,
             interval,
             stable_policy,
@@ -168,11 +168,11 @@ class QBisimulationBasedHeuristicSearchEngine
         const std::string& engine_name)
         : BisimulationBasedHeuristicSearchEngine(engine_name)
         , quotient_(&action_id_map, &tgen)
+        , q_action_id_map_(&quotient_)
+        , q_transition_gen_(&quotient_)
         , q_cost_(new quotients::DefaultQuotientCostFunction(
               &quotient_,
               cost.get()))
-        , q_action_id_map_(&quotient_)
-        , q_transition_gen_(&quotient_)
         , q_policy_tiebreaker_(new policy_pickers::ArbitraryTiebreaker<
                                quotients::QuotientAction<QAction>>())
     {
@@ -201,9 +201,9 @@ public:
                 &res->q_action_id_map_,
                 &res->q_transition_gen_,
                 res->q_cost_.get(),
+                res->heuristic_.get(),
                 res->q_policy_tiebreaker_.get(),
                 res->new_state_handler_.get(),
-                res->heuristic_.get(),
                 &progress,
                 interval,
                 stable_policy,

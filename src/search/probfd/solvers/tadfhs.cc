@@ -18,7 +18,7 @@ class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
         typename MDPHeuristicSearch<false, true>::WrappedType<T>;
 
     template <typename State, typename Action, bool Interval>
-    using Engine = DepthFirstHeuristicSearch<State, Action, Interval>;
+    using Engine = TADepthFirstHeuristicSearch<State, Action, Interval>;
 
     WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
     const bool forward_updates_;

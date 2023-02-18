@@ -26,8 +26,8 @@ using namespace engines::exhaustive_dfs;
 class ExhaustiveDFSSolver : public MDPSolver {
     const Interval cost_bound_;
 
-    std::shared_ptr<TaskNewStateHandlerList> new_state_handler_;
     std::shared_ptr<TaskStateEvaluator> heuristic_;
+    std::shared_ptr<TaskNewStateHandlerList> new_state_handler_;
     std::shared_ptr<TaskSuccessorSorter> successor_sort_;
 
     const bool dual_bounds_;
@@ -40,11 +40,10 @@ class ExhaustiveDFSSolver : public MDPSolver {
 public:
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
-        , cost_bound_(g_cost_model->optimal_value_bound())
+        , heuristic_(opts.get<std::shared_ptr<TaskStateEvaluator>>("eval"))
         , new_state_handler_(new TaskNewStateHandlerList(
               opts.get_list<std::shared_ptr<TaskNewStateHandler>>(
                   "on_new_state")))
-        , heuristic_(opts.get<std::shared_ptr<TaskStateEvaluator>>("eval"))
         , successor_sort_(
               opts.contains("order")
                   ? opts.get<std::shared_ptr<TaskSuccessorSorterFactory>>(
@@ -53,6 +52,7 @@ public:
                             &this->state_id_map_,
                             &this->action_id_map_)
                   : nullptr)
+        , cost_bound_(g_cost_model->optimal_value_bound())
         , dual_bounds_(
               opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
         , interval_comparison_(
@@ -76,16 +76,18 @@ public:
             "on_new_state",
             "",
             "[]");
-        parser.add_option<bool>("interval_comparison", "", "false");
-        parser.add_option<bool>("dual_bounds", "", "false");
         parser.add_option<std::shared_ptr<TaskSuccessorSorterFactory>>(
             "order",
             "",
             options::OptionParser::NONE);
+
+        parser.add_option<bool>("interval_comparison", "", "false");
+        parser.add_option<bool>("dual_bounds", "", "false");
         parser.add_option<bool>("reevaluate", "", "true");
         parser.add_option<bool>("initial_state_notification", "", "false");
         parser.add_option<bool>("reverse_path_updates", "", "true");
         parser.add_option<bool>("only_propagate_when_changed", "", "true");
+
         MDPSolver::add_options_to_parser(parser);
     }
 
@@ -101,25 +103,25 @@ public:
 
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
-                cost_bound_,
                 heuristic_.get(),
+                new_state_handler_.get(),
+                successor_sort_.get(),
+                cost_bound_,
                 reevaluate_,
                 notify_s0_,
-                successor_sort_.get(),
                 path_updates_,
                 only_propagate_when_changed_,
-                new_state_handler_.get(),
                 &progress_);
         } else {
             return this->template engine_factory<Engine>(
-                cost_bound_,
                 heuristic_.get(),
+                new_state_handler_.get(),
+                successor_sort_.get(),
+                cost_bound_,
                 reevaluate_,
                 notify_s0_,
-                successor_sort_.get(),
                 path_updates_,
                 only_propagate_when_changed_,
-                new_state_handler_.get(),
                 &progress_);
         }
     }

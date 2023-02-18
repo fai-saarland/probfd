@@ -256,10 +256,49 @@ public:
     /**
      * @brief Removes the element-probability pair pointed to by \p it.
      *
-     * \returns An iterator to the element-probability pair directly behind the
+     * \returns An iterator to the element-probability pair following the
      * erased pair.
      */
     iterator erase(iterator it) { return distribution_.erase(it); }
+
+    /**
+     * @brief Removes a range of element-probability pairs.
+     *
+     * \returns An iterator to the element-probability pair following the
+     * last erased pair.
+     */
+    iterator erase(iterator it, iterator last)
+    {
+        return distribution_.erase(it, last);
+    }
+
+    template <typename UnaryPredicate>
+    size_t remove_if(UnaryPredicate pred)
+    {
+        return std::erase_if(distribution_, pred);
+    }
+
+    template <typename UnaryPredicate>
+    size_t remove_if_normalize(UnaryPredicate pred)
+    {
+        value_t normalize_factor = 0_vt;
+
+        const auto num_removed = std::erase_if(
+            this->distribution_,
+            [&pred, &normalize_factor](auto& target) {
+                if (pred(target)) {
+                    normalize_factor += target.probability;
+                    return true;
+                }
+                return false;
+            });
+
+        if (normalize_factor > 0) {
+            this->normalize(1_vt / (1_vt - normalize_factor));
+        }
+
+        return num_removed;
+    }
 
     auto begin() { return distribution_.begin(); }
 

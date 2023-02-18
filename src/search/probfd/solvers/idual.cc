@@ -46,9 +46,9 @@ public:
         using IDualEngine = engines::idual::IDual<State, OperatorID>;
 
         return engine_factory<IDualEngine>(
-            solver_type_,
             eval_.get(),
-            &progress_);
+            &progress_,
+            solver_type_);
     }
 };
 

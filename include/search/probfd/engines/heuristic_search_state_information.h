@@ -18,11 +18,10 @@ struct StatesPolicy {
 
 template <>
 struct StatesPolicy<true> {
-    void set_policy(ActionID aid) { policy = aid; }
-
-    ActionID get_policy() const { return policy; }
-
     ActionID policy = ActionID::undefined;
+
+    void set_policy(ActionID aid) { policy = aid; }
+    ActionID get_policy() const { return policy; }
 };
 
 struct StateFlags {
@@ -33,38 +32,38 @@ struct StateFlags {
     static constexpr uint8_t MASK = 7;
     static constexpr uint8_t BITS = 3;
 
-    inline bool is_value_initialized() const { return (info & MASK) != 0; }
-    inline bool is_dead_end() const { return (info & MASK) == DEAD; }
-    inline bool is_goal_state() const { return (info & MASK) == GOAL; }
-    inline bool is_terminal() const { return is_dead_end() || is_goal_state(); }
-    inline bool is_on_fringe() const { return (info & MASK) == FRINGE; }
+    uint8_t info = 0;
+    value_t state_cost;
 
-    inline void set_goal()
+    bool is_value_initialized() const { return (info & MASK) != 0; }
+    bool is_dead_end() const { return (info & MASK) == DEAD; }
+    bool is_goal_state() const { return (info & MASK) == GOAL; }
+    bool is_terminal() const { return is_dead_end() || is_goal_state(); }
+    bool is_on_fringe() const { return (info & MASK) == FRINGE; }
+
+    void set_goal()
     {
         assert(!is_value_initialized());
         info = (info & ~MASK) | GOAL;
     }
 
-    inline void set_on_fringe()
+    void set_on_fringe()
     {
         assert(!is_value_initialized());
         info = (info & ~MASK) | FRINGE;
     }
 
-    inline void set_dead_end()
+    void set_dead_end()
     {
         assert(!is_goal_state() && !is_dead_end());
         info = (info & ~MASK) | DEAD;
     }
 
-    inline void removed_from_fringe()
+    void removed_from_fringe()
     {
         assert(is_value_initialized() && !is_terminal());
         info = (info & ~MASK) | INITIALIZED;
     }
-
-    uint8_t info = 0;
-    value_t state_cost;
 };
 
 template <bool StorePolicy_, bool UseInterval_>

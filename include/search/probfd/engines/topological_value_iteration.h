@@ -229,10 +229,17 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         }
     };
 
-public:
-    using Store = storage::PerStateStorage<IncumbentSolution>;
+    const engine_interfaces::StateEvaluator<State>* value_initializer_;
+    const bool expand_goals_;
 
-    explicit TopologicalValueIteration(
+    storage::PerStateStorage<StateInfo> state_information_;
+    std::deque<ExplorationInfo> exploration_stack_;
+    std::vector<StackInfo> stack_;
+
+    Statistics statistics_;
+
+public:
+    TopologicalValueIteration(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
@@ -254,7 +261,7 @@ public:
      */
     virtual value_t solve(const State& state) override
     {
-        Store value_store;
+        storage::PerStateStorage<IncumbentSolution> value_store;
         return this->solve(this->get_state_id(state), value_store);
     }
 
@@ -581,15 +588,6 @@ private:
 
         stack_.erase(begin, end);
     }
-
-    const engine_interfaces::StateEvaluator<State>* value_initializer_;
-    const bool expand_goals_;
-
-    storage::PerStateStorage<StateInfo> state_information_;
-    std::deque<ExplorationInfo> exploration_stack_;
-    std::vector<StackInfo> stack_;
-
-    Statistics statistics_;
 };
 
 } // namespace topological_vi

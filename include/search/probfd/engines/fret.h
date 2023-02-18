@@ -93,11 +93,22 @@ class FRET : public MDPEngine<State, Action> {
         bool is_leaf = true;
     };
 
-public:
     using QuotientSystem = quotients::QuotientSystem<Action>;
     using QAction = typename QuotientSystem::QAction;
 
-    explicit FRET(
+    GreedyGraphGenerator greedy_graph_;
+    ProgressReport* report_;
+    QuotientSystem* quotient_;
+    std::shared_ptr<HeuristicSearchEngine<State, QAction, Interval>>
+        base_engine_;
+
+    Statistics statistics_;
+    bool last_dead_;
+    unsigned trap_counter_;
+    unsigned unexpanded_;
+
+public:
+    FRET(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
@@ -124,7 +135,7 @@ public:
                 << ", traps=" << statistics_.traps;
         });
 
-        do {
+        for (;;) {
             value_t value = heuristic_search(state);
 
             find_and_remove_traps(state);
@@ -136,7 +147,7 @@ public:
             }
 
             base_engine_->reset_solver_state();
-        } while (true);
+        }
     }
 
     value_t heuristic_search(const State& state)
@@ -161,61 +172,6 @@ public:
         this->base_engine_->print_statistics(out);
         statistics_.print(out);
     }
-
-#if 0
-    void dump_quotient_system(const State& initial_state) const
-    {
-        std::ofstream out;
-        {
-            std::ostringstream filename;
-            filename << "fret_qs_" << statistics_.iterations << ".dot";
-            out.open(filename.str());
-        }
-        auto idmap = quotient_->create_state_id_map();
-        auto tgen = quotient_->create_transition_generator();
-        auto term = [this](const State& s) {
-            StateID sid = quotient_->get_representative_id(s);
-            return base_engine_->is_terminal(sid);
-        };
-        auto prune = [this](const State& s) {
-            StateID sid = quotient_->get_representative_id(s);
-            const QAction& a = *base_engine_->get_policy(sid);
-            return a == NullAction<QAction>()();
-        };
-        auto print_a = [this](const QAction& a) {
-            StateID sid = quotient_->get_representative_id(a.first);
-            const QAction& b = *base_engine_->get_policy(sid);
-            return a == b ? "*" : "";
-        };
-        auto print_s = [this](const State& s) {
-            StateID sid = quotient_->get_representative_id(s);
-            std::ostringstream res;
-            res << "[";
-            auto it = quotient_->quotient_iterator(sid);
-            bool first = true;
-            while (it.first != it.second) {
-                res << (first ? "" : ", ") << *it.first;
-                first = false;
-                it.first++;
-            }
-            res << "] (" << base_engine_->get_value(sid) << ")";
-            return res.str();
-        };
-        graphviz::GraphVisualization<
-            State,
-            QAction,
-            decltype(print_s),
-            decltype(print_a),
-            decltype(term),
-            decltype(prune)>
-            gv(idmap, aops, tgen, &term, &print_s, &print_a, false, &prune);
-        gv(out, initial_state);
-        delete (idmap);
-        delete (aops);
-        delete (tgen);
-        out.close();
-    }
-#endif
 
 private:
     void find_and_remove_traps(const State& state)
@@ -352,25 +308,41 @@ private:
         queue.emplace_back(state_id).successors.swap(succs);
         return true;
     }
-
-    GreedyGraphGenerator greedy_graph_;
-    ProgressReport* report_;
-    QuotientSystem* quotient_;
-    std::shared_ptr<HeuristicSearchEngine<State, QAction, Interval>>
-        base_engine_;
-
-    Statistics statistics_;
-    bool last_dead_;
-    unsigned trap_counter_;
-    unsigned unexpanded_;
 };
 
 template <typename State, typename Action, bool Interval>
 class ValueGraph {
-public:
-    using QuotientSystem = quotients::QuotientSystem<Action>;
-    using QAction = typename QuotientSystem::QAction;
+    using QAction = typename quotients::QuotientSystem<Action>::QAction;
 
+    class StateCollector {
+        std::unordered_set<StateID> ids;
+
+    public:
+        std::vector<StateID> states;
+
+        int pick(
+            StateID,
+            ActionID,
+            const std::vector<QAction>&,
+            const std::vector<Distribution<StateID>>& transitions,
+            engine_interfaces::HeuristicSearchInterface&)
+        {
+            for (const auto& transition : transitions) {
+                for (const StateID sid : transition.elements()) {
+                    if (ids.insert(sid).second) {
+                        states.push_back(sid);
+                    }
+                }
+            }
+            ids.clear();
+            return -1;
+        }
+    };
+
+    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
+    StateCollector collector_;
+
+public:
     explicit ValueGraph(HeuristicSearchEngine<State, QAction, Interval>* hs)
         : base_engine_(hs)
     {
@@ -384,45 +356,16 @@ public:
         collector_.states.swap(successors);
         return result.first;
     }
-
-private:
-    // TODO Find a better way to access the states
-    class StateCollector {
-    public:
-        int pick(
-            const StateID,
-            const ActionID,
-            const std::vector<QAction>&,
-            const std::vector<Distribution<StateID>>& transitions,
-            engine_interfaces::HeuristicSearchInterface&)
-        {
-            for (const auto& transition : transitions) {
-                for (StateID sid : transition.elements()) {
-                    if (ids.insert(sid).second) {
-                        states.push_back(sid);
-                    }
-                }
-            }
-            ids.clear();
-            return -1;
-        }
-
-        std::vector<StateID> states;
-
-    private:
-        std::unordered_set<StateID> ids;
-    };
-
-    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
-    StateCollector collector_;
 };
 
 template <typename State, typename Action, bool Interval>
 class PolicyGraph {
-public:
-    using QuotientSystem = quotients::QuotientSystem<Action>;
-    using QAction = typename QuotientSystem::QAction;
+    using QAction = typename quotients::QuotientSystem<Action>::QAction;
 
+    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
+    Distribution<StateID> t_;
+
+public:
     explicit PolicyGraph(HeuristicSearchEngine<State, QAction, Interval>* hs)
         : base_engine_(hs)
     {
@@ -437,10 +380,6 @@ public:
         }
         return result;
     }
-
-private:
-    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
-    Distribution<StateID> t_;
 };
 
 } // namespace internal

@@ -141,14 +141,31 @@ public:
 
     using IncumbentSolution = probfd::IncumbentSolution<UseInterval>;
 
-    explicit HeuristicSearchBase(
+private:
+    engine_interfaces::StateEvaluator<State>* value_initializer_;
+    engine_interfaces::PolicyPicker<Action>* policy_chooser_;
+    engine_interfaces::NewStateHandler<State>* on_new_state_;
+
+    storage::PerStateStorage<StateInfo> state_infos_;
+
+    Statistics statistics_;
+
+    StateID initial_state_id_ = StateID::undefined;
+
+protected:
+    ProgressReport* report_;
+    const bool interval_comparison_;
+    const bool stable_policy_;
+
+public:
+    HeuristicSearchBase(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::StateEvaluator<State>* value_init,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
-        engine_interfaces::StateEvaluator<State>* value_init,
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy)
@@ -157,12 +174,12 @@ public:
               action_id_map,
               transition_generator,
               cost_function)
-        , report_(report)
-        , interval_comparison_(interval_comparison)
-        , stable_policy_(stable_policy)
         , value_initializer_(value_init)
         , policy_chooser_(policy_chooser)
         , on_new_state_(new_state_handler)
+        , report_(report)
+        , interval_comparison_(interval_comparison)
+        , stable_policy_(stable_policy)
     {
         statistics_.state_info_bytes = sizeof(StateInfo);
     }
@@ -172,8 +189,7 @@ public:
     virtual std::optional<value_t> get_error(const State& s) override
     {
         if constexpr (UseInterval) {
-            const StateInfo& info = state_infos_[this->get_state_id(s)];
-            return info.value.length();
+            return state_infos_[this->get_state_id(s)].value.length();
         } else {
             return std::nullopt;
         }
@@ -937,22 +953,6 @@ private:
 #endif
         return false;
     }
-
-protected:
-    ProgressReport* report_;
-    const bool interval_comparison_;
-    const bool stable_policy_;
-
-private:
-    engine_interfaces::StateEvaluator<State>* value_initializer_;
-    engine_interfaces::PolicyPicker<Action>* policy_chooser_;
-    engine_interfaces::NewStateHandler<State>* on_new_state_;
-
-    storage::PerStateStorage<StateInfo> state_infos_;
-
-    Statistics statistics_;
-
-    StateID initial_state_id_ = StateID::undefined;
 };
 
 } // namespace internal

@@ -19,7 +19,7 @@ class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
         typename MDPHeuristicSearch<false, true>::WrappedType<T>;
 
     template <typename State, typename Action, bool Interval>
-    using Engine = LRTDP<State, Action, Interval>;
+    using Engine = TALRTDP<State, Action, Interval>;
 
     const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;

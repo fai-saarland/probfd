@@ -31,6 +31,8 @@ namespace ao_star {
 template <typename State, typename Action, bool Interval>
 class AOStar
     : public AOBase<State, Action, Interval, true, PerStateInformation, true> {
+    engine_interfaces::TransitionSampler<Action>* outcome_selection_;
+    std::vector<Distribution<StateID>> transitions_;
 
 public:
     AOStar(
@@ -38,9 +40,9 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::StateEvaluator<State>* value_init,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
-        engine_interfaces::StateEvaluator<State>* value_init,
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy,
@@ -50,9 +52,9 @@ public:
               action_id_map,
               transition_generator,
               cost_function,
+              value_init,
               policy_chooser,
               new_state_handler,
-              value_init,
               report,
               interval_comparison,
               stable_policy)
@@ -163,23 +165,12 @@ private:
 
             this->apply_policy(state, this->selected_transition_);
 
-            value_t normalize_factor = 0;
-            auto succ = this->selected_transition_.begin();
-            while (succ != this->selected_transition_.end()) {
-                if (this->get_state_info(succ->item).is_solved()) {
-                    normalize_factor += succ->probability;
-                    succ = this->selected_transition_.erase(succ);
-                } else {
-                    ++succ;
-                }
-            }
+            this->selected_transition_.remove_if_normalize(
+                [this](const auto& target) {
+                    return this->get_state_info(target.item).is_solved();
+                });
 
             assert(!this->selected_transition_.empty());
-
-            if (normalize_factor > 0) {
-                this->selected_transition_.normalize(
-                    1_vt / (1_vt - normalize_factor));
-            }
 
             state = this->outcome_selection_->sample(
                 state,
@@ -190,9 +181,6 @@ private:
             this->selected_transition_.clear();
         } while (true);
     }
-
-    engine_interfaces::TransitionSampler<Action>* outcome_selection_;
-    std::vector<Distribution<StateID>> transitions_;
 };
 
 } // namespace ao_star

@@ -47,8 +47,8 @@ public:
         using I2DualEngine = engines::i2dual::I2Dual<State, OperatorID>;
 
         return engine_factory<I2DualEngine>(
-            &progress_,
             heuristic_.get(),
+            &progress_,
             hpom_enabled_,
             incremental_hpom_updates_,
             solver_type_);

@@ -100,14 +100,39 @@ struct Statistics {
 
 template <typename State, typename Action>
 class I2Dual : public MDPEngine<State, Action> {
+    ProbabilisticTaskProxy task_proxy;
+
+    engine_interfaces::StateEvaluator<State>* heuristic_;
+
+    ProgressReport* progress_;
+
+    const bool hpom_enabled_;
+    const bool incremental_hpom_updates_;
+
+    lp::LPSolver lp_solver_;
+
+    size_t next_lp_var_ = 0;
+    size_t next_lp_constr_id_ = 0;
+
+    bool hpom_initialized_ = false;
+    std::vector<int> offset_;
+    named_vector::NamedVector<lp::LPConstraint> hpom_constraints_;
+
+    Statistics statistics_;
+
+    value_t objective_;
+
+    std::vector<Action> aops_;
+    Distribution<StateID> succs_;
+
 public:
-    explicit I2Dual(
+    I2Dual(
         engine_interfaces::StateIDMap<State>* state_id_map,
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        ProgressReport* progress,
         engine_interfaces::StateEvaluator<State>* heuristic,
+        ProgressReport* progress,
         bool hpom_enabled,
         bool incremental_updates,
         lp::LPSolverType solver_type)
@@ -117,8 +142,8 @@ public:
               transition_generator,
               cost_function)
         , task_proxy(*tasks::g_root_task)
-        , progress_(progress)
         , heuristic_(heuristic)
+        , progress_(progress)
         , hpom_enabled_(hpom_enabled)
         , incremental_hpom_updates_(incremental_updates)
         , lp_solver_(solver_type)
@@ -184,7 +209,6 @@ public:
 
         while (!frontier.empty()) {
             progress_->operator()();
-            // std::cout << "[v=" << temp << "]" << std::endl;
 
             update_hpom_constraints_expanded(idual_data, frontier);
 
@@ -195,13 +219,6 @@ public:
             for (StateID state_id : frontier) {
                 IDualData& state_data = idual_data[state_id];
                 assert(state_data.is_frontier());
-
-                // state is expanded -> no longer in frontier -> remove it from
-                // LP's objective function
-                // if (state_id != istate) {
-                //     lp_solver_.set_constraint_lower_bound(
-                //           state_data.constraint, 0);
-                // }
 
                 if (!hpom_enabled_) {
                     for (const auto& [prob, var_id] : state_data.incoming) {
@@ -294,28 +311,17 @@ public:
             objective_ = -lp_solver_.get_objective_value();
             std::vector<double> solution = lp_solver_.extract_solution();
 
-            unsigned j = 0;
-            for (unsigned i = 0; i < frontier_candidates.size(); i++) {
-                const auto& state_data = idual_data[frontier_candidates[i]];
-
-                for (const auto& [_, var_id] : state_data.incoming) {
+            // Push frontier candidates and remove them
+            std::erase_if(frontier_candidates, [&, this](StateID state_id) {
+                for (const auto& [_, var_id] : idual_data[state_id].incoming) {
                     if (solution[var_id] > g_epsilon) {
-                        frontier.push_back(frontier_candidates[i]);
-                        goto continue_outer;
+                        frontier.push_back(state_id);
+                        return true;
                     }
                 }
 
-                if (i != j) {
-                    frontier_candidates[j] = frontier_candidates[i];
-                }
-                j++;
-
-            continue_outer:;
-            }
-
-            while (frontier_candidates.size() > j) {
-                frontier_candidates.pop_back();
-            }
+                return false;
+            });
 
             lp_solver_.clear_temporary_constraints();
 
@@ -467,30 +473,6 @@ private:
             }
         }
     }
-
-    ProbabilisticTaskProxy task_proxy;
-    ProgressReport* progress_;
-
-    engine_interfaces::StateEvaluator<State>* heuristic_;
-
-    const bool hpom_enabled_;
-    const bool incremental_hpom_updates_;
-
-    lp::LPSolver lp_solver_;
-
-    size_t next_lp_var_ = 0;
-    size_t next_lp_constr_id_ = 0;
-
-    bool hpom_initialized_ = false;
-    std::vector<int> offset_;
-    named_vector::NamedVector<lp::LPConstraint> hpom_constraints_;
-
-    Statistics statistics_;
-
-    value_t objective_;
-
-    std::vector<Action> aops_;
-    Distribution<StateID> succs_;
 };
 
 } // namespace i2dual

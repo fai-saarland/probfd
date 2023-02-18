@@ -54,6 +54,15 @@ namespace interval_iteration {
  */
 template <typename State, typename Action>
 class IntervalIteration : public MDPEngine<State, Action> {
+    const engine_interfaces::StateEvaluator<State>* heuristic_;
+    const bool extract_probability_one_states_;
+    const bool expand_goals_;
+
+    preprocessing::ECDStatistics ecd_statistics_;
+    topological_vi::Statistics tvi_statistics_;
+
+    storage::PerStateStorage<Interval> value_store_;
+
 public:
     using Decomposer = preprocessing::EndComponentDecomposition<State, Action>;
     using QuotientSystem = typename Decomposer::QuotientSystem;
@@ -62,7 +71,6 @@ public:
     using ValueIteration =
         topological_vi::TopologicalValueIteration<State, QAction, true>;
 
-    using ValueStore = typename ValueIteration::Store;
     using BoolStore = std::vector<StateID>;
 
     explicit IntervalIteration(
@@ -70,7 +78,7 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
-        const engine_interfaces::StateEvaluator<State>* prune,
+        const engine_interfaces::StateEvaluator<State>* heuristic,
         bool extract_probability_one_states,
         bool expand_goals)
         : MDPEngine<State, Action>(
@@ -78,7 +86,7 @@ public:
               action_id_map,
               transition_generator,
               cost_function)
-        , prune_(prune)
+        , heuristic_(heuristic)
         , extract_probability_one_states_(extract_probability_one_states)
         , expand_goals_(expand_goals)
     {
@@ -143,7 +151,7 @@ private:
             this->get_transition_generator(),
             this->get_cost_function(),
             expand_goals_,
-            prune_);
+            heuristic_);
 
         auto sys = ec_decomposer.build_quotient_system(state);
 
@@ -203,22 +211,13 @@ private:
             &q_action_id_map,
             &q_transition_gen,
             &q_cost,
-            prune_,
+            heuristic_,
             expand_goals_);
 
         value_t result = vi.solve(new_init_id, value_store);
         tvi_statistics_ = vi.get_statistics();
         return result;
     }
-
-    const engine_interfaces::StateEvaluator<State>* prune_;
-    const bool extract_probability_one_states_;
-    const bool expand_goals_;
-
-    preprocessing::ECDStatistics ecd_statistics_;
-    topological_vi::Statistics tvi_statistics_;
-
-    ValueStore value_store_;
 };
 
 } // namespace interval_iteration

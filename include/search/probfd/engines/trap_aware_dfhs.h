@@ -70,104 +70,24 @@ struct PerStateInformation : public BaseInfo {
 } // namespace internal
 
 template <typename State, typename QAction, bool Interval>
-class DepthFirstHeuristicSearch
+class TADepthFirstHeuristicSearch
     : public heuristic_search::HeuristicSearchBase<
           State,
           QAction,
           Interval,
           true,
           internal::PerStateInformation> {
-    static constexpr int STATE_UNSEEN = -1;
-    static constexpr int STATE_CLOSED = -2;
-
-public:
-    using Action = typename quotients::unwrap_qaction_type<QAction>;
-    using QuotientSystem = quotients::QuotientSystem<Action>;
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
         QAction,
         Interval,
         true,
         internal::PerStateInformation>;
+
+    using Action = typename quotients::unwrap_qaction_type<QAction>;
+    using QuotientSystem = quotients::QuotientSystem<Action>;
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 
-    /**
-     * @brief Constructs a trap-aware DFHS solver object.
-     */
-    DepthFirstHeuristicSearch(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<QAction>* action_id_map,
-        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
-        engine_interfaces::CostFunction<State, QAction>* cost_function,
-        engine_interfaces::PolicyPicker<QAction>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
-        engine_interfaces::StateEvaluator<State>* value_init,
-        ProgressReport* report,
-        bool interval_comparison,
-        bool stable_policy,
-        QuotientSystem* quotient,
-        bool forward_updates,
-        BacktrackingUpdateType backtrack_update_type,
-        bool expand_tip_states,
-        bool cutoff_inconsistent,
-        bool stop_exploration_inconsistent,
-        bool value_iteration,
-        bool mark_solved,
-        bool reexpand_removed_traps,
-        engine_interfaces::OpenList<QAction>* open_list)
-        : HeuristicSearchBase(
-              state_id_map,
-              action_id_map,
-              transition_generator,
-              cost_function,
-              policy_chooser,
-              new_state_handler,
-              value_init,
-              report,
-              interval_comparison,
-              stable_policy)
-        , quotient_(quotient)
-        , forward_updates_(forward_updates)
-        , expand_tip_states_(expand_tip_states)
-        , cutoff_inconsistent_(cutoff_inconsistent)
-        , terminate_exploration_(stop_exploration_inconsistent)
-        , value_iteration_(value_iteration)
-        , mark_solved_(mark_solved)
-        , backtrack_update_type_(backtrack_update_type)
-        , reexpand_removed_traps_(reexpand_removed_traps)
-        , open_list_(open_list)
-        , terminated_(false)
-        , last_value_changed_(false)
-        , last_policy_changed_(false)
-        , stack_index_(STATE_UNSEEN)
-    {
-    }
-
-    virtual value_t solve(const State& qstate) override
-    {
-        this->initialize_report(qstate);
-        StateID state_id = this->get_state_id(qstate);
-        if (value_iteration_) {
-            dfhs_vi_driver(state_id);
-        } else {
-            dfhs_label_driver(state_id);
-        }
-        return this->get_value(state_id);
-    }
-
-    virtual void print_statistics(std::ostream& out) const override
-    {
-        statistics_.print(out);
-        HeuristicSearchBase::print_statistics(out);
-    }
-
-protected:
-    virtual void setup_custom_reports(const State&) override
-    {
-        statistics_.register_report(this->report_);
-    }
-
-private:
     struct Flags {
         /// was the exploration cut off?
         bool complete = true;
@@ -214,6 +134,111 @@ private:
         int backlink;
     };
 
+    static constexpr int STATE_UNSEEN = -1;
+    static constexpr int STATE_CLOSED = -2;
+
+    QuotientSystem* quotient_;
+
+    const bool forward_updates_;
+    const bool expand_tip_states_;
+    const bool cutoff_inconsistent_;
+    const bool terminate_exploration_;
+    const bool value_iteration_;
+    const bool mark_solved_;
+    const BacktrackingUpdateType backtrack_update_type_;
+    const bool reexpand_removed_traps_;
+
+    engine_interfaces::OpenList<QAction>* open_list_;
+
+    bool terminated_ = 0;
+    bool last_value_changed_ = 0;
+    bool last_policy_changed_ = 0;
+
+    std::deque<ExplorationInformation> queue_;
+    std::vector<StateID> stack_;
+    std::vector<StateID> visited_states_;
+    storage::StateHashMap<int> stack_index_;
+
+    Distribution<StateID> transition_;
+    bool has_zero_cost_;
+
+    internal::Statistics statistics_;
+
+public:
+    /**
+     * @brief Constructs a trap-aware DFHS solver object.
+     */
+    TADepthFirstHeuristicSearch(
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<QAction>* action_id_map,
+        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
+        engine_interfaces::CostFunction<State, QAction>* cost_function,
+        engine_interfaces::StateEvaluator<State>* value_init,
+        engine_interfaces::PolicyPicker<QAction>* policy_chooser,
+        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        ProgressReport* report,
+        bool interval_comparison,
+        bool stable_policy,
+        QuotientSystem* quotient,
+        bool forward_updates,
+        BacktrackingUpdateType backtrack_update_type,
+        bool expand_tip_states,
+        bool cutoff_inconsistent,
+        bool stop_exploration_inconsistent,
+        bool value_iteration,
+        bool mark_solved,
+        bool reexpand_removed_traps,
+        engine_interfaces::OpenList<QAction>* open_list)
+        : HeuristicSearchBase(
+              state_id_map,
+              action_id_map,
+              transition_generator,
+              cost_function,
+              value_init,
+              policy_chooser,
+              new_state_handler,
+              report,
+              interval_comparison,
+              stable_policy)
+        , quotient_(quotient)
+        , forward_updates_(forward_updates)
+        , expand_tip_states_(expand_tip_states)
+        , cutoff_inconsistent_(cutoff_inconsistent)
+        , terminate_exploration_(stop_exploration_inconsistent)
+        , value_iteration_(value_iteration)
+        , mark_solved_(mark_solved)
+        , backtrack_update_type_(backtrack_update_type)
+        , reexpand_removed_traps_(reexpand_removed_traps)
+        , open_list_(open_list)
+        , stack_index_(STATE_UNSEEN)
+    {
+    }
+
+    virtual value_t solve(const State& qstate) override
+    {
+        this->initialize_report(qstate);
+        StateID state_id = this->get_state_id(qstate);
+        if (value_iteration_) {
+            dfhs_vi_driver(state_id);
+        } else {
+            dfhs_label_driver(state_id);
+        }
+        return this->get_value(state_id);
+    }
+
+    virtual void print_statistics(std::ostream& out) const override
+    {
+        statistics_.print(out);
+        HeuristicSearchBase::print_statistics(out);
+    }
+
+protected:
+    virtual void setup_custom_reports(const State&) override
+    {
+        statistics_.register_report(this->report_);
+    }
+
+private:
     void dfhs_vi_driver(const StateID state)
     {
         std::pair<bool, bool> vi_res(true, true);
@@ -566,7 +591,7 @@ private:
                 visited_states_.push_back(*it);
             }
         } else {
-            assert(false); // inconsistent parameters
+            abort(); // inconsistent parameters
         }
 
         flags.is_trap = false;
@@ -592,7 +617,8 @@ private:
     {
         bool gvc = false;
         bool gpc = false;
-        do {
+
+        for (;;) {
             bool changed = false;
             for (const StateID state : range) {
                 auto updated = this->async_update(state, nullptr, nullptr);
@@ -609,38 +635,10 @@ private:
                     break;
                 }
             }
-        } while (true);
-        return std::pair<bool, bool>(gvc, gpc);
+        }
+
+        return std::make_pair(gvc, gpc);
     }
-
-    QuotientSystem* quotient_;
-
-    const bool forward_updates_;
-    const bool expand_tip_states_;
-    const bool cutoff_inconsistent_;
-    const bool terminate_exploration_;
-    const bool value_iteration_;
-    const bool mark_solved_;
-    const BacktrackingUpdateType backtrack_update_type_;
-    const bool reexpand_removed_traps_;
-
-    engine_interfaces::OpenList<QAction>* open_list_;
-
-    bool terminated_;
-
-    int reexpansion_counter_;
-    bool last_value_changed_;
-    bool last_policy_changed_;
-
-    std::deque<ExplorationInformation> queue_;
-    std::vector<StateID> stack_;
-    std::vector<StateID> visited_states_;
-    storage::StateHashMap<int> stack_index_;
-
-    Distribution<StateID> transition_;
-    bool has_zero_cost_;
-
-    internal::Statistics statistics_;
 };
 
 } // namespace trap_aware_dfhs

@@ -11,8 +11,6 @@
 #include <memory>
 #include <type_traits>
 
-#define CAS_DEBUG_PRINT(x)
-
 namespace probfd {
 namespace engines {
 
@@ -151,8 +149,19 @@ class LRTDP : public internal::LRTDPBase<State, Action, Interval, Fret> {
     using HeuristicSearchBase =
         internal::LRTDPBase<State, Action, Interval, Fret>;
     using StateInfoT = internal::LRTDPStateInfo<State, Action, Interval, Fret>;
-
     using Statistics = internal::Statistics;
+
+    const TrialTerminationCondition StopConsistent;
+    engine_interfaces::TransitionSampler<Action>* sample_;
+
+    std::unique_ptr<storage::PerStateStorage<StateInfoT>> state_infos_;
+
+    std::vector<StateID> current_trial_;
+    Distribution<StateID> selected_transition_;
+    std::vector<StateID> policy_queue_;
+    std::deque<StateID> visited_;
+
+    Statistics statistics_;
 
 public:
     /**
@@ -163,9 +172,9 @@ public:
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_generator,
         engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::StateEvaluator<State>* value_init,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
-        engine_interfaces::StateEvaluator<State>* value_init,
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy,
@@ -176,9 +185,9 @@ public:
               action_id_map,
               transition_generator,
               cost_function,
+              value_init,
               policy_chooser,
               new_state_handler,
-              value_init,
               report,
               interval_comparison,
               stable_policy)
@@ -244,12 +253,8 @@ private:
             this->current_trial_.empty() && this->selected_transition_.empty());
         this->current_trial_.push_back(initial_state);
 
-        // std::cout << "trial = [";
-
-        while (true) {
+        for (;;) {
             const StateID state_id = this->current_trial_.back();
-
-            // std::cout << " " << state_id;
 
             auto& state_info = get_lrtdp_state_info(state_id);
             if (state_info.is_solved()) {
@@ -291,8 +296,6 @@ private:
             this->selected_transition_.clear();
         }
 
-        // std::cout << " ]" << std::endl;
-
         while (!this->current_trial_.empty()) {
             bool solved = this->check_and_solve(this->current_trial_.back());
             this->current_trial_.pop_back();
@@ -311,9 +314,6 @@ private:
         assert(this->selected_transition_.empty());
         assert(this->policy_queue_.empty());
         assert(this->visited_.empty());
-
-        CAS_DEBUG_PRINT(std::cout << ".... (C&S): "
-                                  << this->current_trial_.back() << std::endl;)
 
         bool mark_solved = true;
         bool epsilon_consistent = true;
@@ -339,12 +339,6 @@ private:
             auto& info = get_lrtdp_state_info(state_id);
             assert(info.is_marked_open() && !info.is_solved());
 
-            CAS_DEBUG_PRINT(std::cout << "(C&S) queue.top() = " << state_id
-                                      << " ~> "
-                                      << this->is_marked_dead_end(state_id)
-                                      << " value=" << this->get_value(state_id)
-                                      << std::endl;)
-
             this->statistics_.check_and_solve_bellman_backups++;
 
             const bool value_changed = this->async_update(
@@ -356,10 +350,6 @@ private:
             if (value_changed) {
                 epsilon_consistent = false;
                 this->visited_.push_front(state_id);
-
-                CAS_DEBUG_PRINT(std::cout << "     => value has changed: "
-                                          << this->get_value(state_id)
-                                          << std::endl;)
             } else if (this->selected_transition_.empty()) {
                 auto& base_info = this->get_state_info(state_id, info);
                 assert(base_info.is_terminal());
@@ -371,10 +361,6 @@ private:
                 }
 
                 info.set_solved();
-
-                CAS_DEBUG_PRINT(std::cout << "     => marking as solved (dead= "
-                                          << this->is_marked_dead_end(state_id)
-                                          << ")" << std::endl;)
             } else {
                 this->visited_.push_front(state_id);
 
@@ -494,23 +480,10 @@ private:
             statistics_.state_info_bytes = sizeof(StateInfoT);
         }
     }
-
-    const TrialTerminationCondition StopConsistent;
-    std::unique_ptr<storage::PerStateStorage<StateInfoT>> state_infos_;
-    engine_interfaces::TransitionSampler<Action>* sample_;
-
-    std::vector<StateID> current_trial_;
-    Distribution<StateID> selected_transition_;
-    std::vector<StateID> policy_queue_;
-    std::deque<StateID> visited_;
-
-    Statistics statistics_;
 };
 
 } // namespace lrtdp
 } // namespace engines
 } // namespace probfd
-
-#undef CAS_DEBUG_PRINT
 
 #endif // __LRTDP_H__

@@ -27,9 +27,9 @@ namespace solvers {
 
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
+    std::shared_ptr<TaskStateEvaluator> heuristic_;
     std::shared_ptr<TaskPolicyPicker> policy_tiebreaker_;
     std::shared_ptr<TaskNewStateHandler> new_state_handler_;
-    std::shared_ptr<TaskStateEvaluator> heuristic_;
 
     const bool dual_bounds_;
     const bool interval_comparison_;
@@ -62,9 +62,9 @@ public:
         if (dual_bounds_) {
             using HeuristicSearchType = HS<State, OperatorID, true>;
             return engine_factory<HeuristicSearchType>(
+                heuristic_.get(),
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
-                heuristic_.get(),
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
@@ -72,9 +72,9 @@ public:
         } else {
             using HeuristicSearchType = HS<State, OperatorID, false>;
             return engine_factory<HeuristicSearchType>(
+                heuristic_.get(),
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
-                heuristic_.get(),
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
@@ -170,9 +170,9 @@ public:
                 &q_action_id_map_,
                 &q_transition_gen_,
                 q_cost_.get(),
+                heuristic_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
-                heuristic_.get(),
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
@@ -184,9 +184,9 @@ public:
                 &q_action_id_map_,
                 &q_transition_gen_,
                 q_cost_.get(),
+                heuristic_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
-                heuristic_.get(),
                 &progress_,
                 interval_comparison_,
                 stable_policy_,
@@ -227,9 +227,9 @@ private:
             &q_action_id_map_,
             &q_transition_gen_,
             q_cost_.get(),
+            heuristic_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
-            heuristic_.get(),
             &progress_,
             interval_comparison_,
             stable_policy_,
