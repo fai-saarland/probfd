@@ -14,8 +14,8 @@ FetchContent_MakeAvailable(googletest)
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(probfd_tests test_main.cpp)
 
-target_include_directories(probfd_tests PUBLIC ../include/search)
-target_link_libraries(probfd_tests downward_lib)
-target_link_libraries(probfd_tests gtest_main)
+# Get probfd include directory
+get_target_property(DOWNWARD_INCLUDES downward_lib INCLUDE_DIRECTORIES)
+target_include_directories(probfd_tests PUBLIC ${DOWNWARD_INCLUDES})
 
-add_test(NAME example_test COMMAND example)
+target_link_libraries(probfd_tests downward_lib gtest_main)

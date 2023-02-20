@@ -18,10 +18,9 @@ fast_downward_set_linker_flags()
 include(DownwardFiles)
 
 add_library(downward_lib STATIC ${PLANNER_SOURCES})
-
-## == Includes ==
-
-include_directories(
+target_include_directories(
+    downward_lib
+    PUBLIC
     ${PROJECT_SOURCE_DIR}/include/search
     ${PROJECT_SOURCE_DIR}/include/search/ext)
 
@@ -29,12 +28,12 @@ include_directories(
 
 # On Linux, find the rt library for clock_gettime().
 if(UNIX AND NOT APPLE)
-    target_link_libraries(downward_lib rt)
+    target_link_libraries(downward_lib PUBLIC rt)
 endif()
 
 # On Windows, find the psapi library for determining peak memory.
 if(WIN32)
-    target_link_libraries(downward_lib psapi)
+    target_link_libraries(downward_lib PUBLIC psapi)
 endif()
 
 # If any enabled plugin requires an LP solver, compile with all
@@ -56,19 +55,22 @@ if(PLUGIN_LP_SOLVER_ENABLED AND USE_LP)
                 mark_as_advanced(TMP_SOLVER_UPPER_CASE)
                 add_definitions("-D COIN_HAS_${TMP_SOLVER_UPPER_CASE}")
                 include_directories(${OSI_${SOLVER}_INCLUDE_DIRS})
-                target_link_libraries(downward_lib ${OSI_${SOLVER}_LIBRARIES})
+                target_link_libraries(
+                    downward_lib
+                    PUBLIC
+                    ${OSI_${SOLVER}_LIBRARIES})
             endif()
         endforeach()
 
         # Note that basic OSI libs must be added after (!) all OSI solver libs.
         add_definitions("-D USE_LP")
         include_directories(${OSI_INCLUDE_DIRS})
-        target_link_libraries(downward_lib ${OSI_LIBRARIES})
+        target_link_libraries(downward_lib PUBLIC ${OSI_LIBRARIES})
 
         find_package(ZLIB REQUIRED)
         if(ZLIB_FOUND)
             include_directories(${ZLIB_INCLUDE_DIRS})
-            target_link_libraries(downward_lib ${ZLIB_LIBRARIES})
+            target_link_libraries(downward_lib PUBLIC ${ZLIB_LIBRARIES})
         endif()
     endif()
 
@@ -82,4 +84,8 @@ if(PLUGIN_LP_SOLVER_ENABLED AND USE_LP)
 endif()
 
 add_executable(downward ${CMAKE_CURRENT_SOURCE_DIR}/probfd/planner.cc)
+
+get_target_property(DOWNWARD_INCLUDES downward_lib INCLUDE_DIRECTORIES)
+target_include_directories(downward PUBLIC ${DOWNWARD_INCLUDES})
+
 target_do_force_link_libraries(downward PUBLIC downward_lib)
