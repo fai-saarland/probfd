@@ -43,7 +43,7 @@ void MDPHeuristicSearchBase::print_additional_statistics() const
 void MDPHeuristicSearchBase::add_options_to_parser(
     options::OptionParser& parser)
 {
-    parser.add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "const");
+    parser.add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "const_eval");
     parser.add_list_option<std::shared_ptr<TaskNewStateHandler>>(
         "on_new_state",
         "",
