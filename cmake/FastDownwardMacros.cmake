@@ -4,13 +4,10 @@ macro(fast_downward_set_compiler_flags)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_CXX_STANDARD 20)
 
-    # Note: on CMake >= 3.0 the compiler ID of Apple-provided clang is AppleClang.
-    # If we change the required CMake version from 2.8.3 to 3.0 or greater,
-    # we have to fix this.
-    if(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang|GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic -Wnon-virtual-dtor")
 
-        if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+        if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-range-loop-analysis")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unqualified-std-cast-call")
         endif()
@@ -21,12 +18,8 @@ macro(fast_downward_set_compiler_flags)
         set(CMAKE_CXX_FLAGS_PROFILE "-O3 -pg")
     elseif(MSVC)
         # We force linking to be static on Windows because this makes compiling OSI simpler
-        # (dynamic linking would require DLLs for OSI). On Windows this is a compiler
-        # setting, not a linker setting.
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-        string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-        string(REPLACE "/MDd" "/MTd" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+        # (dynamic linking would require DLLs for OSI).
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
         # Enable exceptions.
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
@@ -63,7 +56,7 @@ endmacro()
 
 macro(fast_downward_add_profile_build)
     # We don't offer a dedicated PROFILE build on Windows.
-    if(CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang|GNU")
         if(NOT CMAKE_CONFIGURATION_TYPES)
             set_property(CACHE CMAKE_BUILD_TYPE PROPERTY HELPSTRING "Choose the type of build")
             set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;Profile")
@@ -194,4 +187,14 @@ function(fast_downward_add_plugin_sources _SOURCES_LIST_VAR)
         endif()
     endforeach()
     set(${_SOURCES_LIST_VAR} ${${_SOURCES_LIST_VAR}} PARENT_SCOPE)
+endfunction()
+
+function(target_do_force_link_libraries target visibility lib)
+  if(MSVC)
+    target_link_libraries(${target} ${visibility} "$<LINK_LIBRARY:WHOLE_ARCHIVE,${lib}>")
+  elseif(APPLE)
+    target_link_libraries(${target} ${visibility} -Wl,-force_load ${lib})
+  else()
+    target_link_libraries(${target} ${visibility} -Wl,--whole-archive ${lib} -Wl,--no-whole-archive)
+  endif()
 endfunction()

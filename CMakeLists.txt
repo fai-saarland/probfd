@@ -28,7 +28,7 @@
 # to the cmake call.
 
 # Version 2.8.3 introduces CMakeParseArguments.
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.20)
 
 # Respect the PATH environment variable when searching for compilers.
 find_program(CMAKE_C_COMPILER NAMES $ENV{CC} gcc PATHS ENV PATH NO_DEFAULT_PATH)
@@ -49,6 +49,11 @@ fast_downward_add_profile_build()
 set(FAST_DOWNWARD_MAIN_CMAKELISTS_READ TRUE)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+
+if (MSVC)
+    set(CMAKE_PDB_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
+endif()
 
 # Write compiler ID and version to the cache to allow retrieving this information
 # with "cmake -LA" (see test-memory-leaks.py).
@@ -67,3 +72,4 @@ add_custom_command(TARGET translate POST_BUILD
     COMMENT "Copying translator module into output directory")
 
 add_subdirectory(src/search)
+add_subdirectory(tests)
