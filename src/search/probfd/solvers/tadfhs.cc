@@ -134,7 +134,9 @@ struct ILAOOptions {
         opts.set<std::string>("name", "ilao");
         opts.set<bool>("labeling", false);
         opts.set<bool>("fwup", false);
-        opts.set<int>("bwup", 2);
+        opts.set<BacktrackingUpdateType>(
+            "bwup",
+            BacktrackingUpdateType::Single);
         opts.set<bool>("cutoff_inconsistent", false);
         opts.set<bool>("partial_exploration", false);
         opts.set<bool>("expand_tip", false);
@@ -148,7 +150,9 @@ struct LILAOOptions {
         opts.set<std::string>("name", "lilao");
         opts.set<bool>("labeling", true);
         opts.set<bool>("fwup", false);
-        opts.set<int>("bwup", 2);
+        opts.set<BacktrackingUpdateType>(
+            "bwup",
+            BacktrackingUpdateType::Single);
         opts.set<bool>("cutoff_inconsistent", false);
         opts.set<bool>("partial_exploration", false);
         opts.set<bool>("expand_tip", false);
@@ -162,7 +166,9 @@ struct HDPOptions {
         opts.set<std::string>("name", "hdp");
         opts.set<bool>("labeling", true);
         opts.set<bool>("fwup", true);
-        opts.set<int>("bwup", 1);
+        opts.set<BacktrackingUpdateType>(
+            "bwup",
+            BacktrackingUpdateType::OnDemand);
         opts.set<bool>("cutoff_inconsistent", true);
         opts.set<bool>("partial_exploration", false);
         opts.set<bool>("vi", false);
