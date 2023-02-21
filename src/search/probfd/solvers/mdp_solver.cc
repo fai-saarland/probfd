@@ -22,13 +22,13 @@ MDPSolver::MDPSolver(const options::Options& opts)
     , task_proxy(*task)
     , state_registry_(task_proxy)
     , state_id_map_(&state_registry_)
-    , cost_function_(g_cost_model->get_cost_function())
     , transition_generator_(
           task,
           &state_registry_,
           opts.get_list<std::shared_ptr<Evaluator>>(
               "path_dependent_evaluators"),
           opts.get<bool>("cache"))
+    , cost_function_(g_cost_model->get_cost_function())
     , progress_(
           opts.get<double>("report_epsilon"),
           std::cout,
