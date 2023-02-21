@@ -346,7 +346,7 @@ public:
     {
         if (dual_bounds_) {
             return QBisimulationBasedHeuristicSearchEngine::
-                template QConstructor<HS, true>(
+                template Constructor<HS, true>(
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
@@ -354,7 +354,7 @@ public:
                     std::forward<Args>(args)...);
         } else {
             return QBisimulationBasedHeuristicSearchEngine::
-                template QConstructor<HS, false>(
+                template Constructor<HS, false>(
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
@@ -377,7 +377,7 @@ protected:
     using WrappedType = typename Wrapper<true, true, T>::type;
 
     template <typename T>
-    typename WrappedType<T> wrap(T t) const
+    auto wrap(T t) const
     {
         return Wrapper<true, true, T>()(t);
     }

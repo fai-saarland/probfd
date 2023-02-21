@@ -16,6 +16,8 @@
 
 #include "utils/rng_options.h"
 
+#include "options/options.h"
+
 #include <memory>
 
 namespace probfd {
