@@ -1191,6 +1191,16 @@ fast_downward_plugin(
     DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
 )
 
+fast_downward_plugin(
+    NAME PROBABILISTIC_CARTESIAN
+    HELP "Plugin containing the code for CEGAR heuristics"
+    SOURCES
+        probfd/heuristics/cartesian/abstraction
+        probfd/heuristics/cartesian/probabilistic_transition
+        probfd/heuristics/cartesian/probabilistic_transition_system
+    DEPENDS CEGAR ADDITIVE_HEURISTIC EXTRA_PROBABILISTIC_TASKS
+)
+
 fast_downward_add_plugin_sources(PLANNER_SOURCES)
 
 # The order in PLANNER_SOURCES influences the order in which object
