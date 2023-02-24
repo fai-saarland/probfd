@@ -26,7 +26,6 @@ struct ProbabilisticTransition;
 // Classed reused from classical implementation
 using AbstractState = cegar::AbstractState;
 using CartesianSet = cegar::CartesianSet;
-using CartesianHeuristicFunction = cegar::CartesianHeuristicFunction;
 using RefinementHierarchy = cegar::RefinementHierarchy;
 
 // Typedefs reused from classical implementation

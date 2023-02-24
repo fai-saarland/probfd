@@ -1197,6 +1197,7 @@ fast_downward_plugin(
     SOURCES
         probfd/heuristics/cartesian/abstract_search
         probfd/heuristics/cartesian/abstraction
+        probfd/heuristics/cartesian/cartesian_heuristic_function
         probfd/heuristics/cartesian/cegar
         probfd/heuristics/cartesian/probabilistic_transition
         probfd/heuristics/cartesian/probabilistic_transition_system
