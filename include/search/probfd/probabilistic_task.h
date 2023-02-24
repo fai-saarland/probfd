@@ -34,9 +34,6 @@ class ProbabilisticTask : public AbstractTaskBase {
 public:
     virtual ~ProbabilisticTask() override = default;
 
-    /// Creates the all-outcomes determinization task.
-    std::unique_ptr<AbstractTask> build_all_outcomes_determinization();
-
     /// Get the number of probabilistic outcomes of the probabilistic operator
     /// with index \p op_index.
     virtual int get_num_operator_outcomes(int op_index) const = 0;
