@@ -1198,6 +1198,8 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/abstraction
         probfd/heuristics/cartesian/probabilistic_transition
         probfd/heuristics/cartesian/probabilistic_transition_system
+        probfd/heuristics/cartesian/subtask_generators
+        probfd/heuristics/cartesian/utils
     DEPENDS CEGAR ADDITIVE_HEURISTIC EXTRA_PROBABILISTIC_TASKS
 )
 
