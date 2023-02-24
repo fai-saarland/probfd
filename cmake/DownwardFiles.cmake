@@ -844,8 +844,21 @@ fast_downward_plugin(
     NAME CORE_PROBABILISTIC_TASKS
     HELP "Core probabilistic task transformations"
     SOURCES
+        probfd/tasks/cost_adapted_task
+        probfd/tasks/delegating_task
         probfd/tasks/root_task
         probfd/tasks/all_outcomes_determinization
+    CORE_PLUGIN
+)
+
+fast_downward_plugin(
+    NAME EXTRA_PROBABILISTIC_TASKS
+    HELP "Additional probabilistic task transformations"
+    SOURCES
+        probfd/tasks/domain_abstracted_task
+        probfd/tasks/domain_abstracted_task_factory
+        probfd/tasks/modified_goals_task
+        probfd/tasks/modified_operator_costs_task
     CORE_PLUGIN
 )
 
