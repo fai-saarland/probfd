@@ -5,6 +5,8 @@
 
 #include "probfd/task_proxy.h"
 
+#include "utils/logging.h"
+
 namespace options {
 class Options;
 class OptionParser;
@@ -20,9 +22,14 @@ protected:
     std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;
 
+    mutable utils::LogProxy log;
+
 public:
-    explicit TaskDependentHeuristic(std::shared_ptr<ProbabilisticTask> task);
     explicit TaskDependentHeuristic(const options::Options& options);
+
+    TaskDependentHeuristic(
+        std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log);
 
     virtual ~TaskDependentHeuristic() override = default;
 

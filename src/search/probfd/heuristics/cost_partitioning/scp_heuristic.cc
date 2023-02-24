@@ -48,6 +48,7 @@ public:
 SCPHeuristic::SCPHeuristic(const options::Options& opts)
     : SCPHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
+          utils::get_log_from_options(opts),
           opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
           opts.get<OrderingStrategy>("order"),
           utils::parse_rng_from_options(opts))
@@ -56,10 +57,11 @@ SCPHeuristic::SCPHeuristic(const options::Options& opts)
 
 SCPHeuristic::SCPHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
+    utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator,
     OrderingStrategy order,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : TaskDependentHeuristic(task)
+    : TaskDependentHeuristic(task, log)
     , ordering(order)
     , rng(rng)
 {

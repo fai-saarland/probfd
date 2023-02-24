@@ -70,6 +70,7 @@ public:
 GZOCPHeuristic::GZOCPHeuristic(const options::Options& opts)
     : GZOCPHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
+          utils::get_log_from_options(opts),
           opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
           opts.get<OrderingStrategy>("order"),
           utils::parse_rng_from_options(opts))
@@ -78,10 +79,11 @@ GZOCPHeuristic::GZOCPHeuristic(const options::Options& opts)
 
 GZOCPHeuristic::GZOCPHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
+    utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator,
     OrderingStrategy order,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : TaskDependentHeuristic(task)
+    : TaskDependentHeuristic(task, log)
     , ordering(order)
     , rng(rng)
 {

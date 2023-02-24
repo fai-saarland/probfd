@@ -19,6 +19,7 @@ namespace occupation_measures {
 OccupationMeasureHeuristic::OccupationMeasureHeuristic(const Options& opts)
     : OccupationMeasureHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
+          utils::get_log_from_options(opts),
           opts.get<lp::LPSolverType>("lpsolver"),
           opts.get<shared_ptr<ConstraintGenerator>>("constraint_generator"))
 {
@@ -26,9 +27,10 @@ OccupationMeasureHeuristic::OccupationMeasureHeuristic(const Options& opts)
 
 OccupationMeasureHeuristic::OccupationMeasureHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
+    utils::LogProxy log,
     lp::LPSolverType solver_type,
     std::shared_ptr<ConstraintGenerator> constraint_generator)
-    : LPHeuristic(task, solver_type)
+    : LPHeuristic(task, log, solver_type)
     , constraint_generator_(constraint_generator)
 {
     lp::LinearProgram lp(

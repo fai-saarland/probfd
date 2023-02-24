@@ -46,14 +46,16 @@ public:
 UCPHeuristic::UCPHeuristic(const options::Options& opts)
     : UCPHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
+          utils::get_log_from_options(opts),
           opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
 {
 }
 
 UCPHeuristic::UCPHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
+    utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator)
-    : TaskDependentHeuristic(task)
+    : TaskDependentHeuristic(task, log)
 {
     auto pattern_collection_info = generator->generate(task);
 

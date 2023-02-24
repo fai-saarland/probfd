@@ -28,6 +28,7 @@ public:
 
     explicit UCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
         std::shared_ptr<PatternCollectionGenerator> generator);
 
     void print_statistics() const override

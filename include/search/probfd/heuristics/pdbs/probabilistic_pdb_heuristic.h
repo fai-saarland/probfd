@@ -86,7 +86,8 @@ public:
     ProbabilisticPDBHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<PatternCollectionGenerator> generator,
-        double max_time_dominance_pruning);
+        double max_time_dominance_pruning,
+        utils::LogProxy log);
 
     void print_statistics() const override;
 

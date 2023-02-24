@@ -34,6 +34,7 @@ public:
 
     OccupationMeasureHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
         lp::LPSolverType solver_type,
         std::shared_ptr<ConstraintGenerator> constraint_generator);
 

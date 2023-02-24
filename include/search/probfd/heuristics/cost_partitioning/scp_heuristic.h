@@ -39,6 +39,7 @@ public:
 
     explicit SCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
         std::shared_ptr<PatternCollectionGenerator> generator,
         OrderingStrategy order,
         std::shared_ptr<utils::RandomNumberGenerator> rng);

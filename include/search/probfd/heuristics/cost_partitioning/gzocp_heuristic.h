@@ -36,6 +36,7 @@ public:
 
     explicit GZOCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
         std::shared_ptr<PatternCollectionGenerator>
             generator,
         OrderingStrategy order,

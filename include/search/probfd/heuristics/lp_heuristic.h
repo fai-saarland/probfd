@@ -32,14 +32,16 @@ public:
     explicit LPHeuristic(const options::Options& opts)
         : LPHeuristic(
               opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
+              utils::get_log_from_options(opts),
               opts.get<lp::LPSolverType>("lpsolver"))
     {
     }
 
     LPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
         lp::LPSolverType solver_type)
-        : TaskDependentHeuristic(task)
+        : TaskDependentHeuristic(task, log)
         , lp_solver_(solver_type)
     {
     }

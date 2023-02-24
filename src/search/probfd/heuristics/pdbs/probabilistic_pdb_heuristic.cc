@@ -62,15 +62,17 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
     : ProbabilisticPDBHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
           opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-          opts.get<double>("max_time_dominance_pruning"))
+          opts.get<double>("max_time_dominance_pruning"),
+          utils::get_log_from_options(opts))
 {
 }
 
 ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<PatternCollectionGenerator> generator,
-    double max_time_dominance_pruning)
-    : TaskDependentHeuristic(task)
+    double max_time_dominance_pruning,
+    utils::LogProxy log)
+    : TaskDependentHeuristic(task, log)
 {
     utils::Timer construction_timer;
 
