@@ -42,7 +42,7 @@ private:
  * value function (for states reachable from the initial state).
  */
 std::vector<value_t> compute_distances(
-    const std::vector<ProbabilisticTransitions>& transitions,
+    const std::deque<ProbabilisticTransition>& transitions,
     const std::vector<value_t>& costs);
 
 } // namespace cartesian
