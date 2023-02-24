@@ -1195,6 +1195,7 @@ fast_downward_plugin(
     NAME PROBABILISTIC_CARTESIAN
     HELP "Plugin containing the code for CEGAR heuristics"
     SOURCES
+        probfd/heuristics/cartesian/abstract_search
         probfd/heuristics/cartesian/abstraction
         probfd/heuristics/cartesian/probabilistic_transition
         probfd/heuristics/cartesian/probabilistic_transition_system
