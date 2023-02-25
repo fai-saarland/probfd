@@ -4,8 +4,6 @@
 #include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
 
-#include "probfd/quotients/types.h"
-
 #include "algorithms/segmented_vector.h"
 
 #include "utils/collections.h"
@@ -23,6 +21,12 @@ class OperatorID;
 
 namespace probfd {
 namespace quotients {
+
+template <typename Action>
+struct QuotientAction {
+    StateID state_id;
+    ActionID action_id;
+};
 
 template <typename Action>
 class DefaultQuotientSystem {
