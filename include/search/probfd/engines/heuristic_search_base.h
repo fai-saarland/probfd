@@ -234,6 +234,14 @@ public:
     }
 
     /**
+     * @brief Resets the heuristic search engine to a clean state.
+     *
+     * This method is needed by the FRET wrapper engine to restart the heuristic
+     * search after traps have been collapsed.
+     */
+    virtual void reset_search_state() {}
+
+    /**
      * @brief Checks if the state \p state_id is terminal.
      */
     bool is_terminal(StateID state_id)

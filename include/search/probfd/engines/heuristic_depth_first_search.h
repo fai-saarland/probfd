@@ -207,7 +207,7 @@ public:
         initialize_persistent_state_storage();
     }
 
-    virtual void reset_solver_state() override
+    virtual void reset_search_state() override
     {
         delete (this->state_flags_);
         state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();

@@ -27,7 +27,6 @@ template <typename State>
 class MDPEngineInterface {
 public:
     virtual ~MDPEngineInterface() = default;
-    virtual void reset_solver_state() {}
 
     /**
      * @brief Runs the MDP algorithm with the initial state \p state .

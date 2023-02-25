@@ -229,7 +229,7 @@ public:
         HeuristicSearchBase::print_statistics(out);
     }
 
-    virtual void reset_solver_state() override
+    virtual void reset_search_state() override
     {
         using HSBInfo = typename HeuristicSearchBase::StateInfo;
 

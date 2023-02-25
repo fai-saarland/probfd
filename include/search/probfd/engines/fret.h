@@ -140,7 +140,7 @@ public:
                 return value;
             }
 
-            base_engine_->reset_solver_state();
+            base_engine_->reset_search_state();
         }
     }
 
