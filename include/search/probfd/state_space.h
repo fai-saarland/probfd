@@ -1,7 +1,7 @@
 #ifndef PROBFD_TRANSITION_GENERATOR_H
 #define PROBFD_TRANSITION_GENERATOR_H
 
-#include "probfd/engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include "probfd/storage/per_state_storage.h"
 #include "probfd/storage/segmented_memory_pool.h"
@@ -25,15 +25,15 @@ namespace probfd {
 class ProbabilisticTask;
 
 namespace quotients {
-template <typename T>
+template <typename, typename>
 class QuotientSystem;
 }
 
 namespace engine_interfaces {
 
 template <>
-class TransitionGenerator<OperatorID> {
-    friend class quotients::QuotientSystem<OperatorID>;
+class StateSpace<State, OperatorID> {
+    friend class quotients::QuotientSystem<State, OperatorID>;
 
 protected:
     struct Statistics {
@@ -85,12 +85,18 @@ protected:
     Statistics statistics_;
 
 public:
-    TransitionGenerator(
+    StateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         StateRegistry* state_registry,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators,
         bool enable_caching);
+
+    StateID get_state_id(const State& state);
+    State get_state(StateID state_id);
+
+    ActionID get_action_id(StateID, OperatorID op_id);
+    OperatorID get_action(StateID, ActionID action_id);
 
     void generate_applicable_actions(
         StateID state_id,

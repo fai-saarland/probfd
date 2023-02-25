@@ -168,9 +168,7 @@ class HeuristicDepthFirstSearch
 
 public:
     HeuristicDepthFirstSearch(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
@@ -186,9 +184,7 @@ public:
         bool PerformValueIteration,
         bool ExpandTipStates)
         : HeuristicSearchBase(
-              state_id_map,
-              action_id_map,
-              transition_generator,
+              state_space,
               cost_function,
               value_init,
               policy_chooser,

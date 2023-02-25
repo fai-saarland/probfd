@@ -7,16 +7,16 @@ namespace quotients {
 
 using namespace engine_interfaces;
 
-QuotientSystem<OperatorID>::const_iterator::const_iterator(
-    const QuotientSystem<OperatorID>* qs,
-    DefaultQuotientSystem<OperatorID>::const_iterator x)
+QuotientSystem<State, OperatorID>::const_iterator::const_iterator(
+    const QuotientSystem<State, OperatorID>* qs,
+    DefaultQuotientSystem<State, OperatorID>::const_iterator x)
     : qs_(qs)
     , i(x)
 {
 }
 
-QuotientSystem<OperatorID>::const_iterator&
-QuotientSystem<OperatorID>::const_iterator::operator++()
+QuotientSystem<State, OperatorID>::const_iterator&
+QuotientSystem<State, OperatorID>::const_iterator::operator++()
 {
     if (qs_->cache_) {
         while (++i.i.id < qs_->state_infos_.size()) {
@@ -31,8 +31,8 @@ QuotientSystem<OperatorID>::const_iterator::operator++()
     return *this;
 }
 
-QuotientSystem<OperatorID>::const_iterator
-QuotientSystem<OperatorID>::const_iterator::operator++(int)
+QuotientSystem<State, OperatorID>::const_iterator
+QuotientSystem<State, OperatorID>::const_iterator::operator++(int)
 {
     auto r = *this;
     ++(*this);
@@ -40,33 +40,33 @@ QuotientSystem<OperatorID>::const_iterator::operator++(int)
 }
 
 bool operator==(
-    const QuotientSystem<OperatorID>::const_iterator& left,
-    const QuotientSystem<OperatorID>::const_iterator& right)
+    const QuotientSystem<State, OperatorID>::const_iterator& left,
+    const QuotientSystem<State, OperatorID>::const_iterator& right)
 {
     return left.i == right.i;
 }
 
-StateID QuotientSystem<OperatorID>::const_iterator::operator*() const
+StateID QuotientSystem<State, OperatorID>::const_iterator::operator*() const
 {
     return i.i;
 }
 
-QuotientSystem<OperatorID>::QuotientSystem(
-    engine_interfaces::ActionIDMap<OperatorID>* aid,
-    engine_interfaces::TransitionGenerator<OperatorID>* transition_gen)
-    : cache_(transition_gen->caching_)
-    , gen_(transition_gen)
+QuotientSystem<State, OperatorID>::QuotientSystem(
+    engine_interfaces::StateSpace<State, OperatorID>* state_space)
+    : cache_(state_space->caching_)
+    , state_space_(state_space)
     , fallback_(nullptr)
 {
     if (!cache_) {
         fallback_.reset(
-            new DefaultQuotientSystem<OperatorID>(aid, transition_gen));
+            new DefaultQuotientSystem<State, OperatorID>(state_space_));
     } else {
         state_infos_.push_back(QuotientInformation(0));
     }
 }
 
-unsigned QuotientSystem<OperatorID>::quotient_size(StateID state_id) const
+unsigned
+QuotientSystem<State, OperatorID>::quotient_size(StateID state_id) const
 {
     if (cache_) {
         const QuotientInformation* info = get_infos(state_id);
@@ -77,24 +77,24 @@ unsigned QuotientSystem<OperatorID>::quotient_size(StateID state_id) const
     return fallback_->quotient_size(state_id);
 }
 
-QuotientSystem<OperatorID>::const_iterator
-QuotientSystem<OperatorID>::begin() const
+QuotientSystem<State, OperatorID>::const_iterator
+QuotientSystem<State, OperatorID>::begin() const
 {
     if (cache_) {
-        using Default = DefaultQuotientSystem<OperatorID>;
+        using Default = DefaultQuotientSystem<State, OperatorID>;
         return const_iterator(this, Default::const_iterator(nullptr, 0));
     }
 
     return const_iterator(this, fallback_->begin());
 }
 
-QuotientSystem<OperatorID>::const_iterator
-QuotientSystem<OperatorID>::end() const
+QuotientSystem<State, OperatorID>::const_iterator
+QuotientSystem<State, OperatorID>::end() const
 {
     if (cache_) {
         return const_iterator(
             this,
-            DefaultQuotientSystem<OperatorID>::const_iterator(
+            DefaultQuotientSystem<State, OperatorID>::const_iterator(
                 nullptr,
                 state_infos_.size()));
     }
@@ -102,8 +102,9 @@ QuotientSystem<OperatorID>::end() const
     return const_iterator(this, fallback_->end());
 }
 
-std::ranges::subrange<QuotientSystem<OperatorID>::QuotientStateIDIterator>
-QuotientSystem<OperatorID>::quotient_range(StateID state_id) const
+std::ranges::subrange<
+    QuotientSystem<State, OperatorID>::QuotientStateIDIterator>
+QuotientSystem<State, OperatorID>::quotient_range(StateID state_id) const
 {
     if (cache_) {
         const StateID* start = nullptr;
@@ -126,7 +127,17 @@ QuotientSystem<OperatorID>::quotient_range(StateID state_id) const
     return this->fallback_->quotient_range(state_id);
 }
 
-StateID QuotientSystem<OperatorID>::translate_state_id(StateID sid) const
+StateID QuotientSystem<State, OperatorID>::get_state_id(const State& s) const
+{
+    return state_space_->get_state_id(s);
+}
+
+State QuotientSystem<State, OperatorID>::get_state(StateID sid) const
+{
+    return state_space_->get_state(sid);
+}
+
+StateID QuotientSystem<State, OperatorID>::translate_state_id(StateID sid) const
 {
     if (cache_) {
         const QuotientInformation* i = get_infos(sid);
@@ -136,7 +147,7 @@ StateID QuotientSystem<OperatorID>::translate_state_id(StateID sid) const
     return this->fallback_->translate_state_id(sid);
 }
 
-void QuotientSystem<OperatorID>::generate_applicable_ops(
+void QuotientSystem<State, OperatorID>::generate_applicable_ops(
     StateID sid,
     std::vector<QAction>& result)
 {
@@ -150,14 +161,14 @@ void QuotientSystem<OperatorID>::generate_applicable_ops(
             }
         }
 
-        ++gen_->statistics_.aops_generator_calls;
-        gen_->statistics_.generated_operators += result.size();
+        ++state_space_->statistics_.aops_generator_calls;
+        state_space_->statistics_.generated_operators += result.size();
     } else {
         this->fallback_->generate_applicable_ops(sid, result);
     }
 }
 
-void QuotientSystem<OperatorID>::generate_successors(
+void QuotientSystem<State, OperatorID>::generate_successors(
     StateID sid,
     const QAction& a,
     Distribution<StateID>& result)
@@ -169,7 +180,7 @@ void QuotientSystem<OperatorID>::generate_successors(
         const StateID* succ = cached.succs;
         const OperatorID* aop = cached.aops;
 
-        const auto operators = gen_->task_proxy.get_operators();
+        const auto operators = state_space_->task_proxy.get_operators();
 
         auto aop_end = aop + a.action_id;
         for (; aop != aop_end; ++aop) {
@@ -182,14 +193,14 @@ void QuotientSystem<OperatorID>::generate_successors(
             ++succ;
         }
 
-        ++gen_->statistics_.single_transition_generator_calls;
-        gen_->statistics_.generated_states += result.size();
+        ++state_space_->statistics_.single_transition_generator_calls;
+        state_space_->statistics_.generated_states += result.size();
     } else {
         fallback_->generate_successors(sid, a, result);
     }
 }
 
-void QuotientSystem<OperatorID>::generate_all_successors(
+void QuotientSystem<State, OperatorID>::generate_all_successors(
     StateID sid,
     std::vector<QAction>& aops,
     std::vector<Distribution<StateID>>& successors)
@@ -198,7 +209,7 @@ void QuotientSystem<OperatorID>::generate_all_successors(
         const auto& qstates = this->get_infos(sid)->states;
         assert(qstates[0] == sid);
 
-        const auto operators = gen_->task_proxy.get_operators();
+        const auto operators = state_space_->task_proxy.get_operators();
 
         for (unsigned i = 0; i < qstates.size(); ++i) {
             auto& cached = lookup(qstates[i]);
@@ -214,20 +225,20 @@ void QuotientSystem<OperatorID>::generate_all_successors(
                     ++succ;
                 }
 
-                gen_->statistics_.generated_states += succs.size();
+                state_space_->statistics_.generated_states += succs.size();
             }
         }
 
-        ++gen_->statistics_.all_transitions_generator_calls;
-        gen_->statistics_.generated_operators += aops.size();
+        ++state_space_->statistics_.all_transitions_generator_calls;
+        state_space_->statistics_.generated_operators += aops.size();
         return;
     }
 
     fallback_->generate_all_successors(sid, aops, successors);
 }
 
-QuotientSystem<OperatorID>::QAction
-QuotientSystem<OperatorID>::get_action(StateID sid, ActionID aid) const
+QuotientSystem<State, OperatorID>::QAction
+QuotientSystem<State, OperatorID>::get_action(StateID sid, ActionID aid) const
 {
     if (cache_) {
         const auto& qstates = get_infos(sid)->states;
@@ -248,7 +259,8 @@ QuotientSystem<OperatorID>::get_action(StateID sid, ActionID aid) const
 }
 
 ActionID
-QuotientSystem<OperatorID>::get_action_id(StateID sid, const QAction& a) const
+QuotientSystem<State, OperatorID>::get_action_id(StateID sid, const QAction& a)
+    const
 {
     if (cache_) {
         const auto& qstates = get_infos(sid)->states;
@@ -268,9 +280,9 @@ QuotientSystem<OperatorID>::get_action_id(StateID sid, const QAction& a) const
     return fallback_->get_action_id(sid, a);
 }
 
-OperatorID
-QuotientSystem<OperatorID>::get_original_action(StateID sid, const QAction& a)
-    const
+OperatorID QuotientSystem<State, OperatorID>::get_original_action(
+    StateID sid,
+    const QAction& a) const
 {
     if (cache_) {
         assert(
@@ -284,9 +296,9 @@ QuotientSystem<OperatorID>::get_original_action(StateID sid, const QAction& a)
     return fallback_->get_original_action(sid, a);
 }
 
-ActionID
-QuotientSystem<OperatorID>::get_original_action_id(StateID sid, ActionID a)
-    const
+ActionID QuotientSystem<State, OperatorID>::get_original_action_id(
+    StateID sid,
+    ActionID a) const
 {
     if (cache_) {
         const auto& qstates = get_infos(sid)->states;
@@ -305,26 +317,26 @@ QuotientSystem<OperatorID>::get_original_action_id(StateID sid, ActionID a)
     return fallback_->get_original_action_id(sid, a);
 }
 
-const QuotientSystem<OperatorID>::QuotientInformation*
-QuotientSystem<OperatorID>::get_infos(StateID sid) const
+const QuotientSystem<State, OperatorID>::QuotientInformation*
+QuotientSystem<State, OperatorID>::get_infos(StateID sid) const
 {
     assert(sid < state_infos_.size());
     return &state_infos_[sid];
 }
 
-const TransitionGenerator<OperatorID>::CacheEntry&
-QuotientSystem<OperatorID>::lookup(StateID sid) const
+const StateSpace<State, OperatorID>::CacheEntry&
+QuotientSystem<State, OperatorID>::lookup(StateID sid) const
 {
-    const auto& entry = gen_->cache_[sid];
+    const auto& entry = state_space_->cache_[sid];
     assert(entry.is_initialized());
     return entry;
 }
 
-TransitionGenerator<OperatorID>::CacheEntry&
-QuotientSystem<OperatorID>::lookup(StateID sid)
+StateSpace<State, OperatorID>::CacheEntry&
+QuotientSystem<State, OperatorID>::lookup(StateID sid)
 {
     bool cache_setup = false;
-    auto& entry = gen_->lookup(sid, cache_setup);
+    auto& entry = state_space_->lookup(sid, cache_setup);
 
     if (!cache_setup) {
 #ifndef NDEBUG
@@ -335,12 +347,14 @@ QuotientSystem<OperatorID>::lookup(StateID sid)
         return entry;
     }
 
-    for (auto i = state_infos_.size(); i < gen_->state_registry_->size(); ++i) {
+    for (auto i = state_infos_.size();
+         i < state_space_->state_registry_->size();
+         ++i) {
         state_infos_.push_back(QuotientInformation(StateID(i)));
     }
 
     std::unordered_set<StateID> unique_successors;
-    const auto operators = gen_->task_proxy.get_operators();
+    const auto operators = state_space_->task_proxy.get_operators();
 
     {
         const OperatorID* aop = entry.aops;
@@ -371,9 +385,9 @@ QuotientSystem<OperatorID>::lookup(StateID sid)
     return entry;
 }
 
-void QuotientSystem<OperatorID>::update_cache(
+void QuotientSystem<State, OperatorID>::update_cache(
     const std::vector<OperatorID>& exclude,
-    engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry& entry,
+    engine_interfaces::StateSpace<State, OperatorID>::CacheEntry& entry,
     const StateID rid,
     const std::unordered_set<StateID>& quotient_states)
 {
@@ -394,7 +408,7 @@ void QuotientSystem<OperatorID>::update_cache(
         StateID* k = succ_dest;
 
         const ProbabilisticOperatorProxy op =
-            gen_->task_proxy.get_operators()[op_id];
+            state_space_->task_proxy.get_operators()[op_id];
 
         auto succ_src_end = succ_src + op.get_outcomes().size();
         for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {
@@ -412,12 +426,12 @@ void QuotientSystem<OperatorID>::update_cache(
 }
 
 #ifndef NDEBUG
-void QuotientSystem<OperatorID>::verify_cache_consistency()
+void QuotientSystem<State, OperatorID>::verify_cache_consistency()
 {
-    const auto operators = gen_->task_proxy.get_operators();
+    const auto operators = state_space_->task_proxy.get_operators();
 
-    for (unsigned i = 0; i < gen_->cache_.size(); ++i) {
-        const auto& entry = gen_->cache_[i];
+    for (unsigned i = 0; i < state_space_->cache_.size(); ++i) {
+        const auto& entry = state_space_->cache_[i];
 
         if (!entry.is_initialized()) {
             continue;

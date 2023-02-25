@@ -1,9 +1,8 @@
 #ifndef PROBFD_QUOTIENTS_ENGINE_INTERFACES_H
 #define PROBFD_QUOTIENTS_ENGINE_INTERFACES_H
 
-#include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include "probfd/quotients/quotient_system.h"
 
@@ -18,7 +17,7 @@ template <typename State, typename Action>
 class DefaultQuotientCostFunction : public QuotientCostFunction<State, Action> {
 public:
     explicit DefaultQuotientCostFunction(
-        quotients::QuotientSystem<Action>* quotient,
+        quotients::QuotientSystem<State, Action>* quotient,
         engine_interfaces::CostFunction<State, Action>* orig)
         : quotient_(quotient)
         , eval_(orig)
@@ -44,19 +43,31 @@ public:
     }
 
 private:
-    quotients::QuotientSystem<Action>* quotient_;
+    quotients::QuotientSystem<State, Action>* quotient_;
     engine_interfaces::CostFunction<State, Action>* eval_;
 };
 
 } // namespace quotients
 
 namespace engine_interfaces {
-template <typename Action>
-class ActionIDMap<quotients::QuotientAction<Action>> {
+template <typename State, typename Action>
+class StateSpace<State, quotients::QuotientAction<Action>> {
+    quotients::QuotientSystem<State, Action>* quotient_;
+
 public:
-    explicit ActionIDMap(quotients::QuotientSystem<Action>* quotient)
+    explicit StateSpace(quotients::QuotientSystem<State, Action>* quotient)
         : quotient_(quotient)
     {
+    }
+
+    StateID get_state_id(const State& state)
+    {
+        return quotient_->get_state_id(state);
+    }
+
+    State get_state(StateID state_id)
+    {
+        return quotient_->get_state(state_id);
     }
 
     ActionID
@@ -70,18 +81,6 @@ public:
     get_action(StateID state_id, ActionID action_id) const
     {
         return quotient_->get_action(state_id, action_id);
-    }
-
-private:
-    quotients::QuotientSystem<Action>* quotient_;
-};
-
-template <typename Action>
-class TransitionGenerator<quotients::QuotientAction<Action>> {
-public:
-    explicit TransitionGenerator(quotients::QuotientSystem<Action>* quotient)
-        : quotient_(quotient)
-    {
     }
 
     void generate_applicable_actions(
@@ -106,9 +105,6 @@ public:
     {
         quotient_->generate_all_successors(sid, aops, succs);
     }
-
-private:
-    quotients::QuotientSystem<Action>* quotient_;
 };
 
 } // namespace engine_interfaces

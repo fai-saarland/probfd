@@ -6,8 +6,7 @@ namespace transition_samplers {
 
 std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>
 MostLikelySuccessorSelectorFactory::create_sampler(
-    engine_interfaces::StateIDMap<State>*,
-    engine_interfaces::ActionIDMap<OperatorID>*)
+    engine_interfaces::StateSpace<State, OperatorID>*)
 {
     return std::shared_ptr<MostLikelySuccessorSelector>();
 }

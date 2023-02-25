@@ -20,8 +20,7 @@ void UniformSuccessorSamplerFactory::add_options_to_parser(
 
 std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>
 UniformSuccessorSamplerFactory::create_sampler(
-    engine_interfaces::StateIDMap<State>*,
-    engine_interfaces::ActionIDMap<OperatorID>*)
+    engine_interfaces::StateSpace<State, OperatorID>*)
 {
     return std::make_shared<UniformSuccessorSampler>(rng);
 }

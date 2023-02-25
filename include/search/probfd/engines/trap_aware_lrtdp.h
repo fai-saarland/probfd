@@ -90,7 +90,7 @@ class TALRTDP<State, quotients::QuotientAction<Action>, Interval>
         internal::PerStateInformation>;
 
     using QAction = quotients::QuotientAction<Action>;
-    using QuotientSystem = quotients::QuotientSystem<Action>;
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 
     struct Flags {
@@ -157,9 +157,7 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<QAction>* action_id_map,
-        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
+        engine_interfaces::StateSpace<State, QAction>* state_space,
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<QAction>* policy_chooser,
@@ -172,9 +170,7 @@ public:
         bool reexpand_traps,
         engine_interfaces::TransitionSampler<QAction>* succ_sampler)
         : HeuristicSearchBase(
-              state_id_map,
-              action_id_map,
-              transition_generator,
+              state_space,
               cost_function,
               value_init,
               policy_chooser,
@@ -480,9 +476,7 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<QAction>* action_id_map,
-        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
+        engine_interfaces::StateSpace<State, QAction>* state_space,
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<QAction>* policy_chooser,
@@ -490,14 +484,12 @@ public:
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy,
-        quotients::QuotientSystem<Action>* quotient,
+        quotients::QuotientSystem<State, Action>* quotient,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
         engine_interfaces::TransitionSampler<QAction>* succ_sampler)
         : engine_(
-              state_id_map,
-              action_id_map,
-              transition_generator,
+              state_space,
               cost_function,
               value_init,
               policy_chooser,

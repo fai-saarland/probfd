@@ -26,8 +26,7 @@ public:
         , open_list_(this->wrap(
               opts.get<std::shared_ptr<TaskOpenListFactory>>("open_list")
                   ->create_open_list(
-                      &this->state_id_map_,
-                      &this->action_id_map_)))
+                      &this->state_space_)))
     {
     }
 

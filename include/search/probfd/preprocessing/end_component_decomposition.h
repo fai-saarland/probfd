@@ -4,11 +4,9 @@
 #include "utils/iterators.h"
 #include "utils/timer.h"
 
-#include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_id_map.h"
-#include "probfd/engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
@@ -219,21 +217,18 @@ class EndComponentDecomposition {
     };
 
 public:
-    using QuotientSystem = quotients::QuotientSystem<Action>;
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
 
     EndComponentDecomposition(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_gen,
+        engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* costs,
         bool expand_goals,
         const engine_interfaces::Evaluator<State>* pruning_function = nullptr)
-        : state_id_map_(state_id_map)
-        , transition_gen_(transition_gen)
+        : state_space_(state_space)
         , costs_(costs)
         , expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
-        , sys_(new QuotientSystem(action_id_map, transition_gen_))
+        , sys_(new QuotientSystem(state_space))
     {
     }
 
@@ -249,7 +244,7 @@ public:
     {
         stats_ = ECDStatistics();
 
-        auto init_id = state_id_map_->get_state_id(initial_state);
+        auto init_id = state_space_->get_state_id(initial_state);
 
         if (push<true>(init_id, state_infos_[init_id])) {
             find_and_decompose_sccs<true>();
@@ -280,7 +275,7 @@ private:
     bool push_root(StateID state_id, StateInfo& state_info)
     {
         state_info.explored = 1;
-        State state = state_id_map_->get_state(state_id);
+        State state = state_space_->get_state(state_id);
 
         if (costs_->get_termination_info(state).is_goal_state()) {
             ++stats_.terminals;
@@ -299,7 +294,7 @@ private:
         }
 
         std::vector<Action> aops;
-        transition_gen_->generate_applicable_actions(state_id, aops);
+        state_space_->generate_applicable_actions(state_id, aops);
 
         if (aops.empty()) {
             if (expand_goals_ && state_info.expandable_goal) {
@@ -317,7 +312,7 @@ private:
         unsigned non_loop_actions = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
             Distribution<StateID> transition;
-            transition_gen_->generate_action_transitions(
+            state_space_->generate_action_transitions(
                 state_id,
                 aops[i],
                 transition);
@@ -643,8 +638,7 @@ private:
         assert(expansion_queue_.size() == limit);
     }
 
-    engine_interfaces::StateIDMap<State>* state_id_map_;
-    engine_interfaces::TransitionGenerator<Action>* transition_gen_;
+    engine_interfaces::StateSpace<State, Action>* state_space_;
     engine_interfaces::CostFunction<State, Action>* costs_;
 
     bool expand_goals_;

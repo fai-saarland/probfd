@@ -10,10 +10,12 @@
 namespace probfd {
 
 namespace quotients {
+
+template <typename State>
 class RepresentativePolicyPicker
     : public engine_interfaces::PolicyPicker<
           quotients::QuotientAction<OperatorID>> {
-    using QuotientSystem = quotients::QuotientSystem<OperatorID>;
+    using QuotientSystem = quotients::QuotientSystem<State, OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
     std::vector<OperatorID> choices_;
@@ -56,10 +58,11 @@ public:
     }
 };
 
+template <typename State>
 class RepresentativeTransitionSampler
     : public engine_interfaces::TransitionSampler<
           quotients::QuotientAction<OperatorID>> {
-    using QuotientSystem = quotients::QuotientSystem<OperatorID>;
+    using QuotientSystem = quotients::QuotientSystem<State, OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
     QuotientSystem* quotient_;
@@ -91,10 +94,11 @@ public:
     }
 };
 
+template <typename State>
 class RepresentativeOpenList
     : public engine_interfaces::OpenList<
           quotients::QuotientAction<OperatorID>> {
-    using QuotientSystem = quotients::QuotientSystem<OperatorID>;
+    using QuotientSystem = quotients::QuotientSystem<State, OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
     QuotientSystem* quotient_;

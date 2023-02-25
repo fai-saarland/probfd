@@ -4,11 +4,9 @@
 #include "probfd/bisimulation/bisimilar_state_space.h"
 #include "probfd/bisimulation/types.h"
 
-#include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_id_map.h"
-#include "probfd/engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include "probfd/value_utils.h"
 
@@ -16,26 +14,21 @@ namespace probfd {
 namespace engine_interfaces {
 
 template <>
-struct StateIDMap<bisimulation::QuotientState> {
+class StateSpace<bisimulation::QuotientState, bisimulation::QuotientAction> {
+    bisimulation::BisimilarStateSpace* bisim_;
+
+public:
+    explicit StateSpace(bisimulation::BisimilarStateSpace* bisim);
+
     StateID get_state_id(const bisimulation::QuotientState& state) const;
     bisimulation::QuotientState get_state(StateID state_id) const;
-};
 
-template <>
-struct ActionIDMap<bisimulation::QuotientAction> {
     ActionID
     get_action_id(StateID state_id, const bisimulation::QuotientAction& action)
         const;
 
     bisimulation::QuotientAction
     get_action(StateID state_id, ActionID action) const;
-};
-
-template <>
-struct TransitionGenerator<bisimulation::QuotientAction> {
-    bisimulation::BisimilarStateSpace* bisim_;
-
-    explicit TransitionGenerator(bisimulation::BisimilarStateSpace* bisim);
 
     void generate_applicable_actions(
         StateID state,

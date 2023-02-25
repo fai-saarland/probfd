@@ -13,37 +13,33 @@ using namespace heuristics::pdbs;
 
 namespace engine_interfaces {
 
-TransitionGenerator<const AbstractOperator*>::TransitionGenerator(
-    const MatchTree& aops_gen)
-    : aops_gen_(aops_gen)
+void StateSpace<StateRank, const AbstractOperator*>::
+    generate_applicable_actions(
+        StateID state_id,
+        std::vector<const AbstractOperator*>& aops)
 {
-}
-
-void TransitionGenerator<const AbstractOperator*>::generate_applicable_actions(
-    StateID state_id,
-    std::vector<const AbstractOperator*>& aops)
-{
-    aops_gen_.get_applicable_operators(
+    match_tree_.get_applicable_operators(
         heuristics::pdbs::StateRank(state_id),
         aops);
 }
 
-void TransitionGenerator<const AbstractOperator*>::generate_action_transitions(
-    StateID state_id,
-    const AbstractOperator* op,
-    Distribution<StateID>& result)
+void StateSpace<StateRank, const AbstractOperator*>::
+    generate_action_transitions(
+        StateID state_id,
+        const AbstractOperator* op,
+        Distribution<StateID>& result)
 {
     for (const auto& [item, probability] : op->outcomes) {
         result.add(state_id + item.id, probability);
     }
 }
 
-void TransitionGenerator<const AbstractOperator*>::generate_all_transitions(
+void StateSpace<StateRank, const AbstractOperator*>::generate_all_transitions(
     StateID state_id,
     std::vector<const AbstractOperator*>& aops,
     std::vector<Distribution<StateID>>& result)
 {
-    aops_gen_.get_applicable_operators(
+    match_tree_.get_applicable_operators(
         heuristics::pdbs::StateRank(state_id),
         aops);
     result.reserve(aops.size());

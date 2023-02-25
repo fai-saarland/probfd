@@ -1,4 +1,4 @@
-#include "probfd/transition_generator.h"
+#include "probfd/state_space.h"
 #include "probfd/task_proxy.h"
 
 #include "algorithms/int_packer.h"
@@ -19,7 +19,7 @@
 namespace probfd {
 namespace engine_interfaces {
 
-TransitionGenerator<OperatorID>::TransitionGenerator(
+StateSpace<State, OperatorID>::StateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     StateRegistry* state_registry,
     const std::vector<std::shared_ptr<Evaluator>>& path_dependent_evaluators,
@@ -33,7 +33,28 @@ TransitionGenerator<OperatorID>::TransitionGenerator(
 {
 }
 
-void TransitionGenerator<OperatorID>::generate_applicable_actions(
+StateID StateSpace<State, OperatorID>::get_state_id(const State& state)
+{
+    return state.get_id();
+}
+
+State StateSpace<State, OperatorID>::get_state(StateID state_id)
+{
+    return state_registry_->lookup_state(::StateID(state_id));
+}
+
+ActionID StateSpace<State, OperatorID>::get_action_id(StateID, OperatorID op_id)
+{
+    return ActionID(op_id.get_index());
+}
+
+OperatorID
+StateSpace<State, OperatorID>::get_action(StateID, ActionID action_id)
+{
+    return OperatorID(action_id);
+}
+
+void StateSpace<State, OperatorID>::generate_applicable_actions(
     StateID state_id,
     std::vector<OperatorID>& result)
 {
@@ -59,7 +80,7 @@ void TransitionGenerator<OperatorID>::generate_applicable_actions(
     statistics_.generated_operators += result.size();
 }
 
-void TransitionGenerator<OperatorID>::generate_action_transitions(
+void StateSpace<State, OperatorID>::generate_action_transitions(
     StateID state_id,
     OperatorID op_id,
     Distribution<StateID>& result)
@@ -117,7 +138,7 @@ void TransitionGenerator<OperatorID>::generate_action_transitions(
     statistics_.generated_states += result.size();
 }
 
-void TransitionGenerator<OperatorID>::generate_all_transitions(
+void StateSpace<State, OperatorID>::generate_all_transitions(
     StateID state_id,
     std::vector<OperatorID>& aops,
     std::vector<Distribution<StateID>>& successors)
@@ -178,7 +199,7 @@ void TransitionGenerator<OperatorID>::generate_all_transitions(
     statistics_.generated_operators += aops.size();
 }
 
-bool TransitionGenerator<OperatorID>::setup_cache(
+bool StateSpace<State, OperatorID>::setup_cache(
     StateID state_id,
     CacheEntry& entry)
 {
@@ -221,30 +242,30 @@ bool TransitionGenerator<OperatorID>::setup_cache(
     return false;
 }
 
-TransitionGenerator<OperatorID>::CacheEntry&
-TransitionGenerator<OperatorID>::lookup(StateID sid)
+StateSpace<State, OperatorID>::CacheEntry&
+StateSpace<State, OperatorID>::lookup(StateID sid)
 {
     CacheEntry& entry = cache_[sid];
     setup_cache(sid, entry);
     return entry;
 }
 
-TransitionGenerator<OperatorID>::CacheEntry&
-TransitionGenerator<OperatorID>::lookup(StateID sid, bool& setup)
+StateSpace<State, OperatorID>::CacheEntry&
+StateSpace<State, OperatorID>::lookup(StateID sid, bool& setup)
 {
     CacheEntry& entry = cache_[sid];
     setup = setup_cache(sid, entry);
     return entry;
 }
 
-void TransitionGenerator<OperatorID>::print_statistics(std::ostream& out) const
+void StateSpace<State, OperatorID>::print_statistics(std::ostream& out) const
 {
     statistics_.print(out);
     out << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
         << std::endl;
 }
 
-void TransitionGenerator<OperatorID>::Statistics::print(std::ostream& out) const
+void StateSpace<State, OperatorID>::Statistics::print(std::ostream& out) const
 {
     out << "  Applicable operators: " << generated_operators << " generated, "
         << computed_operators << " computed, " << aops_generator_calls
@@ -256,7 +277,7 @@ void TransitionGenerator<OperatorID>::Statistics::print(std::ostream& out) const
         << std::endl;
 }
 
-void TransitionGenerator<OperatorID>::compute_successor_states(
+void StateSpace<State, OperatorID>::compute_successor_states(
     const State& state,
     OperatorID op_id,
     std::vector<ItemProbabilityPair<StateID>>& succs)
@@ -280,7 +301,7 @@ void TransitionGenerator<OperatorID>::compute_successor_states(
     statistics_.computed_successors += succs.size();
 }
 
-void TransitionGenerator<OperatorID>::compute_applicable_operators(
+void StateSpace<State, OperatorID>::compute_applicable_operators(
     const State& s,
     std::vector<OperatorID>& ops)
 {

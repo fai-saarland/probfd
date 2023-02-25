@@ -10,10 +10,8 @@ namespace probfd {
 
 namespace engine_interfaces {
 class HeuristicSearchConnector;
-template <typename>
-class StateIDMap;
-template <typename>
-class ActionIDMap;
+template <typename, typename>
+class StateSpace;
 template <typename>
 class TransitionSampler;
 } // namespace engine_interfaces
@@ -25,9 +23,7 @@ public:
 
     /// Creates a transition sampler from a given state and action id map.
     virtual std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>
-    create_sampler(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<OperatorID>* op_id_map) = 0;
+    create_sampler(engine_interfaces::StateSpace<State, OperatorID>*) = 0;
 };
 
 } // namespace probfd

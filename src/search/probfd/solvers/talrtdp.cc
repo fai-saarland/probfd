@@ -34,9 +34,7 @@ public:
         , successor_sampler_(this->wrap(
               opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
                       "successor_sampler")
-                  ->create_sampler(
-                      &this->state_id_map_,
-                      &this->action_id_map_)))
+                  ->create_sampler(&this->state_space_)))
     {
     }
 

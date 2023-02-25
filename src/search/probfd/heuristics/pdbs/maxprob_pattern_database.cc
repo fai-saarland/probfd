@@ -137,9 +137,7 @@ void MaxProbPatternDatabase::compute_value_table(
         1_vt);
 
     IntervalIteration<StateRank, const AbstractOperator*> vi(
-        &state_space.state_id_map,
-        &state_space.action_id_map,
-        &state_space.transition_gen,
+        &state_space.state_space,
         &cost,
         &heuristic,
         true,

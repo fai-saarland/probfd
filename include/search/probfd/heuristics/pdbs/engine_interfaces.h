@@ -5,11 +5,9 @@
 #include "probfd/heuristics/pdbs/match_tree.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 
-#include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_id_map.h"
-#include "probfd/engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include "utils/collections.h"
 
@@ -27,8 +25,17 @@ class PatternDatabase;
 namespace probfd {
 namespace engine_interfaces {
 template <>
-class StateIDMap<heuristics::pdbs::StateRank> {
+class StateSpace<
+    heuristics::pdbs::StateRank,
+    const heuristics::pdbs::AbstractOperator*> {
+    const heuristics::pdbs::MatchTree& match_tree_;
+
 public:
+    explicit StateSpace(const heuristics::pdbs::MatchTree& match_tree)
+        : match_tree_(match_tree)
+    {
+    }
+
     StateID get_state_id(heuristics::pdbs::StateRank state) const
     {
         return state.id;
@@ -38,37 +45,18 @@ public:
     {
         return heuristics::pdbs::StateRank(id);
     }
-};
-
-template <>
-class ActionIDMap<const heuristics::pdbs::AbstractOperator*> {
-    const heuristics::pdbs::MatchTree& aops_gen_;
-
-public:
-    explicit ActionIDMap(const heuristics::pdbs::MatchTree& aops_gen)
-        : aops_gen_(aops_gen)
-    {
-    }
 
     ActionID
     get_action_id(StateID, const heuristics::pdbs::AbstractOperator* op) const
     {
-        return aops_gen_.get_operator_index(*op);
+        return match_tree_.get_operator_index(*op);
     }
 
     const heuristics::pdbs::AbstractOperator*
     get_action(StateID, ActionID action_id) const
     {
-        return &aops_gen_.get_index_operator(action_id.id);
+        return &match_tree_.get_index_operator(action_id.id);
     }
-};
-
-template <>
-class TransitionGenerator<const heuristics::pdbs::AbstractOperator*> {
-    const heuristics::pdbs::MatchTree& aops_gen_;
-
-public:
-    explicit TransitionGenerator(const heuristics::pdbs::MatchTree& aops_gen);
 
     void generate_applicable_actions(
         StateID state,

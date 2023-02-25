@@ -87,7 +87,7 @@ class FRET : public MDPEngine<State, Action> {
         bool is_leaf = true;
     };
 
-    using QuotientSystem = quotients::QuotientSystem<Action>;
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QAction = typename QuotientSystem::QAction;
 
     GreedyGraphGenerator greedy_graph_;
@@ -103,18 +103,12 @@ class FRET : public MDPEngine<State, Action> {
 
 public:
     FRET(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function,
         QuotientSystem* quotient,
         ProgressReport* report,
         std::shared_ptr<HeuristicSearchEngine<State, QAction, Interval>> engine)
-        : MDPEngine<State, Action>(
-              state_id_map,
-              action_id_map,
-              transition_generator,
-              cost_function)
+        : MDPEngine<State, Action>(state_space, cost_function)
         , greedy_graph_(engine.get())
         , report_(report)
         , quotient_(quotient)
@@ -284,7 +278,7 @@ private:
 
 template <typename State, typename Action, bool Interval>
 class ValueGraph {
-    using QAction = typename quotients::QuotientSystem<Action>::QAction;
+    using QAction = typename quotients::QuotientSystem<State, Action>::QAction;
 
     HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
 
@@ -326,7 +320,7 @@ public:
 
 template <typename State, typename Action, bool Interval>
 class PolicyGraph {
-    using QAction = typename quotients::QuotientSystem<Action>::QAction;
+    using QAction = typename quotients::QuotientSystem<State, Action>::QAction;
 
     HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
     Distribution<StateID> t_;

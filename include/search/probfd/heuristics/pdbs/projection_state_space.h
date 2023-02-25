@@ -25,10 +25,8 @@ class ProjectionStateSpace {
 
     MatchTree match_tree_;
 
-    engine_interfaces::StateIDMap<StateRank> state_id_map;
-    engine_interfaces::ActionIDMap<const AbstractOperator*> action_id_map;
-    engine_interfaces::TransitionGenerator<const AbstractOperator*>
-        transition_gen;
+    engine_interfaces::StateSpace<StateRank, const AbstractOperator*>
+        state_space;
 
     StateRank initial_state_;
 

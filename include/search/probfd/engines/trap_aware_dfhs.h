@@ -90,7 +90,7 @@ class TADepthFirstHeuristicSearch<
         internal::PerStateInformation>;
 
     using QAction = quotients::QuotientAction<Action>;
-    using QuotientSystem = quotients::QuotientSystem<Action>;
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 
     struct Flags {
@@ -174,9 +174,7 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<QAction>* action_id_map,
-        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
+        engine_interfaces::StateSpace<State, QAction>* state_space,
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<QAction>* policy_chooser,
@@ -195,9 +193,7 @@ public:
         bool reexpand_removed_traps,
         engine_interfaces::OpenList<QAction>* open_list)
         : HeuristicSearchBase(
-              state_id_map,
-              action_id_map,
-              transition_generator,
+              state_space,
               cost_function,
               value_init,
               policy_chooser,
@@ -664,9 +660,7 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<QAction>* action_id_map,
-        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
+        engine_interfaces::StateSpace<State, QAction>* state_space,
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<QAction>* policy_chooser,
@@ -674,7 +668,7 @@ public:
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy,
-        quotients::QuotientSystem<Action>* quotient,
+        quotients::QuotientSystem<State, Action>* quotient,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
         bool expand_tip_states,
@@ -685,9 +679,7 @@ public:
         bool reexpand_removed_traps,
         engine_interfaces::OpenList<QAction>* open_list)
         : engine_(
-              state_id_map,
-              action_id_map,
-              transition_generator,
+              state_space,
               cost_function,
               value_init,
               policy_chooser,

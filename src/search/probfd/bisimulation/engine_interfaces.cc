@@ -3,39 +3,39 @@
 namespace probfd {
 namespace engine_interfaces {
 
-StateID StateIDMap<bisimulation::QuotientState>::get_state_id(
-    const bisimulation::QuotientState& s) const
+StateSpace<bisimulation::QuotientState, bisimulation::QuotientAction>::
+    StateSpace(bisimulation::BisimilarStateSpace* bisim)
+    : bisim_(bisim)
+{
+}
+
+StateID StateSpace<bisimulation::QuotientState, bisimulation::QuotientAction>::
+    get_state_id(const bisimulation::QuotientState& s) const
 {
     return s;
 }
 
 bisimulation::QuotientState
-StateIDMap<bisimulation::QuotientState>::get_state(StateID s) const
+StateSpace<bisimulation::QuotientState, bisimulation::QuotientAction>::
+    get_state(StateID s) const
 {
     return bisimulation::QuotientState(s);
 }
 
-ActionID ActionIDMap<bisimulation::QuotientAction>::get_action_id(
-    StateID,
-    const bisimulation::QuotientAction& action) const
+ActionID StateSpace<bisimulation::QuotientState, bisimulation::QuotientAction>::
+    get_action_id(StateID, const bisimulation::QuotientAction& action) const
 {
     return action.idx;
 }
 
 bisimulation::QuotientAction
-ActionIDMap<bisimulation::QuotientAction>::get_action(StateID, ActionID action)
-    const
+StateSpace<bisimulation::QuotientState, bisimulation::QuotientAction>::
+    get_action(StateID, ActionID action) const
 {
     return bisimulation::QuotientAction(action);
 }
 
-TransitionGenerator<bisimulation::QuotientAction>::TransitionGenerator(
-    bisimulation::BisimilarStateSpace* bisim)
-    : bisim_(bisim)
-{
-}
-
-void TransitionGenerator<bisimulation::QuotientAction>::
+void StateSpace<bisimulation::QuotientState, bisimulation::QuotientAction>::
     generate_applicable_actions(
         StateID s,
         std::vector<bisimulation::QuotientAction>& res) const
@@ -43,7 +43,7 @@ void TransitionGenerator<bisimulation::QuotientAction>::
     bisim_->get_applicable_actions(s, res);
 }
 
-void TransitionGenerator<bisimulation::QuotientAction>::
+void StateSpace<bisimulation::QuotientState, bisimulation::QuotientAction>::
     generate_action_transitions(
         StateID s,
         const bisimulation::QuotientAction& a,
@@ -52,7 +52,7 @@ void TransitionGenerator<bisimulation::QuotientAction>::
     bisim_->get_successors(s, a, res);
 }
 
-void TransitionGenerator<bisimulation::QuotientAction>::
+void StateSpace<bisimulation::QuotientState, bisimulation::QuotientAction>::
     generate_all_transitions(
         StateID state,
         std::vector<bisimulation::QuotientAction>& aops,

@@ -97,10 +97,9 @@ template <>
 class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
     using QAction = quotients::QuotientAction<OperatorID>;
 
-    quotients::QuotientSystem<OperatorID> quotient_;
+    quotients::QuotientSystem<State, OperatorID> quotient_;
 
-    engine_interfaces::ActionIDMap<QAction> q_action_id_map_;
-    engine_interfaces::TransitionGenerator<QAction> q_transition_gen_;
+    engine_interfaces::StateSpace<State, QAction> q_state_space_;
 
     std::shared_ptr<engine_interfaces::CostFunction<State, QAction>> q_cost_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QAction>>
@@ -111,15 +110,14 @@ class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
 public:
     explicit MDPHeuristicSearch(const options::Options& opts)
         : MDPHeuristicSearchBase(opts)
-        , quotient_(&this->action_id_map_, &this->transition_generator_)
-        , q_action_id_map_(&quotient_)
-        , q_transition_gen_(&quotient_)
+        , quotient_(&this->state_space_)
+        , q_state_space_(&quotient_)
         , q_cost_(new quotients::DefaultQuotientCostFunction<State, OperatorID>(
               &quotient_,
               this->cost_function_))
         , q_policy_tiebreaker_(
               this->policy_tiebreaker_ != nullptr
-                  ? new quotients::RepresentativePolicyPicker(
+                  ? new quotients::RepresentativePolicyPicker<State>(
                         &quotient_,
                         this->policy_tiebreaker_)
                   : nullptr)
@@ -166,9 +164,7 @@ public:
     {
         if (dual_bounds_) {
             return new HS<State, OperatorID, true>(
-                &this->state_id_map_,
-                &q_action_id_map_,
-                &q_transition_gen_,
+                &q_state_space_,
                 q_cost_.get(),
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),
@@ -180,9 +176,7 @@ public:
                 std::forward<Args>(args)...);
         } else {
             return new HS<State, OperatorID, false>(
-                &this->state_id_map_,
-                &q_action_id_map_,
-                &q_transition_gen_,
+                &q_state_space_,
                 q_cost_.get(),
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),
@@ -226,9 +220,7 @@ private:
     {
         std::shared_ptr<HS<State, QAction, Interval>> engine(
             new HS<State, QAction, Interval>(
-                &this->state_id_map_,
-                &q_action_id_map_,
-                &q_transition_gen_,
+                &q_state_space_,
                 q_cost_.get(),
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),
@@ -238,9 +230,7 @@ private:
                 stable_policy_,
                 std::forward<Args>(args)...));
         return new Fret<State, OperatorID, Interval>(
-            &this->state_id_map_,
-            &this->action_id_map_,
-            &this->transition_generator_,
+            &this->state_space_,
             this->cost_function_,
             &quotient_,
             &progress_,

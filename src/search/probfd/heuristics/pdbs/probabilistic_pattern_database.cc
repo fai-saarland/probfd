@@ -311,18 +311,12 @@ void ProbabilisticPatternDatabase::dump_graphviz(
         return transition_labels ? op_names(op) : "";
     };
 
-    StateIDMap<StateRank> state_id_map;
-
-    TransitionGenerator<const AbstractOperator*> transition_gen(
-        state_space.match_tree_);
-
     std::ofstream out(path);
 
     graphviz::dump_state_space_dot_graph<StateRank, const AbstractOperator*>(
         out,
         state_space.initial_state_,
-        &state_id_map,
-        &transition_gen,
+        &state_space.state_space,
         &costs,
         nullptr,
         sts,

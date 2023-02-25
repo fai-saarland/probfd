@@ -240,17 +240,11 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
 public:
     TopologicalValueIteration(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function,
         const engine_interfaces::Evaluator<State>* value_initializer,
         bool expand_goals)
-        : MDPEngine<State, Action>(
-              state_id_map,
-              action_id_map,
-              transition_generator,
-              cost_function)
+        : MDPEngine<State, Action>(state_space, cost_function)
         , value_initializer_(value_initializer)
         , expand_goals_(expand_goals)
     {

@@ -6,8 +6,10 @@
 #include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
 
-#include "probfd/action_id_map.h"
-#include "probfd/transition_generator.h"
+#include "probfd/state_space.h"
+
+#include "operator_id.h"
+#include "task_proxy.h"
 
 #include <algorithm>
 #include <cassert>
@@ -21,7 +23,7 @@ namespace probfd {
 namespace quotients {
 
 template <>
-class QuotientSystem<OperatorID> {
+class QuotientSystem<State, OperatorID> {
     friend struct const_iterator;
 
     struct QuotientInformation {
@@ -36,18 +38,18 @@ class QuotientSystem<OperatorID> {
     const bool cache_;
 
     segmented_vector::SegmentedVector<QuotientInformation> state_infos_;
-    engine_interfaces::TransitionGenerator<OperatorID>* gen_;
+    engine_interfaces::StateSpace<State, OperatorID>* state_space_;
 
-    std::unique_ptr<DefaultQuotientSystem<OperatorID>> fallback_;
+    std::unique_ptr<DefaultQuotientSystem<State, OperatorID>> fallback_;
 
 public:
     using QAction = QuotientAction<OperatorID>;
     using QuotientStateIDIterator =
-        DefaultQuotientSystem<OperatorID>::QuotientStateIDIterator;
+        DefaultQuotientSystem<State, OperatorID>::QuotientStateIDIterator;
 
     class const_iterator {
         const QuotientSystem* qs_;
-        DefaultQuotientSystem<OperatorID>::const_iterator i;
+        DefaultQuotientSystem<State, OperatorID>::const_iterator i;
 
     public:
         using value_type = StateID;
@@ -55,7 +57,7 @@ public:
 
         const_iterator(
             const QuotientSystem* qs,
-            DefaultQuotientSystem<OperatorID>::const_iterator x);
+            DefaultQuotientSystem<State, OperatorID>::const_iterator x);
 
         const_iterator& operator++();
         const_iterator operator++(int);
@@ -67,9 +69,8 @@ public:
 
     static_assert(std::input_iterator<const_iterator>);
 
-    QuotientSystem(
-        engine_interfaces::ActionIDMap<OperatorID>* aid,
-        engine_interfaces::TransitionGenerator<OperatorID>* transition_gen);
+    explicit QuotientSystem(
+        engine_interfaces::StateSpace<State, OperatorID>* state_space);
 
     unsigned quotient_size(StateID state_id) const;
 
@@ -78,6 +79,9 @@ public:
 
     std::ranges::subrange<QuotientStateIDIterator, QuotientStateIDIterator>
     quotient_range(StateID state_id) const;
+
+    StateID get_state_id(const State& s) const;
+    State get_state(StateID sid) const;
 
     StateID translate_state_id(StateID sid) const;
 
@@ -186,7 +190,11 @@ public:
 
             for (int i = 0; i < e; ++i) {
                 auto state = info.states[i];
-                update_cache(*filter_it, gen_->lookup(state), rid, states_set);
+                update_cache(
+                    *filter_it,
+                    state_space_->lookup(state),
+                    rid,
+                    states_set);
                 state_infos_[state].states[0] = rid;
             }
 
@@ -207,7 +215,7 @@ public:
         parents.shrink_to_fit();
 
         const ProbabilisticOperatorsProxy operators =
-            gen_->task_proxy.get_operators();
+            state_space_->task_proxy.get_operators();
 
         for (StateID parent : parents) {
             assert(parent != rid);
@@ -216,7 +224,7 @@ public:
             const auto& parent_states = state_infos_[parent].states;
 
             for (StateID parent_state : parent_states) {
-                auto& entry = gen_->lookup(parent_state);
+                auto& entry = state_space_->lookup(parent_state);
                 const OperatorID* aop = entry.aops;
                 const OperatorID* aop_end = entry.aops + entry.naops;
                 StateID* succ = entry.succs;
@@ -248,15 +256,15 @@ public:
 private:
     const QuotientInformation* get_infos(StateID sid) const;
 
-    engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
+    engine_interfaces::StateSpace<State, OperatorID>::CacheEntry&
     lookup(StateID sid);
 
-    const engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry&
+    const engine_interfaces::StateSpace<State, OperatorID>::CacheEntry&
     lookup(StateID sid) const;
 
     void update_cache(
         const std::vector<OperatorID>& exclude,
-        engine_interfaces::TransitionGenerator<OperatorID>::CacheEntry& entry,
+        engine_interfaces::StateSpace<State, OperatorID>::CacheEntry& entry,
         const StateID rid,
         const std::unordered_set<StateID>& quotient_states);
 

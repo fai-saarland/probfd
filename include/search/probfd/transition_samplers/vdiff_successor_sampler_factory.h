@@ -26,9 +26,7 @@ public:
     static void add_options_to_parser(options::OptionParser& parser);
 
     std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>
-    create_sampler(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<OperatorID>* op_id_map) override;
+    create_sampler(engine_interfaces::StateSpace<State, OperatorID>*) override;
 };
 
 } // namespace transition_samplers

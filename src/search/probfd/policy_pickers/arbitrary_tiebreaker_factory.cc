@@ -6,8 +6,7 @@ namespace policy_pickers {
 
 std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>>
 ArbitraryTiebreakerFactory::create_policy_tiebreaker(
-    engine_interfaces::StateIDMap<State>*,
-    engine_interfaces::ActionIDMap<OperatorID>*)
+    engine_interfaces::StateSpace<State, OperatorID>*)
 {
     return std::make_shared<ArbitraryTiebreaker<OperatorID>>();
 }

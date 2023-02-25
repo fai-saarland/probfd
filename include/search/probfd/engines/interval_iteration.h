@@ -74,18 +74,12 @@ public:
     using BoolStore = std::vector<StateID>;
 
     explicit IntervalIteration(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function,
         const engine_interfaces::Evaluator<State>* heuristic,
         bool extract_probability_one_states,
         bool expand_goals)
-        : MDPEngine<State, Action>(
-              state_id_map,
-              action_id_map,
-              transition_generator,
-              cost_function)
+        : MDPEngine<State, Action>(state_space, cost_function)
         , heuristic_(heuristic)
         , extract_probability_one_states_(extract_probability_one_states)
         , expand_goals_(expand_goals)
@@ -146,9 +140,7 @@ private:
     std::unique_ptr<QuotientSystem> get_quotient(const State& state)
     {
         Decomposer ec_decomposer(
-            this->get_state_id_map(),
-            this->get_action_id_map(),
-            this->get_transition_generator(),
+            this->get_state_space(),
             this->get_cost_function(),
             expand_goals_,
             heuristic_);
@@ -170,16 +162,13 @@ private:
     {
         using namespace engine_interfaces;
 
-        TransitionGenerator<QAction> q_transition_gen(sys);
+        StateSpace<State, QAction> q_state_space(sys);
         quotients::DefaultQuotientCostFunction<State, Action> q_cost(
             sys,
             this->get_cost_function());
-        ActionIDMap<QAction> q_action_id_map(sys);
 
         preprocessing::QualitativeReachabilityAnalysis<State, QAction> analysis(
-            this->get_state_id_map(),
-            &q_action_id_map,
-            &q_transition_gen,
+            &q_state_space,
             &q_cost,
             expand_goals_);
 
@@ -206,13 +195,7 @@ private:
         const auto new_init_id =
             sys->translate_state_id(this->get_state_id(state));
 
-        ValueIteration vi(
-            this->get_state_id_map(),
-            &q_action_id_map,
-            &q_transition_gen,
-            &q_cost,
-            heuristic_,
-            expand_goals_);
+        ValueIteration vi(&q_state_space, &q_cost, heuristic_, expand_goals_);
 
         value_t result = vi.solve(new_init_id, value_store);
         tvi_statistics_ = vi.get_statistics();

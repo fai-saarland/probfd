@@ -5,13 +5,11 @@
 
 #include "probfd/solver_interface.h"
 
-#include "probfd/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/progress_report.h"
-#include "probfd/state_id_map.h"
+#include "probfd/state_space.h"
 #include "probfd/task_proxy.h"
-#include "probfd/transition_generator.h"
 
 #include "state_registry.h"
 
@@ -38,9 +36,7 @@ protected:
 
     StateRegistry state_registry_;
 
-    engine_interfaces::StateIDMap<State> state_id_map_;
-    engine_interfaces::ActionIDMap<OperatorID> action_id_map_;
-    engine_interfaces::TransitionGenerator<OperatorID> transition_generator_;
+    engine_interfaces::StateSpace<State, OperatorID> state_space_;
     engine_interfaces::CostFunction<State, OperatorID>* cost_function_;
 
     ProgressReport progress_;
@@ -62,9 +58,7 @@ public:
     engine_factory(Args&&... args)
     {
         return new Engine(
-            &state_id_map_,
-            &action_id_map_,
-            &transition_generator_,
+            &state_space_,
             cost_function_,
             std::forward<Args>(args)...);
     }

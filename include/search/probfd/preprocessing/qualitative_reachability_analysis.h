@@ -4,11 +4,9 @@
 #include "utils/iterators.h"
 #include "utils/timer.h"
 
-#include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_id_map.h"
-#include "probfd/engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
@@ -78,70 +76,6 @@ struct StateInfo {
     unsigned stackid_ : 28;
 };
 
-template <typename Action>
-struct ExpansionInfo {
-    explicit ExpansionInfo(
-        unsigned stck,
-        std::vector<Action> aops,
-        Distribution<StateID> transition)
-        : stck(stck)
-        , lstck(stck)
-        , aops(std::move(aops))
-        , transition(std::move(transition))
-        , successor(this->transition.begin())
-    {
-    }
-
-    /**
-     * Advances to the next non-loop action. Returns nullptr if such an
-     * action does not exist.
-     */
-    bool next_action(
-        engine_interfaces::TransitionGenerator<Action>& transition_gen,
-        StateID state_id)
-    {
-        for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
-            transition.clear();
-            transition_gen.generate_action_transitions(
-                state_id,
-                aops.back(),
-                transition);
-            transition.make_unique();
-
-            if (!transition.is_dirac(state_id)) {
-                successor = transition.begin();
-
-                // Reset transition flags
-                exits_only_proper = true;
-                transitions_in_scc = false;
-                exits_scc = false;
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    bool next_successor() { return ++successor != transition.end(); }
-
-    StateID get_current_successor() { return successor->item; }
-
-    // Tarjan's SCC algorithm: stack id and lowlink
-    const unsigned stck;
-    unsigned lstck;
-
-    bool exits_only_proper = true;
-    bool transitions_in_scc = false;
-    bool exits_scc = false;
-
-    // Mutable info
-    std::vector<Action> aops;         // Remaining unexpanded operators
-    Distribution<StateID> transition; // Currently expanded transition
-    // Next state to expand
-    typename Distribution<StateID>::const_iterator successor;
-};
-
 struct StackInfo {
     explicit StackInfo(StateID sid)
         : stateid(sid)
@@ -169,26 +103,80 @@ struct StackInfo {
  */
 template <typename State, typename Action>
 class QualitativeReachabilityAnalysis {
+    struct ExpansionInfo {
+        explicit ExpansionInfo(
+            unsigned stck,
+            std::vector<Action> aops,
+            Distribution<StateID> transition)
+            : stck(stck)
+            , lstck(stck)
+            , aops(std::move(aops))
+            , transition(std::move(transition))
+            , successor(this->transition.begin())
+        {
+        }
+
+        /**
+         * Advances to the next non-loop action. Returns nullptr if such an
+         * action does not exist.
+         */
+        bool next_action(
+            engine_interfaces::StateSpace<State, Action>& state_space,
+            StateID state_id)
+        {
+            for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
+                transition.clear();
+                state_space.generate_action_transitions(
+                    state_id,
+                    aops.back(),
+                    transition);
+                transition.make_unique();
+
+                if (!transition.is_dirac(state_id)) {
+                    successor = transition.begin();
+
+                    // Reset transition flags
+                    exits_only_proper = true;
+                    transitions_in_scc = false;
+                    exits_scc = false;
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        bool next_successor() { return ++successor != transition.end(); }
+
+        StateID get_current_successor() { return successor->item; }
+
+        // Tarjan's SCC algorithm: stack id and lowlink
+        const unsigned stck;
+        unsigned lstck;
+
+        bool exits_only_proper = true;
+        bool transitions_in_scc = false;
+        bool exits_scc = false;
+
+        // Mutable info
+        std::vector<Action> aops;         // Remaining unexpanded operators
+        Distribution<StateID> transition; // Currently expanded transition
+        // Next state to expand
+        typename Distribution<StateID>::const_iterator successor;
+    };
+
     using StateInfo = internal::StateInfo;
-    using StateInfoStore = storage::PerStateStorage<StateInfo>;
-
-    using ExpansionInfo = internal::ExpansionInfo<Action>;
-    using ExpansionQueue = std::deque<ExpansionInfo>;
-
     using StackInfo = internal::StackInfo;
     using Stack = std::vector<StackInfo>;
 
 public:
     QualitativeReachabilityAnalysis(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_gen,
+        engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* costs,
         bool expand_goals,
         const engine_interfaces::Evaluator<State>* pruning_function = nullptr)
-        : state_id_map_(state_id_map)
-        , action_id_map_(action_id_map)
-        , transition_gen_(transition_gen)
+        : state_space_(state_space)
         , costs_(costs)
         , expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
@@ -203,7 +191,7 @@ public:
     {
         assert(expansion_queue_.empty());
 
-        auto init_id = state_id_map_->get_state_id(source_state);
+        auto init_id = state_space_->get_state_id(source_state);
         push(init_id, state_infos_[init_id], zero_states_out, one_states_out);
 
         assert(!expansion_queue_.empty());
@@ -282,7 +270,7 @@ public:
                 } else if (e->exits_only_proper) {
                     st->one = true;
                 }
-            } while (!e->next_action(*transition_gen_, s->stateid));
+            } while (!e->next_action(*state_space_, s->stateid));
         }
 
     break_exploration:;
@@ -301,7 +289,7 @@ private:
 
         state_info.explored = 1;
 
-        State state = state_id_map_->get_state(state_id);
+        State state = state_space_->get_state(state_id);
 
         if (costs_->get_termination_info(state).is_goal_state()) {
             ++stats_.terminals;
@@ -327,7 +315,7 @@ private:
         }
 
         std::vector<Action> aops;
-        transition_gen_->generate_applicable_actions(state_id, aops);
+        state_space_->generate_applicable_actions(state_id, aops);
 
         if (aops.empty()) {
             if (state_info.expandable_goal) {
@@ -344,7 +332,7 @@ private:
         Distribution<StateID> transition;
 
         do {
-            transition_gen_->generate_action_transitions(
+            state_space_->generate_action_transitions(
                 state_id,
                 aops.back(),
                 transition);
@@ -429,7 +417,7 @@ private:
             } else if (e.exits_only_proper) {
                 st.one = true;
             }
-        } while (e.next_action(*transition_gen_, s.stateid));
+        } while (e.next_action(*state_space_, s.stateid));
 
         return false;
     }
@@ -575,17 +563,15 @@ private:
         stack_.erase(begin, end);
     }
 
-    engine_interfaces::StateIDMap<State>* state_id_map_;
-    engine_interfaces::ActionIDMap<Action>* action_id_map_;
-    engine_interfaces::TransitionGenerator<Action>* transition_gen_;
+    engine_interfaces::StateSpace<State, Action>* state_space_;
     engine_interfaces::CostFunction<State, Action>* costs_;
 
     bool expand_goals_;
 
     const engine_interfaces::Evaluator<State>* pruning_function_;
 
-    StateInfoStore state_infos_;
-    ExpansionQueue expansion_queue_;
+    storage::PerStateStorage<StateInfo> state_infos_;
+    std::deque<ExpansionInfo> expansion_queue_;
     Stack stack_;
 
     QRStatistics stats_;

@@ -21,8 +21,7 @@ MDPSolver::MDPSolver(const options::Options& opts)
     : task(tasks::g_root_task)
     , task_proxy(*task)
     , state_registry_(task_proxy)
-    , state_id_map_(&state_registry_)
-    , transition_generator_(
+    , state_space_(
           task,
           &state_registry_,
           opts.get_list<std::shared_ptr<Evaluator>>(
@@ -64,7 +63,7 @@ void MDPSolver::solve()
     std::cout << "State space interface:" << std::endl;
     std::cout << "  Registered state(s): " << state_registry_.size()
               << std::endl;
-    transition_generator_.print_statistics(std::cout);
+    state_space_.print_statistics(std::cout);
 
     std::cout << std::endl;
     std::cout << "Engine " << get_engine_name() << " statistics:" << std::endl;

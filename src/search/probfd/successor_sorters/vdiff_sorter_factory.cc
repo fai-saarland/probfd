@@ -19,8 +19,7 @@ void VDiffSorterFactory::add_options_to_parser(options::OptionParser& parser)
 
 std::shared_ptr<engine_interfaces::SuccessorSorter<OperatorID>>
 VDiffSorterFactory::create_successor_sorter(
-    engine_interfaces::StateIDMap<State>*,
-    engine_interfaces::ActionIDMap<OperatorID>*)
+    engine_interfaces::StateSpace<State, OperatorID>*)
 {
     return std::make_unique<VDiffSorter>(favor_large_gaps_);
 }

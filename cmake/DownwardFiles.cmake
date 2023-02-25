@@ -815,10 +815,9 @@ fast_downward_plugin(
         probfd/value_utils
         
         # Engine interfaces
-        probfd/state_id_map
         probfd/state_evaluator
         probfd/cost_function
-        probfd/transition_generator
+        probfd/state_space
         probfd/progress_report
         probfd/quotient_system
 

@@ -1,12 +1,13 @@
 #ifndef PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H
 #define PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H
 
-#include "probfd/engine_interfaces/action_id_map.h"
-#include "probfd/engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include "algorithms/segmented_vector.h"
 
 #include "utils/collections.h"
+
+#include "task_proxy.h"
 
 #include <deque>
 #include <iterator>
@@ -28,7 +29,7 @@ struct QuotientAction {
     ActionID action_id;
 };
 
-template <typename Action>
+template <typename State, typename Action>
 class DefaultQuotientSystem {
     friend struct const_iterator;
 
@@ -57,8 +58,7 @@ class DefaultQuotientSystem {
 
     std::unordered_map<StateID::size_type, QuotientInformation> quotients_;
     segmented_vector::SegmentedVector<StateID::size_type> quotient_ids_;
-    engine_interfaces::ActionIDMap<Action>* action_id_map_;
-    engine_interfaces::TransitionGenerator<Action>* transition_gen_;
+    engine_interfaces::StateSpace<State, Action>* state_space_;
 
     // MASK: bitmask used to obtain the quotient state id, if it exists
     // FLAG: whether a quotient state id exists
@@ -116,11 +116,9 @@ public:
 
     static_assert(std::input_iterator<const_iterator>);
 
-    DefaultQuotientSystem(
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_gen)
-        : action_id_map_(action_id_map)
-        , transition_gen_(transition_gen)
+    explicit DefaultQuotientSystem(
+        engine_interfaces::StateSpace<State, Action>* state_space)
+        : state_space_(state_space)
     {
     }
 
@@ -158,12 +156,12 @@ public:
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
             std::vector<Action> orig;
-            transition_gen_->generate_applicable_actions(sid, orig);
+            state_space_->generate_applicable_actions(sid, orig);
 
             result.reserve(orig.size());
 
             for (const Action& a : orig) {
-                result.emplace_back(sid, action_id_map_->get_action_id(sid, a));
+                result.emplace_back(sid, state_space_->get_action_id(sid, a));
             }
         } else {
             result.reserve(info->aops.size());
@@ -183,10 +181,10 @@ public:
         const QAction& a,
         Distribution<StateID>& result) const
     {
-        const auto act = action_id_map_->get_action(a.state_id, a.action_id);
+        const auto act = state_space_->get_action(a.state_id, a.action_id);
 
         Distribution<StateID> orig;
-        transition_gen_->generate_action_transitions(a.state_id, act, orig);
+        state_space_->generate_action_transitions(a.state_id, act, orig);
 
         for (const auto& [state_id, probability] : orig) {
             result.add(get_masked_state_id(state_id) & MASK, probability);
@@ -201,13 +199,13 @@ public:
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
             std::vector<Action> orig_a;
-            transition_gen_->generate_applicable_actions(sid, orig_a);
+            state_space_->generate_applicable_actions(sid, orig_a);
 
             aops.reserve(orig_a.size());
             successors.resize(orig_a.size());
 
             for (unsigned i = 0; i < orig_a.size(); ++i) {
-                ActionID aid = action_id_map_->get_action_id(sid, orig_a[i]);
+                ActionID aid = state_space_->get_action_id(sid, orig_a[i]);
                 const QAction& a = aops.emplace_back(sid, aid);
                 generate_successors(sid, a, successors[i]);
             }
@@ -226,6 +224,13 @@ public:
             }
         }
     }
+
+    StateID get_state_id(const State& s) const
+    {
+        return state_space_->get_state_id(s);
+    }
+
+    State get_state(StateID sid) const { return state_space_->get_state(sid); }
 
     StateID translate_state_id(StateID sid) const
     {
@@ -262,7 +267,7 @@ public:
 
     Action get_original_action(StateID, const QAction& a) const
     {
-        return action_id_map_->get_action(a.state_id, a.action_id);
+        return state_space_->get_action(a.state_id, a.action_id);
     }
 
     QAction get_action(StateID sid, ActionID aid) const
@@ -329,14 +334,14 @@ public:
 
             // Generate the applicable actions
             std::vector<Action> gen_aops;
-            transition_gen_->generate_applicable_actions(rid, gen_aops);
+            state_space_->generate_applicable_actions(rid, gen_aops);
 
             // Filter actions
             filter_actions(gen_aops, ignore_actions[ridx]);
 
             // Add the action ids to the new quotient
             for (const Action& a : gen_aops) {
-                ActionID aid = action_id_map_->get_action_id(rid, a);
+                ActionID aid = state_space_->get_action_id(rid, a);
                 qinfo.aops.push_back(aid);
             }
 
@@ -387,16 +392,14 @@ public:
 
                 // Generate the applicable actions
                 std::vector<Action> gen_aops;
-                transition_gen_->generate_applicable_actions(
-                    state_id,
-                    gen_aops);
+                state_space_->generate_applicable_actions(state_id, gen_aops);
 
                 // Filter actions
                 filter_actions(gen_aops, *ignore_actions);
 
                 // Add the action ids to the new quotient
                 for (const Action& a : gen_aops) {
-                    ActionID aid = action_id_map_->get_action_id(state_id, a);
+                    ActionID aid = state_space_->get_action_id(state_id, a);
                     qinfo.aops.push_back(aid);
                 }
 
@@ -405,9 +408,9 @@ public:
         }
     }
 
-    engine_interfaces::ActionIDMap<Action>* get_action_id_map() const
+    engine_interfaces::StateSpace<State, Action>* get_state_space() const
     {
-        return action_id_map_;
+        return state_space_;
     }
 
 private:
@@ -442,7 +445,7 @@ private:
         for (auto& [qsid, naops] : states_naops) {
             auto aops_end = aopsit + naops;
             for (aopsit = it; aopsit != aops_end; ++aopsit) {
-                Action a = action_id_map_->get_action(qsid, *aopsit);
+                Action a = state_space_->get_action(qsid, *aopsit);
                 if (!utils::contains(filter, a) && it != aops_end) {
                     *it++ = std::move(*aopsit);
                 } else {
@@ -486,17 +489,17 @@ private:
     }
 };
 
-template <typename Action>
-class QuotientSystem : public DefaultQuotientSystem<Action> {
+template <typename State, typename Action>
+class QuotientSystem : public DefaultQuotientSystem<State, Action> {
 public:
     using QAction = QuotientAction<Action>;
     using QuotientStateIDIterator =
-        typename DefaultQuotientSystem<Action>::QuotientStateIDIterator;
-    using DefaultQuotientSystem<Action>::DefaultQuotientSystem;
+        typename DefaultQuotientSystem<State, Action>::QuotientStateIDIterator;
+    using DefaultQuotientSystem<State, Action>::DefaultQuotientSystem;
 };
 
-template <>
-class QuotientSystem<OperatorID>;
+template <typename State>
+class QuotientSystem<State, OperatorID>;
 
 } // namespace quotients
 } // namespace probfd

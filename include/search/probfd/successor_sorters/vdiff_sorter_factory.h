@@ -26,8 +26,7 @@ public:
 
     std::shared_ptr<engine_interfaces::SuccessorSorter<OperatorID>>
     create_successor_sorter(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<OperatorID>* op_id_map) override;
+        engine_interfaces::StateSpace<State, OperatorID>* state_space) override;
 };
 
 } // namespace successor_sorters

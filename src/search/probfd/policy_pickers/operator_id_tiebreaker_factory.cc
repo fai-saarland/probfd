@@ -21,8 +21,7 @@ void OperatorIdTiebreakerFactory::add_options_to_parser(
 
 std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>>
 OperatorIdTiebreakerFactory::create_policy_tiebreaker(
-    engine_interfaces::StateIDMap<State>*,
-    engine_interfaces::ActionIDMap<OperatorID>*)
+    engine_interfaces::StateSpace<State, OperatorID>*)
 {
     return std::make_shared<OperatorIdTiebreaker>(ascending_);
 }

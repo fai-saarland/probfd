@@ -1,11 +1,9 @@
 #ifndef PROBFD_ENGINES_ENGINE_H
 #define PROBFD_ENGINES_ENGINE_H
 
-#include "probfd/engine_interfaces/action_id_map.h"
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_id_map.h"
-#include "probfd/engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include "probfd/policies/empty_policy.h"
 
@@ -76,19 +74,13 @@ public:
     /**
      * @brief Construct the MDP engine from the given MDP model interfaces.
      *
-     * @param state_id_map - The state id mapping (populated by the engine).
-     * @param action_id_map - The action id mapping (populated by the engine).
-     * @param transition_generator - The transition generator.
+     * @param state_space - The state space interface.
      * @param cost_function - The cost function.
      */
     explicit MDPEngine(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function)
-        : state_id_map_(state_id_map)
-        , action_id_map_(action_id_map)
-        , transition_generator_(transition_generator)
+        : state_space_(state_space)
         , cost_function_(cost_function)
     {
     }
@@ -98,7 +90,7 @@ public:
      */
     StateID get_state_id(const State& s) const
     {
-        return state_id_map_->get_state_id(s);
+        return state_space_->get_state_id(s);
     }
 
     /**
@@ -107,7 +99,7 @@ public:
      */
     State lookup_state(StateID sid) const
     {
-        return state_id_map_->get_state(sid);
+        return state_space_->get_state(sid);
     }
 
     /**
@@ -116,7 +108,7 @@ public:
      */
     ActionID get_action_id(StateID sid, const Action& a) const
     {
-        return action_id_map_->get_action_id(sid, a);
+        return state_space_->get_action_id(sid, a);
     }
 
     /**
@@ -125,7 +117,7 @@ public:
      */
     Action lookup_action(StateID sid, ActionID aid) const
     {
-        return action_id_map_->get_action(sid, aid);
+        return state_space_->get_action(sid, aid);
     }
 
     /**
@@ -134,7 +126,7 @@ public:
      */
     void generate_applicable_ops(StateID sid, std::vector<Action>& ops) const
     {
-        transition_generator_->generate_applicable_actions(sid, ops);
+        state_space_->generate_applicable_actions(sid, ops);
     }
 
     /**
@@ -146,7 +138,7 @@ public:
         const Action& a,
         Distribution<StateID>& successors) const
     {
-        transition_generator_->generate_action_transitions(sid, a, successors);
+        state_space_->generate_action_transitions(sid, a, successors);
     }
 
     /**
@@ -162,7 +154,7 @@ public:
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors) const
     {
-        transition_generator_->generate_all_transitions(sid, aops, successors);
+        state_space_->generate_all_transitions(sid, aops, successors);
     }
 
     /**
@@ -183,28 +175,11 @@ public:
     }
 
     /**
-     * @brief Get the state id map object.
+     * @brief Get the state space interface.
      */
-    engine_interfaces::StateIDMap<State>* get_state_id_map() const
+    engine_interfaces::StateSpace<State, Action>* get_state_space() const
     {
-        return state_id_map_;
-    }
-
-    /**
-     * @brief Get the action id map object.
-     */
-    engine_interfaces::ActionIDMap<Action>* get_action_id_map() const
-    {
-        return action_id_map_;
-    }
-
-    /**
-     * @brief Get the transition generator.
-     */
-    engine_interfaces::TransitionGenerator<Action>*
-    get_transition_generator() const
-    {
-        return transition_generator_;
+        return state_space_;
     }
 
     /**
@@ -216,9 +191,7 @@ public:
     }
 
 private:
-    engine_interfaces::StateIDMap<State>* state_id_map_;
-    engine_interfaces::ActionIDMap<Action>* action_id_map_;
-    engine_interfaces::TransitionGenerator<Action>* transition_generator_;
+    engine_interfaces::StateSpace<State, Action>* state_space_;
     engine_interfaces::CostFunction<State, Action>* cost_function_;
 };
 

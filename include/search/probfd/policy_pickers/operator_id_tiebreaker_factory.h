@@ -23,8 +23,7 @@ public:
 
     std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>>
     create_policy_tiebreaker(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<OperatorID>* op_id_map) override;
+        engine_interfaces::StateSpace<State, OperatorID>* state_space) override;
 };
 
 } // namespace policy_pickers

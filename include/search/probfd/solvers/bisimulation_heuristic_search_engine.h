@@ -57,11 +57,9 @@ protected:
 
     bisimulation::BisimilarStateSpace bs;
 
-    engine_interfaces::StateIDMap<QState> state_id_map;
-    engine_interfaces::ActionIDMap<QAction> action_id_map;
-    engine_interfaces::TransitionGenerator<QAction> tgen;
+    engine_interfaces::StateSpace<QState, QAction> state_space_;
 
-    std::shared_ptr<bisimulation::QuotientCostFunction> cost;
+    std::shared_ptr<bisimulation::QuotientCostFunction> cost_;
     std::shared_ptr<engine_interfaces::Evaluator<QState>> heuristic_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QAction>> policy_;
     std::shared_ptr<engine_interfaces::NewStateHandler<QState>>
@@ -75,8 +73,8 @@ protected:
         : task(tasks::g_root_task)
         , engine_name_(engine_name)
         , bs(task.get())
-        , tgen(&bs)
-        , cost(new bisimulation::DefaultQuotientCostFunction(
+        , state_space_(&bs)
+        , cost_(new bisimulation::DefaultQuotientCostFunction(
               &bs,
               g_cost_model->optimal_value_bound()))
         , heuristic_(new bisimulation::DefaultQuotientEvaluator(
@@ -113,10 +111,8 @@ public:
         auto* res = new BisimulationBasedHeuristicSearchEngine(engine_name);
 
         res->engine_.reset(new HS<QState, QAction, Interval>(
-            &res->state_id_map,
-            &res->action_id_map,
-            &res->tgen,
-            res->cost.get(),
+            &res->state_space_,
+            res->cost_.get(),
             res->heuristic_.get(),
             res->policy_.get(),
             res->new_state_handler_.get(),
@@ -155,10 +151,9 @@ class QBisimulationBasedHeuristicSearchEngine
     using QAction = bisimulation::QuotientAction;
     using QQAction = quotients::QuotientAction<QAction>;
 
-    quotients::QuotientSystem<QAction> quotient_;
+    quotients::QuotientSystem<QState, QAction> quotient_;
 
-    engine_interfaces::ActionIDMap<QQAction> q_action_id_map_;
-    engine_interfaces::TransitionGenerator<QQAction> q_transition_gen_;
+    engine_interfaces::StateSpace<QState, QQAction> q_state_space_;
 
     std::shared_ptr<engine_interfaces::CostFunction<QState, QQAction>> q_cost_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QQAction>>
@@ -167,12 +162,11 @@ class QBisimulationBasedHeuristicSearchEngine
     explicit QBisimulationBasedHeuristicSearchEngine(
         const std::string& engine_name)
         : BisimulationBasedHeuristicSearchEngine(engine_name)
-        , quotient_(&action_id_map, &tgen)
-        , q_action_id_map_(&quotient_)
-        , q_transition_gen_(&quotient_)
+        , quotient_(&state_space_)
+        , q_state_space_(&quotient_)
         , q_cost_(new quotients::DefaultQuotientCostFunction(
               &quotient_,
-              cost.get()))
+              cost_.get()))
         , q_policy_tiebreaker_(new policy_pickers::ArbitraryTiebreaker<
                                quotients::QuotientAction<QAction>>())
     {
@@ -197,9 +191,7 @@ public:
 
         std::shared_ptr<HS<QState, QQAction, Interval>> engine(
             new HS<QState, QQAction, Interval>(
-                &res->state_id_map,
-                &res->q_action_id_map_,
-                &res->q_transition_gen_,
+                &res->q_state_space_,
                 res->q_cost_.get(),
                 res->heuristic_.get(),
                 res->q_policy_tiebreaker_.get(),
@@ -210,10 +202,8 @@ public:
                 std::forward<Args>(args)...));
 
         res->engine_.reset(new Fret<QState, QAction, Interval>(
-            &res->state_id_map,
-            &res->action_id_map,
-            &res->tgen,
-            res->cost.get(),
+            &res->state_space_,
+            res->cost_.get(),
             &res->quotient_,
             &progress,
             engine));

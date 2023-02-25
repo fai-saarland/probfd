@@ -70,9 +70,7 @@ public:
 
         BisimulationTimer stats;
         bisimulation::BisimilarStateSpace bs(tasks::g_root_task.get());
-        StateIDMap<QState> state_id_map;
-        ActionIDMap<QAction> action_id_map;
-        TransitionGenerator<QAction> tgen(&bs);
+        StateSpace<QState, QAction> state_space(&bs);
         bisimulation::DefaultQuotientCostFunction cost(
             &bs,
             g_cost_model->optimal_value_bound(),
@@ -94,26 +92,15 @@ public:
         std::unique_ptr<engines::MDPEngine<QState, QAction>> solver;
         value_t val;
         if (interval_iteration_) {
-            solver.reset(new engines::interval_iteration::
-                             IntervalIteration<QState, QAction>(
-                                 &state_id_map,
-                                 &action_id_map,
-                                 &tgen,
-                                 &cost,
-                                 nullptr,
-                                 false,
-                                 false));
+            solver.reset(new engines::interval_iteration::IntervalIteration<
+                         QState,
+                         QAction>(&state_space, &cost, nullptr, false, false));
             val = solver->solve(bs.get_initial_state());
         } else {
             heuristics::ConstantEvaluator<QState> initializer(0_vt);
-            solver.reset(new engines::topological_vi::
-                             TopologicalValueIteration<QState, QAction>(
-                                 &state_id_map,
-                                 &action_id_map,
-                                 &tgen,
-                                 &cost,
-                                 &initializer,
-                                 false));
+            solver.reset(new engines::topological_vi::TopologicalValueIteration<
+                         QState,
+                         QAction>(&state_space, &cost, &initializer, false));
             val = solver->solve(bs.get_initial_state());
         }
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;

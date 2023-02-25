@@ -236,12 +236,7 @@ void SSPPatternDatabase::compute_value_table(
         INFINITE_VALUE);
 
     QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
-        analysis(
-            &state_space.state_id_map,
-            &state_space.action_id_map,
-            &state_space.transition_gen,
-            &cost,
-            true);
+        analysis(&state_space.state_space, &cost, true);
 
     std::vector<StateID> proper_states;
 
@@ -253,9 +248,7 @@ void SSPPatternDatabase::compute_value_table(
     WrapperHeuristic h(proper_states, heuristic);
 
     TopologicalValueIteration<StateRank, const AbstractOperator*> vi(
-        &state_space.state_id_map,
-        &state_space.action_id_map,
-        &state_space.transition_gen,
+        &state_space.state_space,
         &cost,
         &h,
         true);

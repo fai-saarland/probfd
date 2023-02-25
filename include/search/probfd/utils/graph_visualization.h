@@ -3,8 +3,7 @@
 
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_id_map.h"
-#include "probfd/engine_interfaces/transition_generator.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -296,8 +295,7 @@ template <typename State, typename Action>
 void dump_state_space_dot_graph(
     std::ostream& out,
     const State& initial_state,
-    engine_interfaces::StateIDMap<State>* state_id_map,
-    engine_interfaces::TransitionGenerator<Action>* transition_gen,
+    engine_interfaces::StateSpace<State, Action>* state_space,
     engine_interfaces::CostFunction<State, Action>* cost_fn,
     engine_interfaces::Evaluator<State>* prune = nullptr,
     std::function<std::string(const State&)> sstr =
@@ -322,7 +320,7 @@ void dump_state_space_dot_graph(
         }
     };
 
-    StateID istateid = state_id_map->get_state_id(initial_state);
+    StateID istateid = state_space->get_state_id(initial_state);
     internal::GraphBuilder builder(istateid);
     std::stringstream ss;
     ss << std::setprecision(3);
@@ -360,10 +358,7 @@ void dump_state_space_dot_graph(
 
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> all_successors;
-        transition_gen->generate_all_transitions(
-            state_id,
-            aops,
-            all_successors);
+        state_space->generate_all_transitions(state_id, aops, all_successors);
 
         for (auto& dist : all_successors) {
             dist.make_unique();
@@ -408,7 +403,7 @@ void dump_state_space_dot_graph(
                 if (inserted) {
                     open.emplace_back(
                         succ_id,
-                        state_id_map->get_state(succ_id),
+                        state_space->get_state(succ_id),
                         succ_node);
                 }
 
@@ -428,7 +423,7 @@ void dump_state_space_dot_graph(
                 if (inserted) {
                     open.emplace_back(
                         succ_id,
-                        state_id_map->get_state(succ_id),
+                        state_space->get_state(succ_id),
                         succ_node);
                 }
             }

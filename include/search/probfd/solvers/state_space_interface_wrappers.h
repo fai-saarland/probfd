@@ -55,13 +55,12 @@ struct Wrapper<
         quotients::QuotientAction<OperatorID>>>;
 
     type operator()(
-        quotients::QuotientSystem<OperatorID>* q,
+        quotients::QuotientSystem<State, OperatorID>* q,
         std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>> t)
         const
     {
-        return std::make_shared<quotients::RepresentativeTransitionSampler>(
-            q,
-            t);
+        return std::make_shared<
+            quotients::RepresentativeTransitionSampler<State>>(q, t);
     }
 };
 
@@ -100,10 +99,10 @@ struct Wrapper<
         engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>;
 
     type operator()(
-        quotients::QuotientSystem<OperatorID>* q,
+        quotients::QuotientSystem<State, OperatorID>* q,
         std::shared_ptr<engine_interfaces::OpenList<OperatorID>> t) const
     {
-        return std::make_shared<quotients::RepresentativeOpenList>(q, t);
+        return std::make_shared<quotients::RepresentativeOpenList<State>>(q, t);
     }
 };
 

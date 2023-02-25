@@ -165,9 +165,7 @@ protected:
 
 public:
     HeuristicSearchBase(
-        engine_interfaces::StateIDMap<State>* state_id_map,
-        engine_interfaces::ActionIDMap<Action>* action_id_map,
-        engine_interfaces::TransitionGenerator<Action>* transition_generator,
+        engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<Action>* policy_chooser,
@@ -175,11 +173,7 @@ public:
         ProgressReport* report,
         bool interval_comparison,
         bool stable_policy)
-        : MDPEngine<State, Action>(
-              state_id_map,
-              action_id_map,
-              transition_generator,
-              cost_function)
+        : MDPEngine<State, Action>(state_space, cost_function)
         , value_initializer_(value_init)
         , policy_chooser_(policy_chooser)
         , on_new_state_(new_state_handler)

@@ -15,9 +15,7 @@ MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
     , policy_tiebreaker_(
           opts.contains("policy")
               ? opts.get<std::shared_ptr<TaskPolicyPickerFactory>>("policy")
-                    ->create_policy_tiebreaker(
-                        &this->state_id_map_,
-                        &this->action_id_map_)
+                    ->create_policy_tiebreaker(&this->state_space_)
               : nullptr)
     , new_state_handler_(new TaskNewStateHandlerList(
           opts.get_list<std::shared_ptr<TaskNewStateHandler>>("on_new_state")))
