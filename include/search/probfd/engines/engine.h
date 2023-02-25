@@ -7,11 +7,15 @@
 #include "probfd/engine_interfaces/state_id_map.h"
 #include "probfd/engine_interfaces/transition_generator.h"
 
+#include "probfd/policies/empty_policy.h"
+
 #include "probfd/distribution.h"
 #include "probfd/value_utils.h"
 
+#include <memory>
 #include <optional>
 #include <vector>
+
 
 namespace probfd {
 
@@ -28,6 +32,17 @@ template <typename State, typename Action>
 class MDPEngineInterface {
 public:
     virtual ~MDPEngineInterface() = default;
+
+    /**
+     * @brief Computes a partial policy for the input state.
+     *
+     * @note The default implementation of this method returns an empty policy.
+     */
+    virtual std::unique_ptr<PartialPolicy<State, Action>>
+    compute_policy(const State&)
+    {
+        return std::make_unique<policies::EmptyPolicy<State, Action>>();
+    }
 
     /**
      * @brief Runs the MDP algorithm with the initial state \p state .
