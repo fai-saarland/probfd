@@ -4,6 +4,7 @@ output.sas
 sas_plan*
 builds/
 build/
+build_configs.py
 .idea/
 cmake-build-debug/
 *.patch
