@@ -22,8 +22,9 @@ namespace engines {
  * @brief Interface for MDP algorithm implementations.
  *
  * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
  */
-template <typename State>
+template <typename State, typename Action>
 class MDPEngineInterface {
 public:
     virtual ~MDPEngineInterface() = default;
@@ -55,7 +56,7 @@ public:
  * @tparam Action - The action type of the underlying MDP model.
  */
 template <typename State, typename Action>
-class MDPEngine : public MDPEngineInterface<State> {
+class MDPEngine : public MDPEngineInterface<State, Action> {
 public:
     /**
      * @brief Construct the MDP engine from the given MDP model interfaces.

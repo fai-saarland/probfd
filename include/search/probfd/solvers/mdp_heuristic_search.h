@@ -56,7 +56,7 @@ public:
     using MDPHeuristicSearchBase::add_options_to_parser;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngine<State, OperatorID>*
+    engines::MDPEngineInterface<State, OperatorID>*
     create_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -130,7 +130,7 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngine<State, OperatorID>*
+    engines::MDPEngineInterface<State, OperatorID>*
     create_heuristic_search_engine(Args&&... args)
     {
         if (this->dual_bounds_) {
@@ -161,11 +161,11 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngine<State, QAction>*
+    engines::MDPEngineInterface<State, OperatorID>*
     create_quotient_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
-            return new HS<State, QAction, true>(
+            return new HS<State, OperatorID, true>(
                 &this->state_id_map_,
                 &q_action_id_map_,
                 &q_transition_gen_,
@@ -179,7 +179,7 @@ public:
                 &this->quotient_,
                 std::forward<Args>(args)...);
         } else {
-            return new HS<State, QAction, false>(
+            return new HS<State, OperatorID, false>(
                 &this->state_id_map_,
                 &q_action_id_map_,
                 &q_transition_gen_,
@@ -221,7 +221,7 @@ private:
         class HS,
         bool Interval,
         typename... Args>
-    engines::MDPEngine<State, OperatorID>*
+    engines::MDPEngineInterface<State, OperatorID>*
     create_heuristic_search_engine_wrapper(Args&&... args)
     {
         std::shared_ptr<HS<State, QAction, Interval>> engine(
@@ -260,7 +260,7 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngineInterface<State>*
+    engines::MDPEngineInterface<State, OperatorID>*
     create_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -307,7 +307,7 @@ public:
     using MDPHeuristicSearchBase::add_options_to_parser;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngineInterface<State>*
+    engines::MDPEngineInterface<State, OperatorID>*
     create_heuristic_search_engine(Args&&... args)
     {
         if (this->dual_bounds_) {
@@ -341,7 +341,7 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngineInterface<State>*
+    engines::MDPEngineInterface<State, OperatorID>*
     create_quotient_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -390,7 +390,7 @@ private:
         template <typename, typename, bool>
         class HS,
         typename... Args>
-    engines::MDPEngineInterface<State>*
+    engines::MDPEngineInterface<State, OperatorID>*
     heuristic_search_engine_factory_wrapper(Args&&... args)
     {
         return QBisimulationBasedHeuristicSearchEngine::

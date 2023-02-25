@@ -58,7 +58,8 @@ public:
      * @tparam Engine - The engine type to construct.
      */
     template <typename Engine, typename... Args>
-    engines::MDPEngine<State, OperatorID>* engine_factory(Args&&... args)
+    engines::MDPEngineInterface<State, OperatorID>*
+    engine_factory(Args&&... args)
     {
         return new Engine(
             &state_id_map_,
@@ -71,7 +72,7 @@ public:
     /**
      * @brief Factory method a new instance of the encapsulated MDP engine.
      */
-    virtual engines::MDPEngineInterface<State>* create_engine() = 0;
+    virtual engines::MDPEngineInterface<State, OperatorID>* create_engine() = 0;
 
     /**
      * @brief Returns the name of the encapsulated MDP engine.

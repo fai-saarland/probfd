@@ -68,22 +68,28 @@ struct PerStateInformation : public BaseInfo {
 
 } // namespace internal
 
-template <typename State, typename QAction, bool Interval>
-class TADepthFirstHeuristicSearch
+template <typename State, typename Action, bool Interval>
+class TADepthFirstHeuristicSearch;
+
+template <typename State, typename Action, bool Interval>
+class TADepthFirstHeuristicSearch<
+    State,
+    quotients::QuotientAction<Action>,
+    Interval>
     : public heuristic_search::HeuristicSearchBase<
           State,
-          QAction,
+          quotients::QuotientAction<Action>,
           Interval,
           true,
           internal::PerStateInformation> {
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
-        QAction,
+        quotients::QuotientAction<Action>,
         Interval,
         true,
         internal::PerStateInformation>;
 
-    using Action = typename quotients::unwrap_qaction_type<QAction>;
+    using QAction = quotients::QuotientAction<Action>;
     using QuotientSystem = quotients::QuotientSystem<Action>;
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 
@@ -139,12 +145,12 @@ class TADepthFirstHeuristicSearch
     QuotientSystem* quotient_;
 
     const bool forward_updates_;
+    const BacktrackingUpdateType backtrack_update_type_;
     const bool expand_tip_states_;
     const bool cutoff_inconsistent_;
     const bool terminate_exploration_;
     const bool value_iteration_;
     const bool mark_solved_;
-    const BacktrackingUpdateType backtrack_update_type_;
     const bool reexpand_removed_traps_;
 
     engine_interfaces::OpenList<QAction>* open_list_;
@@ -201,19 +207,19 @@ public:
               stable_policy)
         , quotient_(quotient)
         , forward_updates_(forward_updates)
+        , backtrack_update_type_(backtrack_update_type)
         , expand_tip_states_(expand_tip_states)
         , cutoff_inconsistent_(cutoff_inconsistent)
         , terminate_exploration_(stop_exploration_inconsistent)
         , value_iteration_(value_iteration)
         , mark_solved_(mark_solved)
-        , backtrack_update_type_(backtrack_update_type)
         , reexpand_removed_traps_(reexpand_removed_traps)
         , open_list_(open_list)
         , stack_index_(STATE_UNSEEN)
     {
     }
 
-    virtual value_t solve(const State& qstate) override
+    value_t solve(const State& qstate) override
     {
         this->initialize_report(qstate);
         StateID state_id = this->get_state_id(qstate);
@@ -225,7 +231,7 @@ public:
         return this->get_value(state_id);
     }
 
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
         HeuristicSearchBase::print_statistics(out);
@@ -640,6 +646,73 @@ private:
         }
 
         return std::make_pair(gvc, gpc);
+    }
+};
+
+template <typename State, typename Action, bool Interval>
+class TADepthFirstHeuristicSearch : public MDPEngineInterface<State, Action> {
+    TADepthFirstHeuristicSearch<
+        State,
+        quotients::QuotientAction<Action>,
+        Interval>
+        engine_;
+
+    using QAction = quotients::QuotientAction<Action>;
+
+public:
+    /**
+     * @brief Constructs a trap-aware DFHS solver object.
+     */
+    TADepthFirstHeuristicSearch(
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<QAction>* action_id_map,
+        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
+        engine_interfaces::CostFunction<State, QAction>* cost_function,
+        engine_interfaces::Evaluator<State>* value_init,
+        engine_interfaces::PolicyPicker<QAction>* policy_chooser,
+        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        ProgressReport* report,
+        bool interval_comparison,
+        bool stable_policy,
+        quotients::QuotientSystem<Action>* quotient,
+        bool forward_updates,
+        BacktrackingUpdateType backtrack_update_type,
+        bool expand_tip_states,
+        bool cutoff_inconsistent,
+        bool stop_exploration_inconsistent,
+        bool value_iteration,
+        bool mark_solved,
+        bool reexpand_removed_traps,
+        engine_interfaces::OpenList<QAction>* open_list)
+        : engine_(
+              state_id_map,
+              action_id_map,
+              transition_generator,
+              cost_function,
+              value_init,
+              policy_chooser,
+              new_state_handler,
+              report,
+              interval_comparison,
+              stable_policy,
+              quotient,
+              forward_updates,
+              backtrack_update_type,
+              expand_tip_states,
+              cutoff_inconsistent,
+              stop_exploration_inconsistent,
+              value_iteration,
+              mark_solved,
+              reexpand_removed_traps,
+              open_list)
+    {
+    }
+
+    value_t solve(const State& state) override { return engine_.solve(state); }
+
+    void print_statistics(std::ostream& out) const override
+    {
+        return engine_.print_statistics(out);
     }
 };
 

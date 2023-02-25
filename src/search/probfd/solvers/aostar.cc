@@ -40,7 +40,8 @@ public:
         return "aostar";
     }
 
-    virtual engines::MDPEngineInterface<State>* create_engine() override
+    virtual engines::MDPEngineInterface<State, OperatorID>*
+    create_engine() override
     {
         return this->template create_heuristic_search_engine<
             engines::ao_search::ao_star::AOStar>(successor_sampler_.get());
