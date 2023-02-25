@@ -32,6 +32,7 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
+namespace {
 class SortFactsByIncreasingHaddValues {
     // Can't store as unique_ptr since the class needs copy-constructor.
     shared_ptr<::additive_heuristic::AdditiveHeuristic> hadd;
@@ -55,6 +56,7 @@ public:
         return get_cost(a) < get_cost(b);
     }
 };
+} // namespace
 
 static void
 remove_initial_state_facts(const TaskBaseProxy& task_proxy, Facts& facts)
