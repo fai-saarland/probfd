@@ -19,7 +19,7 @@ QuotientSystem<OperatorID>::const_iterator&
 QuotientSystem<OperatorID>::const_iterator::operator++()
 {
     if (qs_->cache_) {
-        while (++i.i < qs_->state_infos_.size()) {
+        while (++i.i.id < qs_->state_infos_.size()) {
             const StateID::size_type ref = qs_->state_infos_[i.i].states[0];
             if (ref == i.i) {
                 break;
@@ -32,12 +32,11 @@ QuotientSystem<OperatorID>::const_iterator::operator++()
 }
 
 QuotientSystem<OperatorID>::const_iterator
-QuotientSystem<OperatorID>::const_iterator::operator+=(int x)
+QuotientSystem<OperatorID>::const_iterator::operator++(int)
 {
-    const_iterator res = *this;
-    while (x-- > 0)
-        this->operator++();
-    return res;
+    auto r = *this;
+    ++(*this);
+    return r;
 }
 
 bool operator==(
@@ -47,15 +46,7 @@ bool operator==(
     return left.i == right.i;
 }
 
-bool operator!=(
-    const QuotientSystem<OperatorID>::const_iterator& left,
-    const QuotientSystem<OperatorID>::const_iterator& right)
-{
-    return left.i != right.i;
-}
-
-QuotientSystem<OperatorID>::const_iterator::reference
-QuotientSystem<OperatorID>::const_iterator::operator*() const
+StateID QuotientSystem<OperatorID>::const_iterator::operator*() const
 {
     return i.i;
 }

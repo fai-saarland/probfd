@@ -50,24 +50,22 @@ public:
         DefaultQuotientSystem<OperatorID>::const_iterator i;
 
     public:
-        using iterator_type = std::forward_iterator_tag;
-        using value_type = StateID::size_type;
+        using value_type = StateID;
         using difference_type = std::ptrdiff_t;
-        using pointer = const StateID::size_type*;
-        using reference = const StateID::size_type&;
 
-        explicit const_iterator(
+        const_iterator(
             const QuotientSystem* qs,
             DefaultQuotientSystem<OperatorID>::const_iterator x);
 
         const_iterator& operator++();
-        const_iterator operator+=(int x);
+        const_iterator operator++(int);
 
         friend bool operator==(const const_iterator&, const const_iterator&);
-        friend bool operator!=(const const_iterator&, const const_iterator&);
 
-        reference operator*() const;
+        StateID operator*() const;
     };
+
+    static_assert(std::input_iterator<const_iterator>);
 
     QuotientSystem(
         engine_interfaces::ActionIDMap<OperatorID>* aid,

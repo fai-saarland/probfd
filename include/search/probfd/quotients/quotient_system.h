@@ -24,7 +24,7 @@ class OperatorID;
 namespace probfd {
 namespace quotients {
 
-template <typename BaseActionT>
+template <typename Action>
 class DefaultQuotientSystem {
     friend struct const_iterator;
 
@@ -51,31 +51,31 @@ class DefaultQuotientSystem {
         auto state_end() const { return utils::make_key_iterator(end()); }
     };
 
-    using QuotientMap =
-        std::unordered_map<StateID::size_type, QuotientInformation>;
-
-public:
-    using Action = BaseActionT;
-    using QAction = QuotientAction<Action>;
-    using QuotientStateIDIterator = utils::variant_iterator<
-        typename QuotientInformation::const_state_iterator,
-        const StateID*>;
+    std::unordered_map<StateID::size_type, QuotientInformation> quotients_;
+    segmented_vector::SegmentedVector<StateID::size_type> quotient_ids_;
+    engine_interfaces::ActionIDMap<Action>* action_id_map_;
+    engine_interfaces::TransitionGenerator<Action>* transition_gen_;
 
     // MASK: bitmask used to obtain the quotient state id, if it exists
     // FLAG: whether a quotient state id exists
     static constexpr StateID::size_type MASK = (StateID::size_type(-1) >> 1);
     static constexpr StateID::size_type FLAG = ~MASK;
 
-    struct const_iterator {
-        using iterator_type = std::forward_iterator_tag;
-        using value_type = StateID::size_type;
-        using difference_type = std::ptrdiff_t;
-        using pointer = const StateID::size_type*;
-        using reference = const StateID::size_type&;
+public:
+    using QAction = QuotientAction<Action>;
+    using QuotientStateIDIterator = utils::variant_iterator<
+        typename QuotientInformation::const_state_iterator,
+        const StateID*>;
 
-        explicit const_iterator(
-            const DefaultQuotientSystem* qs,
-            StateID::size_type x)
+    struct const_iterator {
+        const DefaultQuotientSystem* qs_;
+        StateID i;
+
+    public:
+        using difference_type = std::ptrdiff_t;
+        using value_type = StateID;
+
+        const_iterator(const DefaultQuotientSystem* qs, StateID x)
             : i(x)
             , qs_(qs)
         {
@@ -83,8 +83,8 @@ public:
 
         const_iterator& operator++()
         {
-            while (++i < qs_->quotient_ids_.size()) {
-                const StateID::size_type& ref = qs_->quotient_ids_[i];
+            while (++i.id < qs_->quotient_ids_.size()) {
+                const StateID ref = qs_->quotient_ids_[i];
                 if (i == (ref & DefaultQuotientSystem::MASK)) {
                     break;
                 }
@@ -93,38 +93,28 @@ public:
             return *this;
         }
 
-        const_iterator operator+=(int x)
+        const_iterator operator++(int)
         {
-            const_iterator res = *this;
-            while (x-- > 0)
-                this->operator++();
-            return res;
+            auto r = *this;
+            ++(*this);
+            return r;
         }
 
-        bool operator==(const const_iterator& other) const
+        friend bool
+        operator==(const const_iterator& left, const const_iterator& right)
         {
-            return i == other.i;
+            return left.i == right.i;
         }
 
-        bool operator!=(const const_iterator& other) const
-        {
-            return i != other.i;
-        }
-
-        reference operator*() const { return i; }
-
-        StateID::size_type i;
-
-    private:
-        const DefaultQuotientSystem* qs_;
+        StateID operator*() const { return i; }
     };
 
-    explicit DefaultQuotientSystem(
+    static_assert(std::input_iterator<const_iterator>);
+
+    DefaultQuotientSystem(
         engine_interfaces::ActionIDMap<Action>* action_id_map,
         engine_interfaces::TransitionGenerator<Action>* transition_gen)
-        : quotients_()
-        , quotient_ids_()
-        , action_id_map_(action_id_map)
+        : action_id_map_(action_id_map)
         , transition_gen_(transition_gen)
     {
     }
@@ -489,11 +479,6 @@ private:
 
         quotient_ids_[sid] = qsid | FLAG;
     }
-
-    QuotientMap quotients_;
-    segmented_vector::SegmentedVector<StateID::size_type> quotient_ids_;
-    engine_interfaces::ActionIDMap<Action>* action_id_map_;
-    engine_interfaces::TransitionGenerator<Action>* transition_gen_;
 };
 
 template <typename Action>
