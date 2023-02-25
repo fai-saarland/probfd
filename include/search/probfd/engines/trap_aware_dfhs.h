@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROBFD_ENGINES_TRAP_AWARE_DFHS_H
+#define PROBFD_ENGINES_TRAP_AWARE_DFHS_H
 
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engines/heuristic_search_base.h"
@@ -641,3 +642,5 @@ private:
 } // namespace trap_aware_dfhs
 } // namespace engines
 } // namespace probfd
+
+#endif
