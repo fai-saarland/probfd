@@ -78,7 +78,7 @@ Interval operator/(Interval rhs, value_t val)
 
 int approx_compare(Interval lhs, Interval rhs, value_t epsilon)
 {
-    return approx_compare(lhs.upper, rhs.upper, epsilon);
+    return approx_compare(lhs.lower, rhs.lower, epsilon);
 }
 
 int approx_compare(value_t v1, value_t v2, value_t epsilon)

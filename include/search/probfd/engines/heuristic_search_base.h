@@ -15,6 +15,7 @@
 #include "probfd/progress_report.h"
 #include "probfd/value_utils.h"
 
+#include "utils/collections.h"
 #include "utils/system.h"
 
 #if defined(EXPENSIVE_STATISTICS)
@@ -157,6 +158,11 @@ protected:
     const bool interval_comparison_;
     const bool stable_policy_;
 
+    struct UpdateResult {
+        bool value_changed;
+        bool policy_changed;
+    };
+
 public:
     HeuristicSearchBase(
         engine_interfaces::StateIDMap<State>* state_id_map,
@@ -209,7 +215,7 @@ public:
     value_t lookup_value(StateID state_id) override
     {
         if constexpr (UseInterval) {
-            return state_infos_[state_id].value.upper;
+            return state_infos_[state_id].value.lower;
         } else {
             return state_infos_[state_id].value;
         }
@@ -304,7 +310,7 @@ public:
 
         const StateInfo& info = state_infos_[state];
         if (info.policy == ActionID::undefined) {
-            return async_update(state, nullptr, &result).first;
+            return async_update(state, nullptr, &result).value_changed;
         }
 
         Action action = this->lookup_action(state, info.policy);
@@ -371,9 +377,10 @@ public:
     bool async_update(StateID s)
     {
         if constexpr (!StorePolicy) {
-            return compute_value_update(s);
+            return compute_value_update(s, lookup_initialize(s));
         } else {
-            return async_update(s, nullptr, nullptr).first;
+            return compute_value_policy_update(s, nullptr, nullptr)
+                .value_changed;
         }
     }
 
@@ -392,50 +399,24 @@ public:
      * @param[out] policy_transition - Return address for the new greedy
      * transition.
      */
-    std::pair<bool, bool> async_update(
+    UpdateResult async_update(
         StateID s,
         ActionID* policy_action,
         Distribution<StateID>* policy_transition)
     {
-        return compute_value_policy_update(
-            s,
-            *this->policy_chooser_,
-            stable_policy_,
-            policy_action,
-            policy_transition);
+        return compute_value_policy_update(s, policy_action, policy_transition);
     }
 
-    /**
-     * @brief Computes the value and policy update for a state and outputs the
-     * new greedy action and transition. Ties between optimal actions are
-     * broken by the supplied policy tiebreaker.
-     *
-     * Output parameters may be nullptr. The first returns values specifies
-     * whether the value changed. the second value specified whether the policy
-     * changed.
-     *
-     * Only applicable if the policy is stored.
-     *
-     * @param[in] s - The state for the value update
-     * @param[in] greedy_picker - A pointer to a function object breaking
-     * ties between optimal actions.
-     * @param[out] policy_action - Return address for the new greedy action.
-     * @param[out] policy_transition - Return address for the new greedy
-     * transition.
-     */
-    template <typename T>
-    std::pair<bool, bool> async_update(
-        StateID s,
-        T& greedy_picker,
-        ActionID* policy_action,
-        Distribution<StateID>* policy_transition)
+    bool compute_value_update_and_optimal_transitions(
+        StateID state_id,
+        std::vector<Action>& opt_aops,
+        std::vector<Distribution<StateID>>& opt_transitions)
     {
-        return compute_value_policy_update(
-            s,
-            greedy_picker,
-            false,
-            policy_action,
-            policy_transition);
+        return compute_value_update_and_optimal_transitions(
+            state_id,
+            lookup_initialize(state_id),
+            opt_aops,
+            opt_transitions);
     }
 
 protected:
@@ -480,7 +461,18 @@ protected:
         initialized = true;
 
         const StateInfo& info = lookup_initialize(this->get_state_id(state));
-        this->add_values_to_report(&info);
+
+        if constexpr (UseInterval) {
+            report_->register_value("vl", [&info]() {
+                return info.value.lower;
+            });
+            report_->register_value("vu", [&info]() {
+                return info.value.upper;
+            });
+        } else {
+            report_->register_value("v", [&info]() { return info.value; });
+        }
+
         statistics_.value = as_upper_bound(info.value);
         statistics_.before_last_update = statistics_;
         statistics_.initial_state_estimate = as_upper_bound(info.value);
@@ -649,31 +641,10 @@ protected:
     }
 
 private:
-    void add_values_to_report(const StateInfo* info)
-    {
-        if constexpr (UseInterval) {
-            report_->register_value("vl", [info]() {
-                return as_lower_bound(info->value);
-            });
-            report_->register_value("vu", [info]() {
-                return as_upper_bound(info->value);
-            });
-        } else {
-            report_->register_value("v", [info]() {
-                return as_upper_bound(info->value);
-            });
-        }
-    }
-
     StateInfo& lookup_initialize(StateID state_id)
     {
-        StateInfo& info = state_infos_[state_id];
-        initialize(state_id, info);
-        return info;
-    }
+        StateInfo& state_info = state_infos_[state_id];
 
-    void initialize(StateID state_id, StateInfo& state_info)
-    {
         if (!state_info.is_value_initialized()) {
             statistics_.evaluated_states++;
 
@@ -688,7 +659,7 @@ private:
                 state_info.value = IncumbentSolution(t_cost);
                 statistics_.goal_states++;
                 if (on_new_state_) on_new_state_->touch_goal(state);
-                return;
+                return state_info;
             }
 
             EvaluationResult estimate = value_initializer_->evaluate(state);
@@ -700,7 +671,7 @@ private:
                 state_info.set_on_fringe();
 
                 if constexpr (UseInterval) {
-                    state_info.value.upper = estimate.get_estimate();
+                    state_info.value.lower = estimate.get_estimate();
                 } else {
                     state_info.value = estimate.get_estimate();
                 }
@@ -708,31 +679,11 @@ private:
                 if (on_new_state_) on_new_state_->touch(state);
             }
         }
+
+        return state_info;
     }
 
-    bool compute_value_update(StateID state_id)
-    {
-        std::vector<Action> aops;
-        std::vector<Distribution<StateID>> transitions;
-        std::vector<IncumbentSolution> values;
-        IncumbentSolution new_value;
-
-        return compute_value_update(
-            state_id,
-            lookup_initialize(state_id),
-            aops,
-            transitions,
-            values,
-            new_value);
-    }
-
-    bool compute_value_update(
-        StateID state_id,
-        StateInfo& state_info,
-        std::vector<Action>& aops,
-        std::vector<Distribution<StateID>>& transitions,
-        std::vector<IncumbentSolution>& values,
-        IncumbentSolution& new_value)
+    bool compute_value_update(StateID state_id, StateInfo& state_info)
     {
 #if defined(EXPENSIVE_STATISTICS)
         utils::TimerScope scoped_upd_timer(statistics_.update_time);
@@ -748,7 +699,10 @@ private:
             state_info.removed_from_fringe();
         }
 
+        std::vector<Action> aops;
+        std::vector<Distribution<StateID>> transitions;
         this->generate_all_successors(state_id, aops, transitions);
+
         assert(aops.size() == transitions.size());
 
         if (aops.empty()) {
@@ -763,10 +717,9 @@ private:
             return result;
         }
 
-        new_value = IncumbentSolution(this->get_state_cost(state_id));
-        values.reserve(aops.size());
+        IncumbentSolution new_value(this->get_state_cost(state_id));
 
-        unsigned non_loop_end = 0;
+        bool has_only_self_loops = true;
         for (unsigned i = 0; i < aops.size(); ++i) {
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
@@ -790,24 +743,12 @@ private:
                     t_value *= 1_vt / (1_vt - self_loop);
                 }
 
-                values.push_back(t_value);
                 set_min(new_value, t_value);
-
-                if (non_loop_end != i) {
-                    aops[non_loop_end] = std::move(op);
-                    transitions[non_loop_end] = std::move(transition);
-                }
-
-                ++non_loop_end;
+                has_only_self_loops = false;
             }
         }
 
-        aops.erase(aops.begin() + non_loop_end, aops.end());
-        transitions.erase(
-            transitions.begin() + non_loop_end,
-            transitions.end());
-
-        if (aops.empty()) {
+        if (has_only_self_loops) {
             statistics_.self_loop_states++;
             return notify_dead_end(state_info);
         }
@@ -823,61 +764,150 @@ private:
         return false;
     }
 
-    template <typename T>
-    std::pair<bool, bool> compute_value_policy_update(
+    bool compute_value_update_and_optimal_transitions(
         StateID state_id,
-        T& greedy_picker,
-        bool stable_policy,
+        StateInfo& state_info,
+        std::vector<Action>& opt_aops,
+        std::vector<Distribution<StateID>>& opt_transitions)
+    {
+#if defined(EXPENSIVE_STATISTICS)
+        utils::TimerScope scoped_upd_timer(statistics_.update_time);
+#endif
+        statistics_.backups++;
+
+        if (state_info.is_terminal()) {
+            return false;
+        }
+
+        if (state_info.is_on_fringe()) {
+            ++statistics_.backed_up_states;
+            state_info.removed_from_fringe();
+        }
+
+        this->generate_all_successors(state_id, opt_aops, opt_transitions);
+
+        assert(opt_aops.size() == opt_transitions.size());
+
+        if (opt_aops.empty()) {
+            statistics_.terminal_states++;
+            const bool result = notify_dead_end(state_info);
+            if (result) {
+                ++statistics_.value_changes;
+                if (state_id == initial_state_id_) {
+                    statistics_.jump();
+                }
+            }
+            return result;
+        }
+
+        IncumbentSolution new_value(this->get_state_cost(state_id));
+
+        unsigned optimal_end = 0;
+        for (unsigned i = 0; i < opt_aops.size(); ++i) {
+            Action& op = opt_aops[i];
+            Distribution<StateID>& transition = opt_transitions[i];
+
+            IncumbentSolution t_value(this->get_action_cost(state_id, op));
+            value_t self_loop = 0_vt;
+            bool non_loop = false;
+
+            for (const auto& [succ_id, prob] : transition) {
+                if (succ_id == state_id) {
+                    self_loop += prob;
+                } else {
+                    const StateInfo& succ_info = lookup_initialize(succ_id);
+                    t_value += prob * succ_info.value;
+                    non_loop = true;
+                }
+            }
+
+            if (non_loop) {
+                if (self_loop > 0_vt) {
+                    t_value *= 1_vt / (1_vt - self_loop);
+                }
+
+                const int cmp = approx_compare(t_value, new_value);
+
+                if (cmp == 0) {
+                    if (optimal_end != i) {
+                        opt_aops[optimal_end] = std::move(op);
+                        opt_transitions[optimal_end] = std::move(transition);
+                    }
+
+                    ++optimal_end;
+                } else if (cmp < 0) {
+                    if (i != 0) {
+                        opt_aops.front() = std::move(op);
+                        opt_transitions.front() = std::move(transition);
+                    }
+
+                    optimal_end = 1;
+                }
+
+                set_min(new_value, t_value);
+            }
+        }
+
+        opt_aops.erase(opt_aops.begin() + optimal_end, opt_aops.end());
+        opt_transitions.erase(
+            opt_transitions.begin() + optimal_end,
+            opt_transitions.end());
+
+        if (opt_aops.empty()) {
+            statistics_.self_loop_states++;
+            return notify_dead_end(state_info);
+        }
+
+        if (this->update(state_info, new_value)) {
+            ++statistics_.value_changes;
+            if (state_id == initial_state_id_) {
+                statistics_.jump();
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    UpdateResult compute_value_policy_update(
+        StateID state_id,
         ActionID* greedy_action,
         Distribution<StateID>* greedy_transition)
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
-        std::vector<Action> aops;
-        std::vector<Distribution<StateID>> transitions;
-        std::vector<IncumbentSolution> values;
-        IncumbentSolution new_value;
+        std::vector<Action> opt_aops;
+        std::vector<Distribution<StateID>> opt_transitions;
 
         StateInfo& state_info = lookup_initialize(state_id);
 
-        bool b = compute_value_update(
+        const bool value_changed = compute_value_update_and_optimal_transitions(
             state_id,
             state_info,
-            aops,
-            transitions,
-            values,
-            new_value);
+            opt_aops,
+            opt_transitions);
 
-        if (aops.empty()) {
+        if (opt_aops.empty()) {
             state_info.set_policy(ActionID::undefined);
-            return std::make_pair(b, false);
+            return UpdateResult{value_changed, false};
         }
 
-        bool p = compute_policy_update(
+        const bool policy_changed = compute_policy_update(
             state_id,
             state_info,
-            greedy_picker,
-            stable_policy,
-            aops,
-            transitions,
-            values,
-            new_value,
+            opt_aops,
+            opt_transitions,
             greedy_action,
             greedy_transition);
 
-        return std::make_pair(b, p);
+        return UpdateResult{value_changed, policy_changed};
     }
 
-    template <typename T>
     bool compute_policy_update(
         StateID state_id,
         StateInfo& state_info,
-        T& greedy_picker,
-        bool stable,
-        std::vector<Action>& aops,
-        std::vector<Distribution<StateID>>& transitions,
-        const std::vector<IncumbentSolution>& values,
-        const IncumbentSolution& new_value,
+        std::vector<Action>& opt_aops,
+        std::vector<Distribution<StateID>>& opt_transitions,
         ActionID* greedy_action,
         Distribution<StateID>* greedy_transition)
     {
@@ -886,60 +916,48 @@ private:
 #endif
         auto previous_greedy = state_info.get_policy();
 
-        unsigned optimal_end = 0;
-        for (unsigned i = 0; i < aops.size(); ++i) {
-            if (approx_compare(values[i], new_value) <= 0) {
-                if (stable) {
-                    const auto aid = this->get_action_id(state_id, aops[i]);
-                    if (aid == previous_greedy) {
-                        if (greedy_action != nullptr) {
-                            *greedy_action = aid;
-                        }
-
-                        if (greedy_transition != nullptr) {
-                            *greedy_transition = std::move(transitions[i]);
-                        }
-
-                        return false;
+        // TODO The stable policy parameter should be part of the policy
+        // tiebreaker object.
+        if (stable_policy_) {
+            for (unsigned i = 0; i < opt_aops.size(); ++i) {
+                const auto aid = this->get_action_id(state_id, opt_aops[i]);
+                if (aid == previous_greedy) {
+                    if (greedy_action != nullptr) {
+                        *greedy_action = aid;
                     }
-                }
 
-                if (i != optimal_end) {
-                    transitions[optimal_end] = std::move(transitions[i]);
-                    aops[optimal_end] = std::move(aops[i]);
-                }
+                    if (greedy_transition != nullptr) {
+                        *greedy_transition = std::move(opt_transitions[i]);
+                    }
 
-                ++optimal_end;
+                    return false;
+                }
             }
         }
 
-        aops.erase(aops.begin() + optimal_end, aops.end());
-        transitions.erase(transitions.begin() + optimal_end, transitions.end());
-
-        assert(!aops.empty() && !transitions.empty());
-
         ++statistics_.policy_updates;
 
-        int index =
-            greedy_picker
-                .pick(state_id, previous_greedy, aops, transitions, *this);
-        assert(index < 0 || index < static_cast<int>(aops.size()));
+        const int index = this->policy_chooser_->pick(
+            state_id,
+            previous_greedy,
+            opt_aops,
+            opt_transitions,
+            *this);
+        assert(utils::in_bounds(index, opt_aops));
 
-        if (index >= 0) {
-            const ActionID aid = this->get_action_id(state_id, aops[index]);
+        const ActionID aid = this->get_action_id(state_id, opt_aops[index]);
 
-            if (greedy_action != nullptr) {
-                (*greedy_action) = aid;
-            }
+        if (greedy_action != nullptr) {
+            (*greedy_action) = aid;
+        }
 
-            if (greedy_transition != nullptr) {
-                (*greedy_transition) = std::move(transitions[index]);
-            }
+        if (greedy_transition != nullptr) {
+            (*greedy_transition) = std::move(opt_transitions[index]);
+        }
 
-            if (aid != state_info.get_policy()) {
-                state_info.set_policy(aid);
-                return true;
-            }
+        if (aid != state_info.get_policy()) {
+            state_info.set_policy(aid);
+            return true;
         }
 
         return false;

@@ -399,9 +399,9 @@ private:
                 statistics_.backtracking_updates++;
                 auto result =
                     this->async_update(einfo.stateid, nullptr, nullptr);
-                last_value_changed = result.first;
+                last_value_changed = result.value_changed;
                 last_unsolved_successors =
-                    last_unsolved_successors || result.second;
+                    last_unsolved_successors || result.policy_changed;
             }
 
             if (sinfo.index == sinfo.lowlink) {
@@ -473,7 +473,8 @@ private:
             sinfo.set_policy_initialized();
             statistics_.forward_updates++;
             const bool updated =
-                this->async_update(stateid, nullptr, &transition_).first;
+                this->async_update(stateid, nullptr, &transition_)
+                    .value_changed;
             einfo.value_changed = updated;
 
             if constexpr (Interval) {

@@ -311,7 +311,8 @@ private:
             ++statistics_.fw_updates;
             ActionID greedy_action;
             last_value_changed_ =
-                this->async_update(state, &greedy_action, &transition_).first;
+                this->async_update(state, &greedy_action, &transition_)
+                    .value_changed;
             flags.all_solved = flags.all_solved && !last_value_changed_;
             const bool cutoff = (!expand_tip_states_ && tip) ||
                                 (cutoff_inconsistent_ && last_value_changed_);
@@ -361,7 +362,8 @@ private:
 
         ActionID greedy_action;
         last_value_changed_ =
-            this->async_update(state, &greedy_action, &transition_).first;
+            this->async_update(state, &greedy_action, &transition_)
+                .value_changed;
         flags.all_solved = !last_value_changed_;
         const bool cutoff = !reexpand_removed_traps_ ||
                             (cutoff_inconsistent_ && last_value_changed_);
@@ -460,8 +462,8 @@ private:
                      (!flags.complete || !flags.all_solved))) {
                     ++statistics_.bw_updates;
                     auto updated = this->async_update(state, nullptr, nullptr);
-                    last_value_changed_ = updated.first;
-                    last_policy_changed_ = updated.second;
+                    last_value_changed_ = updated.value_changed;
+                    last_policy_changed_ = updated.policy_changed;
                     flags.complete = flags.complete && !last_policy_changed_;
                     flags.all_solved = flags.all_solved && !last_value_changed_;
                     terminated_ = terminated_ ||
@@ -476,10 +478,12 @@ private:
                             BacktrackingUpdateType::UntilConvergence) {
                             auto res =
                                 this->async_update(state, nullptr, nullptr);
-                            last_value_changed_ = res.first;
-                            last_policy_changed_ = res.second;
-                            flags.complete = flags.complete && !res.second;
-                            flags.all_solved = flags.all_solved && !res.first;
+                            last_value_changed_ = res.value_changed;
+                            last_policy_changed_ = res.policy_changed;
+                            flags.complete =
+                                flags.complete && !res.policy_changed;
+                            flags.all_solved =
+                                flags.all_solved && !res.value_changed;
                             terminated_ =
                                 terminated_ ||
                                 (terminate_exploration_ &&
@@ -620,9 +624,9 @@ private:
             bool changed = false;
             for (const StateID state : range) {
                 auto updated = this->async_update(state, nullptr, nullptr);
-                changed = changed || updated.first;
-                gvc = gvc || updated.first;
-                gpc = gpc || updated.second;
+                changed = changed || updated.value_changed;
+                gvc = gvc || updated.value_changed;
+                gpc = gpc || updated.policy_changed;
                 ++statistics_.bw_updates;
             }
 

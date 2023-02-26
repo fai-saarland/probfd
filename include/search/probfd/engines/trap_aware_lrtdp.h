@@ -232,7 +232,7 @@ private:
             statistics_.trial_bellman_backups++;
             const bool changed =
                 this->async_update(stateid, nullptr, &selected_transition_)
-                    .first;
+                    .value_changed;
 
             if (selected_transition_.empty()) {
                 info.set_solved();
@@ -430,7 +430,7 @@ private:
                                            state,
                                            &greedy_action,
                                            &this->selected_transition_)
-                                       .first;
+                                       .value_changed;
 
         if (this->selected_transition_.empty()) {
             assert(this->get_state_info(state).is_dead_end());

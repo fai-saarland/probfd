@@ -286,33 +286,11 @@ template <typename State, typename Action, bool Interval>
 class ValueGraph {
     using QAction = typename quotients::QuotientSystem<Action>::QAction;
 
-    class StateCollector {
-        std::unordered_set<StateID> ids;
-
-    public:
-        std::vector<StateID> states;
-
-        int pick(
-            StateID,
-            ActionID,
-            const std::vector<QAction>&,
-            const std::vector<Distribution<StateID>>& transitions,
-            engine_interfaces::HeuristicSearchInterface&)
-        {
-            for (const auto& transition : transitions) {
-                for (const StateID sid : transition.elements()) {
-                    if (ids.insert(sid).second) {
-                        states.push_back(sid);
-                    }
-                }
-            }
-            ids.clear();
-            return -1;
-        }
-    };
-
     HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
-    StateCollector collector_;
+
+    std::unordered_set<StateID> ids;
+    std::vector<QAction> opt_aops;
+    std::vector<Distribution<StateID>> opt_transitions;
 
 public:
     explicit ValueGraph(HeuristicSearchEngine<State, QAction, Interval>* hs)
@@ -322,11 +300,27 @@ public:
 
     bool operator()(StateID qstate, std::vector<StateID>& successors)
     {
-        collector_.states.clear();
-        auto result =
-            base_engine_->async_update(qstate, collector_, nullptr, nullptr);
-        collector_.states.swap(successors);
-        return result.first;
+        assert(successors.empty());
+
+        bool value_changed =
+            base_engine_->compute_value_update_and_optimal_transitions(
+                qstate,
+                opt_aops,
+                opt_transitions);
+
+        for (const auto& transition : opt_transitions) {
+            for (const StateID sid : transition.elements()) {
+                if (ids.insert(sid).second) {
+                    successors.push_back(sid);
+                }
+            }
+        }
+
+        ids.clear();
+        opt_aops.clear();
+        opt_transitions.clear();
+
+        return value_changed;
     }
 };
 

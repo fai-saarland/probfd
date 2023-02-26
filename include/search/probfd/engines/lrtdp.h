@@ -267,7 +267,7 @@ private:
                                                state_id,
                                                nullptr,
                                                &this->selected_transition_)
-                                           .first;
+                                           .value_changed;
             if (this->selected_transition_.empty()) {
                 auto& base_info = this->get_state_info(state_id, state_info);
                 // terminal
@@ -345,7 +345,7 @@ private:
                                                state_id,
                                                nullptr,
                                                &this->selected_transition_)
-                                           .first;
+                                           .value_changed;
 
             if (value_changed) {
                 epsilon_consistent = false;
