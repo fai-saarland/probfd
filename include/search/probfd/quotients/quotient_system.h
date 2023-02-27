@@ -34,26 +34,77 @@ class DefaultQuotientSystem {
     friend struct const_iterator;
 
     struct QuotientInformation {
-        std::vector<std::pair<StateID, unsigned>> states_naops;
+        struct StateInfo {
+            StateID state_id;
+            size_t num_outer_acts = 0;
+            size_t num_inner_acts = 0;
+        };
+
+        std::vector<StateInfo> state_infos;
         std::vector<ActionID> aops;
+        std::vector<ActionID> inner_aops;
 
-        using iterator = decltype(states_naops.begin());
-        using const_iterator = decltype(std::as_const(states_naops).begin());
+        auto begin() { return state_infos.begin(); }
+        auto end() { return state_infos.end(); }
 
-        using state_iterator = utils::key_iterator<iterator>;
-        using const_state_iterator = utils::key_iterator<const_iterator>;
+        auto begin() const { return state_infos.begin(); }
+        auto end() const { return state_infos.end(); }
 
-        auto begin() { return states_naops.begin(); }
-        auto end() { return states_naops.end(); }
+        auto state_begin()
+        {
+            return utils::make_transform_iterator(
+                begin(),
+                &StateInfo::state_id);
+        }
 
-        auto begin() const { return states_naops.begin(); }
-        auto end() const { return states_naops.end(); }
+        auto state_end()
+        {
+            return utils::make_transform_iterator(end(), &StateInfo::state_id);
+        }
 
-        auto state_begin() { return utils::make_key_iterator(begin()); }
-        auto state_end() { return utils::make_key_iterator(end()); }
+        auto state_begin() const
+        {
+            return utils::make_transform_iterator(
+                begin(),
+                &StateInfo::state_id);
+        }
 
-        auto state_begin() const { return utils::make_key_iterator(begin()); }
-        auto state_end() const { return utils::make_key_iterator(end()); }
+        auto state_end() const
+        {
+            return utils::make_transform_iterator(end(), &StateInfo::state_id);
+        }
+
+        void filter_actions(
+            engine_interfaces::StateSpace<State, Action>& state_space,
+            const std::vector<Action>& filter)
+        {
+            if (filter.empty()) {
+                return;
+            }
+
+            // Immitate std::remove_if
+            auto remaining_end = aops.begin();
+            auto it = aops.begin();
+
+            for (auto& info : state_infos) {
+                auto last = it + info.num_outer_acts;
+                for (; it != last; ++it) {
+                    Action a = state_space.get_action(info.state_id, *it);
+                    if (!utils::contains(filter, a)) {
+                        if (it != remaining_end) {
+                            *remaining_end = std::move(*it);
+                        }
+                        ++remaining_end;
+                    } else {
+                        --info.num_outer_acts;
+                    }
+                }
+            }
+
+            assert(it == aops.end());
+
+            aops.erase(remaining_end, aops.end());
+        }
     };
 
     std::unordered_map<StateID::size_type, QuotientInformation> quotients_;
@@ -68,7 +119,7 @@ class DefaultQuotientSystem {
 public:
     using QAction = QuotientAction<Action>;
     using QuotientStateIDIterator = utils::variant_iterator<
-        typename QuotientInformation::const_state_iterator,
+        decltype(std::declval<const QuotientInformation>().state_begin()),
         const StateID*>;
 
     struct const_iterator {
@@ -132,7 +183,7 @@ public:
     unsigned quotient_size(StateID state_id) const
     {
         const QuotientInformation* info = get_quotient_info(state_id);
-        return info ? info->states_naops.size() : 1;
+        return info ? info->state_infos.size() : 1;
     }
 
     auto quotient_range(const StateID& state_id) const
@@ -168,9 +219,11 @@ public:
 
             auto aid = info->aops.begin();
 
-            for (const auto& [qsid, naops] : info->states_naops) {
-                for (auto aops_end = aid + naops; aid != aops_end; ++aid) {
-                    result.emplace_back(qsid, *aid);
+            for (const auto& sinfo : info->state_infos) {
+                for (auto aops_end = aid + sinfo.num_outer_acts;
+                     aid != aops_end;
+                     ++aid) {
+                    result.emplace_back(sinfo.state_id, *aid);
                 }
             }
         }
@@ -216,9 +269,10 @@ public:
             auto aop = info->aops.begin();
             unsigned k = 0;
 
-            for (const auto& [qsid, naops] : info->states_naops) {
-                for (auto aops_end = aop + naops; aop != aops_end; ++aop, ++k) {
-                    const QAction& a = aops.emplace_back(qsid, *aop);
+            for (const auto& info : info->state_infos) {
+                for (auto aops_end = aop + info.num_outer_acts; aop != aops_end;
+                     ++aop, ++k) {
+                    const QAction& a = aops.emplace_back(info.state_id, *aop);
                     generate_successors(sid, a, successors[k]);
                 }
             }
@@ -250,19 +304,19 @@ public:
             return a.action_id;
         }
 
-        auto state_naops = info->states_naops.begin();
-        auto aop = info->aops.begin();
+        auto state_info_it = info->state_infos.begin();
+        auto op_it = info->aops.begin();
 
-        while (state_naops->first != a.state_id) {
-            aop += state_naops->second;
-            ++state_naops;
+        while (state_info_it->state_id != a.state_id) {
+            op_it += state_info_it->num_outer_acts;
+            ++state_info_it;
         }
 
-        while (*aop != a.action_id) {
-            ++aop;
+        while (*op_it != a.action_id) {
+            ++op_it;
         }
 
-        return aop - info->aops.begin();
+        return op_it - info->aops.begin();
     }
 
     Action get_original_action(StateID, const QAction& a) const
@@ -277,15 +331,15 @@ public:
             return QAction(sid, aid);
         }
 
-        auto qsid_naops = info->states_naops.begin();
-        unsigned sum = qsid_naops->second;
+        auto state_info_it = info->state_infos.begin();
+        unsigned sum = state_info_it->num_outer_acts;
 
         while (sum <= aid) {
-            ++qsid_naops;
-            sum += qsid_naops->second;
+            ++state_info_it;
+            sum += state_info_it->num_outer_acts;
         }
 
-        return QAction(qsid_naops->first, info->aops[aid]);
+        return QAction(state_info_it->state_id, info->aops[aid]);
     }
 
     template <typename Range>
@@ -327,31 +381,37 @@ public:
 
         // We handle the representative state first so that it
         // appears first in the data structure.
-        if (qinfo.states_naops.empty()) {
+        if (qinfo.state_infos.empty()) {
             // Add this state to the quotient
-            auto& b = qinfo.states_naops.emplace_back(rid, 0);
+            auto& b = qinfo.state_infos.emplace_back(rid);
             set_masked_state_id(rid, rid);
 
             // Generate the applicable actions
             std::vector<Action> gen_aops;
             state_space_->generate_applicable_actions(rid, gen_aops);
 
-            // Filter actions
-            filter_actions(gen_aops, ignore_actions[ridx]);
+            // Partition actions
+            auto inner_it = partition_actions(gen_aops, ignore_actions[ridx]);
 
-            // Add the action ids to the new quotient
-            for (const Action& a : gen_aops) {
+            // Add the outer action ids to the new quotient
+            for (const Action& a :
+                 std::ranges::subrange(gen_aops.begin(), inner_it)) {
                 ActionID aid = state_space_->get_action_id(rid, a);
                 qinfo.aops.push_back(aid);
             }
 
-            b.second = gen_aops.size();
+            // Add the inner action ids to the new quotient
+            for (const Action& a :
+                 std::ranges::subrange(inner_it, gen_aops.end())) {
+                ActionID aid = state_space_->get_action_id(rid, a);
+                qinfo.inner_aops.push_back(aid);
+            }
+
+            b.num_outer_acts = std::distance(gen_aops.begin(), inner_it);
+            b.num_inner_acts = std::distance(inner_it, gen_aops.end());
         } else {
             // Filter actions
-            filter_actions(
-                qinfo.states_naops,
-                qinfo.aops,
-                ignore_actions[ridx]);
+            qinfo.filter_actions(*state_space_, ignore_actions[ridx]);
         }
 
         for (auto it = begin; it != end; ++it, ++ignore_actions) {
@@ -372,12 +432,12 @@ public:
                 QuotientInformation& q = qit->second;
 
                 // Filter actions
-                filter_actions(q.states_naops, q.aops, *ignore_actions);
+                q.filter_actions(*state_space_, *ignore_actions);
 
                 // Insert all states belonging to it to the new quotient
-                for (const auto& p : q.states_naops) {
-                    qinfo.states_naops.push_back(p);
-                    set_masked_state_id(p.first, rid);
+                for (const auto& p : q.state_infos) {
+                    qinfo.state_infos.push_back(p);
+                    set_masked_state_id(p.state_id, rid);
                 }
 
                 // Move the actions to the new quotient
@@ -387,72 +447,49 @@ public:
                 quotients_.erase(qit);
             } else {
                 // Add this state to the quotient
-                auto& b = qinfo.states_naops.emplace_back(state_id, 0);
+                auto& b = qinfo.state_infos.emplace_back(state_id);
                 set_masked_state_id(state_id, rid);
 
                 // Generate the applicable actions
                 std::vector<Action> gen_aops;
                 state_space_->generate_applicable_actions(state_id, gen_aops);
 
-                // Filter actions
-                filter_actions(gen_aops, *ignore_actions);
+                // Partition actions
+                auto inner_it = partition_actions(gen_aops, *ignore_actions);
 
-                // Add the action ids to the new quotient
-                for (const Action& a : gen_aops) {
+                // Add the outer action ids to the new quotient
+                for (const Action& a :
+                     std::ranges::subrange(gen_aops.begin(), inner_it)) {
                     ActionID aid = state_space_->get_action_id(state_id, a);
                     qinfo.aops.push_back(aid);
                 }
 
-                b.second = gen_aops.size();
+                // Add the inner action ids to the new quotient
+                for (const Action& a :
+                     std::ranges::subrange(inner_it, gen_aops.end())) {
+                    ActionID aid = state_space_->get_action_id(state_id, a);
+                    qinfo.inner_aops.push_back(aid);
+                }
+
+                b.num_outer_acts = std::distance(gen_aops.begin(), inner_it);
+                b.num_inner_acts = std::distance(inner_it, gen_aops.end());
             }
         }
     }
 
 private:
-    inline void
-    filter_actions(std::vector<Action>& aops, const std::vector<Action>& filter)
-        const
-    {
-        if (filter.empty()) {
-            return;
-        }
-
-        auto rem = [&filter](const Action& a) {
-            return utils::contains(filter, a);
-        };
-
-        aops.erase(std::remove_if(aops.begin(), aops.end(), rem), aops.end());
-    }
-
-    inline void filter_actions(
-        std::vector<std::pair<StateID, unsigned>>& states_naops,
-        std::vector<ActionID>& aops,
+    auto partition_actions(
+        std::vector<Action>& aops,
         const std::vector<Action>& filter) const
     {
         if (filter.empty()) {
-            return;
+            return aops.end();
         }
 
-        // Immitate std::remove_if
-        auto it = aops.end();
-        auto aopsit = aops.begin();
-
-        for (auto& [qsid, naops] : states_naops) {
-            auto aops_end = aopsit + naops;
-            for (aopsit = it; aopsit != aops_end; ++aopsit) {
-                Action a = state_space_->get_action(qsid, *aopsit);
-                if (!utils::contains(filter, a) && it != aops_end) {
-                    *it++ = std::move(*aopsit);
-                } else {
-                    if (it == aops_end) {
-                        it = aopsit;
-                    }
-                    --naops;
-                }
-            }
-        }
-
-        aops.erase(it, aops.end());
+        return std::stable_partition(
+            aops.begin(),
+            aops.end(),
+            [&filter](const Action& a) { return !utils::contains(filter, a); });
     }
 
     QuotientInformation* get_quotient_info(StateID state_id)
