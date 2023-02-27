@@ -76,8 +76,9 @@ public:
         using value_type = StateID;
 
         const_iterator(const DefaultQuotientSystem* qs, StateID x)
-            : i(x)
-            , qs_(qs)
+            : qs_(qs)
+            , i(x)
+
         {
         }
 

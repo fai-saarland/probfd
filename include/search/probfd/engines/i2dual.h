@@ -313,7 +313,7 @@ public:
             std::vector<double> solution = lp_solver_.extract_solution();
 
             // Push frontier candidates and remove them
-            std::erase_if(frontier_candidates, [&, this](StateID state_id) {
+            std::erase_if(frontier_candidates, [&](StateID state_id) {
                 for (const auto& [_, var_id] : idual_data[state_id].incoming) {
                     if (solution[var_id] > g_epsilon) {
                         frontier.push_back(state_id);

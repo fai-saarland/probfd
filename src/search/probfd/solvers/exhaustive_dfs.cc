@@ -41,6 +41,7 @@ class ExhaustiveDFSSolver : public MDPSolver {
 public:
     explicit ExhaustiveDFSSolver(const options::Options& opts)
         : MDPSolver(opts)
+        , cost_bound_(g_cost_model->optimal_value_bound())
         , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
         , new_state_handler_(new TaskNewStateHandlerList(
               opts.get_list<std::shared_ptr<TaskNewStateHandler>>(
@@ -53,7 +54,6 @@ public:
                             &this->state_id_map_,
                             &this->action_id_map_)
                   : nullptr)
-        , cost_bound_(g_cost_model->optimal_value_bound())
         , dual_bounds_(
               opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
         , interval_comparison_(
