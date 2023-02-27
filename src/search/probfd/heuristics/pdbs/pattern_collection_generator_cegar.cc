@@ -163,7 +163,7 @@ bool AbstractSolutionData<PDBType>::solution_exists() const
 template <typename PDBType>
 bool AbstractSolutionData<PDBType>::is_goal(StateRank rank) const
 {
-    return state_space.goal_state_flags_[rank.id];
+    return state_space.is_goal(rank);
 }
 
 // Instantiations

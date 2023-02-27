@@ -28,35 +28,23 @@ template <>
 class StateSpace<
     heuristics::pdbs::StateRank,
     const heuristics::pdbs::AbstractOperator*> {
-    const heuristics::pdbs::MatchTree& match_tree_;
+    heuristics::pdbs::MatchTree match_tree_;
 
 public:
-    explicit StateSpace(const heuristics::pdbs::MatchTree& match_tree)
-        : match_tree_(match_tree)
-    {
-    }
+    StateSpace(
+        const ProbabilisticTaskProxy& task_proxy,
+        const heuristics::pdbs::StateRankingFunction& ranking_function,
+        bool operator_pruning = true);
 
-    StateID get_state_id(heuristics::pdbs::StateRank state) const
-    {
-        return state.id;
-    }
+    StateID get_state_id(heuristics::pdbs::StateRank state) const;
 
-    heuristics::pdbs::StateRank get_state(StateID id) const
-    {
-        return heuristics::pdbs::StateRank(id);
-    }
+    heuristics::pdbs::StateRank get_state(StateID id) const;
 
     ActionID
-    get_action_id(StateID, const heuristics::pdbs::AbstractOperator* op) const
-    {
-        return match_tree_.get_operator_index(*op);
-    }
+    get_action_id(StateID, const heuristics::pdbs::AbstractOperator* op) const;
 
     const heuristics::pdbs::AbstractOperator*
-    get_action(StateID, ActionID action_id) const
-    {
-        return &match_tree_.get_index_operator(action_id.id);
-    }
+    get_action(StateID, ActionID action_id) const;
 
     void generate_applicable_actions(
         StateID state,
@@ -82,10 +70,7 @@ using StateRankEvaluator = engine_interfaces::Evaluator<StateRank>;
 using AbstractCostFunction =
     engine_interfaces::CostFunction<StateRank, const AbstractOperator*>;
 
-class QualitativeResultStore;
-
-class SSPPatternDatabase;
-class MaxProbPatternDatabase;
+class ProjectionStateSpace;
 
 class PDBEvaluator : public StateRankEvaluator {
 public:
@@ -152,48 +137,29 @@ protected:
 
 class BaseAbstractCostFunction : public AbstractCostFunction {
 protected:
-    const std::vector<bool>& goal_state_flags_;
+    const ProjectionStateSpace& state_space_;
     const value_t value_in_;
     const value_t value_not_in_;
 
 public:
-    explicit BaseAbstractCostFunction(
-        const std::vector<bool>& goal_state_flags,
+    BaseAbstractCostFunction(
+        const ProjectionStateSpace& state_space,
         value_t value_in,
-        value_t value_not_in)
-        : goal_state_flags_(goal_state_flags)
-        , value_in_(value_in)
-        , value_not_in_(value_not_in)
-    {
-    }
+        value_t value_not_in);
 
-    TerminationInfo get_termination_info(const StateRank& state) override
-    {
-        const bool is_contained = goal_state_flags_[state.id];
-        return TerminationInfo(
-            is_contained,
-            is_contained ? value_in_ : value_not_in_);
-    }
+    TerminationInfo get_termination_info(const StateRank& state) override;
 };
 
 class ZeroCostAbstractCostFunction : public BaseAbstractCostFunction {
 public:
     using BaseAbstractCostFunction::BaseAbstractCostFunction;
-
-    value_t get_action_cost(StateID, const AbstractOperator*) override
-    {
-        return 0;
-    }
+    value_t get_action_cost(StateID, const AbstractOperator*) override;
 };
 
 class NormalCostAbstractCostFunction : public BaseAbstractCostFunction {
 public:
     using BaseAbstractCostFunction::BaseAbstractCostFunction;
-
-    value_t get_action_cost(StateID, const AbstractOperator* op) override
-    {
-        return op->cost;
-    }
+    value_t get_action_cost(StateID, const AbstractOperator* op) override;
 };
 
 } // namespace pdbs

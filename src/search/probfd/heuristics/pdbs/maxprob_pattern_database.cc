@@ -131,10 +131,7 @@ void MaxProbPatternDatabase::compute_value_table(
 {
     using namespace engines::interval_iteration;
 
-    ZeroCostAbstractCostFunction cost(
-        state_space.goal_state_flags_,
-        0_vt,
-        1_vt);
+    ZeroCostAbstractCostFunction cost(state_space, 0_vt, 1_vt);
 
     IntervalIteration<StateRank, const AbstractOperator*> vi(
         &state_space.state_space,
@@ -235,10 +232,7 @@ void MaxProbPatternDatabase::dump_graphviz(
         return out.str();
     };
 
-    ZeroCostAbstractCostFunction cost(
-        state_space.goal_state_flags_,
-        0_vt,
-        1_vt);
+    ZeroCostAbstractCostFunction cost(state_space, 0_vt, 1_vt);
 
     ProbabilisticPatternDatabase::dump_graphviz(
         state_space,
@@ -288,14 +282,14 @@ void MaxProbPatternDatabase::verify(ProjectionStateSpace& state_space)
         StateRank s = queue.front();
         queue.pop_front();
 
-        if (state_space.goal_state_flags_[s.id]) {
+        if (state_space.is_goal(s)) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
         }
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        state_space.match_tree_.get_applicable_operators(s, aops);
+        state_space.get_applicable_operators(s, aops);
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {

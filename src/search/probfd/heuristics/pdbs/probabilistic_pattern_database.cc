@@ -91,7 +91,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
     AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
 
     // return empty policy indicating unsolvable
-    if (state_space.goal_state_flags_[state_space.initial_state_.id]) {
+    if (state_space.is_goal(state_space.initial_state_)) {
         return std::unique_ptr<AbstractPolicy>(policy);
     }
 
@@ -118,7 +118,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        state_space.match_tree_.get_applicable_operators(s, aops);
+        state_space.generate_applicable_actions(s.id, aops);
 
         // Select the greedy operators and add their successors
         for (const AbstractOperator* op : aops) {
@@ -134,7 +134,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
             if (is_approx_equal(value, op_value)) {
                 for (const StateRank& succ : successors) {
-                    if (state_space.goal_state_flags_[succ.id]) {
+                    if (state_space.is_goal(succ)) {
                         goals.push_back(succ);
                     } else if (closed.insert(succ).second) {
                         open.push_back(succ);
@@ -171,7 +171,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
                 // Collect all equivalent greedy operators
                 std::vector<const AbstractOperator*> aops;
-                state_space.match_tree_.get_applicable_operators(pstate, aops);
+                state_space.generate_applicable_actions(pstate.id, aops);
 
                 std::vector<const AbstractOperator*> equivalent_operators;
 
@@ -209,7 +209,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
     assert(lookup(state_space.initial_state_) != INFINITE_VALUE);
 
-    if (state_space.goal_state_flags_[state_space.initial_state_.id]) {
+    if (state_space.is_goal(state_space.initial_state_)) {
         return std::unique_ptr<AbstractPolicy>(policy);
     }
 
@@ -227,7 +227,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        state_space.match_tree_.get_applicable_operators(s, aops);
+        state_space.generate_applicable_actions(s.id, aops);
 
         if (aops.empty()) {
             assert(value == INFINITE_VALUE);
@@ -263,8 +263,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
         // Generate successors
         for (const StateRank& succ : greedy_successors) {
-            if (!state_space.goal_state_flags_[succ.id] &&
-                !closed.contains(succ)) {
+            if (!state_space.is_goal(succ) && !closed.contains(succ)) {
                 closed.insert(succ);
                 open.push_back(succ);
             }

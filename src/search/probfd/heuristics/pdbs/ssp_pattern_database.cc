@@ -210,10 +210,7 @@ void SSPPatternDatabase::dump_graphviz(
         return out.str();
     };
 
-    NormalCostAbstractCostFunction cost(
-        state_space.goal_state_flags_,
-        0_vt,
-        INFINITE_VALUE);
+    NormalCostAbstractCostFunction cost(state_space, 0_vt, INFINITE_VALUE);
 
     ProbabilisticPatternDatabase::dump_graphviz(
         state_space,
@@ -230,10 +227,7 @@ void SSPPatternDatabase::compute_value_table(
     using namespace preprocessing;
     using namespace engines::topological_vi;
 
-    NormalCostAbstractCostFunction cost(
-        state_space.goal_state_flags_,
-        0_vt,
-        INFINITE_VALUE);
+    NormalCostAbstractCostFunction cost(state_space, 0_vt, INFINITE_VALUE);
 
     QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
         analysis(&state_space.state_space, &cost, true);
@@ -318,14 +312,14 @@ void SSPPatternDatabase::verify(
 
         variables[s.id].objective_coefficient = 1_vt;
 
-        if (state_space.goal_state_flags_[s.id]) {
+        if (state_space.is_goal(s)) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
         }
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        state_space.match_tree_.get_applicable_operators(s, aops);
+        state_space.get_applicable_operators(s, aops);
 
         // Push successors
         for (const AbstractOperator* op : aops) {
