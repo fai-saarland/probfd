@@ -77,7 +77,8 @@ public:
         return "";
     }
 
-    virtual engines::MDPEngineInterface<State>* create_engine() override
+    virtual engines::MDPEngineInterface<State, OperatorID>*
+    create_engine() override
     {
         return this->template create_quotient_heuristic_search_engine<Engine>(
             stop_consistent_,

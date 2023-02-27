@@ -97,7 +97,8 @@ public:
         return "exhaustive_dfs";
     }
 
-    virtual engines::MDPEngineInterface<State>* create_engine() override
+    virtual engines::MDPEngineInterface<State, OperatorID>*
+    create_engine() override
     {
         using Engine = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
         using Engine2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;

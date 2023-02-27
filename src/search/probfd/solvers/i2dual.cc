@@ -42,7 +42,8 @@ public:
 
     virtual std::string get_engine_name() const override { return "i2dual"; }
 
-    virtual engines::MDPEngineInterface<State>* create_engine() override
+    virtual engines::MDPEngineInterface<State, OperatorID>*
+    create_engine() override
     {
         using I2DualEngine = engines::i2dual::I2Dual<State, OperatorID>;
 

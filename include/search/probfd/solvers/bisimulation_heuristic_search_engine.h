@@ -43,7 +43,7 @@ struct BisimulationTimer {
 };
 
 class BisimulationBasedHeuristicSearchEngine
-    : public engines::MDPEngineInterface<State> {
+    : public engines::MDPEngineInterface<State, OperatorID> {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
     using QQAction = quotients::QuotientAction<QAction>;
@@ -67,7 +67,7 @@ protected:
     std::shared_ptr<engine_interfaces::NewStateHandler<QState>>
         new_state_handler_;
 
-    std::shared_ptr<MDPEngineInterface<QState>> engine_;
+    std::shared_ptr<MDPEngineInterface<QState, QAction>> engine_;
 
 protected:
     explicit BisimulationBasedHeuristicSearchEngine(

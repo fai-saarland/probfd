@@ -57,7 +57,8 @@ public:
         return "lrtdp";
     }
 
-    virtual engines::MDPEngineInterface<State>* create_engine() override
+    virtual engines::MDPEngineInterface<State, OperatorID>*
+    create_engine() override
     {
         return this->template create_heuristic_search_engine<LRTDP>(
             stop_consistent_,

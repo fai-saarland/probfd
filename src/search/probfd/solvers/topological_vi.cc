@@ -49,7 +49,8 @@ public:
         return "topological_value_iteration";
     }
 
-    virtual engines::MDPEngineInterface<State>* create_engine() override
+    virtual engines::MDPEngineInterface<State, OperatorID>*
+    create_engine() override
     {
         using TVIEngine = engines::topological_vi::
             TopologicalValueIteration<State, OperatorID>;

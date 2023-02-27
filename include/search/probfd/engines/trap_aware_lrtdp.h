@@ -71,22 +71,25 @@ struct PerStateInformation : public StateInfo {
 
 } // namespace internal
 
-template <typename State, typename QAction, bool Interval>
-class TALRTDP
+template <typename State, typename Action, bool Interval>
+class TALRTDP;
+
+template <typename State, typename Action, bool Interval>
+class TALRTDP<State, quotients::QuotientAction<Action>, Interval>
     : public heuristic_search::HeuristicSearchBase<
           State,
-          QAction,
+          quotients::QuotientAction<Action>,
           Interval,
           true,
           internal::PerStateInformation> {
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
-        QAction,
+        quotients::QuotientAction<Action>,
         Interval,
         true,
         internal::PerStateInformation>;
 
-    using Action = typename quotients::unwrap_qaction_type<QAction>;
+    using QAction = quotients::QuotientAction<Action>;
     using QuotientSystem = quotients::QuotientSystem<Action>;
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 
@@ -187,7 +190,7 @@ public:
     {
     }
 
-    virtual value_t solve(const State& s) override
+    value_t solve(const State& s) override
     {
         this->initialize_report(s);
         const StateID state_id = this->get_state_id(s);
@@ -202,7 +205,7 @@ public:
         return this->get_value(state_id);
     }
 
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
         HeuristicSearchBase::print_statistics(out);
@@ -463,6 +466,57 @@ private:
         stack_index_[state] = stack_.size();
         stack_.push_front(state);
         return true;
+    }
+};
+
+template <typename State, typename Action, bool Interval>
+class TALRTDP : public engines::MDPEngineInterface<State, Action> {
+    using QAction = quotients::QuotientAction<Action>;
+
+    TALRTDP<State, QAction, Interval> engine_;
+
+public:
+    /**
+     * @brief Constructs a trap-aware LRTDP solver object.
+     */
+    TALRTDP(
+        engine_interfaces::StateIDMap<State>* state_id_map,
+        engine_interfaces::ActionIDMap<QAction>* action_id_map,
+        engine_interfaces::TransitionGenerator<QAction>* transition_generator,
+        engine_interfaces::CostFunction<State, QAction>* cost_function,
+        engine_interfaces::Evaluator<State>* value_init,
+        engine_interfaces::PolicyPicker<QAction>* policy_chooser,
+        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        ProgressReport* report,
+        bool interval_comparison,
+        bool stable_policy,
+        quotients::QuotientSystem<Action>* quotient,
+        TrialTerminationCondition stop_consistent,
+        bool reexpand_traps,
+        engine_interfaces::TransitionSampler<QAction>* succ_sampler)
+        : engine_(
+              state_id_map,
+              action_id_map,
+              transition_generator,
+              cost_function,
+              value_init,
+              policy_chooser,
+              new_state_handler,
+              report,
+              interval_comparison,
+              stable_policy,
+              quotient,
+              stop_consistent,
+              reexpand_traps,
+              succ_sampler)
+    {
+    }
+
+    value_t solve(const State& s) override { return engine_.solve(s); }
+
+    void print_statistics(std::ostream& out) const override
+    {
+        return engine_.print_statistics(out);
     }
 };
 

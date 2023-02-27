@@ -41,7 +41,8 @@ public:
 
     virtual std::string get_engine_name() const override { return "idual"; }
 
-    virtual engines::MDPEngineInterface<State>* create_engine() override
+    virtual engines::MDPEngineInterface<State, OperatorID>*
+    create_engine() override
     {
         using IDualEngine = engines::idual::IDual<State, OperatorID>;
 

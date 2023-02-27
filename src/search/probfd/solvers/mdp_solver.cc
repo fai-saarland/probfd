@@ -45,7 +45,8 @@ void MDPSolver::solve()
     std::cout << "Running MDP engine " << get_engine_name() << "..."
               << std::endl;
     utils::Timer total_timer;
-    std::unique_ptr<engines::MDPEngineInterface<State>> engine(create_engine());
+    std::unique_ptr<engines::MDPEngineInterface<State, OperatorID>> engine(
+        create_engine());
 
     const State initial_state = state_registry_.get_initial_state();
 

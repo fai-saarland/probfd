@@ -42,7 +42,8 @@ public:
         return "interval_iteration";
     }
 
-    virtual engines::MDPEngineInterface<State>* create_engine() override
+    virtual engines::MDPEngineInterface<State, OperatorID>*
+    create_engine() override
     {
         using IIEngine =
             engines::interval_iteration::IntervalIteration<State, OperatorID>;
