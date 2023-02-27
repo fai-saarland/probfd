@@ -28,7 +28,7 @@ create_additive_heuristic(const std::shared_ptr<AbstractTask> &task);
 extern utils::HashSet<FactProxy> get_relaxed_possible_before(
     const TaskProxy &task, const FactProxy &fact);
 
-extern std::vector<int> get_domain_sizes(const TaskProxy &task);
+extern std::vector<int> get_domain_sizes(const TaskBaseProxy& task);
 }
 
 /*

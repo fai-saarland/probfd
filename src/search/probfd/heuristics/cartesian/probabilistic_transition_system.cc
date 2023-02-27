@@ -366,6 +366,12 @@ ProbabilisticTransitionSystem::get_outgoing_transitions() const
     return outgoing;
 }
 
+const std::deque<ProbabilisticTransition>&
+ProbabilisticTransitionSystem::get_transitions() const
+{
+    return transitions;
+}
+
 int ProbabilisticTransitionSystem::get_num_states() const
 {
     assert(incoming.size() == outgoing.size());
