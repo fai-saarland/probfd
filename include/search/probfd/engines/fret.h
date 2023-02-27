@@ -61,6 +61,9 @@ template <
     bool Interval,
     typename GreedyGraphGenerator>
 class FRET : public MDPEngine<State, Action> {
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QAction = typename QuotientSystem::QAction;
+
     struct TarjanStateInformation {
         static constexpr unsigned UNDEF = -1;
 
@@ -77,8 +80,9 @@ class FRET : public MDPEngine<State, Action> {
     };
 
     struct ExplorationInfo {
-        ExplorationInfo(StateID state_id)
+        ExplorationInfo(StateID state_id, std::vector<StateID> successors)
             : state_id(state_id)
+            , successors(std::move(successors))
         {
         }
 
@@ -86,9 +90,6 @@ class FRET : public MDPEngine<State, Action> {
         std::vector<StateID> successors;
         bool is_leaf = true;
     };
-
-    using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using QAction = typename QuotientSystem::QAction;
 
     GreedyGraphGenerator greedy_graph_;
     ProgressReport* report_;
@@ -252,7 +253,22 @@ private:
 #if defined(EXPENSIVE_STATISTICS)
         utils::TimerScope t(statistics_.trap_removal);
 #endif
-        quotient_->build_quotient(first, last, repr);
+
+        // Get the greedy transitions to collapse them
+        std::vector<std::vector<Action>> ops;
+        ops.reserve(std::distance(first, last));
+
+        for (auto it = first; it != last; ++it) {
+            std::vector<QAction> qops;
+            greedy_graph_.get_greedy_actions(*it, qops);
+            auto& orig_ops = ops.emplace_back();
+            for (const QAction& qop : qops) {
+                orig_ops.push_back(quotient_->get_original_action(*it, qop));
+            }
+        }
+
+        // Now collapse the quotient
+        quotient_->build_quotient(first, last, repr, ops.begin());
         base_engine_->clear_policy(repr);
     }
 
@@ -263,7 +279,7 @@ private:
         }
 
         std::vector<StateID> succs;
-        if (greedy_graph_(state_id, succs)) {
+        if (greedy_graph_.get_greedy_successors(state_id, succs)) {
             ++unexpanded_;
         }
 
@@ -271,7 +287,7 @@ private:
             return false;
         }
 
-        queue.emplace_back(state_id).successors.swap(succs);
+        queue.emplace_back(state_id, std::move(succs));
         return true;
     }
 };
@@ -292,7 +308,7 @@ public:
     {
     }
 
-    bool operator()(StateID qstate, std::vector<StateID>& successors)
+    bool get_greedy_successors(StateID qstate, std::vector<StateID>& successors)
     {
         assert(successors.empty());
 
@@ -316,6 +332,18 @@ public:
 
         return value_changed;
     }
+
+    void get_greedy_actions(StateID qstate, std::vector<QAction>& aops)
+    {
+        assert(opt_transitions.empty());
+
+        base_engine_->compute_value_update_and_optimal_transitions(
+            qstate,
+            aops,
+            opt_transitions);
+
+        opt_transitions.clear();
+    }
 };
 
 template <typename State, typename Action, bool Interval>
@@ -331,7 +359,7 @@ public:
     {
     }
 
-    bool operator()(StateID qstate, std::vector<StateID>& successors)
+    bool get_greedy_successors(StateID qstate, std::vector<StateID>& successors)
     {
         t_.clear();
         bool result = base_engine_->apply_policy(qstate, t_);
@@ -339,6 +367,12 @@ public:
             successors.push_back(sid);
         }
         return result;
+    }
+
+    void get_greedy_actions(StateID qstate, std::vector<QAction>& aops)
+    {
+        assert(aops.empty());
+        aops.emplace_back(base_engine_->get_policy(qstate));
     }
 };
 
