@@ -135,7 +135,7 @@ public:
         return info ? info->states_naops.size() : 1;
     }
 
-    auto quotient_range(StateID state_id) const
+    auto quotient_range(const StateID& state_id) const
     {
         const QuotientInformation* info = this->get_quotient_info(state_id);
 

@@ -78,7 +78,7 @@ public:
     const_iterator end() const;
 
     std::ranges::subrange<QuotientStateIDIterator, QuotientStateIDIterator>
-    quotient_range(StateID state_id) const;
+    quotient_range(const StateID& state_id) const;
 
     StateID get_state_id(const State& s) const;
     State get_state(StateID sid) const;

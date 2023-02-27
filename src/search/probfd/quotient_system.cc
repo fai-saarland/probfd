@@ -104,7 +104,7 @@ QuotientSystem<State, OperatorID>::end() const
 
 std::ranges::subrange<
     QuotientSystem<State, OperatorID>::QuotientStateIDIterator>
-QuotientSystem<State, OperatorID>::quotient_range(StateID state_id) const
+QuotientSystem<State, OperatorID>::quotient_range(const StateID& state_id) const
 {
     if (cache_) {
         const StateID* start = nullptr;
