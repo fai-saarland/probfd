@@ -319,7 +319,7 @@ void SSPPatternDatabase::verify(
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        state_space.get_applicable_operators(s, aops);
+        state_space.generate_applicable_actions(s.id, aops);
 
         // Push successors
         for (const AbstractOperator* op : aops) {

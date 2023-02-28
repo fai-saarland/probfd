@@ -289,7 +289,7 @@ void MaxProbPatternDatabase::verify(ProjectionStateSpace& state_space)
 
         // Generate operators...
         std::vector<const AbstractOperator*> aops;
-        state_space.get_applicable_operators(s, aops);
+        state_space.generate_applicable_actions(s.id, aops);
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
