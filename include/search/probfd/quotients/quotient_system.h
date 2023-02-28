@@ -408,11 +408,6 @@ public:
         }
     }
 
-    engine_interfaces::StateSpace<State, Action>* get_state_space() const
-    {
-        return state_space_;
-    }
-
 private:
     inline void
     filter_actions(std::vector<Action>& aops, const std::vector<Action>& filter)
