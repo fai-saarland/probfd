@@ -33,7 +33,6 @@ namespace internal {
 struct Statistics {
     unsigned long long iterations = 0;
     unsigned long long traps = 0;
-    unsigned long long traps_dead = 0;
 
 #if defined(EXPENSIVE_STATISTICS)
     utils::Timer heuristic_search = utils::Timer(true);
@@ -44,8 +43,6 @@ struct Statistics {
     void print(std::ostream& out) const
     {
         out << "  FRET iterations: " << iterations << std::endl;
-        out << "  Permanent traps: " << traps << " (" << traps_dead << " dead)"
-            << std::endl;
 #if defined(EXPENSIVE_STATISTICS)
         out << "  Heuristic search: " << heuristic_search << std::endl;
         out << "  Trap identification: "
@@ -91,16 +88,11 @@ class FRET : public MDPEngine<State, Action> {
         bool is_leaf = true;
     };
 
-    GreedyGraphGenerator greedy_graph_;
-    ProgressReport* report_;
     QuotientSystem* quotient_;
     std::shared_ptr<HeuristicSearchEngine<State, QAction, Interval>>
         base_engine_;
 
     Statistics statistics_;
-    bool last_dead_;
-    unsigned trap_counter_;
-    unsigned unexpanded_;
 
 public:
     FRET(
@@ -110,28 +102,21 @@ public:
         ProgressReport* report,
         std::shared_ptr<HeuristicSearchEngine<State, QAction, Interval>> engine)
         : MDPEngine<State, Action>(state_space, cost_function)
-        , greedy_graph_(engine.get())
-        , report_(report)
         , quotient_(quotient)
         , base_engine_(engine)
     {
+        report->register_print([&](std::ostream& out) {
+            out << "fret=" << statistics_.iterations
+                << ", traps=" << statistics_.traps;
+        });
     }
 
     value_t solve(const State& state) override
     {
-        report_->register_print([&](std::ostream& out) {
-            out << "fret=" << statistics_.iterations
-                << ", traps=" << statistics_.traps;
-        });
-
         for (;;) {
-            value_t value = heuristic_search(state);
+            const value_t value = heuristic_search(state);
 
-            find_and_remove_traps(state);
-
-            ++statistics_.iterations;
-
-            if (trap_counter_ + unexpanded_ == 0) {
+            if (find_and_remove_traps(state)) {
                 return value;
             }
 
@@ -159,13 +144,13 @@ public:
     }
 
 private:
-    void find_and_remove_traps(const State& state)
+    bool find_and_remove_traps(const State& state)
     {
 #if defined(EXPENSIVE_STATISTICS)
         utils::TimerScope scoped(statistics_.trap_identification);
 #endif
-        trap_counter_ = 0;
-        unexpanded_ = 0;
+        unsigned int trap_counter = 0;
+        unsigned int unexpanded = 0;
 
         storage::StateHashMap<TarjanStateInformation> state_infos;
         std::deque<ExplorationInfo> exploration_queue;
@@ -174,7 +159,7 @@ private:
 
         {
             StateID stateid = this->get_state_id(state);
-            push(exploration_queue, stateid);
+            push(exploration_queue, stateid, unexpanded);
             stack.push_back(stateid);
             state_infos[stateid].open(current_index);
         }
@@ -196,7 +181,7 @@ private:
                 TarjanStateInformation& succ_info = state_infos[succid];
 
                 if (succ_info.index == TarjanStateInformation::UNDEF) {
-                    if (push(exploration_queue, succid)) {
+                    if (push(exploration_queue, succid, unexpanded)) {
                         succ_info.open(++current_index);
                         stack.push_front(succid);
                         backtracked = false;
@@ -228,14 +213,11 @@ private:
                     } while (*(it++) != state_id);
 
                     if (einfo.is_leaf) {
-                        if (scc_size > 1) {
-                            trap_counter_++;
-                            collapse_trap(stack.begin(), it, state_id);
-                            base_engine_->async_update(state_id);
-                            statistics_.traps++;
-                        } else {
-                            base_engine_->notify_dead_end_ifnot_goal(state_id);
-                        }
+                        // Terminal and self-loop leaf SCCs are always pruned
+                        assert(scc_size > 1);
+                        collapse_trap(stack.begin(), it, state_id);
+                        base_engine_->async_update(state_id);
+                        ++trap_counter;
                     }
 
                     stack.erase(stack.begin(), it);
@@ -244,6 +226,10 @@ private:
                 exploration_queue.pop_back();
             }
         }
+
+        ++statistics_.iterations;
+
+        return trap_counter == 0 && unexpanded == 0;
     }
 
     using StackIterator = std::deque<StateID>::iterator;
@@ -254,13 +240,15 @@ private:
         utils::TimerScope t(statistics_.trap_removal);
 #endif
 
+        GreedyGraphGenerator greedy_graph;
+
         // Get the greedy transitions to collapse them
         std::vector<std::vector<Action>> ops;
         ops.reserve(std::distance(first, last));
 
         for (auto it = first; it != last; ++it) {
             std::vector<QAction> qops;
-            greedy_graph_.get_greedy_actions(*it, qops);
+            greedy_graph.get_actions(*base_engine_, *it, qops);
             auto& orig_ops = ops.emplace_back();
             for (const QAction& qop : qops) {
                 orig_ops.push_back(quotient_->get_original_action(*it, qop));
@@ -270,17 +258,23 @@ private:
         // Now collapse the quotient
         quotient_->build_quotient(first, last, repr, ops.begin());
         base_engine_->clear_policy(repr);
+
+        ++statistics_.traps;
     }
 
-    bool push(std::deque<ExplorationInfo>& queue, StateID state_id)
+    bool push(
+        std::deque<ExplorationInfo>& queue,
+        StateID state_id,
+        unsigned int& unexpanded)
     {
         if (base_engine_->is_terminal(state_id)) {
             return false;
         }
 
+        GreedyGraphGenerator greedy_graph;
         std::vector<StateID> succs;
-        if (greedy_graph_.get_greedy_successors(state_id, succs)) {
-            ++unexpanded_;
+        if (greedy_graph.get_successors(*base_engine_, state_id, succs)) {
+            ++unexpanded;
         }
 
         if (succs.empty()) {
@@ -296,24 +290,20 @@ template <typename State, typename Action, bool Interval>
 class ValueGraph {
     using QAction = typename quotients::QuotientSystem<State, Action>::QAction;
 
-    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
-
     std::unordered_set<StateID> ids;
     std::vector<QAction> opt_aops;
     std::vector<Distribution<StateID>> opt_transitions;
 
 public:
-    explicit ValueGraph(HeuristicSearchEngine<State, QAction, Interval>* hs)
-        : base_engine_(hs)
-    {
-    }
-
-    bool get_greedy_successors(StateID qstate, std::vector<StateID>& successors)
+    bool get_successors(
+        HeuristicSearchEngine<State, QAction, Interval>& base_engine,
+        StateID qstate,
+        std::vector<StateID>& successors)
     {
         assert(successors.empty());
 
         bool value_changed =
-            base_engine_->compute_value_update_and_optimal_transitions(
+            base_engine.compute_value_update_and_optimal_transitions(
                 qstate,
                 opt_aops,
                 opt_transitions);
@@ -333,11 +323,14 @@ public:
         return value_changed;
     }
 
-    void get_greedy_actions(StateID qstate, std::vector<QAction>& aops)
+    void get_actions(
+        HeuristicSearchEngine<State, QAction, Interval>& base_engine,
+        StateID qstate,
+        std::vector<QAction>& aops)
     {
         assert(opt_transitions.empty());
 
-        base_engine_->compute_value_update_and_optimal_transitions(
+        base_engine.compute_value_update_and_optimal_transitions(
             qstate,
             aops,
             opt_transitions);
@@ -350,29 +343,29 @@ template <typename State, typename Action, bool Interval>
 class PolicyGraph {
     using QAction = typename quotients::QuotientSystem<State, Action>::QAction;
 
-    HeuristicSearchEngine<State, QAction, Interval>* base_engine_;
     Distribution<StateID> t_;
 
 public:
-    explicit PolicyGraph(HeuristicSearchEngine<State, QAction, Interval>* hs)
-        : base_engine_(hs)
-    {
-    }
-
-    bool get_greedy_successors(StateID qstate, std::vector<StateID>& successors)
+    bool get_successors(
+        HeuristicSearchEngine<State, QAction, Interval>& base_engine,
+        StateID qstate,
+        std::vector<StateID>& successors)
     {
         t_.clear();
-        bool result = base_engine_->apply_policy(qstate, t_);
+        bool result = base_engine.apply_policy(qstate, t_);
         for (StateID sid : t_.elements()) {
             successors.push_back(sid);
         }
         return result;
     }
 
-    void get_greedy_actions(StateID qstate, std::vector<QAction>& aops)
+    void get_actions(
+        HeuristicSearchEngine<State, QAction, Interval>& base_engine,
+        StateID qstate,
+        std::vector<QAction>& aops)
     {
         assert(aops.empty());
-        aops.emplace_back(base_engine_->get_policy(qstate));
+        aops.emplace_back(base_engine.get_policy(qstate));
     }
 };
 
