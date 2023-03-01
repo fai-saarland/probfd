@@ -64,16 +64,19 @@ class FRET : public MDPEngine<State, Action> {
     struct TarjanStateInformation {
         static constexpr unsigned UNDEF = -1;
 
+        unsigned stack_index = UNDEF;
+        unsigned lowlink = UNDEF;
+
+        bool is_explored() const { return lowlink != UNDEF; }
+        bool is_on_stack() const { return stack_index != UNDEF; }
+
         void open(const unsigned x)
         {
-            onstack = true;
-            index = x;
+            stack_index = x;
             lowlink = x;
         }
 
-        unsigned index = UNDEF;
-        unsigned lowlink = UNDEF;
-        bool onstack = false;
+        void close() { stack_index = UNDEF; }
     };
 
     struct ExplorationInfo {
@@ -155,76 +158,80 @@ private:
         storage::StateHashMap<TarjanStateInformation> state_infos;
         std::deque<ExplorationInfo> exploration_queue;
         std::deque<StateID> stack;
-        unsigned current_index = 0;
 
         {
             StateID stateid = this->get_state_id(state);
             push(exploration_queue, stateid, unexpanded);
             stack.push_back(stateid);
-            state_infos[stateid].open(current_index);
+            state_infos[stateid].open(0);
         }
 
         bool backtracked = false;
+        bool can_reach_child_scc = false;
         unsigned last_lowlink = TarjanStateInformation::UNDEF;
 
         while (!exploration_queue.empty()) {
             ExplorationInfo& einfo = exploration_queue.back();
             const auto state_id = einfo.state_id;
             TarjanStateInformation& sinfo = state_infos[state_id];
-            sinfo.lowlink = std::min(sinfo.lowlink, last_lowlink);
-            einfo.is_leaf = einfo.is_leaf && !backtracked;
-            bool fully_explored = true;
+
+            if (backtracked) {
+                sinfo.lowlink = std::min(sinfo.lowlink, last_lowlink);
+                if (can_reach_child_scc) {
+                    einfo.is_leaf = false;
+                }
+            }
 
             while (!einfo.successors.empty()) {
                 StateID succid = einfo.successors.back();
                 einfo.successors.pop_back();
                 TarjanStateInformation& succ_info = state_infos[succid];
 
-                if (succ_info.index == TarjanStateInformation::UNDEF) {
+                if (!succ_info.is_explored()) {
                     if (push(exploration_queue, succid, unexpanded)) {
-                        succ_info.open(++current_index);
-                        stack.push_front(succid);
+                        succ_info.open(stack.size());
+                        stack.push_back(succid);
                         backtracked = false;
-                        last_lowlink = TarjanStateInformation::UNDEF;
-                        fully_explored = false;
-                        break;
+                        goto continue_outer;
                     }
 
                     einfo.is_leaf = false;
-                } else if (succ_info.onstack) {
-                    sinfo.lowlink = std::min(sinfo.lowlink, succ_info.index);
+                } else if (succ_info.is_on_stack()) {
+                    sinfo.lowlink =
+                        std::min(sinfo.lowlink, succ_info.stack_index);
                 } else {
                     einfo.is_leaf = false;
                 }
             }
 
-            if (fully_explored) {
-                backtracked = !einfo.is_leaf;
-                last_lowlink = sinfo.lowlink;
+            backtracked = true;
+            can_reach_child_scc = !einfo.is_leaf;
+            last_lowlink = sinfo.lowlink;
 
-                if (sinfo.lowlink == sinfo.index) {
-                    backtracked = true;
-                    unsigned scc_size = 0;
+            if (sinfo.lowlink == sinfo.stack_index) {
+                can_reach_child_scc = true;
 
-                    auto it = stack.begin();
-                    do {
-                        state_infos[*it].onstack = false;
-                        ++scc_size;
-                    } while (*(it++) != state_id);
+                auto scc_begin = stack.begin() + sinfo.stack_index;
+                auto scc_end = stack.end();
 
-                    if (einfo.is_leaf) {
-                        // Terminal and self-loop leaf SCCs are always pruned
-                        assert(scc_size > 1);
-                        collapse_trap(stack.begin(), it, state_id);
-                        base_engine_->async_update(state_id);
-                        ++trap_counter;
-                    }
-
-                    stack.erase(stack.begin(), it);
+                for (auto it = scc_begin; it != scc_end; ++it) {
+                    state_infos[*it].close();
                 }
 
-                exploration_queue.pop_back();
+                if (einfo.is_leaf) {
+                    // Terminal and self-loop leaf SCCs are always pruned
+                    assert(std::distance(scc_begin, scc_end) > 1);
+                    collapse_trap(scc_begin, scc_end, state_id);
+                    base_engine_->async_update(state_id);
+                    ++trap_counter;
+                }
+
+                stack.erase(scc_begin, scc_end);
             }
+
+            exploration_queue.pop_back();
+
+        continue_outer:;
         }
 
         ++statistics_.iterations;
