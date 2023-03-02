@@ -250,7 +250,7 @@ private:
             }
             visited_states_.clear();
             ++statistics_.iterations;
-            this->report(state);
+            this->advance_report();
         } while (vi_res.first || vi_res.second);
     }
 
@@ -262,7 +262,7 @@ private:
                           this->get_state_info(state).is_solved();
             visited_states_.clear();
             ++statistics_.iterations;
-            this->report(state);
+            this->advance_report();
         } while (!is_complete);
     }
 

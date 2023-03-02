@@ -211,7 +211,7 @@ public:
 
             this->trial(state_id);
             this->statistics_.trials++;
-            this->report(state_id);
+            this->advance_report();
         }
 
         return this->lookup_dual_bounds(state_id);

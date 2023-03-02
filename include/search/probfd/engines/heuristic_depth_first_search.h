@@ -254,7 +254,7 @@ private:
 
             visited_.clear();
             statistics_.iterations++;
-            this->report(stateid);
+            this->advance_report();
         } while (!terminate);
     }
 
@@ -264,7 +264,7 @@ private:
         do {
             terminate = !policy_exploration<false>(stateid);
             statistics_.iterations++;
-            this->report(stateid);
+            this->advance_report();
             assert(visited_.empty());
         } while (!terminate);
     }

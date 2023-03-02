@@ -75,7 +75,7 @@ public:
 
         do {
             step();
-            this->report(stateid);
+            this->advance_report();
         } while (!state_info.is_solved());
 
         return this->lookup_dual_bounds(stateid);

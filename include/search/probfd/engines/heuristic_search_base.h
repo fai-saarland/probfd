@@ -460,7 +460,7 @@ protected:
     /**
      * @brief Advances the progress report.
      */
-    void report(const StateID) { this->report_->operator()(); }
+    void advance_report() { this->report_->operator()(); }
 
     /**
      * @brief Sets up internal custom reports of a state in an implementation.
