@@ -71,7 +71,7 @@ public:
             this->report(stateid);
         }
 
-        return this->get_value(stateid);
+        return this->lookup_value(stateid);
     }
 
 private:

@@ -132,9 +132,6 @@ bool update(Interval& lhs, Interval rhs, bool check_upper);
 value_t as_lower_bound(value_t single);
 value_t as_lower_bound(Interval interval);
 
-value_t as_upper_bound(value_t single);
-value_t as_upper_bound(Interval interval);
-
 } // namespace probfd
 
 #endif // __VALUE_UTILS_H__

@@ -224,7 +224,7 @@ public:
         } else {
             dfhs_label_driver(state_id);
         }
-        return this->get_value(state_id);
+        return this->lookup_value(state_id);
     }
 
     void print_statistics(std::ostream& out) const override

@@ -250,14 +250,6 @@ public:
     }
 
     /**
-     * @brief Gets the current value of the state represented by \p state_id
-     */
-    value_t get_value(StateID state_id)
-    {
-        return as_upper_bound(state_infos_[state_id].value);
-    }
-
-    /**
      * @brief Chekcs if the state represented by \p state_id is marked as a
      * dead-end.
      */
@@ -418,7 +410,7 @@ protected:
 
     value_t get_value(const State& s)
     {
-        return get_value(this->get_state_id(s));
+        return lookup_value(this->get_state_id(s));
     }
 
     /**
@@ -467,9 +459,9 @@ protected:
             report_->register_value("v", [&info]() { return info.value; });
         }
 
-        statistics_.value = as_upper_bound(info.value);
+        statistics_.value = as_lower_bound(info.value);
         statistics_.before_last_update = statistics_;
-        statistics_.initial_state_estimate = as_upper_bound(info.value);
+        statistics_.initial_state_estimate = as_lower_bound(info.value);
         statistics_.initial_state_found_terminal = info.is_terminal();
 
         setup_custom_reports(state);

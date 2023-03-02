@@ -198,7 +198,7 @@ public:
             this->report(state_id);
         } while (!terminate);
 
-        return this->get_value(state_id);
+        return this->lookup_value(state_id);
     }
 
     void print_statistics(std::ostream& out) const override

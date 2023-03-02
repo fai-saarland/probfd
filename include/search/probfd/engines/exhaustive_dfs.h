@@ -776,7 +776,7 @@ private:
         if constexpr (UseInterval) {
             return node.value.upper <= node.value.lower;
         } else {
-            return as_upper_bound(node.value) <= cost_bound_.lower;
+            return node.value <= cost_bound_.lower;
         }
     }
 };

@@ -286,7 +286,7 @@ public:
         IncumbentSolution& init_value = value_store[init_state_id];
 
         if (!push_state(init_state_id, iinfo, init_value)) {
-            return as_upper_bound(init_value);
+            return as_lower_bound(init_value);
         }
 
         ExplorationInfo* explore = &exploration_stack_.back();
@@ -358,7 +358,7 @@ public:
 
     break_exploration:;
 
-        return as_upper_bound(init_value);
+        return as_lower_bound(init_value);
     }
 
 private:

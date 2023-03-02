@@ -122,11 +122,6 @@ value_t as_lower_bound(Interval interval)
     return interval.lower;
 }
 
-value_t as_upper_bound(Interval interval)
-{
-    return interval.upper;
-}
-
 bool update(value_t& lhs, value_t rhs)
 {
     const bool result = !is_approx_equal(lhs, rhs);
@@ -140,11 +135,6 @@ void set_min(value_t& new_value, value_t tval)
 }
 
 value_t as_lower_bound(value_t single)
-{
-    return single;
-}
-
-value_t as_upper_bound(value_t single)
 {
     return single;
 }

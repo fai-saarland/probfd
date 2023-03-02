@@ -93,7 +93,7 @@ public:
         this->mysolve(state, value_store_, dead, one, sys.get());
 
         const StateID state_id = this->get_state_id(state);
-        return as_upper_bound(value_store_[state_id]);
+        return as_lower_bound(value_store_[state_id]);
     }
 
     virtual std::optional<value_t> get_error(const State& s) override

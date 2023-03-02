@@ -78,7 +78,7 @@ public:
             this->report(stateid);
         } while (!state_info.is_solved());
 
-        return this->get_value(stateid);
+        return this->lookup_value(stateid);
     }
 
 private:
