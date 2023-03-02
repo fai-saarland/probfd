@@ -311,7 +311,7 @@ public:
     {
         if (!state_info.is_dead_end()) {
             state_info.set_dead_end();
-            state_info.value = EngineValueType(state_info.state_cost);
+            state_info.value = EngineValueType(state_info.termination_cost);
             return true;
         }
 
@@ -578,8 +578,6 @@ protected:
     }
 
 private:
-    value_t get_state_cost(StateID id) { return get_state_info(id).state_cost; }
-
     bool update(StateInfo& state_info, const EngineValueType& other)
     {
         if constexpr (UseInterval) {
@@ -604,7 +602,7 @@ private:
                 MDPEngine<StateT, ActionT>::get_termination_info(state);
             const value_t t_cost = term.get_cost();
 
-            state_info.state_cost = t_cost;
+            state_info.termination_cost = t_cost;
             if (term.is_goal_state()) {
                 state_info.set_goal();
                 state_info.value = EngineValueType(t_cost);
@@ -668,7 +666,7 @@ private:
             return result;
         }
 
-        EngineValueType new_value(this->get_state_cost(state_id));
+        EngineValueType new_value(state_info.termination_cost);
 
         bool has_only_self_loops = true;
         for (unsigned i = 0; i < aops.size(); ++i) {
@@ -751,7 +749,7 @@ private:
             return result;
         }
 
-        EngineValueType new_value(this->get_state_cost(state_id));
+        EngineValueType new_value(state_info.termination_cost);
 
         unsigned optimal_end = 0;
         for (unsigned i = 0; i < opt_aops.size(); ++i) {
