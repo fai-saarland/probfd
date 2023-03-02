@@ -9,6 +9,8 @@
 #include "probfd/engine_interfaces/new_state_handler.h"
 #include "probfd/engine_interfaces/policy_picker.h"
 
+#include "probfd/policies/map_policy.h"
+
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/utils/graph_visualization.h"
@@ -186,11 +188,60 @@ public:
 
     virtual ~HeuristicSearchBase() = default;
 
-
     Interval solve(const State& state) final override
     {
         this->initialize_report(state);
         return this->do_solve(state);
+    }
+
+    std::unique_ptr<PartialPolicy<State, Action>>
+    compute_policy(const State& state) override
+    {
+        this->solve(state);
+
+        /*
+         * Expand some greedy policy graph, starting from the initial state.
+         * Collect optimal actions along the way.
+         */
+
+        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
+            new policies::MapPolicy<State, Action>(this->get_state_space()));
+
+        const StateID initial_state_id = this->get_state_id(state);
+
+        std::deque<StateID> queue;
+        std::set<StateID> visited;
+        queue.push_back(initial_state_id);
+        visited.insert(initial_state_id);
+
+        do {
+            const StateID state_id = queue.front();
+            queue.pop_front();
+
+            ActionID action_id = this->lookup_policy(state_id);
+
+            // Terminal states have no policy decision.
+            if (action_id == ActionID::undefined) {
+                continue;
+            }
+
+            const Action action = this->lookup_action(state_id, action_id);
+            const Interval bound = this->lookup_dual_bounds(state_id);
+
+            policy->emplace_decision(state_id, action_id, bound);
+
+            // Push the successor traps.
+            Distribution<StateID> successors;
+            this->generate_successors(state_id, action, successors);
+
+            for (const StateID succ_id : successors.elements()) {
+                if (visited.insert(succ_id).second) {
+                    queue.push_back(succ_id);
+                }
+            }
+        } while (!queue.empty());
+
+        return policy;
     }
 
     void print_statistics(std::ostream& out) const final override
@@ -225,7 +276,19 @@ public:
     ActionID lookup_policy(StateID state_id) override
     {
         if constexpr (!StorePolicy) {
-            ABORT("Search algorithm does not store policy information!");
+            std::vector<Action> opt_aops;
+            std::vector<Distribution<StateID>> opt_transitions;
+            compute_optimal_transitions(
+                state_id,
+                lookup_initialize(state_id),
+                opt_aops,
+                opt_transitions);
+            return this->policy_chooser_->pick(
+                state_id,
+                ActionID::undefined,
+                opt_aops,
+                opt_transitions,
+                *this);
         } else {
             return state_infos_[state_id].policy;
         }
@@ -242,7 +305,7 @@ public:
     /**
      * @brief Checks if the state \p state_id is terminal.
      */
-    bool is_terminal(StateID state_id)
+    bool is_terminal(StateID state_id) const
     {
         return state_infos_[state_id].is_terminal();
     }
@@ -251,7 +314,7 @@ public:
      * @brief Chekcs if the state represented by \p state_id is marked as a
      * dead-end.
      */
-    bool is_marked_dead_end(StateID state)
+    bool is_marked_dead_end(StateID state) const
     {
         return state_infos_[state].is_dead_end();
     }
