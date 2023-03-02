@@ -9,6 +9,8 @@
 #include "probfd/progress_report.h"
 #include "probfd/quotients/quotient_system.h"
 
+#include "probfd/policies/map_policy.h"
+
 #if defined(EXPENSIVE_STATISTICS)
 #include "../../utils/timer.h"
 #endif
@@ -113,6 +115,125 @@ public:
             out << "fret=" << statistics_.iterations
                 << ", traps=" << statistics_.traps;
         });
+    }
+
+    std::unique_ptr<PartialPolicy<State, Action>>
+    compute_policy(const State& state) override
+    {
+        this->solve(state);
+
+        /*
+         * The quotient policy only specifies the optimal actions between traps.
+         * We need to supplement the optimal actions within the traps, i.e.
+         * the actions which point every other member state of the trap towards
+         * that trap member state that owns the optimal quotient action.
+         *
+         * We fully explore the quotient policy starting from the initial state
+         * and compute the optimal 'inner' actions for each trap. To this end,
+         * we first generate the sub-MDP of the trap. Afterwards, we expand the
+         * trap graph backwards from the state that has the optimal quotient
+         * action. For each encountered state, we select the action with which
+         * it is encountered first as the policy action.
+         */
+
+        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
+            new policies::MapPolicy<State, Action>(this->get_state_space()));
+
+        const StateID initial_state_id = this->get_state_id(state);
+
+        std::deque<StateID> queue;
+        std::set<StateID> visited;
+        queue.push_back(initial_state_id);
+        visited.insert(initial_state_id);
+
+        do {
+            const StateID quotient_id = queue.front();
+            queue.pop_front();
+
+            ActionID quotient_action_id =
+                base_engine_->lookup_policy(quotient_id);
+
+            // Terminal states have no policy decision.
+            if (quotient_action_id == ActionID::undefined) {
+                continue;
+            }
+
+            const QAction quotient_action =
+                base_engine_->lookup_action(quotient_id, quotient_action_id);
+            const Interval quotient_bound =
+                base_engine_->lookup_dual_bounds(quotient_id);
+
+            const StateID exiting_id = quotient_action.state_id;
+
+            policy->emplace_decision(
+                exiting_id,
+                quotient_action.action_id,
+                quotient_bound);
+
+            // Nothing else needs to be done if the trap has only one state.
+            if (quotient_->quotient_size(quotient_id) != 1) {
+                std::unordered_map<
+                    StateID,
+                    std::set<std::pair<StateID, ActionID>>>
+                    parents;
+
+                // Build the inverse graph
+
+                // TODO Generate the inner actions here...
+                std::vector<QAction> inner_actions;
+
+                for (const QAction& qaction : inner_actions) {
+                    StateID source_id = qaction.state_id;
+                    ActionID action_id = qaction.action_id;
+
+                    Distribution<StateID> successors;
+                    this->generate_successors(
+                        source_id,
+                        this->lookup_action(source_id, action_id),
+                        successors);
+
+                    for (const StateID succ_id : successors.elements()) {
+                        parents[succ_id].insert({source_id, action_id});
+                    }
+                }
+
+                // Now traverse the inverse graph starting from the exiting
+                // state
+                std::deque<StateID> inverse_queue;
+                std::set<StateID> inverse_visited;
+                inverse_queue.push_back(exiting_id);
+                inverse_visited.insert(exiting_id);
+
+                do {
+                    const StateID next_id = inverse_queue.front();
+
+                    for (const auto& [pred_id, act_id] : parents[next_id]) {
+                        if (inverse_visited.insert(pred_id).second) {
+                            policy->emplace_decision(
+                                pred_id,
+                                act_id,
+                                quotient_bound);
+                            inverse_queue.push_back(pred_id);
+                        }
+                    }
+                } while (!inverse_queue.empty());
+            }
+
+            // Push the successor traps.
+            Distribution<StateID> successors;
+            quotient_->generate_successors(
+                quotient_id,
+                quotient_action,
+                successors);
+
+            for (const StateID succ_id : successors.elements()) {
+                if (visited.insert(succ_id).second) {
+                    queue.push_back(succ_id);
+                }
+            }
+        } while (!queue.empty());
+
+        return policy;
     }
 
     Interval solve(const State& state) override
