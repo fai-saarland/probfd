@@ -53,8 +53,8 @@ struct Statistics {
  * value table by default. A heuristic can be supplied to explicitly prune
  * parts of the state space or to accelerate convergence.
  *
- * This implementation also supports interval bounds. However, convergence
- * is not guaranteed for interval bounds if traps exist within the reachable
+ * This implementation also supports UseInterval bounds. However, convergence
+ * is not guaranteed for UseInterval bounds if traps exist within the reachable
  * state space. In this case, traps must be removed prior to running topological
  * value iteration.
  *
@@ -62,11 +62,11 @@ struct Statistics {
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam Interval - Whether bounded value iteration is used.
+ * @tparam UseInterval - Whether bounded value iteration is used.
  */
-template <typename State, typename Action, bool Interval = false>
+template <typename State, typename Action, bool UseInterval = false>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
-    using EngineValueType = engines::EngineValueType<Interval>;
+    using EngineValueType = engines::EngineValueType<UseInterval>;
 
     struct StateInfo {
         // Status Flags
@@ -219,7 +219,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
                 set_min(v, info.compute_q_value());
             }
 
-            if constexpr (Interval) {
+            if constexpr (UseInterval) {
                 return update(*value, v) ||
                        !value->bounds_approximately_equal();
             } else {
@@ -252,7 +252,7 @@ public:
     /**
      * \copydoc MDPEngine::solve(const State&)
      */
-    value_t solve(const State& state) override
+    Interval solve(const State& state) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
         return this->solve(this->get_state_id(state), value_store);
@@ -279,13 +279,17 @@ public:
      * output parameter \p value_store. Returns the value of the initial state.
      */
     template <typename ValueStore>
-    value_t solve(StateID init_state_id, ValueStore& value_store)
+    Interval solve(StateID init_state_id, ValueStore& value_store)
     {
         StateInfo& iinfo = state_information_[init_state_id];
         EngineValueType& init_value = value_store[init_state_id];
 
         if (!push_state(init_state_id, iinfo, init_value)) {
-            return as_lower_bound(init_value);
+            if constexpr (UseInterval) {
+                return init_value;
+            } else {
+                return Interval(init_value, INFINITE_VALUE);
+            }
         }
 
         ExplorationInfo* explore = &exploration_stack_.back();
@@ -357,7 +361,11 @@ public:
 
     break_exploration:;
 
-        return as_lower_bound(init_value);
+        if constexpr (UseInterval) {
+            return init_value;
+        } else {
+            return Interval(init_value, INFINITE_VALUE);
+        }
     }
 
 private:
@@ -429,7 +437,7 @@ private:
 
             // Check for self loop
             if (!transition.is_dirac(state_id)) {
-                if constexpr (Interval) {
+                if constexpr (UseInterval) {
                     assert(t_cost >= estimate);
                     state_value.lower = estimate;
                     state_value.upper = t_cost;

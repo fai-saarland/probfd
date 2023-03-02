@@ -71,21 +71,21 @@ struct PerStateInformation : public StateInfo {
 
 } // namespace internal
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 class TALRTDP;
 
-template <typename State, typename Action, bool Interval>
-class TALRTDP<State, quotients::QuotientAction<Action>, Interval>
+template <typename State, typename Action, bool UseInterval>
+class TALRTDP<State, quotients::QuotientAction<Action>, UseInterval>
     : public heuristic_search::HeuristicSearchBase<
           State,
           quotients::QuotientAction<Action>,
-          Interval,
+          UseInterval,
           true,
           internal::PerStateInformation> {
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
         quotients::QuotientAction<Action>,
-        Interval,
+        UseInterval,
         true,
         internal::PerStateInformation>;
 
@@ -186,7 +186,7 @@ public:
     {
     }
 
-    value_t solve(const State& s) override
+    Interval solve(const State& s) override
     {
         this->initialize_report(s);
         const StateID state_id = this->get_state_id(s);
@@ -198,7 +198,7 @@ public:
             this->report(state_id);
         } while (!terminate);
 
-        return this->lookup_value(state_id);
+        return this->lookup_dual_bounds(state_id);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -465,11 +465,11 @@ private:
     }
 };
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 class TALRTDP : public engines::MDPEngineInterface<State, Action> {
     using QAction = quotients::QuotientAction<Action>;
 
-    TALRTDP<State, QAction, Interval> engine_;
+    TALRTDP<State, QAction, UseInterval> engine_;
 
 public:
     /**
@@ -504,7 +504,7 @@ public:
     {
     }
 
-    value_t solve(const State& s) override { return engine_.solve(s); }
+    Interval solve(const State& s) override { return engine_.solve(s); }
 
     void print_statistics(std::ostream& out) const override
     {

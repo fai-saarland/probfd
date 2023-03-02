@@ -24,13 +24,19 @@ namespace ao_star {
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
- * @tparam Interval - Whether bounded value iteration shall be used.
+ * @tparam UseInterval - Whether bounded value iteration shall be used.
  *
  * @remark Does not validate that the input model is acyclic.
  */
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 class AOStar
-    : public AOBase<State, Action, Interval, true, PerStateInformation, true> {
+    : public AOBase<
+          State,
+          Action,
+          UseInterval,
+          true,
+          PerStateInformation,
+          true> {
     engine_interfaces::TransitionSampler<Action>* outcome_selection_;
     std::vector<Distribution<StateID>> transitions_;
 
@@ -45,7 +51,7 @@ public:
         bool interval_comparison,
         bool stable_policy,
         engine_interfaces::TransitionSampler<Action>* outcome_selection)
-        : AOBase<State, Action, Interval, true, PerStateInformation, true>(
+        : AOBase<State, Action, UseInterval, true, PerStateInformation, true>(
               state_space,
               cost_function,
               value_init,
@@ -58,7 +64,7 @@ public:
     {
     }
 
-    value_t solve(const State& state) override
+    Interval solve(const State& state) override
     {
         this->initialize_report(state);
         const StateID stateid = this->get_state_id(state);
@@ -71,7 +77,7 @@ public:
             this->report(stateid);
         }
 
-        return this->lookup_value(stateid);
+        return this->lookup_dual_bounds(stateid);
     }
 
 private:

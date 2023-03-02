@@ -102,10 +102,11 @@ public:
     {
     }
 
-    value_t solve(const State& initial_state) override
+    Interval solve(const State& initial_state) override
     {
-        if (!push_state(this->get_state_id(initial_state))) {
-            return state_infos_[this->get_state_id(initial_state)].value;
+        const StateID initial_state_id = this->get_state_id(initial_state);
+        if (!push_state(initial_state_id)) {
+            return Interval(state_infos_[initial_state_id].value);
         }
 
         do {
@@ -148,7 +149,7 @@ public:
         continue_outer:;
         } while (!expansion_stack_.empty());
 
-        return state_infos_[this->get_state_id(initial_state)].value;
+        return Interval(state_infos_[initial_state_id].value);
     }
 
     void print_statistics(std::ostream& out) const override

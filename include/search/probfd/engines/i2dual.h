@@ -149,7 +149,7 @@ public:
         statistics_.print(out);
     }
 
-    value_t solve(const State& state) override
+    Interval solve(const State& state) override
     {
         statistics_ = Statistics();
 
@@ -328,7 +328,7 @@ public:
         statistics_.num_lp_vars_ = next_lp_var_;
         statistics_.num_lp_constraints_ = next_lp_constr_id_;
 
-        return objective_;
+        return Interval(objective_, INFINITE_VALUE);
     }
 
 private:

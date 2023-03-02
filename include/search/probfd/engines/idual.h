@@ -117,7 +117,7 @@ public:
     {
     }
 
-    value_t solve(const State& initial_state) override
+    Interval solve(const State& initial_state) override
     {
         const double eps = g_epsilon;
         const double inf = lp_solver_.get_infinity();
@@ -135,7 +135,7 @@ public:
             const auto estimate = eval.get_estimate();
             if (eval.is_unsolvable()) {
                 objective_ = estimate;
-                return objective_;
+                return Interval(objective_, INFINITE_VALUE);
             }
 
             named_vector::NamedVector<lp::LPVariable> vars;
@@ -303,7 +303,7 @@ public:
         statistics_.lp_constraints = next_constraint_id;
         statistics_.open = open_states.size();
 
-        return objective_;
+        return Interval(objective_, INFINITE_VALUE);
     }
 };
 

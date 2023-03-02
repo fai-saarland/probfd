@@ -49,7 +49,7 @@ void MDPSolver::solve()
 
     const State initial_state = state_registry_.get_initial_state();
 
-    value_t val = engine->solve(initial_state);
+    Interval val = engine->solve(initial_state);
     progress_.print();
     total_timer.stop();
 
@@ -57,7 +57,7 @@ void MDPSolver::solve()
 
     std::cout << std::endl;
 
-    print_analysis_result(val, engine->get_error(initial_state));
+    print_analysis_result(val);
 
     std::cout << std::endl;
     std::cout << "State space interface:" << std::endl;

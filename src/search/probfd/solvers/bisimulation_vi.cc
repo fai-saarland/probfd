@@ -90,7 +90,7 @@ public:
 
         utils::Timer vi_timer;
         std::unique_ptr<engines::MDPEngine<QState, QAction>> solver;
-        value_t val;
+        Interval val;
         if (interval_iteration_) {
             solver.reset(new engines::interval_iteration::IntervalIteration<
                          QState,

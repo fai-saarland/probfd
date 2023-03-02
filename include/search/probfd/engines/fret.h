@@ -24,9 +24,9 @@ namespace engines {
 /// Namespace dedicated to the Find, Revise, Eliminate Traps (FRET) framework.
 namespace fret {
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 using HeuristicSearchEngine =
-    heuristic_search::HeuristicSearchBase<State, Action, Interval, true>;
+    heuristic_search::HeuristicSearchBase<State, Action, UseInterval, true>;
 
 namespace internal {
 
@@ -55,7 +55,7 @@ struct Statistics {
 template <
     typename State,
     typename Action,
-    bool Interval,
+    bool UseInterval,
     typename GreedyGraphGenerator>
 class FRET : public MDPEngine<State, Action> {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
@@ -92,7 +92,7 @@ class FRET : public MDPEngine<State, Action> {
     };
 
     QuotientSystem* quotient_;
-    std::shared_ptr<HeuristicSearchEngine<State, QAction, Interval>>
+    std::shared_ptr<HeuristicSearchEngine<State, QAction, UseInterval>>
         base_engine_;
 
     Statistics statistics_;
@@ -103,7 +103,8 @@ public:
         engine_interfaces::CostFunction<State, Action>* cost_function,
         QuotientSystem* quotient,
         ProgressReport* report,
-        std::shared_ptr<HeuristicSearchEngine<State, QAction, Interval>> engine)
+        std::shared_ptr<HeuristicSearchEngine<State, QAction, UseInterval>>
+            engine)
         : MDPEngine<State, Action>(state_space, cost_function)
         , quotient_(quotient)
         , base_engine_(engine)
@@ -114,10 +115,10 @@ public:
         });
     }
 
-    value_t solve(const State& state) override
+    Interval solve(const State& state) override
     {
         for (;;) {
-            const value_t value = heuristic_search(state);
+            const Interval value = heuristic_search(state);
 
             if (find_and_remove_traps(state)) {
                 return value;
@@ -127,17 +128,12 @@ public:
         }
     }
 
-    value_t heuristic_search(const State& state)
+    Interval heuristic_search(const State& state)
     {
 #if defined(EXPENSIVE_STATISTICS)
         utils::TimerScope scoped(statistics_.heuristic_search);
 #endif
         return base_engine_->solve(state);
-    }
-
-    std::optional<value_t> get_error(const State& state) override
-    {
-        return base_engine_->get_error(state);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -293,7 +289,7 @@ private:
     }
 };
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 class ValueGraph {
     using QAction = typename quotients::QuotientSystem<State, Action>::QAction;
 
@@ -303,7 +299,7 @@ class ValueGraph {
 
 public:
     bool get_successors(
-        HeuristicSearchEngine<State, QAction, Interval>& base_engine,
+        HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
         StateID qstate,
         std::vector<StateID>& successors)
     {
@@ -331,7 +327,7 @@ public:
     }
 
     void get_actions(
-        HeuristicSearchEngine<State, QAction, Interval>& base_engine,
+        HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
         StateID qstate,
         std::vector<QAction>& aops)
     {
@@ -346,7 +342,7 @@ public:
     }
 };
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 class PolicyGraph {
     using QAction = typename quotients::QuotientSystem<State, Action>::QAction;
 
@@ -354,7 +350,7 @@ class PolicyGraph {
 
 public:
     bool get_successors(
-        HeuristicSearchEngine<State, QAction, Interval>& base_engine,
+        HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
         StateID qstate,
         std::vector<StateID>& successors)
     {
@@ -367,7 +363,7 @@ public:
     }
 
     void get_actions(
-        HeuristicSearchEngine<State, QAction, Interval>& base_engine,
+        HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
         StateID qstate,
         std::vector<QAction>& aops)
     {
@@ -378,19 +374,19 @@ public:
 
 } // namespace internal
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 using FRETV = internal::FRET<
     State,
     Action,
-    Interval,
-    typename internal::ValueGraph<State, Action, Interval>>;
+    UseInterval,
+    typename internal::ValueGraph<State, Action, UseInterval>>;
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 using FRETPi = internal::FRET<
     State,
     Action,
-    Interval,
-    typename internal::PolicyGraph<State, Action, Interval>>;
+    UseInterval,
+    typename internal::PolicyGraph<State, Action, UseInterval>>;
 
 } // namespace fret
 } // namespace engines

@@ -22,9 +22,9 @@ struct PerStateInformation : public ao_search::PerStateInformation<StateInfo> {
     unsigned alive : 1 = 0;
 };
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 using AOBase = ao_search::
-    AOBase<State, Action, Interval, false, PerStateInformation, false>;
+    AOBase<State, Action, UseInterval, false, PerStateInformation, false>;
 
 } // namespace internal
 
@@ -33,11 +33,11 @@ using AOBase = ao_search::
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam Interval - Whether bounded value iteration is used.
+ * @tparam UseInterval - Whether bounded value iteration is used.
  */
-template <typename State, typename Action, bool Interval>
-class ExhaustiveAOSearch : public internal::AOBase<State, Action, Interval> {
-    using AOBase = internal::AOBase<State, Action, Interval>;
+template <typename State, typename Action, bool UseInterval>
+class ExhaustiveAOSearch : public internal::AOBase<State, Action, UseInterval> {
+    using AOBase = internal::AOBase<State, Action, UseInterval>;
 
     engine_interfaces::OpenList<Action>* open_list_;
     std::vector<Distribution<StateID>> transitions_;
@@ -66,7 +66,7 @@ public:
     {
     }
 
-    value_t solve(const State& state) override
+    Interval solve(const State& state) override
     {
         this->initialize_report(state);
         StateID stateid = this->get_state_id(state);
@@ -78,7 +78,7 @@ public:
             this->report(stateid);
         } while (!state_info.is_solved());
 
-        return this->lookup_value(stateid);
+        return this->lookup_dual_bounds(stateid);
     }
 
 private:

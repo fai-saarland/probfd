@@ -186,15 +186,6 @@ public:
 
     virtual ~HeuristicSearchBase() = default;
 
-    virtual std::optional<value_t> get_error(const State& s) override
-    {
-        if constexpr (UseInterval) {
-            return state_infos_[this->get_state_id(s)].value.length();
-        } else {
-            return std::nullopt;
-        }
-    }
-
     virtual void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
@@ -216,10 +207,10 @@ public:
 
     Interval lookup_dual_bounds(StateID state_id) override
     {
-        if constexpr (!UseInterval) {
-            ABORT("Search algorithm does not support interval bounds!");
-        } else {
+        if constexpr (UseInterval) {
             return state_infos_[state_id].value;
+        } else {
+            return Interval(state_infos_[state_id].value, INFINITE_VALUE);
         }
     }
 

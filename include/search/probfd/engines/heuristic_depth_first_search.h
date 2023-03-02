@@ -73,32 +73,32 @@ using StandalonePerStateInformation =
 
 // Store HDFS-specific state information seperately when FRET is enabled to
 // make resetting the solver state easier.
-template <typename State, typename Action, bool Interval, bool Fret>
+template <typename State, typename Action, bool UseInterval, bool Fret>
 using HDFSBase = std::conditional_t<
     Fret,
     heuristic_search::HeuristicSearchBase<
         State,
         Action,
-        Interval,
+        UseInterval,
         true,
         heuristic_search::NoAdditionalStateData>,
     heuristic_search::HeuristicSearchBase<
         State,
         Action,
-        Interval,
+        UseInterval,
         true,
         internal::PerStateInformation>>;
 
 } // namespace internal
 
-template <typename State, typename Action, bool Interval, bool Fret>
+template <typename State, typename Action, bool UseInterval, bool Fret>
 class HeuristicDepthFirstSearch
-    : public internal::HDFSBase<State, Action, Interval, Fret> {
+    : public internal::HDFSBase<State, Action, UseInterval, Fret> {
 
     using Statistics = internal::Statistics;
 
     using HeuristicSearchBase =
-        internal::HDFSBase<State, Action, Interval, Fret>;
+        internal::HDFSBase<State, Action, UseInterval, Fret>;
 
     using StateInfo = typename HeuristicSearchBase::StateInfo;
 
@@ -208,8 +208,8 @@ public:
         delete (this->state_flags_);
         state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();
     }
-
-    value_t solve(const State& state) override
+    
+    Interval solve(const State& state) override
     {
         this->initialize_report(state);
         const StateID stateid = this->get_state_id(state);
@@ -219,7 +219,7 @@ public:
             solve_without_vi_termination(stateid);
         }
 
-        return this->get_value(state);
+        return this->lookup_dual_bounds(stateid);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -473,7 +473,7 @@ private:
                     .value_changed;
             einfo.value_changed = updated;
 
-            if constexpr (Interval) {
+            if constexpr (UseInterval) {
                 parent_value_changed =
                     parent_value_changed || einfo.value_changed ||
                     (this->interval_comparison_ &&
@@ -540,7 +540,7 @@ private:
                     this->async_update(id, nullptr, nullptr);
                 value_changed = val_change || value_changed;
 
-                if constexpr (Interval) {
+                if constexpr (UseInterval) {
                     all_converged = all_converged &&
                                     (!this->interval_comparison_ ||
                                      this->get_state_info(id)

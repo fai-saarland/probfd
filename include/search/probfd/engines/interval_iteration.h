@@ -86,20 +86,11 @@ public:
     {
     }
 
-    value_t solve(const State& state) override
+    Interval solve(const State& state) override
     {
         std::unique_ptr<QuotientSystem> sys = get_quotient(state);
         BoolStore dead, one;
-        this->mysolve(state, value_store_, dead, one, sys.get());
-
-        const StateID state_id = this->get_state_id(state);
-        return as_lower_bound(value_store_[state_id]);
-    }
-
-    std::optional<value_t> get_error(const State& s) override
-    {
-        const StateID state_id = this->get_state_id(s);
-        return value_store_[state_id].length();
+        return this->mysolve(state, value_store_, dead, one, sys.get());
     }
 
     void print_statistics(std::ostream& out) const override
@@ -109,7 +100,7 @@ public:
     }
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
-    value_t solve(
+    Interval solve(
         const State& state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
@@ -117,7 +108,7 @@ public:
     {
         auto sys = get_quotient(state);
 
-        value_t x =
+        Interval x =
             this->mysolve(state, value_store, dead_ends, one_states, sys.get());
         for (StateID repr_id : *sys) {
             auto [sit, send] = sys->quotient_range(repr_id);
@@ -153,7 +144,7 @@ private:
     }
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
-    value_t mysolve(
+    Interval mysolve(
         const State& state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
@@ -197,7 +188,7 @@ private:
 
         ValueIteration vi(&q_state_space, &q_cost, heuristic_, expand_goals_);
 
-        value_t result = vi.solve(new_init_id, value_store);
+        Interval result = vi.solve(new_init_id, value_store);
         tvi_statistics_ = vi.get_statistics();
         return result;
     }

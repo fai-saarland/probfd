@@ -89,22 +89,22 @@ struct PerStateInformation : public StateInfo {
 // When FRET is enabled, store the LRTDP-specific state information seperately
 // so it can be easily reset between FRET iterations. Otherwise, store the
 // LRTDP-specific state information with the basic state information.
-template <typename State, typename Action, bool Interval, bool Fret>
+template <typename State, typename Action, bool UseInterval, bool Fret>
 using LRTDPBase = std::conditional_t<
     Fret,
-    heuristic_search::HeuristicSearchBase<State, Action, Interval, true>,
+    heuristic_search::HeuristicSearchBase<State, Action, UseInterval, true>,
     heuristic_search::HeuristicSearchBase<
         State,
         Action,
-        Interval,
+        UseInterval,
         true,
         internal::PerStateInformation>>;
 
-template <typename State, typename Action, bool Interval, bool Fret>
+template <typename State, typename Action, bool UseInterval, bool Fret>
 using LRTDPStateInfo = std::conditional_t<
     Fret,
     internal::PerStateInformation<internal::EmptyStateInfo>,
-    typename LRTDPBase<State, Action, Interval, Fret>::StateInfo>;
+    typename LRTDPBase<State, Action, UseInterval, Fret>::StateInfo>;
 
 } // namespace internal
 
@@ -130,9 +130,9 @@ using LRTDPStateInfo = std::conditional_t<
  * every state of a trial, in reverse order. If the initial state is marked as
  * solved, the algorithm terminates.
  *
- * \remark This implementation can also be used with interval value bounds.
+ * \remark This implementation can also be used with UseInterval value bounds.
  * Here, epsilon-consistency of the value updates can be replaced with
- * epsilon-closeness of the resulting state interval bounds.
+ * epsilon-closeness of the resulting state UseInterval bounds.
  *
  * \remark For MaxProb problems, trials may get stuck in cycles. To deal with
  * this, alternative trial termination conditions can be selected, which ensure
@@ -140,15 +140,16 @@ using LRTDPStateInfo = std::conditional_t<
  *
  * @tparam State - The state type of the MDP model.
  * @tparam Action - The action type of the MDP model.
- * @tparam Interval - Whether intervals or real values are used as state
+ * @tparam UseInterval - Whether intervals or real values are used as state
  * values.
  * @tparam Fret - Specifies whether the algorithm should be usable within FRET.
  */
-template <typename State, typename Action, bool Interval, bool Fret>
-class LRTDP : public internal::LRTDPBase<State, Action, Interval, Fret> {
+template <typename State, typename Action, bool UseInterval, bool Fret>
+class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
     using HeuristicSearchBase =
-        internal::LRTDPBase<State, Action, Interval, Fret>;
-    using StateInfoT = internal::LRTDPStateInfo<State, Action, Interval, Fret>;
+        internal::LRTDPBase<State, Action, UseInterval, Fret>;
+    using StateInfoT =
+        internal::LRTDPStateInfo<State, Action, UseInterval, Fret>;
     using Statistics = internal::Statistics;
 
     const TrialTerminationCondition StopConsistent;
@@ -196,7 +197,7 @@ public:
     /**
      * @copydoc MDPEngineInterface::solve(const State& state)
      */
-    value_t solve(const State& state) override
+    Interval solve(const State& state) override
     {
         this->initialize_report(state);
         const StateID state_id = this->get_state_id(state);
@@ -213,7 +214,7 @@ public:
             this->report(state_id);
         }
 
-        return this->get_value(state);
+        return this->lookup_dual_bounds(state_id);
     }
 
     /**

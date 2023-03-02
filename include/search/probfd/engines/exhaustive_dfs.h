@@ -254,7 +254,7 @@ public:
     value_t lookup_value(StateID state_id) override
     {
         if constexpr (UseInterval) {
-            return search_space_[state_id].value.upper;
+            return search_space_[state_id].value.lower;
         } else {
             return search_space_[state_id].value;
         }
@@ -263,7 +263,7 @@ public:
     Interval lookup_dual_bounds(StateID state_id) override
     {
         if constexpr (!UseInterval) {
-            ABORT("Search algorithm does not support interval bounds!");
+            return Interval(search_space_[state_id].value, INFINITE_VALUE);
         } else {
             return search_space_[state_id].value;
         }
@@ -274,7 +274,7 @@ public:
         ABORT("Search algorithm does not store policy information!");
     }
 
-    value_t solve(const State& state) override
+    Interval solve(const State& state) override
     {
         StateID stateid = this->get_state_id(state);
         SearchNodeInformation& info = search_space_[stateid];
@@ -286,18 +286,7 @@ public:
             run_exploration();
         }
 
-        return as_lower_bound(info.value);
-    }
-
-    virtual std::optional<value_t> get_error(const State& s) override
-    {
-        if constexpr (UseInterval) {
-            const SearchNodeInformation& info =
-                search_space_[this->get_state_id(s)];
-            return std::abs(info.value.length());
-        } else {
-            return std::nullopt;
-        }
+        return this->lookup_dual_bounds(stateid);
     }
 
     void print_statistics(std::ostream& out) const override

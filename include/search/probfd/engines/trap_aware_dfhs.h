@@ -68,24 +68,24 @@ struct PerStateInformation : public BaseInfo {
 
 } // namespace internal
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 class TADepthFirstHeuristicSearch;
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 class TADepthFirstHeuristicSearch<
     State,
     quotients::QuotientAction<Action>,
-    Interval>
+    UseInterval>
     : public heuristic_search::HeuristicSearchBase<
           State,
           quotients::QuotientAction<Action>,
-          Interval,
+          UseInterval,
           true,
           internal::PerStateInformation> {
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
         quotients::QuotientAction<Action>,
-        Interval,
+        UseInterval,
         true,
         internal::PerStateInformation>;
 
@@ -215,7 +215,7 @@ public:
     {
     }
 
-    value_t solve(const State& qstate) override
+    Interval solve(const State& qstate) override
     {
         this->initialize_report(qstate);
         StateID state_id = this->get_state_id(qstate);
@@ -224,7 +224,7 @@ public:
         } else {
             dfhs_label_driver(state_id);
         }
-        return this->lookup_value(state_id);
+        return this->lookup_dual_bounds(state_id);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -645,12 +645,12 @@ private:
     }
 };
 
-template <typename State, typename Action, bool Interval>
+template <typename State, typename Action, bool UseInterval>
 class TADepthFirstHeuristicSearch : public MDPEngineInterface<State, Action> {
     TADepthFirstHeuristicSearch<
         State,
         quotients::QuotientAction<Action>,
-        Interval>
+        UseInterval>
         engine_;
 
     using QAction = quotients::QuotientAction<Action>;
@@ -700,7 +700,7 @@ public:
     {
     }
 
-    value_t solve(const State& state) override { return engine_.solve(state); }
+    Interval solve(const State& state) override { return engine_.solve(state); }
 
     void print_statistics(std::ostream& out) const override
     {

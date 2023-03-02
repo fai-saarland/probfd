@@ -1,7 +1,7 @@
 #ifndef PROBFD_SOLVERS_SOLVER_INTERFACE_H
 #define PROBFD_SOLVERS_SOLVER_INTERFACE_H
 
-#include "probfd/value_type.h"
+#include "probfd/interval.h"
 
 #include <optional>
 #include <ostream>
@@ -21,11 +21,9 @@ public:
 protected:
     static void print_value(std::ostream& o, value_t value);
 
-    static void print_analysis_result(
-        value_t value,
-        std::optional<value_t> error = std::nullopt);
+    static void print_analysis_result(Interval result);
 
-    static void print_initial_state_value(value_t value, int spaces = 0);
+    static void print_initial_state_value(Interval value, int spaces = 0);
 };
 } // namespace probfd
 

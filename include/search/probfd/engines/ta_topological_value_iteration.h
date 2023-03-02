@@ -57,17 +57,17 @@ struct Statistics {
  * Additionally, this implementation computes all traps reachable from the
  * initial state on-the-fly and flattens them to guarantee convergence against
  * the optimal value function. Traps need not be removed prior to running
- * the algorithm. Interval bounds are also supported.
+ * the algorithm. UseInterval bounds are also supported.
  *
  * @see topological_vi:TopologicalValueIteration
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam Interval - Whether bounded value iteration is used.
+ * @tparam UseInterval - Whether bounded value iteration is used.
  */
-template <typename State, typename Action, bool Interval = false>
+template <typename State, typename Action, bool UseInterval = false>
 class TATopologicalValueIteration : public MDPEngine<State, Action> {
-    using EngineValueType = engines::EngineValueType<Interval>;
+    using EngineValueType = engines::EngineValueType<UseInterval>;
 
     struct StateInfo {
         // Status Flags
@@ -236,7 +236,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
                 set_min(v, info.compute_q_value(value_store));
             }
 
-            if constexpr (Interval) {
+            if constexpr (UseInterval) {
                 return update(*value, v) || !value->bounds_equal();
             } else {
                 return update(*value, v);
@@ -355,7 +355,7 @@ public:
     /**
      * \copydoc MDPEngine::solve(const State&)
      */
-    value_t solve(const State& state) override
+    Interval solve(const State& state) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
         return this->solve(this->get_state_id(state), value_store);
@@ -382,13 +382,17 @@ public:
      * output parameter \p value_store. Returns the value of the initial state.
      */
     template <typename ValueStore>
-    value_t solve(StateID init_state_id, ValueStore& value_store)
+    Interval solve(StateID init_state_id, ValueStore& value_store)
     {
         StateInfo& iinfo = state_information_[init_state_id];
         EngineValueType& init_value = value_store[init_state_id];
 
         if (!push_state(init_state_id, iinfo, init_value)) {
-            return as_upper_bound(init_value);
+            if constexpr (UseInterval) {
+                return init_value;
+            } else {
+                return Interval(init_value, INFINITE_VALUE);
+            }
         }
 
         ExplorationInfo* explore = &exploration_stack_.back();
@@ -485,7 +489,11 @@ public:
 
     break_exploration:;
 
-        return as_upper_bound(init_value);
+        if constexpr (UseInterval) {
+            return init_value;
+        } else {
+            return Interval(init_value, INFINITE_VALUE);
+        }
     }
 
 private:
@@ -644,7 +652,7 @@ private:
 
                 s_info.ec_transitions.emplace_back(cost);
 
-                if constexpr (Interval) {
+                if constexpr (UseInterval) {
                     state_value.lower = t_cost;
                     state_value.upper = estimate;
                 } else {

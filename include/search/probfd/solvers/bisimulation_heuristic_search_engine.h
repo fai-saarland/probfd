@@ -124,15 +124,10 @@ public:
         return res;
     }
 
-    virtual value_t solve(const State&) override
+    virtual Interval solve(const State&) override
     {
         std::cout << "Running " << engine_name_ << "..." << std::endl;
         return engine_->solve(bs.get_initial_state());
-    }
-
-    virtual std::optional<value_t> get_error(const State&) override
-    {
-        return engine_->get_error(bs.get_initial_state());
     }
 
     virtual void print_statistics(std::ostream& out) const override

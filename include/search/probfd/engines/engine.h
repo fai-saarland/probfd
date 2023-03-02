@@ -45,16 +45,7 @@ public:
     /**
      * @brief Runs the MDP algorithm with the initial state \p state .
      */
-    virtual value_t solve(const State& state) = 0;
-
-    /**
-     * @brief Returns the error bound on the value computed for a state, if the
-     * underlying engine supports it.
-     */
-    virtual std::optional<value_t> get_error(const State&)
-    {
-        return std::nullopt;
-    }
+    virtual Interval solve(const State& state) = 0;
 
     /**
      * @brief Prints algorithm statistics to the specified std::ostream.
