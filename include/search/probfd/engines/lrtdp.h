@@ -361,8 +361,10 @@ private:
             } else {
                 this->visited_.push_front(state_id);
 
-                if (this->do_bounds_disagree(state_id, info)) {
-                    mark_solved = false;
+                if constexpr (UseInterval) {
+                    if (this->do_bounds_disagree(state_id, info)) {
+                        mark_solved = false;
+                    }
                 }
 
                 for (StateID succ_id : selected_transition_.elements()) {
