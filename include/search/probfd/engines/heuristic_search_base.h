@@ -200,8 +200,7 @@ public:
         statistics_.print(out);
     }
 
-    const engines::heuristic_search::StateFlags&
-    lookup_state_flags(StateID state_id) override
+    const StateFlags& lookup_state_flags(StateID state_id) override
     {
         return state_infos_[state_id];
     }
