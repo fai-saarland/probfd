@@ -132,13 +132,12 @@ public:
     {
     }
 
-    void print_statistics(std::ostream& out) const override
+protected:
+    void print_additional_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
-        HeuristicSearchBase::print_statistics(out);
     }
 
-protected:
     void setup_custom_reports(const State&) override
     {
         this->report_->register_print(

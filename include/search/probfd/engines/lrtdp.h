@@ -194,12 +194,19 @@ public:
         this->setup_state_info_store();
     }
 
-    /**
-     * @copydoc MDPEngineInterface::solve(const State& state)
-     */
-    Interval solve(const State& state) override
+    void reset_search_state() override
     {
-        this->initialize_report(state);
+        using HSBInfo = typename HeuristicSearchBase::StateInfo;
+
+        if constexpr (!std::is_same_v<StateInfoT, HSBInfo>) {
+            this->state_infos_.reset(
+                new storage::PerStateStorage<StateInfoT>());
+        }
+    }
+
+protected:
+    Interval do_solve(const State& state) override
+    {
         const StateID state_id = this->get_state_id(state);
 
         for (;;) {
@@ -217,23 +224,9 @@ public:
         return this->lookup_dual_bounds(state_id);
     }
 
-    /**
-     * @copydoc MDPEngineInterface::print_statistics(std::ostream& out) const
-     */
-    void print_statistics(std::ostream& out) const override
+    void print_additional_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
-        HeuristicSearchBase::print_statistics(out);
-    }
-
-    void reset_search_state() override
-    {
-        using HSBInfo = typename HeuristicSearchBase::StateInfo;
-
-        if constexpr (!std::is_same_v<StateInfoT, HSBInfo>) {
-            this->state_infos_.reset(
-                new storage::PerStateStorage<StateInfoT>());
-        }
     }
 
 protected:

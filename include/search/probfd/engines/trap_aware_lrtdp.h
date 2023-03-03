@@ -186,9 +186,9 @@ public:
     {
     }
 
-    Interval solve(const State& s) override
+protected:
+    Interval do_solve(const State& s) override
     {
-        this->initialize_report(s);
         const StateID state_id = this->get_state_id(s);
         bool terminate = false;
         do {
@@ -201,13 +201,11 @@ public:
         return this->lookup_dual_bounds(state_id);
     }
 
-    void print_statistics(std::ostream& out) const override
+    void print_additional_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
-        HeuristicSearchBase::print_statistics(out);
     }
 
-protected:
     void setup_custom_reports(const State&) override
     {
         this->statistics_.register_report(this->report_);

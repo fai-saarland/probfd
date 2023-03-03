@@ -64,9 +64,9 @@ public:
     {
     }
 
-    Interval solve(const State& state) override
+protected:
+    Interval do_solve(const State& state) override
     {
-        this->initialize_report(state);
         const StateID stateid = this->get_state_id(state);
         auto& iinfo = this->get_state_info(stateid);
         iinfo.update_order = 0;

@@ -186,9 +186,17 @@ public:
 
     virtual ~HeuristicSearchBase() = default;
 
-    virtual void print_statistics(std::ostream& out) const override
+
+    Interval solve(const State& state) final override
+    {
+        this->initialize_report(state);
+        return this->do_solve(state);
+    }
+
+    void print_statistics(std::ostream& out) const final override
     {
         statistics_.print(out);
+        this->print_additional_statistics(out);
     }
 
     const StateFlags& lookup_state_flags(StateID state_id) override
@@ -397,48 +405,28 @@ public:
 
 protected:
     /**
-     * @brief Initializes the progress report with the given initial state.
+     * @brief Solves for the optimal state value of the input state.
+     *
+     * Called internally after initializing the progress report.
      */
-    void initialize_report(const State& state)
-    {
-        initial_state_id_ = this->get_state_id(state);
-
-        static bool initialized = false;
-        if (initialized) {
-            return;
-        }
-        initialized = true;
-
-        const StateInfo& info = lookup_initialize(this->get_state_id(state));
-
-        if constexpr (UseInterval) {
-            report_->register_value("vl", [&info]() {
-                return info.value.lower;
-            });
-            report_->register_value("vu", [&info]() {
-                return info.value.upper;
-            });
-        } else {
-            report_->register_value("v", [&info]() { return info.value; });
-        }
-
-        statistics_.value = as_lower_bound(info.value);
-        statistics_.before_last_update = statistics_;
-        statistics_.initial_state_estimate = as_lower_bound(info.value);
-        statistics_.initial_state_found_terminal = info.is_terminal();
-
-        setup_custom_reports(state);
-    }
+    virtual Interval do_solve(const State& state) = 0;
 
     /**
-     * @brief Advances the progress report.
+     * @brief Prints additional statistics to the output stream.
+     *
+     * Called internally after printing the base heuristic search statistics.
      */
-    void advance_report() { this->report_->operator()(); }
+    virtual void print_additional_statistics(std::ostream& out) const = 0;
 
     /**
      * @brief Sets up internal custom reports of a state in an implementation.
      */
     virtual void setup_custom_reports(const State&) {}
+
+    /**
+     * @brief Advances the progress report.
+     */
+    void advance_report() { this->report_->operator()(); }
 
     /**
      * @brief Get the state info storage.
@@ -578,6 +566,35 @@ protected:
     }
 
 private:
+    void initialize_report(const State& state)
+    {
+        initial_state_id_ = this->get_state_id(state);
+
+        if (state_infos_[initial_state_id_].is_value_initialized()) {
+            return;
+        }
+
+        const StateInfo& info = lookup_initialize(initial_state_id_);
+
+        if constexpr (UseInterval) {
+            report_->register_value("vl", [&info]() {
+                return info.value.lower;
+            });
+            report_->register_value("vu", [&info]() {
+                return info.value.upper;
+            });
+        } else {
+            report_->register_value("v", [&info]() { return info.value; });
+        }
+
+        statistics_.value = as_lower_bound(info.value);
+        statistics_.before_last_update = statistics_;
+        statistics_.initial_state_estimate = as_lower_bound(info.value);
+        statistics_.initial_state_found_terminal = info.is_terminal();
+
+        setup_custom_reports(state);
+    }
+
     bool update(StateInfo& state_info, const EngineValueType& other)
     {
         if constexpr (UseInterval) {

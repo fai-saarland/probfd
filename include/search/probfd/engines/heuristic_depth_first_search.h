@@ -208,10 +208,10 @@ public:
         delete (this->state_flags_);
         state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();
     }
-    
-    Interval solve(const State& state) override
+
+protected:
+    Interval do_solve(const State& state) override
     {
-        this->initialize_report(state);
         const StateID stateid = this->get_state_id(state);
         if (PerformValueIteration) {
             solve_with_vi_termination(stateid);
@@ -222,9 +222,8 @@ public:
         return this->lookup_dual_bounds(stateid);
     }
 
-    void print_statistics(std::ostream& out) const override
+    void print_additional_statistics(std::ostream& out) const override
     {
-        HeuristicSearchBase::print_statistics(out);
         statistics_.print(out);
     }
 
