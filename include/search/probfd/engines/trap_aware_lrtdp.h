@@ -195,7 +195,7 @@ protected:
             terminate = trial(state_id);
             statistics_.trials++;
             assert(state_id == quotient_->translate_state_id(state_id));
-            this->advance_report();
+            this->print_progress();
         } while (!terminate);
 
         return this->lookup_dual_bounds(state_id);

@@ -177,7 +177,9 @@ public:
 
         prepare_lp();
 
-        progress_->register_value("v", [this]() { return objective_; });
+        progress_->register_bound("v", [this]() {
+            return Interval(objective_, INFINITE_VALUE);
+        });
 
         const double infinity = lp_solver_.get_infinity();
 
@@ -202,7 +204,7 @@ public:
         }
 
         while (!frontier.empty()) {
-            progress_->operator()();
+            progress_->print();
 
             update_hpom_constraints_expanded(idual_data, frontier);
 

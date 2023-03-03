@@ -162,7 +162,9 @@ public:
         std::vector<Distribution<StateID>> transitions;
         std::vector<double> lp_sol;
 
-        report_->register_value("v", [this] { return objective_; });
+        report_->register_bound("v", [this] {
+            return Interval(objective_, INFINITE_VALUE);
+        });
         report_->register_print([&](std::ostream& out) {
             out << "iteration=" << statistics_.iterations;
         });
@@ -294,7 +296,7 @@ public:
                 }
             }
 
-            report_->operator()();
+            report_->print();
         } while (!frontier.empty());
 
         assert(lp_sol.size() > 0);

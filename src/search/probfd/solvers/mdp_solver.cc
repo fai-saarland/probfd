@@ -29,7 +29,9 @@ MDPSolver::MDPSolver(const options::Options& opts)
           opts.get<bool>("cache"))
     , cost_function_(g_cost_model->get_cost_function())
     , progress_(
-          opts.get<double>("report_epsilon"),
+          opts.contains("report_epsilon")
+              ? std::optional<value_t>(opts.get<value_t>("report_epsilon"))
+              : std::nullopt,
           std::cout,
           opts.get<bool>("report_enabled"))
 {
@@ -50,7 +52,7 @@ void MDPSolver::solve()
     const State initial_state = state_registry_.get_initial_state();
 
     Interval val = engine->solve(initial_state);
-    progress_.print();
+    progress_.force_print();
     total_timer.stop();
 
     std::cout << "analysis done. [t=" << utils::g_timer << "]" << std::endl;
@@ -80,7 +82,7 @@ void MDPSolver::add_options_to_parser(options::OptionParser& parser)
         "path_dependent_evaluators",
         "",
         "[]");
-    parser.add_option<double>("report_epsilon", "", "1e-4");
+    parser.add_option<value_t>("report_epsilon", "", "1e-4");
     parser.add_option<bool>("report_enabled", "", "true");
 }
 

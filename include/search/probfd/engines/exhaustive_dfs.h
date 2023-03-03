@@ -298,15 +298,12 @@ private:
     void register_value_reports(const SearchNodeInformation* info)
     {
         if constexpr (UseInterval) {
-            this->report_->register_value("vl", [info]() {
-                return info->value.lower;
-            });
-            this->report_->register_value("vu", [info]() {
-                return info->value.upper;
+            this->report_->register_bound("v", [info]() {
+                return info->value;
             });
         } else {
-            this->report_->register_value("v", [info]() {
-                return info->value;
+            this->report_->register_bound("v", [info]() {
+                return Interval(info->value, INFINITE_VALUE);
             });
         }
     }
@@ -707,7 +704,7 @@ private:
         }
 
         if (it == expansion_infos_.rend()) {
-            (*report_)();
+            report_->print();
         }
     }
 

@@ -253,7 +253,7 @@ private:
 
             visited_.clear();
             statistics_.iterations++;
-            this->advance_report();
+            this->print_progress();
         } while (!terminate);
     }
 
@@ -263,7 +263,7 @@ private:
         do {
             terminate = !policy_exploration<false>(stateid);
             statistics_.iterations++;
-            this->advance_report();
+            this->print_progress();
             assert(visited_.empty());
         } while (!terminate);
     }

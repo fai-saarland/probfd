@@ -489,7 +489,7 @@ protected:
     /**
      * @brief Advances the progress report.
      */
-    void advance_report() { this->report_->operator()(); }
+    void print_progress() { this->report_->print(); }
 
     /**
      * @brief Get the state info storage.
@@ -640,14 +640,11 @@ private:
         const StateInfo& info = lookup_initialize(initial_state_id_);
 
         if constexpr (UseInterval) {
-            report_->register_value("vl", [&info]() {
-                return info.value.lower;
-            });
-            report_->register_value("vu", [&info]() {
-                return info.value.upper;
-            });
+            report_->register_bound("v", [&info]() { return info.value; });
         } else {
-            report_->register_value("v", [&info]() { return info.value; });
+            report_->register_bound("v", [&info]() {
+                return Interval(info.value, INFINITE_VALUE);
+            });
         }
 
         statistics_.value = as_lower_bound(info.value);

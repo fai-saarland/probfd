@@ -74,7 +74,7 @@ protected:
         while (!iinfo.is_solved()) {
             greedy_forward_exploration(stateid);
             ++this->statistics_.iterations;
-            this->advance_report();
+            this->print_progress();
         }
 
         return this->lookup_dual_bounds(stateid);

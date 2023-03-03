@@ -2,15 +2,17 @@
 
 #include "utils/timer.h"
 
+#include <cassert>
+
 namespace probfd {
 
 ProgressReport::ProgressReport(
-    const value_t min_change,
+    std::optional<value_t> tolerance,
     std::ostream& out,
     const bool enabled)
-    : min_change_(min_change)
+    : tolerance_(tolerance)
     , enabled_(enabled)
-    , out_(&out)
+    , out_(out)
 {
 }
 
@@ -29,61 +31,71 @@ void ProgressReport::register_print(std::function<void(std::ostream&)> f)
     additional_informations_.push_back(f);
 }
 
-void ProgressReport::register_value(
+void ProgressReport::register_bound(
     const std::string& val_name,
-    std::function<value_t()> getter)
+    BoundProperty property)
 {
-    value_names_.push_back(val_name);
-    value_getters_.push_back(getter);
-    extracted_values_.push_back(0_vt);
+    bound_infos_.emplace_back(val_name, property, Interval(0_vt));
+}
+
+void ProgressReport::force_print()
+{
+    advance_values(true);
+    print_progress();
 }
 
 void ProgressReport::print()
 {
-    extract_values();
-    if (!extracted_values_.empty()) {
+    if (enabled_ && advance_values()) {
         print_progress();
     }
 }
 
 void ProgressReport::print_progress()
 {
-    (*out_) << "[";
-    for (unsigned i = 0; i < value_names_.size(); i++) {
-        (*out_) << (i > 0 ? ", " : "") << value_names_[i] << "="
-                << extracted_values_[i];
+    out_ << "[";
+    for (unsigned i = 0; i < bound_infos_.size(); i++) {
+        const auto& info = bound_infos_[i];
+        assert(info.last_printed.has_value());
+        out_ << (i > 0 ? ", " : "") << info.name << "=" << *info.last_printed;
     }
-    //(*out_) << (value_names_.empty() ? "" : ", ")
-    //        << "registered=" << g_state_registry->size();
     for (unsigned i = 0; i < additional_informations_.size(); i++) {
-        (*out_) << ", ";
-        additional_informations_[i](*out_);
+        out_ << ", ";
+        additional_informations_[i](out_);
     }
-    (*out_) << ", t=" << utils::g_timer << "]"
-            << "\n";
+    out_ << ", t=" << utils::g_timer << "]"
+         << "\n";
 }
 
-bool ProgressReport::extract_values()
+bool ProgressReport::advance_values(bool force)
 {
-    bool print = last_printed_values_.size() != value_getters_.size();
-    last_printed_values_.resize(value_getters_.size(), 0_vt);
-    for (int i = value_getters_.size() - 1; i >= 0; --i) {
-        const value_t val = value_getters_[i]();
-        print = print || (abs(last_printed_values_[i] - val) >= min_change_);
-        extracted_values_[i] = val;
+    bool print = force;
+
+    std::vector<Interval> next_values;
+    next_values.reserve(bound_infos_.size());
+
+    for (auto& info : bound_infos_) {
+        const Interval next_val = info.property();
+        next_values.push_back(next_val);
+
+        if (!info.last_printed || !tolerance_) {
+            print = true;
+            continue;
+        }
+
+        const Interval prev_val = *info.last_printed;
+        print = print ||
+                !is_approx_equal(next_val.lower, prev_val.lower, *tolerance_) ||
+                !is_approx_equal(next_val.upper, prev_val.upper, *tolerance_);
     }
+
+    if (print) {
+        for (size_t i = 0; i != bound_infos_.size(); ++i) {
+            bound_infos_[i].last_printed = next_values[i];
+        }
+    }
+
     return print;
-}
-
-void ProgressReport::operator()()
-{
-    if (!enabled_) {
-        return;
-    }
-    if (extract_values()) {
-        print_progress();
-        last_printed_values_.swap(extracted_values_);
-    }
 }
 
 } // namespace probfd

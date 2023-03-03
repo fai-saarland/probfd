@@ -218,7 +218,7 @@ protected:
 
             this->trial(state_id);
             this->statistics_.trials++;
-            this->advance_report();
+            this->print_progress();
         }
 
         return this->lookup_dual_bounds(state_id);

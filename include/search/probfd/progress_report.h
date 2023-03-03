@@ -1,83 +1,104 @@
 #ifndef PROBFD_PROGRESS_REPORT_H
 #define PROBFD_PROGRESS_REPORT_H
 
-#include "probfd/value_type.h"
+#include "probfd/interval.h"
 
 #include <functional>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace probfd {
 
+/// A function that prints something to an output stream.
+using Printer = std::function<void(std::ostream&)>;
+
+/// A function that produces a state value bound.
+using BoundProperty = std::function<Interval()>;
+
 /**
  * @brief A registry for print functions related to search progress.
  *
- * Example
- * =======
+ * This class manages a list of printers (functions accepting an output stream)
+ * as well as a list of named bound properties (functions returning a
+ * bounding interval for some quantity, e.g. the optimal state value of the
+ * initial state).
  *
- ```
-class MyEngine : public MDPEngine<State, OperatorID>
-{
-    // Constructors and other methods...
-
-    value_t solve(const State& state) {
-        int iterations = 0;
-
-        // Print the number of iterations each time the
-        // search progress is displayed.
-        report.register_print([&iterations](std::ostream& out){
-            out << "Current number of iterations: " << iterations << std::endl;
-        });
-
-        while (...) {
-            // Do some stuff...
-
-            report();
-            ++iterations;
-        }
-
-        return ...;
-    }
-
-private:
-    ProgressReport report;
-};
- ```
+ * The bound properties are printed before the out of the registered printers.
+ * Within these groups, the output is printed in a FIFO manner, i.e. the printer
+ * that was registered first is also printed first.
  */
 class ProgressReport {
+    struct BoundPropertyInfo {
+        std::string name;
+        BoundProperty property;
+        std::optional<Interval> last_printed = std::nullopt;
+    };
+
+    const std::optional<value_t> tolerance_;
+    bool enabled_;
+    std::ostream& out_;
+
+    std::vector<BoundPropertyInfo> bound_infos_;
+    std::vector<Printer> additional_informations_;
+
 public:
+    /**
+     * @brief Construct a new progress report.
+     *
+     * @param min_change - An optional tolerance for bound property changes. If
+     * neither bound property changes by more than this value (lower or upper
+     * bound), no output is produced.
+     * @param out - The output stream to direct the output to.
+     * @param enabled - Whether printing is enabled or not.
+     */
     ProgressReport(
-        const value_t min_change,
+        std::optional<value_t> tolerance = std::nullopt,
         std::ostream& out = std::cout,
         const bool enabled = true);
+
     ~ProgressReport() = default;
 
-    void print();
-    void operator()();
+    /**
+     * @brief Prints the output to the internal output stream, even if disabled
+     * and a bound change tolerance is set.
+     */
+    void force_print();
 
+    /**
+     * @brief Prints the output to the internal output stream, if enabled.
+     *
+     * If a bound change tolerance is set, only prints if any lower or upper
+     * bound of any bound property changed by more than the specified tolerance.
+     */
+    void print();
+
+    /**
+     * @brief Enables printing.
+     */
     void enable();
+
+    /**
+     * @brief Disables printing.
+     */
     void disable();
 
-    void register_print(std::function<void(std::ostream&)> f);
+    /**
+     * @brief Appends a new printer to the list of printers.
+     */
+    void register_print(Printer f);
 
-    void register_value(
-        const std::string& val_name,
-        std::function<value_t()> getter);
+    /**
+     * @brief Appends a new bound property with a given name to the list of
+     * bound properties to be printed when the report is advanced.
+     */
+    void
+    register_bound(const std::string& property_name, BoundProperty property);
 
 private:
     void print_progress();
-    bool extract_values();
-
-    const value_t min_change_;
-    bool enabled_;
-    std::ostream* out_;
-
-    std::vector<std::string> value_names_;
-    std::vector<std::function<value_t()>> value_getters_;
-    std::vector<value_t> last_printed_values_;
-    std::vector<value_t> extracted_values_;
-    std::vector<std::function<void(std::ostream&)>> additional_informations_;
+    bool advance_values(bool force = false);
 };
 
 } // namespace probfd
