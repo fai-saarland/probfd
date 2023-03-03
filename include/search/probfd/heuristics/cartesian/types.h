@@ -24,16 +24,17 @@ namespace cartesian {
 struct ProbabilisticTransition;
 
 // Classed reused from classical implementation
-using AbstractState = cegar::AbstractState;
 using CartesianSet = cegar::CartesianSet;
 using RefinementHierarchy = cegar::RefinementHierarchy;
 
 // Typedefs reused from classical implementation
-using AbstractStates = cegar::AbstractStates;
 using Goals = cegar::Goals;
 using NodeID = cegar::NodeID;
 
 // Typdefs adapted from classical implementation
+class AbstractState;
+using AbstractStates = std::vector<std::unique_ptr<AbstractState>>;
+
 using Loops = std::vector<int>;
 using ProbabilisticTransitions = std::vector<ProbabilisticTransition>;
 

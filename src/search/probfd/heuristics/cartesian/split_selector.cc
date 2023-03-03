@@ -1,8 +1,7 @@
 #include "probfd/heuristics/cartesian/split_selector.h"
 
+#include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/utils.h"
-
-#include "cegar/abstract_state.h"
 
 #include "heuristics/additive_heuristic.h"
 

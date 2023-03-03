@@ -1,5 +1,6 @@
 #include "probfd/heuristics/cartesian/cegar.h"
 
+#include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/types.h"
@@ -9,7 +10,6 @@
 
 #include "probfd/policy.h"
 
-#include "cegar/abstract_state.h"
 #include "cegar/cartesian_set.h"
 #include "cegar/utils.h"
 

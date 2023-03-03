@@ -1,11 +1,11 @@
 #include "probfd/heuristics/cartesian/abstraction.h"
 
+#include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "cegar/abstract_state.h"
 #include "cegar/refinement_hierarchy.h"
 
 #include "utils/logging.h"

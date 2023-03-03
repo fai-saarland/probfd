@@ -1196,6 +1196,7 @@ fast_downward_plugin(
     HELP "Plugin containing the code for CEGAR heuristics"
     SOURCES
         probfd/heuristics/cartesian/abstract_search
+        probfd/heuristics/cartesian/abstract_state
         probfd/heuristics/cartesian/abstraction
         probfd/heuristics/cartesian/additive_cartesian_heuristic
         probfd/heuristics/cartesian/cartesian_heuristic_function
