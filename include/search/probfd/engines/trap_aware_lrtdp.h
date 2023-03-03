@@ -208,7 +208,7 @@ public:
     }
 
 protected:
-    virtual void setup_custom_reports(const State&) override
+    void setup_custom_reports(const State&) override
     {
         this->statistics_.register_report(this->report_);
     }

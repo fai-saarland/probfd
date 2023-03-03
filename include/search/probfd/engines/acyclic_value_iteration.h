@@ -101,7 +101,7 @@ public:
     {
     }
 
-    virtual value_t solve(const State& initial_state) override
+    value_t solve(const State& initial_state) override
     {
         if (!push_state(this->get_state_id(initial_state))) {
             return state_infos_[this->get_state_id(initial_state)].value;
@@ -150,7 +150,7 @@ public:
         return state_infos_[this->get_state_id(initial_state)].value;
     }
 
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
     }

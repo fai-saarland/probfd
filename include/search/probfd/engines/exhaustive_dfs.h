@@ -275,7 +275,7 @@ public:
         ABORT("Search algorithm does not store policy information!");
     }
 
-    virtual value_t solve(const State& state) override
+    value_t solve(const State& state) override
     {
         StateID stateid = this->get_state_id(state);
         SearchNodeInformation& info = search_space_[stateid];
@@ -301,7 +301,7 @@ public:
         }
     }
 
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
     }

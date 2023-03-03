@@ -196,7 +196,7 @@ public:
     /**
      * @copydoc MDPEngineInterface::solve(const State& state)
      */
-    virtual value_t solve(const State& state) override
+    value_t solve(const State& state) override
     {
         this->initialize_report(state);
         const StateID state_id = this->get_state_id(state);
@@ -219,13 +219,13 @@ public:
     /**
      * @copydoc MDPEngineInterface::print_statistics(std::ostream& out) const
      */
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
         HeuristicSearchBase::print_statistics(out);
     }
 
-    virtual void reset_search_state() override
+    void reset_search_state() override
     {
         using HSBInfo = typename HeuristicSearchBase::StateInfo;
 
@@ -236,7 +236,7 @@ public:
     }
 
 protected:
-    virtual void setup_custom_reports(const State&) override
+    void setup_custom_reports(const State&) override
     {
         this->report_->register_print(
             [&](std::ostream& out) { out << "trials=" << statistics_.trials; });

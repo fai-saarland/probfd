@@ -116,7 +116,7 @@ public:
     {
     }
 
-    virtual value_t solve(const State& state) override
+    value_t solve(const State& state) override
     {
         report_->register_print([&](std::ostream& out) {
             out << "fret=" << statistics_.iterations
@@ -146,12 +146,12 @@ public:
         return base_engine_->solve(state);
     }
 
-    virtual std::optional<value_t> get_error(const State& state) override
+    std::optional<value_t> get_error(const State& state) override
     {
         return base_engine_->get_error(state);
     }
 
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         this->base_engine_->print_statistics(out);
         statistics_.print(out);

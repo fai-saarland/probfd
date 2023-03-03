@@ -117,7 +117,7 @@ public:
     {
     }
 
-    virtual value_t solve(const State& initial_state) override
+    value_t solve(const State& initial_state) override
     {
         const double eps = g_epsilon;
         const double inf = lp_solver_.get_infinity();

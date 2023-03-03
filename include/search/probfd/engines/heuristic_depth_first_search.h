@@ -203,13 +203,13 @@ public:
         initialize_persistent_state_storage();
     }
 
-    virtual void reset_search_state() override
+    void reset_search_state() override
     {
         delete (this->state_flags_);
         state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();
     }
 
-    virtual value_t solve(const State& state) override
+    value_t solve(const State& state) override
     {
         this->initialize_report(state);
         const StateID stateid = this->get_state_id(state);
@@ -222,7 +222,7 @@ public:
         return this->get_value(state);
     }
 
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         HeuristicSearchBase::print_statistics(out);
         statistics_.print(out);

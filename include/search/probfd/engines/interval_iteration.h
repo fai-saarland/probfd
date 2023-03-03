@@ -86,7 +86,7 @@ public:
     {
     }
 
-    virtual value_t solve(const State& state) override
+    value_t solve(const State& state) override
     {
         std::unique_ptr<QuotientSystem> sys = get_quotient(state);
         BoolStore dead, one;
@@ -96,13 +96,13 @@ public:
         return as_lower_bound(value_store_[state_id]);
     }
 
-    virtual std::optional<value_t> get_error(const State& s) override
+    std::optional<value_t> get_error(const State& s) override
     {
         const StateID state_id = this->get_state_id(s);
         return value_store_[state_id].length();
     }
 
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         tvi_statistics_.print(out);
         ecd_statistics_.print(out);

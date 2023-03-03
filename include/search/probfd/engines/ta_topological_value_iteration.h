@@ -355,7 +355,7 @@ public:
     /**
      * \copydoc MDPEngine::solve(const State&)
      */
-    virtual value_t solve(const State& state) override
+    value_t solve(const State& state) override
     {
         storage::PerStateStorage<IncumbentSolution> value_store;
         return this->solve(this->get_state_id(state), value_store);
@@ -364,7 +364,7 @@ public:
     /**
      * \copydoc MDPEngineInterface::print_statistics(std::ostream&) const
      */
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
     }

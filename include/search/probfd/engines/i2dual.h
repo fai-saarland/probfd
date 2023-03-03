@@ -144,12 +144,12 @@ public:
     {
     }
 
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
         statistics_.print(out);
     }
 
-    virtual value_t solve(const State& state) override
+    value_t solve(const State& state) override
     {
         statistics_ = Statistics();
 
