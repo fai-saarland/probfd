@@ -5,7 +5,7 @@
 #include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 
 #include "probfd/task_proxy.h"
-#include "probfd/value_utils.h"
+#include "probfd/value_type.h"
 
 #include "pdbs/pattern_database.h"
 

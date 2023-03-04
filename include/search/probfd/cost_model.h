@@ -3,7 +3,7 @@
 
 #include "probfd/engine_interfaces/cost_function.h"
 
-#include "probfd/value_utils.h"
+#include "probfd/interval.h"
 
 #include <memory>
 

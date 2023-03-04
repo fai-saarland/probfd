@@ -1,9 +1,9 @@
 #ifndef PROBFD_ENGINES_HEURISTIC_SEARCH_STATE_INFORMATION_H
 #define PROBFD_ENGINES_HEURISTIC_SEARCH_STATE_INFORMATION_H
 
+#include "probfd/engines/utils.h"
+
 #include "probfd/types.h"
-#include "probfd/value_type.h"
-#include "probfd/value_utils.h"
 
 #include <cassert>
 #include <cstdint>
@@ -73,7 +73,7 @@ struct PerStateBaseInformation
     static constexpr bool StorePolicy = StorePolicy_;
     static constexpr bool UseInterval = UseInterval_;
 
-    IncumbentSolution<UseInterval> value;
+    EngineValueType<UseInterval> value;
 };
 
 } // namespace heuristic_search

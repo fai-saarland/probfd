@@ -2,10 +2,9 @@
 #define PROBFD_ENGINES_TOPOLOGICAL_VALUE_ITERATION_H
 
 #include "probfd/engines/engine.h"
+#include "probfd/engines/utils.h"
 
 #include "probfd/storage/per_state_storage.h"
-
-#include "probfd/value_utils.h"
 
 #include "utils/iterators.h"
 
@@ -67,7 +66,7 @@ struct Statistics {
  */
 template <typename State, typename Action, bool Interval = false>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
-    using IncumbentSolution = probfd::IncumbentSolution<Interval>;
+    using EngineValueType = engines::EngineValueType<Interval>;
 
     struct StateInfo {
         // Status Flags
@@ -140,11 +139,11 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // Precomputed part of the Q-value.
         // Sum of action cost plus those weighted successor values which
         // have already converged due to topological ordering.
-        IncumbentSolution conv_part;
+        EngineValueType conv_part;
 
         // Pointers to successor values which have not yet converged,
         // self-loops excluded.
-        std::vector<ItemProbabilityPair<IncumbentSolution*>> nconv_successors;
+        std::vector<ItemProbabilityPair<EngineValueType*>> nconv_successors;
 
         explicit QValueInfo(value_t action_cost)
             : conv_part(action_cost)
@@ -166,9 +165,9 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
             return nconv_successors.empty();
         }
 
-        IncumbentSolution compute_q_value() const
+        EngineValueType compute_q_value() const
         {
-            IncumbentSolution res = conv_part;
+            EngineValueType res = conv_part;
 
             for (auto& [value, prob] : nconv_successors) {
                 res += prob * (*value);
@@ -186,22 +185,22 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         StateID state_id;
 
         // Reference to the state value of the state.
-        IncumbentSolution* value;
+        EngineValueType* value;
 
         // The state cost
-        IncumbentSolution state_cost;
+        EngineValueType state_cost;
 
         // Precomputed part of the max of the value update.
         // Maximum over all Q values which have already converged due to
         // topological ordering.
-        IncumbentSolution conv_part;
+        EngineValueType conv_part;
 
         // Remaining Q values which have not yet converged.
         std::vector<QValueInfo> nconv_qs;
 
         StackInfo(
             StateID state_id,
-            IncumbentSolution& value_ref,
+            EngineValueType& value_ref,
             value_t state_cost,
             unsigned num_aops)
             : state_id(state_id)
@@ -214,7 +213,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
         bool update_value()
         {
-            IncumbentSolution v = conv_part;
+            EngineValueType v = conv_part;
 
             for (const QValueInfo& info : nconv_qs) {
                 set_min(v, info.compute_q_value());
@@ -255,7 +254,7 @@ public:
      */
     value_t solve(const State& state) override
     {
-        storage::PerStateStorage<IncumbentSolution> value_store;
+        storage::PerStateStorage<EngineValueType> value_store;
         return this->solve(this->get_state_id(state), value_store);
     }
 
@@ -283,7 +282,7 @@ public:
     value_t solve(StateID init_state_id, ValueStore& value_store)
     {
         StateInfo& iinfo = state_information_[init_state_id];
-        IncumbentSolution& init_value = value_store[init_state_id];
+        EngineValueType& init_value = value_store[init_state_id];
 
         if (!push_state(init_state_id, iinfo, init_value)) {
             return as_lower_bound(init_value);
@@ -327,7 +326,7 @@ public:
                 stack_info = &stack_[explore->stackidx];
 
                 const auto [succ_id, prob] = explore->get_current_successor();
-                IncumbentSolution& s_value = value_store[succ_id];
+                EngineValueType& s_value = value_store[succ_id];
                 QValueInfo& tinfo = stack_info->nconv_qs.back();
 
                 if (onstack) {
@@ -370,7 +369,7 @@ private:
     bool push_state(
         StateID state_id,
         StateInfo& state_info,
-        IncumbentSolution& state_value)
+        EngineValueType& state_value)
     {
         assert(state_info.status == StateInfo::NEW);
 
@@ -388,7 +387,7 @@ private:
             if (!expand_goals_) {
                 ++statistics_.terminal_states;
 
-                state_value = IncumbentSolution(t_cost);
+                state_value = EngineValueType(t_cost);
                 state_info.status = StateInfo::CLOSED;
 
                 return false;
@@ -398,7 +397,7 @@ private:
         if (h_eval.is_unsolvable()) {
             ++statistics_.pruned;
 
-            state_value = IncumbentSolution(estimate);
+            state_value = EngineValueType(estimate);
             state_info.status = StateInfo::CLOSED;
 
             return false;
@@ -413,7 +412,7 @@ private:
         if (aops.empty()) {
             ++statistics_.terminal_states;
 
-            state_value = IncumbentSolution(t_cost);
+            state_value = EngineValueType(t_cost);
             state_info.status = StateInfo::CLOSED;
 
             return false;
@@ -466,7 +465,7 @@ private:
         } while (!aops.empty());
         /*****************************************************************/
 
-        state_value = IncumbentSolution(t_cost);
+        state_value = EngineValueType(t_cost);
         state_info.status = StateInfo::CLOSED;
 
         return false;
@@ -501,7 +500,7 @@ private:
                 }
 
                 StateInfo& succ_info = state_information_[succ_id];
-                IncumbentSolution& s_value = value_store[succ_id];
+                EngineValueType& s_value = value_store[succ_id];
                 int status = succ_info.status;
 
                 if (status == StateInfo::ONSTACK) {

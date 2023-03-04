@@ -3,6 +3,7 @@
 
 #include "probfd/engines/engine.h"
 #include "probfd/engines/heuristic_search_state_information.h"
+#include "probfd/engines/utils.h"
 
 #include "probfd/engine_interfaces/heuristic_search_interface.h"
 #include "probfd/engine_interfaces/new_state_handler.h"
@@ -13,7 +14,6 @@
 #include "probfd/utils/graph_visualization.h"
 
 #include "probfd/progress_report.h"
-#include "probfd/value_utils.h"
 
 #include "utils/collections.h"
 #include "utils/system.h"
@@ -140,7 +140,7 @@ public:
     static constexpr bool StorePolicy = StateInfo::StorePolicy;
     static constexpr bool UseInterval = StateInfo::UseInterval;
 
-    using IncumbentSolution = probfd::IncumbentSolution<UseInterval>;
+    using EngineValueType = engines::EngineValueType<UseInterval>;
 
 private:
     engine_interfaces::Evaluator<State>* value_initializer_;
@@ -320,7 +320,7 @@ public:
     {
         if (!state_info.is_dead_end()) {
             state_info.set_dead_end();
-            state_info.value = IncumbentSolution(state_info.state_cost);
+            state_info.value = EngineValueType(state_info.state_cost);
             return true;
         }
 
@@ -420,15 +420,15 @@ protected:
      * without interval comparison) or either value bound changed by more than
      * epsilon (interval bounds with interval comparison). False otherwise.
      */
-    bool update(StateInfo& state_info, const IncumbentSolution& other)
+    bool update(StateInfo& state_info, const EngineValueType& other)
     {
         if constexpr (UseInterval) {
-            return probfd::update(
+            return engines::update(
                 state_info.value,
                 other,
                 interval_comparison_);
         } else {
-            return probfd::update(state_info.value, other);
+            return engines::update(state_info.value, other);
         }
     }
 
@@ -641,7 +641,7 @@ private:
             state_info.state_cost = t_cost;
             if (term.is_goal_state()) {
                 state_info.set_goal();
-                state_info.value = IncumbentSolution(t_cost);
+                state_info.value = EngineValueType(t_cost);
                 statistics_.goal_states++;
                 if (on_new_state_) on_new_state_->touch_goal(state);
                 return state_info;
@@ -702,14 +702,14 @@ private:
             return result;
         }
 
-        IncumbentSolution new_value(this->get_state_cost(state_id));
+        EngineValueType new_value(this->get_state_cost(state_id));
 
         bool has_only_self_loops = true;
         for (unsigned i = 0; i < aops.size(); ++i) {
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
-            IncumbentSolution t_value(this->get_action_cost(state_id, op));
+            EngineValueType t_value(this->get_action_cost(state_id, op));
             value_t self_loop = 0_vt;
             bool non_loop = false;
 
@@ -785,14 +785,14 @@ private:
             return result;
         }
 
-        IncumbentSolution new_value(this->get_state_cost(state_id));
+        EngineValueType new_value(this->get_state_cost(state_id));
 
         unsigned optimal_end = 0;
         for (unsigned i = 0; i < opt_aops.size(); ++i) {
             Action& op = opt_aops[i];
             Distribution<StateID>& transition = opt_transitions[i];
 
-            IncumbentSolution t_value(this->get_action_cost(state_id, op));
+            EngineValueType t_value(this->get_action_cost(state_id, op));
             value_t self_loop = 0_vt;
             bool non_loop = false;
 

@@ -1,7 +1,7 @@
 #ifndef PROBFD_POLICY_H
 #define PROBFD_POLICY_H
 
-#include "probfd/value_utils.h"
+#include "probfd/interval.h"
 
 #include <optional>
 #include <vector>

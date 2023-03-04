@@ -1,9 +1,12 @@
 #include "probfd/value_type.h"
 
+#include <cassert>
 #include <cmath>
 #include <limits>
 
 namespace probfd {
+
+value_t g_epsilon = 5e-5;
 
 value_t fraction_to_value(int nom, int denom)
 {
@@ -27,6 +30,27 @@ value_t abs(value_t val)
     return std::abs(val);
 }
 
-value_t g_epsilon = 5e-5;
+bool is_approx_equal(value_t v1, value_t v2, value_t tolerance)
+{
+    assert(tolerance >= 0.0_vt);
+    return v1 == v2 || std::abs(v1 - v2) <= tolerance;
+}
+
+bool is_approx_less(value_t v1, value_t v2, value_t tolerance)
+{
+    assert(tolerance >= 0.0_vt);
+    return v1 + tolerance < v2;
+}
+
+bool is_approx_greater(value_t v1, value_t v2, value_t tolerance)
+{
+    assert(tolerance >= 0.0_vt);
+    return v1 - tolerance > v2;
+}
+
+int approx_compare(value_t v1, value_t v2, value_t tolerance)
+{
+    return is_approx_equal(v1, v2, tolerance) ? 0 : v1 > v2 ? 1 : -1;
+}
 
 } // namespace probfd

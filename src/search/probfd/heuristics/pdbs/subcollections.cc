@@ -3,7 +3,7 @@
 #include "pdbs/pattern_cliques.h"
 
 #include "probfd/task_proxy.h"
-#include "probfd/value_utils.h"
+#include "probfd/value_type.h"
 
 #include <utility>
 

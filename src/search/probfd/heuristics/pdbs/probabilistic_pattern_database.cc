@@ -2,7 +2,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/value_utils.h"
+#include "probfd/value_type.h"
 
 #include <algorithm>
 #include <compare>

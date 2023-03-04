@@ -3,9 +3,9 @@
 
 #include "probfd/engines/engine.h"
 
-#include "probfd/storage/per_state_storage.h"
+#include "probfd/engines/utils.h"
 
-#include "probfd/value_utils.h"
+#include "probfd/storage/per_state_storage.h"
 
 #include "utils/iterators.h"
 
@@ -67,7 +67,7 @@ struct Statistics {
  */
 template <typename State, typename Action, bool Interval = false>
 class TATopologicalValueIteration : public MDPEngine<State, Action> {
-    using IncumbentSolution = IncumbentSolution<Interval>;
+    using EngineValueType = engines::EngineValueType<Interval>;
 
     struct StateInfo {
         // Status Flags
@@ -151,7 +151,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         // Precomputed part of the Q-value.
         // Sum of action cost plus those weighted successor values which
         // have already converged due to topological ordering.
-        IncumbentSolution conv_part;
+        EngineValueType conv_part;
 
         // Pointers to successor values which have not yet converged,
         // self-loops excluded.
@@ -178,9 +178,9 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         }
 
         template <typename ValueStore>
-        IncumbentSolution compute_q_value(ValueStore& value_store) const
+        EngineValueType compute_q_value(ValueStore& value_store) const
         {
-            IncumbentSolution res = conv_part;
+            EngineValueType res = conv_part;
 
             for (auto& [state_id, prob] : scc_successors) {
                 res += prob * value_store[state_id];
@@ -198,12 +198,12 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         StateID state_id;
 
         // Reference to the state value of the state.
-        IncumbentSolution* value;
+        EngineValueType* value;
 
         // Precomputed portion of the Bellman update.
         // Maximum over all Q values for actions which always
         // leave the current scc.
-        IncumbentSolution conv_part;
+        EngineValueType conv_part;
 
         // Q value structs for transitions belonging to the scc,
         // but not to an end component.
@@ -216,7 +216,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
 
         StackInfo(
             StateID state_id,
-            IncumbentSolution& value_ref,
+            EngineValueType& value_ref,
             value_t state_cost,
             unsigned num_aops)
             : state_id(state_id)
@@ -230,7 +230,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         template <typename ValueStore>
         bool update_value(ValueStore& value_store)
         {
-            IncumbentSolution v = conv_part;
+            EngineValueType v = conv_part;
 
             for (const QValueInfo& info : non_ec_transitions) {
                 set_min(v, info.compute_q_value(value_store));
@@ -357,7 +357,7 @@ public:
      */
     value_t solve(const State& state) override
     {
-        storage::PerStateStorage<IncumbentSolution> value_store;
+        storage::PerStateStorage<EngineValueType> value_store;
         return this->solve(this->get_state_id(state), value_store);
     }
 
@@ -385,7 +385,7 @@ public:
     value_t solve(StateID init_state_id, ValueStore& value_store)
     {
         StateInfo& iinfo = state_information_[init_state_id];
-        IncumbentSolution& init_value = value_store[init_state_id];
+        EngineValueType& init_value = value_store[init_state_id];
 
         if (!push_state(init_state_id, iinfo, init_value)) {
             return as_upper_bound(init_value);
@@ -441,7 +441,7 @@ public:
 
                     tinfo.scc_successors.emplace_back(succ_id, prob);
                 } else {
-                    const IncumbentSolution& s_value = value_store[succ_id];
+                    const EngineValueType& s_value = value_store[succ_id];
                     explore->recurse =
                         explore->recurse || !tinfo.scc_successors.empty();
                     explore->nz_or_leaves_scc = true;
@@ -518,7 +518,7 @@ private:
                 }
 
                 StateInfo& succ_info = state_information_[succ_id];
-                IncumbentSolution& s_value = value_store[succ_id];
+                EngineValueType& s_value = value_store[succ_id];
                 int status = succ_info.status;
 
                 switch (status) {
@@ -574,7 +574,7 @@ private:
     bool push_state(
         StateID state_id,
         StateInfo& state_info,
-        IncumbentSolution& state_value)
+        EngineValueType& state_value)
     {
         assert(state_info.status == StateInfo::NEW);
 
@@ -592,7 +592,7 @@ private:
 
         if (h_eval.is_unsolvable()) {
             ++statistics_.pruned;
-            state_value = IncumbentSolution(estimate);
+            state_value = EngineValueType(estimate);
             state_info.status = StateInfo::CLOSED;
             return false;
         }
@@ -605,7 +605,7 @@ private:
 
         if (aops.empty()) {
             ++statistics_.terminal_states;
-            state_value = IncumbentSolution(t_cost);
+            state_value = EngineValueType(t_cost);
             state_info.status = StateInfo::CLOSED;
             return false;
         }
@@ -658,7 +658,7 @@ private:
             transition.clear();
         } while (!aops.empty());
 
-        state_value = IncumbentSolution(t_cost);
+        state_value = EngineValueType(t_cost);
         state_info.status = StateInfo::CLOSED;
 
         return false;
@@ -736,7 +736,7 @@ private:
 
                 set_min(repr_stk.conv_part, succ_stk.conv_part);
 
-                succ_stk.conv_part = IncumbentSolution(-INFINITE_VALUE);
+                succ_stk.conv_part = EngineValueType(-INFINITE_VALUE);
 
                 // Connect to representative state with zero cost action
                 auto& t = succ_stk.non_ec_transitions.emplace_back(0.0_vt);
@@ -908,7 +908,7 @@ private:
                 std::vector<QValueInfo>().swap(succ_stk.non_ec_transitions);
 
                 set_min(repr_stk.conv_part, succ_stk.conv_part);
-                succ_stk.conv_part = IncumbentSolution(-INFINITE_VALUE);
+                succ_stk.conv_part = EngineValueType(-INFINITE_VALUE);
 
                 // Connect to representative state with zero cost action
                 auto& t = succ_stk.non_ec_transitions.emplace_back(0.0_vt);

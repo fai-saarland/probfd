@@ -2,6 +2,7 @@
 #define PROBFD_ENGINES_ACYCLIC_VALUE_ITERATION_H
 
 #include "probfd/engines/engine.h"
+#include "probfd/engines/utils.h"
 
 #include "probfd/engine_interfaces/evaluator.h"
 

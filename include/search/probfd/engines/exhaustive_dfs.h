@@ -2,8 +2,8 @@
 #define PROBFD_ENGINES_EXHAUSTIVE_DFS_H
 
 #include "probfd/engines/engine.h"
-
 #include "probfd/engines/heuristic_search_state_information.h"
+#include "probfd/engines/utils.h"
 
 #include "probfd/engine_interfaces/heuristic_search_interface.h"
 #include "probfd/engine_interfaces/new_state_handler.h"
@@ -12,7 +12,6 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/progress_report.h"
-#include "probfd/value_utils.h"
 
 #include "utils/system.h"
 #include "utils/timer.h"
@@ -107,7 +106,7 @@ template <typename State, typename Action, bool UseInterval>
 class ExhaustiveDepthFirstSearch
     : public MDPEngine<State, Action>
     , public engine_interfaces::HeuristicSearchInterface {
-    using IncumbentSolution = probfd::IncumbentSolution<UseInterval>;
+    using EngineValueType = engines::EngineValueType<UseInterval>;
 
     struct SearchNodeInformation {
         static constexpr uint8_t NEW = 0;
@@ -121,7 +120,7 @@ class ExhaustiveDepthFirstSearch
         // stack
         unsigned lowlink = -1;
         uint8_t status = NEW;
-        IncumbentSolution value;
+        EngineValueType value;
         value_t state_cost;
 
         bool is_new() const { return status == NEW; }
@@ -202,7 +201,7 @@ class ExhaustiveDepthFirstSearch
 
     ProgressReport* report_;
     const Interval cost_bound_;
-    const IncumbentSolution trivial_bound_;
+    const EngineValueType trivial_bound_;
 
     const bool value_propagation_;
     const bool only_propagate_when_changed_;
@@ -332,7 +331,7 @@ private:
         return evaluator_->evaluate(state);
     }
 
-    IncumbentSolution get_trivial_bound() const
+    EngineValueType get_trivial_bound() const
     {
         if constexpr (UseInterval) {
             return cost_bound_;
@@ -355,7 +354,7 @@ private:
         info.state_cost = term_info.get_cost();
         if (term_info.is_goal_state()) {
             info.close();
-            info.value = IncumbentSolution(term_info.get_cost());
+            info.value = EngineValueType(term_info.get_cost());
             ++statistics_.goal_states;
             if (new_state_handler_) {
                 new_state_handler_->touch_goal(state);
@@ -365,7 +364,7 @@ private:
 
         EvaluationResult eval_result = evaluate(state);
         if (eval_result.is_unsolvable()) {
-            info.value = IncumbentSolution(info.state_cost);
+            info.value = EngineValueType(info.state_cost);
             info.mark_dead_end();
             ++statistics_.dead_ends;
             if (new_state_handler_) {
@@ -392,7 +391,7 @@ private:
         std::vector<Distribution<StateID>> successors;
         this->generate_all_successors(state_id, aops, successors);
         if (successors.empty()) {
-            info.value = IncumbentSolution(info.state_cost);
+            info.value = EngineValueType(info.state_cost);
             info.set_dead_end();
             statistics_.terminal++;
             return false;
@@ -483,11 +482,11 @@ private:
             stack_infos_.pop_back();
 
             if (pure_self_loop) {
-                info.value = IncumbentSolution(info.state_cost);
+                info.value = EngineValueType(info.state_cost);
                 info.set_dead_end();
                 ++statistics_.self_loop;
             } else {
-                info.value = IncumbentSolution(as_lower_bound(info.value));
+                info.value = EngineValueType(as_lower_bound(info.value));
                 info.close();
             }
 
@@ -616,7 +615,7 @@ private:
                     do {
                         ++scc_size;
                         auto& info = search_space_[rend->state_ref];
-                        info.value = IncumbentSolution(info.state_cost);
+                        info.value = EngineValueType(info.state_cost);
                         info.set_dead_end();
                     } while ((rend++)->state_ref != stateid);
 
@@ -632,7 +631,7 @@ private:
                             val_changed =
                                 update(
                                     info.value,
-                                    IncumbentSolution(info.value.lower)) ||
+                                    EngineValueType(info.value.lower)) ||
                                 val_changed;
                         }
 
@@ -671,7 +670,7 @@ private:
                                         !is_approx_equal(
                                             as_lower_bound(snode_info.value),
                                             best);
-                                    snode_info.value = IncumbentSolution(best);
+                                    snode_info.value = EngineValueType(best);
                                 }
                             }
                             ++iterations;

@@ -1,6 +1,6 @@
 #include "probfd/tasks/root_task.h"
 
-#include "probfd/value_utils.h"
+#include "probfd/value_type.h"
 
 #include "option_parser.h"
 #include "plugin.h"

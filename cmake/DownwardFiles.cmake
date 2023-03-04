@@ -811,8 +811,8 @@ fast_downward_plugin(
 
         # Basic types
         probfd/evaluation_result
+        probfd/interval
         probfd/value_type
-        probfd/value_utils
         
         # Engine interfaces
         probfd/state_evaluator
@@ -820,6 +820,9 @@ fast_downward_plugin(
         probfd/state_space
         probfd/progress_report
         probfd/quotient_system
+
+        # Engines
+        probfd/engines/utils
 
         # Cost Models
         probfd/cost_model

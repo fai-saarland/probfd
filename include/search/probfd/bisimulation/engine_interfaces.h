@@ -8,7 +8,7 @@
 #include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/state_space.h"
 
-#include "probfd/value_utils.h"
+#include "probfd/interval.h"
 
 namespace probfd {
 namespace engine_interfaces {

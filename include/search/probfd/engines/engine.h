@@ -8,7 +8,7 @@
 #include "probfd/policies/empty_policy.h"
 
 #include "probfd/distribution.h"
-#include "probfd/value_utils.h"
+#include "probfd/interval.h"
 
 #include <memory>
 #include <optional>

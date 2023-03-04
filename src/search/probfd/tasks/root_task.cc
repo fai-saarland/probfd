@@ -1,7 +1,7 @@
 #include "probfd/tasks/root_task.h"
 #include "probfd/tasks/all_outcomes_determinization.h"
 
-#include "probfd/value_utils.h"
+#include "probfd/value_type.h"
 
 #include "tasks/root_task.h"
 
