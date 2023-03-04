@@ -7,8 +7,6 @@
 
 namespace probfd {
 
-/// Integer ID used to represent a state cheaply.
-
 /**
  * @brief A StateID represents a state within a StateIDMap. Just like Fast
  * Downward's StateID type, it is trivial to copy and intended for long term
