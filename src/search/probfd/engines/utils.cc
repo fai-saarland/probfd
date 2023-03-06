@@ -15,15 +15,20 @@ value_t as_lower_bound(value_t single)
     return single;
 }
 
-void set_min(Interval& lhs, Interval rhs)
+bool set_min(Interval& lhs, Interval rhs)
 {
-    set_min(lhs.lower, rhs.lower);
     set_min(lhs.upper, rhs.upper);
+    return set_min(lhs.lower, rhs.lower);
 }
 
-void set_min(value_t& lhs, value_t rhs)
+bool set_min(value_t& lhs, value_t rhs)
 {
-    lhs = std::min(lhs, rhs);
+    if (rhs < lhs) {
+        lhs = rhs;
+        return true;
+    }
+
+    return false;
 }
 
 bool update(Interval& lhs, Interval rhs, bool check_upper)
