@@ -48,9 +48,4 @@ bool is_approx_greater(value_t v1, value_t v2, value_t tolerance)
     return v1 - tolerance > v2;
 }
 
-int approx_compare(value_t v1, value_t v2, value_t tolerance)
-{
-    return is_approx_equal(v1, v2, tolerance) ? 0 : v1 > v2 ? 1 : -1;
-}
-
 } // namespace probfd

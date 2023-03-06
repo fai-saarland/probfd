@@ -59,11 +59,6 @@ Interval operator*(Interval rhs, value_t val)
     return Interval(rhs.lower * val, rhs.upper * val);
 }
 
-int approx_compare(Interval lhs, Interval rhs, value_t tolerance)
-{
-    return approx_compare(lhs.lower, rhs.lower, tolerance);
-}
-
 std::ostream& operator<<(std::ostream& out, Interval value)
 {
     return out << "[" << value.lower << ", " << value.upper << "]";

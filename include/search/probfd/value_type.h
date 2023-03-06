@@ -47,20 +47,6 @@ bool is_approx_less(value_t v1, value_t v2, value_t epsilon = g_epsilon);
 /// Equivalent to \f$v_1 - v_2 > \epsilon\f$
 bool is_approx_greater(value_t v1, value_t v2, value_t epsilon = g_epsilon);
 
-/**
- * @brief Compares two state values approximately with repect to a given
- * tolerance.
- *
- * @param tolerance - A tolerance parameter \f$\epsilon\f$ for the approximate
- * comparison
- *
- * @returns
- * - \b 0 if \f$|v_1 - v_2| \leq \epsilon\f$
- * - \b 1 if \f$v_1 - v_2 > \epsilon\f$
- * - \b -1 if \f$v_2 - v_1 > \epsilon\f$
- */
-int approx_compare(value_t v1, value_t v2, value_t tolerance = g_epsilon);
-
 } // namespace probfd
 
 #endif // __VALUE_TYPE_H__

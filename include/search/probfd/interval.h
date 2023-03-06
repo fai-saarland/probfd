@@ -62,13 +62,6 @@ Interval operator*(value_t scale_factor, Interval val);
  */
 Interval operator*(Interval val, value_t scale_factor);
 
-/**
- * @brief Approximately compares the lower bounds of the intervals.
- *
- * @see approx_compare(value_t, value_t, value_t)
- */
-int approx_compare(Interval lhs, Interval rhs, value_t tolerance = g_epsilon);
-
 /// Stream output operator. Prints '[<val.lower>,<val.upper>]'.
 std::ostream& operator<<(std::ostream& os, Interval val);
 
