@@ -8,6 +8,8 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/policies/map_policy.h"
+
 #include <iostream>
 #include <memory>
 #include <stack>
@@ -51,6 +53,7 @@ template <typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
     struct StateInfo {
         bool expanded = false;
+        ActionID best_action = ActionID::undefined;
         value_t value;
     };
 
@@ -102,7 +105,23 @@ public:
     {
     }
 
+    std::unique_ptr<PartialPolicy<State, Action>>
+    compute_policy(const State& initial_state) override
+    {
+        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
+            new policies::MapPolicy<State, Action>(this->get_state_space()));
+        solve(initial_state, policy.get());
+        return policy;
+    }
+
     Interval solve(const State& initial_state) override
+    {
+        return solve(initial_state, nullptr);
+    }
+
+    Interval solve(
+        const State& initial_state,
+        policies::MapPolicy<State, Action>* policy)
     {
         const StateID initial_state_id = this->get_state_id(initial_state);
         if (!push_state(initial_state_id)) {
@@ -129,6 +148,9 @@ public:
                 StateInfo& info = state_infos_[e.state];
 
                 if (e.t_value < info.value) {
+                    info.best_action = this->get_action_id(
+                        e.state,
+                        e.remaining_aops.back());
                     info.value = e.t_value;
                 }
 
@@ -137,6 +159,13 @@ public:
 
                 // If no operators are remaining, we are done.
                 if (e.remaining_aops.empty()) {
+                    if (policy) {
+                        policy->emplace_decision(
+                            e.state,
+                            info.best_action,
+                            Interval(info.value));
+                    }
+
                     break;
                 }
 
