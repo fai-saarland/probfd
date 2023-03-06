@@ -996,6 +996,14 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME TRAP_AWARE_TOPOLOGICAL_VALUE_ITERATION_SOLVER
+    HELP "Trap-Aware Topological Value Iteration"
+    SOURCES
+        probfd/solvers/ta_topological_vi
+    DEPENDS MDP
+)
+
+fast_downward_plugin(
     NAME HDFS_SOLVERS
     HELP "heuristic depth-first search"
     SOURCES

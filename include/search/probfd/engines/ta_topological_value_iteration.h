@@ -744,7 +744,7 @@ private:
 
                 set_min(repr_stk.conv_part, succ_stk.conv_part);
 
-                succ_stk.conv_part = EngineValueType(-INFINITE_VALUE);
+                succ_stk.conv_part = EngineValueType(INFINITE_VALUE);
 
                 // Connect to representative state with zero cost action
                 auto& t = succ_stk.non_ec_transitions.emplace_back(0.0_vt);
@@ -916,7 +916,7 @@ private:
                 std::vector<QValueInfo>().swap(succ_stk.non_ec_transitions);
 
                 set_min(repr_stk.conv_part, succ_stk.conv_part);
-                succ_stk.conv_part = EngineValueType(-INFINITE_VALUE);
+                succ_stk.conv_part = EngineValueType(INFINITE_VALUE);
 
                 // Connect to representative state with zero cost action
                 auto& t = succ_stk.non_ec_transitions.emplace_back(0.0_vt);
