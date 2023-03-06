@@ -713,22 +713,25 @@ private:
         return false;
     }
 
-    EngineValueType compute_optimal_transitions(
+    EngineValueType compute_non_loop_transitions_and_values(
         StateID state_id,
         StateInfo& state_info,
-        std::vector<Action>& opt_aops,
-        std::vector<Distribution<StateID>>& opt_transitions)
+        std::vector<Action>& aops,
+        std::vector<Distribution<StateID>>& transitions,
+        std::vector<EngineValueType>& values)
     {
-        this->generate_all_successors(state_id, opt_aops, opt_transitions);
+        this->generate_all_successors(state_id, aops, transitions);
 
-        assert(opt_aops.size() == opt_transitions.size());
+        assert(aops.size() == transitions.size());
+
+        values.reserve(aops.size());
 
         EngineValueType best_value(state_info.termination_cost);
 
-        unsigned optimal_end = 0;
-        for (unsigned i = 0; i < opt_aops.size(); ++i) {
-            Action& op = opt_aops[i];
-            Distribution<StateID>& transition = opt_transitions[i];
+        unsigned non_loop_end = 0;
+        for (unsigned i = 0; i < aops.size(); ++i) {
+            Action& op = aops[i];
+            Distribution<StateID>& transition = transitions[i];
 
             EngineValueType t_value(this->get_action_cost(state_id, op));
             value_t self_loop = 0_vt;
@@ -749,28 +752,62 @@ private:
                     t_value *= 1_vt / (1_vt - self_loop);
                 }
 
-                const int cmp = approx_compare(t_value, best_value);
-
-                if (cmp == 0) {
-                    if (optimal_end != i) {
-                        opt_aops[optimal_end] = std::move(op);
-                        opt_transitions[optimal_end] = std::move(transition);
-                    }
-
-                    ++optimal_end;
-                } else if (cmp < 0) {
-                    if (i != 0) {
-                        opt_aops.front() = std::move(op);
-                        opt_transitions.front() = std::move(transition);
-                    }
-
-                    optimal_end = 1;
+                if (non_loop_end != i) {
+                    aops[non_loop_end] = std::move(op);
+                    transitions[non_loop_end] = std::move(transition);
                 }
 
+                ++non_loop_end;
+
                 set_min(best_value, t_value);
+                values.push_back(t_value);
             }
         }
 
+        // erase self-loop states
+        aops.erase(aops.begin() + non_loop_end, aops.end());
+        transitions.erase(
+            transitions.begin() + non_loop_end,
+            transitions.end());
+
+        return best_value;
+    }
+
+    EngineValueType compute_optimal_transitions(
+        StateID state_id,
+        StateInfo& state_info,
+        std::vector<Action>& opt_aops,
+        std::vector<Distribution<StateID>>& opt_transitions)
+    {
+        std::vector<EngineValueType> values;
+        const EngineValueType best_value =
+            compute_non_loop_transitions_and_values(
+                state_id,
+                state_info,
+                opt_aops,
+                opt_transitions,
+                values);
+
+        if (opt_aops.empty()) {
+            return best_value;
+        }
+
+        unsigned optimal_end = 0;
+        for (unsigned i = 0; i < opt_aops.size(); ++i) {
+            if (is_approx_equal(
+                    as_lower_bound(best_value),
+                    as_lower_bound(values[i]))) {
+                if (optimal_end != i) {
+                    opt_aops[optimal_end] = std::move(opt_aops[i]);
+                    opt_transitions[optimal_end] =
+                        std::move(opt_transitions[i]);
+                }
+
+                ++optimal_end;
+            }
+        }
+
+        // Erase non-optimal transitions
         opt_aops.erase(opt_aops.begin() + optimal_end, opt_aops.end());
         opt_transitions.erase(
             opt_transitions.begin() + optimal_end,
