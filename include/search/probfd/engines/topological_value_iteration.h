@@ -6,6 +6,8 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/policies/map_policy.h"
+
 #include "utils/iterators.h"
 
 #include <deque>
@@ -128,10 +130,16 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
         Action& get_current_action() { return aops.back(); }
 
-        ItemProbabilityPair<StateID> get_current_successor() { return *successor; }
+        ItemProbabilityPair<StateID> get_current_successor()
+        {
+            return *successor;
+        }
     };
 
     struct QValueInfo {
+        // The action id this Q value belongs to.
+        ActionID action_id;
+
         // Probability to remain in the same state.
         // Casted to the self-loop normalization factor after finalize().
         value_t self_loop_prob = 0_vt;
@@ -145,8 +153,9 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // self-loops excluded.
         std::vector<ItemProbabilityPair<EngineValueType*>> nconv_successors;
 
-        explicit QValueInfo(value_t action_cost)
-            : conv_part(action_cost)
+        QValueInfo(ActionID action_id, value_t action_cost)
+            : action_id(action_id)
+            , conv_part(action_cost)
         {
         }
 
@@ -188,25 +197,30 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         EngineValueType* value;
 
         // The state cost
-        EngineValueType state_cost;
+        EngineValueType terminal_cost;
 
         // Precomputed part of the max of the value update.
-        // Maximum over all Q values which have already converged due to
-        // topological ordering.
+        // Minimum over all Q values of actions leaving the SCC.
         EngineValueType conv_part;
 
         // Remaining Q values which have not yet converged.
         std::vector<QValueInfo> nconv_qs;
 
+        // ID of the optimal action
+        ActionID best_action_id = ActionID::undefined;
+
+        // ID of the optimal action among those leaving the SCC.
+        ActionID best_converged_id = ActionID::undefined;
+
         StackInfo(
             StateID state_id,
             EngineValueType& value_ref,
-            value_t state_cost,
+            value_t terminal_cost,
             unsigned num_aops)
             : state_id(state_id)
             , value(&value_ref)
-            , state_cost(state_cost)
-            , conv_part(state_cost)
+            , terminal_cost(terminal_cost)
+            , conv_part(terminal_cost)
         {
             nconv_qs.reserve(num_aops);
         }
@@ -214,9 +228,12 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         bool update_value()
         {
             EngineValueType v = conv_part;
+            best_action_id = best_converged_id;
 
             for (const QValueInfo& info : nconv_qs) {
-                set_min(v, info.compute_q_value());
+                if (set_min(v, info.compute_q_value())) {
+                    best_action_id = info.action_id;
+                }
             }
 
             if constexpr (UseInterval) {
@@ -250,6 +267,19 @@ public:
     }
 
     /**
+     * \copydoc MDPEngine::compute_policy(const State&)
+     */
+    std::unique_ptr<PartialPolicy<State, Action>>
+    compute_policy(const State& state) override
+    {
+        storage::PerStateStorage<EngineValueType> value_store;
+        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
+            new policies::MapPolicy<State, Action>(this->get_state_space()));
+        this->solve(this->get_state_id(state), value_store, policy.get());
+        return policy;
+    }
+
+    /**
      * \copydoc MDPEngine::solve(const State&)
      */
     Interval solve(const State& state) override
@@ -279,7 +309,10 @@ public:
      * output parameter \p value_store. Returns the value of the initial state.
      */
     template <typename ValueStore>
-    Interval solve(StateID init_state_id, ValueStore& value_store)
+    Interval solve(
+        StateID init_state_id,
+        ValueStore& value_store,
+        policies::MapPolicy<State, Action>* policy = nullptr)
     {
         StateInfo& iinfo = state_information_[init_state_id];
         EngineValueType& init_value = value_store[init_state_id];
@@ -316,7 +349,7 @@ public:
                 if (!onstack) {
                     const auto begin = stack_.begin() + stack_id;
                     const auto end = stack_.end();
-                    scc_found(begin, end);
+                    scc_found(begin, end, policy);
                 }
 
                 exploration_stack_.pop_back();
@@ -350,9 +383,10 @@ public:
                 }
 
                 if (explore->next_action(this, state_id)) {
-                    stack_info->nconv_qs.emplace_back(this->get_action_cost(
-                        state_id,
-                        explore->get_current_action()));
+                    Action& action = explore->get_current_action();
+                    stack_info->nconv_qs.emplace_back(
+                        this->get_action_id(state_id, action),
+                        this->get_action_cost(state_id, action));
 
                     break;
                 }
@@ -430,6 +464,8 @@ private:
         Distribution<StateID> transition;
 
         do {
+            Action& current_op = aops.back();
+
             this->generate_successors(state_id, aops.back(), transition);
             transition.make_unique();
 
@@ -457,7 +493,8 @@ private:
                     aops.size());
 
                 s_info.nconv_qs.emplace_back(
-                    this->get_action_cost(state_id, aops.back()));
+                    this->get_action_id(state_id, current_op),
+                    this->get_action_cost(state_id, current_op));
 
                 exploration_stack_.emplace_back(
                     state_id,
@@ -524,7 +561,9 @@ private:
             } while (explore.next_successor());
 
             if (tinfo.finalize()) {
-                set_min(stack_info.conv_part, tinfo.conv_part);
+                if (set_min(stack_info.conv_part, tinfo.conv_part)) {
+                    stack_info.best_converged_id = tinfo.action_id;
+                }
                 stack_info.nconv_qs.pop_back();
             }
 
@@ -532,8 +571,11 @@ private:
                 return false;
             }
 
+            const Action& action = explore.get_current_action();
+
             stack_info.nconv_qs.emplace_back(
-                this->get_action_cost(state_id, explore.get_current_action()));
+                this->get_action_id(state_id, action),
+                this->get_action_cost(state_id, action));
         }
     }
 
@@ -542,17 +584,18 @@ private:
     /**
      * Handle the new SCC and perform value iteration on it.
      */
-    void
-    scc_found(StackIterator begin, StackIterator end)
+    void scc_found(
+        StackIterator begin,
+        StackIterator end,
+        policies::MapPolicy<State, Action>* policy)
     {
         assert(begin != end);
 
         ++statistics_.sccs;
 
         if (std::distance(begin, end) == 1) {
-            // For singleton SCCs, we only have transitions which are
-            // self-loops or go to a state that is topologically greater.
-            // The state value is therefore the base value.
+            // Singleton SCCs can only transition to a child SCC. The state
+            // value has already converged due to topological ordering.
             ++statistics_.singleton_sccs;
             StateInfo& state_info = state_information_[begin->state_id];
             update(*begin->value, begin->conv_part);
@@ -585,6 +628,25 @@ private:
                     ++statistics_.bellman_backups;
                 } while (++it != end);
             } while (changed);
+
+            // Extract a policy from this SCC
+            if (policy) {
+                auto it = begin;
+
+                do {
+                    if constexpr (UseInterval) {
+                        policy->emplace_decision(
+                            it->state_id,
+                            it->best_action_id,
+                            *it->value);
+                    } else {
+                        policy->emplace_decision(
+                            it->state_id,
+                            it->best_action_id,
+                            Interval(*it->value, INFINITE_VALUE));
+                    }
+                } while (++it != end);
+            }
         }
 
         stack_.erase(begin, end);
