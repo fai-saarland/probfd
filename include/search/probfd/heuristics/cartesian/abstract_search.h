@@ -1,6 +1,7 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_ABSTRACT_SEARCH_H
 #define PROBFD_HEURISTICS_CARTESIAN_ABSTRACT_SEARCH_H
 
+#include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition.h"
 #include "probfd/heuristics/cartesian/types.h"
 
@@ -20,30 +21,24 @@ namespace cartesian {
  * @brief Find abstract solutions using ILAO*.
  */
 class AbstractSearch {
-    const std::vector<value_t> operator_costs;
+    CartesianCostFunction cost_function;
+    CartesianHeuristic heuristic;
 
 public:
-    explicit AbstractSearch(std::vector<value_t> operator_costs);
+    AbstractSearch(
+        Abstraction& abstraction,
+        std::vector<value_t> operator_costs);
 
-    std::unique_ptr<Solution> find_solution(
-        const std::deque<ProbabilisticTransition>& transitions,
-        int init_id,
-        const Goals& goal_ids);
-    value_t get_h_value(int state_id) const;
-    void copy_h_value_to_children(int v, int v1, int v2);
-
-private:
-    value_t set_h_value(int v, int state_id);
-    void update_goal_distances(const Solution& solution);
+    std::unique_ptr<Solution>
+    find_solution(Abstraction& abstraction, const AbstractState* init_id);
 };
 
 /**
  * @brief Calls topological value iteration to compute the complete optimal
  * value function (for states reachable from the initial state).
  */
-std::vector<value_t> compute_distances(
-    const std::deque<ProbabilisticTransition>& transitions,
-    const std::vector<value_t>& costs);
+std::vector<value_t>
+compute_distances(Abstraction& abstraction, const std::vector<value_t>& costs);
 
 } // namespace cartesian
 } // namespace heuristics

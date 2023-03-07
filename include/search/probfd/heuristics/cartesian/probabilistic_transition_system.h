@@ -26,6 +26,8 @@ class ProbabilisticTransitionSystem {
     const std::vector<std::vector<FactPair>> preconditions_by_operator;
     const std::vector<std::vector<std::vector<FactPair>>>
         postconditions_by_operator_and_outcome;
+    const std::vector<std::vector<value_t>>
+        probabilities_by_operator_and_outcome;
 
     // References to incoming and outgoing transitions
     std::vector<std::vector<ProbabilisticTransition*>> outgoing;
@@ -66,6 +68,8 @@ public:
         const AbstractState& v1,
         const AbstractState& v2,
         int var);
+
+    value_t get_probability(int op_index, int eff_index) const;
 
     const std::vector<std::vector<ProbabilisticTransition*>>&
     get_incoming_transitions() const;

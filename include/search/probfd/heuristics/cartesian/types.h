@@ -38,7 +38,8 @@ using AbstractStates = std::vector<std::unique_ptr<AbstractState>>;
 using Loops = std::vector<int>;
 using ProbabilisticTransitions = std::vector<ProbabilisticTransition>;
 
-using Solution = PartialPolicy<AbstractState, int>;
+using Solution =
+    PartialPolicy<const AbstractState*, const ProbabilisticTransition*>;
 
 static constexpr int UNDEFINED = -1;
 

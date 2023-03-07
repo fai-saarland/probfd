@@ -3,6 +3,11 @@
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
+#include "probfd/engines/heuristic_depth_first_search.h"
+#include "probfd/engines/topological_value_iteration.h"
+
+#include "probfd/policy_pickers/arbitrary_tiebreaker.h"
+
 #include "cegar/abstract_state.h"
 
 #include "utils/memory.h"
@@ -15,63 +20,73 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-AbstractSearch::AbstractSearch(vector<value_t> operator_costs)
-    : operator_costs(std::move(operator_costs))
+AbstractSearch::AbstractSearch(
+    Abstraction& abstraction,
+    std::vector<value_t> operator_costs)
+    : cost_function(abstraction, std::move(operator_costs))
 {
-}
-
-void AbstractSearch::update_goal_distances(const Solution&)
-{
-    /*
-     * Idea: The values computed by ILAO* for every state can be used as
-     * heuristic values, even if they are not part of the optimal solution.
-     */
-
-    // TODO: implement
-    abort();
 }
 
 unique_ptr<Solution> AbstractSearch::find_solution(
-    const deque<ProbabilisticTransition>&,
-    int,
-    const Goals&)
+    Abstraction& abstraction,
+    const AbstractState* state)
 {
-    // TODO: implement
-    abort();
-}
+    ProgressReport report(0.0_vt);
 
-value_t AbstractSearch::get_h_value(int) const
-{
-    // TODO: implement
-    abort();
-}
+    engine_interfaces::
+        StateSpace<const AbstractState*, const ProbabilisticTransition*>
+            state_space(abstraction);
+    policy_pickers::ArbitraryTiebreaker<
+        const AbstractState*,
+        const ProbabilisticTransition*>
+        ptb(true);
 
-value_t AbstractSearch::set_h_value(int, int)
-{
-    // TODO: implement
-    abort();
-}
+    engines::heuristic_depth_first_search::HeuristicDepthFirstSearch<
+        const AbstractState*,
+        const ProbabilisticTransition*,
+        false,
+        false>
+        hdfs(
+            &state_space,
+            &cost_function,
+            &heuristic,
+            &ptb,
+            nullptr,
+            &report,
+            false,
+            false,
+            false,
+            engines::heuristic_depth_first_search::BacktrackingUpdateType::
+                SINGLE,
+            false,
+            false,
+            true,
+            false);
 
-void AbstractSearch::copy_h_value_to_children(int v, int v1, int v2)
-{
-    value_t h = get_h_value(v);
-
-    // TODO: Grow value table by one here?
-
-    set_h_value(v1, h);
-    set_h_value(v2, h);
+    auto policy = hdfs.compute_policy(state);
+    return policy;
 }
 
 vector<value_t>
-compute_distances(const deque<ProbabilisticTransition>&, const vector<value_t>&)
+compute_distances(Abstraction& abstraction, const vector<value_t>& costs)
 {
-    /*
-     * Simply call topological value iteration here to compute the full
-     * value table.
-     */
+    vector<value_t> new_values(abstraction.get_num_states(), INFINITE_VALUE);
 
-    // TODO: implement
-    abort();
+    engine_interfaces::
+        StateSpace<const AbstractState*, const ProbabilisticTransition*>
+            state_space(abstraction);
+
+    CartesianCostFunction cost_function(abstraction, costs);
+    CartesianHeuristic heuristic;
+
+    engines::topological_vi::TopologicalValueIteration<
+        const AbstractState*,
+        const ProbabilisticTransition*>
+        tvi(&state_space, &cost_function, &heuristic, true);
+
+    tvi.solve(abstraction.get_initial_state().get_id(), new_values);
+
+    return new_values;
 }
 
 } // namespace cartesian

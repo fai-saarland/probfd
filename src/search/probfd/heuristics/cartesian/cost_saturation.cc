@@ -68,12 +68,13 @@ static vector<value_t> compute_saturated_costs(
 
             value_t expectation = 0_vt;
 
-            for (int succ_id : transition->target_ids) {
+            for (size_t i = 0; i != transition->target_ids.size(); ++i) {
+                const int succ_id = transition->target_ids[i];
                 const value_t succ_h = h_values[succ_id];
                 if (succ_h == INFINITE_VALUE) goto next_transition;
-                // TODO where to get the probabilities from?
-                abort();
-                // expectation += probability * succ_h;
+                const value_t probability =
+                    transition_system.get_probability(op_id, i);
+                expectation += probability * succ_h;
             }
 
             saturated_costs[op_id] =
@@ -228,15 +229,10 @@ void CostSaturation::build_abstractions(
 
         vector<value_t> costs = task_properties::get_operator_costs(
             ProbabilisticTaskProxy(*subtask));
-        vector<value_t> init_distances = compute_distances(
-            abstraction->get_transition_system().get_transitions(),
-            costs);
-        vector<value_t> goal_distances = compute_distances(
-            abstraction->get_transition_system().get_transitions(),
-            costs);
+        vector<value_t> goal_distances = compute_distances(*abstraction, costs);
         vector<value_t> saturated_costs = compute_saturated_costs(
             abstraction->get_transition_system(),
-            init_distances);
+            goal_distances);
 
         heuristic_functions.emplace_back(
             abstraction->extract_refinement_hierarchy(),

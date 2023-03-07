@@ -69,6 +69,22 @@ get_postconditions_by_operator_and_outcome(
     return postconditions;
 }
 
+static vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
+    const ProbabilisticOperatorsProxy& ops)
+{
+    vector<vector<value_t>> probabilities;
+    probabilities.reserve(ops.size());
+    for (const ProbabilisticOperatorProxy op : ops) {
+        const auto outcomes = op.get_outcomes();
+        auto& outcome_probabilities = probabilities.emplace_back();
+        outcome_probabilities.reserve(outcomes.size());
+        for (const ProbabilisticOutcomeProxy outcome : outcomes) {
+            outcome_probabilities.push_back(outcome.get_probability());
+        }
+    }
+    return probabilities;
+}
+
 static int lookup_value(const vector<FactPair>& facts, int var)
 {
     assert(is_sorted(facts.begin(), facts.end()));
@@ -87,6 +103,8 @@ ProbabilisticTransitionSystem::ProbabilisticTransitionSystem(
     : preconditions_by_operator(get_preconditions_by_operator(ops))
     , postconditions_by_operator_and_outcome(
           get_postconditions_by_operator_and_outcome(ops))
+    , probabilities_by_operator_and_outcome(
+          get_probabilities_by_operator_and_outcome(ops))
 {
     construct_trivial_abstraction(ops);
 }
@@ -351,6 +369,13 @@ void ProbabilisticTransitionSystem::rewire(
     // Remove old transitions and add new transitions.
     rewire_incoming_transitions(states, v1, v2, var);
     rewire_outgoing_transitions(states, v1, v2, var);
+}
+
+value_t
+ProbabilisticTransitionSystem::get_probability(int op_index, int eff_index)
+    const
+{
+    return probabilities_by_operator_and_outcome[op_index][eff_index];
 }
 
 const std::vector<std::vector<ProbabilisticTransition*>>&

@@ -106,8 +106,10 @@ CEGAR::CEGAR(
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
     , split_selector(task, pick)
-    , abstraction(std::make_unique<Abstraction>(task, log))
-    , abstract_search(task_properties::get_operator_costs(task_proxy))
+    , abstraction(new Abstraction(task, log))
+    , abstract_search(
+          *abstraction,
+          task_properties::get_operator_costs(task_proxy))
     , timer(max_time)
     , log(log)
 {
@@ -210,9 +212,8 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
     while (may_keep_refining()) {
         find_trace_timer.resume();
         unique_ptr<Solution> solution = abstract_search.find_solution(
-            abstraction->get_transition_system().get_transitions(),
-            abstraction->get_initial_state().get_id(),
-            abstraction->get_goals());
+            *abstraction,
+            &abstraction->get_initial_state());
         find_trace_timer.stop();
 
         if (!solution) {
@@ -235,18 +236,10 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
 
         refine_timer.resume();
         const AbstractState& abstract_state = flaw->current_abstract_state;
-        int state_id = abstract_state.get_id();
         vector<Split> splits = flaw->get_possible_splits();
         const Split& split =
             split_selector.pick_split(abstract_state, splits, rng);
-        auto new_state_ids =
-            abstraction->refine(abstract_state, split.var_id, split.values);
-        // Since h-values only increase we can assign the h-value to the
-        // children.
-        abstract_search.copy_h_value_to_children(
-            state_id,
-            new_state_ids.first,
-            new_state_ids.second);
+        abstraction->refine(abstract_state, split.var_id, split.values);
         refine_timer.stop();
 
         if (log.is_at_least_verbose() &&
@@ -274,10 +267,6 @@ void CEGAR::print_statistics()
 {
     if (log.is_at_least_normal()) {
         abstraction->print_statistics();
-        int init_id = abstraction->get_initial_state().get_id();
-        log << "Initial h value: " << abstract_search.get_h_value(init_id)
-            << endl;
-        log << endl;
     }
 }
 
