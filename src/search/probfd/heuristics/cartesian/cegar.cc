@@ -17,6 +17,8 @@
 #include "utils/math.h"
 #include "utils/memory.h"
 
+#include "state_registry.h"
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -257,10 +259,85 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
     }
 }
 
-unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(const Solution&)
+unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
 {
-    // TODO: implement
-    abort();
+    StateRegistry state_registry(task_proxy);
+
+    struct QueueItem {
+        State state;
+        const AbstractState* abstract_state;
+    };
+
+    State initial = state_registry.get_initial_state();
+    initial.unpack();
+    const AbstractState* abstract_initial = &abstraction->get_initial_state();
+
+    std::deque<QueueItem> frontier({{initial, abstract_initial}});
+    std::unordered_set<StateID> visited({initial.get_id()});
+
+    for (; !frontier.empty(); frontier.pop_front()) {
+        QueueItem& next = frontier.front();
+
+        auto decision = policy.get_decision(next.abstract_state);
+
+        // Check for goal state
+        if (!decision) {
+            assert(abstraction->get_goals().contains(
+                next.abstract_state->get_id()));
+
+            if (!::task_properties::is_goal_state(task_proxy, next.state)) {
+                if (log.is_at_least_debug())
+                    log << "  Goal test failed." << endl;
+                return std::make_unique<Flaw>(
+                    std::move(next.state),
+                    *next.abstract_state,
+                    get_cartesian_set(domain_sizes, task_proxy.get_goals()));
+            }
+            continue;
+        }
+
+        const ProbabilisticTransition* transition = decision->action;
+        const auto op = task_proxy.get_operators()[transition->op_id];
+
+        // Check for operator applicability
+        if (!task_properties::is_applicable(op, next.state)) {
+            if (log.is_at_least_debug())
+                log << "  Operator not applicable: " << op.get_name() << endl;
+            return std::make_unique<Flaw>(
+                std::move(next.state),
+                *next.abstract_state,
+                get_cartesian_set(domain_sizes, op.get_preconditions()));
+        }
+
+        // Generate sucessors and check for matching abstract states
+        for (size_t i = 0; i != transition->target_ids.size(); ++i) {
+            const auto outcome = op.get_outcomes()[i];
+            const AbstractState* next_abstract_state =
+                &abstraction->get_state(transition->target_ids[i]);
+
+            State next_concrete_state =
+                state_registry.get_successor_state(next.state, outcome);
+            next_concrete_state.unpack();
+
+            if (!next_abstract_state->includes(next_concrete_state)) {
+                if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
+                return std::make_unique<Flaw>(
+                    std::move(next.state),
+                    *next.abstract_state,
+                    next_abstract_state->regress(op, outcome.get_effects()));
+            }
+
+            // Add successor to frontier if not seen before
+            if (visited.insert(next_concrete_state.get_id()).second) {
+                frontier.emplace_back(
+                    std::move(next_concrete_state),
+                    next_abstract_state);
+            }
+        }
+    }
+
+    // We found a concrete policy.
+    return nullptr;
 }
 
 void CEGAR::print_statistics()

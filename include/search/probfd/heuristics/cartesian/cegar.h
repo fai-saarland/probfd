@@ -60,7 +60,7 @@ class CEGAR {
 
     /* Try to convert the abstract solution into a concrete trace. Return the
        first encountered flaw or nullptr if there is no flaw. */
-    std::unique_ptr<Flaw> find_flaw(const Solution& solution);
+    std::unique_ptr<Flaw> find_flaw(Solution& solution);
 
     // Build abstraction.
     void refinement_loop(utils::RandomNumberGenerator& rng);
