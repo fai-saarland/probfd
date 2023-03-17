@@ -221,6 +221,7 @@ void CostSaturation::build_abstractions(
             log);
 
         unique_ptr<Abstraction> abstraction = cegar.extract_abstraction();
+        const CartesianHeuristic heuristic = std::move(cegar.get_heuristic());
         ++num_abstractions;
         num_states += abstraction->get_num_states();
         num_non_looping_transitions +=
@@ -229,7 +230,8 @@ void CostSaturation::build_abstractions(
 
         vector<value_t> costs = task_properties::get_operator_costs(
             ProbabilisticTaskProxy(*subtask));
-        vector<value_t> goal_distances = compute_distances(*abstraction, costs);
+        vector<value_t> goal_distances =
+            compute_distances(*abstraction, heuristic, costs);
         vector<value_t> saturated_costs = compute_saturated_costs(
             abstraction->get_transition_system(),
             goal_distances);

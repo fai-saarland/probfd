@@ -6,8 +6,6 @@
 #include "probfd/engines/heuristic_depth_first_search.h"
 #include "probfd/engines/topological_value_iteration.h"
 
-#include "probfd/policy_pickers/arbitrary_tiebreaker.h"
-
 #include "cegar/abstract_state.h"
 
 #include "utils/memory.h"
@@ -23,29 +21,23 @@ namespace cartesian {
 AbstractSearch::AbstractSearch(
     Abstraction& abstraction,
     std::vector<value_t> operator_costs)
-    : cost_function(abstraction, std::move(operator_costs))
+    : state_space(abstraction)
+    , cost_function(abstraction, std::move(operator_costs))
+    , ptb(true)
+    , report(0.0_vt)
 {
+    report.disable();
 }
 
 unique_ptr<Solution> AbstractSearch::find_solution(
     Abstraction& abstraction,
     const AbstractState* state)
 {
-    ProgressReport report(0.0_vt);
-
-    engine_interfaces::
-        StateSpace<const AbstractState*, const ProbabilisticTransition*>
-            state_space(abstraction);
-    policy_pickers::ArbitraryTiebreaker<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        ptb(true);
-
     engines::heuristic_depth_first_search::HeuristicDepthFirstSearch<
         const AbstractState*,
         const ProbabilisticTransition*,
         false,
-        false>
+        true>
         hdfs(
             &state_space,
             &cost_function,
@@ -64,29 +56,47 @@ unique_ptr<Solution> AbstractSearch::find_solution(
             false);
 
     auto policy = hdfs.compute_policy(state);
+
+    for (int i = 0; i != abstraction.get_num_states(); ++i) {
+        if (hdfs.was_visited(i)) {
+            heuristic.set_h_value(i, hdfs.lookup_value(i));
+        }
+    }
+
     return policy;
 }
 
-vector<value_t>
-compute_distances(Abstraction& abstraction, const vector<value_t>& costs)
+void AbstractSearch::notify_split(int v)
 {
-    vector<value_t> new_values(abstraction.get_num_states(), INFINITE_VALUE);
+    heuristic.on_split(v);
+}
+
+CartesianHeuristic& AbstractSearch::get_heuristic()
+{
+    return heuristic;
+}
+
+vector<value_t> compute_distances(
+    Abstraction& abstraction,
+    const CartesianHeuristic& heuristic,
+    const vector<value_t>& costs)
+{
+    vector<value_t> values(abstraction.get_num_states(), INFINITE_VALUE);
 
     engine_interfaces::
         StateSpace<const AbstractState*, const ProbabilisticTransition*>
             state_space(abstraction);
 
     CartesianCostFunction cost_function(abstraction, costs);
-    CartesianHeuristic heuristic;
 
     engines::topological_vi::TopologicalValueIteration<
         const AbstractState*,
         const ProbabilisticTransition*>
         tvi(&state_space, &cost_function, &heuristic, true);
 
-    tvi.solve(abstraction.get_initial_state().get_id(), new_values);
+    tvi.solve(abstraction.get_initial_state().get_id(), values);
 
-    return new_values;
+    return values;
 }
 
 } // namespace cartesian

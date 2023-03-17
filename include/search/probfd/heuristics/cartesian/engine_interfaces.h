@@ -159,16 +159,18 @@ public:
 
 class CartesianHeuristic
     : public engine_interfaces::Evaluator<const AbstractState*> {
+    std::vector<value_t> h_values = {0.0_vt};
+
 public:
-    EvaluationResult evaluate(const AbstractState* const&) const override
+    EvaluationResult evaluate(const AbstractState* const& state) const override
     {
-        return EvaluationResult(false, 0.0_vt);
+        assert(utils::in_bounds(state->get_id(), h_values));
+        const value_t h = h_values[state->get_id()];
+        return EvaluationResult(h == INFINITE_VALUE, h);
     }
 
-    value_t get_h_value(int) const { abort(); }
-    value_t set_h_value(int, int) { abort(); }
-
-    void copy_h_value_to_children(int, int, int) { abort(); }
+    void set_h_value(int v, value_t h) { h_values[v] = h; }
+    void on_split(int v) { h_values.push_back(h_values[v]); }
 };
 
 } // namespace cartesian

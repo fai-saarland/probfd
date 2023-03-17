@@ -140,6 +140,11 @@ unique_ptr<Abstraction> CEGAR::extract_abstraction()
     return std::move(abstraction);
 }
 
+CartesianHeuristic& CEGAR::get_heuristic()
+{
+    return abstract_search.get_heuristic();
+}
+
 void CEGAR::separate_facts_unreachable_before_goal()
 {
     assert(abstraction->get_goals().size() == 1);
@@ -157,11 +162,14 @@ void CEGAR::separate_facts_unreachable_before_goal()
             if (reachable_facts.count(fact) == 0)
                 unreachable_values.push_back(value);
         }
-        if (!unreachable_values.empty())
+        if (!unreachable_values.empty()) {
             abstraction->refine(
                 abstraction->get_initial_state(),
                 var_id,
                 unreachable_values);
+            abstract_search.notify_split(
+                abstraction->get_initial_state().get_id());
+        }
     }
     abstraction->mark_all_states_as_goals();
 }
@@ -238,10 +246,12 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
 
         refine_timer.resume();
         const AbstractState& abstract_state = flaw->current_abstract_state;
+        const int state_id = abstract_state.get_id();
         vector<Split> splits = flaw->get_possible_splits();
         const Split& split =
             split_selector.pick_split(abstract_state, splits, rng);
         abstraction->refine(abstract_state, split.var_id, split.values);
+        abstract_search.notify_split(state_id);
         refine_timer.stop();
 
         if (log.is_at_least_verbose() &&

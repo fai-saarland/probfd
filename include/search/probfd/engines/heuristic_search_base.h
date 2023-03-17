@@ -311,12 +311,20 @@ public:
     }
 
     /**
-     * @brief Chekcs if the state represented by \p state_id is marked as a
+     * @brief Checks if the state represented by \p state_id is marked as a
      * dead-end.
      */
     bool is_marked_dead_end(StateID state) const
     {
         return state_infos_[state].is_dead_end();
+    }
+
+    /**
+     * @brief Checks if the state represented by \p state_id has been visited
+     * yet.
+     */
+    bool was_visited(StateID state) const {
+        return state_infos_[state].is_value_initialized();
     }
 
     /**

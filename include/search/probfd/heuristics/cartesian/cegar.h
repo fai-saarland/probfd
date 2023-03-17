@@ -81,6 +81,8 @@ public:
     CEGAR(const CEGAR&) = delete;
 
     std::unique_ptr<Abstraction> extract_abstraction();
+
+    CartesianHeuristic& get_heuristic();
 };
 
 } // namespace cartesian

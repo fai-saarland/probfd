@@ -5,6 +5,9 @@
 #include "probfd/heuristics/cartesian/probabilistic_transition.h"
 #include "probfd/heuristics/cartesian/types.h"
 
+#include "probfd/policy_pickers/arbitrary_tiebreaker.h"
+
+#include "probfd/progress_report.h"
 #include "probfd/value_type.h"
 
 #include "algorithms/priority_queues.h"
@@ -21,8 +24,17 @@ namespace cartesian {
  * @brief Find abstract solutions using ILAO*.
  */
 class AbstractSearch {
+    engine_interfaces::
+        StateSpace<const AbstractState*, const ProbabilisticTransition*>
+            state_space;
+
     CartesianCostFunction cost_function;
     CartesianHeuristic heuristic;
+    policy_pickers::ArbitraryTiebreaker<
+        const AbstractState*,
+        const ProbabilisticTransition*>
+        ptb;
+    ProgressReport report;
 
 public:
     AbstractSearch(
@@ -31,14 +43,20 @@ public:
 
     std::unique_ptr<Solution>
     find_solution(Abstraction& abstraction, const AbstractState* init_id);
+
+    void notify_split(int v);
+
+    CartesianHeuristic& get_heuristic();
 };
 
 /**
  * @brief Calls topological value iteration to compute the complete optimal
  * value function (for states reachable from the initial state).
  */
-std::vector<value_t>
-compute_distances(Abstraction& abstraction, const std::vector<value_t>& costs);
+std::vector<value_t> compute_distances(
+    Abstraction& abstraction,
+    const CartesianHeuristic& heuristic,
+    const std::vector<value_t>& costs);
 
 } // namespace cartesian
 } // namespace heuristics
