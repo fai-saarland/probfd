@@ -851,7 +851,8 @@ std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in)
 
 void read_root_tasks(std::istream& in)
 {
-    assert(!g_root_task);
+    // FIXME crashes in tests since it persists in between tests.
+    // assert(!g_root_task);
     g_root_task = read_sas_task(in);
     ::tasks::g_root_task.reset(new AODDeterminizationTask(g_root_task.get()));
 }
