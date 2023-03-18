@@ -572,7 +572,7 @@ protected:
             this->get_applicable_actions_generator(),
             this->get_transition_generator(),
             sstr,
-            [](const Action&){ return ""; },
+            [](const Action&) { return ""; },
             &prune,
             false);
     }
@@ -713,43 +713,17 @@ private:
         return false;
     }
 
-    bool compute_value_update_and_optimal_transitions(
+    EngineValueType compute_optimal_transitions(
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& opt_aops,
         std::vector<Distribution<StateID>>& opt_transitions)
     {
-#if defined(EXPENSIVE_STATISTICS)
-        utils::TimerScope scoped_upd_timer(statistics_.update_time);
-#endif
-        statistics_.backups++;
-
-        if (state_info.is_terminal()) {
-            return false;
-        }
-
-        if (state_info.is_on_fringe()) {
-            ++statistics_.backed_up_states;
-            state_info.removed_from_fringe();
-        }
-
         this->generate_all_successors(state_id, opt_aops, opt_transitions);
 
         assert(opt_aops.size() == opt_transitions.size());
 
-        if (opt_aops.empty()) {
-            statistics_.terminal_states++;
-            const bool result = notify_dead_end(state_info);
-            if (result) {
-                ++statistics_.value_changes;
-                if (state_id == initial_state_id_) {
-                    statistics_.jump();
-                }
-            }
-            return result;
-        }
-
-        EngineValueType new_value(state_info.termination_cost);
+        EngineValueType best_value(state_info.termination_cost);
 
         unsigned optimal_end = 0;
         for (unsigned i = 0; i < opt_aops.size(); ++i) {
@@ -775,7 +749,7 @@ private:
                     t_value *= 1_vt / (1_vt - self_loop);
                 }
 
-                const int cmp = approx_compare(t_value, new_value);
+                const int cmp = approx_compare(t_value, best_value);
 
                 if (cmp == 0) {
                     if (optimal_end != i) {
@@ -793,7 +767,7 @@ private:
                     optimal_end = 1;
                 }
 
-                set_min(new_value, t_value);
+                set_min(best_value, t_value);
             }
         }
 
@@ -802,12 +776,38 @@ private:
             opt_transitions.begin() + optimal_end,
             opt_transitions.end());
 
+        return best_value;
+    }
+
+    bool compute_value_update_and_optimal_transitions(
+        StateID state_id,
+        StateInfo& state_info,
+        std::vector<Action>& opt_aops,
+        std::vector<Distribution<StateID>>& opt_transitions)
+    {
+#if defined(EXPENSIVE_STATISTICS)
+        utils::TimerScope scoped_upd_timer(statistics_.update_time);
+#endif
+        statistics_.backups++;
+
+        if (state_info.is_terminal()) {
+            return false;
+        }
+
+        if (state_info.is_on_fringe()) {
+            ++statistics_.backed_up_states;
+            state_info.removed_from_fringe();
+        }
+
+        EngineValueType optimal_value =
+            compute_optimal_transitions(state_id, state_info, opt_aops, opt_transitions);
+
         if (opt_aops.empty()) {
             statistics_.self_loop_states++;
             return notify_dead_end(state_info);
         }
 
-        if (this->update(state_info, new_value)) {
+        if (this->update(state_info, optimal_value)) {
             ++statistics_.value_changes;
             if (state_id == initial_state_id_) {
                 statistics_.jump();
