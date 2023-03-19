@@ -462,7 +462,10 @@ private:
 
             // Is SCC root?
             if (einfo.backlink == stack_index_[state]) {
-                const unsigned scc_size = stack_.size() - recursiveBacklink;
+                const auto scc_begin = stack_.begin() + recursiveBacklink;
+                const auto scc_end = stack_.end();
+                const unsigned scc_size = std::distance(scc_begin, scc_end);
+
                 if (scc_size == 1) {
                     if (backtrack_update_type_ ==
                         BacktrackingUpdateType::UntilConvergence) {
@@ -478,9 +481,8 @@ private:
                 } else {
                     if (backtrack_update_type_ ==
                         BacktrackingUpdateType::UntilConvergence) {
-                        auto res = value_iteration<true>(std::ranges::subrange(
-                            stack_.begin() + recursiveBacklink,
-                            stack_.end()));
+                        auto res = value_iteration<true>(
+                            std::ranges::subrange(scc_begin, scc_end));
                         flags.complete = flags.complete && !res.policy_changed;
                         flags.all_solved =
                             flags.all_solved && !res.value_changed;
@@ -491,7 +493,8 @@ private:
                     backtrack_from_non_singleton(
                         state,
                         flags,
-                        stack_.begin() + recursiveBacklink);
+                        scc_begin,
+                        scc_end);
                 }
                 recursiveBacklink = std::numeric_limits<int>::max();
             }
@@ -526,52 +529,55 @@ private:
     void backtrack_from_non_singleton(
         const StateID state,
         Flags& flags,
-        std::vector<StateID>::iterator scc_begin)
+        std::vector<StateID>::iterator scc_begin,
+        std::vector<StateID>::iterator scc_end)
     {
         assert(!flags.is_trap || !flags.complete || flags.all_solved);
 
         if (flags.complete && flags.all_solved) {
             if (flags.is_trap) {
-                backtrack_trap(state, flags, scc_begin);
+                backtrack_trap(state, flags, scc_begin, scc_end);
             } else {
-                backtrack_solved(state, flags, scc_begin);
+                backtrack_solved(state, flags, scc_begin, scc_end);
             }
         } else {
-            backtrack_unsolved(state, flags, scc_begin);
+            backtrack_unsolved(state, flags, scc_begin, scc_end);
         }
     }
 
     void backtrack_trap(
         const StateID state,
         Flags& flags,
-        std::vector<StateID>::iterator scc_begin)
+        std::vector<StateID>::iterator scc_begin,
+        std::vector<StateID>::iterator scc_end)
     {
         assert(flags.dead);
         ++this->statistics_.traps;
 
-        for (auto it = scc_begin; it != stack_.end(); ++it) {
+        for (auto it = scc_begin; it != scc_end; ++it) {
             stack_index_[*it] = STATE_CLOSED;
         }
 
         utils::TimerScope scope(statistics_.trap_timer);
-        quotient_->build_quotient(scc_begin, stack_.end(), state);
+        quotient_->build_quotient(scc_begin, scc_end, state);
         this->get_state_info(state).set_policy(ActionID::undefined);
-        stack_.erase(scc_begin, stack_.end());
+        stack_.erase(scc_begin, scc_end);
         repush_trap(state, flags);
     }
 
     void backtrack_solved(
         const StateID,
         Flags& flags,
-        std::vector<StateID>::iterator scc_begin)
+        std::vector<StateID>::iterator scc_begin,
+        std::vector<StateID>::iterator scc_end)
     {
         if (mark_solved_) {
-            for (auto it = scc_begin; it != stack_.end(); ++it) {
+            for (auto it = scc_begin; it != scc_end; ++it) {
                 stack_index_[*it] = STATE_CLOSED;
                 this->get_state_info(*it).set_solved();
             }
         } else if (value_iteration_) {
-            for (auto it = scc_begin; it != stack_.end(); ++it) {
+            for (auto it = scc_begin; it != scc_end; ++it) {
                 stack_index_[*it] = STATE_CLOSED;
                 visited_states_.push_back(*it);
             }
@@ -580,20 +586,21 @@ private:
         }
 
         flags.is_trap = false;
-        stack_.erase(scc_begin, stack_.end());
+        stack_.erase(scc_begin, scc_end);
     }
 
     void backtrack_unsolved(
         const StateID,
         Flags& flags,
-        std::vector<StateID>::iterator scc_begin)
+        std::vector<StateID>::iterator scc_begin,
+        std::vector<StateID>::iterator scc_end)
     {
-        for (auto it = scc_begin; it != stack_.end(); ++it) {
+        for (auto it = scc_begin; it != scc_end; ++it) {
             stack_index_[*it] = STATE_CLOSED;
         }
 
         flags.is_trap = false;
-        stack_.erase(scc_begin, stack_.end());
+        stack_.erase(scc_begin, scc_end);
     }
 
     template <bool Convergence>
