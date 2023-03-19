@@ -5,6 +5,8 @@
 #include "probfd/engines/heuristic_search_base.h"
 #include "probfd/quotients/quotient_system.h"
 
+#include "probfd/policies/map_policy.h"
+
 #include "utils/timer.h"
 
 #include <cassert>
@@ -82,6 +84,8 @@ class TADepthFirstHeuristicSearch<
           UseInterval,
           true,
           internal::PerStateInformation> {
+    friend class TADepthFirstHeuristicSearch<State, Action, UseInterval>;
+
     using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
         State,
         quotients::QuotientAction<Action>,
@@ -701,6 +705,125 @@ public:
     }
 
     Interval solve(const State& state) override { return engine_.solve(state); }
+
+    std::unique_ptr<PartialPolicy<State, Action>>
+    compute_policy(const State& state) override
+    {
+        this->solve(state);
+
+        auto* parent_state_space = engine_.quotient_->get_parent_state_space();
+
+        /*
+         * The quotient policy only specifies the optimal actions between
+         * traps. We need to supplement the optimal actions within the
+         * traps, i.e. the actions which point every other member state of
+         * the trap towards that trap member state that owns the optimal
+         * quotient action.
+         *
+         * We fully explore the quotient policy starting from the initial
+         * state and compute the optimal 'inner' actions for each trap. To
+         * this end, we first generate the sub-MDP of the trap. Afterwards,
+         * we expand the trap graph backwards from the state that has the
+         * optimal quotient action. For each encountered state, we select
+         * the action with which it is encountered first as the policy
+         * action.
+         */
+
+        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
+            new policies::MapPolicy<State, Action>(parent_state_space));
+
+        const StateID initial_state_id =
+            parent_state_space->get_state_id(state);
+
+        std::deque<StateID> queue({initial_state_id});
+        std::set<StateID> visited({initial_state_id});
+
+        do {
+            const StateID quotient_id = queue.front();
+            queue.pop_front();
+
+            ActionID quotient_action_id = engine_.lookup_policy(quotient_id);
+
+            // Terminal states have no policy decision.
+            if (quotient_action_id == ActionID::undefined) {
+                continue;
+            }
+
+            const QAction quotient_action =
+                engine_.lookup_action(quotient_id, quotient_action_id);
+            const Interval quotient_bound =
+                engine_.lookup_dual_bounds(quotient_id);
+
+            const StateID exiting_id = quotient_action.state_id;
+
+            policy->emplace_decision(
+                exiting_id,
+                quotient_action.action_id,
+                quotient_bound);
+
+            // Nothing else needs to be done if the trap has only one state.
+            if (engine_.quotient_->quotient_size(quotient_id) != 1) {
+                std::unordered_map<
+                    StateID,
+                    std::set<std::pair<StateID, ActionID>>>
+                    parents;
+
+                // Build the inverse graph
+                std::vector<QAction> inner_actions;
+                engine_.quotient_->get_pruned_ops(quotient_id, inner_actions);
+
+                for (const QAction& qaction : inner_actions) {
+                    StateID source_id = qaction.state_id;
+                    ActionID action_id = qaction.action_id;
+
+                    Distribution<StateID> successors;
+                    parent_state_space->generate_action_transitions(
+                        source_id,
+                        parent_state_space->get_action(source_id, action_id),
+                        successors);
+
+                    for (const StateID succ_id : successors.elements()) {
+                        parents[succ_id].insert({source_id, action_id});
+                    }
+                }
+
+                // Now traverse the inverse graph starting from the exiting
+                // state
+                std::deque<StateID> inverse_queue({exiting_id});
+                std::set<StateID> inverse_visited({exiting_id});
+
+                do {
+                    const StateID next_id = inverse_queue.front();
+                    inverse_queue.pop_front();
+
+                    for (const auto& [pred_id, act_id] : parents[next_id]) {
+                        if (inverse_visited.insert(pred_id).second) {
+                            policy->emplace_decision(
+                                pred_id,
+                                act_id,
+                                quotient_bound);
+                            inverse_queue.push_back(pred_id);
+                        }
+                    }
+                } while (!inverse_queue.empty());
+            }
+
+            // Push the successor traps.
+            Distribution<StateID> successors;
+            engine_.quotient_->generate_successors(
+                quotient_id,
+                quotient_action,
+                successors);
+
+            for (const StateID succ_id : successors.elements()) {
+                if (visited.insert(succ_id).second) {
+                    queue.push_back(succ_id);
+                }
+            }
+        } while (!queue.empty());
+
+        return policy;
+    }
 
     void print_statistics(std::ostream& out) const override
     {
