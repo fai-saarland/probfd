@@ -178,9 +178,8 @@ public:
                     parents;
 
                 // Build the inverse graph
-
-                // TODO Generate the inner actions here...
                 std::vector<QAction> inner_actions;
+                quotient_->get_pruned_ops(quotient_id, inner_actions);
 
                 for (const QAction& qaction : inner_actions) {
                     StateID source_id = qaction.state_id;
@@ -206,6 +205,7 @@ public:
 
                 do {
                     const StateID next_id = inverse_queue.front();
+                    inverse_queue.pop_front();
 
                     for (const auto& [pred_id, act_id] : parents[next_id]) {
                         if (inverse_visited.insert(pred_id).second) {
