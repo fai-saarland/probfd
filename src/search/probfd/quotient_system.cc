@@ -4,7 +4,7 @@
 
 namespace probfd {
 namespace quotients {
-
+/*
 using namespace engine_interfaces;
 
 QuotientSystem<State, OperatorID>::const_iterator::const_iterator(
@@ -63,6 +63,12 @@ QuotientSystem<State, OperatorID>::QuotientSystem(
     } else {
         state_infos_.push_back(QuotientInformation(0));
     }
+}
+
+engine_interfaces::StateSpace<State, OperatorID>*
+QuotientSystem<State, OperatorID>::get_parent_state_space()
+{
+    return state_space_;
 }
 
 unsigned
@@ -145,6 +151,17 @@ StateID QuotientSystem<State, OperatorID>::translate_state_id(StateID sid) const
     }
 
     return this->fallback_->translate_state_id(sid);
+}
+
+void QuotientSystem<State, OperatorID>::get_pruned_ops(
+    StateID sid,
+    std::vector<QAction>& result)
+{
+    if (cache_) {
+        abort();
+    } else {
+        this->fallback_->get_pruned_ops(sid, result);
+    }
 }
 
 void QuotientSystem<State, OperatorID>::generate_applicable_ops(
@@ -404,7 +421,6 @@ void QuotientSystem<State, OperatorID>::update_cache(
             continue;
         }
 
-        bool self_loop = true;
         StateID* k = succ_dest;
 
         const ProbabilisticOperatorProxy op =
@@ -414,7 +430,6 @@ void QuotientSystem<State, OperatorID>::update_cache(
         for (; succ_src != succ_src_end; ++succ_src, ++succ_dest) {
             const bool member = quotient_states.contains(*succ_src);
             *succ_dest = member ? rid : *succ_src;
-            self_loop = self_loop && (*succ_dest == rid);
             succ_dest = k;
             *aops_dest = *aops_src;
             ++aops_dest;
@@ -452,6 +467,6 @@ void QuotientSystem<State, OperatorID>::verify_cache_consistency()
     }
 }
 #endif
-
+*/
 } // namespace quotients
 } // namespace probfd

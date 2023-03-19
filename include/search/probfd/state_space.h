@@ -24,17 +24,10 @@ class Evaluator;
 namespace probfd {
 class ProbabilisticTask;
 
-namespace quotients {
-template <typename, typename>
-class QuotientSystem;
-}
-
 namespace engine_interfaces {
 
 template <>
 class StateSpace<State, OperatorID> {
-    friend class quotients::QuotientSystem<State, OperatorID>;
-
 protected:
     struct Statistics {
         unsigned long long single_transition_generator_calls = 0;

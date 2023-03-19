@@ -22,6 +22,26 @@
 namespace probfd {
 namespace quotients {
 
+/**
+ * FIXME: The below specialization of a task-level quotient state space is
+ * supposed to cache the quotient's transitions to speed up the successor
+ * generation. However, is has several issues:
+ *
+ * 1. The object uses the cache of the original task state space implementation,
+ * and updates it whenever a quotient is built. This is a nasty hack and
+ * invalidates the original transition system. The implementation should have
+ * its own independent transition cache and there should not be a dependency
+ * to a particular implementation of the original transition system.
+ * 2. On top of this, the cache update is currently broken, leading to incorrect
+ * transitions being generated.
+ * 3. The implementation does not the store the pruned part of the quotient,
+ * but this information is desperately needed during policy extraction, as the
+ * policy is unspecified with respect to states within a quotient when a
+ * trap-collapsing algorithm finishes, and reconstructing this information
+ * requires access to the pruned transition.
+ */
+
+/*
 template <>
 class QuotientSystem<State, OperatorID> {
     friend struct const_iterator;
@@ -74,6 +94,8 @@ public:
 
     unsigned quotient_size(StateID state_id) const;
 
+    engine_interfaces::StateSpace<State, OperatorID>* get_parent_state_space();
+
     const_iterator begin() const;
     const_iterator end() const;
 
@@ -84,6 +106,8 @@ public:
     State get_state(StateID sid) const;
 
     StateID translate_state_id(StateID sid) const;
+
+    void get_pruned_ops(StateID sid, std::vector<QAction>& result);
 
     void generate_applicable_ops(StateID sid, std::vector<QAction>& result);
 
@@ -272,6 +296,8 @@ private:
     void verify_cache_consistency();
 #endif
 };
+
+*/
 
 } // namespace quotients
 } // namespace probfd
