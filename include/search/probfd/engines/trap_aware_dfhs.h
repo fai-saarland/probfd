@@ -89,6 +89,8 @@ class TADepthFirstHeuristicSearch<
         true,
         internal::PerStateInformation>;
 
+    using UpdateResult = typename HeuristicSearchBase::UpdateResult;
+
     using QAction = quotients::QuotientAction<Action>;
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using StateInfo = typename HeuristicSearchBase::StateInfo;
@@ -155,9 +157,7 @@ class TADepthFirstHeuristicSearch<
 
     engine_interfaces::OpenList<QAction>* open_list_;
 
-    bool terminated_ = 0;
-    bool last_value_changed_ = 0;
-    bool last_policy_changed_ = 0;
+    bool terminated_ = false;
 
     std::deque<ExplorationInformation> queue_;
     std::vector<StateID> stack_;
@@ -165,7 +165,6 @@ class TADepthFirstHeuristicSearch<
     storage::StateHashMap<int> stack_index_;
 
     Distribution<StateID> transition_;
-    bool has_zero_cost_;
 
     internal::Statistics statistics_;
 
@@ -240,7 +239,7 @@ protected:
 private:
     void dfhs_vi_driver(const StateID state)
     {
-        std::pair<bool, bool> vi_res(true, true);
+        UpdateResult vi_res{true, true};
         do {
             const bool is_complete = policy_exploration(state);
             if (is_complete) {
@@ -249,7 +248,7 @@ private:
             visited_states_.clear();
             ++statistics_.iterations;
             this->print_progress();
-        } while (vi_res.first || vi_res.second);
+        } while (vi_res.value_changed || vi_res.policy_changed);
     }
 
     void dfhs_label_driver(const StateID state)
@@ -264,7 +263,7 @@ private:
         } while (!is_complete);
     }
 
-    void enqueue(StateID state)
+    void enqueue(StateID state, bool zero_cost)
     {
         queue_.emplace_back(state, stack_.size());
         stack_index_[state] = stack_.size();
@@ -296,26 +295,26 @@ private:
 
         assert(!info.successors.empty());
         transition_.clear();
-        info.flags.is_trap = has_zero_cost_;
+        info.flags.is_trap = zero_cost;
     }
 
     bool push_state(StateID state, StateInfo& state_info, Flags& flags)
     {
         assert(!terminated_);
-        last_value_changed_ = false;
-        last_policy_changed_ = false;
         assert(!state_info.is_solved() && !state_info.is_terminal());
+
+        bool zero_cost;
 
         const bool tip = state_info.is_on_fringe();
         if (tip || forward_updates_) {
             ++statistics_.fw_updates;
             ActionID greedy_action;
-            last_value_changed_ =
+            bool value_changed =
                 this->async_update(state, &greedy_action, &transition_)
                     .value_changed;
-            flags.all_solved = flags.all_solved && !last_value_changed_;
+            flags.all_solved = flags.all_solved && !value_changed;
             const bool cutoff = (!expand_tip_states_ && tip) ||
-                                (cutoff_inconsistent_ && last_value_changed_);
+                                (cutoff_inconsistent_ && value_changed);
             terminated_ = terminate_exploration_ && cutoff;
             if (transition_.empty()) {
                 assert(state_info.is_dead_end());
@@ -327,17 +326,16 @@ private:
                 flags.complete = false;
                 return false;
             }
-            has_zero_cost_ =
-                this->get_action_cost(
-                    state,
-                    this->lookup_action(state, greedy_action)) == 0;
+            zero_cost = this->get_action_cost(
+                            state,
+                            this->lookup_action(state, greedy_action)) == 0;
         } else {
             QAction action = this->get_policy(state);
             this->generate_successors(state, action, transition_);
-            has_zero_cost_ = this->get_action_cost(state, action) == 0;
+            zero_cost = this->get_action_cost(state, action) == 0;
         }
 
-        enqueue(state);
+        enqueue(state, zero_cost);
         return true;
     }
 
@@ -355,18 +353,16 @@ private:
 
     bool repush_trap(StateID state, Flags& flags)
     {
-        last_value_changed_ = false;
-        last_policy_changed_ = false;
         flags.clear();
         ++statistics_.fw_updates;
 
         ActionID greedy_action;
-        last_value_changed_ =
+        bool value_changed =
             this->async_update(state, &greedy_action, &transition_)
                 .value_changed;
-        flags.all_solved = !last_value_changed_;
+        flags.all_solved = !value_changed;
         const bool cutoff = !reexpand_removed_traps_ ||
-                            (cutoff_inconsistent_ && last_value_changed_);
+                            (cutoff_inconsistent_ && value_changed);
         terminated_ = terminated_ || (terminate_exploration_ && cutoff);
 
         if (transition_.empty()) {
@@ -385,10 +381,11 @@ private:
         }
 
         flags.clear();
-        has_zero_cost_ = this->get_action_cost(
-                             state,
-                             this->lookup_action(state, greedy_action)) == 0;
-        enqueue(state);
+        const bool zero_cost =
+            this->get_action_cost(
+                state,
+                this->lookup_action(state, greedy_action)) == 0;
+        enqueue(state, zero_cost);
         return true;
     }
 
@@ -405,9 +402,11 @@ private:
         int recursiveBacklink = std::numeric_limits<int>::max();
         do {
             ExplorationInformation& einfo = queue_.back();
+            const StateID state = einfo.state;
+
             einfo.backlink = std::min(recursiveBacklink, einfo.backlink);
             einfo.flags.update(flags);
-            bool backtrack = true;
+
             while (!terminated_ && !einfo.successors.empty()) {
                 const StateID succ =
                     quotient_->translate_state_id(einfo.successors.back());
@@ -422,10 +421,9 @@ private:
                         succ_info.set_solved();
                         einfo.flags.update(succ_info);
                     } else if (push_state(succ, succ_info, einfo.flags)) {
-                        backtrack = false;
                         flags.clear();
                         recursiveBacklink = std::numeric_limits<int>::max();
-                        break;
+                        goto continue_exploration;
                     } else if (mark_solved_) {
                         einfo.flags.all_solved = false;
                     }
@@ -444,76 +442,61 @@ private:
                 }
             }
 
-            if (backtrack) {
-                const StateID state = einfo.state;
-                const bool is_scc_root = einfo.backlink == stack_index_[state];
-                flags = einfo.flags;
-                recursiveBacklink = einfo.backlink;
-                queue_.pop_back();
+            flags = einfo.flags;
+            recursiveBacklink = einfo.backlink;
+            queue_.pop_back();
 
-                flags.complete = flags.complete && !terminated_;
+            flags.complete = flags.complete && !terminated_;
 
-                last_value_changed_ = false;
-                last_policy_changed_ = false;
-
-                if (backtrack_update_type_ == BacktrackingUpdateType::Single ||
-                    (backtrack_update_type_ ==
-                         BacktrackingUpdateType::OnDemand &&
-                     (!flags.complete || !flags.all_solved))) {
-                    ++statistics_.bw_updates;
-                    auto updated = this->async_update(state, nullptr, nullptr);
-                    last_value_changed_ = updated.value_changed;
-                    last_policy_changed_ = updated.policy_changed;
-                    flags.complete = flags.complete && !last_policy_changed_;
-                    flags.all_solved = flags.all_solved && !last_value_changed_;
-                    terminated_ = terminated_ ||
-                                  (terminate_exploration_ &&
-                                   cutoff_inconsistent_ && last_value_changed_);
-                }
-
-                if (is_scc_root) {
-                    const unsigned scc_size = stack_.size() - recursiveBacklink;
-                    if (scc_size == 1) {
-                        if (backtrack_update_type_ ==
-                            BacktrackingUpdateType::UntilConvergence) {
-                            auto res =
-                                this->async_update(state, nullptr, nullptr);
-                            last_value_changed_ = res.value_changed;
-                            last_policy_changed_ = res.policy_changed;
-                            flags.complete =
-                                flags.complete && !res.policy_changed;
-                            flags.all_solved =
-                                flags.all_solved && !res.value_changed;
-                            terminated_ =
-                                terminated_ ||
-                                (terminate_exploration_ &&
-                                 cutoff_inconsistent_ && last_value_changed_);
-                        }
-                        backtrack_from_singleton(state, flags);
-                    } else {
-                        if (backtrack_update_type_ ==
-                            BacktrackingUpdateType::UntilConvergence) {
-                            auto res =
-                                value_iteration<true>(std::ranges::subrange(
-                                    stack_.begin() + recursiveBacklink,
-                                    stack_.end()));
-                            last_value_changed_ = res.first;
-                            last_policy_changed_ = res.second;
-                            flags.complete = flags.complete && !res.second;
-                            flags.all_solved = flags.all_solved && !res.first;
-                            terminated_ =
-                                terminated_ ||
-                                (terminate_exploration_ &&
-                                 cutoff_inconsistent_ && last_value_changed_);
-                        }
-                        backtrack_from_non_singleton(
-                            state,
-                            flags,
-                            stack_.begin() + recursiveBacklink);
-                    }
-                    recursiveBacklink = std::numeric_limits<int>::max();
-                }
+            if (backtrack_update_type_ == BacktrackingUpdateType::Single ||
+                (backtrack_update_type_ == BacktrackingUpdateType::OnDemand &&
+                 (!flags.complete || !flags.all_solved))) {
+                ++statistics_.bw_updates;
+                auto updated = this->async_update(state, nullptr, nullptr);
+                flags.complete = flags.complete && !updated.policy_changed;
+                flags.all_solved = flags.all_solved && !updated.value_changed;
+                terminated_ = terminated_ ||
+                              (terminate_exploration_ && cutoff_inconsistent_ &&
+                               updated.value_changed);
             }
+
+            // Is SCC root?
+            if (einfo.backlink == stack_index_[state]) {
+                const unsigned scc_size = stack_.size() - recursiveBacklink;
+                if (scc_size == 1) {
+                    if (backtrack_update_type_ ==
+                        BacktrackingUpdateType::UntilConvergence) {
+                        auto res = this->async_update(state, nullptr, nullptr);
+                        flags.complete = flags.complete && !res.policy_changed;
+                        flags.all_solved =
+                            flags.all_solved && !res.value_changed;
+                        terminated_ = terminated_ || (terminate_exploration_ &&
+                                                      cutoff_inconsistent_ &&
+                                                      res.value_changed);
+                    }
+                    backtrack_from_singleton(state, flags);
+                } else {
+                    if (backtrack_update_type_ ==
+                        BacktrackingUpdateType::UntilConvergence) {
+                        auto res = value_iteration<true>(std::ranges::subrange(
+                            stack_.begin() + recursiveBacklink,
+                            stack_.end()));
+                        flags.complete = flags.complete && !res.policy_changed;
+                        flags.all_solved =
+                            flags.all_solved && !res.value_changed;
+                        terminated_ = terminated_ || (terminate_exploration_ &&
+                                                      cutoff_inconsistent_ &&
+                                                      res.value_changed);
+                    }
+                    backtrack_from_non_singleton(
+                        state,
+                        flags,
+                        stack_.begin() + recursiveBacklink);
+                }
+                recursiveBacklink = std::numeric_limits<int>::max();
+            }
+
+        continue_exploration:;
         } while (!queue_.empty());
 
         assert(queue_.empty());
@@ -614,19 +597,19 @@ private:
     }
 
     template <bool Convergence>
-    std::pair<bool, bool>
-    value_iteration(const std::ranges::input_range auto& range)
+    UpdateResult value_iteration(const std::ranges::input_range auto& range)
     {
-        bool gvc = false;
-        bool gpc = false;
+        UpdateResult result{false, false};
 
         for (;;) {
             bool changed = false;
             for (const StateID state : range) {
                 auto updated = this->async_update(state, nullptr, nullptr);
                 changed = changed || updated.value_changed;
-                gvc = gvc || updated.value_changed;
-                gpc = gpc || updated.policy_changed;
+                result.value_changed =
+                    result.value_changed || updated.value_changed;
+                result.policy_changed =
+                    result.policy_changed || updated.policy_changed;
                 ++statistics_.bw_updates;
             }
 
@@ -639,7 +622,7 @@ private:
             }
         }
 
-        return std::make_pair(gvc, gpc);
+        return result;
     }
 };
 
