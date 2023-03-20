@@ -16,6 +16,11 @@
 using namespace probfd;
 using namespace probfd::heuristics;
 
+size_t get_num_transitions(const cartesian::ProbabilisticTransitionSystem& ts)
+{
+    return ts.get_num_loops() + ts.get_num_non_loops();
+}
+
 TEST(CartesianTests, test_probabilistic_transition_system)
 {
     std::filesystem::path file_path = __FILE__;
@@ -26,24 +31,24 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     cartesian::Abstraction abs(task, utils::g_log);
 
     ASSERT_EQ(
-        abs.get_transition_system().get_num_transitions(),
+        get_num_transitions(abs.get_transition_system()),
         task->get_num_operators());
 
     abs.refine(abs.get_state(0), 1, {1});
     ASSERT_EQ(abs.get_num_states(), 2);
-    ASSERT_EQ(abs.get_transition_system().get_num_transitions(), 8);
+    ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
     abs.refine(abs.get_state(0), 0, {1});
     ASSERT_EQ(abs.get_num_states(), 3);
-    ASSERT_EQ(abs.get_transition_system().get_num_transitions(), 8);
+    ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
     abs.refine(abs.get_state(2), 1, {0});
     ASSERT_EQ(abs.get_num_states(), 4);
-    ASSERT_EQ(abs.get_transition_system().get_num_transitions(), 10);
+    ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 10);
 
     abs.refine(abs.get_state(0), 1, {2});
     ASSERT_EQ(abs.get_num_states(), 5);
-    ASSERT_EQ(abs.get_transition_system().get_num_transitions(), 10);
+    ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 10);
 }
 
 TEST(CartesianTests, test_probabilistic_transition_system2)
@@ -57,14 +62,14 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
 
     ASSERT_EQ(abs.get_num_states(), 1);
     ASSERT_EQ(
-        abs.get_transition_system().get_num_transitions(),
+        get_num_transitions(abs.get_transition_system()),
         task->get_num_operators());
 
     abs.refine(abs.get_state(0), 4, {1});
     ASSERT_EQ(abs.get_num_states(), 2);
-    ASSERT_EQ(abs.get_transition_system().get_num_transitions(), 28);
+    ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 28);
 
     abs.refine(abs.get_state(1), 2, {1, 2, 3});
     ASSERT_EQ(abs.get_num_states(), 3);
-    ASSERT_EQ(abs.get_transition_system().get_num_transitions(), 34);
+    ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 34);
 }

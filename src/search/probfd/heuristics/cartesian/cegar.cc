@@ -182,7 +182,7 @@ bool CEGAR::may_keep_refining() const
         }
         return false;
     } else if (
-        abstraction->get_transition_system().get_num_transitions() >=
+        abstraction->get_transition_system().get_num_non_loops() >=
         max_non_looping_transitions) {
         if (log.is_at_least_normal()) {
             log << "Reached maximum number of transitions." << endl;
@@ -258,7 +258,7 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
             abstraction->get_num_states() % 1000 == 0) {
             log << abstraction->get_num_states() << "/" << max_states
                 << " states, "
-                << abstraction->get_transition_system().get_num_transitions()
+                << abstraction->get_transition_system().get_num_non_loops()
                 << "/" << max_non_looping_transitions << " transitions" << endl;
         }
     }

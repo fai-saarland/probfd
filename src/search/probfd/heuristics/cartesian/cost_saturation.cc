@@ -225,7 +225,7 @@ void CostSaturation::build_abstractions(
         ++num_abstractions;
         num_states += abstraction->get_num_states();
         num_non_looping_transitions +=
-            abstraction->get_transition_system().get_num_transitions();
+            abstraction->get_transition_system().get_num_non_loops();
         assert(num_states <= max_states);
 
         vector<value_t> costs = task_properties::get_operator_costs(

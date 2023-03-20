@@ -89,7 +89,8 @@ public:
 
     int get_num_states() const;
     int get_num_operators() const;
-    int get_num_transitions() const;
+    int get_num_non_loops() const;
+    int get_num_loops() const;
 
     void print_statistics(utils::LogProxy& log) const;
 };

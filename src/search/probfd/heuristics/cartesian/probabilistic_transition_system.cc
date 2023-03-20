@@ -540,15 +540,21 @@ int ProbabilisticTransitionSystem::get_num_operators() const
     return preconditions_by_operator.size();
 }
 
-int ProbabilisticTransitionSystem::get_num_transitions() const
+int ProbabilisticTransitionSystem::get_num_non_loops() const
 {
     return transitions.size();
+}
+
+int ProbabilisticTransitionSystem::get_num_loops() const
+{
+    return num_loops;
 }
 
 void ProbabilisticTransitionSystem::print_statistics(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Transitions: " << transitions.size() << endl;
+        log << "Looping transitions: " << get_num_loops() << endl;
+        log << "Non-looping transitions: " << get_num_non_loops() << endl;
     }
 }
 
