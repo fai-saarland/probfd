@@ -7,6 +7,7 @@
 #include "utils/logging.h"
 
 #include <algorithm>
+#include <cassert>
 #include <map>
 
 using namespace std;
@@ -125,10 +126,16 @@ int ProbabilisticTransitionSystem::get_postcondition_value(
         var);
 }
 
+size_t ProbabilisticTransitionSystem::get_num_operator_outcomes(int op_id) const
+{
+    return postconditions_by_operator_and_outcome[op_id].size();
+}
+
 void ProbabilisticTransitionSystem::enlarge_vectors_by_one()
 {
     outgoing.emplace_back();
     incoming.emplace_back();
+    loops.emplace_back();
 }
 
 void ProbabilisticTransitionSystem::construct_trivial_abstraction(
@@ -139,14 +146,10 @@ void ProbabilisticTransitionSystem::construct_trivial_abstraction(
     assert(get_num_states() == 1);
 
     for (const auto& op : ops) {
-        const auto outcomes = op.get_outcomes().size();
-        auto& t = transitions.emplace_back(
-            0,
-            op.get_id(),
-            std::vector<int>(outcomes, 0));
-        outgoing[0].push_back(&t);
-        incoming[0].push_back(&t);
+        loops[0].emplace_back(op.get_id());
     }
+
+    num_loops += ops.size();
 }
 
 void ProbabilisticTransitionSystem::add_transition(
@@ -164,6 +167,12 @@ void ProbabilisticTransitionSystem::add_transition(
             incoming[target_id].push_back(&transition);
         }
     }
+}
+
+void ProbabilisticTransitionSystem::add_loop(int src_id, int op_id)
+{
+    loops[src_id].emplace_back(op_id);
+    ++num_loops;
 }
 
 void ProbabilisticTransitionSystem::rewire_incoming_transitions(
@@ -357,6 +366,129 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
     }
 }
 
+void ProbabilisticTransitionSystem::rewire_loops(
+    const AbstractState& v1,
+    const AbstractState& v2,
+    int var)
+{
+    /* State v has been split into v1 and v2. Now for all self-loops
+       v->v we need to add one or two of the transitions v1->v1, v1->v2,
+       v2->v1 and v2->v2. */
+    int v1_id = v1.get_id();
+    int v2_id = v2.get_id();
+
+    auto old_loops = std::move(loops[v1_id]);
+
+    for (int op_id : old_loops) {
+        const int pre = get_precondition_value(op_id, var);
+        const size_t num_outcomes = get_num_operator_outcomes(op_id);
+
+        if (pre == UNDEFINED) {
+            // op starts in v1
+            bool v1_set = false;
+            bool v2_set = false;
+
+            std::vector<int> target_ids_v1;
+            std::vector<int> target_ids_v2;
+            target_ids_v1.reserve(num_outcomes);
+            target_ids_v2.reserve(num_outcomes);
+
+            for (size_t i = 0; i != num_outcomes; ++i) {
+                int post = get_postcondition_value(op_id, i, var);
+
+                if (post == UNDEFINED) {
+                    target_ids_v1.push_back(v1_id);
+                    target_ids_v2.push_back(v2_id);
+                } else if (v1.contains(var, post)) {
+                    // effect must end in v1.
+                    target_ids_v1.push_back(v1_id);
+                    target_ids_v2.push_back(v1_id);
+                    v1_set = true;
+                } else {
+                    // effect must end in v2.
+                    target_ids_v1.push_back(v2_id);
+                    target_ids_v2.push_back(v2_id);
+                    v2_set = true;
+                }
+            }
+
+            if (!v2_set) {
+                // uniform v1 self-loop.
+                add_loop(v1_id, op_id);
+            } else {
+                // some effects go to v2.
+                add_transition(v1_id, op_id, std::move(target_ids_v1));
+            }
+
+            if (!v1_set) {
+                // uniform v2 self-loop.
+                add_loop(v2_id, op_id);
+            } else {
+                // some effects go to v1.
+                add_transition(v2_id, op_id, std::move(target_ids_v2));
+            }
+        } else if (v1.contains(var, pre)) {
+            // op starts in v1
+            bool v2_set = false;
+
+            std::vector<int> target_ids;
+            target_ids.reserve(num_outcomes);
+
+            for (size_t i = 0; i != num_outcomes; ++i) {
+                int post = get_postcondition_value(op_id, i, var);
+                assert(post != UNDEFINED);
+
+                if (v1.contains(var, post)) {
+                    // effect must end in v1.
+                    target_ids.push_back(v1_id);
+                } else {
+                    // effect must end in v2.
+                    target_ids.push_back(v2_id);
+                    v2_set = true;
+                }
+            }
+
+            if (!v2_set) {
+                // uniform v1 self-loop.
+                add_loop(v1_id, op_id);
+            } else {
+                // some effects go to v2.
+                add_transition(v1_id, op_id, std::move(target_ids));
+            }
+        } else {
+            // op starts in v2
+            bool v1_set = false;
+
+            std::vector<int> target_ids;
+            target_ids.reserve(num_outcomes);
+
+            for (size_t i = 0; i != num_outcomes; ++i) {
+                int post = get_postcondition_value(op_id, i, var);
+                assert(post != UNDEFINED);
+
+                if (v1.contains(var, post)) {
+                    // effect must end in v1.
+                    target_ids.push_back(v1_id);
+                    v1_set = true;
+                } else {
+                    // effect must end in v2.
+                    target_ids.push_back(v2_id);
+                }
+            }
+
+            if (!v1_set) {
+                // uniform v2 self-loop.
+                add_loop(v2_id, op_id);
+            } else {
+                // some effects go to v1.
+                add_transition(v2_id, op_id, std::move(target_ids));
+            }
+        }
+    }
+
+    num_loops -= old_loops.size();
+}
+
 void ProbabilisticTransitionSystem::rewire(
     const AbstractStates& states,
     const AbstractState& v1,
@@ -369,6 +501,7 @@ void ProbabilisticTransitionSystem::rewire(
     // Remove old transitions and add new transitions.
     rewire_incoming_transitions(states, v1, v2, var);
     rewire_outgoing_transitions(states, v1, v2, var);
+    rewire_loops(v1, v2, var);
 }
 
 value_t

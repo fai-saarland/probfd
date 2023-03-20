@@ -36,6 +36,11 @@ class ProbabilisticTransitionSystem {
     // The transition list. Using deque here to avoid invalidating references.
     std::deque<ProbabilisticTransition> transitions;
 
+    // The list of uniform self-loops, to be pruned during search.
+    std::deque<std::vector<int>> loops;
+
+    size_t num_loops = 0;
+
     // Increases size of incoming and outgoing transition lists by one.
     void enlarge_vectors_by_one();
 
@@ -44,8 +49,10 @@ class ProbabilisticTransitionSystem {
 
     int get_precondition_value(int op_id, int var) const;
     int get_postcondition_value(int op_id, int eff_id, int var) const;
+    size_t get_num_operator_outcomes(int op_id) const;
 
     void add_transition(int src_id, int op_id, std::vector<int> target_ids);
+    void add_loop(int src_id, int op_id);
 
     void rewire_incoming_transitions(
         const AbstractStates& states,
@@ -57,6 +64,9 @@ class ProbabilisticTransitionSystem {
         const AbstractState& v1,
         const AbstractState& v2,
         int var);
+
+    void
+    rewire_loops(const AbstractState& v1, const AbstractState& v2, int var);
 
 public:
     explicit ProbabilisticTransitionSystem(
