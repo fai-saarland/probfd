@@ -4,7 +4,7 @@
 
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
-#include "probfd/engines/topological_value_iteration.h"
+#include "probfd/engines/ta_topological_value_iteration.h"
 
 #include "probfd/utils/graph_visualization.h"
 
@@ -225,7 +225,7 @@ void SSPPatternDatabase::compute_value_table(
     const StateRankEvaluator& heuristic)
 {
     using namespace preprocessing;
-    using namespace engines::topological_vi;
+    using namespace engines::ta_topological_vi;
 
     NormalCostAbstractCostFunction cost(state_space, 0_vt, INFINITE_VALUE);
 
@@ -241,11 +241,10 @@ void SSPPatternDatabase::compute_value_table(
 
     WrapperHeuristic h(proper_states, heuristic);
 
-    TopologicalValueIteration<StateRank, const AbstractOperator*> vi(
+    TATopologicalValueIteration<StateRank, const AbstractOperator*> vi(
         &state_space,
         &cost,
-        &h,
-        true);
+        &h);
 
     vi.solve(state_space.initial_state_.id, value_table);
 
