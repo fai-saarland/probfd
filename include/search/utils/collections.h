@@ -222,6 +222,33 @@ int estimate_unordered_map_bytes(int num_entries)
     return _estimate_hash_table_bytes<std::unordered_map<Key, Value>>(
         num_entries);
 }
+
+template <class I1, class I2>
+bool have_common_element(I1 first1, I1 last1, I2 first2, I2 last2)
+{
+    while (first1 != last1 && first2 != last2) {
+        if (*first1 < *first2) {
+            ++first1;
+        } else if (*first2 < *first1) {
+            ++first2;
+        } else {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+template <class Range1, class Range2>
+bool have_common_element(const Range1& range1, const Range2& range2)
+{
+    return have_common_element(
+        std::begin(range1),
+        std::end(range1),
+        std::begin(range2),
+        std::end(range2));
+}
+
 } // namespace utils
 
 #endif
