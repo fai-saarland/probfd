@@ -2,10 +2,18 @@
 
 #include "operator_id.h"
 
+#include "option_parser.h"
+#include "plugin.h"
+
 #include <limits>
 
 namespace probfd {
 namespace policy_pickers {
+
+OperatorIdTiebreaker::OperatorIdTiebreaker(const options::Options& opts)
+    : ascending_(opts.get<bool>("prefer_smaller") ? 1 : -1)
+{
+}
 
 OperatorIdTiebreaker::OperatorIdTiebreaker(int ascending)
     : ascending_(ascending)
@@ -13,6 +21,7 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(int ascending)
 }
 
 int OperatorIdTiebreaker::pick(
+    engine_interfaces::StateSpace<State, OperatorID>&,
     StateID,
     ActionID,
     const std::vector<OperatorID>& choices,
@@ -29,6 +38,11 @@ int OperatorIdTiebreaker::pick(
         }
     }
     return min_idx;
+}
+
+void OperatorIdTiebreaker::add_options_to_parser(options::OptionParser& p)
+{
+    p.add_option<bool>("prefer_smaller", "", "true");
 }
 
 } // namespace policy_pickers

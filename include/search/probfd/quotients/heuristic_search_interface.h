@@ -13,25 +13,28 @@ namespace quotients {
 
 template <typename State>
 class RepresentativePolicyPicker
-    : public engine_interfaces::PolicyPicker<
-          quotients::QuotientAction<OperatorID>> {
+    : public engine_interfaces::
+          PolicyPicker<State, quotients::QuotientAction<OperatorID>> {
     using QuotientSystem = quotients::QuotientSystem<State, OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
     std::vector<OperatorID> choices_;
     QuotientSystem* quotient_;
-    std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>> original_;
+    std::shared_ptr<engine_interfaces::PolicyPicker<State, OperatorID>>
+        original_;
 
 public:
     RepresentativePolicyPicker(
         QuotientSystem* quotient,
-        std::shared_ptr<engine_interfaces::PolicyPicker<OperatorID>> original)
+        std::shared_ptr<engine_interfaces::PolicyPicker<State, OperatorID>>
+            original)
         : quotient_(quotient)
         , original_(original)
     {
     }
 
     int pick(
+        engine_interfaces::StateSpace<State, QuotientAction>&,
         StateID state,
         ActionID prev_policy,
         const std::vector<QuotientAction>& action_choices,
@@ -48,8 +51,13 @@ public:
             choices_.push_back(
                 quotient_->get_original_action(state, action_choices[i]));
         }
-        return original_
-            ->pick(state, oprev, choices_, successors, hs_interface);
+        return original_->pick(
+            *quotient_->get_parent_state_space(),
+            state,
+            oprev,
+            choices_,
+            successors,
+            hs_interface);
     }
 
     void print_statistics(std::ostream& out) override

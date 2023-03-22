@@ -7,6 +7,9 @@
 namespace probfd {
 namespace engine_interfaces {
 
+template <typename, typename>
+class StateSpace;
+
 class HeuristicSearchInterface;
 
 /**
@@ -41,7 +44,7 @@ protected:
  *
  * @tparam Action - The action type of the underlying MDP model.
  */
-template <typename Action>
+template <typename State, typename Action>
 class PolicyPicker {
 public:
     virtual ~PolicyPicker() = default;
@@ -60,6 +63,7 @@ public:
      * @return An integer specifying the list index of the selected action.
      */
     virtual int pick(
+        StateSpace<State, Action>& state_space,
         StateID state_id,
         ActionID previous_greedy_id,
         const std::vector<Action>& greedy_action_candidates,
@@ -72,11 +76,12 @@ public:
 } // namespace engine_interfaces
 } // namespace probfd
 
+class State;
 class OperatorID;
 
 namespace probfd {
 
-using TaskPolicyPicker = engine_interfaces::PolicyPicker<OperatorID>;
+using TaskPolicyPicker = engine_interfaces::PolicyPicker<State, OperatorID>;
 
 } // namespace probfd
 

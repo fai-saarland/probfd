@@ -2,8 +2,16 @@
 
 #include "probfd/engine_interfaces/heuristic_search_interface.h"
 
+#include "option_parser.h"
+#include "plugin.h"
+
 namespace probfd {
 namespace policy_pickers {
+
+VDiffTiebreaker::VDiffTiebreaker(const options::Options& opts)
+    : VDiffTiebreaker(opts.get<bool>("prefer_large_gaps") ? -1 : 1)
+{
+}
 
 VDiffTiebreaker::VDiffTiebreaker(value_t favor_large_gaps)
     : favor_large_gaps_(favor_large_gaps)
@@ -11,6 +19,7 @@ VDiffTiebreaker::VDiffTiebreaker(value_t favor_large_gaps)
 }
 
 int VDiffTiebreaker::pick(
+    engine_interfaces::StateSpace<State, OperatorID>&,
     StateID,
     ActionID,
     const std::vector<OperatorID>&,
@@ -32,6 +41,11 @@ int VDiffTiebreaker::pick(
         }
     }
     return choice;
+}
+
+void VDiffTiebreaker::add_options_to_parser(options::OptionParser& parser)
+{
+    parser.add_option<bool>("prefer_large_gaps", "", "true");
 }
 
 } // namespace policy_pickers

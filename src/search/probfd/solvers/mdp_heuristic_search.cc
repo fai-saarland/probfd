@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/policy_pickers/task_policy_picker_factory.h"
+#include "probfd/engine_interfaces/policy_picker.h"
 
 #include <sstream>
 
@@ -12,11 +12,7 @@ using namespace engine_interfaces;
 MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
     : MDPSolver(opts)
     , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
-    , policy_tiebreaker_(
-          opts.contains("policy")
-              ? opts.get<std::shared_ptr<TaskPolicyPickerFactory>>("policy")
-                    ->create_policy_tiebreaker(&this->state_space_)
-              : nullptr)
+    , policy_tiebreaker_(opts.get<std::shared_ptr<TaskPolicyPicker>>("policy"))
     , new_state_handler_(new TaskNewStateHandlerList(
           opts.get_list<std::shared_ptr<TaskNewStateHandler>>("on_new_state")))
     , dual_bounds_(
@@ -46,10 +42,10 @@ void MDPHeuristicSearchBase::add_options_to_parser(
         "on_new_state",
         "",
         "[]");
-    parser.add_option<std::shared_ptr<TaskPolicyPickerFactory>>(
+    parser.add_option<std::shared_ptr<TaskPolicyPicker>>(
         "policy",
         "",
-        "arbitrary_policy_tiebreaker_factory");
+        "arbitrary_policy_tiebreaker");
     parser.add_option<bool>("interval_comparison", "", "false");
     parser.add_option<bool>("stable_policy", "", "false");
     parser.add_option<bool>("dual_bounds", "", "false");

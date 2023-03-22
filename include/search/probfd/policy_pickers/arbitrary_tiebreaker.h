@@ -6,10 +6,12 @@
 namespace probfd {
 namespace policy_pickers {
 
-template <typename Action>
-class ArbitraryTiebreaker : public engine_interfaces::PolicyPicker<Action> {
+template <typename State, typename Action>
+class ArbitraryTiebreaker
+    : public engine_interfaces::PolicyPicker<State, Action> {
 protected:
     virtual int pick(
+        engine_interfaces::StateSpace<State, Action>&,
         StateID,
         ActionID,
         const std::vector<Action>&,

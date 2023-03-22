@@ -1,7 +1,7 @@
-#include "probfd/policy_pickers/arbitrary_tiebreaker_factory.h"
-#include "probfd/policy_pickers/operator_id_tiebreaker_factory.h"
-#include "probfd/policy_pickers/random_tiebreaker_factory.h"
-#include "probfd/policy_pickers/vdiff_tiebreaker_factory.h"
+#include "probfd/policy_pickers/arbitrary_tiebreaker.h"
+#include "probfd/policy_pickers/operator_id_tiebreaker.h"
+#include "probfd/policy_pickers/random_tiebreaker.h"
+#include "probfd/policy_pickers/vdiff_tiebreaker.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -9,30 +9,29 @@
 namespace probfd {
 namespace policy_pickers {
 
-static PluginTypePlugin<TaskPolicyPickerFactory>
-    _type_plugin("TaskPolicyPickerFactory", "");
+static PluginTypePlugin<TaskPolicyPicker> _type_plugin("TaskPolicyPicker", "");
 
-static std::shared_ptr<TaskPolicyPickerFactory>
+static std::shared_ptr<TaskPolicyPicker>
 _parse_arbitrary(options::OptionParser& parser)
 {
     if (parser.dry_run() || parser.help_mode()) return nullptr;
-    return std::make_shared<ArbitraryTiebreakerFactory>();
+    return std::make_shared<ArbitraryTiebreaker<State, OperatorID>>();
 }
 
-static Plugin<TaskPolicyPickerFactory>
-    _plugin_arbitary("arbitrary_policy_tiebreaker_factory", _parse_arbitrary);
+static Plugin<TaskPolicyPicker>
+    _plugin_arbitary("arbitrary_policy_tiebreaker", _parse_arbitrary);
 
-static Plugin<TaskPolicyPickerFactory> _plugin_operator_id(
-    "operator_id_policy_tiebreaker_factory",
-    options::parse<TaskPolicyPickerFactory, OperatorIdTiebreakerFactory>);
+static Plugin<TaskPolicyPicker> _plugin_operator_id(
+    "operator_id_policy_tiebreaker",
+    options::parse<TaskPolicyPicker, OperatorIdTiebreaker>);
 
-static Plugin<TaskPolicyPickerFactory> _plugin_random(
-    "random_policy_tiebreaker_factory",
-    options::parse<TaskPolicyPickerFactory, RandomTiebreakerFactory>);
+static Plugin<TaskPolicyPicker> _plugin_random(
+    "random_policy_tiebreaker",
+    options::parse<TaskPolicyPicker, RandomTiebreaker>);
 
-static Plugin<TaskPolicyPickerFactory> _plugin_value_gap(
-    "value_gap_policy_tiebreaker_factory",
-    options::parse<TaskPolicyPickerFactory, VDiffTiebreakerFactory>);
+static Plugin<TaskPolicyPicker> _plugin_value_gap(
+    "value_gap_policy_tiebreaker",
+    options::parse<TaskPolicyPicker, VDiffTiebreaker>);
 
 } // namespace policy_pickers
 } // namespace probfd

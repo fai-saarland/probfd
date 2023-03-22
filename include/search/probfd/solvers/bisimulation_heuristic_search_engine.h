@@ -59,7 +59,7 @@ protected:
 
     std::shared_ptr<bisimulation::QuotientCostFunction> cost_;
     std::shared_ptr<engine_interfaces::Evaluator<QState>> heuristic_;
-    std::shared_ptr<engine_interfaces::PolicyPicker<QAction>> policy_;
+    std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>> policy_;
     std::shared_ptr<engine_interfaces::NewStateHandler<QState>>
         new_state_handler_;
 
@@ -78,7 +78,7 @@ protected:
               &state_space_,
               g_cost_model->optimal_value_bound(),
               g_cost_model->optimal_value_bound().upper))
-        , policy_(new policy_pickers::ArbitraryTiebreaker<QAction>())
+        , policy_(new policy_pickers::ArbitraryTiebreaker<QState, QAction>())
         , new_state_handler_(new engine_interfaces::NewStateHandler<QState>())
     {
         stats.timer.stop();
@@ -147,7 +147,7 @@ class QBisimulationBasedHeuristicSearchEngine
     quotients::QuotientSystem<QState, QAction> quotient_;
 
     std::shared_ptr<engine_interfaces::CostFunction<QState, QQAction>> q_cost_;
-    std::shared_ptr<engine_interfaces::PolicyPicker<QQAction>>
+    std::shared_ptr<engine_interfaces::PolicyPicker<QState, QQAction>>
         q_policy_tiebreaker_;
 
     explicit QBisimulationBasedHeuristicSearchEngine(
@@ -158,6 +158,7 @@ class QBisimulationBasedHeuristicSearchEngine
               &quotient_,
               cost_.get()))
         , q_policy_tiebreaker_(new policy_pickers::ArbitraryTiebreaker<
+                               QState,
                                quotients::QuotientAction<QAction>>())
     {
     }

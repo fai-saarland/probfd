@@ -100,7 +100,7 @@ class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
     quotients::QuotientSystem<State, OperatorID> quotient_;
 
     std::shared_ptr<engine_interfaces::CostFunction<State, QAction>> q_cost_;
-    std::shared_ptr<engine_interfaces::PolicyPicker<QAction>>
+    std::shared_ptr<engine_interfaces::PolicyPicker<State, QAction>>
         q_policy_tiebreaker_;
 
     const bool fret_on_policy_;

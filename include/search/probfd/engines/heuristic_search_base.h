@@ -146,7 +146,7 @@ public:
 
 private:
     engine_interfaces::Evaluator<State>* value_initializer_;
-    engine_interfaces::PolicyPicker<Action>* policy_chooser_;
+    engine_interfaces::PolicyPicker<State, Action>* policy_chooser_;
     engine_interfaces::NewStateHandler<State>* on_new_state_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
@@ -170,7 +170,7 @@ public:
         engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
-        engine_interfaces::PolicyPicker<Action>* policy_chooser,
+        engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
@@ -284,6 +284,7 @@ public:
                 opt_aops,
                 opt_transitions);
             return this->policy_chooser_->pick(
+                *this->get_state_space(),
                 state_id,
                 ActionID::undefined,
                 opt_aops,
@@ -1001,6 +1002,7 @@ private:
         ++statistics_.policy_updates;
 
         const int index = this->policy_chooser_->pick(
+            *this->get_state_space(),
             state_id,
             previous_greedy,
             opt_aops,

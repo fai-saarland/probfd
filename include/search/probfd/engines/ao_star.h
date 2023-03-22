@@ -45,7 +45,7 @@ public:
         engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
-        engine_interfaces::PolicyPicker<Action>* policy_chooser,
+        engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
