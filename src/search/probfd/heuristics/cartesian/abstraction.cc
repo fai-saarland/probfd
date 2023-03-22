@@ -50,6 +50,67 @@ Abstraction::Abstraction(
 
 Abstraction::~Abstraction() = default;
 
+StateID
+Abstraction::get_state_id(const heuristics::cartesian::AbstractState* state)
+{
+    return state->get_id();
+}
+
+const heuristics::cartesian::AbstractState*
+Abstraction::get_state(StateID state_id)
+{
+    return &get_abstract_state(state_id.id);
+}
+
+ActionID Abstraction::get_action_id(
+    StateID,
+    const heuristics::cartesian::ProbabilisticTransition* action)
+{
+    return ActionID(reinterpret_cast<uintptr_t>(action));
+}
+
+const heuristics::cartesian::ProbabilisticTransition*
+Abstraction::get_action(StateID, ActionID action_id)
+{
+    return reinterpret_cast<
+        const heuristics::cartesian::ProbabilisticTransition*>(
+        static_cast<uintptr_t>(action_id.id));
+}
+
+void Abstraction::generate_applicable_actions(
+    StateID state,
+    std::vector<const heuristics::cartesian::ProbabilisticTransition*>& result)
+{
+    for (const auto* t :
+         transition_system->get_outgoing_transitions()[state.id]) {
+        result.push_back(t);
+    }
+}
+
+void Abstraction::generate_action_transitions(
+    StateID,
+    const heuristics::cartesian::ProbabilisticTransition* action,
+    Distribution<StateID>& result)
+{
+    for (size_t i = 0; i != action->target_ids.size(); ++i) {
+        const value_t probability =
+            transition_system->get_probability(action->op_id, i);
+        result.add_probability(action->target_ids[i], probability);
+    }
+}
+
+void Abstraction::generate_all_transitions(
+    StateID state,
+    std::vector<const heuristics::cartesian::ProbabilisticTransition*>& aops,
+    std::vector<Distribution<StateID>>& successors)
+{
+    for (const auto* t :
+         transition_system->get_outgoing_transitions()[state.id]) {
+        aops.push_back(t);
+        generate_action_transitions(state, t, successors.emplace_back());
+    }
+}
+
 const AbstractState& Abstraction::get_initial_state() const
 {
     return *states[init_id];
@@ -65,7 +126,7 @@ const Goals& Abstraction::get_goals() const
     return goals;
 }
 
-const AbstractState& Abstraction::get_state(int state_id) const
+const AbstractState& Abstraction::get_abstract_state(int state_id) const
 {
     return *states[state_id];
 }

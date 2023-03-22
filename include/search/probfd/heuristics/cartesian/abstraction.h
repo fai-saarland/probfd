@@ -3,6 +3,8 @@
 
 #include "probfd/heuristics/cartesian/types.h"
 
+#include "probfd/engine_interfaces/state_space.h"
+
 #include "probfd/task_proxy.h"
 
 #include "utils/collections.h"
@@ -26,7 +28,9 @@ class ProbabilisticTransitionSystem;
   ambiguities, break spurious solutions and maintain the
   RefinementHierarchy.
 */
-class Abstraction {
+class Abstraction
+    : public engine_interfaces::
+          StateSpace<const AbstractState*, const ProbabilisticTransition*> {
     const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
     const State concrete_initial_state;
     const std::vector<FactPair> goal_facts;
@@ -54,10 +58,34 @@ public:
 
     Abstraction(const Abstraction&) = delete;
 
+    StateID get_state_id(const AbstractState* state) override;
+
+    const AbstractState* get_state(StateID state_id) override;
+
+    ActionID
+    get_action_id(StateID, const ProbabilisticTransition* action) override;
+
+    const ProbabilisticTransition*
+    get_action(StateID, ActionID action_id) override;
+
+    void generate_applicable_actions(
+        StateID state,
+        std::vector<const ProbabilisticTransition*>& result) override;
+
+    void generate_action_transitions(
+        StateID,
+        const ProbabilisticTransition* action,
+        Distribution<StateID>& result) override;
+
+    void generate_all_transitions(
+        StateID state,
+        std::vector<const ProbabilisticTransition*>& aops,
+        std::vector<Distribution<StateID>>& successors) override;
+
     int get_num_states() const;
     const AbstractState& get_initial_state() const;
     const Goals& get_goals() const;
-    const AbstractState& get_state(int state_id) const;
+    const AbstractState& get_abstract_state(int state_id) const;
     const ProbabilisticTransitionSystem& get_transition_system() const;
     std::unique_ptr<RefinementHierarchy> extract_refinement_hierarchy();
 

@@ -34,19 +34,19 @@ TEST(CartesianTests, test_probabilistic_transition_system)
         get_num_transitions(abs.get_transition_system()),
         task->get_num_operators());
 
-    abs.refine(abs.get_state(0), 1, {1});
+    abs.refine(abs.get_abstract_state(0), 1, {1});
     ASSERT_EQ(abs.get_num_states(), 2);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
-    abs.refine(abs.get_state(0), 0, {1});
+    abs.refine(abs.get_abstract_state(0), 0, {1});
     ASSERT_EQ(abs.get_num_states(), 3);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
-    abs.refine(abs.get_state(2), 1, {0});
+    abs.refine(abs.get_abstract_state(2), 1, {0});
     ASSERT_EQ(abs.get_num_states(), 4);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 10);
 
-    abs.refine(abs.get_state(0), 1, {2});
+    abs.refine(abs.get_abstract_state(0), 1, {2});
     ASSERT_EQ(abs.get_num_states(), 5);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 10);
 }
@@ -65,11 +65,11 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
         get_num_transitions(abs.get_transition_system()),
         task->get_num_operators());
 
-    abs.refine(abs.get_state(0), 4, {1});
+    abs.refine(abs.get_abstract_state(0), 4, {1});
     ASSERT_EQ(abs.get_num_states(), 2);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 28);
 
-    abs.refine(abs.get_state(1), 2, {1, 2, 3});
+    abs.refine(abs.get_abstract_state(1), 2, {1, 2, 3});
     ASSERT_EQ(abs.get_num_states(), 3);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 34);
 }

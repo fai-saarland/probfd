@@ -21,8 +21,7 @@ namespace cartesian {
 AbstractSearch::AbstractSearch(
     Abstraction& abstraction,
     std::vector<value_t> operator_costs)
-    : state_space(abstraction)
-    , cost_function(abstraction, std::move(operator_costs))
+    : cost_function(abstraction, std::move(operator_costs))
     , ptb(true)
     , report(0.0_vt)
 {
@@ -39,7 +38,7 @@ unique_ptr<Solution> AbstractSearch::find_solution(
         false,
         true>
         hdfs(
-            &state_space,
+            &abstraction,
             &cost_function,
             &heuristic,
             &ptb,
@@ -83,16 +82,12 @@ vector<value_t> compute_distances(
 {
     vector<value_t> values(abstraction.get_num_states(), INFINITE_VALUE);
 
-    engine_interfaces::
-        StateSpace<const AbstractState*, const ProbabilisticTransition*>
-            state_space(abstraction);
-
     CartesianCostFunction cost_function(abstraction, costs);
 
     engines::topological_vi::TopologicalValueIteration<
         const AbstractState*,
         const ProbabilisticTransition*>
-        tvi(&state_space, &cost_function, &heuristic, true);
+        tvi(&abstraction, &cost_function, &heuristic, true);
 
     tvi.solve(abstraction.get_initial_state().get_id(), values);
 

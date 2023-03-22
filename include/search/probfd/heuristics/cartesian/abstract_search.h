@@ -24,10 +24,6 @@ namespace cartesian {
  * @brief Find abstract solutions using ILAO*.
  */
 class AbstractSearch {
-    engine_interfaces::
-        StateSpace<const AbstractState*, const ProbabilisticTransition*>
-            state_space;
-
     CartesianCostFunction cost_function;
     CartesianHeuristic heuristic;
     policy_pickers::ArbitraryTiebreaker<

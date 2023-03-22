@@ -323,7 +323,7 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
         for (size_t i = 0; i != transition->target_ids.size(); ++i) {
             const auto outcome = op.get_outcomes()[i];
             const AbstractState* next_abstract_state =
-                &abstraction->get_state(transition->target_ids[i]);
+                &abstraction->get_abstract_state(transition->target_ids[i]);
 
             State next_concrete_state =
                 state_registry.get_successor_state(next.state, outcome);
