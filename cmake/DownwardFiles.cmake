@@ -1173,6 +1173,15 @@ fast_downward_plugin(
     DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
 )
 
+fast_downward_plugin(
+    NAME UCP_PDB_HEURISTIC
+    HELP "Uniform Cost-Partitioning heuristic for probabilistic PDBs"
+    SOURCES
+        probfd/heuristics/cost_partitioning/ucp_heuristic
+
+    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+)
+
 fast_downward_add_plugin_sources(PLANNER_SOURCES)
 
 # The order in PLANNER_SOURCES influences the order in which object
