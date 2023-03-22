@@ -1182,6 +1182,15 @@ fast_downward_plugin(
     DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
 )
 
+fast_downward_plugin(
+    NAME GZOCP_PDB_HEURISTIC
+    HELP "Greedy Zero-One Cost-Partitioning heuristic for probabilistic PDBs"
+    SOURCES
+        probfd/heuristics/cost_partitioning/gzocp_heuristic
+
+    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+)
+
 fast_downward_add_plugin_sources(PLANNER_SOURCES)
 
 # The order in PLANNER_SOURCES influences the order in which object
