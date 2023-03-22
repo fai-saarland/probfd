@@ -78,7 +78,8 @@ protected:
               &state_space_,
               g_cost_model->optimal_value_bound(),
               g_cost_model->optimal_value_bound().upper))
-        , policy_(new policy_pickers::ArbitraryTiebreaker<QState, QAction>())
+        , policy_(
+              new policy_pickers::ArbitraryTiebreaker<QState, QAction>(true))
         , new_state_handler_(new engine_interfaces::NewStateHandler<QState>())
     {
         stats.timer.stop();
@@ -103,7 +104,6 @@ public:
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
-        bool stable_policy,
         Args&&... args)
     {
         auto* res = new BisimulationBasedHeuristicSearchEngine(engine_name);
@@ -116,7 +116,6 @@ public:
             res->new_state_handler_.get(),
             &progress,
             interval,
-            stable_policy,
             std::forward<Args>(args)...));
 
         return res;
@@ -159,7 +158,7 @@ class QBisimulationBasedHeuristicSearchEngine
               cost_.get()))
         , q_policy_tiebreaker_(new policy_pickers::ArbitraryTiebreaker<
                                QState,
-                               quotients::QuotientAction<QAction>>())
+                               quotients::QuotientAction<QAction>>(true))
     {
     }
 
@@ -175,7 +174,6 @@ public:
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
-        bool stable_policy,
         Args&&... args)
     {
         auto* res = new QBisimulationBasedHeuristicSearchEngine(engine_name);
@@ -189,7 +187,6 @@ public:
                 res->new_state_handler_.get(),
                 &progress,
                 interval,
-                stable_policy,
                 std::forward<Args>(args)...));
 
         res->engine_.reset(new Fret<QState, QAction, Interval>(

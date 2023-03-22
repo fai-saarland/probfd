@@ -11,16 +11,19 @@ namespace probfd {
 namespace policy_pickers {
 
 OperatorIdTiebreaker::OperatorIdTiebreaker(const options::Options& opts)
-    : ascending_(opts.get<bool>("prefer_smaller") ? 1 : -1)
+    : OperatorIdTiebreaker(
+          opts.get<bool>("stable_policy"),
+          opts.get<bool>("prefer_smaller") ? 1 : -1)
 {
 }
 
-OperatorIdTiebreaker::OperatorIdTiebreaker(int ascending)
-    : ascending_(ascending)
+OperatorIdTiebreaker::OperatorIdTiebreaker(bool stable_policy, int ascending)
+    : TaskStablePolicyPicker<OperatorIdTiebreaker>(stable_policy)
+    , ascending_(ascending)
 {
 }
 
-int OperatorIdTiebreaker::pick(
+int OperatorIdTiebreaker::pick_index(
     engine_interfaces::StateSpace<State, OperatorID>&,
     StateID,
     ActionID,
@@ -42,6 +45,7 @@ int OperatorIdTiebreaker::pick(
 
 void OperatorIdTiebreaker::add_options_to_parser(options::OptionParser& p)
 {
+    p.add_option<bool>("stable_policy", "", "true");
     p.add_option<bool>("prefer_smaller", "", "true");
 }
 

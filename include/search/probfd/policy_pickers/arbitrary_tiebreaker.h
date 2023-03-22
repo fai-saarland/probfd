@@ -1,22 +1,39 @@
 #ifndef PROBFD_POLICY_PICKER_ARBITRARY_TIEBREAKER_H
 #define PROBFD_POLICY_PICKER_ARBITRARY_TIEBREAKER_H
 
-#include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/policy_pickers/stable_policy_picker.h"
+
+#include "option_parser.h"
+#include "plugin.h"
 
 namespace probfd {
 namespace policy_pickers {
 
 template <typename State, typename Action>
 class ArbitraryTiebreaker
-    : public engine_interfaces::PolicyPicker<State, Action> {
-protected:
-    virtual int pick(
+    : public StablePolicyPicker<
+          State,
+          Action,
+          ArbitraryTiebreaker<State, Action>> {
+public:
+    explicit ArbitraryTiebreaker(const options::Options& opts)
+        : ArbitraryTiebreaker(opts.get<bool>("stable_policy"))
+    {
+    }
+
+    explicit ArbitraryTiebreaker(bool stable_policy)
+        : StablePolicyPicker<State, Action, ArbitraryTiebreaker<State, Action>>(
+              stable_policy)
+    {
+    }
+
+    int pick_index(
         engine_interfaces::StateSpace<State, Action>&,
         StateID,
         ActionID,
         const std::vector<Action>&,
         const std::vector<Distribution<StateID>>&,
-        engine_interfaces::HeuristicSearchInterface&) override
+        engine_interfaces::HeuristicSearchInterface&)
     {
         return 0;
     }

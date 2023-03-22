@@ -33,7 +33,6 @@ protected:
 
     const bool dual_bounds_;
     const bool interval_comparison_;
-    const bool stable_policy_;
 
 public:
     explicit MDPHeuristicSearchBase(const options::Options& opts);
@@ -67,7 +66,6 @@ public:
                 new_state_handler_.get(),
                 &progress_,
                 interval_comparison_,
-                stable_policy_,
                 std::forward<Args>(args)...);
         } else {
             using HeuristicSearchType = HS<State, OperatorID, false>;
@@ -77,7 +75,6 @@ public:
                 new_state_handler_.get(),
                 &progress_,
                 interval_comparison_,
-                stable_policy_,
                 std::forward<Args>(args)...);
         }
     }
@@ -168,7 +165,6 @@ public:
                 new_state_handler_.get(),
                 &progress_,
                 interval_comparison_,
-                stable_policy_,
                 &this->quotient_,
                 std::forward<Args>(args)...);
         } else {
@@ -180,7 +176,6 @@ public:
                 new_state_handler_.get(),
                 &progress_,
                 interval_comparison_,
-                stable_policy_,
                 &this->quotient_,
                 std::forward<Args>(args)...);
         }
@@ -224,7 +219,6 @@ private:
                 new_state_handler_.get(),
                 &progress_,
                 interval_comparison_,
-                stable_policy_,
                 std::forward<Args>(args)...));
         return new Fret<State, OperatorID, Interval>(
             &this->state_space_,
@@ -256,7 +250,6 @@ public:
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
-                    this->stable_policy_,
                     std::forward<Args>(args)...);
         } else {
             return BisimulationBasedHeuristicSearchEngine::
@@ -264,7 +257,6 @@ public:
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
-                    this->stable_policy_,
                     std::forward<Args>(args)...);
         }
     }
@@ -337,7 +329,6 @@ public:
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
-                    this->stable_policy_,
                     std::forward<Args>(args)...);
         } else {
             return QBisimulationBasedHeuristicSearchEngine::
@@ -345,7 +336,6 @@ public:
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
-                    this->stable_policy_,
                     std::forward<Args>(args)...);
         }
     }
@@ -385,7 +375,6 @@ private:
                 this->get_heuristic_search_name(),
                 this->progress_,
                 this->interval_comparison_,
-                this->stable_policy_,
                 std::forward<Args>(args)...);
     }
 };

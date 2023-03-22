@@ -20,8 +20,6 @@ MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
     , interval_comparison_(
           opts.contains("interval_comparison") &&
           opts.get<bool>("interval_comparison"))
-    , stable_policy_(
-          opts.contains("stable_policy") && opts.get<bool>("stable_policy"))
 {
 }
 
@@ -45,9 +43,8 @@ void MDPHeuristicSearchBase::add_options_to_parser(
     parser.add_option<std::shared_ptr<TaskPolicyPicker>>(
         "policy",
         "",
-        "arbitrary_policy_tiebreaker");
+        "arbitrary_policy_tiebreaker(false)");
     parser.add_option<bool>("interval_comparison", "", "false");
-    parser.add_option<bool>("stable_policy", "", "false");
     parser.add_option<bool>("dual_bounds", "", "false");
     MDPSolver::add_options_to_parser(parser);
 }

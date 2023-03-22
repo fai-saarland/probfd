@@ -51,7 +51,6 @@ public:
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        bool stable_policy,
         engine_interfaces::OpenList<Action>* open_list)
         : AOBase(
               state_space,
@@ -60,8 +59,7 @@ public:
               policy_chooser,
               new_state_handler,
               report,
-              interval_comparison,
-              stable_policy)
+              interval_comparison)
         , open_list_(open_list)
     {
     }

@@ -158,7 +158,6 @@ private:
 protected:
     ProgressReport* report_;
     const bool interval_comparison_;
-    const bool stable_policy_;
 
     struct UpdateResult {
         bool value_changed;
@@ -173,15 +172,13 @@ public:
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,
-        bool interval_comparison,
-        bool stable_policy)
+        bool interval_comparison)
         : MDPEngine<State, Action>(state_space, cost_function)
         , value_initializer_(value_init)
         , policy_chooser_(policy_chooser)
         , on_new_state_(new_state_handler)
         , report_(report)
         , interval_comparison_(interval_comparison)
-        , stable_policy_(stable_policy)
     {
         statistics_.state_info_bytes = sizeof(StateInfo);
     }
@@ -283,7 +280,7 @@ public:
                 lookup_initialize(state_id),
                 opt_aops,
                 opt_transitions);
-            return this->policy_chooser_->pick(
+            return this->policy_chooser_->pick_index(
                 *this->get_state_space(),
                 state_id,
                 ActionID::undefined,
@@ -978,33 +975,13 @@ private:
 #if defined(EXPENSIVE_STATISTICS)
         utils::TimerScope scoped(statistics_.policy_selection_time);
 #endif
-        auto previous_greedy = state_info.get_policy();
-
-        // TODO The stable policy parameter should be part of the policy
-        // tiebreaker object.
-        if (stable_policy_) {
-            for (unsigned i = 0; i < opt_aops.size(); ++i) {
-                const auto aid = this->get_action_id(state_id, opt_aops[i]);
-                if (aid == previous_greedy) {
-                    if (greedy_action != nullptr) {
-                        *greedy_action = aid;
-                    }
-
-                    if (greedy_transition != nullptr) {
-                        *greedy_transition = std::move(opt_transitions[i]);
-                    }
-
-                    return false;
-                }
-            }
-        }
 
         ++statistics_.policy_updates;
 
-        const int index = this->policy_chooser_->pick(
+        const int index = this->policy_chooser_->pick_index(
             *this->get_state_space(),
             state_id,
-            previous_greedy,
+            state_info.get_policy(),
             opt_aops,
             opt_transitions,
             *this);
@@ -1020,12 +997,7 @@ private:
             (*greedy_transition) = std::move(opt_transitions[index]);
         }
 
-        if (aid != state_info.get_policy()) {
-            state_info.set_policy(aid);
-            return true;
-        }
-
-        return false;
+        return state_info.update_policy(aid);
     }
 };
 

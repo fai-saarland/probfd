@@ -9,16 +9,19 @@ namespace probfd {
 namespace policy_pickers {
 
 VDiffTiebreaker::VDiffTiebreaker(const options::Options& opts)
-    : VDiffTiebreaker(opts.get<bool>("prefer_large_gaps") ? -1 : 1)
+    : VDiffTiebreaker(
+          opts.get<bool>("stable_policy"),
+          opts.get<bool>("prefer_large_gaps") ? -1 : 1)
 {
 }
 
-VDiffTiebreaker::VDiffTiebreaker(value_t favor_large_gaps)
-    : favor_large_gaps_(favor_large_gaps)
+VDiffTiebreaker::VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps)
+    : TaskStablePolicyPicker<VDiffTiebreaker>(stable_policy)
+    , favor_large_gaps_(favor_large_gaps)
 {
 }
 
-int VDiffTiebreaker::pick(
+int VDiffTiebreaker::pick_index(
     engine_interfaces::StateSpace<State, OperatorID>&,
     StateID,
     ActionID,
@@ -45,6 +48,7 @@ int VDiffTiebreaker::pick(
 
 void VDiffTiebreaker::add_options_to_parser(options::OptionParser& parser)
 {
+    parser.add_option<bool>("stable_policy", "", "true");
     parser.add_option<bool>("prefer_large_gaps", "", "true");
 }
 

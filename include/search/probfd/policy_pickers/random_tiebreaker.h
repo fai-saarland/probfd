@@ -1,7 +1,7 @@
 #ifndef PROBFD_POLICY_PICKER_RANDOM_TIEBREAKER_H
 #define PROBFD_POLICY_PICKER_RANDOM_TIEBREAKER_H
 
-#include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/policy_pickers/stable_policy_picker.h"
 
 #include <memory>
 
@@ -17,24 +17,24 @@ class RandomNumberGenerator;
 namespace probfd {
 namespace policy_pickers {
 
-class RandomTiebreaker : public TaskPolicyPicker {
+class RandomTiebreaker : public TaskStablePolicyPicker<RandomTiebreaker> {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
     explicit RandomTiebreaker(const options::Options&);
     explicit RandomTiebreaker(
+        bool stable_policy,
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     static void add_options_to_parser(options::OptionParser& parser);
 
-protected:
-    virtual int pick(
+    int pick_index(
         engine_interfaces::StateSpace<State, OperatorID>& state_space,
         StateID state,
         ActionID prev_policy,
         const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
-        engine_interfaces::HeuristicSearchInterface& hs_interface) override;
+        engine_interfaces::HeuristicSearchInterface& hs_interface);
 };
 
 } // namespace policy_pickers

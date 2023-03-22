@@ -1,14 +1,13 @@
 #ifndef PROBFD_ENGINE_INTERFACES_POLICY_PICKER_H
 #define PROBFD_ENGINE_INTERFACES_POLICY_PICKER_H
 
+#include "probfd/engine_interfaces/state_space.h"
+
 #include "probfd/distribution.h"
 #include "probfd/types.h"
 
 namespace probfd {
 namespace engine_interfaces {
-
-template <typename, typename>
-class StateSpace;
 
 class HeuristicSearchInterface;
 
@@ -62,7 +61,7 @@ public:
      *
      * @return An integer specifying the list index of the selected action.
      */
-    virtual int pick(
+    virtual int pick_index(
         StateSpace<State, Action>& state_space,
         StateID state_id,
         ActionID previous_greedy_id,

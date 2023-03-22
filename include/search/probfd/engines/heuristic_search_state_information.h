@@ -22,6 +22,15 @@ struct StatesPolicy<true> {
 
     void set_policy(ActionID aid) { policy = aid; }
     ActionID get_policy() const { return policy; }
+    bool update_policy(ActionID aid)
+    {
+        if (aid != get_policy()) {
+            set_policy(aid);
+            return true;
+        }
+
+        return false;
+    }
 };
 
 struct StateFlags {

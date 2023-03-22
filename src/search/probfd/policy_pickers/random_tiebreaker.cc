@@ -12,17 +12,21 @@ namespace probfd {
 namespace policy_pickers {
 
 RandomTiebreaker::RandomTiebreaker(const options::Options& opts)
-    : rng(utils::parse_rng_from_options(opts))
+    : RandomTiebreaker(
+          opts.get<bool>("stable_policy"),
+          utils::parse_rng_from_options(opts))
 {
 }
 
 RandomTiebreaker::RandomTiebreaker(
+    bool stable_policy,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : rng(rng)
+    : TaskStablePolicyPicker<RandomTiebreaker>(stable_policy)
+    , rng(rng)
 {
 }
 
-int RandomTiebreaker::pick(
+int RandomTiebreaker::pick_index(
     engine_interfaces::StateSpace<State, OperatorID>&,
     StateID,
     ActionID,
@@ -35,6 +39,7 @@ int RandomTiebreaker::pick(
 
 void RandomTiebreaker::add_options_to_parser(options::OptionParser& parser)
 {
+    parser.add_option<bool>("stable_policy", "", "true");
     utils::add_rng_options(parser);
 }
 

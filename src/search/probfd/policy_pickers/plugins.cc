@@ -3,6 +3,8 @@
 #include "probfd/policy_pickers/random_tiebreaker.h"
 #include "probfd/policy_pickers/vdiff_tiebreaker.h"
 
+#include "operator_id.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 
@@ -15,7 +17,9 @@ static std::shared_ptr<TaskPolicyPicker>
 _parse_arbitrary(options::OptionParser& parser)
 {
     if (parser.dry_run() || parser.help_mode()) return nullptr;
-    return std::make_shared<ArbitraryTiebreaker<State, OperatorID>>();
+    parser.add_option<bool>("stable_policy", "", "true");
+    Options opts = parser.parse();
+    return std::make_shared<ArbitraryTiebreaker<State, OperatorID>>(opts);
 }
 
 static Plugin<TaskPolicyPicker>

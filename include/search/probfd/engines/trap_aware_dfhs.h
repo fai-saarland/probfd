@@ -184,7 +184,6 @@ public:
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        bool stable_policy,
         QuotientSystem* quotient,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
@@ -202,8 +201,7 @@ public:
               policy_chooser,
               new_state_handler,
               report,
-              interval_comparison,
-              stable_policy)
+              interval_comparison)
         , quotient_(quotient)
         , forward_updates_(forward_updates)
         , backtrack_update_type_(backtrack_update_type)
@@ -671,7 +669,6 @@ public:
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        bool stable_policy,
         quotients::QuotientSystem<State, Action>* quotient,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
@@ -690,7 +687,6 @@ public:
               new_state_handler,
               report,
               interval_comparison,
-              stable_policy,
               quotient,
               forward_updates,
               backtrack_update_type,

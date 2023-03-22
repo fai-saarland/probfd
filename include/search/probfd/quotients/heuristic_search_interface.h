@@ -33,7 +33,7 @@ public:
     {
     }
 
-    int pick(
+    int pick_index(
         engine_interfaces::StateSpace<State, QuotientAction>&,
         StateID state,
         ActionID prev_policy,
@@ -51,7 +51,7 @@ public:
             choices_.push_back(
                 quotient_->get_original_action(state, action_choices[i]));
         }
-        return original_->pick(
+        return original_->pick_index(
             *quotient_->get_parent_state_space(),
             state,
             oprev,

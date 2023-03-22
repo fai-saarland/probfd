@@ -164,7 +164,6 @@ public:
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        bool stable_policy,
         QuotientSystem* quotient,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
@@ -176,8 +175,7 @@ public:
               policy_chooser,
               new_state_handler,
               report,
-              interval_comparison,
-              stable_policy)
+              interval_comparison)
         , quotient_(quotient)
         , stop_at_consistent_(stop_consistent)
         , reexpand_traps_(reexpand_traps)
@@ -481,7 +479,6 @@ public:
         engine_interfaces::NewStateHandler<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        bool stable_policy,
         quotients::QuotientSystem<State, Action>* quotient,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
@@ -494,7 +491,6 @@ public:
               new_state_handler,
               report,
               interval_comparison,
-              stable_policy,
               quotient,
               stop_consistent,
               reexpand_traps,
