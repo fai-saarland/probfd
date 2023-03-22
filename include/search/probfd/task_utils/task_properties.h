@@ -26,6 +26,24 @@ is_applicable(const ProbabilisticOperatorProxy& op, const State& state)
     return true;
 }
 
+template <typename OutputIterator>
+void get_affected_vars(
+    const ProbabilisticOutcomeProxy& outcome,
+    OutputIterator it)
+{
+    for (const auto& effect : outcome.get_effects()) {
+        *it = effect.get_fact().get_variable().get_id();
+    }
+}
+
+template <typename OutputIterator>
+void get_affected_vars(const ProbabilisticOperatorProxy& op, OutputIterator it)
+{
+    for (const ProbabilisticOutcomeProxy& outcome : op.get_outcomes()) {
+        get_affected_vars(outcome, it);
+    }
+}
+
 // Runtime: O(n), where n is the number of effects.
 extern bool has_conditional_effects(const ProbabilisticTaskProxy& task);
 
