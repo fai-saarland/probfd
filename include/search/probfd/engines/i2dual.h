@@ -6,25 +6,24 @@
 
 #include "probfd/cost_models/maxprob_cost_model.h"
 
-#include "probfd/heuristics/occupation_measure/occupation_measure_heuristic.h"
+#include "probfd/heuristics/occupation_measures/hpom_constraints.h"
 
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/progress_report.h"
 #include "probfd/value_type.h"
 
-#include "lp/lp_solver.h"
-
-#include "utils/timer.h"
-
-#include "task_proxy.h"
-#include "task_utils/task_properties.h"
-
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/tasks/root_task.h"
 
+#include "lp/lp_solver.h"
+
 #include "utils/countdown_timer.h"
+#include "utils/timer.h"
+
+#include "task_proxy.h"
+#include "task_utils/task_properties.h"
 
 #include <memory>
 #include <vector>
@@ -366,38 +365,37 @@ private:
     void prepare_lp()
     {
         // setup empty LP
-        named_vector::NamedVector<lp::LPVariable> vars;
-        named_vector::NamedVector<lp::LPConstraint> constr;
-        prepare_hpom(vars);
-
-        next_lp_var_ = vars.size();
-        next_lp_constr_id_ = constr.size();
-
-        constr.emplace_back(-lp_solver_.get_infinity(), 1);
-        lp_solver_.load_problem(lp::LinearProgram(
+        lp::LinearProgram lp(
             lp::LPObjectiveSense::MAXIMIZE,
-            std::move(vars),
-            std::move(constr),
-            lp_solver_.get_infinity()));
+            named_vector::NamedVector<lp::LPVariable>(),
+            named_vector::NamedVector<lp::LPConstraint>(),
+            lp_solver_.get_infinity());
+
+        prepare_hpom(lp);
+
+        next_lp_var_ = lp.get_variables().size();
+        next_lp_constr_id_ = lp.get_constraints().size();
+
+        lp.get_constraints().emplace_back(-lp_solver_.get_infinity(), 1);
+        lp_solver_.load_problem(lp);
     }
 
-    void prepare_hpom(named_vector::NamedVector<lp::LPVariable>& vars)
+    void prepare_hpom(lp::LinearProgram& lp)
     {
-        using namespace heuristics::occupation_measure_heuristic;
-
         if (!hpom_enabled_) {
             return;
         }
 
         utils::TimerScope scope(statistics_.hpom_timer_);
-        ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
+        heuristics::occupation_measures::HPOMGenerator::generate_hpom_lp(
             ProbabilisticTaskProxy(*tasks::g_root_task),
-            lp_solver_,
-            vars,
-            hpom_constraints_,
+            lp,
             offset_,
             true);
-        statistics_.hpom_num_vars_ = vars.size();
+
+        hpom_constraints_ = std::move(lp.get_constraints());
+
+        statistics_.hpom_num_vars_ = lp.get_variables().size();
         statistics_.hpom_num_constraints_ = hpom_constraints_.size();
     }
 

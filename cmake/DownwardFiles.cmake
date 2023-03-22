@@ -1050,12 +1050,22 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME LP_BASED_HEURISTICS
+    HELP "Lp-based heuristic"
+    SOURCES
+        probfd/heuristics/lp_heuristic
+    DEPENDS MDP LP_SOLVER TASK_DEPENDENT_HEURISTIC
+)
+
+fast_downward_plugin(
     NAME OCCUPATION_MEASURE_HEURISTICS
     HELP "Occupation measure heuristics"
     SOURCES
-        probfd/heuristics/occupation_measure/occupation_measure_heuristic
-        probfd/heuristics/occupation_measure/regrouped_operator_counting_heuristic
-    DEPENDS MDP LP_SOLVER TASK_DEPENDENT_HEURISTIC
+        probfd/heuristics/occupation_measures/constraint_generator
+        probfd/heuristics/occupation_measures/hpom_constraints
+        probfd/heuristics/occupation_measures/hroc_constraints
+        probfd/heuristics/occupation_measures/occupation_measure_heuristic
+    DEPENDS MDP LP_BASED_HEURISTICS
 )
 
 fast_downward_plugin(
