@@ -1,6 +1,8 @@
 #include "probfd/open_lists/lifo_open_list_factory.h"
 #include "probfd/open_lists/lifo_open_list.h"
 
+#include "operator_id.h"
+
 namespace probfd {
 namespace open_lists {
 

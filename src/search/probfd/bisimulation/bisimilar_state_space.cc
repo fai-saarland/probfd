@@ -266,9 +266,31 @@ bool BisimilarStateSpace::is_dead_end(const QuotientState& s) const
     return s == dead_end_state_;
 }
 
-void BisimilarStateSpace::get_applicable_actions(
+StateID BisimilarStateSpace::get_state_id(bisimulation::QuotientState s)
+{
+    return s.id;
+}
+
+bisimulation::QuotientState BisimilarStateSpace::get_state(StateID s)
+{
+    return bisimulation::QuotientState(s);
+}
+
+ActionID
+BisimilarStateSpace::get_action_id(StateID, bisimulation::QuotientAction action)
+{
+    return action.idx;
+}
+
+bisimulation::QuotientAction
+BisimilarStateSpace::get_action(StateID, ActionID action)
+{
+    return bisimulation::QuotientAction(action);
+}
+
+void BisimilarStateSpace::generate_applicable_actions(
     StateID s,
-    std::vector<QuotientAction>& result) const
+    std::vector<bisimulation::QuotientAction>& result)
 {
     if (s == dead_end_state_.id) {
         return;
@@ -281,9 +303,9 @@ void BisimilarStateSpace::get_applicable_actions(
     }
 }
 
-void BisimilarStateSpace::get_successors(
+void BisimilarStateSpace::generate_action_transitions(
     StateID s,
-    const QuotientAction& a,
+    bisimulation::QuotientAction a,
     Distribution<StateID>& result)
 {
     assert(s != dead_end_state_.id);
@@ -303,6 +325,18 @@ void BisimilarStateSpace::get_successors(
         } else {
             result.add(StateID(t.successors[i]), probability);
         }
+    }
+}
+
+void BisimilarStateSpace::generate_all_transitions(
+    StateID state,
+    std::vector<bisimulation::QuotientAction>& aops,
+    std::vector<Distribution<StateID>>& result)
+{
+    generate_applicable_actions(state, aops);
+    result.resize(aops.size());
+    for (int i = aops.size() - 1; i >= 0; --i) {
+        generate_action_transitions(state, aops[i], result[i]);
     }
 }
 

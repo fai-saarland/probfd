@@ -5,7 +5,7 @@ namespace transition_samplers {
 
 StateID MostLikelySuccessorSelector::sample(
     StateID,
-    const OperatorID&,
+    OperatorID,
     const Distribution<StateID>& successors,
     engine_interfaces::HeuristicSearchInterface&)
 {

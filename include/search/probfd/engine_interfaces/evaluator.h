@@ -1,6 +1,8 @@
 #ifndef PROBFD_ENGINE_INTERFACES_EVALUATOR_H
 #define PROBFD_ENGINE_INTERFACES_EVALUATOR_H
 
+#include "probfd/type_traits.h"
+#include "probfd/types.h"
 #include "probfd/value_type.h"
 
 namespace probfd {
@@ -43,7 +45,7 @@ class Evaluator {
 public:
     virtual ~Evaluator() = default;
 
-    virtual EvaluationResult evaluate(const State& state) const = 0;
+    virtual EvaluationResult evaluate(param_type<State> state) const = 0;
 
     virtual void print_statistics() const {}
 };

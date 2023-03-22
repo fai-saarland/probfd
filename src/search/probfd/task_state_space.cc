@@ -1,10 +1,9 @@
-#include "probfd/state_space.h"
+#include "probfd/task_state_space.h"
 #include "probfd/task_proxy.h"
 
 #include "algorithms/int_packer.h"
 
 #include "evaluator.h"
-#include "state_registry.h"
 
 #include "tasks/root_task.h"
 
@@ -17,44 +16,41 @@
 #include <map>
 
 namespace probfd {
-namespace engine_interfaces {
 
-StateSpace<State, OperatorID>::StateSpace(
+TaskStateSpace::TaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
-    StateRegistry* state_registry,
     const std::vector<std::shared_ptr<Evaluator>>& path_dependent_evaluators,
     bool enable_caching)
     : task(task)
     , task_proxy(*task)
     , gen_(task_proxy)
-    , state_registry_(state_registry)
+    , state_registry_(task_proxy)
     , caching_(enable_caching)
     , notify_(path_dependent_evaluators)
 {
 }
 
-StateID StateSpace<State, OperatorID>::get_state_id(const State& state)
+StateID TaskStateSpace::get_state_id(const State& state)
 {
     return state.get_id();
 }
 
-State StateSpace<State, OperatorID>::get_state(StateID state_id)
+State TaskStateSpace::get_state(StateID state_id)
 {
-    return state_registry_->lookup_state(::StateID(state_id));
+    return state_registry_.lookup_state(::StateID(state_id));
 }
 
-ActionID StateSpace<State, OperatorID>::get_action_id(StateID, OperatorID op_id)
+ActionID TaskStateSpace::get_action_id(StateID, OperatorID op_id)
 {
     return ActionID(op_id.get_index());
 }
 
-OperatorID
-StateSpace<State, OperatorID>::get_action(StateID, ActionID action_id)
+OperatorID TaskStateSpace::get_action(StateID, ActionID action_id)
 {
     return OperatorID(action_id);
 }
 
-void StateSpace<State, OperatorID>::generate_applicable_actions(
+void TaskStateSpace::generate_applicable_actions(
     StateID state_id,
     std::vector<OperatorID>& result)
 {
@@ -66,13 +62,13 @@ void StateSpace<State, OperatorID>::generate_applicable_actions(
         }
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
-        State state = state_registry_->lookup_state(::StateID(state_id));
+        State state = state_registry_.lookup_state(::StateID(state_id));
         std::vector<OperatorID> test;
         compute_applicable_operators(state, test);
         assert(std::ranges::equal(test, result));
 #endif
     } else {
-        State state = state_registry_->lookup_state(::StateID(state_id));
+        State state = state_registry_.lookup_state(::StateID(state_id));
         compute_applicable_operators(state, result);
     }
 
@@ -80,7 +76,7 @@ void StateSpace<State, OperatorID>::generate_applicable_actions(
     statistics_.generated_operators += result.size();
 }
 
-void StateSpace<State, OperatorID>::generate_action_transitions(
+void TaskStateSpace::generate_action_transitions(
     StateID state_id,
     OperatorID op_id,
     Distribution<StateID>& result)
@@ -89,7 +85,7 @@ void StateSpace<State, OperatorID>::generate_action_transitions(
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
     {
-        State state = state_registry_->lookup_state(::StateID(state_id));
+        State state = state_registry_.lookup_state(::StateID(state_id));
         for (const FactProxy fact : operators[op_id].get_preconditions()) {
             assert(state[fact.get_variable()].get_value() == fact.get_value());
         }
@@ -114,7 +110,7 @@ void StateSpace<State, OperatorID>::generate_action_transitions(
             }
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
-            State state = state_registry_->lookup_state(::StateID(state_id));
+            State state = state_registry_.lookup_state(::StateID(state_id));
             std::vector<ItemProbabilityPair<StateID>> test;
             compute_successor_states(state, op_id, test);
             assert(test.size() == num_outcomes);
@@ -128,7 +124,7 @@ void StateSpace<State, OperatorID>::generate_action_transitions(
             break;
         }
     } else {
-        State state = state_registry_->lookup_state(::StateID(state_id));
+        State state = state_registry_.lookup_state(::StateID(state_id));
         std::vector<ItemProbabilityPair<StateID>> temp;
         compute_successor_states(state, op_id, temp);
         result = Distribution<StateID>(std::move(temp));
@@ -138,7 +134,7 @@ void StateSpace<State, OperatorID>::generate_action_transitions(
     statistics_.generated_states += result.size();
 }
 
-void StateSpace<State, OperatorID>::generate_all_transitions(
+void TaskStateSpace::generate_all_transitions(
     StateID state_id,
     std::vector<OperatorID>& aops,
     std::vector<Distribution<StateID>>& successors)
@@ -152,7 +148,7 @@ void StateSpace<State, OperatorID>::generate_all_transitions(
         successors.resize(entry.naops);
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
-        State state = state_registry_->lookup_state(::StateID(state_id));
+        State state = state_registry_.lookup_state(::StateID(state_id));
         std::vector<OperatorID> test_aops;
         compute_applicable_operators(state, test_aops);
         assert(test_aops.size() == entry.naops);
@@ -183,7 +179,7 @@ void StateSpace<State, OperatorID>::generate_all_transitions(
             statistics_.generated_states += result.size();
         }
     } else {
-        State state = state_registry_->lookup_state(::StateID(state_id));
+        State state = state_registry_.lookup_state(::StateID(state_id));
         compute_applicable_operators(state, aops);
         successors.reserve(aops.size());
 
@@ -199,12 +195,10 @@ void StateSpace<State, OperatorID>::generate_all_transitions(
     statistics_.generated_operators += aops.size();
 }
 
-bool StateSpace<State, OperatorID>::setup_cache(
-    StateID state_id,
-    CacheEntry& entry)
+bool TaskStateSpace::setup_cache(StateID state_id, CacheEntry& entry)
 {
     if (!entry.is_initialized()) {
-        State state = state_registry_->lookup_state(::StateID(state_id));
+        State state = state_registry_.lookup_state(::StateID(state_id));
         assert(aops_.empty() && successors_.empty());
         compute_applicable_operators(state, aops_);
         entry.naops = aops_.size();
@@ -242,30 +236,38 @@ bool StateSpace<State, OperatorID>::setup_cache(
     return false;
 }
 
-StateSpace<State, OperatorID>::CacheEntry&
-StateSpace<State, OperatorID>::lookup(StateID sid)
+TaskStateSpace::CacheEntry& TaskStateSpace::lookup(StateID sid)
 {
     CacheEntry& entry = cache_[sid];
     setup_cache(sid, entry);
     return entry;
 }
 
-StateSpace<State, OperatorID>::CacheEntry&
-StateSpace<State, OperatorID>::lookup(StateID sid, bool& setup)
+TaskStateSpace::CacheEntry& TaskStateSpace::lookup(StateID sid, bool& setup)
 {
     CacheEntry& entry = cache_[sid];
     setup = setup_cache(sid, entry);
     return entry;
 }
 
-void StateSpace<State, OperatorID>::print_statistics(std::ostream& out) const
+const State& TaskStateSpace::get_initial_state()
+{
+    return state_registry_.get_initial_state();
+}
+
+size_t TaskStateSpace::get_num_registered_states() const
+{
+    return state_registry_.size();
+}
+
+void TaskStateSpace::print_statistics(std::ostream& out) const
 {
     statistics_.print(out);
     out << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
         << std::endl;
 }
 
-void StateSpace<State, OperatorID>::Statistics::print(std::ostream& out) const
+void TaskStateSpace::Statistics::print(std::ostream& out) const
 {
     out << "  Applicable operators: " << generated_operators << " generated, "
         << computed_operators << " computed, " << aops_generator_calls
@@ -277,7 +279,7 @@ void StateSpace<State, OperatorID>::Statistics::print(std::ostream& out) const
         << std::endl;
 }
 
-void StateSpace<State, OperatorID>::compute_successor_states(
+void TaskStateSpace::compute_successor_states(
     const State& state,
     OperatorID op_id,
     std::vector<ItemProbabilityPair<StateID>>& succs)
@@ -287,7 +289,7 @@ void StateSpace<State, OperatorID>::compute_successor_states(
 
     for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
         value_t probability = outcome.get_probability();
-        State succ = state_registry_->get_successor_state(state, outcome);
+        State succ = state_registry_.get_successor_state(state, outcome);
 
         for (const auto& h : notify_) {
             OperatorID det_op_id(outcome.get_determinization_id());
@@ -301,7 +303,7 @@ void StateSpace<State, OperatorID>::compute_successor_states(
     statistics_.computed_successors += succs.size();
 }
 
-void StateSpace<State, OperatorID>::compute_applicable_operators(
+void TaskStateSpace::compute_applicable_operators(
     const State& s,
     std::vector<OperatorID>& ops)
 {
@@ -311,7 +313,6 @@ void StateSpace<State, OperatorID>::compute_applicable_operators(
     statistics_.computed_operators += ops.size();
 }
 
-} // namespace engine_interfaces
 } // namespace probfd
 
 #undef DEBUG_CACHE_CONSISTENCY_CHECK

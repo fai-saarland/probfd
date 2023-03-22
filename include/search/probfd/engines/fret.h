@@ -221,7 +221,7 @@ public:
 
             // Push the successor traps.
             Distribution<StateID> successors;
-            quotient_->generate_successors(
+            quotient_->generate_action_transitions(
                 quotient_id,
                 quotient_action,
                 successors);

@@ -6,7 +6,7 @@
 #include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
 
-#include "probfd/state_space.h"
+#include "probfd/task_state_space.h"
 
 #include "operator_id.h"
 #include "task_proxy.h"
@@ -43,7 +43,9 @@ namespace quotients {
 
 /*
 template <>
-class QuotientSystem<State, OperatorID> {
+class QuotientSystem<State, OperatorID>
+    : public engine_interfaces::
+          StateSpace<State, quotients::QuotientAction<OperatorID>> {
     friend struct const_iterator;
 
     struct QuotientInformation {
@@ -92,6 +94,25 @@ public:
     explicit QuotientSystem(
         engine_interfaces::StateSpace<State, OperatorID>* state_space);
 
+    StateID get_state_id(param_type<State> s) override;
+    State get_state(StateID sid) override;
+
+    QAction get_action(StateID sid, ActionID aid) override;
+    ActionID get_action_id(StateID sid, param_type<QAction> a) override;
+
+    void generate_applicable_actions(StateID sid, std::vector<QAction>& result)
+        override;
+
+    void generate_action_transitions(
+        StateID,
+        param_type<QAction> a,
+        Distribution<StateID>& result) override;
+
+    void generate_all_transitions(
+        StateID sid,
+        std::vector<QAction>& aops,
+        std::vector<Distribution<StateID>>& successors) override;
+
     unsigned quotient_size(StateID state_id) const;
 
     engine_interfaces::StateSpace<State, OperatorID>* get_parent_state_space();
@@ -102,28 +123,10 @@ public:
     std::ranges::subrange<QuotientStateIDIterator, QuotientStateIDIterator>
     quotient_range(const StateID& state_id) const;
 
-    StateID get_state_id(const State& s) const;
-    State get_state(StateID sid) const;
-
     StateID translate_state_id(StateID sid) const;
 
     void get_pruned_ops(StateID sid, std::vector<QAction>& result);
-
-    void generate_applicable_ops(StateID sid, std::vector<QAction>& result);
-
-    void generate_successors(
-        StateID,
-        const QAction& a,
-        Distribution<StateID>& result);
-
-    void generate_all_successors(
-        StateID sid,
-        std::vector<QAction>& aops,
-        std::vector<Distribution<StateID>>& successors);
-
-    QAction get_action(StateID sid, ActionID aid) const;
-    ActionID get_action_id(StateID sid, const QAction& a) const;
-
+    
     OperatorID get_original_action(StateID, const QAction& a) const;
     ActionID get_original_action_id(StateID sid, ActionID a) const;
 

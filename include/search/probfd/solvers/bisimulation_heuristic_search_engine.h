@@ -55,9 +55,7 @@ protected:
 
     BisimulationTimer stats;
 
-    bisimulation::BisimilarStateSpace bs;
-
-    engine_interfaces::StateSpace<QState, QAction> state_space_;
+    bisimulation::BisimilarStateSpace state_space_;
 
     std::shared_ptr<bisimulation::QuotientCostFunction> cost_;
     std::shared_ptr<engine_interfaces::Evaluator<QState>> heuristic_;
@@ -72,26 +70,26 @@ protected:
         const std::string& engine_name)
         : task(tasks::g_root_task)
         , engine_name_(engine_name)
-        , bs(task.get())
-        , state_space_(&bs)
+        , state_space_(task.get())
         , cost_(new bisimulation::DefaultQuotientCostFunction(
-              &bs,
+              &state_space_,
               g_cost_model->optimal_value_bound()))
         , heuristic_(new bisimulation::DefaultQuotientEvaluator(
-              &bs,
+              &state_space_,
               g_cost_model->optimal_value_bound(),
               g_cost_model->optimal_value_bound().upper))
         , policy_(new policy_pickers::ArbitraryTiebreaker<QAction>())
         , new_state_handler_(new engine_interfaces::NewStateHandler<QState>())
     {
         stats.timer.stop();
-        stats.states = bs.num_bisimilar_states();
-        stats.transitions = bs.num_transitions();
+        stats.states = state_space_.num_bisimilar_states();
+        stats.transitions = state_space_.num_transitions();
 
         std::cout << "Bisimulation built after " << stats.timer << std::endl;
         std::cout << "Bisimilar state space contains "
-                  << bs.num_bisimilar_states() << " states and "
-                  << bs.num_transitions() << " transitions." << std::endl;
+                  << state_space_.num_bisimilar_states() << " states and "
+                  << state_space_.num_transitions() << " transitions."
+                  << std::endl;
         std::cout << std::endl;
     }
 
@@ -127,7 +125,7 @@ public:
     virtual Interval solve(const State&) override
     {
         std::cout << "Running " << engine_name_ << "..." << std::endl;
-        return engine_->solve(bs.get_initial_state());
+        return engine_->solve(state_space_.get_initial_state());
     }
 
     virtual void print_statistics(std::ostream& out) const override
@@ -148,8 +146,6 @@ class QBisimulationBasedHeuristicSearchEngine
 
     quotients::QuotientSystem<QState, QAction> quotient_;
 
-    engine_interfaces::StateSpace<QState, QQAction> q_state_space_;
-
     std::shared_ptr<engine_interfaces::CostFunction<QState, QQAction>> q_cost_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QQAction>>
         q_policy_tiebreaker_;
@@ -158,7 +154,6 @@ class QBisimulationBasedHeuristicSearchEngine
         const std::string& engine_name)
         : BisimulationBasedHeuristicSearchEngine(engine_name)
         , quotient_(&state_space_)
-        , q_state_space_(&quotient_)
         , q_cost_(new quotients::DefaultQuotientCostFunction(
               &quotient_,
               cost_.get()))
@@ -186,7 +181,7 @@ public:
 
         std::shared_ptr<HS<QState, QQAction, Interval>> engine(
             new HS<QState, QQAction, Interval>(
-                &res->q_state_space_,
+                &res->quotient_,
                 res->q_cost_.get(),
                 res->heuristic_.get(),
                 res->q_policy_tiebreaker_.get(),

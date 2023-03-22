@@ -10,6 +10,8 @@
 
 #include "probfd/task_proxy.h"
 
+#include "probfd/engine_interfaces/state_space.h"
+
 #include <cassert>
 #include <memory>
 #include <unordered_set>
@@ -38,7 +40,10 @@ namespace bisimulation {
  * on the original state space. The quotient is constructed with respect to this
  * probabilistic bisimulation.
  */
-class BisimilarStateSpace {
+class BisimilarStateSpace
+    : public engine_interfaces::StateSpace<
+          bisimulation::QuotientState,
+          bisimulation::QuotientAction> {
     struct CachedTransition {
         unsigned op;
         int* successors;
@@ -61,18 +66,27 @@ public:
     /// Returns true iff the given quotient state is a dead end.
     bool is_dead_end(const QuotientState& s) const;
 
-    /// Returns the applicable actions for the quotient state \p s in \p result.
-    void get_applicable_actions(StateID s, std::vector<QuotientAction>& result)
-        const;
+    StateID get_state_id(bisimulation::QuotientState state) override;
+    bisimulation::QuotientState get_state(StateID state_id) override;
 
-    /**
-     * @brief Returns the successor distribution for the quotient state with ID
-     * \p s and quotient action \p action in \p succs .
-     */
-    void get_successors(
-        StateID s,
-        const QuotientAction& action,
-        Distribution<StateID>& succs);
+    ActionID
+    get_action_id(StateID state_id, bisimulation::QuotientAction action)
+        override;
+
+    bisimulation::QuotientAction
+    get_action(StateID state_id, ActionID action) override;
+
+    void generate_applicable_actions(
+        StateID state,
+        std::vector<bisimulation::QuotientAction>& result) override;
+    void generate_action_transitions(
+        StateID state,
+        bisimulation::QuotientAction action,
+        Distribution<StateID>& result) override;
+    void generate_all_transitions(
+        StateID state,
+        std::vector<bisimulation::QuotientAction>& aops,
+        std::vector<Distribution<StateID>>& result) override;
 
     /// Returns the number of states in the probabilistic bisimulation.
     unsigned num_bisimilar_states() const;

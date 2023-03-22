@@ -1,6 +1,7 @@
 #ifndef PROBFD_ENGINE_INTERFACES_OPEN_LIST_H
 #define PROBFD_ENGINE_INTERFACES_OPEN_LIST_H
 
+#include "probfd/type_traits.h"
 #include "probfd/types.h"
 #include "probfd/value_type.h"
 
@@ -33,7 +34,7 @@ public:
 
     virtual bool empty() const { return size() == 0; }
 
-    virtual void push(StateID, const Action&, value_t, StateID state_id)
+    virtual void push(StateID, param_type<Action>, value_t, StateID state_id)
     {
         push(state_id);
     }

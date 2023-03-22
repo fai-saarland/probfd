@@ -315,7 +315,7 @@ void ProbabilisticPatternDatabase::dump_graphviz(
     graphviz::dump_state_space_dot_graph<StateRank, const AbstractOperator*>(
         out,
         state_space.initial_state_,
-        &state_space.state_space,
+        &state_space,
         &costs,
         nullptr,
         sts,

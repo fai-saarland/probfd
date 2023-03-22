@@ -6,6 +6,8 @@
 
 #include "probfd/task_proxy.h"
 
+#include "operator_id.h"
+
 #include "option_parser.h"
 #include "plugin.h"
 

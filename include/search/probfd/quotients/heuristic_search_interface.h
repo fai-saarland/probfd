@@ -80,7 +80,7 @@ public:
 
     StateID sample(
         StateID state,
-        const QuotientAction& action,
+        QuotientAction action,
         const Distribution<StateID>& transition,
         engine_interfaces::HeuristicSearchInterface& hs_interface) override
     {
@@ -117,11 +117,9 @@ public:
 
     void push(StateID state_id) override { original_->push(state_id); }
 
-    void push(
-        StateID parent,
-        const QuotientAction& action,
-        value_t prob,
-        StateID state_id) override
+    void
+    push(StateID parent, QuotientAction action, value_t prob, StateID state_id)
+        override
     {
         const OperatorID op_id =
             this->quotient_->get_original_action(parent, action);

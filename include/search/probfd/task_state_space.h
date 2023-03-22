@@ -12,6 +12,8 @@
 
 #include "task_utils/successor_generator.h"
 
+#include "state_registry.h"
+
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -24,10 +26,7 @@ class Evaluator;
 namespace probfd {
 class ProbabilisticTask;
 
-namespace engine_interfaces {
-
-template <>
-class StateSpace<State, OperatorID> {
+class TaskStateSpace : public engine_interfaces::StateSpace<State, OperatorID> {
 protected:
     struct Statistics {
         unsigned long long single_transition_generator_calls = 0;
@@ -64,7 +63,7 @@ protected:
     ProbabilisticTaskProxy task_proxy;
 
     successor_generator::SuccessorGenerator gen_;
-    StateRegistry* state_registry_;
+    StateRegistry state_registry_;
 
     const bool caching_;
     const std::vector<std::shared_ptr<::Evaluator>> notify_;
@@ -78,9 +77,8 @@ protected:
     Statistics statistics_;
 
 public:
-    StateSpace(
+    TaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
-        StateRegistry* state_registry,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators,
         bool enable_caching);
@@ -105,6 +103,10 @@ public:
         std::vector<OperatorID>& aops,
         std::vector<Distribution<StateID>>& successors);
 
+    const State& get_initial_state();
+
+    size_t get_num_registered_states() const;
+
     void print_statistics(std::ostream& out) const;
 
 protected:
@@ -121,8 +123,6 @@ protected:
     CacheEntry& lookup(StateID state_id);
     CacheEntry& lookup(StateID state_id, bool& initialized);
 };
-
-} // namespace engine_interfaces
 
 } // namespace probfd
 

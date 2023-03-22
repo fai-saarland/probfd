@@ -1,6 +1,9 @@
 #ifndef PROBFD_HEURISTICS_PDBS_ABSTRACT_STATE_H
 #define PROBFD_HEURISTICS_PDBS_ABSTRACT_STATE_H
 
+#include "probfd/type_traits.h"
+#include "probfd/types.h"
+
 #include "utils/hash.h"
 
 #include <ostream>
@@ -54,6 +57,10 @@ extern std::ostream& operator<<(std::ostream& out, const StateRank& s);
 
 } // namespace pdbs
 } // namespace heuristics
+
+template <>
+struct is_cheap_to_copy<heuristics::pdbs::StateRank> : std::true_type {};
+
 } // namespace probfd
 
 namespace std {

@@ -1,6 +1,7 @@
 #ifndef PROBFD_ENGINE_INTERFACES_TRANSITION_SAMPLER_H
 #define PROBFD_ENGINE_INTERFACES_TRANSITION_SAMPLER_H
 
+#include "probfd/type_traits.h"
 #include "probfd/distribution.h"
 #include "probfd/types.h"
 
@@ -22,7 +23,7 @@ public:
 
     virtual StateID sample(
         StateID state,
-        const Action& op,
+        param_type<Action> op,
         const Distribution<StateID>& transition,
         HeuristicSearchInterface& hs_interface) = 0;
 

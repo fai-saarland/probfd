@@ -3,14 +3,16 @@
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 
+#include "operator_id.h"
+
 namespace probfd {
 namespace transition_samplers {
 
 class MostLikelySuccessorSelector : public TaskTransitionSampler {
 protected:
-    virtual StateID sample(
+    StateID sample(
         StateID state,
-        const OperatorID& op,
+        OperatorID op,
         const Distribution<StateID>& successors,
         engine_interfaces::HeuristicSearchInterface& hs_interface) override;
 };

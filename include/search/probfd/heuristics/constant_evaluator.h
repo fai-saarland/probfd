@@ -22,7 +22,7 @@ public:
     {
     }
 
-    virtual EvaluationResult evaluate(const State&) const override
+    virtual EvaluationResult evaluate(param_type<State>) const override
     {
         return EvaluationResult(false, value_);
     }

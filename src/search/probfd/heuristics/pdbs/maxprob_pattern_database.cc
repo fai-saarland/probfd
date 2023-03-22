@@ -134,7 +134,7 @@ void MaxProbPatternDatabase::compute_value_table(
     ZeroCostAbstractCostFunction cost(state_space, 0_vt, 1_vt);
 
     IntervalIteration<StateRank, const AbstractOperator*> vi(
-        &state_space.state_space,
+        &state_space,
         &cost,
         &heuristic,
         true,

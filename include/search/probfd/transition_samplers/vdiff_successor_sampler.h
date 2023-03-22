@@ -3,6 +3,8 @@
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 
+#include "operator_id.h"
+
 #include <memory>
 
 namespace utils {
@@ -24,9 +26,9 @@ public:
         bool prefer_large_gaps);
 
 protected:
-    virtual StateID sample(
+    StateID sample(
         StateID state,
-        const OperatorID& op,
+        OperatorID op,
         const Distribution<StateID>& successors,
         engine_interfaces::HeuristicSearchInterface& hs_interface) override;
 };

@@ -1,6 +1,7 @@
 #ifndef PROBFD_BISIMULATION_TYPES_H
 #define PROBFD_BISIMULATION_TYPES_H
 
+#include "probfd/type_traits.h"
 #include "probfd/types.h"
 
 namespace probfd {
@@ -41,6 +42,13 @@ struct QuotientAction {
 };
 
 } // namespace bisimulation
+
+template <>
+struct is_cheap_to_copy<bisimulation::QuotientState> : std::true_type {};
+
+template <>
+struct is_cheap_to_copy<bisimulation::QuotientAction> : std::true_type {};
+
 } // namespace probfd
 
 namespace std {

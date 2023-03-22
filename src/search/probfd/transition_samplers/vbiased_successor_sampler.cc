@@ -20,7 +20,7 @@ VBiasedSuccessorSampler::VBiasedSuccessorSampler(
 
 StateID VBiasedSuccessorSampler::sample(
     StateID,
-    const OperatorID&,
+    OperatorID,
     const Distribution<StateID>& successors,
     engine_interfaces::HeuristicSearchInterface& hs_interface)
 {

@@ -37,7 +37,7 @@ public:
     {
     }
 
-    virtual EvaluationResult evaluate(const StateRank& state) const
+    EvaluationResult evaluate(StateRank state) const override
     {
         if (utils::contains(one_states, StateID(state.id))) {
             return parent.evaluate(state);
@@ -230,7 +230,7 @@ void SSPPatternDatabase::compute_value_table(
     NormalCostAbstractCostFunction cost(state_space, 0_vt, INFINITE_VALUE);
 
     QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
-        analysis(&state_space.state_space, &cost, true);
+        analysis(&state_space, &cost, true);
 
     std::vector<StateID> proper_states;
 
@@ -242,7 +242,7 @@ void SSPPatternDatabase::compute_value_table(
     WrapperHeuristic h(proper_states, heuristic);
 
     TopologicalValueIteration<StateRank, const AbstractOperator*> vi(
-        &state_space.state_space,
+        &state_space,
         &cost,
         &h,
         true);

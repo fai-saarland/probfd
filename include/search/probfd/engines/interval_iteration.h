@@ -153,13 +153,12 @@ private:
     {
         using namespace engine_interfaces;
 
-        StateSpace<State, QAction> q_state_space(sys);
         quotients::DefaultQuotientCostFunction<State, Action> q_cost(
             sys,
             this->get_cost_function());
 
         preprocessing::QualitativeReachabilityAnalysis<State, QAction> analysis(
-            &q_state_space,
+            sys,
             &q_cost,
             expand_goals_);
 
@@ -186,7 +185,7 @@ private:
         const auto new_init_id =
             sys->translate_state_id(this->get_state_id(state));
 
-        ValueIteration vi(&q_state_space, &q_cost, heuristic_, expand_goals_);
+        ValueIteration vi(sys, &q_cost, heuristic_, expand_goals_);
 
         Interval result = vi.solve(new_init_id, value_store);
         tvi_statistics_ = vi.get_statistics();

@@ -2,7 +2,9 @@
 #define PROBFD_ENGINE_INTERFACES_STATE_SPACE_H
 
 #include "probfd/distribution.h"
+#include "probfd/type_traits.h"
 #include "probfd/types.h"
+
 
 #include <vector>
 
@@ -12,15 +14,17 @@ namespace engine_interfaces {
 template <typename State, typename Action>
 class StateSpace {
 public:
+    virtual ~StateSpace() = default;
+
     /**
      * @brief Get the state id for a given state.
      */
-    StateID get_state_id(const State& state);
+    virtual StateID get_state_id(param_type<State> state) = 0;
 
     /**
      * @brief Get the state for a given state id.
      */
-    State get_state(StateID state_id);
+    virtual State get_state(StateID state_id) = 0;
 
     /**
      * @brief Get the action id of a given state action.
@@ -29,7 +33,8 @@ public:
      * @param action - The action.
      * @return ActionID - An ID representing this state action.
      */
-    ActionID get_action_id(StateID state_id, const Action& action);
+    virtual ActionID
+    get_action_id(StateID state_id, param_type<Action> action) = 0;
 
     /**
      * @brief Get the action for a given state and action ID.
@@ -39,24 +44,24 @@ public:
      * @param action_id - The action ID.
      * @returns Action - The represented action.
      */
-    Action get_action(StateID state_id, ActionID action_id);
+    virtual Action get_action(StateID state_id, ActionID action_id) = 0;
 
     /**
      * Generates all applicable actions of the state \p state and outputs them
      * in \p result.
      */
-    void
-    generate_applicable_actions(StateID state, std::vector<Action>& result);
+    virtual void
+    generate_applicable_actions(StateID state, std::vector<Action>& result) = 0;
 
-    void generate_action_transitions(
+    virtual void generate_action_transitions(
         StateID state,
-        const Action& action,
-        Distribution<StateID>& result);
+        param_type<Action> action,
+        Distribution<StateID>& result) = 0;
 
-    void generate_all_transitions(
+    virtual void generate_all_transitions(
         StateID state,
         std::vector<Action>& aops,
-        std::vector<Distribution<StateID>>& successors);
+        std::vector<Distribution<StateID>>& successors) = 0;
 };
 
 } // namespace engine_interfaces

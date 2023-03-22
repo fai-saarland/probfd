@@ -1,6 +1,8 @@
 #ifndef PROBFD_ENGINE_INTERFACES_NEW_STATE_HANDLER_H
 #define PROBFD_ENGINE_INTERFACES_NEW_STATE_HANDLER_H
 
+#include "probfd/type_traits.h"
+
 #include <memory>
 #include <vector>
 
@@ -20,17 +22,17 @@ struct NewStateHandler {
     /**
      * Called when a new state is encountered.
      */
-    virtual void touch(const State&) {}
+    virtual void touch(param_type<State>) {}
 
     /**
      * Called when a new goal state is encountered.
      */
-    virtual void touch_goal(const State&) {}
+    virtual void touch_goal(param_type<State>) {}
 
     /**
      * Called when a new dead end state is encountered.
      */
-    virtual void touch_dead_end(const State&) {}
+    virtual void touch_dead_end(param_type<State>) {}
 };
 
 template <typename State>
@@ -44,21 +46,21 @@ public:
 
     virtual ~NewStateHandlerList() = default;
 
-    virtual void touch(const State& s) override
+    virtual void touch(param_type<State> s) override
     {
         for (auto& handler : handlers_) {
             handler->touch(s);
         }
     }
 
-    virtual void touch_dead_end(const State& s) override
+    virtual void touch_dead_end(param_type<State> s) override
     {
         for (auto& handler : handlers_) {
             handler->touch_dead_end(s);
         }
     }
 
-    virtual void touch_goal(const State& s) override
+    virtual void touch_goal(param_type<State> s) override
     {
         for (auto& handler : handlers_) {
             handler->touch_goal(s);

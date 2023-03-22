@@ -20,10 +20,8 @@ namespace solvers {
 MDPSolver::MDPSolver(const options::Options& opts)
     : task(tasks::g_root_task)
     , task_proxy(*task)
-    , state_registry_(task_proxy)
     , state_space_(
           task,
-          &state_registry_,
           opts.get_list<std::shared_ptr<Evaluator>>(
               "path_dependent_evaluators"),
           opts.get<bool>("cache"))
@@ -35,9 +33,8 @@ MDPSolver::MDPSolver(const options::Options& opts)
           std::cout,
           opts.get<bool>("report_enabled"))
 {
-    StateRegistry* state_registry = &state_registry_;
-    progress_.register_print([state_registry](std::ostream& out) {
-        out << "registered=" << state_registry->size();
+    progress_.register_print([&ss = this->state_space_](std::ostream& out) {
+        out << "registered=" << ss.get_num_registered_states();
     });
 }
 
@@ -49,7 +46,7 @@ void MDPSolver::solve()
     std::unique_ptr<engines::MDPEngineInterface<State, OperatorID>> engine(
         create_engine());
 
-    const State initial_state = state_registry_.get_initial_state();
+    const State& initial_state = state_space_.get_initial_state();
 
     Interval val = engine->solve(initial_state);
     progress_.force_print();
@@ -63,8 +60,8 @@ void MDPSolver::solve()
 
     std::cout << std::endl;
     std::cout << "State space interface:" << std::endl;
-    std::cout << "  Registered state(s): " << state_registry_.size()
-              << std::endl;
+    std::cout << "  Registered state(s): "
+              << state_space_.get_num_registered_states() << std::endl;
     state_space_.print_statistics(std::cout);
 
     std::cout << std::endl;

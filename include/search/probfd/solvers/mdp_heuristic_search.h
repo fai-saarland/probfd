@@ -99,8 +99,6 @@ class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
 
     quotients::QuotientSystem<State, OperatorID> quotient_;
 
-    engine_interfaces::StateSpace<State, QAction> q_state_space_;
-
     std::shared_ptr<engine_interfaces::CostFunction<State, QAction>> q_cost_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QAction>>
         q_policy_tiebreaker_;
@@ -111,7 +109,6 @@ public:
     explicit MDPHeuristicSearch(const options::Options& opts)
         : MDPHeuristicSearchBase(opts)
         , quotient_(&this->state_space_)
-        , q_state_space_(&quotient_)
         , q_cost_(new quotients::DefaultQuotientCostFunction<State, OperatorID>(
               &quotient_,
               this->cost_function_))
@@ -164,7 +161,7 @@ public:
     {
         if (dual_bounds_) {
             return new HS<State, OperatorID, true>(
-                &q_state_space_,
+                &quotient_,
                 q_cost_.get(),
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),
@@ -176,7 +173,7 @@ public:
                 std::forward<Args>(args)...);
         } else {
             return new HS<State, OperatorID, false>(
-                &q_state_space_,
+                &quotient_,
                 q_cost_.get(),
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),
@@ -220,7 +217,7 @@ private:
     {
         std::shared_ptr<HS<State, QAction, Interval>> engine(
             new HS<State, QAction, Interval>(
-                &q_state_space_,
+                &quotient_,
                 q_cost_.get(),
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),

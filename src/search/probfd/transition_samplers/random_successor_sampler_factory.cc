@@ -3,6 +3,8 @@
 
 #include "utils/rng_options.h"
 
+#include "operator_id.h"
+
 namespace probfd {
 namespace transition_samplers {
 

@@ -69,21 +69,21 @@ public:
         std::cout << "Building bisimulation..." << std::endl;
 
         BisimulationTimer stats;
-        bisimulation::BisimilarStateSpace bs(tasks::g_root_task.get());
-        StateSpace<QState, QAction> state_space(&bs);
+        bisimulation::BisimilarStateSpace state_space(tasks::g_root_task.get());
         bisimulation::DefaultQuotientCostFunction cost(
-            &bs,
+            &state_space,
             g_cost_model->optimal_value_bound(),
             g_cost_model->optimal_value_bound().upper);
 
         stats.timer.stop();
-        stats.states = bs.num_bisimilar_states();
-        stats.transitions = bs.num_transitions();
+        stats.states = state_space.num_bisimilar_states();
+        stats.transitions = state_space.num_transitions();
 
         std::cout << "Bisimulation built after " << stats.timer << std::endl;
         std::cout << "Bisimilar state space contains "
-                  << bs.num_bisimilar_states() << " states and "
-                  << bs.num_transitions() << " transitions." << std::endl;
+                  << state_space.num_bisimilar_states() << " states and "
+                  << state_space.num_transitions() << " transitions."
+                  << std::endl;
         std::cout << std::endl;
         std::cout << "Running " << get_engine_name()
                   << " on the bisimulation..." << std::endl;
@@ -95,13 +95,13 @@ public:
             solver.reset(new engines::interval_iteration::IntervalIteration<
                          QState,
                          QAction>(&state_space, &cost, nullptr, false, false));
-            val = solver->solve(bs.get_initial_state());
+            val = solver->solve(state_space.get_initial_state());
         } else {
             heuristics::ConstantEvaluator<QState> initializer(0_vt);
             solver.reset(new engines::topological_vi::TopologicalValueIteration<
                          QState,
                          QAction>(&state_space, &cost, &initializer, false));
-            val = solver->solve(bs.get_initial_state());
+            val = solver->solve(state_space.get_initial_state());
         }
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
         std::cout << std::endl;

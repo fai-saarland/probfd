@@ -8,7 +8,7 @@
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/progress_report.h"
-#include "probfd/state_space.h"
+#include "probfd/task_state_space.h"
 #include "probfd/task_proxy.h"
 
 #include "state_registry.h"
@@ -34,9 +34,7 @@ protected:
     const std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;
 
-    StateRegistry state_registry_;
-
-    engine_interfaces::StateSpace<State, OperatorID> state_space_;
+    TaskStateSpace state_space_;
     engine_interfaces::CostFunction<State, OperatorID>* cost_function_;
 
     ProgressReport progress_;

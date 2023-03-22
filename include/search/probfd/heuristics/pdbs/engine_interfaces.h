@@ -23,46 +23,6 @@ class PatternDatabase;
 }
 
 namespace probfd {
-namespace engine_interfaces {
-template <>
-class StateSpace<
-    heuristics::pdbs::StateRank,
-    const heuristics::pdbs::AbstractOperator*> {
-    heuristics::pdbs::MatchTree match_tree_;
-
-public:
-    StateSpace(
-        const ProbabilisticTaskProxy& task_proxy,
-        const heuristics::pdbs::StateRankingFunction& ranking_function,
-        bool operator_pruning = true);
-
-    StateID get_state_id(heuristics::pdbs::StateRank state) const;
-
-    heuristics::pdbs::StateRank get_state(StateID id) const;
-
-    ActionID
-    get_action_id(StateID, const heuristics::pdbs::AbstractOperator* op) const;
-
-    const heuristics::pdbs::AbstractOperator*
-    get_action(StateID, ActionID action_id) const;
-
-    void generate_applicable_actions(
-        StateID state,
-        std::vector<const heuristics::pdbs::AbstractOperator*>& aops);
-
-    void generate_action_transitions(
-        StateID state,
-        const heuristics::pdbs::AbstractOperator* op,
-        Distribution<StateID>& result);
-
-    void generate_all_transitions(
-        StateID state,
-        std::vector<const heuristics::pdbs::AbstractOperator*>& aops,
-        std::vector<Distribution<StateID>>& result);
-};
-
-} // namespace engine_interfaces
-
 namespace heuristics {
 namespace pdbs {
 
@@ -76,7 +36,7 @@ class PDBEvaluator : public StateRankEvaluator {
 public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
-    EvaluationResult evaluate(const StateRank& state) const override;
+    EvaluationResult evaluate(StateRank state) const override;
 
 private:
     const ::pdbs::PatternDatabase& pdb;
@@ -86,7 +46,7 @@ class DeadendPDBEvaluator : public StateRankEvaluator {
 public:
     explicit DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
-    EvaluationResult evaluate(const StateRank& state) const override;
+    EvaluationResult evaluate(StateRank state) const override;
 
 private:
     const ::pdbs::PatternDatabase& pdb;
@@ -116,7 +76,7 @@ public:
         const StateRankingFunction* mapper,
         int add_var);
 
-    EvaluationResult evaluate(const StateRank& state) const override;
+    EvaluationResult evaluate(StateRank state) const override;
 };
 
 template <typename PDBType>
@@ -132,7 +92,7 @@ public:
         const PDBType& right);
 
 protected:
-    EvaluationResult evaluate(const StateRank& state) const override;
+    EvaluationResult evaluate(StateRank state) const override;
 };
 
 class BaseAbstractCostFunction : public AbstractCostFunction {
@@ -147,7 +107,7 @@ public:
         value_t value_in,
         value_t value_not_in);
 
-    TerminationInfo get_termination_info(const StateRank& state) override;
+    TerminationInfo get_termination_info(StateRank state) override;
 };
 
 class ZeroCostAbstractCostFunction : public BaseAbstractCostFunction {

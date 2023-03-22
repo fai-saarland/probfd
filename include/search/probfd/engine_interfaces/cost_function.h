@@ -1,6 +1,7 @@
 #ifndef PROBFD_ENGINE_INTERFACES_COST_FUNCTION_H
 #define PROBFD_ENGINE_INTERFACES_COST_FUNCTION_H
 
+#include "probfd/type_traits.h"
 #include "probfd/types.h"
 #include "probfd/value_type.h"
 
@@ -75,12 +76,13 @@ public:
     /**
      * @brief Get the termination cost info of the input state.
      */
-    virtual TerminationInfo get_termination_info(const State& state) = 0;
+    virtual TerminationInfo get_termination_info(param_type<State> state) = 0;
 
     /**
      * @brief Get the action cost of the action when applied in a state.
      */
-    virtual value_t get_action_cost(StateID state_id, Action action) = 0;
+    virtual value_t
+    get_action_cost(StateID state_id, param_type<Action> action) = 0;
 
     /**
      * @brief Prints statistics.

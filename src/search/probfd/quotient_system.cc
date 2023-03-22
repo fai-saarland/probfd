@@ -108,49 +108,35 @@ QuotientSystem<State, OperatorID>::end() const
     return const_iterator(this, fallback_->end());
 }
 
-std::ranges::subrange<
-    QuotientSystem<State, OperatorID>::QuotientStateIDIterator>
-QuotientSystem<State, OperatorID>::quotient_range(const StateID& state_id) const
-{
-    if (cache_) {
-        const StateID* start = nullptr;
-        const StateID* end = nullptr;
-        const QuotientInformation* info = get_infos(state_id);
-
-        if (info) {
-            start = info->states.data();
-            end = start + info->states.size();
-        } else {
-            start = &state_id;
-            end = start + 1;
-        }
-
-        return std::ranges::subrange<QuotientStateIDIterator>(
-            QuotientStateIDIterator(start),
-            QuotientStateIDIterator(end));
-    }
-
-    return this->fallback_->quotient_range(state_id);
-}
-
-StateID QuotientSystem<State, OperatorID>::get_state_id(const State& s) const
+StateID QuotientSystem<State, OperatorID>::get_state_id(param_type<State> s)
 {
     return state_space_->get_state_id(s);
 }
 
-State QuotientSystem<State, OperatorID>::get_state(StateID sid) const
+State QuotientSystem<State, OperatorID>::get_state(StateID sid)
 {
     return state_space_->get_state(sid);
 }
 
-StateID QuotientSystem<State, OperatorID>::translate_state_id(StateID sid) const
+QuotientSystem<State, OperatorID>::QAction
+QuotientSystem<State, OperatorID>::get_action(StateID sid, ActionID aid)
 {
     if (cache_) {
-        const QuotientInformation* i = get_infos(sid);
-        return i ? i->states[0] : sid;
+        const auto& qstates = get_infos(sid)->states;
+        assert(qstates[0] == sid);
+        unsigned offset = aid;
+        for (unsigned i = 0; i < qstates.size(); ++i) {
+            const auto& cached = lookup(qstates[i]);
+            if (offset < cached.naops) {
+                return QAction(qstates[i], offset);
+            }
+            offset -= cached.naops;
+        }
+
+        abort();
     }
 
-    return this->fallback_->translate_state_id(sid);
+    return fallback_->get_action(sid, aid);
 }
 
 void QuotientSystem<State, OperatorID>::get_pruned_ops(
@@ -164,7 +150,29 @@ void QuotientSystem<State, OperatorID>::get_pruned_ops(
     }
 }
 
-void QuotientSystem<State, OperatorID>::generate_applicable_ops(
+ActionID QuotientSystem<State, OperatorID>::get_action_id(
+    StateID sid,
+    param_type<QAction> a)
+{
+    if (cache_) {
+        const auto& qstates = get_infos(sid)->states;
+        assert(qstates[0] == sid);
+        unsigned offset = 0;
+        for (unsigned i = 0; i < qstates.size(); ++i) {
+            if (a.state_id == qstates[i]) {
+                offset += a.action_id;
+                break;
+            }
+            const auto& cached = lookup(qstates[i]);
+            offset += cached.naops;
+        }
+        return offset;
+    }
+
+    return fallback_->get_action_id(sid, a);
+}
+
+void QuotientSystem<State, OperatorID>::generate_applicable_actions(
     StateID sid,
     std::vector<QAction>& result)
 {
@@ -181,13 +189,13 @@ void QuotientSystem<State, OperatorID>::generate_applicable_ops(
         ++state_space_->statistics_.aops_generator_calls;
         state_space_->statistics_.generated_operators += result.size();
     } else {
-        this->fallback_->generate_applicable_ops(sid, result);
+        this->fallback_->generate_applicable_actions(sid, result);
     }
 }
 
-void QuotientSystem<State, OperatorID>::generate_successors(
+void QuotientSystem<State, OperatorID>::generate_action_transitions(
     StateID sid,
-    const QAction& a,
+    param_type<QAction> a,
     Distribution<StateID>& result)
 {
     if (cache_) {
@@ -213,11 +221,11 @@ void QuotientSystem<State, OperatorID>::generate_successors(
         ++state_space_->statistics_.single_transition_generator_calls;
         state_space_->statistics_.generated_states += result.size();
     } else {
-        fallback_->generate_successors(sid, a, result);
+        fallback_->generate_action_transitions(sid, a, result);
     }
 }
 
-void QuotientSystem<State, OperatorID>::generate_all_successors(
+void QuotientSystem<State, OperatorID>::generate_all_transitions(
     StateID sid,
     std::vector<QAction>& aops,
     std::vector<Distribution<StateID>>& successors)
@@ -251,50 +259,42 @@ void QuotientSystem<State, OperatorID>::generate_all_successors(
         return;
     }
 
-    fallback_->generate_all_successors(sid, aops, successors);
+    fallback_->generate_all_transitions(sid, aops, successors);
 }
 
-QuotientSystem<State, OperatorID>::QAction
-QuotientSystem<State, OperatorID>::get_action(StateID sid, ActionID aid) const
+std::ranges::subrange<
+    QuotientSystem<State, OperatorID>::QuotientStateIDIterator>
+QuotientSystem<State, OperatorID>::quotient_range(const StateID& state_id) const
 {
     if (cache_) {
-        const auto& qstates = get_infos(sid)->states;
-        assert(qstates[0] == sid);
-        unsigned offset = aid;
-        for (unsigned i = 0; i < qstates.size(); ++i) {
-            const auto& cached = lookup(qstates[i]);
-            if (offset < cached.naops) {
-                return QAction(qstates[i], offset);
-            }
-            offset -= cached.naops;
+        const StateID* start = nullptr;
+        const StateID* end = nullptr;
+        const QuotientInformation* info = get_infos(state_id);
+
+        if (info) {
+            start = info->states.data();
+            end = start + info->states.size();
+        } else {
+            start = &state_id;
+            end = start + 1;
         }
 
-        abort();
+        return std::ranges::subrange<QuotientStateIDIterator>(
+            QuotientStateIDIterator(start),
+            QuotientStateIDIterator(end));
     }
 
-    return fallback_->get_action(sid, aid);
+    return this->fallback_->quotient_range(state_id);
 }
 
-ActionID
-QuotientSystem<State, OperatorID>::get_action_id(StateID sid, const QAction& a)
-    const
+StateID QuotientSystem<State, OperatorID>::translate_state_id(StateID sid) const
 {
     if (cache_) {
-        const auto& qstates = get_infos(sid)->states;
-        assert(qstates[0] == sid);
-        unsigned offset = 0;
-        for (unsigned i = 0; i < qstates.size(); ++i) {
-            if (a.state_id == qstates[i]) {
-                offset += a.action_id;
-                break;
-            }
-            const auto& cached = lookup(qstates[i]);
-            offset += cached.naops;
-        }
-        return offset;
+        const QuotientInformation* i = get_infos(sid);
+        return i ? i->states[0] : sid;
     }
 
-    return fallback_->get_action_id(sid, a);
+    return this->fallback_->translate_state_id(sid);
 }
 
 OperatorID QuotientSystem<State, OperatorID>::get_original_action(
