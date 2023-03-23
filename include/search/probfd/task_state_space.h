@@ -1,5 +1,5 @@
-#ifndef PROBFD_TRANSITION_GENERATOR_H
-#define PROBFD_TRANSITION_GENERATOR_H
+#ifndef PROBFD_TASK_STATE_SPACE_H
+#define PROBFD_TASK_STATE_SPACE_H
 
 #include "probfd/engine_interfaces/state_space.h"
 
@@ -59,7 +59,6 @@ protected:
     using Cache = storage::PerStateStorage<CacheEntry>;
 
 protected:
-    std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;
 
     successor_generator::SuccessorGenerator gen_;
@@ -83,25 +82,25 @@ public:
             path_dependent_evaluators,
         bool enable_caching);
 
-    StateID get_state_id(const State& state);
-    State get_state(StateID state_id);
+    StateID get_state_id(const State& state) override;
+    State get_state(StateID state_id) override;
 
-    ActionID get_action_id(StateID, OperatorID op_id);
-    OperatorID get_action(StateID, ActionID action_id);
+    ActionID get_action_id(StateID, OperatorID op_id) override;
+    OperatorID get_action(StateID, ActionID action_id) override;
 
     void generate_applicable_actions(
         StateID state_id,
-        std::vector<OperatorID>& result);
+        std::vector<OperatorID>& result) override;
 
     void generate_action_transitions(
         StateID state,
         OperatorID operator_id,
-        Distribution<StateID>& result);
+        Distribution<StateID>& result) override;
 
     void generate_all_transitions(
         StateID state,
         std::vector<OperatorID>& aops,
-        std::vector<Distribution<StateID>>& successors);
+        std::vector<Distribution<StateID>>& successors) override;
 
     const State& get_initial_state();
 

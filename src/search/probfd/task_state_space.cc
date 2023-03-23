@@ -21,8 +21,7 @@ TaskStateSpace::TaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     const std::vector<std::shared_ptr<Evaluator>>& path_dependent_evaluators,
     bool enable_caching)
-    : task(task)
-    , task_proxy(*task)
+    : task_proxy(*task)
     , gen_(task_proxy)
     , state_registry_(task_proxy)
     , caching_(enable_caching)
