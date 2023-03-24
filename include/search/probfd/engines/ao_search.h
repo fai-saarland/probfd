@@ -283,8 +283,7 @@ private:
     {
         if constexpr (StorePolicy) {
             const bool result =
-                this->async_update(state, nullptr, &selected_transition_)
-                    .value_changed;
+                this->async_update(state, &selected_transition_).value_changed;
             solved = true;
             dead = !selected_transition_.empty() || info.is_dead_end();
 

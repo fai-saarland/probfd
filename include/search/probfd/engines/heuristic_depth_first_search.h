@@ -390,8 +390,7 @@ private:
                 (last_value_changed &&
                  BackwardUpdates == BacktrackingUpdateType::OnDemand)) {
                 statistics_.backtracking_updates++;
-                auto result =
-                    this->async_update(einfo.stateid, nullptr, nullptr);
+                auto result = this->async_update(einfo.stateid, nullptr);
                 last_value_changed = result.value_changed;
                 last_unsolved_successors =
                     last_unsolved_successors || result.policy_changed;
@@ -466,8 +465,7 @@ private:
             sinfo.set_policy_initialized();
             statistics_.forward_updates++;
             const bool updated =
-                this->async_update(stateid, nullptr, &transition_)
-                    .value_changed;
+                this->async_update(stateid, &transition_).value_changed;
             einfo.value_changed = updated;
 
             if constexpr (UseInterval) {
@@ -533,9 +531,8 @@ private:
             for (const StateID id : range) {
                 statistics_.backtracking_updates++;
 
-                const auto [val_change, policy_changed] =
-                    this->async_update(id, nullptr, nullptr);
-                value_changed = val_change || value_changed;
+                const auto result = this->async_update(id, nullptr);
+                value_changed = value_changed || result.value_changed;
 
                 if constexpr (UseInterval) {
                     all_converged = all_converged &&
@@ -544,7 +541,8 @@ private:
                                          .value.bounds_approximately_equal());
                 }
 
-                policy_graph_changed = policy_graph_changed || policy_changed;
+                policy_graph_changed =
+                    policy_graph_changed || result.policy_changed;
             }
 
             updated_all.first =

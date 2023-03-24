@@ -29,6 +29,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <optional>
 #include <type_traits>
 #include <vector>
 
@@ -162,6 +163,7 @@ protected:
     struct UpdateResult {
         bool value_changed;
         bool policy_changed;
+        std::optional<Action> policy_action = std::nullopt;
     };
 
 public:
@@ -355,7 +357,7 @@ public:
 
         const StateInfo& info = state_infos_[state];
         if (info.policy == ActionID::undefined) {
-            return async_update(state, nullptr, &result).value_changed;
+            return async_update(state, &result).value_changed;
         }
 
         Action action = this->lookup_action(state, info.policy);
@@ -424,8 +426,7 @@ public:
         if constexpr (!StorePolicy) {
             return compute_value_update(s, lookup_initialize(s));
         } else {
-            return compute_value_policy_update(s, nullptr, nullptr)
-                .value_changed;
+            return compute_value_policy_update(s, nullptr).value_changed;
         }
     }
 
@@ -444,12 +445,10 @@ public:
      * @param[out] policy_transition - Return address for the new greedy
      * transition.
      */
-    UpdateResult async_update(
-        StateID s,
-        ActionID* policy_action,
-        Distribution<StateID>* policy_transition)
+    UpdateResult
+    async_update(StateID s, Distribution<StateID>* policy_transition)
     {
-        return compute_value_policy_update(s, policy_action, policy_transition);
+        return compute_value_policy_update(s, policy_transition);
     }
 
     bool compute_value_update_and_optimal_transitions(
@@ -932,7 +931,6 @@ private:
 
     UpdateResult compute_value_policy_update(
         StateID state_id,
-        ActionID* greedy_action,
         Distribution<StateID>* greedy_transition)
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
@@ -953,23 +951,21 @@ private:
             return UpdateResult{value_changed, false};
         }
 
-        const bool policy_changed = compute_policy_update(
+        auto [policy_changed, action] = compute_policy_update(
             state_id,
             state_info,
             opt_aops,
             opt_transitions,
-            greedy_action,
             greedy_transition);
 
-        return UpdateResult{value_changed, policy_changed};
+        return UpdateResult{value_changed, policy_changed, std::move(action)};
     }
 
-    bool compute_policy_update(
+    std::pair<bool, Action> compute_policy_update(
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& opt_aops,
         std::vector<Distribution<StateID>>& opt_transitions,
-        ActionID* greedy_action,
         Distribution<StateID>* greedy_transition)
     {
 #if defined(EXPENSIVE_STATISTICS)
@@ -987,17 +983,14 @@ private:
             *this);
         assert(utils::in_bounds(index, opt_aops));
 
-        const ActionID aid = this->get_action_id(state_id, opt_aops[index]);
-
-        if (greedy_action != nullptr) {
-            (*greedy_action) = aid;
-        }
+        Action& action = opt_aops[index];
+        const ActionID aid = this->get_action_id(state_id, action);
 
         if (greedy_transition != nullptr) {
             (*greedy_transition) = std::move(opt_transitions[index]);
         }
 
-        return state_info.update_policy(aid);
+        return {state_info.update_policy(aid), std::move(action)};
     }
 };
 

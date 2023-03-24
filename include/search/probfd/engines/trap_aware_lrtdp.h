@@ -226,7 +226,7 @@ private:
 
             statistics_.trial_bellman_backups++;
             const bool changed =
-                this->async_update(stateid, nullptr, &selected_transition_)
+                this->async_update(stateid, &selected_transition_)
                     .value_changed;
 
             if (selected_transition_.empty()) {
@@ -420,21 +420,17 @@ private:
 
         ++this->statistics_.check_and_solve_bellman_backups;
 
-        ActionID greedy_action;
-        const bool value_changed = this->async_update(
-                                           state,
-                                           &greedy_action,
-                                           &this->selected_transition_)
-                                       .value_changed;
+        const auto result =
+            this->async_update(state, &this->selected_transition_);
 
         if (this->selected_transition_.empty()) {
             assert(this->get_state_info(state).is_dead_end());
-            parent_flags.rv = parent_flags.rv && !value_changed;
+            parent_flags.rv = parent_flags.rv && !result.value_changed;
             parent_flags.is_trap = false;
             return false;
         }
 
-        if (value_changed) {
+        if (result.value_changed) {
             parent_flags.rv = false;
             parent_flags.is_trap = false;
             parent_flags.is_dead = false;
@@ -452,9 +448,8 @@ private:
 
         assert(!e.successors.empty());
         this->selected_transition_.clear();
-        e.flags.is_trap = this->get_action_cost(
-                              state,
-                              this->lookup_action(state, greedy_action)) == 0;
+        e.flags.is_trap =
+            this->get_action_cost(state, *result.policy_action) == 0;
         stack_index_[state] = stack_.size();
         stack_.push_front(state);
         return true;

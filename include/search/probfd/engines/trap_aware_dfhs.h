@@ -310,13 +310,10 @@ private:
         const bool tip = state_info.is_on_fringe();
         if (tip || forward_updates_) {
             ++statistics_.fw_updates;
-            ActionID greedy_action;
-            bool value_changed =
-                this->async_update(state, &greedy_action, &transition_)
-                    .value_changed;
-            flags.all_solved = flags.all_solved && !value_changed;
+            auto result = this->async_update(state, &transition_);
+            flags.all_solved = flags.all_solved && !result.value_changed;
             const bool cutoff = (!expand_tip_states_ && tip) ||
-                                (cutoff_inconsistent_ && value_changed);
+                                (cutoff_inconsistent_ && result.value_changed);
             terminated_ = terminate_exploration_ && cutoff;
             if (transition_.empty()) {
                 assert(state_info.is_dead_end());
@@ -328,9 +325,8 @@ private:
                 flags.complete = false;
                 return false;
             }
-            zero_cost = this->get_action_cost(
-                            state,
-                            this->lookup_action(state, greedy_action)) == 0;
+            zero_cost =
+                this->get_action_cost(state, *result.policy_action) == 0;
         } else {
             QAction action = this->get_policy(state);
             this->generate_successors(state, action, transition_);
@@ -358,13 +354,10 @@ private:
         flags.clear();
         ++statistics_.fw_updates;
 
-        ActionID greedy_action;
-        bool value_changed =
-            this->async_update(state, &greedy_action, &transition_)
-                .value_changed;
-        flags.all_solved = !value_changed;
+        auto result = this->async_update(state, &transition_);
+        flags.all_solved = !result.value_changed;
         const bool cutoff = !reexpand_removed_traps_ ||
-                            (cutoff_inconsistent_ && value_changed);
+                            (cutoff_inconsistent_ && result.value_changed);
         terminated_ = terminated_ || (terminate_exploration_ && cutoff);
 
         if (transition_.empty()) {
@@ -384,9 +377,7 @@ private:
 
         flags.clear();
         const bool zero_cost =
-            this->get_action_cost(
-                state,
-                this->lookup_action(state, greedy_action)) == 0;
+            this->get_action_cost(state, *result.policy_action) == 0;
         enqueue(state, zero_cost);
         return true;
     }
@@ -454,7 +445,7 @@ private:
                 (backtrack_update_type_ == BacktrackingUpdateType::OnDemand &&
                  (!flags.complete || !flags.all_solved))) {
                 ++statistics_.bw_updates;
-                auto updated = this->async_update(state, nullptr, nullptr);
+                auto updated = this->async_update(state, nullptr);
                 flags.complete = flags.complete && !updated.policy_changed;
                 flags.all_solved = flags.all_solved && !updated.value_changed;
                 terminated_ = terminated_ ||
@@ -471,7 +462,7 @@ private:
                 if (scc_size == 1) {
                     if (backtrack_update_type_ ==
                         BacktrackingUpdateType::UntilConvergence) {
-                        auto res = this->async_update(state, nullptr, nullptr);
+                        auto res = this->async_update(state, nullptr);
                         flags.complete = flags.complete && !res.policy_changed;
                         flags.all_solved =
                             flags.all_solved && !res.value_changed;
@@ -625,7 +616,7 @@ private:
         for (;;) {
             bool changed = false;
             for (const StateID state : range) {
-                auto updated = this->async_update(state, nullptr, nullptr);
+                auto updated = this->async_update(state, nullptr);
                 changed = changed || updated.value_changed;
                 result.value_changed =
                     result.value_changed || updated.value_changed;

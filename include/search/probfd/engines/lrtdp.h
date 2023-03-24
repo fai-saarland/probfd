@@ -251,11 +251,9 @@ private:
             }
 
             this->statistics_.trial_bellman_backups++;
-            const bool value_changed = this->async_update(
-                                               state_id,
-                                               nullptr,
-                                               &this->selected_transition_)
-                                           .value_changed;
+            const bool value_changed =
+                this->async_update(state_id, &this->selected_transition_)
+                    .value_changed;
             if (this->selected_transition_.empty()) {
                 auto& base_info = this->get_state_info(state_id, state_info);
                 // terminal
@@ -329,11 +327,9 @@ private:
 
             this->statistics_.check_and_solve_bellman_backups++;
 
-            const bool value_changed = this->async_update(
-                                               state_id,
-                                               nullptr,
-                                               &this->selected_transition_)
-                                           .value_changed;
+            const bool value_changed =
+                this->async_update(state_id, &this->selected_transition_)
+                    .value_changed;
 
             if (value_changed) {
                 epsilon_consistent = false;
@@ -409,10 +405,8 @@ private:
             }
 
             this->statistics_.check_and_solve_bellman_backups++;
-            const bool value_changed = this->async_update(
-                stateid,
-                nullptr,
-                &this->selected_transition_);
+            const bool value_changed =
+                this->async_update(stateid, &this->selected_transition_);
 
             if (value_changed) {
                 rv = false;
