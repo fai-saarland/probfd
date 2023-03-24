@@ -63,7 +63,6 @@ struct PerStateInformation : public StateInfo {
  * @tparam StorePolicy - Determines whether the optimal policy is stored.
  * @tparam StateInfoExtension - The extended state information struct used by
  * the derived algorithm.
- * @tparam Greedy - ?
  */
 template <
     typename State,
@@ -71,8 +70,7 @@ template <
     bool Interval,
     bool StorePolicy,
     template <typename>
-    class StateInfoExtension,
-    bool Greedy>
+    class StateInfoExtension>
 class AOBase
     : public heuristic_search::HeuristicSearchBase<
           State,
@@ -241,7 +239,7 @@ protected:
             auto& pinfo = this->get_state_info(parent);
             assert(!pinfo.is_dead_end() || pinfo.is_solved());
 
-            if constexpr (!Greedy) {
+            if constexpr (!StorePolicy) {
                 if (info.is_solved()) {
                     assert(pinfo.unsolved > 0 || pinfo.is_solved());
                     --pinfo.unsolved;
@@ -283,7 +281,7 @@ private:
         bool& solved,
         bool& dead)
     {
-        if constexpr (Greedy) {
+        if constexpr (StorePolicy) {
             const bool result =
                 this->async_update(state, nullptr, &selected_transition_)
                     .value_changed;

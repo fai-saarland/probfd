@@ -30,13 +30,7 @@ namespace ao_star {
  */
 template <typename State, typename Action, bool UseInterval>
 class AOStar
-    : public AOBase<
-          State,
-          Action,
-          UseInterval,
-          true,
-          PerStateInformation,
-          true> {
+    : public AOBase<State, Action, UseInterval, true, PerStateInformation> {
     engine_interfaces::TransitionSampler<Action>* outcome_selection_;
     std::vector<Distribution<StateID>> transitions_;
 
@@ -50,7 +44,7 @@ public:
         ProgressReport* report,
         bool interval_comparison,
         engine_interfaces::TransitionSampler<Action>* outcome_selection)
-        : AOBase<State, Action, UseInterval, true, PerStateInformation, true>(
+        : AOBase<State, Action, UseInterval, true, PerStateInformation>(
               state_space,
               cost_function,
               value_init,

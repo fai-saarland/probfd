@@ -23,8 +23,8 @@ struct PerStateInformation : public ao_search::PerStateInformation<StateInfo> {
 };
 
 template <typename State, typename Action, bool UseInterval>
-using AOBase = ao_search::
-    AOBase<State, Action, UseInterval, false, PerStateInformation, false>;
+using AOBase =
+    ao_search::AOBase<State, Action, UseInterval, false, PerStateInformation>;
 
 } // namespace internal
 
