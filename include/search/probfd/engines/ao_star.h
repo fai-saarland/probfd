@@ -106,7 +106,7 @@ private:
 
                 unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
-                assert(this->aops_.empty() && this->transitions_.empty());
+                ClearGuard _guard(this->aops_, this->transitions_);
 
                 this->generate_all_successors(
                     state,
@@ -141,9 +141,6 @@ private:
                     }
                 }
 
-                this->aops_.clear();
-                this->transitions_.clear();
-
                 this->backpropagate_update_order(state);
 
                 if (value_changed) {
@@ -157,6 +154,7 @@ private:
                 !info.is_tip_state() && !info.is_terminal() &&
                 !info.is_solved());
 
+            ClearGuard guard(this->selected_transition_);
             this->apply_policy(state, this->selected_transition_);
 
             this->selected_transition_.remove_if_normalize(
@@ -164,15 +162,11 @@ private:
                     return this->get_state_info(target.item).is_solved();
                 });
 
-            assert(!this->selected_transition_.empty());
-
             state = this->outcome_selection_->sample(
                 state,
                 this->get_policy(state),
                 this->selected_transition_,
                 *this);
-
-            this->selected_transition_.clear();
         } while (true);
     }
 };

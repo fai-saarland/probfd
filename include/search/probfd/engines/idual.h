@@ -2,6 +2,7 @@
 #define PROBFD_ENGINES_IDUAL_H
 
 #include "probfd/engines/engine.h"
+#include "probfd/engines/utils.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -188,6 +189,7 @@ public:
                     continue;
                 }
 
+                ClearGuard _guard(aops, transitions);
                 this->generate_all_successors(state_id, aops, transitions);
 
                 for (unsigned j = 0; j < transitions.size(); ++j) {
@@ -266,9 +268,6 @@ public:
                     lp_solver_.add_constraint(c);
                     ++next_constraint_id;
                 }
-
-                aops.clear();
-                transitions.clear();
             }
 
             frontier.clear();

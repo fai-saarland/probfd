@@ -282,6 +282,8 @@ private:
         bool& dead)
     {
         if constexpr (StorePolicy) {
+            ClearGuard guard(selected_transition_);
+
             const bool result =
                 this->async_update(state, &selected_transition_).value_changed;
             solved = true;
@@ -293,7 +295,6 @@ private:
                 dead = dead && succ_info.is_dead_end();
             }
 
-            selected_transition_.clear();
             return result;
         } else {
             const bool result = this->async_update(state);

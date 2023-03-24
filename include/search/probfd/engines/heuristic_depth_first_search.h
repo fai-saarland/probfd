@@ -269,7 +269,8 @@ private:
     template <bool GetVisited>
     bool policy_exploration(StateID state)
     {
-        assert(state_infos_.empty());
+        ClearGuard _guard(state_infos_);
+
         {
             AdditionalStateInfo& pers_info = state_flags_->operator[](state);
             bool value_changed = false;
@@ -445,8 +446,6 @@ private:
             expansion_queue_.pop_back();
         } while (!expansion_queue_.empty());
 
-        state_infos_.clear();
-
         return last_unsolved_successors || last_value_changed;
     }
 
@@ -457,6 +456,8 @@ private:
         bool& parent_unsolved_successors)
     {
         assert(!sinfo.is_solved());
+
+        ClearGuard _guard(transition_);
 
         const bool is_tip_state = !sinfo.is_policy_initialized();
         ExpansionInfo& einfo = expansion_queue_.emplace_back(stateid);
@@ -491,7 +492,6 @@ private:
             } else if (
                 (!ExpandTipStates && is_tip_state) ||
                 (CutoffInconsistent && einfo.value_changed)) {
-                transition_.clear();
                 expansion_queue_.pop_back();
                 parent_unsolved_successors = true;
 
@@ -499,7 +499,6 @@ private:
             }
 
             einfo.set_successors(transition_);
-            transition_.clear();
         } else {
             if (this->get_state_info(stateid, sinfo).is_dead_end()) {
                 sinfo.set_solved();
@@ -508,7 +507,6 @@ private:
 
             this->apply_policy(stateid, transition_);
             einfo.set_successors(transition_);
-            transition_.clear();
         }
 
         return LocalStateInfo::ONSTACK;

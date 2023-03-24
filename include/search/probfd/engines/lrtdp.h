@@ -237,8 +237,8 @@ protected:
 private:
     void trial(StateID initial_state)
     {
-        assert(
-            this->current_trial_.empty() && this->selected_transition_.empty());
+        ClearGuard guard(this->current_trial_);
+
         this->current_trial_.push_back(initial_state);
 
         for (;;) {
@@ -249,6 +249,8 @@ private:
                 this->current_trial_.pop_back();
                 break;
             }
+
+            ClearGuard guard(this->selected_transition_);
 
             this->statistics_.trial_bellman_backups++;
             const bool value_changed =
@@ -270,7 +272,6 @@ private:
                  !value_changed) ||
                 (StopConsistent == TrialTerminationCondition::Inconsistent &&
                  value_changed)) {
-                this->selected_transition_.clear();
                 break;
             }
 
@@ -279,7 +280,6 @@ private:
                 this->get_policy(state_id),
                 this->selected_transition_,
                 *this));
-            this->selected_transition_.clear();
         }
 
         while (!this->current_trial_.empty()) {
@@ -290,16 +290,14 @@ private:
                 break;
             }
         }
-
-        this->current_trial_.clear();
     }
 
     bool check_and_solve(StateID init_state_id)
     {
         assert(!this->current_trial_.empty());
-        assert(this->selected_transition_.empty());
         assert(this->policy_queue_.empty());
-        assert(this->visited_.empty());
+
+        ClearGuard guard(this->visited_);
 
         bool mark_solved = true;
         bool epsilon_consistent = true;
@@ -319,6 +317,8 @@ private:
         }
 
         while (!this->policy_queue_.empty()) {
+            ClearGuard guard(this->selected_transition_);
+
             const auto state_id = this->policy_queue_.back();
             policy_queue_.pop_back();
 
@@ -366,8 +366,6 @@ private:
                     }
                 }
             }
-
-            this->selected_transition_.clear();
         }
 
         if (epsilon_consistent && mark_solved) {
@@ -381,8 +379,6 @@ private:
                 get_lrtdp_state_info(sid).unmark();
             }
         }
-
-        this->visited_.clear();
 
         return epsilon_consistent && mark_solved;
     }
@@ -404,13 +400,18 @@ private:
                 continue;
             }
 
+            ClearGuard guard(this->selected_transition_);
+
             this->statistics_.check_and_solve_bellman_backups++;
             const bool value_changed =
                 this->async_update(stateid, &this->selected_transition_);
 
             if (value_changed) {
                 rv = false;
-            } else if (rv && !this->selected_transition_.empty()) {
+                continue;
+            }
+
+            if (rv && !this->selected_transition_.empty()) {
                 for (StateID succid : selected_transition_.elements()) {
                     auto& succ_info = get_lrtdp_state_info(succid);
                     if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
@@ -419,7 +420,6 @@ private:
                     }
                 }
             }
-            this->selected_transition_.clear();
         } while (!this->policy_queue_.empty());
 
         if (rv) {

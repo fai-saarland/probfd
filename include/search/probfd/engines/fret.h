@@ -426,6 +426,8 @@ public:
     {
         assert(successors.empty());
 
+        ClearGuard _guard(ids, opt_aops, opt_transitions);
+
         bool value_changed =
             base_engine.compute_value_update_and_optimal_transitions(
                 qstate,
@@ -440,10 +442,6 @@ public:
             }
         }
 
-        ids.clear();
-        opt_aops.clear();
-        opt_transitions.clear();
-
         return value_changed;
     }
 
@@ -452,14 +450,12 @@ public:
         StateID qstate,
         std::vector<QAction>& aops)
     {
-        assert(opt_transitions.empty());
+        ClearGuard _guard(opt_transitions);
 
         base_engine.compute_value_update_and_optimal_transitions(
             qstate,
             aops,
             opt_transitions);
-
-        opt_transitions.clear();
     }
 };
 
@@ -475,7 +471,8 @@ public:
         StateID qstate,
         std::vector<StateID>& successors)
     {
-        t_.clear();
+        ClearGuard _guard(t_);
+
         bool result = base_engine.apply_policy(qstate, t_);
         for (StateID sid : t_.elements()) {
             successors.push_back(sid);

@@ -113,7 +113,7 @@ private:
         unsigned unsolved = 0;
         unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
-        assert(this->aops_.empty() && this->transitions_.empty());
+        ClearGuard _guard(this->aops_, this->transitions_);
 
         this->generate_all_successors(stateid, this->aops_, this->transitions_);
 
@@ -142,9 +142,6 @@ private:
         info.alive = alive > 0;
 
         if (unsolved == 0) {
-            this->aops_.clear();
-            this->transitions_.clear();
-
             this->mark_solved_push_parents(stateid, info, info.alive == 0);
             this->backpropagate_tip_value();
         } else {
@@ -157,9 +154,6 @@ private:
                     this->get_state_info(succ_id).unmark();
                 }
             }
-
-            this->aops_.clear();
-            this->transitions_.clear();
 
             this->backpropagate_update_order(stateid);
 

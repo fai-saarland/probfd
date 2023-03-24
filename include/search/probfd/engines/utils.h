@@ -3,8 +3,32 @@
 
 #include "probfd/interval.h"
 
+#include <cassert>
+#include <vector>
+
 namespace probfd {
 namespace engines {
+
+/**
+ * @brief Helper RAII class that ensures that containers are cleared when going
+ * out of scope.
+ */
+template <typename... T>
+class ClearGuard {
+    std::tuple<T&...> containers_;
+
+public:
+    ClearGuard(T&... containers)
+        : containers_(containers...)
+    {
+        assert(containers.empty() && ...);
+    }
+
+    ~ClearGuard()
+    {
+        std::apply([](auto&... c) { (c.clear(), ...); }, containers_);
+    }
+};
 
 /// Convenience value type alias for engines selecting interval iteration
 /// behaviour based on a template parameter.

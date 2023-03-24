@@ -2,6 +2,7 @@
 #define PROBFD_ENGINES_I2DUAL_H
 
 #include "probfd/engines/engine.h"
+#include "probfd/engines/utils.h"
 
 #include "probfd/cost_models/maxprob_cost_model.h"
 
@@ -22,6 +23,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/tasks/root_task.h"
+
 
 #include <memory>
 #include <vector>
@@ -230,17 +232,20 @@ public:
                 state_data.close();
 
                 // generate transitions
-                aops_.clear();
+                ClearGuard _guard_a(aops_);
                 this->generate_applicable_ops(state_id, aops_);
 
                 for (const Action& act : aops_) {
-                    succs_.clear();
+                    ClearGuard _guard_s(succs_);
+
                     this->generate_successors(state_id, act, succs_);
                     succs_.make_unique();
 
                     if (succs_.is_dirac(state_id)) {
                         continue;
                     }
+
+                    ClearGuard _guard(var_constraint_ids, var_constraint_coefs);
 
                     unsigned lp_var_id = next_lp_var_++;
 
@@ -287,8 +292,6 @@ public:
                         var_constraint_coefs);
 
                     dummy_variable.objective_coefficient = 0.0;
-                    var_constraint_ids.clear();
-                    var_constraint_coefs.clear();
                 }
             }
 
