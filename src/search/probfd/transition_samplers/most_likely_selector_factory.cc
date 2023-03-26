@@ -8,7 +8,7 @@ std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>
 MostLikelySuccessorSelectorFactory::create_sampler(
     engine_interfaces::StateSpace<State, OperatorID>*)
 {
-    return std::shared_ptr<MostLikelySuccessorSelector>();
+    return std::make_shared<MostLikelySuccessorSelector>();
 }
 
 } // namespace transition_samplers
