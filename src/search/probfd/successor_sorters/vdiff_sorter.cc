@@ -20,28 +20,18 @@ void VDiffSorter::sort(
 {
     std::vector<std::pair<double, unsigned>> k0;
     k0.reserve(successors.size());
-    std::vector<std::pair<double, unsigned>> k1;
     for (int i = successors.size() - 1; i >= 0; --i) {
         const auto& t = successors[i].data();
         value_t sum = 0;
-        for (unsigned j = 0; j < t.size(); ++j) {
-            const auto& suc = t[j];
-            k1.emplace_back(
-                std::abs(
-                    favor_large_gaps_ *
-                    hs_interface.lookup_dual_bounds(suc.item).length()),
-                j);
-            sum += suc.probability * k1.back().first;
+        for (const auto [succ, prob] : t) {
+            const value_t gap = favor_large_gaps_ *
+                                hs_interface.lookup_dual_bounds(succ).length();
+            sum += prob * gap;
         }
         k0.emplace_back(sum, i);
-        std::ranges::sort(k1);
-        std::vector<ItemProbabilityPair<StateID>> sor;
-        sor.reserve(t.size());
-        for (unsigned j = 0; j < k1.size(); ++j) {
-            sor.push_back(t[k1[j].second]);
-        }
-        k1.clear();
     }
+
+    // Would be less redundant with std::ranges::zip (C++ 23) ...
     std::ranges::sort(k0);
     std::vector<Distribution<StateID>> res;
     res.reserve(successors.size());
