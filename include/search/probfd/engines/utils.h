@@ -4,6 +4,7 @@
 #include "probfd/interval.h"
 
 #include <cassert>
+#include <tuple>
 #include <vector>
 
 namespace probfd {
