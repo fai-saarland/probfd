@@ -80,15 +80,15 @@ class SASTask:
                     break
             if not is_noop:
                 self.probabilistic_operators.append(ProbabilisticSASOperator(name, group))
-        self.probabilistic_operators = sorted(self.probabilistic_operators, key = lambda op: (op.name, len(op.outcomes)))
-        newidx = {}
-        for pop in self.probabilistic_operators:
-            for idx, _ in pop.outcomes:
-                newidx[idx] = len(newidx)
-            pop.outcomes = tuple(((newidx[i], p) for i, p in pop.outcomes))
-        ops = self.operators
-        self.operators = [ ops[newidx[i]] for i in range(len(ops)) if i in newidx ]
 
+        self.probabilistic_operators = sorted(self.probabilistic_operators, key = lambda op: (op.name, len(op.outcomes)))
+        ops = []
+        for pop in self.probabilistic_operators:
+            for i in range(len(pop.outcomes)):
+                outcome_idx = pop.outcomes[i][0]
+                ops.append(self.operators[outcome_idx])
+                pop.outcomes[i] = (len(ops) - 1, pop.outcomes[i][1])
+        self.operators = ops
 
     def validate(self):
         """Fail an assertion if the task is invalid.
@@ -332,7 +332,7 @@ class SASGoal:
 class ProbabilisticSASOperator:
     def __init__(self, name, outcomes):
         self.name = name
-        self.outcomes = tuple(outcomes)
+        self.outcomes = list(outcomes)
 
     def validate(self, variables):
         assert len(self.outcomes) >= 1
