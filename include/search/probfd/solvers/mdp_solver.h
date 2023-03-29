@@ -8,8 +8,8 @@
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/progress_report.h"
-#include "probfd/task_state_space.h"
 #include "probfd/task_proxy.h"
+#include "probfd/task_state_space.h"
 
 #include "state_registry.h"
 
@@ -22,6 +22,7 @@ class OptionParser;
 } // namespace options
 
 namespace probfd {
+class TaskStateSpace;
 
 /// This namespace contains the solver plugins for various search engines.
 namespace solvers {
@@ -34,7 +35,7 @@ protected:
     const std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;
 
-    TaskStateSpace state_space_;
+    std::unique_ptr<TaskStateSpace> state_space_;
     engine_interfaces::CostFunction<State, OperatorID>* cost_function_;
 
     ProgressReport progress_;
@@ -44,6 +45,7 @@ public:
      * @brief Constructs the MDP solver from the given options.
      */
     explicit MDPSolver(const options::Options& opts);
+    ~MDPSolver();
 
     /**
      * @brief Factory method that constructs an new MDP engine from the
@@ -56,7 +58,7 @@ public:
     engine_factory(Args&&... args)
     {
         return new Engine(
-            &state_space_,
+            state_space_.get(),
             cost_function_,
             std::forward<Args>(args)...);
     }

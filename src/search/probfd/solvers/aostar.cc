@@ -29,7 +29,7 @@ public:
         , successor_sampler_(this->template wrap<>(
               opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
                       "successor_sampler")
-                  ->create_sampler(&this->state_space_)))
+                  ->create_sampler(this->state_space_.get())))
     {
     }
 

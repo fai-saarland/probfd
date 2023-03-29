@@ -105,7 +105,7 @@ class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
 public:
     explicit MDPHeuristicSearch(const options::Options& opts)
         : MDPHeuristicSearchBase(opts)
-        , quotient_(&this->state_space_)
+        , quotient_(this->state_space_.get())
         , q_cost_(new quotients::DefaultQuotientCostFunction<State, OperatorID>(
               &quotient_,
               this->cost_function_))
@@ -221,7 +221,7 @@ private:
                 interval_comparison_,
                 std::forward<Args>(args)...));
         return new Fret<State, OperatorID, Interval>(
-            &this->state_space_,
+            this->state_space_.get(),
             this->cost_function_,
             &quotient_,
             &progress_,

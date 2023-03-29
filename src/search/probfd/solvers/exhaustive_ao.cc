@@ -25,8 +25,7 @@ public:
         : MDPHeuristicSearch<Bisimulation, false>(opts)
         , open_list_(this->wrap(
               opts.get<std::shared_ptr<TaskOpenListFactory>>("open_list")
-                  ->create_open_list(
-                      &this->state_space_)))
+                  ->create_open_list(this->state_space_.get())))
     {
     }
 

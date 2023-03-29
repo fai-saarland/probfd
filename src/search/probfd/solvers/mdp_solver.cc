@@ -1,5 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
+#include "probfd/caching_task_state_space.h"
 #include "probfd/cost_model.h"
 
 #include "utils/timer.h"
@@ -21,10 +22,15 @@ MDPSolver::MDPSolver(const options::Options& opts)
     : task(tasks::g_root_task)
     , task_proxy(*task)
     , state_space_(
-          task,
-          opts.get_list<std::shared_ptr<Evaluator>>(
-              "path_dependent_evaluators"),
-          opts.get<bool>("cache"))
+          opts.get<bool>("cache")
+              ? new TaskStateSpace(
+                    task,
+                    opts.get_list<std::shared_ptr<Evaluator>>(
+                        "path_dependent_evaluators"))
+              : new CachingTaskStateSpace(
+                    task,
+                    opts.get_list<std::shared_ptr<Evaluator>>(
+                        "path_dependent_evaluators")))
     , cost_function_(g_cost_model->get_cost_function())
     , progress_(
           opts.contains("report_epsilon")
@@ -33,10 +39,12 @@ MDPSolver::MDPSolver(const options::Options& opts)
           std::cout,
           opts.get<bool>("report_enabled"))
 {
-    progress_.register_print([&ss = this->state_space_](std::ostream& out) {
+    progress_.register_print([&ss = *this->state_space_](std::ostream& out) {
         out << "registered=" << ss.get_num_registered_states();
     });
 }
+
+MDPSolver::~MDPSolver() = default;
 
 void MDPSolver::solve()
 {
@@ -46,7 +54,7 @@ void MDPSolver::solve()
     std::unique_ptr<engines::MDPEngineInterface<State, OperatorID>> engine(
         create_engine());
 
-    const State& initial_state = state_space_.get_initial_state();
+    const State& initial_state = state_space_->get_initial_state();
 
     Interval val = engine->solve(initial_state);
     progress_.force_print();
@@ -61,8 +69,8 @@ void MDPSolver::solve()
     std::cout << std::endl;
     std::cout << "State space interface:" << std::endl;
     std::cout << "  Registered state(s): "
-              << state_space_.get_num_registered_states() << std::endl;
-    state_space_.print_statistics(std::cout);
+              << state_space_->get_num_registered_states() << std::endl;
+    state_space_->print_statistics(std::cout);
 
     std::cout << std::endl;
     std::cout << "Engine " << get_engine_name() << " statistics:" << std::endl;

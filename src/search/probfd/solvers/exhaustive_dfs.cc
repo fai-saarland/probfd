@@ -50,7 +50,7 @@ public:
               opts.contains("order")
                   ? opts.get<std::shared_ptr<TaskSuccessorSorterFactory>>(
                             "order")
-                        ->create_successor_sorter(&this->state_space_)
+                        ->create_successor_sorter(this->state_space_.get())
                   : nullptr)
         , dual_bounds_(
               opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
