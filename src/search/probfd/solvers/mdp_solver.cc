@@ -23,11 +23,11 @@ MDPSolver::MDPSolver(const options::Options& opts)
     , task_proxy(*task)
     , state_space_(
           opts.get<bool>("cache")
-              ? new TaskStateSpace(
+              ? new CachingTaskStateSpace(
                     task,
                     opts.get_list<std::shared_ptr<Evaluator>>(
                         "path_dependent_evaluators"))
-              : new CachingTaskStateSpace(
+              : new TaskStateSpace(
                     task,
                     opts.get_list<std::shared_ptr<Evaluator>>(
                         "path_dependent_evaluators")))
