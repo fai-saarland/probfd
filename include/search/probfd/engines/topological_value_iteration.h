@@ -140,7 +140,6 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         ActionID action_id;
 
         // Probability to remain in the same state.
-        // Casted to the self-loop normalization factor after finalize().
         value_t self_loop_prob = 0_vt;
 
         // Precomputed part of the Q-value.
@@ -160,17 +159,13 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
         bool finalize()
         {
-            if (self_loop_prob != 0_vt) {
-                // Calculate self-loop normalization factor
-                self_loop_prob = 1_vt / (1_vt - self_loop_prob);
-
-                if (nconv_successors.empty()) {
-                    // Apply self-loop normalization immediately
-                    conv_part *= self_loop_prob;
-                }
+            if (!nconv_successors.empty()) {
+                assert(0_vt < self_loop_prob && self_loop_prob < 1_vt);
+                conv_part *= 1 / (1_vt - self_loop_prob);
+                return false;
             }
 
-            return nconv_successors.empty();
+            return true;
         }
 
         EngineValueType compute_q_value() const
@@ -179,10 +174,6 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
             for (auto& [value, prob] : nconv_successors) {
                 res += prob * (*value);
-            }
-
-            if (self_loop_prob != 0_vt) {
-                res *= self_loop_prob;
             }
 
             return res;
