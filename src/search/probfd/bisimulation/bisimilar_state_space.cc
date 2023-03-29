@@ -320,11 +320,9 @@ void BisimilarStateSpace::generate_action_transitions(
     for (unsigned i = 0; i < outcomes.size(); ++i) {
         const ProbabilisticOutcomeProxy outcome = outcomes[i];
         const value_t probability = outcome.get_probability();
-        if (t.successors[i] == PRUNED_STATE) {
-            result.add(StateID(dead_end_state_.id), probability);
-        } else {
-            result.add(StateID(t.successors[i]), probability);
-        }
+        const StateID id = t.successors[i] == PRUNED_STATE ? dead_end_state_.id
+                                                           : t.successors[i];
+        result.add_probability(id, probability);
     }
 }
 
@@ -397,8 +395,8 @@ void BisimilarStateSpace::dump(std::ostream& out) const
             for (unsigned j = 0; j < outcomes.size(); ++j) {
                 const ProbabilisticOutcomeProxy outcome = outcomes[j];
                 const int succ = ts[i].successors[j];
-                succs.add(
-                    (succ == PRUNED_STATE ? (int)transitions_.size() : succ),
+                succs.add_probability(
+                    succ == PRUNED_STATE ? (int)transitions_.size() : succ,
                     outcome.get_probability());
             }
             for (const auto item : succs.support()) {

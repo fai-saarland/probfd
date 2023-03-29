@@ -31,7 +31,7 @@ StateID VBiasedSuccessorSampler::sample(
         const auto p = probability * hs_interface.lookup_value(item);
         if (p > 0_vt) {
             sum += p;
-            biased_.add(item, p);
+            biased_.add_probability(item, p);
         }
     }
 

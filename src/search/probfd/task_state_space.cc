@@ -60,9 +60,7 @@ void TaskStateSpace::generate_action_transitions(
     Distribution<StateID>& result)
 {
     State state = state_registry_.lookup_state(::StateID(state_id));
-    std::vector<ItemProbabilityPair<StateID>> temp;
-    compute_successor_states(state, op_id, temp);
-    result = Distribution<StateID>(std::move(temp));
+    compute_successor_dist(state, op_id, result);
 
     ++statistics_.single_transition_generator_calls;
     statistics_.generated_states += result.size();
@@ -77,11 +75,9 @@ void TaskStateSpace::generate_all_transitions(
     compute_applicable_operators(state, aops);
     successors.reserve(aops.size());
 
-    std::vector<ItemProbabilityPair<StateID>> temp;
     for (const auto& op : aops) {
-        compute_successor_states(state, op, temp);
-        const auto& new_dist = successors.emplace_back(std::move(temp));
-        statistics_.generated_states += new_dist.size();
+        auto num = compute_successor_dist(state, op, successors.emplace_back());
+        statistics_.generated_states += num;
     }
 
     ++statistics_.all_transitions_generator_calls;
@@ -115,30 +111,6 @@ void TaskStateSpace::Statistics::print(std::ostream& out) const
         << std::endl;
 }
 
-void TaskStateSpace::compute_successor_states(
-    const State& state,
-    OperatorID op_id,
-    std::vector<ItemProbabilityPair<StateID>>& succs)
-{
-    const ProbabilisticOperatorProxy op = task_proxy.get_operators()[op_id];
-    succs.reserve(op.get_outcomes().size());
-
-    for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
-        value_t probability = outcome.get_probability();
-        State succ = state_registry_.get_successor_state(state, outcome);
-
-        for (const auto& h : notify_) {
-            OperatorID det_op_id(outcome.get_determinization_id());
-            h->notify_state_transition(state, det_op_id, succ);
-        }
-
-        succs.emplace_back(succ.get_id(), probability);
-    }
-
-    ++statistics_.transition_computations;
-    statistics_.computed_successors += succs.size();
-}
-
 void TaskStateSpace::compute_applicable_operators(
     const State& s,
     std::vector<OperatorID>& ops)
@@ -147,6 +119,59 @@ void TaskStateSpace::compute_applicable_operators(
 
     ++statistics_.aops_computations;
     statistics_.computed_operators += ops.size();
+}
+
+void TaskStateSpace::compute_successor_states(
+    const State& state,
+    OperatorID op_id,
+    std::vector<StateID>& succs)
+{
+    const ProbabilisticOperatorProxy op = task_proxy.get_operators()[op_id];
+    const auto outcomes = op.get_outcomes();
+    const size_t num_outcomes = outcomes.size();
+    succs.reserve(num_outcomes);
+
+    for (const ProbabilisticOutcomeProxy outcome : outcomes) {
+        State succ = state_registry_.get_successor_state(state, outcome);
+
+        for (const auto& h : notify_) {
+            OperatorID det_op_id(outcome.get_determinization_id());
+            h->notify_state_transition(state, det_op_id, succ);
+        }
+
+        succs.emplace_back(succ.get_id());
+    }
+
+    ++statistics_.transition_computations;
+    statistics_.computed_successors += num_outcomes;
+}
+
+size_t TaskStateSpace::compute_successor_dist(
+    const State& state,
+    OperatorID op_id,
+    Distribution<StateID>& successor_dist)
+{
+    const ProbabilisticOperatorProxy op = task_proxy.get_operators()[op_id];
+    const auto outcomes = op.get_outcomes();
+    const size_t num_outcomes = outcomes.size();
+    successor_dist.reserve(num_outcomes);
+
+    for (const ProbabilisticOutcomeProxy outcome : outcomes) {
+        value_t probability = outcome.get_probability();
+        State succ = state_registry_.get_successor_state(state, outcome);
+
+        for (const auto& h : notify_) {
+            OperatorID det_op_id(outcome.get_determinization_id());
+            h->notify_state_transition(state, det_op_id, succ);
+        }
+
+        successor_dist.add_probability(succ.get_id(), probability);
+    }
+
+    ++statistics_.transition_computations;
+    statistics_.computed_successors += num_outcomes;
+
+    return num_outcomes;
 }
 
 } // namespace probfd

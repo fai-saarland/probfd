@@ -115,7 +115,6 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
             for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
                 transition.clear();
                 self->generate_successors(state_id, aops.back(), transition);
-                transition.make_unique();
 
                 if (!transition.is_dirac(state_id)) {
                     successor = transition.begin();
@@ -467,7 +466,6 @@ private:
             Action& current_op = aops.back();
 
             this->generate_successors(state_id, aops.back(), transition);
-            transition.make_unique();
 
             assert(!transition.empty());
 

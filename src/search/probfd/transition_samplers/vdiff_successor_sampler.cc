@@ -34,7 +34,7 @@ StateID VDiffSuccessorSampler::sample(
             probability * (prefer_large_gaps_ ? error : (1_vt - error));
         if (p > 0_vt) {
             sum += p;
-            biased_.add(item, p);
+            biased_.add_probability(item, p);
         }
     }
     if (biased_.empty()) {

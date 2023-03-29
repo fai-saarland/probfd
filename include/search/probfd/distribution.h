@@ -62,34 +62,32 @@ public:
 };
 
 /**
- * @brief A convenience class that wraps a list of item-probability pairs.
+ * @brief A convenience class that represents a finite probability distribution.
  *
  * @tparam T - The item type.
  */
 template <typename T>
 class Distribution {
-private:
-    using distribution_t = std::vector<ItemProbabilityPair<T>>;
-    distribution_t distribution_;
+    std::vector<ItemProbabilityPair<T>> distribution_;
 
 public:
-    /// Iterator type.
-    using iterator = typename distribution_t::iterator;
-    using const_iterator = typename distribution_t::const_iterator;
-
-    /// Constructs the empty list of element-probability pairs.
-    Distribution() = default;
+    using iterator = typename std::vector<ItemProbabilityPair<T>>::iterator;
+    using const_iterator =
+        typename std::vector<ItemProbabilityPair<T>>::const_iterator;
 
     /**
-     * @brief Constructs the list from a vector of element-probability pairs.
+     * @brief Reserves space for \p capacity number of elements in
+     * the support of the distribution.
      */
-    explicit Distribution(distribution_t d)
-        : distribution_(std::move(d))
-    {
-    }
+    void reserve(size_t capacity) { distribution_.reserve(capacity); }
 
     /**
-     * @brief Returns the current number of element-probability pairs.
+     * @brief Checks if the distribution is in an empty state.
+     */
+    bool empty() const { return distribution_.empty(); }
+
+    /**
+     * @brief Returns the size of the support.
      */
     size_t size() const { return distribution_.size(); }
 
@@ -100,20 +98,7 @@ public:
         other.distribution_.swap(distribution_);
     }
 
-    /**
-     * Adds element-probability pair (\p t, \p prob) to the list,
-     * even if another pair with an element that compares equal to \p t is
-     * already present.
-     *
-     * @see make_unique
-     */
-    void add(T t, value_t prob)
-    {
-        assert(prob > 0.0);
-        distribution_.emplace_back(std::move(t), prob);
-    }
-
-    std::pair<iterator, bool> add_unique(T t, value_t prob)
+    void add_probability(T t, value_t prob)
     {
         assert(prob > 0.0);
 
@@ -121,46 +106,41 @@ public:
 
         if (it != end()) {
             it->probability += prob;
-            return {it, false};
+            return;
         }
 
-        return {distribution_.emplace(it, std::move(t), prob), true};
-    }
-
-    /**
-     * Emplaces element-probability pair (\p T(args...), \p prob) to the list,
-     * even if another pair with an element that compares equal to \p t is
-     * already present.
-     *
-     * @see make_unique
-     */
-    template <typename... Args>
-    ItemProbabilityPair<T>& emplace(std::tuple<Args...> args, value_t prob)
-    {
-        assert(prob > 0.0);
-        return distribution_.emplace_back(args, prob);
+        distribution_.emplace(it, std::move(t), prob);
     }
 
     iterator find(const T& t)
     {
-        return std::ranges::find(
+        auto it = std::ranges::lower_bound(
             distribution_,
             t,
+            std::less<>{},
             &ItemProbabilityPair<T>::item);
+
+        if (it == end() || it->item == t) {
+            return it;
+        }
+
+        return end();
     }
 
     const_iterator find(const T& t) const
     {
-        return std::ranges::find(
+        auto it = std::ranges::lower_bound(
             distribution_,
             t,
+            std::less<>{},
             &ItemProbabilityPair<T>::item);
-    }
 
-    /**
-     * @brief Checks if the list is empty.
-     */
-    bool empty() const { return distribution_.empty(); }
+        if (it == end() || it->item == t) {
+            return it;
+        }
+
+        return end();
+    }
 
     /**
      * @brief Checks if the distribution is a Dirac distribution wrt an element.
@@ -198,33 +178,6 @@ public:
             sum += pair.probability;
         }
         normalize(1_vt / sum);
-    }
-
-    /**
-     * @brief Merges equal elements in the list by adding their probabilities.
-     */
-    void make_unique()
-    {
-        if (size() < 2) {
-            return;
-        }
-
-        std::ranges::sort(
-            distribution_,
-            std::ranges::less{},
-            &ItemProbabilityPair<T>::item);
-
-        const auto [first, last] =
-            std::ranges::unique(distribution_, [](auto& left, auto& right) {
-                if (left.item == right.item) {
-                    left.probability += right.probability;
-                    return true;
-                }
-
-                return false;
-            });
-
-        distribution_.erase(first, last);
     }
 
     auto sample(utils::RandomNumberGenerator& rng)

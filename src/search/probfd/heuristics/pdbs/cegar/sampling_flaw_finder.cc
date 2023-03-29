@@ -195,7 +195,7 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
         assert(einfos.find(state) == einfos.end());
         ExplorationInfo& einfo = einfos[state];
         for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
-            einfo.successors.add_unique(
+            einfo.successors.add_probability(
                 this->apply_op_to_state(state, outcome),
                 outcome.get_probability());
         }

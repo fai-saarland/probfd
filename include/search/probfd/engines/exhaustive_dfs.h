@@ -536,7 +536,7 @@ private:
                     } else if (succ_info.is_onstack()) {
                         node_info.lowlink =
                             std::min(node_info.lowlink, succ_info.lowlink);
-                        inc->successors.add(succ_id, prob);
+                        inc->successors.add_probability(succ_id, prob);
                     } else {
                         assert(succ_info.is_closed());
                         expanding.update_successors_dead(

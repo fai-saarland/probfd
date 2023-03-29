@@ -132,7 +132,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                 info.base_effect += ranking_function.from_fact(var, val_change);
             }
 
-            outcomes.add_unique(std::move(info), out.get_probability());
+            outcomes.add_probability(std::move(info), out.get_probability());
         }
 
         utils::sort_unique(vars_eff_not_pre);
@@ -154,7 +154,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                 auto a =
                     ranking_function.from_values_partial(missing_pres, values);
 
-                new_op.outcomes.add_unique(base_effect - a, prob);
+                new_op.outcomes.add_probability(base_effect - a, prob);
             }
 
             // Construct the precondition by merging the original
@@ -266,7 +266,7 @@ void ProjectionStateSpace::generate_action_transitions(
     Distribution<StateID>& result)
 {
     for (const auto& [item, probability] : op->outcomes) {
-        result.add(state.id + item.id, probability);
+        result.add_probability(state.id + item.id, probability);
     }
 }
 

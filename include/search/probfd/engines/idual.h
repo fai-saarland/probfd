@@ -194,7 +194,6 @@ public:
 
                 for (unsigned j = 0; j < transitions.size(); ++j) {
                     Distribution<StateID>& transition = transitions[j];
-                    transition.make_unique();
 
                     if (transition.is_dirac(state_id)) {
                         continue;

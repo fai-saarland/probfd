@@ -96,17 +96,16 @@ void CachingTaskStateSpace::generate_action_transitions(
             continue;
         }
 
+        for (const auto outcome : outcomes) {
+            result.add_probability(*succs++, outcome.get_probability());
+        }
+
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
         State state = state_registry_.lookup_state(::StateID(state_id));
-        std::vector<ItemProbabilityPair<StateID>> test;
-        compute_successor_states(state, op_id, test);
-        assert(test.size() == num_outcomes);
+        Distribution<StateID> test;
+        compute_successor_dist(state, op_id, test);
+        assert(test == result);
 #endif
-        for (unsigned j = 0; j < num_outcomes; ++j, ++succs) {
-            value_t probability = outcomes[j].get_probability();
-            assert(test[j] == ItemProbabilityPair(*succs, probability));
-            result.add(*succs, probability);
-        }
 
         break;
     }
@@ -125,7 +124,7 @@ void CachingTaskStateSpace::generate_all_transitions(
     CacheEntry& entry = lookup(state_id);
     const StateID* succs = entry.succs;
     aops.reserve(entry.naops);
-    successors.resize(entry.naops);
+    successors.reserve(entry.naops);
 
 #ifdef DEBUG_CACHE_CONSISTENCY_CHECK
     State state = state_registry_.lookup_state(::StateID(state_id));
@@ -134,30 +133,31 @@ void CachingTaskStateSpace::generate_all_transitions(
     assert(test_aops.size() == entry.naops);
 #endif
 
-    for (unsigned i = 0; i < entry.naops; ++i) {
-        OperatorID op_id = entry.aops[i];
+    for (OperatorID op_id : std::span{entry.aops, entry.naops}) {
         aops.push_back(op_id);
 
-#ifdef DEBUG_CACHE_CONSISTENCY_CHECK
-        assert(aops[i] == test_aops[i]);
-        std::vector<ItemProbabilityPair<StateID>> test;
-        compute_successor_states(state, aops[i], test);
-#endif
-
-        Distribution<StateID>& result = successors[i];
+        Distribution<StateID>& result = successors.emplace_back();
 
         const ProbabilisticOperatorProxy op = operators[op_id];
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
         const size_t num_outcomes = outcomes.size();
 
-        for (unsigned j = 0; j < num_outcomes; ++j, ++succs) {
-            value_t probability = outcomes[j].get_probability();
-            assert(test[j] == ItemProbabilityPair(*succs, probability));
-            result.add(*succs, probability);
+        for (const auto outcome : outcomes) {
+            result.add_probability(*succs++, outcome.get_probability());
         }
 
-        statistics_.generated_states += result.size();
+#ifdef DEBUG_CACHE_CONSISTENCY_CHECK
+        Distribution<StateID> test;
+        compute_successor_dist(state, op_id, test);
+        assert(test == result);
+#endif
+
+        statistics_.generated_states += num_outcomes;
     }
+
+#ifdef DEBUG_CACHE_CONSISTENCY_CHECK
+    assert(aops == test_aops);
+#endif
 
     ++statistics_.all_transitions_generator_calls;
     statistics_.generated_operators += aops.size();
@@ -174,15 +174,15 @@ bool CachingTaskStateSpace::setup_cache(StateID state_id, CacheEntry& entry)
         if (entry.naops > 0) {
             entry.aops = cache_data_.allocate<OperatorID>(aops_.size());
 
-            std::vector<ItemProbabilityPair<StateID>> succs;
+            std::vector<StateID> succs;
             for (size_t i = 0; i < aops_.size(); ++i) {
                 OperatorID op = aops_[i];
                 entry.aops[i] = op;
 
                 compute_successor_states(state, op, succs);
 
-                for (const auto& s : succs) {
-                    successors_.push_back(s.item);
+                for (const StateID s : succs) {
+                    successors_.push_back(s);
                 }
 
                 succs.clear();

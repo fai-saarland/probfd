@@ -360,10 +360,6 @@ void dump_state_space_dot_graph(
         std::vector<Distribution<StateID>> all_successors;
         state_space->generate_all_transitions(state_id, aops, all_successors);
 
-        for (auto& dist : all_successors) {
-            dist.make_unique();
-        }
-
         std::vector<std::pair<Action, Distribution<StateID>>> transitions;
 
         for (std::size_t i = 0; i != aops.size(); ++i) {
@@ -418,7 +414,7 @@ void dump_state_space_dot_graph(
                 auto [succ_node, inserted] =
                     builder.insertStateNode(succ_id, my_rank + 2);
                 max_rank = std::max(max_rank, succ_node->getRank());
-                successor_nodes.add(succ_node, prob);
+                successor_nodes.add_probability(succ_node, prob);
 
                 if (inserted) {
                     open.emplace_back(

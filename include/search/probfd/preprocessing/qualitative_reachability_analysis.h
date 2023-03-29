@@ -130,7 +130,6 @@ class QualitativeReachabilityAnalysis {
                     state_id,
                     aops.back(),
                     transition);
-                transition.make_unique();
 
                 if (!transition.is_dirac(state_id)) {
                     successor = transition.begin();
@@ -336,7 +335,6 @@ private:
                 state_id,
                 aops.back(),
                 transition);
-            transition.make_unique();
 
             assert(!transition.empty());
 

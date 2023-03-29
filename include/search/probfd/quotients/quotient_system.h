@@ -273,7 +273,9 @@ public:
         state_space_->generate_action_transitions(a.state_id, act, orig);
 
         for (const auto& [state_id, probability] : orig) {
-            result.add(get_masked_state_id(state_id) & MASK, probability);
+            result.add_probability(
+                get_masked_state_id(state_id) & MASK,
+                probability);
         }
     }
 

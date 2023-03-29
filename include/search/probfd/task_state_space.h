@@ -91,13 +91,18 @@ public:
     virtual void print_statistics(std::ostream& out) const;
 
 protected:
+    void
+    compute_applicable_operators(const State& s, std::vector<OperatorID>& ops);
+
     void compute_successor_states(
         const State& s,
         OperatorID op_id,
-        std::vector<ItemProbabilityPair<StateID>>& successors);
+        std::vector<StateID>& successors);
 
-    void
-    compute_applicable_operators(const State& s, std::vector<OperatorID>& ops);
+    size_t compute_successor_dist(
+        const State& s,
+        OperatorID op_id,
+        Distribution<StateID>& successors);
 };
 
 } // namespace probfd

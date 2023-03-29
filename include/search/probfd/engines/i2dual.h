@@ -239,7 +239,6 @@ public:
                     ClearGuard _guard_s(succs_);
 
                     this->generate_successors(state_id, act, succs_);
-                    succs_.make_unique();
 
                     if (succs_.is_dirac(state_id)) {
                         continue;
