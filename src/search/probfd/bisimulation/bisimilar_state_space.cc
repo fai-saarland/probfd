@@ -401,7 +401,7 @@ void BisimilarStateSpace::dump(std::ostream& out) const
                     (succ == PRUNED_STATE ? (int)transitions_.size() : succ),
                     outcome.get_probability());
             }
-            for (const auto item : succs.elements()) {
+            for (const auto item : succs.support()) {
                 out << "t" << t << " -> n" << item << "\n";
             }
             ++t;

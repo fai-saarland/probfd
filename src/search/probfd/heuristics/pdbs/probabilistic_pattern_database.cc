@@ -176,7 +176,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
                 std::vector<const AbstractOperator*> equivalent_operators;
 
                 for (const AbstractOperator* op : aops) {
-                    if (op->outcomes.data() == sel_op->outcomes.data()) {
+                    if (op->outcomes == sel_op->outcomes) {
                         equivalent_operators.push_back(op);
                     }
                 }
@@ -273,7 +273,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
         std::vector<const AbstractOperator*> equivalent_operators;
 
         for (const AbstractOperator* op : aops) {
-            if (op->outcomes.data() == greedy_operator->outcomes.data()) {
+            if (op->outcomes == greedy_operator->outcomes) {
                 equivalent_operators.push_back(op);
             }
         }

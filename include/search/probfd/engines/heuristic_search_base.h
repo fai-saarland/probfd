@@ -233,7 +233,7 @@ public:
             Distribution<StateID> successors;
             this->generate_successors(state_id, action, successors);
 
-            for (const StateID succ_id : successors.elements()) {
+            for (const StateID succ_id : successors.support()) {
                 if (visited.insert(succ_id).second) {
                     queue.push_back(succ_id);
                 }

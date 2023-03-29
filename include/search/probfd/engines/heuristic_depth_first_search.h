@@ -133,7 +133,7 @@ class HeuristicDepthFirstSearch
 
         void set_successors(const Distribution<StateID>& t)
         {
-            for (const StateID s : t.elements()) {
+            for (const StateID s : t.support()) {
                 successors.push_back(s);
             }
         }

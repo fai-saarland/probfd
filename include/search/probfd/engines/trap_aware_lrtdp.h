@@ -440,7 +440,7 @@ private:
 
         queue_.emplace_back(state);
         ExplorationInformation& e = queue_.back();
-        for (const StateID sel : this->selected_transition_.elements()) {
+        for (const StateID sel : this->selected_transition_.support()) {
             if (sel != state) {
                 e.successors.push_back(sel);
             }

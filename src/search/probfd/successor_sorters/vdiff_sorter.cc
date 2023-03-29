@@ -15,30 +15,28 @@ VDiffSorter::VDiffSorter(const value_t favor_large_gaps)
 void VDiffSorter::sort(
     StateID,
     const std::vector<OperatorID>&,
-    std::vector<Distribution<StateID>>& successors,
+    std::vector<Distribution<StateID>>& all_successors,
     engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
     std::vector<std::pair<double, unsigned>> k0;
-    k0.reserve(successors.size());
-    for (int i = successors.size() - 1; i >= 0; --i) {
-        const auto& t = successors[i].data();
+    k0.reserve(all_successors.size());
+    for (const auto& successor_dist : all_successors) {
         value_t sum = 0;
-        for (const auto [succ, prob] : t) {
-            const value_t gap = favor_large_gaps_ *
-                                hs_interface.lookup_dual_bounds(succ).length();
-            sum += prob * gap;
+        for (const auto [succ, prob] : successor_dist) {
+            sum += prob * favor_large_gaps_ *
+                   hs_interface.lookup_dual_bounds(succ).length();
         }
-        k0.emplace_back(sum, i);
+        k0.emplace_back(sum, k0.size());
     }
 
     // Would be less redundant with std::ranges::zip (C++ 23) ...
     std::ranges::sort(k0);
     std::vector<Distribution<StateID>> res;
-    res.reserve(successors.size());
+    res.reserve(all_successors.size());
     for (unsigned i = 0; i < k0.size(); ++i) {
-        res.push_back(std::move(successors[k0[i].second]));
+        res.push_back(std::move(all_successors[k0[i].second]));
     }
-    res.swap(successors);
+    res.swap(all_successors);
 }
 
 } // namespace successor_sorting

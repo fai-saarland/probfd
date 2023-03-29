@@ -93,7 +93,6 @@ public:
      */
     size_t size() const { return distribution_.size(); }
 
-    /// @brief Clears the list.
     void clear() { distribution_.clear(); }
 
     void swap(Distribution<T>& other)
@@ -308,43 +307,19 @@ public:
 
     auto end() const { return distribution_.end(); }
 
-    auto elements()
+    auto support()
     {
         return std::views::transform(
             distribution_,
             &ItemProbabilityPair<T>::item);
     }
 
-    auto elements() const
+    auto support() const
     {
         return std::views::transform(
             distribution_,
             &ItemProbabilityPair<T>::item);
     }
-
-    auto probabilities()
-    {
-        return std::ranges::transform(
-            distribution_,
-            &ItemProbabilityPair<T>::probability);
-    }
-
-    auto probabilities() const
-    {
-        return std::ranges::transform(
-            distribution_,
-            &ItemProbabilityPair<T>::probability);
-    }
-
-    /**
-     * @brief Obtains a reference to the internal list.
-     */
-    distribution_t& data() { return distribution_; }
-
-    /**
-     * @brief Obtains a const reference to the internal list.
-     */
-    const distribution_t& data() const { return distribution_; }
 
     friend auto
     operator<=>(const Distribution<T>&, const Distribution<T>&) = default;

@@ -191,7 +191,7 @@ public:
                         this->lookup_action(source_id, action_id),
                         successors);
 
-                    for (const StateID succ_id : successors.elements()) {
+                    for (const StateID succ_id : successors.support()) {
                         parents[succ_id].insert({source_id, action_id});
                     }
                 }
@@ -226,7 +226,7 @@ public:
                 quotient_action,
                 successors);
 
-            for (const StateID succ_id : successors.elements()) {
+            for (const StateID succ_id : successors.support()) {
                 if (visited.insert(succ_id).second) {
                     queue.push_back(succ_id);
                 }
@@ -435,7 +435,7 @@ public:
                 opt_transitions);
 
         for (const auto& transition : opt_transitions) {
-            for (const StateID sid : transition.elements()) {
+            for (const StateID sid : transition.support()) {
                 if (ids.insert(sid).second) {
                     successors.push_back(sid);
                 }
@@ -474,7 +474,7 @@ public:
         ClearGuard _guard(t_);
 
         bool result = base_engine.apply_policy(qstate, t_);
-        for (StateID sid : t_.elements()) {
+        for (StateID sid : t_.support()) {
             successors.push_back(sid);
         }
         return result;

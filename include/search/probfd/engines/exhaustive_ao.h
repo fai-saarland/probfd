@@ -150,7 +150,7 @@ private:
             info.unsolved = unsolved;
 
             for (const auto& transition : transitions_) {
-                for (StateID succ_id : transition.elements()) {
+                for (StateID succ_id : transition.support()) {
                     this->get_state_info(succ_id).unmark();
                 }
             }

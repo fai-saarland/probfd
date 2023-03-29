@@ -354,7 +354,7 @@ private:
                     }
                 }
 
-                for (StateID succ_id : selected_transition_.elements()) {
+                for (StateID succ_id : selected_transition_.support()) {
                     auto& succ_info = get_lrtdp_state_info(succ_id);
                     if (succ_info.is_solved()) {
                         auto& succsi = this->get_state_info(succ_id, succ_info);
@@ -412,7 +412,7 @@ private:
             }
 
             if (rv && !this->selected_transition_.empty()) {
-                for (StateID succid : selected_transition_.elements()) {
+                for (StateID succid : selected_transition_.support()) {
                     auto& succ_info = get_lrtdp_state_info(succid);
                     if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
                         succ_info.mark_open();

@@ -725,7 +725,7 @@ private:
             node.lowlink = std::min(node.lowlink, lowlink);
 
             for (const auto& successors : exp.successors) {
-                for (const StateID sid : successors.elements()) {
+                for (const StateID sid : successors.support()) {
                     SearchNodeInformation& succ_info = search_space_[sid];
                     succ_info.value = succ_info.state_cost;
                     succ_info.mark_dead_end();

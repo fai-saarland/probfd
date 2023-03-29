@@ -289,7 +289,7 @@ private:
             solved = true;
             dead = !selected_transition_.empty() || info.is_dead_end();
 
-            for (const StateID succ_id : selected_transition_.elements()) {
+            for (const StateID succ_id : selected_transition_.support()) {
                 const auto& succ_info = this->get_state_info(succ_id);
                 solved = solved && succ_info.is_solved();
                 dead = dead && succ_info.is_dead_end();

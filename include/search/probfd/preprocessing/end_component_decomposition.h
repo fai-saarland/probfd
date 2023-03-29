@@ -319,7 +319,7 @@ private:
 
             std::vector<StateID> succ_ids;
 
-            for (StateID succ_id : transition.elements()) {
+            for (StateID succ_id : transition.support()) {
                 if (succ_id != state_id) {
                     succ_ids.push_back(succ_id);
                 }

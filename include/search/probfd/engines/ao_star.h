@@ -114,7 +114,7 @@ private:
                     this->transitions_);
 
                 for (const auto& transition : this->transitions_) {
-                    for (StateID succ_id : transition.elements()) {
+                    for (StateID succ_id : transition.support()) {
                         auto& succ_info = this->get_state_info(succ_id);
 
                         if (succ_info.is_unflagged()) {
@@ -136,7 +136,7 @@ private:
                 info.update_order = min_succ_order + 1;
 
                 for (const auto& transition : this->transitions_) {
-                    for (const StateID succ_id : transition.elements()) {
+                    for (const StateID succ_id : transition.support()) {
                         this->get_state_info(succ_id).unmark();
                     }
                 }

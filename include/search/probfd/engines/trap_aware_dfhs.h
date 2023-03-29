@@ -275,7 +275,7 @@ private:
         info.successors.reserve(transition_.size());
 
         if (open_list_ == nullptr) {
-            for (const StateID item : transition_.elements()) {
+            for (const StateID item : transition_.support()) {
                 if (item != state) {
                     info.successors.push_back(item);
                 }
@@ -769,7 +769,7 @@ public:
                         parent_state_space->get_action(source_id, action_id),
                         successors);
 
-                    for (const StateID succ_id : successors.elements()) {
+                    for (const StateID succ_id : successors.support()) {
                         parents[succ_id].insert({source_id, action_id});
                     }
                 }
@@ -802,7 +802,7 @@ public:
                 quotient_action,
                 successors);
 
-            for (const StateID succ_id : successors.elements()) {
+            for (const StateID succ_id : successors.support()) {
                 if (visited.insert(succ_id).second) {
                     queue.push_back(succ_id);
                 }

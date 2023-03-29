@@ -37,16 +37,18 @@ EquivalenceRelation::EquivalenceRelation(int n, const list<Block> &blocks_)
 EquivalenceRelation::~EquivalenceRelation() {
 }
 
-int EquivalenceRelation::get_num_elements() const {
+int EquivalenceRelation::get_num_support() const
+{
     return num_elements;
 }
 
-int EquivalenceRelation::get_num_explicit_elements() const {
+int EquivalenceRelation::get_num_explicit_support() const
+{
     return element_positions.size();
 }
 
 int EquivalenceRelation::get_num_blocks() const {
-    if (get_num_elements() == get_num_explicit_elements()) {
+    if (get_num_support() == get_num_explicit_support()) {
         return blocks.size();
     } else {
         return blocks.size() + 1;

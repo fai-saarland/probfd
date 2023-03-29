@@ -61,14 +61,14 @@ public:
     EquivalenceRelation(int n, const std::list<Block> &blocks_);
     ~EquivalenceRelation();
 
-    int get_num_elements() const;
-    int get_num_explicit_elements() const;
+    int get_num_support() const;
+    int get_num_explicit_support() const;
     int get_num_blocks() const;
     int get_num_explicit_blocks() const;
     // TODO: There may or may not be an implicitly defined Block. Should this be
     //       created and returned, too?
     //       The same question goes for get_num_blocks().
-    //       This is also a problem with get_num_elements() as there can be less
+    //       This is also a problem with get_num_support() as there can be less
     //       explicitly specified elements than num_elements.
     BlockListConstIter begin() const {return blocks.begin();}
     BlockListConstIter end() const {return blocks.end();}
