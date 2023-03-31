@@ -599,7 +599,7 @@ private:
                                  std::views::transform(&StackInfo::stateid);
                 auto abegin =
                     utils::make_transform_iterator(scc_begin, &StackInfo::aops);
-                sys_->build_quotient(
+                sys_->build_new_quotient(
                     sid_range.begin(),
                     sid_range.end(),
                     scc_repr_id,

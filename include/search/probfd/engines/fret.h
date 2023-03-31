@@ -11,6 +11,8 @@
 
 #include "probfd/policies/map_policy.h"
 
+#include "probfd/task_utils/task_properties.h"
+
 #if defined(EXPENSIVE_STATISTICS)
 #include "../../utils/timer.h"
 #endif
@@ -367,20 +369,14 @@ private:
         GreedyGraphGenerator greedy_graph;
 
         // Get the greedy transitions to collapse them
-        std::vector<std::vector<Action>> ops;
-        ops.reserve(std::distance(first, last));
-
+        std::vector<std::vector<QAction>> qops;
+        qops.reserve(std::distance(first, last));
         for (auto it = first; it != last; ++it) {
-            std::vector<QAction> qops;
-            greedy_graph.get_actions(*base_engine_, *it, qops);
-            auto& orig_ops = ops.emplace_back();
-            for (const QAction& qop : qops) {
-                orig_ops.push_back(quotient_->get_original_action(*it, qop));
-            }
+            greedy_graph.get_actions(*base_engine_, *it, qops.emplace_back());
         }
 
         // Now collapse the quotient
-        quotient_->build_quotient(first, last, repr, ops.begin());
+        quotient_->build_quotient(first, last, repr, qops.begin());
         base_engine_->clear_policy(repr);
 
         ++statistics_.traps;

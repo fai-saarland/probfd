@@ -554,10 +554,11 @@ private:
         utils::TimerScope scope(statistics_.trap_timer);
 
         // Get the greedy actions and collapse them
-        std::vector<std::vector<Action>> collapsed_actions;
+        std::vector<std::vector<QAction>> collapsed_actions;
+        collapsed_actions.reserve(std::distance(scc_begin, scc_end));
         for (auto it = scc_begin; it != scc_end; ++it) {
-            collapsed_actions.emplace_back(std::initializer_list<Action>{
-                quotient_->get_original_action(*it, this->get_policy(*it))});
+            collapsed_actions.emplace_back(
+                std::initializer_list<QAction>{this->get_policy(*it)});
         }
 
         quotient_->build_quotient(
