@@ -910,8 +910,11 @@ private:
             state_info.removed_from_fringe();
         }
 
-        EngineValueType optimal_value =
-            compute_optimal_transitions(state_id, state_info, opt_aops, opt_transitions);
+        EngineValueType optimal_value = compute_optimal_transitions(
+            state_id,
+            state_info,
+            opt_aops,
+            opt_transitions);
 
         if (opt_aops.empty()) {
             statistics_.self_loop_states++;
