@@ -164,8 +164,18 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         bool finalize()
         {
             if (!scc_successors.empty()) {
-                assert(0_vt < self_loop_prob && self_loop_prob < 1_vt);
-                conv_part *= 1_vt / (1_vt - self_loop_prob);
+                if (self_loop_prob != 0_vt) {
+                    assert(self_loop_prob > 0_vt && self_loop_prob < 1_vt);
+
+                    const auto normalization = 1_vt / (1_vt - self_loop_prob);
+
+                    for (auto& [_, prob] : scc_successors) {
+                        prob *= normalization;
+                    }
+
+                    conv_part *= normalization;
+                }
+
                 return false;
             }
 

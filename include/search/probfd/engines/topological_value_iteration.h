@@ -160,8 +160,18 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         bool finalize()
         {
             if (!nconv_successors.empty()) {
-                assert(0_vt < self_loop_prob && self_loop_prob < 1_vt);
-                conv_part *= 1 / (1_vt - self_loop_prob);
+                if (self_loop_prob != 0_vt) {
+                    assert(0_vt < self_loop_prob && self_loop_prob < 1_vt);
+
+                    const auto normalization = 1 / (1_vt - self_loop_prob);
+
+                    for (auto& [_, prob] : nconv_successors) {
+                        prob *= normalization;
+                    }
+
+                    conv_part *= normalization;
+                }
+
                 return false;
             }
 
