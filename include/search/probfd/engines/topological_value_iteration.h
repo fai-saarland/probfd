@@ -90,6 +90,9 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // Next state to expand
         typename Distribution<StateID>::const_iterator successor;
 
+        // Probability to remain in the same state.
+        value_t self_loop_prob = 0_vt;
+
         ExplorationInfo(
             StateID state_id,
             unsigned stackidx,
@@ -118,6 +121,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
                 if (!transition.is_dirac(state_id)) {
                     successor = transition.begin();
+                    self_loop_prob = 0_vt;
                     return true;
                 }
             }
@@ -139,9 +143,6 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // The action id this Q value belongs to.
         ActionID action_id;
 
-        // Probability to remain in the same state.
-        value_t self_loop_prob = 0_vt;
-
         // Precomputed part of the Q-value.
         // Sum of action cost plus those weighted successor values which
         // have already converged due to topological ordering.
@@ -157,25 +158,22 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         {
         }
 
-        bool finalize()
+        bool has_no_scc_successors() { return nconv_successors.empty(); }
+
+        void normalize(value_t self_loop_prob)
         {
-            if (!nconv_successors.empty()) {
-                if (self_loop_prob != 0_vt) {
-                    assert(0_vt < self_loop_prob && self_loop_prob < 1_vt);
+            assert(!nconv_successors.empty());
+            assert(0_vt <= self_loop_prob && self_loop_prob < 1_vt);
 
-                    const auto normalization = 1 / (1_vt - self_loop_prob);
+            if (self_loop_prob != 0_vt) {
+                const auto normalization = 1 / (1_vt - self_loop_prob);
 
-                    for (auto& [_, prob] : nconv_successors) {
-                        prob *= normalization;
-                    }
-
-                    conv_part *= normalization;
+                for (auto& [_, prob] : nconv_successors) {
+                    prob *= normalization;
                 }
 
-                return false;
+                conv_part *= normalization;
             }
-
-            return true;
         }
 
         EngineValueType compute_q_value() const
@@ -195,9 +193,6 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
         // Reference to the state value of the state.
         EngineValueType* value;
-
-        // The state cost
-        EngineValueType terminal_cost;
 
         // Precomputed part of the max of the value update.
         // Minimum over all Q values of actions leaving the SCC.
@@ -219,7 +214,6 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
             unsigned num_aops)
             : state_id(state_id)
             , value(&value_ref)
-            , terminal_cost(terminal_cost)
             , conv_part(terminal_cost)
         {
             nconv_qs.reserve(num_aops);
@@ -355,7 +349,11 @@ public:
                 exploration_stack_.pop_back();
 
                 if (exploration_stack_.empty()) {
-                    goto break_exploration;
+                    if constexpr (UseInterval) {
+                        return init_value;
+                    } else {
+                        return Interval(init_value, INFINITE_VALUE);
+                    }
                 }
 
                 explore = &exploration_stack_.back();
@@ -377,9 +375,13 @@ public:
                     break;
                 }
 
-                if (tinfo.finalize()) {
-                    set_min(stack_info->conv_part, tinfo.conv_part);
+                if (tinfo.has_no_scc_successors()) {
+                    if (set_min(stack_info->conv_part, tinfo.conv_part)) {
+                        stack_info->best_converged_id = tinfo.action_id;
+                    }
                     stack_info->nconv_qs.pop_back();
+                } else {
+                    tinfo.normalize(explore->self_loop_prob);
                 }
 
                 if (explore->next_action(this, state_id)) {
@@ -391,14 +393,6 @@ public:
                     break;
                 }
             }
-        }
-
-    break_exploration:;
-
-        if constexpr (UseInterval) {
-            return init_value;
-        } else {
-            return Interval(init_value, INFINITE_VALUE);
         }
     }
 
@@ -539,7 +533,7 @@ private:
                 const auto [succ_id, prob] = explore.get_current_successor();
 
                 if (succ_id == state_id) {
-                    tinfo.self_loop_prob += prob;
+                    explore.self_loop_prob += prob;
                     continue;
                 }
 
@@ -559,11 +553,13 @@ private:
                 }
             } while (explore.next_successor());
 
-            if (tinfo.finalize()) {
+            if (tinfo.has_no_scc_successors()) {
                 if (set_min(stack_info.conv_part, tinfo.conv_part)) {
                     stack_info.best_converged_id = tinfo.action_id;
                 }
                 stack_info.nconv_qs.pop_back();
+            } else {
+                tinfo.normalize(explore.self_loop_prob);
             }
 
             if (!explore.next_action(this, state_id)) {

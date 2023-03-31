@@ -101,6 +101,9 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         // whether the transition has non-zero cost or can leave the scc
         bool nz_or_leaves_scc;
 
+        // Probability to remain in the state.
+        value_t self_loop_prob = 0_vt;
+
         ExplorationInfo(
             unsigned stackidx,
             std::vector<Action> aops,
@@ -126,6 +129,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
 
                 if (!transition.is_dirac(state_id)) {
                     successor = transition.begin();
+                    self_loop_prob = 0_vt;
                     return true;
                 }
             }
@@ -143,43 +147,36 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         }
     };
 
+    /**
+     * Stores the necessary information for the Q-value update
+     * Q(s, a) \gets c(s, a) + \sum_{t \in \states} P(s, a, t) \cdot V(t)
+     */
     struct QValueInfo {
-        // Probability to remain in the same state.
-        value_t self_loop_prob = 0.0_vt;
-
-        // Precomputed part of the Q-value.
-        // Sum of action cost plus those weighted successor values which
-        // have already converged due to topological ordering.
+        // Precomputed part of the Q-value, i.e.,
+        // c(s, a) + \sum_{t \in \states \setminus SCC(s)} P(s, a, t) \cdot
+        // V*(t) .
         EngineValueType conv_part;
 
-        // Pointers to successor values which have not yet converged,
-        // self-loops excluded.
+        // All successors t \in SCC(s) within the same SCC, excluding
+        // self-loops.
         std::vector<ItemProbabilityPair<StateID>> scc_successors;
 
-        explicit QValueInfo(value_t action_cost)
-            : conv_part(action_cost)
+        bool has_no_scc_successors() const { return scc_successors.empty(); }
+
+        void normalize(value_t self_loop_prob)
         {
-        }
+            assert(!scc_successors.empty());
+            assert(0_vt <= self_loop_prob && self_loop_prob < 1_vt);
 
-        bool finalize()
-        {
-            if (!scc_successors.empty()) {
-                if (self_loop_prob != 0_vt) {
-                    assert(self_loop_prob > 0_vt && self_loop_prob < 1_vt);
+            if (self_loop_prob == 0_vt) return;
 
-                    const auto normalization = 1_vt / (1_vt - self_loop_prob);
+            const auto normalization = 1_vt / (1_vt - self_loop_prob);
 
-                    for (auto& [_, prob] : scc_successors) {
-                        prob *= normalization;
-                    }
-
-                    conv_part *= normalization;
-                }
-
-                return false;
+            for (auto& [_, prob] : scc_successors) {
+                prob *= normalization;
             }
 
-            return true;
+            conv_part *= normalization;
         }
 
         template <typename ValueStore>
@@ -428,7 +425,11 @@ public:
                 exploration_stack_.pop_back();
 
                 if (exploration_stack_.empty()) {
-                    goto break_exploration;
+                    if constexpr (UseInterval) {
+                        return init_value;
+                    } else {
+                        return Interval(init_value, INFINITE_VALUE);
+                    }
                 }
 
                 explore = &exploration_stack_.back();
@@ -461,18 +462,23 @@ public:
 
                 // Check whether the transition is part of the scc or an end
                 // component within the scc
-                if (tinfo.finalize()) {
+                if (tinfo.has_no_scc_successors()) {
                     // Universally exiting -> Not part of scc
                     // Update converged portion of q value and ignore this
                     // transition
                     set_min(stack_info->conv_part, tinfo.conv_part);
                     stack_info->ec_transitions.pop_back();
-                } else if (explore->nz_or_leaves_scc) {
-                    // Only some exiting or cost is non-zero ->
-                    // Not part of an end component
-                    // Move the transition to the set of non-EC transitions
-                    stack_info->non_ec_transitions.push_back(std::move(tinfo));
-                    stack_info->ec_transitions.pop_back();
+                } else {
+                    tinfo.normalize(explore->self_loop_prob);
+
+                    if (explore->nz_or_leaves_scc) {
+                        // Only some exiting or cost is non-zero ->
+                        // Not part of an end component
+                        // Move the transition to the set of non-EC transitions
+                        stack_info->non_ec_transitions.push_back(
+                            std::move(tinfo));
+                        stack_info->ec_transitions.pop_back();
+                    }
                 }
 
                 // Has next action -> stop backtracking
@@ -486,14 +492,6 @@ public:
                     break;
                 }
             }
-        }
-
-    break_exploration:;
-
-        if constexpr (UseInterval) {
-            return init_value;
-        } else {
-            return Interval(init_value, INFINITE_VALUE);
         }
     }
 
@@ -522,7 +520,7 @@ private:
                 const auto [succ_id, prob] = explore.get_current_successor();
 
                 if (succ_id == state_id) {
-                    tinfo.self_loop_prob += prob;
+                    explore.self_loop_prob += prob;
                     continue;
                 }
 
@@ -555,12 +553,15 @@ private:
                 }
             } while (explore.next_successor());
 
-            if (tinfo.finalize()) {
+            if (tinfo.has_no_scc_successors()) {
                 set_min(stack_info.conv_part, tinfo.conv_part);
                 stack_info.ec_transitions.pop_back();
-            } else if (explore.nz_or_leaves_scc) {
-                stack_info.non_ec_transitions.push_back(std::move(tinfo));
-                stack_info.ec_transitions.pop_back();
+            } else {
+                tinfo.normalize(explore.self_loop_prob);
+                if (explore.nz_or_leaves_scc) {
+                    stack_info.non_ec_transitions.push_back(std::move(tinfo));
+                    stack_info.ec_transitions.pop_back();
+                }
             }
 
             if (!explore.next_action(this, state_id)) {
