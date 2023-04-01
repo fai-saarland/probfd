@@ -155,7 +155,7 @@ class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
     const TrialTerminationCondition StopConsistent;
     engine_interfaces::TransitionSampler<Action>* sample_;
 
-    std::unique_ptr<storage::PerStateStorage<StateInfoT>> state_infos_;
+    storage::PerStateStorage<StateInfoT> state_infos_;
 
     std::vector<StateID> current_trial_;
     Distribution<StateID> selected_transition_;
@@ -189,18 +189,14 @@ public:
         , StopConsistent(stop_consistent)
         , sample_(succ_sampler)
     {
-        this->setup_state_info_store();
-    }
-
-    void reset_search_state() override
-    {
         using HSBInfo = typename HeuristicSearchBase::StateInfo;
 
         if constexpr (!std::is_same_v<StateInfoT, HSBInfo>) {
-            this->state_infos_.reset(
-                new storage::PerStateStorage<StateInfoT>());
+            statistics_.state_info_bytes = sizeof(StateInfoT);
         }
     }
+
+    void reset_search_state() override { state_infos_.clear(); }
 
 protected:
     Interval do_solve(const State& state) override
@@ -451,17 +447,7 @@ private:
         if constexpr (std::is_same_v<StateInfoT, HSBInfo>) {
             return this->get_state_info_store()[sid];
         } else {
-            return (*state_infos_)[sid];
-        }
-    }
-
-    void setup_state_info_store()
-    {
-        using HSBInfo = typename HeuristicSearchBase::StateInfo;
-
-        if constexpr (!std::is_same_v<StateInfoT, HSBInfo>) {
-            state_infos_.reset(new storage::PerStateStorage<StateInfoT>());
-            statistics_.state_info_bytes = sizeof(StateInfoT);
+            return state_infos_[sid];
         }
     }
 };

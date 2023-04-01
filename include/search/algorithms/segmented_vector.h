@@ -145,6 +145,15 @@ public:
             push_back(entry);
         }
     }
+
+    void clear()
+    {
+        for (size_t i = 0; i < the_size; ++i) {
+            ATraits::destroy(entry_allocator, &operator[](i));
+        }
+
+        the_size = 0;
+    }
 };
 
 template<class Element, class Allocator = std::allocator<Element>>

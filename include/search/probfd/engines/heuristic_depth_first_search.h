@@ -156,7 +156,7 @@ class HeuristicDepthFirstSearch
     const bool PerformValueIteration;
     const bool ExpandTipStates;
 
-    storage::PerStateStorage<AdditionalStateInfo>* state_flags_;
+    storage::PerStateStorage<AdditionalStateInfo> state_flags_;
 
     storage::StateHashMap<LocalStateInfo> state_infos_;
     std::vector<StateID> visited_;
@@ -198,14 +198,9 @@ public:
         , PerformValueIteration(PerformValueIteration)
         , ExpandTipStates(ExpandTipStates)
     {
-        initialize_persistent_state_storage();
     }
 
-    void reset_search_state() override
-    {
-        delete (this->state_flags_);
-        state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();
-    }
+    void reset_search_state() override { state_flags_.clear(); }
 
 protected:
     Interval do_solve(const State& state) override
@@ -226,12 +221,12 @@ protected:
     }
 
 private:
-    void initialize_persistent_state_storage()
+    AdditionalStateInfo& get_pers_info(StateID state_id)
     {
-        if constexpr (std::is_same_v<AdditionalStateInfo, StateInfo>) {
-            state_flags_ = &this->get_state_info_store();
+        if constexpr (Fret) {
+            return state_flags_[state_id];
         } else {
-            state_flags_ = new storage::PerStateStorage<AdditionalStateInfo>();
+            return this->get_state_info(state_id);
         }
     }
 
@@ -272,7 +267,7 @@ private:
         ClearGuard _guard(state_infos_);
 
         {
-            AdditionalStateInfo& pers_info = state_flags_->operator[](state);
+            AdditionalStateInfo& pers_info = get_pers_info(state);
             bool value_changed = false;
             bool pruned = false;
             const uint8_t pstatus =
@@ -315,8 +310,7 @@ private:
                     StateID succid = einfo.successors.back();
                     einfo.successors.pop_back();
 
-                    AdditionalStateInfo& pers_succ_info =
-                        state_flags_->operator[](succid);
+                    AdditionalStateInfo& pers_succ_info = get_pers_info(succid);
 
                     if (!pers_succ_info.is_solved()) {
                         LocalStateInfo& succ_info = state_infos_[succid];
@@ -435,7 +429,7 @@ private:
                         state_infos_[*it].status = closed;
 
                         if (LabelSolved) {
-                            state_flags_->operator[](*it).set_solved();
+                            get_pers_info(*it).set_solved();
                         }
                     }
                 }
