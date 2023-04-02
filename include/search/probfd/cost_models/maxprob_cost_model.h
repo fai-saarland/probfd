@@ -17,9 +17,6 @@ namespace cost_models {
  * specifies a termination cost of 0 for goal states and 1 for non-goal
  * states. Actions have zero cost. An optimal state value is 1 minus the
  * maximal probability of reaching the goal.
- *
- * All optimal state values are negative probabilities, i.e., in the interval
- * [0, 1].
  */
 class MaxProbCostModel : public CostModel {
     std::unique_ptr<TaskCostFunction> cost_function_;

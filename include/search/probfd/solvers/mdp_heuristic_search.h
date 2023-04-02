@@ -3,9 +3,9 @@
 
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engine_interfaces/new_state_handler.h"
+#include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/policy_picker.h"
-#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
 
 #include "probfd/engines/fret.h"
 
@@ -29,7 +29,7 @@ class MDPHeuristicSearchBase : public MDPSolver {
 protected:
     std::shared_ptr<TaskEvaluator> heuristic_;
     std::shared_ptr<TaskPolicyPicker> policy_tiebreaker_;
-    std::shared_ptr<TaskNewStateHandler> new_state_handler_;
+    std::shared_ptr<TaskNewStateObserver> new_state_handler_;
 
     const bool dual_bounds_;
     const bool interval_comparison_;

@@ -4,7 +4,7 @@
 #include "probfd/solvers/mdp_solver.h"
 
 #include "probfd/engine_interfaces/open_list.h"
-#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
@@ -60,7 +60,7 @@ protected:
     std::shared_ptr<bisimulation::QuotientCostFunction> cost_;
     std::shared_ptr<engine_interfaces::Evaluator<QState>> heuristic_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>> policy_;
-    std::shared_ptr<engine_interfaces::NewStateHandler<QState>>
+    std::shared_ptr<engine_interfaces::NewStateObserver<QState>>
         new_state_handler_;
 
     std::shared_ptr<MDPEngineInterface<QState, QAction>> engine_;
@@ -80,7 +80,7 @@ protected:
               g_cost_model->optimal_value_bound().upper))
         , policy_(
               new policy_pickers::ArbitraryTiebreaker<QState, QAction>(true))
-        , new_state_handler_(new engine_interfaces::NewStateHandler<QState>())
+        , new_state_handler_(new engine_interfaces::NewStateObserver<QState>())
     {
         stats.timer.stop();
         stats.states = state_space_.num_bisimilar_states();

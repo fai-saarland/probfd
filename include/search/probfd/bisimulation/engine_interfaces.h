@@ -13,8 +13,11 @@
 namespace probfd {
 namespace bisimulation {
 
+/// Type alias for cost functions for probabilistic bisimulation quotients.
 using QuotientCostFunction = engine_interfaces::
     CostFunction<bisimulation::QuotientState, bisimulation::QuotientAction>;
+
+/// Type alias for evaluators for probabilistic bisimulation quotients.
 using QuotientEvaluator =
     engine_interfaces::Evaluator<bisimulation::QuotientState>;
 

@@ -341,15 +341,15 @@ bool ProbabilisticPatternDatabase::is_dead_end(const State& s) const
 
 bool ProbabilisticPatternDatabase::is_dead_end(StateRank s) const
 {
-    return lookup(s) == dead_end_cost;
+    return lookup_estimate(s) == dead_end_cost;
 }
 
-value_t ProbabilisticPatternDatabase::lookup(const State& s) const
+value_t ProbabilisticPatternDatabase::lookup_estimate(const State& s) const
 {
-    return lookup(get_abstract_state(s));
+    return lookup_estimate(get_abstract_state(s));
 }
 
-value_t ProbabilisticPatternDatabase::lookup(StateRank s) const
+value_t ProbabilisticPatternDatabase::lookup_estimate(StateRank s) const
 {
     return value_table[s.id];
 }
@@ -361,7 +361,7 @@ EvaluationResult ProbabilisticPatternDatabase::evaluate(const State& s) const
 
 EvaluationResult ProbabilisticPatternDatabase::evaluate(StateRank s) const
 {
-    const value_t value = this->lookup(s);
+    const value_t value = this->lookup_estimate(s);
     return {value == dead_end_cost, value};
 }
 

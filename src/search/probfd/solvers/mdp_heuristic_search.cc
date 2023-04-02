@@ -13,8 +13,8 @@ MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
     : MDPSolver(opts)
     , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
     , policy_tiebreaker_(opts.get<std::shared_ptr<TaskPolicyPicker>>("policy"))
-    , new_state_handler_(new TaskNewStateHandlerList(
-          opts.get_list<std::shared_ptr<TaskNewStateHandler>>("on_new_state")))
+    , new_state_handler_(new TaskNewStateObserverList(
+          opts.get_list<std::shared_ptr<TaskNewStateObserver>>("on_new_state")))
     , dual_bounds_(
           opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
     , interval_comparison_(
@@ -36,7 +36,7 @@ void MDPHeuristicSearchBase::add_options_to_parser(
     options::OptionParser& parser)
 {
     parser.add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "const_eval");
-    parser.add_list_option<std::shared_ptr<TaskNewStateHandler>>(
+    parser.add_list_option<std::shared_ptr<TaskNewStateObserver>>(
         "on_new_state",
         "",
         "[]");

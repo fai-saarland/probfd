@@ -3,7 +3,7 @@
 
 #include "probfd/engines/heuristic_search_base.h"
 
-#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
 
 #include "utils/countdown_timer.h"
 
@@ -159,7 +159,7 @@ class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
     using Statistics = internal::Statistics;
 
     const TrialTerminationCondition StopConsistent;
-    engine_interfaces::TransitionSampler<Action>* sample_;
+    engine_interfaces::SuccessorSampler<Action>* sample_;
 
     storage::PerStateStorage<StateInfoT> state_infos_;
 
@@ -179,11 +179,11 @@ public:
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
-        engine_interfaces::TransitionSampler<Action>* succ_sampler)
+        engine_interfaces::SuccessorSampler<Action>* succ_sampler)
         : HeuristicSearchBase(
               state_space,
               cost_function,
@@ -223,7 +223,7 @@ protected:
             this->print_progress();
         }
 
-        return this->lookup_dual_bounds(state_id);
+        return this->lookup_bounds(state_id);
     }
 
     void print_additional_statistics(std::ostream& out) const override

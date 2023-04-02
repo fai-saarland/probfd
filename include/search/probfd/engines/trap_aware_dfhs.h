@@ -182,7 +182,7 @@ public:
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         QuotientSystem* quotient,
@@ -228,7 +228,7 @@ protected:
         } else {
             dfhs_label_driver(state_id, timer);
         }
-        return this->lookup_dual_bounds(state_id);
+        return this->lookup_bounds(state_id);
     }
 
     void print_additional_statistics(std::ostream& out) const override
@@ -675,7 +675,7 @@ public:
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         quotients::QuotientSystem<State, Action>* quotient,
@@ -759,8 +759,7 @@ public:
 
             const QAction quotient_action =
                 engine_.lookup_action(quotient_id, quotient_action_id);
-            const Interval quotient_bound =
-                engine_.lookup_dual_bounds(quotient_id);
+            const Interval quotient_bound = engine_.lookup_bounds(quotient_id);
 
             const StateID exiting_id = quotient_action.state_id;
 

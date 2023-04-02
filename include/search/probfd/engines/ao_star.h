@@ -1,7 +1,7 @@
 #ifndef PROBFD_ENGINES_AO_STAR_H
 #define PROBFD_ENGINES_AO_STAR_H
 
-#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
 #include "probfd/engines/ao_search.h"
 
 #include "utils/countdown_timer.h"
@@ -33,7 +33,7 @@ namespace ao_star {
 template <typename State, typename Action, bool UseInterval>
 class AOStar
     : public AOBase<State, Action, UseInterval, true, PerStateInformation> {
-    engine_interfaces::TransitionSampler<Action>* outcome_selection_;
+    engine_interfaces::SuccessorSampler<Action>* outcome_selection_;
     std::vector<Distribution<StateID>> transitions_;
 
 public:
@@ -42,10 +42,10 @@ public:
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        engine_interfaces::TransitionSampler<Action>* outcome_selection)
+        engine_interfaces::SuccessorSampler<Action>* outcome_selection)
         : AOBase<State, Action, UseInterval, true, PerStateInformation>(
               state_space,
               cost_function,
@@ -73,7 +73,7 @@ protected:
             this->print_progress();
         }
 
-        return this->lookup_dual_bounds(stateid);
+        return this->lookup_bounds(stateid);
     }
 
 private:

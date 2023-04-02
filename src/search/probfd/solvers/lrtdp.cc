@@ -2,8 +2,8 @@
 
 #include "probfd/engines/lrtdp.h"
 
-#include "probfd/engine_interfaces/transition_sampler.h"
-#include "probfd/transition_samplers/task_transition_sampler_factory.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -26,17 +26,17 @@ class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     using LRTDP = LRTDP<State, Action, Interval, Fret>;
 
     const TrialTerminationCondition stop_consistent_;
-    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
+    WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
 
 public:
     explicit LRTDPSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
         , stop_consistent_(
               opts.get<TrialTerminationCondition>("terminate_trial"))
-        , successor_sampler_(this->wrap(
-              opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
-                      "successor_sampler")
-                  ->create_sampler(this->state_space_.get())))
+        , successor_sampler_(
+              this->wrap(opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+                                 "successor_sampler")
+                             ->create_sampler(this->state_space_.get())))
     {
         if constexpr (Fret) {
             if (stop_consistent_ != TrialTerminationCondition::CONSISTENT) {
@@ -74,7 +74,7 @@ protected:
 struct LRTDPOptions {
     void operator()(options::OptionParser& parser) const
     {
-        parser.add_option<std::shared_ptr<TaskTransitionSamplerFactory>>(
+        parser.add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
             "successor_sampler",
             "",
             "random_successor_sampler_factory");

@@ -3,7 +3,7 @@
 
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/policy_picker.h"
-#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
 
 #include "probfd/quotient_system.h"
 
@@ -66,19 +66,19 @@ public:
 };
 
 template <typename State>
-class RepresentativeTransitionSampler
-    : public engine_interfaces::TransitionSampler<
+class RepresentativeSuccessorSampler
+    : public engine_interfaces::SuccessorSampler<
           quotients::QuotientAction<OperatorID>> {
     using QuotientSystem = quotients::QuotientSystem<State, OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
     QuotientSystem* quotient_;
-    std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>> original_;
+    std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>> original_;
 
 public:
-    RepresentativeTransitionSampler(
+    RepresentativeSuccessorSampler(
         QuotientSystem* quotient,
-        std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>
+        std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
             original)
         : quotient_(quotient)
         , original_(original)
@@ -124,14 +124,14 @@ public:
 
     void push(StateID state_id) override { original_->push(state_id); }
 
-    void
-    push(StateID parent, QuotientAction action, value_t prob, StateID state_id)
+    /*void
+    /push(StateID parent, QuotientAction action, value_t prob, StateID state_id)
         override
     {
         const OperatorID op_id =
             this->quotient_->get_original_action(parent, action);
         original_->push(parent, op_id, prob, state_id);
-    }
+    }*/
 
     unsigned size() const override { return original_->size(); }
 

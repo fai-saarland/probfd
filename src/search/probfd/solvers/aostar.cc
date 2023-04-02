@@ -2,8 +2,8 @@
 
 #include "probfd/engines/ao_star.h"
 
-#include "probfd/engine_interfaces/transition_sampler.h"
-#include "probfd/transition_samplers/task_transition_sampler_factory.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -21,13 +21,13 @@ class AOStarSolver : public MDPHeuristicSearch<Bisimulation, false> {
         typename MDPHeuristicSearch<Bisimulation, false>::template WrappedType<
             T>;
 
-    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
+    WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
 
 public:
     explicit AOStarSolver(const options::Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
         , successor_sampler_(this->template wrap<>(
-              opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
+              opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
                       "successor_sampler")
                   ->create_sampler(this->state_space_.get())))
     {
@@ -56,7 +56,7 @@ protected:
 struct AOStarOptions {
     void operator()(options::OptionParser& parser) const
     {
-        parser.add_option<std::shared_ptr<TaskTransitionSamplerFactory>>(
+        parser.add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
             "successor_sampler",
             "",
             "arbitrary_successor_selector_factory");

@@ -35,7 +35,7 @@ int VDiffTiebreaker::pick_index(
         const Distribution<StateID>& t = successors[i];
         value_t sum = 0_vt;
         for (auto it = t.begin(); it != t.end(); ++it) {
-            auto value = hs_interface.lookup_dual_bounds(it->item);
+            auto value = hs_interface.lookup_bounds(it->item);
             sum += it->probability * value.length();
         }
         if (is_approx_less(favor_large_gaps_ * sum, best)) {

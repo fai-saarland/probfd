@@ -8,8 +8,7 @@
 namespace probfd {
 
 /**
- * @brief Contains the heuristic estimate of the optimal state value and whether
- * the state is solvable.
+ * @brief Specifies the heuristic estimate and solvability status of a state.
  */
 class EvaluationResult {
     bool is_unsolvable_;
@@ -24,29 +23,37 @@ public:
     {
     }
 
-    /// Is this state unsolvable?
+    /// Checks whether the state is unsolvable.
     bool is_unsolvable() const { return is_unsolvable_; }
 
-    /// Converts to a value_t representing the state value.
+    /// Gets the heuristic estimate of the state.
     value_t get_estimate() const { return estimate_; }
 };
 
 namespace engine_interfaces {
 
 /**
- * @brief Represents a heuristic function.
+ * @brief The interface representing heuristic functions.
  *
  * @tparam State - The state type of the underlying MDP model.
- *
- * @see EvaluationResult
  */
 template <typename State>
 class Evaluator {
 public:
     virtual ~Evaluator() = default;
 
+    /**
+     * @brief Evaluates the heuristic on a given state and returns the
+     * solvability and heuristic value estimates.
+     *
+     * @see EvaluationResult
+     */
     virtual EvaluationResult evaluate(param_type<State> state) const = 0;
 
+    /**
+     * @brief Prints statistics, e.g. the number of queries made to the
+     * interface.
+     */
     virtual void print_statistics() const {}
 };
 

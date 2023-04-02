@@ -47,8 +47,8 @@ public:
     /**
      * @brief Construct a new progress report.
      *
-     * @param min_change - An optional tolerance for bound property changes. If
-     * neither bound property changes by more than this value (lower or upper
+     * @param tolerance - An optional tolerance for bound property changes. If
+     * no bound property changes by more than this value (lower or upper
      * bound), no output is produced.
      * @param out - The output stream to direct the output to.
      * @param enabled - Whether printing is enabled or not.

@@ -75,7 +75,7 @@ void PHOGenerator::update_constraints(const State& state, lp::LPSolver& solver)
 {
     for (std::size_t i = 0; i != pdbs_->size(); ++i) {
         auto& pdb = pdbs_->operator[](i);
-        solver.set_constraint_lower_bound(i, pdb->lookup(state));
+        solver.set_constraint_lower_bound(i, pdb->lookup_estimate(state));
     }
 }
 

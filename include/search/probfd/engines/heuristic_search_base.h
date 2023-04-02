@@ -6,7 +6,7 @@
 #include "probfd/engines/utils.h"
 
 #include "probfd/engine_interfaces/heuristic_search_interface.h"
-#include "probfd/engine_interfaces/new_state_handler.h"
+#include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/policy_picker.h"
 
 #include "probfd/policies/map_policy.h"
@@ -148,7 +148,7 @@ public:
 private:
     engine_interfaces::Evaluator<State>* value_initializer_;
     engine_interfaces::PolicyPicker<State, Action>* policy_chooser_;
-    engine_interfaces::NewStateHandler<State>* on_new_state_;
+    engine_interfaces::NewStateObserver<State>* on_new_state_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
 
@@ -172,7 +172,7 @@ public:
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison)
         : MDPEngine<State, Action>(state_space, cost_function)
@@ -225,7 +225,7 @@ public:
             }
 
             const Action action = this->lookup_action(state_id, action_id);
-            const Interval bound = this->lookup_dual_bounds(state_id);
+            const Interval bound = this->lookup_bounds(state_id);
 
             policy->emplace_decision(state_id, action_id, bound);
 
@@ -263,7 +263,7 @@ public:
         }
     }
 
-    Interval lookup_dual_bounds(StateID state_id) override
+    Interval lookup_bounds(StateID state_id) override
     {
         if constexpr (UseInterval) {
             return state_infos_[state_id].value;
@@ -439,17 +439,13 @@ public:
     }
 
     /**
-     * @brief Computes the value and policy update for a state and outputs the
-     * new greedy action and transition.
+     * @brief Computes the value and policy update for a state and optionally
+     * outputs the new greedy transition.
      *
-     * Output parameters may be nullptr. The first returns values specifies
-     * whether the value changed. the second value specified whether the policy
-     * changed.
-     *
-     * Only applicable if the policy is stored.
+     * @note Output parameters may be nullptr. Only applicable if the policy is
+     * stored.
      *
      * @param[in] s - The state for the value update
-     * @param[out] policy_action - Return address for the new greedy action.
      * @param[out] policy_transition - Return address for the new greedy
      * transition.
      */
@@ -689,7 +685,7 @@ private:
                 state_info.set_goal();
                 state_info.value = EngineValueType(t_cost);
                 statistics_.goal_states++;
-                if (on_new_state_) on_new_state_->touch_goal(state);
+                if (on_new_state_) on_new_state_->notify_goal(state);
                 return state_info;
             }
 
@@ -697,7 +693,7 @@ private:
             if (estimate.is_unsolvable()) {
                 statistics_.pruned_states++;
                 notify_dead_end(state_info);
-                if (on_new_state_) on_new_state_->touch_dead_end(state);
+                if (on_new_state_) on_new_state_->notify_dead(state);
             } else {
                 state_info.set_on_fringe();
 
@@ -707,7 +703,7 @@ private:
                     state_info.value = estimate.get_estimate();
                 }
 
-                if (on_new_state_) on_new_state_->touch(state);
+                if (on_new_state_) on_new_state_->notify_state(state);
             }
         }
 

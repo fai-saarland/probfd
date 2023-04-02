@@ -50,7 +50,7 @@ public:
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         engine_interfaces::OpenList<Action>* open_list)
@@ -81,7 +81,7 @@ protected:
             this->print_progress();
         } while (!state_info.is_solved());
 
-        return this->lookup_dual_bounds(stateid);
+        return this->lookup_bounds(stateid);
     }
 
 private:

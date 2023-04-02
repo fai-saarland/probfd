@@ -16,9 +16,9 @@ namespace cost_models {
  * the input file. The termination cost for goal states is zero, whereas
  * termination in other states is not allowed (specified by infinite cost).
  *
- * It is assumed that the input task has non-negative operator costs, so all
- * state values lie in the range [0, infinity] (where infinity is attained if
- * the goal cannot be reached with certainty).
+ * @note It is assumed that the input task has non-negative operator costs, so
+ * all state values lie in the range [0, infinity] (where infinity is attained
+ * if the goal cannot be reached with certainty).
  */
 class SSPCostModel : public CostModel {
     std::unique_ptr<TaskCostFunction> cost_function_;

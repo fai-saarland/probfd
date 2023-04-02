@@ -170,7 +170,7 @@ public:
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool LabelSolved,
@@ -212,7 +212,7 @@ protected:
             solve_without_vi_termination(stateid, timer);
         }
 
-        return this->lookup_dual_bounds(stateid);
+        return this->lookup_bounds(stateid);
     }
 
     void print_additional_statistics(std::ostream& out) const override

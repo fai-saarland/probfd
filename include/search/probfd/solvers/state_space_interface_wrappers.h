@@ -4,7 +4,7 @@
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
 #include "probfd/engine_interfaces/open_list.h"
-#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
 
 #include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/heuristic_search_interface.h"
@@ -12,7 +12,7 @@
 
 #include "probfd/open_lists/lifo_open_list.h"
 
-#include "probfd/transition_samplers/random_successor_sampler.h"
+#include "probfd/successor_samplers/random_successor_sampler.h"
 
 #include "utils/rng_options.h"
 
@@ -43,24 +43,24 @@ struct translate_action<false, Op> {
 };
 
 /****************************************************************************/
-/* TransitionSampler */
+/* SuccessorSampler */
 
 template <>
 struct Wrapper<
     false,
     true,
-    std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>> {
+    std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>> {
 
-    using type = std::shared_ptr<engine_interfaces::TransitionSampler<
+    using type = std::shared_ptr<engine_interfaces::SuccessorSampler<
         quotients::QuotientAction<OperatorID>>>;
 
     type operator()(
         quotients::QuotientSystem<State, OperatorID>* q,
-        std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>> t)
+        std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>> t)
         const
     {
         return std::make_shared<
-            quotients::RepresentativeTransitionSampler<State>>(q, t);
+            quotients::RepresentativeSuccessorSampler<State>>(q, t);
     }
 };
 
@@ -68,19 +68,19 @@ template <bool Fret>
 struct Wrapper<
     true,
     Fret,
-    std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>> {
-    using type = std::shared_ptr<engine_interfaces::TransitionSampler<
+    std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>> {
+    using type = std::shared_ptr<engine_interfaces::SuccessorSampler<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>;
 
     type operator()(
-        std::shared_ptr<engine_interfaces::TransitionSampler<OperatorID>>) const
+        std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>) const
     {
         // HACK to access the global rng...
         options::Options opts;
         opts.set<int>("random_seed", -1);
         auto rng = utils::parse_rng_from_options(opts);
 
-        return std::make_shared<transition_samplers::RandomSuccessorSampler<
+        return std::make_shared<successor_samplers::RandomSuccessorSampler<
             typename translate_action<Fret, bisimulation::QuotientAction>::
                 type>>(rng);
     }

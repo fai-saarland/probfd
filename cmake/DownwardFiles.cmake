@@ -927,21 +927,21 @@ fast_downward_plugin(
         probfd/open_lists/plugins
 
         # Transition Samplers
-        probfd/transition_sampler
-        probfd/transition_samplers/arbitrary_selector
-        probfd/transition_samplers/most_likely_selector
-        probfd/transition_samplers/uniform_successor_sampler
-        probfd/transition_samplers/vbiased_successor_sampler
-        probfd/transition_samplers/vdiff_successor_sampler
+        probfd/successor_sampler
+        probfd/successor_samplers/arbitrary_selector
+        probfd/successor_samplers/most_likely_selector
+        probfd/successor_samplers/uniform_successor_sampler
+        probfd/successor_samplers/vbiased_successor_sampler
+        probfd/successor_samplers/vdiff_successor_sampler
 
-        probfd/transition_samplers/arbitrary_selector_factory
-        probfd/transition_samplers/most_likely_selector_factory
-        probfd/transition_samplers/uniform_successor_sampler_factory
-        probfd/transition_samplers/random_successor_sampler_factory
-        probfd/transition_samplers/vbiased_successor_sampler_factory
-        probfd/transition_samplers/vdiff_successor_sampler_factory
+        probfd/successor_samplers/arbitrary_selector_factory
+        probfd/successor_samplers/most_likely_selector_factory
+        probfd/successor_samplers/uniform_successor_sampler_factory
+        probfd/successor_samplers/random_successor_sampler_factory
+        probfd/successor_samplers/vbiased_successor_sampler_factory
+        probfd/successor_samplers/vdiff_successor_sampler_factory
 
-        probfd/transition_samplers/plugins
+        probfd/successor_samplers/plugins
 
         # Policy Tiebreakers
         probfd/policy_pickers/operator_id_tiebreaker
@@ -956,11 +956,9 @@ fast_downward_plugin(
         probfd/policy_pickers/plugins
 
         # Successor Sorters
-        probfd/successor_sorters/vdiff_sorter
-
-        probfd/successor_sorters/vdiff_sorter_factory
-
-        probfd/successor_sorters/plugins
+        probfd/transition_sorters/vdiff_sorter
+        probfd/transition_sorters/vdiff_sorter_factory
+        probfd/transition_sorters/plugins
 
         # Base heuristic search solver
         probfd/solvers/mdp_heuristic_search

@@ -8,8 +8,7 @@
 namespace probfd {
 
 /**
- * @brief Contains cost paid upon termination in a state, and whether the state
- * is a goal.
+ * @brief Specifies the termination cost and goal status of a state.
  */
 class TerminationInfo {
     bool is_goal_;
@@ -34,11 +33,12 @@ public:
 namespace engine_interfaces {
 
 /**
- * @brief Interface specifying state termination costs, action costs and
- * goal states.
+ * @brief The interface specifying action and state termination costs, aswell as
+ * the goal states of a state space.
  *
- * This interface communicates the state and action costs and goal states to
- * the MDP engines. Users must implement the public methods
+ * This interface communicates the action and termination costs and the goal
+ * states of a state space to the MDP engines. Users must implement the public
+ * methods
  * `get_termination_info(const State& state)` and
  * `get_action_cost(const State& state, const Action& action)`.
  *
@@ -74,18 +74,22 @@ public:
     virtual ~CostFunction() = default;
 
     /**
-     * @brief Get the termination cost info of the input state.
+     * @brief Returns the cost to terminate in a given state and checks whether
+     * a state is a goal
+     *
+     * @see TerminationInfo
      */
     virtual TerminationInfo get_termination_info(param_type<State> state) = 0;
 
     /**
-     * @brief Get the action cost of the action when applied in a state.
+     * @brief Gets the action cost of a state-action.
      */
     virtual value_t
     get_action_cost(StateID state_id, param_type<Action> action) = 0;
 
     /**
-     * @brief Prints statistics.
+     * @brief Prints statistics, e.g. the number of queries made to the
+     * interface.
      */
     virtual void print_statistics() const {}
 };
@@ -150,7 +154,7 @@ class OperatorID;
 
 namespace probfd {
 
-/// Type alias for cost functions for planning tasks.
+/// Type alias for cost functions of probabilistic planning tasks.
 using TaskCostFunction =
     engine_interfaces::SimpleCostFunction<State, OperatorID>;
 

@@ -1,7 +1,7 @@
-#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
 #include "probfd/engines/trap_aware_lrtdp.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
-#include "probfd/transition_samplers/task_transition_sampler_factory.h"
+#include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -23,7 +23,7 @@ class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
 
     const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;
-    WrappedType<std::shared_ptr<TaskTransitionSampler>> successor_sampler_;
+    WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
 
 public:
     explicit TrapAwareLRTDPSolver(const options::Options& opts)
@@ -31,10 +31,10 @@ public:
         , stop_consistent_(
               opts.get<TrialTerminationCondition>("terminate_trial"))
         , reexpand_traps_(opts.get<bool>("reexpand_traps"))
-        , successor_sampler_(this->wrap(
-              opts.get<std::shared_ptr<TaskTransitionSamplerFactory>>(
-                      "successor_sampler")
-                  ->create_sampler(this->state_space_.get())))
+        , successor_sampler_(
+              this->wrap(opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+                                 "successor_sampler")
+                             ->create_sampler(this->state_space_.get())))
     {
     }
 
@@ -45,7 +45,7 @@ public:
             "Trap-aware LRTDP. Supports all MDP types "
             "(even non-SSPs) without FRET loop.",
             "");
-        parser.add_option<std::shared_ptr<TaskTransitionSamplerFactory>>(
+        parser.add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
             "successor_sampler",
             "Successor bias for the trials.",
             "random_successor_sampler_factory");

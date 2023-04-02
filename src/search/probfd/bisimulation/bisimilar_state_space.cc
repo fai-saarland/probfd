@@ -251,21 +251,6 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
 
 BisimilarStateSpace::~BisimilarStateSpace() = default;
 
-QuotientState BisimilarStateSpace::get_initial_state() const
-{
-    return initial_state_;
-}
-
-bool BisimilarStateSpace::is_goal_state(const QuotientState& s) const
-{
-    return s != dead_end_state_ && abstraction_->is_goal_state(s.id);
-}
-
-bool BisimilarStateSpace::is_dead_end(const QuotientState& s) const
-{
-    return s == dead_end_state_;
-}
-
 StateID BisimilarStateSpace::get_state_id(bisimulation::QuotientState s)
 {
     return s.id;
@@ -336,6 +321,21 @@ void BisimilarStateSpace::generate_all_transitions(
     for (int i = aops.size() - 1; i >= 0; --i) {
         generate_action_transitions(state, aops[i], result[i]);
     }
+}
+
+QuotientState BisimilarStateSpace::get_initial_state() const
+{
+    return initial_state_;
+}
+
+bool BisimilarStateSpace::is_goal_state(const QuotientState& s) const
+{
+    return s != dead_end_state_ && abstraction_->is_goal_state(s.id);
+}
+
+bool BisimilarStateSpace::is_dead_end(const QuotientState& s) const
+{
+    return s == dead_end_state_;
 }
 
 unsigned BisimilarStateSpace::num_bisimilar_states() const

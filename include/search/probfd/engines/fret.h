@@ -165,7 +165,7 @@ public:
             const QAction quotient_action =
                 base_engine_->lookup_action(quotient_id, quotient_action_id);
             const Interval quotient_bound =
-                base_engine_->lookup_dual_bounds(quotient_id);
+                base_engine_->lookup_bounds(quotient_id);
 
             const StateID exiting_id = quotient_action.state_id;
 

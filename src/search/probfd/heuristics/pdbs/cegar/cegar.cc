@@ -144,7 +144,7 @@ const AbstractPolicy& PDBInfo::get_policy() const
 
 value_t PDBInfo::get_policy_cost(const State& state) const
 {
-    return pdb->lookup(state);
+    return pdb->lookup_estimate(state);
 }
 
 std::unique_ptr<ProjectionStateSpace> PDBInfo::extract_state_space()

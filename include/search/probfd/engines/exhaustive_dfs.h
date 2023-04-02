@@ -6,8 +6,8 @@
 #include "probfd/engines/utils.h"
 
 #include "probfd/engine_interfaces/heuristic_search_interface.h"
-#include "probfd/engine_interfaces/new_state_handler.h"
-#include "probfd/engine_interfaces/successor_sorter.h"
+#include "probfd/engine_interfaces/new_state_observer.h"
+#include "probfd/engine_interfaces/transition_sorter.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -196,8 +196,8 @@ class ExhaustiveDepthFirstSearch
     };
 
     engine_interfaces::Evaluator<State>* evaluator_;
-    engine_interfaces::NewStateHandler<State>* new_state_handler_;
-    engine_interfaces::SuccessorSorter<Action>* successor_sort_;
+    engine_interfaces::NewStateObserver<State>* new_state_handler_;
+    engine_interfaces::TransitionSorter<Action>* transition_sort_;
 
     ProgressReport* report_;
     const Interval cost_bound_;
@@ -224,8 +224,8 @@ public:
         engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function,
         engine_interfaces::Evaluator<State>* evaluator,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
-        engine_interfaces::SuccessorSorter<Action>* successor_sorting,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
+        engine_interfaces::TransitionSorter<Action>* transition_sorting,
         Interval cost_bound,
         bool reevaluate,
         bool notify_initial,
@@ -235,7 +235,7 @@ public:
         : MDPEngine<State, Action>(state_space, cost_function)
         , evaluator_(evaluator)
         , new_state_handler_(new_state_handler)
-        , successor_sort_(successor_sorting)
+        , transition_sort_(transition_sorting)
         , report_(progress)
         , cost_bound_(cost_bound)
         , trivial_bound_(get_trivial_bound())
@@ -260,7 +260,7 @@ public:
         }
     }
 
-    Interval lookup_dual_bounds(StateID state_id) override
+    Interval lookup_bounds(StateID state_id) override
     {
         if constexpr (!UseInterval) {
             return Interval(search_space_[state_id].value, INFINITE_VALUE);
@@ -286,7 +286,7 @@ public:
             run_exploration();
         }
 
-        return this->lookup_dual_bounds(stateid);
+        return this->lookup_bounds(stateid);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -343,7 +343,7 @@ private:
             info.value = EngineValueType(term_info.get_cost());
             ++statistics_.goal_states;
             if (new_state_handler_) {
-                new_state_handler_->touch_goal(state);
+                new_state_handler_->notify_goal(state);
             }
             return false;
         }
@@ -354,7 +354,7 @@ private:
             info.mark_dead_end();
             ++statistics_.dead_ends;
             if (new_state_handler_) {
-                new_state_handler_->touch_dead_end(state);
+                new_state_handler_->notify_dead(state);
             }
             return false;
         }
@@ -365,7 +365,7 @@ private:
 
         info.open();
         if (new_state_handler_) {
-            new_state_handler_->touch(state);
+            new_state_handler_->notify_state(state);
         }
 
         return true;
@@ -385,8 +385,8 @@ private:
 
         statistics_.expanded++;
 
-        if (successor_sort_ != nullptr) {
-            successor_sort_->sort(state_id, aops, successors, *this);
+        if (transition_sort_ != nullptr) {
+            transition_sort_->sort(state_id, aops, successors, *this);
         }
 
         expansion_infos_.emplace_back(stack_infos_.size(), neighbors_.size());

@@ -1,7 +1,7 @@
 #ifndef PROBFD_ENGINES_TRAP_AWARE_LRTDP_H
 #define PROBFD_ENGINES_TRAP_AWARE_LRTDP_H
 
-#include "probfd/engine_interfaces/transition_sampler.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
 #include "probfd/engines/heuristic_search_base.h"
 #include "probfd/quotients/quotient_system.h"
 #include "probfd/storage/per_state_storage.h"
@@ -141,7 +141,7 @@ class TALRTDP<State, quotients::QuotientAction<Action>, UseInterval>
     const TrialTerminationCondition stop_at_consistent_;
     const bool reexpand_traps_;
 
-    engine_interfaces::TransitionSampler<QAction>* sample_;
+    engine_interfaces::SuccessorSampler<QAction>* sample_;
 
     Distribution<StateID> selected_transition_;
 
@@ -162,13 +162,13 @@ public:
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         QuotientSystem* quotient,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
-        engine_interfaces::TransitionSampler<QAction>* succ_sampler)
+        engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : HeuristicSearchBase(
               state_space,
               cost_function,
@@ -199,7 +199,7 @@ protected:
             this->print_progress();
         } while (!terminate);
 
-        return this->lookup_dual_bounds(state_id);
+        return this->lookup_bounds(state_id);
     }
 
     void print_additional_statistics(std::ostream& out) const override
@@ -320,8 +320,8 @@ private:
                         einfo = &queue_.back();
                         continue;
                     }
-                    // don't touch this state again within this check_and_solve
-                    // iteration
+                    // don't notify_state this state again within this
+                    // check_and_solve iteration
                     sidx = STATE_CLOSED;
                 } else if (sidx >= 0) {
                     int& sidx2 = stack_index_[einfo->state];
@@ -476,13 +476,13 @@ public:
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
-        engine_interfaces::NewStateHandler<State>* new_state_handler,
+        engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         quotients::QuotientSystem<State, Action>* quotient,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
-        engine_interfaces::TransitionSampler<QAction>* succ_sampler)
+        engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : engine_(
               state_space,
               cost_function,
