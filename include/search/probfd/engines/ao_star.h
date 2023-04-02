@@ -21,14 +21,23 @@ namespace ao_star {
 /**
  * @brief Implementation of the AO* algorithm.
  *
- * The AO* algorithm is an MDP heuristic search algorithm applicable to acyclic
- * MDPs.
+ * The AO* algorithm is an MDP heuristic search algorithm applicable only to
+ * acyclic MDPs. The algorithm maintains a greedy policy and iteratively
+ * constructs a subgraph of the MDP. In each iteration, a non-terminal leaf
+ * state of the subgraph that is reachable by the greedy policy (a tip state)
+ * is sampled and expanded. Afterwards, Bellman updates are performed on the
+ * backward-reachable subgraph ending in the sampled state in reverse
+ * topological order, while also updating the greedy policy. The algorithm
+ * terminates once no tip states are left, i.e. the greedy policy is fully
+ * explored.
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
- * @tparam UseInterval - Whether bounded value iteration shall be used.
+ * @tparam UseInterval - Whether value intervals are used.
  *
- * @remark Does not validate that the input model is acyclic.
+ * @remark The search engine does not validate that the state space is acyclic.
+ * It is an error to invoke this search engine on state spaces which contain
+ * cycles.
  */
 template <typename State, typename Action, bool UseInterval>
 class AOStar

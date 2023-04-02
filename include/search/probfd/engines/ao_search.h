@@ -62,7 +62,7 @@ struct PerStateInformation : public StateInfo {
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
  * @tparam Interval - Determines whether interval bounds are used.
- * @tparam StorePolicy - Determines whether the optimal policy is stored.
+ * @tparam StorePolicy - Determines whether a greedy policy is maintained.
  * @tparam StateInfoExtension - The extended state information struct used by
  * the derived algorithm.
  */

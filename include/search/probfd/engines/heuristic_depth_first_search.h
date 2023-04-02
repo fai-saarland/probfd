@@ -93,6 +93,15 @@ using HDFSBase = std::conditional_t<
 
 } // namespace internal
 
+/**
+ * @brief Implementation of the depth-first heuristic search algorithm family
+ * \cite .
+ *
+ * @tparam State - The state type of the underlying MDP.
+ * @tparam Action - The action type of the underlying MDP.
+ * @tparam UseInterval - Whether value intervals are used.
+ * @tparam Fret - Whether the algorithm is wrapped with the FRET framework.
+ */
 template <typename State, typename Action, bool UseInterval, bool Fret>
 class HeuristicDepthFirstSearch
     : public internal::HDFSBase<State, Action, UseInterval, Fret> {

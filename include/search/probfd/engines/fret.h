@@ -58,6 +58,29 @@ struct Statistics {
     }
 };
 
+/**
+ * @brief Implemetation of the Find-Revise-Eliminate-Traps (FRET) framework
+ * \cite
+ *
+ * The FRET framework is a framework designed for Generalized Stochastic
+ * Shortest-Path Problems (GSSPs, \cite). In this scenario, traditional
+ * heuristic search algorithms do not converge against an optimal policy due to
+ * the existence of traps. FRET interleaves heuristic searches with a trap
+ * elimination procedure until no more traps are found. This guarantees that an
+ * optimal policy is returned.
+ *
+ * The two common trap elimination strategies find traps in
+ * - The greedy value graph of the MDP, or
+ * - The greedy policy graph of the optimal policy returned by the last
+ * heuristic search
+ *
+ * @tparam State - The state type of the underlying MDP.
+ * @tparam Action - The action type of the underlying MDP.
+ * @tparam UseInterval - Whether value intervals are used.
+ * @tparam GreedyGraphGenerator - The type of the generator used to construct
+ * the search graph in which traps are found and eliminated between heuristic
+ * searches.
+ */
 template <
     typename State,
     typename Action,
@@ -499,6 +522,14 @@ public:
 
 } // namespace internal
 
+/**
+ * @brief Implementation of FRET with trap elimination in the greedy value graph
+ * of the MDP.
+ *
+ * @tparam State - The state type of the underlying MDP.
+ * @tparam Action - The action type of the underlying MDP.
+ * @tparam UseInterval - Whether interval state values are used.
+ */
 template <typename State, typename Action, bool UseInterval>
 using FRETV = internal::FRET<
     State,
@@ -506,6 +537,14 @@ using FRETV = internal::FRET<
     UseInterval,
     typename internal::ValueGraph<State, Action, UseInterval>>;
 
+/**
+ * @brief Implementation of FRET with trap elimination in the greedy policy
+ * graph of the last returned policy.
+ *
+ * @tparam State - The state type of the underlying MDP.
+ * @tparam Action - The action type of the underlying MDP.
+ * @tparam UseInterval - Whether interval state values are used.
+ */
 template <typename State, typename Action, bool UseInterval>
 using FRETPi = internal::FRET<
     State,

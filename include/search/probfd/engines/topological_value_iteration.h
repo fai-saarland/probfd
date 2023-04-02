@@ -57,16 +57,19 @@ struct Statistics {
  * value table by default. A heuristic can be supplied to explicitly prune
  * parts of the state space or to accelerate convergence.
  *
- * This implementation also supports UseInterval bounds. However, convergence
- * is not guaranteed for UseInterval bounds if traps exist within the reachable
+ * This implementation also supports value intervals. However, convergence
+ * is not guaranteed with value intervals if traps exist within the reachable
  * state space. In this case, traps must be removed prior to running topological
- * value iteration.
+ * value iteration, or the trap-aware variant TATopologicalValueIteration of
+ * this algorithm must be used, which eliminates as traps on-the-fly to
+ * guarantee convergence.
  *
  * @see interval_iteration::IntervalIteration
+ * @see ta_topological_value_iteration::TATopologicalValueIteration
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam UseInterval - Whether bounded value iteration is used.
+ * @tparam UseInterval - Whether value intervals are used.
  */
 template <typename State, typename Action, bool UseInterval = false>
 class TopologicalValueIteration : public MDPEngine<State, Action> {

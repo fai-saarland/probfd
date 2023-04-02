@@ -21,7 +21,7 @@ namespace probfd {
 namespace engines {
 
 /**
- * @brief Interface for MDP algorithm implementations.
+ * @brief Interface for MDP engine implementations.
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
@@ -34,7 +34,7 @@ public:
     /**
      * @brief Computes a partial policy for the input state.
      *
-     * @note The default implementation of this method returns an empty policy.
+     * The default implementation of this method returns an empty policy.
      */
     virtual std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
         const State&,
@@ -44,7 +44,7 @@ public:
     }
 
     /**
-     * @brief Runs the MDP algorithm with the initial state \p state with a
+     * @brief Runs the MDP algorithm for the initial state \p state with a
      * maximum time limit.
      */
     virtual Interval solve(
@@ -52,7 +52,7 @@ public:
         double max_time = std::numeric_limits<double>::infinity()) = 0;
 
     /**
-     * @brief Prints algorithm statistics to the specified std::ostream.
+     * @brief Prints algorithm statistics to the specified output stream.
      */
     virtual void print_statistics(std::ostream&) const {}
 };
@@ -65,6 +65,9 @@ public:
  */
 template <typename State, typename Action>
 class MDPEngine : public MDPEngineInterface<State, Action> {
+    engine_interfaces::StateSpace<State, Action>* state_space_;
+    engine_interfaces::CostFunction<State, Action>* cost_function_;
+
 public:
     /**
      * @brief Construct the MDP engine from the given MDP model interfaces.
@@ -184,10 +187,6 @@ public:
     {
         return cost_function_;
     }
-
-private:
-    engine_interfaces::StateSpace<State, Action>* state_space_;
-    engine_interfaces::CostFunction<State, Action>* cost_function_;
 };
 
 } // namespace engines

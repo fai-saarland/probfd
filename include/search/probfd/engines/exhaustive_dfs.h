@@ -94,12 +94,14 @@ inline bool update_lower_bound(Interval& x, value_t v)
 }
 
 /**
- * @brief Implementation of an anyime topological value iteration
+ * @brief Implementation of an anytime topological value iteration
  * variant.
+ *
+ * \todo Add some implementation notes.
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
- * @tparam UseInterval - Whether interval state values are used.
+ * @tparam UseInterval - Whether value intervals are used.
  *
  */
 template <typename State, typename Action, bool UseInterval>

@@ -43,13 +43,16 @@ struct Statistics {
 /**
  * @brief Implements acyclic Value Iteration.
  *
- * Performs value iteration on acyclic MDPs using an optimal (topological)
- * update order. Each state only needs to be updated once.
+ * Performs value iteration on acyclic MDPs by performing a depth-first search
+ * ending at terminal states and applying Bellman updates during backtracking.
+ * Exactly one Bellman update is performed per encountered state.
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
  *
- * @remark Does not validate that the input model is acyclic.
+ * @remark The search engine does not validate that the state space is acyclic.
+ * It is an error to invoke this search engine on state spaces which contain
+ * cycles.
  */
 template <typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
@@ -120,14 +123,6 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
     std::stack<IncrementalExpansionInfo> expansion_stack_;
 
 public:
-    /**
-     * @brief Constructs an instance of acyclic value iteration.
-     *
-     * The parameter \p prune optionally specifies an optional dead-end
-     * detector.
-     *
-     * @see MDPEngine
-     */
     AcyclicValueIteration(
         engine_interfaces::StateSpace<State, Action>* state_space,
         engine_interfaces::CostFunction<State, Action>* cost_function,

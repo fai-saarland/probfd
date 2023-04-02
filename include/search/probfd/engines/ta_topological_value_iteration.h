@@ -21,7 +21,7 @@
 namespace probfd {
 namespace engines {
 
-/// Namespace dedicated to Topological Value Iteration (TVI).
+/// Namespace dedicated to trap-aware Topological Value Iteration (TATVI).
 namespace ta_topological_vi {
 
 /**
@@ -49,24 +49,17 @@ struct Statistics {
 };
 
 /**
- * @brief Implements a trap-aware variant of Topological Value Iteration
- * \cite dai:etal:jair-11.
+ * @brief Implements a trap-aware variant of Topological Value Iteration.
  *
- * Topological value iteration computes the SCCs of the MDP and performs value
- * iteration until epsilon convergence on each SCC in reverse topological order.
- * The topological ordering yields an optimal update order since a parent SCC's
- * value depends on its child SCCs, but not vice versa.
- *
- * Additionally, this implementation computes all traps reachable from the
- * initial state on-the-fly and flattens them to guarantee convergence against
- * the optimal value function. Traps need not be removed prior to running
- * the algorithm. UseInterval bounds are also supported.
+ * This implementation extends \ref TopologicalValueIteration by eliminating all
+ * traps reachable from the initial state on-the-fly to guarantee the
+ * convergence against the optimal value function.
  *
  * @see topological_vi:TopologicalValueIteration
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam UseInterval - Whether bounded value iteration is used.
+ * @tparam UseInterval - Whether value intervals are used.
  */
 template <typename State, typename Action, bool UseInterval = false>
 class TATopologicalValueIteration : public MDPEngine<State, Action> {

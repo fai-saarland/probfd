@@ -33,9 +33,18 @@ using AOBase =
 /**
  * @brief Exhaustive AO* search algorithm.
  *
+ * An exhaustive version of the AO* algorithm that computes an optimal value
+ * function for every state reachable from the initial state.
+ *
+ * \todo Add some implementation notes.
+ *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
- * @tparam UseInterval - Whether bounded value iteration is used.
+ * @tparam UseInterval - Whether value intervals are used.
+ *
+ * @remark The search engine does not validate that the state space is acyclic.
+ * It is an error to invoke this search engine on state spaces which contain
+ * cycles.
  */
 template <typename State, typename Action, bool UseInterval>
 class ExhaustiveAOSearch : public internal::AOBase<State, Action, UseInterval> {

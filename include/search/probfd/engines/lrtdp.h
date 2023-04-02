@@ -19,10 +19,28 @@ namespace engines {
 /// Namespace dedicated to labelled real-time dynamic programming (LRTDP).
 namespace lrtdp {
 
+/**
+ * @brief Enumeration type specifying the termination condition for trials
+ * sampled during LRTDP.
+ */
 enum class TrialTerminationCondition {
+    /**
+     * Runs the trial until a terminal state is encountered.
+     */
     TERMINAL,
+    /**
+     * Runs the trial until a state with epsilon-consistent Bellman update is
+     * encountered.
+     */
     CONSISTENT,
+    /**
+     * Runs the trial until a state with epsilon-inconsistent Bellman update is
+     * encountered.
+     */
     INCONSISTENT,
+    /**
+     * Runs the trial until a state is re-visited.
+     */
     REVISITED
 };
 
@@ -119,30 +137,24 @@ using LRTDPStateInfo = std::conditional_t<
  * algorithm \cite bonet:geffner:icaps-03.
  *
  * This algorithm extends the trial-based real-time dynamic programming (RTDP)
- * algorithm \cite barto:etal:ai-95. A trial is a simulation of the greedy
- * policy which starts in the initial state and runs until a goal state
- * is reached, which results in a path from the initial to the goal state.
- * All states along this path are then asynchronously updated in a forward
- * manner. In the limit, repeated trials will lead to an optimal state value for
- * the initial state.
+ * algorithm \cite barto:etal:ai-95. The algorithm iteratively generates
+ * randomly simulated traces (trials) of the greedy policy, starting from the
+ * initial state. For each encountered state, an asynchronous Bellman update
+ * is performed from first to last encountered state, and the greedy policy is
+ * updated. LRTDP additionally labels states as solved if they can only reach
+ * epsilon-consistent states. Solved states are treated as stopping points for
+ * future trials. The algorithm terminates when the initial state is marked as
+ * solved.
  *
- * LRTDP extends RTDP with a labelling procedure that marks parts of the state
- * space where the value function is epsilon-consistent. This labelling
- * procedure traverses the greedy policy graph starting from a specific state
- * and updates every reachable state it encounters once. If none of the
- * reachable states changed its value by more than epsilon, all states are
- * labelled as solved as they are epsilon-consistent. Solved states are treated
- * as stopping points for future trials. The labelling procedure is called on
- * every state of a trial, in reverse order. If the initial state is marked as
- * solved, the algorithm terminates.
+ * The method to generate the trials can be configured. The interface
+ * \ref engine_interfaces::SuccessorSampler describes how successor
+ * states in the greedy policy graph are sampled when generating a trial.
+ * Additionally, the enumeration \ref TrialTerminationCondition specifies when a
+ * trial is stopped.
  *
- * \remark This implementation can also be used with UseInterval value bounds.
- * Here, epsilon-consistency of the value updates can be replaced with
- * epsilon-closeness of the resulting state UseInterval bounds.
- *
- * \remark For MaxProb problems, trials may get stuck in cycles. To deal with
- * this, alternative trial termination conditions can be selected, which ensure
- * that LRTDP works even in presence of dead-ends.
+ * This implementation also supports value intervals. In this case, the
+ * labelling procedure marks a state as solved if its value interval is
+ * sufficiently small.
  *
  * @tparam State - The state type of the MDP model.
  * @tparam Action - The action type of the MDP model.
