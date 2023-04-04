@@ -11,7 +11,8 @@ std::shared_ptr<std::vector<PatternSubCollection>>
 TrivialFinder::compute_subcollections(const PatternCollection& patterns)
 {
     std::shared_ptr<std::vector<PatternSubCollection>> additive_subcollections(
-        new std::vector<PatternSubCollection>(patterns.size()));
+        new std::vector<PatternSubCollection>());
+    additive_subcollections->reserve(patterns.size());
 
     int size = static_cast<int>(patterns.size());
     for (int i = 0; i < size; ++i) {
