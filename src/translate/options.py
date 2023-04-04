@@ -75,6 +75,11 @@ def parse_args():
         action="store_true",
         default=False,
         help="Tries to enumerate forall expression in preconditions")
+    argparser.add_argument(
+        "--force-probabilistic",
+        action="store_true",
+        default=False,
+        help="Enforces probabilistic sas output, even if all operators are deterministic")
     argparser.add_argument("--budget",
                            type=int,
                            default=None,

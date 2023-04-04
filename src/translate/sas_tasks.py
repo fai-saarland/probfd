@@ -1,6 +1,8 @@
 import fractions
 from collections import defaultdict
 
+import options
+
 SAS_FILE_VERSION = "3"
 SAS_FILE_VERSION_PROBABILISTIC = "3P"
 
@@ -61,7 +63,7 @@ class SASTask:
             ix = prob_op_identifier(outcome)
             mapping[ix].append((i, outcome.probability or fractions.Fraction(1)))
             prob = prob or (outcome.probability != None and outcome.probability < fractions.Fraction(1))
-        if not prob:
+        if not prob and not options.force_probabilistic:
             return self._remove_noop_operators()
         for key in mapping:
             group = mapping[key]
