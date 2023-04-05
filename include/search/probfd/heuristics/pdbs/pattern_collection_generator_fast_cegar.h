@@ -29,7 +29,6 @@ class PatternCollectionGeneratorFastCegar
     // Flaw finding strategy
     std::shared_ptr<cegar::FlawFindingStrategy<PDBType>> flaw_strategy;
 
-    const int single_generator_max_refinements;
     const int single_generator_max_pdb_size;
     const int single_generator_max_collection_size; // Possibly overwritten by
                                                     // total_collection_max_size

@@ -131,7 +131,6 @@ class PatternCollectionGeneratorCegar
     // behavior defining parameters
     const bool wildcard;
 
-    const int max_refinements;
     const int max_pdb_size;
     const int max_collection_size;
 
@@ -169,7 +168,6 @@ public:
             subcollection_finder_factory,
         std::shared_ptr<cegar::FlawFindingStrategy<PDBType>> flaw_strategy,
         bool wildcard,
-        int arg_max_refinements,
         int arg_max_pdb_size,
         int arg_max_collection_size,
         bool arg_ignore_goal_violations,
@@ -190,9 +188,6 @@ private:
     void generate_trivial_solution_collection(
         const ProbabilisticTaskProxy& task_proxy);
     bool time_limit_reached(const utils::CountdownTimer& timer) const;
-    bool termination_conditions_met(
-        const utils::CountdownTimer& timer,
-        int refinement_counter) const;
 
     int get_flaws(
         const ProbabilisticTaskProxy& task_proxy,

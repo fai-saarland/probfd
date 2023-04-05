@@ -150,7 +150,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory,
     std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy,
     bool wildcard,
-    int arg_max_refinements,
     int arg_max_pdb_size,
     int arg_max_collection_size,
     bool arg_ignore_goal_violations,
@@ -164,7 +163,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     , subcollection_finder_factory(subcollection_finder_factory)
     , flaw_strategy(flaw_strategy)
     , wildcard(wildcard)
-    , max_refinements(arg_max_refinements)
     , max_pdb_size(arg_max_pdb_size)
     , max_collection_size(arg_max_collection_size)
     , ignore_goal_violations(arg_ignore_goal_violations)
@@ -192,7 +190,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
         cout << token << "options: " << endl;
 
         cout << token << "flaw strategy: " << flaw_strategy->get_name() << endl;
-        cout << token << "max refinements: " << max_refinements << endl;
         cout << token << "max pdb size: " << max_pdb_size << endl;
         cout << token << "max collection size: " << max_collection_size << endl;
         cout << token << "ignore goal violations: " << ignore_goal_violations
@@ -244,7 +241,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
           opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
               "flaw_strategy"),
           opts.get<bool>("wildcard"),
-          opts.get<int>("max_refinements"),
           opts.get<int>("max_pdb_size"),
           opts.get<int>("max_collection_size"),
           opts.get<bool>("ignore_goal_violations"),
@@ -323,27 +319,6 @@ bool PatternCollectionGeneratorCegar<PDBType>::time_limit_reached(
     if (timer.is_expired()) {
         if (verbosity >= Verbosity::NORMAL) {
             cout << token << "time limit reached" << endl;
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
-template <typename PDBType>
-bool PatternCollectionGeneratorCegar<PDBType>::termination_conditions_met(
-    const utils::CountdownTimer& timer,
-    int refinement_counter) const
-{
-    if (time_limit_reached(timer)) {
-        return true;
-    }
-
-    if (refinement_counter == max_refinements) {
-        if (verbosity >= Verbosity::NORMAL) {
-            cout << token << "maximum allowed number of refinements reached."
-                 << endl;
         }
 
         return true;
@@ -746,10 +721,10 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     int solution_index;
 
     // main loop of the algorithm
-    int refinement_counter = 0;
-    while (!termination_conditions_met(timer, refinement_counter)) {
+    int refinement_counter = 1;
+    while (!time_limit_reached(timer)) {
         if (verbosity >= Verbosity::VERBOSE) {
-            cout << "iteration #" << refinement_counter + 1 << endl;
+            cout << "iteration #" << refinement_counter << endl;
         }
 
         // vector of solution indices and flaws associated with said solutions
@@ -880,11 +855,6 @@ void add_pattern_collection_generator_cegar_options_to_parser(
         "wildcard",
         "whether to compute a wildcard policy",
         "false");
-    parser.add_option<int>(
-        "max_refinements",
-        "maximum allowed number of refinements",
-        "infinity",
-        Bounds("0", "infinity"));
     parser.add_option<int>(
         "max_pdb_size",
         "maximum allowed number of states in a pdb (not applied to initial "

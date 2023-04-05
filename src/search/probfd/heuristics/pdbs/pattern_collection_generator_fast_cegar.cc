@@ -42,7 +42,6 @@ PatternCollectionGeneratorFastCegar<
               "subcollection_finder_factory"))
     , flaw_strategy(opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
           "flaw_strategy"))
-    , single_generator_max_refinements(opts.get<int>("max_refinements"))
     , single_generator_max_pdb_size(opts.get<int>("max_pdb_size"))
     , single_generator_max_collection_size(opts.get<int>("max_collection_size"))
     , single_generator_wildcard_policies(opts.get<bool>("wildcard"))
@@ -119,7 +118,6 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
             subcollection_finder_factory,
             flaw_strategy,
             single_generator_wildcard_policies,
-            single_generator_max_refinements,
             single_generator_max_pdb_size,
             min(remaining_collection_size,
                 single_generator_max_collection_size),
