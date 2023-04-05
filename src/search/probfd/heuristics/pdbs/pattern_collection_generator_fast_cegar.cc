@@ -47,7 +47,7 @@ PatternCollectionGeneratorFastCegar<
     , single_generator_wildcard_policies(opts.get<bool>("wildcard"))
     , single_generator_max_time(opts.get<double>("max_time"))
     , single_generator_verbosity(opts.get<Verbosity>("verbosity"))
-    , initial_random_seed(opts.get<int>("initial_random_seed"))
+    , rng(utils::parse_rng_from_options(opts))
     , total_collection_max_size(opts.get<int>("total_collection_max_size"))
     , stagnation_limit(opts.get<double>("stagnation_limit"))
     , blacklist_trigger_time(opts.get<double>("blacklist_trigger_time"))
@@ -76,13 +76,12 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
                                          // already in collection
 
     const size_t nvars = variables.size();
-    utils::RandomNumberGenerator rng(initial_random_seed);
 
     vector<int> goals;
     for (const FactProxy fact : task_goals) {
         goals.push_back(fact.get_variable().get_id());
     }
-    rng.shuffle(goals);
+    rng->shuffle(goals);
 
     bool can_generate = true;
     bool stagnation = false;
@@ -102,7 +101,7 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
         int blacklist_size = 0;
         if (force_blacklisting || timer.get_elapsed_time() / total_time_limit >
                                       blacklist_trigger_time) {
-            blacklist_size = static_cast<int>(nvars * rng.random());
+            blacklist_size = static_cast<int>(nvars * rng->random());
             force_blacklisting = true;
         }
 
@@ -111,8 +110,7 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
         double remaining_time = total_time_limit - timer.get_elapsed_time();
 
         PatternCollectionGeneratorCegar<PDBType> generator(
-            make_shared<utils::RandomNumberGenerator>(
-                initial_random_seed + num_iterations),
+            rng,
             subcollection_finder_factory,
             flaw_strategy,
             single_generator_wildcard_policies,
@@ -230,10 +228,7 @@ template <typename PDBType>
 static shared_ptr<PatternCollectionGenerator<PDBType>>
 _parse(options::OptionParser& parser)
 {
-    parser.add_option<int>(
-        "initial_random_seed",
-        "seed for the random number generator(s) of the cegar generators",
-        "10");
+    utils::add_rng_options(parser);
     parser.add_option<int>(
         "total_collection_max_size",
         "max. number of entries in the final collection",

@@ -5,8 +5,14 @@
 
 #include "utils/logging.h"
 
+#include <memory>
+
 namespace options {
 class Options;
+}
+
+namespace utils {
+class RandomNumberGenerator;
 }
 
 namespace probfd {
@@ -37,12 +43,13 @@ class PatternCollectionGeneratorFastCegar
                                             // remaining total_time_limit
     const utils::Verbosity single_generator_verbosity;
 
-    const int initial_random_seed;
     const int total_collection_max_size;
     const double stagnation_limit;
     const double blacklist_trigger_time;
     const bool blacklist_on_stagnation;
     const double total_time_limit;
+
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
     explicit PatternCollectionGeneratorFastCegar(const options::Options& opts);
