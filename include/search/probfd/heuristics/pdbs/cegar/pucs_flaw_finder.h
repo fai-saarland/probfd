@@ -30,8 +30,13 @@ namespace cegar {
 
 template <typename PDBType>
 class PUCSFlawFinder : public FlawFindingStrategy<PDBType> {
+    struct ExpansionInfo {
+        bool expanded = false;
+        value_t path_probability = 0_vt;
+    };
+
     priority_queues::HeapQueue<value_t, State> pq;
-    storage::PerStateStorage<value_t> probabilities;
+    storage::PerStateStorage<ExpansionInfo> probabilities;
 
     unsigned int violation_threshold;
 

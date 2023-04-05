@@ -30,8 +30,7 @@ PUCSFlawFinder<PDBType>::PUCSFlawFinder(options::Options& opts)
 
 template <typename PDBType>
 PUCSFlawFinder<PDBType>::PUCSFlawFinder(unsigned int violation_threshold)
-    : probabilities(0_vt)
-    , violation_threshold(violation_threshold)
+    : violation_threshold(violation_threshold)
 {
 }
 
@@ -49,25 +48,29 @@ bool PUCSFlawFinder<PDBType>::apply_policy(
 
     // Push initial state for expansion
     pq.push(1.0, init);
-    probabilities[StateID(init.get_id())] = 1.0;
+    probabilities[StateID(init.get_id())].path_probability = 1.0;
 
     unsigned int violations = 0;
     bool executable = true;
 
     while (!pq.empty()) {
-        auto [priority, current] = pq.pop();
+        auto [path_probability, current] = pq.pop();
+        auto& info = probabilities[StateID(current.get_id())];
+        assert(!info.expanded);
 
         // TODO remove this once we have a real priority queue...
-        if (priority < probabilities[StateID(current.get_id())]) {
+        if (path_probability < info.path_probability) {
             continue;
         }
+
+        info.expanded = true;
 
         bool successful = expand(
             base,
             task_proxy,
             solution_index,
             std::move(current),
-            priority,
+            path_probability,
             flaw_list,
             registry);
 
@@ -96,10 +99,12 @@ bool PUCSFlawFinder<PDBType>::expand(
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     State state,
-    value_t priority,
+    value_t path_probability,
     std::vector<Flaw>& flaw_list,
     StateRegistry& registry)
 {
+    assert(path_probability != 0_vt);
+
     PDBInfo<PDBType>& solution = *base.pdb_infos[solution_index];
     const AbstractPolicy& policy = solution.get_policy();
     const PDBType& pdb = solution.get_pdb();
@@ -169,19 +174,15 @@ bool PUCSFlawFinder<PDBType>::expand(
 
         // Generate the successors and add them to the queue
         for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
-            const auto succ_prob = priority * outcome.get_probability();
+            const auto succ_prob = path_probability * outcome.get_probability();
             State successor = registry.get_successor_state(state, outcome);
-            value_t& succ_entry = probabilities[StateID(successor.get_id())];
+            auto& succ_entry = probabilities[StateID(successor.get_id())];
 
-            if (succ_entry != 0_vt) {
-                if (succ_prob <= succ_entry) {
-                    continue;
-                }
-
-                succ_entry = succ_prob;
+            if (!succ_entry.expanded &&
+                succ_entry.path_probability < succ_prob) {
+                succ_entry.path_probability = succ_prob;
+                pq.push(succ_prob, std::move(successor));
             }
-
-            pq.push(succ_prob, std::move(successor));
         }
 
         return true;
