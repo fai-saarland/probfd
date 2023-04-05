@@ -6,7 +6,6 @@
 #include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
-
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/task_proxy.h"
@@ -176,7 +175,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     , verbosity(verbosity)
     , max_time(arg_max_time)
     , collection_size(0)
-    , concrete_solution_index(-1)
 {
     if (initial == InitialCollectionType::GIVEN_GOAL && given_goal == -1) {
         cerr << "Initial collection type 'given goal', but no goal specified"
@@ -355,38 +353,7 @@ bool PatternCollectionGeneratorCegar<PDBType>::termination_conditions_met(
 }
 
 template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::apply_policy(
-    const ProbabilisticTaskProxy& task_proxy,
-    int solution_index,
-    std::vector<Flaw>& flaws)
-{
-    const size_t num_flaws_before = flaws.size();
-    bool executable =
-        flaw_strategy->apply_policy(*this, task_proxy, solution_index, flaws);
-
-    // Check for new flaws
-    if (flaws.size() == num_flaws_before) {
-        auto& solution = *solutions[solution_index];
-
-        // Check if policy is executable modulo blacklisting.
-        // Even if there are no flaws, there might be goal violations
-        // that did not make it into the flaw list.
-        if (executable && global_blacklist.empty()) {
-            /*
-                If there are no flaws, this does not guarantee that the plan
-                is valid in the concrete state space because we might have
-                ignored variables that have been blacklisted. Hence the tests
-                for empty blacklists.
-            */
-            concrete_solution_index = solution_index;
-        }
-
-        solution.mark_as_solved();
-    }
-}
-
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::get_flaws(
+int PatternCollectionGeneratorCegar<PDBType>::get_flaws(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws)
 {
@@ -407,14 +374,33 @@ void PatternCollectionGeneratorCegar<PDBType>::get_flaws(
         // find out if and why the abstract solution
         // would not work for the concrete task.
         // We always start with the initial state.
-        apply_policy(task_proxy, sol_idx, flaws);
+        const size_t num_flaws_before = flaws.size();
+        const bool executable =
+            flaw_strategy->apply_policy(*this, task_proxy, sol_idx, flaws);
 
-        if (concrete_solution_index != -1) {
-            assert(sol_idx == concrete_solution_index);
-            flaws.clear();
-            return;
+        // Check for new flaws
+        if (flaws.size() == num_flaws_before) {
+            auto& solution = *solutions[sol_idx];
+
+            // Check if policy is executable modulo blacklisting.
+            // Even if there are no flaws, there might be goal violations
+            // that did not make it into the flaw list.
+            if (executable && global_blacklist.empty()) {
+                /*
+                 * If there are no flaws, this does not guarantee that the
+                 * plan is valid in the concrete state space because we might
+                 * have ignored variables that have been blacklisted. Hence the
+                 * tests for empty blacklists.
+                 */
+                flaws.clear();
+                return sol_idx;
+            }
+
+            solution.mark_as_solved();
         }
     }
+
+    return -1;
 }
 
 template <typename PDBType>
@@ -437,7 +423,7 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_singleton_pattern(
     const VariablesProxy& variables,
     int var) const
 {
-    int pdb_size = variables[var].get_domain_size();
+    const int pdb_size = variables[var].get_domain_size();
     return pdb_size <= max_pdb_size &&
            collection_size <= max_collection_size - pdb_size;
 }
@@ -729,8 +715,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
         vector<int> nongoals;
         nongoals.reserve(num_vars - remaining_goals.size());
         for (int var_id = 0; var_id < num_vars; ++var_id) {
-            if (find(remaining_goals.begin(), remaining_goals.end(), var_id) ==
-                remaining_goals.end()) {
+            if (!utils::contains(remaining_goals, var_id)) {
                 nongoals.push_back(var_id);
             }
         }
@@ -758,6 +743,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     initial_state.unpack();
 
     std::vector<Flaw> flaws;
+    int solution_index;
 
     // main loop of the algorithm
     int refinement_counter = 0;
@@ -767,11 +753,11 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
         }
 
         // vector of solution indices and flaws associated with said solutions
-        get_flaws(task_proxy, flaws);
+        solution_index = get_flaws(task_proxy, flaws);
 
         if (flaws.empty()) {
-            if (concrete_solution_index != -1) {
-                auto& sol = solutions[concrete_solution_index];
+            if (solution_index != -1) {
+                const auto& sol = solutions[solution_index];
 
                 assert(global_blacklist.empty());
 
@@ -822,9 +808,8 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     auto patterns = std::make_shared<PatternCollection>();
     auto pdbs = std::make_shared<PPDBCollection<PDBType>>();
 
-    if (concrete_solution_index != -1) {
-        unique_ptr<PDBType> pdb =
-            solutions[concrete_solution_index]->steal_pdb();
+    if (solution_index != -1) {
+        unique_ptr<PDBType> pdb = solutions[solution_index]->steal_pdb();
         patterns->push_back(pdb->get_pattern());
         pdbs->emplace_back(std::move(pdb));
     } else {

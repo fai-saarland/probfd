@@ -160,11 +160,6 @@ class PatternCollectionGeneratorCegar
 
     int collection_size;
 
-    // If the algorithm finds a single solution instance that solves
-    // the concrete problem, then it will store its index here.
-    // This enables simpler plan extraction later on.
-    int concrete_solution_index;
-
 public:
     explicit PatternCollectionGeneratorCegar(const options::Options& opts);
 
@@ -199,20 +194,7 @@ private:
         const utils::CountdownTimer& timer,
         int refinement_counter) const;
 
-    /*
-      Try to apply the specified abstract policy
-      in concrete space by starting with the specified state.
-      Return the last state that could be reached before the
-      solution failed (if the solution did not fail, then the
-      returned state is a goal state of the concrete task).
-      The second element of the returned pair is a list of variables
-      that caused the solution to fail.
-     */
-    void apply_policy(
-        const ProbabilisticTaskProxy& task_proxy,
-        int solution_index,
-        std::vector<Flaw>& flaws);
-    void get_flaws(
+    int get_flaws(
         const ProbabilisticTaskProxy& task_proxy,
         std::vector<Flaw>& flaws);
 
