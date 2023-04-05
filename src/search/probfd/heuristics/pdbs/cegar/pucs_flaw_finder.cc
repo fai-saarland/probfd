@@ -119,17 +119,15 @@ bool PUCSFlawFinder<PDBType>::expand(
         assert(solution.is_goal(abs));
 
         if (!::task_properties::is_goal_state(task_proxy, state)) {
-            if (!base.ignore_goal_violations) {
-                // Collect all non-satisfied goal variables that are still
-                // available.
-                for (FactProxy fact : task_proxy.get_goals()) {
-                    const auto& [goal_var, goal_val] = fact.get_pair();
+            // Collect all non-satisfied goal variables that are still
+            // available.
+            for (FactProxy fact : task_proxy.get_goals()) {
+                const auto& [goal_var, goal_val] = fact.get_pair();
 
-                    if (state[goal_var].get_value() != goal_val &&
-                        !base.blacklisted_variables.contains(goal_var) &&
-                        utils::contains(base.remaining_goals, goal_var)) {
-                        flaw_list.emplace_back(solution_index, goal_var);
-                    }
+                if (state[goal_var].get_value() != goal_val &&
+                    !base.blacklisted_variables.contains(goal_var) &&
+                    utils::contains(base.remaining_goals, goal_var)) {
+                    flaw_list.emplace_back(solution_index, goal_var);
                 }
             }
 

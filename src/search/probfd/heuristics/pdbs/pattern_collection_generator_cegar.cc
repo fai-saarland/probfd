@@ -152,7 +152,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     bool wildcard,
     int arg_max_pdb_size,
     int arg_max_collection_size,
-    bool arg_ignore_goal_violations,
     int blacklist_size,
     InitialCollectionType arg_initial,
     int given_goal,
@@ -164,7 +163,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     , wildcard(wildcard)
     , max_pdb_size(arg_max_pdb_size)
     , max_collection_size(arg_max_collection_size)
-    , ignore_goal_violations(arg_ignore_goal_violations)
     , blacklist_size(blacklist_size)
     , initial(arg_initial)
     , given_goal(given_goal)
@@ -190,8 +188,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
         cout << token << "flaw strategy: " << flaw_strategy->get_name() << endl;
         cout << token << "max pdb size: " << max_pdb_size << endl;
         cout << token << "max collection size: " << max_collection_size << endl;
-        cout << token << "ignore goal violations: " << ignore_goal_violations
-             << endl;
         cout << token << "global blacklist size: " << blacklist_size << endl;
         cout << token << "initial collection type: ";
 
@@ -238,7 +234,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
           opts.get<bool>("wildcard"),
           opts.get<int>("max_pdb_size"),
           opts.get<int>("max_collection_size"),
-          opts.get<bool>("ignore_goal_violations"),
           opts.get<int>("blacklist_size"),
           opts.get<InitialCollectionType>("initial"),
           opts.get<int>("given_goal"),
@@ -785,10 +780,6 @@ void add_pattern_collection_generator_cegar_options_to_parser(
         "applied to initial goal variable pattern(s))",
         "infinity",
         Bounds("1", "infinity"));
-    parser.add_option<bool>(
-        "ignore_goal_violations",
-        "ignore goal violations and consequently generate a single pattern",
-        "false");
     parser.add_option<int>(
         "blacklist_size",
         "Number of randomly selected non-goal variables that are globally "

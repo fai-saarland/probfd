@@ -126,10 +126,6 @@ class PatternCollectionGeneratorCegar
     const int max_pdb_size;
     const int max_collection_size;
 
-    // set this to true if you want to
-    // generate only one pattern
-    const bool ignore_goal_violations;
-
     const int blacklist_size;
     const InitialCollectionType initial;
     const int given_goal;
@@ -161,7 +157,6 @@ public:
         bool wildcard,
         int max_pdb_size,
         int max_collection_size,
-        bool ignore_goal_violations,
         int blacklisted_variables_size,
         InitialCollectionType arg_initial,
         int given_goal,

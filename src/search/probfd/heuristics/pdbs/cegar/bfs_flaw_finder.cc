@@ -110,18 +110,16 @@ bool BFSFlawFinder<PDBType>::expand(
         assert(solution.is_goal(abs));
 
         if (!::task_properties::is_goal_state(task_proxy, state)) {
-            if (!base.ignore_goal_violations) {
-                // Collect all non-satisfied goal variables that are still
-                // available.
-                for (FactProxy fact : task_proxy.get_goals()) {
-                    const int goal_var = fact.get_variable().get_id();
-                    const int goal_val = fact.get_value();
+            // Collect all non-satisfied goal variables that are still
+            // available.
+            for (FactProxy fact : task_proxy.get_goals()) {
+                const int goal_var = fact.get_variable().get_id();
+                const int goal_val = fact.get_value();
 
-                    if (state[goal_var].get_value() != goal_val &&
-                        !base.blacklisted_variables.contains(goal_var) &&
-                        utils::contains(base.remaining_goals, goal_var)) {
-                        flaw_list.emplace_back(solution_index, goal_var);
-                    }
+                if (state[goal_var].get_value() != goal_val &&
+                    !base.blacklisted_variables.contains(goal_var) &&
+                    utils::contains(base.remaining_goals, goal_var)) {
+                    flaw_list.emplace_back(solution_index, goal_var);
                 }
             }
 
