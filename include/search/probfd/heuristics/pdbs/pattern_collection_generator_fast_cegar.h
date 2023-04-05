@@ -35,7 +35,6 @@ class PatternCollectionGeneratorFastCegar
                                                     // total_collection_max_size
     const bool single_generator_wildcard_policies;
     const bool single_generator_treat_goal_violations_differently;
-    const bool single_generator_local_blacklisting;
     const double single_generator_max_time; // Possibly overwritten by
                                             // remaining total_time_limit
     const utils::Verbosity single_generator_verbosity;

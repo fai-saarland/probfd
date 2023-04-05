@@ -52,8 +52,6 @@ class AbstractSolutionData {
     ProjectionStateSpace state_space;
     std::unique_ptr<PDBType> pdb;
     std::unique_ptr<AbstractPolicy> policy;
-
-    std::set<int> blacklist;
     bool solved = false;
 
 public:
@@ -61,7 +59,6 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        std::set<int> blacklist,
         bool wildcard);
 
     AbstractSolutionData(
@@ -70,7 +67,6 @@ public:
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& previous,
         int add_var,
-        std::set<int> blacklist,
         bool wildcard);
 
     AbstractSolutionData(
@@ -79,16 +75,9 @@ public:
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& merge_left,
         const PDBType& merge_right,
-        std::set<int> blacklist,
         bool wildcard);
 
     const Pattern& get_pattern() const;
-
-    void blacklist_variable(int var);
-
-    bool is_blacklisted(int var) const;
-
-    const std::set<int>& get_blacklist() const;
 
     const PDBType& get_pdb() const;
 
@@ -151,7 +140,6 @@ class PatternCollectionGeneratorCegar
     const bool ignore_goal_violations;
 
     const bool treat_goal_violations_differently;
-    const bool local_blacklisting;
     const int global_blacklist_size;
     const InitialCollectionType initial;
     const int given_goal;
@@ -191,7 +179,6 @@ public:
         int arg_max_collection_size,
         bool arg_ignore_goal_violations,
         bool treat_goal_violations_differently,
-        bool arg_local_blacklisting,
         int arg_global_blacklist_size,
         InitialCollectionType arg_initial,
         int given_goal,

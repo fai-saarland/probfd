@@ -147,13 +147,7 @@ bool BFSFlawFinder<PDBType>::expand(
             const int pre_val = fact.get_value();
 
             // We ignore blacklisted variables
-            const bool is_blacklist_var =
-                base.global_blacklist.contains(pre_var);
-
-            if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
-                assert(
-                    !solution.is_blacklisted(pre_var) ||
-                    base.local_blacklisting);
+            if (base.global_blacklist.contains(pre_var)) {
                 continue;
             }
 

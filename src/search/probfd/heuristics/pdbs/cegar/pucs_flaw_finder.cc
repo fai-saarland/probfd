@@ -152,14 +152,9 @@ bool PUCSFlawFinder<PDBType>::expand(
 
         for (const FactProxy precondition : op.get_preconditions()) {
             const auto& [pre_var, pre_val] = precondition.get_pair();
-            // We ignore blacklisted variables
-            const bool is_blacklist_var =
-                base.global_blacklist.contains(pre_var);
 
-            if (is_blacklist_var || solution.is_blacklisted(pre_var)) {
-                assert(
-                    !solution.is_blacklisted(pre_var) ||
-                    base.local_blacklisting);
+            // We ignore blacklisted variables
+            if (base.global_blacklist.contains(pre_var)) {
                 continue;
             }
 

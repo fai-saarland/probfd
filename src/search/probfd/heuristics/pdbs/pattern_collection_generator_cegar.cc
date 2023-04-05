@@ -46,12 +46,10 @@ AbstractSolutionData<PDBType>::AbstractSolutionData(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    set<int> blacklist,
     bool wildcard)
     : state_space(task_proxy, ranking_function, !wildcard)
     , pdb(new PDBType(state_space, std::move(ranking_function)))
     , policy(pdb->get_optimal_abstract_policy(state_space, rng, wildcard))
-    , blacklist(std::move(blacklist))
 {
 }
 
@@ -62,7 +60,6 @@ AbstractSolutionData<PDBType>::AbstractSolutionData(
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const PDBType& previous,
     int add_var,
-    std::set<int> blacklist,
     bool wildcard)
     : state_space(task_proxy, ranking_function, !wildcard)
     , pdb(new PDBType(
@@ -71,7 +68,6 @@ AbstractSolutionData<PDBType>::AbstractSolutionData(
           previous,
           add_var))
     , policy(pdb->get_optimal_abstract_policy(state_space, rng, wildcard))
-    , blacklist(std::move(blacklist))
 {
 }
 
@@ -82,12 +78,10 @@ AbstractSolutionData<PDBType>::AbstractSolutionData(
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const PDBType& left,
     const PDBType& right,
-    std::set<int> blacklist,
     bool wildcard)
     : state_space(task_proxy, ranking_function, !wildcard)
     , pdb(new PDBType(state_space, std::move(ranking_function), left, right))
     , policy(pdb->get_optimal_abstract_policy(state_space, rng, wildcard))
-    , blacklist(std::move(blacklist))
 {
 }
 
@@ -95,24 +89,6 @@ template <typename PDBType>
 const Pattern& AbstractSolutionData<PDBType>::get_pattern() const
 {
     return pdb->get_pattern();
-}
-
-template <typename PDBType>
-void AbstractSolutionData<PDBType>::blacklist_variable(int var)
-{
-    blacklist.insert(var);
-}
-
-template <typename PDBType>
-bool AbstractSolutionData<PDBType>::is_blacklisted(int var) const
-{
-    return blacklist.contains(var);
-}
-
-template <typename PDBType>
-const std::set<int>& AbstractSolutionData<PDBType>::get_blacklist() const
-{
-    return blacklist;
 }
 
 template <typename PDBType>
@@ -180,7 +156,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     int arg_max_collection_size,
     bool arg_ignore_goal_violations,
     bool treat_goal_violations_differently,
-    bool arg_local_blacklisting,
     int global_blacklist_size,
     InitialCollectionType arg_initial,
     int given_goal,
@@ -195,7 +170,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     , max_collection_size(arg_max_collection_size)
     , ignore_goal_violations(arg_ignore_goal_violations)
     , treat_goal_violations_differently(treat_goal_violations_differently)
-    , local_blacklisting(arg_local_blacklisting)
     , global_blacklist_size(global_blacklist_size)
     , initial(arg_initial)
     , given_goal(given_goal)
@@ -227,7 +201,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
              << endl;
         cout << token << "treat goal violations like regular ones: "
              << treat_goal_violations_differently << endl;
-        cout << token << "local blacklisting: " << local_blacklisting << endl;
         cout << token << "global blacklist size: " << global_blacklist_size
              << endl;
         cout << token << "initial collection type: ";
@@ -278,7 +251,6 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
           opts.get<int>("max_collection_size"),
           opts.get<bool>("ignore_goal_violations"),
           opts.get<bool>("treat_goal_violations_differently"),
-          opts.get<bool>("local_blacklisting"),
           opts.get<int>("global_blacklist_size"),
           opts.get<InitialCollectionType>("initial"),
           opts.get<int>("given_goal"),
@@ -399,8 +371,7 @@ void PatternCollectionGeneratorCegar<PDBType>::apply_policy(
         // Check if policy is executable modulo blacklisting.
         // Even if there are no flaws, there might be goal violations
         // that did not make it into the flaw list.
-        if (executable && global_blacklist.empty() &&
-            solution.get_blacklist().empty()) {
+        if (executable && global_blacklist.empty()) {
             /*
                 If there are no flaws, this does not guarantee that the plan
                 is valid in the concrete state space because we might have
@@ -480,7 +451,6 @@ void PatternCollectionGeneratorCegar<PDBType>::add_pattern_for_var(
         task_proxy,
         StateRankingFunction(task_proxy, {var}),
         rng,
-        {},
         wildcard));
     solution_lookup[var] = solutions.size() - 1;
     collection_size += sol->get_pdb().num_states();
@@ -551,12 +521,6 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
         solution_lookup[var] = index1;
     }
 
-    // compute merged local blacklist
-    const set<int>& blacklist1 = solution1.get_blacklist();
-    const set<int>& blacklist2 = solution2.get_blacklist();
-    set<int> new_blacklist(blacklist1);
-    new_blacklist.insert(blacklist2.begin(), blacklist2.end());
-
     // store old pdb sizes
     int pdb_size1 = pdb1.num_states();
     int pdb_size2 = pdb2.num_states();
@@ -571,7 +535,6 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
             rng,
             pdb1,
             pdb2,
-            new_blacklist,
             wildcard));
 
     // update collection size
@@ -621,7 +584,6 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
             rng,
             pdb,
             var,
-            solution.get_blacklist(),
             wildcard));
 
     // update collection size
@@ -689,22 +651,10 @@ void PatternCollectionGeneratorCegar<PDBType>::handle_precondition_violation(
         if (verbosity >= Verbosity::VERBOSE) {
             cout << token
                  << "Could not add var/merge patterns due to size "
-                    "limits. Blacklisting ";
+                    "limits. Blacklisting...";
         }
 
-        if (local_blacklisting) {
-            solutions[sol_index]->blacklist_variable(var);
-
-            if (verbosity >= Verbosity::VERBOSE) {
-                cout << "locally." << endl;
-            }
-        } else {
-            global_blacklist.insert(var);
-
-            if (verbosity >= Verbosity::VERBOSE) {
-                cout << "globally." << endl;
-            }
-        }
+        global_blacklist.insert(var);
     }
 }
 
@@ -823,8 +773,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
             if (concrete_solution_index != -1) {
                 auto& sol = solutions[concrete_solution_index];
 
-                assert(
-                    global_blacklist.empty() && sol->get_blacklist().empty());
+                assert(global_blacklist.empty());
 
                 if (verbosity >= Verbosity::VERBOSE) {
                     cout << token
@@ -963,11 +912,6 @@ void add_pattern_collection_generator_cegar_options_to_parser(
         "applied to initial goal variable pattern(s))",
         "infinity",
         Bounds("1", "infinity"));
-    parser.add_option<bool>(
-        "local_blacklisting",
-        "if a variable is too large to be added to a pattern, forbid "
-        "it only for that pattern",
-        "true");
     parser.add_option<bool>(
         "ignore_goal_violations",
         "ignore goal violations and consequently generate a single pattern",
