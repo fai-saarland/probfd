@@ -124,30 +124,11 @@ public:
     /**
      * @brief Ranks a given state.
      */
-    template <typename StateLike>
-    StateRank rank(const StateLike& state) const
-    {
-        StateRank res(0);
-        for (size_t i = 0; i != pattern_.size(); ++i) {
-            res.id += var_infos_[i].multiplier * state[pattern_[i]];
-        }
-        return res;
-    }
+    StateRank rank(const State& state) const;
 
     /**
-     * @brief Ranks a given state.
-     */
-    StateRank rank(const State& state) const
-    {
-        StateRank res(0);
-        for (size_t i = 0; i != pattern_.size(); ++i) {
-            res.id += var_infos_[i].multiplier * state[pattern_[i]].get_value();
-        }
-        return res;
-    }
-
-    /**
-     * @brief Unranks a given state rank. The state is returned as a vector.
+     * @brief Unranks a given state rank. The state is returned as a sequence of
+     * values for each variable, in ascending order.
      */
     std::vector<int> unrank(StateRank abstract_state) const;
 

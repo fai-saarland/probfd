@@ -279,6 +279,15 @@ StateRank StateRankingFunction::from_fact(int idx, int val) const
     return StateRank(var_infos_[idx].multiplier * val);
 }
 
+StateRank StateRankingFunction::rank(const State& state) const
+{
+    StateRank res(0);
+    for (size_t i = 0; i != pattern_.size(); ++i) {
+        res.id += var_infos_[i].multiplier * state[pattern_[i]].get_value();
+    }
+    return res;
+}
+
 std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
 {
     std::vector<int> values(var_infos_.size());

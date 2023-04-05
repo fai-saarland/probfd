@@ -75,9 +75,6 @@ public:
     /// Compute the state rank of the abstract state of an input state.
     StateRank get_abstract_state(const State& state) const;
 
-    /// Compute the state rank of the abstract state of an input state.
-    StateRank get_abstract_state(const std::vector<int>& s) const;
-
     /// Get the optimal state value of the abstract state corresponding to the
     /// input state.
     [[nodiscard]] value_t lookup(const State& s) const;

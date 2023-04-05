@@ -65,12 +65,6 @@ StateRank ProbabilisticPatternDatabase::get_abstract_state(const State& s) const
     return ranking_function_.rank(s);
 }
 
-StateRank ProbabilisticPatternDatabase::get_abstract_state(
-    const std::vector<int>& s) const
-{
-    return ranking_function_.rank(s);
-}
-
 const Pattern& ProbabilisticPatternDatabase::get_pattern() const
 {
     return ranking_function_.get_pattern();
