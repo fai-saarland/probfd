@@ -91,7 +91,7 @@ bool BFSFlawFinder<PDBType>::expand(
     std::vector<Flaw>& flaw_list,
     StateRegistry& registry)
 {
-    AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
+    PDBInfo<PDBType>& solution = *base.pdb_infos[solution_index];
     const AbstractPolicy& policy = solution.get_policy();
     const PDBType& pdb = solution.get_pdb();
 
@@ -118,9 +118,9 @@ bool BFSFlawFinder<PDBType>::expand(
                     const int goal_val = fact.get_value();
 
                     if (state[goal_var].get_value() != goal_val &&
-                        !base.global_blacklist.contains(goal_var) &&
+                        !base.blacklisted_variables.contains(goal_var) &&
                         utils::contains(base.remaining_goals, goal_var)) {
-                        flaw_list.emplace_back(true, solution_index, goal_var);
+                        flaw_list.emplace_back(solution_index, goal_var);
                     }
                 }
             }
@@ -147,13 +147,13 @@ bool BFSFlawFinder<PDBType>::expand(
             const int pre_val = fact.get_value();
 
             // We ignore blacklisted variables
-            if (base.global_blacklist.contains(pre_var)) {
+            if (base.blacklisted_variables.contains(pre_var)) {
                 continue;
             }
 
             if (state[pre_var].get_value() != pre_val) {
                 preconditions_ok = false;
-                local_flaws.emplace_back(false, solution_index, pre_var);
+                local_flaws.emplace_back(solution_index, pre_var);
             }
         }
 

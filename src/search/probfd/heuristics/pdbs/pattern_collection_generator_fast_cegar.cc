@@ -45,8 +45,6 @@ PatternCollectionGeneratorFastCegar<
     , single_generator_max_pdb_size(opts.get<int>("max_pdb_size"))
     , single_generator_max_collection_size(opts.get<int>("max_collection_size"))
     , single_generator_wildcard_policies(opts.get<bool>("wildcard"))
-    , single_generator_treat_goal_violations_differently(
-          opts.get<bool>("treat_goal_violations_differently"))
     , single_generator_max_time(opts.get<double>("max_time"))
     , single_generator_verbosity(opts.get<Verbosity>("verbosity"))
     , initial_random_seed(opts.get<int>("initial_random_seed"))
@@ -122,7 +120,6 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
             min(remaining_collection_size,
                 single_generator_max_collection_size),
             single_generator_ignore_goal_violations,
-            single_generator_treat_goal_violations_differently,
             blacklist_size,
             single_generator_initial,
             goals[goal_index],

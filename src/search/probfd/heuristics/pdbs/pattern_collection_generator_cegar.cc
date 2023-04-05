@@ -41,7 +41,7 @@ static const std::string token = "CEGAR_PDBs: ";
 } // namespace
 
 template <typename PDBType>
-AbstractSolutionData<PDBType>::AbstractSolutionData(
+PDBInfo<PDBType>::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -53,7 +53,7 @@ AbstractSolutionData<PDBType>::AbstractSolutionData(
 }
 
 template <typename PDBType>
-AbstractSolutionData<PDBType>::AbstractSolutionData(
+PDBInfo<PDBType>::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -71,7 +71,7 @@ AbstractSolutionData<PDBType>::AbstractSolutionData(
 }
 
 template <typename PDBType>
-AbstractSolutionData<PDBType>::AbstractSolutionData(
+PDBInfo<PDBType>::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -85,64 +85,64 @@ AbstractSolutionData<PDBType>::AbstractSolutionData(
 }
 
 template <typename PDBType>
-const Pattern& AbstractSolutionData<PDBType>::get_pattern() const
+const Pattern& PDBInfo<PDBType>::get_pattern() const
 {
     return pdb->get_pattern();
 }
 
 template <typename PDBType>
-const PDBType& AbstractSolutionData<PDBType>::get_pdb() const
+const PDBType& PDBInfo<PDBType>::get_pdb() const
 {
     assert(pdb);
     return *pdb;
 }
 
 template <typename PDBType>
-std::unique_ptr<PDBType> AbstractSolutionData<PDBType>::steal_pdb()
+std::unique_ptr<PDBType> PDBInfo<PDBType>::steal_pdb()
 {
     return std::move(pdb);
 }
 
 template <typename PDBType>
-const AbstractPolicy& AbstractSolutionData<PDBType>::get_policy() const
+const AbstractPolicy& PDBInfo<PDBType>::get_policy() const
 {
     return *policy;
 }
 
 template <typename PDBType>
-value_t AbstractSolutionData<PDBType>::get_policy_cost(const State& state) const
+value_t PDBInfo<PDBType>::get_policy_cost(const State& state) const
 {
     return pdb->lookup(state);
 }
 
 template <typename PDBType>
-bool AbstractSolutionData<PDBType>::is_solved() const
+bool PDBInfo<PDBType>::is_solved() const
 {
     return solved;
 }
 
 template <typename PDBType>
-void AbstractSolutionData<PDBType>::mark_as_solved()
+void PDBInfo<PDBType>::mark_as_solved()
 {
     solved = true;
 }
 
 template <typename PDBType>
-bool AbstractSolutionData<PDBType>::solution_exists() const
+bool PDBInfo<PDBType>::solution_exists() const
 {
     ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
     return !pdb->evaluate(task_proxy.get_initial_state()).is_unsolvable();
 }
 
 template <typename PDBType>
-bool AbstractSolutionData<PDBType>::is_goal(StateRank rank) const
+bool PDBInfo<PDBType>::is_goal(StateRank rank) const
 {
     return state_space.is_goal(rank);
 }
 
 // Instantiations
-template class AbstractSolutionData<MaxProbPatternDatabase>;
-template class AbstractSolutionData<SSPPatternDatabase>;
+template class PDBInfo<MaxProbPatternDatabase>;
+template class PDBInfo<SSPPatternDatabase>;
 
 template <typename PDBType>
 PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
@@ -153,8 +153,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     int arg_max_pdb_size,
     int arg_max_collection_size,
     bool arg_ignore_goal_violations,
-    bool treat_goal_violations_differently,
-    int global_blacklist_size,
+    int blacklist_size,
     InitialCollectionType arg_initial,
     int given_goal,
     Verbosity verbosity,
@@ -166,8 +165,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     , max_pdb_size(arg_max_pdb_size)
     , max_collection_size(arg_max_collection_size)
     , ignore_goal_violations(arg_ignore_goal_violations)
-    , treat_goal_violations_differently(treat_goal_violations_differently)
-    , global_blacklist_size(global_blacklist_size)
+    , blacklist_size(blacklist_size)
     , initial(arg_initial)
     , given_goal(given_goal)
     , verbosity(verbosity)
@@ -194,10 +192,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
         cout << token << "max collection size: " << max_collection_size << endl;
         cout << token << "ignore goal violations: " << ignore_goal_violations
              << endl;
-        cout << token << "treat goal violations like regular ones: "
-             << treat_goal_violations_differently << endl;
-        cout << token << "global blacklist size: " << global_blacklist_size
-             << endl;
+        cout << token << "global blacklist size: " << blacklist_size << endl;
         cout << token << "initial collection type: ";
 
         switch (initial) {
@@ -244,8 +239,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
           opts.get<int>("max_pdb_size"),
           opts.get<int>("max_collection_size"),
           opts.get<bool>("ignore_goal_violations"),
-          opts.get<bool>("treat_goal_violations_differently"),
-          opts.get<int>("global_blacklist_size"),
+          opts.get<int>("blacklist_size"),
           opts.get<InitialCollectionType>("initial"),
           opts.get<int>("given_goal"),
           opts.get<Verbosity>("verbosity"),
@@ -258,11 +252,11 @@ void PatternCollectionGeneratorCegar<PDBType>::print_collection() const
 {
     cout << "[";
 
-    for (size_t i = 0; i < solutions.size(); ++i) {
-        const auto& sol = solutions[i];
-        if (sol) {
-            cout << sol->get_pattern();
-            if (i != solutions.size() - 1) {
+    for (size_t i = 0; i < pdb_infos.size(); ++i) {
+        const auto& info = pdb_infos[i];
+        if (info) {
+            cout << info->get_pattern();
+            if (i != pdb_infos.size() - 1) {
                 cout << ", ";
             }
         }
@@ -281,7 +275,6 @@ void PatternCollectionGeneratorCegar<
     switch (initial) {
     case InitialCollectionType::GIVEN_GOAL: {
         assert(given_goal != -1);
-        update_goals(given_goal);
         add_pattern_for_var(task_proxy, given_goal);
         break;
     }
@@ -332,16 +325,16 @@ int PatternCollectionGeneratorCegar<PDBType>::get_flaws(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws)
 {
-    const int num_solutions = static_cast<int>(solutions.size());
-    for (int sol_idx = 0; sol_idx < num_solutions; ++sol_idx) {
-        auto& sol = solutions[sol_idx];
+    const int num_pdb_infos = static_cast<int>(pdb_infos.size());
+    for (int idx = 0; idx < num_pdb_infos; ++idx) {
+        auto& info = pdb_infos[idx];
 
-        if (!sol || sol->is_solved()) {
+        if (!info || info->is_solved()) {
             continue;
         }
 
         // abort here if no abstract solution could be found
-        if (!sol->solution_exists()) {
+        if (!info->solution_exists()) {
             cout << token << "Problem unsolvable" << endl;
             utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
         }
@@ -351,16 +344,14 @@ int PatternCollectionGeneratorCegar<PDBType>::get_flaws(
         // We always start with the initial state.
         const size_t num_flaws_before = flaws.size();
         const bool executable =
-            flaw_strategy->apply_policy(*this, task_proxy, sol_idx, flaws);
+            flaw_strategy->apply_policy(*this, task_proxy, idx, flaws);
 
         // Check for new flaws
         if (flaws.size() == num_flaws_before) {
-            auto& solution = *solutions[sol_idx];
-
             // Check if policy is executable modulo blacklisting.
             // Even if there are no flaws, there might be goal violations
             // that did not make it into the flaw list.
-            if (executable && global_blacklist.empty()) {
+            if (executable && blacklisted_variables.empty()) {
                 /*
                  * If there are no flaws, this does not guarantee that the
                  * plan is valid in the concrete state space because we might
@@ -368,29 +359,14 @@ int PatternCollectionGeneratorCegar<PDBType>::get_flaws(
                  * tests for empty blacklists.
                  */
                 flaws.clear();
-                return sol_idx;
+                return idx;
             }
 
-            solution.mark_as_solved();
+            info->mark_as_solved();
         }
     }
 
     return -1;
-}
-
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::update_goals(int added_var)
-{
-    /*
-      Only call this method if added_var is definitely added to some
-      pattern. It removes the variable from remaining_goals if it is
-      contained there.
-    */
-    auto result =
-        find(remaining_goals.begin(), remaining_goals.end(), added_var);
-    if (result != remaining_goals.end()) {
-        remaining_goals.erase(result);
-    }
 }
 
 template <typename PDBType>
@@ -408,44 +384,13 @@ void PatternCollectionGeneratorCegar<PDBType>::add_pattern_for_var(
     const ProbabilisticTaskProxy& task_proxy,
     int var)
 {
-    auto& sol = solutions.emplace_back(new AbstractSolutionData<PDBType>(
+    auto& info = pdb_infos.emplace_back(new PDBInfo<PDBType>(
         task_proxy,
         StateRankingFunction(task_proxy, {var}),
         rng,
         wildcard));
-    solution_lookup[var] = solutions.size() - 1;
-    collection_size += sol->get_pdb().num_states();
-}
-
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::handle_goal_violation(
-    const ProbabilisticTaskProxy& task_proxy,
-    const VariablesProxy& variables,
-    const Flaw& flaw)
-{
-    int var = flaw.variable;
-    assert(!solution_lookup.contains(var));
-
-    if (verbosity >= Verbosity::VERBOSE) {
-        cout << token << "introducing goal variable " << var << endl;
-    }
-
-    // check for the edge case where the single-variable pattern
-    // causes the collection to grow larger than the allowed limit
-    if (can_add_singleton_pattern(variables, var)) {
-        update_goals(var);
-        add_pattern_for_var(task_proxy, var);
-    } else {
-        if (verbosity >= Verbosity::VERBOSE) {
-            cout << token
-                 << "Can't add variable because it is too large to "
-                    "fit either the pdb max size limit or the "
-                    "collection size limit. Blacklisting..."
-                 << endl;
-        }
-
-        global_blacklist.insert(var);
-    }
+    variable_to_collection_index[var] = pdb_infos.size() - 1;
+    collection_size += info->get_pdb().num_states();
 }
 
 template <typename PDBType>
@@ -453,8 +398,8 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_merge_patterns(
     int index1,
     int index2) const
 {
-    int pdb_size1 = solutions[index1]->get_pdb().num_states();
-    int pdb_size2 = solutions[index2]->get_pdb().num_states();
+    int pdb_size1 = pdb_infos[index1]->get_pdb().num_states();
+    int pdb_size2 = pdb_infos[index2]->get_pdb().num_states();
 
     if (!utils::is_product_within_limit(pdb_size1, pdb_size2, max_pdb_size)) {
         return false;
@@ -471,15 +416,15 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
     int index2)
 {
     // Merge pattern at index2 into pattern at index2
-    AbstractSolutionData<PDBType>& solution1 = *solutions[index1];
-    AbstractSolutionData<PDBType>& solution2 = *solutions[index2];
+    PDBInfo<PDBType>& solution1 = *pdb_infos[index1];
+    PDBInfo<PDBType>& solution2 = *pdb_infos[index2];
 
     const PDBType& pdb1 = solution1.get_pdb();
     const PDBType& pdb2 = solution2.get_pdb();
 
     // update look-up table
     for (int var : solution2.get_pattern()) {
-        solution_lookup[var] = index1;
+        variable_to_collection_index[var] = index1;
     }
 
     // store old pdb sizes
@@ -487,16 +432,15 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
     int pdb_size2 = pdb2.num_states();
 
     // compute merge solution
-    unique_ptr<AbstractSolutionData<PDBType>> merged(
-        new AbstractSolutionData<PDBType>(
+    unique_ptr<PDBInfo<PDBType>> merged(new PDBInfo<PDBType>(
+        task_proxy,
+        StateRankingFunction(
             task_proxy,
-            StateRankingFunction(
-                task_proxy,
-                utils::merge_sorted(pdb1.get_pattern(), pdb2.get_pattern())),
-            rng,
-            pdb1,
-            pdb2,
-            wildcard));
+            utils::merge_sorted(pdb1.get_pattern(), pdb2.get_pattern())),
+        rng,
+        pdb1,
+        pdb2,
+        wildcard));
 
     // update collection size
     collection_size -= pdb_size1;
@@ -504,8 +448,8 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
     collection_size += merged->get_pdb().num_states();
 
     // clean-up
-    solutions[index1] = std::move(merged);
-    solutions[index2] = nullptr;
+    pdb_infos[index1] = std::move(merged);
+    pdb_infos[index2] = nullptr;
 }
 
 template <typename PDBType>
@@ -514,7 +458,7 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_variable_to_pattern(
     int index,
     int var) const
 {
-    int pdb_size = solutions[index]->get_pdb().num_states();
+    int pdb_size = pdb_infos[index]->get_pdb().num_states();
     int domain_size = variables[var].get_domain_size();
 
     if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size)) {
@@ -531,53 +475,63 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
     int index,
     int var)
 {
-    AbstractSolutionData<PDBType>& solution = *solutions[index];
+    PDBInfo<PDBType>& info = *pdb_infos[index];
 
-    auto pdb = solution.get_pdb();
+    auto pdb = info.get_pdb();
 
     // compute new solution
-    std::unique_ptr<AbstractSolutionData<PDBType>> new_solution(
-        new AbstractSolutionData<PDBType>(
-            task_proxy,
-            StateRankingFunction(
-                task_proxy,
-                utils::insert(pdb.get_pattern(), var)),
-            rng,
-            pdb,
-            var,
-            wildcard));
+    std::unique_ptr<PDBInfo<PDBType>> new_info(new PDBInfo<PDBType>(
+        task_proxy,
+        StateRankingFunction(task_proxy, utils::insert(pdb.get_pattern(), var)),
+        rng,
+        pdb,
+        var,
+        wildcard));
 
     // update collection size
     collection_size -= pdb.num_states();
-    collection_size += new_solution->get_pdb().num_states();
+    collection_size += new_info->get_pdb().num_states();
 
-    // update look-up table and possibly remaining_goals, clean-up
-    solution_lookup[var] = index;
-    update_goals(var);
-    solutions[index] = std::move(new_solution);
+    // update look-up table
+    variable_to_collection_index[var] = index;
+    pdb_infos[index] = std::move(new_info);
 }
 
 template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::handle_precondition_violation(
+void PatternCollectionGeneratorCegar<PDBType>::refine(
     const ProbabilisticTaskProxy& task_proxy,
     const VariablesProxy& variables,
-    const Flaw& flaw)
+    const std::vector<Flaw>& flaws)
 {
+    assert(!flaws.empty());
+
+    // pick a random flaw
+    int random_flaw_index = rng->random(flaws.size());
+    const Flaw& flaw = flaws[random_flaw_index];
+
+    if (verbosity >= Verbosity::VERBOSE) {
+        cout << token << "chosen flaw: pattern "
+             << pdb_infos[flaw.solution_index]->get_pattern();
+    }
+
+    if (verbosity >= Verbosity::VERBOSE) {
+        cout << " with a violated precondition on " << flaw.variable << endl;
+    }
+
     int sol_index = flaw.solution_index;
     int var = flaw.variable;
-    bool added_var = false;
 
-    const auto it = solution_lookup.find(var);
+    const auto it = variable_to_collection_index.find(var);
 
-    if (it != solution_lookup.end()) {
+    if (it != variable_to_collection_index.end()) {
         // var is already in another pattern of the collection
         int other_index = it->second;
         assert(other_index != sol_index);
-        assert(solutions[other_index] != nullptr);
+        assert(pdb_infos[other_index] != nullptr);
 
         if (verbosity >= Verbosity::VERBOSE) {
             cout << token << "var" << var << " is already in pattern "
-                 << solutions[other_index]->get_pattern() << endl;
+                 << pdb_infos[other_index]->get_pattern() << endl;
         }
 
         if (can_merge_patterns(sol_index, other_index)) {
@@ -586,7 +540,7 @@ void PatternCollectionGeneratorCegar<PDBType>::handle_precondition_violation(
             }
 
             merge_patterns(task_proxy, sol_index, other_index);
-            added_var = true;
+            return;
         }
     } else {
         // var is not yet in the collection
@@ -604,52 +558,17 @@ void PatternCollectionGeneratorCegar<PDBType>::handle_precondition_violation(
             }
 
             add_variable_to_pattern(task_proxy, sol_index, var);
-            added_var = true;
+            return;
         }
     }
-
-    if (!added_var) {
-        if (verbosity >= Verbosity::VERBOSE) {
-            cout << token
-                 << "Could not add var/merge patterns due to size "
-                    "limits. Blacklisting...";
-        }
-
-        global_blacklist.insert(var);
-    }
-}
-
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::refine(
-    const ProbabilisticTaskProxy& task_proxy,
-    const VariablesProxy& variables,
-    const std::vector<Flaw>& flaws)
-{
-    assert(!flaws.empty());
-
-    // pick a random flaw
-    int random_flaw_index = rng->random(flaws.size());
-    const Flaw& flaw = flaws[random_flaw_index];
 
     if (verbosity >= Verbosity::VERBOSE) {
-        cout << token << "chosen flaw: pattern "
-             << solutions[flaw.solution_index]->get_pattern();
+        cout << token
+             << "Could not add var/merge patterns due to size limits. "
+                "Blacklisting...";
     }
 
-    if (treat_goal_violations_differently && flaw.is_goal_violation) {
-        if (verbosity >= Verbosity::VERBOSE) {
-            cout << " with a goal violation on " << flaw.variable << endl;
-        }
-
-        handle_goal_violation(task_proxy, variables, flaw);
-    } else {
-        if (verbosity >= Verbosity::VERBOSE) {
-            cout << " with a violated precondition on " << flaw.variable
-                 << endl;
-        }
-
-        handle_precondition_violation(task_proxy, variables, flaw);
-    }
+    blacklisted_variables.insert(var);
 }
 
 template <typename PDBType>
@@ -685,7 +604,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
 
     rng->shuffle(remaining_goals);
 
-    if (global_blacklist_size) {
+    if (blacklist_size > 0) {
         const int num_vars = variables.size();
         vector<int> nongoals;
         nongoals.reserve(num_vars - remaining_goals.size());
@@ -698,7 +617,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
 
         // Select a random subset of non goals.
         const auto m =
-            min(static_cast<size_t>(global_blacklist_size), nongoals.size());
+            min(static_cast<size_t>(blacklist_size), nongoals.size());
 
         for (size_t i = 0; i < m; ++i) {
             int var_id = nongoals[i];
@@ -707,7 +626,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
                 cout << token << "blacklisting var" << var_id << endl;
             }
 
-            global_blacklist.insert(var_id);
+            blacklisted_variables.insert(var_id);
         }
     }
 
@@ -727,21 +646,20 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
             cout << "iteration #" << refinement_counter << endl;
         }
 
-        // vector of solution indices and flaws associated with said solutions
         solution_index = get_flaws(task_proxy, flaws);
 
         if (flaws.empty()) {
             if (solution_index != -1) {
-                const auto& sol = solutions[solution_index];
+                const auto& info = pdb_infos[solution_index];
 
-                assert(global_blacklist.empty());
+                assert(blacklisted_variables.empty());
 
                 if (verbosity >= Verbosity::VERBOSE) {
                     cout << token
                          << "Task solved during computation of abstract"
                          << "policies." << endl;
                     cout << token << "Cost of policy: "
-                         << sol->get_policy_cost(initial_state) << endl;
+                         << info->get_policy_cost(initial_state) << endl;
                 }
             } else {
                 if (verbosity >= Verbosity::VERBOSE) {
@@ -784,13 +702,13 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     auto pdbs = std::make_shared<PPDBCollection<PDBType>>();
 
     if (solution_index != -1) {
-        unique_ptr<PDBType> pdb = solutions[solution_index]->steal_pdb();
+        unique_ptr<PDBType> pdb = pdb_infos[solution_index]->steal_pdb();
         patterns->push_back(pdb->get_pattern());
         pdbs->emplace_back(std::move(pdb));
     } else {
-        for (const auto& sol : solutions) {
-            if (sol) {
-                unique_ptr<PDBType> pdb = sol->steal_pdb();
+        for (const auto& info : pdb_infos) {
+            if (info) {
+                unique_ptr<PDBType> pdb = info->steal_pdb();
                 patterns->push_back(pdb->get_pattern());
                 pdbs->emplace_back(std::move(pdb));
             }
@@ -872,7 +790,7 @@ void add_pattern_collection_generator_cegar_options_to_parser(
         "ignore goal violations and consequently generate a single pattern",
         "false");
     parser.add_option<int>(
-        "global_blacklist_size",
+        "blacklist_size",
         "Number of randomly selected non-goal variables that are globally "
         "blacklisted, which means excluded from being added to the pattern "
         "collection. 0 means no global blacklisting happens, infinity "
@@ -899,13 +817,6 @@ void add_pattern_collection_generator_cegar_options_to_parser(
         " as well as the creation of the correlation matrix.",
         "infinity",
         Bounds("0.0", "infinity"));
-    parser.add_option<bool>(
-        "treat_goal_violations_differently",
-        "If true, violated goal variables will be introduced as a separate "
-        "pattern. Otherwise, they will be treated like precondition variables, "
-        "thus added to the pattern in question or merging two patterns if "
-        "already in the collection.",
-        "true");
     parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
         "The subcollection finder factory.",

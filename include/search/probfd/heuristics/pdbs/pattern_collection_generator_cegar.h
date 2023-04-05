@@ -33,20 +33,12 @@ namespace pdbs {
 class SubCollectionFinderFactory;
 
 struct Flaw {
-    bool is_goal_violation;
     int solution_index;
     int variable;
-
-    Flaw(bool is_goal_violation, int solution_index, int variable)
-        : is_goal_violation(is_goal_violation)
-        , solution_index(solution_index)
-        , variable(variable)
-    {
-    }
 };
 
 template <typename PDBType>
-class AbstractSolutionData {
+class PDBInfo {
     // The state space needs to be kept because it contains the operators and
     // deleting it invalidates the returned policy actions
     ProjectionStateSpace state_space;
@@ -55,13 +47,13 @@ class AbstractSolutionData {
     bool solved = false;
 
 public:
-    AbstractSolutionData(
+    PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard);
 
-    AbstractSolutionData(
+    PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -69,7 +61,7 @@ public:
         int add_var,
         bool wildcard);
 
-    AbstractSolutionData(
+    PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -138,24 +130,23 @@ class PatternCollectionGeneratorCegar
     // generate only one pattern
     const bool ignore_goal_violations;
 
-    const bool treat_goal_violations_differently;
-    const int global_blacklist_size;
+    const int blacklist_size;
     const InitialCollectionType initial;
     const int given_goal;
     const utils::Verbosity verbosity;
     const double max_time;
 
     std::vector<int> remaining_goals;
-    std::unordered_set<int> global_blacklist;
+    std::unordered_set<int> blacklisted_variables;
 
     // the pattern collection in form of their pdbs plus stored plans.
-    std::vector<std::unique_ptr<AbstractSolutionData<PDBType>>> solutions;
+    std::vector<std::unique_ptr<PDBInfo<PDBType>>> pdb_infos;
 
     // Takes a variable as key and returns the index of the solutions-entry
     // whose pattern contains said variable. Used for checking if a variable
     // is already included in some pattern as well as for quickly finding
     // the other partner for merging.
-    std::unordered_map<int, int> solution_lookup;
+    std::unordered_map<int, int> variable_to_collection_index;
 
     int collection_size;
 
@@ -168,11 +159,10 @@ public:
             subcollection_finder_factory,
         std::shared_ptr<cegar::FlawFindingStrategy<PDBType>> flaw_strategy,
         bool wildcard,
-        int arg_max_pdb_size,
-        int arg_max_collection_size,
-        bool arg_ignore_goal_violations,
-        bool treat_goal_violations_differently,
-        int arg_global_blacklist_size,
+        int max_pdb_size,
+        int max_collection_size,
+        bool ignore_goal_violations,
+        int blacklisted_variables_size,
         InitialCollectionType arg_initial,
         int given_goal,
         utils::Verbosity verbosity,
@@ -184,46 +174,39 @@ public:
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 
 private:
-    void print_collection() const;
     void generate_trivial_solution_collection(
         const ProbabilisticTaskProxy& task_proxy);
+
     bool time_limit_reached(const utils::CountdownTimer& timer) const;
 
     int get_flaws(
         const ProbabilisticTaskProxy& task_proxy,
         std::vector<Flaw>& flaws);
 
-    // Methods related to refining (and adding patterns to the collection
-    // generally).
-    void update_goals(int added_var);
     bool
     can_add_singleton_pattern(const VariablesProxy& variables, int var) const;
-    void add_pattern_for_var(const ProbabilisticTaskProxy& task_proxy, int var);
-    void handle_goal_violation(
-        const ProbabilisticTaskProxy& task_proxy,
-        const VariablesProxy& variables,
-        const Flaw& flaw);
-    bool can_merge_patterns(int index1, int index2) const;
-    void merge_patterns(
-        const ProbabilisticTaskProxy& task_proxy,
-        int index1,
-        int index2);
     bool can_add_variable_to_pattern(
         const VariablesProxy& variables,
         int index,
         int var) const;
+    bool can_merge_patterns(int index1, int index2) const;
+
+    void add_pattern_for_var(const ProbabilisticTaskProxy& task_proxy, int var);
     void add_variable_to_pattern(
         const ProbabilisticTaskProxy& task_proxy,
         int index,
         int var);
-    void handle_precondition_violation(
+    void merge_patterns(
         const ProbabilisticTaskProxy& task_proxy,
-        const VariablesProxy& variables,
-        const Flaw& flaw);
+        int index1,
+        int index2);
+
     void refine(
         const ProbabilisticTaskProxy& task_proxy,
         const VariablesProxy& variables,
         const std::vector<Flaw>& flaws);
+
+    void print_collection() const;
 };
 
 template <typename PDBType>
