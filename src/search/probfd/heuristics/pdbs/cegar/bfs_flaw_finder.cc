@@ -4,13 +4,15 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
 #include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 
+#include "utils/collections.h"
+
+#include "probfd/task_utils/task_properties.h"
+
+#include "state_id.h"
+#include "state_registry.h"
 
 #include "option_parser.h"
 #include "plugin.h"
-
-#include "utils/collections.h"
-
-#include "task_utils/task_properties.h"
 
 using namespace std;
 using namespace utils;
@@ -21,13 +23,14 @@ namespace pdbs {
 namespace cegar {
 
 template <typename PDBType>
-BFSFlawFinder<PDBType>::BFSFlawFinder(
-    const ProbabilisticTask* task,
-    unsigned int violation_threshold)
-    : FlawFindingStrategy<PDBType>(task)
-    , closed(
-          16,
-          typename FlawFindingStrategy<PDBType>::StateHash(this->task_proxy))
+BFSFlawFinder<PDBType>::BFSFlawFinder(options::Options& opts)
+    : BFSFlawFinder(opts.get<int>("violation_threshold"))
+{
+}
+
+template <typename PDBType>
+BFSFlawFinder<PDBType>::BFSFlawFinder(unsigned violation_threshold)
+    : closed(false)
     , violation_threshold(violation_threshold)
 {
 }
@@ -35,23 +38,32 @@ BFSFlawFinder<PDBType>::BFSFlawFinder(
 template <typename PDBType>
 bool BFSFlawFinder<PDBType>::apply_policy(
     PatternCollectionGeneratorCegar<PDBType>& base,
+    const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
-    std::vector<int>& init,
     std::vector<Flaw>& flaw_list)
 {
     assert(open.empty() && closed.empty());
+
+    StateRegistry registry(task_proxy);
+    const State& init = registry.get_initial_state();
 
     bool executable = true;
     unsigned int violations = 0;
 
     open.push_back(init);
-    closed.insert(init);
+    closed[init.get_id()] = true;
 
     do {
-        std::vector<int> current = open.front();
+        State current = std::move(open.front());
         open.pop_front();
 
-        bool successful = expand(base, solution_index, current, flaw_list);
+        bool successful = expand(
+            base,
+            task_proxy,
+            solution_index,
+            std::move(current),
+            flaw_list,
+            registry);
         executable = executable && successful;
 
         if (!successful && ++violations >= violation_threshold) {
@@ -65,11 +77,19 @@ bool BFSFlawFinder<PDBType>::apply_policy(
 }
 
 template <typename PDBType>
+std::string BFSFlawFinder<PDBType>::get_name()
+{
+    return "BFS Flaw Finder";
+}
+
+template <typename PDBType>
 bool BFSFlawFinder<PDBType>::expand(
     PatternCollectionGeneratorCegar<PDBType>& base,
+    const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
-    std::vector<int>& state,
-    std::vector<Flaw>& flaw_list)
+    State state,
+    std::vector<Flaw>& flaw_list,
+    StateRegistry& registry)
 {
     AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
     const AbstractPolicy& policy = solution.get_policy();
@@ -89,18 +109,15 @@ bool BFSFlawFinder<PDBType>::expand(
     if (abs_operators.empty()) {
         assert(solution.is_goal(abs));
 
-        State terminal_state(*this->task, std::move(state));
-
-        if (solution.is_goal(abs) &&
-            !task_properties::is_goal_state(this->task_proxy, terminal_state)) {
+        if (!::task_properties::is_goal_state(task_proxy, state)) {
             if (!base.ignore_goal_violations) {
                 // Collect all non-satisfied goal variables that are still
                 // available.
-                for (FactProxy fact : this->task_proxy.get_goals()) {
+                for (FactProxy fact : task_proxy.get_goals()) {
                     const int goal_var = fact.get_variable().get_id();
                     const int goal_val = fact.get_value();
 
-                    if (terminal_state[goal_var].get_value() != goal_val &&
+                    if (state[goal_var].get_value() != goal_val &&
                         !base.global_blacklist.contains(goal_var) &&
                         utils::contains(base.remaining_goals, goal_var)) {
                         flaw_list.emplace_back(true, solution_index, goal_var);
@@ -116,8 +133,7 @@ bool BFSFlawFinder<PDBType>::expand(
 
     std::vector<Flaw> local_flaws;
 
-    const ProbabilisticOperatorsProxy operators =
-        this->task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
     for (const AbstractOperator* abs_op : abs_operators) {
         int original_id = abs_op->original_operator_id;
@@ -141,7 +157,7 @@ bool BFSFlawFinder<PDBType>::expand(
                 continue;
             }
 
-            if (state[pre_var] != pre_val) {
+            if (state[pre_var].get_value() != pre_val) {
                 preconditions_ok = false;
                 local_flaws.emplace_back(false, solution_index, pre_var);
             }
@@ -154,12 +170,12 @@ bool BFSFlawFinder<PDBType>::expand(
 
         // Generate the successors and add them to the open list
         for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
-            std::vector<int> successor =
-                this->apply_op_to_state(state, outcome);
+            State successor = registry.get_successor_state(state, outcome);
+            auto seen = closed[StateID(successor.get_id())];
 
-            if (!closed.contains(successor)) {
-                closed.insert(successor);
-                open.push_back(successor);
+            if (!seen) {
+                seen = true;
+                open.push_back(std::move(successor));
             }
         }
 
@@ -171,6 +187,28 @@ bool BFSFlawFinder<PDBType>::expand(
 
     return false;
 }
+
+template <typename PDBType>
+static std::shared_ptr<FlawFindingStrategy<PDBType>>
+_parse(options::OptionParser& parser)
+{
+    parser.add_option<int>(
+        "violation_threshold",
+        "Maximal number of states for which a flaw is tolerated before aborting"
+        "the search.",
+        "1",
+        options::Bounds("0", "infinity"));
+
+    Options opts = parser.parse();
+    if (parser.dry_run()) return nullptr;
+
+    return std::make_shared<BFSFlawFinder<PDBType>>(opts);
+}
+
+static Plugin<FlawFindingStrategy<MaxProbPatternDatabase>>
+    _plugin_maxprob("bfs_flaw_finder_mp", _parse<MaxProbPatternDatabase>);
+static Plugin<FlawFindingStrategy<SSPPatternDatabase>>
+    _plugin_expcost("bfs_flaw_finder_ec", _parse<SSPPatternDatabase>);
 
 template class BFSFlawFinder<MaxProbPatternDatabase>;
 template class BFSFlawFinder<SSPPatternDatabase>;

@@ -117,6 +117,12 @@ void release_vector_memory(std::vector<T>& vec)
     std::vector<T>().swap(vec);
 }
 
+template <class T>
+void release_container_memory(T& container)
+{
+    T().swap(container);
+}
+
 template <class KeyType, class ValueType>
 ValueType get_value_or_default(
     const std::unordered_map<KeyType, ValueType>& dict,

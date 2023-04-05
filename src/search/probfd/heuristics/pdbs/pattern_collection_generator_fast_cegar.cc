@@ -3,13 +3,11 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
-#include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy_factory.h"
 
 #include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
 #include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/types.h"
-
 
 #include "probfd/tasks/root_task.h"
 
@@ -42,9 +40,8 @@ PatternCollectionGeneratorFastCegar<
     : subcollection_finder_factory(
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"))
-    , flaw_strategy_factory(
-          opts.get<std::shared_ptr<FlawFindingStrategyFactory<PDBType>>>(
-              "flaw_strategy_factory"))
+    , flaw_strategy(opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
+          "flaw_strategy"))
     , single_generator_max_refinements(opts.get<int>("max_refinements"))
     , single_generator_max_pdb_size(opts.get<int>("max_pdb_size"))
     , single_generator_max_collection_size(opts.get<int>("max_collection_size"))
@@ -121,7 +118,7 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
             make_shared<utils::RandomNumberGenerator>(
                 initial_random_seed + num_iterations),
             subcollection_finder_factory,
-            flaw_strategy_factory,
+            flaw_strategy,
             single_generator_wildcard_policies,
             single_generator_max_refinements,
             single_generator_max_pdb_size,

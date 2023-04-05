@@ -1,7 +1,6 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
-#include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy_factory.h"
 
 #include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
 #include "probfd/heuristics/pdbs/ssp_pattern_database.h"
@@ -174,7 +173,7 @@ template <typename PDBType>
 PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory,
-    std::shared_ptr<FlawFindingStrategyFactory<PDBType>> flaw_strategy_factory,
+    std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy,
     bool wildcard,
     int arg_max_refinements,
     int arg_max_pdb_size,
@@ -189,7 +188,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     double arg_max_time)
     : rng(arg_rng)
     , subcollection_finder_factory(subcollection_finder_factory)
-    , flaw_strategy_factory(flaw_strategy_factory)
+    , flaw_strategy(flaw_strategy)
     , wildcard(wildcard)
     , max_refinements(arg_max_refinements)
     , max_pdb_size(arg_max_pdb_size)
@@ -220,10 +219,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     if (verbosity >= Verbosity::NORMAL) {
         cout << token << "options: " << endl;
 
-        cout << token
-             << "flaw strategy factory: " << flaw_strategy_factory->get_name()
-             << endl;
-
+        cout << token << "flaw strategy: " << flaw_strategy->get_name() << endl;
         cout << token << "max refinements: " << max_refinements << endl;
         cout << token << "max pdb size: " << max_pdb_size << endl;
         cout << token << "max collection size: " << max_collection_size << endl;
@@ -274,8 +270,8 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
           utils::parse_rng_from_options(opts),
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"),
-          opts.get<std::shared_ptr<FlawFindingStrategyFactory<PDBType>>>(
-              "flaw_strategy_factory"),
+          opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
+              "flaw_strategy"),
           opts.get<bool>("wildcard"),
           opts.get<int>("max_refinements"),
           opts.get<int>("max_pdb_size"),
@@ -388,14 +384,13 @@ bool PatternCollectionGeneratorCegar<PDBType>::termination_conditions_met(
 
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::apply_policy(
-    FlawFindingStrategy<PDBType>& flaw_strategy,
+    const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
-    std::vector<int>& state,
     std::vector<Flaw>& flaws)
 {
     const size_t num_flaws_before = flaws.size();
     bool executable =
-        flaw_strategy.apply_policy(*this, solution_index, state, flaws);
+        flaw_strategy->apply_policy(*this, task_proxy, solution_index, flaws);
 
     // Check for new flaws
     if (flaws.size() == num_flaws_before) {
@@ -421,12 +416,9 @@ void PatternCollectionGeneratorCegar<PDBType>::apply_policy(
 
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::get_flaws(
-    FlawFindingStrategy<PDBType>& flaw_strategy,
-    const State& initial_state,
+    const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws)
 {
-    std::vector<int> concrete_init = initial_state.get_unpacked_values();
-
     const int num_solutions = static_cast<int>(solutions.size());
     for (int sol_idx = 0; sol_idx < num_solutions; ++sol_idx) {
         auto& sol = solutions[sol_idx];
@@ -444,7 +436,7 @@ void PatternCollectionGeneratorCegar<PDBType>::get_flaws(
         // find out if and why the abstract solution
         // would not work for the concrete task.
         // We always start with the initial state.
-        apply_policy(flaw_strategy, sol_idx, concrete_init, flaws);
+        apply_policy(task_proxy, sol_idx, flaws);
 
         if (concrete_solution_index != -1) {
             assert(sol_idx == concrete_solution_index);
@@ -756,9 +748,6 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
 {
     utils::CountdownTimer timer(max_time);
 
-    std::unique_ptr<FlawFindingStrategy<PDBType>> flaw_strategy =
-        flaw_strategy_factory->create_flaw_finder(task.get());
-
     const ProbabilisticTaskProxy task_proxy(*task);
     const VariablesProxy variables = task_proxy.get_variables();
     const GoalsProxy goals = task_proxy.get_goals();
@@ -815,8 +804,10 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     // Start with a solution of the trivial abstraction
     generate_trivial_solution_collection(task_proxy);
 
-    State initial_state = task_proxy.get_initial_state();
+    const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
+
+    std::vector<Flaw> flaws;
 
     // main loop of the algorithm
     int refinement_counter = 0;
@@ -826,8 +817,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
         }
 
         // vector of solution indices and flaws associated with said solutions
-        std::vector<Flaw> flaws;
-        get_flaws(*flaw_strategy, initial_state, flaws);
+        get_flaws(task_proxy, flaws);
 
         if (flaws.empty()) {
             if (concrete_solution_index != -1) {
@@ -862,6 +852,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
         refine(task_proxy, variables, flaws);
 
         ++refinement_counter;
+        flaws.clear();
 
         if (verbosity >= Verbosity::VERBOSE) {
             cout << token << "current collection size: " << collection_size
@@ -928,11 +919,10 @@ template <>
 void add_flaw_finder_options_to_parser<SSPPatternDatabase>(
     options::OptionParser& parser)
 {
-    parser.add_option<
-        std::shared_ptr<FlawFindingStrategyFactory<SSPPatternDatabase>>>(
-        "flaw_strategy_factory",
-        "strategy factory creating the strategy used to find flaws in a policy",
-        "pucs_flaw_finder_factory_ec()");
+    parser.add_option<std::shared_ptr<FlawFindingStrategy<SSPPatternDatabase>>>(
+        "flaw_strategy",
+        "strategy used to find flaws in a policy",
+        "pucs_flaw_finder_ec()");
 }
 
 template <>
@@ -940,10 +930,10 @@ void add_flaw_finder_options_to_parser<MaxProbPatternDatabase>(
     options::OptionParser& parser)
 {
     parser.add_option<
-        std::shared_ptr<FlawFindingStrategyFactory<MaxProbPatternDatabase>>>(
-        "flaw_strategy_factory",
-        "strategy factory creating the strategy used to find flaws in a policy",
-        "pucs_flaw_finder_factory_mp()");
+        std::shared_ptr<FlawFindingStrategy<MaxProbPatternDatabase>>>(
+        "flaw_strategy",
+        "strategy used to find flaws in a policy",
+        "pucs_flaw_finder_mp()");
 }
 
 template <typename PDBType>

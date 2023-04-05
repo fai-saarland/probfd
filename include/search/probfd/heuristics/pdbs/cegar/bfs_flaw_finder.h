@@ -3,8 +3,19 @@
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
+#include "probfd/storage/per_state_storage.h"
+
 #include <stack>
 #include <unordered_set>
+
+class StateID;
+class State;
+class StateRegistry;
+
+namespace options {
+class Options;
+class OptionParser;
+} // namespace options
 
 namespace probfd {
 namespace heuristics {
@@ -13,33 +24,33 @@ namespace cegar {
 
 template <typename PDBType>
 class BFSFlawFinder : public FlawFindingStrategy<PDBType> {
-    std::deque<std::vector<int>> open;
-    std::unordered_set<
-        std::vector<int>,
-        typename FlawFindingStrategy<PDBType>::StateHash>
-        closed;
+    std::deque<State> open;
+    storage::PerStateStorage<bool> closed;
 
-    const unsigned int violation_threshold;
+    const unsigned violation_threshold;
 
 public:
-    BFSFlawFinder(
-        const ProbabilisticTask* task,
-        unsigned int violation_threshold);
+    BFSFlawFinder(options::Options& opts);
+    BFSFlawFinder(unsigned violation_threshold);
 
     ~BFSFlawFinder() override = default;
 
     virtual bool apply_policy(
         PatternCollectionGeneratorCegar<PDBType>& base,
+        const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
-        std::vector<int>& state,
         std::vector<Flaw>& flaw_list) override;
+
+    virtual std::string get_name() override;
 
 private:
     bool expand(
         PatternCollectionGeneratorCegar<PDBType>& base,
+        const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
-        std::vector<int>& state,
-        std::vector<Flaw>& flaw_list);
+        State state,
+        std::vector<Flaw>& flaw_list,
+        StateRegistry& registry);
 };
 
 } // namespace cegar

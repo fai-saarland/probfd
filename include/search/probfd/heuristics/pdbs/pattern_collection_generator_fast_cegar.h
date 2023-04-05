@@ -17,7 +17,7 @@ class SubCollectionFinderFactory;
 
 namespace cegar {
 template <typename PDBType>
-class FlawFindingStrategyFactory;
+class FlawFindingStrategy;
 }
 
 template <typename PDBType>
@@ -27,8 +27,7 @@ class PatternCollectionGeneratorFastCegar
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // Flaw finding strategy
-    std::shared_ptr<cegar::FlawFindingStrategyFactory<PDBType>>
-        flaw_strategy_factory;
+    std::shared_ptr<cegar::FlawFindingStrategy<PDBType>> flaw_strategy;
 
     const int single_generator_max_refinements;
     const int single_generator_max_pdb_size;

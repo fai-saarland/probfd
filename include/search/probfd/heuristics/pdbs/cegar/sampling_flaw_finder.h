@@ -3,10 +3,21 @@
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
+#include "probfd/storage/per_state_storage.h"
+
 #include "probfd/distribution.h"
 
 #include <stack>
 #include <unordered_map>
+
+class StateID;
+class State;
+class StateRegistry;
+
+namespace options {
+class Options;
+class OptionParser;
+} // namespace options
 
 namespace probfd {
 namespace heuristics {
@@ -16,40 +27,39 @@ namespace cegar {
 template <typename PDBType>
 class SamplingFlawFinder : public FlawFindingStrategy<PDBType> {
     struct ExplorationInfo {
-        Distribution<std::vector<int>> successors;
+        bool explored = false;
+        Distribution<StateID> successors;
     };
 
-    std::stack<std::vector<int>> stk;
-    std::unordered_map<
-        std::vector<int>,
-        ExplorationInfo,
-        typename FlawFindingStrategy<PDBType>::StateHash>
-        einfos;
+    std::stack<State> stk;
+    storage::PerStateStorage<ExplorationInfo> einfos;
 
-    unsigned int violation_threshold;
+    unsigned violation_threshold;
 
-    static constexpr unsigned int STATE_PUSHED = 1;
-    static constexpr unsigned int FLAW_OCCURED = 1 << 1;
+    static constexpr unsigned STATE_PUSHED = 1;
+    static constexpr unsigned FLAW_OCCURED = 1 << 1;
 
 public:
-    SamplingFlawFinder(
-        const ProbabilisticTask* task,
-        unsigned int violation_threshold);
-
+    explicit SamplingFlawFinder(options::Options& opts);
+    explicit SamplingFlawFinder(unsigned violation_threshold);
     ~SamplingFlawFinder() override = default;
 
     virtual bool apply_policy(
         PatternCollectionGeneratorCegar<PDBType>& base,
+        const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
-        std::vector<int>& state,
         std::vector<Flaw>& flaw_list) override;
+
+    virtual std::string get_name() override;
 
 private:
     unsigned int push_state(
         PatternCollectionGeneratorCegar<PDBType>& base,
+        const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
-        std::vector<int>& state,
-        std::vector<Flaw>& flaw_list);
+        State state,
+        std::vector<Flaw>& flaw_list,
+        StateRegistry& registry);
 };
 
 } // namespace cegar

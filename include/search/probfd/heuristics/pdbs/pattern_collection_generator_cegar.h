@@ -109,8 +109,6 @@ public:
 
 namespace cegar {
 template <typename PDBType>
-class FlawFindingStrategyFactory;
-template <typename PDBType>
 class FlawFindingStrategy;
 template <typename>
 class BFSFlawFinder;
@@ -139,8 +137,7 @@ class PatternCollectionGeneratorCegar
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // Flaw finding strategy
-    std::shared_ptr<cegar::FlawFindingStrategyFactory<PDBType>>
-        flaw_strategy_factory;
+    std::shared_ptr<cegar::FlawFindingStrategy<PDBType>> flaw_strategy;
 
     // behavior defining parameters
     const bool wildcard;
@@ -187,8 +184,7 @@ public:
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         std::shared_ptr<SubCollectionFinderFactory>
             subcollection_finder_factory,
-        std::shared_ptr<cegar::FlawFindingStrategyFactory<PDBType>>
-            flaw_strategy_factory,
+        std::shared_ptr<cegar::FlawFindingStrategy<PDBType>> flaw_strategy,
         bool wildcard,
         int arg_max_refinements,
         int arg_max_pdb_size,
@@ -226,13 +222,11 @@ private:
       that caused the solution to fail.
      */
     void apply_policy(
-        cegar::FlawFindingStrategy<PDBType>& flaw_strategy,
+        const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
-        std::vector<int>& state,
         std::vector<Flaw>& flaws);
     void get_flaws(
-        cegar::FlawFindingStrategy<PDBType>& flaw_strategy,
-        const State& initial_state,
+        const ProbabilisticTaskProxy& task_proxy,
         std::vector<Flaw>& flaws);
 
     // Methods related to refining (and adding patterns to the collection

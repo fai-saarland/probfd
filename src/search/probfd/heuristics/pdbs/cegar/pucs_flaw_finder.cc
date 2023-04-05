@@ -5,10 +5,11 @@
 #include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
-
-#include "task_utils/task_properties.h"
+#include "probfd/task_utils/task_properties.h"
 
 #include "utils/collections.h"
+
+#include "state_registry.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -22,13 +23,14 @@ namespace pdbs {
 namespace cegar {
 
 template <typename PDBType>
-PUCSFlawFinder<PDBType>::PUCSFlawFinder(
-    const ProbabilisticTask* task,
-    unsigned int violation_threshold)
-    : FlawFindingStrategy<PDBType>(task)
-    , probabilities(
-          16,
-          typename FlawFindingStrategy<PDBType>::StateHash(this->task_proxy))
+PUCSFlawFinder<PDBType>::PUCSFlawFinder(options::Options& opts)
+    : PUCSFlawFinder(opts.get<int>("violation_threshold"))
+{
+}
+
+template <typename PDBType>
+PUCSFlawFinder<PDBType>::PUCSFlawFinder(unsigned int violation_threshold)
+    : probabilities(0_vt)
     , violation_threshold(violation_threshold)
 {
 }
@@ -36,15 +38,18 @@ PUCSFlawFinder<PDBType>::PUCSFlawFinder(
 template <typename PDBType>
 bool PUCSFlawFinder<PDBType>::apply_policy(
     PatternCollectionGeneratorCegar<PDBType>& base,
+    const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
-    std::vector<int>& init,
     std::vector<Flaw>& flaw_list)
 {
     assert(pq.empty() && probabilities.empty());
 
+    StateRegistry registry(task_proxy);
+    const State& init = registry.get_initial_state();
+
     // Push initial state for expansion
     pq.push(1.0, init);
-    probabilities[init] = 1.0;
+    probabilities[StateID(init.get_id())] = 1.0;
 
     unsigned int violations = 0;
     bool executable = true;
@@ -53,12 +58,18 @@ bool PUCSFlawFinder<PDBType>::apply_policy(
         auto [priority, current] = pq.pop();
 
         // TODO remove this once we have a real priority queue...
-        if (priority < probabilities[current]) {
+        if (priority < probabilities[StateID(current.get_id())]) {
             continue;
         }
 
-        bool successful =
-            expand(base, solution_index, current, priority, flaw_list);
+        bool successful = expand(
+            base,
+            task_proxy,
+            solution_index,
+            std::move(current),
+            priority,
+            flaw_list,
+            registry);
 
         executable = executable && successful;
 
@@ -74,12 +85,20 @@ bool PUCSFlawFinder<PDBType>::apply_policy(
 }
 
 template <typename PDBType>
+std::string PUCSFlawFinder<PDBType>::get_name()
+{
+    return "PUCS Flaw Finder";
+}
+
+template <typename PDBType>
 bool PUCSFlawFinder<PDBType>::expand(
     PatternCollectionGeneratorCegar<PDBType>& base,
+    const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
-    std::vector<int>& state,
+    State state,
     value_t priority,
-    std::vector<Flaw>& flaw_list)
+    std::vector<Flaw>& flaw_list,
+    StateRegistry& registry)
 {
     AbstractSolutionData<PDBType>& solution = *base.solutions[solution_index];
     const AbstractPolicy& policy = solution.get_policy();
@@ -99,17 +118,14 @@ bool PUCSFlawFinder<PDBType>::expand(
     if (abs_operators.empty()) {
         assert(solution.is_goal(abs));
 
-        State terminal_state(*this->task, std::move(state));
-
-        if (solution.is_goal(abs) &&
-            !task_properties::is_goal_state(this->task_proxy, terminal_state)) {
+        if (!::task_properties::is_goal_state(task_proxy, state)) {
             if (!base.ignore_goal_violations) {
                 // Collect all non-satisfied goal variables that are still
                 // available.
-                for (FactProxy fact : this->task_proxy.get_goals()) {
+                for (FactProxy fact : task_proxy.get_goals()) {
                     const auto& [goal_var, goal_val] = fact.get_pair();
 
-                    if (terminal_state[goal_var].get_value() != goal_val &&
+                    if (state[goal_var].get_value() != goal_val &&
                         !base.global_blacklist.contains(goal_var) &&
                         utils::contains(base.remaining_goals, goal_var)) {
                         flaw_list.emplace_back(true, solution_index, goal_var);
@@ -125,8 +141,7 @@ bool PUCSFlawFinder<PDBType>::expand(
 
     std::vector<Flaw> local_flaws;
 
-    const ProbabilisticOperatorsProxy operators =
-        this->task_proxy.get_operators();
+    const auto operators = task_proxy.get_operators();
 
     for (const AbstractOperator* abs_op : abs_operators) {
         int original_id = abs_op->original_operator_id;
@@ -148,7 +163,7 @@ bool PUCSFlawFinder<PDBType>::expand(
                 continue;
             }
 
-            if (state[pre_var] != pre_val) {
+            if (state[pre_var].get_value() != pre_val) {
                 preconditions_ok = false;
                 local_flaws.emplace_back(false, solution_index, pre_var);
             }
@@ -162,16 +177,15 @@ bool PUCSFlawFinder<PDBType>::expand(
         // Generate the successors and add them to the queue
         for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
             const auto succ_prob = priority * outcome.get_probability();
-            auto successor = this->apply_op_to_state(state, outcome);
+            State successor = registry.get_successor_state(state, outcome);
+            value_t& succ_entry = probabilities[StateID(successor.get_id())];
 
-            auto [it, inserted] = probabilities.emplace(successor, succ_prob);
-
-            if (!inserted) {
-                if (succ_prob <= it->second) {
+            if (succ_entry != 0_vt) {
+                if (succ_prob <= succ_entry) {
                     continue;
                 }
 
-                it->second = succ_prob;
+                succ_entry = succ_prob;
             }
 
             pq.push(succ_prob, std::move(successor));
@@ -185,6 +199,28 @@ bool PUCSFlawFinder<PDBType>::expand(
 
     return false;
 }
+
+template <typename PDBType>
+static std::shared_ptr<FlawFindingStrategy<PDBType>>
+_parse(options::OptionParser& parser)
+{
+    parser.add_option<int>(
+        "violation_threshold",
+        "Maximal number of states for which a flaw is tolerated before aborting"
+        "the search.",
+        "1",
+        options::Bounds("0", "infinity"));
+
+    Options opts = parser.parse();
+    if (parser.dry_run()) return nullptr;
+
+    return make_shared<PUCSFlawFinder<PDBType>>(opts);
+}
+
+static Plugin<FlawFindingStrategy<MaxProbPatternDatabase>>
+    _plugin_maxprob("pucs_flaw_finder_mp", _parse<MaxProbPatternDatabase>);
+static Plugin<FlawFindingStrategy<SSPPatternDatabase>>
+    _plugin_expcost("pucs_flaw_finder_ec", _parse<SSPPatternDatabase>);
 
 template class PUCSFlawFinder<MaxProbPatternDatabase>;
 template class PUCSFlawFinder<SSPPatternDatabase>;
