@@ -3,6 +3,12 @@
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
+#include "probfd/engines/ta_topological_value_iteration.h"
+#include "probfd/engines/trap_aware_dfhs.h"
+
+#include "probfd/quotients/engine_interfaces.h"
+#include "probfd/quotients/heuristic_search_interface.h"
+
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
 #include "cegar/abstract_state.h"
@@ -22,7 +28,9 @@ AbstractSearch::AbstractSearch(
     Abstraction& abstraction,
     std::vector<value_t> operator_costs)
     : cost_function(abstraction, std::move(operator_costs))
-    , ptb(true)
+    , ptb(new policy_pickers::ArbitraryTiebreaker<
+          const AbstractState*,
+          const ProbabilisticTransition*>(true))
     , report(0.0_vt)
 {
     report.disable();
@@ -32,27 +40,42 @@ unique_ptr<Solution> AbstractSearch::find_solution(
     Abstraction& abstraction,
     const AbstractState* state)
 {
-    engines::heuristic_depth_first_search::HeuristicDepthFirstSearch<
+    quotients::
+        QuotientSystem<const AbstractState*, const ProbabilisticTransition*>
+            quotient(&abstraction);
+
+    quotients::DefaultQuotientCostFunction<
+        const AbstractState*,
+        const ProbabilisticTransition*>
+        costs(&quotient, &cost_function);
+
+    quotients::RepresentativePolicyPicker<
+        const AbstractState*,
+        const ProbabilisticTransition*>
+        picker(&quotient, ptb);
+
+    engines::trap_aware_dfhs::TADepthFirstHeuristicSearch<
         const AbstractState*,
         const ProbabilisticTransition*,
-        false,
-        true>
+        false>
         hdfs(
-            &abstraction,
-            &cost_function,
+            &quotient,
+            &costs,
             &heuristic,
-            &ptb,
+            &picker,
             nullptr,
             &report,
             false,
+            &quotient,
             false,
+            engines::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
             false,
-            engines::heuristic_depth_first_search::BacktrackingUpdateType::
-                SINGLE,
             false,
             false,
             true,
-            false);
+            false,
+            true,
+            nullptr);
 
     auto policy = hdfs.compute_policy(state);
 
@@ -100,10 +123,10 @@ vector<value_t> compute_distances(
         heuristic.set_h_value(pruned_id, INFINITE_VALUE);
     }
 
-    engines::topological_vi::TopologicalValueIteration<
+    engines::ta_topological_vi::TATopologicalValueIteration<
         const AbstractState*,
         const ProbabilisticTransition*>
-        tvi(&abstraction, &cost_function, &heuristic, true);
+        tvi(&abstraction, &cost_function, &heuristic);
 
     tvi.solve(abstraction.get_initial_state().get_id(), values);
 

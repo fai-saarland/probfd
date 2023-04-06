@@ -11,22 +11,21 @@ namespace probfd {
 
 namespace quotients {
 
-template <typename State>
+template <typename State, typename Action = OperatorID>
 class RepresentativePolicyPicker
     : public engine_interfaces::
-          PolicyPicker<State, quotients::QuotientAction<OperatorID>> {
-    using QuotientSystem = quotients::QuotientSystem<State, OperatorID>;
-    using QuotientAction = quotients::QuotientAction<OperatorID>;
+          PolicyPicker<State, quotients::QuotientAction<Action>> {
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QuotientAction = quotients::QuotientAction<Action>;
 
-    std::vector<OperatorID> choices_;
+    std::vector<Action> choices_;
     QuotientSystem* quotient_;
-    std::shared_ptr<engine_interfaces::PolicyPicker<State, OperatorID>>
-        original_;
+    std::shared_ptr<engine_interfaces::PolicyPicker<State, Action>> original_;
 
 public:
     RepresentativePolicyPicker(
         QuotientSystem* quotient,
-        std::shared_ptr<engine_interfaces::PolicyPicker<State, OperatorID>>
+        std::shared_ptr<engine_interfaces::PolicyPicker<State, Action>>
             original)
         : quotient_(quotient)
         , original_(original)

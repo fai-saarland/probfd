@@ -26,9 +26,9 @@ namespace cartesian {
 class AbstractSearch {
     CartesianCostFunction cost_function;
     CartesianHeuristic heuristic;
-    policy_pickers::ArbitraryTiebreaker<
+    std::shared_ptr<policy_pickers::ArbitraryTiebreaker<
         const AbstractState*,
-        const ProbabilisticTransition*>
+        const ProbabilisticTransition*>>
         ptb;
     ProgressReport report;
 

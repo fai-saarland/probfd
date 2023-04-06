@@ -833,6 +833,13 @@ public:
         return policy;
     }
 
+    value_t lookup_value(StateID state_id)
+    {
+        return engine_.lookup_value(state_id);
+    }
+
+    bool was_visited(StateID state_id) { return engine_.was_visited(state_id); }
+
     void print_statistics(std::ostream& out) const override
     {
         return engine_.print_statistics(out);
