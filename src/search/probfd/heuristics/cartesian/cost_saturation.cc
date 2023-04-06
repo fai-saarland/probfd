@@ -221,7 +221,7 @@ void CostSaturation::build_abstractions(
             log);
 
         unique_ptr<Abstraction> abstraction = cegar.extract_abstraction();
-        const CartesianHeuristic heuristic = std::move(cegar.get_heuristic());
+        CartesianHeuristic heuristic = std::move(cegar.get_heuristic());
         ++num_abstractions;
         num_states += abstraction->get_num_states();
         num_non_looping_transitions +=

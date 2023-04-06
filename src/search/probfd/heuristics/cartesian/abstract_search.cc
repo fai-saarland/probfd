@@ -3,11 +3,11 @@
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "probfd/engines/heuristic_depth_first_search.h"
-#include "probfd/engines/topological_value_iteration.h"
+#include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
 #include "cegar/abstract_state.h"
 
+#include "utils/iterators.h"
 #include "utils/memory.h"
 
 #include <cassert>
@@ -77,12 +77,28 @@ CartesianHeuristic& AbstractSearch::get_heuristic()
 
 vector<value_t> compute_distances(
     Abstraction& abstraction,
-    const CartesianHeuristic& heuristic,
+    CartesianHeuristic& heuristic,
     const vector<value_t>& costs)
 {
     vector<value_t> values(abstraction.get_num_states(), INFINITE_VALUE);
 
     CartesianCostFunction cost_function(abstraction, costs);
+
+    preprocessing::QualitativeReachabilityAnalysis<
+        const AbstractState*,
+        const ProbabilisticTransition*>
+        qr_analysis(&abstraction, &cost_function, true);
+
+    std::vector<StateID> pruned_states;
+    qr_analysis.run_analysis(
+        &abstraction.get_initial_state(),
+        utils::discarding_output_iterator{},
+        std::back_inserter(pruned_states),
+        utils::discarding_output_iterator{});
+
+    for (StateID pruned_id : pruned_states) {
+        heuristic.set_h_value(pruned_id, INFINITE_VALUE);
+    }
 
     engines::topological_vi::TopologicalValueIteration<
         const AbstractState*,

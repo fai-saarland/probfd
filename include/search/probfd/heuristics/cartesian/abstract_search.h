@@ -51,7 +51,7 @@ public:
  */
 std::vector<value_t> compute_distances(
     Abstraction& abstraction,
-    const CartesianHeuristic& heuristic,
+    CartesianHeuristic& heuristic,
     const std::vector<value_t>& costs);
 
 } // namespace cartesian
