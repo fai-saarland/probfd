@@ -314,16 +314,11 @@ private:
 
         bool mark_solved = true;
         bool epsilon_consistent = true;
-        bool all_dead = true;
-        bool any_dead = false;
 
         {
             auto& init_info = get_lrtdp_state_info(init_state_id);
 
-            if (init_info.is_solved()) {
-                auto& stinfo = this->get_state_info(init_state_id, init_info);
-                any_dead = all_dead = stinfo.is_dead_end();
-            } else {
+            if (!init_info.is_solved()) {
                 init_info.mark_open();
                 this->policy_queue_.emplace_back(init_state_id);
             }
@@ -351,12 +346,7 @@ private:
                 auto& base_info = this->get_state_info(state_id, info);
                 assert(base_info.is_terminal());
 
-                if (this->notify_dead_end_ifnot_goal(base_info)) {
-                    any_dead = true;
-                } else {
-                    all_dead = false;
-                }
-
+                this->notify_dead_end_ifnot_goal(base_info);
                 info.mark_solved();
             } else {
                 this->visited_.push_front(state_id);
@@ -369,11 +359,7 @@ private:
 
                 for (StateID succ_id : selected_transition_.support()) {
                     auto& succ_info = get_lrtdp_state_info(succ_id);
-                    if (succ_info.is_solved()) {
-                        auto& succsi = this->get_state_info(succ_id, succ_info);
-                        any_dead = any_dead || succsi.is_dead_end();
-                        all_dead = all_dead && succsi.is_dead_end();
-                    } else if (!succ_info.is_marked_open()) {
+                    if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
                         succ_info.mark_open();
                         this->policy_queue_.emplace_back(succ_id);
                     }
