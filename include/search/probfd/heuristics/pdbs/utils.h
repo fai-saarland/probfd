@@ -29,12 +29,12 @@ value_t evaluate_subcollection(
         if constexpr (is_expcost) {
             result += pdb_estimates[pattern_id];
         } else {
-            result *= pdb_estimates[pattern_id];
+            result *= 1 - pdb_estimates[pattern_id];
         }
     }
 
     if constexpr (!is_expcost) {
-        result = -std::abs(result);
+        result = 1 - result;
     }
 
     return result;
@@ -46,7 +46,7 @@ value_t combine(value_t left, value_t right)
     if constexpr (std::is_same_v<PDBType, SSPPatternDatabase>) {
         return left + right;
     } else {
-        return left * right;
+        return 1_vt - (1_vt - left) * (1_vt - right);
     }
 }
 
@@ -56,7 +56,7 @@ EvaluationResult evaluate(
     const std::vector<PatternSubCollection>& subcollections,
     const State& state)
 {
-    value_t result = std::is_same_v<PDBType, SSPPatternDatabase> ? 0_vt : -1_vt;
+    value_t result = 0_vt;
 
     if (!database.empty()) {
         // Get pattern estimates
