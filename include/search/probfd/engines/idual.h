@@ -40,9 +40,9 @@ struct Statistics {
 };
 
 struct PerStateInfo {
-    enum Status : uint8_t { NEW, OPEN, CLOSED, TERMINAL };
+    enum { NEW, OPEN, CLOSED, TERMINAL };
     unsigned idx = std::numeric_limits<unsigned>::max();
-    Status status = NEW;
+    uint8_t status = NEW;
 };
 
 struct FrontierStateInfo {

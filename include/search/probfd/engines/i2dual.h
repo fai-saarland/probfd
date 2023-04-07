@@ -40,12 +40,12 @@ namespace engines {
 namespace i2dual {
 
 struct IDualData {
-    enum IDualStateStatus : uint8_t { NEW, FRONTIER, TERMINAL, CLOSED };
+    enum { NEW, FRONTIER, TERMINAL, CLOSED };
 
     std::vector<std::pair<double, unsigned>> incoming;
     double estimate = -1;
     unsigned constraint = -1;
-    IDualStateStatus status = NEW;
+    uint8_t status = NEW;
 
     bool is_new() const { return status == NEW; }
     bool is_terminal() const { return status == TERMINAL; }

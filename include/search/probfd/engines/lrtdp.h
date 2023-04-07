@@ -18,9 +18,10 @@ namespace engines {
 namespace lrtdp {
 
 enum class TrialTerminationCondition {
-    Disabled = 0,
-    Consistent = 1,
-    Inconsistent = 2,
+    TERMINAL,
+    CONSISTENT,
+    INCONSISTENT,
+    REVISITED
 };
 
 namespace internal {
@@ -51,19 +52,16 @@ struct EmptyStateInfo {
 template <typename StateInfo>
 struct PerStateInformation : public StateInfo {
     static constexpr uint8_t MARKED_OPEN = (1 << StateInfo::BITS);
-    // static constexpr uint8_t MARKED_TRIAL = (2 << StateInfo::BITS);
-    static constexpr uint8_t SOLVED = (3 << StateInfo::BITS);
-    static constexpr uint8_t BITS = StateInfo::BITS + 2;
-    static constexpr uint8_t MASK = (3 << StateInfo::BITS);
+    static constexpr uint8_t MARKED_TRIAL = (2 << StateInfo::BITS);
+    static constexpr uint8_t SOLVED = (4 << StateInfo::BITS);
+    static constexpr uint8_t BITS = StateInfo::BITS + 3;
+    static constexpr uint8_t MASK = (7 << StateInfo::BITS);
 
-    bool is_marked_open() const { return (this->info & MASK) == MARKED_OPEN; }
+    bool is_marked_open() const { return this->info & MARKED_OPEN; }
 
-    // bool is_marked_trial() const
-    // {
-    //     return (this->info & MASK) == MARKED_TRIAL;
-    // }
+    bool is_marked_trial() const { return this->info & MARKED_TRIAL; }
 
-    bool is_solved() const { return (this->info & MASK) == SOLVED; }
+    bool is_solved() const { return this->info & SOLVED; }
 
     void mark_open()
     {
@@ -71,19 +69,25 @@ struct PerStateInformation : public StateInfo {
         this->info = (this->info & ~MASK) | MARKED_OPEN;
     }
 
-    // void mark_trial()
-    // {
-    //     assert(!is_solved());
-    //     this->info = (this->info & ~MASK) | MARKED_TRIAL;
-    // }
+    void mark_trial()
+    {
+        assert(!is_solved());
+        this->info = (this->info & ~MASK) | MARKED_TRIAL;
+    }
+
+    void mark_solved() { this->info = (this->info & ~MASK) | SOLVED; }
+
+    void unmark_trial()
+    {
+        assert(!is_solved());
+        this->info = this->info & ~MARKED_TRIAL;
+    }
 
     void unmark()
     {
         assert(!is_solved());
         this->info = this->info & ~MASK;
     }
-
-    void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
 };
 
 // When FRET is enabled, store the LRTDP-specific state information seperately
@@ -233,6 +237,8 @@ protected:
 private:
     void trial(StateID initial_state)
     {
+        using enum TrialTerminationCondition;
+
         ClearGuard guard(this->current_trial_);
 
         this->current_trial_.push_back(initial_state);
@@ -257,18 +263,21 @@ private:
                 // terminal
                 assert(base_info.is_terminal());
                 this->notify_dead_end_ifnot_goal(base_info);
-                state_info.set_solved();
+                state_info.mark_solved();
                 this->current_trial_.pop_back();
                 break;
             }
 
             // state_info.mark_trial();
             assert(!this->get_state_info(state_id, state_info).is_terminal());
-            if ((StopConsistent == TrialTerminationCondition::Consistent &&
-                 !value_changed) ||
-                (StopConsistent == TrialTerminationCondition::Inconsistent &&
-                 value_changed)) {
+            if ((StopConsistent == CONSISTENT && !value_changed) ||
+                (StopConsistent == INCONSISTENT && value_changed) ||
+                (StopConsistent == REVISITED && state_info.is_marked_trial())) {
                 break;
+            }
+
+            if (StopConsistent == REVISITED) {
+                state_info.mark_trial();
             }
 
             this->current_trial_.push_back(sample_->sample(
@@ -276,6 +285,14 @@ private:
                 this->get_policy(state_id),
                 this->selected_transition_,
                 *this));
+        }
+
+        if (StopConsistent == REVISITED) {
+            for (const StateID state : current_trial_) {
+                auto& info = this->get_lrtdp_state_info(state);
+                assert(info.is_marked_trial());
+                info.unmark_trial();
+            }
         }
 
         while (!this->current_trial_.empty()) {
@@ -340,7 +357,7 @@ private:
                     all_dead = false;
                 }
 
-                info.set_solved();
+                info.mark_solved();
             } else {
                 this->visited_.push_front(state_id);
 
@@ -366,7 +383,7 @@ private:
 
         if (epsilon_consistent && mark_solved) {
             for (StateID sid : this->visited_) {
-                get_lrtdp_state_info(sid).set_solved();
+                get_lrtdp_state_info(sid).mark_solved();
             }
         } else {
             for (StateID sid : this->visited_) {
@@ -423,7 +440,7 @@ private:
                 const StateID sid = this->visited_.back();
                 auto& info = get_lrtdp_state_info(sid);
                 info.unmark();
-                info.set_solved();
+                info.mark_solved();
                 this->visited_.pop_back();
             }
         } else {

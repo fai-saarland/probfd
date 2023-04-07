@@ -51,10 +51,10 @@ public:
             "random_successor_sampler_factory");
         {
             std::vector<std::string> terminate_trial{
-                "disabled",
+                "terminal",
                 "consistent",
                 "inconsistent",
-                "doublyvisited"};
+                "revisited"};
             parser.add_enum_option<TrialTerminationCondition>(
                 "terminate_trial",
                 terminate_trial,

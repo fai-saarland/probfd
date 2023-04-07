@@ -24,10 +24,10 @@ namespace engines {
 namespace trap_aware_dfhs {
 
 enum class BacktrackingUpdateType {
-    Disabled,
-    OnDemand,
-    Single,
-    UntilConvergence,
+    DISABLED,
+    ON_DEMAND,
+    SINGLE,
+    CONVERGENCE,
 };
 
 namespace internal {
@@ -384,6 +384,8 @@ private:
 
     bool policy_exploration(StateID start_state)
     {
+        using enum BacktrackingUpdateType;
+
         assert(visited_states_.empty());
         terminated_ = false;
         Flags flags;
@@ -441,8 +443,8 @@ private:
 
             flags.complete = flags.complete && !terminated_;
 
-            if (backtrack_update_type_ == BacktrackingUpdateType::Single ||
-                (backtrack_update_type_ == BacktrackingUpdateType::OnDemand &&
+            if (backtrack_update_type_ == SINGLE ||
+                (backtrack_update_type_ == ON_DEMAND &&
                  (!flags.complete || !flags.all_solved))) {
                 ++statistics_.bw_updates;
                 auto updated = this->async_update(state, nullptr);
@@ -460,8 +462,7 @@ private:
                 const unsigned scc_size = std::distance(scc_begin, scc_end);
 
                 if (scc_size == 1) {
-                    if (backtrack_update_type_ ==
-                        BacktrackingUpdateType::UntilConvergence) {
+                    if (backtrack_update_type_ == CONVERGENCE) {
                         auto res = this->async_update(state, nullptr);
                         flags.complete = flags.complete && !res.policy_changed;
                         flags.all_solved =
@@ -472,8 +473,7 @@ private:
                     }
                     backtrack_from_singleton(state, flags);
                 } else {
-                    if (backtrack_update_type_ ==
-                        BacktrackingUpdateType::UntilConvergence) {
+                    if (backtrack_update_type_ == CONVERGENCE) {
                         auto res = value_iteration<true>(
                             std::ranges::subrange(scc_begin, scc_end));
                         flags.complete = flags.complete && !res.policy_changed;

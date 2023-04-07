@@ -137,7 +137,7 @@ struct ILAOOptions {
         opts.set<bool>("fwup", false);
         opts.set<BacktrackingUpdateType>(
             "bwup",
-            BacktrackingUpdateType::Single);
+            BacktrackingUpdateType::SINGLE);
         opts.set<bool>("cutoff_inconsistent", false);
         opts.set<bool>("partial_exploration", false);
         opts.set<bool>("expand_tip", false);
@@ -153,7 +153,7 @@ struct LILAOOptions {
         opts.set<bool>("fwup", false);
         opts.set<BacktrackingUpdateType>(
             "bwup",
-            BacktrackingUpdateType::Single);
+            BacktrackingUpdateType::SINGLE);
         opts.set<bool>("cutoff_inconsistent", false);
         opts.set<bool>("partial_exploration", false);
         opts.set<bool>("expand_tip", false);
@@ -169,7 +169,7 @@ struct HDPOptions {
         opts.set<bool>("fwup", true);
         opts.set<BacktrackingUpdateType>(
             "bwup",
-            BacktrackingUpdateType::OnDemand);
+            BacktrackingUpdateType::ON_DEMAND);
         opts.set<bool>("cutoff_inconsistent", true);
         opts.set<bool>("partial_exploration", false);
         opts.set<bool>("vi", false);

@@ -16,10 +16,10 @@ namespace engines {
 namespace heuristic_depth_first_search {
 
 enum class BacktrackingUpdateType {
-    Disabled,
-    OnDemand,
-    Single,
-    UntilConvergence,
+    DISABLED,
+    ON_DEMAND,
+    SINGLE,
+    CONVERGENCE,
 };
 
 namespace internal {
@@ -264,6 +264,8 @@ private:
     template <bool GetVisited>
     bool policy_exploration(StateID state)
     {
+        using enum BacktrackingUpdateType;
+
         ClearGuard _guard(state_infos_);
 
         {
@@ -381,9 +383,8 @@ private:
             last_value_changed = einfo.value_changed;
             last_leaf = einfo.leaf;
 
-            if (BackwardUpdates == BacktrackingUpdateType::Single ||
-                (last_value_changed &&
-                 BackwardUpdates == BacktrackingUpdateType::OnDemand)) {
+            if (BackwardUpdates == SINGLE ||
+                (last_value_changed && BackwardUpdates == ON_DEMAND)) {
                 statistics_.backtracking_updates++;
                 auto result = this->async_update(einfo.stateid, nullptr);
                 last_value_changed = result.value_changed;
@@ -405,8 +406,7 @@ private:
                     }
                 }
 
-                if (BackwardUpdates ==
-                        BacktrackingUpdateType::UntilConvergence &&
+                if (BackwardUpdates == CONVERGENCE &&
                     last_unsolved_successors) {
                     auto result = value_iteration(
                         std::ranges::subrange(stack_.begin(), end),

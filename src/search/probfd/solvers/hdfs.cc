@@ -71,6 +71,8 @@ public:
 
     void parameter_validity_check() const
     {
+        using enum BacktrackingUpdateType;
+
         bool valid = true;
         std::ostringstream error_msg;
         if (!forward_updates_) {
@@ -79,21 +81,19 @@ public:
                           << std::endl;
                 valid = false;
             }
-            if (backward_updates_ == BacktrackingUpdateType::OnDemand) {
+            if (backward_updates_ == ON_DEMAND) {
                 error_msg
                     << "ondemand backward updates required forward updates!"
                     << std::endl;
                 valid = false;
             }
-            if (!value_iteration_ &&
-                backward_updates_ == BacktrackingUpdateType::Disabled) {
+            if (!value_iteration_ && backward_updates_ == DISABLED) {
                 error_msg << "either value_iteration, forward_updates, or "
                              "backward_updates must be enabled!"
                           << std::endl;
                 valid = false;
             }
-            if (expand_tip_states_ &&
-                backward_updates_ == BacktrackingUpdateType::OnDemand) {
+            if (expand_tip_states_ && backward_updates_ == ON_DEMAND) {
                 error_msg
                     << "ondemand backward updates require forward updates or "
                        "expand_tip=true!"
@@ -148,7 +148,7 @@ struct LAOOptions {
         opts.set<bool>("fwup", false);
         opts.set<BacktrackingUpdateType>(
             "bwup",
-            BacktrackingUpdateType::UntilConvergence);
+            BacktrackingUpdateType::CONVERGENCE);
         opts.set<bool>("cutoff_inconsistent", false);
         opts.set<bool>("partial_exploration", true);
         opts.set<bool>("expand_tip", false);
@@ -164,7 +164,7 @@ struct ILAOOptions {
         opts.set<bool>("fwup", false);
         opts.set<BacktrackingUpdateType>(
             "bwup",
-            BacktrackingUpdateType::Single);
+            BacktrackingUpdateType::SINGLE);
         opts.set<bool>("cutoff_inconsistent", false);
         opts.set<bool>("partial_exploration", false);
         opts.set<bool>("expand_tip", false);
@@ -180,7 +180,7 @@ struct HDPOptions {
         opts.set<bool>("fwup", true);
         opts.set<BacktrackingUpdateType>(
             "bwup",
-            BacktrackingUpdateType::OnDemand);
+            BacktrackingUpdateType::ON_DEMAND);
         opts.set<bool>("cutoff_inconsistent", true);
         opts.set<bool>("partial_exploration", false);
         opts.set<bool>("vi", false);

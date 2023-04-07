@@ -18,10 +18,10 @@ namespace engines {
 namespace trap_aware_lrtdp {
 
 enum class TrialTerminationCondition {
-    Disabled = 0,
-    Consistent = 1,
-    Inconsistent = 2,
-    DoublyVisited = 3,
+    TERMINAL,
+    CONSISTENT,
+    INCONSISTENT,
+    REVISITED,
 };
 
 namespace internal {
@@ -212,6 +212,8 @@ protected:
 private:
     bool trial(StateID start_state)
     {
+        using enum TrialTerminationCondition;
+
         assert(current_trial_.empty());
         assert(selected_transition_.empty());
 
@@ -235,20 +237,14 @@ private:
                 break;
             }
 
-            if ((stop_at_consistent_ == TrialTerminationCondition::Consistent &&
-                 !changed) ||
-                (stop_at_consistent_ ==
-                     TrialTerminationCondition::Inconsistent &&
-                 changed) ||
-                (stop_at_consistent_ ==
-                     TrialTerminationCondition::DoublyVisited &&
-                 info.is_on_trial())) {
+            if ((stop_at_consistent_ == CONSISTENT && !changed) ||
+                (stop_at_consistent_ == INCONSISTENT && changed) ||
+                (stop_at_consistent_ == REVISITED && info.is_on_trial())) {
                 selected_transition_.clear();
                 break;
             }
 
-            if (stop_at_consistent_ ==
-                TrialTerminationCondition::DoublyVisited) {
+            if (stop_at_consistent_ == REVISITED) {
                 info.set_on_trial();
             }
 
@@ -261,7 +257,7 @@ private:
         }
 
         statistics_.trial_length += current_trial_.size();
-        if (stop_at_consistent_ == TrialTerminationCondition::DoublyVisited) {
+        if (stop_at_consistent_ == REVISITED) {
             for (const StateID state : current_trial_) {
                 auto& info = this->get_state_info(state);
                 assert(info.is_on_trial());

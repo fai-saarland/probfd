@@ -39,7 +39,7 @@ public:
                   ->create_sampler(this->state_space_.get())))
     {
         if constexpr (Fret) {
-            if (stop_consistent_ != TrialTerminationCondition::Consistent) {
+            if (stop_consistent_ != TrialTerminationCondition::CONSISTENT) {
                 std::cout << std::endl;
                 std::cout
                     << "Warning: LRTDP is run within FRET without "
@@ -80,12 +80,12 @@ struct LRTDPOptions {
             "random_successor_sampler_factory");
         {
             std::vector<std::string> opts(
-                {"false", "consistent", "inconsistent"});
+                {"terminal", "consistent", "inconsistent", "revisited"});
             parser.add_enum_option<TrialTerminationCondition>(
                 "terminate_trial",
                 opts,
                 "",
-                "false");
+                "terminal");
         }
     }
 };
