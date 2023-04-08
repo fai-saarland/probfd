@@ -42,6 +42,7 @@ class PDBInfo {
     // The state space needs to be kept because it contains the operators and
     // deleting it invalidates the returned policy actions
     ProjectionStateSpace state_space;
+    StateRank initial_state;
     std::unique_ptr<PDBType> pdb;
     std::unique_ptr<AbstractPolicy> policy;
     bool solved = false;

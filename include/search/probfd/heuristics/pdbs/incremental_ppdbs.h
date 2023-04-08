@@ -32,7 +32,7 @@ class IncrementalPPDBs {
     long long size;
 
     // Adds a PDB for pattern but does not recompute pattern_subcollections.
-    void add_pdb_for_pattern(const Pattern& pattern);
+    void add_pdb_for_pattern(const Pattern& pattern, const State& intial_state);
 
     void recompute_pattern_subcollections();
 

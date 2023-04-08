@@ -20,14 +20,8 @@ class ProjectionStateSpace
     : public engine_interfaces::StateSpace<
           heuristics::pdbs::StateRank,
           const heuristics::pdbs::AbstractOperator*> {
-    // For now, only the PDB implementations need this class.
-    friend ProbabilisticPatternDatabase;
-    friend MaxProbPatternDatabase;
-    friend SSPPatternDatabase;
 
     heuristics::pdbs::MatchTree match_tree_;
-
-    StateRank initial_state_;
 
     std::vector<bool> goal_state_flags_;
 

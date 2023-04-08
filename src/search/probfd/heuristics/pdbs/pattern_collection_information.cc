@@ -41,7 +41,10 @@ PatternCollectionInformation<PDBType>::PatternCollectionInformation(
     pdbs_ = make_shared<PPDBCollection<PDBType>>();
 
     for (size_t i = 0; i != pdbs->size(); ++i) {
-        pdbs_->emplace_back(new PDBType(task_proxy, *pdbs->operator[](i)));
+        pdbs_->emplace_back(new PDBType(
+            task_proxy,
+            *pdbs->operator[](i),
+            task_proxy.get_initial_state()));
     }
 }
 
@@ -108,7 +111,10 @@ void PatternCollectionInformation<PDBType>::create_pdbs_if_missing()
         cout << "Computing PDBs for pattern collection..." << endl;
         pdbs_ = make_shared<PPDBCollection<PDBType>>();
         for (const Pattern& pattern : *patterns_) {
-            pdbs_->emplace_back(new PDBType(task_proxy, pattern));
+            pdbs_->emplace_back(new PDBType(
+                task_proxy,
+                pattern,
+                task_proxy.get_initial_state()));
         }
         cout << "Done computing PDBs for pattern collection: " << timer << endl;
     }

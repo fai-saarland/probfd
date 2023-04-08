@@ -226,8 +226,11 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
                       for it and add it to candidate_pdbs if its size does not
                       surpass the size limit.
                     */
-                    auto& new_pdb = candidate_pdbs.emplace_back(
-                        new PDBType(task_proxy, pdb, rel_var_id));
+                    auto& new_pdb = candidate_pdbs.emplace_back(new PDBType(
+                        task_proxy,
+                        pdb,
+                        rel_var_id,
+                        task_proxy.get_initial_state()));
                     max_pdb_size =
                         std::max(max_pdb_size, (int)new_pdb->num_states());
                 }

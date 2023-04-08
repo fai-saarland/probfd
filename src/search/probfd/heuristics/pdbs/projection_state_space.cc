@@ -44,7 +44,6 @@ ProjectionStateSpace::ProjectionStateSpace(
     const StateRankingFunction& ranking_function,
     bool operator_pruning)
     : match_tree_(task_proxy.get_operators().size())
-    , initial_state_(ranking_function.rank(task_proxy.get_initial_state()))
     , goal_state_flags_(ranking_function.num_states())
 {
     const Pattern& pattern = ranking_function.get_pattern();

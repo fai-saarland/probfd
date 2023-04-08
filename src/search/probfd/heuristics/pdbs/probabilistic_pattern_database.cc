@@ -73,6 +73,7 @@ const Pattern& ProbabilisticPatternDatabase::get_pattern() const
 std::unique_ptr<AbstractPolicy>
 ProbabilisticPatternDatabase::get_optimal_abstract_policy(
     ProjectionStateSpace& state_space,
+    StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard,
     bool use_cost) const
@@ -80,12 +81,12 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
     using PredecessorList =
         std::vector<std::pair<StateRank, const AbstractOperator*>>;
 
-    assert(!is_dead_end(state_space.initial_state_));
+    assert(!is_dead_end(initial_state));
 
     AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
 
     // return empty policy indicating unsolvable
-    if (state_space.is_goal(state_space.initial_state_)) {
+    if (state_space.is_goal(initial_state)) {
         return std::unique_ptr<AbstractPolicy>(policy);
     }
 
@@ -93,8 +94,8 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
     std::deque<StateRank> open;
     std::unordered_set<StateRank> closed;
-    open.push_back(state_space.initial_state_);
-    closed.insert(state_space.initial_state_);
+    open.push_back(initial_state);
+    closed.insert(initial_state);
 
     std::vector<StateRank> goals;
 
@@ -195,22 +196,23 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 std::unique_ptr<AbstractPolicy>
 ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
     ProjectionStateSpace& state_space,
+    StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard,
     bool use_cost) const
 {
     AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
 
-    assert(lookup(state_space.initial_state_) != INFINITE_VALUE);
+    assert(lookup(initial_state) != INFINITE_VALUE);
 
-    if (state_space.is_goal(state_space.initial_state_)) {
+    if (state_space.is_goal(initial_state)) {
         return std::unique_ptr<AbstractPolicy>(policy);
     }
 
     std::deque<StateRank> open;
     std::unordered_set<StateRank> closed;
-    open.push_back(state_space.initial_state_);
-    closed.insert(state_space.initial_state_);
+    open.push_back(initial_state);
+    closed.insert(initial_state);
 
     // Build the greedy policy graph
     while (!open.empty()) {
@@ -290,6 +292,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
 void ProbabilisticPatternDatabase::dump_graphviz(
     ProjectionStateSpace& state_space,
+    StateRank initial_state,
     const std::string& path,
     std::function<std::string(const StateRank&)> sts,
     AbstractCostFunction& costs,
@@ -308,7 +311,7 @@ void ProbabilisticPatternDatabase::dump_graphviz(
 
     graphviz::dump_state_space_dot_graph<StateRank, const AbstractOperator*>(
         out,
-        state_space.initial_state_,
+        initial_state,
         &state_space,
         &costs,
         nullptr,

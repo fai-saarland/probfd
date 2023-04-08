@@ -47,8 +47,13 @@ PDBInfo<PDBType>::PDBInfo(
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard)
     : state_space(task_proxy, ranking_function, !wildcard)
-    , pdb(new PDBType(state_space, std::move(ranking_function)))
-    , policy(pdb->get_optimal_abstract_policy(state_space, rng, wildcard))
+    , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
+    , pdb(new PDBType(state_space, std::move(ranking_function), initial_state))
+    , policy(pdb->get_optimal_abstract_policy(
+          state_space,
+          initial_state,
+          rng,
+          wildcard))
 {
 }
 
@@ -61,12 +66,18 @@ PDBInfo<PDBType>::PDBInfo(
     int add_var,
     bool wildcard)
     : state_space(task_proxy, ranking_function, !wildcard)
+    , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new PDBType(
           state_space,
           std::move(ranking_function),
+          initial_state,
           previous,
           add_var))
-    , policy(pdb->get_optimal_abstract_policy(state_space, rng, wildcard))
+    , policy(pdb->get_optimal_abstract_policy(
+          state_space,
+          initial_state,
+          rng,
+          wildcard))
 {
 }
 
@@ -79,8 +90,18 @@ PDBInfo<PDBType>::PDBInfo(
     const PDBType& right,
     bool wildcard)
     : state_space(task_proxy, ranking_function, !wildcard)
-    , pdb(new PDBType(state_space, std::move(ranking_function), left, right))
-    , policy(pdb->get_optimal_abstract_policy(state_space, rng, wildcard))
+    , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
+    , pdb(new PDBType(
+          state_space,
+          std::move(ranking_function),
+          initial_state,
+          left,
+          right))
+    , policy(pdb->get_optimal_abstract_policy(
+          state_space,
+          initial_state,
+          rng,
+          wildcard))
 {
 }
 

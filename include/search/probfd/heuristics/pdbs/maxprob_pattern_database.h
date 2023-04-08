@@ -23,6 +23,8 @@ public:
      * @param task_proxy The input task with respect to which the projection is
      * constructed.
      * @param pattern The pattern of the pattern database.
+     * @param initial_state The initial state for the exhaustive solver. States
+     * unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection state space.
      * @param heuristic A heuristic used to accelerate the computation of the
@@ -31,6 +33,7 @@ public:
     MaxProbPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         const Pattern& pattern,
+        const State& initial_state,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(0_vt));
@@ -40,13 +43,16 @@ public:
      * state space and ranking function.
      *
      * @param state_space The preconstructed state space of the projection.
-     * @param pattern The preconstructed state ranking function for the PDB.
+     * @param ranking_function The preconstructed ranking function for the PDB.
+     * @param initial_state The rank of the initial state for the exhaustive
+     * solver. States unreachable from this state are treated as dead ends.
      * @param heuristic A heuristic used to accelerate the computation of the
      * value table.
      */
     MaxProbPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
+        StateRank initial_state,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(0_vt));
 
@@ -61,12 +67,15 @@ public:
      * constructed.
      * @param pdb A previous deterministic pattern database for the all-outcomes
      * determinization of the given task.
+     * @param initial_state The initial state for the exhaustive solver.
+     * States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
      */
     MaxProbPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         const ::pdbs::PatternDatabase& pdb,
+        const State& initial_state,
         bool operator_pruning = true);
 
     /**
@@ -76,11 +85,14 @@ public:
      *
      * @param state_space The preconstructed state space of the projection.
      * @param ranking_function The preconstructed ranking function for the PDB.
+     * @param initial_state The rank of the initial state for the exhaustive
+     * solver. States unreachable from this state are treated as dead ends.
      * @param pdb A deterministic pattern database for the same pattern.
      */
     MaxProbPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
+        StateRank initial_state,
         const ::pdbs::PatternDatabase& pdb);
 
     /**
@@ -94,6 +106,8 @@ public:
      * constructed.
      * @param pdb A previous pattern database for the given task.
      * @param add_var The additional variable to consider for this PDB.
+     * @param initial_state The initial state for the exhaustive solver.
+     * States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
      */
@@ -101,6 +115,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const MaxProbPatternDatabase& pdb,
         int add_var,
+        const State& initial_state,
         bool operator_pruning = true);
 
     /**
@@ -113,12 +128,15 @@ public:
      *
      * @param state_space The preconstructed state space of the projection.
      * @param ranking_function The preconstructed ranking function for the PDB.
+     * @param initial_state The rank of the initial state for the exhaustive
+     * solver. States unreachable from this state are treated as dead ends.
      * @param pdb A previous pattern database for the given task.
      * @param add_var The additional variable to consider for this PDB.
      */
     MaxProbPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
+        StateRank initial_state,
         const MaxProbPatternDatabase& pdb,
         int add_var);
 
@@ -136,6 +154,8 @@ public:
      * constructed.
      * @param left A previous pattern database for the given task.
      * @param right A previous pattern database for the given task.
+     * @param initial_state The initial state for the exhaustive solver.
+     * States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
      */
@@ -143,6 +163,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const MaxProbPatternDatabase& left,
         const MaxProbPatternDatabase& right,
+        const State& initial_state,
         bool operator_pruning = true);
 
     /**
@@ -157,12 +178,15 @@ public:
      *
      * @param state_space The preconstructed state space of the projection.
      * @param ranking_function The preconstructed ranking function for the PDB.
+     * @param initial_state The rank of the initial state for the exhaustive
+     * solver. States unreachable from this state are treated as dead ends.
      * @param left A previous pattern database for the given task.
      * @param right A previous pattern database for the given task.
      */
     MaxProbPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
+        StateRank initial_state,
         const MaxProbPatternDatabase& left,
         const MaxProbPatternDatabase& right);
 
@@ -173,8 +197,8 @@ public:
     [[nodiscard]] EvaluationResult evaluate(StateRank s) const;
 
     /**
-     * @brief Extracts an abstract optimal policy for the PDB's projection from
-     * the PDB value table.
+     * @brief Extracts an abstract optimal policy for the given inital state
+     * from the PDB value table.
      *
      * Tie-breaking is performed randomly using the input RNG. If the \p
      * wildcard option is specified, a wildcard policy will be returned, i.e., a
@@ -184,12 +208,13 @@ public:
      */
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy(
         ProjectionStateSpace& state_space,
+        StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard = false) const;
 
     /**
-     * @brief Extracts an abstract optimal policy for the PDB's projection from
-     * the PDB value table, assuming traps are absent.
+     * @brief Extracts an abstract optimal policy for the given inital state
+     * from the PDB value table, assuming traps are absent.
      *
      * Tie-breaking is performed randomly using the input RNG. If the \p
      * wildcard option is specified, a wildcard policy will be returned, i.e., a
@@ -199,6 +224,7 @@ public:
      */
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy_no_traps(
         ProjectionStateSpace& state_space,
+        StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard = false) const;
 
@@ -206,16 +232,18 @@ public:
     /// without transition labels shown.
     void dump_graphviz(
         ProjectionStateSpace& state_space,
+        StateRank initial_state,
         const std::string& path,
         bool transition_labels = true);
 
 private:
     void compute_value_table(
         ProjectionStateSpace& state_space,
+        StateRank initial_state,
         const StateRankEvaluator& heuristic);
 
 #if !defined(NDEBUG) && defined(USE_LP)
-    void verify(ProjectionStateSpace& state_space);
+    void verify(ProjectionStateSpace& state_space, StateRank initial_state);
 #endif
 };
 

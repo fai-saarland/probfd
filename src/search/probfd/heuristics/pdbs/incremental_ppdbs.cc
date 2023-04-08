@@ -44,7 +44,7 @@ IncrementalPPDBs<PDBType>::IncrementalPPDBs(
 {
     pattern_databases->reserve(patterns->size());
     for (const Pattern& pattern : *patterns)
-        add_pdb_for_pattern(pattern);
+        add_pdb_for_pattern(pattern, task_proxy.get_initial_state());
     recompute_pattern_subcollections();
 }
 
@@ -63,10 +63,12 @@ IncrementalPPDBs<PDBType>::IncrementalPPDBs(
 }
 
 template <class PDBType>
-void IncrementalPPDBs<PDBType>::add_pdb_for_pattern(const Pattern& pattern)
+void IncrementalPPDBs<PDBType>::add_pdb_for_pattern(
+    const Pattern& pattern,
+    const State& initial_state)
 {
-    auto& pdb =
-        pattern_databases->emplace_back(new PDBType(task_proxy, pattern));
+    auto& pdb = pattern_databases->emplace_back(
+        new PDBType(task_proxy, pattern, initial_state));
     size += pdb->num_states();
 }
 

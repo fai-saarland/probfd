@@ -24,6 +24,8 @@ public:
      * @param task_proxy The input task with respect to which the projection is
      * constructed.
      * @param pattern The pattern of the pattern database.
+     * @param initial_state The initial state for the exhaustive solver.
+     * States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
      * @param heuristic A heuristic used to accelerate the computation of the
@@ -32,6 +34,7 @@ public:
     SSPPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         Pattern pattern,
+        const State& initial_state,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(0_vt));
@@ -40,17 +43,17 @@ public:
      * @brief Constructs a pattern database from a given task and pattern, using
      * the specified construction options.
      *
-     * @param task_proxy The input task with respect to which the projection is
-     * constructed.
-     * @param pattern The pattern of the pattern database.
-     * @param operator_pruning Whether equivalent operators shall be pruned
-     * during construction of the projection.
+     * @param state_space The preconstructed state space of the projection.
+     * @param ranking_function The preconstructed ranking function for the PDB.
+     * @param initial_state The rank of the initial state for the exhaustive
+     * solver. States unreachable from this state are treated as dead ends.
      * @param heuristic A heuristic used to accelerate the computation of the
      * value table.
      */
     SSPPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
+        StateRank initial_state,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(0_vt));
 
@@ -65,12 +68,15 @@ public:
      * constructed.
      * @param pdb A previous deterministic pattern database for the all-outcomes
      * determinization of the given task.
+     * @param initial_state The initial state for the exhaustive solver.
+     * States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
      */
     SSPPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         const ::pdbs::PatternDatabase& pdb,
+        const State& initial_state,
         bool operator_pruning = true);
 
     /**
@@ -80,16 +86,17 @@ public:
      * This constructor makes use of the supplied deterministic PDB by using its
      * induced heuristic to accelerate the value table computation.
      *
-     * @param task_proxy The input task with respect to which the projection is
-     * constructed.
-     * @param pdb A previous deterministic pattern database for the all-outcomes
-     * determinization of the given task.
+     * @param state_space The preconstructed state space of the projection.
+     * @param ranking_function The preconstructed ranking function for the PDB.
+     * @param initial_state The rank of the  initial state for the exhaustive
+     * solver. States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
      */
     SSPPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
+        StateRank initial_state,
         const ::pdbs::PatternDatabase& pdb);
 
     /**
@@ -102,6 +109,8 @@ public:
      * @param task_proxy The input task with respect to which the projection is
      * constructed.
      * @param pdb A previous pattern database for the given task.
+     * @param initial_state The initial state for the exhaustive solver.
+     * States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
      */
@@ -109,6 +118,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const SSPPatternDatabase& pdb,
         int add_var,
+        const State& initial_state,
         bool operator_pruning = true);
 
     /**
@@ -118,15 +128,17 @@ public:
      * This constructor makes use of the supplied PDB by using its
      * induced heuristic to accelerate the value table computation.
      *
-     * @param task_proxy The input task with respect to which the projection is
-     * constructed.
-     * @param pdb A previous pattern database for the given task.
+     * @param state_space The preconstructed state space of the projection.
+     * @param ranking_function The preconstructed ranking function for the PDB.
+     * @param initial_state The rank of the initial state for the exhaustive
+     * solver. States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
      */
     SSPPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
+        StateRank initial_state,
         const SSPPatternDatabase& pdb,
         int add_var);
 
@@ -144,6 +156,8 @@ public:
      * constructed.
      * @param left A previous pattern database for the given task.
      * @param right A previous pattern database for the given task.
+     * @param initial_state The initial state for the exhaustive solver. States
+     * unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
      */
@@ -151,6 +165,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const SSPPatternDatabase& left,
         const SSPPatternDatabase& right,
+        const State& initial_state,
         bool operator_pruning = true);
 
     /**
@@ -163,16 +178,17 @@ public:
      * \todo One could do even better by exploiting potential additivity of the
      * two patterns.
      *
-     * @param task_proxy The input task with respect to which the projection is
-     * constructed.
+     * @param state_space The preconstructed state space of the projection.
+     * @param ranking_function The preconstructed ranking function for the PDB.
      * @param left A previous pattern database for the given task.
      * @param right A previous pattern database for the given task.
-     * @param operator_pruning Whether equivalent operators shall be pruned
-     * during construction of the projection.
+     * @param initial_state The rank of the initial state for the exhaustive
+     * solver. States unreachable from this state are treated as dead ends.
      */
     SSPPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
+        StateRank initial_state,
         const SSPPatternDatabase& left,
         const SSPPatternDatabase& right);
 
@@ -194,6 +210,7 @@ public:
      */
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy(
         ProjectionStateSpace& state_space,
+        StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard = false) const;
 
@@ -209,6 +226,7 @@ public:
      */
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy_no_traps(
         ProjectionStateSpace& state_space,
+        StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard = false) const;
 
@@ -216,17 +234,20 @@ public:
     /// without transition labels shown.
     void dump_graphviz(
         ProjectionStateSpace& state_space,
+        StateRank initial_state,
         const std::string& path,
         bool transition_labels = true) const;
 
 private:
     void compute_value_table(
         ProjectionStateSpace& state_space,
+        StateRank initial_state,
         const StateRankEvaluator& heuristic);
 
 #if !defined(NDEBUG) && defined(USE_LP)
     void verify(
         ProjectionStateSpace& state_space,
+        StateRank initial_state,
         const std::vector<StateID>& proper_states);
 #endif
 };
