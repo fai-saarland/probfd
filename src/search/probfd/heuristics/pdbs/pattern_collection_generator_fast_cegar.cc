@@ -11,6 +11,7 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/cost_model.h"
 #include "probfd/task_proxy.h"
 
 #include "option_parser.h"
@@ -62,6 +63,8 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
     const std::shared_ptr<ProbabilisticTask>& task)
 {
     const ProbabilisticTaskProxy task_proxy(*task);
+    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
+
     const VariablesProxy variables = task_proxy.get_variables();
     const GoalsProxy task_goals = task_proxy.get_goals();
 
@@ -216,6 +219,7 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
 
     PatternCollectionInformation<PDBType> result(
         task_proxy,
+        task_cost_function,
         union_patterns,
         subcollection_finder);
     result.set_pdbs(union_pdbs);

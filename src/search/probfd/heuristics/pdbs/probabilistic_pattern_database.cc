@@ -73,6 +73,7 @@ const Pattern& ProbabilisticPatternDatabase::get_pattern() const
 std::unique_ptr<AbstractPolicy>
 ProbabilisticPatternDatabase::get_optimal_abstract_policy(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard,
@@ -86,7 +87,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
     AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
 
     // return empty policy indicating unsolvable
-    if (state_space.is_goal(initial_state)) {
+    if (cost_function.is_goal(initial_state)) {
         return std::unique_ptr<AbstractPolicy>(policy);
     }
 
@@ -117,7 +118,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
         // Select the greedy operators and add their successors
         for (const AbstractOperator* op : aops) {
-            value_t op_value = use_cost ? op->cost : 0_vt;
+            value_t op_value = cost_function.get_action_cost(op);
 
             std::vector<StateRank> successors;
 
@@ -129,7 +130,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 
             if (is_approx_equal(value, op_value)) {
                 for (const StateRank& succ : successors) {
-                    if (state_space.is_goal(succ)) {
+                    if (cost_function.is_goal(succ)) {
                         goals.push_back(succ);
                     } else if (closed.insert(succ).second) {
                         open.push_back(succ);
@@ -196,6 +197,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 std::unique_ptr<AbstractPolicy>
 ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard,
@@ -203,7 +205,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 {
     AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
 
-    if (state_space.is_goal(initial_state)) {
+    if (cost_function.is_goal(initial_state)) {
         return std::unique_ptr<AbstractPolicy>(policy);
     }
 
@@ -240,7 +242,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
         // Select first greedy operator
         for (const AbstractOperator* op : aops) {
-            value_t op_value = use_cost ? op->cost : 0;
+            value_t op_value = cost_function.get_action_cost(op);
 
             std::vector<StateRank> successors;
 
@@ -261,7 +263,7 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
         // Generate successors
         for (const StateRank& succ : greedy_successors) {
-            if (!state_space.is_goal(succ) && !closed.contains(succ)) {
+            if (!cost_function.is_goal(succ) && !closed.contains(succ)) {
                 closed.insert(succ);
                 open.push_back(succ);
             }
@@ -294,10 +296,10 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 
 void ProbabilisticPatternDatabase::dump_graphviz(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::string& path,
     std::function<std::string(const StateRank&)> sts,
-    AbstractCostFunction& costs,
     bool transition_labels) const
 {
     using namespace engine_interfaces;
@@ -315,7 +317,7 @@ void ProbabilisticPatternDatabase::dump_graphviz(
         out,
         initial_state,
         &state_space,
-        &costs,
+        &cost_function,
         nullptr,
         sts,
         ats,

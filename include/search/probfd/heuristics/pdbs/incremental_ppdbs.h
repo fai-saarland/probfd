@@ -5,6 +5,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/value_type.h"
 
@@ -21,6 +22,7 @@ namespace pdbs {
 template <class PDBType>
 class IncrementalPPDBs {
     ProbabilisticTaskProxy task_proxy;
+    TaskCostFunction* task_cost_function;
 
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PPDBCollection<PDBType>> pattern_databases;
@@ -39,11 +41,13 @@ class IncrementalPPDBs {
 public:
     IncrementalPPDBs(
         const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction* task_cost_function,
         const PatternCollection& initial_patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
     IncrementalPPDBs(
         const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction* task_cost_function,
         PatternCollectionInformation<PDBType>& initial_patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 

@@ -89,6 +89,7 @@ public:
 protected:
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy(
         ProjectionStateSpace& state_space,
+        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard,
@@ -96,6 +97,7 @@ protected:
 
     std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy_no_traps(
         ProjectionStateSpace& state_space,
+        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard,
@@ -103,10 +105,10 @@ protected:
 
     void dump_graphviz(
         ProjectionStateSpace& state_space,
+        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::string& path,
         std::function<std::string(const StateRank&)> sts,
-        AbstractCostFunction& costs,
         bool transition_labels) const;
 };
 

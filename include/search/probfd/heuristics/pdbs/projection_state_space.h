@@ -23,8 +23,6 @@ class ProjectionStateSpace
 
     heuristics::pdbs::MatchTree match_tree_;
 
-    std::vector<bool> goal_state_flags_;
-
 public:
     ProjectionStateSpace(
         const ProbabilisticTaskProxy& task_proxy,
@@ -52,8 +50,6 @@ public:
         StateID state,
         std::vector<const AbstractOperator*>& aops,
         std::vector<Distribution<StateID>>& result) override;
-
-    bool is_goal(StateRank rank) const;
 };
 
 } // namespace pdbs

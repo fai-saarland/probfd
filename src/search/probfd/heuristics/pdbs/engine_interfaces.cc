@@ -118,37 +118,6 @@ EvaluationResult MergeEvaluator<PDBType>::evaluate(StateRank state) const
     return {false, std::max(leval.get_estimate(), reval.get_estimate())};
 }
 
-BaseAbstractCostFunction::BaseAbstractCostFunction(
-    const ProjectionStateSpace& state_space,
-    value_t value_in,
-    value_t value_not_in)
-    : state_space_(state_space)
-    , value_in_(value_in)
-    , value_not_in_(value_not_in)
-{
-}
-
-TerminationInfo BaseAbstractCostFunction::get_termination_info(StateRank state)
-{
-    const bool is_contained = state_space_.is_goal(state);
-    return TerminationInfo(
-        is_contained,
-        is_contained ? value_in_ : value_not_in_);
-}
-
-value_t
-ZeroCostAbstractCostFunction::get_action_cost(StateID, const AbstractOperator*)
-{
-    return 0;
-}
-
-value_t NormalCostAbstractCostFunction::get_action_cost(
-    StateID,
-    const AbstractOperator* op)
-{
-    return op->cost;
-}
-
 template class IncrementalPPDBEvaluator<SSPPatternDatabase>;
 template class IncrementalPPDBEvaluator<MaxProbPatternDatabase>;
 

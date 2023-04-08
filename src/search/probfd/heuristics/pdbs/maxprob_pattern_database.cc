@@ -22,6 +22,7 @@ namespace pdbs {
 MaxProbPatternDatabase::MaxProbPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const Pattern& pattern,
+    TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
@@ -31,8 +32,13 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
         task_proxy,
         ranking_function_,
         operator_pruning);
+    ProjectionCostFunction cost_function(
+        task_proxy,
+        ranking_function_,
+        &task_cost_function);
     compute_value_table(
         state_space,
+        cost_function,
         ranking_function_.rank(initial_state),
         heuristic);
 }
@@ -40,21 +46,24 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 MaxProbPatternDatabase::MaxProbPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic)
     : ProbabilisticPatternDatabase(std::move(ranking_function))
 {
-    compute_value_table(state_space, initial_state, heuristic);
+    compute_value_table(state_space, cost_function, initial_state, heuristic);
 }
 
 MaxProbPatternDatabase::MaxProbPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const ::pdbs::PatternDatabase& pdb,
+    TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning)
     : MaxProbPatternDatabase(
           task_proxy,
           pdb.get_pattern(),
+          task_cost_function,
           initial_state,
           operator_pruning,
           DeadendPDBEvaluator(pdb))
@@ -64,11 +73,13 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 MaxProbPatternDatabase::MaxProbPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const ::pdbs::PatternDatabase& pdb)
     : MaxProbPatternDatabase(
           state_space,
           std::move(ranking_function),
+          cost_function,
           initial_state,
           DeadendPDBEvaluator(pdb))
 {
@@ -78,6 +89,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const MaxProbPatternDatabase& pdb,
     int add_var,
+    TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning)
     : ProbabilisticPatternDatabase(
@@ -88,8 +100,13 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
         task_proxy,
         ranking_function_,
         operator_pruning);
+    ProjectionCostFunction cost_function(
+        task_proxy,
+        ranking_function_,
+        &task_cost_function);
     compute_value_table(
         state_space,
+        cost_function,
         ranking_function_.rank(initial_state),
         IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
 }
@@ -97,6 +114,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 MaxProbPatternDatabase::MaxProbPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const MaxProbPatternDatabase& pdb,
     int add_var)
@@ -104,6 +122,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 {
     compute_value_table(
         state_space,
+        cost_function,
         initial_state,
         IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
 }
@@ -112,6 +131,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const MaxProbPatternDatabase& left,
     const MaxProbPatternDatabase& right,
+    TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning)
     : ProbabilisticPatternDatabase(
@@ -122,8 +142,13 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
         task_proxy,
         ranking_function_,
         operator_pruning);
+    ProjectionCostFunction cost_function(
+        task_proxy,
+        ranking_function_,
+        &task_cost_function);
     compute_value_table(
         state_space,
+        cost_function,
         ranking_function_.rank(initial_state),
         MergeEvaluator(ranking_function_, left, right));
 }
@@ -131,6 +156,7 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 MaxProbPatternDatabase::MaxProbPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const MaxProbPatternDatabase& left,
     const MaxProbPatternDatabase& right)
@@ -138,25 +164,21 @@ MaxProbPatternDatabase::MaxProbPatternDatabase(
 {
     compute_value_table(
         state_space,
+        cost_function,
         initial_state,
         MergeEvaluator(ranking_function_, left, right));
 }
 
 void MaxProbPatternDatabase::compute_value_table(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic)
 {
     using namespace engines::interval_iteration;
 
-    ZeroCostAbstractCostFunction cost(state_space, 0_vt, 1_vt);
-
-    IntervalIteration<StateRank, const AbstractOperator*> vi(
-        &state_space,
-        &cost,
-        &heuristic,
-        true,
-        true);
+    IntervalIteration<StateRank, const AbstractOperator*>
+        vi(&state_space, &cost_function, &heuristic, true, true);
 
     std::vector<StateID> proper_states;
 
@@ -181,7 +203,7 @@ void MaxProbPatternDatabase::compute_value_table(
               << std::endl;
 
 #if defined(USE_LP)
-    verify(state_space, initial_state);
+    verify(state_space, cost_function, initial_state);
 #endif
 #endif
 }
@@ -203,12 +225,14 @@ EvaluationResult MaxProbPatternDatabase::evaluate(StateRank s) const
 std::unique_ptr<AbstractPolicy>
 MaxProbPatternDatabase::get_optimal_abstract_policy(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
     return ProbabilisticPatternDatabase::get_optimal_abstract_policy(
         state_space,
+        cost_function,
         initial_state,
         rng,
         wildcard,
@@ -218,12 +242,14 @@ MaxProbPatternDatabase::get_optimal_abstract_policy(
 std::unique_ptr<AbstractPolicy>
 MaxProbPatternDatabase::get_optimal_abstract_policy_no_traps(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
     return ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
         state_space,
+        cost_function,
         initial_state,
         rng,
         wildcard,
@@ -232,6 +258,7 @@ MaxProbPatternDatabase::get_optimal_abstract_policy_no_traps(
 
 void MaxProbPatternDatabase::dump_graphviz(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::string& path,
     bool transition_labels)
@@ -250,20 +277,19 @@ void MaxProbPatternDatabase::dump_graphviz(
         return out.str();
     };
 
-    ZeroCostAbstractCostFunction cost(state_space, 0_vt, 1_vt);
-
     ProbabilisticPatternDatabase::dump_graphviz(
         state_space,
+        cost_function,
         initial_state,
         path,
         s2str,
-        cost,
         transition_labels);
 }
 
 #if !defined(NDEBUG) && defined(USE_LP)
 void MaxProbPatternDatabase::verify(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state)
 {
     lp::LPSolverType type;
@@ -303,7 +329,7 @@ void MaxProbPatternDatabase::verify(
         StateRank s = queue.front();
         queue.pop_front();
 
-        if (state_space.is_goal(s)) {
+        if (cost_function.is_goal(s)) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
         }

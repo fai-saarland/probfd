@@ -90,6 +90,58 @@ public:
     virtual void print_statistics() const {}
 };
 
+template <typename State, typename Action>
+class StateIndependentCostFunction : public CostFunction<State, Action> {
+public:
+    virtual ~StateIndependentCostFunction() override = default;
+
+    /**
+     * @brief Get the action cost of the action when applied in a state.
+     */
+    value_t get_action_cost(StateID, param_type<Action> action) override final
+    {
+        return get_action_cost(action);
+    }
+
+    virtual value_t get_action_cost(param_type<Action> action) = 0;
+};
+
+template <typename State, typename Action>
+class SimpleCostFunction : public StateIndependentCostFunction<State, Action> {
+    value_t goal_termination;
+    value_t non_goal_termination;
+
+protected:
+    SimpleCostFunction(value_t goal_termination, value_t non_goal_termination)
+        : goal_termination(goal_termination)
+        , non_goal_termination(non_goal_termination)
+    {
+    }
+
+public:
+    virtual ~SimpleCostFunction() override = default;
+
+    /**
+     * @brief Get the termination cost info of the input state.
+     */
+    TerminationInfo get_termination_info(param_type<State> state) override final
+    {
+        const bool goal = is_goal(state);
+        return TerminationInfo(
+            goal,
+            goal ? goal_termination : non_goal_termination);
+    }
+
+    virtual bool is_goal(param_type<State> state) const = 0;
+
+    value_t get_goal_termination_cost() const { return goal_termination; }
+
+    value_t get_non_goal_termination_cost() const
+    {
+        return non_goal_termination;
+    }
+};
+
 } // namespace engine_interfaces
 } // namespace probfd
 
@@ -99,7 +151,8 @@ class OperatorID;
 namespace probfd {
 
 /// Type alias for cost functions for planning tasks.
-using TaskCostFunction = engine_interfaces::CostFunction<State, OperatorID>;
+using TaskCostFunction =
+    engine_interfaces::SimpleCostFunction<State, OperatorID>;
 
 } // namespace probfd
 

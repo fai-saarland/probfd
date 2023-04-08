@@ -6,6 +6,7 @@
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
+#include "probfd/cost_model.h"
 #include "probfd/task_proxy.h"
 
 #include "probfd/tasks/all_outcomes_determinization.h"
@@ -183,6 +184,7 @@ PatternCollectionGeneratorHillclimbing<
 template <typename PDBType>
 int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     utils::CountdownTimer& hill_climbing_timer,
     const std::vector<std::vector<int>>& relevant_neighbours,
     const PDBType& pdb,
@@ -230,6 +232,7 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
                         task_proxy,
                         pdb,
                         rel_var_id,
+                        task_cost_function,
                         task_proxy.get_initial_state()));
                     max_pdb_size =
                         std::max(max_pdb_size, (int)new_pdb->num_states());
@@ -401,6 +404,7 @@ template <typename PDBType>
 void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing(
     const ProbabilisticTask* task,
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     IncrementalPPDBs<PDBType>& current_pdbs)
 {
     int num_iterations = 0;
@@ -421,6 +425,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing(
         for (const auto& current_pdb : *current_pdbs.get_pattern_databases()) {
             int new_max_pdb_size = generate_candidate_pdbs(
                 task_proxy,
+                task_cost_function,
                 hill_climbing_timer,
                 relevant_neighbours,
                 *current_pdb,
@@ -513,6 +518,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing(
             // Generate candidate patterns and PDBs for next iteration.
             int new_max_pdb_size = generate_candidate_pdbs(
                 task_proxy,
+                task_cost_function,
                 hill_climbing_timer,
                 relevant_neighbours,
                 *best_pdb,
@@ -565,6 +571,7 @@ PatternCollectionGeneratorHillclimbing<PDBType>::generate(
     assert(initial_generator);
 
     ProbabilisticTaskProxy task_proxy(*task);
+    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
 
     auto collection = initial_generator->generate(task);
     std::shared_ptr<SubCollectionFinder> subcollection_finder =
@@ -572,6 +579,7 @@ PatternCollectionGeneratorHillclimbing<PDBType>::generate(
 
     IncrementalPPDBs<PDBType> current_pdbs(
         task_proxy,
+        task_cost_function,
         collection,
         subcollection_finder);
 
@@ -583,7 +591,11 @@ PatternCollectionGeneratorHillclimbing<PDBType>::generate(
     const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
     if (!current_pdbs.is_dead_end(initial_state) && max_time > 0) {
-        hill_climbing(task.get(), task_proxy, current_pdbs);
+        hill_climbing(
+            task.get(),
+            task_proxy,
+            *task_cost_function,
+            current_pdbs);
     }
 
     PatternCollectionInformation<PDBType> pci =

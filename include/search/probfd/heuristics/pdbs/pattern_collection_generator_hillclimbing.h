@@ -5,6 +5,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
 
 #include "utils/logging.h"
@@ -98,6 +99,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     int generate_candidate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function,
         utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const PDBType& pdb,
@@ -171,6 +173,7 @@ class PatternCollectionGeneratorHillclimbing
     void hill_climbing(
         const ProbabilisticTask* task,
         const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function,
         IncrementalPPDBs<PDBType>& current_pdbs);
 
 public:

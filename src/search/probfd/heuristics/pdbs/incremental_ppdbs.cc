@@ -31,9 +31,11 @@ unsigned long long compute_total_pdb_size(const std::vector<PDBType>& pdbs)
 template <class PDBType>
 IncrementalPPDBs<PDBType>::IncrementalPPDBs(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction* task_cost_function,
     const PatternCollection& initial_patterns,
     std::shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)
+    , task_cost_function(task_cost_function)
     , patterns(new PatternCollection(
           initial_patterns.begin(),
           initial_patterns.end()))
@@ -51,9 +53,11 @@ IncrementalPPDBs<PDBType>::IncrementalPPDBs(
 template <class PDBType>
 IncrementalPPDBs<PDBType>::IncrementalPPDBs(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction* task_cost_function,
     PatternCollectionInformation<PDBType>& initial_patterns,
     std::shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)
+    , task_cost_function(task_cost_function)
     , patterns(initial_patterns.get_patterns())
     , pattern_databases(initial_patterns.get_pdbs())
     , pattern_subcollections(initial_patterns.get_subcollections())
@@ -68,7 +72,7 @@ void IncrementalPPDBs<PDBType>::add_pdb_for_pattern(
     const State& initial_state)
 {
     auto& pdb = pattern_databases->emplace_back(
-        new PDBType(task_proxy, pattern, initial_state));
+        new PDBType(task_proxy, pattern, *task_cost_function, initial_state));
     size += pdb->num_states();
 }
 
@@ -130,7 +134,10 @@ template <class PDBType>
 PatternCollectionInformation<PDBType>
 IncrementalPPDBs<PDBType>::get_pattern_collection_information() const
 {
-    PatternCollectionInformation<PDBType> result(task_proxy, patterns);
+    PatternCollectionInformation<PDBType> result(
+        task_proxy,
+        task_cost_function,
+        patterns);
     result.set_pdbs(pattern_databases);
     result.set_subcollections(pattern_subcollections);
     return result;

@@ -51,6 +51,7 @@ public:
 SSPPatternDatabase::SSPPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     Pattern pattern,
+    TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
     const StateRankEvaluator& heuristic)
@@ -60,8 +61,13 @@ SSPPatternDatabase::SSPPatternDatabase(
         task_proxy,
         ranking_function_,
         operator_pruning);
+    ProjectionCostFunction cost_function(
+        task_proxy,
+        ranking_function_,
+        &task_cost_function);
     compute_value_table(
         state_space,
+        cost_function,
         ranking_function_.rank(initial_state),
         heuristic);
 }
@@ -69,21 +75,24 @@ SSPPatternDatabase::SSPPatternDatabase(
 SSPPatternDatabase::SSPPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic)
     : ProbabilisticPatternDatabase(std::move(ranking_function))
 {
-    compute_value_table(state_space, initial_state, heuristic);
+    compute_value_table(state_space, cost_function, initial_state, heuristic);
 }
 
 SSPPatternDatabase::SSPPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const ::pdbs::PatternDatabase& pdb,
+    TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning)
     : SSPPatternDatabase(
           task_proxy,
           pdb.get_pattern(),
+          task_cost_function,
           initial_state,
           operator_pruning,
           PDBEvaluator(pdb))
@@ -93,11 +102,13 @@ SSPPatternDatabase::SSPPatternDatabase(
 SSPPatternDatabase::SSPPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const ::pdbs::PatternDatabase& pdb)
     : SSPPatternDatabase(
           state_space,
           std::move(ranking_function),
+          cost_function,
           initial_state,
           PDBEvaluator(pdb))
 {
@@ -107,6 +118,7 @@ SSPPatternDatabase::SSPPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const SSPPatternDatabase& pdb,
     int add_var,
+    TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning)
     : ProbabilisticPatternDatabase(
@@ -117,8 +129,13 @@ SSPPatternDatabase::SSPPatternDatabase(
         task_proxy,
         ranking_function_,
         operator_pruning);
+    ProjectionCostFunction cost_function(
+        task_proxy,
+        ranking_function_,
+        &task_cost_function);
     compute_value_table(
         state_space,
+        cost_function,
         ranking_function_.rank(initial_state),
         IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
 }
@@ -126,6 +143,7 @@ SSPPatternDatabase::SSPPatternDatabase(
 SSPPatternDatabase::SSPPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const SSPPatternDatabase& pdb,
     int add_var)
@@ -133,6 +151,7 @@ SSPPatternDatabase::SSPPatternDatabase(
 {
     compute_value_table(
         state_space,
+        cost_function,
         initial_state,
         IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
 }
@@ -141,6 +160,7 @@ SSPPatternDatabase::SSPPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const SSPPatternDatabase& left,
     const SSPPatternDatabase& right,
+    TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning)
     : ProbabilisticPatternDatabase(
@@ -151,8 +171,13 @@ SSPPatternDatabase::SSPPatternDatabase(
         task_proxy,
         ranking_function_,
         operator_pruning);
+    ProjectionCostFunction cost_function(
+        task_proxy,
+        ranking_function_,
+        &task_cost_function);
     compute_value_table(
         state_space,
+        cost_function,
         ranking_function_.rank(initial_state),
         MergeEvaluator(ranking_function_, left, right));
 }
@@ -160,6 +185,7 @@ SSPPatternDatabase::SSPPatternDatabase(
 SSPPatternDatabase::SSPPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const SSPPatternDatabase& left,
     const SSPPatternDatabase& right)
@@ -167,6 +193,7 @@ SSPPatternDatabase::SSPPatternDatabase(
 {
     compute_value_table(
         state_space,
+        cost_function,
         initial_state,
         MergeEvaluator(ranking_function_, left, right));
 }
@@ -184,12 +211,14 @@ EvaluationResult SSPPatternDatabase::evaluate(StateRank s) const
 
 std::unique_ptr<AbstractPolicy> SSPPatternDatabase::get_optimal_abstract_policy(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
     return ProbabilisticPatternDatabase::get_optimal_abstract_policy(
         state_space,
+        cost_function,
         initial_state,
         rng,
         wildcard,
@@ -199,12 +228,14 @@ std::unique_ptr<AbstractPolicy> SSPPatternDatabase::get_optimal_abstract_policy(
 std::unique_ptr<AbstractPolicy>
 SSPPatternDatabase::get_optimal_abstract_policy_no_traps(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
     return ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
         state_space,
+        cost_function,
         initial_state,
         rng,
         wildcard,
@@ -213,6 +244,7 @@ SSPPatternDatabase::get_optimal_abstract_policy_no_traps(
 
 void SSPPatternDatabase::dump_graphviz(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::string& path,
     bool transition_labels) const
@@ -232,29 +264,26 @@ void SSPPatternDatabase::dump_graphviz(
         return out.str();
     };
 
-    NormalCostAbstractCostFunction cost(state_space, 0_vt, INFINITE_VALUE);
-
     ProbabilisticPatternDatabase::dump_graphviz(
         state_space,
+        cost_function,
         initial_state,
         path,
         s2str,
-        cost,
         transition_labels);
 }
 
 void SSPPatternDatabase::compute_value_table(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic)
 {
     using namespace preprocessing;
     using namespace engines::ta_topological_vi;
 
-    NormalCostAbstractCostFunction cost(state_space, 0_vt, INFINITE_VALUE);
-
     QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
-        analysis(&state_space, &cost, true);
+        analysis(&state_space, &cost_function, true);
 
     std::vector<StateID> proper_states;
 
@@ -267,7 +296,7 @@ void SSPPatternDatabase::compute_value_table(
 
     TATopologicalValueIteration<StateRank, const AbstractOperator*> vi(
         &state_space,
-        &cost,
+        &cost_function,
         &h);
 
     vi.solve(initial_state.id, value_table);
@@ -281,7 +310,7 @@ void SSPPatternDatabase::compute_value_table(
     std::cout << "]: value=" << value_table[initial_state.id] << std::endl;
 
 #if defined(USE_LP)
-    verify(state_space, initial_state, proper_states);
+    verify(state_space, cost_function, initial_state, proper_states);
 #endif
 #endif
 }
@@ -289,6 +318,7 @@ void SSPPatternDatabase::compute_value_table(
 #if !defined(NDEBUG) && defined(USE_LP)
 void SSPPatternDatabase::verify(
     ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::vector<StateID>& proper_states)
 {
@@ -335,7 +365,7 @@ void SSPPatternDatabase::verify(
 
         variables[s.id].objective_coefficient = 1_vt;
 
-        if (state_space.is_goal(s)) {
+        if (cost_function.is_goal(s)) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
         }
@@ -346,7 +376,7 @@ void SSPPatternDatabase::verify(
 
         // Push successors
         for (const AbstractOperator* op : aops) {
-            value_t cost = op->cost;
+            const value_t cost = cost_function.get_action_cost(op);
 
             std::unordered_map<StateRank, value_t> successor_dist;
 

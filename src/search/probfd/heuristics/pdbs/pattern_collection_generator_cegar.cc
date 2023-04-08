@@ -8,6 +8,7 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/cost_model.h"
 #include "probfd/task_proxy.h"
 
 #include "utils/collections.h"
@@ -44,13 +45,20 @@ template <typename PDBType>
 PDBInfo<PDBType>::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
+    TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard)
     : state_space(task_proxy, ranking_function, !wildcard)
+    , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
-    , pdb(new PDBType(state_space, std::move(ranking_function), initial_state))
+    , pdb(new PDBType(
+          state_space,
+          std::move(ranking_function),
+          cost_function,
+          initial_state))
     , policy(pdb->get_optimal_abstract_policy(
           state_space,
+          cost_function,
           initial_state,
           rng,
           wildcard))
@@ -61,20 +69,24 @@ template <typename PDBType>
 PDBInfo<PDBType>::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
+    TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const PDBType& previous,
     int add_var,
     bool wildcard)
     : state_space(task_proxy, ranking_function, !wildcard)
+    , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new PDBType(
           state_space,
           std::move(ranking_function),
+          cost_function,
           initial_state,
           previous,
           add_var))
     , policy(pdb->get_optimal_abstract_policy(
           state_space,
+          cost_function,
           initial_state,
           rng,
           wildcard))
@@ -85,20 +97,24 @@ template <typename PDBType>
 PDBInfo<PDBType>::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
+    TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const PDBType& left,
     const PDBType& right,
     bool wildcard)
     : state_space(task_proxy, ranking_function, !wildcard)
+    , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new PDBType(
           state_space,
           std::move(ranking_function),
+          cost_function,
           initial_state,
           left,
           right))
     , policy(pdb->get_optimal_abstract_policy(
           state_space,
+          cost_function,
           initial_state,
           rng,
           wildcard))
@@ -158,7 +174,7 @@ bool PDBInfo<PDBType>::solution_exists() const
 template <typename PDBType>
 bool PDBInfo<PDBType>::is_goal(StateRank rank) const
 {
-    return state_space.is_goal(rank);
+    return cost_function.is_goal(rank);
 }
 
 // Instantiations
@@ -282,29 +298,30 @@ void PatternCollectionGeneratorCegar<PDBType>::print_collection() const
 }
 
 template <typename PDBType>
-void PatternCollectionGeneratorCegar<
-    PDBType>::generate_trivial_solution_collection(const ProbabilisticTaskProxy&
-                                                       task_proxy)
+void PatternCollectionGeneratorCegar<PDBType>::
+    generate_trivial_solution_collection(
+        const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function)
 {
     assert(!remaining_goals.empty());
 
     switch (initial) {
     case InitialCollectionType::GIVEN_GOAL: {
         assert(given_goal != -1);
-        add_pattern_for_var(task_proxy, given_goal);
+        add_pattern_for_var(task_proxy, task_cost_function, given_goal);
         break;
     }
     case InitialCollectionType::RANDOM_GOAL: {
         int var = remaining_goals.back();
         remaining_goals.pop_back();
-        add_pattern_for_var(task_proxy, var);
+        add_pattern_for_var(task_proxy, task_cost_function, var);
         break;
     }
     case InitialCollectionType::ALL_GOALS: {
         while (!remaining_goals.empty()) {
             int var = remaining_goals.back();
             remaining_goals.pop_back();
-            add_pattern_for_var(task_proxy, var);
+            add_pattern_for_var(task_proxy, task_cost_function, var);
         }
 
         break;
@@ -398,11 +415,13 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_singleton_pattern(
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::add_pattern_for_var(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     int var)
 {
     auto& info = pdb_infos.emplace_back(new PDBInfo<PDBType>(
         task_proxy,
         StateRankingFunction(task_proxy, {var}),
+        task_cost_function,
         rng,
         wildcard));
     variable_to_collection_index[var] = pdb_infos.size() - 1;
@@ -428,6 +447,7 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_merge_patterns(
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     int index1,
     int index2)
 {
@@ -453,6 +473,7 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
         StateRankingFunction(
             task_proxy,
             utils::merge_sorted(pdb1.get_pattern(), pdb2.get_pattern())),
+        task_cost_function,
         rng,
         pdb1,
         pdb2,
@@ -488,6 +509,7 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_variable_to_pattern(
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     int index,
     int var)
 {
@@ -499,6 +521,7 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
     std::unique_ptr<PDBInfo<PDBType>> new_info(new PDBInfo<PDBType>(
         task_proxy,
         StateRankingFunction(task_proxy, utils::insert(pdb.get_pattern(), var)),
+        task_cost_function,
         rng,
         pdb,
         var,
@@ -516,6 +539,7 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
 template <typename PDBType>
 void PatternCollectionGeneratorCegar<PDBType>::refine(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     const VariablesProxy& variables,
     const std::vector<Flaw>& flaws)
 {
@@ -555,7 +579,11 @@ void PatternCollectionGeneratorCegar<PDBType>::refine(
                 cout << token << "merge the two patterns" << endl;
             }
 
-            merge_patterns(task_proxy, sol_index, other_index);
+            merge_patterns(
+                task_proxy,
+                task_cost_function,
+                sol_index,
+                other_index);
             return;
         }
     } else {
@@ -573,7 +601,11 @@ void PatternCollectionGeneratorCegar<PDBType>::refine(
                 cout << token << "add it to the pattern" << endl;
             }
 
-            add_variable_to_pattern(task_proxy, sol_index, var);
+            add_variable_to_pattern(
+                task_proxy,
+                task_cost_function,
+                sol_index,
+                var);
             return;
         }
     }
@@ -595,6 +627,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     utils::CountdownTimer timer(max_time);
 
     const ProbabilisticTaskProxy task_proxy(*task);
+    TaskCostFunction* task_cost_function(g_cost_model->get_cost_function());
     const VariablesProxy variables = task_proxy.get_variables();
     const GoalsProxy goals = task_proxy.get_goals();
 
@@ -647,7 +680,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     }
 
     // Start with a solution of the trivial abstraction
-    generate_trivial_solution_collection(task_proxy);
+    generate_trivial_solution_collection(task_proxy, *task_cost_function);
 
     const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
@@ -693,7 +726,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
 
         // if there was a flaw, then refine the abstraction
         // such that said flaw does not occur again
-        refine(task_proxy, variables, flaws);
+        refine(task_proxy, *task_cost_function, variables, flaws);
 
         ++refinement_counter;
         flaws.clear();
@@ -749,6 +782,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
 
     PatternCollectionInformation<PDBType> pattern_collection_information(
         task_proxy,
+        task_cost_function,
         patterns,
         subcollection_finder);
     pattern_collection_information.set_pdbs(pdbs);

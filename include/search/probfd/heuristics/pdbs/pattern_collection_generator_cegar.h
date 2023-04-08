@@ -42,6 +42,7 @@ class PDBInfo {
     // The state space needs to be kept because it contains the operators and
     // deleting it invalidates the returned policy actions
     ProjectionStateSpace state_space;
+    ProjectionCostFunction cost_function;
     StateRank initial_state;
     std::unique_ptr<PDBType> pdb;
     std::unique_ptr<AbstractPolicy> policy;
@@ -51,12 +52,14 @@ public:
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
+        TaskCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard);
 
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
+        TaskCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& previous,
         int add_var,
@@ -65,6 +68,7 @@ public:
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
+        TaskCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const PDBType& merge_left,
         const PDBType& merge_right,
@@ -171,7 +175,8 @@ public:
 
 private:
     void generate_trivial_solution_collection(
-        const ProbabilisticTaskProxy& task_proxy);
+        const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function);
 
     bool time_limit_reached(const utils::CountdownTimer& timer) const;
 
@@ -187,18 +192,24 @@ private:
         int var) const;
     bool can_merge_patterns(int index1, int index2) const;
 
-    void add_pattern_for_var(const ProbabilisticTaskProxy& task_proxy, int var);
+    void add_pattern_for_var(
+        const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function,
+        int var);
     void add_variable_to_pattern(
         const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function,
         int index,
         int var);
     void merge_patterns(
         const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function,
         int index1,
         int index2);
 
     void refine(
         const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function,
         const VariablesProxy& variables,
         const std::vector<Flaw>& flaws);
 

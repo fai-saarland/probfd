@@ -4,6 +4,8 @@
 #include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
+#include "probfd/cost_model.h"
+
 #include "options/options.h"
 
 #include "pdbs/pattern_database.h"
@@ -45,6 +47,8 @@ PatternCollectionGeneratorDeterministic<PDBType>::generate(
     const std::shared_ptr<ProbabilisticTask>& task)
 {
     ProbabilisticTaskProxy task_proxy(*task);
+    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
+
     std::shared_ptr<tasks::AODDeterminizationTask> determinization(
         new tasks::AODDeterminizationTask(task.get()));
 
@@ -52,6 +56,7 @@ PatternCollectionGeneratorDeterministic<PDBType>::generate(
         finder_factory->create_subcollection_finder(task_proxy);
     return PatternCollectionInformation<PDBType>(
         ProbabilisticTaskProxy(*task),
+        task_cost_function,
         gen->generate(determinization),
         finder);
 }

@@ -25,9 +25,11 @@ namespace pdbs {
 template <typename PDBType>
 PatternCollectionInformation<PDBType>::PatternCollectionInformation(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction* task_cost_function,
     ::pdbs::PatternCollectionInformation det_info,
     shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)
+    , task_cost_function(task_cost_function)
     , patterns_(det_info.get_patterns())
     , subcollections_(det_info.get_pattern_cliques())
     , subcollection_finder_(std::move(subcollection_finder))
@@ -44,6 +46,7 @@ PatternCollectionInformation<PDBType>::PatternCollectionInformation(
         pdbs_->emplace_back(new PDBType(
             task_proxy,
             *pdbs->operator[](i),
+            *task_cost_function,
             task_proxy.get_initial_state()));
     }
 }
@@ -51,9 +54,11 @@ PatternCollectionInformation<PDBType>::PatternCollectionInformation(
 template <typename PDBType>
 PatternCollectionInformation<PDBType>::PatternCollectionInformation(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction* task_cost_function,
     shared_ptr<PatternCollection> patterns)
     : PatternCollectionInformation(
           task_proxy,
+          task_cost_function,
           std::move(patterns),
           make_shared<TrivialFinder>())
 {
@@ -62,9 +67,11 @@ PatternCollectionInformation<PDBType>::PatternCollectionInformation(
 template <typename PDBType>
 PatternCollectionInformation<PDBType>::PatternCollectionInformation(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction* task_cost_function,
     shared_ptr<PatternCollection> patterns,
     shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)
+    , task_cost_function(task_cost_function)
     , patterns_(std::move(patterns))
     , subcollection_finder_(std::move(subcollection_finder))
 {
@@ -114,6 +121,7 @@ void PatternCollectionInformation<PDBType>::create_pdbs_if_missing()
             pdbs_->emplace_back(new PDBType(
                 task_proxy,
                 pattern,
+                *task_cost_function,
                 task_proxy.get_initial_state()));
         }
         cout << "Done computing PDBs for pattern collection: " << timer << endl;
