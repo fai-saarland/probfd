@@ -115,7 +115,7 @@ EvaluationResult MergeEvaluator<PDBType>::evaluate(StateRank state) const
         return reval;
     }
 
-    return {false, std::min(leval.get_estimate(), reval.get_estimate())};
+    return {false, std::max(leval.get_estimate(), reval.get_estimate())};
 }
 
 BaseAbstractCostFunction::BaseAbstractCostFunction(
