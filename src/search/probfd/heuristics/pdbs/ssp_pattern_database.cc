@@ -220,13 +220,13 @@ void SSPPatternDatabase::dump_graphviz(
     auto s2str = [this](const StateRank& x) {
         std::ostringstream out;
         out.precision(3);
-        out << x.id;
+        out << x.id << "\\n";
 
         const auto v = value_table[x.id];
         if (v == INFINITE_VALUE) {
-            out << "\\nh = -&infin;";
+            out << "h = -&infin;";
         } else {
-            out << "\\nh = " << v;
+            out << "h = " << v;
         }
 
         return out.str();

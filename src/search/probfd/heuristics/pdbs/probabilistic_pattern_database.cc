@@ -203,8 +203,6 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 {
     AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
 
-    assert(lookup(initial_state) != INFINITE_VALUE);
-
     if (state_space.is_goal(initial_state)) {
         return std::unique_ptr<AbstractPolicy>(policy);
     }
@@ -219,6 +217,11 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
         StateRank s = open.front();
         open.pop_front();
 
+        // Skip dead-ends, the operator is irrelevant
+        if (is_dead_end(s)) {
+            continue;
+        }
+
         const value_t value = value_table[s.id];
 
         // Generate operators...
@@ -226,7 +229,6 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
         state_space.generate_applicable_actions(s.id, aops);
 
         if (aops.empty()) {
-            assert(value == INFINITE_VALUE);
             continue;
         }
 
