@@ -33,13 +33,12 @@ namespace pdbs {
   TODO: this should probably re-use PatternInformation and it could also act
   as an interface for ownership transfer rather than sharing it.
 */
-template <typename PDBType>
 class PatternCollectionInformation {
     ProbabilisticTaskProxy task_proxy;
     TaskCostFunction* task_cost_function;
 
     std::shared_ptr<PatternCollection> patterns_;
-    std::shared_ptr<PPDBCollection<PDBType>> pdbs_;
+    std::shared_ptr<PPDBCollection> pdbs_;
     std::shared_ptr<std::vector<PatternSubCollection>> subcollections_;
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder_;
@@ -67,21 +66,16 @@ public:
         std::shared_ptr<PatternCollection> patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
-    void set_pdbs(const std::shared_ptr<PPDBCollection<PDBType>>& pdbs);
+    void set_pdbs(const std::shared_ptr<PPDBCollection>& pdbs);
     void
     set_subcollections(const std::shared_ptr<std::vector<PatternSubCollection>>&
                            subcollections);
 
     std::shared_ptr<PatternCollection> get_patterns() const;
-    std::shared_ptr<PPDBCollection<PDBType>> get_pdbs();
+    std::shared_ptr<PPDBCollection> get_pdbs();
     std::shared_ptr<std::vector<PatternSubCollection>> get_subcollections();
+    std::shared_ptr<SubCollectionFinder> get_subcollection_finder();
 };
-
-using ExpCostPatternCollectionInformation =
-    PatternCollectionInformation<SSPPatternDatabase>;
-
-using MaxProbPatternCollectionInformation =
-    PatternCollectionInformation<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

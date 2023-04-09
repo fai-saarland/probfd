@@ -16,22 +16,15 @@ class ProbabilisticTask;
 namespace heuristics {
 namespace pdbs {
 
-template <class PDBType>
 class PatternCollectionGenerator {
 public:
     virtual ~PatternCollectionGenerator() = default;
 
-    virtual PatternCollectionInformation<PDBType>
+    virtual PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) = 0;
 
     virtual std::shared_ptr<utils::Printable> get_report() const;
 };
-
-using ExpCostPatternCollectionGenerator =
-    PatternCollectionGenerator<SSPPatternDatabase>;
-
-using MaxProbPatternCollectionGenerator =
-    PatternCollectionGenerator<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

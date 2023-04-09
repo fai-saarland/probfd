@@ -37,14 +37,13 @@ struct Flaw {
     int variable;
 };
 
-template <typename PDBType>
 class PDBInfo {
     // The state space needs to be kept because it contains the operators and
     // deleting it invalidates the returned policy actions
     ProjectionStateSpace state_space;
     ProjectionCostFunction cost_function;
     StateRank initial_state;
-    std::unique_ptr<PDBType> pdb;
+    std::unique_ptr<ProbabilisticPatternDatabase> pdb;
     std::unique_ptr<AbstractPolicy> policy;
     bool solved = false;
 
@@ -61,7 +60,7 @@ public:
         StateRankingFunction ranking_function,
         TaskCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const PDBType& previous,
+        const ProbabilisticPatternDatabase& previous,
         int add_var,
         bool wildcard);
 
@@ -70,15 +69,15 @@ public:
         StateRankingFunction ranking_function,
         TaskCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const PDBType& merge_left,
-        const PDBType& merge_right,
+        const ProbabilisticPatternDatabase& merge_left,
+        const ProbabilisticPatternDatabase& merge_right,
         bool wildcard);
 
     const Pattern& get_pattern() const;
 
-    const PDBType& get_pdb() const;
+    const ProbabilisticPatternDatabase& get_pdb() const;
 
-    std::unique_ptr<PDBType> steal_pdb();
+    std::unique_ptr<ProbabilisticPatternDatabase> steal_pdb();
 
     const AbstractPolicy& get_policy() const;
 
@@ -94,26 +93,17 @@ public:
 };
 
 namespace cegar {
-template <typename PDBType>
 class FlawFindingStrategy;
-template <typename>
 class BFSFlawFinder;
-template <typename>
 class PUCSFlawFinder;
-template <typename>
 class SamplingFlawFinder;
 } // namespace cegar
 
 enum class InitialCollectionType { GIVEN_GOAL, RANDOM_GOAL, ALL_GOALS };
 
-template <typename PDBType>
-class PatternCollectionGeneratorCegar
-    : public PatternCollectionGenerator<PDBType> {
-    template <typename>
+class PatternCollectionGeneratorCegar : public PatternCollectionGenerator {
     friend class cegar::BFSFlawFinder;
-    template <typename>
     friend class cegar::PUCSFlawFinder;
-    template <typename>
     friend class cegar::SamplingFlawFinder;
 
     // Random number generator
@@ -123,7 +113,7 @@ class PatternCollectionGeneratorCegar
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // Flaw finding strategy
-    std::shared_ptr<cegar::FlawFindingStrategy<PDBType>> flaw_strategy;
+    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
     // behavior defining parameters
     const bool wildcard;
@@ -141,7 +131,7 @@ class PatternCollectionGeneratorCegar
     std::unordered_set<int> blacklisted_variables;
 
     // the pattern collection in form of their pdbs plus stored plans.
-    std::vector<std::unique_ptr<PDBInfo<PDBType>>> pdb_infos;
+    std::vector<std::unique_ptr<PDBInfo>> pdb_infos;
 
     // Takes a variable as key and returns the index of the solutions-entry
     // whose pattern contains said variable. Used for checking if a variable
@@ -158,7 +148,7 @@ public:
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         std::shared_ptr<SubCollectionFinderFactory>
             subcollection_finder_factory,
-        std::shared_ptr<cegar::FlawFindingStrategy<PDBType>> flaw_strategy,
+        std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
         int max_collection_size,
@@ -170,7 +160,7 @@ public:
 
     virtual ~PatternCollectionGeneratorCegar() = default;
 
-    PatternCollectionInformation<PDBType>
+    PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 
 private:
@@ -216,14 +206,8 @@ private:
     void print_collection() const;
 };
 
-template <typename PDBType>
 void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser& parser);
-
-using ExpCostPatternCollectionGeneratorCegar =
-    PatternCollectionGeneratorCegar<SSPPatternDatabase>;
-using MaxProbPatternCollectionGeneratorCegar =
-    PatternCollectionGeneratorCegar<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

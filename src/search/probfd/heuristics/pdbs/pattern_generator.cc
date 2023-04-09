@@ -6,25 +6,14 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-template <class PDBType>
-std::shared_ptr<utils::Printable>
-PatternCollectionGenerator<PDBType>::get_report() const
+std::shared_ptr<utils::Printable> PatternCollectionGenerator::get_report() const
 {
     return nullptr;
 };
 
-template class PatternCollectionGenerator<SSPPatternDatabase>;
-template class PatternCollectionGenerator<MaxProbPatternDatabase>;
-
-static PluginTypePlugin<PatternCollectionGenerator<SSPPatternDatabase>>
-    _type_plugin_collection_ec(
-        "PatternCollectionGenerator_ec",
-        "Factory for pattern collections in the expected-cost setting");
-
-static PluginTypePlugin<PatternCollectionGenerator<MaxProbPatternDatabase>>
-    _type_plugin_collection_mp(
-        "PatternCollectionGenerator_mp",
-        "Factory for pattern collections in the MaxProb setting");
+static PluginTypePlugin<PatternCollectionGenerator> _type_plugin(
+    "PatternCollectionGeneratorProbabilistic",
+    "Factory for pattern collections in probabilistic setting");
 
 } // namespace pdbs
 } // namespace heuristics

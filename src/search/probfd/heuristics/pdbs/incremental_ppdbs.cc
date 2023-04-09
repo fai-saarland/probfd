@@ -1,10 +1,8 @@
 #include "probfd/heuristics/pdbs/incremental_ppdbs.h"
 
 #include "probfd/heuristics/pdbs/max_orthogonal_finder.h"
-#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
-#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
-#include "probfd/heuristics/pdbs/utils.h"
+#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
 
 #include "pdbs/pattern_collection_information.h"
 
@@ -16,8 +14,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-template <class PDBType>
-unsigned long long compute_total_pdb_size(const std::vector<PDBType>& pdbs)
+unsigned long long compute_total_pdb_size(const PPDBCollection& pdbs)
 {
     unsigned long long size = 0;
 
@@ -28,18 +25,15 @@ unsigned long long compute_total_pdb_size(const std::vector<PDBType>& pdbs)
     return size;
 }
 
-template <class PDBType>
-IncrementalPPDBs<PDBType>::IncrementalPPDBs(
+IncrementalPPDBs::IncrementalPPDBs(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction* task_cost_function,
     const PatternCollection& initial_patterns,
     std::shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)
     , task_cost_function(task_cost_function)
-    , patterns(new PatternCollection(
-          initial_patterns.begin(),
-          initial_patterns.end()))
-    , pattern_databases(make_shared<PPDBCollection<PDBType>>())
+    , patterns(new PatternCollection(initial_patterns))
+    , pattern_databases(new PPDBCollection())
     , pattern_subcollections(nullptr)
     , subcollection_finder(subcollection_finder)
     , size(0)
@@ -50,11 +44,10 @@ IncrementalPPDBs<PDBType>::IncrementalPPDBs(
     recompute_pattern_subcollections();
 }
 
-template <class PDBType>
-IncrementalPPDBs<PDBType>::IncrementalPPDBs(
+IncrementalPPDBs::IncrementalPPDBs(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction* task_cost_function,
-    PatternCollectionInformation<PDBType>& initial_patterns,
+    PatternCollectionInformation& initial_patterns,
     std::shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)
     , task_cost_function(task_cost_function)
@@ -66,18 +59,21 @@ IncrementalPPDBs<PDBType>::IncrementalPPDBs(
 {
 }
 
-template <class PDBType>
-void IncrementalPPDBs<PDBType>::add_pdb_for_pattern(
+void IncrementalPPDBs::add_pdb_for_pattern(
     const Pattern& pattern,
     const State& initial_state)
 {
-    auto& pdb = pattern_databases->emplace_back(
-        new PDBType(task_proxy, pattern, *task_cost_function, initial_state));
+    auto& pdb =
+        pattern_databases->emplace_back(new ProbabilisticPatternDatabase(
+            task_proxy,
+            pattern,
+            *task_cost_function,
+            initial_state));
     size += pdb->num_states();
 }
 
-template <class PDBType>
-void IncrementalPPDBs<PDBType>::add_pdb(const shared_ptr<PDBType>& pdb)
+void IncrementalPPDBs::add_pdb(
+    const shared_ptr<ProbabilisticPatternDatabase>& pdb)
 {
     patterns->push_back(pdb->get_pattern());
     auto& new_pdb = pattern_databases->emplace_back(pdb);
@@ -85,17 +81,14 @@ void IncrementalPPDBs<PDBType>::add_pdb(const shared_ptr<PDBType>& pdb)
     recompute_pattern_subcollections();
 }
 
-template <class PDBType>
-void IncrementalPPDBs<PDBType>::recompute_pattern_subcollections()
+void IncrementalPPDBs::recompute_pattern_subcollections()
 {
     pattern_subcollections =
         subcollection_finder->compute_subcollections(*patterns);
 }
 
-template <class PDBType>
 vector<PatternSubCollection>
-IncrementalPPDBs<PDBType>::get_pattern_subcollections(
-    const Pattern& new_pattern)
+IncrementalPPDBs::get_pattern_subcollections(const Pattern& new_pattern)
 {
     return subcollection_finder->compute_subcollections_with_pattern(
         *patterns,
@@ -103,26 +96,37 @@ IncrementalPPDBs<PDBType>::get_pattern_subcollections(
         new_pattern);
 }
 
-template <class PDBType>
-value_t IncrementalPPDBs<PDBType>::get_value(const State& state) const
+value_t IncrementalPPDBs::get_value(const State& state) const
 {
     return evaluate(state).get_estimate();
 }
 
-template <class PDBType>
-EvaluationResult IncrementalPPDBs<PDBType>::evaluate(const State& state) const
+EvaluationResult IncrementalPPDBs::evaluate(const State& state) const
 {
-    return heuristics::pdbs::evaluate<PDBType>(
+    return subcollection_finder->evaluate(
         *pattern_databases,
         *pattern_subcollections,
         state);
 }
 
-template <class PDBType>
-bool IncrementalPPDBs<PDBType>::is_dead_end(const State& state) const
+value_t IncrementalPPDBs::evaluate_subcollection(
+    const std::vector<value_t>& pdb_estimates,
+    const std::vector<int>& subcollection) const
+{
+    return subcollection_finder->evaluate_subcollection(
+        pdb_estimates,
+        subcollection);
+}
+
+value_t IncrementalPPDBs::combine(value_t left, value_t right) const
+{
+    return subcollection_finder->combine(left, right);
+}
+
+bool IncrementalPPDBs::is_dead_end(const State& state) const
 {
     for (const auto& pdb : *pattern_databases) {
-        if (pdb->evaluate(state).is_unsolvable()) {
+        if (pdb->is_dead_end(state)) {
             return true;
         }
     }
@@ -130,34 +134,28 @@ bool IncrementalPPDBs<PDBType>::is_dead_end(const State& state) const
     return false;
 }
 
-template <class PDBType>
-PatternCollectionInformation<PDBType>
-IncrementalPPDBs<PDBType>::get_pattern_collection_information() const
+PatternCollectionInformation
+IncrementalPPDBs::get_pattern_collection_information() const
 {
-    PatternCollectionInformation<PDBType> result(
+    PatternCollectionInformation result(
         task_proxy,
         task_cost_function,
-        patterns);
+        patterns,
+        subcollection_finder);
     result.set_pdbs(pattern_databases);
     result.set_subcollections(pattern_subcollections);
     return result;
 }
 
-template <class PDBType>
-std::shared_ptr<PPDBCollection<PDBType>>
-IncrementalPPDBs<PDBType>::get_pattern_databases() const
+std::shared_ptr<PPDBCollection> IncrementalPPDBs::get_pattern_databases() const
 {
     return pattern_databases;
 }
 
-template <class PDBType>
-long long IncrementalPPDBs<PDBType>::get_size() const
+long long IncrementalPPDBs::get_size() const
 {
     return size;
 }
-
-template class IncrementalPPDBs<MaxProbPatternDatabase>;
-template class IncrementalPPDBs<SSPPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

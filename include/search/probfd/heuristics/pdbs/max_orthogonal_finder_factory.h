@@ -7,7 +7,15 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class MaxOrthogonalityFinderFactory : public SubCollectionFinderFactory {
+class AdditiveMaxOrthogonalityFinderFactory
+    : public SubCollectionFinderFactory {
+public:
+    std::unique_ptr<SubCollectionFinder> create_subcollection_finder(
+        const ProbabilisticTaskProxy& task_proxy) override;
+};
+
+class MultiplicativeMaxOrthogonalityFinderFactory
+    : public SubCollectionFinderFactory {
 public:
     std::unique_ptr<SubCollectionFinder> create_subcollection_finder(
         const ProbabilisticTaskProxy& task_proxy) override;

@@ -19,13 +19,12 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-template <class PDBType>
 class IncrementalPPDBs {
     ProbabilisticTaskProxy task_proxy;
     TaskCostFunction* task_cost_function;
 
     std::shared_ptr<PatternCollection> patterns;
-    std::shared_ptr<PPDBCollection<PDBType>> pattern_databases;
+    std::shared_ptr<PPDBCollection> pattern_databases;
     std::shared_ptr<std::vector<PatternSubCollection>> pattern_subcollections;
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder;
@@ -48,11 +47,11 @@ public:
     IncrementalPPDBs(
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction* task_cost_function,
-        PatternCollectionInformation<PDBType>& initial_patterns,
+        PatternCollectionInformation& initial_patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
     // Adds a new PDB to the collection and recomputes pattern_subcollections.
-    void add_pdb(const std::shared_ptr<PDBType>& pdb);
+    void add_pdb(const std::shared_ptr<ProbabilisticPatternDatabase>& pdb);
 
     /* Returns a list of pattern subcollections that would be additive to the
        new pattern. */
@@ -63,6 +62,12 @@ public:
 
     EvaluationResult evaluate(const State& state) const;
 
+    value_t evaluate_subcollection(
+        const std::vector<value_t>& pdb_estimates,
+        const std::vector<int>& subcollection) const;
+
+    value_t combine(value_t left, value_t right) const;
+
     /*
       The following method offers a quick dead-end check for the sampling
       procedure of iPDB-hillclimbing. This exists because we can much more
@@ -71,16 +76,12 @@ public:
     */
     bool is_dead_end(const State& state) const;
 
-    PatternCollectionInformation<PDBType>
-    get_pattern_collection_information() const;
+    PatternCollectionInformation get_pattern_collection_information() const;
 
-    std::shared_ptr<PPDBCollection<PDBType>> get_pattern_databases() const;
+    std::shared_ptr<PPDBCollection> get_pattern_databases() const;
 
     long long get_size() const;
 };
-
-using IncrementalExpCostPDBs = IncrementalPPDBs<SSPPatternDatabase>;
-using IncrementalMaxProbPDBs = IncrementalPPDBs<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

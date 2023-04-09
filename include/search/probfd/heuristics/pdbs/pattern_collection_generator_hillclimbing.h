@@ -35,14 +35,11 @@ namespace heuristics {
 namespace pdbs {
 
 class SubCollectionFinderFactory;
-
-template <typename>
 class IncrementalPPDBs;
 
 // Implementation of the pattern generation algorithm by Haslum et al.
-template <typename PDBType>
 class PatternCollectionGeneratorHillclimbing
-    : public PatternCollectionGenerator<PDBType> {
+    : public PatternCollectionGenerator {
     struct Statistics : public utils::Printable {
         unsigned long long int num_iterations;
         unsigned long long int generated_patterns;
@@ -72,7 +69,7 @@ class PatternCollectionGeneratorHillclimbing
 
     std::shared_ptr<Statistics> statistics_;
 
-    std::shared_ptr<PatternCollectionGenerator<PDBType>> initial_generator;
+    std::shared_ptr<PatternCollectionGenerator> initial_generator;
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // maximum number of states for each pdb
@@ -102,9 +99,9 @@ class PatternCollectionGeneratorHillclimbing
         TaskCostFunction& task_cost_function,
         utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
-        const PDBType& pdb,
+        const ProbabilisticPatternDatabase& pdb,
         std::set<Pattern>& generated_patterns,
-        PPDBCollection<PDBType>& candidate_pdbs);
+        PPDBCollection& candidate_pdbs);
 
     /*
       Performs num_samples random walks with a length (different for each
@@ -118,7 +115,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     void sample_states(
         utils::CountdownTimer& hill_climbing_timer,
-        IncrementalPPDBs<PDBType>& current_pdbs,
+        IncrementalPPDBs& current_pdbs,
         const sampling::RandomWalkSampler& sampler,
         value_t init_h,
         std::vector<State>& samples);
@@ -130,10 +127,10 @@ class PatternCollectionGeneratorHillclimbing
     */
     std::pair<int, int> find_best_improving_pdb(
         utils::CountdownTimer& hill_climbing_timer,
-        IncrementalPPDBs<PDBType>& current_pdbs,
+        IncrementalPPDBs& current_pdbs,
         const std::vector<State>& samples,
         const std::vector<EvaluationResult>& samples_h_values,
-        PPDBCollection<PDBType>& candidate_pdbs);
+        PPDBCollection& candidate_pdbs);
 
     /*
       Returns true iff the h-value of the new pattern (from pdb) plus the
@@ -142,11 +139,12 @@ class PatternCollectionGeneratorHillclimbing
       the h-value of the current pattern collection.
     */
     bool is_heuristic_improved(
-        const PDBType& pdb,
+        const ProbabilisticPatternDatabase& pdb,
         const State& sample,
         EvaluationResult h_collection,
-        const PPDBCollection<PDBType>& pdbs,
-        const std::vector<PatternSubCollection>& pattern_subcollections);
+        const PPDBCollection& pdbs,
+        const std::vector<PatternSubCollection>& pattern_subcollections,
+        const IncrementalPPDBs& current_pdbs);
 
     /*
       This is the core algorithm of this class. The initial PDB collection
@@ -174,7 +172,7 @@ class PatternCollectionGeneratorHillclimbing
         const ProbabilisticTask* task,
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function,
-        IncrementalPPDBs<PDBType>& current_pdbs);
+        IncrementalPPDBs& current_pdbs);
 
 public:
     explicit PatternCollectionGeneratorHillclimbing(
@@ -187,17 +185,11 @@ public:
       variable) may break the maximum collection size limit, if the latter is
       set too small or if there are many goal variables with a large domain.
     */
-    PatternCollectionInformation<PDBType>
+    PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 
     std::shared_ptr<utils::Printable> get_report() const override;
 };
-
-using ExpCostPatternCollectionGeneratorHillclimbing =
-    PatternCollectionGeneratorHillclimbing<SSPPatternDatabase>;
-
-using MaxProbPatternCollectionGeneratorHillclimbing =
-    PatternCollectionGeneratorHillclimbing<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

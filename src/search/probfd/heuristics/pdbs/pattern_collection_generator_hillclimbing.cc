@@ -1,10 +1,8 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing.h"
 
 #include "probfd/heuristics/pdbs/incremental_ppdbs.h"
-#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
-#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
+#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
-#include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/cost_model.h"
 #include "probfd/task_proxy.h"
@@ -140,16 +138,11 @@ compute_relevant_neighbours(const ProbabilisticTask* task)
     return connected_vars_by_variable;
 }
 
-template <typename PDBType>
-void PatternCollectionGeneratorHillclimbing<PDBType>::Statistics::print(
+void PatternCollectionGeneratorHillclimbing::Statistics::print(
     std::ostream& out) const
 {
-    constexpr auto prefix = std::is_same_v<PDBType, MaxProbPatternDatabase>
-                                ? "MaxProb"
-                                : "Expected Cost";
-
     out << "\n"
-        << prefix << " Hill Climbing Generator Statistics:"
+        << "Hill Climbing Generator Statistics:"
         << "\n  Iterations: " << num_iterations
         << "\n  Generated patterns: " << generated_patterns
         << "\n  Rejected patterns: " << rejected_patterns
@@ -157,13 +150,11 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::Statistics::print(
         << "\n  Time: " << hillclimbing_time << "s" << std::endl;
 }
 
-template <typename PDBType>
-PatternCollectionGeneratorHillclimbing<
-    PDBType>::PatternCollectionGeneratorHillclimbing(const Options& opts)
+PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
+    const Options& opts)
     : verbosity(opts.get<Verbosity>("verbosity"))
-    , initial_generator(
-          opts.get<std::shared_ptr<PatternCollectionGenerator<PDBType>>>(
-              "initial_generator"))
+    , initial_generator(opts.get<std::shared_ptr<PatternCollectionGenerator>>(
+          "initial_generator"))
     , subcollection_finder_factory(
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"))
@@ -177,19 +168,17 @@ PatternCollectionGeneratorHillclimbing<
 {
 }
 
-template <typename PDBType>
-PatternCollectionGeneratorHillclimbing<
-    PDBType>::~PatternCollectionGeneratorHillclimbing() = default;
+PatternCollectionGeneratorHillclimbing::
+    ~PatternCollectionGeneratorHillclimbing() = default;
 
-template <typename PDBType>
-int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
+int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function,
     utils::CountdownTimer& hill_climbing_timer,
     const std::vector<std::vector<int>>& relevant_neighbours,
-    const PDBType& pdb,
+    const ProbabilisticPatternDatabase& pdb,
     std::set<Pattern>& generated_patterns,
-    PPDBCollection<PDBType>& candidate_pdbs)
+    PPDBCollection& candidate_pdbs)
 {
     const VariablesProxy variables = task_proxy.get_variables();
     const Pattern& pattern = pdb.get_pattern();
@@ -228,12 +217,13 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
                       for it and add it to candidate_pdbs if its size does not
                       surpass the size limit.
                     */
-                    auto& new_pdb = candidate_pdbs.emplace_back(new PDBType(
-                        task_proxy,
-                        pdb,
-                        rel_var_id,
-                        task_cost_function,
-                        task_proxy.get_initial_state()));
+                    auto& new_pdb = candidate_pdbs.emplace_back(
+                        new ProbabilisticPatternDatabase(
+                            task_proxy,
+                            pdb,
+                            rel_var_id,
+                            task_cost_function,
+                            task_proxy.get_initial_state()));
                     max_pdb_size =
                         std::max(max_pdb_size, (int)new_pdb->num_states());
                 }
@@ -246,10 +236,9 @@ int PatternCollectionGeneratorHillclimbing<PDBType>::generate_candidate_pdbs(
     return max_pdb_size;
 }
 
-template <typename PDBType>
-void PatternCollectionGeneratorHillclimbing<PDBType>::sample_states(
+void PatternCollectionGeneratorHillclimbing::sample_states(
     utils::CountdownTimer& hill_climbing_timer,
-    IncrementalPPDBs<PDBType>& current_pdbs,
+    IncrementalPPDBs& current_pdbs,
     const sampling::RandomWalkSampler& sampler,
     value_t init_h,
     std::vector<State>& samples)
@@ -262,26 +251,21 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::sample_states(
             return current_pdbs.is_dead_end(state);
         };
 
-        // TODO Hack for MaxProb
-        int absval = std::is_same_v<PDBType, MaxProbPatternDatabase>
-                         ? 100
-                         : static_cast<int>(init_h);
-
-        samples.push_back(sampler.sample_state(absval, f));
+        // TODO How to choose the length of the random walk in MaxProb?
+        samples.push_back(sampler.sample_state(static_cast<int>(init_h), f));
         if (hill_climbing_timer.is_expired()) {
             throw HillClimbingTimeout();
         }
     }
 }
 
-template <typename PDBType>
 std::pair<int, int>
-PatternCollectionGeneratorHillclimbing<PDBType>::find_best_improving_pdb(
+PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
     utils::CountdownTimer& hill_climbing_timer,
-    IncrementalPPDBs<PDBType>& current_pdbs,
+    IncrementalPPDBs& current_pdbs,
     const std::vector<State>& samples,
     const std::vector<EvaluationResult>& samples_h_values,
-    PPDBCollection<PDBType>& candidate_pdbs)
+    PPDBCollection& candidate_pdbs)
 {
     /*
       TODO: The original implementation by Haslum et al. uses A* to compute
@@ -335,7 +319,8 @@ PatternCollectionGeneratorHillclimbing<PDBType>::find_best_improving_pdb(
                     sample,
                     h_collection,
                     *current_pdbs.get_pattern_databases(),
-                    pattern_subcollections)) {
+                    pattern_subcollections,
+                    current_pdbs)) {
                 ++count;
             }
         }
@@ -354,13 +339,13 @@ PatternCollectionGeneratorHillclimbing<PDBType>::find_best_improving_pdb(
     return std::make_pair(improvement, best_pdb_index);
 }
 
-template <typename PDBType>
-bool PatternCollectionGeneratorHillclimbing<PDBType>::is_heuristic_improved(
-    const PDBType& pdb,
+bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
+    const ProbabilisticPatternDatabase& pdb,
     const State& sample,
     EvaluationResult h_collection_eval,
-    const PPDBCollection<PDBType>& pdbs,
-    const std::vector<PatternSubCollection>& pattern_subcollections)
+    const PPDBCollection& pdbs,
+    const std::vector<PatternSubCollection>& pattern_subcollections,
+    const IncrementalPPDBs& current_pdbs)
 {
     const EvaluationResult h_pattern_eval = pdb.evaluate(sample);
 
@@ -386,9 +371,9 @@ bool PatternCollectionGeneratorHillclimbing<PDBType>::is_heuristic_improved(
 
     for (const PatternSubCollection& subcollection : pattern_subcollections) {
         value_t h_subcollection =
-            pdbs::evaluate_subcollection<PDBType>(h_values, subcollection);
+            current_pdbs.evaluate_subcollection(h_values, subcollection);
 
-        if (pdbs::combine<PDBType>(h_subcollection, h_pattern) > h_collection) {
+        if (current_pdbs.combine(h_subcollection, h_pattern) > h_collection) {
             /*
               return true if a pattern clique is found for
               which the condition is met
@@ -400,12 +385,11 @@ bool PatternCollectionGeneratorHillclimbing<PDBType>::is_heuristic_improved(
     return false;
 }
 
-template <typename PDBType>
-void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing(
+void PatternCollectionGeneratorHillclimbing::hill_climbing(
     const ProbabilisticTask* task,
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function,
-    IncrementalPPDBs<PDBType>& current_pdbs)
+    IncrementalPPDBs& current_pdbs)
 {
     int num_iterations = 0;
     utils::CountdownTimer hill_climbing_timer(max_time);
@@ -417,7 +401,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing(
     std::set<Pattern> generated_patterns;
     // The PDBs for the patterns in generated_patterns that satisfy the size
     // limit to avoid recomputation.
-    PPDBCollection<PDBType> candidate_pdbs;
+    PPDBCollection candidate_pdbs;
     // The maximum size over all PDBs in candidate_pdbs.
     int max_pdb_size = 0;
 
@@ -555,9 +539,7 @@ void PatternCollectionGeneratorHillclimbing<PDBType>::hill_climbing(
     }
 }
 
-template <typename PDBType>
-PatternCollectionInformation<PDBType>
-PatternCollectionGeneratorHillclimbing<PDBType>::generate(
+PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
     const std::shared_ptr<ProbabilisticTask>& task)
 {
     utils::Timer timer;
@@ -577,7 +559,7 @@ PatternCollectionGeneratorHillclimbing<PDBType>::generate(
     std::shared_ptr<SubCollectionFinder> subcollection_finder =
         subcollection_finder_factory->create_subcollection_finder(task_proxy);
 
-    IncrementalPPDBs<PDBType> current_pdbs(
+    IncrementalPPDBs current_pdbs(
         task_proxy,
         task_cost_function,
         collection,
@@ -598,52 +580,31 @@ PatternCollectionGeneratorHillclimbing<PDBType>::generate(
             current_pdbs);
     }
 
-    PatternCollectionInformation<PDBType> pci =
+    PatternCollectionInformation pci =
         current_pdbs.get_pattern_collection_information();
 
     return pci;
 }
 
-template <typename PDBType>
 std::shared_ptr<utils::Printable>
-PatternCollectionGeneratorHillclimbing<PDBType>::get_report() const
+PatternCollectionGeneratorHillclimbing::get_report() const
 {
     return statistics_;
 }
 
-template <typename PDBType>
-void add_hillclimbing_initial_generator_option(OptionParser& parser);
-
-template <>
-void add_hillclimbing_initial_generator_option<SSPPatternDatabase>(
-    OptionParser& parser)
-{
-    parser.add_option<
-        std::shared_ptr<PatternCollectionGenerator<SSPPatternDatabase>>>(
-        "initial_generator",
-        "generator for the initial pattern database ",
-        "det_adapter_ec(generator=systematic(pattern_max_size=1))");
-}
-
-template <>
-void add_hillclimbing_initial_generator_option<MaxProbPatternDatabase>(
-    OptionParser& parser)
-{
-    parser.add_option<
-        std::shared_ptr<PatternCollectionGenerator<MaxProbPatternDatabase>>>(
-        "initial_generator",
-        "generator for the initial pattern database ",
-        "det_adapter_mp(generator=systematic(pattern_max_size=1))");
-}
-
-void add_hillclimbing_common_options(OptionParser& parser)
+void add_hillclimbing_options(OptionParser& parser)
 {
     utils::add_log_options_to_parser(parser);
+
+    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
+        "initial_generator",
+        "generator for the initial pattern database ",
+        "det_adapter(generator=systematic(pattern_max_size=1))");
 
     parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
         "The subcollection finder factory.",
-        "finder_max_orthogonality_factory()");
+        "finder_trivial_factory()");
 
     parser.add_option<int>(
         "pdb_max_size",
@@ -677,6 +638,7 @@ void add_hillclimbing_common_options(OptionParser& parser)
         "spent for pruning dominated patterns.",
         "infinity",
         Bounds("0.0", "infinity"));
+
     utils::add_rng_options(parser);
 }
 
@@ -687,12 +649,9 @@ void check_hillclimbing_options(OptionParser& parser, const Options& opts)
                      "samples");
 }
 
-template <typename PDBType>
-static std::shared_ptr<PatternCollectionGenerator<PDBType>>
-_parse(OptionParser& parser)
+static std::shared_ptr<PatternCollectionGenerator> _parse(OptionParser& parser)
 {
-    add_hillclimbing_initial_generator_option<PDBType>(parser);
-    add_hillclimbing_common_options(parser);
+    add_hillclimbing_options(parser);
 
     Options opts = parser.parse();
     if (parser.help_mode()) return nullptr;
@@ -700,17 +659,11 @@ _parse(OptionParser& parser)
     check_hillclimbing_options(parser, opts);
     if (parser.dry_run()) return nullptr;
 
-    return std::make_shared<PatternCollectionGeneratorHillclimbing<PDBType>>(
-        opts);
+    return std::make_shared<PatternCollectionGeneratorHillclimbing>(opts);
 }
 
-template class PatternCollectionGeneratorHillclimbing<SSPPatternDatabase>;
-template class PatternCollectionGeneratorHillclimbing<MaxProbPatternDatabase>;
-
-static Plugin<PatternCollectionGenerator<SSPPatternDatabase>>
-    _plugin_ec("hillclimbing_ec", _parse<SSPPatternDatabase>);
-static Plugin<PatternCollectionGenerator<MaxProbPatternDatabase>>
-    _plugin_mp("hillclimbing_mp", _parse<MaxProbPatternDatabase>);
+static Plugin<PatternCollectionGenerator>
+    _plugin("hillclimbing_probabilistic", _parse);
 
 } // namespace pdbs
 } // namespace heuristics

@@ -30,7 +30,6 @@ namespace pdbs {
 /**
  * @brief Additive Expected-Cost PDB heuristic.
  */
-template <class PDBType>
 class ProbabilisticPDBHeuristic : public TaskDependentHeuristic {
     struct Statistics {
         double generator_time = 0.0;
@@ -57,8 +56,9 @@ class ProbabilisticPDBHeuristic : public TaskDependentHeuristic {
     std::shared_ptr<utils::Printable> generator_report;
 
     std::shared_ptr<std::vector<Pattern>> patterns;
-    std::shared_ptr<PPDBCollection<PDBType>> pdbs;
+    std::shared_ptr<PPDBCollection> pdbs;
     std::shared_ptr<std::vector<PatternSubCollection>> subcollections;
+    std::shared_ptr<SubCollectionFinder> subcollection_finder;
 
 public:
     /**
@@ -66,14 +66,14 @@ public:
      *
      * @param opts - The following options are available:
      * + \em patterns - The generator used to generate the initial pattern
-     * collection. By default, uses a systematic pattern generation algorithm
-     * with size bound 2.
+     * collection. By default, uses a systematic pattern generation
+     * algorithm with size bound 2.
      * + \em max_time_dominance_pruning - The maximum time allowed for
      * dominance pruning. A value of zero disables dominance pruning. By
      * default, this option is disabled.
-     * + \em time_limit - The maximal time allowed to construct the databases
-     * for the generated pattern collection. A value of zero disables the time
-     * limit. by default, no time limit is imposed.
+     * + \em time_limit - The maximal time allowed to construct the
+     * databases for the generated pattern collection. A value of zero
+     * disables the time limit. by default, no time limit is imposed.
      * + \em max_states - The maximal number of abstract states allowed. By
      * default, no restrictions are imposed.
      * + \em dump_projections - If true, dump the projection with graphviz.
@@ -85,7 +85,7 @@ public:
 
     ProbabilisticPDBHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<PatternCollectionGenerator<PDBType>> generator,
+        std::shared_ptr<PatternCollectionGenerator> generator,
         double max_time_dominance_pruning);
 
     void print_statistics() const override;
@@ -95,9 +95,6 @@ public:
 public:
     static void add_options_to_parser(options::OptionParser& parser);
 };
-
-using MaxProbPDBHeuristic = ProbabilisticPDBHeuristic<MaxProbPatternDatabase>;
-using ExpCostPDBHeuristic = ProbabilisticPDBHeuristic<SSPPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

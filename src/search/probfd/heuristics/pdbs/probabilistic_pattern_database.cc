@@ -644,7 +644,7 @@ void ProbabilisticPatternDatabase::verify(
     const size_t num_states = ranking_function_.num_states();
 
     for (size_t i = 0; i != num_states; ++i) {
-        variables.emplace_back(0_vt, dead_end_cost, 1_vt);
+        variables.emplace_back(0_vt, std::min(dead_end_cost, inf), 0_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
@@ -659,6 +659,8 @@ void ProbabilisticPatternDatabase::verify(
         if (utils::contains(pruned_states, s)) {
             continue;
         }
+
+        variables[s.id].objective_coefficient = 1_vt;
 
         if (cost_function.is_goal(state_space.get_state(s))) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
@@ -706,7 +708,17 @@ void ProbabilisticPatternDatabase::verify(
 
     solver.solve();
 
-    assert(solver.has_optimal_solution());
+    if (!solver.has_optimal_solution()) {
+        if (solver.is_infeasible()) {
+            std::cerr << "Critical error: LP was infeasible!" << std::endl;
+        } else {
+            assert(solver.is_unbounded());
+            std::cerr << "Critical error: LP was unbounded!" << std::endl;
+        }
+
+        solver.print_failure_analysis();
+        abort();
+    }
 
     std::vector<double> solution = solver.extract_solution();
 

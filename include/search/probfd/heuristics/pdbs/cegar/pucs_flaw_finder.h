@@ -28,8 +28,7 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-template <typename PDBType>
-class PUCSFlawFinder : public FlawFindingStrategy<PDBType> {
+class PUCSFlawFinder : public FlawFindingStrategy {
     struct ExpansionInfo {
         bool expanded = false;
         value_t path_probability = 0_vt;
@@ -46,7 +45,7 @@ public:
     ~PUCSFlawFinder() override = default;
 
     virtual bool apply_policy(
-        PatternCollectionGeneratorCegar<PDBType>& base,
+        PatternCollectionGeneratorCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list) override;
@@ -55,7 +54,7 @@ public:
 
 private:
     bool expand(
-        PatternCollectionGeneratorCegar<PDBType>& base,
+        PatternCollectionGeneratorCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         State state,
