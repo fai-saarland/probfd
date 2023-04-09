@@ -48,7 +48,7 @@ PDBInfo<PDBType>::PDBInfo(
     TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard)
-    : state_space(task_proxy, ranking_function, !wildcard)
+    : state_space(task_proxy, ranking_function, task_cost_function, !wildcard)
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new PDBType(
@@ -74,7 +74,7 @@ PDBInfo<PDBType>::PDBInfo(
     const PDBType& previous,
     int add_var,
     bool wildcard)
-    : state_space(task_proxy, ranking_function, !wildcard)
+    : state_space(task_proxy, ranking_function, task_cost_function, !wildcard)
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new PDBType(
@@ -102,7 +102,7 @@ PDBInfo<PDBType>::PDBInfo(
     const PDBType& left,
     const PDBType& right,
     bool wildcard)
-    : state_space(task_proxy, ranking_function, !wildcard)
+    : state_space(task_proxy, ranking_function, task_cost_function, !wildcard)
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new PDBType(

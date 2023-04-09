@@ -5,6 +5,7 @@
 #include "probfd/heuristics/pdbs/match_tree.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
+#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_space.h"
 
 #include <vector>
@@ -27,6 +28,7 @@ public:
     ProjectionStateSpace(
         const ProbabilisticTaskProxy& task_proxy,
         const StateRankingFunction& ranking_function,
+        TaskCostFunction& task_cost_function,
         bool operator_pruning = true);
 
     StateID get_state_id(StateRank state) override;

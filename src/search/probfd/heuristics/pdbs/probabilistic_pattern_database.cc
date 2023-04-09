@@ -89,6 +89,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace state_space(
         task_proxy,
         ranking_function_,
+        task_cost_function,
         operator_pruning);
     ProjectionCostFunction cost_function(
         task_proxy,
@@ -160,6 +161,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace state_space(
         task_proxy,
         ranking_function_,
+        task_cost_function,
         operator_pruning);
     ProjectionCostFunction cost_function(
         task_proxy,
@@ -205,6 +207,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace state_space(
         task_proxy,
         ranking_function_,
+        task_cost_function,
         operator_pruning);
     ProjectionCostFunction cost_function(
         task_proxy,

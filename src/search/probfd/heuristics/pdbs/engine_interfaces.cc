@@ -165,8 +165,7 @@ bool ProjectionCostFunction::is_goal(StateRank state) const
 
 value_t ProjectionCostFunction::get_action_cost(const AbstractOperator* op)
 {
-    return parent_cost_function->get_action_cost(
-        OperatorID(op->original_operator_id));
+    return parent_cost_function->get_action_cost(op->operator_id);
 }
 
 } // namespace pdbs

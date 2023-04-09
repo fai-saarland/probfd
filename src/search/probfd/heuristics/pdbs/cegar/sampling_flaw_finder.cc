@@ -182,8 +182,7 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
     const auto operators = task_proxy.get_operators();
 
     for (const AbstractOperator* abs_op : abs_operators) {
-        int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperatorProxy op = operators[original_id];
+        const ProbabilisticOperatorProxy op = operators[abs_op->operator_id];
 
         // Check whether precondition flaws occur
         bool preconditions_ok = true;

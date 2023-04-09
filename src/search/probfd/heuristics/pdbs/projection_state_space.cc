@@ -45,6 +45,7 @@ struct OutcomeInfo {
 ProjectionStateSpace::ProjectionStateSpace(
     const ProbabilisticTaskProxy& task_proxy,
     const StateRankingFunction& ranking_function,
+    TaskCostFunction& task_cost_function,
     bool operator_pruning)
     : match_tree_(task_proxy.get_operators().size())
 {
@@ -78,7 +79,7 @@ ProjectionStateSpace::ProjectionStateSpace(
 
     // Generate the abstract operators for each probabilistic operator
     for (const ProbabilisticOperatorProxy& op : operators) {
-        const int operator_id = op.get_id();
+        const OperatorID operator_id(op.get_id());
 
         // Precondition partial state and partial state to enumerate
         // effect values not appearing in precondition
@@ -178,9 +179,12 @@ ProjectionStateSpace::ProjectionStateSpace(
                     pre_rank += partial_multipliers[var] * (val + 1);
                 }
 
-                // if (!duplicate_set.emplace(cost, pre_rank, new_op).second) {
-                //     continue;
-                // }
+                const value_t cost =
+                    task_cost_function.get_action_cost(operator_id);
+
+                if (!duplicate_set.emplace(cost, pre_rank, new_op).second) {
+                    continue;
+                }
             }
 
             // Now add the progression operators to the match tree

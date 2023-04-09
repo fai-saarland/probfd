@@ -134,8 +134,7 @@ bool BFSFlawFinder<PDBType>::expand(
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
     for (const AbstractOperator* abs_op : abs_operators) {
-        int original_id = abs_op->original_operator_id;
-        ProbabilisticOperatorProxy op = operators[original_id];
+        ProbabilisticOperatorProxy op = operators[abs_op->operator_id];
 
         // Check whether all preconditions are fulfilled
         bool preconditions_ok = true;
