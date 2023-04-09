@@ -1,5 +1,8 @@
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
+#include "probfd/heuristics/pdbs/types.h"
+
 #include "probfd/task_proxy.h"
 
 namespace probfd {

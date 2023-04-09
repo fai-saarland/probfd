@@ -167,8 +167,7 @@ void PDBInfo<PDBType>::mark_as_solved()
 template <typename PDBType>
 bool PDBInfo<PDBType>::solution_exists() const
 {
-    ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
-    return !pdb->evaluate(task_proxy.get_initial_state()).is_unsolvable();
+    return !pdb->is_dead_end(initial_state);
 }
 
 template <typename PDBType>

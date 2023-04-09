@@ -1,32 +1,238 @@
 #include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
 
+#include "probfd/engines/ta_topological_value_iteration.h"
+
+#include "probfd/preprocessing/qualitative_reachability_analysis.h"
+
 #include "probfd/task_utils/task_properties.h"
+
+#include "probfd/utils/graph_visualization.h"
 
 #include "probfd/value_type.h"
 
+#include "pdbs/pattern_database.h"
+
+#include "lp/lp_solver.h"
+
+#include "utils/collections.h"
+
 #include <algorithm>
-#include <compare>
 #include <deque>
 #include <numeric>
 #include <set>
+#include <sstream>
+#include <unordered_set>
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
+namespace {
+class WrapperHeuristic : public StateRankEvaluator {
+    const std::vector<StateID>& pruned_states;
+    const StateRankEvaluator& parent;
+    const value_t pruned_value;
+
+public:
+    WrapperHeuristic(
+        const std::vector<StateID>& pruned_states,
+        const StateRankEvaluator& parent,
+        value_t pruned_value)
+        : pruned_states(pruned_states)
+        , parent(parent)
+        , pruned_value(pruned_value)
+    {
+    }
+
+    EvaluationResult evaluate(StateRank state) const override
+    {
+        if (utils::contains(pruned_states, StateID(state.id))) {
+            return EvaluationResult{true, pruned_value};
+        }
+
+        return parent.evaluate(state);
+    }
+};
+} // namespace
+
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
-    Pattern pattern)
+    Pattern pattern,
+    value_t dead_end_cost)
     : ranking_function_(task_proxy, std::move(pattern))
-    , value_table(ranking_function_.num_states(), INFINITE_VALUE)
+    , value_table(ranking_function_.num_states(), dead_end_cost)
+    , dead_end_cost(dead_end_cost)
 {
 }
 
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
-    StateRankingFunction ranking_function)
+    StateRankingFunction ranking_function,
+    value_t dead_end_cost)
     : ranking_function_(std::move(ranking_function))
-    , value_table(ranking_function_.num_states(), INFINITE_VALUE)
+    , value_table(ranking_function_.num_states(), dead_end_cost)
+    , dead_end_cost(dead_end_cost)
 {
+}
+
+ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+    const ProbabilisticTaskProxy& task_proxy,
+    Pattern pattern,
+    TaskCostFunction& task_cost_function,
+    const State& initial_state,
+    bool operator_pruning,
+    const StateRankEvaluator& heuristic)
+    : ProbabilisticPatternDatabase(
+          task_proxy,
+          std::move(pattern),
+          task_cost_function.get_non_goal_termination_cost())
+{
+    ProjectionStateSpace state_space(
+        task_proxy,
+        ranking_function_,
+        operator_pruning);
+    ProjectionCostFunction cost_function(
+        task_proxy,
+        ranking_function_,
+        &task_cost_function);
+    compute_value_table(
+        state_space,
+        cost_function,
+        ranking_function_.rank(initial_state),
+        heuristic);
+}
+
+ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+    ProjectionStateSpace& state_space,
+    StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
+    StateRank initial_state,
+    const StateRankEvaluator& heuristic)
+    : ProbabilisticPatternDatabase(
+          std::move(ranking_function),
+          cost_function.get_non_goal_termination_cost())
+{
+    compute_value_table(state_space, cost_function, initial_state, heuristic);
+}
+
+ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+    const ProbabilisticTaskProxy& task_proxy,
+    const ::pdbs::PatternDatabase& pdb,
+    TaskCostFunction& task_cost_function,
+    const State& initial_state,
+    bool operator_pruning)
+    : ProbabilisticPatternDatabase(
+          task_proxy,
+          pdb.get_pattern(),
+          task_cost_function,
+          initial_state,
+          operator_pruning,
+          PDBEvaluator(pdb))
+{
+}
+
+ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+    ProjectionStateSpace& state_space,
+    StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
+    StateRank initial_state,
+    const ::pdbs::PatternDatabase& pdb)
+    : ProbabilisticPatternDatabase(
+          state_space,
+          std::move(ranking_function),
+          cost_function,
+          initial_state,
+          PDBEvaluator(pdb))
+{
+}
+
+ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticPatternDatabase& pdb,
+    int add_var,
+    TaskCostFunction& task_cost_function,
+    const State& initial_state,
+    bool operator_pruning)
+    : ProbabilisticPatternDatabase(
+          task_proxy,
+          utils::insert(pdb.get_pattern(), add_var),
+          task_cost_function.get_non_goal_termination_cost())
+{
+    ProjectionStateSpace state_space(
+        task_proxy,
+        ranking_function_,
+        operator_pruning);
+    ProjectionCostFunction cost_function(
+        task_proxy,
+        ranking_function_,
+        &task_cost_function);
+    compute_value_table(
+        state_space,
+        cost_function,
+        ranking_function_.rank(initial_state),
+        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
+}
+
+ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+    ProjectionStateSpace& state_space,
+    StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
+    StateRank initial_state,
+    const ProbabilisticPatternDatabase& pdb,
+    int add_var)
+    : ProbabilisticPatternDatabase(
+          std::move(ranking_function),
+          cost_function.get_non_goal_termination_cost())
+{
+    compute_value_table(
+        state_space,
+        cost_function,
+        initial_state,
+        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
+}
+
+ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticPatternDatabase& left,
+    const ProbabilisticPatternDatabase& right,
+    TaskCostFunction& task_cost_function,
+    const State& initial_state,
+    bool operator_pruning)
+    : ProbabilisticPatternDatabase(
+          task_proxy,
+          utils::merge_sorted(left.get_pattern(), right.get_pattern()),
+          task_cost_function.get_non_goal_termination_cost())
+{
+    ProjectionStateSpace state_space(
+        task_proxy,
+        ranking_function_,
+        operator_pruning);
+    ProjectionCostFunction cost_function(
+        task_proxy,
+        ranking_function_,
+        &task_cost_function);
+    compute_value_table(
+        state_space,
+        cost_function,
+        ranking_function_.rank(initial_state),
+        MergeEvaluator(ranking_function_, left, right));
+}
+
+ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+    ProjectionStateSpace& state_space,
+    StateRankingFunction ranking_function,
+    ProjectionCostFunction& cost_function,
+    StateRank initial_state,
+    const ProbabilisticPatternDatabase& left,
+    const ProbabilisticPatternDatabase& right)
+    : ProbabilisticPatternDatabase(
+          std::move(ranking_function),
+          cost_function.get_non_goal_termination_cost())
+{
+    compute_value_table(
+        state_space,
+        cost_function,
+        initial_state,
+        MergeEvaluator(ranking_function_, left, right));
 }
 
 const StateRankingFunction&
@@ -47,7 +253,7 @@ bool ProbabilisticPatternDatabase::is_dead_end(const State& s) const
 
 bool ProbabilisticPatternDatabase::is_dead_end(StateRank s) const
 {
-    return utils::contains(dead_ends_, StateID(s.id));
+    return lookup(s) == dead_end_cost;
 }
 
 value_t ProbabilisticPatternDatabase::lookup(const State& s) const
@@ -58,6 +264,17 @@ value_t ProbabilisticPatternDatabase::lookup(const State& s) const
 value_t ProbabilisticPatternDatabase::lookup(StateRank s) const
 {
     return value_table[s.id];
+}
+
+EvaluationResult ProbabilisticPatternDatabase::evaluate(const State& s) const
+{
+    return evaluate(get_abstract_state(s));
+}
+
+EvaluationResult ProbabilisticPatternDatabase::evaluate(StateRank s) const
+{
+    const value_t value = this->lookup(s);
+    return {value == dead_end_cost, value};
 }
 
 StateRank ProbabilisticPatternDatabase::get_abstract_state(const State& s) const
@@ -340,6 +557,165 @@ void ProbabilisticPatternDatabase::dump_graphviz(
         ats,
         true);
 }
+
+void ProbabilisticPatternDatabase::compute_value_table(
+    ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
+    StateRank initial_state,
+    const StateRankEvaluator& heuristic)
+{
+    using namespace preprocessing;
+    using namespace engines::ta_topological_vi;
+
+    QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
+        analysis(&state_space, &cost_function, true);
+
+    std::vector<StateID> pruned_states;
+
+    if (dead_end_cost == INFINITE_VALUE) {
+        analysis.run_analysis(
+            initial_state,
+            utils::discarding_output_iterator{},
+            std::back_inserter(pruned_states),
+            utils::discarding_output_iterator{});
+    } else {
+        analysis.run_analysis(
+            initial_state,
+            std::back_inserter(pruned_states),
+            utils::discarding_output_iterator{},
+            utils::discarding_output_iterator{});
+    }
+
+    WrapperHeuristic h(pruned_states, heuristic, dead_end_cost);
+
+    TATopologicalValueIteration<StateRank, const AbstractOperator*> vi(
+        &state_space,
+        &cost_function,
+        &h);
+
+    vi.solve(initial_state.id, value_table);
+
+#if !defined(NDEBUG)
+    std::cout << "(II) Pattern [";
+    for (unsigned i = 0; i < ranking_function_.get_pattern().size(); ++i) {
+        std::cout << (i > 0 ? ", " : "") << ranking_function_.get_pattern()[i];
+    }
+
+    std::cout << "]: value=" << value_table[initial_state.id] << std::endl;
+
+#if defined(USE_LP)
+    verify(state_space, cost_function, initial_state, pruned_states);
+#endif
+#endif
+}
+
+#if !defined(NDEBUG) && defined(USE_LP)
+void ProbabilisticPatternDatabase::verify(
+    ProjectionStateSpace& state_space,
+    ProjectionCostFunction& cost_function,
+    StateRank initial_state,
+    const std::vector<StateID>& pruned_states)
+{
+    lp::LPSolverType type;
+
+#ifdef COIN_HAS_CLP
+    type = lp::LPSolverType::CLP;
+#elif defined(COIN_HAS_CPX)
+    type = lp::LPSolverType::CPLEX;
+#elif defined(COIN_HAS_GRB)
+    type = lp::LPSolverType::GUROBI;
+#elif defined(COIN_HAS_SPX)
+    type = lp::LPSolverType::SOPLEX;
+#else
+    std::cerr << "Warning: Could not verify PDB value table since no LP solver"
+                 "is available !"
+              << std::endl;
+    return;
+#endif
+
+    lp::LPSolver solver(type);
+    const double inf = solver.get_infinity();
+
+    named_vector::NamedVector<lp::LPVariable> variables;
+
+    const size_t num_states = ranking_function_.num_states();
+
+    for (size_t i = 0; i != num_states; ++i) {
+        variables.emplace_back(0_vt, dead_end_cost, 1_vt);
+    }
+
+    named_vector::NamedVector<lp::LPConstraint> constraints;
+
+    std::deque<StateID> queue({state_space.get_state_id(initial_state)});
+    std::set<StateID> seen({state_space.get_state_id(initial_state)});
+
+    while (!queue.empty()) {
+        StateID s = queue.front();
+        queue.pop_front();
+
+        if (utils::contains(pruned_states, s)) {
+            continue;
+        }
+
+        if (cost_function.is_goal(state_space.get_state(s))) {
+            auto& g = constraints.emplace_back(0_vt, 0_vt);
+            g.insert(s.id, 1_vt);
+        }
+
+        // Generate operators...
+        std::vector<const AbstractOperator*> aops;
+        state_space.generate_applicable_actions(s.id, aops);
+
+        // Push successors
+        for (const AbstractOperator* op : aops) {
+            const value_t cost = cost_function.get_action_cost(op);
+
+            Distribution<StateID> successor_dist;
+            state_space.generate_action_transitions(s.id, op, successor_dist);
+
+            if (successor_dist.is_dirac(s.id)) {
+                continue;
+            }
+
+            auto& constr = constraints.emplace_back(-inf, cost);
+
+            value_t non_loop_prob = 0_vt;
+            for (const auto& [succ, prob] : successor_dist) {
+                if (succ != s) {
+                    non_loop_prob += prob;
+                    constr.insert(succ, -prob);
+                }
+
+                if (seen.insert(succ).second) {
+                    queue.push_back(succ);
+                }
+            }
+
+            constr.insert(s, non_loop_prob);
+        }
+    }
+
+    solver.load_problem(lp::LinearProgram(
+        lp::LPObjectiveSense::MAXIMIZE,
+        std::move(variables),
+        std::move(constraints),
+        inf));
+
+    solver.solve();
+
+    assert(solver.has_optimal_solution());
+
+    std::vector<double> solution = solver.extract_solution();
+
+    for (StateID s = 0; s != num_states; ++s.id) {
+        if (utils::contains(pruned_states, s) || !seen.contains(s)) {
+            assert(value_table[s.id] == dead_end_cost);
+        } else {
+            assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
+        }
+    }
+}
+#endif
 
 } // namespace pdbs
 } // namespace heuristics

@@ -182,16 +182,21 @@ public:
     {
     }
 
-    template <typename ZeroOutputIt, typename OneOutputIt>
     void run_analysis(
         const State& source_state,
-        ZeroOutputIt zero_states_out,
-        OneOutputIt one_states_out)
+        std::output_iterator<StateID> auto dead_out,
+        std::output_iterator<StateID> auto non_proper_out,
+        std::output_iterator<StateID> auto proper_out)
     {
         assert(expansion_queue_.empty());
 
         auto init_id = state_space_->get_state_id(source_state);
-        push(init_id, state_infos_[init_id], zero_states_out, one_states_out);
+        push(
+            init_id,
+            state_infos_[init_id],
+            dead_out,
+            non_proper_out,
+            proper_out);
 
         assert(!expansion_queue_.empty());
 
@@ -201,8 +206,13 @@ public:
 
         for (;;) {
             // DFS recursion
-            while (
-                push_successor(*e, *s, *st, zero_states_out, one_states_out)) {
+            while (push_successor(
+                *e,
+                *s,
+                *st,
+                dead_out,
+                non_proper_out,
+                proper_out)) {
                 e = &expansion_queue_.back();
                 s = &stack_[e->stck];
                 st = &state_infos_[s->stateid];
@@ -218,8 +228,9 @@ public:
                     scc_found(
                         stack_.begin() + stck,
                         stack_.end(),
-                        zero_states_out,
-                        one_states_out);
+                        dead_out,
+                        non_proper_out,
+                        proper_out);
                 }
 
                 expansion_queue_.pop_back();
@@ -276,12 +287,12 @@ public:
     }
 
 private:
-    template <typename ZeroOutputIt, typename OneOutputIt>
     bool push(
         StateID state_id,
         StateInfo& state_info,
-        ZeroOutputIt zero_states_out,
-        OneOutputIt one_states_out)
+        std::output_iterator<StateID> auto dead_out,
+        std::output_iterator<StateID> auto non_proper_out,
+        std::output_iterator<StateID> auto proper_out)
     {
         assert(!state_info.explored);
         assert(!state_info.one && state_info.dead);
@@ -291,16 +302,14 @@ private:
         State state = state_space_->get_state(state_id);
 
         if (costs_->get_termination_info(state).is_goal_state()) {
-            ++stats_.terminals;
             ++stats_.goals;
-            ++stats_.ones;
 
             state_info.dead = 0;
             state_info.one = 1;
 
-            *one_states_out = state_id;
-
             if (!expand_goals_) {
+                ++stats_.terminals;
+                *proper_out = state_id;
                 return false;
             }
 
@@ -309,7 +318,8 @@ private:
             pruning_function_ != nullptr &&
             pruning_function_->evaluate(state).is_unsolvable()) {
             ++stats_.terminals;
-            *zero_states_out = state_id;
+            *dead_out = state_id;
+            *non_proper_out = state_id;
             return false;
         }
 
@@ -317,11 +327,13 @@ private:
         state_space_->generate_applicable_actions(state_id, aops);
 
         if (aops.empty()) {
+            ++stats_.terminals;
+
             if (state_info.expandable_goal) {
                 state_info.expandable_goal = 0;
             } else {
-                ++stats_.terminals;
-                *zero_states_out = state_id;
+                *dead_out = state_id;
+                *non_proper_out = state_id;
             }
 
             return false;
@@ -362,19 +374,19 @@ private:
         if (state_info.expandable_goal) {
             state_info.expandable_goal = 0;
         } else {
-            *zero_states_out = state_id;
+            *dead_out = state_id;
         }
 
         return false;
     }
 
-    template <typename ZeroOutputIt, typename OneOutputIt>
     bool push_successor(
         ExpansionInfo& e,
         StackInfo& s,
         StateInfo& st,
-        ZeroOutputIt zero_states_out,
-        OneOutputIt one_states_out)
+        std::output_iterator<StateID> auto dead_out,
+        std::output_iterator<StateID> auto non_proper_out,
+        std::output_iterator<StateID> auto proper_out)
     {
         do {
             do {
@@ -392,8 +404,12 @@ private:
                         parents.emplace_back(e.stck, s.active.size());
                     }
                 } else if (
-                    !succ_info.explored &&
-                    push(succ_id, succ_info, zero_states_out, one_states_out)) {
+                    !succ_info.explored && push(
+                                               succ_id,
+                                               succ_info,
+                                               dead_out,
+                                               non_proper_out,
+                                               proper_out)) {
                     return true;
                 } else {
                     e.exits_only_proper = e.exits_only_proper && succ_info.one;
@@ -420,12 +436,12 @@ private:
         return false;
     }
 
-    template <typename ZeroOutputIt, typename OneOutputIt>
     void scc_found(
         decltype(std::declval<Stack>().begin()) begin,
         decltype(std::declval<Stack>().begin()) end,
-        ZeroOutputIt zero_states_out,
-        OneOutputIt one_states_out)
+        std::output_iterator<StateID> auto dead_out,
+        std::output_iterator<StateID> auto non_proper_out,
+        std::output_iterator<StateID> auto proper_out)
     {
         const StateInfo& st_info = state_infos_[begin->stateid];
 
@@ -434,7 +450,7 @@ private:
                 StateInfo& info = state_infos_[it->stateid];
                 info.stackid_ = StateInfo::UNDEF;
                 assert(info.dead);
-                *zero_states_out = it->stateid;
+                *dead_out = it->stateid;
             }
         } else {
             std::set<StackInfo*> proper_states;
@@ -446,6 +462,12 @@ private:
                 StateInfo& state_info = state_infos_[stk_it->stateid];
                 state_info.stackid_ = StateInfo::UNDEF;
                 state_info.dead = false;
+
+                if (state_info.expandable_goal) {
+                    assert(state_info.one);
+                    *proper_out = stk_it->stateid;
+                    ++stats_.ones;
+                }
 
                 if (stk_it->exit_transitions > 0 || state_info.one) {
                     exits.insert(&*stk_it);
@@ -509,6 +531,8 @@ private:
                     assert(proper_states.find(scc_elem) != proper_states.end());
                     proper_states.erase(scc_elem);
 
+                    *non_proper_out = scc_elem->stateid;
+
                     for (const auto& [first, second] : scc_elem->parents) {
                         StackInfo& pinfo = stack_[first];
                         const StateInfo& sinfo = state_infos_[pinfo.stateid];
@@ -552,7 +576,7 @@ private:
 
                 if (!sinfo.expandable_goal) {
                     sinfo.one = true;
-                    *one_states_out = sid;
+                    *proper_out = sid;
                     ++stats_.ones;
                 }
             }
