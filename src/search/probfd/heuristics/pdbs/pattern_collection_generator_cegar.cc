@@ -56,7 +56,7 @@ PDBInfo<PDBType>::PDBInfo(
           std::move(ranking_function),
           cost_function,
           initial_state))
-    , policy(pdb->get_optimal_abstract_policy(
+    , policy(pdb->compute_optimal_abstract_policy(
           state_space,
           cost_function,
           initial_state,
@@ -84,7 +84,7 @@ PDBInfo<PDBType>::PDBInfo(
           initial_state,
           previous,
           add_var))
-    , policy(pdb->get_optimal_abstract_policy(
+    , policy(pdb->compute_optimal_abstract_policy(
           state_space,
           cost_function,
           initial_state,
@@ -112,7 +112,7 @@ PDBInfo<PDBType>::PDBInfo(
           initial_state,
           left,
           right))
-    , policy(pdb->get_optimal_abstract_policy(
+    , policy(pdb->compute_optimal_abstract_policy(
           state_space,
           cost_function,
           initial_state,

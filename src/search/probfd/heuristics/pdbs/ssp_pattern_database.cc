@@ -209,70 +209,6 @@ EvaluationResult SSPPatternDatabase::evaluate(StateRank s) const
     return {v == INFINITE_VALUE, v};
 }
 
-std::unique_ptr<AbstractPolicy> SSPPatternDatabase::get_optimal_abstract_policy(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
-    StateRank initial_state,
-    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard) const
-{
-    return ProbabilisticPatternDatabase::get_optimal_abstract_policy(
-        state_space,
-        cost_function,
-        initial_state,
-        rng,
-        wildcard,
-        true);
-}
-
-std::unique_ptr<AbstractPolicy>
-SSPPatternDatabase::get_optimal_abstract_policy_no_traps(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
-    StateRank initial_state,
-    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard) const
-{
-    return ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
-        state_space,
-        cost_function,
-        initial_state,
-        rng,
-        wildcard,
-        true);
-}
-
-void SSPPatternDatabase::dump_graphviz(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
-    StateRank initial_state,
-    const std::string& path,
-    bool transition_labels) const
-{
-    auto s2str = [this](const StateRank& x) {
-        std::ostringstream out;
-        out.precision(3);
-        out << x.id << "\\n";
-
-        const auto v = value_table[x.id];
-        if (v == INFINITE_VALUE) {
-            out << "h = -&infin;";
-        } else {
-            out << "h = " << v;
-        }
-
-        return out.str();
-    };
-
-    ProbabilisticPatternDatabase::dump_graphviz(
-        state_space,
-        cost_function,
-        initial_state,
-        path,
-        s2str,
-        transition_labels);
-}
-
 void SSPPatternDatabase::compute_value_table(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
@@ -344,28 +280,26 @@ void SSPPatternDatabase::verify(
 
     named_vector::NamedVector<lp::LPVariable> variables;
 
-    for (StateRank s = StateRank(0);
-         s.id != static_cast<int>(ranking_function_.num_states());
-         ++s.id) {
-        variables.emplace_back(0_vt, inf, 0_vt);
+    const size_t num_states = ranking_function_.num_states();
+
+    for (size_t i = 0; i != num_states; ++i) {
+        variables.emplace_back(0_vt, INFINITE_VALUE, 1_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
 
-    std::deque<StateRank> queue({initial_state});
-    std::set<StateRank> seen({initial_state});
+    std::deque<StateID> queue({state_space.get_state_id(initial_state)});
+    std::set<StateID> seen({state_space.get_state_id(initial_state)});
 
     while (!queue.empty()) {
-        StateRank s = queue.front();
+        StateID s = queue.front();
         queue.pop_front();
 
-        if (!utils::contains(proper_states, StateID(s.id))) {
+        if (!utils::contains(proper_states, s)) {
             continue;
         }
 
-        variables[s.id].objective_coefficient = 1_vt;
-
-        if (cost_function.is_goal(s)) {
+        if (cost_function.is_goal(state_space.get_state(s))) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
         }
@@ -378,28 +312,28 @@ void SSPPatternDatabase::verify(
         for (const AbstractOperator* op : aops) {
             const value_t cost = cost_function.get_action_cost(op);
 
-            std::unordered_map<StateRank, value_t> successor_dist;
+            Distribution<StateID> successor_dist;
+            state_space.generate_action_transitions(s.id, op, successor_dist);
 
-            for (const auto& [eff, prob] : op->outcomes) {
-                successor_dist[s + eff] -= prob;
-            }
-
-            if (successor_dist.size() == 1 &&
-                successor_dist.begin()->first == s) {
+            if (successor_dist.is_dirac(s.id)) {
                 continue;
             }
 
-            successor_dist[s] += 1_vt;
-
             auto& constr = constraints.emplace_back(-inf, cost);
 
+            value_t non_loop_prob = 0_vt;
             for (const auto& [succ, prob] : successor_dist) {
-                constr.insert(succ.id, prob);
+                if (succ != s) {
+                    non_loop_prob += prob;
+                    constr.insert(succ, -prob);
+                }
 
                 if (seen.insert(succ).second) {
                     queue.push_back(succ);
                 }
             }
+
+            constr.insert(s, non_loop_prob);
         }
     }
 
@@ -415,10 +349,8 @@ void SSPPatternDatabase::verify(
 
     std::vector<double> solution = solver.extract_solution();
 
-    for (StateRank s = StateRank(0);
-         s.id != static_cast<int>(ranking_function_.num_states());
-         ++s.id) {
-        if (utils::contains(proper_states, StateID(s.id)) && seen.contains(s)) {
+    for (StateID s = 0; s != num_states; ++s.id) {
+        if (utils::contains(proper_states, s) && seen.contains(s)) {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {
             assert(value_table[s.id] == INFINITE_VALUE);

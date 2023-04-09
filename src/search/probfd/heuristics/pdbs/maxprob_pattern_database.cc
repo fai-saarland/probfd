@@ -222,70 +222,6 @@ EvaluationResult MaxProbPatternDatabase::evaluate(StateRank s) const
     return {false, this->lookup(s)};
 }
 
-std::unique_ptr<AbstractPolicy>
-MaxProbPatternDatabase::get_optimal_abstract_policy(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
-    StateRank initial_state,
-    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard) const
-{
-    return ProbabilisticPatternDatabase::get_optimal_abstract_policy(
-        state_space,
-        cost_function,
-        initial_state,
-        rng,
-        wildcard,
-        false);
-}
-
-std::unique_ptr<AbstractPolicy>
-MaxProbPatternDatabase::get_optimal_abstract_policy_no_traps(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
-    StateRank initial_state,
-    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard) const
-{
-    return ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
-        state_space,
-        cost_function,
-        initial_state,
-        rng,
-        wildcard,
-        false);
-}
-
-void MaxProbPatternDatabase::dump_graphviz(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
-    StateRank initial_state,
-    const std::string& path,
-    bool transition_labels)
-{
-    auto s2str = [this](StateRank x) {
-        std::ostringstream out;
-        out.precision(3);
-        out << x.id << "\\n";
-
-        if (is_dead_end(x)) {
-            out << "h = 1 (dead)";
-        } else {
-            out << "h = " << value_table[x.id];
-        }
-
-        return out.str();
-    };
-
-    ProbabilisticPatternDatabase::dump_graphviz(
-        state_space,
-        cost_function,
-        initial_state,
-        path,
-        s2str,
-        transition_labels);
-}
-
 #if !defined(NDEBUG) && defined(USE_LP)
 void MaxProbPatternDatabase::verify(
     ProjectionStateSpace& state_space,
@@ -314,22 +250,22 @@ void MaxProbPatternDatabase::verify(
 
     named_vector::NamedVector<lp::LPVariable> variables;
 
-    for (StateRank s = StateRank(0);
-         s.id != static_cast<int>(ranking_function_.num_states());
-         ++s.id) {
+    const size_t num_states = ranking_function_.num_states();
+
+    for (size_t i = 0; i != num_states; ++i) {
         variables.emplace_back(0_vt, 1_vt, 1_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
 
-    std::deque<StateRank> queue({initial_state});
-    std::set<StateRank> seen({initial_state});
+    std::deque<StateID> queue({state_space.get_state_id(initial_state)});
+    std::set<StateID> seen({state_space.get_state_id(initial_state)});
 
     while (!queue.empty()) {
-        StateRank s = queue.front();
+        StateID s = queue.front();
         queue.pop_front();
 
-        if (cost_function.is_goal(s)) {
+        if (cost_function.is_goal(state_space.get_state(s))) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
         }
@@ -340,28 +276,28 @@ void MaxProbPatternDatabase::verify(
 
         // Select a greedy operators and add its successors
         for (const AbstractOperator* op : aops) {
-            auto& constr = constraints.emplace_back(-inf, 0_vt);
+            Distribution<StateID> successor_dist;
+            state_space.generate_action_transitions(s.id, op, successor_dist);
 
-            std::unordered_map<StateRank, value_t> successor_dist;
-
-            for (const auto& [eff, prob] : op->outcomes) {
-                successor_dist[s + eff] -= prob;
-            }
-
-            if (successor_dist.size() == 1 &&
-                successor_dist.begin()->first == s) {
+            if (successor_dist.is_dirac(s.id)) {
                 continue;
             }
 
-            successor_dist[s] += 1_vt;
+            auto& constr = constraints.emplace_back(-inf, 0_vt);
 
+            value_t non_loop_prob = 0_vt;
             for (const auto& [succ, prob] : successor_dist) {
-                constr.insert(succ.id, prob);
+                if (succ != s) {
+                    non_loop_prob += prob;
+                    constr.insert(succ, -prob);
+                }
 
                 if (seen.insert(succ).second) {
                     queue.push_back(succ);
                 }
             }
+
+            constr.insert(s, non_loop_prob);
         }
     }
 
@@ -377,7 +313,7 @@ void MaxProbPatternDatabase::verify(
 
     std::vector<double> solution = solver.extract_solution();
 
-    for (StateRank s(0); s.id != static_cast<int>(value_table.size()); ++s.id) {
+    for (StateID s = 0; s != num_states; ++s.id) {
         if (seen.contains(s)) {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         } else {

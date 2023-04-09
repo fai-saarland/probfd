@@ -86,29 +86,44 @@ public:
     // Get the pattern of the pattern database.
     const Pattern& get_pattern() const;
 
-protected:
-    std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy(
+    /**
+     * @brief Extracts an abstract optimal policy for the PDB's projection from
+     * the PDB value table.
+     *
+     * Tie-breaking is performed randomly using the input RNG. If the \p
+     * wildcard option is specified, a wildcard policy will be returned, i.e., a
+     * policy that assigns multiple equivalent operators to a abstract state.
+     */
+    std::unique_ptr<AbstractPolicy> compute_optimal_abstract_policy(
         ProjectionStateSpace& state_space,
         ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        bool wildcard,
-        bool use_cost) const;
+        bool wildcard) const;
 
-    std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy_no_traps(
+    /**
+     * @brief Extracts a greedy policy for the PDB's projection from the PDB
+     * value table, which may not be optimal if traps are existent.
+     *
+     * Tie-breaking is performed randomly using the input RNG. If the \p
+     * wildcard option is specified, a wildcard policy will be returned, i.e., a
+     * policy that assigns multiple equivalent operators to a abstract state.
+     */
+    std::unique_ptr<AbstractPolicy> compute_greedy_abstract_policy(
         ProjectionStateSpace& state_space,
         ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        bool wildcard,
-        bool use_cost) const;
+        bool wildcard) const;
 
+    /// Dump the PDB's projection as a dot graph to a specified path with or
+    /// without transition labels shown.
     void dump_graphviz(
+        const ProbabilisticTaskProxy& task_proxy,
         ProjectionStateSpace& state_space,
         ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::string& path,
-        std::function<std::string(const StateRank&)> sts,
         bool transition_labels) const;
 };
 

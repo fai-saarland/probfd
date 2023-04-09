@@ -204,49 +204,6 @@ public:
     /// Get a heuristic evaluation for an abstract state given by a state rank.
     [[nodiscard]] EvaluationResult evaluate(StateRank s) const;
 
-    /**
-     * @brief Extracts an abstract optimal policy for the given inital state
-     * from the PDB value table.
-     *
-     * Tie-breaking is performed randomly using the input RNG. If the \p
-     * wildcard option is specified, a wildcard policy will be returned, i.e., a
-     * policy that assigns multiple equivalent operators to a abstract state.
-     *
-     * \todo Use flag to specify whether traps can be assumed absent...
-     */
-    std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy(
-        ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
-        StateRank initial_state,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        bool wildcard = false) const;
-
-    /**
-     * @brief Extracts an abstract optimal policy for the given inital state
-     * from the PDB value table, assuming traps are absent.
-     *
-     * Tie-breaking is performed randomly using the input RNG. If the \p
-     * wildcard option is specified, a wildcard policy will be returned, i.e., a
-     * policy that assigns multiple equivalent operators to a abstract state.
-     *
-     * \todo Use flag to specify whether traps can be assumed absent...
-     */
-    std::unique_ptr<AbstractPolicy> get_optimal_abstract_policy_no_traps(
-        ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
-        StateRank initial_state,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        bool wildcard = false) const;
-
-    /// Dump the PDB's projection as a dot graph to a specified path with or
-    /// without transition labels shown.
-    void dump_graphviz(
-        ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
-        StateRank initial_state,
-        const std::string& path,
-        bool transition_labels = true);
-
 private:
     void compute_value_table(
         ProjectionStateSpace& state_space,

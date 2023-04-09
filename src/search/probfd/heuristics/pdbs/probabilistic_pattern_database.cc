@@ -71,13 +71,12 @@ const Pattern& ProbabilisticPatternDatabase::get_pattern() const
 }
 
 std::unique_ptr<AbstractPolicy>
-ProbabilisticPatternDatabase::get_optimal_abstract_policy(
+ProbabilisticPatternDatabase::compute_optimal_abstract_policy(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard,
-    bool use_cost) const
+    bool wildcard) const
 {
     using PredecessorList =
         std::vector<std::pair<StateRank, const AbstractOperator*>>;
@@ -195,13 +194,12 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy(
 }
 
 std::unique_ptr<AbstractPolicy>
-ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
+ProbabilisticPatternDatabase::compute_greedy_abstract_policy(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard,
-    bool use_cost) const
+    bool wildcard) const
 {
     AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
 
@@ -295,17 +293,36 @@ ProbabilisticPatternDatabase::get_optimal_abstract_policy_no_traps(
 }
 
 void ProbabilisticPatternDatabase::dump_graphviz(
+    const ProbabilisticTaskProxy& task_proxy,
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::string& path,
-    std::function<std::string(const StateRank&)> sts,
     bool transition_labels) const
 {
     using namespace engine_interfaces;
 
-    ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
     AbstractOperatorToString op_names(task_proxy);
+
+    auto sts = [this](StateRank x) {
+        std::ostringstream out;
+        out.precision(3);
+
+        const value_t value = value_table[x.id];
+        std::string value_text =
+            value != INFINITE_VALUE ? std::to_string(value) : "&infin";
+
+        out << x.id << "\\n"
+            << "h = " << value_text;
+
+        if (is_dead_end(x)) {
+            out << "(dead)";
+        }
+
+        out << std::endl;
+
+        return out.str();
+    };
 
     auto ats = [=](const AbstractOperator* const& op) {
         return transition_labels ? op_names(op) : "";
