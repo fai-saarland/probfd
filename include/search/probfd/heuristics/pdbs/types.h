@@ -10,23 +10,17 @@ class PatternCollectionInformation;
 
 namespace probfd {
 namespace heuristics {
-
 namespace pdbs {
 
 class ProbabilisticPatternDatabase;
-class MaxProbPatternDatabase;
-class SSPPatternDatabase;
 
 using PatternCollection = ::pdbs::PatternCollection;
 using Pattern = ::pdbs::Pattern;
 using PatternID = ::pdbs::PatternID;
-using PatternSubCollection = ::pdbs::PatternClique;
+using PatternSubCollection = std::vector<PatternID>;
 
-template <class PDBType>
-using PPDBCollection = std::vector<std::shared_ptr<PDBType>>;
-
-using ExpCostPDBCollection = PPDBCollection<SSPPatternDatabase>;
-using MaxProbPDBCollection = PPDBCollection<MaxProbPatternDatabase>;
+using PPDBCollection =
+    std::vector<std::shared_ptr<ProbabilisticPatternDatabase>>;
 
 } // namespace pdbs
 } // namespace heuristics

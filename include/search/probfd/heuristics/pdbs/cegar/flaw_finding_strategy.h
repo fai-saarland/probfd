@@ -12,12 +12,10 @@ namespace pdbs {
 class AbstractPolicy;
 struct Flaw;
 
-template <typename PDBType>
 class PatternCollectionGeneratorCegar;
 
 namespace cegar {
 
-template <typename PDBType>
 class FlawFindingStrategy {
 public:
     virtual ~FlawFindingStrategy() = default;
@@ -26,7 +24,7 @@ public:
     // Note that the output flaw list might be empty regardless since only
     // remaining goals are added to the list for goal violations.
     virtual bool apply_policy(
-        PatternCollectionGeneratorCegar<PDBType>& base,
+        PatternCollectionGeneratorCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaws) = 0;

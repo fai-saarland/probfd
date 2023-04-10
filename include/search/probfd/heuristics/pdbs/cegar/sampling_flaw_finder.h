@@ -24,8 +24,7 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-template <typename PDBType>
-class SamplingFlawFinder : public FlawFindingStrategy<PDBType> {
+class SamplingFlawFinder : public FlawFindingStrategy {
     struct ExplorationInfo {
         bool explored = false;
         Distribution<StateID> successors;
@@ -45,7 +44,7 @@ public:
     ~SamplingFlawFinder() override = default;
 
     virtual bool apply_policy(
-        PatternCollectionGeneratorCegar<PDBType>& base,
+        PatternCollectionGeneratorCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list) override;
@@ -54,7 +53,7 @@ public:
 
 private:
     unsigned int push_state(
-        PatternCollectionGeneratorCegar<PDBType>& base,
+        PatternCollectionGeneratorCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         State state,

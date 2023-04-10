@@ -1075,6 +1075,7 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/pattern_generator
 
         probfd/heuristics/pdbs/subcollection_finder_factory
+        probfd/heuristics/pdbs/subcollection_finder
         probfd/heuristics/pdbs/max_orthogonal_finder_factory
         probfd/heuristics/pdbs/max_orthogonal_finder
         probfd/heuristics/pdbs/trivial_finder_factory

@@ -22,8 +22,7 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-template <typename PDBType>
-class BFSFlawFinder : public FlawFindingStrategy<PDBType> {
+class BFSFlawFinder : public FlawFindingStrategy {
     std::deque<State> open;
     storage::PerStateStorage<bool> closed;
 
@@ -36,7 +35,7 @@ public:
     ~BFSFlawFinder() override = default;
 
     virtual bool apply_policy(
-        PatternCollectionGeneratorCegar<PDBType>& base,
+        PatternCollectionGeneratorCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list) override;
@@ -45,7 +44,7 @@ public:
 
 private:
     bool expand(
-        PatternCollectionGeneratorCegar<PDBType>& base,
+        PatternCollectionGeneratorCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         State state,

@@ -1,8 +1,6 @@
 #include "probfd/heuristics/pdbs/cegar/sampling_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
 #include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
-#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/distribution.h"
@@ -27,21 +25,18 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-template <typename PDBType>
-SamplingFlawFinder<PDBType>::SamplingFlawFinder(options::Options& opts)
+SamplingFlawFinder::SamplingFlawFinder(options::Options& opts)
     : SamplingFlawFinder(opts.get<int>("violation_threshold"))
 {
 }
 
-template <typename PDBType>
-SamplingFlawFinder<PDBType>::SamplingFlawFinder(unsigned violation_threshold)
+SamplingFlawFinder::SamplingFlawFinder(unsigned violation_threshold)
     : violation_threshold(violation_threshold)
 {
 }
 
-template <typename PDBType>
-bool SamplingFlawFinder<PDBType>::apply_policy(
-    PatternCollectionGeneratorCegar<PDBType>& base,
+bool SamplingFlawFinder::apply_policy(
+    PatternCollectionGeneratorCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     std::vector<Flaw>& flaw_list)
@@ -121,15 +116,13 @@ break_exploration:;
     return executable;
 }
 
-template <typename PDBType>
-std::string SamplingFlawFinder<PDBType>::get_name()
+std::string SamplingFlawFinder::get_name()
 {
     return "Sampling Flaw Finder";
 }
 
-template <typename PDBType>
-unsigned int SamplingFlawFinder<PDBType>::push_state(
-    PatternCollectionGeneratorCegar<PDBType>& base,
+unsigned int SamplingFlawFinder::push_state(
+    PatternCollectionGeneratorCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     State state,
@@ -140,9 +133,9 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
     assert(!info.explored);
     info.explored = true;
 
-    PDBInfo<PDBType>& solution = *base.pdb_infos[solution_index];
+    PDBInfo& solution = *base.pdb_infos[solution_index];
     const AbstractPolicy& policy = solution.get_policy();
-    const PDBType& pdb = solution.get_pdb();
+    const ProbabilisticPatternDatabase& pdb = solution.get_pdb();
 
     // Check flaws, generate successors
     const StateRank abs = pdb.get_abstract_state(state);
@@ -182,8 +175,7 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
     const auto operators = task_proxy.get_operators();
 
     for (const AbstractOperator* abs_op : abs_operators) {
-        int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperatorProxy op = operators[original_id];
+        const ProbabilisticOperatorProxy op = operators[abs_op->operator_id];
 
         // Check whether precondition flaws occur
         bool preconditions_ok = true;
@@ -224,8 +216,7 @@ unsigned int SamplingFlawFinder<PDBType>::push_state(
     return FLAW_OCCURED;
 }
 
-template <typename PDBType>
-static std::shared_ptr<FlawFindingStrategy<PDBType>>
+static std::shared_ptr<FlawFindingStrategy>
 _parse(options::OptionParser& parser)
 {
     parser.add_option<int>(
@@ -238,16 +229,10 @@ _parse(options::OptionParser& parser)
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
 
-    return make_shared<SamplingFlawFinder<PDBType>>(opts);
+    return make_shared<SamplingFlawFinder>(opts);
 }
 
-static Plugin<FlawFindingStrategy<MaxProbPatternDatabase>>
-    _plugin_maxprob("sampling_flaw_finder_mp", _parse<MaxProbPatternDatabase>);
-static Plugin<FlawFindingStrategy<SSPPatternDatabase>>
-    _plugin_expcost("sampling_flaw_finder_ec", _parse<SSPPatternDatabase>);
-
-template class SamplingFlawFinder<MaxProbPatternDatabase>;
-template class SamplingFlawFinder<SSPPatternDatabase>;
+static Plugin<FlawFindingStrategy> _plugin("sampling_flaw_finder", _parse);
 
 } // namespace cegar
 } // namespace pdbs

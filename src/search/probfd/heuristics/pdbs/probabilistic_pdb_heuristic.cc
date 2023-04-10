@@ -1,10 +1,8 @@
 #include "probfd/heuristics/pdbs/probabilistic_pdb_heuristic.h"
 
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
 
-#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
-#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
-#include "probfd/heuristics/pdbs/utils.h"
 
 #include "pdbs/dominance_pruning.h"
 
@@ -23,8 +21,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-template <typename PDBType>
-void ProbabilisticPDBHeuristic<PDBType>::Statistics::print_construction_info(
+void ProbabilisticPDBHeuristic::Statistics::print_construction_info(
     std::ostream& out) const
 {
     const double avg_variables = (double)variables / pdbs;
@@ -33,12 +30,8 @@ void ProbabilisticPDBHeuristic<PDBType>::Statistics::print_construction_info(
     const double avg_subcollection_size =
         (double)total_subcollections_size / num_subcollections;
 
-    constexpr auto prefix = std::is_same_v<PDBType, MaxProbPatternDatabase>
-                                ? "MaxProb"
-                                : "Expected Cost";
-
     out << "\n"
-        << prefix << " Pattern Databases Statistics:\n"
+        << "Pattern Databases Statistics:\n"
         << "  Total number of PDBs: " << pdbs << "\n"
         << "  Total number of variables: " << variables << "\n"
         << "  Total number of abstract states: " << abstract_states << "\n"
@@ -60,28 +53,23 @@ void ProbabilisticPDBHeuristic<PDBType>::Statistics::print_construction_info(
         << "  Total construction time: " << construction_time << "s\n";
 }
 
-template <typename PDBType>
-void ProbabilisticPDBHeuristic<PDBType>::Statistics::print(
-    std::ostream& out) const
+void ProbabilisticPDBHeuristic::Statistics::print(std::ostream& out) const
 {
     print_construction_info(out);
 }
 
-template <typename PDBType>
-ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
+ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
     const options::Options& opts)
     : ProbabilisticPDBHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
-          opts.get<std::shared_ptr<PatternCollectionGenerator<PDBType>>>(
-              "patterns"),
+          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
           opts.get<double>("max_time_dominance_pruning"))
 {
 }
 
-template <typename PDBType>
-ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
+ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<PatternCollectionGenerator<PDBType>> generator,
+    std::shared_ptr<PatternCollectionGenerator> generator,
     double max_time_dominance_pruning)
     : TaskDependentHeuristic(task)
 {
@@ -94,6 +82,8 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
     this->patterns = pattern_collection_info.get_patterns();
     this->pdbs = pattern_collection_info.get_pdbs();
     this->subcollections = pattern_collection_info.get_subcollections();
+    this->subcollection_finder =
+        pattern_collection_info.get_subcollection_finder();
 
     double dominance_pruning_time = 0.0;
 
@@ -139,15 +129,12 @@ ProbabilisticPDBHeuristic<PDBType>::ProbabilisticPDBHeuristic(
     this->generator_report = generator->get_report();
 }
 
-template <typename PDBType>
-EvaluationResult
-ProbabilisticPDBHeuristic<PDBType>::evaluate(const State& state) const
+EvaluationResult ProbabilisticPDBHeuristic::evaluate(const State& state) const
 {
-    return pdbs::evaluate<PDBType>(*pdbs, *subcollections, state);
+    return subcollection_finder->evaluate(*pdbs, *subcollections, state);
 }
 
-template <typename PDBType>
-void ProbabilisticPDBHeuristic<PDBType>::print_statistics() const
+void ProbabilisticPDBHeuristic::print_statistics() const
 {
     if (generator_report) {
         generator_report->print(std::cout);
@@ -156,41 +143,19 @@ void ProbabilisticPDBHeuristic<PDBType>::print_statistics() const
     statistics_.print(std::cout);
 }
 
-template <>
-void ProbabilisticPDBHeuristic<SSPPatternDatabase>::add_options_to_parser(
+void ProbabilisticPDBHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
     TaskDependentHeuristic::add_options_to_parser(parser);
-    parser.add_option<
-        std::shared_ptr<PatternCollectionGenerator<SSPPatternDatabase>>>(
+    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "patterns",
         "",
-        "det_adapter_ec(generator=systematic(pattern_max_size=2))");
+        "det_adapter(generator=systematic(pattern_max_size=2))");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
-
-template <>
-void ProbabilisticPDBHeuristic<MaxProbPatternDatabase>::add_options_to_parser(
-    options::OptionParser& parser)
-{
-    TaskDependentHeuristic::add_options_to_parser(parser);
-    parser.add_option<
-        std::shared_ptr<PatternCollectionGenerator<MaxProbPatternDatabase>>>(
-        "patterns",
-        "",
-        "det_adapter_mp(generator=systematic(pattern_max_size=2))");
-    parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
-}
-
-template class ProbabilisticPDBHeuristic<SSPPatternDatabase>;
-template class ProbabilisticPDBHeuristic<MaxProbPatternDatabase>;
 
 static Plugin<TaskEvaluator>
-    _plugin_ec("ecpdb", options::parse<TaskEvaluator, ExpCostPDBHeuristic>);
-
-static Plugin<TaskEvaluator> _plugin_mp(
-    "maxprob_pdb",
-    options::parse<TaskEvaluator, MaxProbPDBHeuristic>);
+    _plugin("ppdbs", options::parse<TaskEvaluator, ProbabilisticPDBHeuristic>);
 
 } // namespace pdbs
 } // namespace heuristics

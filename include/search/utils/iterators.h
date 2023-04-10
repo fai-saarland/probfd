@@ -12,7 +12,7 @@
 namespace utils {
 
 struct discarding_output_iterator {
-    using difference_type = void;
+    using difference_type = std::ptrdiff_t;
     using value_type = void;
     using pointer = void;
     using reference = void;

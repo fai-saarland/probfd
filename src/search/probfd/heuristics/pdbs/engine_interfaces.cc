@@ -1,17 +1,17 @@
 #include "probfd/heuristics/pdbs/engine_interfaces.h"
 
-#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
-#include "probfd/heuristics/pdbs/projection_state_space.h"
-#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
+#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
 
 #include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
 #include "pdbs/pattern_database.h"
 
+#include "utils/collections.h"
+
 #include <limits>
-#include <ranges>
-#include <vector>
+#include <memory>
 
 namespace probfd {
 namespace heuristics {
@@ -40,15 +40,17 @@ DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 
 EvaluationResult DeadendPDBEvaluator::evaluate(StateRank state) const
 {
-    bool dead =
+    const bool dead =
         pdb.get_value_for_index(state.id) == std::numeric_limits<int>::max();
 
-    return dead ? EvaluationResult(true, 1_vt) : EvaluationResult(false, 0_vt);
+    return EvaluationResult(dead, dead ? 1_vt : 0_vt);
 }
 
-IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(
+IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
+    const ProbabilisticPatternDatabase& pdb,
     const StateRankingFunction* mapper,
     int add_var)
+    : pdb(pdb)
 {
     const int idx = mapper->get_index(add_var);
     assert(idx != -1);
@@ -61,43 +63,29 @@ IncrementalPPDBEvaluatorBase::IncrementalPPDBEvaluatorBase(
             : mapper->num_states();
 }
 
-StateRank IncrementalPPDBEvaluatorBase::to_parent_state(StateRank state) const
+EvaluationResult IncrementalPPDBEvaluator::evaluate(StateRank state) const
+{
+    return pdb.evaluate(to_parent_state(state));
+}
+
+StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank state) const
 {
     int left = state.id % left_multiplier;
     int right = state.id - (state.id % right_multiplier);
     return StateRank(left + right / domain_size);
 }
 
-template <typename PDBType>
-IncrementalPPDBEvaluator<PDBType>::IncrementalPPDBEvaluator(
-    const PDBType& pdb,
-    const StateRankingFunction* mapper,
-    int add_var)
-    : IncrementalPPDBEvaluatorBase(mapper, add_var)
-    , pdb(pdb)
-{
-}
-
-template <typename PDBType>
-EvaluationResult
-IncrementalPPDBEvaluator<PDBType>::evaluate(StateRank state) const
-{
-    return pdb.evaluate(to_parent_state(state));
-}
-
-template <typename PDBType>
-MergeEvaluator<PDBType>::MergeEvaluator(
+MergeEvaluator::MergeEvaluator(
     const StateRankingFunction& mapper,
-    const PDBType& left,
-    const PDBType& right)
+    const ProbabilisticPatternDatabase& left,
+    const ProbabilisticPatternDatabase& right)
     : mapper(mapper)
     , left(left)
     , right(right)
 {
 }
 
-template <typename PDBType>
-EvaluationResult MergeEvaluator<PDBType>::evaluate(StateRank state) const
+EvaluationResult MergeEvaluator::evaluate(StateRank state) const
 {
     StateRank lstate = mapper.convert(state, left.get_pattern());
 
@@ -118,42 +106,67 @@ EvaluationResult MergeEvaluator<PDBType>::evaluate(StateRank state) const
     return {false, std::max(leval.get_estimate(), reval.get_estimate())};
 }
 
-BaseAbstractCostFunction::BaseAbstractCostFunction(
-    const ProjectionStateSpace& state_space,
-    value_t value_in,
-    value_t value_not_in)
-    : state_space_(state_space)
-    , value_in_(value_in)
-    , value_not_in_(value_not_in)
+ProjectionCostFunction::ProjectionCostFunction(
+    const ProbabilisticTaskProxy& task_proxy,
+    const StateRankingFunction& ranking_function,
+    TaskCostFunction* parent_cost_function)
+    : AbstractCostFunction(
+          parent_cost_function->get_goal_termination_cost(),
+          parent_cost_function->get_non_goal_termination_cost())
+    , parent_cost_function(parent_cost_function)
+    , goal_state_flags_(ranking_function.num_states(), false)
 {
+    const GoalsProxy task_goals = task_proxy.get_goals();
+    const Pattern& pattern = ranking_function.get_pattern();
+
+    std::vector<int> non_goal_vars;
+    StateRank base(0);
+
+    // Translate sparse goal into pdb index space
+    // and collect non-goal variables aswell.
+    const int num_goal_facts = task_goals.size();
+    const int num_variables = pattern.size();
+
+    for (int v = 0, w = 0; v != static_cast<int>(pattern.size());) {
+        const int p_var = pattern[v];
+        const FactProxy goal_fact = task_goals[w];
+        const int g_var = goal_fact.get_variable().get_id();
+
+        if (p_var < g_var) {
+            non_goal_vars.push_back(v++);
+        } else {
+            if (p_var == g_var) {
+                const int g_val = goal_fact.get_value();
+                base.id += ranking_function.get_multiplier(v++) * g_val;
+            }
+
+            if (++w == num_goal_facts) {
+                while (v < num_variables) {
+                    non_goal_vars.push_back(v++);
+                }
+                break;
+            }
+        }
+    }
+
+    assert(non_goal_vars.size() != pattern.size()); // No goal no fun.
+
+    auto goals = ranking_function.state_ranks(base, std::move(non_goal_vars));
+
+    for (const auto& g : goals) {
+        goal_state_flags_[g.id] = true;
+    }
 }
 
-TerminationInfo BaseAbstractCostFunction::get_termination_info(StateRank state)
+bool ProjectionCostFunction::is_goal(StateRank state) const
 {
-    const bool is_contained = state_space_.is_goal(state);
-    return TerminationInfo(
-        is_contained,
-        is_contained ? value_in_ : value_not_in_);
+    return goal_state_flags_[state.id];
 }
 
-value_t
-ZeroCostAbstractCostFunction::get_action_cost(StateID, const AbstractOperator*)
+value_t ProjectionCostFunction::get_action_cost(const AbstractOperator* op)
 {
-    return 0;
+    return parent_cost_function->get_action_cost(op->operator_id);
 }
-
-value_t NormalCostAbstractCostFunction::get_action_cost(
-    StateID,
-    const AbstractOperator* op)
-{
-    return op->cost;
-}
-
-template class IncrementalPPDBEvaluator<SSPPatternDatabase>;
-template class IncrementalPPDBEvaluator<MaxProbPatternDatabase>;
-
-template class MergeEvaluator<SSPPatternDatabase>;
-template class MergeEvaluator<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

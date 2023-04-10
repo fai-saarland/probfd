@@ -22,18 +22,15 @@ namespace pdbs {
 class SubCollectionFinderFactory;
 
 namespace cegar {
-template <typename PDBType>
 class FlawFindingStrategy;
 }
 
-template <typename PDBType>
-class PatternCollectionGeneratorFastCegar
-    : public PatternCollectionGenerator<PDBType> {
+class PatternCollectionGeneratorFastCegar : public PatternCollectionGenerator {
     // Subcollection finder
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // Flaw finding strategy
-    std::shared_ptr<cegar::FlawFindingStrategy<PDBType>> flaw_strategy;
+    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
     const int single_generator_max_pdb_size;
     const int single_generator_max_collection_size; // Possibly overwritten by
@@ -55,14 +52,9 @@ public:
     explicit PatternCollectionGeneratorFastCegar(const options::Options& opts);
     ~PatternCollectionGeneratorFastCegar() override = default;
 
-    PatternCollectionInformation<PDBType>
+    PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 };
-
-using ExpCostPatternCollectionGeneratorFastCegar =
-    PatternCollectionGeneratorFastCegar<SSPPatternDatabase>;
-using MaxProbPatternCollectionGeneratorFastCegar =
-    PatternCollectionGeneratorFastCegar<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

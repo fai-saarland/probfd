@@ -1,5 +1,8 @@
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
+#include "probfd/heuristics/pdbs/types.h"
+
 #include "probfd/task_proxy.h"
 
 namespace probfd {
@@ -42,9 +45,9 @@ struct OutcomeInfo {
 ProjectionStateSpace::ProjectionStateSpace(
     const ProbabilisticTaskProxy& task_proxy,
     const StateRankingFunction& ranking_function,
+    TaskCostFunction& task_cost_function,
     bool operator_pruning)
     : match_tree_(task_proxy.get_operators().size())
-    , goal_state_flags_(ranking_function.num_states())
 {
     const Pattern& pattern = ranking_function.get_pattern();
 
@@ -76,8 +79,7 @@ ProjectionStateSpace::ProjectionStateSpace(
 
     // Generate the abstract operators for each probabilistic operator
     for (const ProbabilisticOperatorProxy& op : operators) {
-        const int operator_id = op.get_id();
-        const int cost = op.get_cost();
+        const OperatorID operator_id(op.get_id());
 
         // Precondition partial state and partial state to enumerate
         // effect values not appearing in precondition
@@ -146,7 +148,7 @@ ProjectionStateSpace::ProjectionStateSpace(
 
         for (const std::vector<FactPair>& values : ran) {
             // Generate the progression operator
-            AbstractOperator new_op(operator_id, cost);
+            AbstractOperator new_op(operator_id);
 
             for (const auto& [info, prob] : outcomes) {
                 const auto& [base_effect, missing_pres] = info;
@@ -177,6 +179,9 @@ ProjectionStateSpace::ProjectionStateSpace(
                     pre_rank += partial_multipliers[var] * (val + 1);
                 }
 
+                const value_t cost =
+                    task_cost_function.get_action_cost(operator_id);
+
                 if (!duplicate_set.emplace(cost, pre_rank, new_op).second) {
                     continue;
                 }
@@ -189,44 +194,6 @@ ProjectionStateSpace::ProjectionStateSpace(
                 std::move(new_op),
                 precondition);
         }
-    }
-
-    std::vector<int> non_goal_vars;
-    StateRank base(0);
-
-    // Translate sparse goal into pdb index space
-    // and collect non-goal variables aswell.
-    const int num_goal_facts = task_goals.size();
-    const int num_variables = pattern.size();
-
-    for (int v = 0, w = 0; v != static_cast<int>(pattern.size());) {
-        const int p_var = pattern[v];
-        const FactProxy goal_fact = task_goals[w];
-        const int g_var = goal_fact.get_variable().get_id();
-
-        if (p_var < g_var) {
-            non_goal_vars.push_back(v++);
-        } else {
-            if (p_var == g_var) {
-                const int g_val = goal_fact.get_value();
-                base.id += ranking_function.get_multiplier(v++) * g_val;
-            }
-
-            if (++w == num_goal_facts) {
-                while (v < num_variables) {
-                    non_goal_vars.push_back(v++);
-                }
-                break;
-            }
-        }
-    }
-
-    assert(non_goal_vars.size() != pattern.size()); // No goal no fun.
-
-    auto goals = ranking_function.state_ranks(base, std::move(non_goal_vars));
-
-    for (const auto& g : goals) {
-        goal_state_flags_[g.id] = true;
     }
 }
 
@@ -279,11 +246,6 @@ void ProjectionStateSpace::generate_all_transitions(
     for (const AbstractOperator* op : aops) {
         generate_action_transitions(state, op, result.emplace_back());
     }
-}
-
-bool ProjectionStateSpace::is_goal(StateRank state) const
-{
-    return goal_state_flags_[state.id];
 }
 
 } // namespace pdbs

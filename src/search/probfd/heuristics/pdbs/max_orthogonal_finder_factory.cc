@@ -9,21 +9,38 @@ namespace heuristics {
 namespace pdbs {
 
 std::unique_ptr<SubCollectionFinder>
-MaxOrthogonalityFinderFactory::create_subcollection_finder(
+AdditiveMaxOrthogonalityFinderFactory::create_subcollection_finder(
     const ProbabilisticTaskProxy& task_proxy)
 {
-    return std::make_unique<MaxOrthogonalityFinder>(task_proxy);
+    return std::make_unique<AdditiveMaxOrthogonalityFinder>(task_proxy);
 }
 
-static std::shared_ptr<MaxOrthogonalityFinderFactory>
+std::unique_ptr<SubCollectionFinder>
+MultiplicativeMaxOrthogonalityFinderFactory::create_subcollection_finder(
+    const ProbabilisticTaskProxy& task_proxy)
+{
+    return std::make_unique<MultiplicativeMaxOrthogonalityFinder>(task_proxy);
+}
+
+static std::shared_ptr<AdditiveMaxOrthogonalityFinderFactory>
 _parse(OptionParser& parser)
 {
     if (parser.dry_run()) return nullptr;
-    return std::make_shared<MaxOrthogonalityFinderFactory>();
+    return std::make_shared<AdditiveMaxOrthogonalityFinderFactory>();
+}
+
+static std::shared_ptr<MultiplicativeMaxOrthogonalityFinderFactory>
+_parse2(OptionParser& parser)
+{
+    if (parser.dry_run()) return nullptr;
+    return std::make_shared<MultiplicativeMaxOrthogonalityFinderFactory>();
 }
 
 static Plugin<SubCollectionFinderFactory>
-    _plugin("finder_max_orthogonality_factory", _parse);
+    _plugin("additive_max_orthogonality_factory", _parse);
+
+static Plugin<SubCollectionFinderFactory>
+    _plugin2("multiplicative_max_orthogonality_factory", _parse2);
 
 } // namespace pdbs
 } // namespace heuristics

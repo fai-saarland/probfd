@@ -18,9 +18,8 @@ namespace pdbs {
 
 class SubCollectionFinderFactory;
 
-template <class PDBType>
 class PatternCollectionGeneratorDeterministic
-    : public PatternCollectionGenerator<PDBType> {
+    : public PatternCollectionGenerator {
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen;
     std::shared_ptr<SubCollectionFinderFactory> finder_factory;
 
@@ -32,17 +31,11 @@ public:
     PatternCollectionGeneratorDeterministic(const options::Options& opts);
     ~PatternCollectionGeneratorDeterministic() override = default;
 
-    PatternCollectionInformation<PDBType>
+    PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 
     std::shared_ptr<utils::Printable> get_report() const override;
 };
-
-using ExpCostPatternCollectionGeneratorDeterministic =
-    PatternCollectionGeneratorDeterministic<SSPPatternDatabase>;
-
-using MaxProbPatternCollectionGeneratorDeterministic =
-    PatternCollectionGeneratorDeterministic<MaxProbPatternDatabase>;
 
 } // namespace pdbs
 } // namespace heuristics

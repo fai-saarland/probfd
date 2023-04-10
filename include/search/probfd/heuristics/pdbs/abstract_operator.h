@@ -19,9 +19,8 @@ namespace heuristics {
 namespace pdbs {
 
 struct AbstractOperator {
-    explicit AbstractOperator(unsigned id, int cost);
-    unsigned original_operator_id;
-    value_t cost;
+    explicit AbstractOperator(OperatorID id);
+    OperatorID operator_id;
     Distribution<StateRank> outcomes;
 };
 

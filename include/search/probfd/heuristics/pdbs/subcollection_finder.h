@@ -3,8 +3,14 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
+#include "probfd/engine_interfaces/evaluator.h"
+
+#include "probfd/value_type.h"
+
 #include <memory>
 #include <vector>
+
+class State;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
@@ -24,9 +30,20 @@ public:
         const PatternCollection& patterns,
         const std::vector<PatternSubCollection>& known_pattern_cliques,
         const Pattern& new_pattern) = 0;
-    };
 
-    } // namespace pdbs
-    } // namespace heuristics
+    virtual value_t evaluate_subcollection(
+        const std::vector<value_t>& pdb_estimates,
+        const std::vector<int>& subcollection) const = 0;
+
+    virtual value_t combine(value_t left, value_t right) const = 0;
+
+    EvaluationResult evaluate(
+        const PPDBCollection& database,
+        const std::vector<PatternSubCollection>& subcollections,
+        const State& state);
+};
+
+} // namespace pdbs
+} // namespace heuristics
 } // namespace probfd
 #endif // __SUBCOLLECTION_FINDER_H__

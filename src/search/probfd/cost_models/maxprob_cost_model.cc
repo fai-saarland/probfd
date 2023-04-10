@@ -20,21 +20,17 @@ class MaxProbCostFunction : public TaskCostFunction {
 
 public:
     MaxProbCostFunction(const ProbabilisticTaskProxy& task_proxy)
-        : task_proxy(task_proxy)
+        : TaskCostFunction(0_vt, 1_vt)
+        , task_proxy(task_proxy)
     {
     }
 
-    virtual TerminationInfo get_termination_info(const State& state) override
+    bool is_goal(param_type<State> state) const override
     {
-        ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
-        if (task_properties::is_goal_state(task_proxy, state)) {
-            return TerminationInfo(true, 0_vt);
-        } else {
-            return TerminationInfo(false, 1_vt);
-        }
+        return task_properties::is_goal_state(task_proxy, state);
     }
 
-    value_t get_action_cost(StateID, OperatorID) override { return 0_vt; }
+    value_t get_action_cost(OperatorID) override { return 0_vt; }
 };
 } // namespace
 

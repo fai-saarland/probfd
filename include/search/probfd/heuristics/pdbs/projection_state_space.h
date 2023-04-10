@@ -2,8 +2,11 @@
 #define PROBFD_HEURISTICS_PDBS_PROJECTION_STATE_SPACE_H
 
 #include "probfd/heuristics/pdbs/abstract_operator.h"
-#include "probfd/heuristics/pdbs/engine_interfaces.h"
+#include "probfd/heuristics/pdbs/match_tree.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
+
+#include "probfd/engine_interfaces/cost_function.h"
+#include "probfd/engine_interfaces/state_space.h"
 
 #include <vector>
 
@@ -17,21 +20,18 @@ class StateRankingFunction;
 
 /// Represents the state space of a projection of a probabilistic planning task.
 class ProjectionStateSpace
-    : public engine_interfaces::StateSpace<
-          heuristics::pdbs::StateRank,
-          const heuristics::pdbs::AbstractOperator*> {
+    : public engine_interfaces::StateSpace<StateRank, const AbstractOperator*> {
 
-    heuristics::pdbs::MatchTree match_tree_;
-
-    std::vector<bool> goal_state_flags_;
+    MatchTree match_tree_;
 
 public:
     ProjectionStateSpace(
         const ProbabilisticTaskProxy& task_proxy,
         const StateRankingFunction& ranking_function,
+        TaskCostFunction& task_cost_function,
         bool operator_pruning = true);
 
-    StateID get_state_id(heuristics::pdbs::StateRank state) override;
+    StateID get_state_id(StateRank state) override;
 
     StateRank get_state(StateID id) override;
 
@@ -52,8 +52,6 @@ public:
         StateID state,
         std::vector<const AbstractOperator*>& aops,
         std::vector<Distribution<StateID>>& result) override;
-
-    bool is_goal(StateRank rank) const;
 };
 
 } // namespace pdbs

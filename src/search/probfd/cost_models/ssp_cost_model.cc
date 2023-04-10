@@ -18,20 +18,17 @@ class SSPCostFunction : public TaskCostFunction {
 
 public:
     SSPCostFunction(const ProbabilisticTaskProxy& task_proxy)
-        : task_proxy(task_proxy)
+        : TaskCostFunction(0_vt, INFINITE_VALUE)
+        , task_proxy(task_proxy)
     {
     }
 
-    TerminationInfo get_termination_info(const State& state) override
+    bool is_goal(param_type<State> state) const override
     {
-        if (task_properties::is_goal_state(task_proxy, state)) {
-            return TerminationInfo(true, 0_vt);
-        } else {
-            return TerminationInfo(false, INFINITE_VALUE);
-        }
+        return task_properties::is_goal_state(task_proxy, state);
     }
 
-    value_t get_action_cost(StateID, OperatorID op) override
+    value_t get_action_cost(OperatorID op) override
     {
         return task_proxy.get_operators()[op].get_cost();
     }

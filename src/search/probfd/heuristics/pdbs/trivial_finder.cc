@@ -28,7 +28,21 @@ TrivialFinder::compute_subcollections_with_pattern(
     const std::vector<PatternSubCollection>&,
     const Pattern&)
 {
-    return {}; // There are no cliques.
+    return {};
+}
+
+value_t TrivialFinder::evaluate_subcollection(
+    const std::vector<value_t>& pdb_estimates,
+    const std::vector<int>& subcollection) const
+{
+    assert(subcollection.size() == 1);
+    return pdb_estimates[subcollection.front()];
+}
+
+value_t TrivialFinder::combine(value_t left, value_t right) const
+{
+    // This should never be called.
+    abort();
 }
 
 } // namespace pdbs

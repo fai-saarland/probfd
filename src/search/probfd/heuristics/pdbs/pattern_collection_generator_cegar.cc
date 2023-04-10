@@ -2,12 +2,11 @@
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
-#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
-#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/cost_model.h"
 #include "probfd/task_proxy.h"
 
 #include "utils/collections.h"
@@ -40,136 +39,133 @@ namespace {
 static const std::string token = "CEGAR_PDBs: ";
 } // namespace
 
-template <typename PDBType>
-PDBInfo<PDBType>::PDBInfo(
+PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
+    TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard)
-    : state_space(task_proxy, ranking_function, !wildcard)
+    : state_space(task_proxy, ranking_function, task_cost_function, !wildcard)
+    , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
-    , pdb(new PDBType(state_space, std::move(ranking_function), initial_state))
-    , policy(pdb->get_optimal_abstract_policy(
+    , pdb(new ProbabilisticPatternDatabase(
           state_space,
+          std::move(ranking_function),
+          cost_function,
+          initial_state))
+    , policy(pdb->compute_optimal_abstract_policy(
+          state_space,
+          cost_function,
           initial_state,
           rng,
           wildcard))
 {
 }
 
-template <typename PDBType>
-PDBInfo<PDBType>::PDBInfo(
+PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
+    TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const PDBType& previous,
+    const ProbabilisticPatternDatabase& previous,
     int add_var,
     bool wildcard)
-    : state_space(task_proxy, ranking_function, !wildcard)
+    : state_space(task_proxy, ranking_function, task_cost_function, !wildcard)
+    , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
-    , pdb(new PDBType(
+    , pdb(new ProbabilisticPatternDatabase(
           state_space,
           std::move(ranking_function),
+          cost_function,
           initial_state,
           previous,
           add_var))
-    , policy(pdb->get_optimal_abstract_policy(
+    , policy(pdb->compute_optimal_abstract_policy(
           state_space,
+          cost_function,
           initial_state,
           rng,
           wildcard))
 {
 }
 
-template <typename PDBType>
-PDBInfo<PDBType>::PDBInfo(
+PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
+    TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const PDBType& left,
-    const PDBType& right,
+    const ProbabilisticPatternDatabase& left,
+    const ProbabilisticPatternDatabase& right,
     bool wildcard)
-    : state_space(task_proxy, ranking_function, !wildcard)
+    : state_space(task_proxy, ranking_function, task_cost_function, !wildcard)
+    , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
-    , pdb(new PDBType(
+    , pdb(new ProbabilisticPatternDatabase(
           state_space,
           std::move(ranking_function),
+          cost_function,
           initial_state,
           left,
           right))
-    , policy(pdb->get_optimal_abstract_policy(
+    , policy(pdb->compute_optimal_abstract_policy(
           state_space,
+          cost_function,
           initial_state,
           rng,
           wildcard))
 {
 }
 
-template <typename PDBType>
-const Pattern& PDBInfo<PDBType>::get_pattern() const
+const Pattern& PDBInfo::get_pattern() const
 {
     return pdb->get_pattern();
 }
 
-template <typename PDBType>
-const PDBType& PDBInfo<PDBType>::get_pdb() const
+const ProbabilisticPatternDatabase& PDBInfo::get_pdb() const
 {
     assert(pdb);
     return *pdb;
 }
 
-template <typename PDBType>
-std::unique_ptr<PDBType> PDBInfo<PDBType>::steal_pdb()
+std::unique_ptr<ProbabilisticPatternDatabase> PDBInfo::steal_pdb()
 {
     return std::move(pdb);
 }
 
-template <typename PDBType>
-const AbstractPolicy& PDBInfo<PDBType>::get_policy() const
+const AbstractPolicy& PDBInfo::get_policy() const
 {
     return *policy;
 }
 
-template <typename PDBType>
-value_t PDBInfo<PDBType>::get_policy_cost(const State& state) const
+value_t PDBInfo::get_policy_cost(const State& state) const
 {
     return pdb->lookup(state);
 }
 
-template <typename PDBType>
-bool PDBInfo<PDBType>::is_solved() const
+bool PDBInfo::is_solved() const
 {
     return solved;
 }
 
-template <typename PDBType>
-void PDBInfo<PDBType>::mark_as_solved()
+void PDBInfo::mark_as_solved()
 {
     solved = true;
 }
 
-template <typename PDBType>
-bool PDBInfo<PDBType>::solution_exists() const
+bool PDBInfo::solution_exists() const
 {
-    ProbabilisticTaskProxy task_proxy(*tasks::g_root_task);
-    return !pdb->evaluate(task_proxy.get_initial_state()).is_unsolvable();
+    return !pdb->is_dead_end(initial_state);
 }
 
-template <typename PDBType>
-bool PDBInfo<PDBType>::is_goal(StateRank rank) const
+bool PDBInfo::is_goal(StateRank rank) const
 {
-    return state_space.is_goal(rank);
+    return cost_function.is_goal(rank);
 }
 
-// Instantiations
-template class PDBInfo<MaxProbPatternDatabase>;
-template class PDBInfo<SSPPatternDatabase>;
-
-template <typename PDBType>
-PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
+PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory,
-    std::shared_ptr<FlawFindingStrategy<PDBType>> flaw_strategy,
+    std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     bool wildcard,
     int arg_max_pdb_size,
     int arg_max_collection_size,
@@ -243,15 +239,13 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
     }
 }
 
-template <typename PDBType>
-PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
+PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
     const options::Options& opts)
     : PatternCollectionGeneratorCegar(
           utils::parse_rng_from_options(opts),
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"),
-          opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
-              "flaw_strategy"),
+          opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"),
           opts.get<bool>("wildcard"),
           opts.get<int>("max_pdb_size"),
           opts.get<int>("max_collection_size"),
@@ -263,8 +257,7 @@ PatternCollectionGeneratorCegar<PDBType>::PatternCollectionGeneratorCegar(
 {
 }
 
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::print_collection() const
+void PatternCollectionGeneratorCegar::print_collection() const
 {
     cout << "[";
 
@@ -281,30 +274,29 @@ void PatternCollectionGeneratorCegar<PDBType>::print_collection() const
     cout << "]" << endl;
 }
 
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<
-    PDBType>::generate_trivial_solution_collection(const ProbabilisticTaskProxy&
-                                                       task_proxy)
+void PatternCollectionGeneratorCegar::generate_trivial_solution_collection(
+    const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function)
 {
     assert(!remaining_goals.empty());
 
     switch (initial) {
     case InitialCollectionType::GIVEN_GOAL: {
         assert(given_goal != -1);
-        add_pattern_for_var(task_proxy, given_goal);
+        add_pattern_for_var(task_proxy, task_cost_function, given_goal);
         break;
     }
     case InitialCollectionType::RANDOM_GOAL: {
         int var = remaining_goals.back();
         remaining_goals.pop_back();
-        add_pattern_for_var(task_proxy, var);
+        add_pattern_for_var(task_proxy, task_cost_function, var);
         break;
     }
     case InitialCollectionType::ALL_GOALS: {
         while (!remaining_goals.empty()) {
             int var = remaining_goals.back();
             remaining_goals.pop_back();
-            add_pattern_for_var(task_proxy, var);
+            add_pattern_for_var(task_proxy, task_cost_function, var);
         }
 
         break;
@@ -321,8 +313,7 @@ void PatternCollectionGeneratorCegar<
     }
 }
 
-template <typename PDBType>
-bool PatternCollectionGeneratorCegar<PDBType>::time_limit_reached(
+bool PatternCollectionGeneratorCegar::time_limit_reached(
     const utils::CountdownTimer& timer) const
 {
     if (timer.is_expired()) {
@@ -336,8 +327,7 @@ bool PatternCollectionGeneratorCegar<PDBType>::time_limit_reached(
     return false;
 }
 
-template <typename PDBType>
-int PatternCollectionGeneratorCegar<PDBType>::get_flaws(
+int PatternCollectionGeneratorCegar::get_flaws(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws)
 {
@@ -385,8 +375,7 @@ int PatternCollectionGeneratorCegar<PDBType>::get_flaws(
     return -1;
 }
 
-template <typename PDBType>
-bool PatternCollectionGeneratorCegar<PDBType>::can_add_singleton_pattern(
+bool PatternCollectionGeneratorCegar::can_add_singleton_pattern(
     const VariablesProxy& variables,
     int var) const
 {
@@ -395,24 +384,23 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_singleton_pattern(
            collection_size <= max_collection_size - pdb_size;
 }
 
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::add_pattern_for_var(
+void PatternCollectionGeneratorCegar::add_pattern_for_var(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     int var)
 {
-    auto& info = pdb_infos.emplace_back(new PDBInfo<PDBType>(
+    auto& info = pdb_infos.emplace_back(new PDBInfo(
         task_proxy,
         StateRankingFunction(task_proxy, {var}),
+        task_cost_function,
         rng,
         wildcard));
     variable_to_collection_index[var] = pdb_infos.size() - 1;
     collection_size += info->get_pdb().num_states();
 }
 
-template <typename PDBType>
-bool PatternCollectionGeneratorCegar<PDBType>::can_merge_patterns(
-    int index1,
-    int index2) const
+bool PatternCollectionGeneratorCegar::can_merge_patterns(int index1, int index2)
+    const
 {
     int pdb_size1 = pdb_infos[index1]->get_pdb().num_states();
     int pdb_size2 = pdb_infos[index2]->get_pdb().num_states();
@@ -425,18 +413,18 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_merge_patterns(
     return collection_size + added_size <= max_collection_size;
 }
 
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
+void PatternCollectionGeneratorCegar::merge_patterns(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     int index1,
     int index2)
 {
     // Merge pattern at index2 into pattern at index2
-    PDBInfo<PDBType>& solution1 = *pdb_infos[index1];
-    PDBInfo<PDBType>& solution2 = *pdb_infos[index2];
+    PDBInfo& solution1 = *pdb_infos[index1];
+    PDBInfo& solution2 = *pdb_infos[index2];
 
-    const PDBType& pdb1 = solution1.get_pdb();
-    const PDBType& pdb2 = solution2.get_pdb();
+    const ProbabilisticPatternDatabase& pdb1 = solution1.get_pdb();
+    const ProbabilisticPatternDatabase& pdb2 = solution2.get_pdb();
 
     // update look-up table
     for (int var : solution2.get_pattern()) {
@@ -448,11 +436,12 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
     int pdb_size2 = pdb2.num_states();
 
     // compute merge solution
-    unique_ptr<PDBInfo<PDBType>> merged(new PDBInfo<PDBType>(
+    unique_ptr<PDBInfo> merged(new PDBInfo(
         task_proxy,
         StateRankingFunction(
             task_proxy,
             utils::merge_sorted(pdb1.get_pattern(), pdb2.get_pattern())),
+        task_cost_function,
         rng,
         pdb1,
         pdb2,
@@ -468,8 +457,7 @@ void PatternCollectionGeneratorCegar<PDBType>::merge_patterns(
     pdb_infos[index2] = nullptr;
 }
 
-template <typename PDBType>
-bool PatternCollectionGeneratorCegar<PDBType>::can_add_variable_to_pattern(
+bool PatternCollectionGeneratorCegar::can_add_variable_to_pattern(
     const VariablesProxy& variables,
     int index,
     int var) const
@@ -485,20 +473,21 @@ bool PatternCollectionGeneratorCegar<PDBType>::can_add_variable_to_pattern(
     return collection_size + added_size <= max_collection_size;
 }
 
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
+void PatternCollectionGeneratorCegar::add_variable_to_pattern(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     int index,
     int var)
 {
-    PDBInfo<PDBType>& info = *pdb_infos[index];
+    PDBInfo& info = *pdb_infos[index];
 
     auto pdb = info.get_pdb();
 
     // compute new solution
-    std::unique_ptr<PDBInfo<PDBType>> new_info(new PDBInfo<PDBType>(
+    std::unique_ptr<PDBInfo> new_info(new PDBInfo(
         task_proxy,
         StateRankingFunction(task_proxy, utils::insert(pdb.get_pattern(), var)),
+        task_cost_function,
         rng,
         pdb,
         var,
@@ -513,9 +502,9 @@ void PatternCollectionGeneratorCegar<PDBType>::add_variable_to_pattern(
     pdb_infos[index] = std::move(new_info);
 }
 
-template <typename PDBType>
-void PatternCollectionGeneratorCegar<PDBType>::refine(
+void PatternCollectionGeneratorCegar::refine(
     const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     const VariablesProxy& variables,
     const std::vector<Flaw>& flaws)
 {
@@ -555,7 +544,11 @@ void PatternCollectionGeneratorCegar<PDBType>::refine(
                 cout << token << "merge the two patterns" << endl;
             }
 
-            merge_patterns(task_proxy, sol_index, other_index);
+            merge_patterns(
+                task_proxy,
+                task_cost_function,
+                sol_index,
+                other_index);
             return;
         }
     } else {
@@ -573,7 +566,11 @@ void PatternCollectionGeneratorCegar<PDBType>::refine(
                 cout << token << "add it to the pattern" << endl;
             }
 
-            add_variable_to_pattern(task_proxy, sol_index, var);
+            add_variable_to_pattern(
+                task_proxy,
+                task_cost_function,
+                sol_index,
+                var);
             return;
         }
     }
@@ -587,14 +584,13 @@ void PatternCollectionGeneratorCegar<PDBType>::refine(
     blacklisted_variables.insert(var);
 }
 
-template <typename PDBType>
-PatternCollectionInformation<PDBType>
-PatternCollectionGeneratorCegar<PDBType>::generate(
+PatternCollectionInformation PatternCollectionGeneratorCegar::generate(
     const std::shared_ptr<ProbabilisticTask>& task)
 {
     utils::CountdownTimer timer(max_time);
 
     const ProbabilisticTaskProxy task_proxy(*task);
+    TaskCostFunction* task_cost_function(g_cost_model->get_cost_function());
     const VariablesProxy variables = task_proxy.get_variables();
     const GoalsProxy goals = task_proxy.get_goals();
 
@@ -647,7 +643,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     }
 
     // Start with a solution of the trivial abstraction
-    generate_trivial_solution_collection(task_proxy);
+    generate_trivial_solution_collection(task_proxy, *task_cost_function);
 
     const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
@@ -693,7 +689,7 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
 
         // if there was a flaw, then refine the abstraction
         // such that said flaw does not occur again
-        refine(task_proxy, variables, flaws);
+        refine(task_proxy, *task_cost_function, variables, flaws);
 
         ++refinement_counter;
         flaws.clear();
@@ -715,16 +711,16 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     }
 
     auto patterns = std::make_shared<PatternCollection>();
-    auto pdbs = std::make_shared<PPDBCollection<PDBType>>();
+    auto pdbs = std::make_shared<PPDBCollection>();
 
     if (solution_index != -1) {
-        unique_ptr<PDBType> pdb = pdb_infos[solution_index]->steal_pdb();
+        unique_ptr pdb = pdb_infos[solution_index]->steal_pdb();
         patterns->push_back(pdb->get_pattern());
         pdbs->emplace_back(std::move(pdb));
     } else {
         for (const auto& info : pdb_infos) {
             if (info) {
-                unique_ptr<PDBType> pdb = info->steal_pdb();
+                unique_ptr pdb = info->steal_pdb();
                 patterns->push_back(pdb->get_pattern());
                 pdbs->emplace_back(std::move(pdb));
             }
@@ -747,39 +743,15 @@ PatternCollectionGeneratorCegar<PDBType>::generate(
     std::shared_ptr<SubCollectionFinder> subcollection_finder =
         subcollection_finder_factory->create_subcollection_finder(task_proxy);
 
-    PatternCollectionInformation<PDBType> pattern_collection_information(
+    PatternCollectionInformation pattern_collection_information(
         task_proxy,
+        task_cost_function,
         patterns,
         subcollection_finder);
     pattern_collection_information.set_pdbs(pdbs);
     return pattern_collection_information;
 }
 
-template <typename PDBType>
-void add_flaw_finder_options_to_parser(options::OptionParser& parser);
-
-template <>
-void add_flaw_finder_options_to_parser<SSPPatternDatabase>(
-    options::OptionParser& parser)
-{
-    parser.add_option<std::shared_ptr<FlawFindingStrategy<SSPPatternDatabase>>>(
-        "flaw_strategy",
-        "strategy used to find flaws in a policy",
-        "pucs_flaw_finder_ec()");
-}
-
-template <>
-void add_flaw_finder_options_to_parser<MaxProbPatternDatabase>(
-    options::OptionParser& parser)
-{
-    parser.add_option<
-        std::shared_ptr<FlawFindingStrategy<MaxProbPatternDatabase>>>(
-        "flaw_strategy",
-        "strategy used to find flaws in a policy",
-        "pucs_flaw_finder_mp()");
-}
-
-template <typename PDBType>
 void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser& parser)
 {
@@ -832,37 +804,26 @@ void add_pattern_collection_generator_cegar_options_to_parser(
     parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
         "The subcollection finder factory.",
-        "finder_max_orthogonality_factory()");
-
-    add_flaw_finder_options_to_parser<PDBType>(parser);
+        "finder_trivial_factory()");
+    parser.add_option<std::shared_ptr<FlawFindingStrategy>>(
+        "flaw_strategy",
+        "strategy used to find flaws in a policy",
+        "pucs_flaw_finder()");
 }
 
-template void add_pattern_collection_generator_cegar_options_to_parser<
-    MaxProbPatternDatabase>(options::OptionParser& parser);
-template void
-add_pattern_collection_generator_cegar_options_to_parser<SSPPatternDatabase>(
-    options::OptionParser& parser);
-
-template <typename PDBType>
-static shared_ptr<PatternCollectionGenerator<PDBType>>
+static shared_ptr<PatternCollectionGenerator>
 _parse(options::OptionParser& parser)
 {
-    add_pattern_collection_generator_cegar_options_to_parser<PDBType>(parser);
+    add_pattern_collection_generator_cegar_options_to_parser(parser);
     utils::add_rng_options(parser);
 
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
 
-    return make_shared<PatternCollectionGeneratorCegar<PDBType>>(opts);
+    return make_shared<PatternCollectionGeneratorCegar>(opts);
 }
 
-static Plugin<PatternCollectionGenerator<MaxProbPatternDatabase>>
-    _plugin_maxprob("cegar_maxprob_pdbs", _parse<MaxProbPatternDatabase>);
-static Plugin<PatternCollectionGenerator<SSPPatternDatabase>>
-    _plugin_expcost("cegar_ecpdbs", _parse<SSPPatternDatabase>);
-
-template class PatternCollectionGeneratorCegar<MaxProbPatternDatabase>;
-template class PatternCollectionGeneratorCegar<SSPPatternDatabase>;
+static Plugin<PatternCollectionGenerator> _plugin("cegar_ppdbs", _parse);
 
 } // namespace pdbs
 } // namespace heuristics

@@ -4,13 +4,12 @@
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
-#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
-#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/cost_model.h"
 #include "probfd/task_proxy.h"
 
 #include "option_parser.h"
@@ -34,14 +33,13 @@ namespace pdbs {
 
 using namespace cegar;
 
-template <typename PDBType>
-PatternCollectionGeneratorFastCegar<
-    PDBType>::PatternCollectionGeneratorFastCegar(const options::Options& opts)
+PatternCollectionGeneratorFastCegar::PatternCollectionGeneratorFastCegar(
+    const options::Options& opts)
     : subcollection_finder_factory(
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"))
-    , flaw_strategy(opts.get<std::shared_ptr<FlawFindingStrategy<PDBType>>>(
-          "flaw_strategy"))
+    , flaw_strategy(
+          opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
     , single_generator_max_pdb_size(opts.get<int>("max_pdb_size"))
     , single_generator_max_collection_size(opts.get<int>("max_collection_size"))
     , single_generator_wildcard_policies(opts.get<bool>("wildcard"))
@@ -56,12 +54,12 @@ PatternCollectionGeneratorFastCegar<
 {
 }
 
-template <typename PDBType>
-PatternCollectionInformation<PDBType>
-PatternCollectionGeneratorFastCegar<PDBType>::generate(
+PatternCollectionInformation PatternCollectionGeneratorFastCegar::generate(
     const std::shared_ptr<ProbabilisticTask>& task)
 {
     const ProbabilisticTaskProxy task_proxy(*task);
+    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
+
     const VariablesProxy variables = task_proxy.get_variables();
     const GoalsProxy task_goals = task_proxy.get_goals();
 
@@ -70,8 +68,7 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
     utils::CountdownTimer timer(total_time_limit);
     shared_ptr<PatternCollection> union_patterns =
         make_shared<PatternCollection>();
-    shared_ptr<PPDBCollection<PDBType>> union_pdbs =
-        make_shared<PPDBCollection<PDBType>>();
+    shared_ptr<PPDBCollection> union_pdbs = make_shared<PPDBCollection>();
     utils::HashSet<Pattern> pattern_set; // for checking if a pattern is
                                          // already in collection
 
@@ -108,7 +105,7 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
             total_collection_max_size - collection_size;
         double remaining_time = total_time_limit - timer.get_elapsed_time();
 
-        PatternCollectionGeneratorCegar<PDBType> generator(
+        PatternCollectionGeneratorCegar generator(
             rng,
             subcollection_finder_factory,
             flaw_strategy,
@@ -139,7 +136,8 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
             stagnation = false;
 
             // decrease size limit
-            shared_ptr<PDBType>& pdb = pdb_collection->front();
+            shared_ptr<ProbabilisticPatternDatabase>& pdb =
+                pdb_collection->front();
             collection_size += pdb->num_states();
             if (total_collection_max_size - collection_size <= 0) {
                 // This happens because a single CEGAR run can violate the
@@ -214,16 +212,16 @@ PatternCollectionGeneratorFastCegar<PDBType>::generate(
     std::shared_ptr<SubCollectionFinder> subcollection_finder =
         subcollection_finder_factory->create_subcollection_finder(task_proxy);
 
-    PatternCollectionInformation<PDBType> result(
+    PatternCollectionInformation result(
         task_proxy,
+        task_cost_function,
         union_patterns,
         subcollection_finder);
     result.set_pdbs(union_pdbs);
     return result;
 }
 
-template <typename PDBType>
-static shared_ptr<PatternCollectionGenerator<PDBType>>
+static shared_ptr<PatternCollectionGenerator>
 _parse(options::OptionParser& parser)
 {
     utils::add_rng_options(parser);
@@ -257,23 +255,17 @@ _parse(options::OptionParser& parser)
         "reached for the second time.",
         "true");
 
-    add_pattern_collection_generator_cegar_options_to_parser<PDBType>(parser);
+    add_pattern_collection_generator_cegar_options_to_parser(parser);
 
     Options opts = parser.parse();
     if (parser.dry_run()) {
         return nullptr;
     }
 
-    return make_shared<PatternCollectionGeneratorFastCegar<PDBType>>(opts);
+    return make_shared<PatternCollectionGeneratorFastCegar>(opts);
 }
 
-static Plugin<PatternCollectionGenerator<MaxProbPatternDatabase>>
-    _plugin_mp("fast_cegar_mp", _parse<MaxProbPatternDatabase>);
-static Plugin<PatternCollectionGenerator<SSPPatternDatabase>>
-    _plugin_ec("fast_cegar_ec", _parse<SSPPatternDatabase>);
-
-template class PatternCollectionGeneratorFastCegar<MaxProbPatternDatabase>;
-template class PatternCollectionGeneratorFastCegar<SSPPatternDatabase>;
+static Plugin<PatternCollectionGenerator> _plugin("fast_cegar", _parse);
 
 } // namespace pdbs
 } // namespace heuristics

@@ -1,8 +1,6 @@
 #include "probfd/heuristics/pdbs/cegar/pucs_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/maxprob_pattern_database.h"
 #include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
-#include "probfd/heuristics/pdbs/ssp_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -22,21 +20,18 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-template <typename PDBType>
-PUCSFlawFinder<PDBType>::PUCSFlawFinder(options::Options& opts)
+PUCSFlawFinder::PUCSFlawFinder(options::Options& opts)
     : PUCSFlawFinder(opts.get<int>("violation_threshold"))
 {
 }
 
-template <typename PDBType>
-PUCSFlawFinder<PDBType>::PUCSFlawFinder(unsigned int violation_threshold)
+PUCSFlawFinder::PUCSFlawFinder(unsigned int violation_threshold)
     : violation_threshold(violation_threshold)
 {
 }
 
-template <typename PDBType>
-bool PUCSFlawFinder<PDBType>::apply_policy(
-    PatternCollectionGeneratorCegar<PDBType>& base,
+bool PUCSFlawFinder::apply_policy(
+    PatternCollectionGeneratorCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     std::vector<Flaw>& flaw_list)
@@ -87,15 +82,13 @@ bool PUCSFlawFinder<PDBType>::apply_policy(
     return executable;
 }
 
-template <typename PDBType>
-std::string PUCSFlawFinder<PDBType>::get_name()
+std::string PUCSFlawFinder::get_name()
 {
     return "PUCS Flaw Finder";
 }
 
-template <typename PDBType>
-bool PUCSFlawFinder<PDBType>::expand(
-    PatternCollectionGeneratorCegar<PDBType>& base,
+bool PUCSFlawFinder::expand(
+    PatternCollectionGeneratorCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     State state,
@@ -105,9 +98,9 @@ bool PUCSFlawFinder<PDBType>::expand(
 {
     assert(path_probability != 0_vt);
 
-    PDBInfo<PDBType>& solution = *base.pdb_infos[solution_index];
+    PDBInfo& solution = *base.pdb_infos[solution_index];
     const AbstractPolicy& policy = solution.get_policy();
-    const PDBType& pdb = solution.get_pdb();
+    const ProbabilisticPatternDatabase& pdb = solution.get_pdb();
 
     // Check flaws, generate successors
     const StateRank abs = pdb.get_abstract_state(state);
@@ -147,8 +140,7 @@ bool PUCSFlawFinder<PDBType>::expand(
     const auto operators = task_proxy.get_operators();
 
     for (const AbstractOperator* abs_op : abs_operators) {
-        int original_id = abs_op->original_operator_id;
-        const ProbabilisticOperatorProxy& op = operators[original_id];
+        const ProbabilisticOperatorProxy& op = operators[abs_op->operator_id];
 
         // Check whether precondition flaws occur
         bool preconditions_ok = true;
@@ -194,8 +186,7 @@ bool PUCSFlawFinder<PDBType>::expand(
     return false;
 }
 
-template <typename PDBType>
-static std::shared_ptr<FlawFindingStrategy<PDBType>>
+static std::shared_ptr<FlawFindingStrategy>
 _parse(options::OptionParser& parser)
 {
     parser.add_option<int>(
@@ -208,16 +199,10 @@ _parse(options::OptionParser& parser)
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
 
-    return make_shared<PUCSFlawFinder<PDBType>>(opts);
+    return make_shared<PUCSFlawFinder>(opts);
 }
 
-static Plugin<FlawFindingStrategy<MaxProbPatternDatabase>>
-    _plugin_maxprob("pucs_flaw_finder_mp", _parse<MaxProbPatternDatabase>);
-static Plugin<FlawFindingStrategy<SSPPatternDatabase>>
-    _plugin_expcost("pucs_flaw_finder_ec", _parse<SSPPatternDatabase>);
-
-template class PUCSFlawFinder<MaxProbPatternDatabase>;
-template class PUCSFlawFinder<SSPPatternDatabase>;
+static Plugin<FlawFindingStrategy> _plugin("pucs_flaw_finder", _parse);
 
 } // namespace cegar
 } // namespace pdbs
