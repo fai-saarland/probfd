@@ -20,9 +20,10 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <set>
-#include <string>
 #include <vector>
+
 
 class State;
 
@@ -205,9 +206,6 @@ public:
      * This constructor makes use of the supplied PDBs by using the minimum
      * over their induced heuristics to accelerate the value table computation.
      *
-     * \todo One could do even better by exploiting potential additivity of the
-     * two patterns.
-     *
      * @param task_proxy The input task with respect to which the projection is
      * constructed.
      * @param left A previous pattern database for the given task.
@@ -232,9 +230,6 @@ public:
      * This constructor makes use of the supplied PDBs by using the minimum
      * over their induced heuristics to accelerate the value table computation.
      *
-     * \todo One could do even better by exploiting potential additivity of the
-     * two patterns.
-     *
      * @param state_space The preconstructed state space of the projection.
      * @param ranking_function The preconstructed ranking function for the PDB.
      * @param left A previous pattern database for the given task.
@@ -250,22 +245,22 @@ public:
         const ProbabilisticPatternDatabase& left,
         const ProbabilisticPatternDatabase& right);
 
-    /// Get the state ranking function of the PDB.
-    const StateRankingFunction& get_abstract_state_mapper() const;
+    // Get the pattern of the pattern database.
+    [[nodiscard]] const Pattern& get_pattern() const;
 
     /// Get the number of states in this PDB's projection.
-    unsigned int num_states() const;
+    [[nodiscard]] unsigned int num_states() const;
 
     /// Check if the corresponding abstract state in the PDB's projection of an
     /// input state is a dead end.
-    bool is_dead_end(const State& s) const;
+    [[nodiscard]] bool is_dead_end(const State& s) const;
 
     /// Check if the abstract state in the PDB's projection corresponging to an
     /// input state rank is a dead end.
-    bool is_dead_end(StateRank rank) const;
+    [[nodiscard]] bool is_dead_end(StateRank rank) const;
 
     /// Compute the state rank of the abstract state of an input state.
-    StateRank get_abstract_state(const State& state) const;
+    [[nodiscard]] StateRank get_abstract_state(const State& state) const;
 
     /// Get the optimal state value of the abstract state corresponding to the
     /// input state.
@@ -281,9 +276,6 @@ public:
     /// Get a heuristic evaluation for an abstract state given by a state rank.
     [[nodiscard]] EvaluationResult evaluate(StateRank s) const;
 
-    // Get the pattern of the pattern database.
-    const Pattern& get_pattern() const;
-
     /**
      * @brief Extracts an abstract optimal policy for the PDB's projection from
      * the PDB value table.
@@ -292,7 +284,8 @@ public:
      * wildcard option is specified, a wildcard policy will be returned, i.e., a
      * policy that assigns multiple equivalent operators to a abstract state.
      */
-    std::unique_ptr<AbstractPolicy> compute_optimal_abstract_policy(
+    [[nodiscard]] std::unique_ptr<AbstractPolicy>
+    compute_optimal_abstract_policy(
         ProjectionStateSpace& state_space,
         AbstractCostFunction& cost_function,
         StateRank initial_state,
@@ -307,7 +300,8 @@ public:
      * wildcard option is specified, a wildcard policy will be returned, i.e., a
      * policy that assigns multiple equivalent operators to a abstract state.
      */
-    std::unique_ptr<AbstractPolicy> compute_greedy_abstract_policy(
+    [[nodiscard]] std::unique_ptr<AbstractPolicy>
+    compute_greedy_abstract_policy(
         ProjectionStateSpace& state_space,
         AbstractCostFunction& cost_function,
         StateRank initial_state,
@@ -321,11 +315,11 @@ public:
         ProjectionStateSpace& state_space,
         AbstractCostFunction& cost_function,
         StateRank initial_state,
-        const std::string& path,
+        std::ostream& out,
         bool transition_labels) const;
 
-private:
 #if !defined(NDEBUG) && defined(USE_LP)
+private:
     void verify(
         ProjectionStateSpace& state_space,
         AbstractCostFunction& cost_function,

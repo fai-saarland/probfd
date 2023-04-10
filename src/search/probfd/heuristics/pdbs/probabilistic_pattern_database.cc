@@ -55,6 +55,57 @@ public:
 };
 } // namespace
 
+void ProbabilisticPatternDatabase::compute_value_table(
+    ProjectionStateSpace& state_space,
+    AbstractCostFunction& cost_function,
+    StateRank initial_state,
+    const StateRankEvaluator& heuristic)
+{
+    using namespace preprocessing;
+    using namespace engines::ta_topological_vi;
+
+    QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
+        analysis(&state_space, &cost_function, true);
+
+    std::vector<StateID> pruned_states;
+
+    if (dead_end_cost == INFINITE_VALUE) {
+        analysis.run_analysis(
+            initial_state,
+            utils::discarding_output_iterator{},
+            std::back_inserter(pruned_states),
+            utils::discarding_output_iterator{});
+    } else {
+        analysis.run_analysis(
+            initial_state,
+            std::back_inserter(pruned_states),
+            utils::discarding_output_iterator{},
+            utils::discarding_output_iterator{});
+    }
+
+    WrapperHeuristic h(pruned_states, heuristic, dead_end_cost);
+
+    TATopologicalValueIteration<StateRank, const AbstractOperator*> vi(
+        &state_space,
+        &cost_function,
+        &h);
+
+    vi.solve(initial_state.id, value_table);
+
+#if !defined(NDEBUG)
+    std::cout << "(II) Pattern [";
+    for (unsigned i = 0; i < ranking_function_.get_pattern().size(); ++i) {
+        std::cout << (i > 0 ? ", " : "") << ranking_function_.get_pattern()[i];
+    }
+
+    std::cout << "]: value=" << value_table[initial_state.id] << std::endl;
+
+#if defined(USE_LP)
+    verify(state_space, cost_function, initial_state, pruned_states);
+#endif
+#endif
+}
+
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     Pattern pattern,
@@ -238,10 +289,9 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         MergeEvaluator(ranking_function_, left, right));
 }
 
-const StateRankingFunction&
-ProbabilisticPatternDatabase::get_abstract_state_mapper() const
+const Pattern& ProbabilisticPatternDatabase::get_pattern() const
 {
-    return ranking_function_;
+    return ranking_function_.get_pattern();
 }
 
 unsigned int ProbabilisticPatternDatabase::num_states() const
@@ -283,11 +333,6 @@ EvaluationResult ProbabilisticPatternDatabase::evaluate(StateRank s) const
 StateRank ProbabilisticPatternDatabase::get_abstract_state(const State& s) const
 {
     return ranking_function_.rank(s);
-}
-
-const Pattern& ProbabilisticPatternDatabase::get_pattern() const
-{
-    return ranking_function_.get_pattern();
 }
 
 std::unique_ptr<AbstractPolicy>
@@ -517,7 +562,7 @@ void ProbabilisticPatternDatabase::dump_graphviz(
     ProjectionStateSpace& state_space,
     AbstractCostFunction& cost_function,
     StateRank initial_state,
-    const std::string& path,
+    std::ostream& out,
     bool transition_labels) const
 {
     using namespace engine_interfaces;
@@ -548,8 +593,6 @@ void ProbabilisticPatternDatabase::dump_graphviz(
         return transition_labels ? op_names(op) : "";
     };
 
-    std::ofstream out(path);
-
     graphviz::dump_state_space_dot_graph<StateRank, const AbstractOperator*>(
         out,
         initial_state,
@@ -559,57 +602,6 @@ void ProbabilisticPatternDatabase::dump_graphviz(
         sts,
         ats,
         true);
-}
-
-void ProbabilisticPatternDatabase::compute_value_table(
-    ProjectionStateSpace& state_space,
-    AbstractCostFunction& cost_function,
-    StateRank initial_state,
-    const StateRankEvaluator& heuristic)
-{
-    using namespace preprocessing;
-    using namespace engines::ta_topological_vi;
-
-    QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
-        analysis(&state_space, &cost_function, true);
-
-    std::vector<StateID> pruned_states;
-
-    if (dead_end_cost == INFINITE_VALUE) {
-        analysis.run_analysis(
-            initial_state,
-            utils::discarding_output_iterator{},
-            std::back_inserter(pruned_states),
-            utils::discarding_output_iterator{});
-    } else {
-        analysis.run_analysis(
-            initial_state,
-            std::back_inserter(pruned_states),
-            utils::discarding_output_iterator{},
-            utils::discarding_output_iterator{});
-    }
-
-    WrapperHeuristic h(pruned_states, heuristic, dead_end_cost);
-
-    TATopologicalValueIteration<StateRank, const AbstractOperator*> vi(
-        &state_space,
-        &cost_function,
-        &h);
-
-    vi.solve(initial_state.id, value_table);
-
-#if !defined(NDEBUG)
-    std::cout << "(II) Pattern [";
-    for (unsigned i = 0; i < ranking_function_.get_pattern().size(); ++i) {
-        std::cout << (i > 0 ? ", " : "") << ranking_function_.get_pattern()[i];
-    }
-
-    std::cout << "]: value=" << value_table[initial_state.id] << std::endl;
-
-#if defined(USE_LP)
-    verify(state_space, cost_function, initial_state, pruned_states);
-#endif
-#endif
 }
 
 #if !defined(NDEBUG) && defined(USE_LP)
