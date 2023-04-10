@@ -105,7 +105,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
-    ProjectionCostFunction& cost_function,
+    AbstractCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic)
     : ProbabilisticPatternDatabase(
@@ -134,7 +134,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
-    ProjectionCostFunction& cost_function,
+    AbstractCostFunction& cost_function,
     StateRank initial_state,
     const ::pdbs::PatternDatabase& pdb)
     : ProbabilisticPatternDatabase(
@@ -177,7 +177,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
-    ProjectionCostFunction& cost_function,
+    AbstractCostFunction& cost_function,
     StateRank initial_state,
     const ProbabilisticPatternDatabase& pdb,
     int add_var)
@@ -223,7 +223,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
-    ProjectionCostFunction& cost_function,
+    AbstractCostFunction& cost_function,
     StateRank initial_state,
     const ProbabilisticPatternDatabase& left,
     const ProbabilisticPatternDatabase& right)
@@ -293,7 +293,7 @@ const Pattern& ProbabilisticPatternDatabase::get_pattern() const
 std::unique_ptr<AbstractPolicy>
 ProbabilisticPatternDatabase::compute_optimal_abstract_policy(
     ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    AbstractCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
@@ -416,7 +416,7 @@ ProbabilisticPatternDatabase::compute_optimal_abstract_policy(
 std::unique_ptr<AbstractPolicy>
 ProbabilisticPatternDatabase::compute_greedy_abstract_policy(
     ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    AbstractCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
@@ -515,7 +515,7 @@ ProbabilisticPatternDatabase::compute_greedy_abstract_policy(
 void ProbabilisticPatternDatabase::dump_graphviz(
     const ProbabilisticTaskProxy& task_proxy,
     ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    AbstractCostFunction& cost_function,
     StateRank initial_state,
     const std::string& path,
     bool transition_labels) const
@@ -563,7 +563,7 @@ void ProbabilisticPatternDatabase::dump_graphviz(
 
 void ProbabilisticPatternDatabase::compute_value_table(
     ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    AbstractCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic)
 {
@@ -615,7 +615,7 @@ void ProbabilisticPatternDatabase::compute_value_table(
 #if !defined(NDEBUG) && defined(USE_LP)
 void ProbabilisticPatternDatabase::verify(
     ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    AbstractCostFunction& cost_function,
     StateRank initial_state,
     const std::vector<StateID>& pruned_states)
 {

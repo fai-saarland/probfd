@@ -62,7 +62,7 @@ class ProbabilisticPatternDatabase {
 
     void compute_value_table(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
+        AbstractCostFunction& cost_function,
         StateRank initial_state,
         const StateRankEvaluator& heuristic);
 
@@ -104,7 +104,7 @@ public:
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& cost_function,
+        AbstractCostFunction& cost_function,
         StateRank initial_state,
         const StateRankEvaluator& heuristic =
             ConstantEvaluator<StateRank>(0_vt));
@@ -149,7 +149,7 @@ public:
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& cost_function,
+        AbstractCostFunction& cost_function,
         StateRank initial_state,
         const ::pdbs::PatternDatabase& pdb);
 
@@ -193,7 +193,7 @@ public:
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& cost_function,
+        AbstractCostFunction& cost_function,
         StateRank initial_state,
         const ProbabilisticPatternDatabase& pdb,
         int add_var);
@@ -245,7 +245,7 @@ public:
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& cost_function,
+        AbstractCostFunction& cost_function,
         StateRank initial_state,
         const ProbabilisticPatternDatabase& left,
         const ProbabilisticPatternDatabase& right);
@@ -294,7 +294,7 @@ public:
      */
     std::unique_ptr<AbstractPolicy> compute_optimal_abstract_policy(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
+        AbstractCostFunction& cost_function,
         StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard) const;
@@ -309,7 +309,7 @@ public:
      */
     std::unique_ptr<AbstractPolicy> compute_greedy_abstract_policy(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
+        AbstractCostFunction& cost_function,
         StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard) const;
@@ -319,7 +319,7 @@ public:
     void dump_graphviz(
         const ProbabilisticTaskProxy& task_proxy,
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
+        AbstractCostFunction& cost_function,
         StateRank initial_state,
         const std::string& path,
         bool transition_labels) const;
@@ -328,7 +328,7 @@ private:
 #if !defined(NDEBUG) && defined(USE_LP)
     void verify(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
+        AbstractCostFunction& cost_function,
         StateRank initial_state,
         const std::vector<StateID>& proper_states);
 #endif
