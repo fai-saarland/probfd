@@ -191,12 +191,14 @@ public:
         assert(expansion_queue_.empty());
 
         auto init_id = state_space_->get_state_id(source_state);
-        push(
-            init_id,
-            state_infos_[init_id],
-            dead_out,
-            non_proper_out,
-            proper_out);
+        if (!push(
+                init_id,
+                state_infos_[init_id],
+                dead_out,
+                non_proper_out,
+                proper_out)) {
+            return;
+        }
 
         assert(!expansion_queue_.empty());
 
@@ -375,6 +377,7 @@ private:
             state_info.expandable_goal = 0;
         } else {
             *dead_out = state_id;
+            *non_proper_out = state_id;
         }
 
         return false;
@@ -451,6 +454,7 @@ private:
                 info.stackid_ = StateInfo::UNDEF;
                 assert(info.dead);
                 *dead_out = it->stateid;
+                *non_proper_out = it->stateid;
             }
         } else {
             std::set<StackInfo*> proper_states;
@@ -498,7 +502,8 @@ private:
                         for (const auto& [first, second] : scc_elem->parents) {
                             StackInfo& pinfo = stack_[first];
 
-                            if (can_reach_exits.insert(&pinfo).second) {
+                            if (pinfo.active[second] &&
+                                can_reach_exits.insert(&pinfo).second) {
                                 queue.push_back(&pinfo);
                             }
                         }
