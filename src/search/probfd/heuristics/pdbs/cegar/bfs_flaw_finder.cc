@@ -188,6 +188,8 @@ _parse(options::OptionParser& parser)
     return std::make_shared<BFSFlawFinder>(opts);
 }
 
+static Plugin<FlawFindingStrategy> _plugin("bfs_flaw_finder", _parse);
+
 } // namespace cegar
 } // namespace pdbs
 } // namespace heuristics
