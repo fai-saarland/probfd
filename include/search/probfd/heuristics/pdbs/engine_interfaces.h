@@ -21,7 +21,7 @@ using StateRankEvaluator = engine_interfaces::Evaluator<StateRank>;
 using AbstractCostFunction =
     engine_interfaces::SimpleCostFunction<StateRank, const AbstractOperator*>;
 
-class AbstractOperator;
+struct AbstractOperator;
 class StateRankingFunction;
 class ProbabilisticPatternDatabase;
 
