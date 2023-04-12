@@ -32,6 +32,8 @@ class PatternCollectionGeneratorFastCegar : public PatternCollectionGenerator {
     // Flaw finding strategy
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
+
     const int single_generator_max_pdb_size;
     const int single_generator_max_collection_size; // Possibly overwritten by
                                                     // total_collection_max_size
@@ -45,8 +47,6 @@ class PatternCollectionGeneratorFastCegar : public PatternCollectionGenerator {
     const double blacklist_trigger_time;
     const bool blacklist_on_stagnation;
     const double total_time_limit;
-
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
     explicit PatternCollectionGeneratorFastCegar(const options::Options& opts);

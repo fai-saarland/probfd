@@ -40,12 +40,12 @@ PatternCollectionGeneratorFastCegar::PatternCollectionGeneratorFastCegar(
               "subcollection_finder_factory"))
     , flaw_strategy(
           opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
+    , rng(utils::parse_rng_from_options(opts))
     , single_generator_max_pdb_size(opts.get<int>("max_pdb_size"))
     , single_generator_max_collection_size(opts.get<int>("max_collection_size"))
     , single_generator_wildcard_policies(opts.get<bool>("wildcard"))
     , single_generator_max_time(opts.get<double>("max_time"))
     , single_generator_verbosity(opts.get<Verbosity>("verbosity"))
-    , rng(utils::parse_rng_from_options(opts))
     , total_collection_max_size(opts.get<int>("total_collection_max_size"))
     , stagnation_limit(opts.get<double>("stagnation_limit"))
     , blacklist_trigger_time(opts.get<double>("blacklist_trigger_time"))
