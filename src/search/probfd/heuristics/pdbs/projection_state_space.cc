@@ -53,7 +53,6 @@ ProjectionStateSpace::ProjectionStateSpace(
 
     const VariablesProxy variables = task_proxy.get_variables();
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
-    const GoalsProxy task_goals = task_proxy.get_goals();
 
     std::set<ProgressionOperatorFootprint> duplicate_set;
 

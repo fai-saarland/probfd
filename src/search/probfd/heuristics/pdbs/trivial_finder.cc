@@ -39,7 +39,7 @@ value_t TrivialFinder::evaluate_subcollection(
     return pdb_estimates[subcollection.front()];
 }
 
-value_t TrivialFinder::combine(value_t left, value_t right) const
+value_t TrivialFinder::combine(value_t, value_t) const
 {
     // This should never be called.
     abort();
