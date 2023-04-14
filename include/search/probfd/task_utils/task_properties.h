@@ -5,8 +5,17 @@
 
 #include "task_utils/task_properties.h"
 
+#include "operator_cost.h"
+
 namespace probfd {
 namespace task_properties {
+
+bool is_unit_cost(const ProbabilisticTaskProxy& task);
+
+value_t get_adjusted_action_cost(
+    const ProbabilisticOperatorProxy& op,
+    OperatorCost cost_type,
+    bool is_unit_cost);
 
 inline bool
 is_applicable(const ProbabilisticOperatorProxy& op, const State& state)

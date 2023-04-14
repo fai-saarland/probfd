@@ -287,7 +287,7 @@ public:
     }
 
     /// Get the cost of the operator.
-    int get_cost() const { return task->get_operator_cost(index); }
+    value_t get_cost() const { return task->get_operator_cost(index); }
 
     /// Get the name of the operator.
     std::string get_name() const { return task->get_operator_name(index); }

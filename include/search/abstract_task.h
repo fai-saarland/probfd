@@ -70,7 +70,6 @@ public:
         const = 0;
     virtual FactPair get_axiom_effect(int op_index, int eff_index) const = 0;
 
-    virtual int get_operator_cost(int index) const = 0;
     virtual std::string get_operator_name(int index) const = 0;
     virtual int get_num_operators() const = 0;
     virtual int get_num_operator_preconditions(int index) const = 0;
@@ -111,6 +110,8 @@ class AbstractTask : public AbstractTaskBase {
 public:
     AbstractTask() = default;
     virtual ~AbstractTask() override = default;
+
+    virtual int get_operator_cost(int index) const = 0;
 
     virtual int get_num_operator_effects(int op_index) const = 0;
     virtual int

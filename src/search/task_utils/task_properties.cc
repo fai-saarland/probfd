@@ -13,9 +13,9 @@ using utils::ExitCode;
 
 namespace task_properties {
 
-bool is_unit_cost(const TaskBaseProxy& task)
+bool is_unit_cost(const TaskProxy& task)
 {
-    for (OperatorLightProxy op : task.get_light_operators()) {
+    for (OperatorProxy op : task.get_operators()) {
         if (op.get_cost() != 1) return false;
     }
     return true;
@@ -62,30 +62,30 @@ void verify_no_conditional_effects(const TaskProxy& task)
     }
 }
 
-vector<int> get_operator_costs(const TaskBaseProxy& task_proxy)
+vector<int> get_operator_costs(const TaskProxy& task_proxy)
 {
     vector<int> costs;
-    OperatorsLightProxy operators = task_proxy.get_light_operators();
+    OperatorsProxy operators = task_proxy.get_operators();
     costs.reserve(operators.size());
-    for (OperatorLightProxy op : operators)
+    for (OperatorProxy op : operators)
         costs.push_back(op.get_cost());
     return costs;
 }
 
-double get_average_operator_cost(const TaskBaseProxy& task_proxy)
+double get_average_operator_cost(const TaskProxy& task_proxy)
 {
     double average_operator_cost = 0;
-    for (OperatorLightProxy op : task_proxy.get_light_operators()) {
+    for (OperatorProxy op : task_proxy.get_operators()) {
         average_operator_cost += op.get_cost();
     }
-    average_operator_cost /= task_proxy.get_light_operators().size();
+    average_operator_cost /= task_proxy.get_operators().size();
     return average_operator_cost;
 }
 
-int get_min_operator_cost(const TaskBaseProxy& task_proxy)
+int get_min_operator_cost(const TaskProxy& task_proxy)
 {
     int min_cost = numeric_limits<int>::max();
-    for (OperatorLightProxy op : task_proxy.get_light_operators()) {
+    for (OperatorProxy op : task_proxy.get_operators()) {
         min_cost = min(min_cost, op.get_cost());
     }
     return min_cost;

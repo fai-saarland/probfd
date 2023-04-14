@@ -34,6 +34,9 @@ class ProbabilisticTask : public AbstractTaskBase {
 public:
     virtual ~ProbabilisticTask() override = default;
 
+    /// Get the cost of the probabilistic operator with index \p op_index.
+    virtual value_t get_operator_cost(int op_index) const = 0;
+
     /// Get the number of probabilistic outcomes of the probabilistic operator
     /// with index \p op_index.
     virtual int get_num_operator_outcomes(int op_index) const = 0;

@@ -16,6 +16,31 @@ using utils::ExitCode;
 namespace probfd {
 namespace task_properties {
 
+bool is_unit_cost(const ProbabilisticTaskProxy& task)
+{
+    for (ProbabilisticOperatorProxy op : task.get_operators()) {
+        if (op.get_cost() != 1_vt) return false;
+    }
+    return true;
+}
+
+value_t get_adjusted_action_cost(
+    const ProbabilisticOperatorProxy& op,
+    OperatorCost cost_type,
+    bool is_unit_cost)
+{
+    switch (cost_type) {
+    case NORMAL: return op.get_cost();
+    case ONE: return 1_vt;
+    case PLUSONE:
+        if (is_unit_cost)
+            return 1_vt;
+        else
+            return op.get_cost() + 1_vt;
+    default: ABORT("Unknown cost type");
+    }
+}
+
 static int
 get_first_conditional_effects_op_id(const ProbabilisticTaskProxy& task)
 {

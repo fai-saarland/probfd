@@ -118,7 +118,7 @@ public:
     FactPair get_axiom_effect(int op_index, int eff_index) const override;
 
     int get_num_operators() const override;
-    int get_operator_cost(int index) const override;
+    value_t get_operator_cost(int index) const override;
     string get_operator_name(int index) const override;
 
     int get_num_operator_preconditions(int index) const override;
@@ -656,9 +656,9 @@ int UnusedRootTask::get_num_operators() const
     return operators.size();
 }
 
-int UnusedRootTask::get_operator_cost(int index) const
+value_t UnusedRootTask::get_operator_cost(int index) const
 {
-    return get_operator(index).cost;
+    return static_cast<value_t>(get_operator(index).cost);
 }
 
 string UnusedRootTask::get_operator_name(int index) const

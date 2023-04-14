@@ -36,7 +36,7 @@ int main(int argc, const char** argv)
         probfd::tasks::read_root_tasks(cin);
         utils::g_log << "done reading input!" << endl;
         ProbabilisticTaskProxy task_proxy(*probfd::tasks::g_root_task);
-        unit_cost = ::task_properties::is_unit_cost(task_proxy);
+        unit_cost = probfd::task_properties::is_unit_cost(task_proxy);
     }
 
     shared_ptr<SolverInterface> engine;

@@ -37,7 +37,7 @@ inline bool is_goal_state(const TaskBaseProxy& task, const State& state)
 
   Runtime: O(n), where n is the number of operators.
 */
-extern bool is_unit_cost(const TaskBaseProxy& task);
+extern bool is_unit_cost(const TaskProxy& task);
 
 // Runtime: O(1)
 extern bool has_axioms(const TaskBaseProxy& task);
@@ -58,9 +58,9 @@ extern bool has_conditional_effects(const TaskProxy& task);
 */
 extern void verify_no_conditional_effects(const TaskProxy& task);
 
-extern std::vector<int> get_operator_costs(const TaskBaseProxy& task_proxy);
-extern double get_average_operator_cost(const TaskBaseProxy& task_proxy);
-extern int get_min_operator_cost(const TaskBaseProxy& task_proxy);
+extern std::vector<int> get_operator_costs(const TaskProxy& task_proxy);
+extern double get_average_operator_cost(const TaskProxy& task_proxy);
+extern int get_min_operator_cost(const TaskProxy& task_proxy);
 
 /*
   Return the number of facts of the task.

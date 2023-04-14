@@ -797,8 +797,6 @@ public:
         return OperatorPreconditionsProxy(*task, index);
     }
 
-    int get_cost() const { return task->get_operator_cost(index); }
-
     std::string get_name() const { return task->get_operator_name(index); }
 
     int get_id() const { return index; }
