@@ -17,6 +17,7 @@
 #include "utils/math.h"
 #include "utils/memory.h"
 
+#include "probfd/storage/per_state_storage.h"
 #include "state_registry.h"
 
 #include <algorithm>
@@ -237,6 +238,13 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
         unique_ptr<Flaw> flaw = find_flaw(*solution);
         find_flaw_timer.stop();
 
+        if (!utils::extra_memory_padding_is_reserved()) {
+            if (log.is_at_least_normal()) {
+                log << "Reached memory limit during flaw search." << endl;
+            }
+            break;
+        }
+
         if (!flaw) {
             if (log.is_at_least_normal()) {
                 log << "Found concrete solution during refinement." << endl;
@@ -274,19 +282,23 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
     StateRegistry state_registry(task_proxy);
 
     struct QueueItem {
-        State state;
+        ::StateID state_id;
         const AbstractState* abstract_state;
     };
 
-    State initial = state_registry.get_initial_state();
-    initial.unpack();
+    const State initial = state_registry.get_initial_state();
     const AbstractState* abstract_initial = &abstraction->get_initial_state();
 
-    std::deque<QueueItem> frontier({{initial, abstract_initial}});
-    std::unordered_set<StateID> visited({initial.get_id()});
+    std::deque<QueueItem> frontier({{initial.get_id(), abstract_initial}});
+    storage::PerStateStorage<bool> visited(false);
+    visited[0] = true;
 
     for (; !frontier.empty(); frontier.pop_front()) {
+        if (!utils::extra_memory_padding_is_reserved()) break;
+
         QueueItem& next = frontier.front();
+
+        State state = state_registry.lookup_state(next.state_id);
 
         auto decision = policy.get_decision(next.abstract_state);
 
@@ -295,11 +307,12 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
             assert(abstraction->get_goals().contains(
                 next.abstract_state->get_id()));
 
-            if (!::task_properties::is_goal_state(task_proxy, next.state)) {
+            if (!::task_properties::is_goal_state(task_proxy, state)) {
                 if (log.is_at_least_debug())
                     log << "  Goal test failed." << endl;
+                state.unpack();
                 return std::make_unique<Flaw>(
-                    std::move(next.state),
+                    std::move(state),
                     *next.abstract_state,
                     get_cartesian_set(domain_sizes, task_proxy.get_goals()));
             }
@@ -310,11 +323,12 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
         const auto op = task_proxy.get_operators()[transition->op_id];
 
         // Check for operator applicability
-        if (!task_properties::is_applicable(op, next.state)) {
+        if (!task_properties::is_applicable(op, state)) {
             if (log.is_at_least_debug())
                 log << "  Operator not applicable: " << op.get_name() << endl;
+            state.unpack();
             return std::make_unique<Flaw>(
-                std::move(next.state),
+                std::move(state),
                 *next.abstract_state,
                 get_cartesian_set(domain_sizes, op.get_preconditions()));
         }
@@ -326,27 +340,29 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
                 &abstraction->get_abstract_state(transition->target_ids[i]);
 
             State next_concrete_state =
-                state_registry.get_successor_state(next.state, outcome);
-            next_concrete_state.unpack();
+                state_registry.get_successor_state(state, outcome);
 
             if (!next_abstract_state->includes(next_concrete_state)) {
                 if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
+                state.unpack();
                 return std::make_unique<Flaw>(
-                    std::move(next.state),
+                    std::move(state),
                     *next.abstract_state,
                     next_abstract_state->regress(op, outcome.get_effects()));
             }
 
             // Add successor to frontier if not seen before
-            if (visited.insert(next_concrete_state.get_id()).second) {
+            auto bool_proxy = visited[next_concrete_state.get_id()];
+            if (!bool_proxy) {
+                bool_proxy = true;
                 frontier.emplace_back(
-                    std::move(next_concrete_state),
+                    next_concrete_state.get_id(),
                     next_abstract_state);
             }
         }
     }
 
-    // We found a concrete policy.
+    // We found a concrete policy or ran out of memory.
     return nullptr;
 }
 
