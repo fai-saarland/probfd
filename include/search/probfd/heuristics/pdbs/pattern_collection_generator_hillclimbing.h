@@ -82,6 +82,9 @@ class PatternCollectionGeneratorHillclimbing
     const double max_time;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
+    // maximum size of the PDB search space
+    int remaining_states;
+
     // for stats only
     int num_rejected;
 
@@ -94,7 +97,7 @@ class PatternCollectionGeneratorHillclimbing
 
       The method returns the size of the largest PDB added to candidate_pdbs.
     */
-    int generate_candidate_pdbs(
+    unsigned int generate_candidate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function,
         utils::CountdownTimer& hill_climbing_timer,

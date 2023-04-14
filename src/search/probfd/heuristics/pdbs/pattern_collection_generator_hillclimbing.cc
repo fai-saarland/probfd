@@ -164,6 +164,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     , min_improvement(opts.get<int>("min_improvement"))
     , max_time(opts.get<double>("max_time"))
     , rng(utils::parse_rng_from_options(opts))
+    , remaining_states(opts.get<int>("search_space_max_size"))
     , num_rejected(0)
 {
 }
@@ -171,7 +172,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
 PatternCollectionGeneratorHillclimbing::
     ~PatternCollectionGeneratorHillclimbing() = default;
 
-int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
+unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function,
     utils::CountdownTimer& hill_climbing_timer,
@@ -182,8 +183,8 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
 {
     const VariablesProxy variables = task_proxy.get_variables();
     const Pattern& pattern = pdb.get_pattern();
-    int pdb_size = pdb.num_states();
-    int max_pdb_size = 0;
+    unsigned int pdb_size = pdb.num_states();
+    unsigned int max_pdb_size = 0;
 
     for (int pattern_var : pattern) {
         assert(utils::in_bounds(pattern_var, relevant_neighbours));
@@ -203,11 +204,12 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 throw HillClimbingTimeout();
             }
 
-            int rel_var_size = variables[rel_var_id].get_domain_size();
-            if (utils::is_product_within_limit(
-                    pdb_size,
-                    rel_var_size,
-                    pdb_max_size)) {
+            const int rel_var_size = variables[rel_var_id].get_domain_size();
+            const bool may_add = utils::is_product_within_limit(
+                pdb_size,
+                rel_var_size,
+                std::min(pdb_max_size, remaining_states));
+            if (may_add) {
                 Pattern new_pattern(pattern);
                 utils::insert_set(new_pattern, rel_var_id);
 
@@ -224,8 +226,9 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                             rel_var_id,
                             task_cost_function,
                             task_proxy.get_initial_state()));
-                    max_pdb_size =
-                        std::max(max_pdb_size, (int)new_pdb->num_states());
+                    const unsigned int num_states = new_pdb->num_states();
+                    max_pdb_size = std::max(max_pdb_size, num_states);
+                    remaining_states -= num_states;
                 }
             } else {
                 ++num_rejected;
@@ -403,11 +406,12 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
     // limit to avoid recomputation.
     PPDBCollection candidate_pdbs;
     // The maximum size over all PDBs in candidate_pdbs.
-    int max_pdb_size = 0;
+    unsigned int max_pdb_size = 0;
+    const int max_search_space_size = remaining_states;
 
     try {
         for (const auto& current_pdb : *current_pdbs.get_pattern_databases()) {
-            int new_max_pdb_size = generate_candidate_pdbs(
+            unsigned int new_max_pdb_size = generate_candidate_pdbs(
                 task_proxy,
                 task_cost_function,
                 hill_climbing_timer,
@@ -439,21 +443,25 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
         while (true) {
             ++num_iterations;
             value_t init_h = current_pdbs.get_value(initial_state);
+            const bool initial_dead = current_pdbs.is_dead_end(initial_state);
 
             if (verbosity >= Verbosity::VERBOSE) {
                 std::cout << "current collection size is "
-                          << current_pdbs.get_size()
+                          << current_pdbs.get_size() << "\n"
+                          << "current search space size is "
+                          << max_search_space_size - remaining_states
                           << "\ncurrent initial h value: ";
-            }
 
-            if (current_pdbs.is_dead_end(initial_state)) {
-                if (verbosity >= Verbosity::VERBOSE) {
+                if (initial_dead) {
                     std::cout << "infinite => stopping hill climbing"
                               << std::endl;
+                } else {
+                    std::cout << init_h << std::endl;
                 }
+            }
+
+            if (initial_dead) {
                 break;
-            } else if (verbosity >= Verbosity::VERBOSE) {
-                std::cout << init_h << std::endl;
             }
 
             samples.clear();
@@ -500,7 +508,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             current_pdbs.add_pdb(best_pdb);
 
             // Generate candidate patterns and PDBs for next iteration.
-            int new_max_pdb_size = generate_candidate_pdbs(
+            unsigned int new_max_pdb_size = generate_candidate_pdbs(
                 task_proxy,
                 task_cost_function,
                 hill_climbing_timer,
@@ -615,6 +623,11 @@ void add_hillclimbing_options(OptionParser& parser)
         "collection_max_size",
         "maximal number of states in the pattern collection",
         "20000000",
+        Bounds("1", "infinity"));
+    parser.add_option<int>(
+        "search_space_max_size",
+        "maximal number of states in the pattern search space",
+        "100000000",
         Bounds("1", "infinity"));
     parser.add_option<int>(
         "num_samples",
