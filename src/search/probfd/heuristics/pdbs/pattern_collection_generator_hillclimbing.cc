@@ -469,8 +469,6 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
                 break;
             }
 
-            samples.clear();
-            samples_h_values.clear();
             sample_states(
                 hill_climbing_timer,
                 current_pdbs,
@@ -488,6 +486,9 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
                 samples,
                 samples_h_values,
                 candidate_pdbs);
+
+            samples.clear();
+            samples_h_values.clear();
 
             if (improvement < min_improvement) {
                 if (verbosity >= Verbosity::VERBOSE) {
