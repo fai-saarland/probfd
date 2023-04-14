@@ -31,8 +31,8 @@ namespace pdbs {
  */
 class StateRankingFunction {
     struct VariableInfo {
-        int domain;
         long long int multiplier;
+        int domain;
     };
 
     Pattern pattern_;
