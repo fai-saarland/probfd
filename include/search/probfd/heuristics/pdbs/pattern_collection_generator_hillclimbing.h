@@ -10,9 +10,11 @@
 
 #include "utils/logging.h"
 
+#include <cstdint>
 #include <cstdlib>
 #include <memory>
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 namespace options {
@@ -30,6 +32,11 @@ namespace sampling {
 class RandomWalkSampler;
 }
 
+namespace dynamic_bitset {
+template <typename>
+class DynamicBitset;
+};
+
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
@@ -40,6 +47,10 @@ class IncrementalPPDBs;
 // Implementation of the pattern generation algorithm by Haslum et al.
 class PatternCollectionGeneratorHillclimbing
     : public PatternCollectionGenerator {
+    using DynamicBitset = dynamic_bitset::DynamicBitset<uint64_t>;
+
+    struct Sample;
+
     struct Statistics : public utils::Printable {
         unsigned long long int num_iterations;
         unsigned long long int generated_patterns;
@@ -103,7 +114,7 @@ class PatternCollectionGeneratorHillclimbing
         utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const ProbabilisticPatternDatabase& pdb,
-        std::set<Pattern>& generated_patterns,
+        std::set<DynamicBitset>& generated_patterns,
         PPDBCollection& candidate_pdbs);
 
     /*
@@ -121,7 +132,7 @@ class PatternCollectionGeneratorHillclimbing
         IncrementalPPDBs& current_pdbs,
         const sampling::RandomWalkSampler& sampler,
         value_t init_h,
-        std::vector<State>& samples);
+        std::vector<Sample>& samples);
 
     /*
       Searches for the best improving pdb in candidate_pdbs according to the
@@ -131,8 +142,7 @@ class PatternCollectionGeneratorHillclimbing
     std::pair<int, int> find_best_improving_pdb(
         utils::CountdownTimer& hill_climbing_timer,
         IncrementalPPDBs& current_pdbs,
-        const std::vector<State>& samples,
-        const std::vector<EvaluationResult>& samples_h_values,
+        const std::vector<Sample>& samples,
         PPDBCollection& candidate_pdbs);
 
     /*
@@ -143,8 +153,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     bool is_heuristic_improved(
         const ProbabilisticPatternDatabase& pdb,
-        const State& sample,
-        EvaluationResult h_collection,
+        const Sample& sample,
         const PPDBCollection& pdbs,
         const std::vector<PatternSubCollection>& pattern_subcollections,
         const IncrementalPPDBs& current_pdbs);

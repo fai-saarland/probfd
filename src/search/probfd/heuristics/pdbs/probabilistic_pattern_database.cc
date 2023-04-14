@@ -1,4 +1,5 @@
 #include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/engines/ta_topological_value_iteration.h"
 
@@ -206,7 +207,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     bool operator_pruning)
     : ProbabilisticPatternDatabase(
           task_proxy,
-          utils::insert(pdb.get_pattern(), add_var),
+          extended_pattern(pdb.get_pattern(), add_var),
           task_cost_function.get_non_goal_termination_cost())
 {
     ProjectionStateSpace state_space(

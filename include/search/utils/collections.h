@@ -93,14 +93,6 @@ auto find_sorted(Iterator begin, Sentinel end, const T& elem)
     return it != end && *it == elem ? it : end;
 }
 
-inline std::vector<int> insert(std::vector<int> pattern, int add_var)
-{
-    assert(!utils::contains(pattern, add_var));
-    auto it = std::lower_bound(pattern.begin(), pattern.end(), add_var);
-    pattern.insert(it, add_var);
-    return pattern;
-}
-
 template <typename T>
 T swap_and_pop_from_vector(std::vector<T>& vec, size_t pos)
 {

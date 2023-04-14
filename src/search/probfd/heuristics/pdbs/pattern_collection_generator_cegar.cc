@@ -1,4 +1,5 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
+#include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
@@ -486,7 +487,9 @@ void PatternCollectionGeneratorCegar::add_variable_to_pattern(
     // compute new solution
     std::unique_ptr<PDBInfo> new_info(new PDBInfo(
         task_proxy,
-        StateRankingFunction(task_proxy, utils::insert(pdb.get_pattern(), var)),
+        StateRankingFunction(
+            task_proxy,
+            extended_pattern(pdb.get_pattern(), var)),
         task_cost_function,
         rng,
         pdb,

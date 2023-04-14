@@ -2,6 +2,7 @@
 #define ALGORITHMS_DYNAMIC_BITSET_H
 
 #include <cassert>
+#include <compare>
 #include <limits>
 #include <vector>
 
@@ -123,6 +124,10 @@ public:
         }
         return true;
     }
+
+    friend auto
+    operator<=>(const DynamicBitset<Block>&, const DynamicBitset<Block>&) =
+        default;
 };
 
 template<typename Block>

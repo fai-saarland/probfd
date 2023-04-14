@@ -12,6 +12,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "algorithms/dynamic_bitset.h"
+
 #include "pdbs/utils.h"
 
 #include "utils/collections.h"
@@ -138,6 +140,11 @@ compute_relevant_neighbours(const ProbabilisticTask* task)
     return connected_vars_by_variable;
 }
 
+struct PatternCollectionGeneratorHillclimbing::Sample {
+    State state;
+    EvaluationResult h_eval;
+};
+
 void PatternCollectionGeneratorHillclimbing::Statistics::print(
     std::ostream& out) const
 {
@@ -178,9 +185,15 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     utils::CountdownTimer& hill_climbing_timer,
     const std::vector<std::vector<int>>& relevant_neighbours,
     const ProbabilisticPatternDatabase& pdb,
-    std::set<Pattern>& generated_patterns,
+    std::set<DynamicBitset>& generated_patterns,
     PPDBCollection& candidate_pdbs)
 {
+    using namespace utils;
+
+    if (verbosity >= Verbosity::VERBOSE) {
+        std::cout << "Generating pattern neighborhood..." << std::endl;
+    }
+
     const VariablesProxy variables = task_proxy.get_variables();
     const Pattern& pattern = pdb.get_pattern();
     unsigned int pdb_size = pdb.num_states();
@@ -205,39 +218,60 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
             }
 
             const int rel_var_size = variables[rel_var_id].get_domain_size();
-            const bool may_add = utils::is_product_within_limit(
-                pdb_size,
-                rel_var_size,
-                std::min(pdb_max_size, remaining_states));
-            if (may_add) {
-                Pattern new_pattern(pattern);
-                utils::insert_set(new_pattern, rel_var_id);
+            const int max_size = std::min(pdb_max_size, remaining_states);
+
+            if (!is_product_within_limit(pdb_size, rel_var_size, max_size)) {
+                ++num_rejected;
 
                 if (verbosity >= Verbosity::VERBOSE) {
-                    std::cout << "Generating PDB for pattern " << new_pattern
-                              << "..." << std::endl;
+                    std::cout << "Skipping neighboring pattern for variable "
+                              << rel_var_id
+                              << " because its PDB would exceed size limits."
+                              << std::endl;
                 }
 
-                if (generated_patterns.insert(new_pattern).second) {
-                    /*
-                      If we haven't seen this pattern before, generate a PDB
-                      for it and add it to candidate_pdbs if its size does not
-                      surpass the size limit.
-                    */
-                    auto& new_pdb = candidate_pdbs.emplace_back(
-                        new ProbabilisticPatternDatabase(
-                            task_proxy,
-                            pdb,
-                            rel_var_id,
-                            task_cost_function,
-                            task_proxy.get_initial_state()));
-                    const unsigned int num_states = new_pdb->num_states();
-                    max_pdb_size = std::max(max_pdb_size, num_states);
-                    remaining_states -= num_states;
-                }
-            } else {
-                ++num_rejected;
+                continue;
             }
+
+            DynamicBitset bitset(variables.size());
+
+            for (int var : pattern) {
+                bitset.set(static_cast<size_t>(var));
+            }
+
+            bitset.set(static_cast<size_t>(rel_var_id));
+
+            if (!generated_patterns.insert(bitset).second) {
+                if (verbosity >= Verbosity::VERBOSE) {
+                    std::cout << "Skipping neighboring pattern for variable "
+                              << rel_var_id << " because it already exists."
+                              << std::endl;
+                }
+
+                continue;
+            }
+
+            if (verbosity >= Verbosity::VERBOSE) {
+                std::cout
+                    << "Generating neighboring PDB for pattern with variable "
+                    << rel_var_id << std::endl;
+            }
+
+            /*
+                If we haven't seen this pattern before, generate a PDB
+                for it and add it to candidate_pdbs if its size does not
+                surpass the size limit.
+            */
+            auto& new_pdb =
+                candidate_pdbs.emplace_back(new ProbabilisticPatternDatabase(
+                    task_proxy,
+                    pdb,
+                    rel_var_id,
+                    task_cost_function,
+                    task_proxy.get_initial_state()));
+            const unsigned int num_states = new_pdb->num_states();
+            max_pdb_size = std::max(max_pdb_size, num_states);
+            remaining_states -= num_states;
         }
     }
 
@@ -249,18 +283,25 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
     IncrementalPPDBs& current_pdbs,
     const sampling::RandomWalkSampler& sampler,
     value_t init_h,
-    std::vector<State>& samples)
+    std::vector<Sample>& samples)
 {
     assert(samples.empty());
 
-    samples.reserve(num_samples);
     for (int i = 0; i < num_samples; ++i) {
         auto f = [&current_pdbs](const State& state) {
             return current_pdbs.is_dead_end(state);
         };
 
         // TODO How to choose the length of the random walk in MaxProb?
-        samples.push_back(sampler.sample_state(static_cast<int>(init_h), f));
+        State sample = sampler.sample_state(static_cast<int>(init_h), f);
+
+        if (hill_climbing_timer.is_expired()) {
+            throw HillClimbingTimeout();
+        }
+
+        EvaluationResult eval = current_pdbs.evaluate(sample);
+        samples.emplace_back(std::move(sample), eval);
+
         if (hill_climbing_timer.is_expired()) {
             throw HillClimbingTimeout();
         }
@@ -271,8 +312,7 @@ std::pair<int, int>
 PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
     utils::CountdownTimer& hill_climbing_timer,
     IncrementalPPDBs& current_pdbs,
-    const std::vector<State>& samples,
-    const std::vector<EvaluationResult>& samples_h_values,
+    const std::vector<Sample>& samples,
     PPDBCollection& candidate_pdbs)
 {
     /*
@@ -318,14 +358,10 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
         int count = 0;
         std::vector<PatternSubCollection> pattern_subcollections =
             current_pdbs.get_pattern_subcollections(pdb->get_pattern());
-        for (int sample_id = 0; sample_id < num_samples; ++sample_id) {
-            const State& sample = samples[sample_id];
-            assert(utils::in_bounds(sample_id, samples_h_values));
-            EvaluationResult h_collection = samples_h_values[sample_id];
+        for (const auto& sample : samples) {
             if (is_heuristic_improved(
                     *pdb,
                     sample,
-                    h_collection,
                     *current_pdbs.get_pattern_databases(),
                     pattern_subcollections,
                     current_pdbs)) {
@@ -349,13 +385,12 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
 
 bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
     const ProbabilisticPatternDatabase& pdb,
-    const State& sample,
-    EvaluationResult h_collection_eval,
+    const Sample& sample,
     const PPDBCollection& pdbs,
     const std::vector<PatternSubCollection>& pattern_subcollections,
     const IncrementalPPDBs& current_pdbs)
 {
-    const EvaluationResult h_pattern_eval = pdb.evaluate(sample);
+    const EvaluationResult h_pattern_eval = pdb.evaluate(sample.state);
 
     if (h_pattern_eval.is_unsolvable()) {
         return true;
@@ -364,6 +399,8 @@ bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
     const value_t h_pattern = h_pattern_eval.get_estimate();
 
     // h_collection: h-value of the current collection heuristic
+    const EvaluationResult h_collection_eval = sample.h_eval;
+
     if (h_collection_eval.is_unsolvable()) return false;
 
     const value_t h_collection = h_collection_eval.get_estimate();
@@ -372,7 +409,7 @@ bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
     h_values.reserve(pdbs.size());
 
     for (const auto& p : pdbs) {
-        const EvaluationResult eval = p->evaluate(sample);
+        const EvaluationResult eval = p->evaluate(sample.state);
         if (eval.is_unsolvable()) return false;
         h_values.push_back(eval.get_estimate());
     }
@@ -406,7 +443,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
         compute_relevant_neighbours(task);
 
     // Candidate patterns generated so far (used to avoid duplicates).
-    std::set<Pattern> generated_patterns;
+    std::set<DynamicBitset> generated_patterns;
     // The PDBs for the patterns in generated_patterns that satisfy the size
     // limit to avoid recomputation.
     PPDBCollection candidate_pdbs;
@@ -435,15 +472,14 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             std::cout << "Done calculating initial candidate PDBs" << std::endl;
         }
 
-        StateRegistry state_registry(task_proxy);
-        State initial_state = state_registry.get_initial_state();
+        State initial_state = task_proxy.get_initial_state();
 
         const AbstractTask& aod = task_properties::get_determinization(task);
         TaskProxy aod_task_proxy(aod);
 
         sampling::RandomWalkSampler sampler(aod_task_proxy, *rng);
-        std::vector<State> samples;
-        std::vector<EvaluationResult> samples_h_values;
+        std::vector<Sample> samples;
+        samples.reserve(num_samples);
 
         while (true) {
             ++num_iterations;
@@ -476,19 +512,13 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
                 init_h,
                 samples);
 
-            for (const auto& sample : samples) {
-                samples_h_values.push_back(current_pdbs.evaluate(sample));
-            }
-
             const auto [improvement, best_pdb_index] = find_best_improving_pdb(
                 hill_climbing_timer,
                 current_pdbs,
                 samples,
-                samples_h_values,
                 candidate_pdbs);
 
             samples.clear();
-            samples_h_values.clear();
 
             if (improvement < min_improvement) {
                 if (verbosity >= Verbosity::VERBOSE) {
