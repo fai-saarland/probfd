@@ -33,6 +33,7 @@ generate_heuristic_functions(const options::Options& opts, utils::LogProxy& log)
         opts.get<int>("max_states"),
         opts.get<int>("max_transitions"),
         opts.get<double>("max_time"),
+        opts.get<bool>("use_general_costs"),
         opts.get<PickSplit>("pick"),
         *utils::parse_rng_from_options(opts),
         log);
@@ -107,6 +108,10 @@ static shared_ptr<TaskEvaluator> _parse(OptionParser& parser)
         pick_strategies,
         "split-selection strategy",
         "MAX_REFINED");
+    parser.add_option<bool>(
+        "use_general_costs",
+        "allow negative costs in cost partitioning",
+        "true");
 
     TaskDependentHeuristic::add_options_to_parser(parser);
 

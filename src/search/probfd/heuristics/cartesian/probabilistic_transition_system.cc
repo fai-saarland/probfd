@@ -523,6 +523,12 @@ ProbabilisticTransitionSystem::get_outgoing_transitions() const
     return outgoing;
 }
 
+const std::deque<std::vector<int>>&
+ProbabilisticTransitionSystem::get_loops() const
+{
+    return loops;
+}
+
 const std::deque<ProbabilisticTransition>&
 ProbabilisticTransitionSystem::get_transitions() const
 {

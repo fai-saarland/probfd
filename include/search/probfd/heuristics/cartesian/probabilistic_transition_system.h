@@ -85,6 +85,8 @@ public:
     get_incoming_transitions() const;
     const std::vector<std::vector<ProbabilisticTransition*>>&
     get_outgoing_transitions() const;
+    const std::deque<std::vector<int>>& get_loops() const;
+
     const std::deque<ProbabilisticTransition>& get_transitions() const;
 
     int get_num_states() const;

@@ -42,13 +42,17 @@ static const int memory_padding_in_mb = 75;
 
 static vector<value_t> compute_saturated_costs(
     const ProbabilisticTransitionSystem& transition_system,
-    const vector<value_t>& h_values)
+    const vector<value_t>& h_values,
+    bool use_general_costs)
 {
-    vector<value_t> saturated_costs(transition_system.get_num_operators(), 0);
+    vector<value_t> saturated_costs(
+        transition_system.get_num_operators(),
+        use_general_costs ? -INFINITE_VALUE : 0);
 
     const int num_states = h_values.size();
 
-    auto& out_transitions = transition_system.get_outgoing_transitions();
+    const auto& out_transitions = transition_system.get_outgoing_transitions();
+    const auto& loops = transition_system.get_loops();
 
     for (int state_id = 0; state_id < num_states; ++state_id) {
         value_t h = h_values[state_id];
@@ -56,10 +60,6 @@ static vector<value_t> compute_saturated_costs(
         /*
           No need to maintain goal distances of unreachable and dead end
           states (h == INFINITE_VALUE).
-
-          Note that the "succ_h == INFINITE_VALUE" test below is sufficient for
-          ignoring dead end states. The "h == INFINITE_VALUE" test is a speed
-          optimization.
         */
         if (h == INFINITE_VALUE) continue;
 
@@ -82,6 +82,14 @@ static vector<value_t> compute_saturated_costs(
 
         next_transition:;
         }
+
+        if (use_general_costs) {
+            /* To prevent negative cost cycles, all operators inducing
+               self-loops must have non-negative costs. */
+            for (int op_id : loops[state_id]) {
+                saturated_costs[op_id] = max(saturated_costs[op_id], 0_vt);
+            }
+        }
     }
     return saturated_costs;
 }
@@ -91,6 +99,7 @@ CostSaturation::CostSaturation(
     int max_states,
     int max_non_looping_transitions,
     double max_time,
+    bool use_general_costs,
     PickSplit pick_split,
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)
@@ -98,6 +107,7 @@ CostSaturation::CostSaturation(
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
     , max_time(max_time)
+    , use_general_costs(use_general_costs)
     , pick_split(pick_split)
     , rng(rng)
     , log(log)
@@ -167,15 +177,12 @@ void CostSaturation::reduce_remaining_costs(
         /* Since we ignore transitions from states s with h(s)=INFINITE_VALUE,
            all saturated costs (h(s)-h(s')) are finite or -INFINITE_VALUE. */
         assert(saturated != INFINITE_VALUE);
-        if (remaining == INFINITE_VALUE) {
-            // INFINITE_VALUE - x = INFINITE_VALUE for finite values x.
-        } else if (saturated == -INFINITE_VALUE) {
-            remaining = INFINITE_VALUE;
-        } else {
-            remaining -= saturated;
-        }
 
-        if (is_approx_equal(remaining, 0.0_vt, 0.001)) {
+        remaining -= saturated;
+
+        // Remaining costs can become negative due to floating point imprecision
+        if (remaining < 0.0_vt) {
+            is_approx_equal(remaining, 0.0_vt, 0.001);
             remaining = 0.0_vt;
         }
         assert(remaining >= 0);
@@ -234,7 +241,8 @@ void CostSaturation::build_abstractions(
             compute_distances(*abstraction, heuristic, costs);
         vector<value_t> saturated_costs = compute_saturated_costs(
             abstraction->get_transition_system(),
-            goal_distances);
+            goal_distances,
+            use_general_costs);
 
         heuristic_functions.emplace_back(
             abstraction->extract_refinement_hierarchy(),
