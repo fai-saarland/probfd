@@ -213,6 +213,11 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 Pattern new_pattern(pattern);
                 utils::insert_set(new_pattern, rel_var_id);
 
+                if (verbosity >= Verbosity::VERBOSE) {
+                    std::cout << "Generating PDB for pattern " << new_pattern
+                              << "..." << std::endl;
+                }
+
                 if (generated_patterns.insert(new_pattern).second) {
                     /*
                       If we haven't seen this pattern before, generate a PDB
@@ -617,17 +622,17 @@ void add_hillclimbing_options(OptionParser& parser)
     parser.add_option<int>(
         "pdb_max_size",
         "maximal number of states per pattern database ",
-        "2000000",
+        "2M",
         Bounds("1", "infinity"));
     parser.add_option<int>(
         "collection_max_size",
         "maximal number of states in the pattern collection",
-        "20000000",
+        "10M",
         Bounds("1", "infinity"));
     parser.add_option<int>(
         "search_space_max_size",
         "maximal number of states in the pattern search space",
-        "100000000",
+        "30M",
         Bounds("1", "infinity"));
     parser.add_option<int>(
         "num_samples",
