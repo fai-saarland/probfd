@@ -1,5 +1,6 @@
 #include "probfd/progress_report.h"
 
+#include "utils/system.h"
 #include "utils/timer.h"
 
 #include <cassert>
@@ -63,7 +64,8 @@ void ProgressReport::print_progress()
         out_ << ", ";
         additional_informations_[i](out_);
     }
-    out_ << ", t=" << utils::g_timer << "]"
+    out_ << ", t=" << utils::g_timer
+         << ", memory=" << utils::get_peak_memory_in_kb() << " KB]"
          << "\n";
 }
 
