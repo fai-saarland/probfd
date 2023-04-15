@@ -13,10 +13,13 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "utils/countdown_timer.h"
+
 #include <cassert>
 #include <deque>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <stack>
 #include <type_traits>
 #include <vector>
@@ -186,9 +189,12 @@ public:
         const State& source_state,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto non_proper_out,
-        std::output_iterator<StateID> auto proper_out)
+        std::output_iterator<StateID> auto proper_out,
+        double max_time = std::numeric_limits<double>::infinity())
     {
         assert(expansion_queue_.empty());
+
+        utils::CountdownTimer timer(max_time);
 
         auto init_id = state_space_->get_state_id(source_state);
         if (!push(
@@ -214,7 +220,8 @@ public:
                 *st,
                 dead_out,
                 non_proper_out,
-                proper_out)) {
+                proper_out,
+                timer)) {
                 e = &expansion_queue_.back();
                 s = &stack_[e->stck];
                 st = &state_infos_[s->stateid];
@@ -232,7 +239,8 @@ public:
                         stack_.end(),
                         dead_out,
                         non_proper_out,
-                        proper_out);
+                        proper_out,
+                        timer);
                 }
 
                 expansion_queue_.pop_back();
@@ -240,6 +248,8 @@ public:
                 if (expansion_queue_.empty()) {
                     goto break_exploration;
                 }
+
+                timer.throw_if_expired();
 
                 StateInfo& bt_info = state_infos_[s->stateid];
                 StackInfo* backtracked_from = s;
@@ -389,10 +399,13 @@ private:
         StateInfo& st,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto non_proper_out,
-        std::output_iterator<StateID> auto proper_out)
+        std::output_iterator<StateID> auto proper_out,
+        utils::CountdownTimer& timer)
     {
         do {
             do {
+                timer.throw_if_expired();
+
                 StateID succ_id = e.get_current_successor();
                 StateInfo& succ_info = state_infos_[succ_id];
 
@@ -444,7 +457,8 @@ private:
         decltype(std::declval<Stack>().begin()) end,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto non_proper_out,
-        std::output_iterator<StateID> auto proper_out)
+        std::output_iterator<StateID> auto proper_out,
+        utils::CountdownTimer& timer)
     {
         const StateInfo& st_info = state_infos_[begin->stateid];
 
@@ -486,6 +500,8 @@ private:
             // this sub-SSP consists of all states and transitions except those
             // transitions which can lead to a non-proper state in a child SCC.
             do {
+                timer.throw_if_expired();
+
                 // Collect states that can currently reach a proper scc exit
                 // or a goal state within the sub-SSP.
                 std::set<StackInfo*> can_reach_exits(
@@ -529,6 +545,8 @@ private:
                     proven_improper.end());
 
                 while (!queue.empty()) {
+                    timer.throw_if_expired();
+
                     StackInfo* scc_elem = queue.back();
                     queue.pop_back();
 

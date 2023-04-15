@@ -15,6 +15,7 @@
 #include "utils/collections.h"
 
 #include <iterator>
+#include <limits>
 
 namespace probfd {
 namespace engines {
@@ -86,11 +87,12 @@ public:
     {
     }
 
-    Interval solve(const State& state, double) override
+    Interval solve(const State& state, double max_time) override
     {
-        std::unique_ptr<QuotientSystem> sys = get_quotient(state);
+        utils::CountdownTimer timer(max_time);
+        std::unique_ptr<QuotientSystem> sys = get_quotient(state, timer);
         BoolStore dead, one;
-        return this->mysolve(state, value_store_, dead, one, sys.get());
+        return mysolve(state, value_store_, dead, one, sys.get(), timer);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -104,12 +106,21 @@ public:
         const State& state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
-        SetLike2& one_states)
+        SetLike2& one_states,
+        double max_time = std::numeric_limits<double>::infinity())
     {
-        auto sys = get_quotient(state);
+        utils::CountdownTimer timer(max_time);
 
-        Interval x =
-            this->mysolve(state, value_store, dead_ends, one_states, sys.get());
+        auto sys = get_quotient(state, timer);
+
+        const Interval x = this->mysolve(
+            state,
+            value_store,
+            dead_ends,
+            one_states,
+            sys.get(),
+            timer);
+
         for (StateID repr_id : *sys) {
             auto [sit, send] = sys->quotient_range(repr_id);
             const StateID repr = *sit;
@@ -128,7 +139,8 @@ public:
     }
 
 private:
-    std::unique_ptr<QuotientSystem> get_quotient(const State& state)
+    std::unique_ptr<QuotientSystem>
+    get_quotient(const State& state, utils::CountdownTimer& timer)
     {
         Decomposer ec_decomposer(
             this->get_state_space(),
@@ -136,7 +148,9 @@ private:
             expand_goals_,
             heuristic_);
 
-        auto sys = ec_decomposer.build_quotient_system(state);
+        auto sys = ec_decomposer.build_quotient_system(
+            state,
+            timer.get_remaining_time());
 
         ecd_statistics_ = ec_decomposer.get_statistics();
 
@@ -149,7 +163,8 @@ private:
         ValueStoreT& value_store,
         SetLike& dead_ends,
         SetLike2& one_states,
-        QuotientSystem* sys)
+        QuotientSystem* sys,
+        utils::CountdownTimer timer)
     {
         using namespace engine_interfaces;
 
@@ -167,7 +182,8 @@ private:
                 state,
                 std::back_inserter(dead_ends),
                 utils::discarding_output_iterator(),
-                std::back_inserter(one_states));
+                std::back_inserter(one_states),
+                timer.get_remaining_time());
             assert(this->get_termination_info(
                            this->lookup_state(one_states.front()))
                        .is_goal_state());
@@ -176,7 +192,8 @@ private:
                 state,
                 std::back_inserter(dead_ends),
                 utils::discarding_output_iterator(),
-                utils::discarding_output_iterator());
+                utils::discarding_output_iterator(),
+                timer.get_remaining_time());
         }
 
         assert(::utils::is_unique(dead_ends) && ::utils::is_unique(one_states));
@@ -189,7 +206,8 @@ private:
 
         ValueIteration vi(sys, &q_cost, heuristic_, expand_goals_);
 
-        Interval result = vi.solve(new_init_id, value_store);
+        const Interval result =
+            vi.solve(new_init_id, value_store, timer.get_remaining_time());
         tvi_statistics_ = vi.get_statistics();
         return result;
     }

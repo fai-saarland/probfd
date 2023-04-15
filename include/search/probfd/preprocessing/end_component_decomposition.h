@@ -13,10 +13,13 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "utils/countdown_timer.h"
+
 #include <cassert>
 #include <deque>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <ranges>
 #include <type_traits>
@@ -239,15 +242,18 @@ public:
      * Only the fragment of the MDP that is reachable from the given initial
      * state is considered.
      */
-    std::unique_ptr<QuotientSystem>
-    build_quotient_system(const State& initial_state)
+    std::unique_ptr<QuotientSystem> build_quotient_system(
+        const State& initial_state,
+        double max_time = std::numeric_limits<double>::infinity())
     {
+        utils::CountdownTimer timer(max_time);
+
         stats_ = ECDStatistics();
 
         auto init_id = state_space_->get_state_id(initial_state);
 
         if (push<true>(init_id, state_infos_[init_id])) {
-            find_and_decompose_sccs<true>();
+            find_and_decompose_sccs<true>(0, timer);
         }
 
         assert(stack_.empty());
@@ -391,7 +397,8 @@ private:
     }
 
     template <bool RootIteration>
-    void find_and_decompose_sccs(const unsigned limit = 0)
+    void
+    find_and_decompose_sccs(const unsigned limit, utils::CountdownTimer& timer)
     {
         if (expansion_queue_.size() <= limit) {
             return;
@@ -402,7 +409,7 @@ private:
 
         for (;;) {
             // DFS recursion
-            while (push_successor<RootIteration>(*e, *s)) {
+            while (push_successor<RootIteration>(*e, *s, timer)) {
                 e = &expansion_queue_.back();
                 s = &stack_[e->stck];
             }
@@ -420,14 +427,16 @@ private:
                 const bool is_onstack = stck != lstck;
 
                 if (!is_onstack) {
-                    scc_found<RootIteration>(*e, *s);
+                    scc_found<RootIteration>(*e, *s, timer);
                 }
 
                 expansion_queue_.pop_back();
 
                 if (expansion_queue_.size() <= limit) {
-                    goto break_exploration;
+                    return;
                 }
+
+                timer.throw_if_expired();
 
                 e = &expansion_queue_.back();
                 s = &stack_[e->stck];
@@ -472,17 +481,18 @@ private:
                 s->successors.pop_back();
             }
         }
-
-    break_exploration:;
     }
 
     template <bool RootIteration>
-    bool push_successor(ExpansionInfo& e, StackInfo& s)
+    bool
+    push_successor(ExpansionInfo& e, StackInfo& s, utils::CountdownTimer& timer)
     {
         for (;;) {
             std::vector<StateID>& s_succs = s.successors.back();
 
             do {
+                timer.throw_if_expired();
+
                 const StateID succ_id = e.get_current_successor();
                 StateInfo& succ_info = state_infos_[succ_id];
 
@@ -538,7 +548,7 @@ private:
     }
 
     template <bool RootIteration>
-    void scc_found(ExpansionInfo& e, StackInfo& s)
+    void scc_found(ExpansionInfo& e, StackInfo& s, utils::CountdownTimer& timer)
     {
         const unsigned scc_size = stack_.size() - e.stck;
         auto scc_begin = stack_.begin() + e.stck;
@@ -583,7 +593,7 @@ private:
                     state_infos_[it->stateid].explored = 0;
                 }
 
-                decompose(e.stck);
+                decompose(e.stck, timer);
             } else {
                 unsigned transitions = 0;
 
@@ -619,7 +629,7 @@ private:
         assert(stack_.size() == e.stck);
     }
 
-    void decompose(unsigned start)
+    void decompose(unsigned start, utils::CountdownTimer& timer)
     {
         const unsigned limit = expansion_queue_.size();
 
@@ -629,7 +639,7 @@ private:
 
             if (!state_info.explored && push<false>(id, state_info)) {
                 // Recursively run decomposition
-                find_and_decompose_sccs<false>(limit);
+                find_and_decompose_sccs<false>(limit, timer);
             }
         }
 
