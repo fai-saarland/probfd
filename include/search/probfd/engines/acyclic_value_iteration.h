@@ -58,15 +58,6 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
     };
 
     struct IncrementalExpansionInfo {
-        IncrementalExpansionInfo(
-            StateID state,
-            std::vector<Action> remaining_aops)
-            : state(state)
-            , remaining_aops(std::move(remaining_aops))
-        {
-            assert(!this->remaining_aops.empty());
-        }
-
         const StateID state;
 
         // Applicable operators left to expand
@@ -78,6 +69,45 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
 
         // The current transition Q-value
         value_t t_value;
+
+        IncrementalExpansionInfo(
+            StateID state,
+            std::vector<Action> aops,
+            MDPEngine<State, Action>& engine)
+            : state(state)
+            , remaining_aops(std::move(aops))
+        {
+            assert(!remaining_aops.empty());
+            auto& next_action = remaining_aops.back();
+            t_value = engine.get_action_cost(state, next_action);
+            transition.clear();
+            engine.generate_successors(state, next_action, transition);
+            successor = transition.begin();
+        }
+
+        bool generate_successor()
+        {
+            assert(successor != transition.end());
+            return ++successor != transition.end();
+        }
+
+        bool generate_next_transition(MDPEngine<State, Action>& engine)
+        {
+            assert(!remaining_aops.empty());
+            remaining_aops.pop_back();
+
+            if (remaining_aops.empty()) {
+                return false;
+            }
+
+            auto& next_action = remaining_aops.back();
+            t_value = engine.get_action_cost(state, next_action);
+            transition.clear();
+            engine.generate_successors(state, next_action, transition);
+            successor = transition.begin();
+
+            return true;
+        }
     };
 
     engine_interfaces::Evaluator<State>* prune_;
@@ -124,61 +154,18 @@ public:
         policies::MapPolicy<State, Action>* policy)
     {
         const StateID initial_state_id = this->get_state_id(initial_state);
-        if (!push_state(initial_state_id)) {
-            return Interval(state_infos_[initial_state_id].value);
+        StateInfo& iinfo = state_infos_[initial_state_id];
+
+        if (!push_state(initial_state_id, iinfo)) {
+            return Interval(iinfo.value);
         }
 
         do {
-            IncrementalExpansionInfo& e = expansion_stack_.top();
+            dfs_expand(policy);
+        } while (dfs_backtrack(policy));
 
-            for (;;) {
-                // Topological order: Push all successors, recurse if
-                // one has not been expanded before
-                for (; e.successor != e.transition.end(); ++e.successor) {
-                    const auto [succ_id, probability] = *e.successor;
-                    if (push_state(succ_id)) {
-                        goto continue_outer; // DFS recursion
-                    }
-
-                    // Already seen -> update transition Q-value
-                    e.t_value += probability * state_infos_[succ_id].value;
-                }
-
-                // Minimum Q-value
-                StateInfo& info = state_infos_[e.state];
-
-                if (e.t_value < info.value) {
-                    info.best_action = this->get_action_id(
-                        e.state,
-                        e.remaining_aops.back());
-                    info.value = e.t_value;
-                }
-
-                assert(!e.remaining_aops.empty());
-                e.remaining_aops.pop_back();
-
-                // If no operators are remaining, we are done.
-                if (e.remaining_aops.empty()) {
-                    if (policy) {
-                        policy->emplace_decision(
-                            e.state,
-                            info.best_action,
-                            Interval(info.value));
-                    }
-
-                    break;
-                }
-
-                // Otherwise set up the next transition to handle.
-                setup_next_transition(e);
-            }
-
-            expansion_stack_.pop();
-
-        continue_outer:;
-        } while (!expansion_stack_.empty());
-
-        return Interval(state_infos_[initial_state_id].value);
+        assert(expansion_stack_.empty());
+        return Interval(iinfo.value);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -187,29 +174,108 @@ public:
     }
 
 private:
-    void setup_next_transition(IncrementalExpansionInfo& e)
+    void dfs_expand(policies::MapPolicy<State, Action>* policy)
     {
-        auto& next_action = e.remaining_aops.back();
-        e.t_value = this->get_action_cost(e.state, next_action);
-        e.transition.clear();
-        this->generate_successors(e.state, next_action, e.transition);
-        e.successor = e.transition.begin();
+        IncrementalExpansionInfo* e = &expansion_stack_.top();
+
+        do {
+            for (;;) {
+                const auto [succ_id, probability] = *e->successor;
+                StateInfo& succ_info = state_infos_[succ_id];
+
+                if (!succ_info.expanded && push_state(succ_id, succ_info)) {
+                    e = &expansion_stack_.top();
+                    continue; // DFS recursion
+                }
+
+                on_backtrack(*e, probability, succ_info);
+
+                if (!e->generate_successor()) {
+                    break;
+                }
+            }
+
+            finalize_transition(*e);
+        } while (e->generate_next_transition(*this));
+
+        on_fully_expanded(*e, policy);
     }
 
-    bool push_state(StateID state_id)
+    void on_backtrack(
+        IncrementalExpansionInfo& e,
+        value_t probability,
+        StateInfo& succ_info)
     {
-        StateInfo& info = state_infos_[state_id];
+        // Update transition Q-value
+        e.t_value += probability * succ_info.value;
+    }
 
-        if (info.expanded) {
-            return false;
+    void finalize_transition(IncrementalExpansionInfo& e)
+    {
+        // Minimum Q-value
+        StateInfo& info = state_infos_[e.state];
+
+        if (e.t_value < info.value) {
+            info.best_action =
+                this->get_action_id(e.state, e.remaining_aops.back());
+            info.value = e.t_value;
         }
+    }
+
+    void on_fully_expanded(
+        IncrementalExpansionInfo& e,
+        policies::MapPolicy<State, Action>* policy)
+    {
+        StateInfo& info = state_infos_[e.state];
+
+        if (policy) {
+            policy->emplace_decision(
+                e.state,
+                info.best_action,
+                Interval(info.value));
+        }
+    }
+
+    bool dfs_backtrack(policies::MapPolicy<State, Action>* policy)
+    {
+        IncrementalExpansionInfo* e;
+
+        for (;;) {
+            expansion_stack_.pop();
+
+            if (expansion_stack_.empty()) {
+                return false;
+            }
+
+            e = &expansion_stack_.top();
+
+            const auto [succ_id, probability] = *e->successor;
+            on_backtrack(*e, probability, state_infos_[succ_id]);
+
+            if (e->generate_successor()) {
+                return true;
+            }
+
+            finalize_transition(*e);
+
+            if (e->generate_next_transition(*this)) {
+                return true;
+            }
+
+            on_fully_expanded(*e, policy);
+        }
+    }
+
+    bool push_state(StateID state_id, StateInfo& succ_info)
+    {
+        assert(!succ_info.expanded);
+        succ_info.expanded = true;
 
         const State state = this->lookup_state(state_id);
         const TerminationInfo term_info = this->get_termination_info(state);
         const value_t value = term_info.get_cost();
 
-        info.expanded = true;
-        info.value = value;
+        succ_info.value = value;
 
         if (term_info.is_goal_state()) {
             ++statistics_.terminal_states;
@@ -230,9 +296,8 @@ private:
         }
 
         ++statistics_.state_expansions;
-        auto& e = expansion_stack_.emplace(state_id, std::move(remaining_aops));
+        expansion_stack_.emplace(state_id, std::move(remaining_aops), *this);
 
-        setup_next_transition(e);
         return true;
     }
 };
