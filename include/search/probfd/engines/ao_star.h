@@ -4,6 +4,8 @@
 #include "probfd/engine_interfaces/transition_sampler.h"
 #include "probfd/engines/ao_search.h"
 
+#include "utils/countdown_timer.h"
+
 #include <iostream>
 #include <queue>
 #include <type_traits>
@@ -57,14 +59,16 @@ public:
     }
 
 protected:
-    Interval do_solve(const State& state, double) override
+    Interval do_solve(const State& state, double max_time) override
     {
+        utils::CountdownTimer timer(max_time);
+
         const StateID stateid = this->get_state_id(state);
         auto& iinfo = this->get_state_info(stateid);
         iinfo.update_order = 0;
 
         while (!iinfo.is_solved()) {
-            greedy_forward_exploration(stateid);
+            greedy_forward_exploration(stateid, timer);
             ++this->statistics_.iterations;
             this->print_progress();
         }
@@ -73,9 +77,11 @@ protected:
     }
 
 private:
-    void greedy_forward_exploration(StateID state)
+    void greedy_forward_exploration(StateID state, utils::CountdownTimer& timer)
     {
-        do {
+        for (;;) {
+            timer.throw_if_expired();
+
             auto& info = this->get_state_info(state);
             assert(!info.is_solved());
 
@@ -91,7 +97,8 @@ private:
                     terminal,
                     solved,
                     dead,
-                    value_changed);
+                    value_changed,
+                    timer);
 
                 if (terminal) {
                     assert(info.is_solved());
@@ -100,7 +107,7 @@ private:
 
                 if (solved) {
                     this->mark_solved_push_parents(state, info, dead);
-                    this->backpropagate_tip_value();
+                    this->backpropagate_tip_value(timer);
                     break;
                 }
 
@@ -141,11 +148,11 @@ private:
                     }
                 }
 
-                this->backpropagate_update_order(state);
+                this->backpropagate_update_order(state, timer);
 
                 if (value_changed) {
                     this->push_parents_to_queue(info);
-                    this->backpropagate_tip_value();
+                    this->backpropagate_tip_value(timer);
                     break;
                 }
             }
@@ -167,7 +174,7 @@ private:
                 this->get_policy(state),
                 this->selected_transition_,
                 *this);
-        } while (true);
+        }
     }
 };
 

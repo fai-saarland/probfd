@@ -5,6 +5,8 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "utils/countdown_timer.h"
+
 #include <limits>
 #include <queue>
 #include <string>
@@ -140,9 +142,11 @@ protected:
             [&](std::ostream& out) { out << "i=" << statistics_.iterations; });
     }
 
-    void backpropagate_tip_value()
+    void backpropagate_tip_value(utils::CountdownTimer& timer)
     {
         while (!queue_.empty()) {
+            timer.throw_if_expired();
+
             auto elem = queue_.top();
             queue_.pop();
 
@@ -171,11 +175,13 @@ protected:
         }
     }
 
-    void backpropagate_update_order(StateID tip)
+    void backpropagate_update_order(StateID tip, utils::CountdownTimer& timer)
     {
         queue_.emplace(this->get_state_info(tip).update_order, tip);
 
         while (!queue_.empty()) {
+            timer.throw_if_expired();
+
             auto elem = queue_.top();
             queue_.pop();
 
@@ -206,7 +212,8 @@ protected:
         bool& terminal,
         bool& solved,
         bool& dead,
-        bool& value_changed)
+        bool& value_changed,
+        utils::CountdownTimer& timer)
     {
         assert(!info.is_solved());
         assert(info.is_tip_state());
@@ -226,7 +233,7 @@ protected:
             }
 
             push_parents_to_queue(info);
-            backpropagate_tip_value();
+            backpropagate_tip_value(timer);
         }
 
         assert(queue_.empty());

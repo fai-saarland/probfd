@@ -5,6 +5,8 @@
 
 #include "probfd/engine_interfaces/open_list.h"
 
+#include "utils/countdown_timer.h"
+
 #include <iostream>
 #include <sstream>
 
@@ -65,14 +67,17 @@ public:
     }
 
 protected:
-    Interval do_solve(const State& state, double) override
+    Interval do_solve(const State& state, double max_time) override
     {
+        utils::CountdownTimer timer(max_time);
+
         StateID stateid = this->get_state_id(state);
         const auto& state_info = this->get_state_info(stateid);
         open_list_->push(stateid);
 
         do {
-            step();
+            timer.is_expired();
+            step(timer);
             this->print_progress();
         } while (!state_info.is_solved());
 
@@ -80,7 +85,7 @@ protected:
     }
 
 private:
-    void step()
+    void step(utils::CountdownTimer& timer)
     {
         assert(!this->open_list_->empty());
         StateID stateid = open_list_->pop();
@@ -102,7 +107,8 @@ private:
             terminal,
             solved,
             dead,
-            value_changed);
+            value_changed,
+            timer);
 
         if (terminal) {
             assert(info.is_solved());
@@ -143,7 +149,7 @@ private:
 
         if (unsolved == 0) {
             this->mark_solved_push_parents(stateid, info, info.alive == 0);
-            this->backpropagate_tip_value();
+            this->backpropagate_tip_value(timer);
         } else {
             assert(min_succ_order < std::numeric_limits<unsigned>::max());
             info.update_order = min_succ_order + 1;
@@ -155,11 +161,11 @@ private:
                 }
             }
 
-            this->backpropagate_update_order(stateid);
+            this->backpropagate_update_order(stateid, timer);
 
             if (value_changed) {
                 this->push_parents_to_queue(info);
-                this->backpropagate_tip_value();
+                this->backpropagate_tip_value(timer);
             }
         }
     }
