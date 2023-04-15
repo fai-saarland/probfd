@@ -13,6 +13,7 @@
 
 #include "cegar/abstract_state.h"
 
+#include "utils/countdown_timer.h"
 #include "utils/iterators.h"
 #include "utils/memory.h"
 
@@ -38,7 +39,8 @@ AbstractSearch::AbstractSearch(
 
 unique_ptr<Solution> AbstractSearch::find_solution(
     Abstraction& abstraction,
-    const AbstractState* state)
+    const AbstractState* state,
+    utils::CountdownTimer& timer)
 {
     quotients::
         QuotientSystem<const AbstractState*, const ProbabilisticTransition*>
@@ -77,7 +79,7 @@ unique_ptr<Solution> AbstractSearch::find_solution(
             true,
             nullptr);
 
-    auto policy = hdfs.compute_policy(state);
+    auto policy = hdfs.compute_policy(state, timer.get_remaining_time());
 
     for (int i = 0; i != abstraction.get_num_states(); ++i) {
         if (hdfs.was_visited(i)) {

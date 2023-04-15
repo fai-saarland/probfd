@@ -189,11 +189,6 @@ bool CEGAR::may_keep_refining() const
             log << "Reached maximum number of transitions." << endl;
         }
         return false;
-    } else if (timer.is_expired()) {
-        if (log.is_at_least_normal()) {
-            log << "Reached time limit." << endl;
-        }
-        return false;
     } else if (!utils::extra_memory_padding_is_reserved()) {
         if (log.is_at_least_normal()) {
             log << "Reached memory limit." << endl;
@@ -220,56 +215,70 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
     utils::Timer find_flaw_timer(true);
     utils::Timer refine_timer(true);
 
-    while (may_keep_refining()) {
-        find_trace_timer.resume();
-        unique_ptr<Solution> solution = abstract_search.find_solution(
-            *abstraction,
-            &abstraction->get_initial_state());
-        find_trace_timer.stop();
+    try {
+        while (may_keep_refining()) {
+            timer.throw_if_expired();
 
-        if (!solution) {
-            if (log.is_at_least_normal()) {
-                log << "Abstract task is unsolvable." << endl;
+            find_trace_timer.resume();
+            unique_ptr<Solution> solution = abstract_search.find_solution(
+                *abstraction,
+                &abstraction->get_initial_state(),
+                timer);
+            find_trace_timer.stop();
+
+            if (!solution) {
+                if (log.is_at_least_normal()) {
+                    log << "Abstract task is unsolvable." << endl;
+                }
+                break;
             }
-            break;
-        }
 
-        find_flaw_timer.resume();
-        unique_ptr<Flaw> flaw = find_flaw(*solution);
-        find_flaw_timer.stop();
+            find_flaw_timer.resume();
+            unique_ptr<Flaw> flaw = find_flaw(*solution);
+            find_flaw_timer.stop();
 
-        if (!utils::extra_memory_padding_is_reserved()) {
-            if (log.is_at_least_normal()) {
-                log << "Reached memory limit during flaw search." << endl;
+            if (!utils::extra_memory_padding_is_reserved()) {
+                if (log.is_at_least_normal()) {
+                    log << "Reached memory limit during flaw search." << endl;
+                }
+                break;
             }
-            break;
-        }
 
-        if (!flaw) {
-            if (log.is_at_least_normal()) {
-                log << "Found concrete solution during refinement." << endl;
+            if (!flaw) {
+                if (log.is_at_least_normal()) {
+                    log << "Found concrete solution during refinement." << endl;
+                }
+                break;
             }
-            break;
+
+            refine_timer.resume();
+            const AbstractState& abstract_state = flaw->current_abstract_state;
+            const int state_id = abstract_state.get_id();
+            vector<Split> splits = flaw->get_possible_splits();
+            const Split& split =
+                split_selector.pick_split(abstract_state, splits, rng);
+            abstraction->refine(abstract_state, split.var_id, split.values);
+            abstract_search.notify_split(state_id);
+            refine_timer.stop();
+
+            if (log.is_at_least_verbose() &&
+                abstraction->get_num_states() % 1000 == 0) {
+                log << abstraction->get_num_states() << "/" << max_states
+                    << " states, "
+                    << abstraction->get_transition_system().get_num_non_loops()
+                    << "/" << max_non_looping_transitions << " transitions"
+                    << endl;
+            }
         }
-
-        refine_timer.resume();
-        const AbstractState& abstract_state = flaw->current_abstract_state;
-        const int state_id = abstract_state.get_id();
-        vector<Split> splits = flaw->get_possible_splits();
-        const Split& split =
-            split_selector.pick_split(abstract_state, splits, rng);
-        abstraction->refine(abstract_state, split.var_id, split.values);
-        abstract_search.notify_split(state_id);
-        refine_timer.stop();
-
-        if (log.is_at_least_verbose() &&
-            abstraction->get_num_states() % 1000 == 0) {
-            log << abstraction->get_num_states() << "/" << max_states
-                << " states, "
-                << abstraction->get_transition_system().get_num_non_loops()
-                << "/" << max_non_looping_transitions << " transitions" << endl;
+    } catch (utils::TimeoutException&) {
+        // NOTE: The time limit is not checked during abstraction refinement,
+        // although this may be an expensive operation, since it cannot be
+        // interrupted without corrupting the abstraction.
+        if (log.is_at_least_normal()) {
+            log << "Reached time limit." << endl;
         }
     }
+
     if (log.is_at_least_normal()) {
         log << "Time for finding abstract traces: " << find_trace_timer << endl;
         log << "Time for finding flaws: " << find_flaw_timer << endl;
@@ -294,6 +303,7 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
     visited[0] = true;
 
     for (; !frontier.empty(); frontier.pop_front()) {
+        timer.throw_if_expired();
         if (!utils::extra_memory_padding_is_reserved()) break;
 
         QueueItem& next = frontier.front();
@@ -333,7 +343,7 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
                 get_cartesian_set(domain_sizes, op.get_preconditions()));
         }
 
-        // Generate sucessors and check for matching abstract states
+        // Generate successors and check for matching abstract states
         for (size_t i = 0; i != transition->target_ids.size(); ++i) {
             const auto outcome = op.get_outcomes()[i];
             const AbstractState* next_abstract_state =

@@ -13,8 +13,9 @@
 #include <vector>
 
 namespace utils {
+class CountdownTimer;
 class LogProxy;
-}
+} // namespace utils
 
 namespace probfd {
 namespace heuristics {

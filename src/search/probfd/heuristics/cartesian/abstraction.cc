@@ -8,6 +8,7 @@
 
 #include "cegar/refinement_hierarchy.h"
 
+#include "utils/countdown_timer.h"
 #include "utils/logging.h"
 #include "utils/math.h"
 #include "utils/memory.h"

@@ -16,6 +16,10 @@
 #include <memory>
 #include <vector>
 
+namespace utils {
+class CountdownTimer;
+}
+
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
@@ -37,8 +41,10 @@ public:
         Abstraction& abstraction,
         std::vector<value_t> operator_costs);
 
-    std::unique_ptr<Solution>
-    find_solution(Abstraction& abstraction, const AbstractState* init_id);
+    std::unique_ptr<Solution> find_solution(
+        Abstraction& abstraction,
+        const AbstractState* init_id,
+        utils::CountdownTimer& time_limit);
 
     void notify_split(int v);
 
