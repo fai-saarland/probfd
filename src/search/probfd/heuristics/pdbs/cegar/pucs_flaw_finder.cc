@@ -6,6 +6,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "utils/collections.h"
+#include "utils/countdown_timer.h"
 
 #include "state_registry.h"
 
@@ -34,7 +35,8 @@ bool PUCSFlawFinder::apply_policy(
     PatternCollectionGeneratorCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
-    std::vector<Flaw>& flaw_list)
+    std::vector<Flaw>& flaw_list,
+    utils::CountdownTimer& timer)
 {
     assert(pq.empty() && probabilities.empty());
 
@@ -48,7 +50,9 @@ bool PUCSFlawFinder::apply_policy(
     unsigned int violations = 0;
     bool executable = true;
 
-    while (!pq.empty()) {
+    do {
+        timer.throw_if_expired();
+
         auto [path_probability, current] = pq.pop();
         auto& info = probabilities[StateID(current.get_id())];
         assert(!info.expanded);
@@ -75,7 +79,7 @@ bool PUCSFlawFinder::apply_policy(
         if (!successful && ++violations >= violation_threshold) {
             break;
         }
-    }
+    } while (!pq.empty());
 
     pq.clear();
     probabilities.clear();

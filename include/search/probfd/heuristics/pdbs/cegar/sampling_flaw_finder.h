@@ -47,7 +47,8 @@ public:
         PatternCollectionGeneratorCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
-        std::vector<Flaw>& flaw_list) override;
+        std::vector<Flaw>& flaw_list,
+        utils::CountdownTimer& timer) override;
 
     virtual std::string get_name() override;
 

@@ -45,15 +45,23 @@ PDBInfo::PDBInfo(
     StateRankingFunction ranking_function,
     TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    bool wildcard)
-    : state_space(task_proxy, ranking_function, task_cost_function, !wildcard)
+    bool wildcard,
+    utils::CountdownTimer& timer)
+    : state_space(
+          task_proxy,
+          ranking_function,
+          task_cost_function,
+          !wildcard,
+          timer.get_remaining_time())
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilisticPatternDatabase(
           state_space,
           std::move(ranking_function),
           cost_function,
-          initial_state))
+          initial_state,
+          heuristics::ConstantEvaluator<StateRank>(0_vt),
+          timer.get_remaining_time()))
     , policy(pdb->compute_optimal_abstract_policy(
           state_space,
           cost_function,
@@ -70,8 +78,14 @@ PDBInfo::PDBInfo(
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const ProbabilisticPatternDatabase& previous,
     int add_var,
-    bool wildcard)
-    : state_space(task_proxy, ranking_function, task_cost_function, !wildcard)
+    bool wildcard,
+    utils::CountdownTimer& timer)
+    : state_space(
+          task_proxy,
+          ranking_function,
+          task_cost_function,
+          !wildcard,
+          timer.get_remaining_time())
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilisticPatternDatabase(
@@ -80,7 +94,8 @@ PDBInfo::PDBInfo(
           cost_function,
           initial_state,
           previous,
-          add_var))
+          add_var,
+          timer.get_remaining_time()))
     , policy(pdb->compute_optimal_abstract_policy(
           state_space,
           cost_function,
@@ -97,8 +112,14 @@ PDBInfo::PDBInfo(
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const ProbabilisticPatternDatabase& left,
     const ProbabilisticPatternDatabase& right,
-    bool wildcard)
-    : state_space(task_proxy, ranking_function, task_cost_function, !wildcard)
+    bool wildcard,
+    utils::CountdownTimer& timer)
+    : state_space(
+          task_proxy,
+          ranking_function,
+          task_cost_function,
+          !wildcard,
+          timer.get_remaining_time())
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilisticPatternDatabase(
@@ -107,7 +128,8 @@ PDBInfo::PDBInfo(
           cost_function,
           initial_state,
           left,
-          right))
+          right,
+          timer.get_remaining_time()))
     , policy(pdb->compute_optimal_abstract_policy(
           state_space,
           cost_function,
@@ -277,27 +299,28 @@ void PatternCollectionGeneratorCegar::print_collection() const
 
 void PatternCollectionGeneratorCegar::generate_trivial_solution_collection(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function)
+    TaskCostFunction& task_cost_function,
+    utils::CountdownTimer& timer)
 {
     assert(!remaining_goals.empty());
 
     switch (initial) {
     case InitialCollectionType::GIVEN_GOAL: {
         assert(given_goal != -1);
-        add_pattern_for_var(task_proxy, task_cost_function, given_goal);
+        add_pattern_for_var(task_proxy, task_cost_function, given_goal, timer);
         break;
     }
     case InitialCollectionType::RANDOM_GOAL: {
         int var = remaining_goals.back();
         remaining_goals.pop_back();
-        add_pattern_for_var(task_proxy, task_cost_function, var);
+        add_pattern_for_var(task_proxy, task_cost_function, var, timer);
         break;
     }
     case InitialCollectionType::ALL_GOALS: {
         while (!remaining_goals.empty()) {
             int var = remaining_goals.back();
             remaining_goals.pop_back();
-            add_pattern_for_var(task_proxy, task_cost_function, var);
+            add_pattern_for_var(task_proxy, task_cost_function, var, timer);
         }
 
         break;
@@ -314,23 +337,10 @@ void PatternCollectionGeneratorCegar::generate_trivial_solution_collection(
     }
 }
 
-bool PatternCollectionGeneratorCegar::time_limit_reached(
-    const utils::CountdownTimer& timer) const
-{
-    if (timer.is_expired()) {
-        if (verbosity >= Verbosity::NORMAL) {
-            cout << token << "time limit reached" << endl;
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
 int PatternCollectionGeneratorCegar::get_flaws(
     const ProbabilisticTaskProxy& task_proxy,
-    std::vector<Flaw>& flaws)
+    std::vector<Flaw>& flaws,
+    utils::CountdownTimer& timer)
 {
     const int num_pdb_infos = static_cast<int>(pdb_infos.size());
     for (int idx = 0; idx < num_pdb_infos; ++idx) {
@@ -351,7 +361,7 @@ int PatternCollectionGeneratorCegar::get_flaws(
         // We always start with the initial state.
         const size_t num_flaws_before = flaws.size();
         const bool executable =
-            flaw_strategy->apply_policy(*this, task_proxy, idx, flaws);
+            flaw_strategy->apply_policy(*this, task_proxy, idx, flaws, timer);
 
         // Check for new flaws
         if (flaws.size() == num_flaws_before) {
@@ -385,19 +395,20 @@ bool PatternCollectionGeneratorCegar::can_add_singleton_pattern(
            collection_size <= max_collection_size - pdb_size;
 }
 
-void PatternCollectionGeneratorCegar::add_pattern_for_var(
-    const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
-    int var)
+bool PatternCollectionGeneratorCegar::can_add_variable_to_pattern(
+    const VariablesProxy& variables,
+    int index,
+    int var) const
 {
-    auto& info = pdb_infos.emplace_back(new PDBInfo(
-        task_proxy,
-        StateRankingFunction(task_proxy, {var}),
-        task_cost_function,
-        rng,
-        wildcard));
-    variable_to_collection_index[var] = pdb_infos.size() - 1;
-    collection_size += info->get_pdb().num_states();
+    int pdb_size = pdb_infos[index]->get_pdb().num_states();
+    int domain_size = variables[var].get_domain_size();
+
+    if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size)) {
+        return false;
+    }
+
+    int added_size = pdb_size * domain_size - pdb_size;
+    return collection_size + added_size <= max_collection_size;
 }
 
 bool PatternCollectionGeneratorCegar::can_merge_patterns(int index1, int index2)
@@ -414,11 +425,62 @@ bool PatternCollectionGeneratorCegar::can_merge_patterns(int index1, int index2)
     return collection_size + added_size <= max_collection_size;
 }
 
+void PatternCollectionGeneratorCegar::add_pattern_for_var(
+    const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
+    int var,
+    utils::CountdownTimer& timer)
+{
+    auto& info = pdb_infos.emplace_back(new PDBInfo(
+        task_proxy,
+        StateRankingFunction(task_proxy, {var}),
+        task_cost_function,
+        rng,
+        wildcard,
+        timer));
+    variable_to_collection_index[var] = pdb_infos.size() - 1;
+    collection_size += info->get_pdb().num_states();
+}
+
+void PatternCollectionGeneratorCegar::add_variable_to_pattern(
+    const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
+    int index,
+    int var,
+    utils::CountdownTimer& timer)
+{
+    PDBInfo& info = *pdb_infos[index];
+
+    auto pdb = info.get_pdb();
+
+    // compute new solution
+    std::unique_ptr<PDBInfo> new_info(new PDBInfo(
+        task_proxy,
+        StateRankingFunction(
+            task_proxy,
+            extended_pattern(pdb.get_pattern(), var)),
+        task_cost_function,
+        rng,
+        pdb,
+        var,
+        wildcard,
+        timer));
+
+    // update collection size
+    collection_size -= pdb.num_states();
+    collection_size += new_info->get_pdb().num_states();
+
+    // update look-up table
+    variable_to_collection_index[var] = index;
+    pdb_infos[index] = std::move(new_info);
+}
+
 void PatternCollectionGeneratorCegar::merge_patterns(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function,
     int index1,
-    int index2)
+    int index2,
+    utils::CountdownTimer& timer)
 {
     // Merge pattern at index2 into pattern at index2
     PDBInfo& solution1 = *pdb_infos[index1];
@@ -446,7 +508,8 @@ void PatternCollectionGeneratorCegar::merge_patterns(
         rng,
         pdb1,
         pdb2,
-        wildcard));
+        wildcard,
+        timer));
 
     // update collection size
     collection_size -= pdb_size1;
@@ -458,58 +521,12 @@ void PatternCollectionGeneratorCegar::merge_patterns(
     pdb_infos[index2] = nullptr;
 }
 
-bool PatternCollectionGeneratorCegar::can_add_variable_to_pattern(
-    const VariablesProxy& variables,
-    int index,
-    int var) const
-{
-    int pdb_size = pdb_infos[index]->get_pdb().num_states();
-    int domain_size = variables[var].get_domain_size();
-
-    if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size)) {
-        return false;
-    }
-
-    int added_size = pdb_size * domain_size - pdb_size;
-    return collection_size + added_size <= max_collection_size;
-}
-
-void PatternCollectionGeneratorCegar::add_variable_to_pattern(
-    const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
-    int index,
-    int var)
-{
-    PDBInfo& info = *pdb_infos[index];
-
-    auto pdb = info.get_pdb();
-
-    // compute new solution
-    std::unique_ptr<PDBInfo> new_info(new PDBInfo(
-        task_proxy,
-        StateRankingFunction(
-            task_proxy,
-            extended_pattern(pdb.get_pattern(), var)),
-        task_cost_function,
-        rng,
-        pdb,
-        var,
-        wildcard));
-
-    // update collection size
-    collection_size -= pdb.num_states();
-    collection_size += new_info->get_pdb().num_states();
-
-    // update look-up table
-    variable_to_collection_index[var] = index;
-    pdb_infos[index] = std::move(new_info);
-}
-
 void PatternCollectionGeneratorCegar::refine(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function,
     const VariablesProxy& variables,
-    const std::vector<Flaw>& flaws)
+    const std::vector<Flaw>& flaws,
+    utils::CountdownTimer& timer)
 {
     assert(!flaws.empty());
 
@@ -551,7 +568,8 @@ void PatternCollectionGeneratorCegar::refine(
                 task_proxy,
                 task_cost_function,
                 sol_index,
-                other_index);
+                other_index,
+                timer);
             return;
         }
     } else {
@@ -573,7 +591,8 @@ void PatternCollectionGeneratorCegar::refine(
                 task_proxy,
                 task_cost_function,
                 sol_index,
-                var);
+                var,
+                timer);
             return;
         }
     }
@@ -646,7 +665,10 @@ PatternCollectionInformation PatternCollectionGeneratorCegar::generate(
     }
 
     // Start with a solution of the trivial abstraction
-    generate_trivial_solution_collection(task_proxy, *task_cost_function);
+    generate_trivial_solution_collection(
+        task_proxy,
+        *task_cost_function,
+        timer);
 
     const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
@@ -656,56 +678,61 @@ PatternCollectionInformation PatternCollectionGeneratorCegar::generate(
 
     // main loop of the algorithm
     int refinement_counter = 1;
-    while (!time_limit_reached(timer)) {
-        if (verbosity >= Verbosity::VERBOSE) {
-            cout << "iteration #" << refinement_counter << endl;
-        }
 
-        solution_index = get_flaws(task_proxy, flaws);
-
-        if (flaws.empty()) {
-            if (solution_index != -1) {
-                const auto& info = pdb_infos[solution_index];
-
-                assert(blacklisted_variables.empty());
-
-                if (verbosity >= Verbosity::VERBOSE) {
-                    cout << token
-                         << "Task solved during computation of abstract"
-                         << "policies." << endl;
-                    cout << token << "Cost of policy: "
-                         << info->get_policy_cost(initial_state) << endl;
-                }
-            } else {
-                if (verbosity >= Verbosity::VERBOSE) {
-                    cout << token << "Flaw list empty."
-                         << "No further refinements possible." << endl;
-                }
+    try {
+        for (;;) {
+            if (verbosity >= Verbosity::VERBOSE) {
+                cout << "iteration #" << refinement_counter << endl;
             }
 
-            break;
+            solution_index = get_flaws(task_proxy, flaws, timer);
+
+            if (flaws.empty()) {
+                if (solution_index != -1) {
+                    const auto& info = pdb_infos[solution_index];
+
+                    assert(blacklisted_variables.empty());
+
+                    if (verbosity >= Verbosity::VERBOSE) {
+                        cout << token
+                             << "Task solved during computation of abstract"
+                             << "policies." << endl;
+                        cout << token << "Cost of policy: "
+                             << info->get_policy_cost(initial_state) << endl;
+                    }
+                } else {
+                    if (verbosity >= Verbosity::VERBOSE) {
+                        cout << token << "Flaw list empty."
+                             << "No further refinements possible." << endl;
+                    }
+                }
+
+                break;
+            }
+
+            timer.throw_if_expired();
+
+            // if there was a flaw, then refine the abstraction
+            // such that said flaw does not occur again
+            refine(task_proxy, *task_cost_function, variables, flaws, timer);
+
+            ++refinement_counter;
+            flaws.clear();
+
+            if (verbosity >= Verbosity::VERBOSE) {
+                cout << token << "current collection size: " << collection_size
+                     << endl;
+                cout << token << "current collection: ";
+                print_collection();
+            }
+
+            if (verbosity >= Verbosity::VERBOSE) {
+                cout << endl;
+            }
         }
-
-        if (time_limit_reached(timer)) {
-            break;
-        }
-
-        // if there was a flaw, then refine the abstraction
-        // such that said flaw does not occur again
-        refine(task_proxy, *task_cost_function, variables, flaws);
-
-        ++refinement_counter;
-        flaws.clear();
-
-        if (verbosity >= Verbosity::VERBOSE) {
-            cout << token << "current collection size: " << collection_size
-                 << endl;
-            cout << token << "current collection: ";
-            print_collection();
-        }
-
-        if (verbosity >= Verbosity::VERBOSE) {
-            cout << endl;
+    } catch (utils::TimeoutException&) {
+        if (verbosity >= Verbosity::NORMAL) {
+            cout << token << "Time limit reached." << endl;
         }
     }
 

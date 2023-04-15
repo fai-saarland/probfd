@@ -775,12 +775,12 @@ private:
         bool changed;
 
         do {
+            timer.throw_if_expired();
+
             changed = false;
             auto it = begin;
 
             do {
-                timer.throw_if_expired();
-
                 changed |= it->update_value(value_store);
                 ++statistics_.bellman_backups;
             } while (++it != end);

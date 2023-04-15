@@ -631,10 +631,10 @@ private:
             bool changed;
 
             do {
+                timer.throw_if_expired();
+
                 changed = false;
                 auto it = begin;
-
-                timer.throw_if_expired();
 
                 do {
                     changed |= it->update_value();

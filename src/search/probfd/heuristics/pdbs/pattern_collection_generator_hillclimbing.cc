@@ -46,11 +46,6 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-/* Since this exception class is only used for control flow and thus has no need
-   for an error message, we use a standalone class instead of inheriting from
-   utils::Exception. */
-class HillClimbingTimeout {};
-
 static std::vector<int> get_goal_variables(const TaskBaseProxy& task_proxy)
 {
     std::vector<int> goal_vars;
@@ -212,10 +207,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
             std::back_inserter(relevant_vars));
 
         for (int rel_var_id : relevant_vars) {
-            if (hill_climbing_timer.is_expired()) {
-                std::cout << "Abort candidate generation." << std::endl;
-                throw HillClimbingTimeout();
-            }
+            hill_climbing_timer.throw_if_expired();
 
             const int rel_var_size = variables[rel_var_id].get_domain_size();
             const int max_size = std::min(pdb_max_size, remaining_states);
@@ -268,7 +260,9 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                     pdb,
                     rel_var_id,
                     task_cost_function,
-                    task_proxy.get_initial_state()));
+                    task_proxy.get_initial_state(),
+                    true,
+                    hill_climbing_timer.get_remaining_time()));
             const unsigned int num_states = new_pdb->num_states();
             max_pdb_size = std::max(max_pdb_size, num_states);
             remaining_states -= num_states;
@@ -295,16 +289,12 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
         // TODO How to choose the length of the random walk in MaxProb?
         State sample = sampler.sample_state(static_cast<int>(init_h), f);
 
-        if (hill_climbing_timer.is_expired()) {
-            throw HillClimbingTimeout();
-        }
+        hill_climbing_timer.throw_if_expired();
 
         EvaluationResult eval = current_pdbs.evaluate(sample);
         samples.emplace_back(std::move(sample), eval);
 
-        if (hill_climbing_timer.is_expired()) {
-            throw HillClimbingTimeout();
-        }
+        hill_climbing_timer.throw_if_expired();
     }
 }
 
@@ -327,7 +317,7 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
 
     // Iterate over all candidates and search for the best improving pattern/pdb
     for (size_t i = 0; i < candidate_pdbs.size(); ++i) {
-        if (hill_climbing_timer.is_expired()) throw HillClimbingTimeout();
+        hill_climbing_timer.throw_if_expired();
 
         const auto& pdb = candidate_pdbs[i];
         if (!pdb) {
@@ -564,7 +554,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
                           << std::endl;
             }
         }
-    } catch (HillClimbingTimeout&) {
+    } catch (utils::TimeoutException&) {
         if (verbosity >= Verbosity::SILENT) {
             std::cout << "Time limit reached. Abort hill climbing."
                       << std::endl;

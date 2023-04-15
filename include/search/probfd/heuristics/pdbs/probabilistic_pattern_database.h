@@ -19,11 +19,11 @@
 
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <ostream>
 #include <set>
 #include <vector>
-
 
 class State;
 
@@ -65,7 +65,8 @@ class ProbabilisticPatternDatabase {
         ProjectionStateSpace& state_space,
         AbstractCostFunction& cost_function,
         StateRank initial_state,
-        const StateRankEvaluator& heuristic);
+        const StateRankEvaluator& heuristic,
+        double max_time);
 
 public:
     /**
@@ -81,6 +82,8 @@ public:
      * during construction of the projection.
      * @param heuristic A heuristic used to accelerate the computation of the
      * value table.
+     * @param max_time The time limit for contruction. If exceeded, a
+     * utils::TimeoutException will be thrown.
      */
     ProbabilisticPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
@@ -89,7 +92,8 @@ public:
         const State& initial_state,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(0_vt));
+            ConstantEvaluator<StateRank>(0_vt),
+        double max_time = std::numeric_limits<double>::infinity());
 
     /**
      * @brief Constructs a pattern database from a given task and pattern, using
@@ -101,6 +105,8 @@ public:
      * solver. States unreachable from this state are treated as dead ends.
      * @param heuristic A heuristic used to accelerate the computation of the
      * value table.
+     * @param max_time The time limit for contruction. If exceeded, a
+     * utils::TimeoutException will be thrown.
      */
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
@@ -108,7 +114,8 @@ public:
         AbstractCostFunction& cost_function,
         StateRank initial_state,
         const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(0_vt));
+            ConstantEvaluator<StateRank>(0_vt),
+        double max_time = std::numeric_limits<double>::infinity());
 
     /**
      * @brief Constructs a pattern database from a given task and the pattern of
@@ -125,13 +132,16 @@ public:
      * States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
+     * @param max_time The time limit for contruction. If exceeded, a
+     * utils::TimeoutException will be thrown.
      */
     ProbabilisticPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         const ::pdbs::PatternDatabase& pdb,
         TaskCostFunction& task_cost_function,
         const State& initial_state,
-        bool operator_pruning = true);
+        bool operator_pruning = true,
+        double max_time = std::numeric_limits<double>::infinity());
 
     /**
      * @brief Constructs a pattern database from a given task and the pattern of
@@ -146,13 +156,16 @@ public:
      * solver. States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
+     * @param max_time The time limit for contruction. If exceeded, a
+     * utils::TimeoutException will be thrown.
      */
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
         AbstractCostFunction& cost_function,
         StateRank initial_state,
-        const ::pdbs::PatternDatabase& pdb);
+        const ::pdbs::PatternDatabase& pdb,
+        double max_time = std::numeric_limits<double>::infinity());
 
     /**
      * @brief Constructs a pattern database for the pattern of a previous
@@ -168,6 +181,8 @@ public:
      * States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
+     * @param max_time The time limit for contruction. If exceeded, a
+     * utils::TimeoutException will be thrown.
      */
     ProbabilisticPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
@@ -175,7 +190,8 @@ public:
         int add_var,
         TaskCostFunction& task_cost_function,
         const State& initial_state,
-        bool operator_pruning = true);
+        bool operator_pruning = true,
+        double max_time = std::numeric_limits<double>::infinity());
 
     /**
      * @brief Constructs a pattern database for the pattern of a previous
@@ -190,6 +206,8 @@ public:
      * solver. States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
+     * @param max_time The time limit for contruction. If exceeded, a
+     * utils::TimeoutException will be thrown.
      */
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
@@ -197,7 +215,8 @@ public:
         AbstractCostFunction& cost_function,
         StateRank initial_state,
         const ProbabilisticPatternDatabase& pdb,
-        int add_var);
+        int add_var,
+        double max_time = std::numeric_limits<double>::infinity());
 
     /**
      * @brief Constructs a pattern database for the union of the two patterns
@@ -214,6 +233,8 @@ public:
      * unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
      * during construction of the projection.
+     * @param max_time The time limit for contruction. If exceeded, a
+     * utils::TimeoutException will be thrown.
      */
     ProbabilisticPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
@@ -221,7 +242,8 @@ public:
         const ProbabilisticPatternDatabase& right,
         TaskCostFunction& task_cost_function,
         const State& initial_state,
-        bool operator_pruning = true);
+        bool operator_pruning = true,
+        double max_time = std::numeric_limits<double>::infinity());
 
     /**
      * @brief Constructs a pattern database for the union of the two patterns
@@ -236,6 +258,8 @@ public:
      * @param right A previous pattern database for the given task.
      * @param initial_state The rank of the initial state for the exhaustive
      * solver. States unreachable from this state are treated as dead ends.
+     * @param max_time The time limit for contruction. If exceeded, a
+     * utils::TimeoutException will be thrown.
      */
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
@@ -243,7 +267,8 @@ public:
         AbstractCostFunction& cost_function,
         StateRank initial_state,
         const ProbabilisticPatternDatabase& left,
-        const ProbabilisticPatternDatabase& right);
+        const ProbabilisticPatternDatabase& right,
+        double max_time = std::numeric_limits<double>::infinity());
 
     // Get the pattern of the pattern database.
     [[nodiscard]] const Pattern& get_pattern() const;

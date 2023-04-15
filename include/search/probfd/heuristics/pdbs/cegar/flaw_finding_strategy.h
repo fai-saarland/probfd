@@ -5,6 +5,10 @@
 
 #include <string>
 
+namespace utils {
+class CountdownTimer;
+}
+
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
@@ -27,7 +31,8 @@ public:
         PatternCollectionGeneratorCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
-        std::vector<Flaw>& flaws) = 0;
+        std::vector<Flaw>& flaws,
+        utils::CountdownTimer& timer) = 0;
 
     virtual std::string get_name() = 0;
 };

@@ -3,6 +3,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
 
 #include "utils/collections.h"
+#include "utils/countdown_timer.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -35,7 +36,8 @@ bool BFSFlawFinder::apply_policy(
     PatternCollectionGeneratorCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
-    std::vector<Flaw>& flaw_list)
+    std::vector<Flaw>& flaw_list,
+    utils::CountdownTimer& timer)
 {
     assert(open.empty() && closed.empty());
 
@@ -49,6 +51,8 @@ bool BFSFlawFinder::apply_policy(
     closed[init.get_id()] = true;
 
     do {
+        timer.throw_if_expired();
+
         State current = std::move(open.front());
         open.pop_front();
 

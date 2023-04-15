@@ -16,6 +16,7 @@
 #include "lp/lp_solver.h"
 
 #include "utils/collections.h"
+#include "utils/countdown_timer.h"
 
 #include <algorithm>
 #include <deque>
@@ -60,10 +61,13 @@ void ProbabilisticPatternDatabase::compute_value_table(
     ProjectionStateSpace& state_space,
     AbstractCostFunction& cost_function,
     StateRank initial_state,
-    const StateRankEvaluator& heuristic)
+    const StateRankEvaluator& heuristic,
+    double max_time)
 {
     using namespace preprocessing;
     using namespace engines::ta_topological_vi;
+
+    utils::CountdownTimer timer(max_time);
 
     QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
         analysis(&state_space, &cost_function, true);
@@ -75,13 +79,15 @@ void ProbabilisticPatternDatabase::compute_value_table(
             initial_state,
             utils::discarding_output_iterator{},
             std::back_inserter(pruned_states),
-            utils::discarding_output_iterator{});
+            utils::discarding_output_iterator{},
+            timer.get_remaining_time());
     } else {
         analysis.run_analysis(
             initial_state,
             std::back_inserter(pruned_states),
             utils::discarding_output_iterator{},
-            utils::discarding_output_iterator{});
+            utils::discarding_output_iterator{},
+            timer.get_remaining_time());
     }
 
     WrapperHeuristic h(pruned_states, heuristic, dead_end_cost);
@@ -91,7 +97,7 @@ void ProbabilisticPatternDatabase::compute_value_table(
         &cost_function,
         &h);
 
-    vi.solve(initial_state.id, value_table);
+    vi.solve(initial_state.id, value_table, timer.get_remaining_time());
 
 #if !defined(NDEBUG)
     std::cout << "(II) Pattern [";
@@ -132,17 +138,20 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
-    const StateRankEvaluator& heuristic)
+    const StateRankEvaluator& heuristic,
+    double max_time)
     : ProbabilisticPatternDatabase(
           task_proxy,
           std::move(pattern),
           task_cost_function.get_non_goal_termination_cost())
 {
+    utils::CountdownTimer timer(max_time);
     ProjectionStateSpace state_space(
         task_proxy,
         ranking_function_,
         task_cost_function,
-        operator_pruning);
+        operator_pruning,
+        timer.get_remaining_time());
     ProjectionCostFunction cost_function(
         task_proxy,
         ranking_function_,
@@ -151,7 +160,8 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         state_space,
         cost_function,
         ranking_function_.rank(initial_state),
-        heuristic);
+        heuristic,
+        timer.get_remaining_time());
 }
 
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
@@ -159,12 +169,18 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     StateRankingFunction ranking_function,
     AbstractCostFunction& cost_function,
     StateRank initial_state,
-    const StateRankEvaluator& heuristic)
+    const StateRankEvaluator& heuristic,
+    double max_time)
     : ProbabilisticPatternDatabase(
           std::move(ranking_function),
           cost_function.get_non_goal_termination_cost())
 {
-    compute_value_table(state_space, cost_function, initial_state, heuristic);
+    compute_value_table(
+        state_space,
+        cost_function,
+        initial_state,
+        heuristic,
+        max_time);
 }
 
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
@@ -172,14 +188,16 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     const ::pdbs::PatternDatabase& pdb,
     TaskCostFunction& task_cost_function,
     const State& initial_state,
-    bool operator_pruning)
+    bool operator_pruning,
+    double max_time)
     : ProbabilisticPatternDatabase(
           task_proxy,
           pdb.get_pattern(),
           task_cost_function,
           initial_state,
           operator_pruning,
-          PDBEvaluator(pdb))
+          PDBEvaluator(pdb),
+          max_time)
 {
 }
 
@@ -188,13 +206,15 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     StateRankingFunction ranking_function,
     AbstractCostFunction& cost_function,
     StateRank initial_state,
-    const ::pdbs::PatternDatabase& pdb)
+    const ::pdbs::PatternDatabase& pdb,
+    double max_time)
     : ProbabilisticPatternDatabase(
           state_space,
           std::move(ranking_function),
           cost_function,
           initial_state,
-          PDBEvaluator(pdb))
+          PDBEvaluator(pdb),
+          max_time)
 {
 }
 
@@ -204,17 +224,21 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     int add_var,
     TaskCostFunction& task_cost_function,
     const State& initial_state,
-    bool operator_pruning)
+    bool operator_pruning,
+    double max_time)
     : ProbabilisticPatternDatabase(
           task_proxy,
           extended_pattern(pdb.get_pattern(), add_var),
           task_cost_function.get_non_goal_termination_cost())
 {
+    utils::CountdownTimer timer(max_time);
+
     ProjectionStateSpace state_space(
         task_proxy,
         ranking_function_,
         task_cost_function,
-        operator_pruning);
+        operator_pruning,
+        timer.get_remaining_time());
     ProjectionCostFunction cost_function(
         task_proxy,
         ranking_function_,
@@ -223,7 +247,8 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         state_space,
         cost_function,
         ranking_function_.rank(initial_state),
-        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
+        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var),
+        timer.get_remaining_time());
 }
 
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
@@ -232,7 +257,8 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     AbstractCostFunction& cost_function,
     StateRank initial_state,
     const ProbabilisticPatternDatabase& pdb,
-    int add_var)
+    int add_var,
+    double max_time)
     : ProbabilisticPatternDatabase(
           std::move(ranking_function),
           cost_function.get_non_goal_termination_cost())
@@ -241,7 +267,8 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         state_space,
         cost_function,
         initial_state,
-        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var));
+        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var),
+        max_time);
 }
 
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
@@ -250,17 +277,21 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     const ProbabilisticPatternDatabase& right,
     TaskCostFunction& task_cost_function,
     const State& initial_state,
-    bool operator_pruning)
+    bool operator_pruning,
+    double max_time)
     : ProbabilisticPatternDatabase(
           task_proxy,
           utils::merge_sorted(left.get_pattern(), right.get_pattern()),
           task_cost_function.get_non_goal_termination_cost())
 {
+    utils::CountdownTimer timer(max_time);
+
     ProjectionStateSpace state_space(
         task_proxy,
         ranking_function_,
         task_cost_function,
-        operator_pruning);
+        operator_pruning,
+        timer.get_remaining_time());
     ProjectionCostFunction cost_function(
         task_proxy,
         ranking_function_,
@@ -269,7 +300,8 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         state_space,
         cost_function,
         ranking_function_.rank(initial_state),
-        MergeEvaluator(ranking_function_, left, right));
+        MergeEvaluator(ranking_function_, left, right),
+        timer.get_remaining_time());
 }
 
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
@@ -278,7 +310,8 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     AbstractCostFunction& cost_function,
     StateRank initial_state,
     const ProbabilisticPatternDatabase& left,
-    const ProbabilisticPatternDatabase& right)
+    const ProbabilisticPatternDatabase& right,
+    double max_time)
     : ProbabilisticPatternDatabase(
           std::move(ranking_function),
           cost_function.get_non_goal_termination_cost())
@@ -287,7 +320,8 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         state_space,
         cost_function,
         initial_state,
-        MergeEvaluator(ranking_function_, left, right));
+        MergeEvaluator(ranking_function_, left, right),
+        max_time);
 }
 
 const Pattern& ProbabilisticPatternDatabase::get_pattern() const

@@ -53,7 +53,8 @@ public:
         StateRankingFunction ranking_function,
         TaskCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        bool wildcard);
+        bool wildcard,
+        utils::CountdownTimer& timer);
 
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
@@ -62,7 +63,8 @@ public:
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const ProbabilisticPatternDatabase& previous,
         int add_var,
-        bool wildcard);
+        bool wildcard,
+        utils::CountdownTimer& timer);
 
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
@@ -71,7 +73,8 @@ public:
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const ProbabilisticPatternDatabase& merge_left,
         const ProbabilisticPatternDatabase& merge_right,
-        bool wildcard);
+        bool wildcard,
+        utils::CountdownTimer& timer);
 
     const Pattern& get_pattern() const;
 
@@ -166,13 +169,13 @@ public:
 private:
     void generate_trivial_solution_collection(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function);
-
-    bool time_limit_reached(const utils::CountdownTimer& timer) const;
+        TaskCostFunction& task_cost_function,
+        utils::CountdownTimer& timer);
 
     int get_flaws(
         const ProbabilisticTaskProxy& task_proxy,
-        std::vector<Flaw>& flaws);
+        std::vector<Flaw>& flaws,
+        utils::CountdownTimer& timer);
 
     bool
     can_add_singleton_pattern(const VariablesProxy& variables, int var) const;
@@ -185,23 +188,27 @@ private:
     void add_pattern_for_var(
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function,
-        int var);
+        int var,
+        utils::CountdownTimer& timer);
     void add_variable_to_pattern(
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function,
         int index,
-        int var);
+        int var,
+        utils::CountdownTimer& timer);
     void merge_patterns(
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function,
         int index1,
-        int index2);
+        int index2,
+        utils::CountdownTimer& timer);
 
     void refine(
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function,
         const VariablesProxy& variables,
-        const std::vector<Flaw>& flaws);
+        const std::vector<Flaw>& flaws,
+        utils::CountdownTimer& timer);
 
     void print_collection() const;
 };

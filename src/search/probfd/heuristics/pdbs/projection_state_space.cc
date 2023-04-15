@@ -5,6 +5,8 @@
 
 #include "probfd/task_proxy.h"
 
+#include "utils/countdown_timer.h"
+
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
@@ -46,9 +48,12 @@ ProjectionStateSpace::ProjectionStateSpace(
     const ProbabilisticTaskProxy& task_proxy,
     const StateRankingFunction& ranking_function,
     TaskCostFunction& task_cost_function,
-    bool operator_pruning)
+    bool operator_pruning,
+    double max_time)
     : match_tree_(task_proxy.get_operators().size())
 {
+    utils::CountdownTimer timer(max_time);
+
     const Pattern& pattern = ranking_function.get_pattern();
 
     const VariablesProxy variables = task_proxy.get_variables();
@@ -78,6 +83,8 @@ ProjectionStateSpace::ProjectionStateSpace(
 
     // Generate the abstract operators for each probabilistic operator
     for (const ProbabilisticOperatorProxy& op : operators) {
+        timer.throw_if_expired();
+
         const OperatorID operator_id(op.get_id());
 
         // Precondition partial state and partial state to enumerate
@@ -146,6 +153,8 @@ ProjectionStateSpace::ProjectionStateSpace(
             ranking_function.partial_assignments(std::move(vars_eff_not_pre));
 
         for (const std::vector<FactPair>& values : ran) {
+            timer.throw_if_expired();
+
             // Generate the progression operator
             AbstractOperator new_op(operator_id);
 

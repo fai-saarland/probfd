@@ -8,6 +8,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "utils/collections.h"
+#include "utils/countdown_timer.h"
 #include "utils/rng.h"
 
 #include "state_registry.h"
@@ -39,7 +40,8 @@ bool SamplingFlawFinder::apply_policy(
     PatternCollectionGeneratorCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
-    std::vector<Flaw>& flaw_list)
+    std::vector<Flaw>& flaw_list,
+    utils::CountdownTimer& timer)
 {
     assert(stk.empty() && einfos.empty());
 
@@ -70,6 +72,8 @@ bool SamplingFlawFinder::apply_policy(
         ExplorationInfo& einfo = einfos[StateID(current.get_id())];
 
         while (!einfo.successors.empty()) {
+            timer.throw_if_expired();
+
             // Sample next successor
             auto it = einfo.successors.sample(*base.rng);
             auto& succ_id = it->item;

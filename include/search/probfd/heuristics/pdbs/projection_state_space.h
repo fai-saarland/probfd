@@ -8,6 +8,7 @@
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_space.h"
 
+#include <limits>
 #include <vector>
 
 namespace probfd {
@@ -29,7 +30,8 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const StateRankingFunction& ranking_function,
         TaskCostFunction& task_cost_function,
-        bool operator_pruning = true);
+        bool operator_pruning = true,
+        double max_time = std::numeric_limits<double>::infinity());
 
     StateID get_state_id(StateRank state) override;
 
