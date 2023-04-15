@@ -21,6 +21,7 @@ struct StatesPolicy<true> {
     ActionID policy = ActionID::undefined;
 
     void set_policy(ActionID aid) { policy = aid; }
+    void clear_policy() { set_policy(ActionID::undefined); }
     ActionID get_policy() const { return policy; }
     bool update_policy(ActionID aid)
     {

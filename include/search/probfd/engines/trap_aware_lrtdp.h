@@ -6,6 +6,7 @@
 #include "probfd/quotients/quotient_system.h"
 #include "probfd/storage/per_state_storage.h"
 
+#include "utils/countdown_timer.h"
 #include "utils/timer.h"
 
 #include <iostream>
@@ -185,12 +186,14 @@ public:
     }
 
 protected:
-    Interval do_solve(const State& s, double) override
+    Interval do_solve(const State& s, double max_time) override
     {
+        utils::CountdownTimer timer(max_time);
+
         const StateID state_id = this->get_state_id(s);
         bool terminate = false;
         do {
-            terminate = trial(state_id);
+            terminate = trial(state_id, timer);
             statistics_.trials++;
             assert(state_id == quotient_->translate_state_id(state_id));
             this->print_progress();
@@ -210,15 +213,18 @@ protected:
     }
 
 private:
-    bool trial(StateID start_state)
+    bool trial(StateID start_state, utils::CountdownTimer& timer)
     {
         using enum TrialTerminationCondition;
 
         assert(current_trial_.empty());
         assert(selected_transition_.empty());
 
+        ClearGuard guard(current_trial_);
         current_trial_.push_back(start_state);
         for (;;) {
+            timer.throw_if_expired();
+
             StateID stateid = current_trial_.back();
             auto& info = this->get_state_info(stateid);
             if (info.is_solved()) {
@@ -259,50 +265,49 @@ private:
         statistics_.trial_length += current_trial_.size();
         if (stop_at_consistent_ == REVISITED) {
             for (const StateID state : current_trial_) {
-                auto& info = this->get_state_info(state);
-                assert(info.is_on_trial());
-                info.clear_trial_flag();
-            }
-        }
-
-        bool terminate = true;
-        while (!current_trial_.empty()) {
-            if (!check_and_solve()) {
-                terminate = false;
-                break;
-            }
-            current_trial_.pop_back();
-        }
-
-        current_trial_.clear();
-        return terminate;
-    }
-
-    bool check_and_solve()
-    {
-        assert(!this->current_trial_.empty());
-
-        Flags flags;
-        {
-            const StateID s =
-                quotient_->translate_state_id(this->current_trial_.back());
-            if (this->get_state_info(s).is_solved()) {
-                // was labeled in some prior check_and_solve() invocation
-                return true;
-            }
-            if (!push_to_queue(s, flags)) {
-                stack_index_.clear();
-                return flags.rv;
+                this->get_state_info(state).clear_trial_flag();
             }
         }
 
         do {
-            ExplorationInformation& einfo = queue_.back();
-            einfo.flags.update(flags);
-            bool backtrack = true;
-            while (!einfo.successors.empty()) {
+            timer.throw_if_expired();
+
+            if (!check_and_solve(timer)) {
+                return false;
+            }
+
+            current_trial_.pop_back();
+        } while (!current_trial_.empty());
+
+        return true;
+    }
+
+    bool check_and_solve(utils::CountdownTimer& timer)
+    {
+        assert(!this->current_trial_.empty());
+
+        const StateID s =
+            quotient_->translate_state_id(this->current_trial_.back());
+        auto& sinfo = this->get_state_info(s);
+
+        if (sinfo.is_solved()) {
+            // was labeled in some prior check_and_solve() invocation
+            return true;
+        }
+
+        if (Flags flags; !push_to_queue(s, flags)) {
+            stack_index_.clear();
+            return flags.rv;
+        }
+
+        ExplorationInformation* einfo = &queue_.back();
+
+        for (;;) {
+            do {
+                timer.throw_if_expired();
+
                 const StateID succ =
-                    quotient_->translate_state_id(einfo.successors.back());
+                    quotient_->translate_state_id(einfo->successors.back());
                 StateInfo& succ_info = this->get_state_info(succ);
                 int& sidx = stack_index_[succ];
                 if (sidx == STATE_UNSEEN) {
@@ -310,103 +315,107 @@ private:
                         succ_info.set_solved();
                     }
                     if (succ_info.is_solved()) {
-                        einfo.flags.update(succ_info);
-                    } else if (push_to_queue(succ, einfo.flags)) {
-                        flags.clear();
-                        backtrack = false;
-                        break;
+                        einfo->flags.update(succ_info);
+                    } else if (push_to_queue(succ, einfo->flags)) {
+                        einfo = &queue_.back();
+                        continue;
                     }
                     // don't touch this state again within this check_and_solve
                     // iteration
                     sidx = STATE_CLOSED;
                 } else if (sidx >= 0) {
-                    int& sidx2 = stack_index_[einfo.state];
+                    int& sidx2 = stack_index_[einfo->state];
                     if (sidx < sidx2) {
                         sidx2 = sidx;
-                        einfo.is_root = false;
+                        einfo->is_root = false;
                     }
                 } else {
-                    einfo.flags.update(succ_info);
+                    einfo->flags.update(succ_info);
                 }
-                einfo.successors.pop_back();
-            }
+                einfo->successors.pop_back();
+            } while (!einfo->successors.empty());
 
-            if (backtrack) {
-                if (einfo.is_root) {
-                    const unsigned stack_index = stack_index_[einfo.state];
-                    const unsigned scc_size = stack_.size() - stack_index;
-                    if (scc_size == 1) {
-                        assert(stack_.front() == einfo.state);
-                        stack_index_[einfo.state] = STATE_CLOSED;
-                        stack_.pop_front();
-                        if (!einfo.flags.rv) {
+            do {
+                Flags flags = einfo->flags;
+
+                if (einfo->is_root) {
+                    const StateID state = einfo->state;
+                    const unsigned stack_index = stack_index_[state];
+                    std::ranges::subrange scc(
+                        std::next(stack_.begin(), stack_index),
+                        stack_.end());
+
+                    if (scc.size() == 1) {
+                        stack_index_[state] = STATE_CLOSED;
+                        stack_.pop_back();
+                        if (!einfo->flags.rv) {
                             ++this->statistics_.check_and_solve_bellman_backups;
-                            this->async_update(einfo.state);
+                            this->async_update(state);
                         } else {
-                            StateInfo& info = this->get_state_info(einfo.state);
-                            info.set_solved();
+                            this->get_state_info(state).set_solved();
                         }
                     } else {
-                        auto scc_end = std::next(stack_.begin(), scc_size);
-                        if (einfo.flags.is_trap) {
-                            assert(einfo.flags.rv);
-                            StateID minstate = einfo.state;
-                            for (auto it = stack_.begin(); it != scc_end;
-                                 ++it) {
-                                stack_index_[*it] = STATE_CLOSED;
-                                if (*it < minstate) {
-                                    minstate = *it;
-                                }
+                        if (einfo->flags.is_trap) {
+                            assert(einfo->flags.rv);
+                            for (const StateID id : scc) {
+                                stack_index_[id] = STATE_CLOSED;
                             }
                             utils::TimerScope scope(statistics_.trap_timer);
                             quotient_->build_quotient(
-                                stack_.begin(),
-                                scc_end,
-                                minstate);
-                            this->get_state_info(minstate).set_policy(
-                                ActionID::undefined);
+                                scc.begin(),
+                                scc.end(),
+                                state);
+                            this->get_state_info(state).clear_policy();
                             ++this->statistics_.traps;
                             ++this->statistics_.check_and_solve_bellman_backups;
-                            stack_.erase(stack_.begin(), scc_end);
+                            stack_.erase(scc.begin(), scc.end());
                             if (reexpand_traps_) {
                                 queue_.pop_back();
-                                flags.clear();
-                                if (!push_to_queue(minstate, flags)) {
-                                    flags.is_trap = false;
+                                if (push_to_queue(state, flags)) {
+                                    break;
+                                } else {
+                                    goto skip_pop;
                                 }
-                                continue;
                             } else {
-                                this->async_update(minstate);
-                                einfo.flags.rv = false;
+                                this->async_update(state);
+                                einfo->flags.rv = false;
                             }
-                        } else if (einfo.flags.rv) {
-                            for (auto it = stack_.begin(); it != scc_end;
-                                 ++it) {
-                                stack_index_[*it] = STATE_CLOSED;
-                                this->get_state_info(*it).set_solved();
+                        } else if (einfo->flags.rv) {
+                            for (const StateID id : scc) {
+                                stack_index_[id] = STATE_CLOSED;
+                                this->get_state_info(id).set_solved();
                             }
-                            stack_.erase(stack_.begin(), scc_end);
+                            stack_.erase(scc.begin(), scc.end());
                         } else {
-                            for (auto it = stack_.begin(); it != scc_end;
-                                 ++it) {
-                                stack_index_[*it] = STATE_CLOSED;
-                                this->async_update(*it);
+                            for (const StateID id : scc) {
+                                stack_index_[id] = STATE_CLOSED;
+                                this->async_update(id);
                             }
-                            stack_.erase(stack_.begin(), scc_end);
+                            stack_.erase(scc.begin(), scc.end());
                         }
                     }
-                    einfo.flags.is_trap = false;
+
+                    flags.is_trap = false;
                 }
-                flags = einfo.flags;
+
                 queue_.pop_back();
-            }
-        } while (!queue_.empty());
 
-        assert(queue_.empty());
-        assert(stack_.empty());
+            skip_pop:;
 
-        stack_index_.clear();
-        return this->get_state_info(this->current_trial_.back()).is_solved();
+                if (queue_.empty()) {
+                    assert(stack_.empty());
+                    stack_index_.clear();
+                    return sinfo.is_solved();
+                }
+
+                timer.throw_if_expired();
+
+                einfo = &queue_.back();
+
+                einfo->flags.update(flags);
+                einfo->successors.pop_back();
+            } while (einfo->successors.empty());
+        }
     }
 
     bool push_to_queue(const StateID state, Flags& parent_flags)
@@ -447,7 +456,7 @@ private:
         e.flags.is_trap =
             this->get_action_cost(state, *result.policy_action) == 0;
         stack_index_[state] = stack_.size();
-        stack_.push_front(state);
+        stack_.push_back(state);
         return true;
     }
 };
