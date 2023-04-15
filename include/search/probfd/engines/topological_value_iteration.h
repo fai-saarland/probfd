@@ -8,10 +8,12 @@
 
 #include "probfd/policies/map_policy.h"
 
+#include "utils/countdown_timer.h"
 #include "utils/iterators.h"
 
 #include <deque>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <type_traits>
 #include <vector>
@@ -264,22 +266,26 @@ public:
      * \copydoc MDPEngine::compute_policy(const State&)
      */
     std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& state, double) override
+    compute_policy(const State& state, double max_time) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
             new policies::MapPolicy<State, Action>(this->get_state_space()));
-        this->solve(this->get_state_id(state), value_store, policy.get());
+        this->solve(
+            this->get_state_id(state),
+            value_store,
+            max_time,
+            policy.get());
         return policy;
     }
 
     /**
      * \copydoc MDPEngine::solve(const State&)
      */
-    Interval solve(const State& state, double) override
+    Interval solve(const State& state, double max_time) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
-        return this->solve(this->get_state_id(state), value_store);
+        return this->solve(this->get_state_id(state), value_store, max_time);
     }
 
     /**
@@ -306,8 +312,11 @@ public:
     Interval solve(
         StateID init_state_id,
         ValueStore& value_store,
+        double max_time = std::numeric_limits<double>::infinity(),
         policies::MapPolicy<State, Action>* policy = nullptr)
     {
+        utils::CountdownTimer timer(max_time);
+
         StateInfo& iinfo = state_information_[init_state_id];
         EngineValueType& init_value = value_store[init_state_id];
 
@@ -328,7 +337,8 @@ public:
                 *explore,
                 *stack_info,
                 state_id,
-                value_store)) {
+                value_store,
+                timer)) {
                 explore = &exploration_stack_.back();
                 state_id = explore->state_id;
                 stack_info = &stack_[explore->stackidx];
@@ -343,7 +353,7 @@ public:
                 if (!onstack) {
                     const auto begin = stack_.begin() + stack_id;
                     const auto end = stack_.end();
-                    scc_found(begin, end, policy);
+                    scc_found(begin, end, policy, timer);
                 }
 
                 exploration_stack_.pop_back();
@@ -355,6 +365,8 @@ public:
                         return Interval(init_value, INFINITE_VALUE);
                     }
                 }
+
+                timer.throw_if_expired();
 
                 explore = &exploration_stack_.back();
                 state_id = explore->state_id;
@@ -522,7 +534,8 @@ private:
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateID state_id,
-        ValueStore& value_store)
+        ValueStore& value_store,
+        utils::CountdownTimer& timer)
     {
         for (;;) {
             assert(!stack_info.nconv_qs.empty());
@@ -530,6 +543,8 @@ private:
             QValueInfo& tinfo = stack_info.nconv_qs.back();
 
             do {
+                timer.throw_if_expired();
+
                 const auto [succ_id, prob] = explore.get_current_successor();
 
                 if (succ_id == state_id) {
@@ -582,7 +597,8 @@ private:
     void scc_found(
         StackIterator begin,
         StackIterator end,
-        policies::MapPolicy<State, Action>* policy)
+        policies::MapPolicy<State, Action>* policy,
+        utils::CountdownTimer& timer)
     {
         assert(begin != end);
 
@@ -617,6 +633,8 @@ private:
             do {
                 changed = false;
                 auto it = begin;
+
+                timer.throw_if_expired();
 
                 do {
                     changed |= it->update_value();

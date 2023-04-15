@@ -8,10 +8,12 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "utils/countdown_timer.h"
 #include "utils/iterators.h"
 
 #include <deque>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <type_traits>
 #include <vector>
@@ -353,10 +355,10 @@ public:
     /**
      * \copydoc MDPEngine::solve(const State&)
      */
-    Interval solve(const State& state, double) override
+    Interval solve(const State& state, double max_time) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
-        return this->solve(this->get_state_id(state), value_store);
+        return this->solve(this->get_state_id(state), value_store, max_time);
     }
 
     /**
@@ -380,8 +382,13 @@ public:
      * output parameter \p value_store. Returns the value of the initial state.
      */
     template <typename ValueStore>
-    Interval solve(StateID init_state_id, ValueStore& value_store)
+    Interval solve(
+        StateID init_state_id,
+        ValueStore& value_store,
+        double max_time = std::numeric_limits<double>::infinity())
     {
+        utils::CountdownTimer timer(max_time);
+
         StateInfo& iinfo = state_information_[init_state_id];
         EngineValueType& init_value = value_store[init_state_id];
 
@@ -398,8 +405,12 @@ public:
         StateID state_id = stack_info->state_id;
 
         for (;;) {
-            while (
-                successor_loop(*explore, *stack_info, state_id, value_store)) {
+            while (successor_loop(
+                *explore,
+                *stack_info,
+                state_id,
+                value_store,
+                timer)) {
                 explore = &exploration_stack_.back();
                 stack_info = &stack_[explore->stackidx];
                 state_id = stack_info->state_id;
@@ -417,7 +428,8 @@ public:
                         value_store,
                         *explore,
                         stack_.begin() + stack_id,
-                        stack_.end());
+                        stack_.end(),
+                        timer);
                 }
 
                 const bool recurse = explore->recurse;
@@ -431,6 +443,8 @@ public:
                         return Interval(init_value, INFINITE_VALUE);
                     }
                 }
+
+                timer.throw_if_expired();
 
                 explore = &exploration_stack_.back();
                 stack_info = &stack_[explore->stackidx];
@@ -509,7 +523,8 @@ private:
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateID state_id,
-        ValueStore& value_store)
+        ValueStore& value_store,
+        utils::CountdownTimer& timer)
     {
         for (;;) {
             assert(!stack_info.ec_transitions.empty());
@@ -517,6 +532,8 @@ private:
             QValueInfo& tinfo = stack_info.ec_transitions.back();
 
             do {
+                timer.throw_if_expired();
+
                 const auto [succ_id, prob] = explore.get_current_successor();
 
                 if (succ_id == state_id) {
@@ -681,7 +698,8 @@ private:
         ValueStore& value_store,
         ExplorationInfo& exp_info,
         StackIterator begin,
-        StackIterator end)
+        StackIterator end,
+        utils::CountdownTimer& timer)
     {
         assert(begin != end);
 
@@ -712,7 +730,7 @@ private:
 
                 if (s_info.status == StateInfo::NEW && push_ecd(id, s_info)) {
                     // Run decomposition
-                    find_and_decompose_sccs();
+                    find_and_decompose_sccs(0, timer);
                 }
 
                 assert(s_info.status == StateInfo::CLOSED);
@@ -761,6 +779,8 @@ private:
             auto it = begin;
 
             do {
+                timer.throw_if_expired();
+
                 changed |= it->update_value(value_store);
                 ++statistics_.bellman_backups;
             } while (++it != end);
@@ -769,7 +789,8 @@ private:
         stack_.erase(begin, end);
     }
 
-    void find_and_decompose_sccs(const unsigned limit = 0)
+    void
+    find_and_decompose_sccs(const unsigned limit, utils::CountdownTimer& timer)
     {
         if (exploration_stack_ecd_.size() <= limit) {
             return;
@@ -779,7 +800,7 @@ private:
 
         for (;;) {
             // DFS recursion
-            while (push_successor_ecd(*e)) {
+            while (push_successor_ecd(*e, timer)) {
                 e = &exploration_stack_ecd_.back();
             }
 
@@ -794,7 +815,7 @@ private:
                 const bool is_onstack = stck != lowlink;
 
                 if (!is_onstack) {
-                    scc_found_ecd(*e);
+                    scc_found_ecd(*e, timer);
                 }
 
                 exploration_stack_ecd_.pop_back();
@@ -802,6 +823,8 @@ private:
                 if (exploration_stack_ecd_.size() <= limit) {
                     return;
                 }
+
+                timer.throw_if_expired();
 
                 e = &exploration_stack_ecd_.back();
 
@@ -817,9 +840,11 @@ private:
         }
     }
 
-    bool push_successor_ecd(ECDExplorationInfo& e)
+    bool push_successor_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer)
     {
         do {
+            timer.throw_if_expired();
+
             const StateID succ_id = e.get_current_successor().item;
             StateInfo& succ_info = state_information_[succ_id];
 
@@ -865,7 +890,7 @@ private:
         return true;
     }
 
-    void scc_found_ecd(ECDExplorationInfo& e)
+    void scc_found_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer)
     {
         auto scc_begin = stack_ecd_.begin() + e.stackidx;
         auto scc_end = stack_ecd_.end();
@@ -887,7 +912,7 @@ private:
                 if (state_info.status == StateInfo::NEW &&
                     push_ecd(id, state_info)) {
                     // Recursively run decomposition
-                    find_and_decompose_sccs(limit);
+                    find_and_decompose_sccs(limit, timer);
                 }
             }
 
