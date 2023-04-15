@@ -5,6 +5,8 @@
 
 #include "probfd/engine_interfaces/transition_sampler.h"
 
+#include "utils/countdown_timer.h"
+
 #include <cassert>
 #include <deque>
 #include <iostream>
@@ -203,8 +205,10 @@ public:
     void reset_search_state() override { state_infos_.clear(); }
 
 protected:
-    Interval do_solve(const State& state, double) override
+    Interval do_solve(const State& state, double max_time) override
     {
+        utils::CountdownTimer timer(max_time);
+
         const StateID state_id = this->get_state_id(state);
 
         for (;;) {
@@ -214,7 +218,7 @@ protected:
                 break;
             }
 
-            this->trial(state_id);
+            this->trial(state_id, timer);
             this->statistics_.trials++;
             this->print_progress();
         }
@@ -235,7 +239,7 @@ protected:
     }
 
 private:
-    void trial(StateID initial_state)
+    void trial(StateID initial_state, utils::CountdownTimer& timer)
     {
         using enum TrialTerminationCondition;
 
@@ -244,6 +248,8 @@ private:
         this->current_trial_.push_back(initial_state);
 
         for (;;) {
+            timer.throw_if_expired();
+
             const StateID state_id = this->current_trial_.back();
 
             auto& state_info = get_lrtdp_state_info(state_id);
@@ -270,6 +276,7 @@ private:
 
             // state_info.mark_trial();
             assert(!this->get_state_info(state_id, state_info).is_terminal());
+
             if ((StopConsistent == CONSISTENT && !value_changed) ||
                 (StopConsistent == INCONSISTENT && value_changed) ||
                 (StopConsistent == REVISITED && state_info.is_marked_trial())) {
@@ -295,17 +302,18 @@ private:
             }
         }
 
-        while (!this->current_trial_.empty()) {
-            bool solved = this->check_and_solve(this->current_trial_.back());
-            this->current_trial_.pop_back();
+        do {
+            timer.throw_if_expired();
 
-            if (!solved) {
+            if (!this->check_and_solve(this->current_trial_.back(), timer)) {
                 break;
             }
-        }
+
+            this->current_trial_.pop_back();
+        } while (!this->current_trial_.empty());
     }
 
-    bool check_and_solve(StateID init_state_id)
+    bool check_and_solve(StateID init_state_id, utils::CountdownTimer& timer)
     {
         assert(!this->current_trial_.empty());
         assert(this->policy_queue_.empty());
@@ -325,6 +333,8 @@ private:
         }
 
         while (!this->policy_queue_.empty()) {
+            timer.throw_if_expired();
+
             ClearGuard guard(this->selected_transition_);
 
             const auto state_id = this->policy_queue_.back();
@@ -382,6 +392,18 @@ private:
         return epsilon_consistent && mark_solved;
     }
 
+    StateInfoT& get_lrtdp_state_info(StateID sid)
+    {
+        using HSBInfo = typename HeuristicSearchBase::StateInfo;
+
+        if constexpr (std::is_same_v<StateInfoT, HSBInfo>) {
+            return this->get_state_info_store()[sid];
+        } else {
+            return state_infos_[sid];
+        }
+    }
+
+    /*
     bool check_and_solve_original(StateID init_state_id)
     {
         bool rv = true;
@@ -442,17 +464,7 @@ private:
 
         return rv;
     }
-
-    StateInfoT& get_lrtdp_state_info(StateID sid)
-    {
-        using HSBInfo = typename HeuristicSearchBase::StateInfo;
-
-        if constexpr (std::is_same_v<StateInfoT, HSBInfo>) {
-            return this->get_state_info_store()[sid];
-        } else {
-            return state_infos_[sid];
-        }
-    }
+    */
 };
 
 } // namespace lrtdp
