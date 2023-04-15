@@ -270,7 +270,7 @@ public:
     }
 
 private:
-    bool find_and_remove_traps(const State& state, utils::CountdownTimer&)
+    bool find_and_remove_traps(const State& state, utils::CountdownTimer& timer)
     {
 #if defined(EXPENSIVE_STATISTICS)
         utils::TimerScope scoped(statistics_.trap_identification);
@@ -284,7 +284,10 @@ private:
 
         {
             StateID stateid = this->get_state_id(state);
-            push(exploration_queue, stateid, unexpanded);
+            if (!push(exploration_queue, stateid, unexpanded)) {
+                return true;
+            }
+
             stack.push_back(stateid);
             state_infos[stateid].open(0);
         }
@@ -293,7 +296,7 @@ private:
         bool can_reach_child_scc = false;
         unsigned last_lowlink = TarjanStateInformation::UNDEF;
 
-        while (!exploration_queue.empty()) {
+        do {
             ExplorationInfo& einfo = exploration_queue.back();
             const auto state_id = einfo.state_id;
             TarjanStateInformation& sinfo = state_infos[state_id];
@@ -306,6 +309,8 @@ private:
             }
 
             while (!einfo.successors.empty()) {
+                timer.throw_if_expired();
+
                 StateID succid = einfo.successors.back();
                 einfo.successors.pop_back();
                 TarjanStateInformation& succ_info = state_infos[succid];
@@ -354,8 +359,10 @@ private:
 
             exploration_queue.pop_back();
 
+            timer.throw_if_expired();
+
         continue_outer:;
-        }
+        } while (!exploration_queue.empty());
 
         ++statistics_.iterations;
 
