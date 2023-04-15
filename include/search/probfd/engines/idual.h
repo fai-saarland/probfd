@@ -118,7 +118,7 @@ public:
     {
     }
 
-    Interval solve(const State& initial_state) override
+    Interval solve(const State& initial_state, double) override
     {
         const double eps = g_epsilon;
         const double inf = lp_solver_.get_infinity();

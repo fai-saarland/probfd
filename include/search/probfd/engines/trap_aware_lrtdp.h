@@ -489,7 +489,10 @@ public:
     {
     }
 
-    Interval solve(const State& s) override { return engine_.solve(s); }
+    Interval solve(const State& s, double max_time) override
+    {
+        return engine_.solve(s, max_time);
+    }
 
     void print_statistics(std::ostream& out) const override
     {

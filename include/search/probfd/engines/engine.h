@@ -10,10 +10,10 @@
 #include "probfd/distribution.h"
 #include "probfd/interval.h"
 
+#include <limits>
 #include <memory>
 #include <optional>
 #include <vector>
-
 
 namespace probfd {
 
@@ -36,16 +36,20 @@ public:
      *
      * @note The default implementation of this method returns an empty policy.
      */
-    virtual std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State&)
+    virtual std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
+        const State&,
+        double = std::numeric_limits<double>::infinity())
     {
         return std::make_unique<policies::EmptyPolicy<State, Action>>();
     }
 
     /**
-     * @brief Runs the MDP algorithm with the initial state \p state .
+     * @brief Runs the MDP algorithm with the initial state \p state with a
+     * maximum time limit.
      */
-    virtual Interval solve(const State& state) = 0;
+    virtual Interval solve(
+        const State& state,
+        double max_time = std::numeric_limits<double>::infinity()) = 0;
 
     /**
      * @brief Prints algorithm statistics to the specified std::ostream.

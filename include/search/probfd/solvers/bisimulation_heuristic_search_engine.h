@@ -121,10 +121,10 @@ public:
         return res;
     }
 
-    virtual Interval solve(const State&) override
+    virtual Interval solve(const State&, double max_time) override
     {
         std::cout << "Running " << engine_name_ << "..." << std::endl;
-        return engine_->solve(state_space_.get_initial_state());
+        return engine_->solve(state_space_.get_initial_state(), max_time);
     }
 
     virtual void print_statistics(std::ostream& out) const override

@@ -151,7 +151,7 @@ public:
         statistics_.print(out);
     }
 
-    Interval solve(const State& state) override
+    Interval solve(const State& state, double) override
     {
         statistics_ = Statistics();
 

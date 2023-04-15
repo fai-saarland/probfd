@@ -274,7 +274,7 @@ public:
         ABORT("Search algorithm does not store policy information!");
     }
 
-    Interval solve(const State& state) override
+    Interval solve(const State& state, double) override
     {
         StateID stateid = this->get_state_id(state);
         SearchNodeInformation& info = search_space_[stateid];

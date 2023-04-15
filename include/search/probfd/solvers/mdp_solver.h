@@ -40,6 +40,10 @@ protected:
 
     ProgressReport progress_;
 
+    const double max_time;
+
+    bool solution_found = true;
+
 public:
     /**
      * @brief Constructs the MDP solver from the given options.
@@ -86,7 +90,7 @@ public:
     /**
      * @brief Checks if the MDP engine found a solution.
      */
-    virtual bool found_solution() const override { return true; }
+    virtual bool found_solution() const override { return solution_found; }
 
     static void add_options_to_parser(options::OptionParser& parser);
 };

@@ -10,6 +10,8 @@
 
 #include "probfd/policies/map_policy.h"
 
+#include "utils/countdown_timer.h"
+
 #include <iostream>
 #include <memory>
 #include <stack>
@@ -72,12 +74,12 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
 
         IncrementalExpansionInfo(
             StateID state,
-            std::vector<Action> aops,
+            std::vector<Action> remaining_aops,
             MDPEngine<State, Action>& engine)
             : state(state)
-            , remaining_aops(std::move(aops))
+            , remaining_aops(std::move(remaining_aops))
         {
-            assert(!remaining_aops.empty());
+            assert(!this->remaining_aops.empty());
             auto& next_action = remaining_aops.back();
             t_value = engine.get_action_cost(state, next_action);
             transition.clear();
@@ -136,23 +138,26 @@ public:
     }
 
     std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& initial_state) override
+    compute_policy(const State& initial_state, double max_time) override
     {
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
             new policies::MapPolicy<State, Action>(this->get_state_space()));
-        solve(initial_state, policy.get());
+        solve(initial_state, max_time, policy.get());
         return policy;
     }
 
-    Interval solve(const State& initial_state) override
+    Interval solve(const State& initial_state, double max_time) override
     {
-        return solve(initial_state, nullptr);
+        return solve(initial_state, max_time, nullptr);
     }
 
     Interval solve(
         const State& initial_state,
+        double max_time,
         policies::MapPolicy<State, Action>* policy)
     {
+        utils::CountdownTimer timer(max_time);
+
         const StateID initial_state_id = this->get_state_id(initial_state);
         StateInfo& iinfo = state_infos_[initial_state_id];
 
@@ -161,8 +166,8 @@ public:
         }
 
         do {
-            dfs_expand(policy);
-        } while (dfs_backtrack(policy));
+            dfs_expand(timer, policy);
+        } while (dfs_backtrack(timer, policy));
 
         assert(expansion_stack_.empty());
         return Interval(iinfo.value);
@@ -174,12 +179,16 @@ public:
     }
 
 private:
-    void dfs_expand(policies::MapPolicy<State, Action>* policy)
+    void dfs_expand(
+        utils::CountdownTimer& timer,
+        policies::MapPolicy<State, Action>* policy)
     {
         IncrementalExpansionInfo* e = &expansion_stack_.top();
 
         do {
             for (;;) {
+                timer.throw_if_expired();
+
                 const auto [succ_id, probability] = *e->successor;
                 StateInfo& succ_info = state_infos_[succ_id];
 
@@ -236,7 +245,9 @@ private:
         }
     }
 
-    bool dfs_backtrack(policies::MapPolicy<State, Action>* policy)
+    bool dfs_backtrack(
+        utils::CountdownTimer& timer,
+        policies::MapPolicy<State, Action>* policy)
     {
         IncrementalExpansionInfo* e;
 
@@ -246,6 +257,8 @@ private:
             if (expansion_stack_.empty()) {
                 return false;
             }
+
+            timer.throw_if_expired();
 
             e = &expansion_stack_.top();
 

@@ -8,6 +8,8 @@ public:
     virtual ~Exception() = default;
     virtual void print() const = 0;
 };
+
+struct TimeoutException {};
 }
 
 #endif

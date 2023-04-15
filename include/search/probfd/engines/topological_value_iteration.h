@@ -264,7 +264,7 @@ public:
      * \copydoc MDPEngine::compute_policy(const State&)
      */
     std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& state) override
+    compute_policy(const State& state, double) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
@@ -276,7 +276,7 @@ public:
     /**
      * \copydoc MDPEngine::solve(const State&)
      */
-    Interval solve(const State& state) override
+    Interval solve(const State& state, double) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
         return this->solve(this->get_state_id(state), value_store);

@@ -12,6 +12,8 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "utils/exceptions.h"
+
 #include <iomanip>
 #include <vector>
 
@@ -38,6 +40,7 @@ MDPSolver::MDPSolver(const options::Options& opts)
               : std::nullopt,
           std::cout,
           opts.get<bool>("report_enabled"))
+    , max_time(opts.get<double>("max_time"))
 {
     progress_.register_print([&ss = *this->state_space_](std::ostream& out) {
         out << "registered=" << ss.get_num_registered_states();
@@ -48,36 +51,48 @@ MDPSolver::~MDPSolver() = default;
 
 void MDPSolver::solve()
 {
-    std::cout << "Running MDP engine " << get_engine_name() << "..."
-              << std::endl;
-    utils::Timer total_timer;
-    std::unique_ptr<engines::MDPEngineInterface<State, OperatorID>> engine(
-        create_engine());
+    std::cout << "Running MDP engine " << get_engine_name();
 
-    const State& initial_state = state_space_->get_initial_state();
+    if (max_time != std::numeric_limits<double>::infinity()) {
+        std::cout << " with a time limit of " << max_time << " seconds";
+    }
 
-    Interval val = engine->solve(initial_state);
-    progress_.force_print();
-    total_timer.stop();
+    std::cout << "..." << std::endl;
 
-    std::cout << "analysis done. [t=" << utils::g_timer << "]" << std::endl;
+    try {
+        utils::Timer total_timer;
+        std::unique_ptr<engines::MDPEngineInterface<State, OperatorID>> engine(
+            create_engine());
 
-    std::cout << std::endl;
+        const State& initial_state = state_space_->get_initial_state();
 
-    print_analysis_result(val);
+        Interval val = engine->solve(initial_state, max_time);
+        progress_.force_print();
+        total_timer.stop();
 
-    std::cout << std::endl;
-    std::cout << "State space interface:" << std::endl;
-    std::cout << "  Registered state(s): "
-              << state_space_->get_num_registered_states() << std::endl;
-    state_space_->print_statistics(std::cout);
+        std::cout << "analysis done. [t=" << utils::g_timer << "]" << std::endl;
 
-    std::cout << std::endl;
-    std::cout << "Engine " << get_engine_name() << " statistics:" << std::endl;
-    std::cout << "  Actual solver time: " << total_timer << std::endl;
-    engine->print_statistics(std::cout);
+        std::cout << std::endl;
 
-    print_additional_statistics();
+        print_analysis_result(val);
+
+        std::cout << std::endl;
+        std::cout << "State space interface:" << std::endl;
+        std::cout << "  Registered state(s): "
+                  << state_space_->get_num_registered_states() << std::endl;
+        state_space_->print_statistics(std::cout);
+
+        std::cout << std::endl;
+        std::cout << "Engine " << get_engine_name()
+                  << " statistics:" << std::endl;
+        std::cout << "  Actual solver time: " << total_timer << std::endl;
+        engine->print_statistics(std::cout);
+
+        print_additional_statistics();
+    } catch (utils::TimeoutException&) {
+        std::cout << "Time limit reached. Analysis was aborted." << std::endl;
+        solution_found = false;
+    }
 }
 
 void MDPSolver::add_options_to_parser(options::OptionParser& parser)
@@ -89,6 +104,7 @@ void MDPSolver::add_options_to_parser(options::OptionParser& parser)
         "[]");
     parser.add_option<value_t>("report_epsilon", "", "1e-4");
     parser.add_option<bool>("report_enabled", "", "true");
+    parser.add_option<double>("max_time", "", "infinity");
 }
 
 } // namespace solvers

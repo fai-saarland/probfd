@@ -21,6 +21,13 @@ bool CountdownTimer::is_expired() const {
     return max_time != numeric_limits<double>::infinity() && timer() >= max_time;
 }
 
+void CountdownTimer::throw_if_expired() const
+{
+    if (is_expired()) {
+        throw TimeoutException();
+    }
+}
+
 Duration CountdownTimer::get_elapsed_time() const {
     return timer();
 }

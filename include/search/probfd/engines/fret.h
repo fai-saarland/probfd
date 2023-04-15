@@ -13,8 +13,10 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "utils/countdown_timer.h"
+
 #if defined(EXPENSIVE_STATISTICS)
-#include "../../utils/timer.h"
+#include "utils/timer.h"
 #endif
 
 #include <fstream>
@@ -120,9 +122,9 @@ public:
     }
 
     std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& state) override
+    compute_policy(const State& state, double max_time) override
     {
-        this->solve(state);
+        this->solve(state, max_time);
 
         /*
          * The quotient policy only specifies the optimal actions between traps.
@@ -238,12 +240,14 @@ public:
         return policy;
     }
 
-    Interval solve(const State& state) override
+    Interval solve(const State& state, double max_time) override
     {
-        for (;;) {
-            const Interval value = heuristic_search(state);
+        utils::CountdownTimer timer(max_time);
 
-            if (find_and_remove_traps(state)) {
+        for (;;) {
+            const Interval value = heuristic_search(state, timer);
+
+            if (find_and_remove_traps(state, timer)) {
                 return value;
             }
 
@@ -251,12 +255,12 @@ public:
         }
     }
 
-    Interval heuristic_search(const State& state)
+    Interval heuristic_search(const State& state, utils::CountdownTimer& timer)
     {
 #if defined(EXPENSIVE_STATISTICS)
         utils::TimerScope scoped(statistics_.heuristic_search);
 #endif
-        return base_engine_->solve(state);
+        return base_engine_->solve(state, timer.get_remaining_time());
     }
 
     void print_statistics(std::ostream& out) const override
@@ -266,7 +270,7 @@ public:
     }
 
 private:
-    bool find_and_remove_traps(const State& state)
+    bool find_and_remove_traps(const State& state, utils::CountdownTimer&)
     {
 #if defined(EXPENSIVE_STATISTICS)
         utils::TimerScope scoped(statistics_.trap_identification);

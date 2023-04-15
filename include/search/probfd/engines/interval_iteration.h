@@ -86,7 +86,7 @@ public:
     {
     }
 
-    Interval solve(const State& state) override
+    Interval solve(const State& state, double) override
     {
         std::unique_ptr<QuotientSystem> sys = get_quotient(state);
         BoolStore dead, one;

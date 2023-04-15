@@ -187,16 +187,16 @@ public:
 
     virtual ~HeuristicSearchBase() = default;
 
-    Interval solve(const State& state) final override
+    Interval solve(const State& state, double) final override
     {
         this->initialize_report(state);
         return this->do_solve(state);
     }
 
     std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& state) override
+    compute_policy(const State& state, double max_time) override
     {
-        this->solve(state);
+        this->solve(state, max_time);
 
         /*
          * Expand some greedy policy graph, starting from the initial state.

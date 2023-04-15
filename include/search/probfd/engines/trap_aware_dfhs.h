@@ -692,12 +692,15 @@ public:
     {
     }
 
-    Interval solve(const State& state) override { return engine_.solve(state); }
+    Interval solve(const State& state, double max_time) override
+    {
+        return engine_.solve(state, max_time);
+    }
 
     std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& state) override
+    compute_policy(const State& state, double max_time) override
     {
-        this->solve(state);
+        this->solve(state, max_time);
 
         auto* parent_state_space = engine_.quotient_->get_parent_state_space();
 
