@@ -10,6 +10,8 @@
 
 #include "lp/lp_solver.h"
 
+#include "utils/countdown_timer.h"
+
 #include <set>
 #include <vector>
 
@@ -118,8 +120,10 @@ public:
     {
     }
 
-    Interval solve(const State& initial_state, double) override
+    Interval solve(const State& initial_state, double max_time) override
     {
+        utils::CountdownTimer timer(max_time);
+
         const double eps = g_epsilon;
         const double inf = lp_solver_.get_infinity();
 
@@ -175,6 +179,8 @@ public:
             statistics_.expansions += frontier.size();
 
             for (const StateID state_id : frontier) {
+                timer.throw_if_expired();
+
                 const State state = this->lookup_state(state_id);
                 const TerminationInfo term_info =
                     this->get_termination_info(state);
@@ -272,6 +278,9 @@ public:
             frontier.clear();
 
             lp_solver_.solve();
+
+            timer.throw_if_expired();
+
             assert(lp_solver_.has_optimal_solution());
             lp_sol = lp_solver_.extract_dual_solution();
             objective_ = -lp_solver_.get_objective_value();

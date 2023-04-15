@@ -24,6 +24,7 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "utils/countdown_timer.h"
 
 #include <memory>
 #include <vector>
@@ -151,8 +152,10 @@ public:
         statistics_.print(out);
     }
 
-    Interval solve(const State& state, double) override
+    Interval solve(const State& state, double max_time) override
     {
+        utils::CountdownTimer timer(max_time);
+
         statistics_ = Statistics();
 
         std::cout << "Initializing I2-Dual..." << std::endl;
@@ -207,6 +210,7 @@ public:
 
         while (!frontier.empty()) {
             progress_->print();
+            timer.throw_if_expired();
 
             update_hpom_constraints_expanded(idual_data, frontier);
 
@@ -215,6 +219,8 @@ public:
             unsigned start_new_states = frontier_candidates.size();
 
             for (StateID state_id : frontier) {
+                timer.throw_if_expired();
+
                 IDualData& state_data = idual_data[state_id];
                 assert(state_data.is_frontier());
 
@@ -304,6 +310,7 @@ public:
             {
                 utils::TimerScope lp_scope(statistics_.lp_solver_timer_);
                 lp_solver_.solve();
+                timer.throw_if_expired();
             }
 
             assert(lp_solver_.has_optimal_solution());
