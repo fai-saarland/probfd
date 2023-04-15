@@ -217,7 +217,7 @@ public:
     }
 
 protected:
-    Interval do_solve(const State& qstate) override
+    Interval do_solve(const State& qstate, double) override
     {
         StateID state_id = this->get_state_id(qstate);
         if (value_iteration_) {

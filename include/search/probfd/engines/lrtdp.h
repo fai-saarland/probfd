@@ -203,7 +203,7 @@ public:
     void reset_search_state() override { state_infos_.clear(); }
 
 protected:
-    Interval do_solve(const State& state) override
+    Interval do_solve(const State& state, double) override
     {
         const StateID state_id = this->get_state_id(state);
 

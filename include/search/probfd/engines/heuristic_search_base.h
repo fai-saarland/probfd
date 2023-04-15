@@ -187,10 +187,10 @@ public:
 
     virtual ~HeuristicSearchBase() = default;
 
-    Interval solve(const State& state, double) final override
+    Interval solve(const State& state, double max_time) final override
     {
         this->initialize_report(state);
-        return this->do_solve(state);
+        return this->do_solve(state, max_time);
     }
 
     std::unique_ptr<PartialPolicy<State, Action>>
@@ -469,7 +469,7 @@ protected:
      *
      * Called internally after initializing the progress report.
      */
-    virtual Interval do_solve(const State& state) = 0;
+    virtual Interval do_solve(const State& state, double max_time) = 0;
 
     /**
      * @brief Prints additional statistics to the output stream.
