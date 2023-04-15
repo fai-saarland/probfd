@@ -285,88 +285,88 @@ private:
         {
             StateID stateid = this->get_state_id(state);
             if (!push(exploration_queue, stateid, unexpanded)) {
-                return true;
+                return unexpanded == 0;
             }
 
             stack.push_back(stateid);
             state_infos[stateid].open(0);
         }
 
-        bool backtracked = false;
-        bool can_reach_child_scc = false;
-        unsigned last_lowlink = TarjanStateInformation::UNDEF;
+        ExplorationInfo* einfo = &exploration_queue.back();
+        auto state_id = einfo->state_id;
+        TarjanStateInformation* sinfo = &state_infos[state_id];
 
-        do {
-            ExplorationInfo& einfo = exploration_queue.back();
-            const auto state_id = einfo.state_id;
-            TarjanStateInformation& sinfo = state_infos[state_id];
-
-            if (backtracked) {
-                sinfo.lowlink = std::min(sinfo.lowlink, last_lowlink);
-                if (can_reach_child_scc) {
-                    einfo.is_leaf = false;
-                }
-            }
-
-            while (!einfo.successors.empty()) {
+        for (;;) {
+            do {
                 timer.throw_if_expired();
 
-                StateID succid = einfo.successors.back();
-                einfo.successors.pop_back();
+                const StateID succid = einfo->successors.back();
                 TarjanStateInformation& succ_info = state_infos[succid];
 
-                if (!succ_info.is_explored()) {
-                    if (push(exploration_queue, succid, unexpanded)) {
-                        succ_info.open(stack.size());
-                        stack.push_back(succid);
-                        backtracked = false;
-                        goto continue_outer;
+                if (succ_info.is_on_stack()) {
+                    sinfo->lowlink =
+                        std::min(sinfo->lowlink, succ_info.stack_index);
+                } else if (
+                    !succ_info.is_explored() &&
+                    push(exploration_queue, succid, unexpanded)) {
+                    succ_info.open(stack.size());
+                    stack.push_back(succid);
+                    einfo = &exploration_queue.back();
+                    state_id = einfo->state_id;
+                    sinfo = &state_infos[state_id];
+                    continue;
+                } else {
+                    einfo->is_leaf = false;
+                }
+
+                einfo->successors.pop_back();
+            } while (!einfo->successors.empty());
+
+            do {
+                const unsigned last_lowlink = sinfo->lowlink;
+                const bool scc_found = last_lowlink == sinfo->stack_index;
+                const bool can_reach_child_scc = scc_found || !einfo->is_leaf;
+
+                if (scc_found) {
+                    auto scc_begin = stack.begin() + sinfo->stack_index;
+                    auto scc_end = stack.end();
+
+                    for (auto it = scc_begin; it != scc_end; ++it) {
+                        state_infos[*it].close();
                     }
 
-                    einfo.is_leaf = false;
-                } else if (succ_info.is_on_stack()) {
-                    sinfo.lowlink =
-                        std::min(sinfo.lowlink, succ_info.stack_index);
-                } else {
-                    einfo.is_leaf = false;
-                }
-            }
+                    if (einfo->is_leaf) {
+                        // Terminal and self-loop leaf SCCs are always pruned
+                        assert(std::distance(scc_begin, scc_end) > 1);
+                        collapse_trap(scc_begin, scc_end, state_id);
+                        base_engine_->async_update(state_id);
+                        ++trap_counter;
+                    }
 
-            backtracked = true;
-            can_reach_child_scc = !einfo.is_leaf;
-            last_lowlink = sinfo.lowlink;
-
-            if (sinfo.lowlink == sinfo.stack_index) {
-                can_reach_child_scc = true;
-
-                auto scc_begin = stack.begin() + sinfo.stack_index;
-                auto scc_end = stack.end();
-
-                for (auto it = scc_begin; it != scc_end; ++it) {
-                    state_infos[*it].close();
+                    stack.erase(scc_begin, scc_end);
                 }
 
-                if (einfo.is_leaf) {
-                    // Terminal and self-loop leaf SCCs are always pruned
-                    assert(std::distance(scc_begin, scc_end) > 1);
-                    collapse_trap(scc_begin, scc_end, state_id);
-                    base_engine_->async_update(state_id);
-                    ++trap_counter;
+                exploration_queue.pop_back();
+
+                if (exploration_queue.empty()) {
+                    ++statistics_.iterations;
+                    return trap_counter == 0 && unexpanded == 0;
                 }
 
-                stack.erase(scc_begin, scc_end);
-            }
+                timer.throw_if_expired();
 
-            exploration_queue.pop_back();
+                einfo = &exploration_queue.back();
+                state_id = einfo->state_id;
+                sinfo = &state_infos[state_id];
 
-            timer.throw_if_expired();
+                sinfo->lowlink = std::min(sinfo->lowlink, last_lowlink);
+                if (can_reach_child_scc) {
+                    einfo->is_leaf = false;
+                }
 
-        continue_outer:;
-        } while (!exploration_queue.empty());
-
-        ++statistics_.iterations;
-
-        return trap_counter == 0 && unexpanded == 0;
+                einfo->successors.pop_back();
+            } while (einfo->successors.empty());
+        }
     }
 
     using StackIterator = std::deque<StateID>::iterator;
