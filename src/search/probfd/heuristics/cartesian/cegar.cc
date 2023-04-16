@@ -110,7 +110,7 @@ CEGAR::CEGAR(
     , max_non_looping_transitions(max_non_looping_transitions)
     , split_selector(task, pick)
     , abstraction(new Abstraction(task, log))
-    , abstract_search(
+    , cost_function(
           *abstraction,
           task_properties::get_operator_costs(task_proxy))
     , timer(max_time)
@@ -222,6 +222,7 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
             find_trace_timer.resume();
             unique_ptr<Solution> solution = abstract_search.find_solution(
                 *abstraction,
+                cost_function,
                 &abstraction->get_initial_state(),
                 timer);
             find_trace_timer.stop();

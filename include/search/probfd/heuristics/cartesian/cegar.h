@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_CARTESIAN_CEGAR_H
 
 #include "probfd/heuristics/cartesian/abstract_search.h"
+#include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
 
 #include "probfd/task_proxy.h"
@@ -40,6 +41,8 @@ class CEGAR {
     const SplitSelector split_selector;
 
     std::unique_ptr<Abstraction> abstraction;
+    CartesianCostFunction cost_function;
+
     AbstractSearch abstract_search;
 
     // Limit the time for building the abstraction.

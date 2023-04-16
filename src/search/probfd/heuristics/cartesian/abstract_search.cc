@@ -1,5 +1,6 @@
 #include "probfd/heuristics/cartesian/abstract_search.h"
 
+#include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
@@ -25,11 +26,8 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-AbstractSearch::AbstractSearch(
-    Abstraction& abstraction,
-    std::vector<value_t> operator_costs)
-    : cost_function(abstraction, std::move(operator_costs))
-    , ptb(new policy_pickers::ArbitraryTiebreaker<
+AbstractSearch::AbstractSearch()
+    : ptb(new policy_pickers::ArbitraryTiebreaker<
           const AbstractState*,
           const ProbabilisticTransition*>(true))
     , report(0.0_vt)
@@ -39,6 +37,7 @@ AbstractSearch::AbstractSearch(
 
 unique_ptr<Solution> AbstractSearch::find_solution(
     Abstraction& abstraction,
+    CartesianCostFunction& cost_function,
     const AbstractState* state,
     utils::CountdownTimer& timer)
 {

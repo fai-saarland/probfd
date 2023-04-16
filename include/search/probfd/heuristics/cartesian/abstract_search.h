@@ -28,7 +28,6 @@ namespace cartesian {
  * @brief Find abstract solutions using ILAO*.
  */
 class AbstractSearch {
-    CartesianCostFunction cost_function;
     CartesianHeuristic heuristic;
     std::shared_ptr<policy_pickers::ArbitraryTiebreaker<
         const AbstractState*,
@@ -37,12 +36,11 @@ class AbstractSearch {
     ProgressReport report;
 
 public:
-    AbstractSearch(
-        Abstraction& abstraction,
-        std::vector<value_t> operator_costs);
+    AbstractSearch();
 
     std::unique_ptr<Solution> find_solution(
         Abstraction& abstraction,
+        CartesianCostFunction& cost_function,
         const AbstractState* init_id,
         utils::CountdownTimer& time_limit);
 
