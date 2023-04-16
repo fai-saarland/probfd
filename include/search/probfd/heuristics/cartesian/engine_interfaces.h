@@ -14,8 +14,9 @@ namespace heuristics {
 namespace cartesian {
 
 class CartesianCostFunction
-    : public engine_interfaces::
-          CostFunction<const AbstractState*, const ProbabilisticTransition*> {
+    : public engine_interfaces::StateIndependentCostFunction<
+          const AbstractState*,
+          const ProbabilisticTransition*> {
     Abstraction& abstraction;
     std::vector<value_t> operator_costs;
 
@@ -43,10 +44,15 @@ public:
     /**
      * @brief Get the action cost of the action when applied in a state.
      */
-    value_t get_action_cost(StateID, const ProbabilisticTransition* t) override
+    value_t get_action_cost(const ProbabilisticTransition* t) override
     {
         return operator_costs[t->op_id];
     }
+
+    /**
+     * @brief Get the action cost of the action when applied in a state.
+     */
+    value_t get_cost(int op_index) const { return operator_costs[op_index]; }
 };
 
 class CartesianHeuristic
@@ -61,6 +67,7 @@ public:
         return EvaluationResult(h == INFINITE_VALUE, h);
     }
 
+    value_t get_h_value(int v) const { return h_values[v]; }
     void set_h_value(int v, value_t h) { h_values[v] = h; }
     void on_split(int v) { h_values.push_back(h_values[v]); }
 };

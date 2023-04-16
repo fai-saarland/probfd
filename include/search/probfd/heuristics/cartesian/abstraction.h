@@ -24,10 +24,9 @@ namespace cartesian {
 class ProbabilisticTransitionSystem;
 
 /*
-  Store the set of AbstractStates, use AbstractSearch to find abstract
-  solutions, find flaws, use SplitSelector to select splits in case of
-  ambiguities, break spurious solutions and maintain the
-  RefinementHierarchy.
+  Store the set of AbstractStates, use FlawGenerator to find flaws,
+  use SplitSelector to select splits in case of ambiguities, break spurious
+  solutions and maintain the RefinementHierarchy.
 */
 class Abstraction
     : public engine_interfaces::

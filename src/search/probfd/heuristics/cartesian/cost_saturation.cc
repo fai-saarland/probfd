@@ -96,6 +96,7 @@ static vector<value_t> compute_saturated_costs(
 
 CostSaturation::CostSaturation(
     const vector<shared_ptr<SubtaskGenerator>>& subtask_generators,
+    shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
     int max_states,
     int max_non_looping_transitions,
     double max_time,
@@ -104,6 +105,7 @@ CostSaturation::CostSaturation(
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)
     : subtask_generators(subtask_generators)
+    , flaw_generator_factory(flaw_generator_factory)
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
     , max_time(max_time)
@@ -218,6 +220,7 @@ void CostSaturation::build_abstractions(
         assert(num_states < max_states);
         CEGAR cegar(
             subtask,
+            *flaw_generator_factory,
             max(1, (max_states - num_states) / rem_subtasks),
             max(1,
                 (max_non_looping_transitions - num_non_looping_transitions) /

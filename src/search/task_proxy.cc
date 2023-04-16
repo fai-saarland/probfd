@@ -6,6 +6,9 @@
 #include "task_utils/causal_graph.h"
 #include "task_utils/task_properties.h"
 
+#include "probfd/task_proxy.h"
+#include "probfd/task_utils/task_properties.h"
+
 #include <iostream>
 
 using namespace std;
@@ -59,6 +62,27 @@ State State::get_unregistered_successor(const OperatorProxy& op) const
     vector<int> new_values = get_unpacked_values();
 
     for (EffectProxy effect : op.get_effects()) {
+        if (does_fire(effect, *this)) {
+            FactPair effect_fact = effect.get_fact().get_pair();
+            new_values[effect_fact.var] = effect_fact.value;
+        }
+    }
+
+    if (task->get_num_axioms() > 0) {
+        AxiomEvaluator& axiom_evaluator =
+            g_axiom_evaluators[TaskBaseProxy(*task)];
+        axiom_evaluator.evaluate(new_values);
+    }
+    return State(*task, std::move(new_values));
+}
+
+State State::get_unregistered_successor(
+    const probfd::ProbabilisticOutcomeProxy& outcome) const
+{
+    assert(values);
+    vector<int> new_values = get_unpacked_values();
+
+    for (const auto effect : outcome.get_effects()) {
         if (does_fire(effect, *this)) {
             FactPair effect_fact = effect.get_fact().get_pair();
             new_values[effect_fact.var] = effect_fact.value;

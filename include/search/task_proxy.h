@@ -43,8 +43,8 @@ class VariableProxy;
 class VariablesProxy;
 
 namespace probfd {
-class ProbabilisticEffectsProxy;
-}
+class ProbabilisticOutcomeProxy;
+} // namespace probfd
 
 namespace causal_graph {
 class CausalGraph;
@@ -1074,7 +1074,7 @@ public:
     State get_unregistered_successor(const OperatorProxy& op) const;
 
     State get_unregistered_successor(
-        const probfd::ProbabilisticEffectsProxy& effects) const;
+        const probfd::ProbabilisticOutcomeProxy& outcome) const;
 };
 
 namespace utils {

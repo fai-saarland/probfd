@@ -1,7 +1,8 @@
-#include "probfd/heuristics/cartesian/abstract_search.h"
+#include "probfd/heuristics/cartesian/flaw_generator.h"
 
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
+#include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
 #include "probfd/engines/ta_topological_value_iteration.h"
@@ -11,6 +12,8 @@
 #include "probfd/quotients/heuristic_search_interface.h"
 
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
+
+#include "probfd/task_utils/task_properties.h"
 
 #include "cegar/abstract_state.h"
 
@@ -26,77 +29,45 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-AbstractSearch::AbstractSearch()
-    : ptb(new policy_pickers::ArbitraryTiebreaker<
-          const AbstractState*,
-          const ProbabilisticTransition*>(true))
-    , report(0.0_vt)
+Flaw::Flaw(
+    State&& concrete_state,
+    const AbstractState& current_abstract_state,
+    CartesianSet&& desired_cartesian_set)
+    : concrete_state(std::move(concrete_state))
+    , current_abstract_state(current_abstract_state)
+    , desired_cartesian_set(std::move(desired_cartesian_set))
 {
-    report.disable();
+    assert(current_abstract_state.includes(this->concrete_state));
 }
 
-unique_ptr<Solution> AbstractSearch::find_solution(
-    Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
-    const AbstractState* state,
-    utils::CountdownTimer& timer)
+vector<Split> Flaw::get_possible_splits() const
 {
-    quotients::
-        QuotientSystem<const AbstractState*, const ProbabilisticTransition*>
-            quotient(&abstraction);
-
-    quotients::DefaultQuotientCostFunction<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        costs(&quotient, &cost_function);
-
-    quotients::RepresentativePolicyPicker<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        picker(&quotient, ptb);
-
-    engines::trap_aware_dfhs::TADepthFirstHeuristicSearch<
-        const AbstractState*,
-        const ProbabilisticTransition*,
-        false>
-        hdfs(
-            &quotient,
-            &costs,
-            &heuristic,
-            &picker,
-            nullptr,
-            &report,
-            false,
-            &quotient,
-            false,
-            engines::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
-            false,
-            false,
-            false,
-            true,
-            false,
-            true,
-            nullptr);
-
-    auto policy = hdfs.compute_policy(state, timer.get_remaining_time());
-
-    for (int i = 0; i != abstraction.get_num_states(); ++i) {
-        if (hdfs.was_visited(i)) {
-            heuristic.set_h_value(i, hdfs.lookup_value(i));
+    vector<Split> splits;
+    /*
+      For each fact in the concrete state that is not contained in the
+      desired abstract state, loop over all values in the domain of the
+      corresponding variable. The values that are in both the current and
+      the desired abstract state are the "wanted" ones, i.e., the ones that
+      we want to split off.
+    */
+    for (FactProxy wanted_fact_proxy : concrete_state) {
+        FactPair fact = wanted_fact_proxy.get_pair();
+        if (!desired_cartesian_set.test(fact.var, fact.value)) {
+            VariableProxy var = wanted_fact_proxy.get_variable();
+            int var_id = var.get_id();
+            vector<int> wanted;
+            for (int value = 0; value < var.get_domain_size(); ++value) {
+                if (current_abstract_state.contains(var_id, value) &&
+                    desired_cartesian_set.test(var_id, value)) {
+                    wanted.push_back(value);
+                }
+            }
+            assert(!wanted.empty());
+            splits.emplace_back(var_id, std::move(wanted));
         }
     }
-
-    return policy;
-}
-
-void AbstractSearch::notify_split(int v)
-{
-    heuristic.on_split(v);
-}
-
-CartesianHeuristic& AbstractSearch::get_heuristic()
-{
-    return heuristic;
+    assert(!splits.empty());
+    return splits;
 }
 
 vector<value_t> compute_distances(
@@ -133,6 +104,11 @@ vector<value_t> compute_distances(
 
     return values;
 }
+
+static PluginTypePlugin<FlawGeneratorFactory> _type_plugin(
+    "FlawGeneratorFactory",
+    "Factory for flaw generation algorithms used in the cartesian abstraction "
+    "refinement loop");
 
 } // namespace cartesian
 } // namespace heuristics

@@ -2,6 +2,7 @@
 
 #include "probfd/heuristics/cartesian/cartesian_heuristic_function.h"
 #include "probfd/heuristics/cartesian/cost_saturation.h"
+#include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/types.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
@@ -30,6 +31,7 @@ generate_heuristic_functions(const options::Options& opts, utils::LogProxy& log)
 
     CostSaturation cost_saturation(
         opts.get_list<shared_ptr<SubtaskGenerator>>("subtasks"),
+        opts.get<shared_ptr<FlawGeneratorFactory>>("flaw_generator_factory"),
         opts.get<int>("max_states"),
         opts.get<int>("max_transitions"),
         opts.get<double>("max_time"),
@@ -78,6 +80,10 @@ static shared_ptr<TaskEvaluator> _parse(OptionParser& parser)
         "subtasks",
         "subtask generators",
         "[pcegar_landmarks(), pcegar_goals()]");
+    parser.add_option<shared_ptr<FlawGeneratorFactory>>(
+        "flaw_generator_factory",
+        "factory for the flaw generation algorithm used in the refinement loop",
+        "flaws_ilao()");
     parser.add_option<int>(
         "max_states",
         "maximum sum of abstract states over all abstractions",

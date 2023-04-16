@@ -1,8 +1,8 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_CEGAR_H
 #define PROBFD_HEURISTICS_CARTESIAN_CEGAR_H
 
-#include "probfd/heuristics/cartesian/abstract_search.h"
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
+#include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
 
 #include "probfd/task_proxy.h"
@@ -27,13 +27,10 @@ class Abstraction;
   Iteratively refine a Cartesian abstraction with counterexample-guided
   abstraction refinement (CEGAR).
 
-  Store the abstraction, use AbstractSearch to find abstract solutions, find
-  flaws, use SplitSelector to select splits in case of ambiguities and break
-  spurious solutions.
+  Store the abstraction, use FlawGenerator to find flaws, use SplitSelector to
+  select splits in case of ambiguities and break spurious solutions.
 */
 class CEGAR {
-    struct Flaw;
-
     const ProbabilisticTaskProxy task_proxy;
     const std::vector<int> domain_sizes;
     const int max_states;
@@ -43,7 +40,7 @@ class CEGAR {
     std::unique_ptr<Abstraction> abstraction;
     CartesianCostFunction cost_function;
 
-    AbstractSearch abstract_search;
+    std::unique_ptr<FlawGenerator> flaw_generator;
 
     // Limit the time for building the abstraction.
     utils::CountdownTimer timer;
@@ -62,10 +59,6 @@ class CEGAR {
     */
     void separate_facts_unreachable_before_goal();
 
-    /* Try to convert the abstract solution into a concrete trace. Return the
-       first encountered flaw or nullptr if there is no flaw. */
-    std::optional<Flaw> find_flaw(Solution& solution);
-
     // Build abstraction.
     void refinement_loop(utils::RandomNumberGenerator& rng);
 
@@ -74,6 +67,7 @@ class CEGAR {
 public:
     CEGAR(
         const std::shared_ptr<ProbabilisticTask>& task,
+        const FlawGeneratorFactory& flaw_generator_factory,
         int max_states,
         int max_non_looping_transitions,
         double max_time,
