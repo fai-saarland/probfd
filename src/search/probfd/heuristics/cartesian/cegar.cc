@@ -234,7 +234,7 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
             }
 
             find_flaw_timer.resume();
-            unique_ptr<Flaw> flaw = find_flaw(*solution);
+            optional<Flaw> flaw = find_flaw(*solution);
             find_flaw_timer.stop();
 
             if (!utils::extra_memory_padding_is_reserved()) {
@@ -286,7 +286,7 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
     }
 }
 
-unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
+optional<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
 {
     StateRegistry state_registry(task_proxy);
 
@@ -321,7 +321,7 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
                 if (log.is_at_least_debug())
                     log << "  Goal test failed." << endl;
                 state.unpack();
-                return std::make_unique<Flaw>(
+                return Flaw(
                     std::move(state),
                     *next.abstract_state,
                     get_cartesian_set(domain_sizes, task_proxy.get_goals()));
@@ -337,7 +337,7 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
             if (log.is_at_least_debug())
                 log << "  Operator not applicable: " << op.get_name() << endl;
             state.unpack();
-            return std::make_unique<Flaw>(
+            return Flaw(
                 std::move(state),
                 *next.abstract_state,
                 get_cartesian_set(domain_sizes, op.get_preconditions()));
@@ -355,7 +355,7 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
             if (!next_abstract_state->includes(next_concrete_state)) {
                 if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
                 state.unpack();
-                return std::make_unique<Flaw>(
+                return Flaw(
                     std::move(state),
                     *next.abstract_state,
                     next_abstract_state->regress(op, outcome.get_effects()));
@@ -373,7 +373,7 @@ unique_ptr<CEGAR::Flaw> CEGAR::find_flaw(Solution& policy)
     }
 
     // We found a concrete policy or ran out of memory.
-    return nullptr;
+    return std::nullopt;
 }
 
 void CEGAR::print_statistics()
