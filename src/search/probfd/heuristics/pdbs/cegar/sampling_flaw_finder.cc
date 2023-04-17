@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/cegar/sampling_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/distribution.h"
@@ -37,7 +37,7 @@ SamplingFlawFinder::SamplingFlawFinder(unsigned violation_threshold)
 }
 
 bool SamplingFlawFinder::apply_policy(
-    PatternCollectionGeneratorCegar& base,
+    PatternCollectionGeneratorDisjointCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     std::vector<Flaw>& flaw_list,
@@ -126,7 +126,7 @@ std::string SamplingFlawFinder::get_name()
 }
 
 unsigned int SamplingFlawFinder::push_state(
-    PatternCollectionGeneratorCegar& base,
+    PatternCollectionGeneratorDisjointCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     State state,

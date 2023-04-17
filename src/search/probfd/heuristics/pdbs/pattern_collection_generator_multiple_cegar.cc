@@ -1,6 +1,6 @@
-#include "probfd/heuristics/pdbs/pattern_collection_generator_fast_cegar.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
@@ -33,8 +33,8 @@ namespace pdbs {
 
 using namespace cegar;
 
-PatternCollectionGeneratorFastCegar::PatternCollectionGeneratorFastCegar(
-    const options::Options& opts)
+PatternCollectionGeneratorMultipleCegar::
+    PatternCollectionGeneratorMultipleCegar(const options::Options& opts)
     : subcollection_finder_factory(
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"))
@@ -54,7 +54,7 @@ PatternCollectionGeneratorFastCegar::PatternCollectionGeneratorFastCegar(
 {
 }
 
-PatternCollectionInformation PatternCollectionGeneratorFastCegar::generate(
+PatternCollectionInformation PatternCollectionGeneratorMultipleCegar::generate(
     const std::shared_ptr<ProbabilisticTask>& task)
 {
     const ProbabilisticTaskProxy task_proxy(*task);
@@ -63,7 +63,7 @@ PatternCollectionInformation PatternCollectionGeneratorFastCegar::generate(
     const VariablesProxy variables = task_proxy.get_variables();
     const GoalsProxy task_goals = task_proxy.get_goals();
 
-    cout << "Fast CEGAR: generating patterns" << endl;
+    cout << "Multiple CEGAR: generating patterns" << endl;
 
     utils::CountdownTimer timer(total_time_limit);
     shared_ptr<PatternCollection> union_patterns =
@@ -105,7 +105,7 @@ PatternCollectionInformation PatternCollectionGeneratorFastCegar::generate(
             total_collection_max_size - collection_size;
         double remaining_time = total_time_limit - timer.get_elapsed_time();
 
-        PatternCollectionGeneratorCegar generator(
+        PatternCollectionGeneratorDisjointCegar generator(
             rng,
             subcollection_finder_factory,
             flaw_strategy,
@@ -143,7 +143,7 @@ PatternCollectionInformation PatternCollectionGeneratorFastCegar::generate(
                 // This happens because a single CEGAR run can violate the
                 // imposed size limit if already the given goal variable is
                 // too large.
-                cout << "Fast CEGAR: Total collection size limit reached."
+                cout << "Multiple CEGAR: Total collection size limit reached."
                      << endl;
                 can_generate = false;
             }
@@ -168,18 +168,18 @@ PatternCollectionInformation PatternCollectionGeneratorFastCegar::generate(
                 if (!blacklist_on_stagnation) {
                     // stagnation has been going on for too long and we are not
                     // allowed to force blacklisting, so nothing can be done.
-                    cout << "Fast CEGAR: Stagnation limit reached. "
+                    cout << "Multiple CEGAR: Stagnation limit reached. "
                          << "Stopping generation." << endl;
                 } else {
                     // stagnation in spite of blacklisting
-                    cout << "Fast CEGAR: Stagnation limit reached again. "
+                    cout << "Multiple CEGAR: Stagnation limit reached again. "
                          << "Stopping generation." << endl;
                 }
                 can_generate = false;
             } else {
                 // We want to blacklist on stagnation but have not started
                 // doing so yet.
-                cout << "Fast CEGAR: Stagnation limit reached. "
+                cout << "Multiple CEGAR: Stagnation limit reached. "
                      << "Forcing global blacklisting." << endl;
                 force_blacklisting = true;
                 stagnation = false;
@@ -187,7 +187,7 @@ PatternCollectionInformation PatternCollectionGeneratorFastCegar::generate(
         }
 
         if (timer.is_expired()) {
-            cout << "Fast CEGAR: time limit reached" << endl;
+            cout << "Multiple CEGAR: time limit reached" << endl;
             can_generate = false;
         }
 
@@ -197,17 +197,17 @@ PatternCollectionInformation PatternCollectionGeneratorFastCegar::generate(
         assert(utils::in_bounds(goal_index, goals));
     }
 
-    cout << "Fast CEGAR: computation time: " << timer.get_elapsed_time()
+    cout << "Multiple CEGAR: computation time: " << timer.get_elapsed_time()
          << endl;
-    cout << "Fast CEGAR: number of iterations: " << num_iterations << endl;
-    cout << "Fast CEGAR: average time per generator: "
+    cout << "Multiple CEGAR: number of iterations: " << num_iterations << endl;
+    cout << "Multiple CEGAR: average time per generator: "
          << timer.get_elapsed_time() / static_cast<double>(num_iterations + 1)
          << endl;
-    cout << "Fast CEGAR: final collection: " << *union_patterns << endl;
-    cout << "Fast CEGAR: final collection number of patterns: "
+    cout << "Multiple CEGAR: final collection: " << *union_patterns << endl;
+    cout << "Multiple CEGAR: final collection number of patterns: "
          << union_patterns->size() << endl;
-    cout << "Fast CEGAR: final collection summed PDB size: " << collection_size
-         << endl;
+    cout << "Multiple CEGAR: final collection summed PDB size: "
+         << collection_size << endl;
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder =
         subcollection_finder_factory->create_subcollection_finder(task_proxy);
@@ -262,10 +262,11 @@ _parse(options::OptionParser& parser)
         return nullptr;
     }
 
-    return make_shared<PatternCollectionGeneratorFastCegar>(opts);
+    return make_shared<PatternCollectionGeneratorMultipleCegar>(opts);
 }
 
-static Plugin<PatternCollectionGenerator> _plugin("fast_cegar", _parse);
+static Plugin<PatternCollectionGenerator>
+    _plugin("ppdbs_multiple_cegar", _parse);
 
 } // namespace pdbs
 } // namespace heuristics

@@ -35,7 +35,7 @@ public:
     ~BFSFlawFinder() override = default;
 
     virtual bool apply_policy(
-        PatternCollectionGeneratorCegar& base,
+        PatternCollectionGeneratorDisjointCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list,
@@ -45,7 +45,7 @@ public:
 
 private:
     bool expand(
-        PatternCollectionGeneratorCegar& base,
+        PatternCollectionGeneratorDisjointCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         State state,

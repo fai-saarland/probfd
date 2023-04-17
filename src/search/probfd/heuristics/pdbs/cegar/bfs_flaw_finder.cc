@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/cegar/bfs_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
 #include "utils/collections.h"
 #include "utils/countdown_timer.h"
@@ -33,7 +33,7 @@ BFSFlawFinder::BFSFlawFinder(unsigned violation_threshold)
 }
 
 bool BFSFlawFinder::apply_policy(
-    PatternCollectionGeneratorCegar& base,
+    PatternCollectionGeneratorDisjointCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     std::vector<Flaw>& flaw_list,
@@ -81,7 +81,7 @@ std::string BFSFlawFinder::get_name()
 }
 
 bool BFSFlawFinder::expand(
-    PatternCollectionGeneratorCegar& base,
+    PatternCollectionGeneratorDisjointCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     State state,

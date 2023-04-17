@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_CEGAR_H
-#define PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_CEGAR_H
+#ifndef PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
+#define PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
 
 #include "probfd/heuristics/pdbs/abstract_policy.h"
 #include "probfd/heuristics/pdbs/pattern_generator.h"
@@ -104,7 +104,8 @@ class SamplingFlawFinder;
 
 enum class InitialCollectionType { GIVEN_GOAL, RANDOM_GOAL, ALL_GOALS };
 
-class PatternCollectionGeneratorCegar : public PatternCollectionGenerator {
+class PatternCollectionGeneratorDisjointCegar
+    : public PatternCollectionGenerator {
     friend class cegar::BFSFlawFinder;
     friend class cegar::PUCSFlawFinder;
     friend class cegar::SamplingFlawFinder;
@@ -145,9 +146,10 @@ class PatternCollectionGeneratorCegar : public PatternCollectionGenerator {
     int collection_size;
 
 public:
-    explicit PatternCollectionGeneratorCegar(const options::Options& opts);
+    explicit PatternCollectionGeneratorDisjointCegar(
+        const options::Options& opts);
 
-    PatternCollectionGeneratorCegar(
+    PatternCollectionGeneratorDisjointCegar(
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         std::shared_ptr<SubCollectionFinderFactory>
             subcollection_finder_factory,
@@ -161,7 +163,7 @@ public:
         utils::Verbosity verbosity,
         double arg_max_time);
 
-    virtual ~PatternCollectionGeneratorCegar() = default;
+    virtual ~PatternCollectionGeneratorDisjointCegar() = default;
 
     PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;

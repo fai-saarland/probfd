@@ -1047,29 +1047,22 @@ fast_downward_plugin(
 
 fast_downward_plugin(
     NAME PROBABILISTIC_PDBS
-    HELP "Probabilistic PDBs Base"
+    HELP "Probability-aware PDBs base classes"
     SOURCES
         probfd/heuristics/pdbs/abstract_operator
-        probfd/heuristics/pdbs/abstract_policy
         probfd/heuristics/pdbs/engine_interfaces
         probfd/heuristics/pdbs/match_tree
-        probfd/heuristics/pdbs/orthogonality
+        probfd/heuristics/pdbs/probabilistic_pattern_database
         probfd/heuristics/pdbs/projection_state_space
         probfd/heuristics/pdbs/state_rank
         probfd/heuristics/pdbs/state_ranking_function
-        probfd/heuristics/pdbs/types
-        probfd/heuristics/pdbs/utils
-
-        probfd/heuristics/pdbs/maxprob_pattern_database
-        probfd/heuristics/pdbs/ssp_pattern_database
-        probfd/heuristics/pdbs/probabilistic_pattern_database
     DEPENDS PDBS MDP SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
     DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(
     NAME PPDBS_PATTERN_GENERATORS
-    HELP "Base classes for pattern collection generation"
+    HELP "Base classes for pattern collection generation for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/pattern_collection_information
         probfd/heuristics/pdbs/pattern_generator
@@ -1086,7 +1079,7 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME DETERMINISTIC_GENERATOR
+    NAME PPDB_DETERMINISTIC_GENERATOR
     HELP "Deterministic pattern collection generator"
     SOURCES
         probfd/heuristics/pdbs/pattern_collection_generator_deterministic
@@ -1094,8 +1087,8 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME PROBABILISTIC_HILLCLIMBING_GENERATOR
-    HELP "Probabilistic Hillclimbing pattern collection generator"
+    NAME PPDBS_HILLCLIMBING_GENERATOR
+    HELP "Hillclimbing pattern collection generator for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/incremental_ppdbs
         probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing
@@ -1103,8 +1096,8 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME POLICY_CEGAR_GENERATOR
-    HELP "Policy CEGAR pattern collection generator"
+    NAME PPDBS_DISJOINT_CEGAR_GENERATOR
+    HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/cegar/bfs_flaw_finder
         probfd/heuristics/pdbs/cegar/pucs_flaw_finder
@@ -1115,21 +1108,22 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/cegar/flaw_finding_strategy
         probfd/heuristics/pdbs/cegar/flaw_finding_strategy_factory
 
-        probfd/heuristics/pdbs/pattern_collection_generator_cegar
+        probfd/heuristics/pdbs/abstract_policy
+        probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
 fast_downward_plugin(
-    NAME POLICY_FAST_CEGAR_GENERATOR
-    HELP "Policy CEGAR pattern collection generator"
+    NAME PPDBS_MULTIPLE_CEGAR_GENERATOR
+    HELP "Multiple CEGAR pattern collection generator for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_fast_cegar
-    DEPENDS POLICY_CEGAR_GENERATOR
+        probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar
+    DEPENDS PPDBS_DISJOINT_CEGAR_GENERATOR
 )
 
 fast_downward_plugin(
     NAME PROBABILISTIC_PDB_HEURISTIC
-    HELP "Probabilistic PDB heuristic"
+    HELP "Probability-aware PDB heuristic"
     SOURCES
         probfd/heuristics/pdbs/probabilistic_pdb_heuristic
     DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS

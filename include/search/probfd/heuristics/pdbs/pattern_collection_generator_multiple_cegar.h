@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_FAST_CEGAR_H
-#define PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_FAST_CEGAR_H
+#ifndef PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
+#define PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
 
 #include "probfd/heuristics/pdbs/pattern_generator.h"
 
@@ -25,7 +25,8 @@ namespace cegar {
 class FlawFindingStrategy;
 }
 
-class PatternCollectionGeneratorFastCegar : public PatternCollectionGenerator {
+class PatternCollectionGeneratorMultipleCegar
+    : public PatternCollectionGenerator {
     // Subcollection finder
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
@@ -49,8 +50,9 @@ class PatternCollectionGeneratorFastCegar : public PatternCollectionGenerator {
     const double total_time_limit;
 
 public:
-    explicit PatternCollectionGeneratorFastCegar(const options::Options& opts);
-    ~PatternCollectionGeneratorFastCegar() override = default;
+    explicit PatternCollectionGeneratorMultipleCegar(
+        const options::Options& opts);
+    ~PatternCollectionGeneratorMultipleCegar() override = default;
 
     PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;

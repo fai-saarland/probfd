@@ -16,7 +16,7 @@ namespace pdbs {
 class AbstractPolicy;
 struct Flaw;
 
-class PatternCollectionGeneratorCegar;
+class PatternCollectionGeneratorDisjointCegar;
 
 namespace cegar {
 
@@ -28,7 +28,7 @@ public:
     // Note that the output flaw list might be empty regardless since only
     // remaining goals are added to the list for goal violations.
     virtual bool apply_policy(
-        PatternCollectionGeneratorCegar& base,
+        PatternCollectionGeneratorDisjointCegar& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaws,

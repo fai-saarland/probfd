@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/cegar/pucs_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -32,7 +32,7 @@ PUCSFlawFinder::PUCSFlawFinder(unsigned int violation_threshold)
 }
 
 bool PUCSFlawFinder::apply_policy(
-    PatternCollectionGeneratorCegar& base,
+    PatternCollectionGeneratorDisjointCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     std::vector<Flaw>& flaw_list,
@@ -92,7 +92,7 @@ std::string PUCSFlawFinder::get_name()
 }
 
 bool PUCSFlawFinder::expand(
-    PatternCollectionGeneratorCegar& base,
+    PatternCollectionGeneratorDisjointCegar& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     State state,

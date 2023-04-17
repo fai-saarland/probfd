@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/pattern_collection_generator_cegar.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
@@ -37,7 +37,7 @@ namespace pdbs {
 using namespace cegar;
 
 namespace {
-static const std::string token = "CEGAR_PDBs: ";
+static const std::string token = "Disjoint CEGAR: ";
 } // namespace
 
 PDBInfo::PDBInfo(
@@ -185,18 +185,20 @@ bool PDBInfo::is_goal(StateRank rank) const
     return cost_function.is_goal(rank);
 }
 
-PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
-    const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
-    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory,
-    std::shared_ptr<FlawFindingStrategy> flaw_strategy,
-    bool wildcard,
-    int arg_max_pdb_size,
-    int arg_max_collection_size,
-    int blacklist_size,
-    InitialCollectionType arg_initial,
-    int given_goal,
-    Verbosity verbosity,
-    double arg_max_time)
+PatternCollectionGeneratorDisjointCegar::
+    PatternCollectionGeneratorDisjointCegar(
+        const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
+        std::shared_ptr<SubCollectionFinderFactory>
+            subcollection_finder_factory,
+        std::shared_ptr<FlawFindingStrategy> flaw_strategy,
+        bool wildcard,
+        int arg_max_pdb_size,
+        int arg_max_collection_size,
+        int blacklist_size,
+        InitialCollectionType arg_initial,
+        int given_goal,
+        Verbosity verbosity,
+        double arg_max_time)
     : rng(arg_rng)
     , subcollection_finder_factory(subcollection_finder_factory)
     , flaw_strategy(flaw_strategy)
@@ -262,9 +264,9 @@ PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
     }
 }
 
-PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
-    const options::Options& opts)
-    : PatternCollectionGeneratorCegar(
+PatternCollectionGeneratorDisjointCegar::
+    PatternCollectionGeneratorDisjointCegar(const options::Options& opts)
+    : PatternCollectionGeneratorDisjointCegar(
           utils::parse_rng_from_options(opts),
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"),
@@ -280,7 +282,7 @@ PatternCollectionGeneratorCegar::PatternCollectionGeneratorCegar(
 {
 }
 
-void PatternCollectionGeneratorCegar::print_collection() const
+void PatternCollectionGeneratorDisjointCegar::print_collection() const
 {
     cout << "[";
 
@@ -297,10 +299,11 @@ void PatternCollectionGeneratorCegar::print_collection() const
     cout << "]" << endl;
 }
 
-void PatternCollectionGeneratorCegar::generate_trivial_solution_collection(
-    const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
-    utils::CountdownTimer& timer)
+void PatternCollectionGeneratorDisjointCegar::
+    generate_trivial_solution_collection(
+        const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function,
+        utils::CountdownTimer& timer)
 {
     assert(!remaining_goals.empty());
 
@@ -337,7 +340,7 @@ void PatternCollectionGeneratorCegar::generate_trivial_solution_collection(
     }
 }
 
-int PatternCollectionGeneratorCegar::get_flaws(
+int PatternCollectionGeneratorDisjointCegar::get_flaws(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws,
     utils::CountdownTimer& timer)
@@ -386,7 +389,7 @@ int PatternCollectionGeneratorCegar::get_flaws(
     return -1;
 }
 
-bool PatternCollectionGeneratorCegar::can_add_singleton_pattern(
+bool PatternCollectionGeneratorDisjointCegar::can_add_singleton_pattern(
     const VariablesProxy& variables,
     int var) const
 {
@@ -395,7 +398,7 @@ bool PatternCollectionGeneratorCegar::can_add_singleton_pattern(
            collection_size <= max_collection_size - pdb_size;
 }
 
-bool PatternCollectionGeneratorCegar::can_add_variable_to_pattern(
+bool PatternCollectionGeneratorDisjointCegar::can_add_variable_to_pattern(
     const VariablesProxy& variables,
     int index,
     int var) const
@@ -411,8 +414,9 @@ bool PatternCollectionGeneratorCegar::can_add_variable_to_pattern(
     return collection_size + added_size <= max_collection_size;
 }
 
-bool PatternCollectionGeneratorCegar::can_merge_patterns(int index1, int index2)
-    const
+bool PatternCollectionGeneratorDisjointCegar::can_merge_patterns(
+    int index1,
+    int index2) const
 {
     int pdb_size1 = pdb_infos[index1]->get_pdb().num_states();
     int pdb_size2 = pdb_infos[index2]->get_pdb().num_states();
@@ -425,7 +429,7 @@ bool PatternCollectionGeneratorCegar::can_merge_patterns(int index1, int index2)
     return collection_size + added_size <= max_collection_size;
 }
 
-void PatternCollectionGeneratorCegar::add_pattern_for_var(
+void PatternCollectionGeneratorDisjointCegar::add_pattern_for_var(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function,
     int var,
@@ -442,7 +446,7 @@ void PatternCollectionGeneratorCegar::add_pattern_for_var(
     collection_size += info->get_pdb().num_states();
 }
 
-void PatternCollectionGeneratorCegar::add_variable_to_pattern(
+void PatternCollectionGeneratorDisjointCegar::add_variable_to_pattern(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function,
     int index,
@@ -475,7 +479,7 @@ void PatternCollectionGeneratorCegar::add_variable_to_pattern(
     pdb_infos[index] = std::move(new_info);
 }
 
-void PatternCollectionGeneratorCegar::merge_patterns(
+void PatternCollectionGeneratorDisjointCegar::merge_patterns(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function,
     int index1,
@@ -521,7 +525,7 @@ void PatternCollectionGeneratorCegar::merge_patterns(
     pdb_infos[index2] = nullptr;
 }
 
-void PatternCollectionGeneratorCegar::refine(
+void PatternCollectionGeneratorDisjointCegar::refine(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function,
     const VariablesProxy& variables,
@@ -606,7 +610,7 @@ void PatternCollectionGeneratorCegar::refine(
     blacklisted_variables.insert(var);
 }
 
-PatternCollectionInformation PatternCollectionGeneratorCegar::generate(
+PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
     const std::shared_ptr<ProbabilisticTask>& task)
 {
     utils::CountdownTimer timer(max_time);
@@ -850,10 +854,11 @@ _parse(options::OptionParser& parser)
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
 
-    return make_shared<PatternCollectionGeneratorCegar>(opts);
+    return make_shared<PatternCollectionGeneratorDisjointCegar>(opts);
 }
 
-static Plugin<PatternCollectionGenerator> _plugin("cegar_ppdbs", _parse);
+static Plugin<PatternCollectionGenerator>
+    _plugin("ppdbs_disjoint_cegar", _parse);
 
 } // namespace pdbs
 } // namespace heuristics
