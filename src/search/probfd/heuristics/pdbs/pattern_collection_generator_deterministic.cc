@@ -20,9 +20,11 @@ namespace pdbs {
 
 PatternCollectionGeneratorDeterministic::
     PatternCollectionGeneratorDeterministic(
+        const utils::LogProxy& log,
         std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
         std::shared_ptr<SubCollectionFinderFactory> finder_factory)
-    : gen(gen)
+    : PatternCollectionGenerator(log)
+    , gen(gen)
     , finder_factory(finder_factory)
 {
 }
@@ -30,6 +32,7 @@ PatternCollectionGeneratorDeterministic::
 PatternCollectionGeneratorDeterministic::
     PatternCollectionGeneratorDeterministic(const options::Options& opts)
     : PatternCollectionGeneratorDeterministic(
+          utils::get_log_from_options(opts),
           opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
               "generator"),
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
@@ -82,6 +85,8 @@ _parse(OptionParser& parser)
         "subcollection_finder_factory",
         "The subcollection finder factory.",
         "finder_trivial_factory()");
+
+    add_generator_options_to_parser(parser);
 
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;

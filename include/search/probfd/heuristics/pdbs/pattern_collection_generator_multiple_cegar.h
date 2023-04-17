@@ -1,19 +1,7 @@
-#ifndef PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
-#define PROBFD_HEURISTICS_PDBS_CEGAR_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
+#ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
+#define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
 
-#include "probfd/heuristics/pdbs/pattern_generator.h"
-
-#include "utils/logging.h"
-
-#include <memory>
-
-namespace options {
-class Options;
-}
-
-namespace utils {
-class RandomNumberGenerator;
-}
+#include "probfd/heuristics/pdbs/pattern_collection_generator_multiple.h"
 
 namespace probfd {
 namespace heuristics {
@@ -26,36 +14,22 @@ class FlawFindingStrategy;
 }
 
 class PatternCollectionGeneratorMultipleCegar
-    : public PatternCollectionGenerator {
-    // Subcollection finder
+    : public PatternCollectionGeneratorMultiple {
+    const bool use_wildcard_plans;
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
-
-    // Flaw finding strategy
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
-
-    const int single_generator_max_pdb_size;
-    const int single_generator_max_collection_size; // Possibly overwritten by
-                                                    // total_collection_max_size
-    const bool single_generator_wildcard_policies;
-    const double single_generator_max_time; // Possibly overwritten by
-                                            // remaining total_time_limit
-    const utils::Verbosity single_generator_verbosity;
-
-    const int total_collection_max_size;
-    const double stagnation_limit;
-    const double blacklist_trigger_time;
-    const bool blacklist_on_stagnation;
-    const double total_time_limit;
+    virtual PatternInformation compute_pattern(
+        int max_pdb_size,
+        double max_time,
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        const std::shared_ptr<ProbabilisticTask>& task,
+        TaskCostFunction* task_cost_function,
+        const FactPair& goal,
+        std::unordered_set<int>&& blacklisted_variables) override;
 
 public:
-    explicit PatternCollectionGeneratorMultipleCegar(
-        const options::Options& opts);
-    ~PatternCollectionGeneratorMultipleCegar() override = default;
-
-    PatternCollectionInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
+    explicit PatternCollectionGeneratorMultipleCegar(options::Options& opts);
 };
 
 } // namespace pdbs

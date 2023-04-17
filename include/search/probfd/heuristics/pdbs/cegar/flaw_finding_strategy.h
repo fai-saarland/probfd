@@ -14,11 +14,11 @@ namespace heuristics {
 namespace pdbs {
 
 class AbstractPolicy;
-struct Flaw;
-
-class PatternCollectionGeneratorDisjointCegar;
 
 namespace cegar {
+
+struct Flaw;
+class CEGAR;
 
 class FlawFindingStrategy {
 public:
@@ -28,7 +28,7 @@ public:
     // Note that the output flaw list might be empty regardless since only
     // remaining goals are added to the list for goal violations.
     virtual bool apply_policy(
-        PatternCollectionGeneratorDisjointCegar& base,
+        CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaws,

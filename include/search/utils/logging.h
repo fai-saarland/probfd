@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <ostream>
+#include <ranges>
 #include <string>
 #include <vector>
 
@@ -65,6 +66,27 @@ public:
     Verbosity get_verbosity() const { return verbosity; }
 };
 
+template <typename T>
+concept Dumpable = requires(T t, std::ostream& out) { out << t; };
+
+template <typename T>
+struct RecursivelyDumpableHelper : std::false_type {
+};
+
+template <std::ranges::input_range T>
+struct RecursivelyDumpableHelper<T>
+    : std::conditional_t<
+          !Dumpable<T>,
+          std::conditional_t<
+              !Dumpable<std::ranges::range_reference_t<T>>,
+              RecursivelyDumpableHelper<std::ranges::range_reference_t<T>>,
+              std::true_type>,
+          std::false_type> {
+};
+
+template <typename T>
+concept RecursivelyDumpable = RecursivelyDumpableHelper<T>::value;
+
 /*
   This class wraps Log which holds onto the used stream (currently hard-coded
   to be cout) and any further options for modifying output (currently only
@@ -89,8 +111,7 @@ public:
     {
     }
 
-    template <typename T>
-    LogProxy& operator<<(const T& elem)
+    LogProxy& operator<<(const Dumpable auto& elem)
     {
         (*log) << elem;
         return *this;
@@ -120,6 +141,24 @@ public:
 
     // TODO: implement an option for logging warnings.
     bool is_warning() const { return true; }
+
+    template <typename T>
+    friend LogProxy& operator<<(LogProxy& stream, const T& range)
+        requires(RecursivelyDumpable<T>)
+    {
+        stream << "[";
+        auto it = std::ranges::begin(range);
+        auto end = std::ranges::end(range);
+        if (it != end) {
+            for (;;) {
+                stream << *it;
+                if (++it == end) break;
+                stream << ", ";
+            }
+        }
+        stream << "]";
+        return stream;
+    }
 };
 
 /*

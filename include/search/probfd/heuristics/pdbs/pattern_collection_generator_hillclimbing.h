@@ -76,8 +76,6 @@ class PatternCollectionGeneratorHillclimbing
         void print(std::ostream& out) const override;
     };
 
-    const utils::Verbosity verbosity;
-
     std::shared_ptr<Statistics> statistics_;
 
     std::shared_ptr<PatternCollectionGenerator> initial_generator;

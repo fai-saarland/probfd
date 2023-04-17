@@ -24,6 +24,7 @@ class PatternCollectionGeneratorDeterministic
     std::shared_ptr<SubCollectionFinderFactory> finder_factory;
 
     PatternCollectionGeneratorDeterministic(
+        const utils::LogProxy& log,
         std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
         std::shared_ptr<SubCollectionFinderFactory> finder);
 

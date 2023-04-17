@@ -45,7 +45,7 @@ public:
     ~PUCSFlawFinder() override = default;
 
     virtual bool apply_policy(
-        PatternCollectionGeneratorDisjointCegar& base,
+        CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list,
@@ -55,7 +55,7 @@ public:
 
 private:
     bool expand(
-        PatternCollectionGeneratorDisjointCegar& base,
+        CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         State state,

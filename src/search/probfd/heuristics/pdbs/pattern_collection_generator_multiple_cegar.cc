@@ -1,31 +1,13 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar.h"
+#include "probfd/heuristics/pdbs/cegar/cegar.h"
 
-#include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
-
-#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
-#include "probfd/heuristics/pdbs/types.h"
-
-#include "probfd/tasks/root_task.h"
-
-#include "probfd/cost_model.h"
-#include "probfd/task_proxy.h"
+#include "utils/logging.h"
 
 #include "option_parser.h"
 #include "plugin.h"
 
-#include "utils/collections.h"
-#include "utils/countdown_timer.h"
-#include "utils/hash.h"
-#include "utils/logging.h"
-#include "utils/rng.h"
-#include "utils/rng_options.h"
-
-#include <vector>
-
 using namespace std;
-using utils::Verbosity;
 
 namespace probfd {
 namespace heuristics {
@@ -34,228 +16,70 @@ namespace pdbs {
 using namespace cegar;
 
 PatternCollectionGeneratorMultipleCegar::
-    PatternCollectionGeneratorMultipleCegar(const options::Options& opts)
-    : subcollection_finder_factory(
+    PatternCollectionGeneratorMultipleCegar(options::Options& opts)
+    : PatternCollectionGeneratorMultiple(opts, "CEGAR")
+    , use_wildcard_plans(opts.get<bool>("use_wildcard_plans"))
+    , subcollection_finder_factory(
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"))
     , flaw_strategy(
           opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
-    , rng(utils::parse_rng_from_options(opts))
-    , single_generator_max_pdb_size(opts.get<int>("max_pdb_size"))
-    , single_generator_max_collection_size(opts.get<int>("max_collection_size"))
-    , single_generator_wildcard_policies(opts.get<bool>("wildcard"))
-    , single_generator_max_time(opts.get<double>("max_time"))
-    , single_generator_verbosity(opts.get<Verbosity>("verbosity"))
-    , total_collection_max_size(opts.get<int>("total_collection_max_size"))
-    , stagnation_limit(opts.get<double>("stagnation_limit"))
-    , blacklist_trigger_time(opts.get<double>("blacklist_trigger_time"))
-    , blacklist_on_stagnation(opts.get<bool>("blacklist_on_stagnation"))
-    , total_time_limit(opts.get<double>("total_time_limit"))
 {
 }
 
-PatternCollectionInformation PatternCollectionGeneratorMultipleCegar::generate(
-    const std::shared_ptr<ProbabilisticTask>& task)
+PatternInformation PatternCollectionGeneratorMultipleCegar::compute_pattern(
+    int max_pdb_size,
+    double max_time,
+    const shared_ptr<utils::RandomNumberGenerator>& rng,
+    const shared_ptr<ProbabilisticTask>& task,
+    TaskCostFunction* task_cost_function,
+    const FactPair& goal,
+    unordered_set<int>&& blacklisted_variables)
 {
-    const ProbabilisticTaskProxy task_proxy(*task);
-    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
-
-    const VariablesProxy variables = task_proxy.get_variables();
-    const GoalsProxy task_goals = task_proxy.get_goals();
-
-    cout << "Multiple CEGAR: generating patterns" << endl;
-
-    utils::CountdownTimer timer(total_time_limit);
-    shared_ptr<PatternCollection> union_patterns =
-        make_shared<PatternCollection>();
-    shared_ptr<PPDBCollection> union_pdbs = make_shared<PPDBCollection>();
-    utils::HashSet<Pattern> pattern_set; // for checking if a pattern is
-                                         // already in collection
-
-    const size_t nvars = variables.size();
-
-    vector<int> goals;
-    for (const FactProxy fact : task_goals) {
-        goals.push_back(fact.get_variable().get_id());
-    }
-    rng->shuffle(goals);
-
-    bool can_generate = true;
-    bool stagnation = false;
-    // blacklisting can be forced after a period of stagnation
-    // (see stagnation_limit)
-    bool force_blacklisting = false;
-    double stagnation_start = 0;
-    int num_iterations = 0;
-    int goal_index = 0;
-    const InitialCollectionType single_generator_initial =
-        InitialCollectionType::GIVEN_GOAL;
-    int collection_size = 0;
-    while (can_generate) {
-        // we start blacklisting once a certain amount of time has passed
-        // or if blacklisting was forced due to stagnation
-        int blacklist_size = 0;
-        if (force_blacklisting || timer.get_elapsed_time() / total_time_limit >
-                                      blacklist_trigger_time) {
-            blacklist_size = static_cast<int>(nvars * rng->random());
-            force_blacklisting = true;
-        }
-
-        int remaining_collection_size =
-            total_collection_max_size - collection_size;
-        double remaining_time = total_time_limit - timer.get_elapsed_time();
-
-        PatternCollectionGeneratorDisjointCegar generator(
-            rng,
-            subcollection_finder_factory,
-            flaw_strategy,
-            single_generator_wildcard_policies,
-            single_generator_max_pdb_size,
-            min(remaining_collection_size,
-                single_generator_max_collection_size),
-            blacklist_size,
-            single_generator_initial,
-            goals[goal_index],
-            single_generator_verbosity,
-            min(remaining_time, single_generator_max_time));
-
-        auto collection_info = generator.generate(task);
-        auto pattern_collection = collection_info.get_patterns();
-        auto pdb_collection = collection_info.get_pdbs();
-
-        if (pdb_collection->size() > 1) {
-            cerr << "A generator computed more than one pattern" << endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-        }
-
-        // TODO: this is not very efficient since each pattern is stored twice.
-        // Needs some optimization
-        const Pattern& pattern = pattern_collection->front();
-        if (pattern_set.insert(pattern).second) {
-            // new pattern detected, so no stagnation
-            stagnation = false;
-
-            // decrease size limit
-            shared_ptr<ProbabilisticPatternDatabase>& pdb =
-                pdb_collection->front();
-            collection_size += pdb->num_states();
-            if (total_collection_max_size - collection_size <= 0) {
-                // This happens because a single CEGAR run can violate the
-                // imposed size limit if already the given goal variable is
-                // too large.
-                cout << "Multiple CEGAR: Total collection size limit reached."
-                     << endl;
-                can_generate = false;
-            }
-
-            union_patterns->push_back(std::move(pattern));
-            union_pdbs->push_back(std::move(pdb));
-        } else {
-            // no new pattern could be generated during this iteration
-            // --> stagnation
-            if (!stagnation) {
-                stagnation = true;
-                stagnation_start = timer.get_elapsed_time();
-            }
-        }
-        // cout << "current collection size: " << collection_size << endl;
-
-        // if stagnation has been going on for too long, then the
-        // further behavior depends on the value of blacklist_on_stagnation
-        const auto stag_time = timer.get_elapsed_time() - stagnation_start;
-        if (stagnation && stag_time > stagnation_limit) {
-            if (!blacklist_on_stagnation || force_blacklisting) {
-                if (!blacklist_on_stagnation) {
-                    // stagnation has been going on for too long and we are not
-                    // allowed to force blacklisting, so nothing can be done.
-                    cout << "Multiple CEGAR: Stagnation limit reached. "
-                         << "Stopping generation." << endl;
-                } else {
-                    // stagnation in spite of blacklisting
-                    cout << "Multiple CEGAR: Stagnation limit reached again. "
-                         << "Stopping generation." << endl;
-                }
-                can_generate = false;
-            } else {
-                // We want to blacklist on stagnation but have not started
-                // doing so yet.
-                cout << "Multiple CEGAR: Stagnation limit reached. "
-                     << "Forcing global blacklisting." << endl;
-                force_blacklisting = true;
-                stagnation = false;
-            }
-        }
-
-        if (timer.is_expired()) {
-            cout << "Multiple CEGAR: time limit reached" << endl;
-            can_generate = false;
-        }
-
-        ++num_iterations;
-        ++goal_index;
-        goal_index = goal_index % goals.size();
-        assert(utils::in_bounds(goal_index, goals));
+    CEGAR cegar(
+        log,
+        rng,
+        subcollection_finder_factory,
+        flaw_strategy,
+        use_wildcard_plans,
+        max_pdb_size,
+        max_pdb_size,
+        max_time,
+        {goal.var},
+        std::move(blacklisted_variables));
+    PatternCollectionInformation collection_info = cegar.generate(task);
+    shared_ptr<PatternCollection> new_patterns = collection_info.get_patterns();
+    if (new_patterns->size() > 1) {
+        cerr << "CEGAR limited to one goal computed more than one pattern"
+             << endl;
+        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    cout << "Multiple CEGAR: computation time: " << timer.get_elapsed_time()
-         << endl;
-    cout << "Multiple CEGAR: number of iterations: " << num_iterations << endl;
-    cout << "Multiple CEGAR: average time per generator: "
-         << timer.get_elapsed_time() / static_cast<double>(num_iterations + 1)
-         << endl;
-    cout << "Multiple CEGAR: final collection: " << *union_patterns << endl;
-    cout << "Multiple CEGAR: final collection number of patterns: "
-         << union_patterns->size() << endl;
-    cout << "Multiple CEGAR: final collection summed PDB size: "
-         << collection_size << endl;
-
-    std::shared_ptr<SubCollectionFinder> subcollection_finder =
-        subcollection_finder_factory->create_subcollection_finder(task_proxy);
-
-    PatternCollectionInformation result(
-        task_proxy,
+    Pattern& pattern = new_patterns->front();
+    shared_ptr<PPDBCollection> new_pdbs = collection_info.get_pdbs();
+    auto pdb = new_pdbs->front();
+    PatternInformation result(
+        ProbabilisticTaskProxy(*task),
         task_cost_function,
-        union_patterns,
-        subcollection_finder);
-    result.set_pdbs(union_pdbs);
+        std::move(pattern));
+    result.set_pdb(pdb);
     return result;
 }
 
 static shared_ptr<PatternCollectionGenerator>
 _parse(options::OptionParser& parser)
 {
-    utils::add_rng_options(parser);
-    parser.add_option<int>(
-        "total_collection_max_size",
-        "max. number of entries in the final collection",
-        "infinity");
-    parser.add_option<double>(
-        "total_time_limit",
-        "time budget for PDB collection generation",
-        "25.0");
-    parser.add_option<double>(
-        "stagnation_limit",
-        "max. time the algorithm waits for the introduction of a new pattern. "
-        "Execution finishes prematurely if no new, unique pattern "
-        "could be added to the collection during this time.",
-        "5.0");
-    parser.add_option<double>(
-        "blacklist_trigger_time",
-        "time given as percentage of overall time_limit, "
-        "after which blacklisting (for diversification) is enabled. "
-        "E.g. blacklist_trigger_time=0.5 will trigger blacklisting "
-        "once half of the total time has passed.",
-        "1.0",
-        Bounds("0.0", "1.0"));
-    parser.add_option<bool>(
-        "blacklist_on_stagnation",
-        "whether the algorithm forces blacklisting to start early if "
-        "stagnation_limit is crossed (instead of aborting). "
-        "The algorithm still aborts if stagnation_limit is "
-        "reached for the second time.",
-        "true");
+    add_multiple_options_to_parser(parser);
+    add_cegar_wildcard_option_to_parser(parser);
 
-    add_pattern_collection_generator_cegar_options_to_parser(parser);
+    parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+        "subcollection_finder_factory",
+        "The subcollection finder factory.",
+        "finder_trivial_factory()");
+    parser.add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
+        "flaw_strategy",
+        "strategy used to find flaws in a policy",
+        "pucs_flaw_finder()");
 
     Options opts = parser.parse();
     if (parser.dry_run()) {

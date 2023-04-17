@@ -154,7 +154,7 @@ void PatternCollectionGeneratorHillclimbing::Statistics::print(
 
 PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     const Options& opts)
-    : verbosity(opts.get<Verbosity>("verbosity"))
+    : PatternCollectionGenerator(opts)
     , initial_generator(opts.get<std::shared_ptr<PatternCollectionGenerator>>(
           "initial_generator"))
     , subcollection_finder_factory(
@@ -185,7 +185,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
 {
     using namespace utils;
 
-    if (verbosity >= Verbosity::VERBOSE) {
+    if (log.is_at_least_verbose()) {
         std::cout << "Generating pattern neighborhood..." << std::endl;
     }
 
@@ -215,7 +215,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
             if (!is_product_within_limit(pdb_size, rel_var_size, max_size)) {
                 ++num_rejected;
 
-                if (verbosity >= Verbosity::VERBOSE) {
+                if (log.is_at_least_verbose()) {
                     std::cout << "Skipping neighboring pattern for variable "
                               << rel_var_id
                               << " because its PDB would exceed size limits."
@@ -234,7 +234,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
             bitset.set(static_cast<size_t>(rel_var_id));
 
             if (!generated_patterns.insert(bitset).second) {
-                if (verbosity >= Verbosity::VERBOSE) {
+                if (log.is_at_least_verbose()) {
                     std::cout << "Skipping neighboring pattern for variable "
                               << rel_var_id << " because it already exists."
                               << std::endl;
@@ -243,7 +243,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 continue;
             }
 
-            if (verbosity >= Verbosity::VERBOSE) {
+            if (log.is_at_least_verbose()) {
                 std::cout
                     << "Generating neighboring PDB for pattern with variable "
                     << rel_var_id << std::endl;
@@ -364,7 +364,7 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
             best_pdb_index = i;
         }
 
-        if (verbosity >= Verbosity::VERBOSE && count > 0) {
+        if (log.is_at_least_verbose() && count > 0) {
             std::cout << "pattern: " << candidate_pdbs[i]->get_pattern()
                       << " - improvement: " << count << std::endl;
         }
@@ -458,7 +458,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
           guaranteed to be "normalized" in the sense that there are no
           duplicates and patterns are sorted.
         */
-        if (verbosity >= Verbosity::NORMAL) {
+        if (log.is_at_least_normal()) {
             std::cout << "Done calculating initial candidate PDBs" << std::endl;
         }
 
@@ -476,7 +476,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             value_t init_h = current_pdbs.get_value(initial_state);
             const bool initial_dead = current_pdbs.is_dead_end(initial_state);
 
-            if (verbosity >= Verbosity::VERBOSE) {
+            if (log.is_at_least_verbose()) {
                 std::cout << "current collection size is "
                           << current_pdbs.get_size() << "\n"
                           << "current search space size is "
@@ -511,7 +511,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             samples.clear();
 
             if (improvement < min_improvement) {
-                if (verbosity >= Verbosity::VERBOSE) {
+                if (log.is_at_least_verbose()) {
                     std::cout << "Improvement below threshold."
                                  "Stop hill climbing."
                               << std::endl;
@@ -525,7 +525,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             const auto best_pdb = candidate_pdbs[best_pdb_index];
             const Pattern& best_pattern = best_pdb->get_pattern();
 
-            if (verbosity >= Verbosity::VERBOSE) {
+            if (log.is_at_least_verbose()) {
                 std::cout << "found a better pattern with improvement "
                           << improvement << std::endl;
                 std::cout << "pattern: " << best_pattern << std::endl;
@@ -548,14 +548,14 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             // Remove the added PDB from candidate_pdbs.
             candidate_pdbs[best_pdb_index] = nullptr;
 
-            if (verbosity >= Verbosity::VERBOSE) {
+            if (log.is_at_least_verbose()) {
                 std::cout << "Hill climbing time so far: "
                           << hill_climbing_timer.get_elapsed_time()
                           << std::endl;
             }
         }
     } catch (utils::TimeoutException&) {
-        if (verbosity >= Verbosity::SILENT) {
+        if (log.is_at_least_normal()) {
             std::cout << "Time limit reached. Abort hill climbing."
                       << std::endl;
         }
@@ -568,7 +568,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
         max_pdb_size,
         hill_climbing_timer.get_elapsed_time()));
 
-    if (verbosity >= Verbosity::NORMAL) {
+    if (log.is_at_least_normal()) {
         statistics_->print(std::cout);
     }
 }
@@ -578,7 +578,7 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
 {
     utils::Timer timer;
 
-    if (verbosity >= Verbosity::NORMAL) {
+    if (log.is_at_least_normal()) {
         std::cout << "Generating patterns using the hill climbing generator..."
                   << std::endl;
     }
@@ -599,7 +599,7 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
         collection,
         subcollection_finder);
 
-    if (verbosity >= Verbosity::NORMAL) {
+    if (log.is_at_least_normal()) {
         std::cout << "Done calculating initial pattern collection: " << timer
                   << std::endl;
     }
@@ -628,8 +628,6 @@ PatternCollectionGeneratorHillclimbing::get_report() const
 
 void add_hillclimbing_options(OptionParser& parser)
 {
-    utils::add_log_options_to_parser(parser);
-
     parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "initial_generator",
         "generator for the initial pattern database ",
@@ -678,6 +676,7 @@ void add_hillclimbing_options(OptionParser& parser)
         "infinity",
         Bounds("0.0", "infinity"));
 
+    add_generator_options_to_parser(parser);
     utils::add_rng_options(parser);
 }
 

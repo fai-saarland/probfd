@@ -3,28 +3,26 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
+#include "probfd/task_proxy.h"
+
 namespace pdbs {
 class PatternCollectionGenerator;
 class PatternCollectionInformation;
 } // namespace pdbs
 
+namespace utils {
+class RandomNumberGenerator;
+}
+
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-inline Pattern extended_pattern(const Pattern& pattern, int add_var)
-{
-    assert(!utils::contains(pattern, add_var));
+Pattern extended_pattern(const Pattern& pattern, int add_var);
 
-    Pattern added;
-    added.reserve(pattern.size() + 1);
-    auto it = std::upper_bound(pattern.begin(), pattern.end(), add_var);
-    added.insert(added.end(), pattern.begin(), it);
-    added.emplace_back(add_var);
-    added.insert(added.end(), it, pattern.end());
-
-    return added;
-}
+std::vector<int> get_goals_in_random_order(
+    const ProbabilisticTaskProxy& task_proxy,
+    utils::RandomNumberGenerator& rng);
 
 } // namespace pdbs
 } // namespace heuristics
