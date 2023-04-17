@@ -80,9 +80,7 @@ class DefaultQuotientSystem
             return utils::make_transform_iterator(end(), &StateInfo::state_id);
         }
 
-        void filter_actions(
-            engine_interfaces::StateSpace<State, Action>& state_space,
-            const std::vector<QuotientAction<Action>>& filter)
+        void filter_actions(const std::vector<QuotientAction<Action>>& filter)
         {
             if (filter.empty()) {
                 return;
@@ -96,7 +94,7 @@ class DefaultQuotientSystem
                 auto outer_end = std::stable_partition(
                     act_it,
                     act_it + info.num_outer_acts,
-                    [&info, &filter, &state_space](ActionID aid) {
+                    [&info, &filter](ActionID aid) {
                         return !utils::contains(
                             filter,
                             QuotientAction<Action>(info.state_id, aid));
@@ -465,7 +463,7 @@ public:
             qinfo.total_num_outer_acts += b.num_outer_acts;
         } else {
             // Filter actions
-            qinfo.filter_actions(*state_space_, ignore_actions[ridx]);
+            qinfo.filter_actions(ignore_actions[ridx]);
         }
 
         for (auto it = begin; it != end; ++it, ++ignore_actions) {
@@ -486,7 +484,7 @@ public:
                 QuotientInformation& q = qit->second;
 
                 // Filter actions
-                q.filter_actions(*state_space_, *ignore_actions);
+                q.filter_actions(*ignore_actions);
 
                 // Insert all states belonging to it to the new quotient
                 for (const auto& p : q.state_infos) {
