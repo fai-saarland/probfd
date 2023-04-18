@@ -592,6 +592,47 @@ ProbabilisticPatternDatabase::compute_greedy_abstract_policy(
     return std::unique_ptr<AbstractPolicy>(policy);
 }
 
+void ProbabilisticPatternDatabase::compute_saturated_costs(
+    ProjectionStateSpace& state_space,
+    std::vector<value_t>& saturated_costs) const
+{
+    std::fill(saturated_costs.begin(), saturated_costs.end(), -INFINITE_VALUE);
+
+    for (StateRank s{0}; s.id < ranking_function_.num_states(); ++s.id) {
+        const value_t value = value_table[s.id];
+
+        if (value == INFINITE_VALUE) {
+            // Skip dead ends and unreachable states
+            continue;
+        }
+
+        // Generate operators...
+        std::vector<const AbstractOperator*> aops;
+        state_space.generate_applicable_actions(s.id, aops);
+
+        for (const AbstractOperator* op : aops) {
+            int oid = op->operator_id.get_index();
+
+            value_t h_succ = 0;
+            for (const auto& [eff, prob] : op->outcomes) {
+                const auto succ_val = value_table[s.id + eff.id];
+
+                if (succ_val == INFINITE_VALUE) {
+                    // No need to consider dead transitions.
+                    goto next_operator;
+                }
+
+                h_succ += prob * succ_val;
+            }
+
+            saturated_costs[oid] =
+                std::max(saturated_costs[oid], value - h_succ);
+
+        next_operator:;
+        }
+    }
+}
+
 void ProbabilisticPatternDatabase::dump_graphviz(
     const ProbabilisticTaskProxy& task_proxy,
     ProjectionStateSpace& state_space,

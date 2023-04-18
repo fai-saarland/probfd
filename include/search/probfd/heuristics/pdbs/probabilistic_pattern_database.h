@@ -333,6 +333,10 @@ public:
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard) const;
 
+    void compute_saturated_costs(
+        ProjectionStateSpace& state_space,
+        std::vector<value_t>& saturated_costs) const;
+
     /// Dump the PDB's projection as a dot graph to a specified path with or
     /// without transition labels shown.
     void dump_graphviz(
