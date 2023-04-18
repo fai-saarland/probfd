@@ -623,11 +623,11 @@ CEGAR::generate_pdbs(
 void add_cegar_wildcard_option_to_parser(options::OptionParser& parser)
 {
     parser.add_option<bool>(
-        "use_wildcard_plans",
+        "use_wildcard_policies",
         "if true, compute wildcard plans which are sequences of sets of "
         "operators that induce the same transition; otherwise compute regular "
         "plans which are sequences of single operators",
-        "true");
+        "false");
 }
 
 } // namespace cegar

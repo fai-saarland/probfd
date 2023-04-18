@@ -24,7 +24,8 @@ class FlawFindingStrategy;
 
 class PatternCollectionGeneratorDisjointCegar
     : public PatternCollectionGenerator {
-    const bool wildcard;
+    const bool use_wildcard_policies;
+    const bool single_goal;
     const int max_pdb_size;
     const int max_collection_size;
     const double max_time;

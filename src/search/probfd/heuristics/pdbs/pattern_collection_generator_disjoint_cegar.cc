@@ -28,7 +28,8 @@ using namespace cegar;
 PatternCollectionGeneratorDisjointCegar::
     PatternCollectionGeneratorDisjointCegar(const options::Options& opts)
     : PatternCollectionGenerator(opts)
-    , wildcard(opts.get<bool>("wildcard"))
+    , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
+    , single_goal(opts.get<bool>("single_goal"))
     , max_pdb_size(opts.get<int>("max_pdb_size"))
     , max_collection_size(opts.get<int>("max_collection_size"))
     , max_time(opts.get<double>("max_time"))
@@ -49,11 +50,15 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
     TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
     vector<int> goals = get_goals_in_random_order(task_proxy, *rng);
 
+    if (single_goal) {
+        goals.erase(goals.begin() + 1, goals.end());
+    }
+
     CEGAR cegar(
         log,
         rng,
         flaw_strategy,
-        wildcard,
+        use_wildcard_policies,
         max_pdb_size,
         max_collection_size,
         max_time,
@@ -84,8 +89,8 @@ void add_pattern_collection_generator_cegar_options_to_parser(
     options::OptionParser& parser)
 {
     parser.add_option<bool>(
-        "wildcard",
-        "whether to compute a wildcard policy",
+        "single_goal",
+        "whether to compute only a single abstraction from a random goal",
         "false");
     parser.add_option<int>(
         "max_pdb_size",
@@ -116,6 +121,7 @@ void add_pattern_collection_generator_cegar_options_to_parser(
         "pucs_flaw_finder()");
 
     add_generator_options_to_parser(parser);
+    add_cegar_wildcard_option_to_parser(parser);
 }
 
 static shared_ptr<PatternCollectionGenerator>

@@ -18,10 +18,7 @@ using namespace cegar;
 PatternCollectionGeneratorMultipleCegar::
     PatternCollectionGeneratorMultipleCegar(options::Options& opts)
     : PatternCollectionGeneratorMultiple(opts, "CEGAR")
-    , use_wildcard_plans(opts.get<bool>("use_wildcard_plans"))
-    , subcollection_finder_factory(
-          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
-              "subcollection_finder_factory"))
+    , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
     , flaw_strategy(
           opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
 {
@@ -43,7 +40,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         log,
         rng,
         flaw_strategy,
-        use_wildcard_plans,
+        use_wildcard_policies,
         max_pdb_size,
         max_pdb_size,
         max_time,
@@ -67,10 +64,6 @@ _parse(options::OptionParser& parser)
     add_multiple_options_to_parser(parser);
     add_cegar_wildcard_option_to_parser(parser);
 
-    parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
-        "subcollection_finder_factory",
-        "The subcollection finder factory.",
-        "finder_trivial_factory()");
     parser.add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
         "flaw_strategy",
         "strategy used to find flaws in a policy",

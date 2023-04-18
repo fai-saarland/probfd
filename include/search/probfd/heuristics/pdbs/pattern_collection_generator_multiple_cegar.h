@@ -15,8 +15,7 @@ class FlawFindingStrategy;
 
 class PatternCollectionGeneratorMultipleCegar
     : public PatternCollectionGeneratorMultiple {
-    const bool use_wildcard_plans;
-    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
+    const bool use_wildcard_policies;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
     std::pair<
