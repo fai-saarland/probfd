@@ -5,8 +5,10 @@
 
 #include "probfd/engine_interfaces/cost_function.h"
 
+#include <memory>
 #include <set>
 #include <unordered_set>
+#include <utility>
 
 namespace options {
 class OptionParser;
@@ -32,17 +34,15 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const bool enable_blacklist_on_stagnation;
     const std::shared_ptr<utils::RandomNumberGenerator> rng;
     const int random_seed;
-
-    void handle_generated_pattern(
-        PatternInformation&& pattern_info,
-        std::set<Pattern>& generated_patterns,
-        std::shared_ptr<PPDBCollection>& generated_pdbs,
-        const utils::CountdownTimer& timer);
+    const bool use_saturated_costs;
 
     bool collection_size_limit_reached(int remaining_collection_size) const;
     bool time_limit_reached(const utils::CountdownTimer& timer) const;
 
-    virtual PatternInformation compute_pattern(
+    virtual std::pair<
+        std::shared_ptr<ProjectionStateSpace>,
+        std::shared_ptr<ProbabilisticPatternDatabase>>
+    compute_pattern(
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,

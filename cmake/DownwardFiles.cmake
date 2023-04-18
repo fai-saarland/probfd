@@ -1075,6 +1075,9 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/max_orthogonal_finder
         probfd/heuristics/pdbs/trivial_finder_factory
         probfd/heuristics/pdbs/trivial_finder
+        probfd/heuristics/pdbs/fully_additive_finder_factory
+        probfd/heuristics/pdbs/fully_additive_finder
+        probfd/heuristics/pdbs/trivial_finder
         probfd/heuristics/pdbs/subcollections
 
         probfd/heuristics/pdbs/abstract_policy

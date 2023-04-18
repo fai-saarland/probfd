@@ -27,7 +27,10 @@ PatternCollectionGeneratorMultipleCegar::
 {
 }
 
-PatternInformation PatternCollectionGeneratorMultipleCegar::compute_pattern(
+std::pair<
+    std::shared_ptr<ProjectionStateSpace>,
+    std::shared_ptr<ProbabilisticPatternDatabase>>
+PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -46,18 +49,16 @@ PatternInformation PatternCollectionGeneratorMultipleCegar::compute_pattern(
         max_time,
         {goal.var},
         std::move(blacklisted_variables));
-    std::unique_ptr pdbs =
-        cegar.generate_pdbs(task_proxy, task_cost_function).second;
+    auto [state_spaces, pdbs] =
+        cegar.generate_pdbs(task_proxy, task_cost_function);
+    assert(state_spaces->size() == pdbs->size());
     if (pdbs->size() > 1) {
         cerr << "CEGAR limited to one goal computed more than one pattern"
              << endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    const Pattern& pattern = pdbs->front()->get_pattern();
-    PatternInformation result(task_proxy, &task_cost_function, pattern);
-    result.set_pdb(pdbs->front());
-    return result;
+    return {std::move(state_spaces->front()), pdbs->front()};
 }
 
 static shared_ptr<PatternCollectionGenerator>

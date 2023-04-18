@@ -19,7 +19,10 @@ class PatternCollectionGeneratorMultipleCegar
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
-    PatternInformation compute_pattern(
+    std::pair<
+        std::shared_ptr<ProjectionStateSpace>,
+        std::shared_ptr<ProbabilisticPatternDatabase>>
+    compute_pattern(
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,

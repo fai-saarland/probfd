@@ -1,8 +1,9 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_multiple.h"
 
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
-
 #include "probfd/cost_model.h"
+#include "probfd/heuristics/pdbs/fully_additive_finder.h"
+#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/trivial_finder.h"
 
 #include "task_utils/task_properties.h"
 
@@ -54,6 +55,53 @@ vector<int> get_non_goal_variables(const ProbabilisticTaskProxy& task_proxy)
     return non_goal_variables;
 }
 
+class ExplicitTaskCostFunction : public TaskCostFunction {
+    const ProbabilisticTaskProxy& task_proxy;
+    std::vector<value_t> costs;
+
+public:
+    ExplicitTaskCostFunction(
+        const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& cost_function)
+        : TaskCostFunction(
+              cost_function.get_goal_termination_cost(),
+              cost_function.get_non_goal_termination_cost())
+        , task_proxy(task_proxy)
+    {
+        const auto operators = task_proxy.get_operators();
+        costs.reserve(operators.size());
+
+        for (const ProbabilisticOperatorProxy op : operators) {
+            costs.push_back(
+                cost_function.get_action_cost(OperatorID(op.get_id())));
+        }
+    }
+
+    value_t get_action_cost(OperatorID op_id) override
+    {
+        return costs[op_id.get_index()];
+    }
+
+    bool is_goal(const State& state) const override
+    {
+        return ::task_properties::is_goal_state(task_proxy, state);
+    }
+
+    void update_costs(const std::vector<value_t>& saturated_costs)
+    {
+        for (size_t i = 0; i != costs.size(); ++i) {
+            costs[i] -= saturated_costs[i];
+            assert(!is_approx_less(costs[i], 0.0_vt));
+
+            // Avoid floating point imprecision. The PDB implementation is not
+            // stable with respect to action costs very close to zero.
+            if (is_approx_equal(costs[i], 0.0_vt, 0.0001)) {
+                costs[i] = 0.0_vt;
+            }
+        }
+    }
+};
+
 } // namespace
 
 PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
@@ -73,6 +121,7 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
           opts.get<bool>("enable_blacklist_on_stagnation"))
     , rng(utils::parse_rng_from_options(opts))
     , random_seed(opts.get<int>("random_seed"))
+    , use_saturated_costs(opts.get<bool>("use_saturated_costs"))
 {
 }
 
@@ -121,7 +170,9 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     }
 
     ProbabilisticTaskProxy task_proxy(*task);
-    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
+    ExplicitTaskCostFunction task_cost_function(
+        task_proxy,
+        *g_cost_model->get_cost_function());
 
     utils::CountdownTimer timer(total_max_time);
 
@@ -147,11 +198,12 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     shared_ptr<utils::RandomNumberGenerator> pattern_computation_rng =
         make_shared<utils::RandomNumberGenerator>(random_seed);
 
-    int num_iterations = 1;
+    int num_iterations = 0;
     int goal_index = 0;
     bool blacklisting = false;
     double time_point_of_last_new_pattern = 0.0;
     int remaining_collection_size = max_collection_size;
+    std::vector<value_t> saturated_costs(task_proxy.get_operators().size());
 
     while (true) {
         // Check if blacklisting should be started.
@@ -198,28 +250,32 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             min(static_cast<double>(timer.get_remaining_time()),
                 pattern_generation_max_time);
 
-        PatternInformation pattern_info = compute_pattern(
+        auto [state_space, pdb] = compute_pattern(
             remaining_pdb_size,
             remaining_time,
             pattern_computation_rng,
             task_proxy,
-            *task_cost_function,
+            task_cost_function,
             goals[goal_index],
             std::move(blacklisted_variables));
 
-        const Pattern& pattern = pattern_info.get_pattern();
+        const Pattern& pattern = pdb->get_pattern();
         if (log.is_at_least_debug()) {
-            log << "generated pattern " << pattern << endl;
+            log << "generated PDB with pattern " << pattern << endl;
         }
 
-        if (generated_patterns.insert(std::move(pattern)).second) {
+        if (generated_patterns.insert(pattern).second) {
+            if (use_saturated_costs) {
+                pdb->compute_saturated_costs(*state_space, saturated_costs);
+                task_cost_function.update_costs(saturated_costs);
+            }
+
             /*
               compute_pattern generated a new pattern. Create/retrieve
               corresponding PDB, update collection size and reset
               time_point_of_last_new_pattern.
             */
             time_point_of_last_new_pattern = timer.get_elapsed_time();
-            shared_ptr pdb = pattern_info.get_pdb();
             remaining_collection_size -= pdb->num_states();
             generated_pdbs->push_back(std::move(pdb));
         }
@@ -264,14 +320,19 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
     shared_ptr<PatternCollection> patterns = make_shared<PatternCollection>();
     patterns->reserve(generated_pdbs->size());
-    for (const auto pdb : *generated_pdbs) {
-        patterns->push_back(pdb->get_pattern());
+    for (const auto gen_pdb : *generated_pdbs) {
+        patterns->push_back(gen_pdb->get_pattern());
     }
 
-    PatternCollectionInformation result(
-        task_proxy,
-        task_cost_function,
-        patterns);
+    std::shared_ptr<SubCollectionFinder> finder;
+
+    if (use_saturated_costs) {
+        finder = std::make_shared<FullyAdditiveFinder>();
+    } else {
+        finder = std::make_shared<TrivialFinder>();
+    }
+
+    PatternCollectionInformation result(task_proxy, nullptr, patterns, finder);
     result.set_pdbs(generated_pdbs);
 
     if (log.is_at_least_normal()) {
@@ -370,6 +431,14 @@ void add_multiple_options_to_parser(options::OptionParser& parser)
         "when stagnation_limit is hit for the second time. If false, pattern "
         "generation is terminated already the first time stagnation_limit is "
         "hit.",
+        "true");
+    parser.add_option<bool>(
+        "use_saturated_costs",
+        "if true, saturated cost partitioning is used to combine the generated "
+        "patterns. In each iteration, costs are decreased by the minimum "
+        "saturated cost function of the most recently constructed PDB and the "
+        "algorithm continues with the remaining costs. If false, the maximum "
+        "PDB estimate is used.",
         "true");
     add_generator_options_to_parser(parser);
     utils::add_rng_options(parser);
