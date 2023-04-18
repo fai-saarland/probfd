@@ -5,6 +5,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/utils/guards.h"
+
 #include "utils/collections.h"
 #include "utils/countdown_timer.h"
 
@@ -39,6 +41,12 @@ bool PUCSFlawFinder::apply_policy(
     utils::CountdownTimer& timer)
 {
     assert(pq.empty() && probabilities.empty());
+
+    // Exception safety due to TimeoutException
+    scope_exit guard([&]() {
+        pq.clear();
+        probabilities.clear();
+    });
 
     StateRegistry registry(task_proxy);
     const State& init = registry.get_initial_state();
@@ -81,8 +89,6 @@ bool PUCSFlawFinder::apply_policy(
         }
     } while (!pq.empty());
 
-    pq.clear();
-    probabilities.clear();
     return executable;
 }
 

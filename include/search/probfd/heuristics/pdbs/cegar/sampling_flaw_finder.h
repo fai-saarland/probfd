@@ -30,7 +30,7 @@ class SamplingFlawFinder : public FlawFindingStrategy {
         Distribution<StateID> successors;
     };
 
-    std::stack<State> stk;
+    std::vector<State> stk;
     storage::PerStateStorage<ExplorationInfo> einfos;
 
     unsigned violation_threshold;

@@ -3,9 +3,11 @@
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
-#include "probfd/distribution.h"
-
 #include "probfd/task_utils/task_properties.h"
+
+#include "probfd/utils/guards.h"
+
+#include "probfd/distribution.h"
 
 #include "utils/collections.h"
 #include "utils/countdown_timer.h"
@@ -45,6 +47,12 @@ bool SamplingFlawFinder::apply_policy(
 {
     assert(stk.empty() && einfos.empty());
 
+    // Exception safety due to TimeoutException
+    scope_exit guard([&]() {
+        stk.clear();
+        einfos.clear();
+    });
+
     StateRegistry registry(task_proxy);
 
     bool executable = true;
@@ -68,7 +76,7 @@ bool SamplingFlawFinder::apply_policy(
     assert(!stk.empty());
 
     do {
-        const State& current = stk.top();
+        const State& current = stk.back();
         ExplorationInfo& einfo = einfos[StateID(current.get_id())];
 
         while (!einfo.successors.empty()) {
@@ -108,15 +116,13 @@ bool SamplingFlawFinder::apply_policy(
             einfo.successors.erase(it);
         }
 
-        stk.pop();
+        stk.pop_back();
 
     continue_exploration:;
     } while (!stk.empty());
 
 break_exploration:;
 
-    utils::release_container_memory(stk);
-    einfos.clear();
     return executable;
 }
 
@@ -210,7 +216,7 @@ unsigned int SamplingFlawFinder::push_state(
                 outcome.get_probability());
         }
 
-        stk.push(std::move(state));
+        stk.push_back(std::move(state));
         return STATE_PUSHED;
     }
 

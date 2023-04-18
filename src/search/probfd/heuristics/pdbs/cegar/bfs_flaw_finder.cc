@@ -2,10 +2,12 @@
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 
+#include "probfd/task_utils/task_properties.h"
+
+#include "probfd/utils/guards.h"
+
 #include "utils/collections.h"
 #include "utils/countdown_timer.h"
-
-#include "probfd/task_utils/task_properties.h"
 
 #include "state_id.h"
 #include "state_registry.h"
@@ -41,6 +43,12 @@ bool BFSFlawFinder::apply_policy(
 {
     assert(open.empty() && closed.empty());
 
+    // Exception safety due to TimeoutException
+    scope_exit guard([&]() {
+        open.clear();
+        closed.clear();
+    });
+
     StateRegistry registry(task_proxy);
     const State& init = registry.get_initial_state();
 
@@ -66,12 +74,10 @@ bool BFSFlawFinder::apply_policy(
         executable = executable && successful;
 
         if (!successful && ++violations >= violation_threshold) {
-            open.clear();
             break;
         }
     } while (!open.empty());
 
-    closed.clear();
     return executable;
 }
 
