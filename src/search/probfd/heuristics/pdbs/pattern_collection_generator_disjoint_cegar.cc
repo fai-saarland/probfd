@@ -2,7 +2,10 @@
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 
+#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/utils.h"
+
+#include "probfd/cost_model.h"
 
 #include "probfd/task_proxy.h"
 
@@ -43,12 +46,12 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
 {
     // Store the set of goals in random order.
     ProbabilisticTaskProxy task_proxy(*task);
+    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
     vector<int> goals = get_goals_in_random_order(task_proxy, *rng);
 
     CEGAR cegar(
         log,
         rng,
-        subcollection_finder_factory,
         flaw_strategy,
         wildcard,
         max_pdb_size,
@@ -56,7 +59,25 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
         max_time,
         std::move(goals));
 
-    return cegar.generate(task);
+    std::shared_ptr pdbs =
+        cegar.generate_pdbs(task_proxy, *task_cost_function).second;
+
+    auto patterns = std::make_shared<PatternCollection>();
+
+    for (const auto& pdb : *pdbs) {
+        patterns->push_back(pdb->get_pattern());
+    }
+
+    std::shared_ptr<SubCollectionFinder> subcollection_finder =
+        subcollection_finder_factory->create_subcollection_finder(task_proxy);
+
+    PatternCollectionInformation pattern_collection_information(
+        task_proxy,
+        task_cost_function,
+        patterns,
+        subcollection_finder);
+    pattern_collection_information.set_pdbs(pdbs);
+    return pattern_collection_information;
 }
 
 void add_pattern_collection_generator_cegar_options_to_parser(

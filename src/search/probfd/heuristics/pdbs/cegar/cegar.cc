@@ -2,11 +2,8 @@
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
-#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
-
 #include "probfd/heuristics/pdbs/utils.h"
 
-#include "probfd/cost_model.h"
 #include "probfd/task_proxy.h"
 
 #include "utils/collections.h"
@@ -33,23 +30,23 @@ PDBInfo::PDBInfo(
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
-    : state_space(
+    : state_space(new ProjectionStateSpace(
           task_proxy,
           ranking_function,
           task_cost_function,
-          !wildcard,
-          timer.get_remaining_time())
+          false,
+          timer.get_remaining_time()))
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilisticPatternDatabase(
-          state_space,
+          *state_space,
           std::move(ranking_function),
           cost_function,
           initial_state,
           heuristics::ConstantEvaluator<StateRank>(0_vt),
           timer.get_remaining_time()))
     , policy(pdb->compute_optimal_abstract_policy(
-          state_space,
+          *state_space,
           cost_function,
           initial_state,
           rng,
@@ -66,16 +63,16 @@ PDBInfo::PDBInfo(
     int add_var,
     bool wildcard,
     utils::CountdownTimer& timer)
-    : state_space(
+    : state_space(new ProjectionStateSpace(
           task_proxy,
           ranking_function,
           task_cost_function,
-          !wildcard,
-          timer.get_remaining_time())
+          false,
+          timer.get_remaining_time()))
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilisticPatternDatabase(
-          state_space,
+          *state_space,
           std::move(ranking_function),
           cost_function,
           initial_state,
@@ -83,7 +80,7 @@ PDBInfo::PDBInfo(
           add_var,
           timer.get_remaining_time()))
     , policy(pdb->compute_optimal_abstract_policy(
-          state_space,
+          *state_space,
           cost_function,
           initial_state,
           rng,
@@ -100,16 +97,16 @@ PDBInfo::PDBInfo(
     const ProbabilisticPatternDatabase& right,
     bool wildcard,
     utils::CountdownTimer& timer)
-    : state_space(
+    : state_space(new ProjectionStateSpace(
           task_proxy,
           ranking_function,
           task_cost_function,
-          !wildcard,
-          timer.get_remaining_time())
+          false,
+          timer.get_remaining_time()))
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilisticPatternDatabase(
-          state_space,
+          *state_space,
           std::move(ranking_function),
           cost_function,
           initial_state,
@@ -117,7 +114,7 @@ PDBInfo::PDBInfo(
           right,
           timer.get_remaining_time()))
     , policy(pdb->compute_optimal_abstract_policy(
-          state_space,
+          *state_space,
           cost_function,
           initial_state,
           rng,
@@ -136,11 +133,6 @@ const ProbabilisticPatternDatabase& PDBInfo::get_pdb() const
     return *pdb;
 }
 
-std::unique_ptr<ProbabilisticPatternDatabase> PDBInfo::steal_pdb()
-{
-    return std::move(pdb);
-}
-
 const AbstractPolicy& PDBInfo::get_policy() const
 {
     return *policy;
@@ -149,6 +141,16 @@ const AbstractPolicy& PDBInfo::get_policy() const
 value_t PDBInfo::get_policy_cost(const State& state) const
 {
     return pdb->lookup(state);
+}
+
+std::unique_ptr<ProjectionStateSpace> PDBInfo::extract_state_space()
+{
+    return std::move(state_space);
+}
+
+std::unique_ptr<ProbabilisticPatternDatabase> PDBInfo::extract_pdb()
+{
+    return std::move(pdb);
 }
 
 bool PDBInfo::is_solved() const
@@ -174,7 +176,6 @@ bool PDBInfo::is_goal(StateRank rank) const
 CEGAR::CEGAR(
     const utils::LogProxy& log,
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
-    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory,
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     bool wildcard,
     int arg_max_pdb_size,
@@ -184,7 +185,6 @@ CEGAR::CEGAR(
     std::unordered_set<int> blacklisted_variables)
     : log(log)
     , rng(arg_rng)
-    , subcollection_finder_factory(subcollection_finder_factory)
     , flaw_strategy(flaw_strategy)
     , wildcard(wildcard)
     , max_pdb_size(arg_max_pdb_size)
@@ -492,8 +492,10 @@ void CEGAR::refine(
     }
 }
 
-PatternCollectionInformation
-CEGAR::generate(const std::shared_ptr<ProbabilisticTask>& task)
+pair<std::unique_ptr<ProjectionCollection>, std::unique_ptr<PPDBCollection>>
+CEGAR::generate_pdbs(
+    const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function)
 {
     if (log.is_at_least_normal()) {
         log << "CEGAR options: \n"
@@ -512,15 +514,10 @@ CEGAR::generate(const std::shared_ptr<ProbabilisticTask>& task)
 
     utils::CountdownTimer timer(max_time);
 
-    const ProbabilisticTaskProxy task_proxy(*task);
-    TaskCostFunction* task_cost_function(g_cost_model->get_cost_function());
     const VariablesProxy variables = task_proxy.get_variables();
 
     // Start with a solution of the trivial abstraction
-    generate_trivial_solution_collection(
-        task_proxy,
-        *task_cost_function,
-        timer);
+    generate_trivial_solution_collection(task_proxy, task_cost_function, timer);
 
     const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
@@ -566,7 +563,7 @@ CEGAR::generate(const std::shared_ptr<ProbabilisticTask>& task)
 
             // if there was a flaw, then refine the abstraction
             // such that said flaw does not occur again
-            refine(task_proxy, *task_cost_function, variables, flaws, timer);
+            refine(task_proxy, task_cost_function, variables, flaws, timer);
 
             ++refinement_counter;
             flaws.clear();
@@ -592,19 +589,19 @@ CEGAR::generate(const std::shared_ptr<ProbabilisticTask>& task)
         log << endl;
     }
 
-    auto patterns = std::make_shared<PatternCollection>();
-    auto pdbs = std::make_shared<PPDBCollection>();
+    auto state_spaces =
+        std::make_unique<std::vector<std::unique_ptr<ProjectionStateSpace>>>();
+    auto pdbs = std::make_unique<PPDBCollection>();
 
     if (solution_index != -1) {
-        unique_ptr pdb = pdb_infos[solution_index]->steal_pdb();
-        patterns->push_back(pdb->get_pattern());
-        pdbs->emplace_back(std::move(pdb));
+        auto& info = pdb_infos[solution_index];
+        state_spaces->emplace_back(info->extract_state_space());
+        pdbs->emplace_back(info->extract_pdb());
     } else {
         for (const auto& info : pdb_infos) {
             if (info) {
-                unique_ptr pdb = info->steal_pdb();
-                patterns->push_back(pdb->get_pattern());
-                pdbs->emplace_back(std::move(pdb));
+                state_spaces->emplace_back(info->extract_state_space());
+                pdbs->emplace_back(info->extract_pdb());
             }
         }
     }
@@ -612,24 +609,15 @@ CEGAR::generate(const std::shared_ptr<ProbabilisticTask>& task)
     if (log.is_at_least_normal()) {
         log << "CEGAR statistics:\n"
             << "  computation time: " << timer.get_elapsed_time() << "\n"
-            << "  number of iterations: " << refinement_counter << "\n"
-            << "  final collection: " << *patterns << "\n"
-            << "  final collection number of patterns: " << patterns->size()
+            << "  number of iterations: " << refinement_counter
             << "\n"
+            // << "  final collection: " << *patterns << "\n"
+            << "  final collection number of PDBs: " << pdbs->size() << "\n"
             << "  final collection summed PDB sizes: " << collection_size
             << endl;
     }
 
-    std::shared_ptr<SubCollectionFinder> subcollection_finder =
-        subcollection_finder_factory->create_subcollection_finder(task_proxy);
-
-    PatternCollectionInformation pattern_collection_information(
-        task_proxy,
-        task_cost_function,
-        patterns,
-        subcollection_finder);
-    pattern_collection_information.set_pdbs(pdbs);
-    return pattern_collection_information;
+    return std::make_pair(std::move(state_spaces), std::move(pdbs));
 }
 
 void add_cegar_wildcard_option_to_parser(options::OptionParser& parser)

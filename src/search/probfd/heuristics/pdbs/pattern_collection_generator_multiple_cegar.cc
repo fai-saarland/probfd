@@ -31,15 +31,14 @@ PatternInformation PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const shared_ptr<ProbabilisticTask>& task,
-    TaskCostFunction* task_cost_function,
+    const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction& task_cost_function,
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {
     CEGAR cegar(
         log,
         rng,
-        subcollection_finder_factory,
         flaw_strategy,
         use_wildcard_plans,
         max_pdb_size,
@@ -47,22 +46,17 @@ PatternInformation PatternCollectionGeneratorMultipleCegar::compute_pattern(
         max_time,
         {goal.var},
         std::move(blacklisted_variables));
-    PatternCollectionInformation collection_info = cegar.generate(task);
-    shared_ptr<PatternCollection> new_patterns = collection_info.get_patterns();
-    if (new_patterns->size() > 1) {
+    std::unique_ptr pdbs =
+        cegar.generate_pdbs(task_proxy, task_cost_function).second;
+    if (pdbs->size() > 1) {
         cerr << "CEGAR limited to one goal computed more than one pattern"
              << endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    Pattern& pattern = new_patterns->front();
-    shared_ptr<PPDBCollection> new_pdbs = collection_info.get_pdbs();
-    auto pdb = new_pdbs->front();
-    PatternInformation result(
-        ProbabilisticTaskProxy(*task),
-        task_cost_function,
-        std::move(pattern));
-    result.set_pdb(pdb);
+    const Pattern& pattern = pdbs->front()->get_pattern();
+    PatternInformation result(task_proxy, &task_cost_function, pattern);
+    result.set_pdb(pdbs->front());
     return result;
 }
 

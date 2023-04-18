@@ -43,10 +43,15 @@ struct Flaw {
     int variable;
 };
 
+/*
+ * Implementation notes: The state space needs to be kept to find flaws in the
+ * policy. Since it exists anyway, the algorithm is also a producer of
+ * projection state spaces, not only of PDBs. Hence the heap allocation to
+ * return it to the user, in case he needs it, e.g. to compute the saturated
+ * costs of the PDB.
+ */
 class PDBInfo {
-    // The state space needs to be kept because it contains the operators and
-    // deleting it invalidates the returned policy actions
-    ProjectionStateSpace state_space;
+    std::unique_ptr<ProjectionStateSpace> state_space;
     ProjectionCostFunction cost_function;
     StateRank initial_state;
     std::unique_ptr<ProbabilisticPatternDatabase> pdb;
@@ -86,11 +91,12 @@ public:
 
     const ProbabilisticPatternDatabase& get_pdb() const;
 
-    std::unique_ptr<ProbabilisticPatternDatabase> steal_pdb();
-
     const AbstractPolicy& get_policy() const;
 
     value_t get_policy_cost(const State& state) const;
+
+    std::unique_ptr<ProjectionStateSpace> extract_state_space();
+    std::unique_ptr<ProbabilisticPatternDatabase> extract_pdb();
 
     bool is_solved() const;
 
@@ -110,9 +116,6 @@ class CEGAR {
 
     // Random number generator
     std::shared_ptr<utils::RandomNumberGenerator> rng;
-
-    // Subcollection finder
-    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // Flaw finding strategy
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
@@ -141,8 +144,6 @@ public:
     CEGAR(
         const utils::LogProxy& log,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        std::shared_ptr<SubCollectionFinderFactory>
-            subcollection_finder_factory,
         std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
@@ -151,8 +152,12 @@ public:
         std::vector<int> goals,
         std::unordered_set<int> blacklisted_variables = {});
 
-    PatternCollectionInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task);
+    std::pair<
+        std::unique_ptr<ProjectionCollection>,
+        std::unique_ptr<PPDBCollection>>
+    generate_pdbs(
+        const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function);
 
 private:
     void generate_trivial_solution_collection(

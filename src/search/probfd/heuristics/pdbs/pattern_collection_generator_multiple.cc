@@ -202,8 +202,8 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             remaining_pdb_size,
             remaining_time,
             pattern_computation_rng,
-            task,
-            task_cost_function,
+            task_proxy,
+            *task_cost_function,
             goals[goal_index],
             std::move(blacklisted_variables));
 

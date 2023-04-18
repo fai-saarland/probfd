@@ -19,12 +19,12 @@ class PatternCollectionGeneratorMultipleCegar
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
-    virtual PatternInformation compute_pattern(
+    PatternInformation compute_pattern(
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const std::shared_ptr<ProbabilisticTask>& task,
-        TaskCostFunction* task_cost_function,
+        const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction& task_cost_function,
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) override;
 
