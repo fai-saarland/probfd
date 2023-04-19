@@ -268,6 +268,11 @@ CartesianHeuristic& AStarFlawGenerator::get_heuristic()
     return heuristic;
 }
 
+bool AStarFlawGenerator::is_complete()
+{
+    return false;
+}
+
 std::unique_ptr<FlawGenerator>
 AStarFlawGeneratorFactory::create_flaw_generator() const
 {

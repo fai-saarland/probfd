@@ -238,6 +238,11 @@ CartesianHeuristic& ILAOFlawGenerator::get_heuristic()
     return heuristic;
 }
 
+bool ILAOFlawGenerator::is_complete()
+{
+    return true;
+}
+
 std::unique_ptr<FlawGenerator>
 ILAOFlawGeneratorFactory::create_flaw_generator() const
 {

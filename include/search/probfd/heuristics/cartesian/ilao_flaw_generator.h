@@ -40,6 +40,8 @@ class ILAOFlawGenerator : public FlawGenerator {
         utils::LogProxy& log,
         const std::vector<int>& domain_sizes);
 
+    bool is_complete() override final;
+
 public:
     ILAOFlawGenerator();
 

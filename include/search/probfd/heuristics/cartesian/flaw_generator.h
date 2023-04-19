@@ -67,6 +67,8 @@ public:
     virtual void notify_split(int v) = 0;
 
     virtual CartesianHeuristic& get_heuristic() = 0;
+
+    virtual bool is_complete() = 0;
 };
 
 class FlawGeneratorFactory {

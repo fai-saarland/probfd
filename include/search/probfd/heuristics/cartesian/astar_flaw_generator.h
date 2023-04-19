@@ -109,6 +109,8 @@ public:
     void notify_split(int v) override;
 
     CartesianHeuristic& get_heuristic() override;
+
+    bool is_complete() override final;
 };
 
 class AStarFlawGeneratorFactory : public FlawGeneratorFactory {

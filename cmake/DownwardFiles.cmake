@@ -1197,6 +1197,7 @@ fast_downward_plugin(
     SOURCES
         probfd/heuristics/cartesian/abstract_state
         probfd/heuristics/cartesian/abstraction
+        probfd/heuristics/cartesian/adaptive_flaw_generator
         probfd/heuristics/cartesian/additive_cartesian_heuristic
         probfd/heuristics/cartesian/astar_flaw_generator
         probfd/heuristics/cartesian/cartesian_heuristic_function
