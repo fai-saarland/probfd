@@ -24,13 +24,13 @@ namespace pdbs {
 namespace cegar {
 
 BFSFlawFinder::BFSFlawFinder(options::Options& opts)
-    : BFSFlawFinder(opts.get<int>("violation_threshold"))
+    : BFSFlawFinder(opts.get<int>("max_search_states"))
 {
 }
 
-BFSFlawFinder::BFSFlawFinder(unsigned violation_threshold)
+BFSFlawFinder::BFSFlawFinder(int max_search_states)
     : closed(false)
-    , violation_threshold(violation_threshold)
+    , max_search_states(max_search_states)
 {
 }
 
@@ -52,9 +52,6 @@ bool BFSFlawFinder::apply_policy(
     StateRegistry registry(task_proxy);
     const State& init = registry.get_initial_state();
 
-    bool executable = true;
-    unsigned int violations = 0;
-
     open.push_back(init);
     closed[init.get_id()] = true;
 
@@ -64,21 +61,18 @@ bool BFSFlawFinder::apply_policy(
         State current = std::move(open.front());
         open.pop_front();
 
-        bool successful = expand(
-            base,
-            task_proxy,
-            solution_index,
-            std::move(current),
-            flaw_list,
-            registry);
-        executable = executable && successful;
-
-        if (!successful && ++violations >= violation_threshold) {
-            break;
+        if (!expand(
+                base,
+                task_proxy,
+                solution_index,
+                std::move(current),
+                flaw_list,
+                registry)) {
+            return false;
         }
     } while (!open.empty());
 
-    return executable;
+    return true;
 }
 
 std::string BFSFlawFinder::get_name()
@@ -165,6 +159,11 @@ bool BFSFlawFinder::expand(
         // Generate the successors and add them to the open list
         for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
             State successor = registry.get_successor_state(state, outcome);
+
+            if (registry.size() > max_search_states) {
+                return false;
+            }
+
             auto seen = closed[StateID(successor.get_id())];
 
             if (!seen) {
@@ -186,10 +185,10 @@ static std::shared_ptr<FlawFindingStrategy>
 _parse(options::OptionParser& parser)
 {
     parser.add_option<int>(
-        "violation_threshold",
-        "Maximal number of states for which a flaw is tolerated before aborting"
-        "the search.",
-        "1",
+        "max_search_states",
+        "Maximal number of generated states after which the flaw search is "
+        "aborted.",
+        "20M",
         options::Bounds("0", "infinity"));
 
     Options opts = parser.parse();

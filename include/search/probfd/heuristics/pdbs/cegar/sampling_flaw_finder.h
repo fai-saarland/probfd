@@ -33,24 +33,25 @@ class SamplingFlawFinder : public FlawFindingStrategy {
     std::vector<State> stk;
     storage::PerStateStorage<ExplorationInfo> einfos;
 
-    unsigned violation_threshold;
+    const int max_search_states;
 
     static constexpr unsigned STATE_PUSHED = 1;
     static constexpr unsigned FLAW_OCCURED = 1 << 1;
 
 public:
     explicit SamplingFlawFinder(options::Options& opts);
-    explicit SamplingFlawFinder(unsigned violation_threshold);
+    explicit SamplingFlawFinder(int max_search_states);
+
     ~SamplingFlawFinder() override = default;
 
-    virtual bool apply_policy(
+    bool apply_policy(
         CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;
 
-    virtual std::string get_name() override;
+    std::string get_name() override;
 
 private:
     unsigned int push_state(

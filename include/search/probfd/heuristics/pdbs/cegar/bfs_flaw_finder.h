@@ -26,22 +26,22 @@ class BFSFlawFinder : public FlawFindingStrategy {
     std::deque<State> open;
     storage::PerStateStorage<bool> closed;
 
-    const unsigned violation_threshold;
+    const int max_search_states;
 
 public:
-    BFSFlawFinder(options::Options& opts);
-    BFSFlawFinder(unsigned violation_threshold);
+    explicit BFSFlawFinder(options::Options& opts);
+    explicit BFSFlawFinder(int max_search_states);
 
     ~BFSFlawFinder() override = default;
 
-    virtual bool apply_policy(
+    bool apply_policy(
         CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;
 
-    virtual std::string get_name() override;
+    std::string get_name() override;
 
 private:
     bool expand(

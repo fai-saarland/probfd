@@ -490,6 +490,13 @@ void CEGAR::refine(
             return;
         }
     }
+
+    if (log.is_at_least_verbose()) {
+        log << "could not add var/merge pattern containing var "
+            << "due to size limits, blacklisting var" << endl;
+    }
+
+    blacklisted_variables.insert(var);
 }
 
 pair<std::unique_ptr<ProjectionCollection>, std::unique_ptr<PPDBCollection>>

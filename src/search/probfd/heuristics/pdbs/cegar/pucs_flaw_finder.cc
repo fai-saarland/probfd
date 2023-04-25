@@ -24,12 +24,12 @@ namespace pdbs {
 namespace cegar {
 
 PUCSFlawFinder::PUCSFlawFinder(options::Options& opts)
-    : PUCSFlawFinder(opts.get<int>("violation_threshold"))
+    : PUCSFlawFinder(opts.get<int>("max_search_states"))
 {
 }
 
-PUCSFlawFinder::PUCSFlawFinder(unsigned int violation_threshold)
-    : violation_threshold(violation_threshold)
+PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
+    : max_search_states(max_search_states)
 {
 }
 
@@ -55,9 +55,6 @@ bool PUCSFlawFinder::apply_policy(
     pq.push(1.0, init);
     probabilities[StateID(init.get_id())].path_probability = 1.0;
 
-    unsigned int violations = 0;
-    bool executable = true;
-
     do {
         timer.throw_if_expired();
 
@@ -72,24 +69,19 @@ bool PUCSFlawFinder::apply_policy(
 
         info.expanded = true;
 
-        bool successful = expand(
-            base,
-            task_proxy,
-            solution_index,
-            std::move(current),
-            path_probability,
-            flaw_list,
-            registry);
-
-        executable = executable && successful;
-
-        // Check if a flaw occured.
-        if (!successful && ++violations >= violation_threshold) {
-            break;
+        if (!expand(
+                base,
+                task_proxy,
+                solution_index,
+                std::move(current),
+                path_probability,
+                flaw_list,
+                registry)) {
+            return false;
         }
     } while (!pq.empty());
 
-    return executable;
+    return true;
 }
 
 std::string PUCSFlawFinder::get_name()
@@ -178,6 +170,11 @@ bool PUCSFlawFinder::expand(
         for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
             const auto succ_prob = path_probability * outcome.get_probability();
             State successor = registry.get_successor_state(state, outcome);
+
+            if (registry.size() > max_search_states) {
+                return false;
+            }
+
             auto& succ_entry = probabilities[StateID(successor.get_id())];
 
             if (!succ_entry.expanded &&
@@ -200,10 +197,10 @@ static std::shared_ptr<FlawFindingStrategy>
 _parse(options::OptionParser& parser)
 {
     parser.add_option<int>(
-        "violation_threshold",
-        "Maximal number of states for which a flaw is tolerated before aborting"
-        "the search.",
-        "1",
+        "max_search_states",
+        "Maximal number of generated states after which the flaw search is "
+        "aborted.",
+        "20M",
         options::Bounds("0", "infinity"));
 
     Options opts = parser.parse();

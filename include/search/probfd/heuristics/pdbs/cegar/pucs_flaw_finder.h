@@ -37,21 +37,22 @@ class PUCSFlawFinder : public FlawFindingStrategy {
     priority_queues::HeapQueue<value_t, State> pq;
     storage::PerStateStorage<ExpansionInfo> probabilities;
 
-    unsigned int violation_threshold;
+    const int max_search_states;
 
 public:
-    PUCSFlawFinder(options::Options& opts);
-    PUCSFlawFinder(unsigned int violation_threshold);
+    explicit PUCSFlawFinder(options::Options& opts);
+    explicit PUCSFlawFinder(int max_search_states);
+
     ~PUCSFlawFinder() override = default;
 
-    virtual bool apply_policy(
+    bool apply_policy(
         CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;
 
-    virtual std::string get_name() override;
+    std::string get_name() override;
 
 private:
     bool expand(

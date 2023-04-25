@@ -127,7 +127,7 @@ class CEGAR {
     const double max_time;
 
     const std::vector<int> goals;
-    const std::unordered_set<int> blacklisted_variables;
+    std::unordered_set<int> blacklisted_variables;
 
     // the pattern collection in form of their pdbs plus stored plans.
     std::vector<std::unique_ptr<PDBInfo>> pdb_infos;

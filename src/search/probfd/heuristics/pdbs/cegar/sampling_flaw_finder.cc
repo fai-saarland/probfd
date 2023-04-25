@@ -29,12 +29,12 @@ namespace pdbs {
 namespace cegar {
 
 SamplingFlawFinder::SamplingFlawFinder(options::Options& opts)
-    : SamplingFlawFinder(opts.get<int>("violation_threshold"))
+    : SamplingFlawFinder(opts.get<int>("max_search_states"))
 {
 }
 
-SamplingFlawFinder::SamplingFlawFinder(unsigned violation_threshold)
-    : violation_threshold(violation_threshold)
+SamplingFlawFinder::SamplingFlawFinder(int max_search_states)
+    : max_search_states(max_search_states)
 {
 }
 
@@ -54,9 +54,6 @@ bool SamplingFlawFinder::apply_policy(
     });
 
     StateRegistry registry(task_proxy);
-
-    bool executable = true;
-    unsigned int violation = 0;
 
     {
         State init = registry.get_initial_state();
@@ -104,11 +101,7 @@ bool SamplingFlawFinder::apply_policy(
 
                 // Otherwise, check if the state was not pushed due to a flaw
                 if (status & FLAW_OCCURED) {
-                    executable = false;
-
-                    if (++violation >= violation_threshold) {
-                        goto break_exploration;
-                    }
+                    return false;
                 }
             }
 
@@ -123,7 +116,7 @@ bool SamplingFlawFinder::apply_policy(
 
 break_exploration:;
 
-    return executable;
+    return true;
 }
 
 std::string SamplingFlawFinder::get_name()
@@ -211,8 +204,15 @@ unsigned int SamplingFlawFinder::push_state(
 
         // Generate the successors
         for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
+            const State successor =
+                registry.get_successor_state(state, outcome);
+
+            if (registry.size() > max_search_states) {
+                return FLAW_OCCURED;
+            }
+
             info.successors.add_probability(
-                registry.get_successor_state(state, outcome).get_id(),
+                successor.get_id(),
                 outcome.get_probability());
         }
 
@@ -230,11 +230,11 @@ static std::shared_ptr<FlawFindingStrategy>
 _parse(options::OptionParser& parser)
 {
     parser.add_option<int>(
-        "violation_threshold",
-        "Maximal number of states for which a flaw is tolerated before aborting"
-        "the search.",
-        "1",
-        options::Bounds("1", "infinity"));
+        "max_search_states",
+        "Maximal number of generated states after which the flaw search is "
+        "aborted.",
+        "20M",
+        options::Bounds("0", "infinity"));
 
     Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
