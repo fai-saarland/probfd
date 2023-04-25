@@ -98,6 +98,7 @@ CostSaturation::CostSaturation(
     const vector<shared_ptr<SubtaskGenerator>>& subtask_generators,
     shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
     int max_states,
+    int max_search_states,
     int max_non_looping_transitions,
     double max_time,
     bool use_general_costs,
@@ -107,6 +108,7 @@ CostSaturation::CostSaturation(
     : subtask_generators(subtask_generators)
     , flaw_generator_factory(flaw_generator_factory)
     , max_states(max_states)
+    , max_search_states(max_search_states)
     , max_non_looping_transitions(max_non_looping_transitions)
     , max_time(max_time)
     , use_general_costs(use_general_costs)
@@ -222,6 +224,7 @@ void CostSaturation::build_abstractions(
             subtask,
             *flaw_generator_factory,
             max(1, (max_states - num_states) / rem_subtasks),
+            max_search_states,
             max(1,
                 (max_non_looping_transitions - num_non_looping_transitions) /
                     rem_subtasks),

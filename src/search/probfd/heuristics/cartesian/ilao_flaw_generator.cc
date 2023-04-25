@@ -47,7 +47,8 @@ std::optional<Flaw> ILAOFlawGenerator::generate_flaw(
     const std::vector<int>& domain_sizes,
     utils::Timer& find_trace_timer,
     utils::Timer& find_flaw_timer,
-    utils::CountdownTimer& timer)
+    utils::CountdownTimer& timer,
+    int max_search_states)
 {
     find_trace_timer.resume();
     unique_ptr<Solution> solution =
@@ -68,12 +69,9 @@ std::optional<Flaw> ILAOFlawGenerator::generate_flaw(
         *solution,
         timer,
         log,
-        domain_sizes);
+        domain_sizes,
+        max_search_states);
     find_flaw_timer.stop();
-
-    if (!flaw && log.is_at_least_normal()) {
-        log << "Found concrete solution during refinement." << endl;
-    }
 
     return flaw;
 }
@@ -138,7 +136,8 @@ optional<Flaw> ILAOFlawGenerator::find_flaw(
     Solution& policy,
     utils::CountdownTimer& timer,
     utils::LogProxy& log,
-    const std::vector<int>& domain_sizes)
+    const std::vector<int>& domain_sizes,
+    int max_search_states)
 {
     StateRegistry state_registry(task_proxy);
 
@@ -156,7 +155,7 @@ optional<Flaw> ILAOFlawGenerator::find_flaw(
 
     for (; !frontier.empty(); frontier.pop_front()) {
         timer.throw_if_expired();
-        if (!utils::extra_memory_padding_is_reserved()) break;
+        if (!utils::extra_memory_padding_is_reserved()) return std::nullopt;
 
         QueueItem& next = frontier.front();
 
@@ -170,8 +169,7 @@ optional<Flaw> ILAOFlawGenerator::find_flaw(
                 next.abstract_state->get_id()));
 
             if (!::task_properties::is_goal_state(task_proxy, state)) {
-                if (log.is_at_least_debug())
-                    log << "  Goal test failed." << endl;
+                if (log.is_at_least_debug()) log << "Goal test failed." << endl;
                 state.unpack();
                 return Flaw(
                     std::move(state),
@@ -187,7 +185,7 @@ optional<Flaw> ILAOFlawGenerator::find_flaw(
         // Check for operator applicability
         if (!task_properties::is_applicable(op, state)) {
             if (log.is_at_least_debug())
-                log << "  Operator not applicable: " << op.get_name() << endl;
+                log << "Operator not applicable: " << op.get_name() << endl;
             state.unpack();
             return Flaw(
                 std::move(state),
@@ -203,6 +201,14 @@ optional<Flaw> ILAOFlawGenerator::find_flaw(
 
             State next_concrete_state =
                 state_registry.get_successor_state(state, outcome);
+
+            if (static_cast<int>(state_registry.size()) > max_search_states) {
+                if (log.is_at_least_normal()) {
+                    log << "Reached maximal number of flaw search states."
+                        << endl;
+                }
+                return std::nullopt;
+            }
 
             if (!next_abstract_state->includes(next_concrete_state)) {
                 if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
@@ -224,7 +230,11 @@ optional<Flaw> ILAOFlawGenerator::find_flaw(
         }
     }
 
-    // We found a concrete policy or ran out of memory.
+    // We found a concrete policy.
+    if (log.is_at_least_normal()) {
+        log << "Found concrete solution during refinement." << endl;
+    }
+
     return std::nullopt;
 }
 

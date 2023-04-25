@@ -31,7 +31,8 @@ public:
         const std::vector<int>& domain_sizes,
         utils::Timer& find_trace_timer,
         utils::Timer& find_flaw_timer,
-        utils::CountdownTimer& timer) override;
+        utils::CountdownTimer& timer,
+        int max_search_states) override;
 
     void notify_split(int v) override;
 

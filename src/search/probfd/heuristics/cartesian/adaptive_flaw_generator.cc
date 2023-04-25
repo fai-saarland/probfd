@@ -23,7 +23,8 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     const std::vector<int>& domain_sizes,
     utils::Timer& find_trace_timer,
     utils::Timer& find_flaw_timer,
-    utils::CountdownTimer& timer)
+    utils::CountdownTimer& timer,
+    int max_search_states)
 {
     while (current_generator != generators.size()) {
         auto& generator = generators[current_generator];
@@ -36,7 +37,8 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
             domain_sizes,
             find_trace_timer,
             find_flaw_timer,
-            timer);
+            timer,
+            max_search_states);
 
         if (flaw || generator->is_complete()) return flaw;
 
@@ -99,8 +101,8 @@ static std::shared_ptr<FlawGeneratorFactory> _parse(OptionParser& parser)
 {
     parser.add_list_option<std::shared_ptr<FlawGeneratorFactory>>(
         "generators",
-        "",
-        "");
+        "The linear hierachy of flaw generators.",
+        "[flaws_astar(), flaws_ilao()]");
     if (parser.dry_run()) return nullptr;
 
     options::Options opts = parser.parse();

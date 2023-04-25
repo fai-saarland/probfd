@@ -62,7 +62,8 @@ public:
         const std::vector<int>& domain_sizes,
         utils::Timer& find_trace_timer,
         utils::Timer& find_flaw_timer,
-        utils::CountdownTimer& timer) = 0;
+        utils::CountdownTimer& timer,
+        int max_search_states) = 0;
 
     virtual void notify_split(int v) = 0;
 
