@@ -159,8 +159,7 @@ unsigned int SamplingFlawFinder::push_state(
                 const auto& [goal_var, goal_val] = fact.get_pair();
 
                 if (state[goal_var].get_value() != goal_val &&
-                    !base.blacklisted_variables.contains(goal_var) &&
-                    utils::contains(base.goals, goal_var)) {
+                    !base.blacklisted_variables.contains(goal_var)) {
                     flaw_list.emplace_back(solution_index, goal_var);
                 }
             }
