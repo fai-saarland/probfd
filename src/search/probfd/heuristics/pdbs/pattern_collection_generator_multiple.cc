@@ -320,7 +320,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
     shared_ptr<PatternCollection> patterns = make_shared<PatternCollection>();
     patterns->reserve(generated_pdbs->size());
-    for (const auto gen_pdb : *generated_pdbs) {
+    for (const auto& gen_pdb : *generated_pdbs) {
         patterns->push_back(gen_pdb->get_pattern());
     }
 
