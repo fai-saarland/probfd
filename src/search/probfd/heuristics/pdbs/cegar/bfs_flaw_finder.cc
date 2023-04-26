@@ -160,7 +160,7 @@ bool BFSFlawFinder::expand(
         for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
             State successor = registry.get_successor_state(state, outcome);
 
-            if (registry.size() > max_search_states) {
+            if (static_cast<int>(registry.size()) > max_search_states) {
                 return false;
             }
 

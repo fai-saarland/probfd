@@ -114,8 +114,6 @@ bool SamplingFlawFinder::apply_policy(
     continue_exploration:;
     } while (!stk.empty());
 
-break_exploration:;
-
     return true;
 }
 
@@ -207,7 +205,7 @@ unsigned int SamplingFlawFinder::push_state(
             const State successor =
                 registry.get_successor_state(state, outcome);
 
-            if (registry.size() > max_search_states) {
+            if (static_cast<int>(registry.size()) > max_search_states) {
                 return FLAW_OCCURED;
             }
 
