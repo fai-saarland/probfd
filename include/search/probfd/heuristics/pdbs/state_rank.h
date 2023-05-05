@@ -28,23 +28,17 @@ struct StateRank {
     {
     }
 
-    StateRank operator+(const StateRank& x) const
-    {
-        return StateRank(x.id + id);
-    }
+    StateRank operator+(StateRank x) const { return StateRank(x.id + id); }
 
-    StateRank operator-(const StateRank& x) const
-    {
-        return StateRank(id - x.id);
-    }
+    StateRank operator-(StateRank x) const { return StateRank(id - x.id); }
 
-    StateRank& operator+=(const StateRank& x)
+    StateRank& operator+=(StateRank x)
     {
         id += x.id;
         return *this;
     }
 
-    StateRank& operator-=(const StateRank& x)
+    StateRank& operator-=(StateRank x)
     {
         id -= x.id;
         return *this;
@@ -53,7 +47,7 @@ struct StateRank {
     friend auto operator<=>(StateRank a, StateRank b) = default;
 };
 
-extern std::ostream& operator<<(std::ostream& out, const StateRank& s);
+extern std::ostream& operator<<(std::ostream& out, StateRank s);
 
 } // namespace pdbs
 } // namespace heuristics
@@ -66,7 +60,7 @@ struct is_cheap_to_copy<heuristics::pdbs::StateRank> : std::true_type {};
 namespace std {
 template <>
 struct hash<probfd::heuristics::pdbs::StateRank> {
-    size_t operator()(const probfd::heuristics::pdbs::StateRank& state) const
+    size_t operator()(probfd::heuristics::pdbs::StateRank state) const
     {
         return hash<long long int>()(state.id);
     }
@@ -74,7 +68,7 @@ struct hash<probfd::heuristics::pdbs::StateRank> {
 } // namespace std
 
 namespace utils {
-void feed(HashState& h, const probfd::heuristics::pdbs::StateRank& s);
+void feed(HashState& h, probfd::heuristics::pdbs::StateRank s);
 } // namespace utils
 
 #endif // __ABSTRACT_STATE_H__

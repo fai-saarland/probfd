@@ -24,8 +24,8 @@ private:
 public:
     AbstractPolicy(std::size_t num_abstract_states);
 
-    OperatorList& operator[](const StateRank& state);
-    const OperatorList& operator[](const StateRank& state) const;
+    OperatorList& operator[](StateRank state);
+    const OperatorList& operator[](StateRank state) const;
 };
 
 } // namespace pdbs

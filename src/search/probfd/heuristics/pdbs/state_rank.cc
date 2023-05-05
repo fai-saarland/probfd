@@ -4,7 +4,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-std::ostream& operator<<(std::ostream& out, const StateRank& s)
+std::ostream& operator<<(std::ostream& out, StateRank s)
 {
     return out << "StateRank(" << s.id << ")";
 }
@@ -15,7 +15,7 @@ std::ostream& operator<<(std::ostream& out, const StateRank& s)
 
 namespace utils {
 using namespace probfd::heuristics::pdbs;
-void feed(HashState& h, const StateRank& s)
+void feed(HashState& h, StateRank s)
 {
     feed(h, s.id);
 }
