@@ -12,6 +12,7 @@
 #include "utils/logging.h"
 #include "utils/rng.h"
 
+#include <ranges>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -158,6 +159,29 @@ public:
     generate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function);
+
+protected:
+    bool collect_flaws(
+        auto facts,
+        const State& state,
+        int solution_index,
+        std::vector<Flaw>& flaw_list) const
+    {
+        bool flaws_found = false;
+
+        // Collect all non-satisfied goal fact variables.
+        for (const FactProxy fact : facts) {
+            const auto& [var, val] = fact.get_pair();
+
+            if (state[var].get_value() != val &&
+                !blacklisted_variables.contains(var)) {
+                flaws_found = true;
+                flaw_list.emplace_back(solution_index, var);
+            }
+        }
+
+        return flaws_found;
+    }
 
 private:
     void generate_trivial_solution_collection(

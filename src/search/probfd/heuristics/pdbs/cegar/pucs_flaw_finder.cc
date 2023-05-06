@@ -34,7 +34,7 @@ PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
 }
 
 bool PUCSFlawFinder::apply_policy(
-    CEGAR& base,
+    const CEGAR& base,
     const ProbabilisticTaskProxy& task_proxy,
     int solution_index,
     std::vector<Flaw>& flaw_list,
@@ -43,17 +43,24 @@ bool PUCSFlawFinder::apply_policy(
     assert(pq.empty() && probabilities.empty());
 
     // Exception safety due to TimeoutException
-    scope_exit guard([&]() {
+    scope_exit guard([&] {
         pq.clear();
         probabilities.clear();
     });
 
     StateRegistry registry(task_proxy);
-    const State& init = registry.get_initial_state();
 
-    // Push initial state for expansion
-    pq.push(1.0, init);
-    probabilities[StateID(init.get_id())].path_probability = 1.0;
+    {
+        const State& init = registry.get_initial_state();
+        pq.push(1.0, init);
+        probabilities[StateID(init.get_id())].path_probability = 1.0;
+    }
+
+    const PDBInfo& solution = *base.pdb_infos[solution_index];
+    const AbstractPolicy& policy = solution.get_policy();
+    const ProbabilisticPatternDatabase& pdb = solution.get_pdb();
+    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const GoalsProxy goals = task_proxy.get_goals();
 
     do {
         timer.throw_if_expired();
@@ -69,16 +76,71 @@ bool PUCSFlawFinder::apply_policy(
 
         info.expanded = true;
 
-        if (!expand(
-                base,
-                task_proxy,
-                solution_index,
-                std::move(current),
-                path_probability,
-                flaw_list,
-                registry)) {
-            return false;
+        assert(path_probability != 0_vt);
+
+        // Check flaws, generate successors
+        const StateRank abs = pdb.get_abstract_state(current);
+
+        // We reached a dead-end, the operator is irrelevant.
+        if (pdb.is_dead_end(abs)) {
+            continue;
         }
+
+        const auto& abs_operators = policy[abs];
+
+        // We reached a terminal state, check if it is a goal
+        if (abs_operators.empty()) {
+            assert(solution.is_goal(abs));
+
+            return base
+                .collect_flaws(goals, current, solution_index, flaw_list);
+        }
+
+        std::vector<Flaw> local_flaws;
+
+        for (const AbstractOperator* abs_op : abs_operators) {
+            const auto op = operators[abs_op->operator_id];
+
+            if (base.collect_flaws(
+                    op.get_preconditions(),
+                    current,
+                    solution_index,
+                    local_flaws)) {
+                continue; // Try next operator
+            }
+
+            // Generate the successors and add them to the queue
+            for (const auto outcome : op.get_outcomes()) {
+                State successor =
+                    registry.get_successor_state(current, outcome);
+
+                if (static_cast<int>(registry.size()) > max_search_states) {
+                    return false;
+                }
+
+                auto& succ_entry = probabilities[StateID(successor.get_id())];
+                const auto succ_prob =
+                    path_probability * outcome.get_probability();
+
+                if (!succ_entry.expanded &&
+                    succ_entry.path_probability < succ_prob) {
+                    succ_entry.path_probability = succ_prob;
+                    pq.push(succ_prob, std::move(successor));
+                }
+            }
+
+            goto continue_exploration;
+        }
+
+        // Insert all flaws of all operators
+        flaw_list.insert(
+            flaw_list.end(),
+            local_flaws.begin(),
+            local_flaws.end());
+
+        return false;
+
+    continue_exploration:;
     } while (!pq.empty());
 
     return true;
@@ -87,109 +149,6 @@ bool PUCSFlawFinder::apply_policy(
 std::string PUCSFlawFinder::get_name()
 {
     return "PUCS Flaw Finder";
-}
-
-bool PUCSFlawFinder::expand(
-    CEGAR& base,
-    const ProbabilisticTaskProxy& task_proxy,
-    int solution_index,
-    State state,
-    value_t path_probability,
-    std::vector<Flaw>& flaw_list,
-    StateRegistry& registry)
-{
-    assert(path_probability != 0_vt);
-
-    PDBInfo& solution = *base.pdb_infos[solution_index];
-    const AbstractPolicy& policy = solution.get_policy();
-    const ProbabilisticPatternDatabase& pdb = solution.get_pdb();
-
-    // Check flaws, generate successors
-    const StateRank abs = pdb.get_abstract_state(state);
-
-    // We reached a dead-end, the operator is irrelevant.
-    if (pdb.is_dead_end(abs)) {
-        return true;
-    }
-
-    const auto& abs_operators = policy[abs];
-
-    // We reached a terminal state, check if it is a goal
-    if (abs_operators.empty()) {
-        assert(solution.is_goal(abs));
-
-        if (!::task_properties::is_goal_state(task_proxy, state)) {
-            // Collect all non-satisfied goal variables that are still
-            // available.
-            for (FactProxy fact : task_proxy.get_goals()) {
-                const auto& [goal_var, goal_val] = fact.get_pair();
-
-                if (state[goal_var].get_value() != goal_val &&
-                    !base.blacklisted_variables.contains(goal_var)) {
-                    flaw_list.emplace_back(solution_index, goal_var);
-                }
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-
-    std::vector<Flaw> local_flaws;
-
-    const auto operators = task_proxy.get_operators();
-
-    for (const AbstractOperator* abs_op : abs_operators) {
-        const ProbabilisticOperatorProxy& op = operators[abs_op->operator_id];
-
-        // Check whether precondition flaws occur
-        bool preconditions_ok = true;
-
-        for (const FactProxy precondition : op.get_preconditions()) {
-            const auto& [pre_var, pre_val] = precondition.get_pair();
-
-            // We ignore blacklisted variables
-            if (base.blacklisted_variables.contains(pre_var)) {
-                continue;
-            }
-
-            if (state[pre_var].get_value() != pre_val) {
-                preconditions_ok = false;
-                local_flaws.emplace_back(solution_index, pre_var);
-            }
-        }
-
-        // Flaws occured.
-        if (!preconditions_ok) {
-            continue; // Try next operator
-        }
-
-        // Generate the successors and add them to the queue
-        for (const ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
-            const auto succ_prob = path_probability * outcome.get_probability();
-            State successor = registry.get_successor_state(state, outcome);
-
-            if (static_cast<int>(registry.size()) > max_search_states) {
-                return false;
-            }
-
-            auto& succ_entry = probabilities[StateID(successor.get_id())];
-
-            if (!succ_entry.expanded &&
-                succ_entry.path_probability < succ_prob) {
-                succ_entry.path_probability = succ_prob;
-                pq.push(succ_prob, std::move(successor));
-            }
-        }
-
-        return true;
-    }
-
-    // Insert all flaws of all operators
-    flaw_list.insert(flaw_list.end(), local_flaws.begin(), local_flaws.end());
-
-    return false;
 }
 
 static std::shared_ptr<FlawFindingStrategy>

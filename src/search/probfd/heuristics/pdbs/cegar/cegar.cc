@@ -4,6 +4,8 @@
 
 #include "probfd/heuristics/pdbs/utils.h"
 
+#include "probfd/task_utils/task_properties.h"
+
 #include "probfd/task_proxy.h"
 
 #include "utils/collections.h"
@@ -15,6 +17,8 @@
 
 #include "option_parser.h"
 #include "plugin.h"
+
+#include <cassert>
 
 using namespace std;
 

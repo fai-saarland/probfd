@@ -35,9 +35,6 @@ class SamplingFlawFinder : public FlawFindingStrategy {
 
     const int max_search_states;
 
-    static constexpr unsigned STATE_PUSHED = 1;
-    static constexpr unsigned FLAW_OCCURED = 1 << 1;
-
 public:
     explicit SamplingFlawFinder(options::Options& opts);
     explicit SamplingFlawFinder(int max_search_states);
@@ -45,22 +42,13 @@ public:
     ~SamplingFlawFinder() override = default;
 
     bool apply_policy(
-        CEGAR& base,
+        const CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;
 
     std::string get_name() override;
-
-private:
-    unsigned int push_state(
-        CEGAR& base,
-        const ProbabilisticTaskProxy& task_proxy,
-        int solution_index,
-        State state,
-        std::vector<Flaw>& flaw_list,
-        StateRegistry& registry);
 };
 
 } // namespace cegar

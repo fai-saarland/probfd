@@ -46,23 +46,13 @@ public:
     ~PUCSFlawFinder() override = default;
 
     bool apply_policy(
-        CEGAR& base,
+        const CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
         int solution_index,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;
 
     std::string get_name() override;
-
-private:
-    bool expand(
-        CEGAR& base,
-        const ProbabilisticTaskProxy& task_proxy,
-        int solution_index,
-        State state,
-        value_t priority,
-        std::vector<Flaw>& flaw_list,
-        StateRegistry& registry);
 };
 
 } // namespace cegar
