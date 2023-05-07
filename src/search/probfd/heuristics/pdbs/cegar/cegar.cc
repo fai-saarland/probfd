@@ -438,7 +438,13 @@ void CEGAR::refine(
     }
 
     if (log.is_at_least_verbose()) {
-        log << " with a violated precondition on " << flaw.variable << endl;
+        log << " with a violated";
+        if (flaw.is_precondition) {
+            log << " precondition ";
+        } else {
+            log << " goal ";
+        }
+        log << "on " << flaw.variable << endl;
     }
 
     int sol_index = flaw.solution_index;

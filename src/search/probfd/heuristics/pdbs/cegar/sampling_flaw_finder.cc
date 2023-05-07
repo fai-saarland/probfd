@@ -88,6 +88,7 @@ bool SamplingFlawFinder::apply_policy(
                         goals,
                         *current,
                         solution_index,
+                        false,
                         flaw_list)) {
                     return false;
                 }
@@ -105,6 +106,7 @@ bool SamplingFlawFinder::apply_policy(
                         op.get_preconditions(),
                         *current,
                         solution_index,
+                        true,
                         local_flaws)) {
                     continue; // Try next operator
                 }

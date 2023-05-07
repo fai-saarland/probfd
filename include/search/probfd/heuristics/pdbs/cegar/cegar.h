@@ -42,6 +42,7 @@ class SamplingFlawFinder;
 struct Flaw {
     int solution_index;
     int variable;
+    bool is_precondition;
 };
 
 /*
@@ -165,6 +166,7 @@ protected:
         auto facts,
         const State& state,
         int solution_index,
+        bool is_precondition,
         std::vector<Flaw>& flaw_list) const
     {
         bool flaws_found = false;
@@ -176,7 +178,7 @@ protected:
             if (state[var].get_value() != val &&
                 !blacklisted_variables.contains(var)) {
                 flaws_found = true;
-                flaw_list.emplace_back(solution_index, var);
+                flaw_list.emplace_back(solution_index, var, is_precondition);
             }
         }
 

@@ -92,8 +92,12 @@ bool PUCSFlawFinder::apply_policy(
         if (abs_operators.empty()) {
             assert(solution.is_goal(abs));
 
-            return base
-                .collect_flaws(goals, current, solution_index, flaw_list);
+            return base.collect_flaws(
+                goals,
+                current,
+                solution_index,
+                false,
+                flaw_list);
         }
 
         std::vector<Flaw> local_flaws;
@@ -105,6 +109,7 @@ bool PUCSFlawFinder::apply_policy(
                     op.get_preconditions(),
                     current,
                     solution_index,
+                    true,
                     local_flaws)) {
                 continue; // Try next operator
             }
