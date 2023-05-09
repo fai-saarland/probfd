@@ -1123,11 +1123,7 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/cegar/bfs_flaw_finder
         probfd/heuristics/pdbs/cegar/pucs_flaw_finder
         probfd/heuristics/pdbs/cegar/sampling_flaw_finder
-        probfd/heuristics/pdbs/cegar/bfs_flaw_finder_factory
-        probfd/heuristics/pdbs/cegar/pucs_flaw_finder_factory
-        probfd/heuristics/pdbs/cegar/sampling_flaw_finder_factory
         probfd/heuristics/pdbs/cegar/flaw_finding_strategy
-        probfd/heuristics/pdbs/cegar/flaw_finding_strategy_factory
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
