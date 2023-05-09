@@ -42,7 +42,6 @@ namespace heuristics {
 namespace pdbs {
 
 class SubCollectionFinderFactory;
-class IncrementalPPDBs;
 
 // Implementation of the pattern generation algorithm by Haslum et al.
 class PatternCollectionGeneratorHillclimbing
@@ -50,6 +49,7 @@ class PatternCollectionGeneratorHillclimbing
     using DynamicBitset = dynamic_bitset::DynamicBitset<uint64_t>;
 
     struct Sample;
+    class IncrementalPPDBs;
 
     struct Statistics : public utils::Printable {
         unsigned long long int num_iterations;

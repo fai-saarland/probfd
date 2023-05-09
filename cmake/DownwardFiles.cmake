@@ -1111,7 +1111,6 @@ fast_downward_plugin(
     NAME PPDBS_HILLCLIMBING_GENERATOR
     HELP "Hillclimbing pattern collection generator for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/incremental_ppdbs
         probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing
     DEPENDS PPDBS_PATTERN_GENERATORS
 )

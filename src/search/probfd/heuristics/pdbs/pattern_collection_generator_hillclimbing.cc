@@ -1,6 +1,5 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing.h"
 
-#include "probfd/heuristics/pdbs/incremental_ppdbs.h"
 #include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
@@ -56,6 +55,17 @@ static std::vector<int> get_goal_variables(const TaskBaseProxy& task_proxy)
     }
     assert(utils::is_sorted_unique(goal_vars));
     return goal_vars;
+}
+
+unsigned long long compute_total_pdb_size(const PPDBCollection& pdbs)
+{
+    unsigned long long size = 0;
+
+    for (const auto& pdb : pdbs) {
+        size += pdb->num_states();
+    }
+
+    return size;
 }
 
 /*
@@ -139,6 +149,256 @@ struct PatternCollectionGeneratorHillclimbing::Sample {
     State state;
     EvaluationResult h_eval;
 };
+
+class PatternCollectionGeneratorHillclimbing::IncrementalPPDBs {
+    ProbabilisticTaskProxy task_proxy;
+    TaskCostFunction* task_cost_function;
+
+    std::shared_ptr<PatternCollection> patterns;
+    std::shared_ptr<PPDBCollection> pattern_databases;
+    std::shared_ptr<std::vector<PatternSubCollection>> pattern_subcollections;
+
+    std::shared_ptr<SubCollectionFinder> subcollection_finder;
+
+    // The sum of all abstract state sizes of all pdbs in the collection.
+    long long size;
+
+    // Adds a PDB for pattern but does not recompute pattern_subcollections.
+    void add_pdb_for_pattern(const Pattern& pattern, const State& intial_state);
+
+    void recompute_pattern_subcollections();
+
+public:
+    IncrementalPPDBs(
+        const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction* task_cost_function,
+        const PatternCollection& initial_patterns,
+        std::shared_ptr<SubCollectionFinder> subcollection_finder);
+
+    IncrementalPPDBs(
+        const ProbabilisticTaskProxy& task_proxy,
+        TaskCostFunction* task_cost_function,
+        PatternCollectionInformation& initial_patterns,
+        std::shared_ptr<SubCollectionFinder> subcollection_finder);
+
+    // Adds a new PDB to the collection and recomputes pattern_subcollections.
+    void add_pdb(const std::shared_ptr<ProbabilisticPatternDatabase>& pdb);
+
+    int count_improvements(
+        const ProbabilisticPatternDatabase& pdb,
+        const std::vector<PatternCollectionGeneratorHillclimbing::Sample>&
+            samples) const;
+
+    value_t get_value(const State& state) const;
+
+    EvaluationResult evaluate(const State& state) const;
+
+    /*
+      The following method offers a quick dead-end check for the sampling
+      procedure of iPDB-hillclimbing. This exists because we can much more
+      efficiently test if the canonical heuristic is infinite than
+      computing the exact heuristic value.
+    */
+    bool is_dead_end(const State& state) const;
+
+    PatternCollectionInformation get_pattern_collection_information() const;
+
+    std::shared_ptr<PPDBCollection> get_pattern_databases() const;
+
+    long long get_size() const;
+
+private:
+    bool is_heuristic_improved(
+        const ProbabilisticPatternDatabase& pdb,
+        const PatternCollectionGeneratorHillclimbing::Sample& sample,
+        const std::vector<PatternSubCollection>& pattern_subcollections) const;
+};
+
+PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
+    const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction* task_cost_function,
+    const PatternCollection& initial_patterns,
+    std::shared_ptr<SubCollectionFinder> subcollection_finder)
+    : task_proxy(task_proxy)
+    , task_cost_function(task_cost_function)
+    , patterns(new PatternCollection(initial_patterns))
+    , pattern_databases(new PPDBCollection())
+    , pattern_subcollections(nullptr)
+    , subcollection_finder(subcollection_finder)
+    , size(0)
+{
+    pattern_databases->reserve(patterns->size());
+    for (const Pattern& pattern : *patterns)
+        add_pdb_for_pattern(pattern, task_proxy.get_initial_state());
+    recompute_pattern_subcollections();
+}
+
+PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
+    const ProbabilisticTaskProxy& task_proxy,
+    TaskCostFunction* task_cost_function,
+    PatternCollectionInformation& initial_patterns,
+    std::shared_ptr<SubCollectionFinder> subcollection_finder)
+    : task_proxy(task_proxy)
+    , task_cost_function(task_cost_function)
+    , patterns(initial_patterns.get_patterns())
+    , pattern_databases(initial_patterns.get_pdbs())
+    , pattern_subcollections(initial_patterns.get_subcollections())
+    , subcollection_finder(subcollection_finder)
+    , size(compute_total_pdb_size(*pattern_databases))
+{
+}
+
+void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
+    add_pdb_for_pattern(const Pattern& pattern, const State& initial_state)
+{
+    auto& pdb =
+        pattern_databases->emplace_back(new ProbabilisticPatternDatabase(
+            task_proxy,
+            pattern,
+            *task_cost_function,
+            initial_state));
+    size += pdb->num_states();
+}
+
+void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::add_pdb(
+    const std::shared_ptr<ProbabilisticPatternDatabase>& pdb)
+{
+    patterns->push_back(pdb->get_pattern());
+    auto& new_pdb = pattern_databases->emplace_back(pdb);
+    size += new_pdb->num_states();
+    recompute_pattern_subcollections();
+}
+
+void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
+    recompute_pattern_subcollections()
+{
+    pattern_subcollections =
+        subcollection_finder->compute_subcollections(*patterns);
+}
+
+int PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
+    count_improvements(
+        const ProbabilisticPatternDatabase& pdb,
+        const std::vector<Sample>& samples) const
+{
+    int count = 0;
+    std::vector<PatternSubCollection> subcollections =
+        subcollection_finder->compute_subcollections_with_pattern(
+            *patterns,
+            *pattern_subcollections,
+            pdb.get_pattern());
+    for (const auto& sample : samples) {
+        if (is_heuristic_improved(pdb, sample, subcollections)) {
+            ++count;
+        }
+    }
+
+    return count;
+}
+
+value_t PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::get_value(
+    const State& state) const
+{
+    return evaluate(state).get_estimate();
+}
+
+EvaluationResult
+PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::evaluate(
+    const State& state) const
+{
+    return subcollection_finder->evaluate(
+        *pattern_databases,
+        *pattern_subcollections,
+        state);
+}
+
+bool PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::is_dead_end(
+    const State& state) const
+{
+    for (const auto& pdb : *pattern_databases) {
+        if (pdb->is_dead_end(state)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+PatternCollectionInformation PatternCollectionGeneratorHillclimbing::
+    IncrementalPPDBs::get_pattern_collection_information() const
+{
+    PatternCollectionInformation result(
+        task_proxy,
+        task_cost_function,
+        patterns,
+        subcollection_finder);
+    result.set_pdbs(pattern_databases);
+    result.set_subcollections(pattern_subcollections);
+    return result;
+}
+
+std::shared_ptr<PPDBCollection> PatternCollectionGeneratorHillclimbing::
+    IncrementalPPDBs::get_pattern_databases() const
+{
+    return pattern_databases;
+}
+
+long long
+PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::get_size() const
+{
+    return size;
+}
+
+bool PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
+    is_heuristic_improved(
+        const ProbabilisticPatternDatabase& pdb,
+        const Sample& sample,
+        const std::vector<PatternSubCollection>& pattern_subcollections) const
+{
+    const EvaluationResult h_pattern_eval = pdb.evaluate(sample.state);
+
+    if (h_pattern_eval.is_unsolvable()) {
+        return true;
+    }
+
+    const value_t h_pattern = h_pattern_eval.get_estimate();
+
+    // h_collection: h-value of the current collection heuristic
+    const EvaluationResult h_collection_eval = sample.h_eval;
+
+    if (h_collection_eval.is_unsolvable()) return false;
+
+    const value_t h_collection = h_collection_eval.get_estimate();
+
+    std::vector<value_t> h_values;
+    h_values.reserve(pattern_databases->size());
+
+    for (const auto& p : *pattern_databases) {
+        const EvaluationResult eval = p->evaluate(sample.state);
+        if (eval.is_unsolvable()) return false;
+        h_values.push_back(eval.get_estimate());
+    }
+
+    for (const PatternSubCollection& subcollection : pattern_subcollections) {
+        const value_t h_subcollection =
+            subcollection_finder->evaluate_subcollection(
+                h_values,
+                subcollection);
+
+        const value_t combined =
+            subcollection_finder->combine(h_subcollection, h_pattern);
+
+        if (combined > h_collection) {
+            /*
+              return true if a pattern clique is found for
+              which the condition is met
+            */
+            return true;
+        }
+    }
+
+    return false;
+}
 
 void PatternCollectionGeneratorHillclimbing::Statistics::print(
     std::ostream& out) const
@@ -345,19 +605,7 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
           statistical confidence interval to stop the A*-search (which they use,
           see above) earlier.
         */
-        int count = 0;
-        std::vector<PatternSubCollection> pattern_subcollections =
-            current_pdbs.get_pattern_subcollections(pdb->get_pattern());
-        for (const auto& sample : samples) {
-            if (is_heuristic_improved(
-                    *pdb,
-                    sample,
-                    *current_pdbs.get_pattern_databases(),
-                    pattern_subcollections,
-                    current_pdbs)) {
-                ++count;
-            }
-        }
+        const int count = current_pdbs.count_improvements(*pdb, samples);
 
         if (count > improvement) {
             improvement = count;
@@ -371,53 +619,6 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
     }
 
     return std::make_pair(improvement, best_pdb_index);
-}
-
-bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
-    const ProbabilisticPatternDatabase& pdb,
-    const Sample& sample,
-    const PPDBCollection& pdbs,
-    const std::vector<PatternSubCollection>& pattern_subcollections,
-    const IncrementalPPDBs& current_pdbs)
-{
-    const EvaluationResult h_pattern_eval = pdb.evaluate(sample.state);
-
-    if (h_pattern_eval.is_unsolvable()) {
-        return true;
-    }
-
-    const value_t h_pattern = h_pattern_eval.get_estimate();
-
-    // h_collection: h-value of the current collection heuristic
-    const EvaluationResult h_collection_eval = sample.h_eval;
-
-    if (h_collection_eval.is_unsolvable()) return false;
-
-    const value_t h_collection = h_collection_eval.get_estimate();
-
-    std::vector<value_t> h_values;
-    h_values.reserve(pdbs.size());
-
-    for (const auto& p : pdbs) {
-        const EvaluationResult eval = p->evaluate(sample.state);
-        if (eval.is_unsolvable()) return false;
-        h_values.push_back(eval.get_estimate());
-    }
-
-    for (const PatternSubCollection& subcollection : pattern_subcollections) {
-        value_t h_subcollection =
-            current_pdbs.evaluate_subcollection(h_values, subcollection);
-
-        if (current_pdbs.combine(h_subcollection, h_pattern) > h_collection) {
-            /*
-              return true if a pattern clique is found for
-              which the condition is met
-            */
-            return true;
-        }
-    }
-
-    return false;
 }
 
 void PatternCollectionGeneratorHillclimbing::hill_climbing(
