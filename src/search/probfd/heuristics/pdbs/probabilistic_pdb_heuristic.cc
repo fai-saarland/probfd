@@ -3,7 +3,6 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
 
-
 #include "pdbs/dominance_pruning.h"
 
 #include "utils/countdown_timer.h"

@@ -1,58 +1,37 @@
-#include "probfd/heuristics/occupation_measure/occupation_measure_heuristic.h"
+#include "probfd/heuristics/occupation_measures/hpom_constraints.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "probfd/heuristics/occupation_measures/utils.h"
+
+#include "probfd/task_utils/task_properties.h"
+
+#include "lp/lp_solver.h"
 
 #include "utils/system.h"
 #include "utils/timer.h"
 
-#include "probfd/cost_models/maxprob_cost_model.h"
+#include "option_parser.h"
+#include "plugin.h"
 
-#include "probfd/task_utils/task_properties.h"
+#include "probfd/cost_models/maxprob_cost_model.h"
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <memory>
+#include <ranges>
 
 namespace probfd {
 namespace heuristics {
-namespace occupation_measure_heuristic {
+namespace occupation_measures {
 
 namespace {
-// Explicit goal values (-1 if variable not required)
-std::vector<int> get_goal_explicit(const ProbabilisticTaskProxy& task_proxy)
-{
-    std::vector<int> the_goal(task_proxy.get_variables().size(), -1);
-
-    for (const FactProxy fact : task_proxy.get_goals()) {
-        the_goal[fact.get_variable().get_id()] = fact.get_value();
-    }
-
-    return the_goal;
-}
-
-// Explicit precondition values (-1 if no precondition for variable)
-std::vector<int> get_precondition_explicit(
-    const ProbabilisticTaskProxy& task_proxy,
-    const ProbabilisticOperatorProxy& op_proxy)
-{
-    std::vector<int> pre(task_proxy.get_variables().size(), -1);
-
-    for (const FactProxy fact : op_proxy.get_preconditions()) {
-        pre[fact.get_variable().get_id()] = fact.get_value();
-    }
-
-    return pre;
-}
 
 // Compute an explicit transition probability matrix
 std::vector<std::vector<value_t>> get_transition_probs_explicit(
-    const ProbabilisticTaskProxy& task_proxy,
+    const VariablesProxy& variables,
     const ProbabilisticOperatorProxy& op_proxy,
     std::set<int>& possibly_updated)
 {
-    const VariablesProxy variables = task_proxy.get_variables();
     const size_t num_variables = variables.size();
 
     std::vector<std::vector<value_t>> p(num_variables);
@@ -62,13 +41,11 @@ std::vector<std::vector<value_t>> get_transition_probs_explicit(
         p[i].back() = 1_vt;
     }
 
-    for (const ProbabilisticOutcomeProxy& out : op_proxy.get_outcomes()) {
+    for (const ProbabilisticOutcomeProxy out : op_proxy.get_outcomes()) {
         const value_t prob = out.get_probability();
 
         for (const ProbabilisticEffectProxy effect : out.get_effects()) {
-            const FactProxy fact = effect.get_fact();
-            int var = fact.get_variable().get_id();
-            int val = fact.get_value();
+            const auto [var, val] = effect.get_fact().get_pair();
 
             possibly_updated.insert(var);
             auto& probs = p[var];
@@ -81,23 +58,66 @@ std::vector<std::vector<value_t>> get_transition_probs_explicit(
 }
 } // namespace
 
-void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
+HPOMGenerator::HPOMGenerator()
+    : HPOMGenerator(
+          std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
+              g_cost_model) != nullptr)
+{
+}
+
+HPOMGenerator::HPOMGenerator(bool maxprob)
+    : is_maxprob_(maxprob)
+{
+}
+
+void HPOMGenerator::initialize_constraints(
+    const std::shared_ptr<ProbabilisticTask>& task,
+    lp::LinearProgram& lp)
+{
+    std::cout << "Initializing HPOM LP constraints..." << std::endl;
+
+    utils::Timer timer;
+
+    ProbabilisticTaskProxy task_proxy(*task);
+
+    generate_hpom_lp(task_proxy, lp, offset_, is_maxprob_);
+
+    std::cout << "Finished HPOM LP setup after " << timer << std::endl;
+}
+
+void HPOMGenerator::update_constraints(const State& state, lp::LPSolver& solver)
+{
+    // Set to initial state in LP
+    for (size_t var = 0; var < state.size(); ++var) {
+        const std::size_t index = offset_[var] + state[var].get_value();
+        solver.set_constraint_upper_bound(index, 1.0);
+    }
+}
+
+void HPOMGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
+{
+    for (size_t var = 0; var < state.size(); ++var) {
+        const std::size_t index = offset_[var] + state[var].get_value();
+        solver.set_constraint_upper_bound(index, 0.0);
+    }
+}
+
+void HPOMGenerator::generate_hpom_lp(
     const ProbabilisticTaskProxy& task_proxy,
-    lp::LPSolver& lp_solver_,
-    named_vector::NamedVector<lp::LPVariable>& lp_vars,
-    named_vector::NamedVector<lp::LPConstraint>& constraints,
+    lp::LinearProgram& lp,
     std::vector<int>& offset_,
     bool maxprob)
 {
-    assert(lp_vars.empty() && constraints.empty());
-
     ::task_properties::verify_no_axioms(task_proxy);
     task_properties::verify_no_conditional_effects(task_proxy);
+
+    auto& lp_variables = lp.get_variables();
+    auto& constraints = lp.get_constraints();
 
     const VariablesProxy variables = task_proxy.get_variables();
 
     const std::size_t num_variables = variables.size();
-    const double inf = lp_solver_.get_infinity();
+    const double inf = lp.get_infinity();
 
     // Prepare fact variable offsets
     offset_.reserve(num_variables);
@@ -115,9 +135,10 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
     // Variable representing total inflow to artificial goal
     // Maximized in MaxProb, must be constant 1 for SSPs
-    lp_vars.emplace_back(maxprob ? 0 : 1, 1, maxprob ? -1 : 0);
+    lp_variables.emplace_back(maxprob ? 0 : 1, 1, maxprob ? -1 : 0);
 
-    std::vector<int> the_goal = get_goal_explicit(task_proxy);
+    std::vector<int> the_goal =
+        pasmt_to_vector(task_proxy.get_goals(), num_variables);
 
     // Build flow contraint coefficients for dummy goal action
     for (const VariableProxy var : variables) {
@@ -127,15 +148,15 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
         if (the_goal[var.get_id()] == -1) {
             for (int val = 0; val != var.get_domain_size(); ++val) {
-                const int lpvar = lp_vars.size();
-                lp_vars.emplace_back(0, inf, 0);
+                const int lpvar = lp_variables.size();
+                lp_variables.emplace_back(0, inf, 0);
                 flow[val].insert(lpvar, 1);       // outflow for goal states
                 goal_constraint.insert(lpvar, 1); // inflow for dummy goal state
             }
         } else {
             const int val = the_goal[var.get_id()];
-            const int lpvar = lp_vars.size();
-            lp_vars.emplace_back(0, inf, 0);
+            const int lpvar = lp_variables.size();
+            lp_variables.emplace_back(0, inf, 0);
             flow[val].insert(lpvar, 1);
             goal_constraint.insert(lpvar, 1);
         }
@@ -146,19 +167,20 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
         const auto cost = maxprob ? 0 : op.get_cost();
 
         // Get dense precondition
-        const std::vector<int> pre = get_precondition_explicit(task_proxy, op);
+        const std::vector<int> pre =
+            pasmt_to_vector(op.get_preconditions(), num_variables);
 
         // Get transition matrix and possibly updated variables
         std::set<int> possibly_updated;
         const std::vector<std::vector<value_t>> post =
-            get_transition_probs_explicit(task_proxy, op, possibly_updated);
+            get_transition_probs_explicit(variables, op, possibly_updated);
 
         // For tying constraints, contains lp variable ranges of projections
         std::vector<std::pair<int, int>> tieing_equality;
 
         // Build flow constraint coefficients...
         for (const int var : possibly_updated) {
-            std::pair<int, int> var_range(lp_vars.size(), 0);
+            std::pair<int, int> var_range(lp_variables.size(), 0);
             lp::LPConstraint* flow = &constraints[offset_[var]];
 
             const std::size_t domain = variables[var].get_domain_size();
@@ -170,8 +192,8 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
                     const auto p_self_loop = tr_probs[i] + tr_probs.back();
 
                     // Occupation measure / flow variable x_{d, a}
-                    const int lpvar = lp_vars.size();
-                    lp_vars.emplace_back(0, inf, 0);
+                    const int lpvar = lp_variables.size();
+                    lp_variables.emplace_back(0, inf, 0);
 
                     // Outflow
                     flow[i].insert(lpvar, 1 - p_self_loop);
@@ -191,8 +213,8 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
                 const auto p_self_loop = tr_probs[i] + tr_probs.back();
 
                 // Occupation measure / flow variable x_{d, a}
-                const int lpvar = lp_vars.size();
-                lp_vars.emplace_back(0, inf, 0);
+                const int lpvar = lp_variables.size();
+                lp_variables.emplace_back(0, inf, 0);
 
                 // Outflow
                 flow[i].insert(lpvar, 1 - p_self_loop);
@@ -208,7 +230,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
                 }
             }
 
-            var_range.second = lp_vars.size();
+            var_range.second = lp_variables.size();
 
             tieing_equality.push_back(var_range);
         }
@@ -219,7 +241,7 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
 
             // Set objective coefficients for occ. measures of first projection
             for (int i = base_range.first; i < base_range.second; ++i) {
-                lp_vars[i].objective_coefficient = cost;
+                lp_variables[i].objective_coefficient = cost;
             }
 
             for (std::size_t j = 1; j < tieing_equality.size(); ++j) {
@@ -239,85 +261,6 @@ void ProjectionOccupationMeasureHeuristic::generate_hpom_lp(
     }
 }
 
-ProjectionOccupationMeasureHeuristic::ProjectionOccupationMeasureHeuristic(
-    const options::Options& opts)
-    : TaskDependentHeuristic(opts)
-    , lp_solver_(opts.get<lp::LPSolverType>("lpsolver"))
-    , is_maxprob_(
-          std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
-              g_cost_model) != nullptr)
-{
-    std::cout << "Initializing projection occupation measure heuristic ..."
-              << std::endl;
-    utils::Timer timer;
-
-    named_vector::NamedVector<lp::LPVariable> lp_vars;
-    named_vector::NamedVector<lp::LPConstraint> constraints;
-
-    generate_hpom_lp(
-        task_proxy,
-        lp_solver_,
-        lp_vars,
-        constraints,
-        offset_,
-        is_maxprob_);
-
-    lp_solver_.load_problem(lp::LinearProgram(
-        lp::LPObjectiveSense::MINIMIZE,
-        std::move(lp_vars),
-        std::move(constraints),
-        lp_solver_.get_infinity()));
-
-    std::cout << "Finished POM LP setup after " << timer << std::endl;
-}
-
-EvaluationResult
-ProjectionOccupationMeasureHeuristic::evaluate(const State& state) const
-{
-    const size_t num_variables = task_proxy.get_variables().size();
-
-    // Set to initial state in LP
-    for (size_t var = 0; var < num_variables; ++var) {
-        const std::size_t index = offset_[var] + state[var].get_value();
-        lp_solver_.set_constraint_upper_bound(index, 1.0);
-    }
-
-    lp_solver_.solve();
-
-    EvaluationResult result;
-
-    if (is_maxprob_) {
-        assert(lp_solver_.has_optimal_solution());
-
-        const double estimate = lp_solver_.get_objective_value();
-        result = EvaluationResult(estimate == 0_vt, estimate);
-    } else {
-        bool was_feasible = lp_solver_.has_optimal_solution();
-
-        const double estimate =
-            was_feasible ? lp_solver_.get_objective_value() : INFINITE_VALUE;
-        result = EvaluationResult(!was_feasible, estimate);
-    }
-
-    for (size_t var = 0; var < num_variables; ++var) {
-        const std::size_t index = offset_[var] + state[var].get_value();
-        lp_solver_.set_constraint_upper_bound(index, 0.0);
-    }
-
-    return result;
-}
-
-void ProjectionOccupationMeasureHeuristic::add_options_to_parser(
-    options::OptionParser& parser)
-{
-    TaskDependentHeuristic::add_options_to_parser(parser);
-    lp::add_lp_solver_option_to_parser(parser);
-}
-
-static Plugin<TaskEvaluator> _plugin(
-    "hpom",
-    options::parse<TaskEvaluator, ProjectionOccupationMeasureHeuristic>);
-
-} // namespace occupation_measure_heuristic
+} // namespace occupation_measures
 } // namespace heuristics
 } // namespace probfd

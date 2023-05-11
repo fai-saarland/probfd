@@ -1050,12 +1050,25 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME LP_BASED_HEURISTICS
+    HELP "Lp-based heuristic"
+    SOURCES
+        probfd/heuristics/lp_heuristic
+    DEPENDS MDP LP_SOLVER TASK_DEPENDENT_HEURISTIC
+)
+
+fast_downward_plugin(
     NAME OCCUPATION_MEASURE_HEURISTICS
     HELP "Occupation measure heuristics"
     SOURCES
-        probfd/heuristics/occupation_measure/occupation_measure_heuristic
-        probfd/heuristics/occupation_measure/regrouped_operator_counting_heuristic
-    DEPENDS MDP LP_SOLVER TASK_DEPENDENT_HEURISTIC
+        probfd/heuristics/occupation_measures/constraint_generator
+        probfd/heuristics/occupation_measures/hpom_constraints
+        probfd/heuristics/occupation_measures/hroc_constraints
+        probfd/heuristics/occupation_measures/higher_order_hpom_constraints
+        probfd/heuristics/occupation_measures/occupation_measure_heuristic
+        probfd/heuristics/occupation_measures/pho_constraints
+        probfd/heuristics/occupation_measures/plugins
+    DEPENDS MDP LP_BASED_HEURISTICS
 )
 
 fast_downward_plugin(
@@ -1148,6 +1161,33 @@ fast_downward_plugin(
     HELP "Probability-aware PDB heuristic"
     SOURCES
         probfd/heuristics/pdbs/probabilistic_pdb_heuristic
+    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+)
+
+fast_downward_plugin(
+    NAME SCP_PDB_HEURISTIC
+    HELP "Saturated Cost-Partitioning heuristic for probabilistic PDBs"
+    SOURCES
+        probfd/heuristics/cost_partitioning/scp_heuristic
+
+    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+)
+
+fast_downward_plugin(
+    NAME UCP_PDB_HEURISTIC
+    HELP "Uniform Cost-Partitioning heuristic for probabilistic PDBs"
+    SOURCES
+        probfd/heuristics/cost_partitioning/ucp_heuristic
+
+    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+)
+
+fast_downward_plugin(
+    NAME GZOCP_PDB_HEURISTIC
+    HELP "Greedy Zero-One Cost-Partitioning heuristic for probabilistic PDBs"
+    SOURCES
+        probfd/heuristics/cost_partitioning/gzocp_heuristic
+
     DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
 )
 
