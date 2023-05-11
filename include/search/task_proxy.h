@@ -42,6 +42,10 @@ class TaskProxy;
 class VariableProxy;
 class VariablesProxy;
 
+namespace probfd {
+class ProbabilisticOutcomeProxy;
+} // namespace probfd
+
 namespace causal_graph {
 class CausalGraph;
 }
@@ -1068,6 +1072,9 @@ public:
       unpack() to ensure the data exists.
     */
     State get_unregistered_successor(const OperatorProxy& op) const;
+
+    State get_unregistered_successor(
+        const probfd::ProbabilisticOutcomeProxy& outcome) const;
 };
 
 namespace utils {

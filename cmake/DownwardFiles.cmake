@@ -1191,6 +1191,28 @@ fast_downward_plugin(
     DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
 )
 
+fast_downward_plugin(
+    NAME PROBABILISTIC_CARTESIAN
+    HELP "Plugin containing the code for CEGAR heuristics"
+    SOURCES
+        probfd/heuristics/cartesian/abstract_state
+        probfd/heuristics/cartesian/abstraction
+        probfd/heuristics/cartesian/adaptive_flaw_generator
+        probfd/heuristics/cartesian/additive_cartesian_heuristic
+        probfd/heuristics/cartesian/astar_flaw_generator
+        probfd/heuristics/cartesian/cartesian_heuristic_function
+        probfd/heuristics/cartesian/cegar
+        probfd/heuristics/cartesian/cost_saturation
+        probfd/heuristics/cartesian/flaw_generator
+        probfd/heuristics/cartesian/ilao_flaw_generator
+        probfd/heuristics/cartesian/probabilistic_transition
+        probfd/heuristics/cartesian/probabilistic_transition_system
+        probfd/heuristics/cartesian/split_selector
+        probfd/heuristics/cartesian/subtask_generators
+        probfd/heuristics/cartesian/utils
+    DEPENDS CEGAR ADDITIVE_HEURISTIC EXTRA_PROBABILISTIC_TASKS
+)
+
 fast_downward_add_plugin_sources(PLANNER_SOURCES)
 
 # The order in PLANNER_SOURCES influences the order in which object

@@ -71,6 +71,16 @@ void verify_no_conditional_effects(const ProbabilisticTaskProxy& task)
     }
 }
 
+vector<value_t> get_operator_costs(const ProbabilisticTaskProxy& task_proxy)
+{
+    vector<value_t> costs;
+    ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    costs.reserve(operators.size());
+    for (ProbabilisticOperatorProxy op : operators)
+        costs.push_back(op.get_cost());
+    return costs;
+}
+
 int get_num_total_effects(const TaskProxy& task_proxy)
 {
     int num_effects = 0;

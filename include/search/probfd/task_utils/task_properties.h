@@ -3,6 +3,8 @@
 
 #include "probfd/task_proxy.h"
 
+#include "probfd/value_type.h"
+
 #include "task_utils/task_properties.h"
 
 #include "operator_cost.h"
@@ -54,11 +56,14 @@ extern bool has_conditional_effects(const ProbabilisticTaskProxy& task);
 */
 extern void verify_no_conditional_effects(const ProbabilisticTaskProxy& task);
 
+std::vector<value_t>
+get_operator_costs(const ProbabilisticTaskProxy& task_proxy);
+
 /*
   Return the total number of effects of the task, including the
   effects of axioms.
-  Runtime: O(m + n), where m is the number of axioms and n is the total number
-  of operator effects.
+  Runtime: O(m + n), where m is the number of axioms and n is the total
+  number of operator effects.
 */
 extern int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy);
 

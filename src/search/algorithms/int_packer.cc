@@ -99,7 +99,14 @@ void IntPacker::pack_bins(const vector<int> &ranges) {
         bits_to_vars[bits].push_back(var);
     }
 
-    int packed_vars = 0;
+    int packed_vars = bits_to_vars[0].size();
+
+    for (int var : bits_to_vars[0]) {
+        var_infos[var] = VariableInfo(ranges[var], 0, 0);
+    }
+
+    bits_to_vars[0].clear();
+
     while (packed_vars != num_vars)
         packed_vars += pack_one_bin(ranges, bits_to_vars);
 }

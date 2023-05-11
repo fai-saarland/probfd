@@ -1,31 +1,40 @@
-#include "cegar/utils.h"
+#include "probfd/heuristics/cartesian/utils.h"
+#include "probfd/task_utils/task_properties.h"
 
-#include "option_parser.h"
+#include "probfd/tasks/all_outcomes_determinization.h"
 
 #include "heuristics/additive_heuristic.h"
-#include "task_utils/task_properties.h"
+
 #include "utils/logging.h"
 #include "utils/memory.h"
+
+#include "option_parser.h"
 
 #include <algorithm>
 #include <cassert>
 #include <unordered_map>
 
 using namespace std;
+using namespace options;
 
-namespace cegar {
+namespace probfd {
+namespace heuristics {
+namespace cartesian {
+
 unique_ptr<additive_heuristic::AdditiveHeuristic>
-create_additive_heuristic(const shared_ptr<AbstractTask>& task)
+create_additive_heuristic(const shared_ptr<ProbabilisticTask>& task)
 {
     Options opts;
-    opts.set<shared_ptr<AbstractTask>>("transform", task);
+    opts.set<shared_ptr<AbstractTask>>(
+        "transform",
+        std::make_shared<tasks::AODDeterminizationTask>(task.get()));
     opts.set<bool>("cache_estimates", false);
     opts.set<utils::Verbosity>("verbosity", utils::Verbosity::SILENT);
     return std::make_unique<additive_heuristic::AdditiveHeuristic>(opts);
 }
 
 static bool operator_applicable(
-    const OperatorProxy& op,
+    const ProbabilisticOperatorProxy& op,
     const utils::HashSet<FactProxy>& facts)
 {
     for (FactProxy precondition : op.get_preconditions()) {
@@ -34,17 +43,19 @@ static bool operator_applicable(
     return true;
 }
 
-static bool
-operator_achieves_fact(const OperatorProxy& op, const FactProxy& fact)
+static bool outcome_can_achieve_fact(
+    const ProbabilisticOutcomeProxy& outcome,
+    const FactProxy& fact)
 {
-    for (EffectProxy effect : op.get_effects()) {
+    for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
         if (effect.get_fact() == fact) return true;
     }
     return false;
 }
 
-static utils::HashSet<FactProxy>
-compute_possibly_before_facts(const TaskProxy& task, const FactProxy& last_fact)
+static utils::HashSet<FactProxy> compute_possibly_before_facts(
+    const ProbabilisticTaskProxy& task,
+    const FactProxy& last_fact)
 {
     utils::HashSet<FactProxy> pb_facts;
 
@@ -64,12 +75,14 @@ compute_possibly_before_facts(const TaskProxy& task, const FactProxy& last_fact)
     */
     while (last_num_reached != pb_facts.size()) {
         last_num_reached = pb_facts.size();
-        for (OperatorProxy op : task.get_operators()) {
-            // Ignore operators that achieve last_fact.
-            if (operator_achieves_fact(op, last_fact)) continue;
-            // Add all facts that are achieved by an applicable operator.
-            if (operator_applicable(op, pb_facts)) {
-                for (EffectProxy effect : op.get_effects()) {
+        for (ProbabilisticOperatorProxy op : task.get_operators()) {
+            if (!operator_applicable(op, pb_facts)) continue;
+            for (const auto outcome : op.get_outcomes()) {
+                // Ignore outcomes that achieve last_fact.
+                if (outcome_can_achieve_fact(outcome, last_fact)) continue;
+                // Add all facts that are achieved by an applicable
+                // operator.
+                for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
                     pb_facts.insert(effect.get_fact());
                 }
             }
@@ -78,8 +91,9 @@ compute_possibly_before_facts(const TaskProxy& task, const FactProxy& last_fact)
     return pb_facts;
 }
 
-utils::HashSet<FactProxy>
-get_relaxed_possible_before(const TaskProxy& task, const FactProxy& fact)
+utils::HashSet<FactProxy> get_relaxed_possible_before(
+    const ProbabilisticTaskProxy& task,
+    const FactProxy& fact)
 {
     utils::HashSet<FactProxy> reachable_facts =
         compute_possibly_before_facts(task, fact);
@@ -87,11 +101,6 @@ get_relaxed_possible_before(const TaskProxy& task, const FactProxy& fact)
     return reachable_facts;
 }
 
-vector<int> get_domain_sizes(const TaskBaseProxy& task)
-{
-    vector<int> domain_sizes;
-    for (VariableProxy var : task.get_variables())
-        domain_sizes.push_back(var.get_domain_size());
-    return domain_sizes;
-}
-} // namespace cegar
+} // namespace cartesian
+} // namespace heuristics
+} // namespace probfd
