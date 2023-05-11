@@ -22,7 +22,7 @@ public:
     ClearGuard(T&... containers)
         : containers_(containers...)
     {
-        assert(containers.empty() && ...);
+        assert((containers.empty() && ...));
     }
 
     ~ClearGuard()
