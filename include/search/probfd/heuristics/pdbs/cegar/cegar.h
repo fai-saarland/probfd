@@ -1,11 +1,12 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 
-#include "probfd/heuristics/pdbs/abstract_policy.h"
 #include "probfd/heuristics/pdbs/pattern_generator.h"
 #include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_policy.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
+
 
 #include "probfd/task_proxy.h"
 
@@ -54,10 +55,10 @@ struct Flaw {
  */
 class PDBInfo {
     std::unique_ptr<ProjectionStateSpace> state_space;
-    ProjectionCostFunction cost_function;
+    InducedProjectionCostFunction cost_function;
     StateRank initial_state;
     std::unique_ptr<ProbabilisticPatternDatabase> pdb;
-    std::unique_ptr<AbstractPolicy> policy;
+    std::unique_ptr<ProjectionPolicy> policy;
     bool solved = false;
 
 public:
@@ -93,7 +94,7 @@ public:
 
     const ProbabilisticPatternDatabase& get_pdb() const;
 
-    const AbstractPolicy& get_policy() const;
+    const ProjectionPolicy& get_policy() const;
 
     value_t get_policy_cost(const State& state) const;
 

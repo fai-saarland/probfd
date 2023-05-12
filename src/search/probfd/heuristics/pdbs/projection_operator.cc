@@ -1,22 +1,22 @@
-#include "probfd/heuristics/pdbs/abstract_operator.h"
+#include "probfd/heuristics/pdbs/projection_operator.h"
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-AbstractOperator::AbstractOperator(OperatorID id)
+ProjectionOperator::ProjectionOperator(OperatorID id)
     : operator_id(id)
 {
 }
 
-AbstractOperatorToString::AbstractOperatorToString(
+ProjectionOperatorToString::ProjectionOperatorToString(
     ProbabilisticTaskProxy task_proxy)
     : task_proxy(task_proxy)
 {
 }
 
 std::string
-AbstractOperatorToString::operator()(const AbstractOperator* op) const
+ProjectionOperatorToString::operator()(const ProjectionOperator* op) const
 {
     return task_proxy.get_operators()[op->operator_id].get_name();
 }

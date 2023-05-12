@@ -1073,10 +1073,10 @@ fast_downward_plugin(
     NAME PROBABILISTIC_PDBS
     HELP "Probability-aware PDBs base classes"
     SOURCES
-        probfd/heuristics/pdbs/abstract_operator
         probfd/heuristics/pdbs/engine_interfaces
         probfd/heuristics/pdbs/match_tree
         probfd/heuristics/pdbs/probabilistic_pattern_database
+        probfd/heuristics/pdbs/projection_operator
         probfd/heuristics/pdbs/projection_state_space
         probfd/heuristics/pdbs/state_rank
         probfd/heuristics/pdbs/state_ranking_function
@@ -1104,7 +1104,7 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/trivial_finder
         probfd/heuristics/pdbs/subcollections
 
-        probfd/heuristics/pdbs/abstract_policy
+        probfd/heuristics/pdbs/projection_policy
         probfd/heuristics/pdbs/utils
     DEPENDS PROBABILISTIC_PDBS CAUSAL_GRAPH MAX_CLIQUES
     DEPENDENCY_ONLY

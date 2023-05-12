@@ -111,7 +111,7 @@ SCPHeuristic::SCPHeuristic(
             rankingf,
             task_costs,
             false);
-        ProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
+        InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
         const StateRank initial_state_rank = rankingf.rank(initial_state);
 
         auto& pdb = pdbs.emplace_back(

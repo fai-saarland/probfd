@@ -59,7 +59,7 @@ public:
 
 void ProbabilisticPatternDatabase::compute_value_table(
     ProjectionStateSpace& state_space,
-    AbstractCostFunction& cost_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic,
     double max_time)
@@ -69,7 +69,7 @@ void ProbabilisticPatternDatabase::compute_value_table(
 
     utils::CountdownTimer timer(max_time);
 
-    QualitativeReachabilityAnalysis<StateRank, const AbstractOperator*>
+    QualitativeReachabilityAnalysis<StateRank, const ProjectionOperator*>
         analysis(&state_space, &cost_function, true);
 
     std::vector<StateID> pruned_states;
@@ -92,7 +92,7 @@ void ProbabilisticPatternDatabase::compute_value_table(
 
     WrapperHeuristic h(pruned_states, heuristic, dead_end_cost);
 
-    TATopologicalValueIteration<StateRank, const AbstractOperator*> vi(
+    TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi(
         &state_space,
         &cost_function,
         &h);
@@ -152,7 +152,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         task_cost_function,
         operator_pruning,
         timer.get_remaining_time());
-    ProjectionCostFunction cost_function(
+    InducedProjectionCostFunction cost_function(
         task_proxy,
         ranking_function_,
         &task_cost_function);
@@ -167,7 +167,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
-    AbstractCostFunction& cost_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic,
     double max_time)
@@ -204,7 +204,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
-    AbstractCostFunction& cost_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const ::pdbs::PatternDatabase& pdb,
     double max_time)
@@ -239,7 +239,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         task_cost_function,
         operator_pruning,
         timer.get_remaining_time());
-    ProjectionCostFunction cost_function(
+    InducedProjectionCostFunction cost_function(
         task_proxy,
         ranking_function_,
         &task_cost_function);
@@ -254,7 +254,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
-    AbstractCostFunction& cost_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const ProbabilisticPatternDatabase& pdb,
     int add_var,
@@ -292,7 +292,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         task_cost_function,
         operator_pruning,
         timer.get_remaining_time());
-    ProjectionCostFunction cost_function(
+    InducedProjectionCostFunction cost_function(
         task_proxy,
         ranking_function_,
         &task_cost_function);
@@ -307,7 +307,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
-    AbstractCostFunction& cost_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const ProbabilisticPatternDatabase& left,
     const ProbabilisticPatternDatabase& right,
@@ -370,24 +370,25 @@ StateRank ProbabilisticPatternDatabase::get_abstract_state(const State& s) const
     return ranking_function_.rank(s);
 }
 
-std::unique_ptr<AbstractPolicy>
-ProbabilisticPatternDatabase::compute_optimal_abstract_policy(
+std::unique_ptr<ProjectionPolicy>
+ProbabilisticPatternDatabase::compute_optimal_projection_policy(
     ProjectionStateSpace& state_space,
-    AbstractCostFunction& cost_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
     using PredecessorList =
-        std::vector<std::pair<StateRank, const AbstractOperator*>>;
+        std::vector<std::pair<StateRank, const ProjectionOperator*>>;
 
     assert(!is_dead_end(initial_state));
 
-    AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
+    ProjectionPolicy* policy =
+        new ProjectionPolicy(ranking_function_.num_states());
 
     // return empty policy indicating unsolvable
     if (cost_function.is_goal(initial_state)) {
-        return std::unique_ptr<AbstractPolicy>(policy);
+        return std::unique_ptr<ProjectionPolicy>(policy);
     }
 
     std::map<StateRank, PredecessorList> predecessors;
@@ -412,23 +413,25 @@ ProbabilisticPatternDatabase::compute_optimal_abstract_policy(
         const value_t value = value_table[s.id];
 
         // Generate operators...
-        std::vector<const AbstractOperator*> aops;
+        std::vector<const ProjectionOperator*> aops;
         state_space.generate_applicable_actions(s.id, aops);
 
         // Select the greedy operators and add their successors
-        for (const AbstractOperator* op : aops) {
+        for (const ProjectionOperator* op : aops) {
             value_t op_value = cost_function.get_action_cost(op);
 
             std::vector<StateRank> successors;
 
-            for (const auto& [eff, prob] : op->outcomes) {
-                StateRank t = s + eff;
+            Distribution<StateID> successor_dist;
+            state_space.generate_action_transitions(s.id, op, successor_dist);
+
+            for (const auto& [t, prob] : successor_dist) {
                 op_value += prob * value_table[t.id];
-                successors.push_back(t);
+                successors.push_back(StateRank(t));
             }
 
             if (is_approx_equal(value, op_value)) {
-                for (const StateRank& succ : successors) {
+                for (const StateRank succ : successors) {
                     if (cost_function.is_goal(succ)) {
                         goals.push_back(succ);
                     } else if (closed.insert(succ).second) {
@@ -465,13 +468,13 @@ ProbabilisticPatternDatabase::compute_optimal_abstract_policy(
                 open.push_back(pstate);
 
                 // Collect all equivalent greedy operators
-                std::vector<const AbstractOperator*> aops;
+                std::vector<const ProjectionOperator*> aops;
                 state_space.generate_applicable_actions(pstate.id, aops);
 
-                std::vector<const AbstractOperator*> equivalent_operators;
+                std::vector<const ProjectionOperator*> equivalent_operators;
 
-                for (const AbstractOperator* op : aops) {
-                    if (op->outcomes == sel_op->outcomes) {
+                for (const ProjectionOperator* op : aops) {
+                    if (are_equivalent(*op, *sel_op)) {
                         equivalent_operators.push_back(op);
                     }
                 }
@@ -490,21 +493,22 @@ ProbabilisticPatternDatabase::compute_optimal_abstract_policy(
         }
     }
 
-    return std::unique_ptr<AbstractPolicy>(policy);
+    return std::unique_ptr<ProjectionPolicy>(policy);
 }
 
-std::unique_ptr<AbstractPolicy>
-ProbabilisticPatternDatabase::compute_greedy_abstract_policy(
+std::unique_ptr<ProjectionPolicy>
+ProbabilisticPatternDatabase::compute_greedy_projection_policy(
     ProjectionStateSpace& state_space,
-    AbstractCostFunction& cost_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard) const
 {
-    AbstractPolicy* policy = new AbstractPolicy(ranking_function_.num_states());
+    ProjectionPolicy* policy =
+        new ProjectionPolicy(ranking_function_.num_states());
 
     if (cost_function.is_goal(initial_state)) {
-        return std::unique_ptr<AbstractPolicy>(policy);
+        return std::unique_ptr<ProjectionPolicy>(policy);
     }
 
     std::deque<StateRank> open;
@@ -525,7 +529,7 @@ ProbabilisticPatternDatabase::compute_greedy_abstract_policy(
         const value_t value = value_table[s.id];
 
         // Generate operators...
-        std::vector<const AbstractOperator*> aops;
+        std::vector<const ProjectionOperator*> aops;
         state_space.generate_applicable_actions(s.id, aops);
 
         if (aops.empty()) {
@@ -535,19 +539,21 @@ ProbabilisticPatternDatabase::compute_greedy_abstract_policy(
         // Look at the (greedy) operators in random order.
         rng->shuffle(aops);
 
-        const AbstractOperator* greedy_operator = nullptr;
+        const ProjectionOperator* greedy_operator = nullptr;
         std::vector<StateRank> greedy_successors;
 
         // Select first greedy operator
-        for (const AbstractOperator* op : aops) {
+        for (const ProjectionOperator* op : aops) {
             value_t op_value = cost_function.get_action_cost(op);
 
             std::vector<StateRank> successors;
 
-            for (const auto& [eff, prob] : op->outcomes) {
-                StateRank t = s + eff;
+            Distribution<StateID> successor_dist;
+            state_space.generate_action_transitions(s.id, op, successor_dist);
+
+            for (const auto& [t, prob] : successor_dist) {
                 op_value += prob * value_table[t.id];
-                successors.push_back(t);
+                successors.push_back(StateRank(t));
             }
 
             if (is_approx_equal(value, op_value)) {
@@ -568,10 +574,10 @@ ProbabilisticPatternDatabase::compute_greedy_abstract_policy(
         }
 
         // Collect all equivalent greedy operators
-        std::vector<const AbstractOperator*> equivalent_operators;
+        std::vector<const ProjectionOperator*> equivalent_operators;
 
-        for (const AbstractOperator* op : aops) {
-            if (op->outcomes == greedy_operator->outcomes) {
+        for (const ProjectionOperator* op : aops) {
+            if (are_equivalent(*op, *greedy_operator)) {
                 equivalent_operators.push_back(op);
             }
         }
@@ -589,7 +595,7 @@ ProbabilisticPatternDatabase::compute_greedy_abstract_policy(
         assert(!(*policy)[s].empty());
     }
 
-    return std::unique_ptr<AbstractPolicy>(policy);
+    return std::unique_ptr<ProjectionPolicy>(policy);
 }
 
 void ProbabilisticPatternDatabase::compute_saturated_costs(
@@ -607,15 +613,19 @@ void ProbabilisticPatternDatabase::compute_saturated_costs(
         }
 
         // Generate operators...
-        std::vector<const AbstractOperator*> aops;
+        std::vector<const ProjectionOperator*> aops;
         state_space.generate_applicable_actions(s.id, aops);
 
-        for (const AbstractOperator* op : aops) {
+        for (const ProjectionOperator* op : aops) {
             int oid = op->operator_id.get_index();
 
+            Distribution<StateID> successor_dist;
+            state_space.generate_action_transitions(s.id, op, successor_dist);
+
             value_t h_succ = 0;
-            for (const auto& [eff, prob] : op->outcomes) {
-                const auto succ_val = value_table[s.id + eff.id];
+
+            for (const auto& [t, prob] : successor_dist) {
+                const auto succ_val = value_table[t];
 
                 if (succ_val == INFINITE_VALUE) {
                     // No need to consider dead transitions.
@@ -636,14 +646,14 @@ void ProbabilisticPatternDatabase::compute_saturated_costs(
 void ProbabilisticPatternDatabase::dump_graphviz(
     const ProbabilisticTaskProxy& task_proxy,
     ProjectionStateSpace& state_space,
-    AbstractCostFunction& cost_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     std::ostream& out,
     bool transition_labels) const
 {
     using namespace engine_interfaces;
 
-    AbstractOperatorToString op_names(task_proxy);
+    ProjectionOperatorToString op_names(task_proxy);
 
     auto sts = [this](StateRank x) {
         std::ostringstream out;
@@ -665,11 +675,11 @@ void ProbabilisticPatternDatabase::dump_graphviz(
         return out.str();
     };
 
-    auto ats = [=](const AbstractOperator* const& op) {
+    auto ats = [=](const ProjectionOperator* const& op) {
         return transition_labels ? op_names(op) : "";
     };
 
-    graphviz::dump_state_space_dot_graph<StateRank, const AbstractOperator*>(
+    graphviz::dump_state_space_dot_graph<StateRank, const ProjectionOperator*>(
         out,
         initial_state,
         &state_space,
@@ -683,7 +693,7 @@ void ProbabilisticPatternDatabase::dump_graphviz(
 #if !defined(NDEBUG) && defined(USE_LP)
 void ProbabilisticPatternDatabase::verify(
     ProjectionStateSpace& state_space,
-    AbstractCostFunction& cost_function,
+    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const std::vector<StateID>& pruned_states)
 {
@@ -736,11 +746,11 @@ void ProbabilisticPatternDatabase::verify(
         }
 
         // Generate operators...
-        std::vector<const AbstractOperator*> aops;
+        std::vector<const ProjectionOperator*> aops;
         state_space.generate_applicable_actions(s.id, aops);
 
         // Push successors
-        for (const AbstractOperator* op : aops) {
+        for (const ProjectionOperator* op : aops) {
             const value_t cost = cost_function.get_action_cost(op);
 
             Distribution<StateID> successor_dist;

@@ -129,7 +129,7 @@ GZOCPHeuristic::GZOCPHeuristic(
             rankingf,
             task_costs,
             false);
-        ProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
+        InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
         StateRank init_rank = rankingf.rank(initial_state);
         auto& pdb = pdbs.emplace_back(
             state_space,

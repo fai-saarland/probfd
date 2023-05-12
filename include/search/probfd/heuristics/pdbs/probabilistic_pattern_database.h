@@ -1,13 +1,14 @@
 #ifndef PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PATTERN_DATABASE_H
 #define PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PATTERN_DATABASE_H
 
-#include "probfd/heuristics/pdbs/abstract_operator.h"
-#include "probfd/heuristics/pdbs/abstract_policy.h"
 #include "probfd/heuristics/pdbs/engine_interfaces.h"
 #include "probfd/heuristics/pdbs/match_tree.h"
+#include "probfd/heuristics/pdbs/projection_operator.h"
+#include "probfd/heuristics/pdbs/projection_policy.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
+
 
 #include "probfd/heuristics/constant_evaluator.h"
 
@@ -59,7 +60,7 @@ class ProbabilisticPatternDatabase {
 
     void compute_value_table(
         ProjectionStateSpace& state_space,
-        AbstractCostFunction& cost_function,
+        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const StateRankEvaluator& heuristic,
         double max_time);
@@ -112,7 +113,7 @@ public:
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        AbstractCostFunction& projection_cost_function,
+        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
         double max_time = std::numeric_limits<double>::infinity());
@@ -163,7 +164,7 @@ public:
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& projection,
         StateRankingFunction ranking_function,
-        AbstractCostFunction& projection_cost_function,
+        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const ::pdbs::PatternDatabase& pdb,
         double max_time = std::numeric_limits<double>::infinity());
@@ -219,7 +220,7 @@ public:
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        AbstractCostFunction& projection_cost_function,
+        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const ProbabilisticPatternDatabase& pdb,
         int add_var,
@@ -277,7 +278,7 @@ public:
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        AbstractCostFunction& projection_cost_function,
+        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const ProbabilisticPatternDatabase& left,
         const ProbabilisticPatternDatabase& right,
@@ -322,10 +323,10 @@ public:
      * wildcard option is specified, a wildcard policy will be returned, i.e., a
      * policy that assigns multiple equivalent operators to a abstract state.
      */
-    [[nodiscard]] std::unique_ptr<AbstractPolicy>
-    compute_optimal_abstract_policy(
+    [[nodiscard]] std::unique_ptr<ProjectionPolicy>
+    compute_optimal_projection_policy(
         ProjectionStateSpace& state_space,
-        AbstractCostFunction& cost_function,
+        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard) const;
@@ -338,10 +339,10 @@ public:
      * wildcard option is specified, a wildcard policy will be returned, i.e., a
      * policy that assigns multiple equivalent operators to a abstract state.
      */
-    [[nodiscard]] std::unique_ptr<AbstractPolicy>
-    compute_greedy_abstract_policy(
+    [[nodiscard]] std::unique_ptr<ProjectionPolicy>
+    compute_greedy_projection_policy(
         ProjectionStateSpace& state_space,
-        AbstractCostFunction& cost_function,
+        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard) const;
@@ -357,7 +358,7 @@ public:
     void dump_graphviz(
         const ProbabilisticTaskProxy& task_proxy,
         ProjectionStateSpace& state_space,
-        AbstractCostFunction& cost_function,
+        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         std::ostream& out,
         bool transition_labels) const;
@@ -366,7 +367,7 @@ public:
 private:
     void verify(
         ProjectionStateSpace& state_space,
-        AbstractCostFunction& cost_function,
+        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::vector<StateID>& proper_states);
 #endif

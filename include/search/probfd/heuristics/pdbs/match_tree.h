@@ -12,7 +12,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-struct AbstractOperator;
+class ProjectionOperator;
 struct StateRank;
 class StateRankingFunction;
 
@@ -24,7 +24,7 @@ class MatchTree {
 
     Node* root = nullptr;
 
-    std::vector<AbstractOperator> abstract_operators;
+    std::vector<ProjectionOperator> projection_operators;
 
     void insert_recursive(
         const VariablesProxy& task_variables,
@@ -37,7 +37,7 @@ class MatchTree {
     void get_applicable_operators_recursive(
         Node* node,
         StateRank abstract_state,
-        std::vector<const AbstractOperator*>& operators) const;
+        std::vector<const ProjectionOperator*>& operators) const;
 
     void dump_recursive(Node* node) const;
 
@@ -52,7 +52,7 @@ public:
     void insert(
         const VariablesProxy& task_variables,
         const StateRankingFunction& ranking_function,
-        AbstractOperator op,
+        ProjectionOperator op,
         const std::vector<FactPair>& progression_preconditions);
 
     /*
@@ -62,11 +62,11 @@ public:
     */
     void get_applicable_operators(
         StateRank abstract_state,
-        std::vector<const AbstractOperator*>& operators) const;
+        std::vector<const ProjectionOperator*>& operators) const;
 
-    ActionID get_operator_index(const AbstractOperator& op) const;
+    ActionID get_operator_index(const ProjectionOperator& op) const;
 
-    const AbstractOperator& get_index_operator(int index) const;
+    const ProjectionOperator& get_index_operator(int index) const;
 
     void dump() const;
 };

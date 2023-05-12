@@ -16,17 +16,16 @@ namespace {
 struct ProgressionOperatorFootprint {
     value_t cost;
     long long int precondition_hash;
-    std::vector<ItemProbabilityPair<StateRank>> successors;
+    Distribution<StateRank> successors;
 
     ProgressionOperatorFootprint(
         value_t cost,
         long long int precondition_hash,
-        const AbstractOperator& op)
+        const Distribution<StateRank>& successors)
         : cost(cost)
         , precondition_hash(precondition_hash)
-        , successors(op.outcomes.begin(), op.outcomes.end())
+        , successors(successors)
     {
-        std::ranges::sort(successors);
     }
 
     friend auto operator<=>(
@@ -156,7 +155,7 @@ ProjectionStateSpace::ProjectionStateSpace(
             timer.throw_if_expired();
 
             // Generate the progression operator
-            AbstractOperator new_op(operator_id);
+            ProjectionOperator new_op(operator_id);
 
             for (const auto& [info, prob] : outcomes) {
                 const auto& [base_effect, missing_pres] = info;
@@ -190,7 +189,8 @@ ProjectionStateSpace::ProjectionStateSpace(
                 const value_t cost =
                     task_cost_function.get_action_cost(operator_id);
 
-                if (!duplicate_set.emplace(cost, pre_rank, new_op).second) {
+                if (!duplicate_set.emplace(cost, pre_rank, new_op.outcomes)
+                         .second) {
                     continue;
                 }
             }
@@ -216,12 +216,12 @@ StateRank ProjectionStateSpace::get_state(StateID id)
 }
 
 ActionID
-ProjectionStateSpace::get_action_id(StateID, const AbstractOperator* op)
+ProjectionStateSpace::get_action_id(StateID, const ProjectionOperator* op)
 {
     return match_tree_.get_operator_index(*op);
 }
 
-const AbstractOperator*
+const ProjectionOperator*
 ProjectionStateSpace::get_action(StateID, ActionID action_id)
 {
     return &match_tree_.get_index_operator(action_id.id);
@@ -229,14 +229,14 @@ ProjectionStateSpace::get_action(StateID, ActionID action_id)
 
 void ProjectionStateSpace::generate_applicable_actions(
     StateID state,
-    std::vector<const AbstractOperator*>& aops)
+    std::vector<const ProjectionOperator*>& aops)
 {
     match_tree_.get_applicable_operators(StateRank(state.id), aops);
 }
 
 void ProjectionStateSpace::generate_action_transitions(
     StateID state,
-    const AbstractOperator* op,
+    const ProjectionOperator* op,
     Distribution<StateID>& result)
 {
     for (const auto& [item, probability] : op->outcomes) {
@@ -246,12 +246,12 @@ void ProjectionStateSpace::generate_action_transitions(
 
 void ProjectionStateSpace::generate_all_transitions(
     StateID state,
-    std::vector<const AbstractOperator*>& aops,
+    std::vector<const ProjectionOperator*>& aops,
     std::vector<Distribution<StateID>>& result)
 {
     generate_applicable_actions(state, aops);
     result.reserve(aops.size());
-    for (const AbstractOperator* op : aops) {
+    for (const ProjectionOperator* op : aops) {
         generate_action_transitions(state, op, result.emplace_back());
     }
 }

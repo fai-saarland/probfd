@@ -4,7 +4,7 @@
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
 
-#include "probfd/heuristics/pdbs/abstract_operator.h"
+#include "probfd/heuristics/pdbs/projection_operator.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include <vector>
@@ -18,10 +18,10 @@ namespace heuristics {
 namespace pdbs {
 
 using StateRankEvaluator = engine_interfaces::Evaluator<StateRank>;
-using AbstractCostFunction =
-    engine_interfaces::SimpleCostFunction<StateRank, const AbstractOperator*>;
+using ProjectionCostFunction =
+    engine_interfaces::SimpleCostFunction<StateRank, const ProjectionOperator*>;
 
-struct AbstractOperator;
+class ProjectionOperator;
 class StateRankingFunction;
 class ProbabilisticPatternDatabase;
 
@@ -78,19 +78,19 @@ protected:
     EvaluationResult evaluate(StateRank state) const override;
 };
 
-class ProjectionCostFunction : public AbstractCostFunction {
+class InducedProjectionCostFunction : public ProjectionCostFunction {
     TaskCostFunction* parent_cost_function;
     std::vector<bool> goal_state_flags_;
 
 public:
-    ProjectionCostFunction(
+    InducedProjectionCostFunction(
         const ProbabilisticTaskProxy& task_proxy,
         const StateRankingFunction& ranking_function,
         TaskCostFunction* parent_cost_function);
 
     bool is_goal(StateRank state) const override;
 
-    value_t get_action_cost(const AbstractOperator* op) override;
+    value_t get_action_cost(const ProjectionOperator* op) override;
 };
 
 } // namespace pdbs

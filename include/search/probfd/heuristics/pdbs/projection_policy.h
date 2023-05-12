@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_ABSTRACT_POLICY_H
 #define PROBFD_HEURISTICS_PDBS_ABSTRACT_POLICY_H
 
-#include "probfd/heuristics/pdbs/abstract_operator.h"
+#include "probfd/heuristics/pdbs/projection_operator.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 
@@ -12,17 +12,17 @@ namespace heuristics {
 
 namespace pdbs {
 
-struct AbstractOperator;
+class ProjectionOperator;
 
-class AbstractPolicy {
+class ProjectionPolicy {
 public:
-    using OperatorList = std::vector<const AbstractOperator*>;
+    using OperatorList = std::vector<const ProjectionOperator*>;
 
 private:
     std::vector<OperatorList> optimal_operators;
 
 public:
-    AbstractPolicy(std::size_t num_abstract_states);
+    ProjectionPolicy(std::size_t num_abstract_states);
 
     OperatorList& operator[](StateRank state);
     const OperatorList& operator[](StateRank state) const;

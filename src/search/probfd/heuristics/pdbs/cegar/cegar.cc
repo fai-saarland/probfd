@@ -49,7 +49,7 @@ PDBInfo::PDBInfo(
           initial_state,
           heuristics::ConstantEvaluator<StateRank>(0_vt),
           timer.get_remaining_time()))
-    , policy(pdb->compute_optimal_abstract_policy(
+    , policy(pdb->compute_optimal_projection_policy(
           *state_space,
           cost_function,
           initial_state,
@@ -83,7 +83,7 @@ PDBInfo::PDBInfo(
           previous,
           add_var,
           timer.get_remaining_time()))
-    , policy(pdb->compute_optimal_abstract_policy(
+    , policy(pdb->compute_optimal_projection_policy(
           *state_space,
           cost_function,
           initial_state,
@@ -117,7 +117,7 @@ PDBInfo::PDBInfo(
           left,
           right,
           timer.get_remaining_time()))
-    , policy(pdb->compute_optimal_abstract_policy(
+    , policy(pdb->compute_optimal_projection_policy(
           *state_space,
           cost_function,
           initial_state,
@@ -137,7 +137,7 @@ const ProbabilisticPatternDatabase& PDBInfo::get_pdb() const
     return *pdb;
 }
 
-const AbstractPolicy& PDBInfo::get_policy() const
+const ProjectionPolicy& PDBInfo::get_policy() const
 {
     return *policy;
 }

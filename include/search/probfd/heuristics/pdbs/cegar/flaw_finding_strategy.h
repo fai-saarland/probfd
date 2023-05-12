@@ -13,7 +13,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class AbstractPolicy;
+class ProjectionPolicy;
 
 namespace cegar {
 

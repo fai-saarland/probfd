@@ -106,11 +106,11 @@ EvaluationResult MergeEvaluator::evaluate(StateRank state) const
     return {false, std::max(leval.get_estimate(), reval.get_estimate())};
 }
 
-ProjectionCostFunction::ProjectionCostFunction(
+InducedProjectionCostFunction::InducedProjectionCostFunction(
     const ProbabilisticTaskProxy& task_proxy,
     const StateRankingFunction& ranking_function,
     TaskCostFunction* parent_cost_function)
-    : AbstractCostFunction(
+    : ProjectionCostFunction(
           parent_cost_function->get_goal_termination_cost(),
           parent_cost_function->get_non_goal_termination_cost())
     , parent_cost_function(parent_cost_function)
@@ -158,12 +158,13 @@ ProjectionCostFunction::ProjectionCostFunction(
     }
 }
 
-bool ProjectionCostFunction::is_goal(StateRank state) const
+bool InducedProjectionCostFunction::is_goal(StateRank state) const
 {
     return goal_state_flags_[state.id];
 }
 
-value_t ProjectionCostFunction::get_action_cost(const AbstractOperator* op)
+value_t
+InducedProjectionCostFunction::get_action_cost(const ProjectionOperator* op)
 {
     return parent_cost_function->get_action_cost(op->operator_id);
 }

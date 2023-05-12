@@ -57,7 +57,7 @@ bool SamplingFlawFinder::apply_policy(
     stk.push_back(registry.get_initial_state());
 
     const PDBInfo& solution = *base.pdb_infos[solution_index];
-    const AbstractPolicy& policy = solution.get_policy();
+    const ProjectionPolicy& policy = solution.get_policy();
     const ProbabilisticPatternDatabase& pdb = solution.get_pdb();
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
@@ -99,7 +99,7 @@ bool SamplingFlawFinder::apply_policy(
             std::vector<Flaw> local_flaws;
 
             // Precondition flaw check
-            for (const AbstractOperator* abs_op : abs_operators) {
+            for (const ProjectionOperator* abs_op : abs_operators) {
                 const auto op = operators[abs_op->operator_id];
 
                 if (base.collect_flaws(

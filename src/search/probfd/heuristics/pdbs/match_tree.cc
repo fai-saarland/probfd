@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/match_tree.h"
 
-#include "probfd/heuristics/pdbs/abstract_operator.h"
+#include "probfd/heuristics/pdbs/projection_operator.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 
 #include <cassert>
@@ -70,7 +70,7 @@ bool MatchTree::Node::is_leaf_node() const
 
 MatchTree::MatchTree(size_t hint_num_operators)
 {
-    abstract_operators.reserve(hint_num_operators);
+    projection_operators.reserve(hint_num_operators);
 }
 
 MatchTree::~MatchTree()
@@ -147,23 +147,23 @@ void MatchTree::insert_recursive(
 void MatchTree::insert(
     const VariablesProxy& task_variables,
     const StateRankingFunction& ranking_function,
-    AbstractOperator op,
+    ProjectionOperator op,
     const vector<FactPair>& progression_preconditions)
 {
     insert_recursive(
         task_variables,
         ranking_function,
-        abstract_operators.size(),
+        projection_operators.size(),
         progression_preconditions,
         0,
         &root);
-    abstract_operators.push_back(std::move(op));
+    projection_operators.push_back(std::move(op));
 }
 
 void MatchTree::get_applicable_operators_recursive(
     Node* node,
     const StateRank abstract_state,
-    vector<const AbstractOperator*>& operator_ids) const
+    vector<const ProjectionOperator*>& operator_ids) const
 {
     /*
       Note: different from the code that builds the match tree, we do
@@ -173,7 +173,7 @@ void MatchTree::get_applicable_operators_recursive(
      */
 
     for (size_t op_index : node->applicable_operator_ids) {
-        operator_ids.push_back(abstract_operators.data() + op_index);
+        operator_ids.push_back(projection_operators.data() + op_index);
     }
 
     if (node->is_leaf_node()) return;
@@ -199,20 +199,20 @@ void MatchTree::get_applicable_operators_recursive(
 
 void MatchTree::get_applicable_operators(
     StateRank abstract_state,
-    vector<const AbstractOperator*>& operator_ids) const
+    vector<const ProjectionOperator*>& operator_ids) const
 {
     if (root)
         get_applicable_operators_recursive(root, abstract_state, operator_ids);
 }
 
-ActionID MatchTree::get_operator_index(const AbstractOperator& op) const
+ActionID MatchTree::get_operator_index(const ProjectionOperator& op) const
 {
-    return &op - abstract_operators.data();
+    return &op - projection_operators.data();
 }
 
-const AbstractOperator& MatchTree::get_index_operator(int index) const
+const ProjectionOperator& MatchTree::get_index_operator(int index) const
 {
-    return abstract_operators[index];
+    return projection_operators[index];
 }
 
 void MatchTree::dump_recursive(Node* node) const
@@ -227,7 +227,7 @@ void MatchTree::dump_recursive(Node* node) const
     std::cout << "Number of applicable operators at this node: "
               << node->applicable_operator_ids.size() << endl;
     for (const size_t op_index : node->applicable_operator_ids) {
-        std::cout << "AbstractOperator #" << op_index << endl;
+        std::cout << "ProjectionOperator #" << op_index << endl;
     }
     if (node->is_leaf_node()) {
         std::cout << "leaf node." << endl;

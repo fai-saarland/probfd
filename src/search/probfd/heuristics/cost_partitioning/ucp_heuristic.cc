@@ -76,7 +76,7 @@ UCPHeuristic::UCPHeuristic(
             rankingf,
             task_costs,
             true);
-        ProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
+        InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
         StateRank init_rank = rankingf.rank(initial_state);
         pdbs.emplace_back(state_space, std::move(rankingf), costs, init_rank);
     }
