@@ -188,6 +188,8 @@ public:
      * during construction of the projection.
      * @param max_time The time limit for contruction. If exceeded, a
      * utils::TimeoutException will be thrown.
+     *
+     * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilisticPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
@@ -216,6 +218,8 @@ public:
      * extended.
      * @param max_time The time limit for contruction. If exceeded, a
      * utils::TimeoutException will be thrown.
+     *
+     * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
@@ -247,6 +251,8 @@ public:
      * during construction of the projection.
      * @param max_time The time limit for contruction. If exceeded, a
      * utils::TimeoutException will be thrown.
+     *
+     * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilisticPatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
@@ -274,6 +280,8 @@ public:
      * @param right A previous pattern database for the given task.
      * @param max_time The time limit for contruction. If exceeded, a
      * utils::TimeoutException will be thrown.
+     *
+     * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilisticPatternDatabase(
         ProjectionStateSpace& state_space,
