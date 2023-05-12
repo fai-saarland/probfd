@@ -4,7 +4,6 @@
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
 
-#include "probfd/heuristics/pdbs/projection_operator.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include <vector>
@@ -14,16 +13,18 @@ class PatternDatabase;
 }
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace heuristics {
 namespace pdbs {
-
-using StateRankEvaluator = engine_interfaces::Evaluator<StateRank>;
-using ProjectionCostFunction =
-    engine_interfaces::SimpleCostFunction<StateRank, const ProjectionOperator*>;
 
 class ProjectionOperator;
 class StateRankingFunction;
 class ProbabilisticPatternDatabase;
+
+using StateRankEvaluator = engine_interfaces::Evaluator<StateRank>;
+using ProjectionCostFunction =
+    engine_interfaces::SimpleCostFunction<StateRank, const ProjectionOperator*>;
 
 class PDBEvaluator : public StateRankEvaluator {
 public:
