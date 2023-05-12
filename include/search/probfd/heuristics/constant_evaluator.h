@@ -28,6 +28,21 @@ public:
     }
 };
 
+/**
+ * @brief Returns an estimate of zero for each state.
+ */
+template <typename State>
+class BlindEvaluator : public ConstantEvaluator<State> {
+public:
+    /**
+     * @brief Construct with constant estimate \p value .
+     */
+    BlindEvaluator()
+        : ConstantEvaluator<State>(0_vt)
+    {
+    }
+};
+
 } // namespace heuristics
 } // namespace probfd
 

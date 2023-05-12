@@ -34,7 +34,7 @@ public:
         parser.add_option<std::shared_ptr<TaskEvaluator>>(
             "eval",
             "",
-            "const_eval");
+            "blind_eval");
         lp::add_lp_solver_option_to_parser(parser);
         MDPSolver::add_options_to_parser(parser);
     }

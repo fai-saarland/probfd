@@ -90,8 +90,7 @@ public:
         TaskCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
-        const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(0_vt),
+        const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
@@ -115,8 +114,7 @@ public:
         StateRankingFunction ranking_function,
         AbstractCostFunction& projection_cost_function,
         StateRank initial_state,
-        const StateRankEvaluator& heuristic =
-            ConstantEvaluator<StateRank>(0_vt),
+        const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
         double max_time = std::numeric_limits<double>::infinity());
 
     /**

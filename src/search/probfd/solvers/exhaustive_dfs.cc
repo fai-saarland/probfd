@@ -69,7 +69,7 @@ public:
         parser.add_option<std::shared_ptr<TaskEvaluator>>(
             "eval",
             "",
-            "const_eval");
+            "blind_eval");
         parser.add_list_option<std::shared_ptr<TaskNewStateObserver>>(
             "on_new_state",
             "",
