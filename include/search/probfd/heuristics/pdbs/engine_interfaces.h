@@ -22,35 +22,37 @@ class ProjectionOperator;
 class StateRankingFunction;
 class ProbabilisticPatternDatabase;
 
+/// Type alias for heuristics for projection states.
 using StateRankEvaluator = engine_interfaces::Evaluator<StateRank>;
+
+/// Type alias for projection cost functions.
 using ProjectionCostFunction =
     engine_interfaces::SimpleCostFunction<StateRank, const ProjectionOperator*>;
 
 class PDBEvaluator : public StateRankEvaluator {
+    const ::pdbs::PatternDatabase& pdb;
+
 public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
     EvaluationResult evaluate(StateRank state) const override;
-
-private:
-    const ::pdbs::PatternDatabase& pdb;
 };
 
 class DeadendPDBEvaluator : public StateRankEvaluator {
+    const ::pdbs::PatternDatabase& pdb;
+
 public:
     explicit DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
     EvaluationResult evaluate(StateRank state) const override;
-
-private:
-    const ::pdbs::PatternDatabase& pdb;
 };
 
 class IncrementalPPDBEvaluator : public StateRankEvaluator {
+    const ProbabilisticPatternDatabase& pdb;
+
     int left_multiplier;
     int right_multiplier;
     int domain_size;
-    const ProbabilisticPatternDatabase& pdb;
 
 public:
     explicit IncrementalPPDBEvaluator(
@@ -75,10 +77,13 @@ public:
         const ProbabilisticPatternDatabase& left,
         const ProbabilisticPatternDatabase& right);
 
-protected:
     EvaluationResult evaluate(StateRank state) const override;
 };
 
+/**
+ * @brief The cost function induced by a task-level cost function for a
+ * specific projection.
+ */
 class InducedProjectionCostFunction : public ProjectionCostFunction {
     TaskCostFunction* parent_cost_function;
     std::vector<bool> goal_state_flags_;
