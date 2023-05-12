@@ -15,9 +15,7 @@ namespace pdbs {
 
 struct MatchTree::Node {
     static const int LEAF_NODE = -1;
-    Node() = default;
-    ~Node();
-    vector<size_t> applicable_operator_ids;
+    std::vector<size_t> applicable_operator_ids;
     // The variable which this node represents.
     int var_id = LEAF_NODE;
     int var_multiplier = 0;
@@ -27,23 +25,12 @@ struct MatchTree::Node {
       and one "star-edge" that is used when the value of the variable is
       undefined.
     */
-    Node** successors = nullptr;
-    Node* star_successor = nullptr;
+    std::vector<std::unique_ptr<Node>> successors;
+    std::unique_ptr<Node> star_successor;
 
     void initialize(int var_id, int var_multiplier, int var_domain_size);
     bool is_leaf_node() const;
 };
-
-MatchTree::Node::~Node()
-{
-    if (successors) {
-        for (int i = 0; i < var_domain_size; ++i) {
-            delete successors[i];
-        }
-        delete[] successors;
-    }
-    delete star_successor;
-}
 
 void MatchTree::Node::initialize(
     int var_id_,
@@ -56,10 +43,7 @@ void MatchTree::Node::initialize(
     var_multiplier = var_multiplier_;
     var_domain_size = var_domain_size_;
     if (var_domain_size > 0) {
-        successors = new Node*[var_domain_size];
-        for (int val = 0; val < var_domain_size; ++val) {
-            successors[val] = nullptr;
-        }
+        successors.resize(var_domain_size);
     }
 }
 
@@ -73,10 +57,7 @@ MatchTree::MatchTree(size_t hint_num_operators)
     projection_operators.reserve(hint_num_operators);
 }
 
-MatchTree::~MatchTree()
-{
-    delete root;
-}
+MatchTree::~MatchTree() = default;
 
 void MatchTree::insert_recursive(
     const VariablesProxy& task_variables,
@@ -84,14 +65,13 @@ void MatchTree::insert_recursive(
     const size_t op_index,
     const vector<FactPair>& progression_preconditions,
     int pre_index,
-    Node** edge_from_parent)
+    std::unique_ptr<Node>& node)
 {
-    if (*edge_from_parent == 0) {
+    if (!node) {
         // We don't exist yet: create a new node.
-        *edge_from_parent = new Node();
+        node.reset(new Node());
     }
 
-    Node* node = *edge_from_parent;
     if (pre_index == static_cast<int>(progression_preconditions.size())) {
         // All preconditions have been checked, insert operator ID.
         node->applicable_operator_ids.push_back(op_index);
@@ -114,33 +94,35 @@ void MatchTree::insert_recursive(
                 var_multiplier,
                 var_domain_size);
             // The new node gets the left out variable as its variable.
-            *edge_from_parent = new_node;
-            new_node->star_successor = node;
+            new_node->star_successor = std::move(node);
+            node.reset(new_node);
             // The new node is now the node of interest.
-            node = new_node;
         }
 
         /* Set up edge to the correct child (for which we want to call
            this function recursively). */
-        Node** edge_to_child = 0;
         if (node->var_id == fact.var) {
             // Operator has a precondition on the variable tested by node.
-            edge_to_child = &node->successors[fact.value];
             ++pre_index;
+            insert_recursive(
+                task_variables,
+                ranking_function,
+                op_index,
+                progression_preconditions,
+                pre_index,
+                node->successors[fact.value]);
         } else {
             // Operator doesn't have a precondition on the variable tested by
             // node: follow/create the star-edge.
             assert(node->var_id < fact.var);
-            edge_to_child = &node->star_successor;
+            insert_recursive(
+                task_variables,
+                ranking_function,
+                op_index,
+                progression_preconditions,
+                pre_index,
+                node->star_successor);
         }
-
-        insert_recursive(
-            task_variables,
-            ranking_function,
-            op_index,
-            progression_preconditions,
-            pre_index,
-            edge_to_child);
     }
 }
 
@@ -156,7 +138,7 @@ void MatchTree::insert(
         projection_operators.size(),
         progression_preconditions,
         0,
-        &root);
+        root);
     projection_operators.push_back(std::move(op));
 }
 
@@ -184,14 +166,14 @@ void MatchTree::get_applicable_operators_recursive(
     if (node->successors[val]) {
         // Follow the correct successor edge, if it exists.
         get_applicable_operators_recursive(
-            node->successors[val],
+            node->successors[val].get(),
             abstract_state,
             operator_ids);
     }
     if (node->star_successor) {
         // Always follow the star edge, if it exists.
         get_applicable_operators_recursive(
-            node->star_successor,
+            node->star_successor.get(),
             abstract_state,
             operator_ids);
     }
@@ -202,7 +184,10 @@ void MatchTree::get_applicable_operators(
     vector<const ProjectionOperator*>& operator_ids) const
 {
     if (root)
-        get_applicable_operators_recursive(root, abstract_state, operator_ids);
+        get_applicable_operators_recursive(
+            root.get(),
+            abstract_state,
+            operator_ids);
 }
 
 ActionID MatchTree::get_operator_index(const ProjectionOperator& op) const
@@ -215,51 +200,49 @@ const ProjectionOperator& MatchTree::get_index_operator(int index) const
     return projection_operators[index];
 }
 
-void MatchTree::dump_recursive(Node* node) const
+void MatchTree::dump_recursive(std::ostream& out, Node* node) const
 {
     if (!node) {
         // Node is the root node.
-        std::cout << "Empty MatchTree" << endl;
+        out << "Empty MatchTree" << endl;
         return;
     }
-    std::cout << endl;
-    std::cout << "node->var_id = " << node->var_id << endl;
-    std::cout << "Number of applicable operators at this node: "
-              << node->applicable_operator_ids.size() << endl;
+    out << endl;
+    out << "node->var_id = " << node->var_id << endl;
+    out << "Number of applicable operators at this node: "
+        << node->applicable_operator_ids.size() << endl;
     for (const size_t op_index : node->applicable_operator_ids) {
-        std::cout << "ProjectionOperator #" << op_index << endl;
+        out << "ProjectionOperator #" << op_index << endl;
     }
     if (node->is_leaf_node()) {
-        std::cout << "leaf node." << endl;
-        assert(!node->successors);
+        out << "leaf node." << endl;
+        assert(node->successors.empty());
         assert(!node->star_successor);
     } else {
         for (int val = 0; val < node->var_domain_size; ++val) {
             if (node->successors[val]) {
-                std::cout << "recursive call for child with value " << val
-                          << endl;
-                dump_recursive(node->successors[val]);
-                std::cout << "back from recursive call (for successors[" << val
-                          << "]) to node with var_id = " << node->var_id
-                          << endl;
+                out << "recursive call for child with value " << val << endl;
+                dump_recursive(out, node->successors[val].get());
+                out << "back from recursive call (for successors[" << val
+                    << "]) to node with var_id = " << node->var_id << endl;
             } else {
-                std::cout << "no child for value " << val << endl;
+                out << "no child for value " << val << endl;
             }
         }
         if (node->star_successor) {
-            std::cout << "recursive call for star_successor" << endl;
-            dump_recursive(node->star_successor);
-            std::cout << "back from recursive call (for star_successor) "
-                      << "to node with var_id = " << node->var_id << endl;
+            out << "recursive call for star_successor" << endl;
+            dump_recursive(out, node->star_successor.get());
+            out << "back from recursive call (for star_successor) "
+                << "to node with var_id = " << node->var_id << endl;
         } else {
-            std::cout << "no star_successor" << endl;
+            out << "no star_successor" << endl;
         }
     }
 }
 
-void MatchTree::dump() const
+void MatchTree::dump(std::ostream& out) const
 {
-    dump_recursive(root);
+    dump_recursive(out, root.get());
 }
 
 } // namespace pdbs
