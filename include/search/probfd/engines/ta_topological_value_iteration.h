@@ -51,11 +51,11 @@ struct Statistics {
 /**
  * @brief Implements a trap-aware variant of Topological Value Iteration.
  *
- * This implementation extends \ref TopologicalValueIteration by eliminating all
+ * This implementation extends topological value iteration by eliminating all
  * traps reachable from the initial state on-the-fly to guarantee the
  * convergence against the optimal value function.
  *
- * @see topological_vi:TopologicalValueIteration
+ * @see topological_vi::TopologicalValueIteration
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
@@ -348,7 +348,7 @@ public:
     }
 
     /**
-     * \copydoc MDPEngine::solve(const State&)
+     * \copydoc MDPEngine::solve(const State&, double)
      */
     Interval solve(const State& state, double max_time) override
     {

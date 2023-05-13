@@ -271,7 +271,7 @@ public:
     }
 
     /**
-     * \copydoc MDPEngine::compute_policy(const State&)
+     * \copydoc MDPEngine::compute_policy(const State&, double)
      */
     std::unique_ptr<PartialPolicy<State, Action>>
     compute_policy(const State& state, double max_time) override
@@ -288,7 +288,7 @@ public:
     }
 
     /**
-     * \copydoc MDPEngine::solve(const State&)
+     * \copydoc MDPEngine::solve(const State&, double)
      */
     Interval solve(const State& state, double max_time) override
     {

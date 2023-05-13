@@ -95,7 +95,7 @@ using HDFSBase = std::conditional_t<
 
 /**
  * @brief Implementation of the depth-first heuristic search algorithm family
- * \cite .
+ * \cite steinmetz:etal:icaps-16.
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.

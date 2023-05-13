@@ -60,14 +60,14 @@ struct Statistics {
 
 /**
  * @brief Implemetation of the Find-Revise-Eliminate-Traps (FRET) framework
- * \cite
+ * \cite kolobov:etal:icaps-11 .
  *
  * The FRET framework is a framework designed for Generalized Stochastic
- * Shortest-Path Problems (GSSPs, \cite). In this scenario, traditional
- * heuristic search algorithms do not converge against an optimal policy due to
- * the existence of traps. FRET interleaves heuristic searches with a trap
- * elimination procedure until no more traps are found. This guarantees that an
- * optimal policy is returned.
+ * Shortest-Path Problems (GSSPs, \cite kolobov:etal:icaps-11). In this
+ * scenario, traditional heuristic search algorithms do not converge against an
+ * optimal policy due to the existence of traps. FRET interleaves heuristic
+ * searches with a trap elimination procedure until no more traps are found.
+ * This guarantees that an optimal policy is returned.
  *
  * The two common trap elimination strategies find traps in
  * - The greedy value graph of the MDP, or
