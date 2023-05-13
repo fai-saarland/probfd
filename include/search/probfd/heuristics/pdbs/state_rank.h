@@ -13,10 +13,10 @@ namespace heuristics {
 namespace pdbs {
 
 /**
- * @brief Represents the rank of a state.
+ * @brief Represents the rank of an abstract state.
  *
- * The rank of a state is its unique index in \{ 0, \dots, N-1 \}, where N is
- * the number of states in the state space.
+ * The rank of an abstract state is its unique index in \{ 0, \dots, N-1 \},
+ * where N is the number of abstract states in the abstract state space.
  *
  * @see StateRankingFunction
  */
@@ -28,21 +28,7 @@ struct StateRank {
     {
     }
 
-    StateRank operator+(StateRank x) const { return StateRank(x.id + id); }
-
     StateRank operator-(StateRank x) const { return StateRank(id - x.id); }
-
-    StateRank& operator+=(StateRank x)
-    {
-        id += x.id;
-        return *this;
-    }
-
-    StateRank& operator-=(StateRank x)
-    {
-        id -= x.id;
-        return *this;
-    }
 
     friend auto operator<=>(StateRank a, StateRank b) = default;
 };

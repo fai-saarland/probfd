@@ -16,177 +16,14 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-StateRankingFunction::PartialAssignmentIterator::PartialAssignmentIterator(
-    std::vector<FactPair> partial_state,
-    const std::vector<VariableInfo>& var_infos)
-    : partial_state_(std::move(partial_state))
-    , var_infos_(&var_infos)
-    , done(false)
-{
-}
-
-StateRankingFunction::PartialAssignmentIterator&
-StateRankingFunction::PartialAssignmentIterator::operator++()
-{
-    for (int i = partial_state_.size() - 1; i >= 0; --i) {
-        auto& [var, val] = partial_state_[i];
-        const int next = val + 1;
-
-        if (next < (*var_infos_)[var].domain) {
-            val = next;
-            return *this;
-        }
-
-        val = 0;
-    }
-
-    done = true;
-
-    return *this;
-}
-
-StateRankingFunction::PartialAssignmentIterator&
-StateRankingFunction::PartialAssignmentIterator::operator--()
-{
-    for (int i = partial_state_.size() - 1; i >= 0; --i) {
-        auto& [var, val] = partial_state_[i];
-        const int next = val - 1;
-
-        if (next >= 0) {
-            val = next;
-            return *this;
-        }
-
-        val = (*var_infos_)[var].domain - 1;
-    }
-
-    done = true;
-
-    return *this;
-}
-
-StateRankingFunction::PartialAssignmentIterator
-StateRankingFunction::PartialAssignmentIterator::operator++(int)
-{
-    auto r = *this;
-    ++(*this);
-    return r;
-}
-
-StateRankingFunction::PartialAssignmentIterator
-StateRankingFunction::PartialAssignmentIterator::operator--(int)
-{
-    auto r = *this;
-    --(*this);
-    return r;
-}
-
-StateRankingFunction::PartialAssignmentIterator::reference
-StateRankingFunction::PartialAssignmentIterator::operator*()
-{
-    return partial_state_;
-}
-
-StateRankingFunction::PartialAssignmentIterator::pointer
-StateRankingFunction::PartialAssignmentIterator::operator->()
-{
-    return &partial_state_;
-}
-
-bool operator==(
-    const StateRankingFunction::PartialAssignmentIterator& a,
-    std::default_sentinel_t)
-{
-    return a.done;
-}
-
-bool operator!=(
-    const StateRankingFunction::PartialAssignmentIterator& a,
-    std::default_sentinel_t)
-{
-    return !a.done;
-}
-
-StateRankingFunction::StateRankIterator::StateRankIterator(
-    StateRank offset,
-    const std::vector<int>& indices,
-    const std::vector<VariableInfo>& var_infos)
-    : values_(indices.size(), 0)
-    , domains_(indices.size())
-    , multipliers_(indices.size())
-    , state_(offset)
-    , done(false)
-{
-    for (size_t i = 0; i != indices.size(); ++i) {
-        const VariableInfo& info = var_infos[indices[i]];
-        multipliers_[i] = info.multiplier;
-        domains_[i] = info.domain;
-    }
-}
-
-StateRankingFunction::StateRankIterator&
-StateRankingFunction::StateRankIterator::operator++()
-{
-    for (int idx = values_.size() - 1; idx >= 0; --idx) {
-        const int next = values_[idx] + 1;
-
-        if (next < domains_[idx]) {
-            values_[idx] = next;
-            state_.id += multipliers_[idx];
-            return *this;
-        }
-
-        state_.id -= (values_[idx] * multipliers_[idx]);
-        values_[idx] = 0;
-    }
-
-    done = true;
-
-    return *this;
-}
-
-StateRankingFunction::StateRankIterator
-StateRankingFunction::StateRankIterator::operator++(int)
-{
-    auto r = *this;
-    ++(*this);
-    return r;
-}
-
-const StateRank& StateRankingFunction::StateRankIterator::operator*()
-{
-    return state_;
-}
-
-const StateRank* StateRankingFunction::StateRankIterator::operator->()
-{
-    return &state_;
-}
-
-bool operator==(
-    const StateRankingFunction::StateRankIterator& a,
-    std::default_sentinel_t)
-{
-    return a.done;
-}
-
-bool operator!=(
-    const StateRankingFunction::StateRankIterator& a,
-    std::default_sentinel_t)
-{
-    return !a.done;
-}
-
 StateRankingFunction::StateRankingFunction(
-    const ProbabilisticTaskProxy& task_proxy,
+    const VariablesProxy& variables,
     Pattern pattern)
     : pattern_(std::move(pattern))
     , var_infos_(pattern_.size())
 {
     assert(!pattern_.empty());
     assert(std::is_sorted(pattern_.begin(), pattern_.end()));
-
-    const VariablesProxy variables = task_proxy.get_variables();
 
     constexpr long long int maxint = std::numeric_limits<long long int>::max();
 
@@ -238,52 +75,22 @@ const Pattern& StateRankingFunction::get_pattern() const
     return pattern_;
 }
 
-StateRank StateRankingFunction::from_values_partial(
-    const std::vector<FactPair>& sparse_values) const
+int StateRankingFunction::rank_fact(int idx, int val) const
 {
-    StateRank res(0);
-    for (const auto& [idx, val] : sparse_values) {
-        assert(utils::in_bounds(idx, var_infos_));
-        assert(0 <= val && val < var_infos_[idx].domain);
-        res.id += var_infos_[idx].multiplier * val;
-    }
-    return res;
+    return var_infos_[idx].multiplier * val;
 }
 
-StateRank StateRankingFunction::from_values_partial(
-    const std::vector<int>& indices,
-    const std::vector<FactPair>& sparse_values) const
+int StateRankingFunction::value_of(StateRank state_rank, int idx) const
 {
-    StateRank res(0);
-
-    auto ind_it = indices.begin();
-    auto ind_end = indices.end();
-
-    auto it = sparse_values.begin();
-    auto end = sparse_values.end();
-
-    for (; ind_it != ind_end; ++it, ++ind_it) {
-        const int idx = *ind_it;
-
-        it = std::find_if(it, end, [=](auto a) { return a.var == idx; });
-        assert(it != end);
-
-        res.id += var_infos_[idx].multiplier * it->value;
-    }
-
-    return res;
+    const VariableInfo& info = var_infos_[idx];
+    return (state_rank.id / info.multiplier) % info.domain;
 }
 
-StateRank StateRankingFunction::from_fact(int idx, int val) const
-{
-    return StateRank(var_infos_[idx].multiplier * val);
-}
-
-StateRank StateRankingFunction::rank(const State& state) const
+StateRank StateRankingFunction::get_abstract_rank(const State& state) const
 {
     StateRank res(0);
     for (size_t i = 0; i != pattern_.size(); ++i) {
-        res.id += var_infos_[i].multiplier * state[pattern_[i]].get_value();
+        res.id += rank_fact(i, state[pattern_[i]].get_value());
     }
     return res;
 }
@@ -292,92 +99,47 @@ std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
 {
     std::vector<int> values(var_infos_.size());
     for (size_t i = 0; i != var_infos_.size(); ++i) {
-        const VariableInfo& info = var_infos_[i];
-        values[i] = (state_rank.id / info.multiplier) % info.domain;
+        values[i] = value_of(state_rank, i);
     }
     return values;
 }
 
-StateRank
-StateRankingFunction::convert(StateRank state_rank, const Pattern& pattern)
-    const
+bool StateRankingFunction::next_partial_assignment(
+    std::vector<FactPair>& partial_state) const
 {
-    assert(std::ranges::includes(pattern_, pattern));
-    assert(!pattern.empty());
+    for (int i = partial_state.size() - 1; i >= 0; --i) {
+        auto& [var, val] = partial_state[i];
+        const int next = val + 1;
 
-    StateRank converted_state(0);
-    long long int multiplier = 1;
-
-    auto pattern_it = pattern.begin();
-    auto pattern_end = pattern.end();
-
-    const VariableInfo& first_info = var_infos_[0];
-    if (pattern_[0] == *pattern_it) {
-        converted_state.id += state_rank.id % first_info.domain;
-        multiplier *= first_info.domain;
-        ++pattern_it;
-    }
-
-    for (int i = 1; pattern_it != pattern_end; ++pattern_it, ++i) {
-        while (pattern_[i] != *pattern_it) {
-            ++i;
+        if (next < var_infos_[var].domain) {
+            val = next;
+            return true;
         }
 
-        const VariableInfo& cur_info = var_infos_[i];
-
-        int value = (state_rank.id / cur_info.multiplier) % cur_info.domain;
-        converted_state.id += multiplier * value;
-        multiplier *= cur_info.domain;
+        val = 0;
     }
 
-    return converted_state;
+    return false;
 }
 
-StateRankingFunction::PartialAssignmentIterator
-StateRankingFunction::partial_assignments_begin(
-    std::vector<FactPair> partial_state) const
+bool StateRankingFunction::next_rank(
+    StateRank& abstract_state,
+    std::span<int> mutable_variables) const
 {
-    return PartialAssignmentIterator(std::move(partial_state), var_infos_);
-}
+    for (int var : mutable_variables) {
+        const int domain = var_infos_[var].domain;
+        const int multiplier = var_infos_[var].multiplier;
+        const int value = (abstract_state.id / multiplier) % domain;
 
-std::default_sentinel_t StateRankingFunction::partial_assignments_end() const
-{
-    return std::default_sentinel;
-}
+        if (value + 1 < domain) {
+            abstract_state.id += multiplier;
+            return true;
+        }
 
-std::ranges::subrange<
-    StateRankingFunction::PartialAssignmentIterator,
-    std::default_sentinel_t>
-StateRankingFunction::partial_assignments(
-    std::vector<FactPair> partial_state) const
-{
-    return std::ranges::
-        subrange<PartialAssignmentIterator, std::default_sentinel_t>(
-            partial_assignments_begin(std::move(partial_state)),
-            partial_assignments_end());
-}
+        abstract_state.id -= value * multiplier;
+    }
 
-StateRankingFunction::StateRankIterator StateRankingFunction::state_ranks_begin(
-    StateRank offset,
-    std::vector<int> indices) const
-{
-    return StateRankIterator(offset, indices, var_infos_);
-}
-
-std::default_sentinel_t StateRankingFunction::state_ranks_end() const
-{
-    return std::default_sentinel;
-}
-
-std::ranges::
-    subrange<StateRankingFunction::StateRankIterator, std::default_sentinel_t>
-    StateRankingFunction::state_ranks(
-        StateRank offset,
-        std::vector<int> indices) const
-{
-    return std::ranges::subrange<StateRankIterator, std::default_sentinel_t>(
-        state_ranks_begin(offset, indices),
-        state_ranks_end());
+    return false;
 }
 
 long long int StateRankingFunction::get_multiplier(int var) const
@@ -388,12 +150,6 @@ long long int StateRankingFunction::get_multiplier(int var) const
 int StateRankingFunction::get_domain_size(int var) const
 {
     return var_infos_[var].domain;
-}
-
-int StateRankingFunction::get_index(int var) const
-{
-    auto it = std::ranges::lower_bound(pattern_, var);
-    return it != pattern_.end() ? std::distance(pattern_.begin(), it) : -1;
 }
 
 StateRankToString::StateRankToString(

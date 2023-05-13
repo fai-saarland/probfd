@@ -52,8 +52,10 @@ IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
     int add_var)
     : pdb(pdb)
 {
-    const int idx = mapper->get_index(add_var);
-    assert(idx != -1);
+    const Pattern& pattern = mapper->get_pattern();
+    auto it = std::ranges::lower_bound(pattern, add_var);
+    assert(it != pattern.end());
+    auto idx = std::distance(pattern.begin(), it);
 
     this->domain_size = mapper->get_domain_size(idx);
     this->left_multiplier = mapper->get_multiplier(idx);
@@ -87,7 +89,8 @@ MergeEvaluator::MergeEvaluator(
 
 EvaluationResult MergeEvaluator::evaluate(StateRank state) const
 {
-    StateRank lstate = mapper.convert(state, left.get_pattern());
+    const StateRank lstate =
+        convert(state, mapper, left.get_state_ranking_function());
 
     auto leval = left.evaluate(lstate);
 
@@ -95,7 +98,8 @@ EvaluationResult MergeEvaluator::evaluate(StateRank state) const
         return leval;
     }
 
-    StateRank rstate = mapper.convert(state, right.get_pattern());
+    const StateRank rstate =
+        convert(state, mapper, right.get_state_ranking_function());
 
     auto reval = right.evaluate(rstate);
 
@@ -104,6 +108,28 @@ EvaluationResult MergeEvaluator::evaluate(StateRank state) const
     }
 
     return {false, std::max(leval.get_estimate(), reval.get_estimate())};
+}
+
+StateRank MergeEvaluator::convert(
+    StateRank state_rank,
+    const StateRankingFunction& refined_mapping,
+    const StateRankingFunction& coarser_mapping) const
+{
+    const Pattern& larger_pattern = refined_mapping.get_pattern();
+    const Pattern& smaller_pattern = coarser_mapping.get_pattern();
+
+    assert(std::ranges::includes(larger_pattern, smaller_pattern));
+
+    StateRank rank(0);
+
+    for (int i = 0, j = 0; j != smaller_pattern.size(); ++i, ++j) {
+        while (larger_pattern[i] != smaller_pattern[j]) ++i;
+        rank.id += coarser_mapping.rank_fact(
+            j,
+            refined_mapping.value_of(state_rank, i));
+    }
+
+    return rank;
 }
 
 InducedProjectionCostFunction::InducedProjectionCostFunction(
@@ -137,7 +163,7 @@ InducedProjectionCostFunction::InducedProjectionCostFunction(
         } else {
             if (p_var == g_var) {
                 const int g_val = goal_fact.get_value();
-                base.id += ranking_function.get_multiplier(v++) * g_val;
+                base.id += ranking_function.rank_fact(v++, g_val);
             }
 
             if (++w == num_goal_facts) {
@@ -151,11 +177,9 @@ InducedProjectionCostFunction::InducedProjectionCostFunction(
 
     assert(non_goal_vars.size() != pattern.size()); // No goal no fun.
 
-    auto goals = ranking_function.state_ranks(base, std::move(non_goal_vars));
-
-    for (const auto& g : goals) {
-        goal_state_flags_[g.id] = true;
-    }
+    do {
+        goal_state_flags_[base.id] = true;
+    } while (ranking_function.next_rank(base, non_goal_vars));
 }
 
 bool InducedProjectionCostFunction::is_goal(StateRank state) const

@@ -70,14 +70,14 @@ UCPHeuristic::UCPHeuristic(
     const State& initial_state = task_proxy.get_initial_state();
 
     for (const Pattern& pattern : *patterns) {
-        StateRankingFunction rankingf(task_proxy, pattern);
+        StateRankingFunction rankingf(task_proxy.get_variables(), pattern);
         ProjectionStateSpace state_space(
             task_proxy,
             rankingf,
             task_costs,
             true);
         InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
-        StateRank init_rank = rankingf.rank(initial_state);
+        StateRank init_rank = rankingf.get_abstract_rank(initial_state);
         pdbs.emplace_back(state_space, std::move(rankingf), costs, init_rank);
     }
 }

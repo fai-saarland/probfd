@@ -90,16 +90,16 @@ ProjectionStateSpace::ProjectionStateSpace(
         // effect values not appearing in precondition
         std::vector<FactPair> local_precondition;
 
-        for (FactProxy fact : op.get_preconditions()) {
-            const int pre_var = fact.get_variable().get_id();
+        for (const FactProxy& fact : op.get_preconditions()) {
+            const auto [pre_var, pre_val] = fact.get_pair();
             const int pdb_index = pdb_indices[pre_var];
 
             if (pdb_index != -1) {
-                local_precondition.emplace_back(pdb_index, fact.get_value());
+                local_precondition.emplace_back(pdb_index, pre_val);
             }
         }
 
-        std::vector<FactPair> vars_eff_not_pre;
+        std::vector<FactPair> values;
 
         // Info about each probabilistic outcome
         Distribution<OutcomeInfo> outcomes;
@@ -108,50 +108,41 @@ ProjectionStateSpace::ProjectionStateSpace(
         for (const ProbabilisticOutcomeProxy& out : op.get_outcomes()) {
             OutcomeInfo info;
 
-            std::vector<FactPair> local_effect;
-
             for (ProbabilisticEffectProxy effect : out.get_effects()) {
-                FactProxy fact = effect.get_fact();
-                const int eff_var = fact.get_variable().get_id();
-                const int pdb_index = pdb_indices[eff_var];
-                if (pdb_index != -1) {
-                    local_effect.emplace_back(pdb_index, fact.get_value());
-                }
-            }
+                const auto [eff_var, eff_val] = effect.get_fact().get_pair();
+                const int var = pdb_indices[eff_var];
+                if (var == -1) continue;
 
-            for (const auto& [var, val] : local_effect) {
                 auto pre_it = std::ranges::lower_bound(
                     local_precondition,
                     var,
                     std::ranges::less(),
                     &FactPair::var);
 
-                int val_change = val;
+                int val_change = eff_val;
 
                 if (pre_it == local_precondition.end() || pre_it->var != var) {
-                    vars_eff_not_pre.emplace_back(var, 0);
+                    values.emplace_back(var, 0);
                     info.missing_pres.push_back(var);
                 } else {
                     val_change -= pre_it->value;
                 }
 
-                info.base_effect += ranking_function.from_fact(var, val_change);
+                info.base_effect.id +=
+                    ranking_function.rank_fact(var, val_change);
             }
 
             outcomes.add_probability(std::move(info), out.get_probability());
         }
 
-        utils::sort_unique(vars_eff_not_pre);
+        utils::sort_unique(values);
 
         // We enumerate all values for variables that are not part of
         // the precondition but in an effect. Depending on the value of the
         // variable, the value change caused by the abstract operator would
         // be different, hence we generate on operator for each state where
         // enabled.
-        auto ran =
-            ranking_function.partial_assignments(std::move(vars_eff_not_pre));
-
-        for (const std::vector<FactPair>& values : ran) {
+        do {
             timer.throw_if_expired();
 
             // Generate the progression operator
@@ -159,10 +150,21 @@ ProjectionStateSpace::ProjectionStateSpace(
 
             for (const auto& [info, prob] : outcomes) {
                 const auto& [base_effect, missing_pres] = info;
-                auto a =
-                    ranking_function.from_values_partial(missing_pres, values);
 
-                new_op.outcomes.add_probability(base_effect - a, prob);
+                StateRank res = base_effect;
+
+                auto it = values.begin();
+                auto end = values.end();
+
+                for (const int idx : missing_pres) {
+                    it = std::find_if(it, end, [=](auto a) {
+                        return a.var == idx;
+                    });
+                    assert(it != end);
+                    res.id -= ranking_function.rank_fact(idx, it++->value);
+                }
+
+                new_op.outcomes.add_probability(res, prob);
             }
 
             // Construct the precondition by merging the original
@@ -201,7 +203,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                 ranking_function,
                 std::move(new_op),
                 precondition);
-        }
+        } while (ranking_function.next_partial_assignment(values));
     }
 }
 

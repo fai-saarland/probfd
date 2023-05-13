@@ -111,7 +111,7 @@ public:
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilisticPatternDatabase(
-        ProjectionStateSpace& state_space,
+        ProjectionStateSpace& projection,
         StateRankingFunction ranking_function,
         ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
@@ -294,6 +294,10 @@ public:
 
     /// Get the pattern of the pattern database.
     [[nodiscard]] const Pattern& get_pattern() const;
+
+    /// Get the abstraction mapping of the pattern database.
+    [[nodiscard]] const StateRankingFunction&
+    get_state_ranking_function() const;
 
     /// Get the number of states in this PDB's projection.
     [[nodiscard]] unsigned int num_states() const;

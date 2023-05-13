@@ -105,14 +105,15 @@ SCPHeuristic::SCPHeuristic(
     const State& initial_state = task_proxy.get_initial_state();
 
     for (const Pattern& pattern : *patterns) {
-        StateRankingFunction rankingf(task_proxy, pattern);
+        StateRankingFunction rankingf(task_proxy.get_variables(), pattern);
         ProjectionStateSpace state_space(
             task_proxy,
             rankingf,
             task_costs,
             false);
         InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
-        const StateRank initial_state_rank = rankingf.rank(initial_state);
+        const StateRank initial_state_rank =
+            rankingf.get_abstract_rank(initial_state);
 
         auto& pdb = pdbs.emplace_back(
             state_space,

@@ -41,7 +41,8 @@ PDBInfo::PDBInfo(
           false,
           timer.get_remaining_time()))
     , cost_function(task_proxy, ranking_function, &task_cost_function)
-    , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
+    , initial_state(
+          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilisticPatternDatabase(
           *state_space,
           std::move(ranking_function),
@@ -74,7 +75,8 @@ PDBInfo::PDBInfo(
           false,
           timer.get_remaining_time()))
     , cost_function(task_proxy, ranking_function, &task_cost_function)
-    , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
+    , initial_state(
+          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilisticPatternDatabase(
           *state_space,
           std::move(ranking_function),
@@ -108,7 +110,8 @@ PDBInfo::PDBInfo(
           false,
           timer.get_remaining_time()))
     , cost_function(task_proxy, ranking_function, &task_cost_function)
-    , initial_state(ranking_function.rank(task_proxy.get_initial_state()))
+    , initial_state(
+          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilisticPatternDatabase(
           *state_space,
           std::move(ranking_function),
@@ -331,7 +334,7 @@ void CEGAR::add_pattern_for_var(
 {
     auto& info = pdb_infos.emplace_back(new PDBInfo(
         task_proxy,
-        StateRankingFunction(task_proxy, {var}),
+        StateRankingFunction(task_proxy.get_variables(), {var}),
         task_cost_function,
         rng,
         wildcard,
@@ -355,7 +358,7 @@ void CEGAR::add_variable_to_pattern(
     std::unique_ptr<PDBInfo> new_info(new PDBInfo(
         task_proxy,
         StateRankingFunction(
-            task_proxy,
+            task_proxy.get_variables(),
             extended_pattern(pdb.get_pattern(), var)),
         task_cost_function,
         rng,
@@ -400,7 +403,7 @@ void CEGAR::merge_patterns(
     unique_ptr<PDBInfo> merged(new PDBInfo(
         task_proxy,
         StateRankingFunction(
-            task_proxy,
+            task_proxy.get_variables(),
             utils::merge_sorted(pdb1.get_pattern(), pdb2.get_pattern())),
         task_cost_function,
         rng,

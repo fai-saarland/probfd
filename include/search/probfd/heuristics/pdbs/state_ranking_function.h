@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
-#define PROBFD_HEURISTICS_PDBS_ABSTRACT_STATE_MAPPER_H
+#ifndef PROBFD_HEURISTICS_PDBS_STATE_RANKING_FUNCTION_H
+#define PROBFD_HEURISTICS_PDBS_STATE_RANKING_FUNCTION_H
 
 #include "probfd/heuristics/pdbs/state_rank.h"
 #include "probfd/heuristics/pdbs/types.h"
@@ -18,16 +18,13 @@ namespace heuristics {
 namespace pdbs {
 
 /**
- * @brief Implements a state ranking function for states.
+ * @brief Implements the state ranking function for abstract states of
+ * projections.
  *
  * A state ranking function is a bijective mapping from states to so-called
- * state ranks, which are indices in \{ 0, \dots, N-1 \}, where N is the total
- * number of states. This class implements the traditional PDB (un-)ranking
- * functions as stated in \cite sievers:etal:socs-12 .
- *
- * Additionally, this class implements a ranking function for partial states of
- * a PDB by extending the domain of every variable by a special "missing" value
- * that is assumed in case of missing variables in a partial state.
+ * state ranks, which are indices in \f$\{ 0, \dots, N-1 \}\f$, where \f$N\f$
+ * is the total number of states. This class implements the traditional PDB
+ * (un-) ranking functions as stated in \cite sievers:etal:socs-12 .
  */
 class StateRankingFunction {
     struct VariableInfo {
@@ -40,128 +37,124 @@ class StateRankingFunction {
     long long int num_states_;
 
 public:
-    class PartialAssignmentIterator {
-        std::vector<FactPair> partial_state_;
-        const std::vector<VariableInfo>* var_infos_;
-
-        bool done;
-
-    public:
-        using difference_type = std::ptrdiff_t;
-        using value_type = std::vector<FactPair>;
-        using pointer = std::vector<FactPair>*;
-        using reference = std::vector<FactPair>&;
-        using iterator_category = std::forward_iterator_tag;
-
-        PartialAssignmentIterator(
-            std::vector<FactPair> partial_state,
-            const std::vector<VariableInfo>& var_infos);
-
-        PartialAssignmentIterator& operator++();
-        PartialAssignmentIterator& operator--();
-
-        PartialAssignmentIterator operator++(int);
-        PartialAssignmentIterator operator--(int);
-
-        reference operator*();
-        pointer operator->();
-
-        friend bool
-        operator==(const PartialAssignmentIterator& a, std::default_sentinel_t);
-
-        friend bool
-        operator!=(const PartialAssignmentIterator& a, std::default_sentinel_t);
-    };
-
-    class StateRankIterator {
-        std::vector<int> values_;
-        std::vector<int> domains_;
-        std::vector<long long int> multipliers_;
-        StateRank state_;
-
-        bool done;
-
-    public:
-        using difference_type = std::ptrdiff_t;
-        using value_type = const StateRank;
-        using pointer = const StateRank*;
-        using reference = const StateRank&;
-        using iterator_category = std::forward_iterator_tag;
-
-        StateRankIterator(
-            StateRank state,
-            const std::vector<int>& indices,
-            const std::vector<VariableInfo>& var_infos);
-
-        StateRankIterator& operator++();
-        StateRankIterator operator++(int);
-
-        reference operator*();
-        pointer operator->();
-
-        friend bool
-        operator==(const StateRankIterator&, std::default_sentinel_t);
-
-        friend bool
-        operator!=(const StateRankIterator&, std::default_sentinel_t);
-    };
-
-public:
     /**
-     * @brief Constructs the ranking function for a pattern database as
-     * specified by a given pattern and the corresponding variable domains.
+     * @brief Constructs the ranking function for a projection specified by a
+     * given pattern and the task's variables.
      */
-    StateRankingFunction(
-        const ProbabilisticTaskProxy& task_proxy,
-        Pattern pattern);
+    StateRankingFunction(const VariablesProxy& variables, Pattern pattern);
 
+    /**
+     * @brief Get the number of abstract states.
+     */
     unsigned int num_states() const;
 
+    /**
+     * @brief Get the number of variables considered by the projection.
+     */
     unsigned int num_vars() const;
 
+    /**
+     * @brief Get the pattern of the projection.
+     */
     const Pattern& get_pattern() const;
 
     /**
-     * @brief Ranks a given state.
+     * @brief Get the ranking coefficient
+     * \f$ N_i = \prod_{j=0}^{i-1} |\mathcal{D}_j| \f$
+     * for variable \f$ i \f$ of the projection.
      */
-    StateRank rank(const State& state) const;
+    long long int get_multiplier(int i) const;
 
     /**
-     * @brief Unranks a given state rank. The state is returned as a sequence of
-     * values for each variable, in ascending order.
+     * @brief Get the domain size for a projection variable.
+     */
+    int get_domain_size(int i) const;
+
+    /**
+     * @brief Get the rank of the abstract state induced by a state.
+     *
+     * Computes the value
+     * \f[ rank(s) = \sum_{i=0}^{k} N_i s[v_i] \f]
+     * where
+     * \f$N_i = \prod_{j=0}^{i-1} |\mathcal{D}_j|\f$
+     * is the ranking coefficient of projection variable
+     * \f$i \in \{1, \dots, k\}\f$.
+     */
+    StateRank get_abstract_rank(const State& state) const;
+
+    /**
+     * @brief Unrank a given state rank and converts it into an explicit
+     * abstract state.
+     *
+     * The unranked abstract state \f$unrank(r)\f$ for the rank \f$r\f$ is
+     * computes as
+     * \f[
+     * unrank(r)[v_i] = \lfloor \frac{r}{N_i} \rfloor \mod
+     * \mathcal{D}_i
+     * \f]
+     * where
+     * \f$N_i = \prod_{j=0}^{i-1} |\mathcal{D}_j|\f$
+     * is the ranking coefficient of projection variable
+     * \f$i \in \{1, \dots, k\}\f$.
      */
     std::vector<int> unrank(StateRank abstract_state) const;
 
-    StateRank
-    from_values_partial(const std::vector<FactPair>& sparse_values) const;
-    StateRank from_values_partial(
-        const std::vector<int>& indices,
-        const std::vector<FactPair>& sparse_values) const;
-    StateRank from_fact(int idx, int val) const;
+    /**
+     * @brief Ranks a projection fact by multiplying the ranking coefficient
+     * of fact's variable with the fact's value.
+     *
+     * Given the projection fact \f$(i, d)\f$, computes the value
+     * \f$N_i \cdot d\f$ where \f$N_i = \prod_{j=0}^{i-1} |\mathcal{D}_j|\f$
+     * is the ranking coefficient of projection variable
+     * \f$i \in \{1, \dots, k\}\f$.
+     */
+    int rank_fact(int idx, int val) const;
 
-    StateRank convert(StateRank abstract_state, const Pattern& values) const;
+    /**
+     * @brief Compute the value of a projection variable for the abstract state
+     * of a state rank.
+     *
+     * In detail, computes the value
+     * \f[
+     * unrank(r)[v_i] = \lfloor \frac{r}{N_i} \rfloor \mod
+     * \mathcal{D}_i.
+     * \f]
+     */
+    int value_of(StateRank rank, int idx) const;
 
-    PartialAssignmentIterator
-    partial_assignments_begin(std::vector<FactPair> partial_state) const;
+    /**
+     * @brief Compute the lexicographically next partial assignment.
+     *
+     * @returns false iff the partial assignment is already maximal, i.e., all
+     * facts values are maximal. In this case, the partial assignment assigning
+     * all zeroes is returned.
+     */
+    bool next_partial_assignment(std::vector<FactPair>& partial_state) const;
 
-    std::default_sentinel_t partial_assignments_end() const;
-
-    std::ranges::subrange<PartialAssignmentIterator, std::default_sentinel_t>
-    partial_assignments(std::vector<FactPair> partial_state) const;
-
-    StateRankIterator
-    state_ranks_begin(StateRank offset, std::vector<int> indices) const;
-
-    std::default_sentinel_t state_ranks_end() const;
-
-    std::ranges::subrange<StateRankIterator, std::default_sentinel_t>
-    state_ranks(StateRank offset, std::vector<int> indices) const;
-
-    long long int get_multiplier(int var) const;
-
-    int get_domain_size(int var) const;
-
-    int get_index(int var) const;
+    /**
+     * @brief Compute the next-highest rank that corresponds to the same
+     * abstract state modulo a given subset of projection variable values.
+     *
+     * In detail, let \f$r\f$ be the input rank and let
+     * \f$\{i_1, \dots, i_m\}\f$
+     * be the subset of projection variables. Define
+     * \f[
+     *   d_{i_j} =
+     *   \begin{cases}
+     *   unrank(r)[v_{i_j}] + 1 &
+     *     unrank(r)[v_{i_j}] \neq \mathcal{D}_{i_j} - 1,\\
+     *   0 &
+     *     unrank(r)[v_{i_j}] = \mathcal{D}_{i_j} - 1.
+     *   \end{cases}
+     * \f]
+     * for \f$i \in \{1, \dots, m\}\f$.
+     * Then the returned rank is
+     * \f$r' = \sum_{i=0}^{k} N_i d_i'\f$.
+     *
+     * @returns false iff the rank is already maximal, in which case the lowest
+     * rank is returned.
+     */
+    bool next_rank(StateRank& s, std::span<int> mutable_variables) const;
 };
 
 class StateRankToString {

@@ -117,7 +117,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     Pattern pattern,
     value_t dead_end_cost)
-    : ranking_function_(task_proxy, std::move(pattern))
+    : ranking_function_(task_proxy.get_variables(), std::move(pattern))
     , value_table(ranking_function_.num_states(), dead_end_cost)
     , dead_end_cost(dead_end_cost)
 {
@@ -159,7 +159,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     compute_value_table(
         state_space,
         cost_function,
-        ranking_function_.rank(initial_state),
+        ranking_function_.get_abstract_rank(initial_state),
         heuristic,
         timer.get_remaining_time());
 }
@@ -246,7 +246,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     compute_value_table(
         state_space,
         cost_function,
-        ranking_function_.rank(initial_state),
+        ranking_function_.get_abstract_rank(initial_state),
         IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var),
         timer.get_remaining_time());
 }
@@ -299,7 +299,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     compute_value_table(
         state_space,
         cost_function,
-        ranking_function_.rank(initial_state),
+        ranking_function_.get_abstract_rank(initial_state),
         MergeEvaluator(ranking_function_, left, right),
         timer.get_remaining_time());
 }
@@ -327,6 +327,12 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 const Pattern& ProbabilisticPatternDatabase::get_pattern() const
 {
     return ranking_function_.get_pattern();
+}
+
+const StateRankingFunction&
+ProbabilisticPatternDatabase::get_state_ranking_function() const
+{
+    return ranking_function_;
 }
 
 unsigned int ProbabilisticPatternDatabase::num_states() const
@@ -367,7 +373,7 @@ EvaluationResult ProbabilisticPatternDatabase::evaluate(StateRank s) const
 
 StateRank ProbabilisticPatternDatabase::get_abstract_state(const State& s) const
 {
-    return ranking_function_.rank(s);
+    return ranking_function_.get_abstract_rank(s);
 }
 
 std::unique_ptr<ProjectionPolicy>

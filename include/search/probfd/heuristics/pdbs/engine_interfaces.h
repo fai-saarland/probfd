@@ -78,6 +78,12 @@ public:
         const ProbabilisticPatternDatabase& right);
 
     EvaluationResult evaluate(StateRank state) const override;
+
+private:
+    StateRank convert(
+        StateRank state_rank,
+        const StateRankingFunction& refined_mapping,
+        const StateRankingFunction& coarser_mapping) const;
 };
 
 /**

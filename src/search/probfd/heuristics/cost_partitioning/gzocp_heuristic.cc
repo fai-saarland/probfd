@@ -123,14 +123,14 @@ GZOCPHeuristic::GZOCPHeuristic(
     const State& initial_state = task_proxy.get_initial_state();
 
     for (const Pattern& pattern : *patterns) {
-        StateRankingFunction rankingf(task_proxy, pattern);
+        StateRankingFunction rankingf(task_proxy.get_variables(), pattern);
         ProjectionStateSpace state_space(
             task_proxy,
             rankingf,
             task_costs,
             false);
         InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
-        StateRank init_rank = rankingf.rank(initial_state);
+        StateRank init_rank = rankingf.get_abstract_rank(initial_state);
         auto& pdb = pdbs.emplace_back(
             state_space,
             std::move(rankingf),
