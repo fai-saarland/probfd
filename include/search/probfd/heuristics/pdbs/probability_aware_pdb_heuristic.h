@@ -14,10 +14,6 @@
 #include <ostream>
 #include <vector>
 
-namespace legacy {
-class GlobalState;
-}
-
 namespace options {
 class Options;
 class OptionParser;
