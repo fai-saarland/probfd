@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_DETERMINISTIC_H
-#define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_DETERMINISTIC_H
+#ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_CLASSICAL_H
+#define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_CLASSICAL_H
 
 #include "pdbs/pattern_generator.h"
 
@@ -18,24 +18,29 @@ namespace pdbs {
 
 class SubCollectionFinderFactory;
 
-class PatternCollectionGeneratorDeterministic
-    : public PatternCollectionGenerator {
+/**
+ * @brief The classical pattern generator adapter.
+ *
+ * Uses a classical pattern generation method on the determinization of the
+ * input task. If classical PDBs are constructed by the generation algorithm,
+ * they are used as a heuristic to compute the corresponding probability-aware
+ * PDBs.
+ */
+class PatternCollectionGeneratorClassical : public PatternCollectionGenerator {
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen;
     std::shared_ptr<SubCollectionFinderFactory> finder_factory;
 
-    PatternCollectionGeneratorDeterministic(
+    PatternCollectionGeneratorClassical(
         const utils::LogProxy& log,
         std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
         std::shared_ptr<SubCollectionFinderFactory> finder);
 
 public:
-    PatternCollectionGeneratorDeterministic(const options::Options& opts);
-    ~PatternCollectionGeneratorDeterministic() override = default;
+    PatternCollectionGeneratorClassical(const options::Options& opts);
+    ~PatternCollectionGeneratorClassical() override = default;
 
     PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;
-
-    std::shared_ptr<utils::Printable> get_report() const override;
 };
 
 } // namespace pdbs

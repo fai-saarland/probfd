@@ -1111,10 +1111,10 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME PPDB_DETERMINISTIC_GENERATOR
-    HELP "Deterministic pattern collection generator"
+    NAME PPDBS_CLASSICAL_GENERATOR
+    HELP "Classical pattern collection generator adapter"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_deterministic
+        probfd/heuristics/pdbs/pattern_collection_generator_classical
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 

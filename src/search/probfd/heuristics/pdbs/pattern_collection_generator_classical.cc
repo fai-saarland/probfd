@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/pattern_collection_generator_deterministic.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator_classical.h"
 
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
@@ -18,20 +18,19 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-PatternCollectionGeneratorDeterministic::
-    PatternCollectionGeneratorDeterministic(
-        const utils::LogProxy& log,
-        std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-        std::shared_ptr<SubCollectionFinderFactory> finder_factory)
+PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
+    const utils::LogProxy& log,
+    std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
+    std::shared_ptr<SubCollectionFinderFactory> finder_factory)
     : PatternCollectionGenerator(log)
     , gen(gen)
     , finder_factory(finder_factory)
 {
 }
 
-PatternCollectionGeneratorDeterministic::
-    PatternCollectionGeneratorDeterministic(const options::Options& opts)
-    : PatternCollectionGeneratorDeterministic(
+PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
+    const options::Options& opts)
+    : PatternCollectionGeneratorClassical(
           utils::get_log_from_options(opts),
           opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
               "generator"),
@@ -40,7 +39,7 @@ PatternCollectionGeneratorDeterministic::
 {
 }
 
-PatternCollectionInformation PatternCollectionGeneratorDeterministic::generate(
+PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
     const std::shared_ptr<ProbabilisticTask>& task)
 {
     ProbabilisticTaskProxy task_proxy(*task);
@@ -58,27 +57,19 @@ PatternCollectionInformation PatternCollectionGeneratorDeterministic::generate(
         finder);
 }
 
-std::shared_ptr<utils::Printable>
-PatternCollectionGeneratorDeterministic::get_report() const
-{
-    return nullptr;
-}
-
-static std::shared_ptr<PatternCollectionGeneratorDeterministic>
+static std::shared_ptr<PatternCollectionGeneratorClassical>
 _parse(OptionParser& parser)
 {
-    if (parser.dry_run()) {
-        return nullptr;
-    }
-
     parser.document_synopsis(
-        "Pattern Generator Adapter for the All Outcomes Determinization",
-        "Generates all the pattern collection according to the underlying "
-        "generator for the deterministic problem.");
+        "Classical Pattern Generation Adapter",
+        "Uses a classical pattern generation method on the determinization of "
+        "the input task. If classical PDBs are constructed by the generation "
+        "algorithm, they are used as a heuristic to compute the corresponding "
+        "probability-aware PDBs.");
 
     parser.add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
         "generator",
-        "The underlying pattern generator for the deterministic problem.",
+        "The classical pattern collection generator.",
         "systematic()");
 
     parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
@@ -88,13 +79,14 @@ _parse(OptionParser& parser)
 
     add_generator_options_to_parser(parser);
 
-    Options opts = parser.parse();
     if (parser.dry_run()) return nullptr;
 
-    return std::make_shared<PatternCollectionGeneratorDeterministic>(opts);
+    Options opts = parser.parse();
+    return std::make_shared<PatternCollectionGeneratorClassical>(opts);
 }
 
-static Plugin<PatternCollectionGenerator> _plugin("det_adapter", _parse);
+static Plugin<PatternCollectionGenerator>
+    _plugin("classical_generator", _parse);
 
 } // namespace pdbs
 } // namespace heuristics
