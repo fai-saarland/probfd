@@ -51,33 +51,6 @@ class PatternCollectionGeneratorHillclimbing
     struct Sample;
     class IncrementalPPDBs;
 
-    struct Statistics : public utils::Printable {
-        unsigned long long int num_iterations;
-        unsigned long long int generated_patterns;
-        unsigned long long int rejected_patterns;
-        unsigned long long int max_pdb_size;
-
-        double hillclimbing_time;
-
-        Statistics(
-            unsigned long long int num_iterations,
-            unsigned long long int generated_patterns,
-            unsigned long long int rejected_patterns,
-            unsigned long long int max_pdb_size,
-            double hillclimbing_time)
-            : num_iterations(num_iterations)
-            , generated_patterns(generated_patterns)
-            , rejected_patterns(rejected_patterns)
-            , max_pdb_size(max_pdb_size)
-            , hillclimbing_time(hillclimbing_time)
-        {
-        }
-
-        void print(std::ostream& out) const override;
-    };
-
-    std::shared_ptr<Statistics> statistics_;
-
     std::shared_ptr<PatternCollectionGenerator> initial_generator;
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
@@ -197,8 +170,6 @@ public:
     */
     PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;
-
-    std::shared_ptr<utils::Printable> get_report() const override;
 };
 
 } // namespace pdbs

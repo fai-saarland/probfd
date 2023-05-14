@@ -20,43 +20,6 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-void ProbabilisticPDBHeuristic::Statistics::print_construction_info(
-    std::ostream& out) const
-{
-    const double avg_variables = (double)variables / pdbs;
-    const double avg_abstract_states = (double)abstract_states / pdbs;
-
-    const double avg_subcollection_size =
-        (double)total_subcollections_size / num_subcollections;
-
-    out << "\n"
-        << "Pattern Databases Statistics:\n"
-        << "  Total number of PDBs: " << pdbs << "\n"
-        << "  Total number of variables: " << variables << "\n"
-        << "  Total number of abstract states: " << abstract_states << "\n"
-
-        << "  Average number of variables per PDB: " << avg_variables << "\n"
-        << "  Average number of abstract states per PDB: "
-        << avg_abstract_states << "\n"
-
-        << "  Largest pattern size: " << largest_pattern << "\n"
-
-        << "  Total number of subcollections: " << num_subcollections << "\n"
-        << "  Total number of subcollection PDBs: " << total_subcollections_size
-        << "\n"
-        << "  Average size of subcollection PDBs: " << avg_subcollection_size
-        << "\n"
-
-        << "  Generator time: " << generator_time << "s\n"
-        << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
-        << "  Total construction time: " << construction_time << "s\n";
-}
-
-void ProbabilisticPDBHeuristic::Statistics::print(std::ostream& out) const
-{
-    print_construction_info(out);
-}
-
 ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
     const options::Options& opts)
     : ProbabilisticPDBHeuristic(
@@ -102,46 +65,62 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
         dominance_pruning_time = timer();
     }
 
-    // Gather statistics.
-    const double construction_time = construction_timer();
+    if (log.is_at_least_normal()) {
+        // Gather statistics.
+        const double construction_time = construction_timer();
 
-    statistics_.generator_time = generator_time;
-    statistics_.dominance_pruning_time = dominance_pruning_time;
-    statistics_.construction_time = construction_time;
+        size_t largest_pattern = 0;
+        size_t variables = 0;
+        size_t abstract_states = 0;
 
-    statistics_.pdbs = pdbs->size();
+        for (auto pdb : *pdbs) {
+            size_t vars = pdb->get_pattern().size();
+            largest_pattern = std::max(largest_pattern, vars);
+            variables += vars;
+            abstract_states += pdb->num_states();
+        }
 
-    for (auto pdb : *pdbs) {
-        size_t vars = pdb->get_pattern().size();
-        statistics_.largest_pattern =
-            std::max(statistics_.largest_pattern, vars);
-        statistics_.variables += vars;
-        statistics_.abstract_states += pdb->num_states();
+        size_t total_subcollections_size = 0;
+
+        for (auto subcollection : *subcollections) {
+            total_subcollections_size += subcollection.size();
+        }
+
+        const double avg_variables = (double)variables / pdbs->size();
+        const double avg_abstract_states =
+            (double)abstract_states / pdbs->size();
+
+        const double avg_subcollection_size =
+            (double)total_subcollections_size / subcollections->size();
+
+        log << "\n"
+            << "Pattern Databases Statistics:\n"
+            << "  Total number of PDBs: " << pdbs->size() << "\n"
+            << "  Total number of variables: " << variables << "\n"
+            << "  Total number of abstract states: " << abstract_states << "\n"
+            << "  Average number of variables per PDB: " << avg_variables
+            << "\n"
+            << "  Average number of abstract states per PDB: "
+            << avg_abstract_states << "\n"
+
+            << "  Largest pattern size: " << largest_pattern << "\n"
+
+            << "  Total number of subcollections: " << subcollections->size()
+            << "\n"
+            << "  Total number of subcollection PDBs: "
+            << total_subcollections_size << "\n"
+            << "  Average size of subcollection PDBs: "
+            << avg_subcollection_size << "\n"
+
+            << "  Generator time: " << generator_time << "s\n"
+            << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
+            << "  Total construction time: " << construction_time << "s\n";
     }
-
-    statistics_.num_subcollections = subcollections->size();
-
-    for (auto subcollection : *subcollections) {
-        statistics_.total_subcollections_size += subcollection.size();
-    }
-
-    statistics_.print_construction_info(std::cout);
-
-    this->generator_report = generator->get_report();
 }
 
 EvaluationResult ProbabilisticPDBHeuristic::evaluate(const State& state) const
 {
     return subcollection_finder->evaluate(*pdbs, *subcollections, state);
-}
-
-void ProbabilisticPDBHeuristic::print_statistics() const
-{
-    if (generator_report) {
-        generator_report->print(std::cout);
-    }
-
-    statistics_.print(std::cout);
 }
 
 void ProbabilisticPDBHeuristic::add_options_to_parser(

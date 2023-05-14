@@ -400,18 +400,6 @@ bool PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
     return false;
 }
 
-void PatternCollectionGeneratorHillclimbing::Statistics::print(
-    std::ostream& out) const
-{
-    out << "\n"
-        << "Hill Climbing Generator Statistics:"
-        << "\n  Iterations: " << num_iterations
-        << "\n  Generated patterns: " << generated_patterns
-        << "\n  Rejected patterns: " << rejected_patterns
-        << "\n  Maximum candidate PDB size: " << max_pdb_size
-        << "\n  Time: " << hillclimbing_time << "s" << std::endl;
-}
-
 PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     const Options& opts)
     : PatternCollectionGenerator(opts)
@@ -762,15 +750,15 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
         }
     }
 
-    statistics_.reset(new Statistics(
-        num_iterations,
-        generated_patterns.size(),
-        num_rejected,
-        max_pdb_size,
-        hill_climbing_timer.get_elapsed_time()));
-
     if (log.is_at_least_normal()) {
-        statistics_->print(std::cout);
+        log << "\n"
+            << "Hill Climbing Generator Statistics:"
+            << "\n  Iterations: " << num_iterations
+            << "\n  Generated patterns: " << generated_patterns.size()
+            << "\n  Rejected patterns: " << num_rejected
+            << "\n  Maximum candidate PDB size: " << max_pdb_size
+            << "\n  Time: " << hill_climbing_timer.get_elapsed_time() << "s"
+            << std::endl;
     }
 }
 
@@ -819,12 +807,6 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
         current_pdbs.get_pattern_collection_information();
 
     return pci;
-}
-
-std::shared_ptr<utils::Printable>
-PatternCollectionGeneratorHillclimbing::get_report() const
-{
-    return statistics_;
 }
 
 void add_hillclimbing_options(OptionParser& parser)

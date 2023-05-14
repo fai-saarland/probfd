@@ -31,30 +31,6 @@ namespace pdbs {
  * @brief Additive Expected-Cost PDB heuristic.
  */
 class ProbabilisticPDBHeuristic : public TaskDependentHeuristic {
-    struct Statistics {
-        double generator_time = 0.0;
-        double dominance_pruning_time = 0.0;
-        double construction_time = 0.0;
-
-        size_t pdbs = 0;
-        size_t variables = 0;
-        size_t abstract_states = 0;
-        size_t largest_pattern = 0;
-
-        size_t num_subcollections = 0;
-        size_t total_subcollections_size = 0;
-
-        // Run-time statistics (expensive)
-        // TODO
-
-        void print_construction_info(std::ostream& out) const;
-        void print(std::ostream& out) const;
-    };
-
-    Statistics statistics_;
-
-    std::shared_ptr<utils::Printable> generator_report;
-
     std::shared_ptr<std::vector<Pattern>> patterns;
     std::shared_ptr<PPDBCollection> pdbs;
     std::shared_ptr<std::vector<PatternSubCollection>> subcollections;
@@ -71,8 +47,6 @@ public:
         std::shared_ptr<PatternCollectionGenerator> generator,
         double max_time_dominance_pruning,
         utils::LogProxy log);
-
-    void print_statistics() const override;
 
     EvaluationResult evaluate(const State& state) const override;
 

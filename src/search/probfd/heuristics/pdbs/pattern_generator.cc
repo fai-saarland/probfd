@@ -28,16 +28,6 @@ PatternGenerator::PatternGenerator(const utils::LogProxy& log)
 {
 }
 
-std::shared_ptr<utils::Printable> PatternCollectionGenerator::get_report() const
-{
-    return nullptr;
-};
-
-std::shared_ptr<utils::Printable> PatternGenerator::get_report() const
-{
-    return nullptr;
-};
-
 void add_generator_options_to_parser(options::OptionParser& parser)
 {
     utils::add_log_options_to_parser(parser);

@@ -29,8 +29,6 @@ public:
 
     virtual PatternCollectionInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) = 0;
-
-    virtual std::shared_ptr<utils::Printable> get_report() const;
 };
 
 class PatternGenerator {
@@ -44,8 +42,6 @@ public:
 
     virtual PatternInformation
     generate(const std::shared_ptr<ProbabilisticTask>& task) = 0;
-
-    virtual std::shared_ptr<utils::Printable> get_report() const;
 };
 
 extern void add_generator_options_to_parser(options::OptionParser& parser);
