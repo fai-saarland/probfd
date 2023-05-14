@@ -26,7 +26,7 @@ PatternCollectionGeneratorMultipleCegar::
 
 std::pair<
     std::shared_ptr<ProjectionStateSpace>,
-    std::shared_ptr<ProbabilisticPatternDatabase>>
+    std::shared_ptr<ProbabilityAwarePatternDatabase>>
 PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,

@@ -20,7 +20,7 @@ namespace pdbs {
 
 class ProjectionOperator;
 class StateRankingFunction;
-class ProbabilisticPatternDatabase;
+class ProbabilityAwarePatternDatabase;
 
 /// Type alias for heuristics for projection states.
 using StateRankEvaluator = engine_interfaces::Evaluator<StateRank>;
@@ -48,7 +48,7 @@ public:
 };
 
 class IncrementalPPDBEvaluator : public StateRankEvaluator {
-    const ProbabilisticPatternDatabase& pdb;
+    const ProbabilityAwarePatternDatabase& pdb;
 
     int left_multiplier;
     int right_multiplier;
@@ -56,7 +56,7 @@ class IncrementalPPDBEvaluator : public StateRankEvaluator {
 
 public:
     explicit IncrementalPPDBEvaluator(
-        const ProbabilisticPatternDatabase& pdb,
+        const ProbabilityAwarePatternDatabase& pdb,
         const StateRankingFunction* mapper,
         int add_var);
 
@@ -68,14 +68,14 @@ private:
 
 class MergeEvaluator : public StateRankEvaluator {
     const StateRankingFunction& mapper;
-    const ProbabilisticPatternDatabase& left;
-    const ProbabilisticPatternDatabase& right;
+    const ProbabilityAwarePatternDatabase& left;
+    const ProbabilityAwarePatternDatabase& right;
 
 public:
     MergeEvaluator(
         const StateRankingFunction& mapper,
-        const ProbabilisticPatternDatabase& left,
-        const ProbabilisticPatternDatabase& right);
+        const ProbabilityAwarePatternDatabase& left,
+        const ProbabilityAwarePatternDatabase& right);
 
     EvaluationResult evaluate(StateRank state) const override;
 

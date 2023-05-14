@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/pattern_information.h"
 
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include <cassert>
 
@@ -28,7 +28,7 @@ bool PatternInformation::information_is_valid() const
 void PatternInformation::create_pdb_if_missing()
 {
     if (!pdb) {
-        pdb = make_shared<ProbabilisticPatternDatabase>(
+        pdb = make_shared<ProbabilityAwarePatternDatabase>(
             task_proxy,
             pattern,
             *task_cost_function,
@@ -37,7 +37,7 @@ void PatternInformation::create_pdb_if_missing()
 }
 
 void PatternInformation::set_pdb(
-    const shared_ptr<ProbabilisticPatternDatabase>& pdb_)
+    const shared_ptr<ProbabilityAwarePatternDatabase>& pdb_)
 {
     pdb = pdb_;
     assert(information_is_valid());
@@ -48,7 +48,7 @@ const Pattern& PatternInformation::get_pattern() const
     return pattern;
 }
 
-shared_ptr<ProbabilisticPatternDatabase> PatternInformation::get_pdb()
+shared_ptr<ProbabilityAwarePatternDatabase> PatternInformation::get_pdb()
 {
     create_pdb_if_missing();
     return pdb;

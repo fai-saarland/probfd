@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/engines/ta_topological_value_iteration.h"
@@ -57,7 +57,7 @@ public:
 };
 } // namespace
 
-void ProbabilisticPatternDatabase::compute_value_table(
+void ProbabilityAwarePatternDatabase::compute_value_table(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
@@ -113,7 +113,7 @@ void ProbabilisticPatternDatabase::compute_value_table(
 #endif
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     Pattern pattern,
     value_t dead_end_cost)
@@ -123,7 +123,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 {
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     StateRankingFunction ranking_function,
     value_t dead_end_cost)
     : ranking_function_(std::move(ranking_function))
@@ -132,7 +132,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 {
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     Pattern pattern,
     TaskCostFunction& task_cost_function,
@@ -140,7 +140,7 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
     bool operator_pruning,
     const StateRankEvaluator& heuristic,
     double max_time)
-    : ProbabilisticPatternDatabase(
+    : ProbabilityAwarePatternDatabase(
           task_proxy,
           std::move(pattern),
           task_cost_function.get_non_goal_termination_cost())
@@ -164,14 +164,14 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         timer.get_remaining_time());
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic,
     double max_time)
-    : ProbabilisticPatternDatabase(
+    : ProbabilityAwarePatternDatabase(
           std::move(ranking_function),
           cost_function.get_non_goal_termination_cost())
 {
@@ -183,14 +183,14 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         max_time);
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const ::pdbs::PatternDatabase& pdb,
     TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
     double max_time)
-    : ProbabilisticPatternDatabase(
+    : ProbabilityAwarePatternDatabase(
           task_proxy,
           pdb.get_pattern(),
           task_cost_function,
@@ -201,14 +201,14 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 {
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const ::pdbs::PatternDatabase& pdb,
     double max_time)
-    : ProbabilisticPatternDatabase(
+    : ProbabilityAwarePatternDatabase(
           state_space,
           std::move(ranking_function),
           cost_function,
@@ -218,15 +218,15 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
 {
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
-    const ProbabilisticPatternDatabase& pdb,
+    const ProbabilityAwarePatternDatabase& pdb,
     int add_var,
     TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
     double max_time)
-    : ProbabilisticPatternDatabase(
+    : ProbabilityAwarePatternDatabase(
           task_proxy,
           extended_pattern(pdb.get_pattern(), add_var),
           task_cost_function.get_non_goal_termination_cost())
@@ -251,15 +251,15 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         timer.get_remaining_time());
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
-    const ProbabilisticPatternDatabase& pdb,
+    const ProbabilityAwarePatternDatabase& pdb,
     int add_var,
     double max_time)
-    : ProbabilisticPatternDatabase(
+    : ProbabilityAwarePatternDatabase(
           std::move(ranking_function),
           cost_function.get_non_goal_termination_cost())
 {
@@ -271,15 +271,15 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         max_time);
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
-    const ProbabilisticPatternDatabase& left,
-    const ProbabilisticPatternDatabase& right,
+    const ProbabilityAwarePatternDatabase& left,
+    const ProbabilityAwarePatternDatabase& right,
     TaskCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
     double max_time)
-    : ProbabilisticPatternDatabase(
+    : ProbabilityAwarePatternDatabase(
           task_proxy,
           utils::merge_sorted(left.get_pattern(), right.get_pattern()),
           task_cost_function.get_non_goal_termination_cost())
@@ -304,15 +304,15 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         timer.get_remaining_time());
 }
 
-ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProjectionStateSpace& state_space,
     StateRankingFunction ranking_function,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
-    const ProbabilisticPatternDatabase& left,
-    const ProbabilisticPatternDatabase& right,
+    const ProbabilityAwarePatternDatabase& left,
+    const ProbabilityAwarePatternDatabase& right,
     double max_time)
-    : ProbabilisticPatternDatabase(
+    : ProbabilityAwarePatternDatabase(
           std::move(ranking_function),
           cost_function.get_non_goal_termination_cost())
 {
@@ -324,60 +324,61 @@ ProbabilisticPatternDatabase::ProbabilisticPatternDatabase(
         max_time);
 }
 
-const Pattern& ProbabilisticPatternDatabase::get_pattern() const
+const Pattern& ProbabilityAwarePatternDatabase::get_pattern() const
 {
     return ranking_function_.get_pattern();
 }
 
 const StateRankingFunction&
-ProbabilisticPatternDatabase::get_state_ranking_function() const
+ProbabilityAwarePatternDatabase::get_state_ranking_function() const
 {
     return ranking_function_;
 }
 
-unsigned int ProbabilisticPatternDatabase::num_states() const
+unsigned int ProbabilityAwarePatternDatabase::num_states() const
 {
     return ranking_function_.num_states();
 }
 
-bool ProbabilisticPatternDatabase::is_dead_end(const State& s) const
+bool ProbabilityAwarePatternDatabase::is_dead_end(const State& s) const
 {
     return is_dead_end(get_abstract_state(s));
 }
 
-bool ProbabilisticPatternDatabase::is_dead_end(StateRank s) const
+bool ProbabilityAwarePatternDatabase::is_dead_end(StateRank s) const
 {
     return lookup_estimate(s) == dead_end_cost;
 }
 
-value_t ProbabilisticPatternDatabase::lookup_estimate(const State& s) const
+value_t ProbabilityAwarePatternDatabase::lookup_estimate(const State& s) const
 {
     return lookup_estimate(get_abstract_state(s));
 }
 
-value_t ProbabilisticPatternDatabase::lookup_estimate(StateRank s) const
+value_t ProbabilityAwarePatternDatabase::lookup_estimate(StateRank s) const
 {
     return value_table[s.id];
 }
 
-EvaluationResult ProbabilisticPatternDatabase::evaluate(const State& s) const
+EvaluationResult ProbabilityAwarePatternDatabase::evaluate(const State& s) const
 {
     return evaluate(get_abstract_state(s));
 }
 
-EvaluationResult ProbabilisticPatternDatabase::evaluate(StateRank s) const
+EvaluationResult ProbabilityAwarePatternDatabase::evaluate(StateRank s) const
 {
     const value_t value = this->lookup_estimate(s);
     return {value == dead_end_cost, value};
 }
 
-StateRank ProbabilisticPatternDatabase::get_abstract_state(const State& s) const
+StateRank
+ProbabilityAwarePatternDatabase::get_abstract_state(const State& s) const
 {
     return ranking_function_.get_abstract_rank(s);
 }
 
 std::unique_ptr<ProjectionPolicy>
-ProbabilisticPatternDatabase::compute_optimal_projection_policy(
+ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
@@ -503,7 +504,7 @@ ProbabilisticPatternDatabase::compute_optimal_projection_policy(
 }
 
 std::unique_ptr<ProjectionPolicy>
-ProbabilisticPatternDatabase::compute_greedy_projection_policy(
+ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
@@ -604,7 +605,7 @@ ProbabilisticPatternDatabase::compute_greedy_projection_policy(
     return std::unique_ptr<ProjectionPolicy>(policy);
 }
 
-void ProbabilisticPatternDatabase::compute_saturated_costs(
+void ProbabilityAwarePatternDatabase::compute_saturated_costs(
     ProjectionStateSpace& state_space,
     std::vector<value_t>& saturated_costs) const
 {
@@ -649,7 +650,7 @@ void ProbabilisticPatternDatabase::compute_saturated_costs(
     }
 }
 
-void ProbabilisticPatternDatabase::dump_graphviz(
+void ProbabilityAwarePatternDatabase::dump_graphviz(
     const ProbabilisticTaskProxy& task_proxy,
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
@@ -697,7 +698,7 @@ void ProbabilisticPatternDatabase::dump_graphviz(
 }
 
 #if !defined(NDEBUG) && defined(USE_LP)
-void ProbabilisticPatternDatabase::verify(
+void ProbabilityAwarePatternDatabase::verify(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,

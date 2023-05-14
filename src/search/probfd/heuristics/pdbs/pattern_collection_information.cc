@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
 
 #include "pdbs/pattern_cliques.h"
@@ -39,7 +39,7 @@ PatternCollectionInformation::PatternCollectionInformation(
     pdbs_ = make_shared<PPDBCollection>();
 
     for (size_t i = 0; i != pdbs->size(); ++i) {
-        pdbs_->emplace_back(new ProbabilisticPatternDatabase(
+        pdbs_->emplace_back(new ProbabilityAwarePatternDatabase(
             task_proxy,
             *pdbs->operator[](i),
             *task_cost_function,
@@ -110,7 +110,7 @@ void PatternCollectionInformation::create_pdbs_if_missing()
         cout << "Computing PDBs for pattern collection..." << endl;
         pdbs_ = make_shared<PPDBCollection>();
         for (const Pattern& pattern : *patterns_) {
-            pdbs_->emplace_back(new ProbabilisticPatternDatabase(
+            pdbs_->emplace_back(new ProbabilityAwarePatternDatabase(
                 task_proxy,
                 pattern,
                 *task_cost_function,

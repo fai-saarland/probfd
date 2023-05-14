@@ -43,7 +43,7 @@ PDBInfo::PDBInfo(
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(
           ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
-    , pdb(new ProbabilisticPatternDatabase(
+    , pdb(new ProbabilityAwarePatternDatabase(
           *state_space,
           std::move(ranking_function),
           cost_function,
@@ -64,7 +64,7 @@ PDBInfo::PDBInfo(
     StateRankingFunction ranking_function,
     TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const ProbabilisticPatternDatabase& previous,
+    const ProbabilityAwarePatternDatabase& previous,
     int add_var,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -77,7 +77,7 @@ PDBInfo::PDBInfo(
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(
           ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
-    , pdb(new ProbabilisticPatternDatabase(
+    , pdb(new ProbabilityAwarePatternDatabase(
           *state_space,
           std::move(ranking_function),
           cost_function,
@@ -99,8 +99,8 @@ PDBInfo::PDBInfo(
     StateRankingFunction ranking_function,
     TaskCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const ProbabilisticPatternDatabase& left,
-    const ProbabilisticPatternDatabase& right,
+    const ProbabilityAwarePatternDatabase& left,
+    const ProbabilityAwarePatternDatabase& right,
     bool wildcard,
     utils::CountdownTimer& timer)
     : state_space(new ProjectionStateSpace(
@@ -112,7 +112,7 @@ PDBInfo::PDBInfo(
     , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(
           ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
-    , pdb(new ProbabilisticPatternDatabase(
+    , pdb(new ProbabilityAwarePatternDatabase(
           *state_space,
           std::move(ranking_function),
           cost_function,
@@ -134,7 +134,7 @@ const Pattern& PDBInfo::get_pattern() const
     return pdb->get_pattern();
 }
 
-const ProbabilisticPatternDatabase& PDBInfo::get_pdb() const
+const ProbabilityAwarePatternDatabase& PDBInfo::get_pdb() const
 {
     assert(pdb);
     return *pdb;
@@ -155,7 +155,7 @@ std::unique_ptr<ProjectionStateSpace> PDBInfo::extract_state_space()
     return std::move(state_space);
 }
 
-std::unique_ptr<ProbabilisticPatternDatabase> PDBInfo::extract_pdb()
+std::unique_ptr<ProbabilityAwarePatternDatabase> PDBInfo::extract_pdb()
 {
     return std::move(pdb);
 }
@@ -387,8 +387,8 @@ void CEGAR::merge_patterns(
     PDBInfo& solution1 = *pdb_infos[index1];
     PDBInfo& solution2 = *pdb_infos[index2];
 
-    const ProbabilisticPatternDatabase& pdb1 = solution1.get_pdb();
-    const ProbabilisticPatternDatabase& pdb2 = solution2.get_pdb();
+    const ProbabilityAwarePatternDatabase& pdb1 = solution1.get_pdb();
+    const ProbabilityAwarePatternDatabase& pdb2 = solution2.get_pdb();
 
     // update look-up table
     for (int var : solution2.get_pattern()) {

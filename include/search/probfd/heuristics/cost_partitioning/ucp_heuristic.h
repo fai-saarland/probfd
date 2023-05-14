@@ -21,7 +21,7 @@ namespace heuristics {
 namespace pdbs {
 
 class UCPHeuristic : public TaskDependentHeuristic {
-    std::vector<ProbabilisticPatternDatabase> pdbs;
+    std::vector<ProbabilityAwarePatternDatabase> pdbs;
 
 public:
     explicit UCPHeuristic(const options::Options& opts);

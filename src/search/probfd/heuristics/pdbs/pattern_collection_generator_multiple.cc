@@ -2,7 +2,7 @@
 
 #include "probfd/cost_model.h"
 #include "probfd/heuristics/pdbs/fully_additive_finder.h"
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
 
 #include "task_utils/task_properties.h"

@@ -1,6 +1,6 @@
 #include "probfd/heuristics/cost_partitioning/gzocp_heuristic.h"
 
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -49,7 +49,7 @@ public:
         return ::task_properties::is_goal_state(task_proxy, state);
     }
 
-    void decrease_costs(const ProbabilisticPatternDatabase& pdb)
+    void decrease_costs(const ProbabilityAwarePatternDatabase& pdb)
     {
         for (size_t op_id = 0; op_id != costs.size(); ++op_id) {
             const bool affects_pdb = utils::have_common_element(

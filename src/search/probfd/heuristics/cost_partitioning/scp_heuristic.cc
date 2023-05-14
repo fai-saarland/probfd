@@ -1,6 +1,6 @@
 #include "probfd/heuristics/cost_partitioning/scp_heuristic.h"
 
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include "probfd/task_utils/task_properties.h"
 

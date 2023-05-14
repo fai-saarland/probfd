@@ -21,7 +21,7 @@ class PatternInformation {
     ProbabilisticTaskProxy task_proxy;
     Pattern pattern;
     TaskCostFunction* task_cost_function;
-    std::shared_ptr<ProbabilisticPatternDatabase> pdb;
+    std::shared_ptr<ProbabilityAwarePatternDatabase> pdb;
 
     void create_pdb_if_missing();
 
@@ -33,12 +33,12 @@ public:
         TaskCostFunction* task_cost_function,
         Pattern pattern);
 
-    void set_pdb(const std::shared_ptr<ProbabilisticPatternDatabase>& pdb);
+    void set_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);
 
     ProbabilisticTaskProxy get_task_proxy() const { return task_proxy; }
 
     const Pattern& get_pattern() const;
-    std::shared_ptr<ProbabilisticPatternDatabase> get_pdb();
+    std::shared_ptr<ProbabilityAwarePatternDatabase> get_pdb();
 };
 
 } // namespace pdbs

@@ -1,7 +1,7 @@
-#include "probfd/heuristics/pdbs/probabilistic_pdb_heuristic.h"
+#include "probfd/heuristics/pdbs/probability_aware_pdb_heuristic.h"
 
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include "pdbs/dominance_pruning.h"
 
@@ -20,9 +20,9 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
+ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     const options::Options& opts)
-    : ProbabilisticPDBHeuristic(
+    : ProbabilityAwarePDBHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
           opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
           opts.get<double>("max_time_dominance_pruning"),
@@ -30,7 +30,7 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
 {
 }
 
-ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
+ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<PatternCollectionGenerator> generator,
     double max_time_dominance_pruning,
@@ -118,24 +118,39 @@ ProbabilisticPDBHeuristic::ProbabilisticPDBHeuristic(
     }
 }
 
-EvaluationResult ProbabilisticPDBHeuristic::evaluate(const State& state) const
+EvaluationResult
+ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
 {
     return subcollection_finder->evaluate(*pdbs, *subcollections, state);
 }
 
-void ProbabilisticPDBHeuristic::add_options_to_parser(
+void ProbabilityAwarePDBHeuristic::add_options_to_parser(
     options::OptionParser& parser)
 {
+    parser.document_synopsis(
+        "Probability-aware Pattern database heuristic",
+        "An admissible heuristic obtained by combining multiple projection "
+        "heuristics.");
+
+    parser.document_language_support("action costs", "supported");
+    parser.document_language_support("conditional effects", "not supported");
+    parser.document_language_support("axioms", "not supported");
+
+    parser.document_property("admissible", "yes");
+    parser.document_property("consistent", "yes");
+    parser.document_property("safe", "yes");
+
     TaskDependentHeuristic::add_options_to_parser(parser);
     parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "patterns",
         "",
-        "det_adapter(generator=systematic(pattern_max_size=2))");
+        "classical_generator(generator=systematic(pattern_max_size=2))");
     parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
 }
 
-static Plugin<TaskEvaluator>
-    _plugin("ppdbs", options::parse<TaskEvaluator, ProbabilisticPDBHeuristic>);
+static Plugin<TaskEvaluator> _plugin(
+    "ppdbs",
+    options::parse<TaskEvaluator, ProbabilityAwarePDBHeuristic>);
 
 } // namespace pdbs
 } // namespace heuristics

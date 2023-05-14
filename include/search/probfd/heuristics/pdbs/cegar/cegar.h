@@ -2,7 +2,7 @@
 #define PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 
 #include "probfd/heuristics/pdbs/pattern_generator.h"
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_policy.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
@@ -57,7 +57,7 @@ class PDBInfo {
     std::unique_ptr<ProjectionStateSpace> state_space;
     InducedProjectionCostFunction cost_function;
     StateRank initial_state;
-    std::unique_ptr<ProbabilisticPatternDatabase> pdb;
+    std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
     std::unique_ptr<ProjectionPolicy> policy;
     bool solved = false;
 
@@ -75,7 +75,7 @@ public:
         StateRankingFunction ranking_function,
         TaskCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const ProbabilisticPatternDatabase& previous,
+        const ProbabilityAwarePatternDatabase& previous,
         int add_var,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -85,21 +85,21 @@ public:
         StateRankingFunction ranking_function,
         TaskCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const ProbabilisticPatternDatabase& merge_left,
-        const ProbabilisticPatternDatabase& merge_right,
+        const ProbabilityAwarePatternDatabase& merge_left,
+        const ProbabilityAwarePatternDatabase& merge_right,
         bool wildcard,
         utils::CountdownTimer& timer);
 
     const Pattern& get_pattern() const;
 
-    const ProbabilisticPatternDatabase& get_pdb() const;
+    const ProbabilityAwarePatternDatabase& get_pdb() const;
 
     const ProjectionPolicy& get_policy() const;
 
     value_t get_policy_cost(const State& state) const;
 
     std::unique_ptr<ProjectionStateSpace> extract_state_space();
-    std::unique_ptr<ProbabilisticPatternDatabase> extract_pdb();
+    std::unique_ptr<ProbabilityAwarePatternDatabase> extract_pdb();
 
     bool is_solved() const;
 

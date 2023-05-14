@@ -1070,12 +1070,12 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME PROBABILISTIC_PDBS
+    NAME PROBABILITY_AWARE_PDBS
     HELP "Probability-aware PDBs base classes"
     SOURCES
         probfd/heuristics/pdbs/engine_interfaces
         probfd/heuristics/pdbs/match_tree
-        probfd/heuristics/pdbs/probabilistic_pattern_database
+        probfd/heuristics/pdbs/probability_aware_pattern_database
         probfd/heuristics/pdbs/projection_operator
         probfd/heuristics/pdbs/projection_state_space
         probfd/heuristics/pdbs/state_rank
@@ -1106,7 +1106,7 @@ fast_downward_plugin(
 
         probfd/heuristics/pdbs/projection_policy
         probfd/heuristics/pdbs/utils
-    DEPENDS PROBABILISTIC_PDBS CAUSAL_GRAPH MAX_CLIQUES
+    DEPENDS PROBABILITY_AWARE_PDBS CAUSAL_GRAPH MAX_CLIQUES
     DEPENDENCY_ONLY
 )
 
@@ -1155,38 +1155,38 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
-    NAME PROBABILISTIC_PDB_HEURISTIC
+    NAME PROBABILITY_AWARE_PDB_HEURISTIC
     HELP "Probability-aware PDB heuristic"
     SOURCES
-        probfd/heuristics/pdbs/probabilistic_pdb_heuristic
-    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+        probfd/heuristics/pdbs/probability_aware_pdb_heuristic
+    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
 )
 
 fast_downward_plugin(
     NAME SCP_PDB_HEURISTIC
-    HELP "Saturated Cost-Partitioning heuristic for probabilistic PDBs"
+    HELP "Saturated Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
         probfd/heuristics/cost_partitioning/scp_heuristic
 
-    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
 )
 
 fast_downward_plugin(
     NAME UCP_PDB_HEURISTIC
-    HELP "Uniform Cost-Partitioning heuristic for probabilistic PDBs"
+    HELP "Uniform Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
         probfd/heuristics/cost_partitioning/ucp_heuristic
 
-    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
 )
 
 fast_downward_plugin(
     NAME GZOCP_PDB_HEURISTIC
-    HELP "Greedy Zero-One Cost-Partitioning heuristic for probabilistic PDBs"
+    HELP "Greedy Zero-One Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
         probfd/heuristics/cost_partitioning/gzocp_heuristic
 
-    DEPENDS PROBABILISTIC_PDBS PPDBS_PATTERN_GENERATORS
+    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
 )
 
 fast_downward_plugin(

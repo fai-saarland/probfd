@@ -27,7 +27,7 @@ namespace pdbs {
 class GZOCPHeuristic : public TaskDependentHeuristic {
     enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
 
-    std::vector<ProbabilisticPatternDatabase> pdbs;
+    std::vector<ProbabilityAwarePatternDatabase> pdbs;
     OrderingStrategy ordering;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 

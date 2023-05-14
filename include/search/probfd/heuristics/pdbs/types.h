@@ -13,7 +13,7 @@ namespace heuristics {
 namespace pdbs {
 
 class ProjectionStateSpace;
-class ProbabilisticPatternDatabase;
+class ProbabilityAwarePatternDatabase;
 
 using PatternCollection = ::pdbs::PatternCollection;
 using Pattern = ::pdbs::Pattern;
@@ -22,7 +22,7 @@ using PatternSubCollection = std::vector<PatternID>;
 
 using ProjectionCollection = std::vector<std::unique_ptr<ProjectionStateSpace>>;
 using PPDBCollection =
-    std::vector<std::shared_ptr<ProbabilisticPatternDatabase>>;
+    std::vector<std::shared_ptr<ProbabilityAwarePatternDatabase>>;
 
 } // namespace pdbs
 } // namespace heuristics

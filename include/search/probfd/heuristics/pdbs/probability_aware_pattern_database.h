@@ -9,7 +9,6 @@
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-
 #include "probfd/heuristics/constant_evaluator.h"
 
 #include "probfd/utils/graph_visualization.h"
@@ -44,17 +43,17 @@ namespace pdbs {
  * it was constructed. The state space should be pre-computed and stored
  * seperately if it is needed.
  */
-class ProbabilisticPatternDatabase {
+class ProbabilityAwarePatternDatabase {
     StateRankingFunction ranking_function_;
     std::vector<value_t> value_table;
     const value_t dead_end_cost;
 
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         Pattern pattern,
         value_t dead_end_cost);
 
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         StateRankingFunction ranking_function,
         value_t dead_end_cost);
 
@@ -85,7 +84,7 @@ public:
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         Pattern pattern,
         TaskCostFunction& task_cost_function,
@@ -110,7 +109,7 @@ public:
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& projection,
         StateRankingFunction ranking_function,
         ProjectionCostFunction& projection_cost_function,
@@ -136,7 +135,7 @@ public:
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         const ::pdbs::PatternDatabase& pdb,
         TaskCostFunction& task_cost_function,
@@ -161,7 +160,7 @@ public:
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& projection,
         StateRankingFunction ranking_function,
         ProjectionCostFunction& projection_cost_function,
@@ -191,9 +190,9 @@ public:
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
-        const ProbabilisticPatternDatabase& pdb,
+        const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
         TaskCostFunction& task_cost_function,
         const State& initial_state,
@@ -221,12 +220,12 @@ public:
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
         ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
-        const ProbabilisticPatternDatabase& pdb,
+        const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
         double max_time = std::numeric_limits<double>::infinity());
 
@@ -254,10 +253,10 @@ public:
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
-        const ProbabilisticPatternDatabase& left,
-        const ProbabilisticPatternDatabase& right,
+        const ProbabilityAwarePatternDatabase& left,
+        const ProbabilityAwarePatternDatabase& right,
         TaskCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
@@ -283,13 +282,13 @@ public:
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
-    ProbabilisticPatternDatabase(
+    ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
         ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
-        const ProbabilisticPatternDatabase& left,
-        const ProbabilisticPatternDatabase& right,
+        const ProbabilityAwarePatternDatabase& left,
+        const ProbabilityAwarePatternDatabase& right,
         double max_time = std::numeric_limits<double>::infinity());
 
     /// Get the pattern of the pattern database.

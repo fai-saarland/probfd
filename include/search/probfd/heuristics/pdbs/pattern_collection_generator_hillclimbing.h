@@ -84,7 +84,7 @@ class PatternCollectionGeneratorHillclimbing
         TaskCostFunction& task_cost_function,
         utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
-        const ProbabilisticPatternDatabase& pdb,
+        const ProbabilityAwarePatternDatabase& pdb,
         std::set<DynamicBitset>& generated_patterns,
         PPDBCollection& candidate_pdbs);
 
@@ -123,7 +123,7 @@ class PatternCollectionGeneratorHillclimbing
       the h-value of the current pattern collection.
     */
     bool is_heuristic_improved(
-        const ProbabilisticPatternDatabase& pdb,
+        const ProbabilityAwarePatternDatabase& pdb,
         const Sample& sample,
         const PPDBCollection& pdbs,
         const std::vector<PatternSubCollection>& pattern_subcollections,

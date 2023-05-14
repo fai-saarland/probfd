@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing.h"
 
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
 #include "probfd/cost_model.h"
@@ -182,10 +182,10 @@ public:
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
     // Adds a new PDB to the collection and recomputes pattern_subcollections.
-    void add_pdb(const std::shared_ptr<ProbabilisticPatternDatabase>& pdb);
+    void add_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);
 
     int count_improvements(
-        const ProbabilisticPatternDatabase& pdb,
+        const ProbabilityAwarePatternDatabase& pdb,
         const std::vector<PatternCollectionGeneratorHillclimbing::Sample>&
             samples) const;
 
@@ -209,7 +209,7 @@ public:
 
 private:
     bool is_heuristic_improved(
-        const ProbabilisticPatternDatabase& pdb,
+        const ProbabilityAwarePatternDatabase& pdb,
         const PatternCollectionGeneratorHillclimbing::Sample& sample,
         const std::vector<PatternSubCollection>& pattern_subcollections) const;
 };
@@ -252,7 +252,7 @@ void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
     add_pdb_for_pattern(const Pattern& pattern, const State& initial_state)
 {
     auto& pdb =
-        pattern_databases->emplace_back(new ProbabilisticPatternDatabase(
+        pattern_databases->emplace_back(new ProbabilityAwarePatternDatabase(
             task_proxy,
             pattern,
             *task_cost_function,
@@ -261,7 +261,7 @@ void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
 }
 
 void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::add_pdb(
-    const std::shared_ptr<ProbabilisticPatternDatabase>& pdb)
+    const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb)
 {
     patterns->push_back(pdb->get_pattern());
     auto& new_pdb = pattern_databases->emplace_back(pdb);
@@ -278,7 +278,7 @@ void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
 
 int PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
     count_improvements(
-        const ProbabilisticPatternDatabase& pdb,
+        const ProbabilityAwarePatternDatabase& pdb,
         const std::vector<Sample>& samples) const
 {
     int count = 0;
@@ -351,7 +351,7 @@ PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::get_size() const
 
 bool PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
     is_heuristic_improved(
-        const ProbabilisticPatternDatabase& pdb,
+        const ProbabilityAwarePatternDatabase& pdb,
         const Sample& sample,
         const std::vector<PatternSubCollection>& pattern_subcollections) const
 {
@@ -427,7 +427,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     TaskCostFunction& task_cost_function,
     utils::CountdownTimer& hill_climbing_timer,
     const std::vector<std::vector<int>>& relevant_neighbours,
-    const ProbabilisticPatternDatabase& pdb,
+    const ProbabilityAwarePatternDatabase& pdb,
     std::set<DynamicBitset>& generated_patterns,
     PPDBCollection& candidate_pdbs)
 {
@@ -503,7 +503,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 surpass the size limit.
             */
             auto& new_pdb =
-                candidate_pdbs.emplace_back(new ProbabilisticPatternDatabase(
+                candidate_pdbs.emplace_back(new ProbabilityAwarePatternDatabase(
                     task_proxy,
                     pdb,
                     rel_var_id,

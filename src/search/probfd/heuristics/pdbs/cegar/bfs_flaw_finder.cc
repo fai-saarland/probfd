@@ -59,7 +59,7 @@ bool BFSFlawFinder::apply_policy(
 
     const PDBInfo& solution = *base.pdb_infos[solution_index];
     const ProjectionPolicy& policy = solution.get_policy();
-    const ProbabilisticPatternDatabase& pdb = solution.get_pdb();
+    const ProbabilityAwarePatternDatabase& pdb = solution.get_pdb();
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
 

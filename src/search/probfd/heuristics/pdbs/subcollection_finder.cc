@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/subcollection_finder.h"
 
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include "plugin.h"
 

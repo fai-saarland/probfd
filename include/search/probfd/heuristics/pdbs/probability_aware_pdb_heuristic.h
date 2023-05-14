@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
-#define PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PDB_HEURISTIC_H
+#ifndef PROBFD_HEURISTICS_PDBS_PROBAIBLITY_AWARE_PDB_HEURISTIC_H
+#define PROBFD_HEURISTICS_PDBS_PROBAIBLITY_AWARE_PDB_HEURISTIC_H
 
 #include "probfd/heuristics/pdbs/pattern_generator.h"
 
@@ -28,9 +28,13 @@ namespace heuristics {
 namespace pdbs {
 
 /**
- * @brief Additive Expected-Cost PDB heuristic.
+ * @brief The probability-aware PDB heuristic.
+ *
+ * Combines multiple projections heuristics. The type of combination is
+ * specified by the configuration of the pattern collection generation
+ * algorithms (see options).
  */
-class ProbabilisticPDBHeuristic : public TaskDependentHeuristic {
+class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
     std::shared_ptr<std::vector<Pattern>> patterns;
     std::shared_ptr<PPDBCollection> pdbs;
     std::shared_ptr<std::vector<PatternSubCollection>> subcollections;
@@ -40,9 +44,9 @@ public:
     /**
      * @brief Construct from options.
      */
-    explicit ProbabilisticPDBHeuristic(const options::Options& opts);
+    explicit ProbabilityAwarePDBHeuristic(const options::Options& opts);
 
-    ProbabilisticPDBHeuristic(
+    ProbabilityAwarePDBHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<PatternCollectionGenerator> generator,
         double max_time_dominance_pruning,

@@ -25,12 +25,12 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class ProbabilisticPatternDatabase;
+class ProbabilityAwarePatternDatabase;
 
 class SCPHeuristic : public TaskDependentHeuristic {
     enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
 
-    std::vector<ProbabilisticPatternDatabase> pdbs;
+    std::vector<ProbabilityAwarePatternDatabase> pdbs;
     OrderingStrategy ordering;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 

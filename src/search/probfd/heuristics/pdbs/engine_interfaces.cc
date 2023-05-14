@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/engine_interfaces.h"
 
-#include "probfd/heuristics/pdbs/probabilistic_pattern_database.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 
 #include "probfd/task_proxy.h"
@@ -47,7 +47,7 @@ EvaluationResult DeadendPDBEvaluator::evaluate(StateRank state) const
 }
 
 IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
-    const ProbabilisticPatternDatabase& pdb,
+    const ProbabilityAwarePatternDatabase& pdb,
     const StateRankingFunction* mapper,
     int add_var)
     : pdb(pdb)
@@ -79,8 +79,8 @@ StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank state) const
 
 MergeEvaluator::MergeEvaluator(
     const StateRankingFunction& mapper,
-    const ProbabilisticPatternDatabase& left,
-    const ProbabilisticPatternDatabase& right)
+    const ProbabilityAwarePatternDatabase& left,
+    const ProbabilityAwarePatternDatabase& right)
     : mapper(mapper)
     , left(left)
     , right(right)
