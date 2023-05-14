@@ -83,6 +83,17 @@ public:
     StateRank get_abstract_rank(const State& state) const;
 
     /**
+     * @brief Ranks a projection fact by multiplying the ranking coefficient
+     * of fact's variable with the fact's value.
+     *
+     * Given the projection fact \f$(i, d)\f$, computes the value
+     * \f$N_i \cdot d\f$ where \f$N_i = \prod_{j=0}^{i-1} |\mathcal{D}_j|\f$
+     * is the ranking coefficient of projection variable
+     * \f$i \in \{1, \dots, k\}\f$.
+     */
+    int rank_fact(int idx, int val) const;
+
+    /**
      * @brief Unrank a given state rank and converts it into an explicit
      * abstract state.
      *
@@ -98,17 +109,6 @@ public:
      * \f$i \in \{1, \dots, k\}\f$.
      */
     std::vector<int> unrank(StateRank abstract_state) const;
-
-    /**
-     * @brief Ranks a projection fact by multiplying the ranking coefficient
-     * of fact's variable with the fact's value.
-     *
-     * Given the projection fact \f$(i, d)\f$, computes the value
-     * \f$N_i \cdot d\f$ where \f$N_i = \prod_{j=0}^{i-1} |\mathcal{D}_j|\f$
-     * is the ranking coefficient of projection variable
-     * \f$i \in \{1, \dots, k\}\f$.
-     */
-    int rank_fact(int idx, int val) const;
 
     /**
      * @brief Compute the value of a projection variable for the abstract state

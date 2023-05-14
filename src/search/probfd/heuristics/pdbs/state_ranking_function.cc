@@ -75,17 +75,6 @@ const Pattern& StateRankingFunction::get_pattern() const
     return pattern_;
 }
 
-int StateRankingFunction::rank_fact(int idx, int val) const
-{
-    return var_infos_[idx].multiplier * val;
-}
-
-int StateRankingFunction::value_of(StateRank state_rank, int idx) const
-{
-    const VariableInfo& info = var_infos_[idx];
-    return (state_rank.id / info.multiplier) % info.domain;
-}
-
 StateRank StateRankingFunction::get_abstract_rank(const State& state) const
 {
     StateRank res(0);
@@ -95,6 +84,11 @@ StateRank StateRankingFunction::get_abstract_rank(const State& state) const
     return res;
 }
 
+int StateRankingFunction::rank_fact(int idx, int val) const
+{
+    return var_infos_[idx].multiplier * val;
+}
+
 std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
 {
     std::vector<int> values(var_infos_.size());
@@ -102,6 +96,12 @@ std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
         values[i] = value_of(state_rank, i);
     }
     return values;
+}
+
+int StateRankingFunction::value_of(StateRank state_rank, int idx) const
+{
+    const VariableInfo& info = var_infos_[idx];
+    return (state_rank.id / info.multiplier) % info.domain;
 }
 
 bool StateRankingFunction::next_partial_assignment(
