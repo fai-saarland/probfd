@@ -15,14 +15,18 @@ FetchContent_MakeAvailable(googletest)
 add_executable(
     probfd_tests
     test_main.cpp
-    cartesian_tests.cpp
+    fp_tests.cpp
     interval_tests.cpp
+    engines/engine_tests.cpp
+    heuristics/cartesian_tests.cpp
     task_tests.cpp
-    test_main.cpp)
+    policy_tests.cpp
+    test_main.cpp
+    tasks/blocksworld.cpp)
 
 # Get probfd include directory
 get_target_property(DOWNWARD_INCLUDES downward_lib INCLUDE_DIRECTORIES)
-target_include_directories(probfd_tests PUBLIC ${DOWNWARD_INCLUDES})
+target_include_directories(probfd_tests PUBLIC ${DOWNWARD_INCLUDES} ${PROJECT_SOURCE_DIR}/tests)
 
 target_link_libraries(probfd_tests downward_lib gtest_main)
 

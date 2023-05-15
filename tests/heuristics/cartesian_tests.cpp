@@ -25,7 +25,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
 {
     std::filesystem::path file_path = __FILE__;
     std::fstream file(
-        file_path.remove_filename() / "sas_files/gripper_example.sas");
+        file_path.remove_filename() / "../sas_files/gripper_example.sas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
 
     cartesian::Abstraction abs(task, utils::g_log);
@@ -55,7 +55,7 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
 {
     std::filesystem::path file_path = __FILE__;
     std::fstream file(
-        file_path.remove_filename() / "sas_files/pblocksworld_example.sas");
+        file_path.remove_filename() / "../sas_files/pblocksworld_example.sas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
 
     cartesian::Abstraction abs(task, utils::g_log);
