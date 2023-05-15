@@ -19,3 +19,6 @@ get_target_property(DOWNWARD_INCLUDES downward_lib INCLUDE_DIRECTORIES)
 target_include_directories(probfd_tests PUBLIC ${DOWNWARD_INCLUDES})
 
 target_link_libraries(probfd_tests downward_lib gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(probfd_tests)
