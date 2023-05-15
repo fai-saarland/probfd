@@ -851,10 +851,15 @@ std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in)
 
 void read_root_tasks(std::istream& in)
 {
+    set_root_task(read_sas_task(in));
+}
+
+void set_root_task(std::shared_ptr<ProbabilisticTask> task)
+{
     // FIXME crashes in tests since it persists in between tests.
     // assert(!g_root_task);
-    g_root_task = read_sas_task(in);
-    ::tasks::g_root_task.reset(new AODDeterminizationTask(g_root_task.get()));
+    g_root_task = std::move(task);
+    ::tasks::g_root_task.reset(new AODDeterminizationTask(task.get()));
 }
 
 static shared_ptr<ProbabilisticTask> _parse(OptionParser& parser)

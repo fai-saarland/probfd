@@ -3,7 +3,12 @@
 
 #include "probfd/probabilistic_task.h"
 
+#include <memory>
+#include <ostream>
+
 namespace probfd {
+
+class ProbabilisticTask;
 
 /// This namespace contains implementations of probabilistic planning tasks.
 namespace tasks {
@@ -14,6 +19,9 @@ extern std::shared_ptr<ProbabilisticTask> g_root_task;
 std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in);
 
 extern void read_root_tasks(std::istream& in);
+
+extern void set_root_task(std::shared_ptr<ProbabilisticTask>& task);
+
 } // namespace tasks
 } // namespace probfd
 
