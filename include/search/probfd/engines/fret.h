@@ -144,8 +144,9 @@ public:
         });
     }
 
-    std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& state, double max_time) override
+    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
+        const State& state,
+        double max_time = std::numeric_limits<double>::infinity()) override
     {
         this->solve(state, max_time);
 

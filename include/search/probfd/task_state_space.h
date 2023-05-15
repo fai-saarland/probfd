@@ -62,7 +62,7 @@ public:
     TaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         const std::vector<std::shared_ptr<::Evaluator>>&
-            path_dependent_evaluators);
+            path_dependent_evaluators = {});
 
     StateID get_state_id(const State& state) override;
     State get_state(StateID state_id) override;

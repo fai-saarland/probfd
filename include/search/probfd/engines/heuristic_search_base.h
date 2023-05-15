@@ -187,14 +187,18 @@ public:
 
     virtual ~HeuristicSearchBase() = default;
 
-    Interval solve(const State& state, double max_time) final override
+    Interval solve(
+        const State& state,
+        double max_time =
+            std::numeric_limits<double>::infinity()) final override
     {
         this->initialize_report(state);
         return this->do_solve(state, max_time);
     }
 
-    std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& state, double max_time) override
+    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
+        const State& state,
+        double max_time = std::numeric_limits<double>::infinity()) override
     {
         this->solve(state, max_time);
 
