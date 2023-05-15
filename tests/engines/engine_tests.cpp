@@ -6,7 +6,7 @@
 
 using namespace probfd;
 
-TEST(IntervalTests, test_interval_set_min)
+TEST(EngineTests, test_interval_set_min)
 {
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(-45.0_vt, 30.0_vt);
@@ -17,7 +17,7 @@ TEST(IntervalTests, test_interval_set_min)
     ASSERT_EQ(interval.upper, 30.0_vt);
 }
 
-TEST(IntervalTests, test_interval_set_min2)
+TEST(EngineTests, test_interval_set_min2)
 {
     Interval interval(8.0_vt, INFINITE_VALUE);
     Interval interval2(INFINITE_VALUE, 30.0_vt);
@@ -28,7 +28,7 @@ TEST(IntervalTests, test_interval_set_min2)
     ASSERT_EQ(interval.upper, 30.0_vt);
 }
 
-TEST(IntervalTests, test_interval_set_min3)
+TEST(EngineTests, test_interval_set_min3)
 {
     Interval interval(INFINITE_VALUE, INFINITE_VALUE);
     Interval interval2(-INFINITE_VALUE, INFINITE_VALUE);
@@ -39,7 +39,7 @@ TEST(IntervalTests, test_interval_set_min3)
     ASSERT_EQ(interval.upper, INFINITE_VALUE);
 }
 
-TEST(IntervalTests, test_interval_update1)
+TEST(EngineTests, test_interval_update1)
 {
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(-45.0_vt, 30.0_vt);
@@ -51,7 +51,7 @@ TEST(IntervalTests, test_interval_update1)
     ASSERT_EQ(interval.upper, std::min(40.0_vt, 30.0_vt));
 }
 
-TEST(IntervalTests, test_interval_update2)
+TEST(EngineTests, test_interval_update2)
 {
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(7.0_vt, 41.0_vt);
@@ -63,7 +63,7 @@ TEST(IntervalTests, test_interval_update2)
     ASSERT_EQ(interval.upper, std::min(40.0_vt, 41.0_vt));
 }
 
-TEST(IntervalTests, test_interval_update3)
+TEST(EngineTests, test_interval_update3)
 {
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(25.0_vt, 30.0_vt);
@@ -75,7 +75,7 @@ TEST(IntervalTests, test_interval_update3)
     ASSERT_EQ(interval.upper, std::min(40.0_vt, 30.0_vt));
 }
 
-TEST(IntervalTests, test_interval_update4)
+TEST(EngineTests, test_interval_update4)
 {
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(7.0_vt, 39.0_vt);
