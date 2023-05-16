@@ -46,8 +46,19 @@ struct ExplicitEffect {
 
     ExplicitEffect(int var, int value, vector<FactPair>&& conditions);
 
-    friend auto
-    operator<=>(const ExplicitEffect&, const ExplicitEffect&) = default;
+    friend bool
+    operator<(const ExplicitEffect& left, const ExplicitEffect& right)
+    {
+        return std::tie(left.fact, left.conditions) <
+               std::tie(right.fact, right.conditions);
+    }
+
+    friend bool
+    operator==(const ExplicitEffect& left, const ExplicitEffect& right)
+    {
+        return std::tie(left.fact, left.conditions) ==
+               std::tie(right.fact, right.conditions);
+    }
 };
 
 struct DeterministicOperator {
@@ -352,7 +363,7 @@ DeterministicOperator::DeterministicOperator(std::istream& in, bool use_metric)
     assert(cost >= 0);
 
     std::ranges::sort(preconditions);
-    std::ranges::sort(effects);
+    std::sort(effects.begin(), effects.end());
 }
 
 void DeterministicOperator::read_pre_post(std::istream& in)

@@ -259,13 +259,11 @@ public:
             return *this;
         }
 
-        bool operator==(const const_iterator &rhs) {
-            assert(&registry == &rhs.registry);
-            return pos == rhs.pos;
-        }
-
-        bool operator!=(const const_iterator &rhs) {
-            return !(*this == rhs);
+        friend bool
+        operator==(const const_iterator& lhs, const const_iterator& rhs)
+        {
+            assert(&lhs.registry == &rhs.registry);
+            return lhs.pos == rhs.pos;
         }
 
         StateID operator*() {

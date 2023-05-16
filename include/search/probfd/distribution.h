@@ -55,10 +55,23 @@ public:
     {
     }
 
-    /// Comparison of two item-probability pairs.
-    friend auto operator<=>(
+    /// Lexicographical less-than.
+    friend bool operator<(
         const ItemProbabilityPair<T>& left,
-        const ItemProbabilityPair<T>& right) = default;
+        const ItemProbabilityPair<T>& right)
+    {
+        return std::tie(left.item, left.probability) <
+               std::tie(right.item, right.probability);
+    }
+
+    /// Canonical equality.
+    friend bool operator==(
+        const ItemProbabilityPair<T>& left,
+        const ItemProbabilityPair<T>& right)
+    {
+        return std::tie(left.item, left.probability) ==
+               std::tie(right.item, right.probability);
+    }
 };
 
 /**
@@ -274,8 +287,17 @@ public:
             &ItemProbabilityPair<T>::item);
     }
 
-    friend auto
-    operator<=>(const Distribution<T>&, const Distribution<T>&) = default;
+    friend bool
+    operator<(const Distribution<T>& left, const Distribution<T>& right)
+    {
+        return left.distribution_ < right.distribution_;
+    }
+
+    friend bool
+    operator==(const Distribution<T>& left, const Distribution<T>& right)
+    {
+        return left.distribution_ == right.distribution_;
+    }
 };
 
 } // namespace probfd

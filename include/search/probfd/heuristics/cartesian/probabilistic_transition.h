@@ -26,10 +26,6 @@ struct ProbabilisticTransition {
         assert(!this->target_ids.empty());
     }
 
-    friend auto operator<=>(
-        const ProbabilisticTransition&,
-        const ProbabilisticTransition&) = default;
-
     friend std::ostream&
     operator<<(std::ostream& os, const ProbabilisticTransition& t)
     {

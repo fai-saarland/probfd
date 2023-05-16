@@ -23,10 +23,6 @@ public:
         StateID::operator=(id);
         return *this;
     }
-
-    bool operator==(StateID s) const { return id == s.id; }
-    bool operator!=(StateID s) const { return id != s.id; }
-    bool operator<(StateID s) const { return id < s.id; }
 };
 
 /// Represents an action in the probabilistic bisimulation quotient.

@@ -125,9 +125,21 @@ public:
         return true;
     }
 
-    friend auto
-    operator<=>(const DynamicBitset<Block>&, const DynamicBitset<Block>&) =
-        default;
+    friend bool operator<(
+        const DynamicBitset<Block>& left,
+        const DynamicBitset<Block>& right)
+    {
+        return std::tie(left.blocks, left.num_bits) <
+               std::tie(right.blocks, right.num_bits);
+    }
+
+    friend bool operator==(
+        const DynamicBitset<Block>& left,
+        const DynamicBitset<Block>& right)
+    {
+        return std::tie(left.blocks, left.num_bits) ==
+               std::tie(right.blocks, right.num_bits);
+    }
 };
 
 template<typename Block>

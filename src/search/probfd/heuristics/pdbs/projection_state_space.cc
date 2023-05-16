@@ -18,27 +18,30 @@ struct ProgressionOperatorFootprint {
     long long int precondition_hash;
     Distribution<StateRank> successors;
 
-    ProgressionOperatorFootprint(
-        value_t cost,
-        long long int precondition_hash,
-        const Distribution<StateRank>& successors)
-        : cost(cost)
-        , precondition_hash(precondition_hash)
-        , successors(successors)
-    {
-    }
-
-    friend auto operator<=>(
+    friend bool operator<(
         const ProgressionOperatorFootprint& a,
-        const ProgressionOperatorFootprint& b) = default;
+        const ProgressionOperatorFootprint& b)
+    {
+        return std::tie(a.cost, a.precondition_hash, a.successors) <
+               std::tie(b.cost, b.precondition_hash, b.successors);
+    }
 };
 
 struct OutcomeInfo {
     StateRank base_effect = StateRank(0);
     std::vector<int> missing_pres;
 
-    friend auto
-    operator<=>(const OutcomeInfo& a, const OutcomeInfo& b) = default;
+    friend bool operator<(const OutcomeInfo& a, const OutcomeInfo& b)
+    {
+        return std::tie(a.base_effect, a.missing_pres) <
+               std::tie(b.base_effect, b.missing_pres);
+    }
+
+    friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b)
+    {
+        return std::tie(a.base_effect, a.missing_pres) ==
+               std::tie(b.base_effect, b.missing_pres);
+    }
 };
 
 } // namespace
