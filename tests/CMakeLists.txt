@@ -17,10 +17,9 @@ add_executable(
     test_main.cpp
     fp_tests.cpp
     interval_tests.cpp
-    engines/engine_tests.cpp
+    engine_tests.cpp
     heuristics/cartesian_tests.cpp
     task_tests.cpp
-    policy_tests.cpp
     test_main.cpp
     tasks/blocksworld.cpp
     verification/policy_verification.h)
