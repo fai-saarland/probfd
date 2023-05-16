@@ -68,10 +68,10 @@ BlocksworldTask::BlocksworldTask(
         initial_state[get_location_var(stack.back())] = blocks;
     }
 
-    if (seen.size() == blocks) {
+    if (static_cast<int>(seen.size()) == blocks) {
         // All blocks placed, hand is empty
         initial_state[get_hand_var()] = 1;
-    } else if (seen.size() != blocks - 1) {
+    } else if (static_cast<int>(seen.size()) != blocks - 1) {
         // Only one block may be held
         abort();
     }
@@ -124,12 +124,12 @@ int BlocksworldTask::get_variable_domain_size(int var) const
     return var < blocks ? 2 : var < 2 * blocks ? blocks + 2 : 2;
 }
 
-int BlocksworldTask::get_variable_axiom_layer(int var) const
+int BlocksworldTask::get_variable_axiom_layer(int) const
 {
     return -1;
 }
 
-int BlocksworldTask::get_variable_default_axiom_value(int var) const
+int BlocksworldTask::get_variable_default_axiom_value(int) const
 {
     return 0;
 }
@@ -515,7 +515,6 @@ FactPair BlocksworldTask::get_operator_outcome_effect(
     if (index < pick_up_begin) {
         if (outcome_index == 1) abort();
 
-        int b1 = index % blocks;
         int b2 = (index / blocks) % blocks;
         int b3 = (index / (blocks * blocks)) % blocks;
 
@@ -581,7 +580,6 @@ FactPair BlocksworldTask::get_operator_outcome_effect(
     } else if (index < put_on_block_begin) {
         index -= put_tower_down_begin;
 
-        int b1 = index % blocks;
         int b2 = (index / blocks) % blocks;
 
         switch (eff_index) {
