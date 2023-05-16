@@ -122,7 +122,7 @@ StateRank MergeEvaluator::convert(
 
     StateRank rank(0);
 
-    for (int i = 0, j = 0; j != smaller_pattern.size(); ++i, ++j) {
+    for (size_t i = 0, j = 0; j != smaller_pattern.size(); ++i, ++j) {
         while (larger_pattern[i] != smaller_pattern[j]) ++i;
         rank.id += coarser_mapping.rank_fact(
             j,
