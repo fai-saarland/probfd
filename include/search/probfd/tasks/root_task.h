@@ -20,7 +20,7 @@ std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in);
 
 extern void read_root_tasks(std::istream& in);
 
-extern void set_root_task(std::shared_ptr<ProbabilisticTask>& task);
+extern void set_root_task(std::shared_ptr<ProbabilisticTask> task);
 
 } // namespace tasks
 } // namespace probfd
