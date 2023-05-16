@@ -858,8 +858,8 @@ void set_root_task(std::shared_ptr<ProbabilisticTask> task)
 {
     // FIXME crashes in tests since it persists in between tests.
     // assert(!g_root_task);
-    g_root_task = std::move(task);
     ::tasks::g_root_task.reset(new AODDeterminizationTask(task.get()));
+    g_root_task = std::move(task);
 }
 
 static shared_ptr<ProbabilisticTask> _parse(OptionParser& parser)
