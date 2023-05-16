@@ -19,6 +19,8 @@
 
 #include "tasks/blocksworld.h"
 
+#include "verification/policy_verification.h"
+
 using namespace probfd;
 using namespace probfd::engine_interfaces;
 using namespace probfd::engines;
@@ -65,8 +67,14 @@ TEST(EngineTests, test_ilao_blocksworld_6b_initial_value)
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(state_space.get_initial_state());
 
+    ASSERT_NE(policy, nullptr);
     ASSERT_TRUE(decision.has_value());
     EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.01);
+    ASSERT_TRUE(verify_policy(
+        state_space,
+        *cost_model.get_cost_function(),
+        *policy,
+        state_space.get_state_id(state_space.get_initial_state())));
 }
 
 TEST(EngineTests, test_fret_ilao_blocksworld_6b_initial_value)
@@ -130,6 +138,12 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6b_initial_value)
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(state_space.get_initial_state());
 
+    ASSERT_NE(policy, nullptr);
     ASSERT_TRUE(decision.has_value());
     EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.01);
+    ASSERT_TRUE(verify_policy(
+        state_space,
+        *cost_model.get_cost_function(),
+        *policy,
+        state_space.get_state_id(state_space.get_initial_state())));
 }

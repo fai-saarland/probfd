@@ -22,7 +22,8 @@ add_executable(
     task_tests.cpp
     policy_tests.cpp
     test_main.cpp
-    tasks/blocksworld.cpp)
+    tasks/blocksworld.cpp
+    verification/policy_verification.h)
 
 # Get probfd include directory
 get_target_property(DOWNWARD_INCLUDES downward_lib INCLUDE_DIRECTORIES)
