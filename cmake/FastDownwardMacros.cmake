@@ -10,7 +10,11 @@ macro(fast_downward_set_compiler_flags)
         if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-range-loop-analysis")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unqualified-std-cast-call")
-            set(CMAKE_CXX_FLAGS"${CMAKE_CXX_FLAGS} -stdlib=libc++ -I/usr/local/opt/llvm/include/c++/v1/")         
+            
+            # User-defined libc++ std library path
+            if(DEFINED ENV{LIBCXX_INCLUDE})
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -I$ENV{LIBCXX_INCLUDE}")         
+            endif()
         endif()
 
         ## Configuration-specific flags
