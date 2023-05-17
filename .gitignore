@@ -14,3 +14,4 @@ docs/html/
 
 # Graphviz
 *.dot
+.DS_Store
