@@ -205,17 +205,31 @@ class EndComponentDecomposition {
     };
 
     struct StackInfo {
+        StateID stateid;
+
+        // SCC successors for ECD recursion
+        std::vector<Action> aops;
+        std::vector<std::vector<StateID>> successors;
+
         explicit StackInfo(StateID sid)
             : stateid(sid)
             , successors(1)
         {
         }
 
-        StateID stateid;
+        template <size_t i>
+        friend auto& get(StackInfo& info)
+        {
+            if constexpr (i == 0) return info.stateid;
+            if constexpr (i == 1) return info.aops;
+        }
 
-        // SCC successors for ECD recursion
-        std::vector<Action> aops;
-        std::vector<std::vector<StateID>> successors;
+        template <size_t i>
+        friend const auto& get(const StackInfo& info)
+        {
+            if constexpr (i == 0) return info.stateid;
+            if constexpr (i == 1) return info.aops;
+        }
     };
 
 public:
@@ -549,13 +563,11 @@ private:
     template <bool RootIteration>
     void scc_found(ExpansionInfo& e, StackInfo& s, utils::CountdownTimer& timer)
     {
-        const unsigned scc_size = stack_.size() - e.stck;
-        auto scc_begin = stack_.begin() + e.stck;
-        auto scc_end = stack_.end();
+        auto scc = std::ranges::subrange(stack_.begin() + e.stck, stack_.end());
 
-        StateID scc_repr_id = s.stateid;
-        if (scc_size == 1) {
+        if (scc.size()) {
             assert(s.aops.empty());
+            const StateID scc_repr_id = s.stateid;
             StateInfo& info = state_infos_[scc_repr_id];
             info.stackid_ = StateInfo::UNDEF;
 
@@ -569,12 +581,12 @@ private:
             }
         } else {
             if (expand_goals_) {
-                for (auto it = scc_begin; it != scc_end; ++it) {
-                    assert(it->successors.size() == it->aops.size());
-                    StateInfo& info = state_infos_[it->stateid];
+                for (auto& stk_info : scc) {
+                    assert(stk_info.successors.size() == stk_info.aops.size());
+                    StateInfo& info = state_infos_[stk_info.stateid];
                     if (info.expandable_goal) {
-                        it->successors.clear();
-                        it->aops.clear();
+                        stk_info.successors.clear();
+                        stk_info.aops.clear();
                         e.recurse = true;
                     }
                 }
@@ -587,34 +599,25 @@ private:
                     ++stats_.sccsk;
                 }
 
-                for (auto it = scc_begin; it != scc_end; ++it) {
-                    assert(it->successors.size() == it->aops.size());
-                    state_infos_[it->stateid].explored = 0;
+                for (const auto& stk_info : scc) {
+                    assert(stk_info.successors.size() == stk_info.aops.size());
+                    state_infos_[stk_info.stateid].explored = 0;
                 }
 
                 decompose(e.stck, timer);
             } else {
                 unsigned transitions = 0;
 
-                for (auto it = scc_begin; it != scc_end; ++it) {
-                    assert(it->successors.size() == it->aops.size());
-                    StateInfo& info = state_infos_[it->stateid];
+                for (const auto& stk_info : scc) {
+                    assert(stk_info.successors.size() == stk_info.aops.size());
+                    StateInfo& info = state_infos_[stk_info.stateid];
                     info.stackid_ = StateInfo::UNDEF;
 
-                    transitions += it->aops.size();
+                    transitions += stk_info.aops.size();
                 }
 
-                auto sid_range = std::ranges::subrange(scc_begin, scc_end) |
-                                 std::views::transform(&StackInfo::stateid);
-                auto abegin = iterators::make_transform_iterator(
-                    scc_begin,
-                    &StackInfo::aops);
-                sys_->build_new_quotient(
-                    sid_range.begin(),
-                    sid_range.end(),
-                    scc_repr_id,
-                    abegin);
-                stack_.erase(scc_begin, scc_end);
+                sys_->build_new_quotient(scc, s);
+                stack_.erase(scc.begin(), scc.end());
 
                 // Update stats
                 ++stats_.eck;

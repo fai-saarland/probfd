@@ -135,6 +135,31 @@ class TALRTDP<State, quotients::QuotientAction<Action>, UseInterval>
         Flags flags;
     };
 
+    struct StackInfo {
+        StateID state_id;
+        std::vector<QAction> aops;
+
+        StackInfo(StateID state_id, QAction action)
+            : state_id(state_id)
+            , aops({action})
+        {
+        }
+
+        template <size_t i>
+        friend auto& get(StackInfo& info)
+        {
+            if constexpr (i == 0) return info.state_id;
+            if constexpr (i == 1) return info.aops;
+        }
+
+        template <size_t i>
+        friend const auto& get(const StackInfo& info)
+        {
+            if constexpr (i == 0) return info.state_id;
+            if constexpr (i == 1) return info.aops;
+        }
+    };
+
     static constexpr int STATE_UNSEEN = -1;
     static constexpr int STATE_CLOSED = -2;
 
@@ -150,7 +175,7 @@ class TALRTDP<State, quotients::QuotientAction<Action>, UseInterval>
     std::deque<StateID> current_trial_;
 
     std::deque<ExplorationInformation> queue_;
-    std::deque<StateID> stack_;
+    std::deque<StackInfo> stack_;
     storage::StateHashMap<int> stack_index_;
 
     internal::Statistics statistics_;
@@ -359,14 +384,11 @@ private:
                     } else {
                         if (einfo->flags.is_trap) {
                             assert(einfo->flags.rv);
-                            for (const StateID id : scc) {
-                                stack_index_[id] = STATE_CLOSED;
+                            for (const auto& entry : scc) {
+                                stack_index_[entry.state_id] = STATE_CLOSED;
                             }
                             TimerScope scope(statistics_.trap_timer);
-                            quotient_->build_quotient(
-                                scc.begin(),
-                                scc.end(),
-                                state);
+                            quotient_->build_quotient(scc, *scc.begin());
                             this->get_state_info(state).clear_policy();
                             ++this->statistics_.traps;
                             ++this->statistics_.check_and_solve_bellman_backups;
@@ -383,15 +405,16 @@ private:
                                 einfo->flags.rv = false;
                             }
                         } else if (einfo->flags.rv) {
-                            for (const StateID id : scc) {
-                                stack_index_[id] = STATE_CLOSED;
-                                this->get_state_info(id).set_solved();
+                            for (const auto& entry : scc) {
+                                stack_index_[entry.state_id] = STATE_CLOSED;
+                                this->get_state_info(entry.state_id)
+                                    .set_solved();
                             }
                             stack_.erase(scc.begin(), scc.end());
                         } else {
-                            for (const StateID id : scc) {
-                                stack_index_[id] = STATE_CLOSED;
-                                this->async_update(id);
+                            for (const auto& entry : scc) {
+                                stack_index_[entry.state_id] = STATE_CLOSED;
+                                this->async_update(entry.state_id);
                             }
                             stack_.erase(scc.begin(), scc.end());
                         }
@@ -458,7 +481,7 @@ private:
         e.flags.is_trap =
             this->get_action_cost(state, *result.policy_action) == 0;
         stack_index_[state] = stack_.size();
-        stack_.push_back(state);
+        stack_.emplace_back(state, *result.policy_action);
         return true;
     }
 };

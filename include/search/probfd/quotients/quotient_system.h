@@ -401,41 +401,22 @@ public:
     }
 
     template <typename Range>
-    void build_quotient(Range& range)
+    void build_quotient(Range& states)
     {
-        this->build_quotient(range.begin(), range.end());
+        std::vector<std::vector<QAction>> dummy(states.size());
+        auto range = std::views::zip(states, dummy);
+        this->build_quotient(range, *range.begin());
     }
 
-    template <typename StateIDIterator>
-    void build_quotient(StateIDIterator begin, StateIDIterator end)
+    template <typename SubMDP>
+    void
+    build_quotient(SubMDP submdp, std::ranges::range_reference_t<SubMDP> entry)
     {
-        if (begin != end) {
-            this->build_quotient(begin, end, *begin);
-        }
-    }
+        const StateID rid = get<0>(entry);
+        const auto& raops = get<1>(entry);
 
-    template <typename StateIDIterator>
-    void build_quotient(StateIDIterator begin, StateIDIterator end, StateID rid)
-    {
-        this->build_quotient(
-            begin,
-            end,
-            rid,
-            iterators::infinite_iterator<std::vector<QAction>>());
-    }
-
-    template <typename StateIDIterator, typename IgnoreActionsIterator>
-    void build_quotient(
-        StateIDIterator begin,
-        StateIDIterator end,
-        StateID rid, // representative id
-        IgnoreActionsIterator ignore_actions)
-    {
         // Get or create quotient
         QuotientInformation& qinfo = quotients_[rid];
-
-        auto rit = std::find(begin, end, rid);
-        auto ridx = std::distance(begin, rit);
 
         // We handle the representative state first so that it
         // appears first in the data structure.
@@ -459,8 +440,7 @@ public:
             auto inner_it = partition_actions(
                 qinfo.aops.begin() + prev_size,
                 qinfo.aops.end(),
-                ignore_actions[ridx] |
-                    std::views::transform(&QAction::action_id));
+                raops | std::views::transform(&QAction::action_id));
 
             b.num_outer_acts =
                 std::distance(qinfo.aops.begin() + prev_size, inner_it);
@@ -469,11 +449,12 @@ public:
             qinfo.total_num_outer_acts += b.num_outer_acts;
         } else {
             // Filter actions
-            qinfo.filter_actions(ignore_actions[ridx]);
+            qinfo.filter_actions(raops);
         }
 
-        for (auto it = begin; it != end; ++it, ++ignore_actions) {
-            const auto& state_id = *it;
+        for (const auto& entry : submdp) {
+            const StateID state_id = get<0>(entry);
+            const auto& aops = get<1>(entry);
 
             // Already handled.
             if (state_id == rid) {
@@ -490,7 +471,7 @@ public:
                 QuotientInformation& q = qit->second;
 
                 // Filter actions
-                q.filter_actions(*ignore_actions);
+                q.filter_actions(aops);
 
                 // Insert all states belonging to it to the new quotient
                 for (const auto& p : q.state_infos) {
@@ -525,8 +506,7 @@ public:
                 auto inner_it = partition_actions(
                     qinfo.aops.begin() + prev_size,
                     qinfo.aops.end(),
-                    *ignore_actions |
-                        std::views::transform(&QAction::action_id));
+                    aops | std::views::transform(&QAction::action_id));
 
                 b.num_outer_acts =
                     std::distance(qinfo.aops.begin() + prev_size, inner_it);
@@ -537,18 +517,16 @@ public:
         }
     }
 
-    template <typename StateIDIterator, typename IgnoreActionsIterator>
+    template <typename SubMDP>
     void build_new_quotient(
-        StateIDIterator begin,
-        StateIDIterator end,
-        StateID rid, // representative id
-        IgnoreActionsIterator ignore_actions)
+        SubMDP submdp,
+        std::ranges::range_reference_t<SubMDP> entry)
     {
+        const StateID rid = get<0>(entry);
+        const auto& raops = get<1>(entry);
+
         // Get or create quotient
         QuotientInformation& qinfo = quotients_[rid];
-
-        auto rit = std::find(begin, end, rid);
-        auto ridx = std::distance(begin, rit);
 
         // We handle the representative state first so that it
         // appears first in the data structure.
@@ -563,7 +541,7 @@ public:
         state_space_->generate_applicable_actions(rid, gen_aops);
 
         // Partition actions
-        auto inner_it = partition_actions(gen_aops, ignore_actions[ridx]);
+        auto inner_it = partition_actions(gen_aops, raops);
 
         // Add the action ids to the new quotient
         for (const Action& a : gen_aops) {
@@ -575,8 +553,9 @@ public:
 
         qinfo.total_num_outer_acts += b.num_outer_acts;
 
-        for (auto it = begin; it != end; ++it, ++ignore_actions) {
-            const auto& state_id = *it;
+        for (const auto& entry : submdp) {
+            const StateID state_id = get<0>(entry);
+            const auto& aops = get<1>(entry);
 
             // Already handled.
             if (state_id == rid) {
@@ -594,7 +573,7 @@ public:
             state_space_->generate_applicable_actions(state_id, gen_aops);
 
             // Partition actions
-            auto inner_it = partition_actions(gen_aops, *ignore_actions);
+            auto inner_it = partition_actions(gen_aops, aops);
 
             // Add the action ids to the new quotient
             for (const Action& a : gen_aops) {

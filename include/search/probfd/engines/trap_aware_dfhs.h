@@ -148,6 +148,31 @@ class TADepthFirstHeuristicSearch<
         int lowlink;
     };
 
+    struct StackInfo {
+        StateID state_id;
+        std::vector<QAction> aops;
+
+        StackInfo(StateID state_id, QAction action)
+            : state_id(state_id)
+            , aops({action})
+        {
+        }
+
+        template <size_t i>
+        friend auto& get(StackInfo& info)
+        {
+            if constexpr (i == 0) return info.state_id;
+            if constexpr (i == 1) return info.aops;
+        }
+
+        template <size_t i>
+        friend const auto& get(const StackInfo& info)
+        {
+            if constexpr (i == 0) return info.state_id;
+            if constexpr (i == 1) return info.aops;
+        }
+    };
+
     static constexpr int STATE_UNSEEN = -1;
     static constexpr int STATE_CLOSED = -2;
 
@@ -167,7 +192,7 @@ class TADepthFirstHeuristicSearch<
     bool terminated_ = false;
 
     std::deque<ExplorationInformation> queue_;
-    std::vector<StateID> stack_;
+    std::vector<StackInfo> stack_;
     std::vector<StateID> visited_states_;
     storage::StateHashMap<int> stack_index_;
 
@@ -270,11 +295,11 @@ private:
         } while (!is_complete);
     }
 
-    void enqueue(StateID state, bool zero_cost)
+    void enqueue(StateID state, QAction& action, bool zero_cost)
     {
         queue_.emplace_back(state, stack_.size());
         stack_index_[state] = stack_.size();
-        stack_.push_back(state);
+        stack_.emplace_back(state, action);
 
         ExplorationInformation& info = queue_.back();
         info.successors.reserve(transition_.size());
@@ -286,10 +311,9 @@ private:
                 }
             }
         } else {
-            const QAction a = this->get_policy(state);
             for (const auto& [item, probability] : transition_) {
                 if (item != state) {
-                    open_list_->push(state, a, probability, item);
+                    open_list_->push(state, action, probability, item);
                 }
             }
             info.successors.resize(open_list_->size(), StateID::undefined);
@@ -332,13 +356,15 @@ private:
             }
             zero_cost =
                 this->get_action_cost(state, *result.policy_action) == 0;
+            enqueue(state, *result.policy_action, zero_cost);
+
         } else {
             QAction action = this->get_policy(state);
             this->generate_successors(state, action, transition_);
             zero_cost = this->get_action_cost(state, action) == 0;
+            enqueue(state, action, zero_cost);
         }
 
-        enqueue(state, zero_cost);
         return true;
     }
 
@@ -383,7 +409,7 @@ private:
         flags.clear();
         const bool zero_cost =
             this->get_action_cost(state, *result.policy_action) == 0;
-        enqueue(state, zero_cost);
+        enqueue(state, *result.policy_action, zero_cost);
         return true;
     }
 
@@ -479,7 +505,10 @@ private:
                         backtrack_from_singleton(state, flags);
                     } else {
                         if (backtrack_update_type_ == CONVERGENCE) {
-                            auto res = value_iteration<true>(scc, timer);
+                            auto res = value_iteration<true>(
+                                scc |
+                                    std::views::transform(&StackInfo::state_id),
+                                timer);
                             flags.complete =
                                 flags.complete && !res.policy_changed;
                             flags.all_solved =
@@ -489,11 +518,7 @@ private:
                                 (terminate_exploration_ &&
                                  cutoff_inconsistent_ && res.value_changed);
                         }
-                        if (backtrack_from_non_singleton(
-                                state,
-                                flags,
-                                scc.begin(),
-                                scc.end())) {
+                        if (backtrack_from_non_singleton(state, flags, scc)) {
                             break; // re-expanded trap, continue exploring
                         }
                     }
@@ -518,9 +543,9 @@ private:
         }
     }
 
-    void backtrack_from_singleton(const StateID state, Flags& flags)
+    void backtrack_from_singleton(StateID state, Flags& flags)
     {
-        assert(stack_.back() == state);
+        assert(stack_.back().state_id == state);
 
         if (flags.complete && flags.all_solved) {
             if (mark_solved_) {
@@ -535,96 +560,69 @@ private:
         flags.is_trap = false;
     }
 
-    bool backtrack_from_non_singleton(
-        const StateID state,
-        Flags& flags,
-        std::vector<StateID>::iterator scc_begin,
-        std::vector<StateID>::iterator scc_end)
+    bool
+    backtrack_from_non_singleton(const StateID state, Flags& flags, auto scc)
     {
         assert(!flags.is_trap || !flags.complete || flags.all_solved);
 
         if (flags.complete && flags.all_solved) {
             if (flags.is_trap) {
-                return backtrack_trap(state, flags, scc_begin, scc_end);
+                return backtrack_trap(state, flags, scc);
             }
 
-            backtrack_solved(state, flags, scc_begin, scc_end);
+            backtrack_solved(state, flags, scc);
         } else {
-            backtrack_unsolved(state, flags, scc_begin, scc_end);
+            backtrack_unsolved(state, flags, scc);
         }
 
         return false;
     }
 
-    bool backtrack_trap(
-        const StateID state,
-        Flags& flags,
-        std::vector<StateID>::iterator scc_begin,
-        std::vector<StateID>::iterator scc_end)
+    bool backtrack_trap(const StateID state, Flags& flags, auto scc)
     {
         assert(flags.dead);
         ++this->statistics_.traps;
 
-        for (auto it = scc_begin; it != scc_end; ++it) {
-            stack_index_[*it] = STATE_CLOSED;
+        for (const auto& entry : scc) {
+            stack_index_[entry.state_id] = STATE_CLOSED;
         }
 
         TimerScope scope(statistics_.trap_timer);
 
-        // Get the greedy actions and collapse them
-        std::vector<std::vector<QAction>> collapsed_actions;
-        collapsed_actions.reserve(std::distance(scc_begin, scc_end));
-        for (auto it = scc_begin; it != scc_end; ++it) {
-            collapsed_actions.emplace_back(
-                std::initializer_list<QAction>{this->get_policy(*it)});
-        }
-
-        quotient_->build_quotient(
-            scc_begin,
-            scc_end,
-            state,
-            collapsed_actions.begin());
+        quotient_->build_quotient(scc, *scc.begin());
         this->get_state_info(state).set_policy(ActionID::undefined);
-        stack_.erase(scc_begin, scc_end);
+        stack_.erase(scc.begin(), scc.end());
         return repush_trap(state, flags);
     }
 
-    void backtrack_solved(
-        const StateID,
-        Flags& flags,
-        std::vector<StateID>::iterator scc_begin,
-        std::vector<StateID>::iterator scc_end)
+    void backtrack_solved(const StateID, Flags& flags, auto scc)
     {
         if (mark_solved_) {
-            for (auto it = scc_begin; it != scc_end; ++it) {
-                stack_index_[*it] = STATE_CLOSED;
-                this->get_state_info(*it).set_solved();
+            for (const auto& entry : scc) {
+                stack_index_[entry.state_id] = STATE_CLOSED;
+                this->get_state_info(entry.state_id).set_solved();
             }
         } else if (value_iteration_) {
-            for (auto it = scc_begin; it != scc_end; ++it) {
-                stack_index_[*it] = STATE_CLOSED;
-                visited_states_.push_back(*it);
+            for (const auto& entry : scc) {
+                stack_index_[entry.state_id] = STATE_CLOSED;
+                visited_states_.push_back(entry.state_id);
             }
         } else {
             abort(); // inconsistent parameters
         }
 
         flags.is_trap = false;
-        stack_.erase(scc_begin, scc_end);
+        stack_.erase(scc.begin(), scc.end());
     }
 
-    void backtrack_unsolved(
-        const StateID,
-        Flags& flags,
-        std::vector<StateID>::iterator scc_begin,
-        std::vector<StateID>::iterator scc_end)
+    void backtrack_unsolved(const StateID, Flags& flags, auto scc)
     {
-        for (auto it = scc_begin; it != scc_end; ++it) {
-            stack_index_[*it] = STATE_CLOSED;
+        for (const auto& entry : scc) {
+            stack_index_[entry.state_id] = STATE_CLOSED;
         }
 
         flags.is_trap = false;
-        stack_.erase(scc_begin, scc_end);
+        stack_.erase(scc.begin(), scc.end());
     }
 
     template <bool Convergence>

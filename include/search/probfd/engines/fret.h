@@ -120,6 +120,25 @@ class FRET : public MDPEngine<State, Action> {
         bool is_leaf = true;
     };
 
+    struct StackInfo {
+        StateID state_id;
+        std::vector<QAction> aops;
+
+        template <size_t i>
+        friend auto& get(StackInfo& info)
+        {
+            if constexpr (i == 0) return info.state_id;
+            if constexpr (i == 1) return info.aops;
+        }
+
+        template <size_t i>
+        friend const auto& get(const StackInfo& info)
+        {
+            if constexpr (i == 0) return info.state_id;
+            if constexpr (i == 1) return info.aops;
+        }
+    };
+
     QuotientSystem* quotient_;
     std::shared_ptr<HeuristicSearchEngine<State, QAction, UseInterval>>
         base_engine_;
@@ -304,21 +323,18 @@ private:
 
         storage::StateHashMap<TarjanStateInformation> state_infos;
         std::deque<ExplorationInfo> exploration_queue;
-        std::deque<StateID> stack;
+        std::deque<StackInfo> stack;
+
+        StateID state_id = this->get_state_id(state);
+        TarjanStateInformation* sinfo = &state_infos[state_id];
 
         {
-            StateID stateid = this->get_state_id(state);
-            if (!push(exploration_queue, stateid, unexpanded)) {
+            if (!push(exploration_queue, stack, *sinfo, state_id, unexpanded)) {
                 return unexpanded == 0;
             }
-
-            stack.push_back(stateid);
-            state_infos[stateid].open(0);
         }
 
         ExplorationInfo* einfo = &exploration_queue.back();
-        auto state_id = einfo->state_id;
-        TarjanStateInformation* sinfo = &state_infos[state_id];
 
         for (;;) {
             do {
@@ -331,10 +347,12 @@ private:
                     sinfo->lowlink =
                         std::min(sinfo->lowlink, succ_info.stack_index);
                 } else if (
-                    !succ_info.is_explored() &&
-                    push(exploration_queue, succid, unexpanded)) {
-                    succ_info.open(stack.size());
-                    stack.push_back(succid);
+                    !succ_info.is_explored() && push(
+                                                    exploration_queue,
+                                                    stack,
+                                                    succ_info,
+                                                    succid,
+                                                    unexpanded)) {
                     einfo = &exploration_queue.back();
                     state_id = einfo->state_id;
                     sinfo = &state_infos[state_id];
@@ -352,22 +370,23 @@ private:
                 const bool can_reach_child_scc = scc_found || !einfo->is_leaf;
 
                 if (scc_found) {
-                    auto scc_begin = stack.begin() + sinfo->stack_index;
-                    auto scc_end = stack.end();
+                    auto scc = std::ranges::subrange(
+                        stack.begin() + sinfo->stack_index,
+                        stack.end());
 
-                    for (auto it = scc_begin; it != scc_end; ++it) {
-                        state_infos[*it].close();
+                    for (const auto& info : scc) {
+                        state_infos[info.state_id].close();
                     }
 
                     if (einfo->is_leaf) {
                         // Terminal and self-loop leaf SCCs are always pruned
-                        assert(std::distance(scc_begin, scc_end) > 1);
-                        collapse_trap(scc_begin, scc_end, state_id);
+                        assert(scc.size() > 1);
+                        collapse_trap(scc);
                         base_engine_->async_update(state_id);
                         ++trap_counter;
                     }
 
-                    stack.erase(scc_begin, scc_end);
+                    stack.erase(scc.begin(), scc.end());
                 }
 
                 exploration_queue.pop_back();
@@ -395,30 +414,23 @@ private:
 
     using StackIterator = std::deque<StateID>::iterator;
 
-    void collapse_trap(StackIterator first, StackIterator last, StateID repr)
+    void collapse_trap(auto scc)
     {
 #if defined(EXPENSIVE_STATISTICS)
         TimerScope t(statistics_.trap_removal);
 #endif
 
-        GreedyGraphGenerator greedy_graph;
-
-        // Get the greedy transitions to collapse them
-        std::vector<std::vector<QAction>> qops;
-        qops.reserve(std::distance(first, last));
-        for (auto it = first; it != last; ++it) {
-            greedy_graph.get_actions(*base_engine_, *it, qops.emplace_back());
-        }
-
         // Now collapse the quotient
-        quotient_->build_quotient(first, last, repr, qops.begin());
-        base_engine_->clear_policy(repr);
+        quotient_->build_quotient(scc, *scc.begin());
+        base_engine_->clear_policy(scc.begin()->state_id);
 
         ++statistics_.traps;
     }
 
     bool push(
         std::deque<ExplorationInfo>& queue,
+        std::deque<StackInfo>& stack,
+        TarjanStateInformation& info,
         StateID state_id,
         unsigned int& unexpanded)
     {
@@ -427,8 +439,9 @@ private:
         }
 
         GreedyGraphGenerator greedy_graph;
+        std::vector<QAction> aops;
         std::vector<StateID> succs;
-        if (greedy_graph.get_successors(*base_engine_, state_id, succs)) {
+        if (greedy_graph.get_successors(*base_engine_, state_id, aops, succs)) {
             ++unexpanded;
         }
 
@@ -436,6 +449,8 @@ private:
             return false;
         }
 
+        info.open(stack.size());
+        stack.emplace_back(state_id, std::move(aops));
         queue.emplace_back(state_id, std::move(succs));
         return true;
     }
@@ -446,23 +461,23 @@ class ValueGraph {
     using QAction = typename quotients::QuotientSystem<State, Action>::QAction;
 
     std::unordered_set<StateID> ids;
-    std::vector<QAction> opt_aops;
     std::vector<Distribution<StateID>> opt_transitions;
 
 public:
     bool get_successors(
         HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
         StateID qstate,
+        std::vector<QAction>& aops,
         std::vector<StateID>& successors)
     {
         assert(successors.empty());
 
-        ClearGuard _guard(ids, opt_aops, opt_transitions);
+        ClearGuard _guard(ids, opt_transitions);
 
         bool value_changed =
             base_engine.compute_value_update_and_optimal_transitions(
                 qstate,
-                opt_aops,
+                aops,
                 opt_transitions);
 
         for (const auto& transition : opt_transitions) {
@@ -474,19 +489,6 @@ public:
         }
 
         return value_changed;
-    }
-
-    void get_actions(
-        HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
-        StateID qstate,
-        std::vector<QAction>& aops)
-    {
-        ClearGuard _guard(opt_transitions);
-
-        base_engine.compute_value_update_and_optimal_transitions(
-            qstate,
-            aops,
-            opt_transitions);
     }
 };
 
@@ -500,6 +502,7 @@ public:
     bool get_successors(
         HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
         StateID qstate,
+        std::vector<QAction>& aops,
         std::vector<StateID>& successors)
     {
         ClearGuard _guard(t_);
@@ -508,16 +511,8 @@ public:
         for (StateID sid : t_.support()) {
             successors.push_back(sid);
         }
+        aops.push_back(base_engine.get_policy(qstate));
         return result;
-    }
-
-    void get_actions(
-        HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
-        StateID qstate,
-        std::vector<QAction>& aops)
-    {
-        assert(aops.empty());
-        aops.emplace_back(base_engine.get_policy(qstate));
     }
 };
 

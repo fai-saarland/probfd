@@ -34,45 +34,6 @@ struct discarding_output_iterator {
     discarding_output_iterator& operator*() { return *this; }
 };
 
-template <typename T>
-class infinite_iterator {
-    T value;
-
-public:
-    using difference_type = std::ptrdiff_t;
-    using value_type = T;
-    using pointer = const T*;
-    using reference = const T&;
-    using iterator_category = std::random_access_iterator_tag;
-
-    template <typename... Args>
-    explicit infinite_iterator(Args&&... args)
-        : value(std::forward<Args>(args)...)
-    {
-    }
-
-    // Prefix increment
-    infinite_iterator& operator++() { return *this; }
-
-    // Postfix increment
-    infinite_iterator operator++(int) { return *this; }
-
-    friend infinite_iterator<T> operator+(const infinite_iterator<T>& a, int)
-    {
-        return a;
-    }
-
-    friend infinite_iterator<T> operator-(const infinite_iterator<T>& a, int)
-    {
-        return a;
-    }
-
-    const T& operator[](int) { return value; }
-
-    reference operator*() const { return value; }
-    pointer operator->() const { return &value; }
-};
-
 template <typename IteratorT, typename Invocable>
 class transform_iterator;
 
