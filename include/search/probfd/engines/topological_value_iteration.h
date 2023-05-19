@@ -8,8 +8,9 @@
 
 #include "probfd/policies/map_policy.h"
 
+#include "probfd/utils/iterators.h"
+
 #include "utils/countdown_timer.h"
-#include "utils/iterators.h"
 
 #include <deque>
 #include <iostream>

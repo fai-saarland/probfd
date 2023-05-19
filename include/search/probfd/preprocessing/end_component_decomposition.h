@@ -1,8 +1,5 @@
-#ifndef PROBFD_END_COMPONENT_DECOMPOSITION_END_COMPONENT_DECOMPOSITION_H
-#define PROBFD_END_COMPONENT_DECOMPOSITION_END_COMPONENT_DECOMPOSITION_H
-
-#include "utils/iterators.h"
-#include "utils/timer.h"
+#ifndef PROBFD_PREPROCESSING_END_COMPONENT_DECOMPOSITION_H
+#define PROBFD_PREPROCESSING_END_COMPONENT_DECOMPOSITION_H
 
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
@@ -12,6 +9,8 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/storage/per_state_storage.h"
+
+#include "probfd/utils/iterators.h"
 
 #include "utils/countdown_timer.h"
 
@@ -607,8 +606,9 @@ private:
 
                 auto sid_range = std::ranges::subrange(scc_begin, scc_end) |
                                  std::views::transform(&StackInfo::stateid);
-                auto abegin =
-                    utils::make_transform_iterator(scc_begin, &StackInfo::aops);
+                auto abegin = iterators::make_transform_iterator(
+                    scc_begin,
+                    &StackInfo::aops);
                 sys_->build_new_quotient(
                     sid_range.begin(),
                     sid_range.end(),

@@ -20,7 +20,6 @@
 #include "cegar/abstract_state.h"
 
 #include "utils/countdown_timer.h"
-#include "utils/iterators.h"
 #include "utils/memory.h"
 
 #include <cassert>

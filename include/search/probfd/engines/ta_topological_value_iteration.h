@@ -4,12 +4,11 @@
 #include "probfd/engines/engine.h"
 #include "probfd/engines/utils.h"
 
-#include "probfd/engines/utils.h"
+#include "probfd/utils/iterators.h"
 
 #include "probfd/storage/per_state_storage.h"
 
 #include "utils/countdown_timer.h"
-#include "utils/iterators.h"
 
 #include <deque>
 #include <iostream>

@@ -181,7 +181,7 @@ private:
             analysis.run_analysis(
                 state,
                 std::back_inserter(dead_ends),
-                utils::discarding_output_iterator(),
+                iterators::discarding_output_iterator(),
                 std::back_inserter(one_states),
                 timer.get_remaining_time());
             assert(this->get_termination_info(
@@ -191,8 +191,8 @@ private:
             analysis.run_analysis(
                 state,
                 std::back_inserter(dead_ends),
-                utils::discarding_output_iterator(),
-                utils::discarding_output_iterator(),
+                iterators::discarding_output_iterator(),
+                iterators::discarding_output_iterator(),
                 timer.get_remaining_time());
         }
 

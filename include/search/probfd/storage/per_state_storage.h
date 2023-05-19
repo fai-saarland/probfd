@@ -1,12 +1,11 @@
 #ifndef PROBFD_STORAGE_PER_STATE_STORAGE_H
 #define PROBFD_STORAGE_PER_STATE_STORAGE_H
 
+#include "probfd/utils/iterators.h"
+
 #include "probfd/types.h"
-#include "probfd/value_type.h"
 
 #include "algorithms/segmented_vector.h"
-
-#include "utils/iterators.h"
 
 #include <type_traits>
 #include <unordered_map>
@@ -151,30 +150,5 @@ using StateIDHashSet = std::unordered_set<StateID>;
 
 } // namespace storage
 } // namespace probfd
-
-namespace utils {
-template <>
-class set_output_iterator<probfd::storage::PerStateStorage<bool>> {
-    probfd::storage::PerStateStorage<bool>& store;
-
-public:
-    set_output_iterator(probfd::storage::PerStateStorage<bool>& store)
-        : store(store)
-    {
-    }
-
-    probfd::storage::PerStateStorage<bool>::reference
-    operator=(const ::probfd::StateID& id)
-    {
-        return store[id] = true;
-    }
-
-    set_output_iterator& operator++() { return *this; }
-
-    set_output_iterator operator++(int) { return *this; }
-
-    set_output_iterator& operator*() { return *this; }
-};
-} // namespace utils
 
 #endif

@@ -18,7 +18,6 @@
 #include "cegar/abstract_state.h"
 
 #include "utils/countdown_timer.h"
-#include "utils/iterators.h"
 #include "utils/memory.h"
 
 #include <cassert>
@@ -87,9 +86,9 @@ vector<value_t> compute_distances(
     std::vector<StateID> pruned_states;
     qr_analysis.run_analysis(
         &abstraction.get_initial_state(),
-        utils::discarding_output_iterator{},
+        iterators::discarding_output_iterator{},
         std::back_inserter(pruned_states),
-        utils::discarding_output_iterator{});
+        iterators::discarding_output_iterator{});
 
     for (StateID pruned_id : pruned_states) {
         heuristic.set_h_value(pruned_id, INFINITE_VALUE);

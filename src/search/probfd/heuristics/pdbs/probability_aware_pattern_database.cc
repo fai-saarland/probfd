@@ -77,16 +77,16 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
     if (dead_end_cost == INFINITE_VALUE) {
         analysis.run_analysis(
             initial_state,
-            utils::discarding_output_iterator{},
+            iterators::discarding_output_iterator{},
             std::back_inserter(pruned_states),
-            utils::discarding_output_iterator{},
+            iterators::discarding_output_iterator{},
             timer.get_remaining_time());
     } else {
         analysis.run_analysis(
             initial_state,
             std::back_inserter(pruned_states),
-            utils::discarding_output_iterator{},
-            utils::discarding_output_iterator{},
+            iterators::discarding_output_iterator{},
+            iterators::discarding_output_iterator{},
             timer.get_remaining_time());
     }
 

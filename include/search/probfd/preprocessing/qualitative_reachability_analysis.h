@@ -1,8 +1,5 @@
-#ifndef PROBFD_END_COMPONENT_DECOMPOSITION_QUALITATIVE_REACHABILITY_ANALYSIS_H
-#define PROBFD_END_COMPONENT_DECOMPOSITION_QUALITATIVE_REACHABILITY_ANALYSIS_H
-
-#include "utils/iterators.h"
-#include "utils/timer.h"
+#ifndef PROBFD_PREPROCESSING_QUALITATIVE_REACHABILITY_ANALYSIS_H
+#define PROBFD_PREPROCESSING_DECOMPOSITION_QUALITATIVE_REACHABILITY_ANALYSIS_H
 
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
@@ -13,7 +10,10 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/utils/iterators.h"
+
 #include "utils/countdown_timer.h"
+#include "utils/timer.h"
 
 #include <cassert>
 #include <deque>

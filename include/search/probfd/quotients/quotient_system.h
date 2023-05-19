@@ -3,6 +3,8 @@
 
 #include "probfd/engine_interfaces/state_space.h"
 
+#include "probfd/utils/iterators.h"
+
 #include "algorithms/segmented_vector.h"
 
 #include "utils/collections.h"
@@ -58,26 +60,30 @@ class DefaultQuotientSystem
 
         auto state_begin()
         {
-            return utils::make_transform_iterator(
+            return iterators::make_transform_iterator(
                 begin(),
                 &StateInfo::state_id);
         }
 
         auto state_end()
         {
-            return utils::make_transform_iterator(end(), &StateInfo::state_id);
+            return iterators::make_transform_iterator(
+                end(),
+                &StateInfo::state_id);
         }
 
         auto state_begin() const
         {
-            return utils::make_transform_iterator(
+            return iterators::make_transform_iterator(
                 begin(),
                 &StateInfo::state_id);
         }
 
         auto state_end() const
         {
-            return utils::make_transform_iterator(end(), &StateInfo::state_id);
+            return iterators::make_transform_iterator(
+                end(),
+                &StateInfo::state_id);
         }
 
         void filter_actions(const std::vector<QuotientAction<Action>>& filter)
@@ -126,7 +132,7 @@ class DefaultQuotientSystem
 
 public:
     using QAction = QuotientAction<Action>;
-    using QuotientStateIDIterator = utils::variant_iterator<
+    using QuotientStateIDIterator = iterators::variant_iterator<
         decltype(std::declval<const QuotientInformation>().state_begin()),
         const StateID*>;
 
@@ -415,7 +421,7 @@ public:
             begin,
             end,
             rid,
-            utils::infinite_iterator<std::vector<QAction>>());
+            iterators::infinite_iterator<std::vector<QAction>>());
     }
 
     template <typename StateIDIterator, typename IgnoreActionsIterator>

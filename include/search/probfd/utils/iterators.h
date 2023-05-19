@@ -1,5 +1,5 @@
-#ifndef __ITERATORS_H__
-#define __ITERATORS_H__
+#ifndef PROBFD_ITERATORS_H
+#define PROBFD_ITERATORS_H
 
 #include <cassert>
 #include <compare>
@@ -9,7 +9,10 @@
 #include <utility>
 #include <variant>
 
-namespace utils {
+namespace probfd {
+
+/// Namespace dedicated to custom iterators.
+namespace iterators {
 
 struct discarding_output_iterator {
     using difference_type = std::ptrdiff_t;
@@ -29,38 +32,6 @@ struct discarding_output_iterator {
     discarding_output_iterator operator++(int) { return *this; }
 
     discarding_output_iterator& operator*() { return *this; }
-};
-
-template <typename Container>
-class set_output_iterator {
-    std::insert_iterator<Container> base;
-
-public:
-    using difference_type = void;
-    using value_type = void;
-    using pointer = void;
-    using reference = void;
-    using iterator_category = std::output_iterator_tag;
-
-    set_output_iterator(Container& c)
-        : base(c, c.end())
-    {
-    }
-
-    set_output_iterator& operator++()
-    {
-        ++base;
-        return *this;
-    }
-
-    set_output_iterator operator++(int)
-    {
-        auto& r = *this;
-        base++;
-        return r;
-    }
-
-    auto& operator*() { return *base; }
 };
 
 template <typename T>
@@ -400,6 +371,7 @@ auto make_val_iterator(IteratorT base)
     return make_transform_iterator(base, &value_type::second);
 }
 
-} // namespace utils
+} // namespace iterators
+} // namespace probfd
 
 #endif // __ITERATORS_H__

@@ -1,9 +1,10 @@
 #ifndef PROBFD_DISTRIBUTION_H
 #define PROBFD_DISTRIBUTION_H
 
+#include "probfd/utils/iterators.h"
+
 #include "probfd/value_type.h"
 
-#include "utils/iterators.h"
 #include "utils/rng.h"
 
 #include <algorithm>
