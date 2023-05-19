@@ -3,6 +3,7 @@
 #include "probfd/engine_interfaces/heuristic_search_interface.h"
 
 #include <algorithm>
+#include <ranges>
 
 namespace probfd {
 namespace transition_sorters {
@@ -18,7 +19,7 @@ void VDiffSorter::sort(
     std::vector<Distribution<StateID>>& all_successors,
     engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
-    std::vector<std::pair<double, unsigned>> k0;
+    std::vector<double> k0;
     k0.reserve(all_successors.size());
     for (const auto& successor_dist : all_successors) {
         value_t sum = 0;
@@ -26,17 +27,14 @@ void VDiffSorter::sort(
             sum += prob * favor_large_gaps_ *
                    hs_interface.lookup_bounds(succ).length();
         }
-        k0.emplace_back(sum, k0.size());
+        k0.emplace_back(sum);
     }
 
-    // Would be less redundant with std::ranges::zip (C++ 23) ...
-    std::ranges::sort(k0);
-    std::vector<Distribution<StateID>> res;
-    res.reserve(all_successors.size());
-    for (unsigned i = 0; i < k0.size(); ++i) {
-        res.push_back(std::move(all_successors[k0[i].second]));
-    }
-    res.swap(all_successors);
+    std::ranges::sort(
+        std::views::zip(all_successors, k0),
+        [](const auto& left, const auto& right) {
+            return std::get<1>(left) < std::get<1>(right);
+        });
 }
 
 } // namespace transition_sorters
