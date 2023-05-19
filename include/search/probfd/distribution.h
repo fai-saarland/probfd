@@ -169,6 +169,10 @@ public:
      */
     bool is_dirac() const { return size() == 1; }
 
+    /**
+     * @brief Computes the expectation over a real random variable according to
+     * the distribution.
+     */
     template <typename RandomVariable>
         requires(std::invocable<RandomVariable, T>)
     value_t expectation(RandomVariable rv) const
