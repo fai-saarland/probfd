@@ -6,6 +6,8 @@
 #include "probfd/quotients/quotient_system.h"
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/utils/guards.h"
+
 #include "utils/countdown_timer.h"
 #include "utils/timer.h"
 
@@ -360,7 +362,7 @@ private:
                             for (const StateID id : scc) {
                                 stack_index_[id] = STATE_CLOSED;
                             }
-                            utils::TimerScope scope(statistics_.trap_timer);
+                            TimerScope scope(statistics_.trap_timer);
                             quotient_->build_quotient(
                                 scc.begin(),
                                 scc.end(),

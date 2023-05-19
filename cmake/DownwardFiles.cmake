@@ -833,6 +833,9 @@ fast_downward_plugin(
         # Constant evaluator (default)
         probfd/heuristics/constant_evaluator
 
+        # Utility
+        probfd/utils/guards.cc
+
         probfd/solver_interface
         
         probfd/solvers/mdp_solver

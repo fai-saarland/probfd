@@ -7,6 +7,8 @@
 
 #include "probfd/policies/map_policy.h"
 
+#include "probfd/utils/guards.h"
+
 #include "utils/countdown_timer.h"
 #include "utils/timer.h"
 
@@ -567,7 +569,7 @@ private:
             stack_index_[*it] = STATE_CLOSED;
         }
 
-        utils::TimerScope scope(statistics_.trap_timer);
+        TimerScope scope(statistics_.trap_timer);
 
         // Get the greedy actions and collapse them
         std::vector<std::vector<QAction>> collapsed_actions;

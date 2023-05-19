@@ -73,19 +73,6 @@ public:
 extern Timer g_search_timer;
 extern Timer g_timer;
 
-class TimerScope {
-    Timer& timer;
-
-public:
-    TimerScope(Timer& timer)
-        : timer(timer)
-    {
-        timer.resume();
-    }
-
-    ~TimerScope() { timer.stop(); }
-};
-
 } // namespace utils
 
 #endif

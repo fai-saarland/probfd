@@ -717,7 +717,7 @@ private:
     bool compute_value_update(StateID state_id, StateInfo& state_info)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        utils::TimerScope scoped_upd_timer(statistics_.update_time);
+        TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
         statistics_.backups++;
 
@@ -905,7 +905,7 @@ private:
         std::vector<Distribution<StateID>>& opt_transitions)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        utils::TimerScope scoped_upd_timer(statistics_.update_time);
+        TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
         statistics_.backups++;
 
@@ -980,7 +980,7 @@ private:
         Distribution<StateID>* greedy_transition)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        utils::TimerScope scoped(statistics_.policy_selection_time);
+        TimerScope scoped(statistics_.policy_selection_time);
 #endif
 
         ++statistics_.policy_updates;

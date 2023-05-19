@@ -10,12 +10,14 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/progress_report.h"
-#include "probfd/value_type.h"
-
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/tasks/root_task.h"
+
+#include "probfd/utils/guards.h"
+
+#include "probfd/progress_report.h"
+#include "probfd/value_type.h"
 
 #include "lp/lp_solver.h"
 
@@ -177,7 +179,7 @@ public:
         next_lp_var_ = 0;
         next_lp_constr_id_ = 0;
 
-        utils::TimerScope scope(statistics_.idual_timer_);
+        TimerScope scope(statistics_.idual_timer_);
 
         prepare_lp();
 
@@ -307,7 +309,7 @@ public:
                 start_new_states);
 
             {
-                utils::TimerScope lp_scope(statistics_.lp_solver_timer_);
+                TimerScope lp_scope(statistics_.lp_solver_timer_);
                 lp_solver_.solve();
                 timer.throw_if_expired();
             }
@@ -386,7 +388,7 @@ private:
             return;
         }
 
-        utils::TimerScope scope(statistics_.hpom_timer_);
+        TimerScope scope(statistics_.hpom_timer_);
         heuristics::occupation_measures::HPOMGenerator::generate_hpom_lp(
             ProbabilisticTaskProxy(*tasks::g_root_task),
             lp,
@@ -408,7 +410,7 @@ private:
         }
 
         if (hpom_initialized_) {
-            utils::TimerScope scope(statistics_.hpom_timer_);
+            TimerScope scope(statistics_.hpom_timer_);
             for (const StateID state_id : expanded) {
                 remove_fringe_state_from_hpom(
                     this->lookup_state(state_id),
@@ -429,7 +431,7 @@ private:
             return;
         }
 
-        utils::TimerScope scope(statistics_.hpom_timer_);
+        TimerScope scope(statistics_.hpom_timer_);
 
         size_t i = incremental_hpom_updates_ ? start : 0;
 

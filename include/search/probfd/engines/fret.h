@@ -282,7 +282,7 @@ public:
     Interval heuristic_search(const State& state, utils::CountdownTimer& timer)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        utils::TimerScope scoped(statistics_.heuristic_search);
+        TimerScope scoped(statistics_.heuristic_search);
 #endif
         return base_engine_->solve(state, timer.get_remaining_time());
     }
@@ -297,7 +297,7 @@ private:
     bool find_and_remove_traps(const State& state, utils::CountdownTimer& timer)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        utils::TimerScope scoped(statistics_.trap_identification);
+        TimerScope scoped(statistics_.trap_identification);
 #endif
         unsigned int trap_counter = 0;
         unsigned int unexpanded = 0;
@@ -398,7 +398,7 @@ private:
     void collapse_trap(StackIterator first, StackIterator last, StateID repr)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        utils::TimerScope t(statistics_.trap_removal);
+        TimerScope t(statistics_.trap_removal);
 #endif
 
         GreedyGraphGenerator greedy_graph;

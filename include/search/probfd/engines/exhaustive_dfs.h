@@ -313,7 +313,7 @@ private:
     EvaluationResult evaluate(const State& state)
     {
 #if defined(EXPENSIVE_STATISTICS)
-        utils::TimerScope t(statistics_.evaluation_time);
+        TimerScope t(statistics_.evaluation_time);
 #endif
         ++statistics_.evaluations;
         return evaluator_->evaluate(state);

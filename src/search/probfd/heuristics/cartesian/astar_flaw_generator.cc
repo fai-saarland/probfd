@@ -21,6 +21,7 @@
 
 #include "utils/countdown_timer.h"
 #include "utils/memory.h"
+#include "utils/timer.h"
 
 #include <cassert>
 

@@ -1,5 +1,12 @@
 
+#ifndef PROBFD_UTILS_GUARDS_H
+#define PROBFD_UTILS_GUARDS_H
+
 #include <exception>
+
+namespace utils {
+class Timer;
+}
 
 namespace probfd {
 
@@ -45,4 +52,14 @@ public:
     ~scope_exit() { f(); }
 };
 
+class TimerScope {
+    utils::Timer& timer;
+
+public:
+    TimerScope(utils::Timer& timer);
+    ~TimerScope();
+};
+
 } // namespace probfd
+
+#endif
