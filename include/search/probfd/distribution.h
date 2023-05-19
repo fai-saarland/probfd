@@ -169,6 +169,17 @@ public:
      */
     bool is_dirac() const { return size() == 1; }
 
+    template <typename RandomVariable>
+        requires(std::invocable<RandomVariable, T>)
+    value_t expectation(RandomVariable rv) const
+    {
+        value_t ex = 0;
+        for (const auto [succ, prob] : distribution_) {
+            ex += prob * rv(succ);
+        }
+        return ex;
+    }
+
     /**
      * @brief Scales all element probablities by a common factor.
      */

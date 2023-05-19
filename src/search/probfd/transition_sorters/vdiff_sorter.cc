@@ -17,17 +17,14 @@ void VDiffSorter::sort(
     StateID,
     const std::vector<OperatorID>&,
     std::vector<Distribution<StateID>>& all_successors,
-    engine_interfaces::HeuristicSearchInterface& hs_interface)
+    engine_interfaces::HeuristicSearchInterface& hsi)
 {
     std::vector<double> k0;
     k0.reserve(all_successors.size());
     for (const auto& successor_dist : all_successors) {
-        value_t sum = 0;
-        for (const auto [succ, prob] : successor_dist) {
-            sum += prob * favor_large_gaps_ *
-                   hs_interface.lookup_bounds(succ).length();
-        }
-        k0.emplace_back(sum);
+        k0.emplace_back(successor_dist.expectation([=, &hsi](StateID succ) {
+            return favor_large_gaps_ * hsi.lookup_bounds(succ).length();
+        }));
     }
 
     std::ranges::sort(
