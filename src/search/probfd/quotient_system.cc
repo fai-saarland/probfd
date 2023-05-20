@@ -254,43 +254,6 @@ StateID QuotientSystem<State, OperatorID>::translate_state_id(StateID sid) const
     return this->fallback_->translate_state_id(sid);
 }
 
-OperatorID QuotientSystem<State, OperatorID>::get_original_action(
-    StateID sid,
-    const QAction& a) const
-{
-    if (cache_) {
-        assert(
-            state_infos_[sid].states[0] == sid &&
-            utils::contains(state_infos_[sid].states, sid));
-        const auto& entry = lookup(a.state_id);
-        assert(a.action_id < entry.naops);
-        return entry.aops[a.action_id];
-    }
-
-    return fallback_->get_original_action(sid, a);
-}
-
-ActionID QuotientSystem<State, OperatorID>::get_original_action_id(
-    StateID sid,
-    ActionID a) const
-{
-    if (cache_) {
-        const auto& qstates = get_infos(sid)->states;
-        unsigned offset = a;
-        for (StateID qstate : qstates) {
-            const auto& cached = lookup(qstate);
-            if (offset < cached.naops) {
-                return cached.aops[offset].get_index();
-            }
-            offset -= cached.naops;
-        }
-
-        abort();
-    }
-
-    return fallback_->get_original_action_id(sid, a);
-}
-
 const QuotientSystem<State, OperatorID>::QuotientInformation*
 QuotientSystem<State, OperatorID>::get_infos(StateID sid) const
 {

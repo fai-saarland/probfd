@@ -123,8 +123,6 @@ public:
     StateID translate_state_id(StateID sid) const;
 
     void get_pruned_ops(StateID sid, std::vector<QAction>& result);
-    
-    OperatorID get_original_action(StateID, const QAction& a) const;
 
     template <std::ranges::input_range StateIDRange>
     void build_quotient(StateIDRange&& range)

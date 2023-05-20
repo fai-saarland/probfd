@@ -83,14 +83,12 @@ public:
     {
         std::optional<Action> oprev = std::nullopt;
 
-        if (prev_policy)
-            oprev = quotient_->get_original_action(state, *prev_policy);
+        if (prev_policy) oprev = prev_policy->action;
 
         choices_.clear();
         choices_.reserve(action_choices.size());
         for (unsigned i = 0; i < action_choices.size(); ++i) {
-            choices_.push_back(
-                quotient_->get_original_action(state, action_choices[i]));
+            choices_.push_back(action_choices[i].action);
         }
 
         QuotientHeuristicSearchInterface qhs_interface(hs_interface);
@@ -171,12 +169,10 @@ public:
     void push(StateID state_id) override { original_->push(state_id); }
 
     /*void
-    /push(StateID parent, QuotientAction action, value_t prob, StateID state_id)
-        override
+    /push(StateID parent, QuotientAction qaction, value_t prob, StateID
+    state_id) override
     {
-        const OperatorID op_id =
-            this->quotient_->get_original_action(parent, action);
-        original_->push(parent, op_id, prob, state_id);
+        original_->push(parent, qaction.action, prob, state_id);
     }*/
 
     unsigned size() const override { return original_->size(); }

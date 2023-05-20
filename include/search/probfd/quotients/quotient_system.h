@@ -343,11 +343,6 @@ public:
         return StateID(get_masked_state_id(sid) & MASK);
     }
 
-    Action get_original_action(StateID, const QAction& a) const
-    {
-        return a.action;
-    }
-
     template <typename Range>
     void build_quotient(Range& states)
     {
@@ -379,15 +374,19 @@ public:
             // quotient
             state_space_->generate_applicable_actions(rid, qinfo.aops);
 
-            // Partition actions
-            auto inner_it = partition_actions(
+            // Partition new actions
+            auto new_aops = std::ranges::subrange(
                 qinfo.aops.begin() + prev_size,
-                qinfo.aops.end(),
-                raops | std::views::transform(&QAction::action));
+                qinfo.aops.end());
 
-            b.num_outer_acts =
-                std::distance(qinfo.aops.begin() + prev_size, inner_it);
-            b.num_inner_acts = std::distance(inner_it, qinfo.aops.end());
+            {
+                auto [pivot, last] = partition_actions(
+                    new_aops,
+                    raops | std::views::transform(&QAction::action));
+
+                b.num_outer_acts = std::distance(new_aops.begin(), pivot);
+                b.num_inner_acts = std::distance(pivot, last);
+            }
 
             qinfo.total_num_outer_acts += b.num_outer_acts;
         } else {
@@ -439,15 +438,17 @@ public:
                 // quotient
                 state_space_->generate_applicable_actions(state_id, qinfo.aops);
 
-                // Partition actions
-                auto inner_it = partition_actions(
+                // Partition new actions
+                auto new_aops = std::ranges::subrange(
                     qinfo.aops.begin() + prev_size,
-                    qinfo.aops.end(),
+                    qinfo.aops.end());
+
+                auto [pivot, last] = partition_actions(
+                    new_aops,
                     aops | std::views::transform(&QAction::action));
 
-                b.num_outer_acts =
-                    std::distance(qinfo.aops.begin() + prev_size, inner_it);
-                b.num_inner_acts = std::distance(inner_it, qinfo.aops.end());
+                b.num_outer_acts = std::distance(new_aops.begin(), pivot);
+                b.num_inner_acts = std::distance(pivot, last);
 
                 qinfo.total_num_outer_acts += b.num_outer_acts;
             }
@@ -477,12 +478,14 @@ public:
         state_space_->generate_applicable_actions(rid, qinfo.aops);
 
         // Partition actions
-        auto inner_it = partition_actions(qinfo.aops, raops);
+        {
+            auto [pivot, last] = partition_actions(qinfo.aops, raops);
 
-        b.num_outer_acts = std::distance(qinfo.aops.begin(), inner_it);
-        b.num_inner_acts = std::distance(inner_it, qinfo.aops.end());
+            b.num_outer_acts = std::distance(qinfo.aops.begin(), pivot);
+            b.num_inner_acts = std::distance(pivot, last);
 
-        qinfo.total_num_outer_acts += b.num_outer_acts;
+            qinfo.total_num_outer_acts += b.num_outer_acts;
+        }
 
         for (const auto& entry : submdp) {
             const StateID state_id = get<0>(entry);
@@ -503,10 +506,10 @@ public:
             state_space_->generate_applicable_actions(state_id, qinfo.aops);
 
             // Partition actions
-            auto inner_it = partition_actions(qinfo.aops, aops);
+            auto [pivot, last] = partition_actions(qinfo.aops, aops);
 
-            b.num_outer_acts = std::distance(qinfo.aops.begin(), inner_it);
-            b.num_inner_acts = std::distance(inner_it, qinfo.aops.end());
+            b.num_outer_acts = std::distance(qinfo.aops.begin(), pivot);
+            b.num_inner_acts = std::distance(pivot, last);
 
             qinfo.total_num_outer_acts += b.num_outer_acts;
         }
@@ -514,26 +517,17 @@ public:
 
 private:
     auto partition_actions(
-        std::vector<Action>& aops,
-        const std::vector<Action>& filter) const
-    {
-        return partition_actions(aops.begin(), aops.end(), filter);
-    }
-
-    auto partition_actions(
-        std::vector<Action>::iterator aops_begin,
-        std::vector<Action>::iterator aops_end,
-        const auto& filter) const
+        std::ranges::input_range auto&& aops,
+        const std::ranges::input_range auto& filter) const
     {
         if (filter.empty()) {
-            return aops_end;
+            return std::ranges::subrange(aops.begin(), aops.end());
         }
 
-        return std::stable_partition(
-            aops_begin,
-            aops_end,
+        return std::ranges::stable_partition(
+            aops,
             [&filter](const Action& action) {
-                return !utils::contains(filter, action);
+                return std::ranges::find(filter, action) == filter.end();
             });
     }
 

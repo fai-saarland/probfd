@@ -11,30 +11,27 @@ namespace quotients {
 
 template <typename State, typename Action>
 using QuotientCostFunction =
-    engine_interfaces::CostFunction<State, quotients::QuotientAction<Action>>;
+    engine_interfaces::CostFunction<State, QuotientAction<Action>>;
 
 template <typename State, typename Action>
 class DefaultQuotientCostFunction : public QuotientCostFunction<State, Action> {
 public:
     explicit DefaultQuotientCostFunction(
-        quotients::QuotientSystem<State, Action>* quotient,
+        QuotientSystem<State, Action>* quotient,
         engine_interfaces::CostFunction<State, Action>* orig)
         : quotient_(quotient)
         , eval_(orig)
     {
     }
 
-    virtual TerminationInfo get_termination_info(param_type<State> s) override
+    TerminationInfo get_termination_info(param_type<State> s) override
     {
         return eval_->get_termination_info(s);
     }
 
-    virtual value_t
-    get_action_cost(StateID s, quotients::QuotientAction<Action> qa) override
+    value_t get_action_cost(StateID, QuotientAction<Action> qa) override
     {
-        return eval_->get_action_cost(
-            qa.state_id,
-            quotient_->get_original_action(s, qa));
+        return eval_->get_action_cost(qa.state_id, qa.action);
     }
 
     engine_interfaces::CostFunction<State, Action>* real() const
@@ -43,7 +40,7 @@ public:
     }
 
 private:
-    quotients::QuotientSystem<State, Action>* quotient_;
+    QuotientSystem<State, Action>* quotient_;
     engine_interfaces::CostFunction<State, Action>* eval_;
 };
 
