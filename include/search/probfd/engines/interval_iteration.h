@@ -87,7 +87,7 @@ public:
     {
     }
 
-    Interval solve(const State& state, double max_time) override
+    Interval solve(param_type<State> state, double max_time) override
     {
         utils::CountdownTimer timer(max_time);
         std::unique_ptr<QuotientSystem> sys = get_quotient(state, timer);
@@ -103,7 +103,7 @@ public:
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval solve(
-        const State& state,
+        param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
         SetLike2& one_states,
@@ -140,7 +140,7 @@ public:
 
 private:
     std::unique_ptr<QuotientSystem>
-    get_quotient(const State& state, utils::CountdownTimer& timer)
+    get_quotient(param_type<State> state, utils::CountdownTimer& timer)
     {
         Decomposer ec_decomposer(
             this->get_state_space(),
@@ -159,7 +159,7 @@ private:
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval mysolve(
-        const State& state,
+        param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
         SetLike2& one_states,

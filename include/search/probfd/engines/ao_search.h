@@ -136,7 +136,7 @@ protected:
         statistics_.print(out);
     }
 
-    void setup_custom_reports(const State&) override
+    void setup_custom_reports(param_type<State>) override
     {
         this->report_->register_print(
             [&](std::ostream& out) { out << "i=" << statistics_.iterations; });

@@ -213,7 +213,7 @@ public:
     }
 
 protected:
-    Interval do_solve(const State& s, double max_time) override
+    Interval do_solve(param_type<State> s, double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 
@@ -234,7 +234,7 @@ protected:
         statistics_.print(out);
     }
 
-    void setup_custom_reports(const State&) override
+    void setup_custom_reports(param_type<State>) override
     {
         this->statistics_.register_report(this->report_);
     }
@@ -523,7 +523,7 @@ public:
     {
     }
 
-    Interval solve(const State& s, double max_time) override
+    Interval solve(param_type<State> s, double max_time) override
     {
         return engine_.solve(s, max_time);
     }

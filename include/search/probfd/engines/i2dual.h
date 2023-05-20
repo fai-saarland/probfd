@@ -153,7 +153,7 @@ public:
         statistics_.print(out);
     }
 
-    Interval solve(const State& state, double max_time) override
+    Interval solve(param_type<State> state, double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 
@@ -344,7 +344,7 @@ public:
     }
 
 private:
-    bool evaluate_state(const State& state, IDualData& data)
+    bool evaluate_state(param_type<State> state, IDualData& data)
     {
         assert(data.is_new());
 
@@ -445,7 +445,7 @@ private:
     }
 
     void remove_fringe_state_from_hpom(
-        const State& state,
+        param_type<State> state,
         const IDualData& data,
         named_vector::NamedVector<lp::LPConstraint>& constraints) const
     {
@@ -459,7 +459,7 @@ private:
     }
 
     void add_fringe_state_to_hpom(
-        const State& state,
+        param_type<State> state,
         const IDualData& data,
         named_vector::NamedVector<lp::LPConstraint>& constraints) const
     {

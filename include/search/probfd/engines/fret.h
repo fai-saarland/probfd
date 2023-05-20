@@ -164,7 +164,7 @@ public:
     }
 
     std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        const State& state,
+        param_type<State> state,
         double max_time = std::numeric_limits<double>::infinity()) override
     {
         this->solve(state, max_time);
@@ -283,7 +283,7 @@ public:
         return policy;
     }
 
-    Interval solve(const State& state, double max_time) override
+    Interval solve(param_type<State> state, double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 
@@ -298,7 +298,8 @@ public:
         }
     }
 
-    Interval heuristic_search(const State& state, utils::CountdownTimer& timer)
+    Interval
+    heuristic_search(param_type<State> state, utils::CountdownTimer& timer)
     {
 #if defined(EXPENSIVE_STATISTICS)
         TimerScope scoped(statistics_.heuristic_search);
@@ -313,7 +314,8 @@ public:
     }
 
 private:
-    bool find_and_remove_traps(const State& state, utils::CountdownTimer& timer)
+    bool
+    find_and_remove_traps(param_type<State> state, utils::CountdownTimer& timer)
     {
 #if defined(EXPENSIVE_STATISTICS)
         TimerScope scoped(statistics_.trap_identification);

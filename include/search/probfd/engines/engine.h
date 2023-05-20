@@ -37,7 +37,7 @@ public:
      * The default implementation of this method returns an empty policy.
      */
     virtual std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        const State&,
+        param_type<State>,
         double = std::numeric_limits<double>::infinity())
     {
         return std::make_unique<policies::EmptyPolicy<State, Action>>();
@@ -48,7 +48,7 @@ public:
      * maximum time limit.
      */
     virtual Interval solve(
-        const State& state,
+        param_type<State> state,
         double max_time = std::numeric_limits<double>::infinity()) = 0;
 
     /**
@@ -86,7 +86,7 @@ public:
     /**
      * @brief Looks up the state id of state \p s in the state id mapping.
      */
-    StateID get_state_id(const State& s) const
+    StateID get_state_id(param_type<State> s) const
     {
         return state_space_->get_state_id(s);
     }
@@ -158,7 +158,7 @@ public:
     /**
      * @brief Get the termination info for state \p s .
      */
-    TerminationInfo get_termination_info(const State& s) const
+    TerminationInfo get_termination_info(param_type<State> s) const
     {
         return cost_function_->get_termination_info(s);
     }

@@ -245,7 +245,7 @@ public:
     }
 
 protected:
-    Interval do_solve(const State& qstate, double max_time) override
+    Interval do_solve(param_type<State> qstate, double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 
@@ -263,7 +263,7 @@ protected:
         statistics_.print(out);
     }
 
-    void setup_custom_reports(const State&) override
+    void setup_custom_reports(param_type<State>) override
     {
         statistics_.register_report(this->report_);
     }
@@ -709,13 +709,13 @@ public:
     {
     }
 
-    Interval solve(const State& state, double max_time) override
+    Interval solve(param_type<State> state, double max_time) override
     {
         return engine_.solve(state, max_time);
     }
 
     std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& state, double max_time) override
+    compute_policy(param_type<State> state, double max_time) override
     {
         this->solve(state, max_time);
 

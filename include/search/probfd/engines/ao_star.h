@@ -68,7 +68,7 @@ public:
     }
 
 protected:
-    Interval do_solve(const State& state, double max_time) override
+    Interval do_solve(param_type<State> state, double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 

@@ -347,9 +347,9 @@ public:
     }
 
     /**
-     * \copydoc MDPEngine::solve(const State&, double)
+     * \copydoc MDPEngine::solve(param_type<State>, double)
      */
-    Interval solve(const State& state, double max_time) override
+    Interval solve(param_type<State> state, double max_time) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
         return this->solve(this->get_state_id(state), value_store, max_time);

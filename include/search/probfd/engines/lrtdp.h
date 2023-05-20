@@ -217,7 +217,7 @@ public:
     void reset_search_state() override { state_infos_.clear(); }
 
 protected:
-    Interval do_solve(const State& state, double max_time) override
+    Interval do_solve(param_type<State> state, double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 
@@ -244,7 +244,7 @@ protected:
     }
 
 protected:
-    void setup_custom_reports(const State&) override
+    void setup_custom_reports(param_type<State>) override
     {
         this->report_->register_print(
             [&](std::ostream& out) { out << "trials=" << statistics_.trials; });

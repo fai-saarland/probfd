@@ -276,7 +276,7 @@ public:
         ABORT("Search algorithm does not store policy information!");
     }
 
-    Interval solve(const State& state, double) override
+    Interval solve(param_type<State> state, double) override
     {
         StateID stateid = this->get_state_id(state);
         SearchNodeInformation& info = search_space_[stateid];
@@ -310,7 +310,7 @@ private:
         }
     }
 
-    EvaluationResult evaluate(const State& state)
+    EvaluationResult evaluate(param_type<State> state)
     {
 #if defined(EXPENSIVE_STATISTICS)
         TimerScope t(statistics_.evaluation_time);
@@ -333,7 +333,8 @@ private:
         return initialize_search_node(this->lookup_state(state_id), info);
     }
 
-    bool initialize_search_node(const State& state, SearchNodeInformation& info)
+    bool
+    initialize_search_node(param_type<State> state, SearchNodeInformation& info)
     {
         assert(info.is_new());
         info.value = trivial_bound_;

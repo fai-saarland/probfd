@@ -188,7 +188,7 @@ public:
     virtual ~HeuristicSearchBase() = default;
 
     Interval solve(
-        const State& state,
+        param_type<State> state,
         double max_time =
             std::numeric_limits<double>::infinity()) final override
     {
@@ -197,7 +197,7 @@ public:
     }
 
     std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        const State& state,
+        param_type<State> state,
         double max_time = std::numeric_limits<double>::infinity()) override
     {
         this->solve(state, max_time);
@@ -477,7 +477,7 @@ protected:
      *
      * Called internally after initializing the progress report.
      */
-    virtual Interval do_solve(const State& state, double max_time) = 0;
+    virtual Interval do_solve(param_type<State> state, double max_time) = 0;
 
     /**
      * @brief Prints additional statistics to the output stream.
@@ -489,7 +489,7 @@ protected:
     /**
      * @brief Sets up internal custom reports of a state in an implementation.
      */
-    virtual void setup_custom_reports(const State&) {}
+    virtual void setup_custom_reports(param_type<State>) {}
 
     /**
      * @brief Advances the progress report.
@@ -592,9 +592,8 @@ protected:
      */
     void dump_search_space(
         const std::string& file_name,
-        const std::function<std::string(const State&)> sstr = [](const State&) {
-            return "";
-        })
+        const std::function<std::string(param_type<State>)> sstr =
+            [](param_type<State>) { return ""; })
     {
         struct ExpansionCondition : public engine_interfaces::Evaluator<State> {
             explicit ExpansionCondition(
@@ -605,7 +604,7 @@ protected:
             {
             }
 
-            EvaluationResult operator()(const State& state) const override
+            EvaluationResult operator()(param_type<State> state) const override
             {
                 const StateID sid = hs_->get_state_id(state);
                 const StateInfo& info = infos_->operator[](sid);
@@ -634,7 +633,7 @@ protected:
     }
 
 private:
-    void initialize_report(const State& state)
+    void initialize_report(param_type<State> state)
     {
         initial_state_id_ = this->get_state_id(state);
 

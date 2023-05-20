@@ -133,7 +133,7 @@ public:
     }
 
     std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& initial_state, double max_time) override
+    compute_policy(param_type<State> initial_state, double max_time) override
     {
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
             new policies::MapPolicy<State, Action>(this->get_state_space()));
@@ -141,13 +141,13 @@ public:
         return policy;
     }
 
-    Interval solve(const State& initial_state, double max_time) override
+    Interval solve(param_type<State> initial_state, double max_time) override
     {
         return solve(initial_state, max_time, nullptr);
     }
 
     Interval solve(
-        const State& initial_state,
+        param_type<State> initial_state,
         double max_time,
         policies::MapPolicy<State, Action>* policy)
     {

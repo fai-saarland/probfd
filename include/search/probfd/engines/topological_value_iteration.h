@@ -272,10 +272,10 @@ public:
     }
 
     /**
-     * \copydoc MDPEngine::compute_policy(const State&, double)
+     * \copydoc MDPEngine::compute_policy(param_type<State>, double)
      */
     std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(const State& state, double max_time) override
+    compute_policy(param_type<State> state, double max_time) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
@@ -289,9 +289,9 @@ public:
     }
 
     /**
-     * \copydoc MDPEngine::solve(const State&, double)
+     * \copydoc MDPEngine::solve(param_type<State>, double)
      */
-    Interval solve(const State& state, double max_time) override
+    Interval solve(param_type<State> state, double max_time) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
         return this->solve(this->get_state_id(state), value_store, max_time);
