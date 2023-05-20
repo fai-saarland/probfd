@@ -1,6 +1,8 @@
 #ifndef PROBFD_TYPES_H
 #define PROBFD_TYPES_H
 
+#include "operator_id.h"
+
 #include <cstdint>
 #include <functional>
 #include <type_traits>
@@ -29,27 +31,12 @@ struct StateID {
     size_type id;
 };
 
-/**
- * @brief An ActionID represents an action within an ActionIDMap. It is trivial
- * to copy and intended for long term storage.
- *
- * @see engine_interfaces::ActionIDMap
- */
-struct ActionID {
-    using size_type = std::make_unsigned_t<std::ptrdiff_t>;
-    static constexpr size_type undefined = -1;
-
-    ActionID(size_type id = ActionID::undefined)
-        : id(id)
-    {
-    }
-
-    operator size_type() const { return id; }
-
-    size_type id;
-};
-
 } // namespace probfd
+
+inline auto operator<=>(OperatorID left, OperatorID right)
+{
+    return left.get_index() <=> right.get_index();
+}
 
 namespace std {
 
@@ -58,14 +45,6 @@ struct hash<probfd::StateID> {
     size_t operator()(const probfd::StateID& sid) const
     {
         return hash<probfd::StateID::size_type>()(sid);
-    }
-};
-
-template <>
-struct hash<probfd::ActionID> {
-    size_t operator()(const probfd::ActionID& aid) const
-    {
-        return hash<probfd::ActionID::size_type>()(aid);
     }
 };
 

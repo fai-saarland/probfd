@@ -17,7 +17,8 @@ protected:
         StateID state,
         const std::vector<OperatorID>& action_choices,
         std::vector<Distribution<StateID>>& successors,
-        engine_interfaces::HeuristicSearchInterface& hs_interface) override;
+        engine_interfaces::HeuristicSearchInterface<OperatorID>& hs_interface)
+        override;
 };
 
 } // namespace transition_sorters

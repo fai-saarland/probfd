@@ -6,9 +6,12 @@
 #include "probfd/distribution.h"
 #include "probfd/types.h"
 
+#include <optional>
+
 namespace probfd {
 namespace engine_interfaces {
 
+template <typename>
 class HeuristicSearchInterface;
 
 /**
@@ -30,10 +33,10 @@ protected:
     int pick_index(
         StateSpace<State, Action>&,
         StateID,
-        ActionID,
+        Action,
         const std::vector<Action>&,
         const std::vector<Distribution<StateID>>&,
-        HeuristicSearchInterface&) override
+        HeuristicSearchInterface<Action>&) override
     {
         return 0; // Always choose the first greedy action in the list
     }
@@ -64,10 +67,10 @@ public:
     virtual int pick_index(
         StateSpace<State, Action>& state_space,
         StateID state_id,
-        ActionID previous_greedy_id,
+        std::optional<Action> previous_greedy,
         const std::vector<Action>& greedy_action_candidates,
         const std::vector<Distribution<StateID>>& candidate_successors,
-        HeuristicSearchInterface& hs_interface) = 0;
+        HeuristicSearchInterface<Action>& hs_interface) = 0;
 
     /**
      * @brief Prints statistics to an output stream, e.g. the number of queries

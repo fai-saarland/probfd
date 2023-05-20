@@ -131,13 +131,11 @@ struct Statistics : public CoreStatistics {
  * @tparam Action - The action type of the undelying MDP model.
  * @tparam StateInfoT - The state information container type.
  */
-template <typename StateT, typename ActionT, typename StateInfoT>
+template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchBase
-    : public MDPEngine<StateT, ActionT>
-    , public engine_interfaces::HeuristicSearchInterface {
+    : public MDPEngine<State, Action>
+    , public engine_interfaces::HeuristicSearchInterface<Action> {
 public:
-    using State = StateT;
-    using Action = ActionT;
     using StateInfo = StateInfoT;
 
     static constexpr bool StorePolicy = StateInfo::StorePolicy;
@@ -221,21 +219,20 @@ public:
             const StateID state_id = queue.front();
             queue.pop_front();
 
-            ActionID action_id = this->lookup_policy(state_id);
+            std::optional action = this->lookup_policy(state_id);
 
             // Terminal states have no policy decision.
-            if (action_id == ActionID::undefined) {
+            if (!action) {
                 continue;
             }
 
-            const Action action = this->lookup_action(state_id, action_id);
             const Interval bound = this->lookup_bounds(state_id);
 
-            policy->emplace_decision(state_id, action_id, bound);
+            policy->emplace_decision(state_id, *action, bound);
 
             // Push the successor traps.
             Distribution<StateID> successors;
-            this->generate_successors(state_id, action, successors);
+            this->generate_successors(state_id, *action, successors);
 
             for (const StateID succ_id : successors.support()) {
                 if (visited.insert(succ_id).second) {
@@ -276,7 +273,7 @@ public:
         }
     }
 
-    ActionID lookup_policy(StateID state_id) override
+    std::optional<Action> lookup_policy(StateID state_id) override
     {
         if constexpr (!StorePolicy) {
             std::vector<Action> opt_aops;
@@ -286,13 +283,16 @@ public:
                 lookup_initialize(state_id),
                 opt_aops,
                 opt_transitions);
-            return this->policy_chooser_->pick_index(
+
+            if (opt_aops.empty()) return std::nullopt;
+
+            return opt_aops[this->policy_chooser_->pick_index(
                 *this->get_state_space(),
                 state_id,
-                ActionID::undefined,
+                std::nullopt,
                 opt_aops,
                 opt_transitions,
-                *this);
+                *this)];
         } else {
             return state_infos_[state_id].policy;
         }
@@ -339,7 +339,7 @@ public:
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
-        state_infos_[state_id].set_policy(ActionID::undefined);
+        state_infos_[state_id].clear_policy();
     }
 
     /**
@@ -350,9 +350,9 @@ public:
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
-        const ActionID aid = state_infos_[state_id].get_policy();
-        assert(aid != ActionID::undefined);
-        return this->lookup_action(state_id, aid);
+        std::optional a = state_infos_[state_id].get_policy();
+        assert(a.has_value());
+        return *a;
     }
 
     /**
@@ -363,17 +363,17 @@ public:
      * @param[out] result - The returned successor distribution when applying
      * the current greedy action in the state represented by \p state
      */
-    bool apply_policy(StateID state, Distribution<StateID>& result)
+    bool apply_policy(StateID state_id, Distribution<StateID>& result)
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
-        const StateInfo& info = state_infos_[state];
-        if (info.policy == ActionID::undefined) {
-            return async_update(state, &result).value_changed;
+        std::optional a = state_infos_[state_id].get_policy();
+
+        if (!a) {
+            return async_update(state_id, &result).value_changed;
         }
 
-        Action action = this->lookup_action(state, info.policy);
-        this->generate_successors(state, action, result);
+        this->generate_successors(state_id, *a, result);
         return false;
     }
 
@@ -679,8 +679,7 @@ private:
             statistics_.evaluated_states++;
 
             State state = this->lookup_state(state_id);
-            TerminationInfo term =
-                MDPEngine<StateT, ActionT>::get_termination_info(state);
+            TerminationInfo term = this->get_termination_info(state);
             const value_t t_cost = term.get_cost();
 
             state_info.termination_cost = t_cost;
@@ -957,7 +956,7 @@ private:
             opt_transitions);
 
         if (opt_aops.empty()) {
-            state_info.set_policy(ActionID::undefined);
+            state_info.clear_policy();
             return UpdateResult{value_changed, false};
         }
 
@@ -994,13 +993,12 @@ private:
         assert(utils::in_bounds(index, opt_aops));
 
         Action& action = opt_aops[index];
-        const ActionID aid = this->get_action_id(state_id, action);
 
         if (greedy_transition != nullptr) {
             (*greedy_transition) = std::move(opt_transitions[index]);
         }
 
-        return {state_info.update_policy(aid), std::move(action)};
+        return {state_info.update_policy(action), std::move(action)};
     }
 };
 
@@ -1018,7 +1016,7 @@ template <
 using HeuristicSearchBase = internal::HeuristicSearchBase<
     State,
     Action,
-    StateInfo<PerStateBaseInformation<StorePolicy, UseInterval>>>;
+    StateInfo<PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;
 
 } // namespace heuristic_search
 } // namespace engines

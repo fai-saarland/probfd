@@ -23,17 +23,15 @@ public:
     int pick_index(
         engine_interfaces::StateSpace<State, Action>& state_space,
         StateID state_id,
-        ActionID previous_greedy_id,
+        std::optional<Action> previous_greedy,
         const std::vector<Action>& greedy_action_candidates,
         const std::vector<Distribution<StateID>>& candidate_successors,
-        engine_interfaces::HeuristicSearchInterface& hs_interface) override
+        engine_interfaces::HeuristicSearchInterface<Action>& hs_interface)
+        override
     {
         if (stable_policy_) {
             for (unsigned i = 0; i < greedy_action_candidates.size(); ++i) {
-                const auto aid = state_space.get_action_id(
-                    state_id,
-                    greedy_action_candidates[i]);
-                if (aid == previous_greedy_id) {
+                if (greedy_action_candidates[i] == previous_greedy) {
                     return i;
                 }
             }
@@ -42,7 +40,7 @@ public:
         return static_cast<Derived*>(this)->pick_index(
             state_space,
             state_id,
-            previous_greedy_id,
+            previous_greedy,
             greedy_action_candidates,
             candidate_successors,
             hs_interface);

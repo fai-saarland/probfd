@@ -30,10 +30,10 @@ public:
     int pick_index(
         engine_interfaces::StateSpace<State, Action>&,
         StateID,
-        ActionID,
+        std::optional<Action>,
         const std::vector<Action>&,
         const std::vector<Distribution<StateID>>&,
-        engine_interfaces::HeuristicSearchInterface&)
+        engine_interfaces::HeuristicSearchInterface<Action>&)
     {
         return 0;
     }

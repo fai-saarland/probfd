@@ -143,7 +143,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
     struct QValueInfo {
         // The action id this Q value belongs to.
-        ActionID action_id;
+        Action action;
 
         // Probability to remain in the same state.
         // Casted to the self-loop normalization factor after finalize().
@@ -158,8 +158,8 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // self-loops excluded.
         std::vector<ItemProbabilityPair<EngineValueType*>> nconv_successors;
 
-        QValueInfo(ActionID action_id, value_t action_cost)
-            : action_id(action_id)
+        QValueInfo(Action action, value_t action_cost)
+            : action(action)
             , conv_part(action_cost)
         {
         }
@@ -211,11 +211,11 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         // Remaining Q values which have not yet converged.
         std::vector<QValueInfo> nconv_qs;
 
-        // ID of the optimal action
-        ActionID best_action_id = ActionID::undefined;
+        // The optimal action
+        std::optional<Action> best_action = std::nullopt;
 
-        // ID of the optimal action among those leaving the SCC.
-        ActionID best_converged_id = ActionID::undefined;
+        // The optimal action among those leaving the SCC.
+        std::optional<Action> best_converged = std::nullopt;
 
         StackInfo(
             StateID state_id,
@@ -233,11 +233,11 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         bool update_value()
         {
             EngineValueType v = conv_part;
-            best_action_id = best_converged_id;
+            best_action = best_converged;
 
             for (const QValueInfo& info : nconv_qs) {
                 if (set_min(v, info.compute_q_value())) {
-                    best_action_id = info.action_id;
+                    best_action = info.action;
                 }
             }
 
@@ -400,7 +400,7 @@ public:
                 if (explore->next_action(this, state_id)) {
                     Action& action = explore->get_current_action();
                     stack_info->nconv_qs.emplace_back(
-                        this->get_action_id(state_id, action),
+                        action,
                         this->get_action_cost(state_id, action));
 
                     break;
@@ -507,7 +507,7 @@ private:
                     aops.size());
 
                 s_info.nconv_qs.emplace_back(
-                    this->get_action_id(state_id, current_op),
+                    current_op,
                     this->get_action_cost(state_id, current_op));
 
                 exploration_stack_.emplace_back(
@@ -579,7 +579,7 @@ private:
 
             if (tinfo.finalize()) {
                 if (set_min(stack_info.conv_part, tinfo.conv_part)) {
-                    stack_info.best_converged_id = tinfo.action_id;
+                    stack_info.best_converged = tinfo.action;
                 }
                 stack_info.nconv_qs.pop_back();
             }
@@ -591,7 +591,7 @@ private:
             const Action& action = explore.get_current_action();
 
             stack_info.nconv_qs.emplace_back(
-                this->get_action_id(state_id, action),
+                action,
                 this->get_action_cost(state_id, action));
         }
     }
@@ -657,12 +657,12 @@ private:
                     if constexpr (UseInterval) {
                         policy->emplace_decision(
                             it->state_id,
-                            it->best_action_id,
+                            *it->best_action,
                             *it->value);
                     } else {
                         policy->emplace_decision(
                             it->state_id,
-                            it->best_action_id,
+                            *it->best_action,
                             Interval(*it->value, INFINITE_VALUE));
                     }
                 } while (++it != end);

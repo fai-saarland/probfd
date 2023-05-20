@@ -58,7 +58,7 @@ template <typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
     struct StateInfo {
         bool expanded = false;
-        ActionID best_action = ActionID::undefined;
+        std::optional<Action> best_action = std::nullopt;
         value_t value;
     };
 
@@ -220,8 +220,7 @@ private:
         StateInfo& info = state_infos_[e.state];
 
         if (e.t_value < info.value) {
-            info.best_action =
-                this->get_action_id(e.state, e.remaining_aops.back());
+            info.best_action = e.remaining_aops.back();
             info.value = e.t_value;
         }
     }
@@ -235,7 +234,7 @@ private:
         if (policy) {
             policy->emplace_decision(
                 e.state,
-                info.best_action,
+                *info.best_action,
                 Interval(info.value));
         }
     }

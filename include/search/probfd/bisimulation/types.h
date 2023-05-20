@@ -4,6 +4,8 @@
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
 
+#include <compare>
+
 namespace probfd {
 
 /// This namespace contains the implementation of deterministic bisimulation
@@ -27,14 +29,15 @@ public:
 
 /// Represents an action in the probabilistic bisimulation quotient.
 struct QuotientAction {
+    unsigned idx; ///< Numbering of this action
+
     explicit QuotientAction(unsigned idx)
         : idx(idx)
     {
     }
 
-    bool operator==(const QuotientAction& o) const { return o.idx == idx; }
-
-    unsigned idx; ///< Numbering of this action
+    friend auto
+    operator<=>(const QuotientAction&, const QuotientAction&) = default;
 };
 
 } // namespace bisimulation

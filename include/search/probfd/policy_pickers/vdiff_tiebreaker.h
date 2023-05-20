@@ -23,10 +23,10 @@ public:
     int pick_index(
         engine_interfaces::StateSpace<State, OperatorID>& state_space,
         StateID state,
-        ActionID prev_policy,
+        std::optional<OperatorID> prev_policy,
         const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
-        engine_interfaces::HeuristicSearchInterface& hs_interface);
+        engine_interfaces::HeuristicSearchInterface<OperatorID>& hs_interface);
 
     static void add_options_to_parser(options::OptionParser& parser);
 };

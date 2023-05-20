@@ -17,7 +17,7 @@ void VDiffSorter::sort(
     StateID,
     const std::vector<OperatorID>&,
     std::vector<Distribution<StateID>>& all_successors,
-    engine_interfaces::HeuristicSearchInterface& hsi)
+    engine_interfaces::HeuristicSearchInterface<OperatorID>& hsi)
 {
     std::vector<double> k0;
     k0.reserve(all_successors.size());

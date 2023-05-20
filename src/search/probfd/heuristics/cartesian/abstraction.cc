@@ -63,21 +63,6 @@ Abstraction::get_state(StateID state_id)
     return &get_abstract_state(state_id.id);
 }
 
-ActionID Abstraction::get_action_id(
-    StateID,
-    const heuristics::cartesian::ProbabilisticTransition* action)
-{
-    return ActionID(reinterpret_cast<uintptr_t>(action));
-}
-
-const heuristics::cartesian::ProbabilisticTransition*
-Abstraction::get_action(StateID, ActionID action_id)
-{
-    return reinterpret_cast<
-        const heuristics::cartesian::ProbabilisticTransition*>(
-        static_cast<uintptr_t>(action_id.id));
-}
-
 void Abstraction::generate_applicable_actions(
     StateID state,
     std::vector<const heuristics::cartesian::ProbabilisticTransition*>& result)

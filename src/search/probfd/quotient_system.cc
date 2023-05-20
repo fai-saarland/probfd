@@ -118,27 +118,6 @@ State QuotientSystem<State, OperatorID>::get_state(StateID sid)
     return state_space_->get_state(sid);
 }
 
-QuotientSystem<State, OperatorID>::QAction
-QuotientSystem<State, OperatorID>::get_action(StateID sid, ActionID aid)
-{
-    if (cache_) {
-        const auto& qstates = get_infos(sid)->states;
-        assert(qstates[0] == sid);
-        unsigned offset = aid;
-        for (unsigned i = 0; i < qstates.size(); ++i) {
-            const auto& cached = lookup(qstates[i]);
-            if (offset < cached.naops) {
-                return QAction(qstates[i], offset);
-            }
-            offset -= cached.naops;
-        }
-
-        abort();
-    }
-
-    return fallback_->get_action(sid, aid);
-}
-
 void QuotientSystem<State, OperatorID>::get_pruned_ops(
     StateID sid,
     std::vector<QAction>& result)
@@ -148,28 +127,6 @@ void QuotientSystem<State, OperatorID>::get_pruned_ops(
     } else {
         this->fallback_->get_pruned_ops(sid, result);
     }
-}
-
-ActionID QuotientSystem<State, OperatorID>::get_action_id(
-    StateID sid,
-    param_type<QAction> a)
-{
-    if (cache_) {
-        const auto& qstates = get_infos(sid)->states;
-        assert(qstates[0] == sid);
-        unsigned offset = 0;
-        for (unsigned i = 0; i < qstates.size(); ++i) {
-            if (a.state_id == qstates[i]) {
-                offset += a.action_id;
-                break;
-            }
-            const auto& cached = lookup(qstates[i]);
-            offset += cached.naops;
-        }
-        return offset;
-    }
-
-    return fallback_->get_action_id(sid, a);
 }
 
 void QuotientSystem<State, OperatorID>::generate_applicable_actions(

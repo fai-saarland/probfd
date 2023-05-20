@@ -261,18 +261,6 @@ bisimulation::QuotientState BisimilarStateSpace::get_state(StateID s)
     return bisimulation::QuotientState(s);
 }
 
-ActionID
-BisimilarStateSpace::get_action_id(StateID, bisimulation::QuotientAction action)
-{
-    return action.idx;
-}
-
-bisimulation::QuotientAction
-BisimilarStateSpace::get_action(StateID, ActionID action)
-{
-    return bisimulation::QuotientAction(action);
-}
-
 void BisimilarStateSpace::generate_applicable_actions(
     StateID s,
     std::vector<bisimulation::QuotientAction>& result)

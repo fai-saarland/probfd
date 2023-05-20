@@ -33,16 +33,6 @@ State TaskStateSpace::get_state(StateID state_id)
     return state_registry_.lookup_state(::StateID(state_id));
 }
 
-ActionID TaskStateSpace::get_action_id(StateID, OperatorID op_id)
-{
-    return ActionID(op_id.get_index());
-}
-
-OperatorID TaskStateSpace::get_action(StateID, ActionID action_id)
-{
-    return OperatorID(action_id);
-}
-
 void TaskStateSpace::generate_applicable_actions(
     StateID state_id,
     std::vector<OperatorID>& result)

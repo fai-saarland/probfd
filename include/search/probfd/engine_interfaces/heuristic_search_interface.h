@@ -2,6 +2,9 @@
 #define PROBFD_ENGINE_INTERFACES_HEURISTIC_SEARCH_INTERFACE_H
 
 #include "probfd/engines/heuristic_search_state_information.h"
+#include "probfd/quotients/quotient_system.h"
+
+#include <optional>
 
 namespace probfd {
 namespace engine_interfaces {
@@ -10,6 +13,7 @@ namespace engine_interfaces {
  * @brief Interface providing access to various state properties during
  * heuristic search.
  */
+template <typename Action>
 class HeuristicSearchInterface {
 public:
     virtual ~HeuristicSearchInterface() = default;
@@ -37,7 +41,7 @@ public:
     /**
      * @brief Looks up the current greedy action of a state.
      */
-    virtual ActionID lookup_policy(StateID state_id) = 0;
+    virtual std::optional<Action> lookup_policy(StateID state_id) = 0;
 };
 
 } // namespace engine_interfaces

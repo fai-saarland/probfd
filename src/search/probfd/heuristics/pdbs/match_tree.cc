@@ -190,11 +190,6 @@ void MatchTree::get_applicable_operators(
             operator_ids);
 }
 
-ActionID MatchTree::get_operator_index(const ProjectionOperator& op) const
-{
-    return &op - projection_operators.data();
-}
-
 const ProjectionOperator& MatchTree::get_index_operator(int index) const
 {
     return projection_operators[index];

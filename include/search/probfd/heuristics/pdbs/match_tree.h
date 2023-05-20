@@ -66,11 +66,6 @@ public:
         std::vector<const ProjectionOperator*>& operators) const;
 
     /**
-     * @brief Obtain an action ID for a projection operator.
-     */
-    ActionID get_operator_index(const ProjectionOperator& op) const;
-
-    /**
      * @brief Obtain the projection operator at a specific index.
      */
     const ProjectionOperator& get_index_operator(int index) const;

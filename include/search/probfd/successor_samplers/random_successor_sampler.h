@@ -25,9 +25,9 @@ public:
 protected:
     StateID sample(
         StateID,
-        param_type<Action>,
+        Action,
         const Distribution<StateID>& successors,
-        engine_interfaces::HeuristicSearchInterface&) override
+        engine_interfaces::HeuristicSearchInterface<Action>&) override
     {
         return successors.sample(*rng_)->item;
     }

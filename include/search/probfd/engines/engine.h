@@ -101,24 +101,6 @@ public:
     }
 
     /**
-     * @brief Looks up the action id of action \p a when applied in the state
-     * with id \p sid in the action id mapping.
-     */
-    ActionID get_action_id(StateID sid, const Action& a) const
-    {
-        return state_space_->get_action_id(sid, a);
-    }
-
-    /**
-     * @brief Lookup the action corresponding to action id \p aid when applied
-     * in the state with id \p sid in the action id mapping.
-     */
-    Action lookup_action(StateID sid, ActionID aid) const
-    {
-        return state_space_->get_action(sid, aid);
-    }
-
-    /**
      * @brief Output the list of applicable operators in the state with id
      * \p sid via \p ops.
      */

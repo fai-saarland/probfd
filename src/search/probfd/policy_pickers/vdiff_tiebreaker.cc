@@ -24,10 +24,10 @@ VDiffTiebreaker::VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps)
 int VDiffTiebreaker::pick_index(
     engine_interfaces::StateSpace<State, OperatorID>&,
     StateID,
-    ActionID,
+    std::optional<OperatorID>,
     const std::vector<OperatorID>&,
     const std::vector<Distribution<StateID>>& successors,
-    engine_interfaces::HeuristicSearchInterface& hs_interface)
+    engine_interfaces::HeuristicSearchInterface<OperatorID>& hs_interface)
 {
     value_t best = INFINITE_VALUE;
     unsigned choice = 1;

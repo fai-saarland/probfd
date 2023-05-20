@@ -7,7 +7,7 @@ StateID ArbitrarySuccessorSelector::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engine_interfaces::HeuristicSearchInterface&)
+    engine_interfaces::HeuristicSearchInterface<OperatorID>&)
 {
     auto it = successors.begin();
     return it->item;

@@ -97,9 +97,6 @@ public:
     StateID get_state_id(param_type<State> s) override;
     State get_state(StateID sid) override;
 
-    QAction get_action(StateID sid, ActionID aid) override;
-    ActionID get_action_id(StateID sid, param_type<QAction> a) override;
-
     void generate_applicable_actions(StateID sid, std::vector<QAction>& result)
         override;
 
@@ -128,7 +125,6 @@ public:
     void get_pruned_ops(StateID sid, std::vector<QAction>& result);
     
     OperatorID get_original_action(StateID, const QAction& a) const;
-    ActionID get_original_action_id(StateID sid, ActionID a) const;
 
     template <std::ranges::input_range StateIDRange>
     void build_quotient(StateIDRange&& range)

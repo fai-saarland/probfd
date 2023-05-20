@@ -7,26 +7,26 @@
 
 #include <cassert>
 #include <cstdint>
+#include <optional>
 
 namespace probfd {
 namespace engines {
 namespace heuristic_search {
 
-template <bool StorePolicy = false>
-struct StatesPolicy {
-};
+template <typename, bool StorePolicy = false>
+struct StatesPolicy {};
 
-template <>
-struct StatesPolicy<true> {
-    ActionID policy = ActionID::undefined;
+template <typename Action>
+struct StatesPolicy<Action, true> {
+    std::optional<Action> policy = std::nullopt;
 
-    void set_policy(ActionID aid) { policy = aid; }
-    void clear_policy() { set_policy(ActionID::undefined); }
-    ActionID get_policy() const { return policy; }
-    bool update_policy(ActionID aid)
+    void set_policy(Action a) { policy = a; }
+    void clear_policy() { policy = std::nullopt; }
+    std::optional<Action> get_policy() const { return policy; }
+    bool update_policy(Action a)
     {
-        if (aid != get_policy()) {
-            set_policy(aid);
+        if (!policy || a != policy) {
+            set_policy(a);
             return true;
         }
 
@@ -76,9 +76,9 @@ struct StateFlags {
     }
 };
 
-template <bool StorePolicy_, bool UseInterval_>
+template <typename Action, bool StorePolicy_, bool UseInterval_>
 struct PerStateBaseInformation
-    : public StatesPolicy<StorePolicy_>
+    : public StatesPolicy<Action, StorePolicy_>
     , public StateFlags {
     static constexpr bool StorePolicy = StorePolicy_;
     static constexpr bool UseInterval = UseInterval_;

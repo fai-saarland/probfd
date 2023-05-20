@@ -39,10 +39,6 @@ public:
 
     StateRank get_state(StateID id) override;
 
-    ActionID get_action_id(StateID, const ProjectionOperator* op) override;
-
-    const ProjectionOperator* get_action(StateID, ActionID action_id) override;
-
     void generate_applicable_actions(
         StateID state,
         std::vector<const ProjectionOperator*>& aops) override;

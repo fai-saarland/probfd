@@ -67,9 +67,6 @@ public:
     StateID get_state_id(const State& state) override;
     State get_state(StateID state_id) override;
 
-    ActionID get_action_id(StateID, OperatorID op_id) override;
-    OperatorID get_action(StateID, ActionID action_id) override;
-
     void generate_applicable_actions(
         StateID state_id,
         std::vector<OperatorID>& result) override;

@@ -62,12 +62,6 @@ public:
 
     const AbstractState* get_state(StateID state_id) override;
 
-    ActionID
-    get_action_id(StateID, const ProbabilisticTransition* action) override;
-
-    const ProbabilisticTransition*
-    get_action(StateID, ActionID action_id) override;
-
     void generate_applicable_actions(
         StateID state,
         std::vector<const ProbabilisticTransition*>& result) override;

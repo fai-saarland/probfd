@@ -29,10 +29,10 @@ RandomTiebreaker::RandomTiebreaker(
 int RandomTiebreaker::pick_index(
     engine_interfaces::StateSpace<State, OperatorID>&,
     StateID,
-    ActionID,
+    std::optional<OperatorID>,
     const std::vector<OperatorID>& options,
     const std::vector<Distribution<StateID>>&,
-    engine_interfaces::HeuristicSearchInterface&)
+    engine_interfaces::HeuristicSearchInterface<OperatorID>&)
 {
     return rng->random(options.size());
 }

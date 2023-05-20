@@ -590,7 +590,7 @@ private:
         TimerScope scope(statistics_.trap_timer);
 
         quotient_->build_quotient(scc, *scc.begin());
-        this->get_state_info(state).set_policy(ActionID::undefined);
+        this->get_state_info(state).clear_policy();
         stack_.erase(scc.begin(), scc.end());
         return repush_trap(state, flags);
     }
@@ -750,30 +750,25 @@ public:
             const StateID quotient_id = queue.front();
             queue.pop_front();
 
-            ActionID quotient_action_id = engine_.lookup_policy(quotient_id);
+            std::optional quotient_action = engine_.lookup_policy(quotient_id);
 
             // Terminal states have no policy decision.
-            if (quotient_action_id == ActionID::undefined) {
+            if (!quotient_action) {
                 continue;
             }
 
-            const QAction quotient_action =
-                engine_.lookup_action(quotient_id, quotient_action_id);
             const Interval quotient_bound = engine_.lookup_bounds(quotient_id);
 
-            const StateID exiting_id = quotient_action.state_id;
+            const StateID exiting_id = quotient_action->state_id;
 
             policy->emplace_decision(
                 exiting_id,
-                quotient_action.action_id,
+                quotient_action->action,
                 quotient_bound);
 
             // Nothing else needs to be done if the trap has only one state.
             if (engine_.quotient_->quotient_size(quotient_id) != 1) {
-                std::unordered_map<
-                    StateID,
-                    std::set<std::pair<StateID, ActionID>>>
-                    parents;
+                std::unordered_map<StateID, std::set<QAction>> parents;
 
                 // Build the inverse graph
                 std::vector<QAction> inner_actions;
@@ -781,16 +776,16 @@ public:
 
                 for (const QAction& qaction : inner_actions) {
                     StateID source_id = qaction.state_id;
-                    ActionID action_id = qaction.action_id;
+                    Action action = qaction.action;
 
                     Distribution<StateID> successors;
                     parent_state_space->generate_action_transitions(
                         source_id,
-                        parent_state_space->get_action(source_id, action_id),
+                        action,
                         successors);
 
                     for (const StateID succ_id : successors.support()) {
-                        parents[succ_id].insert({source_id, action_id});
+                        parents[succ_id].insert(qaction);
                     }
                 }
 
@@ -803,11 +798,11 @@ public:
                     const StateID next_id = inverse_queue.front();
                     inverse_queue.pop_front();
 
-                    for (const auto& [pred_id, act_id] : parents[next_id]) {
+                    for (const auto& [pred_id, act] : parents[next_id]) {
                         if (inverse_visited.insert(pred_id).second) {
                             policy->emplace_decision(
                                 pred_id,
-                                act_id,
+                                act,
                                 quotient_bound);
                             inverse_queue.push_back(pred_id);
                         }
@@ -819,7 +814,7 @@ public:
             Distribution<StateID> successors;
             engine_.quotient_->generate_action_transitions(
                 quotient_id,
-                quotient_action,
+                *quotient_action,
                 successors);
 
             for (const StateID succ_id : successors.support()) {

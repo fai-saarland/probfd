@@ -11,6 +11,46 @@ namespace probfd {
 
 namespace quotients {
 
+template <typename Action>
+class QuotientHeuristicSearchInterface
+    : public engine_interfaces::HeuristicSearchInterface<Action> {
+    engine_interfaces::HeuristicSearchInterface<
+        quotients::QuotientAction<Action>>& wrapped;
+
+public:
+    QuotientHeuristicSearchInterface(
+        engine_interfaces::HeuristicSearchInterface<
+            quotients::QuotientAction<Action>>& wrapped)
+        : wrapped(wrapped)
+    {
+    }
+
+    virtual ~QuotientHeuristicSearchInterface() = default;
+
+    const engines::heuristic_search::StateFlags&
+    lookup_state_flags(StateID state_id) override final
+    {
+        return wrapped.lookup_state_flags(state_id);
+    }
+
+    value_t lookup_value(StateID state_id) override final
+    {
+        return wrapped.lookup_value(state_id);
+    }
+
+    Interval lookup_bounds(StateID state_id) override final
+    {
+        return wrapped.lookup_bounds(state_id);
+    }
+
+    std::optional<Action> lookup_policy(StateID state_id) override final
+    {
+        std::optional o = wrapped.lookup_policy(state_id);
+        if (!o) return std::nullopt;
+        return o->action;
+    }
+};
+
 template <typename State, typename Action = OperatorID>
 class RepresentativePolicyPicker
     : public engine_interfaces::
@@ -35,28 +75,32 @@ public:
     int pick_index(
         engine_interfaces::StateSpace<State, QuotientAction>&,
         StateID state,
-        ActionID prev_policy,
+        std::optional<QuotientAction> prev_policy,
         const std::vector<QuotientAction>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
-        engine_interfaces::HeuristicSearchInterface& hs_interface) override
+        engine_interfaces::HeuristicSearchInterface<QuotientAction>&
+            hs_interface) override
     {
-        const ActionID oprev =
-            (prev_policy == ActionID::undefined
-                 ? ActionID(ActionID::undefined)
-                 : quotient_->get_original_action_id(state, prev_policy));
+        std::optional<Action> oprev = std::nullopt;
+
+        if (prev_policy)
+            oprev = quotient_->get_original_action(state, *prev_policy);
+
         choices_.clear();
         choices_.reserve(action_choices.size());
         for (unsigned i = 0; i < action_choices.size(); ++i) {
             choices_.push_back(
                 quotient_->get_original_action(state, action_choices[i]));
         }
+
+        QuotientHeuristicSearchInterface qhs_interface(hs_interface);
         return original_->pick_index(
             *quotient_->get_parent_state_space(),
             state,
             oprev,
             choices_,
             successors,
-            hs_interface);
+            qhs_interface);
     }
 
     void print_statistics(std::ostream& out) override
@@ -87,12 +131,14 @@ public:
 
     StateID sample(
         StateID state,
-        QuotientAction action,
+        QuotientAction qaction,
         const Distribution<StateID>& transition,
-        engine_interfaces::HeuristicSearchInterface& hs_interface) override
+        engine_interfaces::HeuristicSearchInterface<QuotientAction>&
+            hs_interface) override
     {
-        const OperatorID op_id = quotient_->get_original_action(state, action);
-        return original_->sample(state, op_id, transition, hs_interface);
+        QuotientHeuristicSearchInterface qhs_interface(hs_interface);
+        return original_
+            ->sample(state, qaction.action, transition, qhs_interface);
     }
 
     void print_statistics(std::ostream& out) const override

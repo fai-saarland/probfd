@@ -75,13 +75,6 @@ public:
 
     bisimulation::QuotientState get_state(StateID state_id) override;
 
-    ActionID
-    get_action_id(StateID state_id, bisimulation::QuotientAction action)
-        override;
-
-    bisimulation::QuotientAction
-    get_action(StateID state_id, ActionID action) override;
-
     void generate_applicable_actions(
         StateID state,
         std::vector<bisimulation::QuotientAction>& result) override;

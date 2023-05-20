@@ -23,7 +23,7 @@ StateID VDiffSuccessorSampler::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engine_interfaces::HeuristicSearchInterface& hs_interface)
+    engine_interfaces::HeuristicSearchInterface<OperatorID>& hs_interface)
 {
     biased_.clear();
 

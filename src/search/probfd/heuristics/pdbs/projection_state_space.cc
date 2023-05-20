@@ -220,18 +220,6 @@ StateRank ProjectionStateSpace::get_state(StateID id)
     return StateRank(id);
 }
 
-ActionID
-ProjectionStateSpace::get_action_id(StateID, const ProjectionOperator* op)
-{
-    return match_tree_.get_operator_index(*op);
-}
-
-const ProjectionOperator*
-ProjectionStateSpace::get_action(StateID, ActionID action_id)
-{
-    return &match_tree_.get_index_operator(action_id.id);
-}
-
 void ProjectionStateSpace::generate_applicable_actions(
     StateID state,
     std::vector<const ProjectionOperator*>& aops)
