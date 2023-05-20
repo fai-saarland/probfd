@@ -117,12 +117,12 @@ class HeuristicDepthFirstSearch
         conditional_t<Fret, internal::StandalonePerStateInformation, StateInfo>;
 
     struct LocalStateInfo {
-        static constexpr const uint8_t NEW = 0;
-        static constexpr const uint8_t ONSTACK = 1;
-        static constexpr const uint8_t CLOSED = 2;
-        static constexpr const uint8_t CLOSED_DEAD = 3;
-        static constexpr const uint8_t UNSOLVED = 4;
-        static constexpr const unsigned UNDEF = ((unsigned)-1) >> 1;
+        static constexpr uint8_t NEW = 0;
+        static constexpr uint8_t ONSTACK = 1;
+        static constexpr uint8_t CLOSED = 2;
+        static constexpr uint8_t CLOSED_DEAD = 3;
+        static constexpr uint8_t UNSOLVED = 4;
+        static constexpr unsigned UNDEF = ((unsigned)-1) >> 1;
 
         uint8_t status = NEW;
         unsigned index = UNDEF;
@@ -299,132 +299,109 @@ private:
             state_infos_[state].open(0);
         }
 
-        unsigned current_index = 0;
         bool keep_expanding = true;
-        bool last_unsolved_successors = false;
-        bool last_value_changed = false;
-        bool last_dead = true;
-        bool last_leaf = true;
-        unsigned last_lowlink = LocalStateInfo::UNDEF;
 
-        do {
-            ExpansionInfo& einfo = expansion_queue_.back();
-            LocalStateInfo& sinfo = state_infos_[einfo.stateid];
-            sinfo.lowlink = std::min(sinfo.lowlink, last_lowlink);
-            einfo.unsolved_successor =
-                einfo.unsolved_successor || last_unsolved_successors;
-            einfo.value_changed = einfo.value_changed || last_value_changed;
-            einfo.dead = einfo.dead && last_dead;
-            einfo.leaf = einfo.leaf && last_leaf;
+        ExpansionInfo* einfo = &expansion_queue_.back();
+        LocalStateInfo* sinfo = &state_infos_[einfo->stateid];
 
-            bool fully_explored = true;
-            if (keep_expanding) {
-                while (!einfo.successors.empty()) {
-                    timer.throw_if_expired();
+        for (;;) {
+        recurse:;
+            timer.throw_if_expired();
 
-                    StateID succid = einfo.successors.back();
-                    einfo.successors.pop_back();
+            while (keep_expanding && !einfo->successors.empty()) {
+                timer.throw_if_expired();
 
-                    AdditionalStateInfo& pers_succ_info = get_pers_info(succid);
+                StateID succid = einfo->successors.back();
+                einfo->successors.pop_back();
 
-                    if (pers_succ_info.is_solved()) {
-                        if (!this->is_marked_dead_end(succid)) {
-                            einfo.dead = false;
-                        }
+                AdditionalStateInfo& pers_succ_info = get_pers_info(succid);
 
-                        einfo.leaf = false;
-                        continue;
+                if (pers_succ_info.is_solved()) {
+                    if (!this->is_marked_dead_end(succid)) {
+                        einfo->dead = false;
                     }
 
-                    LocalStateInfo& succ_info = state_infos_[succid];
-                    if (succ_info.status == LocalStateInfo::NEW) {
-                        const uint8_t status = push(
-                            succid,
-                            pers_succ_info,
-                            einfo.value_changed,
-                            einfo.unsolved_successor);
+                    einfo->leaf = false;
+                    continue;
+                }
 
-                        if (status == LocalStateInfo::ONSTACK) {
-                            last_value_changed = false;
-                            last_unsolved_successors = false;
-                            last_dead = true;
-                            last_leaf = true;
-                            last_lowlink = LocalStateInfo::UNDEF;
-                            stack_.push_front(succid);
-                            succ_info.open(++current_index);
-                            fully_explored = false;
+                LocalStateInfo& succ_info = state_infos_[succid];
+                if (succ_info.status == LocalStateInfo::NEW) {
+                    const uint8_t status = push(
+                        succid,
+                        pers_succ_info,
+                        einfo->value_changed,
+                        einfo->unsolved_successor);
 
-                            break;
-                        }
-
-                        einfo.leaf = false;
-                        succ_info.status = status;
-
-                        if (status == LocalStateInfo::UNSOLVED) {
-                            einfo.unsolved_successor = true;
-                            einfo.dead = false;
-                        } else if (status == LocalStateInfo::CLOSED) {
-                            einfo.dead = false;
-                        }
-
-                        if (GreedyExploration && einfo.unsolved_successor) {
-                            keep_expanding = false;
-                            break;
-                        }
-                    } else if (succ_info.status == LocalStateInfo::ONSTACK) {
-                        sinfo.lowlink =
-                            std::min(sinfo.lowlink, succ_info.index);
-                    } else {
-                        einfo.unsolved_successor =
-                            einfo.unsolved_successor ||
-                            succ_info.status == LocalStateInfo::UNSOLVED;
-                        einfo.leaf = false;
-                        einfo.dead =
-                            einfo.dead &&
-                            succ_info.status == LocalStateInfo::CLOSED_DEAD;
+                    if (status == LocalStateInfo::ONSTACK) {
+                        succ_info.open(stack_.size());
+                        stack_.push_back(succid);
+                        einfo = &expansion_queue_.back();
+                        sinfo = &state_infos_[einfo->stateid];
+                        goto recurse;
                     }
+
+                    einfo->leaf = false;
+                    succ_info.status = status;
+
+                    if (status == LocalStateInfo::UNSOLVED) {
+                        einfo->unsolved_successor = true;
+                        einfo->dead = false;
+                    } else if (status == LocalStateInfo::CLOSED) {
+                        einfo->dead = false;
+                    }
+
+                    if (GreedyExploration && einfo->unsolved_successor) {
+                        keep_expanding = false;
+                    }
+                } else if (succ_info.status == LocalStateInfo::ONSTACK) {
+                    sinfo->lowlink = std::min(sinfo->lowlink, succ_info.index);
+                } else {
+                    einfo->unsolved_successor =
+                        einfo->unsolved_successor ||
+                        succ_info.status == LocalStateInfo::UNSOLVED;
+                    einfo->leaf = false;
+                    einfo->dead =
+                        einfo->dead &&
+                        succ_info.status == LocalStateInfo::CLOSED_DEAD;
                 }
             }
 
-            if (!fully_explored) {
-                continue;
-            }
-
-            last_lowlink = sinfo.lowlink;
-            last_unsolved_successors = einfo.unsolved_successor;
-            last_dead = einfo.dead;
-            last_value_changed = einfo.value_changed;
-            last_leaf = einfo.leaf;
+            unsigned last_lowlink = sinfo->lowlink;
+            bool last_unsolved_successors = einfo->unsolved_successor;
+            bool last_dead = einfo->dead;
+            bool last_value_changed = einfo->value_changed;
+            bool last_leaf = einfo->leaf;
 
             if (BackwardUpdates == SINGLE ||
                 (last_value_changed && BackwardUpdates == ON_DEMAND)) {
                 statistics_.backtracking_updates++;
-                auto result = this->async_update(einfo.stateid, nullptr);
+                auto result = this->async_update(einfo->stateid, nullptr);
                 last_value_changed = result.value_changed;
                 last_unsolved_successors =
                     last_unsolved_successors || result.policy_changed;
             }
 
-            if (sinfo.index == sinfo.lowlink) {
+            if (sinfo->index == sinfo->lowlink) {
                 last_leaf = false;
 
-                auto end = stack_.begin();
-                do {
-                    state_infos_[*end].status = LocalStateInfo::UNSOLVED;
-                } while (*(end++) != einfo.stateid);
+                auto scc = std::ranges::subrange(
+                    std::next(stack_.begin(), sinfo->index),
+                    stack_.end());
+
+                for (const StateID state_id : scc) {
+                    state_infos_[state_id].status = LocalStateInfo::UNSOLVED;
+                }
 
                 if constexpr (GetVisited) {
                     if (!last_unsolved_successors && !last_value_changed) {
-                        visited_.insert(visited_.end(), stack_.begin(), end);
+                        visited_.insert(visited_.end(), scc.begin(), scc.end());
                     }
                 }
 
                 if (BackwardUpdates == CONVERGENCE &&
                     last_unsolved_successors) {
-                    auto result = value_iteration(
-                        std::ranges::subrange(stack_.begin(), end),
-                        true,
-                        timer);
+                    auto result = value_iteration(scc, true, timer);
                     last_value_changed = result.first;
                     last_unsolved_successors =
                         result.second || last_unsolved_successors;
@@ -439,24 +416,33 @@ private:
                     const uint8_t closed = last_dead
                                                ? LocalStateInfo::CLOSED_DEAD
                                                : LocalStateInfo::CLOSED;
-                    for (auto it = stack_.begin(); it != end; ++it) {
-                        state_infos_[*it].status = closed;
+                    for (const StateID state_id : scc) {
+                        state_infos_[state_id].status = closed;
 
                         if (LabelSolved) {
-                            get_pers_info(*it).set_solved();
+                            get_pers_info(state_id).set_solved();
                         }
                     }
                 }
 
-                stack_.erase(stack_.begin(), end);
+                stack_.erase(scc.begin(), scc.end());
             }
 
             expansion_queue_.pop_back();
 
-            timer.throw_if_expired();
-        } while (!expansion_queue_.empty());
+            if (expansion_queue_.empty())
+                return last_unsolved_successors || last_value_changed;
 
-        return last_unsolved_successors || last_value_changed;
+            einfo = &expansion_queue_.back();
+            sinfo = &state_infos_[einfo->stateid];
+
+            sinfo->lowlink = std::min(sinfo->lowlink, last_lowlink);
+            einfo->unsolved_successor =
+                einfo->unsolved_successor || last_unsolved_successors;
+            einfo->value_changed = einfo->value_changed || last_value_changed;
+            einfo->dead = einfo->dead && last_dead;
+            einfo->leaf = einfo->leaf && last_leaf;
+        }
     }
 
     uint8_t push(
