@@ -9,7 +9,6 @@
 namespace probfd {
 namespace engine_interfaces {
 
-template <typename>
 class HeuristicSearchInterface;
 
 /**
@@ -37,7 +36,7 @@ public:
         StateID state,
         const std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors,
-        HeuristicSearchInterface<Action>& hs_interface) = 0;
+        HeuristicSearchInterface& hs_interface) = 0;
 };
 
 } // namespace engine_interfaces

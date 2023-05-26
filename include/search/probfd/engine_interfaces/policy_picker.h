@@ -11,7 +11,6 @@
 namespace probfd {
 namespace engine_interfaces {
 
-template <typename>
 class HeuristicSearchInterface;
 
 /**
@@ -36,7 +35,7 @@ protected:
         Action,
         const std::vector<Action>&,
         const std::vector<Distribution<StateID>>&,
-        HeuristicSearchInterface<Action>&) override
+        HeuristicSearchInterface&) override
     {
         return 0; // Always choose the first greedy action in the list
     }
@@ -70,7 +69,7 @@ public:
         std::optional<Action> previous_greedy,
         const std::vector<Action>& greedy_action_candidates,
         const std::vector<Distribution<StateID>>& candidate_successors,
-        HeuristicSearchInterface<Action>& hs_interface) = 0;
+        HeuristicSearchInterface& hs_interface) = 0;
 
     /**
      * @brief Prints statistics to an output stream, e.g. the number of queries

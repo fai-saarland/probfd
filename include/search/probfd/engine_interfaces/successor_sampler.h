@@ -8,7 +8,6 @@
 namespace probfd {
 namespace engine_interfaces {
 
-template <typename Action>
 class HeuristicSearchInterface;
 
 /**
@@ -38,7 +37,7 @@ public:
         StateID state,
         param_type<Action> action,
         const Distribution<StateID>& successor_dist,
-        HeuristicSearchInterface<Action>& hs_interface) = 0;
+        HeuristicSearchInterface& hs_interface) = 0;
 
     /**
      * @brief Prints statistics, e.g. the number of queries made to the

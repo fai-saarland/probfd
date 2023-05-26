@@ -134,7 +134,7 @@ struct Statistics : public CoreStatistics {
 template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchBase
     : public MDPEngine<State, Action>
-    , public engine_interfaces::HeuristicSearchInterface<Action> {
+    , public engine_interfaces::HeuristicSearchInterface {
 public:
     using StateInfo = StateInfoT;
 
@@ -273,7 +273,7 @@ public:
         }
     }
 
-    std::optional<Action> lookup_policy(StateID state_id) override
+    std::optional<Action> lookup_policy(StateID state_id)
     {
         if constexpr (!StorePolicy) {
             std::vector<Action> opt_aops;

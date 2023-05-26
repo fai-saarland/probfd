@@ -26,8 +26,7 @@ public:
         std::optional<Action> previous_greedy,
         const std::vector<Action>& greedy_action_candidates,
         const std::vector<Distribution<StateID>>& candidate_successors,
-        engine_interfaces::HeuristicSearchInterface<Action>& hs_interface)
-        override
+        engine_interfaces::HeuristicSearchInterface& hs_interface) override
     {
         if (stable_policy_) {
             for (unsigned i = 0; i < greedy_action_candidates.size(); ++i) {

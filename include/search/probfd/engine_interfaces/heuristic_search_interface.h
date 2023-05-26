@@ -13,7 +13,6 @@ namespace engine_interfaces {
  * @brief Interface providing access to various state properties during
  * heuristic search.
  */
-template <typename Action>
 class HeuristicSearchInterface {
 public:
     virtual ~HeuristicSearchInterface() = default;
@@ -37,11 +36,6 @@ public:
      * @brief Looks up the bounding interval for the optimal value of a state.
      */
     virtual Interval lookup_bounds(StateID state_id) = 0;
-
-    /**
-     * @brief Looks up the current greedy action of a state.
-     */
-    virtual std::optional<Action> lookup_policy(StateID state_id) = 0;
 };
 
 } // namespace engine_interfaces

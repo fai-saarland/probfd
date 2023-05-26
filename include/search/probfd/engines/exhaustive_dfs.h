@@ -107,7 +107,7 @@ inline bool update_lower_bound(Interval& x, value_t v)
 template <typename State, typename Action, bool UseInterval>
 class ExhaustiveDepthFirstSearch
     : public MDPEngine<State, Action>
-    , public engine_interfaces::HeuristicSearchInterface<Action> {
+    , public engine_interfaces::HeuristicSearchInterface {
     using EngineValueType = engines::EngineValueType<UseInterval>;
 
     struct SearchNodeInformation {
@@ -269,11 +269,6 @@ public:
         } else {
             return search_space_[state_id].value;
         }
-    }
-
-    std::optional<Action> lookup_policy(StateID) override
-    {
-        ABORT("Search algorithm does not store policy information!");
     }
 
     Interval solve(param_type<State> state, double) override

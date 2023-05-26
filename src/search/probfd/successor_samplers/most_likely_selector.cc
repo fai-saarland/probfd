@@ -7,7 +7,7 @@ StateID MostLikelySuccessorSelector::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engine_interfaces::HeuristicSearchInterface<OperatorID>&)
+    engine_interfaces::HeuristicSearchInterface&)
 {
     value_t max = -INFINITE_VALUE;
 

@@ -32,7 +32,7 @@ int RandomTiebreaker::pick_index(
     std::optional<OperatorID>,
     const std::vector<OperatorID>& options,
     const std::vector<Distribution<StateID>>&,
-    engine_interfaces::HeuristicSearchInterface<OperatorID>&)
+    engine_interfaces::HeuristicSearchInterface&)
 {
     return rng->random(options.size());
 }

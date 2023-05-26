@@ -33,7 +33,7 @@ public:
         std::optional<Action>,
         const std::vector<Action>&,
         const std::vector<Distribution<StateID>>&,
-        engine_interfaces::HeuristicSearchInterface<Action>&)
+        engine_interfaces::HeuristicSearchInterface&)
     {
         return 0;
     }

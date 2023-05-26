@@ -22,7 +22,7 @@ StateID UniformSuccessorSampler::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engine_interfaces::HeuristicSearchInterface<OperatorID>&)
+    engine_interfaces::HeuristicSearchInterface&)
 {
     assert(!successors.empty());
     return successors.begin()[rng_->random(successors.size())].item;

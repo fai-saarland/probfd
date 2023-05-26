@@ -27,7 +27,7 @@ int VDiffTiebreaker::pick_index(
     std::optional<OperatorID>,
     const std::vector<OperatorID>&,
     const std::vector<Distribution<StateID>>& successors,
-    engine_interfaces::HeuristicSearchInterface<OperatorID>& hs_interface)
+    engine_interfaces::HeuristicSearchInterface& hs_interface)
 {
     value_t best = INFINITE_VALUE;
     unsigned choice = 1;
