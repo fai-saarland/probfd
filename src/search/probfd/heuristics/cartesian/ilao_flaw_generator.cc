@@ -107,7 +107,6 @@ unique_ptr<Solution> ILAOFlawGenerator::find_solution(
             nullptr,
             &report,
             false,
-            &quotient,
             false,
             engines::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
             false,

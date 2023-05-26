@@ -185,26 +185,25 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        engine_interfaces::StateSpace<State, QAction>* state_space,
+        quotients::QuotientSystem<State, Action>* qstate_space,
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        QuotientSystem* quotient,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
         engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : HeuristicSearchBase(
-              state_space,
+              qstate_space,
               cost_function,
               value_init,
               policy_chooser,
               new_state_handler,
               report,
               interval_comparison)
-        , quotient_(quotient)
+        , quotient_(qstate_space)
         , stop_at_consistent_(stop_consistent)
         , reexpand_traps_(reexpand_traps)
         , sample_(succ_sampler)
@@ -497,26 +496,24 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        engine_interfaces::StateSpace<State, QAction>* state_space,
+        quotients::QuotientSystem<State, Action>* qstate_space,
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        quotients::QuotientSystem<State, Action>* quotient,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
         engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : engine_(
-              state_space,
+              qstate_space,
               cost_function,
               value_init,
               policy_chooser,
               new_state_handler,
               report,
               interval_comparison,
-              quotient,
               stop_consistent,
               reexpand_traps,
               succ_sampler)

@@ -165,7 +165,6 @@ public:
                 new_state_handler_.get(),
                 &progress_,
                 interval_comparison_,
-                &this->quotient_,
                 std::forward<Args>(args)...);
         } else {
             return new HS<State, OperatorID, false>(
@@ -176,7 +175,6 @@ public:
                 new_state_handler_.get(),
                 &progress_,
                 interval_comparison_,
-                &this->quotient_,
                 std::forward<Args>(args)...);
         }
     }

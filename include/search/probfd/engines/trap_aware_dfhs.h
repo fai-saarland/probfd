@@ -205,14 +205,13 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        engine_interfaces::StateSpace<State, QAction>* state_space,
+        quotients::QuotientSystem<State, Action>* qstate_space,
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        QuotientSystem* quotient,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
         bool expand_tip_states,
@@ -223,14 +222,14 @@ public:
         bool reexpand_removed_traps,
         engine_interfaces::OpenList<QAction>* open_list)
         : HeuristicSearchBase(
-              state_space,
+              qstate_space,
               cost_function,
               value_init,
               policy_chooser,
               new_state_handler,
               report,
               interval_comparison)
-        , quotient_(quotient)
+        , quotient_(qstate_space)
         , forward_updates_(forward_updates)
         , backtrack_update_type_(backtrack_update_type)
         , expand_tip_states_(expand_tip_states)
@@ -671,14 +670,13 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        engine_interfaces::StateSpace<State, QAction>* state_space,
+        quotients::QuotientSystem<State, Action>* qstate_space,
         engine_interfaces::CostFunction<State, QAction>* cost_function,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        quotients::QuotientSystem<State, Action>* quotient,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
         bool expand_tip_states,
@@ -689,14 +687,13 @@ public:
         bool reexpand_removed_traps,
         engine_interfaces::OpenList<QAction>* open_list)
         : engine_(
-              state_space,
+              qstate_space,
               cost_function,
               value_init,
               policy_chooser,
               new_state_handler,
               report,
               interval_comparison,
-              quotient,
               forward_updates,
               backtrack_update_type,
               expand_tip_states,
