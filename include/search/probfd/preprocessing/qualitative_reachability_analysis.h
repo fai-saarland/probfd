@@ -1,9 +1,8 @@
 #ifndef PROBFD_PREPROCESSING_QUALITATIVE_REACHABILITY_ANALYSIS_H
 #define PROBFD_PREPROCESSING_DECOMPOSITION_QUALITATIVE_REACHABILITY_ANALYSIS_H
 
-#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/mdp.h"
 
 #include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
@@ -11,6 +10,8 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/utils/iterators.h"
+
+#include "probfd/type_traits.h"
 
 #include "utils/countdown_timer.h"
 #include "utils/timer.h"
@@ -20,7 +21,6 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
-#include <stack>
 #include <type_traits>
 #include <vector>
 
@@ -124,12 +124,12 @@ class QualitativeReachabilityAnalysis {
          * action does not exist.
          */
         bool next_action(
-            engine_interfaces::StateSpace<State, Action>& state_space,
+            engine_interfaces::MDP<State, Action>& mdp,
             StateID state_id)
         {
             for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
                 transition.clear();
-                state_space.generate_action_transitions(
+                mdp.generate_action_transitions(
                     state_id,
                     aops.back(),
                     transition);
@@ -170,23 +170,28 @@ class QualitativeReachabilityAnalysis {
 
     using StateInfo = internal::StateInfo;
     using StackInfo = internal::StackInfo;
-    using Stack = std::vector<StackInfo>;
+
+    bool expand_goals_;
+    const engine_interfaces::Evaluator<State>* pruning_function_;
+
+    storage::PerStateStorage<StateInfo> state_infos_;
+    std::deque<ExpansionInfo> expansion_queue_;
+    std::vector<StackInfo> stack_;
+
+    QRStatistics stats_;
 
 public:
     QualitativeReachabilityAnalysis(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* costs,
         bool expand_goals,
         const engine_interfaces::Evaluator<State>* pruning_function = nullptr)
-        : state_space_(state_space)
-        , costs_(costs)
-        , expand_goals_(expand_goals)
+        : expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
     {
     }
 
     void run_analysis(
-        const State& source_state,
+        engine_interfaces::MDP<State, Action> mdp,
+        param_type<State> source_state,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto non_proper_out,
         std::output_iterator<StateID> auto proper_out,
@@ -196,8 +201,9 @@ public:
 
         utils::CountdownTimer timer(max_time);
 
-        auto init_id = state_space_->get_state_id(source_state);
+        auto init_id = mdp.get_state_id(source_state);
         if (!push(
+                mdp,
                 init_id,
                 state_infos_[init_id],
                 dead_out,
@@ -215,6 +221,7 @@ public:
         for (;;) {
             // DFS recursion
             while (push_successor(
+                mdp,
                 *e,
                 *s,
                 *st,
@@ -292,7 +299,7 @@ public:
                 } else if (e->exits_only_proper) {
                     st->one = true;
                 }
-            } while (!e->next_action(*state_space_, s->stateid));
+            } while (!e->next_action(mdp, s->stateid));
         }
 
     break_exploration:;
@@ -300,6 +307,7 @@ public:
 
 private:
     bool push(
+        engine_interfaces::MDP<State, Action> mdp,
         StateID state_id,
         StateInfo& state_info,
         std::output_iterator<StateID> auto dead_out,
@@ -311,9 +319,9 @@ private:
 
         state_info.explored = 1;
 
-        State state = state_space_->get_state(state_id);
+        State state = mdp.get_state(state_id);
 
-        if (costs_->get_termination_info(state).is_goal_state()) {
+        if (mdp.get_termination_info(state).is_goal_state()) {
             ++stats_.goals;
 
             state_info.dead = 0;
@@ -336,7 +344,7 @@ private:
         }
 
         std::vector<Action> aops;
-        state_space_->generate_applicable_actions(state_id, aops);
+        mdp.generate_applicable_actions(state_id, aops);
 
         if (aops.empty()) {
             ++stats_.terminals;
@@ -355,10 +363,7 @@ private:
         Distribution<StateID> transition;
 
         do {
-            state_space_->generate_action_transitions(
-                state_id,
-                aops.back(),
-                transition);
+            mdp.generate_action_transitions(state_id, aops.back(), transition);
 
             assert(!transition.empty());
 
@@ -394,6 +399,7 @@ private:
     }
 
     bool push_successor(
+        engine_interfaces::MDP<State, Action> mdp,
         ExpansionInfo& e,
         StackInfo& s,
         StateInfo& st,
@@ -421,6 +427,7 @@ private:
                     }
                 } else if (
                     !succ_info.explored && push(
+                                               mdp,
                                                succ_id,
                                                succ_info,
                                                dead_out,
@@ -447,14 +454,14 @@ private:
             } else if (e.exits_only_proper) {
                 st.one = true;
             }
-        } while (e.next_action(*state_space_, s.stateid));
+        } while (e.next_action(mdp, s.stateid));
 
         return false;
     }
 
     void scc_found(
-        decltype(std::declval<Stack>().begin()) begin,
-        decltype(std::declval<Stack>().begin()) end,
+        std::forward_iterator auto begin,
+        std::forward_iterator auto end,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto non_proper_out,
         std::output_iterator<StateID> auto proper_out,
@@ -607,19 +614,6 @@ private:
 
         stack_.erase(begin, end);
     }
-
-    engine_interfaces::StateSpace<State, Action>* state_space_;
-    engine_interfaces::CostFunction<State, Action>* costs_;
-
-    bool expand_goals_;
-
-    const engine_interfaces::Evaluator<State>* pruning_function_;
-
-    storage::PerStateStorage<StateInfo> state_infos_;
-    std::deque<ExpansionInfo> expansion_queue_;
-    Stack stack_;
-
-    QRStatistics stats_;
 };
 
 } // namespace preprocessing

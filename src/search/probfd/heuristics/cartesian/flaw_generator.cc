@@ -81,10 +81,11 @@ vector<value_t> compute_distances(
     preprocessing::QualitativeReachabilityAnalysis<
         const AbstractState*,
         const ProbabilisticTransition*>
-        qr_analysis(&abstraction, &cost_function, true);
+        qr_analysis(true);
 
     std::vector<StateID> pruned_states;
     qr_analysis.run_analysis(
+        {abstraction, cost_function},
         &abstraction.get_initial_state(),
         iterators::discarding_output_iterator{},
         std::back_inserter(pruned_states),

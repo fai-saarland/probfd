@@ -1,9 +1,8 @@
 #ifndef PROBFD_PREPROCESSING_END_COMPONENT_DECOMPOSITION_H
 #define PROBFD_PREPROCESSING_END_COMPONENT_DECOMPOSITION_H
 
-#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/mdp.h"
 
 #include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
@@ -11,6 +10,8 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/utils/iterators.h"
+
+#include "probfd/type_traits.h"
 
 #include "utils/countdown_timer.h"
 
@@ -141,11 +142,11 @@ class EndComponentDecomposition {
             std::vector<Action> aops,
             std::vector<std::vector<StateID>> successors,
             StateID state_id,
-            engine_interfaces::CostFunction<State, Action>& rew)
+            engine_interfaces::MDP<State, Action>& mdp)
             : stck(stck)
             , lstck(stck)
             , nz_or_leaves_scc(
-                  rew.get_action_cost(state_id, aops.back()) != 0_vt)
+                  mdp.get_action_cost(state_id, aops.back()) != 0_vt)
             , aops(std::move(aops))
             , successors(std::move(successors))
         {
@@ -162,7 +163,7 @@ class EndComponentDecomposition {
 
         bool next_action(
             StateID state_id,
-            engine_interfaces::CostFunction<State, Action>& rew)
+            engine_interfaces::MDP<State, Action>& mdp)
         {
             assert(aops.size() == successors.size());
             aops.pop_back();
@@ -170,7 +171,7 @@ class EndComponentDecomposition {
 
             if (!aops.empty()) {
                 nz_or_leaves_scc =
-                    rew.get_action_cost(state_id, aops.back()) != 0_vt;
+                    mdp.get_action_cost(state_id, aops.back()) != 0_vt;
                 return true;
             }
 
@@ -232,19 +233,23 @@ class EndComponentDecomposition {
         }
     };
 
+    const bool expand_goals_;
+    const engine_interfaces::Evaluator<State>* pruning_function_;
+
+    storage::PerStateStorage<StateInfo> state_infos_;
+    std::deque<ExpansionInfo> expansion_queue_;
+    std::vector<StackInfo> stack_;
+
+    ECDStatistics stats_;
+
 public:
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
 
     EndComponentDecomposition(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* costs,
         bool expand_goals,
         const engine_interfaces::Evaluator<State>* pruning_function = nullptr)
-        : state_space_(state_space)
-        , costs_(costs)
-        , expand_goals_(expand_goals)
+        : expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
-        , sys_(new QuotientSystem(state_space))
     {
     }
 
@@ -256,24 +261,26 @@ public:
      * state is considered.
      */
     std::unique_ptr<QuotientSystem> build_quotient_system(
-        const State& initial_state,
+        engine_interfaces::MDP<State, Action> mdp,
+        param_type<State> initial_state,
         double max_time = std::numeric_limits<double>::infinity())
     {
         utils::CountdownTimer timer(max_time);
 
         stats_ = ECDStatistics();
+        auto sys = std::make_unique<QuotientSystem>(&mdp.state_space);
 
-        auto init_id = state_space_->get_state_id(initial_state);
+        auto init_id = mdp.get_state_id(initial_state);
 
-        if (push<true>(init_id, state_infos_[init_id])) {
-            find_and_decompose_sccs<true>(0, timer);
+        if (push<true>(mdp, init_id, state_infos_[init_id])) {
+            find_and_decompose_sccs<true>(mdp, *sys, 0, timer);
         }
 
         assert(stack_.empty());
         assert(expansion_queue_.empty());
         stats_.time.stop();
 
-        return std::move(sys_);
+        return sys;
     }
 
     void print_statistics(std::ostream& out) const { stats_.print(out); }
@@ -282,21 +289,27 @@ public:
 
 private:
     template <bool RootIteration>
-    bool push(StateID state_id, StateInfo& state_info)
+    bool push(
+        engine_interfaces::MDP<State, Action> mdp,
+        StateID state_id,
+        StateInfo& state_info)
     {
         if constexpr (RootIteration) {
-            return push_root(state_id, state_info);
+            return push_root(mdp, state_id, state_info);
         } else {
-            return push_ecd(state_id, state_info);
+            return push_ecd(mdp, state_id, state_info);
         }
     }
 
-    bool push_root(StateID state_id, StateInfo& state_info)
+    bool push_root(
+        engine_interfaces::MDP<State, Action> mdp,
+        StateID state_id,
+        StateInfo& state_info)
     {
         state_info.explored = 1;
-        State state = state_space_->get_state(state_id);
+        State state = mdp.get_state(state_id);
 
-        if (costs_->get_termination_info(state).is_goal_state()) {
+        if (mdp.get_termination_info(state).is_goal_state()) {
             ++stats_.terminals;
             ++stats_.goals;
 
@@ -313,7 +326,7 @@ private:
         }
 
         std::vector<Action> aops;
-        state_space_->generate_applicable_actions(state_id, aops);
+        mdp.generate_applicable_actions(state_id, aops);
 
         if (aops.empty()) {
             if (expand_goals_ && state_info.expandable_goal) {
@@ -331,10 +344,7 @@ private:
         unsigned non_loop_actions = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
             Distribution<StateID> transition;
-            state_space_->generate_action_transitions(
-                state_id,
-                aops[i],
-                transition);
+            mdp.generate_action_transitions(state_id, aops[i], transition);
 
             std::vector<StateID> succ_ids;
 
@@ -374,7 +384,7 @@ private:
             std::move(aops),
             std::move(successors),
             state_id,
-            *costs_);
+            mdp);
 
         state_info.stackid_ = stack_.size();
         stack_.emplace_back(state_id);
@@ -382,7 +392,10 @@ private:
         return true;
     }
 
-    bool push_ecd(StateID state_id, StateInfo& info)
+    bool push_ecd(
+        engine_interfaces::MDP<State, Action> mdp,
+        StateID state_id,
+        StateInfo& info)
     {
         assert(!info.explored);
         assert(info.onstack());
@@ -410,8 +423,11 @@ private:
     }
 
     template <bool RootIteration>
-    void
-    find_and_decompose_sccs(const unsigned limit, utils::CountdownTimer& timer)
+    void find_and_decompose_sccs(
+        engine_interfaces::MDP<State, Action> mdp,
+        QuotientSystem& sys,
+        const unsigned limit,
+        utils::CountdownTimer& timer)
     {
         if (expansion_queue_.size() <= limit) {
             return;
@@ -422,7 +438,7 @@ private:
 
         for (;;) {
             // DFS recursion
-            while (push_successor<RootIteration>(*e, *s, timer)) {
+            while (push_successor<RootIteration>(mdp, *e, *s, timer)) {
                 e = &expansion_queue_.back();
                 s = &stack_[e->stck];
             }
@@ -440,7 +456,7 @@ private:
                 const bool is_onstack = stck != lstck;
 
                 if (!is_onstack) {
-                    scc_found<RootIteration>(*e, *s, timer);
+                    scc_found<RootIteration>(mdp, sys, *e, *s, timer);
                 }
 
                 expansion_queue_.pop_back();
@@ -481,7 +497,7 @@ private:
                 bool next_action;
 
                 if constexpr (RootIteration) {
-                    next_action = e->next_action(s->stateid, *costs_);
+                    next_action = e->next_action(s->stateid, mdp);
                 } else {
                     next_action = e->next_action();
                 }
@@ -497,8 +513,11 @@ private:
     }
 
     template <bool RootIteration>
-    bool
-    push_successor(ExpansionInfo& e, StackInfo& s, utils::CountdownTimer& timer)
+    bool push_successor(
+        engine_interfaces::MDP<State, Action> mdp,
+        ExpansionInfo& e,
+        StackInfo& s,
+        utils::CountdownTimer& timer)
     {
         for (;;) {
             std::vector<StateID>& s_succs = s.successors.back();
@@ -516,7 +535,7 @@ private:
                 // Therefore the onstack check cannot be moved up, we have to
                 // resort to goto to avoid code duplication.
                 if (!succ_info.explored) {
-                    if (push<RootIteration>(succ_id, succ_info)) {
+                    if (push<RootIteration>(mdp, succ_id, succ_info)) {
                         return true;
                     }
 
@@ -544,7 +563,7 @@ private:
             bool next_action;
 
             if constexpr (RootIteration) {
-                next_action = e.next_action(s.stateid, *costs_);
+                next_action = e.next_action(s.stateid, mdp);
             } else {
                 next_action = e.next_action();
             }
@@ -561,7 +580,12 @@ private:
     }
 
     template <bool RootIteration>
-    void scc_found(ExpansionInfo& e, StackInfo& s, utils::CountdownTimer& timer)
+    void scc_found(
+        engine_interfaces::MDP<State, Action> mdp,
+        QuotientSystem& sys,
+        ExpansionInfo& e,
+        StackInfo& s,
+        utils::CountdownTimer& timer)
     {
         auto scc = std::ranges::subrange(stack_.begin() + e.stck, stack_.end());
 
@@ -604,7 +628,7 @@ private:
                     state_infos_[stk_info.stateid].explored = 0;
                 }
 
-                decompose(e.stck, timer);
+                decompose(mdp, sys, e.stck, timer);
             } else {
                 unsigned transitions = 0;
 
@@ -616,7 +640,7 @@ private:
                     transitions += stk_info.aops.size();
                 }
 
-                sys_->build_new_quotient(scc, s);
+                sys.build_new_quotient(scc, s);
                 stack_.erase(scc.begin(), scc.end());
 
                 // Update stats
@@ -632,7 +656,11 @@ private:
         assert(stack_.size() == e.stck);
     }
 
-    void decompose(unsigned start, utils::CountdownTimer& timer)
+    void decompose(
+        engine_interfaces::MDP<State, Action> mdp,
+        QuotientSystem& sys,
+        unsigned start,
+        utils::CountdownTimer& timer)
     {
         const unsigned limit = expansion_queue_.size();
 
@@ -640,9 +668,9 @@ private:
             const StateID id = stack_[i].stateid;
             StateInfo& state_info = state_infos_[id];
 
-            if (!state_info.explored && push<false>(id, state_info)) {
+            if (!state_info.explored && push<false>(mdp, id, state_info)) {
                 // Recursively run decomposition
-                find_and_decompose_sccs<false>(limit, timer);
+                find_and_decompose_sccs<false>(mdp, sys, limit, timer);
             }
         }
 
@@ -650,21 +678,6 @@ private:
 
         assert(expansion_queue_.size() == limit);
     }
-
-    engine_interfaces::StateSpace<State, Action>* state_space_;
-    engine_interfaces::CostFunction<State, Action>* costs_;
-
-    bool expand_goals_;
-
-    const engine_interfaces::Evaluator<State>* pruning_function_;
-
-    std::unique_ptr<QuotientSystem> sys_;
-
-    storage::PerStateStorage<StateInfo> state_infos_;
-    std::deque<ExpansionInfo> expansion_queue_;
-    std::vector<StackInfo> stack_;
-
-    ECDStatistics stats_;
 };
 
 } // namespace preprocessing

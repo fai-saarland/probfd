@@ -70,12 +70,13 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
     utils::CountdownTimer timer(max_time);
 
     QualitativeReachabilityAnalysis<StateRank, const ProjectionOperator*>
-        analysis(&state_space, &cost_function, true);
+        analysis(true);
 
     std::vector<StateID> pruned_states;
 
     if (dead_end_cost == INFINITE_VALUE) {
         analysis.run_analysis(
+            {state_space, cost_function},
             initial_state,
             iterators::discarding_output_iterator{},
             std::back_inserter(pruned_states),
@@ -83,6 +84,7 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
             timer.get_remaining_time());
     } else {
         analysis.run_analysis(
+            {state_space, cost_function},
             initial_state,
             std::back_inserter(pruned_states),
             iterators::discarding_output_iterator{},

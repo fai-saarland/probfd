@@ -142,13 +142,10 @@ private:
     std::unique_ptr<QuotientSystem>
     get_quotient(param_type<State> state, utils::CountdownTimer& timer)
     {
-        Decomposer ec_decomposer(
-            this->get_state_space(),
-            this->get_cost_function(),
-            expand_goals_,
-            heuristic_);
+        Decomposer ec_decomposer(expand_goals_, heuristic_);
 
         auto sys = ec_decomposer.build_quotient_system(
+            {*this->get_state_space(), *this->get_cost_function()},
             state,
             timer.get_remaining_time());
 
@@ -173,12 +170,11 @@ private:
             this->get_cost_function());
 
         preprocessing::QualitativeReachabilityAnalysis<State, QAction> analysis(
-            sys,
-            &q_cost,
             expand_goals_);
 
         if (extract_probability_one_states_) {
             analysis.run_analysis(
+                {*sys, q_cost},
                 state,
                 std::back_inserter(dead_ends),
                 iterators::discarding_output_iterator(),
@@ -189,6 +185,7 @@ private:
                        .is_goal_state());
         } else {
             analysis.run_analysis(
+                {*sys, q_cost},
                 state,
                 std::back_inserter(dead_ends),
                 iterators::discarding_output_iterator(),
