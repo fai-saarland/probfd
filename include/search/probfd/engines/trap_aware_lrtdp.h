@@ -280,11 +280,8 @@ private:
                 info.set_on_trial();
             }
 
-            current_trial_.push_back(sample_->sample(
-                stateid,
-                this->get_policy(stateid),
-                selected_transition_,
-                *this));
+            current_trial_.push_back(
+                this->sample_state(*sample_, stateid, selected_transition_));
             selected_transition_.clear();
         }
 

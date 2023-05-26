@@ -1,6 +1,6 @@
 #include "probfd/successor_samplers/vbiased_successor_sampler.h"
 
-#include "probfd/engine_interfaces/heuristic_search_interface.h"
+#include "probfd/engine_interfaces/state_properties.h"
 
 #include "utils/rng.h"
 #include "utils/rng_options.h"
@@ -22,13 +22,13 @@ StateID VBiasedSuccessorSampler::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engine_interfaces::HeuristicSearchInterface& hs_interface)
+    engine_interfaces::StateProperties& properties)
 {
     biased_.clear();
 
     value_t sum = 0;
     for (const auto& [item, probability] : successors) {
-        const auto p = probability * hs_interface.lookup_value(item);
+        const auto p = probability * properties.lookup_value(item);
         if (p > 0_vt) {
             sum += p;
             biased_.add_probability(item, p);

@@ -15,6 +15,7 @@
 #include "probfd/quotients/heuristic_search_interface.h"
 #include "probfd/quotients/quotient_system.h"
 
+
 #include "probfd/task_proxy.h"
 
 #include "tasks/blocksworld.h"

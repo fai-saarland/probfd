@@ -29,7 +29,7 @@ int OperatorIdTiebreaker::pick_index(
     std::optional<OperatorID>,
     const std::vector<OperatorID>& choices,
     const std::vector<Distribution<StateID>>&,
-    engine_interfaces::HeuristicSearchInterface&)
+    engine_interfaces::StateProperties&)
 {
     int min_id = std::numeric_limits<int>::max();
     unsigned min_idx = -1;

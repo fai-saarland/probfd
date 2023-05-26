@@ -34,7 +34,7 @@ public:
         std::optional<OperatorID> prev_policy,
         const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
-        engine_interfaces::HeuristicSearchInterface& hs_interface);
+        engine_interfaces::StateProperties& properties);
 };
 
 } // namespace policy_pickers

@@ -8,7 +8,7 @@
 namespace probfd {
 namespace engine_interfaces {
 
-class HeuristicSearchInterface;
+class StateProperties;
 
 /**
  * @brief An interface used to sample a state from a successor distribution.
@@ -29,7 +29,7 @@ public:
      * @param state - The source state of the transition.
      * @param action - The action of the transition.
      * @param successor_dist - The successor distribution of the transition.
-     * @param hs_interface - The interface to the heuristic search algorithm.
+     * @param properties - The interface to the heuristic search algorithm.
      * Can be used to query additional information about the involved states and
      * actions.
      */
@@ -37,7 +37,7 @@ public:
         StateID state,
         param_type<Action> action,
         const Distribution<StateID>& successor_dist,
-        HeuristicSearchInterface& hs_interface) = 0;
+        StateProperties& properties) = 0;
 
     /**
      * @brief Prints statistics, e.g. the number of queries made to the

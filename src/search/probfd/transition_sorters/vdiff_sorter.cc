@@ -1,6 +1,6 @@
 #include "probfd/transition_sorters/vdiff_sorter.h"
 
-#include "probfd/engine_interfaces/heuristic_search_interface.h"
+#include "probfd/engine_interfaces/state_properties.h"
 
 #include <algorithm>
 #include <ranges>
@@ -17,13 +17,13 @@ void VDiffSorter::sort(
     StateID,
     const std::vector<OperatorID>&,
     std::vector<Distribution<StateID>>& all_successors,
-    engine_interfaces::HeuristicSearchInterface& hsi)
+    engine_interfaces::StateProperties& properties)
 {
     std::vector<double> k0;
     k0.reserve(all_successors.size());
     for (const auto& successor_dist : all_successors) {
-        k0.emplace_back(successor_dist.expectation([=, &hsi](StateID succ) {
-            return favor_large_gaps_ * hsi.lookup_bounds(succ).length();
+        k0.emplace_back(successor_dist.expectation([=, &properties](StateID succ) {
+            return favor_large_gaps_ * properties.lookup_bounds(succ).length();
         }));
     }
 

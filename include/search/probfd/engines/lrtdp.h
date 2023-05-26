@@ -299,11 +299,10 @@ private:
                 state_info.mark_trial();
             }
 
-            this->current_trial_.push_back(sample_->sample(
+            this->current_trial_.push_back(this->sample_state(
+                *sample_,
                 state_id,
-                this->get_policy(state_id),
-                this->selected_transition_,
-                *this));
+                this->selected_transition_));
         }
 
         if (StopConsistent == REVISITED) {
@@ -374,7 +373,8 @@ private:
                 this->visited_.push_front(state_id);
 
                 if constexpr (UseInterval) {
-                    if (this->do_bounds_disagree(state_id, info)) {
+                    if (this->check_interval_comparison() &&
+                        !this->get_state_info(state_id, info).bounds_agree()) {
                         mark_solved = false;
                     }
                 }
@@ -409,7 +409,7 @@ private:
         using HSBInfo = typename HeuristicSearchBase::StateInfo;
 
         if constexpr (std::is_same_v<StateInfoT, HSBInfo>) {
-            return this->get_state_info_store()[sid];
+            return this->get_state_info(sid);
         } else {
             return state_infos_[sid];
         }

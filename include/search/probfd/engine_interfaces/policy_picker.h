@@ -11,7 +11,7 @@
 namespace probfd {
 namespace engine_interfaces {
 
-class HeuristicSearchInterface;
+class StateProperties;
 
 /**
  * @brief An strategy interface used to choose break ties between multiple
@@ -35,7 +35,7 @@ protected:
         Action,
         const std::vector<Action>&,
         const std::vector<Distribution<StateID>>&,
-        HeuristicSearchInterface&) override
+        StateProperties&) override
     {
         return 0; // Always choose the first greedy action in the list
     }
@@ -59,7 +59,7 @@ public:
      * @param greedy_action_candidates - A list of candidate greedy actions.
      * @param candidate_successors - The successor distributions for each of the
      * candidate greedy actions.
-     * @param hs_interface - The interface to the heuristic search algorithm.
+     * @param properties - The interface to the heuristic search algorithm.
      * Can be used to query additional information about the involved states and
      * actions.
      */
@@ -69,7 +69,7 @@ public:
         std::optional<Action> previous_greedy,
         const std::vector<Action>& greedy_action_candidates,
         const std::vector<Distribution<StateID>>& candidate_successors,
-        HeuristicSearchInterface& hs_interface) = 0;
+        StateProperties& properties) = 0;
 
     /**
      * @brief Prints statistics to an output stream, e.g. the number of queries

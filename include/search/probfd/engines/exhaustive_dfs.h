@@ -5,8 +5,8 @@
 #include "probfd/engines/heuristic_search_state_information.h"
 #include "probfd/engines/utils.h"
 
-#include "probfd/engine_interfaces/heuristic_search_interface.h"
 #include "probfd/engine_interfaces/new_state_observer.h"
+#include "probfd/engine_interfaces/state_properties.h"
 #include "probfd/engine_interfaces/transition_sorter.h"
 
 #include "probfd/storage/per_state_storage.h"
@@ -105,9 +105,7 @@ inline bool update_lower_bound(Interval& x, value_t v)
  *
  */
 template <typename State, typename Action, bool UseInterval>
-class ExhaustiveDepthFirstSearch
-    : public MDPEngine<State, Action>
-    , public engine_interfaces::HeuristicSearchInterface {
+class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
     using EngineValueType = engines::EngineValueType<UseInterval>;
 
     struct SearchNodeInformation {
@@ -154,6 +152,24 @@ class ExhaustiveDepthFirstSearch
         }
 
         void mark_dead_end() { status = MARKED; }
+
+        value_t get_value() const
+        {
+            if constexpr (UseInterval) {
+                return value.lower;
+            } else {
+                return value;
+            }
+        }
+
+        Interval get_bounds() const
+        {
+            if constexpr (!UseInterval) {
+                return Interval(value, INFINITE_VALUE);
+            } else {
+                return value;
+            }
+        }
     };
 
     struct ExpansionInformation {
@@ -197,6 +213,36 @@ class ExhaustiveDepthFirstSearch
         int i = -1;
     };
 
+    struct SearchNodeInfos : public engine_interfaces::StateProperties {
+        storage::PerStateStorage<SearchNodeInformation> infos;
+
+        SearchNodeInformation& operator[](StateID state_id)
+        {
+            return infos[state_id];
+        }
+
+        const SearchNodeInformation& operator[](StateID state_id) const
+        {
+            return infos[state_id];
+        }
+
+        engines::heuristic_search::StateFlags&
+        lookup_state_flags(StateID) override
+        {
+            ABORT("Exhaustive DFS does not store state flags.");
+        }
+
+        value_t lookup_value(StateID state_id) override
+        {
+            return infos[state_id].get_value();
+        }
+
+        Interval lookup_bounds(StateID state_id) override
+        {
+            return infos[state_id].get_bounds();
+        }
+    };
+
     engine_interfaces::Evaluator<State>* evaluator_;
     engine_interfaces::NewStateObserver<State>* new_state_handler_;
     engine_interfaces::TransitionSorter<Action>* transition_sort_;
@@ -211,7 +257,7 @@ class ExhaustiveDepthFirstSearch
     const bool notify_initial_state_;
 
     Statistics statistics_;
-    storage::PerStateStorage<SearchNodeInformation> search_space_;
+    SearchNodeInfos search_space_;
 
     std::deque<ExpansionInformation> expansion_infos_;
     std::deque<StackInformation> stack_infos_;
@@ -248,29 +294,6 @@ public:
     {
     }
 
-    engines::heuristic_search::StateFlags& lookup_state_flags(StateID) override
-    {
-        ABORT("Exhaustive DFS does not store state flags.");
-    }
-
-    value_t lookup_value(StateID state_id) override
-    {
-        if constexpr (UseInterval) {
-            return search_space_[state_id].value.lower;
-        } else {
-            return search_space_[state_id].value;
-        }
-    }
-
-    Interval lookup_bounds(StateID state_id) override
-    {
-        if constexpr (!UseInterval) {
-            return Interval(search_space_[state_id].value, INFINITE_VALUE);
-        } else {
-            return search_space_[state_id].value;
-        }
-    }
-
     Interval solve(param_type<State> state, double) override
     {
         StateID stateid = this->get_state_id(state);
@@ -283,7 +306,7 @@ public:
             run_exploration();
         }
 
-        return this->lookup_bounds(stateid);
+        return search_space_.lookup_bounds(stateid);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -384,7 +407,7 @@ private:
         statistics_.expanded++;
 
         if (transition_sort_ != nullptr) {
-            transition_sort_->sort(state_id, aops, successors, *this);
+            transition_sort_->sort(state_id, aops, successors, search_space_);
         }
 
         expansion_infos_.emplace_back(stack_infos_.size(), neighbors_.size());
@@ -395,7 +418,7 @@ private:
 
         si.successors.resize(aops.size());
 
-        const auto cost = as_lower_bound(info.value);
+        const auto cost = info.get_value();
 
         bool pure_self_loop = true;
 
@@ -421,7 +444,7 @@ private:
                 }
 
                 if (succ_info.is_closed()) {
-                    t.base += prob * as_lower_bound(succ_info.value);
+                    t.base += prob * succ_info.get_value();
                     exp.update_successors_dead(succ_info.is_dead_end());
                     exp.all_successors_marked_dead =
                         exp.all_successors_marked_dead &&
@@ -470,7 +493,7 @@ private:
                 info.set_dead_end();
                 ++statistics_.self_loop;
             } else {
-                info.value = EngineValueType(as_lower_bound(info.value));
+                info.value = EngineValueType(info.get_value());
                 info.close();
             }
 
@@ -530,7 +553,7 @@ private:
                         expanding.all_successors_marked_dead =
                             expanding.all_successors_are_dead &&
                             succ_info.is_marked_dead_end();
-                        inc->base += prob * as_lower_bound(succ_info.value);
+                        inc->base += prob * succ_info.get_value();
                     } else if (succ_info.is_onstack()) {
                         node_info.lowlink =
                             std::min(node_info.lowlink, succ_info.lowlink);
@@ -542,7 +565,7 @@ private:
                         expanding.all_successors_marked_dead =
                             expanding.all_successors_are_dead &&
                             succ_info.is_marked_dead_end();
-                        inc->base += prob * as_lower_bound(succ_info.value);
+                        inc->base += prob * succ_info.get_value();
                     }
                 }
 
@@ -639,8 +662,7 @@ private:
                                     for (auto [succ_id, prob] : t.successors) {
                                         t_first +=
                                             prob *
-                                            as_lower_bound(
-                                                search_space_[succ_id].value);
+                                            search_space_[succ_id].get_value();
                                     }
                                     t_first = t_first * t.self_loop;
                                     best = best > t_first ? best : t_first;
@@ -648,12 +670,11 @@ private:
 
                                 SearchNodeInformation& snode_info =
                                     search_space_[s.state_ref];
-                                if (best > as_lower_bound(snode_info.value)) {
+                                if (best > snode_info.get_value()) {
                                     changed =
-                                        changed ||
-                                        !is_approx_equal(
-                                            as_lower_bound(snode_info.value),
-                                            best);
+                                        changed || !is_approx_equal(
+                                                       snode_info.get_value(),
+                                                       best);
                                     snode_info.value = EngineValueType(best);
                                 }
                             }
@@ -675,9 +696,9 @@ private:
 
             if ((val_changed || !only_propagate_when_changed_) 
                     && value_propagation_) {
-                    propagate_value_along_trace(
-                        completely_explored,
-                        as_lower_bound(node_info.value));
+                propagate_value_along_trace(
+                    completely_explored,
+                    node_info.get_value());
             }
         }
     }

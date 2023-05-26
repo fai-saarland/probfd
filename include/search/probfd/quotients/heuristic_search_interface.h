@@ -38,7 +38,7 @@ public:
         std::optional<QuotientAction> prev_policy,
         const std::vector<QuotientAction>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
-        engine_interfaces::HeuristicSearchInterface& hs_interface) override
+        engine_interfaces::StateProperties& properties) override
     {
         std::optional<Action> oprev = std::nullopt;
 
@@ -56,7 +56,7 @@ public:
             oprev,
             choices_,
             successors,
-            hs_interface);
+            properties);
     }
 
     void print_statistics(std::ostream& out) override
@@ -89,10 +89,9 @@ public:
         StateID state,
         QuotientAction qaction,
         const Distribution<StateID>& transition,
-        engine_interfaces::HeuristicSearchInterface& hs_interface) override
+        engine_interfaces::StateProperties& properties) override
     {
-        return original_
-            ->sample(state, qaction.action, transition, hs_interface);
+        return original_->sample(state, qaction.action, transition, properties);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -141,4 +140,4 @@ public:
 } // namespace quotients
 } // namespace probfd
 
-#endif // __HEURISTIC_SEARCH_INTERFACE_H__
+#endif // __state_properties.h_H__

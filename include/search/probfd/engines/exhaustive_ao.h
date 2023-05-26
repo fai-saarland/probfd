@@ -90,7 +90,7 @@ protected:
             this->print_progress();
         } while (!state_info.is_solved());
 
-        return this->lookup_bounds(stateid);
+        return state_info.get_bounds();
     }
 
 private:

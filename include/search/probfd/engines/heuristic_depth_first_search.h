@@ -221,7 +221,7 @@ protected:
             solve_without_vi_termination(stateid, timer);
         }
 
-        return this->lookup_bounds(stateid);
+        return this->get_state_info(stateid).get_bounds();
     }
 
     void print_additional_statistics(std::ostream& out) const override

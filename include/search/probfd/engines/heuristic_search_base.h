@@ -5,13 +5,11 @@
 #include "probfd/engines/heuristic_search_state_information.h"
 #include "probfd/engines/utils.h"
 
-#include "probfd/engine_interfaces/heuristic_search_interface.h"
 #include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/engine_interfaces/successor_sampler.h"
 
 #include "probfd/policies/map_policy.h"
-
-#include "probfd/storage/per_state_storage.h"
 
 #include "probfd/utils/graph_visualization.h"
 
@@ -132,9 +130,7 @@ struct Statistics : public CoreStatistics {
  * @tparam StateInfoT - The state information container type.
  */
 template <typename State, typename Action, typename StateInfoT>
-class HeuristicSearchBase
-    : public MDPEngine<State, Action>
-    , public engine_interfaces::HeuristicSearchInterface {
+class HeuristicSearchBase : public MDPEngine<State, Action> {
 public:
     using StateInfo = StateInfoT;
 
@@ -144,11 +140,37 @@ public:
     using EngineValueType = engines::EngineValueType<UseInterval>;
 
 private:
+    class StateInfos : public engine_interfaces::StateProperties {
+        storage::PerStateStorage<StateInfo> state_infos_;
+
+    public:
+        StateInfo& operator[](StateID sid) { return state_infos_[sid]; }
+        const StateInfo& operator[](StateID sid) const
+        {
+            return state_infos_[sid];
+        }
+
+        const StateFlags& lookup_state_flags(StateID state_id) override
+        {
+            return state_infos_[state_id];
+        }
+
+        value_t lookup_value(StateID state_id) override
+        {
+            return state_infos_[state_id].get_value();
+        }
+
+        Interval lookup_bounds(StateID state_id) override
+        {
+            return state_infos_[state_id].get_bounds();
+        }
+    };
+
     engine_interfaces::Evaluator<State>* value_initializer_;
     engine_interfaces::PolicyPicker<State, Action>* policy_chooser_;
     engine_interfaces::NewStateObserver<State>* on_new_state_;
 
-    storage::PerStateStorage<StateInfo> state_infos_;
+    StateInfos state_infos_;
 
     Statistics statistics_;
 
@@ -250,27 +272,14 @@ public:
         this->print_additional_statistics(out);
     }
 
-    const StateFlags& lookup_state_flags(StateID state_id) override
+    value_t lookup_value(StateID state_id) const
     {
-        return state_infos_[state_id];
+        return get_state_info(state_id).get_value();
     }
 
-    value_t lookup_value(StateID state_id) override
+    Interval lookup_bounds(StateID state_id) const
     {
-        if constexpr (UseInterval) {
-            return state_infos_[state_id].value.lower;
-        } else {
-            return state_infos_[state_id].value;
-        }
-    }
-
-    Interval lookup_bounds(StateID state_id) override
-    {
-        if constexpr (UseInterval) {
-            return state_infos_[state_id].value;
-        } else {
-            return Interval(state_infos_[state_id].value, INFINITE_VALUE);
-        }
+        return get_state_info(state_id).get_bounds();
     }
 
     std::optional<Action> lookup_policy(StateID state_id)
@@ -292,9 +301,9 @@ public:
                 std::nullopt,
                 opt_aops,
                 opt_transitions,
-                *this)];
+                state_infos_)];
         } else {
-            return state_infos_[state_id].policy;
+            return get_state_info(state_id).policy;
         }
     }
 
@@ -311,24 +320,25 @@ public:
      */
     bool is_terminal(StateID state_id) const
     {
-        return state_infos_[state_id].is_terminal();
+        return get_state_info(state_id).is_terminal();
     }
 
     /**
      * @brief Checks if the state represented by \p state_id is marked as a
      * dead-end.
      */
-    bool is_marked_dead_end(StateID state) const
+    bool is_marked_dead_end(StateID state_id) const
     {
-        return state_infos_[state].is_dead_end();
+        return get_state_info(state_id).is_dead_end();
     }
 
     /**
      * @brief Checks if the state represented by \p state_id has been visited
      * yet.
      */
-    bool was_visited(StateID state) const {
-        return state_infos_[state].is_value_initialized();
+    bool was_visited(StateID state_id) const
+    {
+        return get_state_info(state_id).is_value_initialized();
     }
 
     /**
@@ -339,7 +349,7 @@ public:
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
-        state_infos_[state_id].clear_policy();
+        get_state_info(state_id).clear_policy();
     }
 
     /**
@@ -350,7 +360,7 @@ public:
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
-        std::optional a = state_infos_[state_id].get_policy();
+        std::optional a = get_state_info(state_id).get_policy();
         assert(a.has_value());
         return *a;
     }
@@ -367,7 +377,7 @@ public:
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
-        std::optional a = state_infos_[state_id].get_policy();
+        std::optional a = get_state_info(state_id).get_policy();
 
         if (!a) {
             return async_update(state_id, &result).value_changed;
@@ -383,7 +393,7 @@ public:
      */
     bool notify_dead_end(StateID state_id)
     {
-        return notify_dead_end(state_infos_[state_id]);
+        return notify_dead_end(get_state_info(state_id));
     }
 
     /**
@@ -407,7 +417,7 @@ public:
      */
     bool notify_dead_end_ifnot_goal(StateID state_id)
     {
-        return notify_dead_end_ifnot_goal(state_infos_[state_id]);
+        return notify_dead_end_ifnot_goal(get_state_info(state_id));
     }
 
     /**
@@ -496,13 +506,7 @@ protected:
      */
     void print_progress() { this->report_->print(); }
 
-    /**
-     * @brief Get the state info storage.
-     */
-    storage::PerStateStorage<StateInfo>& get_state_info_store()
-    {
-        return state_infos_;
-    }
+    bool check_interval_comparison() const { return interval_comparison_; }
 
     /**
      * @brief Get the state info object of a state.
@@ -552,8 +556,7 @@ protected:
      * is retrieved and returned.
      */
     template <typename AlgStateInfo>
-    const StateInfo&
-    get_state_info(const StateID id, const AlgStateInfo& info) const
+    const StateInfo& get_state_info(StateID id, const AlgStateInfo& info) const
     {
         if constexpr (std::is_same_v<AlgStateInfo, StateInfo>) {
             return info;
@@ -562,74 +565,13 @@ protected:
         }
     }
 
-    /**
-     * @brief Checks if the value bounds of the state are epsilon-close.
-     *
-     * @return False if interval comparison is not used.
-     * Otherwise returns true iff the value bounds are not epsilon-close.
-     */
-    template <typename Info>
-    bool do_bounds_disagree(StateID state_id, const Info& info)
+    StateID sample_state(
+        engine_interfaces::SuccessorSampler<Action>& sampler,
+        StateID source,
+        const Distribution<StateID>& transition)
     {
-        if (!interval_comparison_) return false;
-
-        if constexpr (std::is_same_v<Info, StateInfo>) {
-            return !info.value.bounds_approximately_equal();
-        } else {
-            return !state_infos_[state_id].value.bounds_approximately_equal();
-        }
-    }
-
-    /**
-     * @brief Dumps the search space as a graph.
-     *
-     * State names are printed as specified by the state-to-string lambda
-     * function object.
-     *
-     * @tparam StateToString - Type of the state-to-string function object.
-     * @param file_name - The output file name.
-     * @param sstr -The state-to-string lambda function.
-     */
-    void dump_search_space(
-        const std::string& file_name,
-        const std::function<std::string(param_type<State>)> sstr =
-            [](param_type<State>) { return ""; })
-    {
-        struct ExpansionCondition : public engine_interfaces::Evaluator<State> {
-            explicit ExpansionCondition(
-                const MDPEngine<State, Action>* hs,
-                storage::PerStateStorage<StateInfo>* infos)
-                : hs_(hs)
-                , infos_(infos)
-            {
-            }
-
-            EvaluationResult operator()(param_type<State> state) const override
-            {
-                const StateID sid = hs_->get_state_id(state);
-                const StateInfo& info = infos_->operator[](sid);
-                return EvaluationResult(info.is_on_fringe(), 0);
-            }
-
-            const MDPEngine<State, Action>* hs_;
-            storage::PerStateStorage<StateInfo>* infos_;
-        };
-
-        ExpansionCondition prune(this, &state_infos_);
-
-        std::ofstream out(file_name);
-
-        graphviz::dump_state_space_dot_graph<State, Action>(
-            out,
-            this->lookup_state(initial_state_id_),
-            this->get_state_id_map(),
-            this->get_state_cost_function(),
-            this->get_applicable_actions_generator(),
-            this->get_transition_generator(),
-            sstr,
-            [](const Action&) { return ""; },
-            &prune,
-            false);
+        return sampler
+            .sample(source, this->get_policy(source), transition, state_infos_);
     }
 
 private:
@@ -637,11 +579,11 @@ private:
     {
         initial_state_id_ = this->get_state_id(state);
 
-        if (state_infos_[initial_state_id_].is_value_initialized()) {
+        StateInfo& info = get_state_info(initial_state_id_);
+
+        if (!initialize_if_needed(initial_state_id_, info)) {
             return;
         }
-
-        const StateInfo& info = lookup_initialize(initial_state_id_);
 
         if constexpr (UseInterval) {
             report_->register_bound("v", [&info]() { return info.value; });
@@ -651,9 +593,9 @@ private:
             });
         }
 
-        statistics_.value = as_lower_bound(info.value);
+        statistics_.value = info.get_value();
         statistics_.before_last_update = statistics_;
-        statistics_.initial_state_estimate = as_lower_bound(info.value);
+        statistics_.initial_state_estimate = info.get_value();
         statistics_.initial_state_found_terminal = info.is_terminal();
 
         setup_custom_reports(state);
@@ -673,8 +615,13 @@ private:
 
     StateInfo& lookup_initialize(StateID state_id)
     {
-        StateInfo& state_info = state_infos_[state_id];
+        StateInfo& state_info = get_state_info(state_id);
+        initialize_if_needed(state_id, state_info);
+        return state_info;
+    }
 
+    bool initialize_if_needed(StateID state_id, StateInfo& state_info)
+    {
         if (!state_info.is_value_initialized()) {
             statistics_.evaluated_states++;
 
@@ -688,7 +635,7 @@ private:
                 state_info.value = EngineValueType(t_cost);
                 statistics_.goal_states++;
                 if (on_new_state_) on_new_state_->notify_goal(state);
-                return state_info;
+                return true;
             }
 
             EvaluationResult estimate = value_initializer_->evaluate(state);
@@ -707,9 +654,11 @@ private:
 
                 if (on_new_state_) on_new_state_->notify_state(state);
             }
+
+            return true;
         }
 
-        return state_info;
+        return false;
     }
 
     bool compute_value_update(StateID state_id, StateInfo& state_info)
@@ -989,7 +938,7 @@ private:
             state_info.get_policy(),
             opt_aops,
             opt_transitions,
-            *this);
+            state_infos_);
         assert(utils::in_bounds(index, opt_aops));
 
         Action& action = opt_aops[index];

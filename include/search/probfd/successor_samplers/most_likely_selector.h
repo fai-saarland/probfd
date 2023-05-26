@@ -14,7 +14,7 @@ protected:
         StateID state,
         OperatorID op,
         const Distribution<StateID>& successors,
-        engine_interfaces::HeuristicSearchInterface& hs_interface) override;
+        engine_interfaces::StateProperties& properties) override;
 };
 
 } // namespace successor_samplers

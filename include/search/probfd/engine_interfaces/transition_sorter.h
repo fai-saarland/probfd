@@ -9,7 +9,7 @@
 namespace probfd {
 namespace engine_interfaces {
 
-class HeuristicSearchInterface;
+class StateProperties;
 
 /**
  * @brief An interface used to reorder a list of transitions.
@@ -28,7 +28,7 @@ public:
      * @param aops - The transition actions
      * @param successors - The successor distributions of the transitions. To be
      * sorted.
-     * @param hs_interface - The interface to the heuristic search algorithm.
+     * @param properties - The interface to the heuristic search algorithm.
      * Can be used to query additional information about the involved states and
      * actions.
      */
@@ -36,7 +36,7 @@ public:
         StateID state,
         const std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors,
-        HeuristicSearchInterface& hs_interface) = 0;
+        StateProperties& properties) = 0;
 };
 
 } // namespace engine_interfaces

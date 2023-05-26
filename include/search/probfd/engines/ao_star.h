@@ -82,7 +82,7 @@ protected:
             this->print_progress();
         }
 
-        return this->lookup_bounds(stateid);
+        return iinfo.get_bounds();
     }
 
 private:
@@ -178,11 +178,10 @@ private:
                     return this->get_state_info(target.item).is_solved();
                 });
 
-            state = this->outcome_selection_->sample(
+            state = this->sample_state(
+                *outcome_selection_,
                 state,
-                this->get_policy(state),
-                this->selected_transition_,
-                *this);
+                this->selected_transition_);
         }
     }
 };

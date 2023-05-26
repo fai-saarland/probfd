@@ -3,6 +3,10 @@
 
 #include "probfd/engines/utils.h"
 
+#include "probfd/engine_interfaces/state_properties.h"
+
+#include "probfd/storage/per_state_storage.h"
+
 #include "probfd/types.h"
 
 #include <cassert>
@@ -84,6 +88,31 @@ struct PerStateBaseInformation
     static constexpr bool UseInterval = UseInterval_;
 
     EngineValueType<UseInterval> value;
+
+    /// Checks if the value bounds are epsilon-close.
+    bool bounds_agree() const
+    {
+        static_assert(UseInterval, "No interval available!");
+        return value.bounds_approximately_equal();
+    }
+
+    value_t get_value() const
+    {
+        if constexpr (UseInterval) {
+            return value.lower;
+        } else {
+            return value;
+        }
+    }
+
+    Interval get_bounds() const
+    {
+        if constexpr (UseInterval) {
+            return value;
+        } else {
+            return Interval(value, INFINITE_VALUE);
+        }
+    }
 };
 
 } // namespace heuristic_search

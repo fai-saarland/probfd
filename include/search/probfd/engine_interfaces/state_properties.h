@@ -1,21 +1,26 @@
-#ifndef PROBFD_ENGINE_INTERFACES_HEURISTIC_SEARCH_INTERFACE_H
-#define PROBFD_ENGINE_INTERFACES_HEURISTIC_SEARCH_INTERFACE_H
+#ifndef PROBFD_ENGINE_INTERFACES_STATE_PROPERTIES_H
+#define PROBFD_ENGINE_INTERFACES_STATE_PROPERTIES_H
 
-#include "probfd/engines/heuristic_search_state_information.h"
-#include "probfd/quotients/quotient_system.h"
+#include "probfd/interval.h"
+#include "probfd/types.h"
 
 #include <optional>
 
 namespace probfd {
+
+namespace engines::heuristic_search {
+class StateFlags;
+}
+
 namespace engine_interfaces {
 
 /**
  * @brief Interface providing access to various state properties during
  * heuristic search.
  */
-class HeuristicSearchInterface {
+class StateProperties {
 public:
-    virtual ~HeuristicSearchInterface() = default;
+    virtual ~StateProperties() = default;
 
     /**
      * @brief Provides access to the property flags of a given state.

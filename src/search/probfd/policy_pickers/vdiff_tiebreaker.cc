@@ -1,6 +1,6 @@
 #include "probfd/policy_pickers/vdiff_tiebreaker.h"
 
-#include "probfd/engine_interfaces/heuristic_search_interface.h"
+#include "probfd/engine_interfaces/state_properties.h"
 
 #include "option_parser.h"
 #include "plugin.h"
@@ -27,7 +27,7 @@ int VDiffTiebreaker::pick_index(
     std::optional<OperatorID>,
     const std::vector<OperatorID>&,
     const std::vector<Distribution<StateID>>& successors,
-    engine_interfaces::HeuristicSearchInterface& hs_interface)
+    engine_interfaces::StateProperties& properties)
 {
     value_t best = INFINITE_VALUE;
     unsigned choice = 1;
@@ -35,7 +35,7 @@ int VDiffTiebreaker::pick_index(
         const Distribution<StateID>& t = successors[i];
         value_t sum = 0_vt;
         for (auto it = t.begin(); it != t.end(); ++it) {
-            auto value = hs_interface.lookup_bounds(it->item);
+            auto value = properties.lookup_bounds(it->item);
             sum += it->probability * value.length();
         }
         if (is_approx_less(favor_large_gaps_ * sum, best)) {
