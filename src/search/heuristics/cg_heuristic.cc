@@ -295,7 +295,7 @@ void CGHeuristic::mark_helpful_transitions(
     if (cost == op.get_cost() && !op.is_axiom() &&
         task_properties::is_applicable(op, state)) {
         // Transition immediately applicable, all preconditions true.
-        set_preferred(op.to_operator());
+        set_preferred(static_cast<OperatorProxy>(op));
     } else {
         // Recursively compute helpful transitions for the precondition
         // variables.

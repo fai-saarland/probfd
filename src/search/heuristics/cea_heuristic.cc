@@ -375,7 +375,7 @@ void ContextEnhancedAdditiveHeuristic::mark_helpful_transitions(
             if (min_action_cost != 0 || task_properties::is_applicable(op, state)) {
                 // If there are no zero-cost actions, the target_cost/
                 // action_cost test above already guarantees applicability.
-                set_preferred(op.to_operator());
+                set_preferred(static_cast<OperatorProxy>(op));
             }
         } else {
             // Recursively compute helpful transitions for preconditions.

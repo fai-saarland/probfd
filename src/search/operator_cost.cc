@@ -34,7 +34,7 @@ int get_adjusted_action_cost(
         return 0;
     else
         return get_adjusted_action_cost(
-            op.to_operator().get_cost(),
+            static_cast<OperatorProxy>(op).get_cost(),
             cost_type,
             is_unit_cost);
 }

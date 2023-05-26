@@ -217,7 +217,7 @@ optional<Flaw> AStarFlawGenerator::find_flaw(
         ProbabilisticOperatorProxy op = task_proxy.get_operators()[step.op_id];
         const AbstractState* next_abstract_state =
             &abstraction.get_abstract_state(step.target_id);
-        if (task_properties::is_applicable(op, concrete_state)) {
+        if (::task_properties::is_applicable(op, concrete_state)) {
             if (log.is_at_least_debug())
                 log << "  Move to " << *next_abstract_state << " with "
                     << op.get_name() << endl;

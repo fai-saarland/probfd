@@ -725,56 +725,8 @@ public:
     int get_id() const { return index; }
 };
 
-class OperatorProxy {
-    const AbstractTask* task;
-    int index;
-
-public:
-    OperatorProxy(const AbstractTask& task, int index)
-        : task(&task)
-        , index(index)
-    {
-    }
-
-    bool operator==(const OperatorProxy& other) const
-    {
-        assert(task == other.task);
-        return index == other.index;
-    }
-
-    bool operator!=(const OperatorProxy& other) const
-    {
-        return !(*this == other);
-    }
-
-    OperatorPreconditionsProxy get_preconditions() const
-    {
-        return OperatorPreconditionsProxy(*task, index);
-    }
-
-    OperatorEffectsProxy get_effects() const
-    {
-        return OperatorEffectsProxy(*task, index);
-    }
-
-    int get_cost() const { return task->get_operator_cost(index); }
-
-    std::string get_name() const { return task->get_operator_name(index); }
-
-    int get_id() const { return index; }
-
-    /*
-      Eventually, this method should perhaps not be part of OperatorProxy but
-      live in a class that handles the task transformation and known about both
-      the original and the transformed task.
-    */
-    OperatorID get_ancestor_operator_id(const AbstractTask* ancestor_task) const
-    {
-        return OperatorID(task->convert_operator_index(index, ancestor_task));
-    }
-};
-
 class OperatorLightProxy {
+protected:
     const AbstractTaskBase* task;
     int index;
 
@@ -817,6 +769,26 @@ public:
     }
 };
 
+class OperatorProxy : public OperatorLightProxy {
+public:
+    OperatorProxy(const AbstractTask& task, int index)
+        : OperatorLightProxy(task, index)
+    {
+    }
+
+    OperatorEffectsProxy get_effects() const
+    {
+        return OperatorEffectsProxy(
+            *static_cast<const AbstractTask*>(task),
+            index);
+    }
+
+    int get_cost() const
+    {
+        return static_cast<const AbstractTask*>(task)->get_operator_cost(index);
+    }
+};
+
 class AxiomOrOperatorProxy {
     std::variant<AxiomProxy, OperatorProxy> proxy;
 
@@ -831,13 +803,13 @@ public:
     {
     }
 
-    AxiomProxy to_axiom() const
+    operator AxiomProxy() const
     {
         assert(is_axiom());
         return std::get<AxiomProxy>(proxy);
     }
 
-    OperatorProxy to_operator() const
+    operator OperatorProxy() const
     {
         assert(!is_axiom());
         return std::get<OperatorProxy>(proxy);

@@ -12,21 +12,10 @@
 namespace probfd {
 namespace task_properties {
 
-bool is_unit_cost(const ProbabilisticTaskProxy& task);
-
 value_t get_adjusted_action_cost(
     const ProbabilisticOperatorProxy& op,
     OperatorCost cost_type,
     bool is_unit_cost);
-
-inline bool
-is_applicable(const ProbabilisticOperatorProxy& op, const State& state)
-{
-    for (FactProxy precondition : op.get_preconditions()) {
-        if (state[precondition.get_variable()] != precondition) return false;
-    }
-    return true;
-}
 
 template <typename OutputIterator>
 void get_affected_vars(
@@ -45,6 +34,13 @@ void get_affected_vars(const ProbabilisticOperatorProxy& op, OutputIterator it)
         get_affected_vars(outcome, it);
     }
 }
+
+/*
+  Return true iff all operators have cost 1.0 (exact fp equality).
+
+  Runtime: O(n), where n is the number of probabilistic operators.
+*/
+extern bool is_unit_cost(const ProbabilisticTaskProxy& task);
 
 // Runtime: O(n), where n is the number of effects.
 extern bool has_conditional_effects(const ProbabilisticTaskProxy& task);

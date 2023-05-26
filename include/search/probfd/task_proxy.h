@@ -205,6 +205,9 @@ public:
         return task->get_operator_outcome_id(op_index, outcome_index);
     }
 
+    /// Get this outcome's operator.
+    ProbabilisticOperatorProxy get_operator() const;
+
     /// Get a proxy to the probabilistic effects of this outcome.
     ProbabilisticEffectsProxy get_effects() const
     {
@@ -241,6 +244,9 @@ public:
         return task->get_num_operator_outcomes(op_index);
     }
 
+    /// Get the operator of the outcomes.
+    ProbabilisticOperatorProxy get_operator() const;
+
     /// Get a proxy to a specific outcome by its list index.
     ProbabilisticOutcomeProxy operator[](std::size_t eff_index) const
     {
@@ -250,62 +256,40 @@ public:
 };
 
 /// Proxy class used to inspect a single probabilistic operator.
-class ProbabilisticOperatorProxy {
-    const ProbabilisticTask* task;
-    int index;
-
+class ProbabilisticOperatorProxy : public OperatorLightProxy {
 public:
     ProbabilisticOperatorProxy(const ProbabilisticTask& task, int index)
-        : task(&task)
-        , index(index)
+        : OperatorLightProxy(task, index)
     {
-    }
-
-    /// Checks if two proxies reference the same probabilistic operator.
-    bool operator==(const ProbabilisticOperatorProxy& other) const
-    {
-        assert(task == other.task);
-        return index == other.index;
-    }
-
-    /// Checks if two proxies reference the same probabilistic operator.
-    bool operator!=(const ProbabilisticOperatorProxy& other) const
-    {
-        return !(*this == other);
-    }
-
-    /// Get a proxy to the preconditions of the operator.
-    OperatorPreconditionsProxy get_preconditions() const
-    {
-        return OperatorPreconditionsProxy(*task, index);
     }
 
     /// Get a proxy to the outcomes of the operator.
     ProbabilisticOutcomesProxy get_outcomes() const
     {
-        return ProbabilisticOutcomesProxy(*task, index);
+        return ProbabilisticOutcomesProxy(
+            *static_cast<const ProbabilisticTask*>(task),
+            index);
     }
 
     /// Get the cost of the operator.
-    value_t get_cost() const { return task->get_operator_cost(index); }
-
-    /// Get the name of the operator.
-    std::string get_name() const { return task->get_operator_name(index); }
-
-    /// Get the operator id of the operator.
-    int get_id() const { return index; }
-
-    /*
-      Eventually, this method should perhaps not be part of OperatorProxy but
-      live in a class that handles the task transformation and known about both
-      the original and the transformed task.
-    */
-    OperatorID
-    get_ancestor_operator_id(const ProbabilisticTask* ancestor_task) const
+    value_t get_cost() const
     {
-        return OperatorID(task->convert_operator_index(index, ancestor_task));
+        return static_cast<const ProbabilisticTask*>(task)->get_operator_cost(
+            index);
     }
 };
+
+inline ProbabilisticOperatorProxy
+ProbabilisticOutcomeProxy::get_operator() const
+{
+    return ProbabilisticOperatorProxy(*task, op_index);
+}
+
+inline ProbabilisticOperatorProxy
+ProbabilisticOutcomesProxy::get_operator() const
+{
+    return ProbabilisticOperatorProxy(*task, op_index);
+}
 
 /// Proxy class used to inspect a list of probabilistic operators of a
 /// probabilistic task. Can be used as a range of ProbabilisticOperatorProxies,
