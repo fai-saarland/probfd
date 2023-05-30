@@ -106,6 +106,7 @@ using PackedStateBin = int_packer::IntPacker::Bin;
   Basic iterator support for proxy collections.
 */
 template <typename ProxyCollection>
+    requires requires(ProxyCollection c) { typename ProxyCollection::ItemType; }
 class ProxyIterator {
     /* We store a pointer to collection instead of a reference
        because iterators have to be copy assignable. */
