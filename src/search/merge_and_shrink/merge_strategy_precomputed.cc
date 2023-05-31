@@ -16,6 +16,8 @@ MergeStrategyPrecomputed::MergeStrategyPrecomputed(
 {
 }
 
+MergeStrategyPrecomputed::~MergeStrategyPrecomputed() = default;
+
 pair<int, int> MergeStrategyPrecomputed::get_next() {
     assert(!merge_tree->done());
     int next_merge_index = fts.get_size();

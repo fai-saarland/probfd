@@ -15,6 +15,8 @@
 using namespace std;
 
 namespace operator_counting {
+LMCutConstraints::~LMCutConstraints() = default;
+
 void LMCutConstraints::initialize_constraints(
     const shared_ptr<AbstractTask>& task,
     lp::LinearProgram&)

@@ -13,7 +13,7 @@ public:
     MergeStrategyPrecomputed(
         const FactoredTransitionSystem &fts,
         std::unique_ptr<MergeTree> merge_tree);
-    virtual ~MergeStrategyPrecomputed() override = default;
+    ~MergeStrategyPrecomputed() override;
     virtual std::pair<int, int> get_next() override;
 };
 }
