@@ -1,6 +1,7 @@
 #ifndef ALGORITHMS_DYNAMIC_BITSET_H
 #define ALGORITHMS_DYNAMIC_BITSET_H
 
+#include <algorithm>
 #include <cassert>
 #include <compare>
 #include <limits>
