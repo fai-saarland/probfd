@@ -272,7 +272,7 @@ public:
 
         auto init_id = mdp.get_state_id(initial_state);
 
-        if (push<true>(mdp, init_id, state_infos_[init_id])) {
+        if (push_root(mdp, init_id, state_infos_[init_id])) {
             find_and_decompose_sccs<true>(mdp, *sys, 0, timer);
         }
 
@@ -288,19 +288,6 @@ public:
     ECDStatistics get_statistics() const { return stats_; }
 
 private:
-    template <bool RootIteration>
-    bool push(
-        engine_interfaces::MDP<State, Action> mdp,
-        StateID state_id,
-        StateInfo& state_info)
-    {
-        if constexpr (RootIteration) {
-            return push_root(mdp, state_id, state_info);
-        } else {
-            return push_ecd(mdp, state_id, state_info);
-        }
-    }
-
     bool push_root(
         engine_interfaces::MDP<State, Action> mdp,
         StateID state_id,
@@ -392,10 +379,7 @@ private:
         return true;
     }
 
-    bool push_ecd(
-        engine_interfaces::MDP<State, Action> mdp,
-        StateID state_id,
-        StateInfo& info)
+    bool push_ecd(StateID state_id, StateInfo& info)
     {
         assert(!info.explored);
         assert(info.onstack());
@@ -535,8 +519,10 @@ private:
                 // Therefore the onstack check cannot be moved up, we have to
                 // resort to goto to avoid code duplication.
                 if (!succ_info.explored) {
-                    if (push<RootIteration>(mdp, succ_id, succ_info)) {
-                        return true;
+                    if constexpr (RootIteration) {
+                        if (push_root(mdp, succ_id, succ_info)) return true;
+                    } else {
+                        if (push_ecd(succ_id, succ_info)) return true;
                     }
 
                     goto backtrack_child_scc;
@@ -668,7 +654,7 @@ private:
             const StateID id = stack_[i].stateid;
             StateInfo& state_info = state_infos_[id];
 
-            if (!state_info.explored && push<false>(mdp, id, state_info)) {
+            if (!state_info.explored && push_ecd(id, state_info)) {
                 // Recursively run decomposition
                 find_and_decompose_sccs<false>(mdp, sys, limit, timer);
             }
