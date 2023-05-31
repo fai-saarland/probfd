@@ -9,7 +9,7 @@
 namespace probfd {
 
 namespace engines::heuristic_search {
-class StateFlags;
+struct StateFlags;
 }
 
 namespace engine_interfaces {
