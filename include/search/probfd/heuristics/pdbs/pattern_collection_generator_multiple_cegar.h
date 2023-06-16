@@ -31,7 +31,8 @@ class PatternCollectionGeneratorMultipleCegar
         std::unordered_set<int>&& blacklisted_variables) override;
 
 public:
-    explicit PatternCollectionGeneratorMultipleCegar(options::Options& opts);
+    explicit PatternCollectionGeneratorMultipleCegar(
+        const plugins::Options& opts);
 };
 
 } // namespace pdbs

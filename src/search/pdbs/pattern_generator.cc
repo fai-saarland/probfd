@@ -2,13 +2,15 @@
 
 #include "pdbs/utils.h"
 
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 using namespace std;
 
 namespace pdbs {
-PatternCollectionGenerator::PatternCollectionGenerator(const options::Options &opts)
-    : log(utils::get_log_from_options(opts)) {
+PatternCollectionGenerator::PatternCollectionGenerator(
+    const plugins::Options& opts)
+    : log(utils::get_log_from_options(opts))
+{
 }
 
 PatternCollectionInformation PatternCollectionGenerator::generate(
@@ -23,8 +25,9 @@ PatternCollectionInformation PatternCollectionGenerator::generate(
     return pci;
 }
 
-PatternGenerator::PatternGenerator(const options::Options &opts)
-    : log(utils::get_log_from_options(opts)) {
+PatternGenerator::PatternGenerator(const plugins::Options& opts)
+    : log(utils::get_log_from_options(opts))
+{
 }
 
 PatternInformation PatternGenerator::generate(
@@ -42,15 +45,28 @@ PatternInformation PatternGenerator::generate(
     return pattern_info;
 }
 
-void add_generator_options_to_parser(options::OptionParser &parser) {
-    utils::add_log_options_to_parser(parser);
+void add_generator_options_to_feature(plugins::Feature& feature)
+{
+    utils::add_log_options_to_feature(feature);
 }
 
-static PluginTypePlugin<PatternCollectionGenerator> _type_plugin_collection(
-    "PatternCollectionGenerator",
-    "Factory for pattern collections");
+static class PatternCollectionGeneratorCategoryPlugin
+    : public plugins::TypedCategoryPlugin<PatternCollectionGenerator> {
+public:
+    PatternCollectionGeneratorCategoryPlugin()
+        : TypedCategoryPlugin("PatternCollectionGenerator")
+    {
+        document_synopsis("Factory for pattern collections");
+    }
+} _category_plugin_collection;
 
-static PluginTypePlugin<PatternGenerator> _type_plugin_single(
-    "PatternGenerator",
-    "Factory for single patterns");
+static class PatternGeneratorCategoryPlugin
+    : public plugins::TypedCategoryPlugin<PatternGenerator> {
+public:
+    PatternGeneratorCategoryPlugin()
+        : TypedCategoryPlugin("PatternGenerator")
+    {
+        document_synopsis("Factory for single patterns");
+    }
+} _category_plugin_single;
 }

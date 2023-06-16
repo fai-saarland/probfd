@@ -30,8 +30,7 @@
 
 #include "state_registry.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>
@@ -401,7 +400,7 @@ bool PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
 }
 
 PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
-    const Options& opts)
+    const plugins::Options& opts)
     : PatternCollectionGenerator(opts)
     , initial_generator(opts.get<std::shared_ptr<PatternCollectionGenerator>>(
           "initial_generator"))
@@ -809,47 +808,47 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
     return pci;
 }
 
-void add_hillclimbing_options(OptionParser& parser)
+void add_hillclimbing_options(plugins::Feature& feature)
 {
-    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
+    feature.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "initial_generator",
         "generator for the initial pattern database ",
         "det_adapter(generator=systematic(pattern_max_size=1))");
 
-    parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+    feature.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
         "The subcollection finder factory.",
         "finder_trivial_factory()");
 
-    parser.add_option<int>(
+    feature.add_option<int>(
         "pdb_max_size",
         "maximal number of states per pattern database ",
         "2M",
-        Bounds("1", "infinity"));
-    parser.add_option<int>(
+        plugins::Bounds("1", "infinity"));
+    feature.add_option<int>(
         "collection_max_size",
         "maximal number of states in the pattern collection",
         "10M",
-        Bounds("1", "infinity"));
-    parser.add_option<int>(
+        plugins::Bounds("1", "infinity"));
+    feature.add_option<int>(
         "search_space_max_size",
         "maximal number of states in the pattern search space",
         "30M",
-        Bounds("1", "infinity"));
-    parser.add_option<int>(
+        plugins::Bounds("1", "infinity"));
+    feature.add_option<int>(
         "num_samples",
         "number of samples (random states) on which to evaluate each "
         "candidate pattern collection",
         "1000",
-        Bounds("1", "infinity"));
-    parser.add_option<int>(
+        plugins::Bounds("1", "infinity"));
+    feature.add_option<int>(
         "min_improvement",
         "minimum number of samples on which a candidate pattern "
         "collection must improve on the current one to be considered "
         "as the next pattern collection ",
         "10",
-        Bounds("1", "infinity"));
-    parser.add_option<double>(
+        plugins::Bounds("1", "infinity"));
+    feature.add_option<double>(
         "max_time",
         "maximum time in seconds for improving the initial pattern "
         "collection via hill climbing. If set to 0, no hill climbing "
@@ -857,34 +856,45 @@ void add_hillclimbing_options(OptionParser& parser)
         "climbing. Use max_time_dominance_pruning to limit the time "
         "spent for pruning dominated patterns.",
         "infinity",
-        Bounds("0.0", "infinity"));
+        plugins::Bounds("0.0", "infinity"));
 
-    add_generator_options_to_parser(parser);
-    utils::add_rng_options(parser);
+    add_generator_options_to_feature(feature);
+    utils::add_rng_options(feature);
 }
 
-void check_hillclimbing_options(OptionParser& parser, const Options& opts)
+void check_hillclimbing_options(
+    const plugins::Options& opts,
+    const utils::Context& context)
 {
-    if (opts.get<int>("min_improvement") > opts.get<int>("num_samples"))
-        parser.error("minimum improvement must not be higher than number of "
-                     "samples");
+    if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
+        context.error(
+            "Minimum improvement must not be higher than number of samples");
+    }
 }
 
-static std::shared_ptr<PatternCollectionGenerator> _parse(OptionParser& parser)
-{
-    add_hillclimbing_options(parser);
+class PatternCollectionGeneratorHillclimbingFeature
+    : public plugins::TypedFeature<
+          PatternCollectionGenerator,
+          PatternCollectionGeneratorHillclimbing> {
+public:
+    PatternCollectionGeneratorHillclimbingFeature()
+        : TypedFeature("hillclimbing_probabilistic")
+    {
+        add_hillclimbing_options(*this);
+    }
 
-    Options opts = parser.parse();
-    if (parser.help_mode()) return nullptr;
+    std::shared_ptr<PatternCollectionGeneratorHillclimbing> create_component(
+        const plugins::Options& options,
+        const utils::Context& context) const override
+    {
+        check_hillclimbing_options(options, context);
+        return std::make_shared<PatternCollectionGeneratorHillclimbing>(
+            options);
+    }
+};
 
-    check_hillclimbing_options(parser, opts);
-    if (parser.dry_run()) return nullptr;
-
-    return std::make_shared<PatternCollectionGeneratorHillclimbing>(opts);
-}
-
-static Plugin<PatternCollectionGenerator>
-    _plugin("hillclimbing_probabilistic", _parse);
+static plugins::FeaturePlugin<PatternCollectionGeneratorHillclimbingFeature>
+    _plugin;
 
 } // namespace pdbs
 } // namespace heuristics

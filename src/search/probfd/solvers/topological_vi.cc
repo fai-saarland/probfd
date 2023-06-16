@@ -8,14 +8,13 @@
 
 #include "probfd/engine_interfaces/evaluator.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
 namespace {
 
-std::shared_ptr<TaskEvaluator> get_evaluator(const options::Options& opts)
+std::shared_ptr<TaskEvaluator> get_evaluator(const plugins::Options& opts)
 {
     if (opts.contains("eval")) {
         return opts.get<std::shared_ptr<TaskEvaluator>>("eval");
@@ -29,28 +28,18 @@ class TopologicalVISolver : public MDPSolver {
     std::shared_ptr<TaskEvaluator> prune_;
 
 public:
-    explicit TopologicalVISolver(const options::Options& opts)
+    explicit TopologicalVISolver(const plugins::Options& opts)
         : MDPSolver(opts)
         , prune_(get_evaluator(opts))
     {
     }
 
-    static void add_options_to_parser(options::OptionParser& parser)
-    {
-        parser.add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            options::OptionParser::NONE);
-        MDPSolver::add_options_to_parser(parser);
-    }
-
-    virtual std::string get_engine_name() const override
+    std::string get_engine_name() const override
     {
         return "topological_value_iteration";
     }
 
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         using TVIEngine = engines::topological_vi::
             TopologicalValueIteration<State, OperatorID>;
@@ -58,9 +47,23 @@ public:
     }
 };
 
-static Plugin<SolverInterface> _plugin(
-    "topological_value_iteration",
-    options::parse<SolverInterface, TopologicalVISolver>);
+class TopologicalVISolverFeature
+    : public plugins::TypedFeature<SolverInterface, TopologicalVISolver> {
+public:
+    TopologicalVISolverFeature()
+        : plugins::TypedFeature<SolverInterface, TopologicalVISolver>(
+              "topological_value_iteration")
+    {
+        MDPSolver::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskEvaluator>>(
+            "eval",
+            "",
+            plugins::ArgumentInfo::NO_DEFAULT);
+    }
+};
+
+static plugins::FeaturePlugin<TopologicalVISolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

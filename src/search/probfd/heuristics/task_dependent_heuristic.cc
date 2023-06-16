@@ -1,6 +1,6 @@
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
-#include "option_parser.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
@@ -14,23 +14,21 @@ TaskDependentHeuristic::TaskDependentHeuristic(
 {
 }
 
-TaskDependentHeuristic::TaskDependentHeuristic(const options::Options& options)
+TaskDependentHeuristic::TaskDependentHeuristic(const plugins::Options& options)
     : TaskDependentHeuristic(
           options.get<std::shared_ptr<ProbabilisticTask>>("transform"),
           utils::get_log_from_options(options))
-
 {
 }
 
-void TaskDependentHeuristic::add_options_to_parser(
-    options::OptionParser& parser)
+void TaskDependentHeuristic::add_options_to_feature(plugins::Feature& feature)
 {
-    parser.add_option<std::shared_ptr<ProbabilisticTask>>(
+    feature.add_option<std::shared_ptr<ProbabilisticTask>>(
         "transform",
         "Optional task transformation for the heuristic. "
         "Currently, only root_ppt() is available.",
         "root_ppt()");
-    utils::add_log_options_to_parser(parser);
+    utils::add_log_options_to_feature(feature);
 }
 
 } // namespace heuristics

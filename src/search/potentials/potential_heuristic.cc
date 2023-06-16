@@ -2,13 +2,13 @@
 
 #include "potentials/potential_function.h"
 
-#include "option_parser.h"
+#include "plugins/options.h"
 
 using namespace std;
 
 namespace potentials {
 PotentialHeuristic::PotentialHeuristic(
-    const Options& opts,
+    const plugins::Options& opts,
     unique_ptr<PotentialFunction> function)
     : Heuristic(opts)
     , function(std::move(function))

@@ -20,8 +20,8 @@ protected:
 
 public:
     explicit PotentialMaxHeuristic(
-        const options::Options &opts,
-        std::vector<std::unique_ptr<PotentialFunction>> &&functions);
+        const plugins::Options& opts,
+        std::vector<std::unique_ptr<PotentialFunction>>&& functions);
     ~PotentialMaxHeuristic() = default;
 };
 }

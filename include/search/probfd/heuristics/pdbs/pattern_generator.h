@@ -23,7 +23,7 @@ protected:
     mutable utils::LogProxy log;
 
 public:
-    explicit PatternCollectionGenerator(const options::Options& opts);
+    explicit PatternCollectionGenerator(const plugins::Options& opts);
     explicit PatternCollectionGenerator(const utils::LogProxy& log);
     virtual ~PatternCollectionGenerator() = default;
 
@@ -36,7 +36,7 @@ protected:
     mutable utils::LogProxy log;
 
 public:
-    explicit PatternGenerator(const options::Options& opts);
+    explicit PatternGenerator(const plugins::Options& opts);
     explicit PatternGenerator(const utils::LogProxy& log);
     virtual ~PatternGenerator() = default;
 
@@ -44,7 +44,7 @@ public:
     generate(const std::shared_ptr<ProbabilisticTask>& task) = 0;
 };
 
-extern void add_generator_options_to_parser(options::OptionParser& parser);
+extern void add_generator_options_to_feature(plugins::Feature& feature);
 
 } // namespace pdbs
 } // namespace heuristics

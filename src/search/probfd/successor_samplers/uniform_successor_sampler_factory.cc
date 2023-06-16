@@ -7,15 +7,9 @@ namespace probfd {
 namespace successor_samplers {
 
 UniformSuccessorSamplerFactory::UniformSuccessorSamplerFactory(
-    const options::Options& opts)
+    const plugins::Options& opts)
     : rng(utils::parse_rng_from_options(opts))
 {
-}
-
-void UniformSuccessorSamplerFactory::add_options_to_parser(
-    options::OptionParser& parser)
-{
-    utils::add_rng_options(parser);
 }
 
 std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>

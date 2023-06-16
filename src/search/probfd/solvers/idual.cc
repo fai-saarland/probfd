@@ -8,8 +8,7 @@
 
 #include "lp/lp_solver.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
@@ -22,27 +21,16 @@ class IDualSolver : public MDPSolver {
     lp::LPSolverType solver_type_;
 
 public:
-    explicit IDualSolver(const options::Options& opts)
+    explicit IDualSolver(const plugins::Options& opts)
         : MDPSolver(opts)
         , eval_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
         , solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
     {
     }
 
-    static void add_options_to_parser(options::OptionParser& parser)
-    {
-        parser.add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            "blind_eval");
-        lp::add_lp_solver_option_to_parser(parser);
-        MDPSolver::add_options_to_parser(parser);
-    }
+    std::string get_engine_name() const override { return "idual"; }
 
-    virtual std::string get_engine_name() const override { return "idual"; }
-
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         using IDualEngine = engines::idual::IDual<State, OperatorID>;
 
@@ -53,8 +41,22 @@ public:
     }
 };
 
-static Plugin<SolverInterface>
-    _plugin("idual", options::parse<SolverInterface, IDualSolver>);
+class IDualSolverFeature
+    : public plugins::TypedFeature<SolverInterface, IDualSolver> {
+public:
+    IDualSolverFeature()
+        : plugins::TypedFeature<SolverInterface, IDualSolver>("idual")
+    {
+        document_title("i-dual");
+
+        MDPSolver::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "blind_eval");
+        lp::add_lp_solver_option_to_feature(*this);
+    }
+};
+
+static plugins::FeaturePlugin<IDualSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

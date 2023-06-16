@@ -7,10 +7,10 @@
 
 class Evaluator;
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace probfd {
 namespace heuristics {
@@ -32,7 +32,7 @@ public:
      * @param opts - Only one option is available:
      * + heuristic - Specifies the underlying classical heuristic.
      */
-    explicit DeterminizationCostHeuristic(const options::Options& opts);
+    explicit DeterminizationCostHeuristic(const plugins::Options& opts);
 
     /**
      * @brief Construct from classical heuristic.
@@ -44,7 +44,7 @@ public:
 
     ~DeterminizationCostHeuristic() override;
 
-    static void add_options_to_parser(options::OptionParser& parser);
+    static void add_options_to_feature(plugins::Feature& feature);
 
     EvaluationResult evaluate(const State& state) const override;
 

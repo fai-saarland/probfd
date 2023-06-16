@@ -10,8 +10,8 @@
 #include <unordered_set>
 #include <utility>
 
-namespace options {
-class OptionParser;
+namespace plugins {
+class Feature;
 }
 
 namespace utils {
@@ -56,11 +56,11 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
 
 public:
     explicit PatternCollectionGeneratorMultiple(
-        options::Options& opts,
+        const plugins::Options& opts,
         std::string implementation_name);
 };
 
-extern void add_multiple_options_to_parser(options::OptionParser& parser);
+extern void add_multiple_options_to_feature(plugins::Feature& feature);
 
 } // namespace pdbs
 } // namespace heuristics

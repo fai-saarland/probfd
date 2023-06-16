@@ -2,12 +2,12 @@
 
 #include "probfd/value_type.h"
 
-#include "option_parser.h"
-#include "plugin.h"
 #include "state_registry.h"
 
 #include "utils/collections.h"
 #include "utils/timer.h"
+
+#include "plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>

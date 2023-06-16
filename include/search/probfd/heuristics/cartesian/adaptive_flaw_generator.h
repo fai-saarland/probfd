@@ -45,7 +45,7 @@ class AdaptiveFlawGeneratorFactory : public FlawGeneratorFactory {
     std::vector<std::shared_ptr<FlawGeneratorFactory>> generator_factories;
 
 public:
-    explicit AdaptiveFlawGeneratorFactory(const options::Options& opts);
+    explicit AdaptiveFlawGeneratorFactory(const plugins::Options& opts);
 
     std::unique_ptr<FlawGenerator> create_flaw_generator() const override;
 };

@@ -3,10 +3,9 @@
 
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+} // namespace plugins
 
 namespace utils {
 class RandomNumberGenerator;
@@ -20,10 +19,8 @@ class VDiffSuccessorSamplerFactory : public TaskSuccessorSamplerFactory {
     const bool prefer_large_gaps;
 
 public:
-    explicit VDiffSuccessorSamplerFactory(const options::Options&);
+    explicit VDiffSuccessorSamplerFactory(const plugins::Options&);
     ~VDiffSuccessorSamplerFactory() override = default;
-
-    static void add_options_to_parser(options::OptionParser& parser);
 
     std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
     create_sampler(engine_interfaces::StateSpace<State, OperatorID>*) override;

@@ -14,10 +14,10 @@
 #include <ostream>
 #include <vector>
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace probfd {
 namespace heuristics {
@@ -40,7 +40,7 @@ public:
     /**
      * @brief Construct from options.
      */
-    explicit ProbabilityAwarePDBHeuristic(const options::Options& opts);
+    explicit ProbabilityAwarePDBHeuristic(const plugins::Options& opts);
 
     ProbabilityAwarePDBHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
@@ -51,7 +51,7 @@ public:
     EvaluationResult evaluate(const State& state) const override;
 
 public:
-    static void add_options_to_parser(options::OptionParser& parser);
+    static void add_options_to_feature(plugins::Feature& feature);
 };
 
 } // namespace pdbs

@@ -1,11 +1,18 @@
 #include "probfd/cost_model.h"
 
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 
 std::shared_ptr<CostModel> g_cost_model;
 
-static PluginTypePlugin<CostModel> _plugin_type("CostModel", "");
+static class CostModelCategoryPlugin
+    : public plugins::TypedCategoryPlugin<CostModel> {
+public:
+    CostModelCategoryPlugin()
+        : TypedCategoryPlugin("CostModel")
+    {
+    }
+} _category_plugin;
 
 } // namespace probfd

@@ -2,14 +2,14 @@
 
 #include "evaluation_context.h"
 #include "evaluation_result.h"
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 using namespace std;
 
 namespace pref_evaluator {
-PrefEvaluator::PrefEvaluator(const options::Options &opts)
-    : Evaluator(opts) {
+PrefEvaluator::PrefEvaluator(const plugins::Options& opts)
+    : Evaluator(opts)
+{
 }
 
 PrefEvaluator::~PrefEvaluator() {
@@ -25,17 +25,19 @@ EvaluationResult PrefEvaluator::compute_result(
     return result;
 }
 
-static shared_ptr<Evaluator> _parse(OptionParser &parser) {
-    parser.document_synopsis("Preference evaluator",
-                             "Returns 0 if preferred is true and 1 otherwise.");
-    add_evaluator_options_to_parser(parser);
+class PrefEvaluatorFeature
+    : public plugins::TypedFeature<Evaluator, PrefEvaluator> {
+public:
+    PrefEvaluatorFeature()
+        : TypedFeature("pref")
+    {
+        document_subcategory("evaluators_basic");
+        document_title("Preference evaluator");
+        document_synopsis("Returns 0 if preferred is true and 1 otherwise.");
 
-    Options opts = parser.parse();
-    if (parser.dry_run())
-        return nullptr;
-    else
-        return make_shared<PrefEvaluator>(opts);
-}
+        add_evaluator_options_to_feature(*this);
+    }
+};
 
-static Plugin<Evaluator> _plugin("pref", _parse, "evaluators_basic");
+static plugins::FeaturePlugin<PrefEvaluatorFeature> _plugin;
 }

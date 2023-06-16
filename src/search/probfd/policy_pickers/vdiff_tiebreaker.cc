@@ -2,13 +2,12 @@
 
 #include "probfd/engine_interfaces/state_properties.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/options.h"
 
 namespace probfd {
 namespace policy_pickers {
 
-VDiffTiebreaker::VDiffTiebreaker(const options::Options& opts)
+VDiffTiebreaker::VDiffTiebreaker(const plugins::Options& opts)
     : VDiffTiebreaker(
           opts.get<bool>("stable_policy"),
           opts.get<bool>("prefer_large_gaps") ? -1 : 1)
@@ -44,12 +43,6 @@ int VDiffTiebreaker::pick_index(
         }
     }
     return choice;
-}
-
-void VDiffTiebreaker::add_options_to_parser(options::OptionParser& parser)
-{
-    parser.add_option<bool>("stable_policy", "", "true");
-    parser.add_option<bool>("prefer_large_gaps", "", "true");
 }
 
 } // namespace policy_pickers

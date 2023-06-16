@@ -6,8 +6,7 @@
 
 #include "probfd/value_type.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
@@ -43,7 +42,7 @@ public:
 };
 } // namespace
 
-UCPHeuristic::UCPHeuristic(const options::Options& opts)
+UCPHeuristic::UCPHeuristic(const plugins::Options& opts)
     : UCPHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
           utils::get_log_from_options(opts),
@@ -99,18 +98,21 @@ EvaluationResult UCPHeuristic::evaluate(const State& state) const
     return EvaluationResult{false, value};
 }
 
-void UCPHeuristic::add_options_to_parser(options::OptionParser& parser)
-{
-    TaskDependentHeuristic::add_options_to_parser(parser);
+class UCPHeuristicFeature
+    : public plugins::TypedFeature<TaskEvaluator, UCPHeuristic> {
+public:
+    UCPHeuristicFeature()
+        : TypedFeature("ucp_heuristic")
+    {
+        TaskDependentHeuristic::add_options_to_feature(*this);
+        add_option<std::shared_ptr<PatternCollectionGenerator>>(
+            "patterns",
+            "The pattern generation algorithm.",
+            "det_adapter_ec(generator=systematic(pattern_max_size=2))");
+    }
+};
 
-    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
-        "patterns",
-        "",
-        "det_adapter_ec(generator=systematic(pattern_max_size=2))");
-}
-
-static Plugin<TaskEvaluator>
-    _plugin("ucp_heuristic", options::parse<TaskEvaluator, UCPHeuristic>);
+static plugins::FeaturePlugin<UCPHeuristicFeature> _plugin;
 
 } // namespace pdbs
 } // namespace heuristics

@@ -5,10 +5,9 @@
 
 #include "operator_id.h"
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+} // namespace plugins
 
 namespace probfd {
 namespace policy_pickers {
@@ -17,7 +16,7 @@ class VDiffTiebreaker : public TaskStablePolicyPicker<VDiffTiebreaker> {
     const value_t favor_large_gaps_;
 
 public:
-    explicit VDiffTiebreaker(const options::Options&);
+    explicit VDiffTiebreaker(const plugins::Options&);
     explicit VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps_);
 
     int pick_index(
@@ -27,8 +26,6 @@ public:
         const std::vector<OperatorID>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
         engine_interfaces::StateProperties& properties);
-
-    static void add_options_to_parser(options::OptionParser& parser);
 };
 
 } // namespace policy_pickers

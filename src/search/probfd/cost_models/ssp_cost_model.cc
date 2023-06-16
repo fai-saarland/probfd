@@ -6,9 +6,6 @@
 
 #include "probfd/task_proxy.h"
 
-#include "option_parser.h"
-#include "plugin.h"
-
 namespace probfd {
 namespace cost_models {
 

@@ -1,6 +1,6 @@
 #include "cegar/utils.h"
 
-#include "option_parser.h"
+#include "plugins/options.h"
 
 #include "heuristics/additive_heuristic.h"
 #include "task_utils/task_properties.h"
@@ -17,7 +17,7 @@ namespace cegar {
 unique_ptr<additive_heuristic::AdditiveHeuristic>
 create_additive_heuristic(const shared_ptr<AbstractTask>& task)
 {
-    Options opts;
+    plugins::Options opts;
     opts.set<shared_ptr<AbstractTask>>("transform", task);
     opts.set<bool>("cache_estimates", false);
     opts.set<utils::Verbosity>("verbosity", utils::Verbosity::SILENT);

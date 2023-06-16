@@ -2,8 +2,7 @@
 
 #include "probfd/engines/i2dual.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
@@ -19,7 +18,7 @@ class I2DualSolver : public MDPSolver {
     lp::LPSolverType solver_type_;
 
 public:
-    explicit I2DualSolver(const options::Options& opts)
+    explicit I2DualSolver(const plugins::Options& opts)
         : MDPSolver(opts)
         , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
         , hpom_enabled_(!opts.get<bool>("disable_hpom"))
@@ -28,22 +27,9 @@ public:
     {
     }
 
-    static void add_options_to_parser(options::OptionParser& parser)
-    {
-        MDPSolver::add_options_to_parser(parser);
-        parser.add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            "blind_eval");
-        parser.add_option<bool>("disable_hpom", "", "false");
-        parser.add_option<bool>("incremental_updates", "", "true");
-        lp::add_lp_solver_option_to_parser(parser);
-    }
+    std::string get_engine_name() const override { return "i2dual"; }
 
-    virtual std::string get_engine_name() const override { return "i2dual"; }
-
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         using I2DualEngine = engines::i2dual::I2Dual<State, OperatorID>;
 
@@ -56,8 +42,24 @@ public:
     }
 };
 
-static Plugin<SolverInterface>
-    _plugin("i2dual", options::parse<SolverInterface, I2DualSolver>);
+class I2DualSolverFeature
+    : public plugins::TypedFeature<SolverInterface, I2DualSolver> {
+public:
+    I2DualSolverFeature()
+        : plugins::TypedFeature<SolverInterface, I2DualSolver>("i2dual")
+    {
+        document_title("i^2-dual");
+
+        MDPSolver::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "blind_eval");
+        add_option<bool>("disable_hpom", "", "false");
+        add_option<bool>("incremental_updates", "", "true");
+        lp::add_lp_solver_option_to_feature(*this);
+    }
+};
+
+static plugins::FeaturePlugin<I2DualSolverFeature> _plugin;
 
 } // namespace
 } // namespace i2dual

@@ -9,7 +9,7 @@ namespace solvers {
 
 using namespace engine_interfaces;
 
-MDPHeuristicSearchBase::MDPHeuristicSearchBase(const options::Options& opts)
+MDPHeuristicSearchBase::MDPHeuristicSearchBase(const plugins::Options& opts)
     : MDPSolver(opts)
     , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
     , policy_tiebreaker_(opts.get<std::shared_ptr<TaskPolicyPicker>>("policy"))
@@ -32,27 +32,35 @@ void MDPHeuristicSearchBase::print_additional_statistics() const
     }
 }
 
-void MDPHeuristicSearchBase::add_options_to_parser(
-    options::OptionParser& parser)
+void MDPHeuristicSearchBase::add_options_to_feature(plugins::Feature& feature)
 {
-    parser.add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "blind_eval");
-    parser.add_list_option<std::shared_ptr<TaskNewStateObserver>>(
+    MDPSolver::add_options_to_feature(feature);
+
+    feature.add_option<std::shared_ptr<TaskEvaluator>>(
+        "eval",
+        "",
+        "blind_eval");
+    feature.add_list_option<std::shared_ptr<TaskNewStateObserver>>(
         "on_new_state",
         "",
         "[]");
-    parser.add_option<std::shared_ptr<TaskPolicyPicker>>(
+    feature.add_option<std::shared_ptr<TaskPolicyPicker>>(
         "policy",
         "",
         "arbitrary_policy_tiebreaker(false)");
-    parser.add_option<bool>("interval_comparison", "", "false");
-    parser.add_option<bool>("dual_bounds", "", "false");
-    MDPSolver::add_options_to_parser(parser);
+    feature.add_option<bool>("interval_comparison", "", "false");
+    feature.add_option<bool>("dual_bounds", "", "false");
 }
 
 std::string MDPHeuristicSearchBase::get_engine_name() const
 {
     return this->get_heuristic_search_name();
 }
+
+static plugins::TypedEnumPlugin<FretMode> _fret_enum_plugin(
+    {{"disabled", "FRET is disabled"},
+     {"policy", "FRET-pi is used"},
+     {"value", "FRET-V is used"}});
 
 } // namespace solvers
 } // namespace probfd

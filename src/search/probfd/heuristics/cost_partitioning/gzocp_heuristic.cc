@@ -8,8 +8,7 @@
 
 #include "utils/collections.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include "utils/rng_options.h"
 
@@ -67,7 +66,7 @@ public:
 };
 } // namespace
 
-GZOCPHeuristic::GZOCPHeuristic(const options::Options& opts)
+GZOCPHeuristic::GZOCPHeuristic(const plugins::Options& opts)
     : GZOCPHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
           utils::get_log_from_options(opts),
@@ -158,23 +157,34 @@ EvaluationResult GZOCPHeuristic::evaluate(const State& state) const
     return EvaluationResult{false, value};
 }
 
-void GZOCPHeuristic::add_options_to_parser(options::OptionParser& parser)
-{
-    TaskDependentHeuristic::add_options_to_parser(parser);
+class GZOCPHeuristicFeature
+    : public plugins::TypedFeature<TaskEvaluator, GZOCPHeuristic> {
+public:
+    GZOCPHeuristicFeature()
+        : TypedFeature("gzocp_heuristic")
+    {
+        TaskDependentHeuristic::add_options_to_feature(*this);
+        utils::add_rng_options(*this);
 
-    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
-        "patterns",
-        "",
-        "det_adapter_ec(generator=systematic(pattern_max_size=2))");
-    std::vector<std::string> names(
-        {"random", "size_asc", "size_desc", "inherit"});
-    parser.add_enum_option<OrderingStrategy>("order", names, "", "random");
+        add_option<std::shared_ptr<PatternCollectionGenerator>>(
+            "patterns",
+            "The pattern generation algorithm.",
+            "det_adapter_ec(generator=systematic(pattern_max_size=2))");
+        add_option<GZOCPHeuristic::OrderingStrategy>(
+            "order",
+            "The order in which patterns are considered",
+            "random");
+    }
+};
 
-    utils::add_rng_options(parser);
-}
+static plugins::FeaturePlugin<GZOCPHeuristicFeature> _plugin;
 
-static Plugin<TaskEvaluator>
-    _plugin("gzocp_heuristic", options::parse<TaskEvaluator, GZOCPHeuristic>);
+static plugins::TypedEnumPlugin<GZOCPHeuristic::OrderingStrategy> _enum_plugin(
+    {{"random", "the order is random"},
+     {"size_asc", "orders the PDBs by increasing size"},
+     {"size_desc", "orders the PDBs by decreasing size"},
+     {"inherit",
+      "inherits the order from the underlying pattern generation algorithm"}});
 
 } // namespace pdbs
 } // namespace heuristics

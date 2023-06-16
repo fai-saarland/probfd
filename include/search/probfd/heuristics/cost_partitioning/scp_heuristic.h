@@ -12,10 +12,10 @@
 #include <memory>
 #include <vector>
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace utils {
 class RandomNumberGenerator;
@@ -28,14 +28,16 @@ namespace pdbs {
 class ProbabilityAwarePatternDatabase;
 
 class SCPHeuristic : public TaskDependentHeuristic {
+public:
     enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
 
+private:
     std::vector<ProbabilityAwarePatternDatabase> pdbs;
     OrderingStrategy ordering;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
-    explicit SCPHeuristic(const options::Options& opts);
+    explicit SCPHeuristic(const plugins::Options& opts);
 
     explicit SCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
@@ -44,16 +46,8 @@ public:
         OrderingStrategy order,
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
-    void print_statistics() const override
-    {
-        // TODO
-    }
-
 protected:
     EvaluationResult evaluate(const State& state) const override;
-
-public:
-    static void add_options_to_parser(options::OptionParser& parser);
 };
 
 } // namespace pdbs

@@ -115,7 +115,7 @@ class PatternCollectionGeneratorGenetic : public PatternCollectionGenerator {
     compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
 
 public:
-    explicit PatternCollectionGeneratorGenetic(const options::Options& opts);
+    explicit PatternCollectionGeneratorGenetic(const plugins::Options& opts);
 };
 } // namespace pdbs
 

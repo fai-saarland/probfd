@@ -10,10 +10,10 @@
 class EvaluationContext;
 class State;
 
-namespace options {
-class OptionParser;
+namespace plugins {
+class Feature;
 class Options;
-} // namespace options
+} // namespace plugins
 
 class Evaluator {
     const std::string description;
@@ -26,7 +26,7 @@ protected:
 
 public:
     explicit Evaluator(
-        const options::Options& opts,
+        const plugins::Options& opts,
         bool use_for_reporting_minima = false,
         bool use_for_boosting = false,
         bool use_for_counting_evaluations = false);
@@ -101,6 +101,6 @@ public:
     virtual int get_cached_estimate(const State& state) const;
 };
 
-extern void add_evaluator_options_to_parser(options::OptionParser& parser);
+extern void add_evaluator_options_to_feature(plugins::Feature& feature);
 
 #endif

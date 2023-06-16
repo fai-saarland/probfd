@@ -17,7 +17,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace options {
+namespace plugins {
 class Options;
 }
 
@@ -159,7 +159,7 @@ class PatternCollectionGeneratorHillclimbing
 
 public:
     explicit PatternCollectionGeneratorHillclimbing(
-        const options::Options& opts);
+        const plugins::Options& opts);
     ~PatternCollectionGeneratorHillclimbing();
 
     /*

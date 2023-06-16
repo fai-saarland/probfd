@@ -4,19 +4,18 @@
 
 #include "utils/markup.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <cmath>
 
 using namespace std;
-using namespace options;
 
 namespace probfd {
 namespace heuristics {
 namespace occupation_measures {
 
-OccupationMeasureHeuristic::OccupationMeasureHeuristic(const Options& opts)
+OccupationMeasureHeuristic::OccupationMeasureHeuristic(
+    const plugins::Options& opts)
     : OccupationMeasureHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
           utils::get_log_from_options(opts),

@@ -19,7 +19,7 @@ class PatternGeneratorRandom : public PatternGenerator {
     compute_pattern(const std::shared_ptr<AbstractTask>& task) override;
 
 public:
-    explicit PatternGeneratorRandom(options::Options& opts);
+    explicit PatternGeneratorRandom(const plugins::Options& opts);
 };
 } // namespace pdbs
 

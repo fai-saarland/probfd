@@ -23,6 +23,8 @@
 #include "utils/memory.h"
 #include "utils/timer.h"
 
+#include "plugins/plugin.h"
+
 #include <cassert>
 
 using namespace std;
@@ -280,13 +282,24 @@ AStarFlawGeneratorFactory::create_flaw_generator() const
     return std::make_unique<AStarFlawGenerator>();
 }
 
-static shared_ptr<FlawGeneratorFactory> _parse(OptionParser& parser)
-{
-    if (parser.dry_run()) return nullptr;
-    return make_shared<AStarFlawGeneratorFactory>();
-}
+class AStarFlawGeneratorFactoryFeature
+    : public plugins::
+          TypedFeature<FlawGeneratorFactory, AStarFlawGeneratorFactory> {
+public:
+    AStarFlawGeneratorFactoryFeature()
+        : TypedFeature("flaws_astar")
+    {
+    }
 
-static Plugin<FlawGeneratorFactory> _plugin("flaws_astar", _parse);
+    std::shared_ptr<AStarFlawGeneratorFactory>
+    create_component(const plugins::Options&, const utils::Context&)
+        const override
+    {
+        return std::make_shared<AStarFlawGeneratorFactory>();
+    }
+};
+
+static plugins::FeaturePlugin<AStarFlawGeneratorFactoryFeature> _plugin;
 
 } // namespace cartesian
 } // namespace heuristics

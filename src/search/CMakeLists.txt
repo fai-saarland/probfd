@@ -21,8 +21,7 @@ add_library(downward_lib STATIC ${PLANNER_SOURCES})
 target_include_directories(
     downward_lib
     PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/search
-    ${PROJECT_SOURCE_DIR}/include/search/ext)
+    ${PROJECT_SOURCE_DIR}/include/search)
 
 ## == Libraries ==
 

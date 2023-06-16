@@ -13,18 +13,22 @@
 #include "probfd/quotients/heuristic_search_interface.h"
 #include "probfd/quotients/quotient_system.h"
 
-
-#include "probfd/quotient_system.h"
-
 #include "probfd/solvers/bisimulation_heuristic_search_engine.h"
 #include "probfd/solvers/state_space_interface_wrappers.h"
 
-#include "option_parser.h"
+#include "plugins/plugin.h"
 
 #include <memory>
 
+namespace plugins {
+class Options;
+class Feature;
+} // namespace plugins
+
 namespace probfd {
 namespace solvers {
+
+enum class FretMode { DISABLED, POLICY, VALUE };
 
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
@@ -36,9 +40,9 @@ protected:
     const bool interval_comparison_;
 
 public:
-    explicit MDPHeuristicSearchBase(const options::Options& opts);
+    explicit MDPHeuristicSearchBase(const plugins::Options& opts);
 
-    static void add_options_to_parser(options::OptionParser& parser);
+    static void add_options_to_feature(plugins::Feature& feature);
 
     virtual std::string get_engine_name() const override;
     virtual std::string get_heuristic_search_name() const = 0;
@@ -53,10 +57,10 @@ class MDPHeuristicSearch<false, false> : public MDPHeuristicSearchBase {
 public:
     using MDPHeuristicSearchBase::MDPHeuristicSearchBase;
 
-    using MDPHeuristicSearchBase::add_options_to_parser;
+    using MDPHeuristicSearchBase::add_options_to_feature;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngineInterface<State, OperatorID>*
+    std::unique_ptr<TaskMDPEngineInterface>
     create_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -104,7 +108,7 @@ class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
     const bool fret_on_policy_;
 
 public:
-    explicit MDPHeuristicSearch(const options::Options& opts)
+    explicit MDPHeuristicSearch(const plugins::Options& opts)
         : MDPHeuristicSearchBase(opts)
         , quotient_(this->state_space_.get())
         , q_cost_(new quotients::DefaultQuotientCostFunction<State, OperatorID>(
@@ -116,14 +120,12 @@ public:
                         &quotient_,
                         this->policy_tiebreaker_)
                   : nullptr)
-        , fret_on_policy_(
-              opts.contains("fret_on_policy") &&
-              opts.get<bool>("fret_on_policy"))
+        , fret_on_policy_(opts.get<bool>("fret_on_policy", false))
     {
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngineInterface<State, OperatorID>*
+    std::unique_ptr<TaskMDPEngineInterface>
     create_heuristic_search_engine(Args&&... args)
     {
         if (this->dual_bounds_) {
@@ -154,11 +156,11 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngineInterface<State, OperatorID>*
+    std::unique_ptr<TaskMDPEngineInterface>
     create_quotient_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
-            return new HS<State, OperatorID, true>(
+            return std::make_unique<HS<State, OperatorID, true>>(
                 &quotient_,
                 q_cost_.get(),
                 heuristic_.get(),
@@ -168,7 +170,7 @@ public:
                 interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
-            return new HS<State, OperatorID, false>(
+            return std::make_unique<HS<State, OperatorID, false>>(
                 &quotient_,
                 q_cost_.get(),
                 heuristic_.get(),
@@ -206,20 +208,19 @@ private:
         class HS,
         bool Interval,
         typename... Args>
-    engines::MDPEngineInterface<State, OperatorID>*
+    std::unique_ptr<TaskMDPEngineInterface>
     create_heuristic_search_engine_wrapper(Args&&... args)
     {
-        std::shared_ptr<HS<State, QAction, Interval>> engine(
-            new HS<State, QAction, Interval>(
-                &quotient_,
-                q_cost_.get(),
-                heuristic_.get(),
-                q_policy_tiebreaker_.get(),
-                new_state_handler_.get(),
-                &progress_,
-                interval_comparison_,
-                std::forward<Args>(args)...));
-        return new Fret<State, OperatorID, Interval>(
+        std::shared_ptr engine = std::make_shared<HS<State, QAction, Interval>>(
+            &quotient_,
+            q_cost_.get(),
+            heuristic_.get(),
+            q_policy_tiebreaker_.get(),
+            new_state_handler_.get(),
+            &progress_,
+            interval_comparison_,
+            std::forward<Args>(args)...);
+        return std::make_unique<Fret<State, OperatorID, Interval>>(
             this->state_space_.get(),
             this->cost_function_,
             &quotient_,
@@ -231,7 +232,7 @@ private:
 template <>
 class MDPHeuristicSearch<true, false> : public MDPHeuristicSearchBase {
 public:
-    using MDPHeuristicSearchBase::add_options_to_parser;
+    using MDPHeuristicSearchBase::add_options_to_feature;
     using MDPHeuristicSearchBase::MDPHeuristicSearchBase;
 
     virtual std::string get_engine_name() const override
@@ -240,7 +241,7 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngineInterface<State, OperatorID>*
+    std::unique_ptr<TaskMDPEngineInterface>
     create_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -276,16 +277,16 @@ class MDPHeuristicSearch<true, true> : public MDPHeuristicSearchBase {
     const bool fret_on_policy_;
 
 public:
-    explicit MDPHeuristicSearch(const options::Options& opts)
+    explicit MDPHeuristicSearch(const plugins::Options& opts)
         : MDPHeuristicSearchBase(opts)
         , fret_on_policy_(opts.get<bool>("fret_on_policy"))
     {
     }
 
-    using MDPHeuristicSearchBase::add_options_to_parser;
+    using MDPHeuristicSearchBase::add_options_to_feature;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    engines::MDPEngineInterface<State, OperatorID>*
+    std::unique_ptr<TaskMDPEngineInterface>
     create_heuristic_search_engine(Args&&... args)
     {
         if (this->dual_bounds_) {
@@ -319,7 +320,7 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    engines::MDPEngineInterface<State, OperatorID>*
+    std::unique_ptr<TaskMDPEngineInterface>
     create_quotient_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -366,7 +367,7 @@ private:
         template <typename, typename, bool>
         class HS,
         typename... Args>
-    engines::MDPEngineInterface<State, OperatorID>*
+    std::unique_ptr<TaskMDPEngineInterface>
     heuristic_search_engine_factory_wrapper(Args&&... args)
     {
         return QBisimulationBasedHeuristicSearchEngine::
@@ -378,85 +379,65 @@ private:
     }
 };
 
-struct NoAdditionalOptions {
-    void operator()(options::OptionParser&) const {}
-};
-
-struct NoOptionsPostprocessing {
-    void operator()(options::Options&) const {}
-};
-
-template <
-    template <bool>
-    class SolverClass,
-    typename AddOptions = NoAdditionalOptions,
-    typename OptionsPostprocessing = NoOptionsPostprocessing>
-std::shared_ptr<SolverInterface>
-parse_mdp_heuristic_search_solver(options::OptionParser& parser)
-{
-    MDPHeuristicSearchBase::add_options_to_parser(parser);
-
-    parser.add_option<bool>("bisimulation", "", "false");
-
-    AddOptions()(parser);
-
-    options::Options opts = parser.parse();
-
-    OptionsPostprocessing()(opts);
-
-    if (parser.dry_run()) {
-        return nullptr;
+template <template <bool> class SolverClass>
+class MDPHeuristicSearchSolverFeature
+    : public plugins::TypedFeature<SolverInterface, SolverInterface> {
+public:
+    MDPHeuristicSearchSolverFeature(const std::string& name)
+        : TypedFeature(name)
+    {
+        MDPHeuristicSearchBase::add_options_to_feature(*this);
+        add_option<bool>("bisimulation", "", "false");
     }
 
-    if (opts.get<bool>("bisimulation")) {
-        return std::make_shared<SolverClass<true>>(opts);
-    } else {
-        return std::make_shared<SolverClass<false>>(opts);
-    }
-}
-
-template <
-    template <bool, bool>
-    class SolverClass,
-    typename AddOptions = NoAdditionalOptions,
-    typename OptionsPostprocessing = NoOptionsPostprocessing>
-std::shared_ptr<SolverInterface>
-parse_mdp_heuristic_search_solver(options::OptionParser& parser)
-{
-    MDPHeuristicSearchBase::add_options_to_parser(parser);
-
-    std::vector<std::string> fret_types({"disabled", "policy", "value"});
-    parser.add_enum_option<int>("fret", fret_types, "", "disabled");
-
-    parser.add_option<bool>("bisimulation", "", "false");
-
-    AddOptions()(parser);
-
-    options::Options opts = parser.parse();
-
-    OptionsPostprocessing()(opts);
-
-    if (parser.dry_run()) {
-        return nullptr;
-    }
-
-    const int fret_type = opts.get<int>("fret");
-    if (opts.get<bool>("bisimulation")) {
-        if (fret_type == 0) {
-            return std::make_shared<SolverClass<true, false>>(opts);
+    std::shared_ptr<SolverInterface>
+    create_component(const plugins::Options& options, const utils::Context&)
+        const override
+    {
+        if (options.get<bool>("bisimulation")) {
+            return std::make_shared<SolverClass<true>>(options);
         } else {
-            opts.set<bool>("fret_on_policy", fret_type == 1);
-            return std::make_shared<SolverClass<true, true>>(opts);
-        }
-    } else {
-        if (fret_type == 0) {
-            return std::make_shared<SolverClass<false, false>>(opts);
-        } else {
-            opts.set<bool>("fret_on_policy", fret_type == 1);
-            return std::make_shared<SolverClass<false, true>>(opts);
+            return std::make_shared<SolverClass<false>>(options);
         }
     }
-}
+};
+
+template <template <bool, bool> class SolverClass>
+class MDPFRETHeuristicSearchSolverFeature
+    : public plugins::TypedFeature<SolverInterface, SolverInterface> {
+public:
+    MDPFRETHeuristicSearchSolverFeature(const std::string& name)
+        : TypedFeature(name)
+    {
+        MDPHeuristicSearchBase::add_options_to_feature(*this);
+        add_option<FretMode>("fret", "", "disabled");
+        add_option<bool>("bisimulation", "", "false");
+    }
+
+    std::shared_ptr<SolverInterface>
+    create_component(const plugins::Options& options, const utils::Context&)
+        const override
+    {
+        const int fret_type = options.get<int>("fret");
+        if (options.get<bool>("bisimulation")) {
+            if (fret_type == 0) {
+                return std::make_shared<SolverClass<true, false>>(options);
+            } else {
+                plugins::Options options_copy(options);
+                options_copy.set<bool>("fret_on_policy", fret_type == 1);
+                return std::make_shared<SolverClass<true, true>>(options_copy);
+            }
+        } else {
+            if (fret_type == 0) {
+                return std::make_shared<SolverClass<false, false>>(options);
+            } else {
+                plugins::Options options_copy(options);
+                options_copy.set<bool>("fret_on_policy", fret_type == 1);
+                return std::make_shared<SolverClass<false, true>>(options_copy);
+            }
+        }
+    }
+};
 
 } // namespace solvers
 } // namespace probfd

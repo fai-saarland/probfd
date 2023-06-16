@@ -2,7 +2,7 @@
 #define OPEN_LISTS_TYPE_BASED_OPEN_LIST_H
 
 #include "open_list_factory.h"
-#include "option_parser_util.h"
+#include "plugins/options.h"
 
 /*
   Type-based open list based on Xie et al. (AAAI 2014; see detailed
@@ -25,10 +25,10 @@
 
 namespace type_based_open_list {
 class TypeBasedOpenListFactory : public OpenListFactory {
-    Options options;
+    plugins::Options options;
 
 public:
-    explicit TypeBasedOpenListFactory(const Options& options);
+    explicit TypeBasedOpenListFactory(const plugins::Options& options);
     virtual ~TypeBasedOpenListFactory() override = default;
 
     virtual std::unique_ptr<StateOpenList> create_state_open_list() override;

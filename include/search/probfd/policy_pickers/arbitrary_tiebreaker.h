@@ -3,8 +3,7 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/options.h"
 
 namespace probfd {
 namespace policy_pickers {
@@ -16,7 +15,7 @@ class ArbitraryTiebreaker
           Action,
           ArbitraryTiebreaker<State, Action>> {
 public:
-    explicit ArbitraryTiebreaker(const options::Options& opts)
+    explicit ArbitraryTiebreaker(const plugins::Options& opts)
         : ArbitraryTiebreaker(opts.get<bool>("stable_policy"))
     {
     }

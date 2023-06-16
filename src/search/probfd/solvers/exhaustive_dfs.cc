@@ -12,8 +12,7 @@
 
 #include "probfd/progress_report.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
@@ -38,7 +37,7 @@ class ExhaustiveDFSSolver : public MDPSolver {
     const bool only_propagate_when_changed_;
 
 public:
-    explicit ExhaustiveDFSSolver(const options::Options& opts)
+    explicit ExhaustiveDFSSolver(const plugins::Options& opts)
         : MDPSolver(opts)
         , cost_bound_(g_cost_model->optimal_value_bound())
         , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
@@ -64,38 +63,9 @@ public:
     {
     }
 
-    static void add_options_to_parser(options::OptionParser& parser)
-    {
-        parser.add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            "blind_eval");
-        parser.add_list_option<std::shared_ptr<TaskNewStateObserver>>(
-            "on_new_state",
-            "",
-            "[]");
-        parser.add_option<std::shared_ptr<TaskTransitionSorterFactory>>(
-            "order",
-            "",
-            options::OptionParser::NONE);
+    std::string get_engine_name() const override { return "exhaustive_dfs"; }
 
-        parser.add_option<bool>("interval_comparison", "", "false");
-        parser.add_option<bool>("dual_bounds", "", "false");
-        parser.add_option<bool>("reevaluate", "", "true");
-        parser.add_option<bool>("initial_state_notification", "", "false");
-        parser.add_option<bool>("reverse_path_updates", "", "true");
-        parser.add_option<bool>("only_propagate_when_changed", "", "true");
-
-        MDPSolver::add_options_to_parser(parser);
-    }
-
-    virtual std::string get_engine_name() const override
-    {
-        return "exhaustive_dfs";
-    }
-
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         using Engine = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
         using Engine2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
@@ -126,9 +96,37 @@ public:
     }
 };
 
-static Plugin<SolverInterface> _plugin(
-    "exhaustive_dfs",
-    options::parse<SolverInterface, ExhaustiveDFSSolver>);
+class ExhaustiveDFSSolverFeature
+    : public plugins::TypedFeature<SolverInterface, ExhaustiveDFSSolver> {
+public:
+    ExhaustiveDFSSolverFeature()
+        : plugins::TypedFeature<SolverInterface, ExhaustiveDFSSolver>(
+              "exhaustive_dfs")
+    {
+        document_title("Exhaustive Depth-First Search");
+
+        MDPSolver::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "blind_eval");
+        add_list_option<std::shared_ptr<TaskNewStateObserver>>(
+            "on_new_state",
+            "",
+            "[]");
+        add_option<std::shared_ptr<TaskTransitionSorterFactory>>(
+            "order",
+            "",
+            plugins::ArgumentInfo::NO_DEFAULT);
+
+        add_option<bool>("interval_comparison", "", "false");
+        add_option<bool>("dual_bounds", "", "false");
+        add_option<bool>("reevaluate", "", "true");
+        add_option<bool>("initial_state_notification", "", "false");
+        add_option<bool>("reverse_path_updates", "", "true");
+        add_option<bool>("only_propagate_when_changed", "", "true");
+    }
+};
+
+static plugins::FeaturePlugin<ExhaustiveDFSSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

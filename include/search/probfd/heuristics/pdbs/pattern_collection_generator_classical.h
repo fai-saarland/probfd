@@ -7,10 +7,10 @@
 
 #include <memory>
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace probfd {
 namespace heuristics {
@@ -36,7 +36,7 @@ class PatternCollectionGeneratorClassical : public PatternCollectionGenerator {
         std::shared_ptr<SubCollectionFinderFactory> finder);
 
 public:
-    PatternCollectionGeneratorClassical(const options::Options& opts);
+    PatternCollectionGeneratorClassical(const plugins::Options& opts);
     ~PatternCollectionGeneratorClassical() override = default;
 
     PatternCollectionInformation

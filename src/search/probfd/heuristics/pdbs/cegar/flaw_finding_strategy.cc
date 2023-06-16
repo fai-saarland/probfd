@@ -1,15 +1,21 @@
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-static PluginTypePlugin<FlawFindingStrategy>
-    _type_plugin("FlawFindingStrategy", "Policy CEGAR flaw finding strategy.");
-
+static class FlawFindingStrategyCategoryPlugin
+    : public plugins::TypedCategoryPlugin<FlawFindingStrategy> {
+public:
+    FlawFindingStrategyCategoryPlugin()
+        : TypedCategoryPlugin("FlawFindingStrategy")
+    {
+        document_synopsis("Policy CEGAR flaw finding strategy.");
+    }
+} _category_plugin;
 }
 } // namespace pdbs
 } // namespace heuristics

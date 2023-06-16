@@ -7,10 +7,10 @@
 
 class Evaluator;
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace probfd {
 namespace heuristics {
@@ -51,9 +51,9 @@ public:
      * Otherwise return g_analysis_objective_min() for such states.
      * + \em heuristic - The classical heuristic.
      */
-    explicit DeadEndPruningHeuristic(const options::Options& opts);
+    explicit DeadEndPruningHeuristic(const plugins::Options& opts);
 
-    static void add_options_to_parser(options::OptionParser& parser);
+    static void add_options_to_feature(plugins::Feature& feature);
 
     virtual void print_statistics() const override;
 

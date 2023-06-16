@@ -25,7 +25,7 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 
-#include "option_parser.h"
+#include "plugins/options.h"
 
 #include <cassert>
 #include <map>
@@ -51,7 +51,7 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
               << std::endl;
 
     // Construct a linear merge tree
-    options::Options merge_tree_options;
+    plugins::Options merge_tree_options;
     merge_tree_options.set<int>("random_seed", -1);
     merge_tree_options.set<utils::Verbosity>(
         "verbosity",
@@ -67,7 +67,7 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
         new MergeTreeFactoryLinear(merge_tree_options));
 
     // Construct the merge strategy factory
-    options::Options merge_strategy_opts;
+    plugins::Options merge_strategy_opts;
     merge_strategy_opts.set<utils::Verbosity>(
         "verbosity",
         utils::Verbosity::SILENT);
@@ -79,7 +79,7 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
         new MergeStrategyFactoryPrecomputed(merge_strategy_opts));
 
     // Construct a bisimulation-based shrinking strategy
-    options::Options opts_bisim;
+    plugins::Options opts_bisim;
     opts_bisim.set<bool>("greedy", false);
     opts_bisim.set<AtLimit>("at_limit", AtLimit::RETURN);
 
@@ -87,7 +87,7 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
         new ShrinkBisimulation(opts_bisim));
 
     /*
-    options::Options opts_label_reduction;
+    plugins::Options opts_label_reduction;
     opts_label_reduction.set<bool>("before_shrinking", true);
     opts_label_reduction.set<bool>("before_merging", false);
     opts_label_reduction.set<LabelReductionMethod>(
@@ -103,7 +103,7 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
     */
 
     // Finally, set MnS algorithm options (no label reduction)
-    options::Options opts_algorithm;
+    plugins::Options opts_algorithm;
 
     opts_algorithm.set<utils::Verbosity>("verbosity", utils::Verbosity::SILENT);
 

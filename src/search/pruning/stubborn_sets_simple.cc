@@ -1,14 +1,13 @@
 #include "pruning/stubborn_sets_simple.h"
 
-#include "option_parser.h"
-#include "plugin.h"
-
+#include "plugins/plugin.h"
+#include "utils/logging.h"
 #include "utils/markup.h"
 
 using namespace std;
 
 namespace stubborn_sets_simple {
-StubbornSetsSimple::StubbornSetsSimple(const options::Options& opts)
+StubbornSetsSimple::StubbornSetsSimple(const plugins::Options& opts)
     : StubbornSetsActionCentric(opts)
 {
 }
@@ -81,17 +80,22 @@ void StubbornSetsSimple::handle_stubborn_operator(const State& state, int op_no)
     }
 }
 
-static shared_ptr<PruningMethod> _parse(OptionParser& parser)
-{
-    parser.document_synopsis(
-        "Stubborn sets simple",
-        "Stubborn sets represent a state pruning method which computes a "
-        "subset "
-        "of applicable operators in each state such that completeness and "
-        "optimality of the overall search is preserved. As stubborn sets rely "
-        "on several design choices, there are different variants thereof. "
-        "The variant 'StubbornSetsSimple' resolves the design choices in a "
-        "straight-forward way. For details, see the following papers: " +
+class StubbornSetsSimpleFeature
+    : public plugins::TypedFeature<PruningMethod, StubbornSetsSimple> {
+public:
+    StubbornSetsSimpleFeature()
+        : TypedFeature("stubborn_sets_simple")
+    {
+        document_title("Stubborn sets simple");
+        document_synopsis(
+            "Stubborn sets represent a state pruning method which computes a "
+            "subset "
+            "of applicable operators in each state such that completeness and "
+            "optimality of the overall search is preserved. As stubborn sets "
+            "rely "
+            "on several design choices, there are different variants thereof. "
+            "The variant 'StubbornSetsSimple' resolves the design choices in a "
+            "straight-forward way. For details, see the following papers: " +
             utils::format_conference_reference(
                 {"Yusra Alkhazraji",
                  "Martin Wehrle",
@@ -117,15 +121,9 @@ static shared_ptr<PruningMethod> _parse(OptionParser& parser)
                 "323-331",
                 "AAAI Press",
                 "2014"));
-    add_pruning_options_to_parser(parser);
-
-    Options opts = parser.parse();
-    if (parser.dry_run()) {
-        return nullptr;
+        add_pruning_options_to_feature(*this);
     }
+};
 
-    return make_shared<StubbornSetsSimple>(opts);
-}
-
-static Plugin<PruningMethod> _plugin("stubborn_sets_simple", _parse);
+static plugins::FeaturePlugin<StubbornSetsSimpleFeature> _plugin;
 } // namespace stubborn_sets_simple

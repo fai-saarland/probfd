@@ -1,10 +1,6 @@
-#include "option_parser.h"
-
 #include "probfd/command_line.h"
 
 #include "probfd/solver_interface.h"
-
-#include "options/registries.h"
 
 #include "utils/logging.h"
 #include "utils/system.h"
@@ -39,26 +35,7 @@ int main(int argc, const char** argv)
         unit_cost = probfd::task_properties::is_unit_cost(task_proxy);
     }
 
-    shared_ptr<SolverInterface> engine;
-
-    // The command line is parsed twice: once in dry-run mode, to
-    // check for simple input errors, and then in normal mode.
-    try {
-        options::Registry registry(*options::RawRegistry::instance());
-        parse_cmd_line(argc, argv, registry, true, unit_cost);
-        engine = parse_cmd_line(argc, argv, registry, false, unit_cost);
-    } catch (const ArgError& error) {
-        error.print();
-        usage(argv[0]);
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-    } catch (const OptionParserError& error) {
-        error.print();
-        usage(argv[0]);
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-    } catch (const ParseError& error) {
-        error.print();
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-    }
+    shared_ptr<SolverInterface> engine = parse_cmd_line(argc, argv, unit_cost);
 
     utils::g_search_timer.resume();
     engine->solve();

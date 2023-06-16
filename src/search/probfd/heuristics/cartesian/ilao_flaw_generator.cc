@@ -20,6 +20,8 @@
 #include "utils/countdown_timer.h"
 #include "utils/memory.h"
 
+#include "plugins/plugin.h"
+
 #include <cassert>
 
 using namespace std;
@@ -257,13 +259,24 @@ ILAOFlawGeneratorFactory::create_flaw_generator() const
     return std::make_unique<ILAOFlawGenerator>();
 }
 
-static shared_ptr<FlawGeneratorFactory> _parse(OptionParser& parser)
-{
-    if (parser.dry_run()) return nullptr;
-    return make_shared<ILAOFlawGeneratorFactory>();
-}
+class ILAOFlawGeneratorFactoryFeature
+    : public plugins::
+          TypedFeature<FlawGeneratorFactory, ILAOFlawGeneratorFactory> {
+public:
+    ILAOFlawGeneratorFactoryFeature()
+        : TypedFeature("flaws_ilao")
+    {
+    }
 
-static Plugin<FlawGeneratorFactory> _plugin("flaws_ilao", _parse);
+    virtual shared_ptr<ILAOFlawGeneratorFactory>
+    create_component(const plugins::Options&, const utils::Context&)
+        const override
+    {
+        return make_shared<ILAOFlawGeneratorFactory>();
+    }
+};
+
+static plugins::FeaturePlugin<ILAOFlawGeneratorFactoryFeature> _plugin;
 
 } // namespace cartesian
 } // namespace heuristics

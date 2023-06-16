@@ -30,13 +30,6 @@
 #include <memory>
 #include <vector>
 
-namespace options {
-class Options;
-class OptionParser;
-} // namespace options
-
-class StateRegistry;
-
 namespace probfd {
 namespace engines {
 namespace i2dual {

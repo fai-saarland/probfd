@@ -17,7 +17,7 @@
 
 #include "utils/rng_options.h"
 
-#include "options/options.h"
+#include "plugins/options.h"
 
 #include <memory>
 
@@ -77,7 +77,7 @@ struct Wrapper<
         std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>) const
     {
         // HACK to access the global rng...
-        options::Options opts;
+        plugins::Options opts;
         opts.set<int>("random_seed", -1);
         auto rng = utils::parse_rng_from_options(opts);
 

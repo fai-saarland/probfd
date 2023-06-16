@@ -3,8 +3,8 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "operator_cost.h"
-#include "option_parser.h"
-#include "plugin.h"
+
+#include "plugins/plugin.h"
 
 #include "probfd/tasks/root_task.h"
 
@@ -38,22 +38,28 @@ value_t CostAdaptedTask::get_operator_cost(int index) const
         parent_is_unit_cost);
 }
 
-static shared_ptr<ProbabilisticTask> _parse(OptionParser& parser)
-{
-    parser.document_synopsis(
-        "Cost-adapted task",
-        "A cost-adapting transformation of the root task.");
-    add_cost_type_option_to_parser(parser);
-    Options opts = parser.parse();
-    if (parser.dry_run()) {
-        return nullptr;
-    } else {
+class CostAdaptedTaskFeature
+    : public plugins::TypedFeature<ProbabilisticTask, CostAdaptedTask> {
+public:
+    CostAdaptedTaskFeature()
+        : TypedFeature("probabilistic_adapt_costs")
+    {
+        document_title("Cost-adapted task");
+        document_synopsis("A cost-adapting transformation of the root task.");
+
+        add_cost_type_option_to_feature(*this);
+    }
+
+    std::shared_ptr<CostAdaptedTask>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
         OperatorCost cost_type = opts.get<OperatorCost>("cost_type");
         return make_shared<CostAdaptedTask>(g_root_task, cost_type);
     }
-}
+};
 
-static Plugin<ProbabilisticTask> _plugin("probabilistic_adapt_costs", _parse);
+static plugins::FeaturePlugin<CostAdaptedTaskFeature> _plugin;
 
 } // namespace tasks
 } // namespace probfd

@@ -4,14 +4,13 @@
 #include "evaluation_result.h"
 #include "evaluator.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
 
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
-    const options::Options& opts)
+    const plugins::Options& opts)
     : DeterminizationCostHeuristic(
           opts.get<std::shared_ptr<::Evaluator>>("evaluator"))
 {
@@ -42,14 +41,18 @@ void DeterminizationCostHeuristic::print_statistics() const
     // evaluator_->print_statistics();
 }
 
-void DeterminizationCostHeuristic::add_options_to_parser(
-    options::OptionParser& parser)
-{
-    parser.add_option<std::shared_ptr<::Evaluator>>("evaluator");
-}
+class DeterminizationHeuristicFeature
+    : public plugins::
+          TypedFeature<TaskEvaluator, DeterminizationCostHeuristic> {
+public:
+    DeterminizationHeuristicFeature()
+        : TypedFeature("det")
+    {
+        add_option<std::shared_ptr<::Evaluator>>("evaluator");
+    }
+};
 
-static Plugin<TaskEvaluator>
-    _plugin("det", options::parse<TaskEvaluator, DeterminizationCostHeuristic>);
+static plugins::FeaturePlugin<DeterminizationHeuristicFeature> _plugin;
 
 } // namespace heuristics
 } // namespace probfd

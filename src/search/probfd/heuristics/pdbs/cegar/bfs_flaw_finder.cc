@@ -12,8 +12,7 @@
 #include "state_id.h"
 #include "state_registry.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 using namespace std;
 using namespace utils;
@@ -23,7 +22,7 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-BFSFlawFinder::BFSFlawFinder(options::Options& opts)
+BFSFlawFinder::BFSFlawFinder(const plugins::Options& opts)
     : BFSFlawFinder(opts.get<int>("max_search_states"))
 {
 }
@@ -146,23 +145,22 @@ std::string BFSFlawFinder::get_name()
     return "BFS Flaw Finder";
 }
 
-static std::shared_ptr<FlawFindingStrategy>
-_parse(options::OptionParser& parser)
-{
-    parser.add_option<int>(
-        "max_search_states",
-        "Maximal number of generated states after which the flaw search is "
-        "aborted.",
-        "20M",
-        options::Bounds("0", "infinity"));
+class BFSFlawFinderFeature
+    : public plugins::TypedFeature<FlawFindingStrategy, BFSFlawFinder> {
+public:
+    BFSFlawFinderFeature()
+        : TypedFeature("bfs_flaw_finder")
+    {
+        add_option<int>(
+            "max_search_states",
+            "Maximal number of generated states after which the flaw search is "
+            "aborted.",
+            "20M",
+            plugins::Bounds("0", "infinity"));
+    }
+};
 
-    Options opts = parser.parse();
-    if (parser.dry_run()) return nullptr;
-
-    return std::make_shared<BFSFlawFinder>(opts);
-}
-
-static Plugin<FlawFindingStrategy> _plugin("bfs_flaw_finder", _parse);
+static plugins::FeaturePlugin<BFSFlawFinderFeature> _plugin;
 
 } // namespace cegar
 } // namespace pdbs

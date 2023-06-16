@@ -30,8 +30,8 @@
 class CoinPackedVectorBase;
 class OsiSolverInterface;
 
-namespace options {
-class OptionParser;
+namespace plugins {
+class Feature;
 }
 
 namespace lp {
@@ -39,7 +39,7 @@ enum class LPSolverType { CLP, CPLEX, GUROBI, SOPLEX };
 
 enum class LPObjectiveSense { MAXIMIZE, MINIMIZE };
 
-void add_lp_solver_option_to_parser(options::OptionParser& parser);
+void add_lp_solver_option_to_feature(plugins::Feature& feature);
 
 class LinearProgram;
 

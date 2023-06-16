@@ -1,13 +1,19 @@
 #include "probfd/heuristics/occupation_measures/constraint_generator.h"
 
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
 namespace occupation_measures {
 
-static PluginTypePlugin<ConstraintGenerator>
-    _type_plugin("OMConstraintGenerator", "");
+static class ConstraintGeneratorCategoryPlugin
+    : public plugins::TypedCategoryPlugin<ConstraintGenerator> {
+public:
+    ConstraintGeneratorCategoryPlugin()
+        : TypedCategoryPlugin("OMConstraintGenerator")
+    {
+    }
+} _category_plugin;
 
 } // namespace occupation_measures
 } // namespace heuristics

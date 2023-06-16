@@ -3,7 +3,7 @@
 
 #include "heuristic.h"
 
-namespace options {
+namespace plugins {
 class Options;
 }
 
@@ -25,7 +25,7 @@ public:
        operator. This is useful for action cost partitioning. If left
        empty, default operator costs are used.
     */
-    PDBHeuristic(const options::Options &opts);
+    PDBHeuristic(const plugins::Options& opts);
     virtual ~PDBHeuristic() override = default;
 };
 }

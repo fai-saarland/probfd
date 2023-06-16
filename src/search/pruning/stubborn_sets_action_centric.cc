@@ -23,8 +23,10 @@ static bool contain_conflicting_fact(const vector<FactPair> &facts1,
     return false;
 }
 
-StubbornSetsActionCentric::StubbornSetsActionCentric(const options::Options &opts)
-    : StubbornSets(opts) {
+StubbornSetsActionCentric::StubbornSetsActionCentric(
+    const plugins::Options& opts)
+    : StubbornSets(opts)
+{
 }
 
 void StubbornSetsActionCentric::compute_stubborn_set(const State &state) {

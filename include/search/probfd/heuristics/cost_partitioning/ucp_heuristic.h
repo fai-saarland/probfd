@@ -11,10 +11,10 @@
 
 #include <memory>
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace probfd {
 namespace heuristics {
@@ -24,7 +24,7 @@ class UCPHeuristic : public TaskDependentHeuristic {
     std::vector<ProbabilityAwarePatternDatabase> pdbs;
 
 public:
-    explicit UCPHeuristic(const options::Options& opts);
+    explicit UCPHeuristic(const plugins::Options& opts);
 
     explicit UCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
@@ -40,7 +40,7 @@ protected:
     EvaluationResult evaluate(const State& state) const override;
 
 public:
-    static void add_options_to_parser(options::OptionParser& parser);
+    static void add_options_to_feature(plugins::Feature& feature);
 };
 
 } // namespace pdbs

@@ -42,8 +42,7 @@ struct BisimulationTimer {
     }
 };
 
-class BisimulationBasedHeuristicSearchEngine
-    : public engines::MDPEngineInterface<State, OperatorID> {
+class BisimulationBasedHeuristicSearchEngine : public TaskMDPEngineInterface {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
     using QQAction = quotients::QuotientAction<QAction>;
@@ -65,7 +64,7 @@ protected:
 
     std::shared_ptr<MDPEngineInterface<QState, QAction>> engine_;
 
-protected:
+public:
     explicit BisimulationBasedHeuristicSearchEngine(
         const std::string& engine_name)
         : task(tasks::g_root_task)
@@ -94,19 +93,19 @@ protected:
         std::cout << std::endl;
     }
 
-public:
     template <
         template <typename, typename, bool>
         class HS,
         bool Interval,
         typename... Args>
-    static BisimulationBasedHeuristicSearchEngine* Constructor(
+    static std::unique_ptr<BisimulationBasedHeuristicSearchEngine> Constructor(
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
         Args&&... args)
     {
-        auto* res = new BisimulationBasedHeuristicSearchEngine(engine_name);
+        auto res = std::make_unique<BisimulationBasedHeuristicSearchEngine>(
+            engine_name);
 
         res->engine_.reset(new HS<QState, QAction, Interval>(
             &res->state_space_,
@@ -149,6 +148,7 @@ class QBisimulationBasedHeuristicSearchEngine
     std::shared_ptr<engine_interfaces::PolicyPicker<QState, QQAction>>
         q_policy_tiebreaker_;
 
+public:
     explicit QBisimulationBasedHeuristicSearchEngine(
         const std::string& engine_name)
         : BisimulationBasedHeuristicSearchEngine(engine_name)
@@ -162,7 +162,6 @@ class QBisimulationBasedHeuristicSearchEngine
     {
     }
 
-public:
     template <
         template <typename, typename, bool>
         class Fret,
@@ -170,13 +169,14 @@ public:
         class HS,
         bool Interval,
         typename... Args>
-    static QBisimulationBasedHeuristicSearchEngine* Constructor(
+    static std::unique_ptr<QBisimulationBasedHeuristicSearchEngine> Constructor(
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
         Args&&... args)
     {
-        auto* res = new QBisimulationBasedHeuristicSearchEngine(engine_name);
+        auto res = std::make_unique<QBisimulationBasedHeuristicSearchEngine>(
+            engine_name);
 
         std::shared_ptr<HS<QState, QQAction, Interval>> engine(
             new HS<QState, QQAction, Interval>(

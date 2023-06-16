@@ -4,8 +4,7 @@
 
 #include "utils/system.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <sstream>
 
@@ -17,7 +16,7 @@ using namespace engine_interfaces;
 using namespace engines::heuristic_depth_first_search;
 
 template <bool Bisimulation, bool Fret>
-class HDFSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
+class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     template <typename T>
     using WrappedType =
         typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
@@ -37,9 +36,9 @@ class HDFSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     const bool expand_tip_states_;
 
 public:
-    explicit HDFSSolver(const options::Options& opts)
+    explicit DFHSSolver(const plugins::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
-        , name_(opts.contains("name") ? opts.get<std::string>("name") : "hdfs")
+        , name_(opts.get<std::string>("name", "dfhs"))
         , labeling_(opts.get<bool>("labeling"))
         , forward_updates_(opts.get<bool>("fwup"))
         , backward_updates_(opts.get<BacktrackingUpdateType>("bwup"))
@@ -51,13 +50,9 @@ public:
         parameter_validity_check();
     }
 
-    virtual std::string get_heuristic_search_name() const override
-    {
-        return name_;
-    }
+    std::string get_heuristic_search_name() const override { return name_; }
 
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         return this->template create_heuristic_search_engine<Engine>(
             labeling_,
@@ -118,101 +113,139 @@ public:
     }
 };
 
-struct HDFSOptions {
-    void operator()(options::OptionParser& parser) const
+class DFHSSolverFeature
+    : public MDPFRETHeuristicSearchSolverFeature<DFHSSolver> {
+public:
+    DFHSSolverFeature()
+        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver>("dfhs")
     {
-        MDPHeuristicSearchBase::add_options_to_parser(parser);
-        parser.add_option<bool>("labeling", "", "true");
-        parser.add_option<bool>("fwup", "", "true");
-        {
-            std::vector<std::string> bwups(
-                {"disabled", "ondemand", "single", "convergence"});
-            parser.add_enum_option<BacktrackingUpdateType>(
-                "bwup",
-                bwups,
-                "",
-                "ondemand");
-        }
-        parser.add_option<bool>("cutoff_inconsistent", "", "true");
-        parser.add_option<bool>("partial_exploration", "", "false");
-        parser.add_option<bool>("vi", "", "false");
-        parser.add_option<bool>("expand_tip", "", "true");
+        document_title("Depth-first heuristic search family.");
+
+        add_option<bool>("labeling", "", "true");
+        add_option<bool>("fwup", "", "true");
+        add_option<BacktrackingUpdateType>("bwup", "", "ondemand");
+        add_option<bool>("cutoff_inconsistent", "", "true");
+        add_option<bool>("partial_exploration", "", "false");
+        add_option<bool>("vi", "", "false");
+        add_option<bool>("expand_tip", "", "true");
     }
 };
 
-struct LAOOptions {
-    void operator()(options::Options& opts) const
+class LAOSolverFeature
+    : public MDPFRETHeuristicSearchSolverFeature<DFHSSolver> {
+public:
+    LAOSolverFeature()
+        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver>("lao")
     {
-        opts.set<std::string>("name", "lao");
-        opts.set<bool>("labeling", false);
-        opts.set<bool>("fwup", false);
-        opts.set<BacktrackingUpdateType>(
+        document_title("LAO* variant of depth-first heuristic search.");
+
+        add_option<std::shared_ptr<TaskOpenList>>(
+            "open_list",
+            "Ordering in which successors are considered during policy "
+            "exploration.",
+            plugins::ArgumentInfo::NO_DEFAULT);
+    }
+
+    std::shared_ptr<SolverInterface> create_component(
+        const plugins::Options& options,
+        const utils::Context& context) const override
+    {
+        plugins::Options opts_copy(options);
+        opts_copy.set<std::string>("name", "ilao");
+        opts_copy.set<bool>("labeling", false);
+        opts_copy.set<bool>("fwup", false);
+        opts_copy.set<BacktrackingUpdateType>(
             "bwup",
             BacktrackingUpdateType::CONVERGENCE);
-        opts.set<bool>("cutoff_inconsistent", false);
-        opts.set<bool>("partial_exploration", true);
-        opts.set<bool>("expand_tip", false);
-        opts.set<bool>("vi", true);
+        opts_copy.set<bool>("cutoff_inconsistent", true);
+        opts_copy.set<bool>("partial_exploration", false);
+        opts_copy.set<bool>("expand_tip", true);
+        opts_copy.set<bool>("vi", false);
+        return MDPFRETHeuristicSearchSolverFeature<
+            DFHSSolver>::create_component(opts_copy, context);
     }
 };
 
-struct ILAOOptions {
-    void operator()(options::Options& opts) const
+class ILAOSolverFeature
+    : public MDPFRETHeuristicSearchSolverFeature<DFHSSolver> {
+public:
+    ILAOSolverFeature()
+        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver>("ilao")
     {
-        opts.set<std::string>("name", "ilao");
-        opts.set<bool>("labeling", false);
-        opts.set<bool>("fwup", false);
-        opts.set<BacktrackingUpdateType>(
+        document_title("iLAO* variant of depth-first heuristic search.");
+
+        add_option<std::shared_ptr<TaskOpenList>>(
+            "open_list",
+            "Ordering in which successors are considered during policy "
+            "exploration.",
+            plugins::ArgumentInfo::NO_DEFAULT);
+    }
+
+    std::shared_ptr<SolverInterface> create_component(
+        const plugins::Options& options,
+        const utils::Context& context) const override
+    {
+        plugins::Options opts_copy(options);
+        opts_copy.set<std::string>("name", "ilao");
+        opts_copy.set<bool>("labeling", false);
+        opts_copy.set<bool>("fwup", false);
+        opts_copy.set<BacktrackingUpdateType>(
             "bwup",
             BacktrackingUpdateType::SINGLE);
-        opts.set<bool>("cutoff_inconsistent", false);
-        opts.set<bool>("partial_exploration", false);
-        opts.set<bool>("expand_tip", false);
-        opts.set<bool>("vi", true);
+        opts_copy.set<bool>("cutoff_inconsistent", false);
+        opts_copy.set<bool>("partial_exploration", false);
+        opts_copy.set<bool>("expand_tip", false);
+        opts_copy.set<bool>("vi", true);
+        return MDPFRETHeuristicSearchSolverFeature<
+            DFHSSolver>::create_component(opts_copy, context);
     }
 };
 
-struct HDPOptions {
-    void operator()(options::Options& opts) const
+class HDPSolverFeature
+    : public MDPFRETHeuristicSearchSolverFeature<DFHSSolver> {
+public:
+    HDPSolverFeature()
+        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver>("hdp")
     {
-        opts.set<std::string>("name", "hdp");
-        opts.set<bool>("labeling", true);
-        opts.set<bool>("fwup", true);
-        opts.set<BacktrackingUpdateType>(
+        document_title(
+            "HDP variant of trap-aware depth-first heuristic search.");
+
+        MDPHeuristicSearchBase::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskOpenList>>(
+            "open_list",
+            "Ordering in which successors are considered during policy "
+            "exploration.",
+            plugins::ArgumentInfo::NO_DEFAULT);
+    }
+
+    std::shared_ptr<SolverInterface> create_component(
+        const plugins::Options& options,
+        const utils::Context& context) const override
+    {
+        plugins::Options opts_copy(options);
+        opts_copy.set<std::string>("name", "hdp");
+        opts_copy.set<bool>("labeling", true);
+        opts_copy.set<bool>("fwup", true);
+        opts_copy.set<BacktrackingUpdateType>(
             "bwup",
             BacktrackingUpdateType::ON_DEMAND);
-        opts.set<bool>("cutoff_inconsistent", true);
-        opts.set<bool>("partial_exploration", false);
-        opts.set<bool>("vi", false);
-        opts.set<bool>("expand_tip", true);
+        opts_copy.set<bool>("cutoff_inconsistent", true);
+        opts_copy.set<bool>("partial_exploration", false);
+        opts_copy.set<bool>("vi", false);
+        opts_copy.set<bool>("expand_tip", true);
+        return MDPFRETHeuristicSearchSolverFeature<
+            DFHSSolver>::create_component(opts_copy, context);
     }
 };
 
-static Plugin<SolverInterface> _plugin0(
-    "hdfs",
-    parse_mdp_heuristic_search_solver<HDFSSolver, HDFSOptions>);
+static plugins::FeaturePlugin<DFHSSolverFeature> _plugin_dfhs;
+static plugins::FeaturePlugin<LAOSolverFeature> _plugin_lao;
+static plugins::FeaturePlugin<ILAOSolverFeature> _plugin_ilao;
+static plugins::FeaturePlugin<HDPSolverFeature> _plugin_hdp;
 
-static Plugin<SolverInterface> _plugin1(
-    "lao",
-    parse_mdp_heuristic_search_solver<
-        HDFSSolver,
-        NoAdditionalOptions,
-        LAOOptions>);
-
-static Plugin<SolverInterface> _plugin2(
-    "ilao",
-    parse_mdp_heuristic_search_solver<
-        HDFSSolver,
-        NoAdditionalOptions,
-        ILAOOptions>);
-
-static Plugin<SolverInterface> _plugin4(
-    "hdp",
-    parse_mdp_heuristic_search_solver<
-        HDFSSolver,
-        NoAdditionalOptions,
-        HDPOptions>);
-
+static plugins::TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
+    {{"disabled", ""}, {"ondemand", ""}, {"single", ""}, {"convergence", ""}});
 }
 } // namespace solvers
 } // namespace probfd

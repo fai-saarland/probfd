@@ -8,8 +8,7 @@
 #include "utils/countdown_timer.h"
 #include "utils/logging.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <cassert>
 #include <iomanip>
@@ -21,7 +20,7 @@ namespace heuristics {
 namespace pdbs {
 
 ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
-    const options::Options& opts)
+    const plugins::Options& opts)
     : ProbabilityAwarePDBHeuristic(
           opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
           opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
@@ -124,33 +123,36 @@ ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
     return subcollection_finder->evaluate(*pdbs, *subcollections, state);
 }
 
-void ProbabilityAwarePDBHeuristic::add_options_to_parser(
-    options::OptionParser& parser)
-{
-    parser.document_synopsis(
-        "Probability-aware Pattern database heuristic",
-        "An admissible heuristic obtained by combining multiple projection "
-        "heuristics.");
+class ProbabilityAwarePDBHeuristicFeature
+    : public plugins::
+          TypedFeature<TaskEvaluator, ProbabilityAwarePDBHeuristic> {
+public:
+    ProbabilityAwarePDBHeuristicFeature()
+        : TypedFeature("ppdbs")
+    {
+        document_title("Probability-aware Pattern database heuristic");
+        document_synopsis(
+            "An admissible heuristic obtained by combining multiple projection "
+            "heuristics.");
 
-    parser.document_language_support("action costs", "supported");
-    parser.document_language_support("conditional effects", "not supported");
-    parser.document_language_support("axioms", "not supported");
+        document_language_support("action costs", "supported");
+        document_language_support("conditional effects", "not supported");
+        document_language_support("axioms", "not supported");
 
-    parser.document_property("admissible", "yes");
-    parser.document_property("consistent", "yes");
-    parser.document_property("safe", "yes");
+        document_property("admissible", "yes");
+        document_property("consistent", "yes");
+        document_property("safe", "yes");
 
-    TaskDependentHeuristic::add_options_to_parser(parser);
-    parser.add_option<std::shared_ptr<PatternCollectionGenerator>>(
-        "patterns",
-        "",
-        "classical_generator(generator=systematic(pattern_max_size=2))");
-    parser.add_option<double>("max_time_dominance_pruning", "", "0.0");
-}
+        TaskDependentHeuristic::add_options_to_feature(*this);
+        add_option<std::shared_ptr<PatternCollectionGenerator>>(
+            "patterns",
+            "",
+            "classical_generator(generator=systematic(pattern_max_size=2))");
+        add_option<double>("max_time_dominance_pruning", "", "0.0");
+    }
+};
 
-static Plugin<TaskEvaluator> _plugin(
-    "ppdbs",
-    options::parse<TaskEvaluator, ProbabilityAwarePDBHeuristic>);
+static plugins::FeaturePlugin<ProbabilityAwarePDBHeuristicFeature> _plugin;
 
 } // namespace pdbs
 } // namespace heuristics

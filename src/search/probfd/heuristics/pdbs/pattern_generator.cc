@@ -1,13 +1,13 @@
 #include "probfd/heuristics/pdbs/pattern_generator.h"
 
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
 PatternCollectionGenerator::PatternCollectionGenerator(
-    const options::Options& opts)
+    const plugins::Options& opts)
     : log(utils::get_log_from_options(opts))
 {
 }
@@ -18,7 +18,7 @@ PatternCollectionGenerator::PatternCollectionGenerator(
 {
 }
 
-PatternGenerator::PatternGenerator(const options::Options& opts)
+PatternGenerator::PatternGenerator(const plugins::Options& opts)
     : log(utils::get_log_from_options(opts))
 {
 }
@@ -28,19 +28,33 @@ PatternGenerator::PatternGenerator(const utils::LogProxy& log)
 {
 }
 
-void add_generator_options_to_parser(options::OptionParser& parser)
+void add_generator_options_to_feature(plugins::Feature& feature)
 {
-    utils::add_log_options_to_parser(parser);
+    utils::add_log_options_to_feature(feature);
 }
 
-static PluginTypePlugin<PatternCollectionGenerator> _type_plugin(
-    "PPDBPatternCollectionGenerator",
-    "Factory for pattern collections and/or corresponding probability-aware "
-    "PDBs");
+static class PatternCollectionGeneratorCategoryPlugin
+    : public plugins::TypedCategoryPlugin<PatternCollectionGenerator> {
+public:
+    PatternCollectionGeneratorCategoryPlugin()
+        : TypedCategoryPlugin("PPDBPatternCollectionGenerator")
+    {
+        document_synopsis("Factory for pattern collections and/or "
+                          "corresponding probability-aware "
+                          "PDBs");
+    }
+} _category_plugin_collection;
 
-static PluginTypePlugin<PatternGenerator> _type_plugin2(
-    "PPDBPatternGenerator",
-    "Factory for a pattern and/or the corresponding probability-aware PDB");
+static class PatternGeneratorCategoryPlugin
+    : public plugins::TypedCategoryPlugin<PatternGenerator> {
+public:
+    PatternGeneratorCategoryPlugin()
+        : TypedCategoryPlugin("PPDBPatternGenerator")
+    {
+        document_synopsis("Factory for a pattern and/or the corresponding "
+                          "probability-aware PDB");
+    }
+} _category_plugin_single;
 
 } // namespace pdbs
 } // namespace heuristics

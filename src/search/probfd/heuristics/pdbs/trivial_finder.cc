@@ -1,8 +1,6 @@
 #include "probfd/heuristics/pdbs/trivial_finder.h"
 
-#include "option_parser.h"
-#include "plugin.h"
-
+#include "plugins/plugin.h"
 namespace probfd {
 namespace heuristics {
 namespace pdbs {

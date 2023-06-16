@@ -172,6 +172,9 @@ public:
 };
 
 } // namespace engines
+
+using TaskMDPEngineInterface = engines::MDPEngineInterface<State, OperatorID>;
+
 } // namespace probfd
 
 #endif // __ENGINE_H__

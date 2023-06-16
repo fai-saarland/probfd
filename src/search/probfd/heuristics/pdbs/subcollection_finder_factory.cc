@@ -1,13 +1,19 @@
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-static PluginTypePlugin<SubCollectionFinderFactory>
-    _plugin("SubCollectionFinderFactory", "");
+static class SubCollectionFinderFactoryCategoryPlugin
+    : public plugins::TypedCategoryPlugin<SubCollectionFinderFactory> {
+public:
+    SubCollectionFinderFactoryCategoryPlugin()
+        : TypedCategoryPlugin("SubCollectionFinderFactory")
+    {
+    }
+} _category_plugin_collection;
 
 } // namespace pdbs
 } // namespace heuristics

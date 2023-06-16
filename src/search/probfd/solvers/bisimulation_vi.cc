@@ -16,8 +16,7 @@
 
 #include "state_registry.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <iomanip>
 
@@ -51,8 +50,6 @@ public:
     {
     }
 
-    static void add_options_to_parser(options::OptionParser&) {}
-
     std::string get_engine_name() const
     {
         return (
@@ -60,9 +57,9 @@ public:
                                 : "bisimulation value iteration");
     }
 
-    virtual bool found_solution() const override { return true; }
+    bool found_solution() const override { return true; }
 
-    virtual void solve() override
+    void solve() override
     {
         utils::Timer total_timer;
 
@@ -122,29 +119,46 @@ public:
 
 class BisimulationValueIteration : public BisimulationIteration {
 public:
-    explicit BisimulationValueIteration(const options::Options&)
+    explicit BisimulationValueIteration(const plugins::Options&)
         : BisimulationIteration(false)
     {
     }
-    static void add_options_to_parser(options::OptionParser&) {}
 };
 
 class BisimulationIntervalIteration : public BisimulationIteration {
 public:
-    explicit BisimulationIntervalIteration(const options::Options&)
+    explicit BisimulationIntervalIteration(const plugins::Options&)
         : BisimulationIteration(true)
     {
     }
-    static void add_options_to_parser(options::OptionParser&) {}
 };
 
-static Plugin<SolverInterface> _plugin(
-    "bisimulation_vi",
-    options::parse<SolverInterface, BisimulationValueIteration>);
+class BisimulationVISolverFeature
+    : public plugins::
+          TypedFeature<SolverInterface, BisimulationValueIteration> {
+public:
+    BisimulationVISolverFeature()
+        : plugins::TypedFeature<SolverInterface, BisimulationValueIteration>(
+              "bisimulation_vi")
+    {
+        document_title("Bisimulation Value Iteration.");
+    }
+};
 
-static Plugin<SolverInterface> _plugin_ii(
-    "bisimulation_ii",
-    options::parse<SolverInterface, BisimulationIntervalIteration>);
+class BisimulationIISolverFeature
+    : public plugins::
+          TypedFeature<SolverInterface, BisimulationIntervalIteration> {
+public:
+    BisimulationIISolverFeature()
+        : plugins::TypedFeature<SolverInterface, BisimulationIntervalIteration>(
+              "bisimulation_ii")
+    {
+        document_title("Bisimulation Interval Iteration.");
+    }
+};
+
+static plugins::FeaturePlugin<BisimulationVISolverFeature> _plugin_bvi;
+static plugins::FeaturePlugin<BisimulationIISolverFeature> _plugin_bii;
 
 } // namespace
 } // namespace solvers

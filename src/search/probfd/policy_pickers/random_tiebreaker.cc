@@ -5,13 +5,12 @@
 
 #include "operator_id.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/options.h"
 
 namespace probfd {
 namespace policy_pickers {
 
-RandomTiebreaker::RandomTiebreaker(const options::Options& opts)
+RandomTiebreaker::RandomTiebreaker(const plugins::Options& opts)
     : RandomTiebreaker(
           opts.get<bool>("stable_policy"),
           utils::parse_rng_from_options(opts))
@@ -35,12 +34,6 @@ int RandomTiebreaker::pick_index(
     engine_interfaces::StateProperties&)
 {
     return rng->random(options.size());
-}
-
-void RandomTiebreaker::add_options_to_parser(options::OptionParser& parser)
-{
-    parser.add_option<bool>("stable_policy", "", "true");
-    utils::add_rng_options(parser);
 }
 
 } // namespace policy_pickers

@@ -5,10 +5,9 @@
 
 #include "operator_id.h"
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+} // namespace plugins
 
 namespace probfd {
 namespace policy_pickers {
@@ -18,10 +17,8 @@ class OperatorIdTiebreaker
     const int ascending_;
 
 public:
-    explicit OperatorIdTiebreaker(const options::Options&);
+    explicit OperatorIdTiebreaker(const plugins::Options&);
     explicit OperatorIdTiebreaker(bool stable_policy, int ascending);
-
-    static void add_options_to_parser(options::OptionParser& p);
 
     int pick_index(
         engine_interfaces::StateSpace<State, OperatorID>& state_space,

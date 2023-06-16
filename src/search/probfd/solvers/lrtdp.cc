@@ -5,8 +5,7 @@
 #include "probfd/engine_interfaces/successor_sampler.h"
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
@@ -29,7 +28,7 @@ class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
 
 public:
-    explicit LRTDPSolver(const options::Options& opts)
+    explicit LRTDPSolver(const plugins::Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
         , stop_consistent_(
               opts.get<TrialTerminationCondition>("terminate_trial"))
@@ -50,13 +49,9 @@ public:
         }
     }
 
-    virtual std::string get_heuristic_search_name() const override
-    {
-        return "lrtdp";
-    }
+    std::string get_heuristic_search_name() const override { return "lrtdp"; }
 
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         return this->template create_heuristic_search_engine<LRTDP>(
             stop_consistent_,
@@ -64,35 +59,38 @@ public:
     }
 
 protected:
-    virtual void print_additional_statistics() const override
+    void print_additional_statistics() const override
     {
         successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<Bisimulation, Fret>::print_additional_statistics();
     }
 };
 
-struct LRTDPOptions {
-    void operator()(options::OptionParser& parser) const
+class LRTDPSolverFeature
+    : public MDPFRETHeuristicSearchSolverFeature<LRTDPSolver> {
+public:
+    LRTDPSolverFeature()
+        : MDPFRETHeuristicSearchSolverFeature<LRTDPSolver>("lrtdp")
     {
-        parser.add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+        add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
             "successor_sampler",
             "",
             "random_successor_sampler_factory");
-        {
-            std::vector<std::string> opts(
-                {"terminal", "consistent", "inconsistent", "revisited"});
-            parser.add_enum_option<TrialTerminationCondition>(
-                "terminate_trial",
-                opts,
-                "",
-                "terminal");
-        }
+
+        add_option<TrialTerminationCondition>(
+            "terminate_trial",
+            "",
+            "terminal");
     }
 };
 
-static Plugin<SolverInterface> _plugin(
-    "lrtdp",
-    parse_mdp_heuristic_search_solver<LRTDPSolver, LRTDPOptions>);
+static plugins::FeaturePlugin<LRTDPSolverFeature> _plugin;
+
+static plugins::TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
+    {{"terminal", "Stop trials at terminal states"},
+     {"consistent", "Stop trials at epsilon consistent states"},
+     {"inconsistent", "Stop trials at epsilon inconsistent states"},
+     {"revisited", "Stop trials upon revisiting a state"}});
 
 } // namespace
 } // namespace solvers

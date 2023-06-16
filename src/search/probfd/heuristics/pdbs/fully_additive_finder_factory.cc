@@ -1,9 +1,7 @@
 #include "probfd/heuristics/pdbs/fully_additive_finder.h"
 #include "probfd/heuristics/pdbs/fully_additive_finder_factory.h"
 
-
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
@@ -16,14 +14,24 @@ FullyAdditiveFinderFactory::create_subcollection_finder(
     return std::make_unique<FullyAdditiveFinder>();
 }
 
-static std::shared_ptr<FullyAdditiveFinderFactory> _parse(OptionParser& parser)
-{
-    if (parser.dry_run()) return nullptr;
-    return std::make_shared<FullyAdditiveFinderFactory>();
-}
+class FullyAdditiveFinderFactoryFeature
+    : public plugins::
+          TypedFeature<SubCollectionFinderFactory, FullyAdditiveFinderFactory> {
+public:
+    FullyAdditiveFinderFactoryFeature()
+        : TypedFeature("fully_additive_factory")
+    {
+    }
 
-static Plugin<SubCollectionFinderFactory>
-    _plugin("fully_additive_factory", _parse);
+    std::shared_ptr<FullyAdditiveFinderFactory>
+    create_component(const plugins::Options&, const utils::Context&)
+        const override
+    {
+        return std::make_shared<FullyAdditiveFinderFactory>();
+    }
+};
+
+static plugins::FeaturePlugin<FullyAdditiveFinderFactoryFeature> _plugin;
 
 } // namespace pdbs
 } // namespace heuristics

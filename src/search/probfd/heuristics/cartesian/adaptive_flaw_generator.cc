@@ -4,6 +4,8 @@
 
 #include "utils/logging.h"
 
+#include "plugins/plugin.h"
+
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
@@ -79,7 +81,7 @@ bool AdaptiveFlawGenerator::is_complete()
 }
 
 AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(
-    const options::Options& opts)
+    const plugins::Options& opts)
     : generator_factories(
           opts.get_list<std::shared_ptr<FlawGeneratorFactory>>("generators"))
 {
@@ -97,19 +99,21 @@ AdaptiveFlawGeneratorFactory::create_flaw_generator() const
     return std::make_unique<AdaptiveFlawGenerator>(std::move(generators));
 }
 
-static std::shared_ptr<FlawGeneratorFactory> _parse(OptionParser& parser)
-{
-    parser.add_list_option<std::shared_ptr<FlawGeneratorFactory>>(
-        "generators",
-        "The linear hierachy of flaw generators.",
-        "[flaws_astar(), flaws_ilao()]");
-    if (parser.dry_run()) return nullptr;
+class AdaptiveFlawGeneratorFactoryFeature
+    : public plugins::
+          TypedFeature<FlawGeneratorFactory, AdaptiveFlawGeneratorFactory> {
+public:
+    AdaptiveFlawGeneratorFactoryFeature()
+        : TypedFeature("flaws_adaptive")
+    {
+        add_list_option<std::shared_ptr<FlawGeneratorFactory>>(
+            "generators",
+            "The linear hierachy of flaw generators.",
+            "[flaws_astar(), flaws_ilao()]");
+    }
+};
 
-    options::Options opts = parser.parse();
-    return std::make_shared<AdaptiveFlawGeneratorFactory>(opts);
-}
-
-static Plugin<FlawGeneratorFactory> _plugin("flaws_adaptive", _parse);
+static plugins::FeaturePlugin<AdaptiveFlawGeneratorFactoryFeature> _plugin;
 
 } // namespace cartesian
 } // namespace heuristics

@@ -2,8 +2,6 @@
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
-#include "plugin.h"
-
 #include <numeric>
 
 namespace probfd {

@@ -6,8 +6,7 @@
 
 #include "pdbs/pattern_cliques.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <numeric>
 

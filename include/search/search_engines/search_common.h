@@ -23,7 +23,7 @@
 class Evaluator;
 class OpenListFactory;
 
-namespace options {
+namespace plugins {
 class Options;
 }
 
@@ -50,8 +50,8 @@ extern std::shared_ptr<OpenListFactory> create_standard_scalar_open_list_factory
   for the alternation open list, then that sublist is returned
   directly.
 */
-extern std::shared_ptr<OpenListFactory> create_greedy_open_list_factory(
-    const options::Options &opts);
+extern std::shared_ptr<OpenListFactory>
+create_greedy_open_list_factory(const plugins::Options& opts);
 
 /*
   Create open list factory for the lazy_wastar plugin.
@@ -64,8 +64,8 @@ extern std::shared_ptr<OpenListFactory> create_greedy_open_list_factory(
   documentation there), except that the open lists use evalators based
   on g + w * h rather than using h directly.
 */
-extern std::shared_ptr<OpenListFactory> create_wastar_open_list_factory(
-    const options::Options &opts);
+extern std::shared_ptr<OpenListFactory>
+create_wastar_open_list_factory(const plugins::Options& opts);
 
 /*
   Create open list factory and f_evaluator (used for displaying progress
@@ -75,8 +75,9 @@ extern std::shared_ptr<OpenListFactory> create_wastar_open_list_factory(
   ordered primarily on g + h and secondarily on h. Uses "eval" from
   the passed-in Options object as the h evaluator.
 */
-extern std::pair<std::shared_ptr<OpenListFactory>, const std::shared_ptr<Evaluator>>
-create_astar_open_list_factory_and_f_eval(const options::Options &opts);
+extern std::
+    pair<std::shared_ptr<OpenListFactory>, const std::shared_ptr<Evaluator>>
+    create_astar_open_list_factory_and_f_eval(const plugins::Options& opts);
 }
 
 #endif

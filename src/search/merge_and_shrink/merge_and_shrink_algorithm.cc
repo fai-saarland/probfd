@@ -13,8 +13,7 @@
 #include "merge_and_shrink/types.h"
 #include "merge_and_shrink/utils.h"
 
-#include "options/option_parser.h"
-#include "options/options.h"
+#include "plugins/plugin.h"
 
 #include "task_utils/task_properties.h"
 
@@ -31,9 +30,7 @@
 #include <vector>
 
 using namespace std;
-using options::Bounds;
-using options::OptionParser;
-using options::Options;
+using plugins::Bounds;
 using utils::ExitCode;
 
 namespace merge_and_shrink {
@@ -41,18 +38,21 @@ static void log_progress(const utils::Timer &timer, string msg, utils::LogProxy 
     log << "M&S algorithm timer: " << timer << " (" << msg << ")" << endl;
 }
 
-MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(const Options &opts) :
-    merge_strategy_factory(opts.get<shared_ptr<MergeStrategyFactory>>("merge_strategy")),
-    shrink_strategy(opts.get<shared_ptr<ShrinkStrategy>>("shrink_strategy")),
-    label_reduction(opts.get<shared_ptr<LabelReduction>>("label_reduction", nullptr)),
-    max_states(opts.get<int>("max_states")),
-    max_states_before_merge(opts.get<int>("max_states_before_merge")),
-    shrink_threshold_before_merge(opts.get<int>("threshold_before_merge")),
-    prune_unreachable_states(opts.get<bool>("prune_unreachable_states")),
-    prune_irrelevant_states(opts.get<bool>("prune_irrelevant_states")),
-    log(utils::get_log_from_options(opts)),
-    main_loop_max_time(opts.get<double>("main_loop_max_time")),
-    starting_peak_memory(0) {
+MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(const plugins::Options& opts)
+    : merge_strategy_factory(
+          opts.get<shared_ptr<MergeStrategyFactory>>("merge_strategy"))
+    , shrink_strategy(opts.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"))
+    , label_reduction(
+          opts.get<shared_ptr<LabelReduction>>("label_reduction", nullptr))
+    , max_states(opts.get<int>("max_states"))
+    , max_states_before_merge(opts.get<int>("max_states_before_merge"))
+    , shrink_threshold_before_merge(opts.get<int>("threshold_before_merge"))
+    , prune_unreachable_states(opts.get<bool>("prune_unreachable_states"))
+    , prune_irrelevant_states(opts.get<bool>("prune_irrelevant_states"))
+    , log(utils::get_log_from_options(opts))
+    , main_loop_max_time(opts.get<double>("main_loop_max_time"))
+    , starting_peak_memory(0)
+{
     assert(max_states_before_merge > 0);
     assert(max_states >= max_states_before_merge);
     assert(shrink_threshold_before_merge <= max_states_before_merge);
@@ -400,45 +400,50 @@ FactoredTransitionSystem MergeAndShrinkAlgorithm::build_factored_transition_syst
     return fts;
 }
 
-void add_merge_and_shrink_algorithm_options_to_parser(OptionParser &parser) {
+void add_merge_and_shrink_algorithm_options_to_feature(
+    plugins::Feature& feature)
+{
     // Merge strategy option.
-    parser.add_option<shared_ptr<MergeStrategyFactory>>(
+    feature.add_option<shared_ptr<MergeStrategyFactory>>(
         "merge_strategy",
         "See detailed documentation for merge strategies. "
         "We currently recommend SCC-DFP, which can be achieved using "
         "{{{merge_strategy=merge_sccs(order_of_sccs=topological,merge_selector="
-        "score_based_filtering(scoring_functions=[goal_relevance,dfp,total_order"
+        "score_based_filtering(scoring_functions=[goal_relevance,dfp,total_"
+        "order"
         "]))}}}");
 
     // Shrink strategy option.
-    parser.add_option<shared_ptr<ShrinkStrategy>>(
+    feature.add_option<shared_ptr<ShrinkStrategy>>(
         "shrink_strategy",
         "See detailed documentation for shrink strategies. "
         "We currently recommend non-greedy shrink_bisimulation, which can be "
-        "achieved using {{{shrink_strategy=shrink_bisimulation(greedy=false)}}}");
+        "achieved using "
+        "{{{shrink_strategy=shrink_bisimulation(greedy=false)}}}");
 
     // Label reduction option.
-    parser.add_option<shared_ptr<LabelReduction>>(
+    feature.add_option<shared_ptr<LabelReduction>>(
         "label_reduction",
         "See detailed documentation for labels. There is currently only "
-        "one 'option' to use label_reduction, which is {{{label_reduction=exact}}} "
+        "one 'option' to use label_reduction, which is "
+        "{{{label_reduction=exact}}} "
         "Also note the interaction with shrink strategies.",
-        OptionParser::NONE);
+        plugins::ArgumentInfo::NO_DEFAULT);
 
     // Pruning options.
-    parser.add_option<bool>(
+    feature.add_option<bool>(
         "prune_unreachable_states",
         "If true, prune abstract states unreachable from the initial state.",
         "true");
-    parser.add_option<bool>(
+    feature.add_option<bool>(
         "prune_irrelevant_states",
         "If true, prune abstract states from which no goal state can be "
         "reached.",
         "true");
 
-    add_transition_system_size_limit_options_to_parser(parser);
+    add_transition_system_size_limit_options_to_feature(feature);
 
-    parser.add_option<double>(
+    feature.add_option<double>(
         "main_loop_max_time",
         "A limit in seconds on the runtime of the main loop of the algorithm. "
         "If the limit is exceeded, the algorithm terminates, potentially "
@@ -450,19 +455,21 @@ void add_merge_and_shrink_algorithm_options_to_parser(OptionParser &parser) {
         Bounds("0.0", "infinity"));
 }
 
-void add_transition_system_size_limit_options_to_parser(OptionParser &parser) {
-    parser.add_option<int>(
+void add_transition_system_size_limit_options_to_feature(
+    plugins::Feature& feature)
+{
+    feature.add_option<int>(
         "max_states",
         "maximum transition system size allowed at any time point.",
         "-1",
         Bounds("-1", "infinity"));
-    parser.add_option<int>(
+    feature.add_option<int>(
         "max_states_before_merge",
         "maximum transition system size allowed for two transition systems "
         "before being merged to form the synchronized product.",
         "-1",
         Bounds("-1", "infinity"));
-    parser.add_option<int>(
+    feature.add_option<int>(
         "threshold_before_merge",
         "If a transition system, before being merged, surpasses this soft "
         "transition system size limit, the shrink strategy is called to "
@@ -471,7 +478,10 @@ void add_transition_system_size_limit_options_to_parser(OptionParser &parser) {
         Bounds("-1", "infinity"));
 }
 
-void handle_shrink_limit_options_defaults(Options &opts) {
+void handle_shrink_limit_options_defaults(
+    plugins::Options& opts,
+    const utils::Context& context)
+{
     int max_states = opts.get<int>("max_states");
     int max_states_before_merge = opts.get<int>("max_states_before_merge");
     int threshold = opts.get<int>("threshold_before_merge");
@@ -494,37 +504,28 @@ void handle_shrink_limit_options_defaults(Options &opts) {
         }
     }
 
-    utils::LogProxy log = utils::get_log_from_options(opts);
     if (max_states_before_merge > max_states) {
-        if (log.is_warning()) {
-            log << "warning: max_states_before_merge exceeds max_states, "
-                << "correcting." << endl;
-        }
+        context.warn(
+            "warning: max_states_before_merge exceeds max_states, correcting.");
         max_states_before_merge = max_states;
     }
 
     if (max_states < 1) {
-        cerr << "error: transition system size must be at least 1" << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        context.error("Transition system size must be at least 1");
     }
 
     if (max_states_before_merge < 1) {
-        cerr << "error: transition system size before merge must be at least 1"
-             << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        context.error("Transition system size before merge must be at least 1");
     }
 
     if (threshold == -1) {
         threshold = max_states;
     }
     if (threshold < 1) {
-        cerr << "error: threshold must be at least 1" << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        context.error("Threshold must be at least 1");
     }
     if (threshold > max_states) {
-        if (log.is_warning()) {
-            log << "warning: threshold exceeds max_states, correcting" << endl;
-        }
+        context.warn("warning: threshold exceeds max_states, correcting");
         threshold = max_states;
     }
 

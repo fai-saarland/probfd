@@ -3,10 +3,10 @@
 
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace utils {
 class RandomNumberGenerator;
@@ -19,10 +19,10 @@ class RandomSuccessorSamplerFactory : public TaskSuccessorSamplerFactory {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
-    explicit RandomSuccessorSamplerFactory(const options::Options&);
+    explicit RandomSuccessorSamplerFactory(const plugins::Options&);
     ~RandomSuccessorSamplerFactory() override = default;
 
-    static void add_options_to_parser(options::OptionParser& parser);
+    static void add_options_to_feature(plugins::Feature& feature);
 
     std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
     create_sampler(engine_interfaces::StateSpace<State, OperatorID>*) override;

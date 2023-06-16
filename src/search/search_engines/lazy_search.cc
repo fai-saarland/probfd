@@ -1,9 +1,9 @@
 #include "search_engines/lazy_search.h"
 
 #include "open_list_factory.h"
-#include "option_parser.h"
 
 #include "algorithms/ordered_set.h"
+#include "plugins/options.h"
 #include "task_utils/successor_generator.h"
 #include "task_utils/task_properties.h"
 #include "utils/logging.h"
@@ -17,20 +17,21 @@
 using namespace std;
 
 namespace lazy_search {
-LazySearch::LazySearch(const Options &opts)
-    : SearchEngine(opts),
-      open_list(opts.get<shared_ptr<OpenListFactory>>("open")->
-                create_edge_open_list()),
-      reopen_closed_nodes(opts.get<bool>("reopen_closed")),
-      randomize_successors(opts.get<bool>("randomize_successors")),
-      preferred_successors_first(opts.get<bool>("preferred_successors_first")),
-      rng(utils::parse_rng_from_options(opts)),
-      current_state(state_registry.get_initial_state()),
-      current_predecessor_id(StateID::no_state),
-      current_operator_id(OperatorID::no_operator),
-      current_g(0),
-      current_real_g(0),
-      current_eval_context(current_state, 0, true, &statistics) {
+LazySearch::LazySearch(const plugins::Options& opts)
+    : SearchEngine(opts)
+    , open_list(opts.get<shared_ptr<OpenListFactory>>("open")
+                    ->create_edge_open_list())
+    , reopen_closed_nodes(opts.get<bool>("reopen_closed"))
+    , randomize_successors(opts.get<bool>("randomize_successors"))
+    , preferred_successors_first(opts.get<bool>("preferred_successors_first"))
+    , rng(utils::parse_rng_from_options(opts))
+    , current_state(state_registry.get_initial_state())
+    , current_predecessor_id(StateID::no_state)
+    , current_operator_id(OperatorID::no_operator)
+    , current_g(0)
+    , current_real_g(0)
+    , current_eval_context(current_state, 0, true, &statistics)
+{
     /*
       We initialize current_eval_context in such a way that the initial node
       counts as "preferred".

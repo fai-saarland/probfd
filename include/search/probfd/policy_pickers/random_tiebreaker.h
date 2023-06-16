@@ -5,10 +5,10 @@
 
 #include <memory>
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace utils {
 class RandomNumberGenerator;
@@ -21,12 +21,10 @@ class RandomTiebreaker : public TaskStablePolicyPicker<RandomTiebreaker> {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
-    explicit RandomTiebreaker(const options::Options&);
+    explicit RandomTiebreaker(const plugins::Options&);
     explicit RandomTiebreaker(
         bool stable_policy,
         std::shared_ptr<utils::RandomNumberGenerator> rng);
-
-    static void add_options_to_parser(options::OptionParser& parser);
 
     int pick_index(
         engine_interfaces::StateSpace<State, OperatorID>& state_space,

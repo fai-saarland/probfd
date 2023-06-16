@@ -5,10 +5,9 @@
 
 #include "probfd/value_type.h"
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+} // namespace plugins
 
 namespace probfd {
 
@@ -19,10 +18,8 @@ class VDiffSorterFactory : public TaskTransitionSorterFactory {
     const value_t favor_large_gaps_;
 
 public:
-    explicit VDiffSorterFactory(const options::Options&);
+    explicit VDiffSorterFactory(const plugins::Options&);
     ~VDiffSorterFactory() override = default;
-
-    static void add_options_to_parser(options::OptionParser&);
 
     std::shared_ptr<engine_interfaces::TransitionSorter<OperatorID>>
     create_transition_sorter(

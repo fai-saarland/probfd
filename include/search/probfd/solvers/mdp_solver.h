@@ -16,10 +16,10 @@
 #include <memory>
 #include <string>
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace probfd {
 class TaskStateSpace;
@@ -48,7 +48,7 @@ public:
     /**
      * @brief Constructs the MDP solver from the given options.
      */
-    explicit MDPSolver(const options::Options& opts);
+    explicit MDPSolver(const plugins::Options& opts);
     ~MDPSolver();
 
     /**
@@ -58,10 +58,9 @@ public:
      * @tparam Engine - The engine type to construct.
      */
     template <typename Engine, typename... Args>
-    engines::MDPEngineInterface<State, OperatorID>*
-    engine_factory(Args&&... args)
+    std::unique_ptr<TaskMDPEngineInterface> engine_factory(Args&&... args)
     {
-        return new Engine(
+        return std::make_unique<Engine>(
             state_space_.get(),
             cost_function_,
             std::forward<Args>(args)...);
@@ -70,7 +69,7 @@ public:
     /**
      * @brief Factory method a new instance of the encapsulated MDP engine.
      */
-    virtual engines::MDPEngineInterface<State, OperatorID>* create_engine() = 0;
+    virtual std::unique_ptr<TaskMDPEngineInterface> create_engine() = 0;
 
     /**
      * @brief Returns the name of the encapsulated MDP engine.
@@ -92,7 +91,7 @@ public:
      */
     virtual bool found_solution() const override { return solution_found; }
 
-    static void add_options_to_parser(options::OptionParser& parser);
+    static void add_options_to_feature(plugins::Feature& feature);
 };
 
 } // namespace solvers

@@ -14,10 +14,9 @@ class StateID;
 class State;
 class StateRegistry;
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+} // namespace plugins
 
 namespace probfd {
 namespace heuristics {
@@ -36,7 +35,7 @@ class SamplingFlawFinder : public FlawFindingStrategy {
     const int max_search_states;
 
 public:
-    explicit SamplingFlawFinder(options::Options& opts);
+    explicit SamplingFlawFinder(const plugins::Options& opts);
     explicit SamplingFlawFinder(int max_search_states);
 
     ~SamplingFlawFinder() override = default;

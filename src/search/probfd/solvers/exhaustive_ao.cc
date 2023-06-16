@@ -4,8 +4,7 @@
 
 #include "probfd/open_lists/task_open_list_factory.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
@@ -15,13 +14,15 @@ using namespace engine_interfaces;
 
 template <bool Bisimulation>
 class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
-public:
     template <typename T>
     using WrappedType =
         typename MDPHeuristicSearch<Bisimulation, false>::template WrappedType<
             T>;
 
-    explicit ExhaustiveAOSolver(const options::Options& opts)
+    WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
+
+public:
+    explicit ExhaustiveAOSolver(const plugins::Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
         , open_list_(this->wrap(
               opts.get<std::shared_ptr<TaskOpenListFactory>>("open_list")
@@ -29,36 +30,32 @@ public:
     {
     }
 
-    virtual std::string get_heuristic_search_name() const override
+    std::string get_heuristic_search_name() const override
     {
         return "exhaustive_ao";
     }
 
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         return this->template create_heuristic_search_engine<
             engines::exhaustive_ao::ExhaustiveAOSearch>(open_list_.get());
     }
-
-protected:
-    WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
 };
 
-struct ExhaustiveAOOptions {
-    void operator()(options::OptionParser& parser) const
+class ExhaustiveAOSolverFeature
+    : public MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver> {
+public:
+    ExhaustiveAOSolverFeature()
+        : MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver>("exhaustive_ao")
     {
-        MDPHeuristicSearchBase::add_options_to_parser(parser);
-        parser.add_option<std::shared_ptr<TaskOpenListFactory>>(
+        add_option<std::shared_ptr<TaskOpenListFactory>>(
             "open_list",
             "",
             "lifo_open_list_factory");
     }
 };
 
-static Plugin<SolverInterface> _plugin(
-    "exhaustive_ao",
-    parse_mdp_heuristic_search_solver<ExhaustiveAOSolver, ExhaustiveAOOptions>);
+static plugins::FeaturePlugin<ExhaustiveAOSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

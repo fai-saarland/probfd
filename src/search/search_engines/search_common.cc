@@ -1,7 +1,8 @@
 #include "search_engines/search_common.h"
 
 #include "open_list_factory.h"
-#include "option_parser_util.h"
+
+#include "plugins/options.h"
 
 #include "evaluators/g_evaluator.h"
 #include "evaluators/sum_evaluator.h"
@@ -24,7 +25,7 @@ shared_ptr<OpenListFactory> create_standard_scalar_open_list_factory(
     const shared_ptr<Evaluator>& eval,
     bool pref_only)
 {
-    Options options;
+    plugins::Options options;
     options.set("eval", eval);
     options.set("pref_only", pref_only);
     return make_shared<standard_scalar_open_list::BestFirstOpenListFactory>(
@@ -35,7 +36,7 @@ static shared_ptr<OpenListFactory> create_alternation_open_list_factory(
     const vector<shared_ptr<OpenListFactory>>& subfactories,
     int boost)
 {
-    Options options;
+    plugins::Options options;
     options.set("sublists", subfactories);
     options.set("boost", boost);
     return make_shared<alternation_open_list::AlternationOpenListFactory>(
@@ -68,7 +69,7 @@ static shared_ptr<OpenListFactory> create_alternation_open_list_factory_aux(
 }
 
 shared_ptr<OpenListFactory>
-create_greedy_open_list_factory(const Options& options)
+create_greedy_open_list_factory(const plugins::Options& options)
 {
     return create_alternation_open_list_factory_aux(
         options.get_list<shared_ptr<Evaluator>>("evals"),
@@ -87,7 +88,7 @@ create_greedy_open_list_factory(const Options& options)
   we use g instead of g + 0 * h.
 */
 static shared_ptr<Evaluator> create_wastar_eval(
-    const Options& options,
+    const plugins::Options& options,
     const shared_ptr<GEval>& g_eval,
     int w,
     const shared_ptr<Evaluator>& h_eval)
@@ -99,7 +100,7 @@ static shared_ptr<Evaluator> create_wastar_eval(
     if (w == 1) {
         w_h_eval = h_eval;
     } else {
-        Options weighted_evaluator_options;
+        plugins::Options weighted_evaluator_options;
         weighted_evaluator_options.set<utils::Verbosity>(
             "verbosity",
             options.get<utils::Verbosity>("verbosity"));
@@ -107,7 +108,7 @@ static shared_ptr<Evaluator> create_wastar_eval(
         weighted_evaluator_options.set<int>("weight", w);
         w_h_eval = make_shared<WeightedEval>(weighted_evaluator_options);
     }
-    Options sum_evaluator_options;
+    plugins::Options sum_evaluator_options;
     sum_evaluator_options.set<utils::Verbosity>(
         "verbosity",
         options.get<utils::Verbosity>("verbosity"));
@@ -118,13 +119,13 @@ static shared_ptr<Evaluator> create_wastar_eval(
 }
 
 shared_ptr<OpenListFactory>
-create_wastar_open_list_factory(const Options& options)
+create_wastar_open_list_factory(const plugins::Options& options)
 {
     vector<shared_ptr<Evaluator>> base_evals =
         options.get_list<shared_ptr<Evaluator>>("evals");
     int w = options.get<int>("w");
 
-    Options g_evaluator_options;
+    plugins::Options g_evaluator_options;
     g_evaluator_options.set<utils::Verbosity>(
         "verbosity",
         options.get<utils::Verbosity>("verbosity"));
@@ -141,15 +142,15 @@ create_wastar_open_list_factory(const Options& options)
 }
 
 pair<shared_ptr<OpenListFactory>, const shared_ptr<Evaluator>>
-create_astar_open_list_factory_and_f_eval(const Options& opts)
+create_astar_open_list_factory_and_f_eval(const plugins::Options& opts)
 {
-    Options g_evaluator_options;
+    plugins::Options g_evaluator_options;
     g_evaluator_options.set<utils::Verbosity>(
         "verbosity",
         opts.get<utils::Verbosity>("verbosity"));
     shared_ptr<GEval> g = make_shared<GEval>(g_evaluator_options);
     shared_ptr<Evaluator> h = opts.get<shared_ptr<Evaluator>>("eval");
-    Options f_evaluator_options;
+    plugins::Options f_evaluator_options;
     f_evaluator_options.set<utils::Verbosity>(
         "verbosity",
         opts.get<utils::Verbosity>("verbosity"));
@@ -159,7 +160,7 @@ create_astar_open_list_factory_and_f_eval(const Options& opts)
     shared_ptr<Evaluator> f = make_shared<SumEval>(f_evaluator_options);
     vector<shared_ptr<Evaluator>> evals = {f, h};
 
-    Options options;
+    plugins::Options options;
     options.set("evals", evals);
     options.set("pref_only", false);
     options.set("unsafe_pruning", false);

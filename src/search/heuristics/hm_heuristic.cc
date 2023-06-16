@@ -1,7 +1,6 @@
 #include "heuristics/hm_heuristic.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include "task_utils/task_properties.h"
 #include "utils/logging.h"
@@ -13,11 +12,12 @@
 using namespace std;
 
 namespace hm_heuristic {
-HMHeuristic::HMHeuristic(const Options &opts)
-    : Heuristic(opts),
-      m(opts.get<int>("m")),
-      has_cond_effects(task_properties::has_conditional_effects(task_proxy)),
-      goals(task_properties::get_fact_pairs(task_proxy.get_goals())) {
+HMHeuristic::HMHeuristic(const plugins::Options& opts)
+    : Heuristic(opts)
+    , m(opts.get<int>("m"))
+    , has_cond_effects(task_properties::has_conditional_effects(task_proxy))
+    , goals(task_properties::get_fact_pairs(task_proxy.get_goals()))
+{
     if (log.is_at_least_normal()) {
         log << "Using h^" << m << "." << endl;
         log << "The implementation of the h^m heuristic is preliminary." << endl
@@ -26,7 +26,6 @@ HMHeuristic::HMHeuristic(const Options &opts)
     }
     generate_all_tuples();
 }
-
 
 bool HMHeuristic::dead_ends_are_reliable() const {
     return !task_properties::has_axioms(task_proxy) && !has_cond_effects;
@@ -261,31 +260,37 @@ void HMHeuristic::dump_table() const {
     }
 }
 
+class HMHeuristicFeature
+    : public plugins::TypedFeature<Evaluator, HMHeuristic> {
+public:
+    HMHeuristicFeature()
+        : TypedFeature("hm")
+    {
+        document_title("h^m heuristic");
 
-static shared_ptr<Heuristic> _parse(OptionParser &parser) {
-    parser.document_synopsis("h^m heuristic", "");
-    parser.document_language_support("action costs", "supported");
-    parser.document_language_support("conditional effects", "ignored");
-    parser.document_language_support("axioms", "ignored");
-    parser.document_property("admissible",
-                             "yes for tasks without conditional "
-                             "effects or axioms");
-    parser.document_property("consistent",
-                             "yes for tasks without conditional "
-                             "effects or axioms");
-    parser.document_property("safe",
-                             "yes for tasks without conditional "
-                             "effects or axioms");
-    parser.document_property("preferred operators", "no");
+        add_option<int>(
+            "m",
+            "subset size",
+            "2",
+            plugins::Bounds("1", "infinity"));
+        Heuristic::add_options_to_feature(*this);
 
-    parser.add_option<int>("m", "subset size", "2", Bounds("1", "infinity"));
-    Heuristic::add_options_to_parser(parser);
-    Options opts = parser.parse();
-    if (parser.dry_run())
-        return nullptr;
-    else
-        return make_shared<HMHeuristic>(opts);
-}
+        document_language_support("action costs", "supported");
+        document_language_support("conditional effects", "ignored");
+        document_language_support("axioms", "ignored");
 
-static Plugin<Evaluator> _plugin("hm", _parse);
+        document_property(
+            "admissible",
+            "yes for tasks without conditional effects or axioms");
+        document_property(
+            "consistent",
+            "yes for tasks without conditional effects or axioms");
+        document_property(
+            "safe",
+            "yes for tasks without conditional effects or axioms");
+        document_property("preferred operators", "no");
+    }
+};
+
+static plugins::FeaturePlugin<HMHeuristicFeature> _plugin;
 }

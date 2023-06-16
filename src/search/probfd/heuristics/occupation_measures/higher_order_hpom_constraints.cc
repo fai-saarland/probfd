@@ -5,8 +5,7 @@
 
 #include "lp/lp_solver.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include "probfd/cost_models/maxprob_cost_model.h"
 #include "probfd/cost_models/ssp_cost_model.h"
@@ -148,7 +147,7 @@ int HigherOrderHPOMGenerator::PatternInfo::to_id(
     return id;
 }
 
-HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(const options::Options& opts)
+HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(const plugins::Options& opts)
     : HigherOrderHPOMGenerator(
           std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
               g_cost_model) != nullptr,

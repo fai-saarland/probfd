@@ -7,10 +7,10 @@
 
 #include "utils/logging.h"
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace probfd {
 
@@ -25,7 +25,7 @@ protected:
     mutable utils::LogProxy log;
 
 public:
-    explicit TaskDependentHeuristic(const options::Options& options);
+    explicit TaskDependentHeuristic(const plugins::Options& options);
 
     TaskDependentHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
@@ -33,7 +33,7 @@ public:
 
     virtual ~TaskDependentHeuristic() override = default;
 
-    static void add_options_to_parser(options::OptionParser& parser);
+    static void add_options_to_feature(plugins::Feature& feature);
 };
 
 } // namespace heuristics

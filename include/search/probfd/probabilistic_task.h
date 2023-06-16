@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-namespace options {
+namespace plugins {
 class Options;
 }
 

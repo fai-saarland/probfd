@@ -5,12 +5,12 @@
 
 #include "tasks/root_task.h"
 
-#include "option_parser.h"
-#include "plugin.h"
 #include "state_registry.h"
 
 #include "utils/collections.h"
 #include "utils/timer.h"
+
+#include "plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>
@@ -873,15 +873,25 @@ void set_root_task(std::shared_ptr<ProbabilisticTask> task)
     g_root_task = std::move(task);
 }
 
-static shared_ptr<ProbabilisticTask> _parse(OptionParser& parser)
-{
-    if (parser.dry_run())
-        return nullptr;
-    else
+namespace {
+class RootTaskFeature
+    : public plugins::TypedFeature<ProbabilisticTask, ProbabilisticTask> {
+public:
+    RootTaskFeature()
+        : TypedFeature("root_ppt")
+    {
+    }
+
+    shared_ptr<ProbabilisticTask>
+    create_component(const plugins::Options&, const utils::Context&)
+        const override
+    {
         return g_root_task;
-}
+    }
+};
 
-static Plugin<ProbabilisticTask> _plugin("root_ppt", _parse);
+static plugins::FeaturePlugin<RootTaskFeature> _plugin;
 
+} // namespace
 } // namespace tasks
 } // namespace probfd

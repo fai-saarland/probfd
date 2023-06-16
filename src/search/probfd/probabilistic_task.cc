@@ -1,12 +1,17 @@
 #include "probfd/probabilistic_task.h"
 
-#include "plugin.h"
+#include "plugins/plugin.h"
 
-#include <iostream>
+namespace probfd {
 
-using namespace std;
+static class ProbabilisticTaskCategoryPlugin
+    : public plugins::TypedCategoryPlugin<ProbabilisticTask> {
+public:
+    ProbabilisticTaskCategoryPlugin()
+        : TypedCategoryPlugin("ProbabilisticTask")
+    {
+        document_synopsis("Represents a probabilistic planning task");
+    }
+} _category_plugin_collection;
 
-static PluginTypePlugin<probfd::ProbabilisticTask> _type_plugin(
-    "ProbabilisticTask",
-    // TODO: Replace empty string by synopsis for the wiki page.
-    "");
+} // namespace probfd

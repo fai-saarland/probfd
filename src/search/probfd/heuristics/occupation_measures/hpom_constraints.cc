@@ -9,8 +9,7 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include "probfd/cost_models/maxprob_cost_model.h"
 

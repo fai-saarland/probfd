@@ -13,7 +13,7 @@ namespace lp {
 class LPConstraint;
 }
 
-namespace options {
+namespace plugins {
 class Options;
 }
 
@@ -45,7 +45,7 @@ class StateEquationConstraints : public ConstraintGenerator {
         double infinity);
 
 public:
-    explicit StateEquationConstraints(const options::Options& opts);
+    explicit StateEquationConstraints(const plugins::Options& opts);
     virtual void initialize_constraints(
         const std::shared_ptr<AbstractTask>& task,
         lp::LinearProgram& lp) override;

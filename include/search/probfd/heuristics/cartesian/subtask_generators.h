@@ -10,7 +10,7 @@ namespace landmarks {
 class LandmarkGraph;
 }
 
-namespace options {
+namespace plugins {
 class Options;
 }
 
@@ -48,7 +48,7 @@ class TaskDuplicator : public SubtaskGenerator {
     int num_copies;
 
 public:
-    explicit TaskDuplicator(const options::Options& opts);
+    explicit TaskDuplicator(const plugins::Options& opts);
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
@@ -63,7 +63,7 @@ class GoalDecomposition : public SubtaskGenerator {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
-    explicit GoalDecomposition(const options::Options& opts);
+    explicit GoalDecomposition(const plugins::Options& opts);
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
@@ -87,7 +87,7 @@ class LandmarkDecomposition : public SubtaskGenerator {
         const FactPair& fact) const;
 
 public:
-    explicit LandmarkDecomposition(const options::Options& opts);
+    explicit LandmarkDecomposition(const plugins::Options& opts);
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,

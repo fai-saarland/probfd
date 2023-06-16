@@ -4,8 +4,7 @@
 
 #include "probfd/engine_interfaces/evaluator.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
@@ -19,39 +18,42 @@ class AcyclicVISolver : public MDPSolver {
     std::shared_ptr<TaskEvaluator> prune_;
 
 public:
-    explicit AcyclicVISolver(const options::Options& opts)
+    explicit AcyclicVISolver(const plugins::Options& opts)
         : MDPSolver(opts)
-        , prune_(
-              opts.contains("eval")
-                  ? opts.get<std::shared_ptr<TaskEvaluator>>("eval")
-                  : nullptr)
+        , prune_(opts.get<std::shared_ptr<TaskEvaluator>>("eval", nullptr))
     {
     }
 
-    static void add_options_to_parser(options::OptionParser& parser)
-    {
-        parser.add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            options::OptionParser::NONE);
-        MDPSolver::add_options_to_parser(parser);
-    }
-
-    virtual std::string get_engine_name() const override
+    std::string get_engine_name() const override
     {
         return "acyclic_value_iteration";
     }
 
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         return engine_factory<AVIEngine>(prune_.get());
     }
 };
 
-static Plugin<SolverInterface> _plugin(
-    "acyclic_value_iteration",
-    options::parse<SolverInterface, AcyclicVISolver>);
+class AcyclicVISolverFeature
+    : public plugins::TypedFeature<SolverInterface, AcyclicVISolver> {
+public:
+    AcyclicVISolverFeature()
+        : plugins::TypedFeature<SolverInterface, AcyclicVISolver>(
+              "acyclic_value_iteration")
+    {
+        document_title("Acyclic Value Iteration.");
+
+        MDPSolver::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskEvaluator>>(
+            "eval",
+            "",
+            plugins::ArgumentInfo::NO_DEFAULT);
+    }
+};
+
+static plugins::FeaturePlugin<AcyclicVISolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

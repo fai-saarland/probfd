@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-namespace options {
+namespace plugins {
 class Options;
 }
 
@@ -30,7 +30,7 @@ protected:
     std::shared_ptr<ConstraintGenerator> constraint_generator_;
 
 public:
-    explicit OccupationMeasureHeuristic(const options::Options& opts);
+    explicit OccupationMeasureHeuristic(const plugins::Options& opts);
 
     OccupationMeasureHeuristic(
         std::shared_ptr<ProbabilisticTask> task,

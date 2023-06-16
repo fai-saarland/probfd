@@ -22,7 +22,7 @@ protected:
     EvaluationResult evaluate(const State& ancestor_state) const override;
 
 public:
-    explicit AdditiveCartesianHeuristic(const options::Options& opts);
+    explicit AdditiveCartesianHeuristic(const plugins::Options& opts);
 };
 
 } // namespace cartesian

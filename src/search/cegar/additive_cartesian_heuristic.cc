@@ -5,9 +5,7 @@
 #include "cegar/types.h"
 #include "cegar/utils.h"
 
-#include "option_parser.h"
-#include "plugin.h"
-
+#include "plugins/plugin.h"
 #include "utils/logging.h"
 #include "utils/markup.h"
 #include "utils/rng.h"
@@ -19,7 +17,7 @@ using namespace std;
 
 namespace cegar {
 static vector<CartesianHeuristicFunction>
-generate_heuristic_functions(const options::Options& opts, utils::LogProxy& log)
+generate_heuristic_functions(const plugins::Options& opts, utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing additive Cartesian heuristic..." << endl;
@@ -42,7 +40,7 @@ generate_heuristic_functions(const options::Options& opts, utils::LogProxy& log)
 }
 
 AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
-    const options::Options& opts)
+    const plugins::Options& opts)
     : Heuristic(opts)
     , heuristic_functions(generate_heuristic_functions(opts, log))
 {
@@ -62,12 +60,16 @@ int AdditiveCartesianHeuristic::compute_heuristic(const State& ancestor_state)
     return sum_h;
 }
 
-static shared_ptr<Heuristic> _parse(OptionParser& parser)
-{
-    parser.document_synopsis(
-        "Additive CEGAR heuristic",
-        "See the paper introducing Counterexample-guided Abstraction "
-        "Refinement (CEGAR) for classical planning:" +
+class AdditiveCartesianHeuristicFeature
+    : public plugins::TypedFeature<Evaluator, AdditiveCartesianHeuristic> {
+public:
+    AdditiveCartesianHeuristicFeature()
+        : TypedFeature("cegar")
+    {
+        document_title("Additive CEGAR heuristic");
+        document_synopsis(
+            "See the paper introducing Counterexample-guided Abstraction "
+            "Refinement (CEGAR) for classical planning:" +
             utils::format_conference_reference(
                 {"Jendrik Seipp", "Malte Helmert"},
                 "Counterexample-guided Cartesian Abstraction Refinement",
@@ -99,60 +101,73 @@ static shared_ptr<Heuristic> _parse(OptionParser& parser)
                 "62",
                 "535-577",
                 "2018"));
-    parser.document_language_support("action costs", "supported");
-    parser.document_language_support("conditional effects", "not supported");
-    parser.document_language_support("axioms", "not supported");
-    parser.document_property("admissible", "yes");
-    parser.document_property("consistent", "yes");
-    parser.document_property("safe", "yes");
-    parser.document_property("preferred operators", "no");
 
-    parser.add_list_option<shared_ptr<SubtaskGenerator>>(
-        "subtasks",
-        "subtask generators",
-        "[landmarks(),goals()]");
-    parser.add_option<int>(
-        "max_states",
-        "maximum sum of abstract states over all abstractions",
-        "infinity",
-        Bounds("1", "infinity"));
-    parser.add_option<int>(
-        "max_transitions",
-        "maximum sum of real transitions (excluding self-loops) over "
-        " all abstractions",
-        "1M",
-        Bounds("0", "infinity"));
-    parser.add_option<double>(
-        "max_time",
-        "maximum time in seconds for building abstractions",
-        "infinity",
-        Bounds("0.0", "infinity"));
-    vector<string> pick_strategies;
-    pick_strategies.push_back("RANDOM");
-    pick_strategies.push_back("MIN_UNWANTED");
-    pick_strategies.push_back("MAX_UNWANTED");
-    pick_strategies.push_back("MIN_REFINED");
-    pick_strategies.push_back("MAX_REFINED");
-    pick_strategies.push_back("MIN_HADD");
-    pick_strategies.push_back("MAX_HADD");
-    parser.add_enum_option<PickSplit>(
-        "pick",
-        pick_strategies,
-        "split-selection strategy",
-        "MAX_REFINED");
-    parser.add_option<bool>(
-        "use_general_costs",
-        "allow negative costs in cost partitioning",
-        "true");
-    Heuristic::add_options_to_parser(parser);
-    utils::add_rng_options(parser);
+        add_list_option<shared_ptr<SubtaskGenerator>>(
+            "subtasks",
+            "subtask generators",
+            "[landmarks(),goals()]");
+        add_option<int>(
+            "max_states",
+            "maximum sum of abstract states over all abstractions",
+            "infinity",
+            plugins::Bounds("1", "infinity"));
+        add_option<int>(
+            "max_transitions",
+            "maximum sum of real transitions (excluding self-loops) over "
+            " all abstractions",
+            "1M",
+            plugins::Bounds("0", "infinity"));
+        add_option<double>(
+            "max_time",
+            "maximum time in seconds for building abstractions",
+            "infinity",
+            plugins::Bounds("0.0", "infinity"));
+        add_option<PickSplit>(
+            "pick",
+            "how to choose on which variable to split the flaw state",
+            "max_refined");
+        add_option<bool>(
+            "use_general_costs",
+            "allow negative costs in cost partitioning",
+            "true");
+        Heuristic::add_options_to_feature(*this);
+        utils::add_rng_options(*this);
 
-    Options opts = parser.parse();
+        document_language_support("action costs", "supported");
+        document_language_support("conditional effects", "not supported");
+        document_language_support("axioms", "not supported");
 
-    if (parser.dry_run()) return nullptr;
+        document_property("admissible", "yes");
+        document_property("consistent", "yes");
+        document_property("safe", "yes");
+        document_property("preferred operators", "no");
+    }
+};
 
-    return make_shared<AdditiveCartesianHeuristic>(opts);
-}
+static plugins::FeaturePlugin<AdditiveCartesianHeuristicFeature> _plugin;
 
-static Plugin<Evaluator> _plugin("cegar", _parse);
+static plugins::TypedEnumPlugin<PickSplit> _enum_plugin(
+    {{"random", "select a random variable (among all eligible variables)"},
+     {"min_unwanted",
+      "select an eligible variable which has the least unwanted values "
+      "(number of values of v that land in the abstract state whose "
+      "h-value will probably be raised) in the flaw state"},
+     {"max_unwanted",
+      "select an eligible variable which has the most unwanted values "
+      "(number of values of v that land in the abstract state whose "
+      "h-value will probably be raised) in the flaw state"},
+     {"min_refined",
+      "select an eligible variable which is the least refined "
+      "(-1 * (remaining_values(v) / original_domain_size(v))) "
+      "in the flaw state"},
+     {"max_refined",
+      "select an eligible variable which is the most refined "
+      "(-1 * (remaining_values(v) / original_domain_size(v))) "
+      "in the flaw state"},
+     {"min_hadd",
+      "select an eligible variable with minimal h^add(s_0) value "
+      "over all facts that need to be removed from the flaw state"},
+     {"max_hadd",
+      "select an eligible variable with maximal h^add(s_0) value "
+      "over all facts that need to be removed from the flaw state"}});
 } // namespace cegar

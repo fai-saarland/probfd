@@ -2,13 +2,13 @@
 
 #include "potentials/potential_function.h"
 
-#include "option_parser.h"
+#include "plugins/options.h"
 
 using namespace std;
 
 namespace potentials {
 PotentialMaxHeuristic::PotentialMaxHeuristic(
-    const Options& opts,
+    const plugins::Options& opts,
     vector<unique_ptr<PotentialFunction>>&& functions)
     : Heuristic(opts)
     , functions(std::move(functions))

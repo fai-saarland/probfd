@@ -2,10 +2,9 @@
 
 #include "evaluation_context.h"
 #include "evaluator.h"
-#include "option_parser.h"
-#include "plugin.h"
 
 #include "algorithms/ordered_set.h"
+#include "plugins/plugin.h"
 #include "task_utils/successor_generator.h"
 #include "task_utils/task_properties.h"
 #include "tasks/root_task.h"
@@ -41,19 +40,21 @@ successor_generator::SuccessorGenerator &get_successor_generator(
     return successor_generator;
 }
 
-SearchEngine::SearchEngine(const Options &opts)
-    : status(IN_PROGRESS),
-      solution_found(false),
-      task(tasks::g_root_task),
-      task_proxy(*task),
-      log(utils::get_log_from_options(opts)),
-      state_registry(task_proxy),
-      successor_generator(get_successor_generator(task_proxy, log)),
-      search_space(state_registry, log),
-      statistics(log),
-      cost_type(opts.get<OperatorCost>("cost_type")),
-      is_unit_cost(task_properties::is_unit_cost(task_proxy)),
-      max_time(opts.get<double>("max_time")) {
+SearchEngine::SearchEngine(const plugins::Options& opts)
+    : description(opts.get_unparsed_config())
+    , status(IN_PROGRESS)
+    , solution_found(false)
+    , task(tasks::g_root_task)
+    , task_proxy(*task)
+    , log(utils::get_log_from_options(opts))
+    , state_registry(task_proxy)
+    , successor_generator(get_successor_generator(task_proxy, log))
+    , search_space(state_registry, log)
+    , statistics(log)
+    , cost_type(opts.get<OperatorCost>("cost_type"))
+    , is_unit_cost(task_properties::is_unit_cost(task_proxy))
+    , max_time(opts.get<double>("max_time"))
+{
     if (opts.get<int>("bound") < 0) {
         cerr << "error: negative cost bound " << opts.get<int>("bound") << endl;
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
@@ -119,56 +120,66 @@ int SearchEngine::get_adjusted_cost(const OperatorProxy &op) const {
     return get_adjusted_action_cost(op, cost_type, is_unit_cost);
 }
 
-/* TODO: merge this into add_options_to_parser when all search
+/* TODO: merge this into add_options_to_feature when all search
          engines support pruning.
 
-   Method doesn't belong here because it's only useful for certain derived classes.
+   Method doesn't belong here because it's only useful for certain derived
+   classes.
    TODO: Figure out where it belongs and move it there. */
-void SearchEngine::add_pruning_option(OptionParser &parser) {
-    parser.add_option<shared_ptr<PruningMethod>>(
+void SearchEngine::add_pruning_option(plugins::Feature& feature)
+{
+    feature.add_option<shared_ptr<PruningMethod>>(
         "pruning",
-        "Pruning methods can prune or reorder the set of applicable operators in "
-        "each state and thereby influence the number and order of successor states "
+        "Pruning methods can prune or reorder the set of applicable operators "
+        "in "
+        "each state and thereby influence the number and order of successor "
+        "states "
         "that are considered.",
         "null()");
 }
 
-void SearchEngine::add_options_to_parser(OptionParser &parser) {
-    ::add_cost_type_option_to_parser(parser);
-    parser.add_option<int>(
+void SearchEngine::add_options_to_feature(plugins::Feature& feature)
+{
+    ::add_cost_type_option_to_feature(feature);
+    feature.add_option<int>(
         "bound",
-        "exclusive depth bound on g-values. Cutoffs are always performed according to "
-        "the real cost, regardless of the cost_type parameter", "infinity");
-    parser.add_option<double>(
+        "exclusive depth bound on g-values. Cutoffs are always performed "
+        "according to "
+        "the real cost, regardless of the cost_type parameter",
+        "infinity");
+    feature.add_option<double>(
         "max_time",
         "maximum time in seconds the search is allowed to run for. The "
         "timeout is only checked after each complete search step "
         "(usually a node expansion), so the actual runtime can be arbitrarily "
-        "longer. Therefore, this parameter should not be used for time-limiting "
+        "longer. Therefore, this parameter should not be used for "
+        "time-limiting "
         "experiments. Timed-out searches are treated as failed searches, "
-        "just like incomplete search algorithms that exhaust their search space.",
+        "just like incomplete search algorithms that exhaust their search "
+        "space.",
         "infinity");
-    utils::add_log_options_to_parser(parser);
+    utils::add_log_options_to_feature(feature);
 }
 
 /* Method doesn't belong here because it's only useful for certain derived classes.
    TODO: Figure out where it belongs and move it there. */
-void SearchEngine::add_succ_order_options(OptionParser &parser) {
+void SearchEngine::add_succ_order_options(plugins::Feature& feature)
+{
     vector<string> options;
-    parser.add_option<bool>(
+    feature.add_option<bool>(
         "randomize_successors",
         "randomize the order in which successors are generated",
         "false");
-    parser.add_option<bool>(
+    feature.add_option<bool>(
         "preferred_successors_first",
         "consider preferred operators first",
         "false");
-    parser.document_note(
+    feature.document_note(
         "Successor ordering",
         "When using randomize_successors=true and "
         "preferred_successors_first=true, randomization happens before "
         "preferred operators are moved to the front.");
-    utils::add_rng_options(parser);
+    utils::add_rng_options(feature);
 }
 
 void print_initial_evaluator_values(
@@ -182,10 +193,16 @@ void print_initial_evaluator_values(
         );
 }
 
-static PluginTypePlugin<SearchEngine> _type_plugin(
-    "SearchEngine",
-    // TODO: Replace empty string by synopsis for the wiki page.
-    "");
+static class SearchEngineCategoryPlugin
+    : public plugins::TypedCategoryPlugin<SearchEngine> {
+public:
+    SearchEngineCategoryPlugin()
+        : TypedCategoryPlugin("SearchEngine")
+    {
+        // TODO: Replace add synopsis for the wiki page.
+        // document_synopsis("...");
+    }
+} _category_plugin;
 
 void collect_preferred_operators(
     EvaluationContext &eval_context,

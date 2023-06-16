@@ -9,15 +9,15 @@ namespace probfd {
 namespace successor_samplers {
 
 RandomSuccessorSamplerFactory::RandomSuccessorSamplerFactory(
-    const options::Options& opts)
+    const plugins::Options& opts)
     : rng(utils::parse_rng_from_options(opts))
 {
 }
 
-void RandomSuccessorSamplerFactory::add_options_to_parser(
-    options::OptionParser& parser)
+void RandomSuccessorSamplerFactory::add_options_to_feature(
+    plugins::Feature& feature)
 {
-    utils::add_rng_options(parser);
+    utils::add_rng_options(feature);
 }
 
 std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>

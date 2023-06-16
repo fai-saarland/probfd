@@ -6,10 +6,7 @@
 
 #include "task_proxy.h"
 
-#include "options/option_parser.h"
-#include "options/options.h"
-#include "options/plugin.h"
-
+#include "plugins/plugin.h"
 #include "utils/markup.h"
 #include "utils/rng.h"
 #include "utils/rng_options.h"
@@ -20,7 +17,7 @@
 using namespace std;
 
 namespace merge_and_shrink {
-MergeTreeFactoryLinear::MergeTreeFactoryLinear(const options::Options& options)
+MergeTreeFactoryLinear::MergeTreeFactoryLinear(const plugins::Options& options)
     : MergeTreeFactory(options)
     , variable_order_type(options.get<variable_order_finder::VariableOrderType>(
           "variable_order"))
@@ -121,31 +118,25 @@ void MergeTreeFactoryLinear::dump_tree_specific_options(
     }
 }
 
-void MergeTreeFactoryLinear::add_options_to_parser(
-    options::OptionParser& parser)
+void MergeTreeFactoryLinear::add_options_to_feature(plugins::Feature& feature)
 {
-    MergeTreeFactory::add_options_to_parser(parser);
-    vector<string> merge_strategies;
-    merge_strategies.push_back("CG_GOAL_LEVEL");
-    merge_strategies.push_back("CG_GOAL_RANDOM");
-    merge_strategies.push_back("GOAL_CG_LEVEL");
-    merge_strategies.push_back("RANDOM");
-    merge_strategies.push_back("LEVEL");
-    merge_strategies.push_back("REVERSE_LEVEL");
-    parser.add_enum_option<variable_order_finder::VariableOrderType>(
+    MergeTreeFactory::add_options_to_feature(feature);
+    feature.add_option<variable_order_finder::VariableOrderType>(
         "variable_order",
-        merge_strategies,
         "the order in which atomic transition systems are merged",
-        "CG_GOAL_LEVEL");
+        "cg_goal_level");
 }
 
-static shared_ptr<MergeTreeFactory> _parse(options::OptionParser& parser)
-{
-    MergeTreeFactoryLinear::add_options_to_parser(parser);
-    parser.document_synopsis(
-        "Linear merge trees",
-        "These merge trees implement several linear merge orders, which "
-        "are described in the paper:" +
+class MergeTreeFactoryLinearFeature
+    : public plugins::TypedFeature<MergeTreeFactory, MergeTreeFactoryLinear> {
+public:
+    MergeTreeFactoryLinearFeature()
+        : TypedFeature("linear")
+    {
+        document_title("Linear merge trees");
+        document_synopsis(
+            "These merge trees implement several linear merge orders, which "
+            "are described in the paper:" +
             utils::format_conference_reference(
                 {"Malte Helmert", "Patrik Haslum", "Joerg Hoffmann"},
                 "Flexible Abstraction Heuristics for Optimal Sequential "
@@ -156,12 +147,30 @@ static shared_ptr<MergeTreeFactory> _parse(options::OptionParser& parser)
                 "176-183",
                 "AAAI Press",
                 "2007"));
-    options::Options opts = parser.parse();
-    if (parser.dry_run())
-        return nullptr;
-    else
-        return make_shared<MergeTreeFactoryLinear>(opts);
-}
 
-static options::Plugin<MergeTreeFactory> _plugin("linear", _parse);
+        MergeTreeFactoryLinear::add_options_to_feature(*this);
+    }
+};
+
+static plugins::FeaturePlugin<MergeTreeFactoryLinearFeature> _plugin;
+
+static plugins::TypedEnumPlugin<variable_order_finder::VariableOrderType>
+    _enum_plugin(
+        {{"cg_goal_level",
+          "variables are prioritized first if they have an arc to a previously "
+          "added variable, second if their goal value is defined "
+          "and third according to their level in the causal graph"},
+         {"cg_goal_random",
+          "variables are prioritized first if they have an arc to a previously "
+          "added variable, second if their goal value is defined "
+          "and third randomly"},
+         {"goal_cg_level",
+          "variables are prioritized first if their goal value is defined, "
+          "second if they have an arc to a previously added variable, "
+          "and third according to their level in the causal graph"},
+         {"random", "variables are ordered randomly"},
+         {"level",
+          "variables are ordered according to their level in the causal graph"},
+         {"reverse_level",
+          "variables are ordered reverse to their level in the causal graph"}});
 } // namespace merge_and_shrink

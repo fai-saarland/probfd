@@ -38,7 +38,7 @@ UnaryOperator::UnaryOperator(
 }
 
 // construction and destruction
-RelaxationHeuristic::RelaxationHeuristic(const options::Options& opts)
+RelaxationHeuristic::RelaxationHeuristic(const plugins::Options& opts)
     : Heuristic(opts)
 {
     // Build propositions.

@@ -8,9 +8,6 @@
 
 #include "operator_id.h"
 
-#include "option_parser.h"
-#include "plugin.h"
-
 namespace probfd {
 namespace cost_models {
 

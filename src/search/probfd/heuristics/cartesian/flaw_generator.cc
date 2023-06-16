@@ -20,6 +20,8 @@
 #include "utils/countdown_timer.h"
 #include "utils/memory.h"
 
+#include "plugins/plugin.h"
+
 #include <cassert>
 
 using namespace std;
@@ -105,10 +107,17 @@ vector<value_t> compute_distances(
     return values;
 }
 
-static PluginTypePlugin<FlawGeneratorFactory> _type_plugin(
-    "FlawGeneratorFactory",
-    "Factory for flaw generation algorithms used in the cartesian abstraction "
-    "refinement loop");
+static class FlawGeneratorFactoryCategoryPlugin
+    : public plugins::TypedCategoryPlugin<FlawGeneratorFactory> {
+public:
+    FlawGeneratorFactoryCategoryPlugin()
+        : TypedCategoryPlugin("FlawGeneratorFactory")
+    {
+        document_synopsis("Factory for flaw generation algorithms used in the "
+                          "cartesian abstraction "
+                          "refinement loop");
+    }
+} _category_plugin;
 
 } // namespace cartesian
 } // namespace heuristics

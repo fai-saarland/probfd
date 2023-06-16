@@ -18,10 +18,9 @@ class StateID;
 class State;
 class StateRegistry;
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+} // namespace plugins
 
 namespace probfd {
 namespace heuristics {
@@ -40,7 +39,7 @@ class PUCSFlawFinder : public FlawFindingStrategy {
     const int max_search_states;
 
 public:
-    explicit PUCSFlawFinder(options::Options& opts);
+    explicit PUCSFlawFinder(const plugins::Options& opts);
     explicit PUCSFlawFinder(int max_search_states);
 
     ~PUCSFlawFinder() override = default;

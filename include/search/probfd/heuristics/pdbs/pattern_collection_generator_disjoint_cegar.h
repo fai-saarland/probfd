@@ -4,13 +4,14 @@
 #include "probfd/heuristics/pdbs/pattern_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "options/options.h"
+#include "plugins/options.h"
 
 #include "utils/rng.h"
 
-namespace options {
-class OptionParser;
-}
+namespace plugins {
+class Feature;
+class Options;
+} // namespace plugins
 
 namespace probfd {
 namespace heuristics {
@@ -35,7 +36,7 @@ class PatternCollectionGeneratorDisjointCegar
 
 public:
     explicit PatternCollectionGeneratorDisjointCegar(
-        const options::Options& opts);
+        const plugins::Options& opts);
 
     virtual ~PatternCollectionGeneratorDisjointCegar() = default;
 
@@ -43,8 +44,8 @@ public:
     generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 };
 
-void add_pattern_collection_generator_cegar_options_to_parser(
-    options::OptionParser& parser);
+void add_pattern_collection_generator_cegar_options_to_feature(
+    plugins::Feature& feature);
 
 } // namespace pdbs
 } // namespace heuristics

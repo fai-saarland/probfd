@@ -4,8 +4,7 @@
 
 #include "utils/logging.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 using namespace std;
 
@@ -16,7 +15,7 @@ namespace pdbs {
 using namespace cegar;
 
 PatternCollectionGeneratorMultipleCegar::
-    PatternCollectionGeneratorMultipleCegar(options::Options& opts)
+    PatternCollectionGeneratorMultipleCegar(const plugins::Options& opts)
     : PatternCollectionGeneratorMultiple(opts, "CEGAR")
     , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
     , flaw_strategy(
@@ -58,27 +57,26 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     return {std::move(state_spaces->front()), pdbs->front()};
 }
 
-static shared_ptr<PatternCollectionGenerator>
-_parse(options::OptionParser& parser)
-{
-    add_multiple_options_to_parser(parser);
-    add_cegar_wildcard_option_to_parser(parser);
+class PatternCollectionGeneratorMultipleCegarFeature
+    : public plugins::TypedFeature<
+          PatternCollectionGenerator,
+          PatternCollectionGeneratorMultipleCegar> {
+public:
+    PatternCollectionGeneratorMultipleCegarFeature()
+        : TypedFeature("ppdbs_multiple_cegar")
+    {
+        add_multiple_options_to_feature(*this);
+        add_cegar_wildcard_option_to_feature(*this);
 
-    parser.add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
-        "flaw_strategy",
-        "strategy used to find flaws in a policy",
-        "pucs_flaw_finder()");
-
-    Options opts = parser.parse();
-    if (parser.dry_run()) {
-        return nullptr;
+        add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
+            "flaw_strategy",
+            "strategy used to find flaws in a policy",
+            "pucs_flaw_finder()");
     }
+};
 
-    return make_shared<PatternCollectionGeneratorMultipleCegar>(opts);
-}
-
-static Plugin<PatternCollectionGenerator>
-    _plugin("ppdbs_multiple_cegar", _parse);
+static plugins::FeaturePlugin<PatternCollectionGeneratorMultipleCegarFeature>
+    _plugin;
 
 } // namespace pdbs
 } // namespace heuristics

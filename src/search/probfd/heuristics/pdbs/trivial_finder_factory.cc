@@ -1,8 +1,7 @@
 #include "probfd/heuristics/pdbs/trivial_finder_factory.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
@@ -14,14 +13,24 @@ TrivialFinderFactory::create_subcollection_finder(const ProbabilisticTaskProxy&)
     return std::make_unique<TrivialFinder>();
 }
 
-static std::shared_ptr<TrivialFinderFactory> _parse(OptionParser& parser)
-{
-    if (parser.dry_run()) return nullptr;
-    return std::make_shared<TrivialFinderFactory>();
-}
+class TrivialFinderFactoryFeature
+    : public plugins::
+          TypedFeature<SubCollectionFinderFactory, TrivialFinderFactory> {
+public:
+    TrivialFinderFactoryFeature()
+        : TypedFeature("finder_trivial_factory")
+    {
+    }
 
-static Plugin<SubCollectionFinderFactory>
-    _plugin("finder_trivial_factory", _parse);
+    std::shared_ptr<TrivialFinderFactory>
+    create_component(const plugins::Options&, const utils::Context&)
+        const override
+    {
+        return std::make_shared<TrivialFinderFactory>();
+    }
+};
+
+static plugins::FeaturePlugin<TrivialFinderFactoryFeature> _plugin;
 
 } // namespace pdbs
 } // namespace heuristics

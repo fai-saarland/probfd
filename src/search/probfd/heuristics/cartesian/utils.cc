@@ -8,14 +8,13 @@
 #include "utils/logging.h"
 #include "utils/memory.h"
 
-#include "option_parser.h"
+#include "plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>
 #include <unordered_map>
 
 using namespace std;
-using namespace options;
 
 namespace probfd {
 namespace heuristics {
@@ -24,7 +23,7 @@ namespace cartesian {
 unique_ptr<additive_heuristic::AdditiveHeuristic>
 create_additive_heuristic(const shared_ptr<ProbabilisticTask>& task)
 {
-    Options opts;
+    plugins::Options opts;
     opts.set<shared_ptr<AbstractTask>>(
         "transform",
         std::make_shared<tasks::AODDeterminizationTask>(task.get()));

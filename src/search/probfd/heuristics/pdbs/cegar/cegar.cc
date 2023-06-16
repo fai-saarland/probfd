@@ -15,8 +15,7 @@
 #include "utils/rng.h"
 #include "utils/rng_options.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <cassert>
 
@@ -640,9 +639,9 @@ CEGAR::generate_pdbs(
     return std::make_pair(std::move(state_spaces), std::move(pdbs));
 }
 
-void add_cegar_wildcard_option_to_parser(options::OptionParser& parser)
+void add_cegar_wildcard_option_to_feature(plugins::Feature& feature)
 {
-    parser.add_option<bool>(
+    feature.add_option<bool>(
         "use_wildcard_policies",
         "if true, compute wildcard plans which are sequences of sets of "
         "operators that induce the same transition; otherwise compute regular "

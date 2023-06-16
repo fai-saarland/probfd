@@ -12,8 +12,7 @@
 #include "utils/rng.h"
 #include "utils/rng_options.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <stack>
 
@@ -26,7 +25,7 @@ namespace pdbs {
 using namespace cegar;
 
 PatternCollectionGeneratorDisjointCegar::
-    PatternCollectionGeneratorDisjointCegar(const options::Options& opts)
+    PatternCollectionGeneratorDisjointCegar(const plugins::Options& opts)
     : PatternCollectionGenerator(opts)
     , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
     , single_goal(opts.get<bool>("single_goal"))
@@ -85,59 +84,60 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
     return pattern_collection_information;
 }
 
-void add_pattern_collection_generator_cegar_options_to_parser(
-    options::OptionParser& parser)
+void add_pattern_collection_generator_cegar_options_to_feature(
+    plugins::Feature& feature)
 {
-    parser.add_option<bool>(
+    feature.add_option<bool>(
         "single_goal",
         "whether to compute only a single abstraction from a random goal",
         "false");
-    parser.add_option<int>(
+    feature.add_option<int>(
         "max_pdb_size",
         "maximum allowed number of states in a pdb (not applied to initial "
         "goal variable pattern(s))",
         "1000000",
-        Bounds("1", "infinity"));
-    parser.add_option<int>(
+        plugins::Bounds("1", "infinity"));
+    feature.add_option<int>(
         "max_collection_size",
         "limit for the total number of PDB entries across all PDBs (not "
         "applied to initial goal variable pattern(s))",
         "infinity",
-        Bounds("1", "infinity"));
-    parser.add_option<double>(
+        plugins::Bounds("1", "infinity"));
+    feature.add_option<double>(
         "max_time",
         "maximum time in seconds for CEGAR pattern generation. "
         "This includes the creation of the initial PDB collection"
         " as well as the creation of the correlation matrix.",
         "infinity",
-        Bounds("0.0", "infinity"));
-    parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+        plugins::Bounds("0.0", "infinity"));
+    feature.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
         "The subcollection finder factory.",
         "finder_trivial_factory()");
-    parser.add_option<std::shared_ptr<FlawFindingStrategy>>(
+    feature.add_option<std::shared_ptr<FlawFindingStrategy>>(
         "flaw_strategy",
         "strategy used to find flaws in a policy",
         "pucs_flaw_finder()");
 
-    add_generator_options_to_parser(parser);
-    add_cegar_wildcard_option_to_parser(parser);
+    add_generator_options_to_feature(feature);
+    add_cegar_wildcard_option_to_feature(feature);
 }
 
-static shared_ptr<PatternCollectionGenerator>
-_parse(options::OptionParser& parser)
-{
-    add_pattern_collection_generator_cegar_options_to_parser(parser);
-    utils::add_rng_options(parser);
+class PatternCollectionGeneratorDisjointCEGARFeature
+    : public plugins::TypedFeature<
+          PatternCollectionGenerator,
+          PatternCollectionGeneratorDisjointCegar> {
+public:
+    PatternCollectionGeneratorDisjointCEGARFeature()
+        : TypedFeature("ppdbs_disjoint_cegar")
+    {
+        add_pattern_collection_generator_cegar_options_to_feature(*this);
+        utils::add_rng_options(*this);
+    }
+};
 
-    Options opts = parser.parse();
-    if (parser.dry_run()) return nullptr;
-
-    return make_shared<PatternCollectionGeneratorDisjointCegar>(opts);
-}
-
-static Plugin<PatternCollectionGenerator>
-    _plugin("ppdbs_disjoint_cegar", _parse);
+static plugins::FeaturePlugin<PatternCollectionGeneratorDisjointCEGARFeature>
+    _plugin;
 
 } // namespace pdbs
 } // namespace heuristics

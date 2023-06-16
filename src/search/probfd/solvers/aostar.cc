@@ -5,8 +5,7 @@
 #include "probfd/engine_interfaces/successor_sampler.h"
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
@@ -24,7 +23,7 @@ class AOStarSolver : public MDPHeuristicSearch<Bisimulation, false> {
     WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
 
 public:
-    explicit AOStarSolver(const options::Options& opts)
+    explicit AOStarSolver(const plugins::Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
         , successor_sampler_(this->template wrap<>(
               opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
@@ -33,39 +32,36 @@ public:
     {
     }
 
-    virtual std::string get_heuristic_search_name() const override
-    {
-        return "aostar";
-    }
+    std::string get_heuristic_search_name() const override { return "aostar"; }
 
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         return this->template create_heuristic_search_engine<
             engines::ao_search::ao_star::AOStar>(successor_sampler_.get());
     }
 
 protected:
-    virtual void print_additional_statistics() const override
+    void print_additional_statistics() const override
     {
         successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<Bisimulation, false>::print_additional_statistics();
     }
 };
 
-struct AOStarOptions {
-    void operator()(options::OptionParser& parser) const
+class AOStarSolverFeature
+    : public MDPHeuristicSearchSolverFeature<AOStarSolver> {
+public:
+    AOStarSolverFeature()
+        : MDPHeuristicSearchSolverFeature<AOStarSolver>("aostar")
     {
-        parser.add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+        add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
             "successor_sampler",
             "",
             "arbitrary_successor_selector_factory");
     }
 };
 
-static Plugin<SolverInterface> _plugin(
-    "aostar",
-    parse_mdp_heuristic_search_solver<AOStarSolver, AOStarOptions>);
+static plugins::FeaturePlugin<AOStarSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

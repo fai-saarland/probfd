@@ -12,10 +12,9 @@ class StateID;
 class State;
 class StateRegistry;
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+} // namespace plugins
 
 namespace probfd {
 namespace heuristics {
@@ -29,7 +28,7 @@ class BFSFlawFinder : public FlawFindingStrategy {
     const int max_search_states;
 
 public:
-    explicit BFSFlawFinder(options::Options& opts);
+    explicit BFSFlawFinder(const plugins::Options& opts);
     explicit BFSFlawFinder(int max_search_states);
 
     ~BFSFlawFinder() override = default;

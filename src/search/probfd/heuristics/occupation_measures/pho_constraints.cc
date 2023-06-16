@@ -7,7 +7,7 @@
 #include "utils/collections.h"
 
 #include "lp/lp_solver.h"
-#include "plugin.h"
+#include "plugins/options.h"
 
 #include <limits>
 #include <unordered_set>
@@ -18,7 +18,7 @@ namespace occupation_measures {
 
 using namespace pdbs;
 
-PHOGenerator::PHOGenerator(options::Options& opts)
+PHOGenerator::PHOGenerator(const plugins::Options& opts)
     : PHOGenerator(
           opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
 {

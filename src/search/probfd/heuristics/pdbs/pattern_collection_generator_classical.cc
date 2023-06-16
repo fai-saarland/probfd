@@ -4,15 +4,12 @@
 
 #include "probfd/cost_model.h"
 
-#include "options/options.h"
-
 #include "pdbs/pattern_database.h"
-
-#include "option_parser.h"
-#include "plugin.h"
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 #include "tasks/root_task.h"
+
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {
@@ -29,7 +26,7 @@ PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
 }
 
 PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
-    const options::Options& opts)
+    const plugins::Options& opts)
     : PatternCollectionGeneratorClassical(
           utils::get_log_from_options(opts),
           opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
@@ -57,36 +54,37 @@ PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
         finder);
 }
 
-static std::shared_ptr<PatternCollectionGeneratorClassical>
-_parse(OptionParser& parser)
-{
-    parser.document_synopsis(
-        "Classical Pattern Generation Adapter",
-        "Uses a classical pattern generation method on the determinization of "
-        "the input task. If classical PDBs are constructed by the generation "
-        "algorithm, they are used as a heuristic to compute the corresponding "
-        "probability-aware PDBs.");
+class PatternCollectionGeneratorClassicalFeature
+    : public plugins::TypedFeature<
+          PatternCollectionGenerator,
+          PatternCollectionGeneratorClassical> {
+public:
+    PatternCollectionGeneratorClassicalFeature()
+        : TypedFeature("classical_generator")
+    {
+        document_title("Classical Pattern Generation Adapter");
+        document_synopsis(
+            "Uses a classical pattern generation method on the determinization "
+            "of the input task. If classical PDBs are constructed by the "
+            "generation algorithm, they are used as a heuristic to compute the "
+            "corresponding probability-aware PDBs.");
 
-    parser.add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
-        "generator",
-        "The classical pattern collection generator.",
-        "systematic()");
+        add_generator_options_to_feature(*this);
 
-    parser.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
-        "subcollection_finder_factory",
-        "The subcollection finder factory.",
-        "finder_trivial_factory()");
+        add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
+            "generator",
+            "The classical pattern collection generator.",
+            "systematic()");
 
-    add_generator_options_to_parser(parser);
+        add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+            "subcollection_finder_factory",
+            "The subcollection finder factory.",
+            "finder_trivial_factory()");
+    }
+};
 
-    if (parser.dry_run()) return nullptr;
-
-    Options opts = parser.parse();
-    return std::make_shared<PatternCollectionGeneratorClassical>(opts);
-}
-
-static Plugin<PatternCollectionGenerator>
-    _plugin("classical_generator", _parse);
+static plugins::FeaturePlugin<PatternCollectionGeneratorClassicalFeature>
+    _plugin;
 
 } // namespace pdbs
 } // namespace heuristics

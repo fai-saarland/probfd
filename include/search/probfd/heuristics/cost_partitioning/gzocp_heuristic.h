@@ -11,10 +11,10 @@
 
 #include <memory>
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace utils {
 class RandomNumberGenerator;
@@ -25,14 +25,16 @@ namespace heuristics {
 namespace pdbs {
 
 class GZOCPHeuristic : public TaskDependentHeuristic {
+public:
     enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
 
+private:
     std::vector<ProbabilityAwarePatternDatabase> pdbs;
     OrderingStrategy ordering;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
-    explicit GZOCPHeuristic(const options::Options& opts);
+    explicit GZOCPHeuristic(const plugins::Options& opts);
 
     explicit GZOCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
@@ -51,7 +53,7 @@ protected:
     EvaluationResult evaluate(const State& state) const override;
 
 public:
-    static void add_options_to_parser(options::OptionParser& parser);
+    static void add_options_to_feature(plugins::Feature& feature);
 };
 
 } // namespace pdbs

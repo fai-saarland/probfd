@@ -2,9 +2,9 @@
 #define OPERATOR_COST_H
 
 class AxiomOrOperatorProxy;
-class OperatorProxy;
-namespace options {
-class OptionParser;
+
+namespace plugins {
+class Feature;
 }
 
 enum OperatorCost {NORMAL = 0, ONE = 1, PLUSONE = 2, MAX_OPERATOR_COST};
@@ -14,6 +14,6 @@ int get_adjusted_action_cost(
     OperatorCost cost_type,
     bool is_unit_cost);
 
-void add_cost_type_option_to_parser(options::OptionParser &parser);
+void add_cost_type_option_to_feature(plugins::Feature& feature);
 
 #endif

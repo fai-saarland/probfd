@@ -8,10 +8,10 @@
 #include <memory>
 #include <vector>
 
-namespace options {
+namespace plugins {
 class Options;
-class OptionParser;
-} // namespace options
+class Feature;
+} // namespace plugins
 
 namespace probfd {
 
@@ -50,7 +50,7 @@ class HigherOrderHPOMGenerator : public ConstraintGenerator {
     std::vector<PatternInfo> infos_;
 
 public:
-    explicit HigherOrderHPOMGenerator(const options::Options& opts);
+    explicit HigherOrderHPOMGenerator(const plugins::Options& opts);
 
     HigherOrderHPOMGenerator(bool maxprob, int projection_size);
 

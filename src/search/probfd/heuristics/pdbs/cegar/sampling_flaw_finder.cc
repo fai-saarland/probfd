@@ -15,8 +15,7 @@
 
 #include "state_registry.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <stack>
 
@@ -28,7 +27,7 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-SamplingFlawFinder::SamplingFlawFinder(options::Options& opts)
+SamplingFlawFinder::SamplingFlawFinder(const plugins::Options& opts)
     : SamplingFlawFinder(opts.get<int>("max_search_states"))
 {
 }
@@ -182,23 +181,22 @@ std::string SamplingFlawFinder::get_name()
     return "Sampling Flaw Finder";
 }
 
-static std::shared_ptr<FlawFindingStrategy>
-_parse(options::OptionParser& parser)
-{
-    parser.add_option<int>(
-        "max_search_states",
-        "Maximal number of generated states after which the flaw search is "
-        "aborted.",
-        "20M",
-        options::Bounds("0", "infinity"));
+class SamplingFlawFinderFeature
+    : public plugins::TypedFeature<FlawFindingStrategy, SamplingFlawFinder> {
+public:
+    SamplingFlawFinderFeature()
+        : TypedFeature("sampling_flaw_finder")
+    {
+        add_option<int>(
+            "max_search_states",
+            "Maximal number of generated states after which the flaw search is "
+            "aborted.",
+            "20M",
+            plugins::Bounds("0", "infinity"));
+    }
+};
 
-    Options opts = parser.parse();
-    if (parser.dry_run()) return nullptr;
-
-    return make_shared<SamplingFlawFinder>(opts);
-}
-
-static Plugin<FlawFindingStrategy> _plugin("sampling_flaw_finder", _parse);
+static plugins::FeaturePlugin<SamplingFlawFinderFeature> _plugin;
 
 } // namespace cegar
 } // namespace pdbs

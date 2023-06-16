@@ -18,8 +18,8 @@
 #include <unordered_set>
 #include <vector>
 
-namespace options {
-class OptionParser;
+namespace plugins {
+class Feature;
 }
 
 namespace utils {
@@ -233,7 +233,7 @@ private:
     void print_collection() const;
 };
 
-extern void add_cegar_wildcard_option_to_parser(options::OptionParser& parser);
+extern void add_cegar_wildcard_option_to_feature(plugins::Feature& feature);
 
 } // namespace cegar
 } // namespace pdbs

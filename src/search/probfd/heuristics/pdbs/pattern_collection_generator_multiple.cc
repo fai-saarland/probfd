@@ -13,8 +13,7 @@
 #include "utils/rng.h"
 #include "utils/rng_options.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <vector>
 
@@ -105,7 +104,7 @@ public:
 } // namespace
 
 PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
-    options::Options& opts,
+    const plugins::Options& opts,
     std::string implementation_name)
     : PatternCollectionGenerator(opts)
     , implementation_name(std::move(implementation_name))
@@ -345,10 +344,10 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     return result;
 }
 
-void add_multiple_algorithm_implementation_notes_to_parser(
-    options::OptionParser& parser)
+void add_multiple_algorithm_implementation_notes_to_feature(
+    plugins::Feature& feature)
 {
-    parser.document_note(
+    feature.document_note(
         "Short description of the 'multiple algorithm framework'",
         "This algorithm is a general framework for computing a pattern "
         "collection "
@@ -371,7 +370,7 @@ void add_multiple_algorithm_implementation_notes_to_parser(
         "enable said "
         "blacklisting when stagnating.",
         true);
-    parser.document_note(
+    feature.document_note(
         "Implementation note about the 'multiple algorithm framework'",
         "A difference compared to the original implementation used in the "
         "paper is that the original implementation of stagnation in "
@@ -383,47 +382,47 @@ void add_multiple_algorithm_implementation_notes_to_parser(
         true);
 }
 
-void add_multiple_options_to_parser(options::OptionParser& parser)
+void add_multiple_options_to_feature(plugins::Feature& feature)
 {
-    parser.add_option<int>(
+    feature.add_option<int>(
         "max_pdb_size",
         "maximum number of states for each pattern database, computed "
         "by compute_pattern (possibly ignored by singleton patterns consisting "
         "of a goal variable)",
         "1M",
-        Bounds("1", "infinity"));
-    parser.add_option<int>(
+        plugins::Bounds("1", "infinity"));
+    feature.add_option<int>(
         "max_collection_size",
         "maximum number of states in all pattern databases of the "
         "collection (possibly ignored, see max_pdb_size)",
         "10M",
-        Bounds("1", "infinity"));
-    parser.add_option<double>(
+        plugins::Bounds("1", "infinity"));
+    feature.add_option<double>(
         "pattern_generation_max_time",
         "maximum time in seconds for each call to the algorithm for "
         "computing a single pattern",
         "infinity",
-        Bounds("0.0", "infinity"));
-    parser.add_option<double>(
+        plugins::Bounds("0.0", "infinity"));
+    feature.add_option<double>(
         "total_max_time",
         "maximum time in seconds for this pattern collection generator. "
         "It will always execute at least one iteration, i.e., call the "
         "algorithm for computing a single pattern at least once.",
         "100.0",
-        Bounds("0.0", "infinity"));
-    parser.add_option<double>(
+        plugins::Bounds("0.0", "infinity"));
+    feature.add_option<double>(
         "stagnation_limit",
         "maximum time in seconds this pattern generator is allowed to run "
         "without generating a new pattern. It terminates prematurely if this "
         "limit is hit unless enable_blacklist_on_stagnation is enabled.",
         "20.0",
-        Bounds("1.0", "infinity"));
-    parser.add_option<double>(
+        plugins::Bounds("1.0", "infinity"));
+    feature.add_option<double>(
         "blacklist_trigger_percentage",
         "percentage of total_max_time after which blacklisting is enabled",
         "0.75",
-        Bounds("0.0", "1.0"));
-    parser.add_option<bool>(
+        plugins::Bounds("0.0", "1.0"));
+    feature.add_option<bool>(
         "enable_blacklist_on_stagnation",
         "if true, blacklisting is enabled when stagnation_limit is hit "
         "for the first time (unless it was already enabled due to "
@@ -432,7 +431,7 @@ void add_multiple_options_to_parser(options::OptionParser& parser)
         "generation is terminated already the first time stagnation_limit is "
         "hit.",
         "true");
-    parser.add_option<bool>(
+    feature.add_option<bool>(
         "use_saturated_costs",
         "if true, saturated cost partitioning is used to combine the generated "
         "patterns. In each iteration, costs are decreased by the minimum "
@@ -440,8 +439,8 @@ void add_multiple_options_to_parser(options::OptionParser& parser)
         "algorithm continues with the remaining costs. If false, the maximum "
         "PDB estimate is used.",
         "true");
-    add_generator_options_to_parser(parser);
-    utils::add_rng_options(parser);
+    add_generator_options_to_feature(feature);
+    utils::add_rng_options(feature);
 }
 
 } // namespace pdbs

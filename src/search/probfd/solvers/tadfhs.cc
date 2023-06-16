@@ -2,8 +2,7 @@
 #include "probfd/engines/trap_aware_dfhs.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
@@ -30,7 +29,7 @@ class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
     const bool reexpand_traps_;
 
 public:
-    explicit TrapAwareDFHSSolver(const options::Options& opts)
+    explicit TrapAwareDFHSSolver(const plugins::Options& opts)
         : MDPHeuristicSearch<false, true>(opts)
         , open_list_(
               opts.contains("open_list")
@@ -47,68 +46,11 @@ public:
     {
     }
 
-    static void add_options_to_parser(options::OptionParser& parser)
-    {
-        MDPHeuristicSearchBase::add_options_to_parser(parser);
-        parser.document_synopsis(
-            "Trap-aware depth-first heuristic search family. Supports all MDPs "
-            "(even non-SSPs) without FRET loop.",
-            "");
-        parser.add_option<bool>(
-            "fwup",
-            "Value updates on the way down of exploration.",
-            "true");
-        {
-            std::vector<std::string> bwups(
-                {"disabled", "ondemand", "single", "convergence"});
-            parser.add_enum_option<BacktrackingUpdateType>(
-                "bwup",
-                bwups,
-                "Value updates on the way back of exploration: disabled, "
-                "ondemand (if some value changed during forward updates), "
-                "single (single update), convergence (run VI)",
-                "ondemand");
-        }
-        parser.add_option<bool>(
-            "cutoff_tip",
-            "Do not follow tip states during policy exploration.",
-            "true");
-        parser.add_option<bool>(
-            "cutoff_inconsistent",
-            "Do not expand states whose values have changed during the forward "
-            "updates.",
-            "true");
-        parser.add_option<bool>(
-            "terminate_exploration",
-            "Stop the exploration of the policy as soon as a state expansion "
-            "was cutoff.",
-            "false");
-        parser.add_option<bool>(
-            "vi",
-            "Run VI to check for termination. If set to false falling back to "
-            "solved-labeling mechanism.",
-            "false");
+    std::string get_engine_name() const override { return "tadfhs"; }
 
-        parser.add_option<bool>(
-            "reexpand_traps",
-            "Immediately re-expand the collapsed trap state.",
-            "true");
-        parser.add_option<std::shared_ptr<TaskOpenList>>(
-            "open_list",
-            "Ordering in which successors are considered during policy "
-            "exploration.",
-            options::OptionParser::NONE);
-    }
+    std::string get_heuristic_search_name() const override { return ""; }
 
-    virtual std::string get_engine_name() const override { return "tadfhs"; }
-
-    virtual std::string get_heuristic_search_name() const override
-    {
-        return "";
-    }
-
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         return this->template create_quotient_heuristic_search_engine<Engine>(
             forward_updates_,
@@ -123,87 +65,184 @@ public:
     }
 
 protected:
-    virtual void print_additional_statistics() const override
+    void print_additional_statistics() const override
     {
         MDPHeuristicSearch<false, true>::print_additional_statistics();
     }
 };
 
-struct ILAOOptions {
-    void operator()(options::Options& opts) const
+class TrapAwareDFHSSolverFeature
+    : public plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+public:
+    TrapAwareDFHSSolverFeature()
+        : plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tadfhs")
     {
-        opts.set<std::string>("name", "ilao");
-        opts.set<bool>("labeling", false);
-        opts.set<bool>("fwup", false);
-        opts.set<BacktrackingUpdateType>(
+        document_title("Trap-aware depth-first heuristic search family.");
+        document_synopsis(
+            "Supports all MDPs (even non-SSPs) without FRET loop.");
+
+        MDPHeuristicSearchBase::add_options_to_feature(*this);
+
+        add_option<bool>(
+            "fwup",
+            "Value updates on the way down of exploration.",
+            "true");
+        add_option<BacktrackingUpdateType>(
             "bwup",
-            BacktrackingUpdateType::SINGLE);
-        opts.set<bool>("cutoff_inconsistent", false);
-        opts.set<bool>("partial_exploration", false);
-        opts.set<bool>("expand_tip", false);
-        opts.set<bool>("vi", true);
+            "Value updates on the way back of exploration",
+            "ondemand");
+        add_option<bool>(
+            "cutoff_tip",
+            "Do not follow tip states during policy exploration.",
+            "true");
+        add_option<bool>(
+            "cutoff_inconsistent",
+            "Do not expand states whose values have changed during the forward "
+            "updates.",
+            "true");
+        add_option<bool>(
+            "terminate_exploration",
+            "Stop the exploration of the policy as soon as a state expansion "
+            "was cutoff.",
+            "false");
+        add_option<bool>(
+            "vi",
+            "Run VI to check for termination. If set to false falling back to "
+            "solved-labeling mechanism.",
+            "false");
+        add_option<bool>(
+            "reexpand_traps",
+            "Immediately re-expand the collapsed trap state.",
+            "true");
+        add_option<std::shared_ptr<TaskOpenList>>(
+            "open_list",
+            "Ordering in which successors are considered during policy "
+            "exploration.",
+            plugins::ArgumentInfo::NO_DEFAULT);
     }
 };
 
-struct LILAOOptions {
-    void operator()(options::Options& opts) const
+class TrapAwareILAOSolverFeature
+    : public plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+public:
+    TrapAwareILAOSolverFeature()
+        : plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tailao")
     {
-        opts.set<std::string>("name", "lilao");
-        opts.set<bool>("labeling", true);
-        opts.set<bool>("fwup", false);
-        opts.set<BacktrackingUpdateType>(
+        document_title(
+            "iLAO* variant of trap-aware depth-first heuristic search.");
+
+        MDPHeuristicSearchBase::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskOpenList>>(
+            "open_list",
+            "Ordering in which successors are considered during policy "
+            "exploration.",
+            plugins::ArgumentInfo::NO_DEFAULT);
+    }
+
+    std::shared_ptr<TrapAwareDFHSSolver>
+    create_component(const plugins::Options& options, const utils::Context&)
+        const override
+    {
+        plugins::Options opts_copy(options);
+        opts_copy.set<std::string>("name", "ilao");
+        opts_copy.set<bool>("labeling", false);
+        opts_copy.set<bool>("fwup", false);
+        opts_copy.set<BacktrackingUpdateType>(
             "bwup",
             BacktrackingUpdateType::SINGLE);
-        opts.set<bool>("cutoff_inconsistent", false);
-        opts.set<bool>("partial_exploration", false);
-        opts.set<bool>("expand_tip", false);
-        opts.set<bool>("vi", false);
+        opts_copy.set<bool>("cutoff_inconsistent", false);
+        opts_copy.set<bool>("partial_exploration", false);
+        opts_copy.set<bool>("expand_tip", false);
+        opts_copy.set<bool>("vi", true);
+        return std::make_shared<TrapAwareDFHSSolver>(opts_copy);
     }
 };
 
-struct HDPOptions {
-    void operator()(options::Options& opts) const
+class TrapAwareLILAOSolverFeature
+    : public plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+public:
+    TrapAwareLILAOSolverFeature()
+        : plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver>("talilao")
     {
-        opts.set<std::string>("name", "hdp");
-        opts.set<bool>("labeling", true);
-        opts.set<bool>("fwup", true);
-        opts.set<BacktrackingUpdateType>(
+        document_title("Labelled iLAO* variant of trap-aware depth-first "
+                       "heuristic search.");
+
+        MDPHeuristicSearchBase::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskOpenList>>(
+            "open_list",
+            "Ordering in which successors are considered during policy "
+            "exploration.",
+            plugins::ArgumentInfo::NO_DEFAULT);
+    }
+
+    std::shared_ptr<TrapAwareDFHSSolver>
+    create_component(const plugins::Options& options, const utils::Context&)
+        const override
+    {
+        plugins::Options opts_copy(options);
+        opts_copy.set<std::string>("name", "lilao");
+        opts_copy.set<bool>("labeling", true);
+        opts_copy.set<bool>("fwup", false);
+        opts_copy.set<BacktrackingUpdateType>(
+            "bwup",
+            BacktrackingUpdateType::SINGLE);
+        opts_copy.set<bool>("cutoff_inconsistent", false);
+        opts_copy.set<bool>("partial_exploration", false);
+        opts_copy.set<bool>("expand_tip", false);
+        opts_copy.set<bool>("vi", false);
+        return std::make_shared<TrapAwareDFHSSolver>(opts_copy);
+    }
+};
+
+class TrapAwareHDPSolverFeature
+    : public plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+public:
+    TrapAwareHDPSolverFeature()
+        : plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tahdp")
+    {
+        document_title(
+            "HDP variant of trap-aware depth-first heuristic search.");
+
+        MDPHeuristicSearchBase::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskOpenList>>(
+            "open_list",
+            "Ordering in which successors are considered during policy "
+            "exploration.",
+            plugins::ArgumentInfo::NO_DEFAULT);
+    }
+
+    std::shared_ptr<TrapAwareDFHSSolver>
+    create_component(const plugins::Options& options, const utils::Context&)
+        const override
+    {
+        plugins::Options opts_copy(options);
+        opts_copy.set<std::string>("name", "hdp");
+        opts_copy.set<bool>("labeling", true);
+        opts_copy.set<bool>("fwup", true);
+        opts_copy.set<BacktrackingUpdateType>(
             "bwup",
             BacktrackingUpdateType::ON_DEMAND);
-        opts.set<bool>("cutoff_inconsistent", true);
-        opts.set<bool>("partial_exploration", false);
-        opts.set<bool>("vi", false);
-        opts.set<bool>("expand_tip", true);
+        opts_copy.set<bool>("cutoff_inconsistent", true);
+        opts_copy.set<bool>("partial_exploration", false);
+        opts_copy.set<bool>("vi", false);
+        opts_copy.set<bool>("expand_tip", true);
+        return std::make_shared<TrapAwareDFHSSolver>(opts_copy);
     }
 };
 
-template <typename OptionsPostprocessing>
-static std::shared_ptr<SolverInterface>
-parse_with_default(options::OptionParser& parser)
-{
-    TrapAwareDFHSSolver::add_options_to_parser(parser);
-    options::Options opts = parser.parse();
-    OptionsPostprocessing()(opts);
+static plugins::FeaturePlugin<TrapAwareDFHSSolverFeature> _plugin;
+static plugins::FeaturePlugin<TrapAwareILAOSolverFeature> _plugin_ilao;
+static plugins::FeaturePlugin<TrapAwareLILAOSolverFeature> _plugin_lilao;
+static plugins::FeaturePlugin<TrapAwareHDPSolverFeature> _plugin_hdp;
 
-    if (!parser.dry_run()) {
-        return std::make_shared<TrapAwareDFHSSolver>(opts);
-    }
-
-    return nullptr;
-}
-
-static Plugin<SolverInterface>
-    _plugin("tadfhs", options::parse<SolverInterface, TrapAwareDFHSSolver>);
-
-static Plugin<SolverInterface>
-    _plugin2("tailao", parse_with_default<ILAOOptions>);
-
-static Plugin<SolverInterface>
-    _plugin3("talilao", parse_with_default<LILAOOptions>);
-
-static Plugin<SolverInterface>
-    _plugin4("tahdp", parse_with_default<HDPOptions>);
-
+static plugins::TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
+    {{"disabled", "No value updates are made."},
+     {"ondemand", "update if some value changed during forward updates"},
+     {"single", "single update"},
+     {"convergence", "run value iteration until convergence"}});
 }
 } // namespace solvers
 } // namespace probfd

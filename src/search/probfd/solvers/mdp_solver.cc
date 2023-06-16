@@ -7,12 +7,12 @@
 
 #include "heuristic.h"
 #include "operator_cost.h"
-#include "option_parser.h"
-#include "plugin.h"
 
 #include "probfd/tasks/root_task.h"
 
 #include "utils/exceptions.h"
+
+#include "plugins/plugin.h"
 
 #include <iomanip>
 #include <vector>
@@ -20,7 +20,7 @@
 namespace probfd {
 namespace solvers {
 
-MDPSolver::MDPSolver(const options::Options& opts)
+MDPSolver::MDPSolver(const plugins::Options& opts)
     : task(tasks::g_root_task)
     , task_proxy(*task)
     , state_space_(
@@ -61,8 +61,7 @@ void MDPSolver::solve()
 
     try {
         utils::Timer total_timer;
-        std::unique_ptr<engines::MDPEngineInterface<State, OperatorID>> engine(
-            create_engine());
+        std::unique_ptr<TaskMDPEngineInterface> engine = create_engine();
 
         const State& initial_state = state_space_->get_initial_state();
 
@@ -95,16 +94,16 @@ void MDPSolver::solve()
     }
 }
 
-void MDPSolver::add_options_to_parser(options::OptionParser& parser)
+void MDPSolver::add_options_to_feature(plugins::Feature& feature)
 {
-    parser.add_option<bool>("cache", "", "false");
-    parser.add_list_option<std::shared_ptr<Evaluator>>(
+    feature.add_option<bool>("cache", "", "false");
+    feature.add_list_option<std::shared_ptr<Evaluator>>(
         "path_dependent_evaluators",
         "",
         "[]");
-    parser.add_option<value_t>("report_epsilon", "", "1e-4");
-    parser.add_option<bool>("report_enabled", "", "true");
-    parser.add_option<double>("max_time", "", "infinity");
+    feature.add_option<value_t>("report_epsilon", "", "1e-4");
+    feature.add_option<bool>("report_enabled", "", "true");
+    feature.add_option<double>("max_time", "", "infinity");
 }
 
 } // namespace solvers

@@ -2,36 +2,49 @@
 
 #include "probfd/cost_model.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 #include <memory>
 
 namespace probfd {
 namespace heuristics {
 
-static std::shared_ptr<TaskEvaluator> _parse(options::OptionParser& parser)
-{
-    parser.add_option<double>("value", "", options::OptionParser::NONE);
-    options::Options opts = parser.parse();
-    if (parser.dry_run()) {
-        return nullptr;
+class ConstantEvaluatorFeature
+    : public plugins::TypedFeature<TaskEvaluator, ConstantEvaluator<State>> {
+public:
+    ConstantEvaluatorFeature()
+        : TypedFeature("const_eval")
+    {
+        add_option<double>("value", "", plugins::ArgumentInfo::NO_DEFAULT);
     }
-    return std::make_shared<ConstantEvaluator<State>>(
-        double_to_value(opts.get<double>("value")));
-}
 
-static std::shared_ptr<TaskEvaluator>
-_parse_blind(options::OptionParser& parser)
-{
-    if (parser.dry_run()) {
-        return nullptr;
+    std::shared_ptr<ConstantEvaluator<State>>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return std::make_shared<ConstantEvaluator<State>>(
+            double_to_value(opts.get<double>("value")));
     }
-    return std::make_shared<BlindEvaluator<State>>();
-}
+};
 
-static Plugin<TaskEvaluator> _plugin("const_eval", _parse);
-static Plugin<TaskEvaluator> _plugin2("blind_eval", _parse_blind);
+class BlindEvaluatorFeature
+    : public plugins::TypedFeature<TaskEvaluator, BlindEvaluator<State>> {
+public:
+    BlindEvaluatorFeature()
+        : TypedFeature("blind_eval")
+    {
+    }
+
+    std::shared_ptr<BlindEvaluator<State>>
+    create_component(const plugins::Options&, const utils::Context&)
+        const override
+    {
+        return std::make_shared<BlindEvaluator<State>>();
+    }
+};
+
+static plugins::FeaturePlugin<ConstantEvaluatorFeature> _plugin;
+static plugins::FeaturePlugin<BlindEvaluatorFeature> _plugin2;
 
 } // namespace heuristics
 } // namespace probfd

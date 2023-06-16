@@ -16,10 +16,10 @@ namespace limited_pruning {
 class LimitedPruning;
 }
 
-namespace options {
-class OptionParser;
+namespace plugins {
 class Options;
-}
+class Feature;
+} // namespace plugins
 
 class PruningMethod {
     utils::Timer timer;
@@ -33,13 +33,13 @@ protected:
     long num_successors_before_pruning;
     long num_successors_after_pruning;
 public:
-    explicit PruningMethod(const options::Options &opts);
+    explicit PruningMethod(const plugins::Options& opts);
     virtual ~PruningMethod() = default;
     virtual void initialize(const std::shared_ptr<AbstractTask> &task);
     void prune_operators(const State &state, std::vector<OperatorID> &op_ids);
     virtual void print_statistics() const;
 };
 
-extern void add_pruning_options_to_parser(options::OptionParser &parser);
+extern void add_pruning_options_to_feature(plugins::Feature& feature);
 
 #endif

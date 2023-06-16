@@ -6,8 +6,7 @@
 
 #include "probfd/quotient_system.h"
 
-#include "option_parser.h"
-#include "plugin.h"
+#include "plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {
@@ -19,31 +18,18 @@ class IntervalIterationSolver : public MDPSolver {
     std::shared_ptr<TaskEvaluator> prune_;
 
 public:
-    explicit IntervalIterationSolver(const options::Options& opts)
+    explicit IntervalIterationSolver(const plugins::Options& opts)
         : MDPSolver(opts)
-        , prune_(
-              opts.contains("eval")
-                  ? opts.get<std::shared_ptr<TaskEvaluator>>("eval")
-                  : nullptr)
+        , prune_(opts.get<std::shared_ptr<TaskEvaluator>>("eval", nullptr))
     {
     }
 
-    static void add_options_to_parser(options::OptionParser& parser)
-    {
-        parser.add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            options::OptionParser::NONE);
-        MDPSolver::add_options_to_parser(parser);
-    }
-
-    virtual std::string get_engine_name() const override
+    std::string get_engine_name() const override
     {
         return "interval_iteration";
     }
 
-    virtual engines::MDPEngineInterface<State, OperatorID>*
-    create_engine() override
+    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
     {
         using IIEngine =
             engines::interval_iteration::IntervalIteration<State, OperatorID>;
@@ -51,9 +37,25 @@ public:
     }
 };
 
-static Plugin<SolverInterface> _plugin(
-    "interval_iteration",
-    options::parse<SolverInterface, IntervalIterationSolver>);
+class IntervalIterationSolverFeature
+    : public plugins::TypedFeature<SolverInterface, IntervalIterationSolver> {
+public:
+    IntervalIterationSolverFeature()
+        : plugins::TypedFeature<SolverInterface, IntervalIterationSolver>(
+              "interval_iteration")
+    {
+        document_title("Interval Iteration");
+
+        MDPSolver::add_options_to_feature(*this);
+
+        add_option<std::shared_ptr<TaskEvaluator>>(
+            "eval",
+            "",
+            plugins::ArgumentInfo::NO_DEFAULT);
+    }
+};
+
+static plugins::FeaturePlugin<IntervalIterationSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers
