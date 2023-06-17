@@ -25,12 +25,12 @@ class SSPCostModel : public CostModel {
 
 public:
     /// Default constructor.
-    explicit SSPCostModel();
+    SSPCostModel();
 
     /// Returns the interval [0, infinity]
-    virtual Interval optimal_value_bound() const override;
+    Interval optimal_value_bound() const override;
 
-    virtual TaskCostFunction* get_cost_function() override;
+    TaskCostFunction* get_cost_function() override;
 };
 
 } // namespace cost_models

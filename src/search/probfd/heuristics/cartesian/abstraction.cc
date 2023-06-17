@@ -6,6 +6,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/distribution.h"
+
 #include "downward/cegar/refinement_hierarchy.h"
 
 #include "downward/utils/countdown_timer.h"

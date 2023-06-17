@@ -3,12 +3,15 @@
 
 #include "probfd/engine_interfaces/state_space.h"
 
-#include "probfd/distribution.h"
 #include "probfd/types.h"
 
 #include <optional>
 
 namespace probfd {
+
+template <typename>
+class Distribution;
+
 namespace engine_interfaces {
 
 class StateProperties;

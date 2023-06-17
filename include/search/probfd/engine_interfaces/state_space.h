@@ -1,13 +1,15 @@
 #ifndef PROBFD_ENGINE_INTERFACES_STATE_SPACE_H
 #define PROBFD_ENGINE_INTERFACES_STATE_SPACE_H
 
-#include "probfd/distribution.h"
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
 
 #include <vector>
 
 namespace probfd {
+
+template <typename>
+class Distribution;
 
 /// This namespace contains interfaces related to search engines.
 namespace engine_interfaces {

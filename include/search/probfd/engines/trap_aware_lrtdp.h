@@ -11,8 +11,6 @@
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/timer.h"
 
-#include <iostream>
-
 namespace probfd {
 namespace engines {
 

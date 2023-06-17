@@ -1,11 +1,14 @@
 #ifndef PROBFD_ENGINE_INTERFACES_SUCCESSOR_SAMPLER_H
 #define PROBFD_ENGINE_INTERFACES_SUCCESSOR_SAMPLER_H
 
-#include "probfd/distribution.h"
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
 
 namespace probfd {
+    
+template <typename>
+class Distribution;
+
 namespace engine_interfaces {
 
 class StateProperties;

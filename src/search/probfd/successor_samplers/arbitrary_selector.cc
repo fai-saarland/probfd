@@ -1,5 +1,7 @@
 #include "probfd/successor_samplers/arbitrary_selector.h"
 
+#include "probfd/distribution.h"
+
 namespace probfd {
 namespace successor_samplers {
 

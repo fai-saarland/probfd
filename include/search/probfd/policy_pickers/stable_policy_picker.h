@@ -3,6 +3,8 @@
 
 #include "probfd/engine_interfaces/policy_picker.h"
 
+#include "probfd/distribution.h"
+
 namespace probfd {
 namespace policy_pickers {
 

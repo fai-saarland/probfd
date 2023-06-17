@@ -2,6 +2,8 @@
 
 #include "probfd/engine_interfaces/state_properties.h"
 
+#include "probfd/distribution.h"
+
 #include "downward/utils/rng.h"
 
 #include "downward/operator_id.h"

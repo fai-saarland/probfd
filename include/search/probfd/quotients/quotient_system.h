@@ -5,6 +5,8 @@
 
 #include "probfd/utils/iterators.h"
 
+#include "probfd/distribution.h"
+
 #include "downward/algorithms/segmented_vector.h"
 
 #include "downward/utils/collections.h"

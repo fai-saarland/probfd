@@ -3,6 +3,8 @@
 
 #include "probfd/engine_interfaces/transition_sorter.h"
 
+#include "probfd/value_type.h"
+
 namespace probfd {
 namespace transition_sorters {
 
@@ -10,7 +12,7 @@ class VDiffSorter : public TaskTransitionSorter {
     const value_t favor_large_gaps_;
 
 public:
-    explicit VDiffSorter(const value_t favor_large_gaps);
+    explicit VDiffSorter(value_t favor_large_gaps);
 
 protected:
     virtual void sort(

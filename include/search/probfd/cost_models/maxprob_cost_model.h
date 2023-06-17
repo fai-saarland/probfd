@@ -23,12 +23,12 @@ class MaxProbCostModel : public CostModel {
 
 public:
     /// Default constructor.
-    explicit MaxProbCostModel();
+    MaxProbCostModel();
 
     /// Returns the interval [0, 1]
-    virtual Interval optimal_value_bound() const override;
+    Interval optimal_value_bound() const override;
 
-    virtual TaskCostFunction* get_cost_function() override;
+    TaskCostFunction* get_cost_function() override;
 };
 
 } // namespace cost_models

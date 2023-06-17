@@ -3,6 +3,8 @@
 
 #include "probfd/engine_interfaces/successor_sampler.h"
 
+#include "probfd/distribution.h"
+
 #include "downward/operator_id.h"
 
 #include <memory>

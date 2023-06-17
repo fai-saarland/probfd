@@ -1,5 +1,7 @@
 #include "probfd/successor_samplers/most_likely_selector.h"
 
+#include "probfd/distribution.h"
+
 namespace probfd {
 namespace successor_samplers {
 

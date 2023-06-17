@@ -9,7 +9,6 @@
 
 #include <cassert>
 #include <deque>
-#include <iostream>
 #include <memory>
 #include <type_traits>
 

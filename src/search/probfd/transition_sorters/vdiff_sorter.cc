@@ -2,13 +2,15 @@
 
 #include "probfd/engine_interfaces/state_properties.h"
 
+#include "probfd/distribution.h"
+
 #include <algorithm>
 #include <ranges>
 
 namespace probfd {
 namespace transition_sorters {
 
-VDiffSorter::VDiffSorter(const value_t favor_large_gaps)
+VDiffSorter::VDiffSorter(value_t favor_large_gaps)
     : favor_large_gaps_(favor_large_gaps)
 {
 }

@@ -1,12 +1,15 @@
 #ifndef PROBFD_ENGINE_INTERFACES_TRANSITION_SORTER_H
 #define PROBFD_ENGINE_INTERFACES_TRANSITION_SORTER_H
 
-#include "probfd/distribution.h"
 #include "probfd/types.h"
 
 #include <vector>
 
 namespace probfd {
+
+template <typename>
+class Distribution;
+
 namespace engine_interfaces {
 
 class StateProperties;
