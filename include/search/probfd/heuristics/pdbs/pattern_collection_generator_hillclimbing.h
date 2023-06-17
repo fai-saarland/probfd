@@ -8,7 +8,7 @@
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
 
-#include "utils/logging.h"
+#include "downward/utils/logging.h"
 
 #include <cstdint>
 #include <cstdlib>

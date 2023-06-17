@@ -9,7 +9,7 @@
 
 #include "probfd/task_proxy.h"
 
-#include "operator_cost.h"
+#include "downward/operator_cost.h"
 
 #include <memory>
 

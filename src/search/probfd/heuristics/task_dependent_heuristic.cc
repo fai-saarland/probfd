@@ -1,6 +1,6 @@
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {

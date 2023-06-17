@@ -2,9 +2,9 @@
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 
-#include "utils/logging.h"
+#include "downward/utils/logging.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 using namespace std;
 

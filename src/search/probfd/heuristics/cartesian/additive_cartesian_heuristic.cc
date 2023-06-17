@@ -6,12 +6,12 @@
 #include "probfd/heuristics/cartesian/types.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
-#include "utils/logging.h"
-#include "utils/markup.h"
-#include "utils/rng.h"
-#include "utils/rng_options.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/markup.h"
+#include "downward/utils/rng.h"
+#include "downward/utils/rng_options.h"
 
 #include <cassert>
 

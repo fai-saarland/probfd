@@ -13,8 +13,8 @@
 
 #include "probfd/type_traits.h"
 
-#include "utils/countdown_timer.h"
-#include "utils/timer.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/timer.h"
 
 #include <cassert>
 #include <deque>

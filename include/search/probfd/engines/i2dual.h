@@ -19,13 +19,13 @@
 #include "probfd/progress_report.h"
 #include "probfd/value_type.h"
 
-#include "lp/lp_solver.h"
+#include "downward/lp/lp_solver.h"
 
-#include "utils/countdown_timer.h"
-#include "utils/timer.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/timer.h"
 
-#include "task_proxy.h"
-#include "task_utils/task_properties.h"
+#include "downward/task_proxy.h"
+#include "downward/task_utils/task_properties.h"
 
 #include <memory>
 #include <vector>

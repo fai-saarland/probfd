@@ -1,14 +1,9 @@
 #ifndef PROBFD_HEURISTICS_OCCUPATION_MEASURES_HROC_CONSTRAINTS_H
 #define PROBFD_HEURISTICS_OCCUPATION_MEASURES_HROC_CONSTRAINTS_H
 
-#include "constraint_generator.h"
+#include "probfd/heuristics/occupation_measures/constraint_generator.h"
 
 #include <vector>
-
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
 
 namespace probfd {
 namespace heuristics {

@@ -3,7 +3,7 @@
 
 #include "probfd/tasks/delegating_task.h"
 
-#include "operator_cost.h"
+#include "downward/operator_cost.h"
 
 namespace plugins {
 class Options;

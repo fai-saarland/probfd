@@ -2,13 +2,13 @@
 
 #include "probfd/cost_model.h"
 
-#include "utils/system.h"
+#include "downward/utils/system.h"
 
-#include "evaluation_context.h"
-#include "evaluation_result.h"
-#include "evaluator.h"
+#include "downward/evaluation_context.h"
+#include "downward/evaluation_result.h"
+#include "downward/evaluator.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {

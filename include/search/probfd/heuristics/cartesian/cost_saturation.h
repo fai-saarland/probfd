@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_COST_SATURATION_H
 #define PROBFD_HEURISTICS_CARTESIAN_COST_SATURATION_H
 
-#include "cegar/refinement_hierarchy.h"
+#include "downward/cegar/refinement_hierarchy.h"
 
 #include "probfd/heuristics/cartesian/split_selector.h"
 

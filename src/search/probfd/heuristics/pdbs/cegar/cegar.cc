@@ -8,14 +8,14 @@
 
 #include "probfd/task_proxy.h"
 
-#include "utils/collections.h"
-#include "utils/countdown_timer.h"
-#include "utils/logging.h"
-#include "utils/math.h"
-#include "utils/rng.h"
-#include "utils/rng_options.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/math.h"
+#include "downward/utils/rng.h"
+#include "downward/utils/rng_options.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <cassert>
 

@@ -3,16 +3,16 @@
 #include "probfd/caching_task_state_space.h"
 #include "probfd/cost_model.h"
 
-#include "utils/timer.h"
+#include "downward/utils/timer.h"
 
-#include "heuristic.h"
-#include "operator_cost.h"
+#include "downward/heuristic.h"
+#include "downward/operator_cost.h"
 
 #include "probfd/tasks/root_task.h"
 
-#include "utils/exceptions.h"
+#include "downward/utils/exceptions.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <iomanip>
 #include <vector>

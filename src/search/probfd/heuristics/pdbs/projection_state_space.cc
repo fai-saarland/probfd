@@ -5,7 +5,7 @@
 
 #include "probfd/task_proxy.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 namespace probfd {
 namespace heuristics {

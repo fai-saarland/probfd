@@ -4,9 +4,9 @@
 #include "probfd/heuristics/pdbs/pattern_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "plugins/options.h"
+#include "downward/plugins/options.h"
 
-#include "utils/rng.h"
+#include "downward/utils/rng.h"
 
 namespace plugins {
 class Feature;

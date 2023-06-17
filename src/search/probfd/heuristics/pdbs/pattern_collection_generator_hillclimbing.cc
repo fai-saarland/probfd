@@ -11,26 +11,26 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "algorithms/dynamic_bitset.h"
+#include "downward/algorithms/dynamic_bitset.h"
 
-#include "pdbs/utils.h"
+#include "downward/pdbs/utils.h"
 
-#include "utils/collections.h"
-#include "utils/countdown_timer.h"
-#include "utils/logging.h"
-#include "utils/markup.h"
-#include "utils/math.h"
-#include "utils/memory.h"
-#include "utils/rng.h"
-#include "utils/rng_options.h"
-#include "utils/timer.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/markup.h"
+#include "downward/utils/math.h"
+#include "downward/utils/memory.h"
+#include "downward/utils/rng.h"
+#include "downward/utils/rng_options.h"
+#include "downward/utils/timer.h"
 
-#include "task_utils/causal_graph.h"
-#include "task_utils/sampling.h"
+#include "downward/task_utils/causal_graph.h"
+#include "downward/task_utils/sampling.h"
 
-#include "state_registry.h"
+#include "downward/state_registry.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>

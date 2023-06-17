@@ -2,13 +2,13 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "operator_cost.h"
+#include "downward/operator_cost.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include "probfd/tasks/root_task.h"
 
-#include "utils/system.h"
+#include "downward/utils/system.h"
 
 #include <iostream>
 #include <memory>

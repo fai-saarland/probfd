@@ -10,8 +10,8 @@
 
 #include "probfd/task_proxy.h"
 
-#include "utils/logging.h"
-#include "utils/rng.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/rng.h"
 
 #include <ranges>
 #include <string>

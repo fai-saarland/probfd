@@ -2,9 +2,9 @@
 
 #include "probfd/engine_interfaces/state_properties.h"
 
-#include "utils/rng.h"
+#include "downward/utils/rng.h"
 
-#include "operator_id.h"
+#include "downward/operator_id.h"
 
 namespace probfd {
 namespace successor_samplers {

@@ -9,12 +9,12 @@
 
 #include "probfd/task_proxy.h"
 
-#include "lp/lp_solver.h"
+#include "downward/lp/lp_solver.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
-#include "utils/system.h"
-#include "utils/timer.h"
+#include "downward/utils/system.h"
+#include "downward/utils/timer.h"
 
 #include <algorithm>
 #include <cassert>

@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {

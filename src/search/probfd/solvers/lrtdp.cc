@@ -5,7 +5,7 @@
 #include "probfd/engine_interfaces/successor_sampler.h"
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {

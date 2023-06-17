@@ -10,7 +10,7 @@
 
 #include "probfd/utils/iterators.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 #include <deque>
 #include <iostream>

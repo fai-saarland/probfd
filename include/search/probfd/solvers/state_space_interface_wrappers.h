@@ -15,9 +15,9 @@
 
 #include "probfd/successor_samplers/random_successor_sampler.h"
 
-#include "utils/rng_options.h"
+#include "downward/utils/rng_options.h"
 
-#include "plugins/options.h"
+#include "downward/plugins/options.h"
 
 #include <memory>
 

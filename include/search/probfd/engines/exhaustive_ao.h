@@ -5,7 +5,7 @@
 
 #include "probfd/engine_interfaces/open_list.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 #include <iostream>
 #include <sstream>

@@ -3,15 +3,15 @@
 
 #include "probfd/probabilistic_task.h"
 
-#include "operator_id.h"
-#include "state_id.h"
-#include "task_id.h"
+#include "downward/operator_id.h"
+#include "downward/state_id.h"
+#include "downward/task_id.h"
 
-#include "../task_proxy.h"
+#include "downward/task_proxy.h"
 
-#include "utils/collections.h"
-#include "utils/hash.h"
-#include "utils/system.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/hash.h"
+#include "downward/utils/system.h"
 
 #include <cassert>
 #include <cstddef>

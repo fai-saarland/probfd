@@ -17,13 +17,13 @@
 
 #include "probfd/utils/guards.h"
 
-#include "cegar/abstract_state.h"
+#include "downward/cegar/abstract_state.h"
 
-#include "utils/countdown_timer.h"
-#include "utils/memory.h"
-#include "utils/timer.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/memory.h"
+#include "downward/utils/timer.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <cassert>
 

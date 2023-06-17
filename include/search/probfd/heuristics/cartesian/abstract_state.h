@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_ABSTRACT_STATE_H
 #define PROBFD_HEURISTICS_CARTESIAN_ABSTRACT_STATE_H
 
-#include "cegar/cartesian_set.h"
+#include "downward/cegar/cartesian_set.h"
 #include "probfd/heuristics/cartesian/types.h"
 
 #include <vector>

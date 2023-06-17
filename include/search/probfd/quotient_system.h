@@ -1,15 +1,15 @@
 #ifndef PROBFD_QUOTIENT_SYSTEM_H
 #define PROBFD_QUOTIENT_SYSTEM_H
 
-#include "algorithms/segmented_vector.h"
+#include "downward/algorithms/segmented_vector.h"
 
 #include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/task_state_space.h"
 
-#include "operator_id.h"
-#include "task_proxy.h"
+#include "downward/operator_id.h"
+#include "downward/task_proxy.h"
 
 #include <algorithm>
 #include <cassert>

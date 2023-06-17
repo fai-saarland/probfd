@@ -2,9 +2,9 @@
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 
-#include "utils/logging.h"
-#include "utils/memory.h"
-#include "utils/system.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/memory.h"
+#include "downward/utils/system.h"
 
 #include <algorithm>
 #include <iostream>

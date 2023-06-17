@@ -5,7 +5,7 @@
 
 #include "probfd/engine_interfaces/successor_sampler.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 #include <cassert>
 #include <deque>

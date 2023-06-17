@@ -2,9 +2,9 @@
 
 #include "probfd/solver_interface.h"
 
-#include "utils/logging.h"
-#include "utils/system.h"
-#include "utils/timer.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/system.h"
+#include "downward/utils/timer.h"
 
 #include "probfd/task_proxy.h"
 #include "probfd/task_utils/task_properties.h"

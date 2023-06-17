@@ -13,10 +13,10 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 #if defined(EXPENSIVE_STATISTICS)
-#include "utils/timer.h"
+#include "downward/utils/timer.h"
 #endif
 
 #include <fstream>

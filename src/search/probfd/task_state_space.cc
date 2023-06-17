@@ -1,11 +1,11 @@
 #include "probfd/task_state_space.h"
 #include "probfd/task_proxy.h"
 
-#include "algorithms/int_packer.h"
+#include "downward/algorithms/int_packer.h"
 
-#include "evaluator.h"
+#include "downward/evaluator.h"
 
-#include "tasks/root_task.h"
+#include "downward/tasks/root_task.h"
 
 #include <algorithm>
 #include <cstring>

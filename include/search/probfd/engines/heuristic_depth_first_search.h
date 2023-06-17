@@ -3,7 +3,7 @@
 
 #include "probfd/engines/heuristic_search_base.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 #include <cassert>
 #include <deque>

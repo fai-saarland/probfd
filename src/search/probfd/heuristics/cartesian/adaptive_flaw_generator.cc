@@ -2,9 +2,9 @@
 
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
 
-#include "utils/logging.h"
+#include "downward/utils/logging.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {

@@ -1,6 +1,6 @@
 #include "probfd/heuristics/cartesian/subtask_generators.h"
 
-#include "heuristics/additive_heuristic.h"
+#include "downward/heuristics/additive_heuristic.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -10,13 +10,13 @@
 
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "cegar/utils_landmarks.h"
+#include "downward/cegar/utils_landmarks.h"
 
-#include "utils/logging.h"
-#include "utils/rng.h"
-#include "utils/rng_options.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/rng.h"
+#include "downward/utils/rng_options.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>

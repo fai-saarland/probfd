@@ -6,7 +6,7 @@
 
 #include "probfd/value_type.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {

@@ -1,7 +1,7 @@
 #ifndef PROBFD_TYPES_H
 #define PROBFD_TYPES_H
 
-#include "operator_id.h"
+#include "downward/operator_id.h"
 
 #include <cstdint>
 #include <functional>

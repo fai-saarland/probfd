@@ -1,12 +1,12 @@
 #ifndef PROBFD_PROBABILISTIC_TASK_H
 #define PROBFD_PROBABILISTIC_TASK_H
 
-#include "operator_id.h"
+#include "downward/operator_id.h"
 
-#include "algorithms/subscriber.h"
-#include "utils/hash.h"
+#include "downward/algorithms/subscriber.h"
+#include "downward/utils/hash.h"
 
-#include "abstract_task.h"
+#include "downward/abstract_task.h"
 
 #include "probfd/value_type.h"
 

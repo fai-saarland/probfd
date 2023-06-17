@@ -8,9 +8,9 @@
 
 #include "probfd/progress_report.h"
 
-#include "lp/lp_solver.h"
+#include "downward/lp/lp_solver.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 #include <set>
 #include <vector>

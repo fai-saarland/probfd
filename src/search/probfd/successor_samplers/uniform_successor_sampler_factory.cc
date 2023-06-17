@@ -1,7 +1,7 @@
 #include "probfd/successor_samplers/uniform_successor_sampler_factory.h"
 #include "probfd/successor_samplers/uniform_successor_sampler.h"
 
-#include "utils/rng_options.h"
+#include "downward/utils/rng_options.h"
 
 namespace probfd {
 namespace successor_samplers {

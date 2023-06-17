@@ -6,10 +6,10 @@
 #include "probfd/engine_interfaces/successor_sampler.h"
 #include "probfd/engine_interfaces/transition_sorter.h"
 
-#include "operator_id.h"
-#include "task_proxy.h"
+#include "downward/operator_id.h"
+#include "downward/task_proxy.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 

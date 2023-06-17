@@ -12,11 +12,11 @@
 
 #include "probfd/tasks/root_task.h"
 
-#include "utils/timer.h"
+#include "downward/utils/timer.h"
 
-#include "state_registry.h"
+#include "downward/state_registry.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <iomanip>
 

@@ -3,12 +3,12 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
-#include "pdbs/dominance_pruning.h"
+#include "downward/pdbs/dominance_pruning.h"
 
-#include "utils/countdown_timer.h"
-#include "utils/logging.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/logging.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <cassert>
 #include <iomanip>

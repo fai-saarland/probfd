@@ -5,7 +5,7 @@
 
 #include "probfd/value_type.h"
 
-#include "utils/rng.h"
+#include "downward/utils/rng.h"
 
 #include <algorithm>
 #include <cassert>

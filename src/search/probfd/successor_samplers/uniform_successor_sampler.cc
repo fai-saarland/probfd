@@ -1,9 +1,9 @@
 #include "probfd/successor_samplers/uniform_successor_sampler.h"
 
-#include "utils/rng.h"
-#include "utils/rng_options.h"
+#include "downward/utils/rng.h"
+#include "downward/utils/rng_options.h"
 
-#include "operator_id.h"
+#include "downward/operator_id.h"
 
 #include <memory>
 

@@ -1,7 +1,7 @@
 #ifndef PROBFD_VALUE_UTILS_H
 #define PROBFD_VALUE_UTILS_H
 
-#include "value_type.h"
+#include "probfd/value_type.h"
 
 #include <ostream>
 #include <type_traits>

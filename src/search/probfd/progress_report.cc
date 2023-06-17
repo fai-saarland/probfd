@@ -1,7 +1,7 @@
 #include "probfd/progress_report.h"
 
-#include "utils/system.h"
-#include "utils/timer.h"
+#include "downward/utils/system.h"
+#include "downward/utils/timer.h"
 
 #include <cassert>
 

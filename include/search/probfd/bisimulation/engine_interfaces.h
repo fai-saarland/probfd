@@ -2,11 +2,9 @@
 #define PROBFD_BISIMULATION_ENGINE_INTERFACES_H
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
-#include "probfd/bisimulation/types.h"
 
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_space.h"
 
 #include "probfd/interval.h"
 
@@ -14,41 +12,38 @@ namespace probfd {
 namespace bisimulation {
 
 /// Type alias for cost functions for probabilistic bisimulation quotients.
-using QuotientCostFunction = engine_interfaces::
-    CostFunction<bisimulation::QuotientState, bisimulation::QuotientAction>;
+using QuotientCostFunction =
+    engine_interfaces::CostFunction<QuotientState, QuotientAction>;
 
 /// Type alias for evaluators for probabilistic bisimulation quotients.
-using QuotientEvaluator =
-    engine_interfaces::Evaluator<bisimulation::QuotientState>;
+using QuotientEvaluator = engine_interfaces::Evaluator<QuotientState>;
 
 struct DefaultQuotientEvaluator : public QuotientEvaluator {
-    bisimulation::BisimilarStateSpace* bisim_;
+    BisimilarStateSpace* bisim_;
     const Interval bound_;
     const value_t default_;
 
     explicit DefaultQuotientEvaluator(
-        bisimulation::BisimilarStateSpace* bisim,
+        BisimilarStateSpace* bisim,
         Interval bound,
         value_t default_value = 0);
 
-    EvaluationResult evaluate(bisimulation::QuotientState state) const override;
+    EvaluationResult evaluate(QuotientState state) const override;
 };
 
 struct DefaultQuotientCostFunction : public QuotientCostFunction {
-    bisimulation::BisimilarStateSpace* bisim_;
+    BisimilarStateSpace* bisim_;
     const Interval bound_;
     const value_t default_;
 
     explicit DefaultQuotientCostFunction(
-        bisimulation::BisimilarStateSpace* bisim,
+        BisimilarStateSpace* bisim,
         Interval bound,
         value_t default_value = 0);
 
-    TerminationInfo
-    get_termination_info(bisimulation::QuotientState state) override;
+    TerminationInfo get_termination_info(QuotientState state) override;
 
-    value_t get_action_cost(StateID state, bisimulation::QuotientAction action)
-        override;
+    value_t get_action_cost(StateID state, QuotientAction action) override;
 };
 
 } // namespace bisimulation

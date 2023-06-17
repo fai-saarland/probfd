@@ -4,7 +4,7 @@
 #include <ranges>
 #include <vector>
 
-#include "task_proxy.h"
+#include "downward/task_proxy.h"
 
 namespace probfd {
 namespace heuristics {

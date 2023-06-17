@@ -1,7 +1,7 @@
 #ifndef PROBFD_BISIMULATION_BISIMILAR_STATE_SPACE_H
 #define PROBFD_BISIMULATION_BISIMILAR_STATE_SPACE_H
 
-#include "algorithms/segmented_vector.h"
+#include "downward/algorithms/segmented_vector.h"
 
 #include "probfd/bisimulation/types.h"
 
@@ -16,8 +16,6 @@
 #include <memory>
 #include <unordered_set>
 #include <vector>
-
-class State;
 
 namespace merge_and_shrink {
 class Distances;
@@ -41,9 +39,7 @@ namespace bisimulation {
  * respect to this probabilistic bisimulation.
  */
 class BisimilarStateSpace
-    : public engine_interfaces::StateSpace<
-          bisimulation::QuotientState,
-          bisimulation::QuotientAction> {
+    : public engine_interfaces::StateSpace<QuotientState, QuotientAction> {
     struct CachedTransition {
         unsigned op;
         int* successors;
@@ -71,22 +67,22 @@ public:
     explicit BisimilarStateSpace(const ProbabilisticTask* task);
     ~BisimilarStateSpace();
 
-    StateID get_state_id(bisimulation::QuotientState state) override;
+    StateID get_state_id(QuotientState state) override;
 
-    bisimulation::QuotientState get_state(StateID state_id) override;
+    QuotientState get_state(StateID state_id) override;
 
     void generate_applicable_actions(
         StateID state,
-        std::vector<bisimulation::QuotientAction>& result) override;
+        std::vector<QuotientAction>& result) override;
 
     void generate_action_transitions(
         StateID state,
-        bisimulation::QuotientAction action,
+        QuotientAction action,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
         StateID state,
-        std::vector<bisimulation::QuotientAction>& aops,
+        std::vector<QuotientAction>& aops,
         std::vector<Distribution<StateID>>& result) override;
 
     /// Get the initial state of the probabilistic bisimulation quotient.

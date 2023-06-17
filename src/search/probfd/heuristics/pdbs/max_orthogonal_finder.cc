@@ -2,11 +2,11 @@
 
 #include "probfd/heuristics/pdbs/subcollections.h"
 
-#include "algorithms/max_cliques.h"
+#include "downward/algorithms/max_cliques.h"
 
-#include "pdbs/pattern_cliques.h"
+#include "downward/pdbs/pattern_cliques.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {

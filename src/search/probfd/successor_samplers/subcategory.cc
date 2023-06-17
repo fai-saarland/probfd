@@ -5,9 +5,9 @@
 #include "probfd/successor_samplers/vbiased_successor_sampler_factory.h"
 #include "probfd/successor_samplers/vdiff_successor_sampler_factory.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
-#include "utils/rng_options.h"
+#include "downward/utils/rng_options.h"
 
 namespace probfd {
 namespace successor_samplers {

@@ -1,6 +1,6 @@
 #include "probfd/utils/guards.h"
 
-#include "utils/timer.h"
+#include "downward/utils/timer.h"
 
 namespace probfd {
 

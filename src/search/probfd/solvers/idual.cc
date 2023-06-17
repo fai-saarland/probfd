@@ -6,9 +6,9 @@
 
 #include "probfd/progress_report.h"
 
-#include "lp/lp_solver.h"
+#include "downward/lp/lp_solver.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {

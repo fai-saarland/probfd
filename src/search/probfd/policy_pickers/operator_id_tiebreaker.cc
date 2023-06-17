@@ -1,8 +1,8 @@
 #include "probfd/policy_pickers/operator_id_tiebreaker.h"
 
-#include "operator_id.h"
+#include "downward/operator_id.h"
 
-#include "plugins/options.h"
+#include "downward/plugins/options.h"
 
 #include <limits>
 

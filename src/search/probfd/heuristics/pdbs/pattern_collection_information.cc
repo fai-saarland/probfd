@@ -3,11 +3,11 @@
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
 
-#include "pdbs/pattern_cliques.h"
-#include "pdbs/pattern_collection_information.h"
+#include "downward/pdbs/pattern_cliques.h"
+#include "downward/pdbs/pattern_collection_information.h"
 
-#include "utils/collections.h"
-#include "utils/timer.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/timer.h"
 
 #include <algorithm>
 #include <cassert>

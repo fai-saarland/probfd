@@ -12,13 +12,13 @@
 
 #include "probfd/value_type.h"
 
-#include "cegar/abstract_state.h"
-#include "cegar/cartesian_heuristic_function.h"
-#include "cegar/refinement_hierarchy.h"
+#include "downward/cegar/abstract_state.h"
+#include "downward/cegar/cartesian_heuristic_function.h"
+#include "downward/cegar/refinement_hierarchy.h"
 
-#include "utils/countdown_timer.h"
-#include "utils/logging.h"
-#include "utils/memory.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/memory.h"
 
 #include <algorithm>
 #include <cassert>

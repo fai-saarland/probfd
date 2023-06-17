@@ -15,12 +15,12 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "cegar/abstract_state.h"
+#include "downward/cegar/abstract_state.h"
 
-#include "utils/countdown_timer.h"
-#include "utils/memory.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/memory.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <cassert>
 

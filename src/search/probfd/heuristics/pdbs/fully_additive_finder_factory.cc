@@ -1,7 +1,7 @@
 #include "probfd/heuristics/pdbs/fully_additive_finder.h"
 #include "probfd/heuristics/pdbs/fully_additive_finder_factory.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {

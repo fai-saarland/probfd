@@ -12,7 +12,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "utils/collections.h"
+#include "downward/utils/collections.h"
 
 #include <iterator>
 #include <limits>

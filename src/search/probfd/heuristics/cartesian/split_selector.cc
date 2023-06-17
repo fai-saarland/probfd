@@ -3,10 +3,10 @@
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "heuristics/additive_heuristic.h"
+#include "downward/heuristics/additive_heuristic.h"
 
-#include "utils/logging.h"
-#include "utils/rng.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/rng.h"
 
 #include <cassert>
 #include <iostream>

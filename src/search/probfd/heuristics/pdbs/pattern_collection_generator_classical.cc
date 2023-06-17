@@ -4,12 +4,12 @@
 
 #include "probfd/cost_model.h"
 
-#include "pdbs/pattern_database.h"
+#include "downward/pdbs/pattern_database.h"
 
+#include "downward/tasks/root_task.h"
 #include "probfd/tasks/all_outcomes_determinization.h"
-#include "tasks/root_task.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {

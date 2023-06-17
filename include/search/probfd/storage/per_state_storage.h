@@ -5,7 +5,7 @@
 
 #include "probfd/types.h"
 
-#include "algorithms/segmented_vector.h"
+#include "downward/algorithms/segmented_vector.h"
 
 #include <type_traits>
 #include <unordered_map>

@@ -6,9 +6,9 @@
 #include "probfd/heuristics/occupation_measures/occupation_measure_heuristic.h"
 #include "probfd/heuristics/occupation_measures/pho_constraints.h"
 
-#include "utils/markup.h"
+#include "downward/utils/markup.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <memory>
 

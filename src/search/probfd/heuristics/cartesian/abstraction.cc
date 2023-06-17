@@ -6,12 +6,12 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "cegar/refinement_hierarchy.h"
+#include "downward/cegar/refinement_hierarchy.h"
 
-#include "utils/countdown_timer.h"
-#include "utils/logging.h"
-#include "utils/math.h"
-#include "utils/memory.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/math.h"
+#include "downward/utils/memory.h"
 
 #include <algorithm>
 #include <cassert>

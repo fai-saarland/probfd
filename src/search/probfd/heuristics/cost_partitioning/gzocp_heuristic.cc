@@ -6,11 +6,11 @@
 
 #include "probfd/value_type.h"
 
-#include "utils/collections.h"
+#include "downward/utils/collections.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
-#include "utils/rng_options.h"
+#include "downward/utils/rng_options.h"
 
 namespace probfd {
 namespace heuristics {

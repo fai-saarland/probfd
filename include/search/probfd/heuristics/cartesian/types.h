@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_TYPES_H
 #define PROBFD_HEURISTICS_CARTESIAN_TYPES_H
 
-#include "cegar/types.h"
+#include "downward/cegar/types.h"
 
 #include <limits>
 #include <memory>

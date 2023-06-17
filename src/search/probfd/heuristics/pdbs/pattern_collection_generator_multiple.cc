@@ -5,15 +5,15 @@
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
 
-#include "task_utils/task_properties.h"
+#include "downward/task_utils/task_properties.h"
 
-#include "utils/countdown_timer.h"
-#include "utils/logging.h"
-#include "utils/markup.h"
-#include "utils/rng.h"
-#include "utils/rng_options.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/markup.h"
+#include "downward/utils/rng.h"
+#include "downward/utils/rng_options.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <vector>
 

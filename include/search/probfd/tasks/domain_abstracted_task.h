@@ -3,7 +3,7 @@
 
 #include "probfd/tasks/delegating_task.h"
 
-#include "utils/collections.h"
+#include "downward/utils/collections.h"
 
 #include <string>
 #include <utility>

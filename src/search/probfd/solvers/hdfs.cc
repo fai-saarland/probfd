@@ -2,9 +2,9 @@
 
 #include "probfd/engines/heuristic_depth_first_search.h"
 
-#include "utils/system.h"
+#include "downward/utils/system.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <sstream>
 

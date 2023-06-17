@@ -4,7 +4,7 @@
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
 
-#include "utils/hash.h"
+#include "downward/utils/hash.h"
 
 #include <ostream>
 

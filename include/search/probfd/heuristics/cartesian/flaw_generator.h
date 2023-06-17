@@ -10,7 +10,7 @@
 #include "probfd/progress_report.h"
 #include "probfd/value_type.h"
 
-#include "algorithms/priority_queues.h"
+#include "downward/algorithms/priority_queues.h"
 
 #include <deque>
 #include <memory>

@@ -3,7 +3,7 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
-#include "plugins/options.h"
+#include "downward/plugins/options.h"
 
 namespace probfd {
 namespace policy_pickers {

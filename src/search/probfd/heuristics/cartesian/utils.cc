@@ -3,12 +3,12 @@
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 
-#include "heuristics/additive_heuristic.h"
+#include "downward/heuristics/additive_heuristic.h"
 
-#include "utils/logging.h"
-#include "utils/memory.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/memory.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>

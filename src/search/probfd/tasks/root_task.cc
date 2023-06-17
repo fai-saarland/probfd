@@ -3,14 +3,14 @@
 
 #include "probfd/value_type.h"
 
-#include "tasks/root_task.h"
+#include "downward/tasks/root_task.h"
 
-#include "state_registry.h"
+#include "downward/state_registry.h"
 
-#include "utils/collections.h"
-#include "utils/timer.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/timer.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>

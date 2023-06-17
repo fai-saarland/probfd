@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/subcollections.h"
 
-#include "pdbs/pattern_cliques.h"
+#include "downward/pdbs/pattern_cliques.h"
 
 #include "probfd/task_proxy.h"
 #include "probfd/value_type.h"

@@ -10,15 +10,15 @@
 
 #include "probfd/policy.h"
 
-#include "cegar/cartesian_set.h"
-#include "cegar/utils.h"
+#include "downward/cegar/cartesian_set.h"
+#include "downward/cegar/utils.h"
 
-#include "utils/logging.h"
-#include "utils/math.h"
-#include "utils/memory.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/math.h"
+#include "downward/utils/memory.h"
 
+#include "downward/state_registry.h"
 #include "probfd/storage/per_state_storage.h"
-#include "state_registry.h"
 
 #include <algorithm>
 #include <cassert>

@@ -11,7 +11,7 @@
 #include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
 
-#include "state_registry.h"
+#include "downward/state_registry.h"
 
 #include <memory>
 #include <string>

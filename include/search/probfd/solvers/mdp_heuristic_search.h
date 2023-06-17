@@ -16,7 +16,7 @@
 #include "probfd/solvers/bisimulation_heuristic_search_engine.h"
 #include "probfd/solvers/state_space_interface_wrappers.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <memory>
 

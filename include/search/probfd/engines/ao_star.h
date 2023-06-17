@@ -4,7 +4,7 @@
 #include "probfd/engine_interfaces/successor_sampler.h"
 #include "probfd/engines/ao_search.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 #include <iostream>
 #include <queue>

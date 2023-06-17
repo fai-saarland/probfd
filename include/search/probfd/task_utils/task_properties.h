@@ -5,9 +5,9 @@
 
 #include "probfd/value_type.h"
 
-#include "task_utils/task_properties.h"
+#include "downward/task_utils/task_properties.h"
 
-#include "operator_cost.h"
+#include "downward/operator_cost.h"
 
 namespace probfd {
 namespace task_properties {

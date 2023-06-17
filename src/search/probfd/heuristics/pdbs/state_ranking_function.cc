@@ -4,8 +4,8 @@
 
 #include "probfd/task_proxy.h"
 
-#include "utils/collections.h"
-#include "utils/exceptions.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/exceptions.h"
 
 #include <algorithm>
 #include <cassert>

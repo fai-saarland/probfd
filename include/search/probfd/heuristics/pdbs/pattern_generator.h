@@ -6,10 +6,10 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "utils/logging.h"
-#include "utils/printable.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/printable.h"
 
-#include "operator_cost.h"
+#include "downward/operator_cost.h"
 
 #include <memory>
 

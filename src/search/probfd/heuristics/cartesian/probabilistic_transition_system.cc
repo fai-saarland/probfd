@@ -4,7 +4,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "utils/logging.h"
+#include "downward/utils/logging.h"
 
 #include <algorithm>
 #include <cassert>

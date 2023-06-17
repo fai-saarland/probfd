@@ -1,6 +1,6 @@
 #include "probfd/cost_models/ssp_cost_model.h"
 
-#include "task_utils/task_properties.h"
+#include "downward/task_utils/task_properties.h"
 
 #include "probfd/tasks/root_task.h"
 

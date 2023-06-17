@@ -4,10 +4,10 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "utils/collections.h"
+#include "downward/utils/collections.h"
 
-#include "lp/lp_solver.h"
-#include "plugins/options.h"
+#include "downward/lp/lp_solver.h"
+#include "downward/plugins/options.h"
 
 #include <limits>
 #include <unordered_set>

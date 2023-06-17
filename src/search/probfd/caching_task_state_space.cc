@@ -1,10 +1,10 @@
 #include "probfd/caching_task_state_space.h"
 
-#include "algorithms/int_packer.h"
+#include "downward/algorithms/int_packer.h"
 
-#include "evaluator.h"
+#include "downward/evaluator.h"
 
-#include "tasks/root_task.h"
+#include "downward/tasks/root_task.h"
 
 #ifndef NDEBUG
 #define DEBUG_CACHE_CONSISTENCY_CHECK

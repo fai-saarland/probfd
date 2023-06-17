@@ -1,9 +1,9 @@
 #include "probfd/heuristics/cartesian/abstract_state.h"
 
-#include "cegar/refinement_hierarchy.h"
+#include "downward/cegar/refinement_hierarchy.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "utils/memory.h"
+#include "downward/utils/memory.h"
 
 #include <algorithm>
 #include <cassert>

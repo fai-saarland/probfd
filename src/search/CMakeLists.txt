@@ -16,8 +16,9 @@ fast_downward_set_linker_flags()
 
 # Collect source files needed for the active plugins.
 include(DownwardFiles)
+include(ProbFDFiles)
 
-add_library(downward_lib STATIC ${PLANNER_SOURCES})
+add_library(downward_lib STATIC ${PLANNER_SOURCES} ${PROBFD_SOURCES})
 target_include_directories(
     downward_lib
     PUBLIC

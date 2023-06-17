@@ -2,7 +2,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "utils/rng.h"
+#include "downward/utils/rng.h"
 
 #include <cassert>
 #include <limits>

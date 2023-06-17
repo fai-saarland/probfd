@@ -1,6 +1,6 @@
 #include "probfd/heuristics/occupation_measures/constraint_generator.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace heuristics {

@@ -2,7 +2,7 @@
 #include "probfd/engines/trap_aware_dfhs.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {

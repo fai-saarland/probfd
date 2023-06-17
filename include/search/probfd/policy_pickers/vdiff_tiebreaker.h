@@ -3,7 +3,7 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
-#include "operator_id.h"
+#include "downward/operator_id.h"
 
 namespace plugins {
 class Options;

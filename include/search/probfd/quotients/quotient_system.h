@@ -5,11 +5,11 @@
 
 #include "probfd/utils/iterators.h"
 
-#include "algorithms/segmented_vector.h"
+#include "downward/algorithms/segmented_vector.h"
 
-#include "utils/collections.h"
+#include "downward/utils/collections.h"
 
-#include "task_proxy.h"
+#include "downward/task_proxy.h"
 
 #include <compare>
 #include <deque>

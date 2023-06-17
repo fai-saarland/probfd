@@ -1,11 +1,11 @@
 #include "probfd/policy_pickers/random_tiebreaker.h"
 
-#include "utils/rng.h"
-#include "utils/rng_options.h"
+#include "downward/utils/rng.h"
+#include "downward/utils/rng_options.h"
 
-#include "operator_id.h"
+#include "downward/operator_id.h"
 
-#include "plugins/options.h"
+#include "downward/plugins/options.h"
 
 namespace probfd {
 namespace policy_pickers {

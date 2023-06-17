@@ -8,11 +8,11 @@
 
 #include "probfd/task_proxy.h"
 
-#include "algorithms/segmented_vector.h"
+#include "downward/algorithms/segmented_vector.h"
 
-#include "task_utils/successor_generator.h"
+#include "downward/task_utils/successor_generator.h"
 
-#include "state_registry.h"
+#include "downward/state_registry.h"
 
 #include <cassert>
 #include <iostream>

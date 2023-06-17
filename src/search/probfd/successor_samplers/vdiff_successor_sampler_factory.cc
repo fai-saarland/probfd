@@ -1,9 +1,9 @@
 #include "probfd/successor_samplers/vdiff_successor_sampler_factory.h"
 #include "probfd/successor_samplers/vdiff_successor_sampler.h"
 
-#include "utils/rng_options.h"
+#include "downward/utils/rng_options.h"
 
-#include "plugins/options.h"
+#include "downward/plugins/options.h"
 
 namespace probfd {
 namespace successor_samplers {

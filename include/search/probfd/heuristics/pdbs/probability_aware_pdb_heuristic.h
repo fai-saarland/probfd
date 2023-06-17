@@ -8,7 +8,7 @@
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
-#include "utils/printable.h"
+#include "downward/utils/printable.h"
 
 #include <memory>
 #include <ostream>

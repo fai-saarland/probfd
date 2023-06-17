@@ -15,11 +15,11 @@
 
 #include "probfd/progress_report.h"
 
-#include "utils/collections.h"
-#include "utils/system.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/system.h"
 
 #if defined(EXPENSIVE_STATISTICS)
-#include "utils/timer.h"
+#include "downward/utils/timer.h"
 #endif
 
 #include <cassert>

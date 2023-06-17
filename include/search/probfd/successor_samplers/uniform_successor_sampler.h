@@ -3,7 +3,7 @@
 
 #include "probfd/engine_interfaces/successor_sampler.h"
 
-#include "operator_id.h"
+#include "downward/operator_id.h"
 
 #include <memory>
 

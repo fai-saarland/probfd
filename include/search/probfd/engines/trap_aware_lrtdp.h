@@ -8,8 +8,8 @@
 
 #include "probfd/utils/guards.h"
 
-#include "utils/countdown_timer.h"
-#include "utils/timer.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/timer.h"
 
 #include <iostream>
 

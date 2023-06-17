@@ -1,8 +1,8 @@
 #include "probfd/heuristics/cartesian/cartesian_heuristic_function.h"
 
-#include "cegar/refinement_hierarchy.h"
+#include "downward/cegar/refinement_hierarchy.h"
 
-#include "utils/collections.h"
+#include "downward/utils/collections.h"
 
 using namespace std;
 

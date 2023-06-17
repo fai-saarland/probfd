@@ -5,12 +5,12 @@
 
 #include "probfd/solver_interface.h"
 
-#include "parser/lexical_analyzer.h"
-#include "parser/syntax_analyzer.h"
-#include "plugins/doc_printer.h"
-#include "plugins/plugin.h"
-#include "utils/logging.h"
-#include "utils/strings.h"
+#include "downward/parser/lexical_analyzer.h"
+#include "downward/parser/syntax_analyzer.h"
+#include "downward/plugins/doc_printer.h"
+#include "downward/plugins/plugin.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/strings.h"
 
 #include <algorithm>
 #include <limits>

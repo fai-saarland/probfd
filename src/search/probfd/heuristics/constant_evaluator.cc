@@ -2,7 +2,7 @@
 
 #include "probfd/cost_model.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <memory>
 

@@ -1,4 +1,4 @@
-#include "abstract_task.h"
+#include "downward/abstract_task.h"
 
 #include "probfd/probabilistic_task.h"
 

@@ -10,7 +10,7 @@
 
 #include "probfd/policies/map_policy.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 #include <iostream>
 #include <memory>

@@ -1,11 +1,11 @@
 #include "probfd/heuristics/occupation_measures/higher_order_hpom_constraints.h"
 
-#include "utils/system.h"
-#include "utils/timer.h"
+#include "downward/utils/system.h"
+#include "downward/utils/timer.h"
 
-#include "lp/lp_solver.h"
+#include "downward/lp/lp_solver.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include "probfd/cost_models/maxprob_cost_model.h"
 #include "probfd/cost_models/ssp_cost_model.h"

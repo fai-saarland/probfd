@@ -7,9 +7,9 @@
 
 #include "probfd/value_type.h"
 
-#include "algorithms/priority_queues.h"
+#include "downward/algorithms/priority_queues.h"
 
-#include "task_proxy.h"
+#include "downward/task_proxy.h"
 
 #include <stack>
 #include <unordered_map>

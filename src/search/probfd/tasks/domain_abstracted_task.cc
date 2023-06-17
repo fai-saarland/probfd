@@ -2,7 +2,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "utils/system.h"
+#include "downward/utils/system.h"
 
 #include <cassert>
 

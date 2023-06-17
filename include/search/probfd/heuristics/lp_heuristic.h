@@ -3,9 +3,9 @@
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
-#include "lp/lp_solver.h"
+#include "downward/lp/lp_solver.h"
 
-#include "plugins/options.h"
+#include "downward/plugins/options.h"
 
 #include <memory>
 #include <vector>

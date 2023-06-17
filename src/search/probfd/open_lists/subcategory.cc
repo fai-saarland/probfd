@@ -1,7 +1,7 @@
 #include "probfd/open_lists/fifo_open_list_factory.h"
 #include "probfd/open_lists/lifo_open_list_factory.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace open_lists {

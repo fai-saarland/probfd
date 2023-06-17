@@ -6,9 +6,9 @@
 #include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
-#include "pdbs/pattern_database.h"
+#include "downward/pdbs/pattern_database.h"
 
-#include "utils/collections.h"
+#include "downward/utils/collections.h"
 
 #include <limits>
 #include <memory>

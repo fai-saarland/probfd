@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_TYPES_H
 #define PROBFD_HEURISTICS_PDBS_TYPES_H
 
-#include "pdbs/types.h"
+#include "downward/pdbs/types.h"
 
 namespace pdbs {
 class PatternCollectionGenerator;

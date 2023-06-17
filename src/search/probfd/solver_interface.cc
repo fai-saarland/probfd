@@ -1,6 +1,6 @@
 #include "probfd/solver_interface.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <iomanip>
 

@@ -1,12 +1,12 @@
 #include "probfd/cost_models/maxprob_cost_model.h"
 
-#include "task_utils/task_properties.h"
+#include "downward/task_utils/task_properties.h"
 
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/task_proxy.h"
 
-#include "operator_id.h"
+#include "downward/operator_id.h"
 
 namespace probfd {
 namespace cost_models {

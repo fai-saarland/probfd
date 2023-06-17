@@ -7,7 +7,7 @@
 #include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 
-#include "utils/logging.h"
+#include "downward/utils/logging.h"
 
 #include <filesystem>
 #include <fstream>

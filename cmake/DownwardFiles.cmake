@@ -46,33 +46,33 @@ fast_downward_plugin(
     NAME CORE_SOURCES
     HELP "Core source files"
     SOURCES
-        abstract_task
-        axioms
-        #command_line
-        evaluation_context
-        evaluation_result
-        evaluator
-        evaluator_cache
-        heuristic
-        open_list
-        open_list_factory
-        operator_cost
-        operator_id
-        per_state_array
-        per_state_bitset
-        per_state_information
-        per_task_information
-        plan_manager
-        pruning_method
-        search_engine
-        search_node_info
-        search_progress
-        search_space
-        search_statistics
-        state_id
-        state_registry
-        task_id
-        task_proxy
+        downward/abstract_task
+        downward/axioms
+        #downward/command_line
+        downward/evaluation_context
+        downward/evaluation_result
+        downward/evaluator
+        downward/evaluator_cache
+        downward/heuristic
+        downward/open_list
+        downward/open_list_factory
+        downward/operator_cost
+        downward/operator_id
+        downward/per_state_array
+        downward/per_state_bitset
+        downward/per_state_information
+        downward/per_task_information
+        downward/plan_manager
+        downward/pruning_method
+        downward/search_engine
+        downward/search_node_info
+        downward/search_progress
+        downward/search_space
+        downward/search_statistics
+        downward/state_id
+        downward/state_registry
+        downward/task_id
+        downward/task_proxy
     DEPENDS CAUSAL_GRAPH INT_HASH_SET INT_PACKER ORDERED_SET SEGMENTED_VECTOR SUBSCRIBER SUCCESSOR_GENERATOR TASK_PROPERTIES
     CORE_PLUGIN
 )
@@ -81,16 +81,16 @@ fast_downward_plugin(
     NAME PLUGINS
     HELP "Plugin definition"
     SOURCES
-        plugins/any
-        plugins/bounds
-        plugins/doc_printer
-        plugins/options
-        plugins/plugin
-        plugins/plugin_info
-        plugins/raw_registry
-        plugins/registry
-        plugins/registry_types
-        plugins/types
+        downward/plugins/any
+        downward/plugins/bounds
+        downward/plugins/doc_printer
+        downward/plugins/options
+        downward/plugins/plugin
+        downward/plugins/plugin_info
+        downward/plugins/raw_registry
+        downward/plugins/registry
+        downward/plugins/registry_types
+        downward/plugins/types
     CORE_PLUGIN
 )
 
@@ -98,11 +98,11 @@ fast_downward_plugin(
     NAME PARSER
     HELP "Option parsing"
     SOURCES
-        parser/abstract_syntax_tree
-        parser/decorated_abstract_syntax_tree
-        parser/lexical_analyzer
-        parser/syntax_analyzer
-        parser/token_stream
+        downward/parser/abstract_syntax_tree
+        downward/parser/decorated_abstract_syntax_tree
+        downward/parser/lexical_analyzer
+        downward/parser/syntax_analyzer
+        downward/parser/token_stream
     CORE_PLUGIN
 )
 
@@ -110,22 +110,22 @@ fast_downward_plugin(
     NAME UTILS
     HELP "System utilities"
     SOURCES
-        utils/collections
-        utils/countdown_timer
-        utils/exceptions
-        utils/hash
-        utils/logging
-        utils/markup
-        utils/math
-        utils/memory
-        utils/printable
-        utils/rng
-        utils/rng_options
-        utils/strings
-        utils/system
-        utils/system_unix
-        utils/system_windows
-        utils/timer
+        downward/utils/collections
+        downward/utils/countdown_timer
+        downward/utils/exceptions
+        downward/utils/hash
+        downward/utils/logging
+        downward/utils/markup
+        downward/utils/math
+        downward/utils/memory
+        downward/utils/printable
+        downward/utils/rng
+        downward/utils/rng_options
+        downward/utils/strings
+        downward/utils/system
+        downward/utils/system_unix
+        downward/utils/system_windows
+        downward/utils/timer
     CORE_PLUGIN
 )
 
@@ -133,49 +133,49 @@ fast_downward_plugin(
     NAME ALTERNATION_OPEN_LIST
     HELP "Open list that alternates between underlying open lists in a round-robin manner"
     SOURCES
-        open_lists/alternation_open_list
+        downward/open_lists/alternation_open_list
 )
 
 fast_downward_plugin(
     NAME BEST_FIRST_OPEN_LIST
     HELP "Open list that selects the best element according to a single evaluation function"
     SOURCES
-        open_lists/best_first_open_list
+        downward/open_lists/best_first_open_list
 )
 
 fast_downward_plugin(
     NAME EPSILON_GREEDY_OPEN_LIST
     HELP "Open list that chooses an entry randomly with probability epsilon"
     SOURCES
-        open_lists/epsilon_greedy_open_list
+        downward/open_lists/epsilon_greedy_open_list
 )
 
 fast_downward_plugin(
     NAME PARETO_OPEN_LIST
     HELP "Pareto open list"
     SOURCES
-        open_lists/pareto_open_list
+        downward/open_lists/pareto_open_list
 )
 
 fast_downward_plugin(
     NAME TIEBREAKING_OPEN_LIST
     HELP "Tiebreaking open list"
     SOURCES
-        open_lists/tiebreaking_open_list
+        downward/open_lists/tiebreaking_open_list
 )
 
 fast_downward_plugin(
     NAME TYPE_BASED_OPEN_LIST
     HELP "Type-based open list"
     SOURCES
-        open_lists/type_based_open_list
+        downward/open_lists/type_based_open_list
 )
 
 fast_downward_plugin(
     NAME DYNAMIC_BITSET
     HELP "Poor man's version of boost::dynamic_bitset"
     SOURCES
-        algorithms/dynamic_bitset
+        downward/algorithms/dynamic_bitset
     DEPENDENCY_ONLY
 )
 
@@ -183,7 +183,7 @@ fast_downward_plugin(
     NAME NAMED_VECTOR
     HELP "Generic vector with associated name for each element"
     SOURCES
-        algorithms/named_vector
+        downward/algorithms/named_vector
     DEPENDENCY_ONLY
 )
 
@@ -191,7 +191,7 @@ fast_downward_plugin(
     NAME EQUIVALENCE_RELATION
     HELP "Equivalence relation over [1, ..., n] that can be iteratively refined"
     SOURCES
-        algorithms/equivalence_relation
+        downward/algorithms/equivalence_relation
     DEPENDENCY_ONLY
 )
 
@@ -199,7 +199,7 @@ fast_downward_plugin(
     NAME INT_HASH_SET
     HELP "Hash set storing non-negative integers"
     SOURCES
-        algorithms/int_hash_set
+        downward/algorithms/int_hash_set
     DEPENDENCY_ONLY
 )
 
@@ -207,7 +207,7 @@ fast_downward_plugin(
     NAME INT_PACKER
     HELP "Greedy bin packing algorithm to pack integer variables with small domains tightly into memory"
     SOURCES
-        algorithms/int_packer
+        downward/algorithms/int_packer
     DEPENDENCY_ONLY
 )
 
@@ -215,7 +215,7 @@ fast_downward_plugin(
     NAME MAX_CLIQUES
     HELP "Implementation of the Max Cliques algorithm by Tomita et al."
     SOURCES
-        algorithms/max_cliques
+        downward/algorithms/max_cliques
     DEPENDENCY_ONLY
 )
 
@@ -223,7 +223,7 @@ fast_downward_plugin(
     NAME PRIORITY_QUEUES
     HELP "Three implementations of priority queue: HeapQueue, BucketQueue and AdaptiveQueue"
     SOURCES
-        algorithms/priority_queues
+        downward/algorithms/priority_queues
     DEPENDENCY_ONLY
 )
 
@@ -231,7 +231,7 @@ fast_downward_plugin(
     NAME ORDERED_SET
     HELP "Set of elements ordered by insertion time"
     SOURCES
-        algorithms/ordered_set
+        downward/algorithms/ordered_set
     DEPENDENCY_ONLY
 )
 
@@ -239,7 +239,7 @@ fast_downward_plugin(
     NAME SEGMENTED_VECTOR
     HELP "Memory-friendly and vector-like data structure"
     SOURCES
-        algorithms/segmented_vector
+        downward/algorithms/segmented_vector
     DEPENDENCY_ONLY
 )
 
@@ -247,7 +247,7 @@ fast_downward_plugin(
     NAME SUBSCRIBER
     HELP "Allows object to subscribe to the destructor of other objects"
     SOURCES
-        algorithms/subscriber
+        downward/algorithms/subscriber
     DEPENDENCY_ONLY
 )
 
@@ -255,7 +255,7 @@ fast_downward_plugin(
     NAME EVALUATORS_SUBCATEGORY
     HELP "Subcategory plugin for basic evaluators"
     SOURCES
-        evaluators/subcategory
+        downward/evaluators/subcategory
 )
 
 
@@ -263,7 +263,7 @@ fast_downward_plugin(
     NAME CONST_EVALUATOR
     HELP "The constant evaluator"
     SOURCES
-        evaluators/const_evaluator
+        downward/evaluators/const_evaluator
     DEPENDS EVALUATORS_SUBCATEGORY
 )
 
@@ -271,7 +271,7 @@ fast_downward_plugin(
     NAME G_EVALUATOR
     HELP "The g-evaluator"
     SOURCES
-        evaluators/g_evaluator
+        downward/evaluators/g_evaluator
     DEPENDS EVALUATORS_SUBCATEGORY
 )
 
@@ -279,7 +279,7 @@ fast_downward_plugin(
     NAME COMBINING_EVALUATOR
     HELP "The combining evaluator"
     SOURCES
-        evaluators/combining_evaluator
+        downward/evaluators/combining_evaluator
     DEPENDENCY_ONLY
 )
 
@@ -287,7 +287,7 @@ fast_downward_plugin(
     NAME MAX_EVALUATOR
     HELP "The max evaluator"
     SOURCES
-        evaluators/max_evaluator
+        downward/evaluators/max_evaluator
     DEPENDS COMBINING_EVALUATOR EVALUATORS_SUBCATEGORY
 )
 
@@ -295,7 +295,7 @@ fast_downward_plugin(
     NAME PREF_EVALUATOR
     HELP "The pref evaluator"
     SOURCES
-        evaluators/pref_evaluator
+        downward/evaluators/pref_evaluator
     DEPENDS EVALUATORS_SUBCATEGORY
 )
 
@@ -303,7 +303,7 @@ fast_downward_plugin(
     NAME WEIGHTED_EVALUATOR
     HELP "The weighted evaluator"
     SOURCES
-        evaluators/weighted_evaluator
+        downward/evaluators/weighted_evaluator
     DEPENDS EVALUATORS_SUBCATEGORY
 )
 
@@ -311,7 +311,7 @@ fast_downward_plugin(
     NAME SUM_EVALUATOR
     HELP "The sum evaluator"
     SOURCES
-        evaluators/sum_evaluator
+        downward/evaluators/sum_evaluator
     DEPENDS COMBINING_EVALUATOR EVALUATORS_SUBCATEGORY
 )
 
@@ -319,7 +319,7 @@ fast_downward_plugin(
     NAME NULL_PRUNING_METHOD
     HELP "Pruning method that does nothing"
     SOURCES
-        pruning/null_pruning_method
+        downward/pruning/null_pruning_method
     DEPENDENCY_ONLY
 )
 
@@ -327,14 +327,14 @@ fast_downward_plugin(
     NAME LIMITED_PRUNING
     HELP "Method for limiting another pruning method"
     SOURCES
-        pruning/limited_pruning
+        downward/pruning/limited_pruning
 )
 
 fast_downward_plugin(
     NAME STUBBORN_SETS
     HELP "Base class for all stubborn set partial order reduction methods"
     SOURCES
-        pruning/stubborn_sets
+        downward/pruning/stubborn_sets
     DEPENDS TASK_PROPERTIES
     DEPENDENCY_ONLY
 )
@@ -343,7 +343,7 @@ fast_downward_plugin(
     NAME STUBBORN_SETS_ACTION_CENTRIC
     HELP "Base class for all action-centric stubborn set partial order reduction methods"
     SOURCES
-        pruning/stubborn_sets_action_centric
+        downward/pruning/stubborn_sets_action_centric
     DEPENDS STUBBORN_SETS
     DEPENDENCY_ONLY
 )
@@ -352,7 +352,7 @@ fast_downward_plugin(
     NAME STUBBORN_SETS_ATOM_CENTRIC
     HELP "Atom-centric stubborn sets"
     SOURCES
-        pruning/stubborn_sets_atom_centric
+        downward/pruning/stubborn_sets_atom_centric
     DEPENDS STUBBORN_SETS
 )
 
@@ -360,7 +360,7 @@ fast_downward_plugin(
     NAME STUBBORN_SETS_SIMPLE
     HELP "Stubborn sets simple"
     SOURCES
-        pruning/stubborn_sets_simple
+        downward/pruning/stubborn_sets_simple
     DEPENDS STUBBORN_SETS_ACTION_CENTRIC
 )
 
@@ -368,7 +368,7 @@ fast_downward_plugin(
     NAME STUBBORN_SETS_EC
     HELP "Stubborn set method that dominates expansion core"
     SOURCES
-        pruning/stubborn_sets_ec
+        downward/pruning/stubborn_sets_ec
     DEPENDS STUBBORN_SETS_ACTION_CENTRIC TASK_PROPERTIES
 )
 
@@ -376,7 +376,7 @@ fast_downward_plugin(
     NAME SEARCH_COMMON
     HELP "Basic classes used for all search engines"
     SOURCES
-        search_engines/search_common
+        downward/search_engines/search_common
     DEPENDS ALTERNATION_OPEN_LIST G_EVALUATOR BEST_FIRST_OPEN_LIST SUM_EVALUATOR TIEBREAKING_OPEN_LIST WEIGHTED_EVALUATOR
     DEPENDENCY_ONLY
 )
@@ -385,7 +385,7 @@ fast_downward_plugin(
     NAME EAGER_SEARCH
     HELP "Eager search algorithm"
     SOURCES
-        search_engines/eager_search
+        downward/search_engines/eager_search
     DEPENDS NULL_PRUNING_METHOD ORDERED_SET SUCCESSOR_GENERATOR
     DEPENDENCY_ONLY
 )
@@ -394,7 +394,7 @@ fast_downward_plugin(
     NAME PLUGIN_ASTAR
     HELP "A* search"
     SOURCES
-        search_engines/plugin_astar
+        downward/search_engines/plugin_astar
     DEPENDS EAGER_SEARCH SEARCH_COMMON
 )
 
@@ -402,7 +402,7 @@ fast_downward_plugin(
     NAME PLUGIN_EAGER
     HELP "Eager (i.e., normal) best-first search"
     SOURCES
-        search_engines/plugin_eager
+        downward/search_engines/plugin_eager
     DEPENDS EAGER_SEARCH SEARCH_COMMON
 )
 
@@ -410,7 +410,7 @@ fast_downward_plugin(
     NAME PLUGIN_EAGER_GREEDY
     HELP "Eager greedy best-first search"
     SOURCES
-        search_engines/plugin_eager_greedy
+        downward/search_engines/plugin_eager_greedy
     DEPENDS EAGER_SEARCH SEARCH_COMMON
 )
 
@@ -418,7 +418,7 @@ fast_downward_plugin(
     NAME PLUGIN_EAGER_WASTAR
     HELP "Weighted eager A* search"
     SOURCES
-        search_engines/plugin_eager_wastar
+        downward/search_engines/plugin_eager_wastar
     DEPENDS EAGER_SEARCH SEARCH_COMMON
 )
 
@@ -426,7 +426,7 @@ fast_downward_plugin(
     NAME PLUGIN_LAZY
     HELP "Best-first search with deferred evaluation (lazy)"
     SOURCES
-        search_engines/plugin_lazy
+        downward/search_engines/plugin_lazy
     DEPENDS LAZY_SEARCH SEARCH_COMMON
 )
 
@@ -434,7 +434,7 @@ fast_downward_plugin(
     NAME PLUGIN_LAZY_GREEDY
     HELP "Greedy best-first search with deferred evaluation (lazy)"
     SOURCES
-        search_engines/plugin_lazy_greedy
+        downward/search_engines/plugin_lazy_greedy
     DEPENDS LAZY_SEARCH SEARCH_COMMON
 )
 
@@ -442,7 +442,7 @@ fast_downward_plugin(
     NAME PLUGIN_LAZY_WASTAR
     HELP "Weighted A* search with deferred evaluation (lazy)"
     SOURCES
-        search_engines/plugin_lazy_wastar
+        downward/search_engines/plugin_lazy_wastar
     DEPENDS LAZY_SEARCH SEARCH_COMMON
 )
 
@@ -450,7 +450,7 @@ fast_downward_plugin(
     NAME ENFORCED_HILL_CLIMBING_SEARCH
     HELP "Lazy enforced hill-climbing search algorithm"
     SOURCES
-        search_engines/enforced_hill_climbing_search
+        downward/search_engines/enforced_hill_climbing_search
     DEPENDS G_EVALUATOR ORDERED_SET PREF_EVALUATOR SEARCH_COMMON SUCCESSOR_GENERATOR
 )
 
@@ -458,14 +458,14 @@ fast_downward_plugin(
     NAME ITERATED_SEARCH
     HELP "Iterated search algorithm"
     SOURCES
-        search_engines/iterated_search
+        downward/search_engines/iterated_search
 )
 
 fast_downward_plugin(
     NAME LAZY_SEARCH
     HELP "Lazy search algorithm"
     SOURCES
-        search_engines/lazy_search
+        downward/search_engines/lazy_search
     DEPENDS ORDERED_SET SUCCESSOR_GENERATOR
     DEPENDENCY_ONLY
 )
@@ -474,8 +474,8 @@ fast_downward_plugin(
     NAME LP_SOLVER
     HELP "Interface to an LP solver"
     SOURCES
-        lp/lp_internals
-        lp/lp_solver
+        downward/lp/lp_internals
+        downward/lp/lp_solver
     DEPENDS NAMED_VECTOR
     DEPENDENCY_ONLY
 )
@@ -484,8 +484,8 @@ fast_downward_plugin(
     NAME RELAXATION_HEURISTIC
     HELP "The base class for relaxation heuristics"
     SOURCES
-        heuristics/array_pool
-        heuristics/relaxation_heuristic
+        downward/heuristics/array_pool
+        downward/heuristics/relaxation_heuristic
     DEPENDENCY_ONLY
 )
 
@@ -493,7 +493,7 @@ fast_downward_plugin(
     NAME ADDITIVE_HEURISTIC
     HELP "The additive heuristic"
     SOURCES
-        heuristics/additive_heuristic
+        downward/heuristics/additive_heuristic
     DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC TASK_PROPERTIES
 )
 
@@ -501,7 +501,7 @@ fast_downward_plugin(
     NAME BLIND_SEARCH_HEURISTIC
     HELP "The 'blind search' heuristic"
     SOURCES
-        heuristics/blind_search_heuristic
+        downward/heuristics/blind_search_heuristic
     DEPENDS TASK_PROPERTIES
 )
 
@@ -509,15 +509,16 @@ fast_downward_plugin(
     NAME CONTEXT_ENHANCED_ADDITIVE_HEURISTIC
     HELP "The context-enhanced additive heuristic"
     SOURCES
-        heuristics/cea_heuristic
+        downward/heuristics/cea_heuristic
     DEPENDS DOMAIN_TRANSITION_GRAPH PRIORITY_QUEUES TASK_PROPERTIES
 )
 
 fast_downward_plugin(
     NAME CG_HEURISTIC
     HELP "The causal graph heuristic"
-    SOURCES heuristics/cg_heuristic
-            heuristics/cg_cache
+    SOURCES
+        downward/heuristics/cg_heuristic
+        downward/heuristics/cg_cache
     DEPENDS DOMAIN_TRANSITION_GRAPH PRIORITY_QUEUES TASK_PROPERTIES
 )
 
@@ -525,7 +526,7 @@ fast_downward_plugin(
     NAME DOMAIN_TRANSITION_GRAPH
     HELP "DTGs used by cg and cea heuristic"
     SOURCES
-        heuristics/domain_transition_graph
+        downward/heuristics/domain_transition_graph
     DEPENDENCY_ONLY
 )
 
@@ -533,7 +534,7 @@ fast_downward_plugin(
     NAME FF_HEURISTIC
     HELP "The FF heuristic (an implementation of the RPG heuristic)"
     SOURCES
-        heuristics/ff_heuristic
+        downward/heuristics/ff_heuristic
     DEPENDS ADDITIVE_HEURISTIC TASK_PROPERTIES
 )
 
@@ -541,14 +542,14 @@ fast_downward_plugin(
     NAME GOAL_COUNT_HEURISTIC
     HELP "The goal-counting heuristic"
     SOURCES
-        heuristics/goal_count_heuristic
+        downward/heuristics/goal_count_heuristic
 )
 
 fast_downward_plugin(
     NAME HM_HEURISTIC
     HELP "The h^m heuristic"
     SOURCES
-        heuristics/hm_heuristic
+        downward/heuristics/hm_heuristic
     DEPENDS TASK_PROPERTIES
 )
 
@@ -556,8 +557,8 @@ fast_downward_plugin(
     NAME LANDMARK_CUT_HEURISTIC
     HELP "The LM-cut heuristic"
     SOURCES
-        heuristics/lm_cut_heuristic
-        heuristics/lm_cut_landmarks
+        downward/heuristics/lm_cut_heuristic
+        downward/heuristics/lm_cut_landmarks
     DEPENDS PRIORITY_QUEUES TASK_PROPERTIES
 )
 
@@ -565,7 +566,7 @@ fast_downward_plugin(
     NAME MAX_HEURISTIC
     HELP "The Max heuristic"
     SOURCES
-        heuristics/max_heuristic
+        downward/heuristics/max_heuristic
     DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC
 )
 
@@ -573,9 +574,9 @@ fast_downward_plugin(
     NAME CORE_TASKS
     HELP "Core task transformations"
     SOURCES
-        tasks/cost_adapted_task
-        tasks/delegating_task
-        tasks/root_task
+        downward/tasks/cost_adapted_task
+        downward/tasks/delegating_task
+        downward/tasks/root_task
     CORE_PLUGIN
 )
 
@@ -583,10 +584,10 @@ fast_downward_plugin(
     NAME EXTRA_TASKS
     HELP "Non-core task transformations"
     SOURCES
-        tasks/domain_abstracted_task
-        tasks/domain_abstracted_task_factory
-        tasks/modified_goals_task
-        tasks/modified_operator_costs_task
+        downward/tasks/domain_abstracted_task
+        downward/tasks/domain_abstracted_task_factory
+        downward/tasks/modified_goals_task
+        downward/tasks/modified_operator_costs_task
     DEPENDS TASK_PROPERTIES
     DEPENDENCY_ONLY
 )
@@ -595,7 +596,7 @@ fast_downward_plugin(
     NAME CAUSAL_GRAPH
     HELP "Causal Graph"
     SOURCES
-        task_utils/causal_graph
+        downward/task_utils/causal_graph
     DEPENDENCY_ONLY
 )
 
@@ -603,7 +604,7 @@ fast_downward_plugin(
     NAME SAMPLING
     HELP "Sampling"
     SOURCES
-        task_utils/sampling
+        downward/task_utils/sampling
     DEPENDS SUCCESSOR_GENERATOR TASK_PROPERTIES
     DEPENDENCY_ONLY
 )
@@ -612,9 +613,9 @@ fast_downward_plugin(
     NAME SUCCESSOR_GENERATOR
     HELP "Successor generator"
     SOURCES
-        task_utils/successor_generator
-        task_utils/successor_generator_factory
-        task_utils/successor_generator_internals
+        downward/task_utils/successor_generator
+        downward/task_utils/successor_generator_factory
+        downward/task_utils/successor_generator_internals
     DEPENDS TASK_PROPERTIES
     DEPENDENCY_ONLY
 )
@@ -623,7 +624,7 @@ fast_downward_plugin(
     NAME TASK_PROPERTIES
     HELP "Task properties"
     SOURCES
-        task_utils/task_properties
+        downward/task_utils/task_properties
     DEPENDENCY_ONLY
 )
 
@@ -631,7 +632,7 @@ fast_downward_plugin(
     NAME VARIABLE_ORDER_FINDER
     HELP "Variable order finder"
     SOURCES
-        task_utils/variable_order_finder
+        downward/task_utils/variable_order_finder
     DEPENDENCY_ONLY
 )
 
@@ -639,22 +640,22 @@ fast_downward_plugin(
     NAME CEGAR
     HELP "Plugin containing the code for CEGAR heuristics"
     SOURCES
-        cegar/abstraction
-        cegar/abstract_search
-        cegar/abstract_state
-        cegar/additive_cartesian_heuristic
-        cegar/cartesian_heuristic_function
-        cegar/cartesian_set
-        cegar/cegar
-        cegar/cost_saturation
-        cegar/refinement_hierarchy
-        cegar/split_selector
-        cegar/subtask_generators
-        cegar/transition
-        cegar/transition_system
-        cegar/types
-        cegar/utils
-        cegar/utils_landmarks
+        downward/cegar/abstraction
+        downward/cegar/abstract_search
+        downward/cegar/abstract_state
+        downward/cegar/additive_cartesian_heuristic
+        downward/cegar/cartesian_heuristic_function
+        downward/cegar/cartesian_set
+        downward/cegar/cegar
+        downward/cegar/cost_saturation
+        downward/cegar/refinement_hierarchy
+        downward/cegar/split_selector
+        downward/cegar/subtask_generators
+        downward/cegar/transition
+        downward/cegar/transition_system
+        downward/cegar/types
+        downward/cegar/utils
+        downward/cegar/utils_landmarks
     DEPENDS ADDITIVE_HEURISTIC DYNAMIC_BITSET EXTRA_TASKS LANDMARKS PRIORITY_QUEUES TASK_PROPERTIES
 )
 
@@ -662,43 +663,43 @@ fast_downward_plugin(
     NAME MAS_HEURISTIC
     HELP "The Merge-and-Shrink heuristic"
     SOURCES
-        merge_and_shrink/distances
-        merge_and_shrink/factored_transition_system
-        merge_and_shrink/fts_factory
-        merge_and_shrink/label_equivalence_relation
-        merge_and_shrink/label_reduction
-        merge_and_shrink/labels
-        merge_and_shrink/merge_and_shrink_algorithm
-        merge_and_shrink/merge_and_shrink_heuristic
-        merge_and_shrink/merge_and_shrink_representation
-        merge_and_shrink/merge_scoring_function
-        merge_and_shrink/merge_scoring_function_dfp
-        merge_and_shrink/merge_scoring_function_goal_relevance
-        merge_and_shrink/merge_scoring_function_miasm
-        merge_and_shrink/merge_scoring_function_miasm_utils
-        merge_and_shrink/merge_scoring_function_single_random
-        merge_and_shrink/merge_scoring_function_total_order
-        merge_and_shrink/merge_selector
-        merge_and_shrink/merge_selector_score_based_filtering
-        merge_and_shrink/merge_strategy
-        merge_and_shrink/merge_strategy_factory
-        merge_and_shrink/merge_strategy_factory_precomputed
-        merge_and_shrink/merge_strategy_factory_sccs
-        merge_and_shrink/merge_strategy_factory_stateless
-        merge_and_shrink/merge_strategy_precomputed
-        merge_and_shrink/merge_strategy_sccs
-        merge_and_shrink/merge_strategy_stateless
-        merge_and_shrink/merge_tree
-        merge_and_shrink/merge_tree_factory
-        merge_and_shrink/merge_tree_factory_linear
-        merge_and_shrink/shrink_bisimulation
-        merge_and_shrink/shrink_bucket_based
-        merge_and_shrink/shrink_fh
-        merge_and_shrink/shrink_random
-        merge_and_shrink/shrink_strategy
-        merge_and_shrink/transition_system
-        merge_and_shrink/types
-        merge_and_shrink/utils
+        downward/merge_and_shrink/distances
+        downward/merge_and_shrink/factored_transition_system
+        downward/merge_and_shrink/fts_factory
+        downward/merge_and_shrink/label_equivalence_relation
+        downward/merge_and_shrink/label_reduction
+        downward/merge_and_shrink/labels
+        downward/merge_and_shrink/merge_and_shrink_algorithm
+        downward/merge_and_shrink/merge_and_shrink_heuristic
+        downward/merge_and_shrink/merge_and_shrink_representation
+        downward/merge_and_shrink/merge_scoring_function
+        downward/merge_and_shrink/merge_scoring_function_dfp
+        downward/merge_and_shrink/merge_scoring_function_goal_relevance
+        downward/merge_and_shrink/merge_scoring_function_miasm
+        downward/merge_and_shrink/merge_scoring_function_miasm_utils
+        downward/merge_and_shrink/merge_scoring_function_single_random
+        downward/merge_and_shrink/merge_scoring_function_total_order
+        downward/merge_and_shrink/merge_selector
+        downward/merge_and_shrink/merge_selector_score_based_filtering
+        downward/merge_and_shrink/merge_strategy
+        downward/merge_and_shrink/merge_strategy_factory
+        downward/merge_and_shrink/merge_strategy_factory_precomputed
+        downward/merge_and_shrink/merge_strategy_factory_sccs
+        downward/merge_and_shrink/merge_strategy_factory_stateless
+        downward/merge_and_shrink/merge_strategy_precomputed
+        downward/merge_and_shrink/merge_strategy_sccs
+        downward/merge_and_shrink/merge_strategy_stateless
+        downward/merge_and_shrink/merge_tree
+        downward/merge_and_shrink/merge_tree_factory
+        downward/merge_and_shrink/merge_tree_factory_linear
+        downward/merge_and_shrink/shrink_bisimulation
+        downward/merge_and_shrink/shrink_bucket_based
+        downward/merge_and_shrink/shrink_fh
+        downward/merge_and_shrink/shrink_random
+        downward/merge_and_shrink/shrink_strategy
+        downward/merge_and_shrink/transition_system
+        downward/merge_and_shrink/types
+        downward/merge_and_shrink/utils
     DEPENDS PRIORITY_QUEUES EQUIVALENCE_RELATION SCCS TASK_PROPERTIES VARIABLE_ORDER_FINDER
 )
 
@@ -706,23 +707,23 @@ fast_downward_plugin(
     NAME LANDMARKS
     HELP "Plugin containing the code to reason with landmarks"
     SOURCES
-        landmarks/exploration
-        landmarks/landmark
-        landmarks/landmark_cost_assignment
-        landmarks/landmark_cost_partitioning_heuristic
-        landmarks/landmark_factory
-        landmarks/landmark_factory_h_m
-        landmarks/landmark_factory_reasonable_orders_hps
-        landmarks/landmark_factory_merged
-        landmarks/landmark_factory_relaxation
-        landmarks/landmark_factory_rpg_exhaust
-        landmarks/landmark_factory_rpg_sasp
-        landmarks/landmark_factory_zhu_givan
-        landmarks/landmark_graph
-        landmarks/landmark_heuristic
-        landmarks/landmark_status_manager
-        landmarks/landmark_sum_heuristic
-        landmarks/util
+        downward/landmarks/exploration
+        downward/landmarks/landmark
+        downward/landmarks/landmark_cost_assignment
+        downward/landmarks/landmark_cost_partitioning_heuristic
+        downward/landmarks/landmark_factory
+        downward/landmarks/landmark_factory_h_m
+        downward/landmarks/landmark_factory_reasonable_orders_hps
+        downward/landmarks/landmark_factory_merged
+        downward/landmarks/landmark_factory_relaxation
+        downward/landmarks/landmark_factory_rpg_exhaust
+        downward/landmarks/landmark_factory_rpg_sasp
+        downward/landmarks/landmark_factory_zhu_givan
+        downward/landmarks/landmark_graph
+        downward/landmarks/landmark_heuristic
+        downward/landmarks/landmark_status_manager
+        downward/landmarks/landmark_sum_heuristic
+        downward/landmarks/util
     DEPENDS LP_SOLVER PRIORITY_QUEUES SUCCESSOR_GENERATOR TASK_PROPERTIES
 )
 
@@ -730,12 +731,12 @@ fast_downward_plugin(
     NAME OPERATOR_COUNTING
     HELP "Plugin containing the code for operator-counting heuristics"
     SOURCES
-        operator_counting/constraint_generator
-        operator_counting/delete_relaxation_constraints
-        operator_counting/lm_cut_constraints
-        operator_counting/operator_counting_heuristic
-        operator_counting/pho_constraints
-        operator_counting/state_equation_constraints
+        downward/operator_counting/constraint_generator
+        downward/operator_counting/delete_relaxation_constraints
+        downward/operator_counting/lm_cut_constraints
+        downward/operator_counting/operator_counting_heuristic
+        downward/operator_counting/pho_constraints
+        downward/operator_counting/state_equation_constraints
     DEPENDS LP_SOLVER LANDMARK_CUT_HEURISTIC PDBS TASK_PROPERTIES
 )
 
@@ -743,39 +744,39 @@ fast_downward_plugin(
     NAME PDBS
     HELP "Plugin containing the code for PDBs"
     SOURCES
-        pdbs/canonical_pdbs
-        pdbs/canonical_pdbs_heuristic
-        pdbs/cegar
-        pdbs/dominance_pruning
-        pdbs/incremental_canonical_pdbs
-        pdbs/match_tree
-        pdbs/max_cliques
-        pdbs/pattern_cliques
-        pdbs/pattern_collection_information
-        pdbs/pattern_collection_generator_combo
-        pdbs/pattern_collection_generator_disjoint_cegar
-        pdbs/pattern_collection_generator_genetic
-        pdbs/pattern_collection_generator_hillclimbing
-        pdbs/pattern_collection_generator_manual
-        pdbs/pattern_collection_generator_multiple_cegar
-        pdbs/pattern_collection_generator_multiple_random
-        pdbs/pattern_collection_generator_multiple
-        pdbs/pattern_collection_generator_systematic
-        pdbs/pattern_database
-        pdbs/pattern_generator_cegar
-        pdbs/pattern_generator_greedy
-        pdbs/pattern_generator_manual
-        pdbs/pattern_generator_random
-        pdbs/pattern_generator
-        pdbs/pattern_information
-        pdbs/pdb_heuristic
-        pdbs/random_pattern
-        pdbs/subcategory
-        pdbs/types
-        pdbs/utils
-        pdbs/validation
-        pdbs/zero_one_pdbs
-        pdbs/zero_one_pdbs_heuristic
+        downward/pdbs/canonical_pdbs
+        downward/pdbs/canonical_pdbs_heuristic
+        downward/pdbs/cegar
+        downward/pdbs/dominance_pruning
+        downward/pdbs/incremental_canonical_pdbs
+        downward/pdbs/match_tree
+        downward/pdbs/max_cliques
+        downward/pdbs/pattern_cliques
+        downward/pdbs/pattern_collection_information
+        downward/pdbs/pattern_collection_generator_combo
+        downward/pdbs/pattern_collection_generator_disjoint_cegar
+        downward/pdbs/pattern_collection_generator_genetic
+        downward/pdbs/pattern_collection_generator_hillclimbing
+        downward/pdbs/pattern_collection_generator_manual
+        downward/pdbs/pattern_collection_generator_multiple_cegar
+        downward/pdbs/pattern_collection_generator_multiple_random
+        downward/pdbs/pattern_collection_generator_multiple
+        downward/pdbs/pattern_collection_generator_systematic
+        downward/pdbs/pattern_database
+        downward/pdbs/pattern_generator_cegar
+        downward/pdbs/pattern_generator_greedy
+        downward/pdbs/pattern_generator_manual
+        downward/pdbs/pattern_generator_random
+        downward/pdbs/pattern_generator
+        downward/pdbs/pattern_information
+        downward/pdbs/pdb_heuristic
+        downward/pdbs/random_pattern
+        downward/pdbs/subcategory
+        downward/pdbs/types
+        downward/pdbs/utils
+        downward/pdbs/validation
+        downward/pdbs/zero_one_pdbs
+        downward/pdbs/zero_one_pdbs_heuristic
     DEPENDS CAUSAL_GRAPH MAX_CLIQUES PRIORITY_QUEUES SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES VARIABLE_ORDER_FINDER
 )
 
@@ -783,15 +784,15 @@ fast_downward_plugin(
     NAME POTENTIALS
     HELP "Plugin containing the code for potential heuristics"
     SOURCES
-        potentials/diverse_potential_heuristics
-        potentials/potential_function
-        potentials/potential_heuristic
-        potentials/potential_max_heuristic
-        potentials/potential_optimizer
-        potentials/sample_based_potential_heuristics
-        potentials/single_potential_heuristics
-        potentials/subcategory
-        potentials/util
+        downward/potentials/diverse_potential_heuristics
+        downward/potentials/potential_function
+        downward/potentials/potential_heuristic
+        downward/potentials/potential_max_heuristic
+        downward/potentials/potential_optimizer
+        downward/potentials/sample_based_potential_heuristics
+        downward/potentials/single_potential_heuristics
+        downward/potentials/subcategory
+        downward/potentials/util
     DEPENDS LP_SOLVER SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES
 )
 
@@ -800,425 +801,8 @@ fast_downward_plugin(
     HELP "Algorithm to compute the strongly connected components (SCCs) of a "
          "directed graph."
     SOURCES
-        algorithms/sccs
+        downward/algorithms/sccs
     DEPENDENCY_ONLY
-)
-
-fast_downward_plugin(
-    NAME MDP
-    HELP "Core source files for supporting MDPs"
-    SOURCES
-        # Main
-        probfd/command_line
-
-        # Tasks
-        probfd/probabilistic_task
-
-        probfd/task_utils/task_properties
-
-        # Basic types
-        probfd/evaluation_result
-        probfd/interval
-        probfd/value_type
-        
-        # Engine interfaces
-        probfd/state_evaluator
-        probfd/cost_function
-        probfd/caching_task_state_space
-        probfd/task_state_space
-        probfd/progress_report
-        probfd/quotient_system
-
-        # Engines
-        probfd/engines/utils
-
-        # Cost Models
-        probfd/cost_model
-        probfd/cost_models/maxprob_cost_model
-        probfd/cost_models/ssp_cost_model
-
-        # Constant evaluator (default)
-        probfd/heuristics/constant_evaluator
-
-        # Utility
-        probfd/utils/guards.cc
-
-        probfd/solver_interface
-        
-        probfd/solvers/mdp_solver
-    DEPENDS SUCCESSOR_GENERATOR
-    CORE_PLUGIN
-)
-
-fast_downward_plugin(
-    NAME CORE_PROBABILISTIC_TASKS
-    HELP "Core probabilistic task transformations"
-    SOURCES
-        probfd/tasks/cost_adapted_task
-        probfd/tasks/delegating_task
-        probfd/tasks/root_task
-        probfd/tasks/all_outcomes_determinization
-    CORE_PLUGIN
-)
-
-fast_downward_plugin(
-    NAME EXTRA_PROBABILISTIC_TASKS
-    HELP "Additional probabilistic task transformations"
-    SOURCES
-        probfd/tasks/domain_abstracted_task
-        probfd/tasks/domain_abstracted_task_factory
-        probfd/tasks/modified_goals_task
-        probfd/tasks/modified_operator_costs_task
-    CORE_PLUGIN
-)
-
-fast_downward_plugin(
-    NAME BISIMULATION_CORE
-    HELP "bisimulation_core"
-    SOURCES
-        probfd/bisimulation/bisimilar_state_space
-        probfd/bisimulation/engine_interfaces
-    DEPENDS MDP
-    DEPENDENCY_ONLY
-)
-
-fast_downward_plugin(
-    NAME ACYCLIC_VALUE_ITERATION_SOLVER
-    HELP "acyclic_vi"
-    SOURCES
-        probfd/solvers/acyclic_vi
-    DEPENDS MDP
-)
-
-fast_downward_plugin(
-    NAME TOPOLOGICAL_VALUE_ITERATION_SOLVER
-    HELP "topological_vi"
-    SOURCES
-        probfd/solvers/topological_vi
-    DEPENDS MDP
-)
-
-fast_downward_plugin(
-    NAME INTERVAL_ITERATION_SOLVER
-    HELP "interval_iteration"
-    SOURCES
-        probfd/solvers/interval_iteration
-    DEPENDS MDP
-)
-
-fast_downward_plugin(
-    NAME IDUAL_SOLVER
-    HELP "idual & i2dual solvers"
-    SOURCES
-        probfd/solvers/idual
-        probfd/solvers/i2dual
-    DEPENDS MDP LP_SOLVER OCCUPATION_MEASURE_HEURISTICS
-)
-
-fast_downward_plugin(
-    NAME BISIMULATION_BASED_SOLVER
-    HELP "bisimulation_vi"
-    SOURCES
-        probfd/solvers/bisimulation_vi
-    DEPENDS BISIMULATION_CORE
-)
-
-fast_downward_plugin(
-    NAME MDP_HEURISTIC_SEARCH_BASE
-    HELP "mdp heuristic search core"
-    SOURCES
-        # Engine interface subcategories
-        probfd/engine_interfaces/subcategory
-
-        # Open Lists
-        probfd/open_lists/fifo_open_list_factory
-        probfd/open_lists/lifo_open_list_factory
-
-        probfd/open_lists/subcategory
-
-        # Transition Samplers
-        probfd/successor_sampler
-        probfd/successor_samplers/arbitrary_selector
-        probfd/successor_samplers/most_likely_selector
-        probfd/successor_samplers/uniform_successor_sampler
-        probfd/successor_samplers/vbiased_successor_sampler
-        probfd/successor_samplers/vdiff_successor_sampler
-
-        probfd/successor_samplers/arbitrary_selector_factory
-        probfd/successor_samplers/most_likely_selector_factory
-        probfd/successor_samplers/uniform_successor_sampler_factory
-        probfd/successor_samplers/random_successor_sampler_factory
-        probfd/successor_samplers/vbiased_successor_sampler_factory
-        probfd/successor_samplers/vdiff_successor_sampler_factory
-
-        probfd/successor_samplers/subcategory
-
-        # Policy Tiebreakers
-        probfd/policy_pickers/operator_id_tiebreaker
-        probfd/policy_pickers/random_tiebreaker
-        probfd/policy_pickers/vdiff_tiebreaker
-
-        probfd/policy_pickers/arbitrary_tiebreaker_factory
-        probfd/policy_pickers/operator_id_tiebreaker_factory
-        probfd/policy_pickers/random_tiebreaker_factory
-        probfd/policy_pickers/vdiff_tiebreaker_factory
-
-        probfd/policy_pickers/subcategory
-
-        # Successor Sorters
-        probfd/transition_sorters/vdiff_sorter
-        probfd/transition_sorters/vdiff_sorter_factory
-        probfd/transition_sorters/subcategory
-
-        # Base heuristic search solver
-        probfd/solvers/mdp_heuristic_search
-    DEPENDENCY_ONLY
-    DEPENDS MDP
-)
-
-fast_downward_plugin(
-    NAME AO_SEARCH
-    HELP "aostar implementations"
-    SOURCES
-        probfd/solvers/aostar
-        probfd/solvers/exhaustive_ao
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE BISIMULATION_CORE
-)
-
-fast_downward_plugin(
-    NAME EXHDFS
-    HELP "exhaustive heuristic depth-first search"
-    SOURCES
-        probfd/solvers/exhaustive_dfs
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE
-)
-
-fast_downward_plugin(
-    NAME LRTDP_SOLVER
-    HELP "lrtdp"
-    SOURCES
-        probfd/solvers/lrtdp
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE BISIMULATION_CORE
-)
-
-fast_downward_plugin(
-    NAME TRAP_AWARE_LRTDP_SOLVER
-    HELP "Trap-Aware LRTDP (TALRTDP)"
-    SOURCES
-        probfd/solvers/talrtdp
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE
-)
-
-fast_downward_plugin(
-    NAME TRAP_AWARE_DFHS_SOLVER
-    HELP "Trap-Aware DFHS (TADFHS)"
-    SOURCES
-        probfd/solvers/tadfhs
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE
-)
-
-fast_downward_plugin(
-    NAME TRAP_AWARE_TOPOLOGICAL_VALUE_ITERATION_SOLVER
-    HELP "Trap-Aware Topological Value Iteration"
-    SOURCES
-        probfd/solvers/ta_topological_vi
-    DEPENDS MDP
-)
-
-fast_downward_plugin(
-    NAME HDFS_SOLVERS
-    HELP "heuristic depth-first search"
-    SOURCES
-        probfd/solvers/hdfs
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE BISIMULATION_CORE
-)
-
-fast_downward_plugin(
-    NAME TASK_DEPENDENT_HEURISTIC
-    HELP "Heuristics depending on the input task"
-    SOURCES
-        probfd/heuristics/task_dependent_heuristic
-    DEPENDENCY_ONLY
-)
-
-fast_downward_plugin(
-    NAME DEADEND_PRUNING_HEURISTIC
-    HELP "Dead-end pruning heuristic"
-    SOURCES
-        probfd/heuristics/dead_end_pruning
-    DEPENDS SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
-)
-
-fast_downward_plugin(
-    NAME DETERMINIZATION_HEURISTIC
-    HELP "All-outcomes determinization heuristic"
-    SOURCES
-        probfd/heuristics/determinization_cost
-    DEPENDS SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
-)
-
-fast_downward_plugin(
-    NAME LP_BASED_HEURISTICS
-    HELP "Lp-based heuristic"
-    SOURCES
-        probfd/heuristics/lp_heuristic
-    DEPENDS MDP LP_SOLVER TASK_DEPENDENT_HEURISTIC
-)
-
-fast_downward_plugin(
-    NAME OCCUPATION_MEASURE_HEURISTICS
-    HELP "Occupation measure heuristics"
-    SOURCES
-        probfd/heuristics/occupation_measures/constraint_generator
-        probfd/heuristics/occupation_measures/hpom_constraints
-        probfd/heuristics/occupation_measures/hroc_constraints
-        probfd/heuristics/occupation_measures/higher_order_hpom_constraints
-        probfd/heuristics/occupation_measures/occupation_measure_heuristic
-        probfd/heuristics/occupation_measures/pho_constraints
-        probfd/heuristics/occupation_measures/subcategory
-    DEPENDS MDP LP_BASED_HEURISTICS
-)
-
-fast_downward_plugin(
-    NAME PROBABILITY_AWARE_PDBS
-    HELP "Probability-aware PDBs base classes"
-    SOURCES
-        probfd/heuristics/pdbs/engine_interfaces
-        probfd/heuristics/pdbs/match_tree
-        probfd/heuristics/pdbs/probability_aware_pattern_database
-        probfd/heuristics/pdbs/projection_operator
-        probfd/heuristics/pdbs/projection_state_space
-        probfd/heuristics/pdbs/state_rank
-        probfd/heuristics/pdbs/state_ranking_function
-    DEPENDS PDBS MDP SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
-    DEPENDENCY_ONLY
-)
-
-fast_downward_plugin(
-    NAME PPDBS_PATTERN_GENERATORS
-    HELP "Base classes for pattern collection generation for PPDBs"
-    SOURCES
-        probfd/heuristics/pdbs/pattern_information
-        probfd/heuristics/pdbs/pattern_collection_information
-        probfd/heuristics/pdbs/pattern_generator
-        probfd/heuristics/pdbs/pattern_collection_generator_multiple
-
-        probfd/heuristics/pdbs/subcollection_finder_factory
-        probfd/heuristics/pdbs/subcollection_finder
-        probfd/heuristics/pdbs/max_orthogonal_finder_factory
-        probfd/heuristics/pdbs/max_orthogonal_finder
-        probfd/heuristics/pdbs/trivial_finder_factory
-        probfd/heuristics/pdbs/trivial_finder
-        probfd/heuristics/pdbs/fully_additive_finder_factory
-        probfd/heuristics/pdbs/fully_additive_finder
-        probfd/heuristics/pdbs/trivial_finder
-        probfd/heuristics/pdbs/subcollections
-
-        probfd/heuristics/pdbs/projection_policy
-        probfd/heuristics/pdbs/utils
-    DEPENDS PROBABILITY_AWARE_PDBS CAUSAL_GRAPH MAX_CLIQUES
-    DEPENDENCY_ONLY
-)
-
-fast_downward_plugin(
-    NAME PPDBS_CLASSICAL_GENERATOR
-    HELP "Classical pattern collection generator adapter"
-    SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_classical
-    DEPENDS PPDBS_PATTERN_GENERATORS
-)
-
-fast_downward_plugin(
-    NAME PPDBS_HILLCLIMBING_GENERATOR
-    HELP "Hillclimbing pattern collection generator for PPDBs"
-    SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing
-    DEPENDS PPDBS_PATTERN_GENERATORS
-)
-
-fast_downward_plugin(
-    NAME PPDBS_CEGAR
-    HELP "Disjoint CEGAR pattern collection generator for PPDBs"
-    SOURCES
-        probfd/heuristics/pdbs/cegar/cegar
-        probfd/heuristics/pdbs/cegar/bfs_flaw_finder
-        probfd/heuristics/pdbs/cegar/pucs_flaw_finder
-        probfd/heuristics/pdbs/cegar/sampling_flaw_finder
-        probfd/heuristics/pdbs/cegar/flaw_finding_strategy
-    DEPENDS PPDBS_PATTERN_GENERATORS
-)
-
-fast_downward_plugin(
-    NAME PPDBS_DISJOINT_CEGAR_GENERATOR
-    HELP "Disjoint CEGAR pattern collection generator for PPDBs"
-    SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar
-    DEPENDS PPDBS_CEGAR
-)
-
-fast_downward_plugin(
-    NAME PPDBS_MULTIPLE_CEGAR_GENERATOR
-    HELP "Multiple CEGAR pattern collection generator for PPDBs"
-    SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar
-    DEPENDS PPDBS_CEGAR
-)
-
-fast_downward_plugin(
-    NAME PROBABILITY_AWARE_PDB_HEURISTIC
-    HELP "Probability-aware PDB heuristic"
-    SOURCES
-        probfd/heuristics/pdbs/probability_aware_pdb_heuristic
-    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
-)
-
-fast_downward_plugin(
-    NAME SCP_PDB_HEURISTIC
-    HELP "Saturated Cost-Partitioning heuristic for probability-aware PDBs"
-    SOURCES
-        probfd/heuristics/cost_partitioning/scp_heuristic
-
-    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
-)
-
-fast_downward_plugin(
-    NAME UCP_PDB_HEURISTIC
-    HELP "Uniform Cost-Partitioning heuristic for probability-aware PDBs"
-    SOURCES
-        probfd/heuristics/cost_partitioning/ucp_heuristic
-
-    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
-)
-
-fast_downward_plugin(
-    NAME GZOCP_PDB_HEURISTIC
-    HELP "Greedy Zero-One Cost-Partitioning heuristic for probability-aware PDBs"
-    SOURCES
-        probfd/heuristics/cost_partitioning/gzocp_heuristic
-
-    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
-)
-
-fast_downward_plugin(
-    NAME PROBABILISTIC_CARTESIAN
-    HELP "Plugin containing the code for CEGAR heuristics"
-    SOURCES
-        probfd/heuristics/cartesian/abstract_state
-        probfd/heuristics/cartesian/abstraction
-        probfd/heuristics/cartesian/adaptive_flaw_generator
-        probfd/heuristics/cartesian/additive_cartesian_heuristic
-        probfd/heuristics/cartesian/astar_flaw_generator
-        probfd/heuristics/cartesian/cartesian_heuristic_function
-        probfd/heuristics/cartesian/cegar
-        probfd/heuristics/cartesian/cost_saturation
-        probfd/heuristics/cartesian/flaw_generator
-        probfd/heuristics/cartesian/ilao_flaw_generator
-        probfd/heuristics/cartesian/probabilistic_transition
-        probfd/heuristics/cartesian/probabilistic_transition_system
-        probfd/heuristics/cartesian/split_selector
-        probfd/heuristics/cartesian/subtask_generators
-        probfd/heuristics/cartesian/utils
-    DEPENDS CEGAR ADDITIVE_HEURISTIC EXTRA_PROBABILISTIC_TASKS
 )
 
 fast_downward_add_plugin_sources(PLANNER_SOURCES)

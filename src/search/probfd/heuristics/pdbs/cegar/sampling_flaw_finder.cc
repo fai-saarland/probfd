@@ -9,13 +9,13 @@
 
 #include "probfd/distribution.h"
 
-#include "utils/collections.h"
-#include "utils/countdown_timer.h"
-#include "utils/rng.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/rng.h"
 
-#include "state_registry.h"
+#include "downward/state_registry.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <stack>
 

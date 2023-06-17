@@ -17,9 +17,9 @@
 
 #include "probfd/task_proxy.h"
 
-#include "state_registry.h"
+#include "downward/state_registry.h"
 
-#include "utils/timer.h"
+#include "downward/utils/timer.h"
 
 namespace probfd {
 namespace solvers {

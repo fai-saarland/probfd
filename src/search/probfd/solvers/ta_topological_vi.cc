@@ -8,7 +8,7 @@
 
 #include "probfd/engine_interfaces/evaluator.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {

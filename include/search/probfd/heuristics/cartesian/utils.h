@@ -1,11 +1,11 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_UTILS_H
 #define PROBFD_HEURISTICS_CARTESIAN_UTILS_H
 
-#include "cegar/cartesian_set.h"
+#include "downward/cegar/cartesian_set.h"
 
 #include "probfd/task_proxy.h"
 
-#include "cegar/utils.h"
+#include "downward/cegar/utils.h"
 
 #include <memory>
 #include <unordered_set>

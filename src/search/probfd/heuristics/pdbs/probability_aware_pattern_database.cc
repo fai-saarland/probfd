@@ -11,12 +11,12 @@
 
 #include "probfd/value_type.h"
 
-#include "pdbs/pattern_database.h"
+#include "downward/pdbs/pattern_database.h"
 
-#include "lp/lp_solver.h"
+#include "downward/lp/lp_solver.h"
 
-#include "utils/collections.h"
-#include "utils/countdown_timer.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/countdown_timer.h"
 
 #include <algorithm>
 #include <deque>

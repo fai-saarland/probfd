@@ -1,7 +1,7 @@
 #include "probfd/transition_sorters/vdiff_sorter_factory.h"
 #include "probfd/transition_sorters/vdiff_sorter.h"
 
-#include "plugins/options.h"
+#include "downward/plugins/options.h"
 
 namespace probfd {
 namespace transition_sorters {

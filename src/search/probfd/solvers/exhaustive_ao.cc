@@ -4,7 +4,7 @@
 
 #include "probfd/open_lists/task_open_list_factory.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace solvers {

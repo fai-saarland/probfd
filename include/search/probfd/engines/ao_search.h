@@ -5,7 +5,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "utils/countdown_timer.h"
+#include "downward/utils/countdown_timer.h"
 
 #include <limits>
 #include <queue>

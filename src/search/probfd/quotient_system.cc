@@ -1,6 +1,6 @@
 #include "probfd/quotient_system.h"
 
-#include "state_registry.h"
+#include "downward/state_registry.h"
 
 namespace probfd {
 namespace quotients {
