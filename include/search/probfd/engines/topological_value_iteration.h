@@ -120,7 +120,10 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
         {
             for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
                 transition.clear();
-                self->generate_successors(state_id, aops.back(), transition);
+                self->generate_action_transitions(
+                    state_id,
+                    aops.back(),
+                    transition);
 
                 if (!transition.is_dirac(state_id)) {
                     successor = transition.begin();
@@ -463,7 +466,7 @@ private:
         state_info.status = StateInfo::ONSTACK;
 
         std::vector<Action> aops;
-        this->generate_applicable_ops(state_id, aops);
+        this->generate_applicable_actions(state_id, aops);
         ++statistics_.expanded_states;
 
         if (aops.empty()) {
@@ -481,7 +484,10 @@ private:
         do {
             Action& current_op = aops.back();
 
-            this->generate_successors(state_id, aops.back(), transition);
+            this->generate_action_transitions(
+                state_id,
+                aops.back(),
+                transition);
 
             assert(!transition.empty());
 

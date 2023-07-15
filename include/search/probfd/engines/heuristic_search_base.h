@@ -254,7 +254,7 @@ public:
 
             // Push the successor traps.
             Distribution<StateID> successors;
-            this->generate_successors(state_id, *action, successors);
+            this->generate_action_transitions(state_id, *action, successors);
 
             for (const StateID succ_id : successors.support()) {
                 if (visited.insert(succ_id).second) {
@@ -383,7 +383,7 @@ public:
             return async_update(state_id, &result).value_changed;
         }
 
-        this->generate_successors(state_id, *a, result);
+        this->generate_action_transitions(state_id, *a, result);
         return false;
     }
 
@@ -679,7 +679,7 @@ private:
 
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> transitions;
-        this->generate_all_successors(state_id, aops, transitions);
+        this->generate_all_transitions(state_id, aops, transitions);
 
         assert(aops.size() == transitions.size());
 
@@ -749,7 +749,7 @@ private:
         std::vector<Distribution<StateID>>& transitions,
         std::vector<EngineValueType>& values)
     {
-        this->generate_all_successors(state_id, aops, transitions);
+        this->generate_all_transitions(state_id, aops, transitions);
 
         assert(aops.size() == transitions.size());
 

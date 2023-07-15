@@ -228,7 +228,10 @@ public:
                     Action action = qaction.action;
 
                     Distribution<StateID> successors;
-                    this->generate_successors(source_id, action, successors);
+                    this->generate_action_transitions(
+                        source_id,
+                        action,
+                        successors);
 
                     for (const StateID succ_id : successors.support()) {
                         parents[succ_id].insert(qaction);

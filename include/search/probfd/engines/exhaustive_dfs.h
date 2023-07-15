@@ -396,7 +396,7 @@ private:
     {
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> successors;
-        this->generate_all_successors(state_id, aops, successors);
+        this->generate_all_transitions(state_id, aops, successors);
         if (successors.empty()) {
             info.value = EngineValueType(info.state_cost);
             info.set_dead_end();

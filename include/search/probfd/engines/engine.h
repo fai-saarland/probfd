@@ -107,7 +107,8 @@ public:
      * @brief Output the list of applicable operators in the state with id
      * \p sid via \p ops.
      */
-    void generate_applicable_ops(StateID sid, std::vector<Action>& ops) const
+    void
+    generate_applicable_actions(StateID sid, std::vector<Action>& ops) const
     {
         state_space_->generate_applicable_actions(sid, ops);
     }
@@ -116,7 +117,7 @@ public:
      * @brief Output the successor distribution for the state with id \p sid
      * and applicable action \p a in \p successors .
      */
-    void generate_successors(
+    void generate_action_transitions(
         StateID sid,
         const Action& a,
         Distribution<StateID>& successors) const
@@ -132,7 +133,7 @@ public:
      * @param[out] successors - The ordered list of successor distributions for
      * all applicable actions.
      */
-    void generate_all_successors(
+    void generate_all_transitions(
         StateID sid,
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors) const

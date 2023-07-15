@@ -359,7 +359,7 @@ private:
 
         } else {
             QAction action = this->get_policy(state);
-            this->generate_successors(state, action, transition_);
+            this->generate_action_transitions(state, action, transition_);
             zero_cost = this->get_action_cost(state, action) == 0;
             enqueue(state, action, zero_cost);
         }

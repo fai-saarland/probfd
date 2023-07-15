@@ -130,7 +130,10 @@ private:
 
         ClearGuard _guard(this->aops_, this->transitions_);
 
-        this->generate_all_successors(stateid, this->aops_, this->transitions_);
+        this->generate_all_transitions(
+            stateid,
+            this->aops_,
+            this->transitions_);
 
         assert(this->aops_.size() == this->transitions_.size());
 

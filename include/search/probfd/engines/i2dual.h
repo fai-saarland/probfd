@@ -233,12 +233,12 @@ public:
 
                 // generate transitions
                 ClearGuard _guard_a(aops_);
-                this->generate_applicable_ops(state_id, aops_);
+                this->generate_applicable_actions(state_id, aops_);
 
                 for (const Action& act : aops_) {
                     ClearGuard _guard_s(succs_);
 
-                    this->generate_successors(state_id, act, succs_);
+                    this->generate_action_transitions(state_id, act, succs_);
 
                     if (succs_.is_dirac(state_id)) {
                         continue;

@@ -196,7 +196,7 @@ public:
                 }
 
                 ClearGuard _guard(aops, transitions);
-                this->generate_all_successors(state_id, aops, transitions);
+                this->generate_all_transitions(state_id, aops, transitions);
 
                 for (unsigned j = 0; j < transitions.size(); ++j) {
                     Distribution<StateID>& transition = transitions[j];

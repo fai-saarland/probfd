@@ -123,7 +123,7 @@ private:
 
                 ClearGuard _guard(this->aops_, this->transitions_);
 
-                this->generate_all_successors(
+                this->generate_all_transitions(
                     state,
                     this->aops_,
                     this->transitions_);

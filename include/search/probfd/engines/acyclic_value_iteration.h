@@ -85,7 +85,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
             auto& next_action = remaining_aops.back();
             t_value = engine.get_action_cost(state, next_action);
             transition.clear();
-            engine.generate_successors(state, next_action, transition);
+            engine.generate_action_transitions(state, next_action, transition);
             successor = transition.begin();
         }
 
@@ -107,7 +107,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
             auto& next_action = remaining_aops.back();
             t_value = engine.get_action_cost(state, next_action);
             transition.clear();
-            engine.generate_successors(state, next_action, transition);
+            engine.generate_action_transitions(state, next_action, transition);
             successor = transition.begin();
 
             return true;
@@ -295,7 +295,7 @@ private:
         }
 
         std::vector<Action> remaining_aops;
-        this->generate_applicable_ops(state_id, remaining_aops);
+        this->generate_applicable_actions(state_id, remaining_aops);
         if (remaining_aops.empty()) {
             ++statistics_.terminal_states;
             return false;
