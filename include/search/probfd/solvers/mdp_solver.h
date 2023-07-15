@@ -7,6 +7,8 @@
 
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
+#include "probfd/engine_interfaces/types.h"
+
 #include "probfd/progress_report.h"
 #include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
@@ -22,7 +24,7 @@ class Feature;
 } // namespace plugins
 
 namespace probfd {
-class TaskStateSpace;
+class InducedTaskStateSpace;
 
 /// This namespace contains the solver plugins for various search engines.
 namespace solvers {
@@ -35,7 +37,7 @@ protected:
     const std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;
 
-    std::unique_ptr<TaskStateSpace> state_space_;
+    std::unique_ptr<InducedTaskStateSpace> state_space_;
     engine_interfaces::CostFunction<State, OperatorID>* cost_function_;
 
     ProgressReport progress_;

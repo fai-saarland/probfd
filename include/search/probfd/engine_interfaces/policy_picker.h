@@ -84,14 +84,4 @@ public:
 } // namespace engine_interfaces
 } // namespace probfd
 
-class State;
-class OperatorID;
-
-namespace probfd {
-
-/// Type alias for policy pickers for probabilistic planning tasks.
-using TaskPolicyPicker = engine_interfaces::PolicyPicker<State, OperatorID>;
-
-} // namespace probfd
-
 #endif // __POLICY_PICKER_H__

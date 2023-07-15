@@ -5,9 +5,8 @@
 #include "probfd/heuristics/pdbs/projection_operator.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
-
-#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include <limits>
 #include <vector>

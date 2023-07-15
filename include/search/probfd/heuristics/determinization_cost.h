@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_DETERMINIZATION_COST_H
 
 #include "probfd/engine_interfaces/evaluator.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include <memory>
 

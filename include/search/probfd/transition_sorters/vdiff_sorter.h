@@ -2,6 +2,7 @@
 #define PROBFD_TRANSITION_SORTERS_VDIFF_SORTER_H
 
 #include "probfd/engine_interfaces/transition_sorter.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "probfd/value_type.h"
 

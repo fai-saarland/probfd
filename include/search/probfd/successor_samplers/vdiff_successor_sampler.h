@@ -2,6 +2,7 @@
 #define PROBFD_SUCCESSOR_SAMPLERS_VDIFF_SUCCESSOR_SAMPLER_H
 
 #include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "probfd/distribution.h"
 

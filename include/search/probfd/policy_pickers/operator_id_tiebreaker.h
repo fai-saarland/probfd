@@ -3,6 +3,8 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
+#include "probfd/engine_interfaces/types.h"
+
 #include "downward/operator_id.h"
 
 namespace plugins {
@@ -21,7 +23,7 @@ public:
     explicit OperatorIdTiebreaker(bool stable_policy, int ascending);
 
     int pick_index(
-        engine_interfaces::StateSpace<State, OperatorID>& state_space,
+        TaskStateSpace& state_space,
         StateID state,
         std::optional<OperatorID> prev_policy,
         const std::vector<OperatorID>& action_choices,

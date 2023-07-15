@@ -12,9 +12,8 @@ VBiasedSuccessorSamplerFactory::VBiasedSuccessorSamplerFactory(
 {
 }
 
-std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
-VBiasedSuccessorSamplerFactory::create_sampler(
-    engine_interfaces::StateSpace<State, OperatorID>*)
+std::shared_ptr<TaskSuccessorSampler>
+VBiasedSuccessorSamplerFactory::create_sampler(TaskStateSpace*)
 {
     return std::make_shared<VBiasedSuccessorSampler>(rng);
 }

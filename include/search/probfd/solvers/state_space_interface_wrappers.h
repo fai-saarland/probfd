@@ -47,18 +47,13 @@ struct translate_action<false, Op> {
 /* SuccessorSampler */
 
 template <>
-struct Wrapper<
-    false,
-    true,
-    std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>> {
-
+struct Wrapper<false, true, std::shared_ptr<TaskSuccessorSampler>> {
     using type = std::shared_ptr<engine_interfaces::SuccessorSampler<
         quotients::QuotientAction<OperatorID>>>;
 
     type operator()(
         quotients::QuotientSystem<State, OperatorID>* q,
-        std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>> t)
-        const
+        std::shared_ptr<TaskSuccessorSampler> t) const
     {
         return std::make_shared<
             quotients::RepresentativeSuccessorSampler<State>>(q, t);
@@ -66,15 +61,11 @@ struct Wrapper<
 };
 
 template <bool Fret>
-struct Wrapper<
-    true,
-    Fret,
-    std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>> {
+struct Wrapper<true, Fret, std::shared_ptr<TaskSuccessorSampler>> {
     using type = std::shared_ptr<engine_interfaces::SuccessorSampler<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>;
 
-    type operator()(
-        std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>) const
+    type operator()(std::shared_ptr<TaskSuccessorSampler>) const
     {
         // HACK to access the global rng...
         plugins::Options opts;
@@ -91,32 +82,24 @@ struct Wrapper<
 /* OpenList */
 
 template <>
-struct Wrapper<
-    false,
-    true,
-    std::shared_ptr<engine_interfaces::OpenList<OperatorID>>> {
-
+struct Wrapper<false, true, std::shared_ptr<TaskOpenList>> {
     using type = std::shared_ptr<
         engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>;
 
     type operator()(
         quotients::QuotientSystem<State, OperatorID>* q,
-        std::shared_ptr<engine_interfaces::OpenList<OperatorID>> t) const
+        std::shared_ptr<TaskOpenList> t) const
     {
         return std::make_shared<quotients::RepresentativeOpenList<State>>(q, t);
     }
 };
 
 template <bool Fret>
-struct Wrapper<
-    true,
-    Fret,
-    std::shared_ptr<engine_interfaces::OpenList<OperatorID>>> {
+struct Wrapper<true, Fret, std::shared_ptr<TaskOpenList>> {
     using type = std::shared_ptr<engine_interfaces::OpenList<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>;
 
-    type
-    operator()(std::shared_ptr<engine_interfaces::OpenList<OperatorID>>) const
+    type operator()(std::shared_ptr<TaskOpenList>) const
     {
         return std::make_shared<open_lists::LifoOpenList<
             typename translate_action<Fret, bisimulation::QuotientAction>::

@@ -2,6 +2,7 @@
 #define PROBFD_POLICY_PICKERS_STABLE_POLICY_PICKER_H
 
 #include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "probfd/distribution.h"
 

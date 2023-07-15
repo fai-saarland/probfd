@@ -2,6 +2,8 @@
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 
+#include "probfd/engine_interfaces/cost_function.h"
+
 #include "downward/utils/logging.h"
 
 #include "downward/plugins/plugin.h"

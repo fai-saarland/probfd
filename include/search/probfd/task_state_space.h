@@ -2,6 +2,7 @@
 #define PROBFD_TASK_STATE_SPACE_H
 
 #include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "probfd/storage/per_state_storage.h"
 #include "probfd/storage/segmented_memory_pool.h"
@@ -26,7 +27,7 @@ class Evaluator;
 namespace probfd {
 class ProbabilisticTask;
 
-class TaskStateSpace : public engine_interfaces::StateSpace<State, OperatorID> {
+class InducedTaskStateSpace : public TaskStateSpace {
 protected:
     struct Statistics {
         unsigned long long single_transition_generator_calls = 0;
@@ -59,7 +60,7 @@ protected:
     Statistics statistics_;
 
 public:
-    TaskStateSpace(
+    InducedTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators = {});

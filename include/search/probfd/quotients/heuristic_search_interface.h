@@ -73,13 +73,12 @@ class RepresentativeSuccessorSampler
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
     QuotientSystem* quotient_;
-    std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>> original_;
+    std::shared_ptr<TaskSuccessorSampler> original_;
 
 public:
     RepresentativeSuccessorSampler(
         QuotientSystem* quotient,
-        std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
-            original)
+        std::shared_ptr<TaskSuccessorSampler> original)
         : quotient_(quotient)
         , original_(original)
     {
@@ -108,12 +107,12 @@ class RepresentativeOpenList
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
     QuotientSystem* quotient_;
-    std::shared_ptr<engine_interfaces::OpenList<OperatorID>> original_;
+    std::shared_ptr<TaskOpenList> original_;
 
 public:
     RepresentativeOpenList(
         QuotientSystem* quotient,
-        std::shared_ptr<engine_interfaces::OpenList<OperatorID>> original)
+        std::shared_ptr<TaskOpenList> original)
         : quotient_(quotient)
         , original_(original)
     {

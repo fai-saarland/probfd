@@ -60,7 +60,7 @@ class QuotientSystem<State, OperatorID>
     const bool cache_;
 
     segmented_vector::SegmentedVector<QuotientInformation> state_infos_;
-    engine_interfaces::StateSpace<State, OperatorID>* state_space_;
+    InducedTaskStateSpace* state_space_;
 
     std::unique_ptr<DefaultQuotientSystem<State, OperatorID>> fallback_;
 
@@ -92,7 +92,7 @@ public:
     static_assert(std::input_iterator<const_iterator>);
 
     explicit QuotientSystem(
-        engine_interfaces::StateSpace<State, OperatorID>* state_space);
+        InducedTaskStateSpace* state_space);
 
     StateID get_state_id(param_type<State> s) override;
     State get_state(StateID sid) override;
@@ -112,7 +112,7 @@ public:
 
     unsigned quotient_size(StateID state_id) const;
 
-    engine_interfaces::StateSpace<State, OperatorID>* get_parent_state_space();
+    InducedTaskStateSpace* get_parent_state_space();
 
     const_iterator begin() const;
     const_iterator end() const;
@@ -277,15 +277,15 @@ public:
 private:
     const QuotientInformation* get_infos(StateID sid) const;
 
-    engine_interfaces::StateSpace<State, OperatorID>::CacheEntry&
+    InducedTaskStateSpace::CacheEntry&
     lookup(StateID sid);
 
-    const engine_interfaces::StateSpace<State, OperatorID>::CacheEntry&
+    const InducedTaskStateSpace::CacheEntry&
     lookup(StateID sid) const;
 
     void update_cache(
         const std::vector<OperatorID>& exclude,
-        engine_interfaces::StateSpace<State, OperatorID>::CacheEntry& entry,
+        InducedTaskStateSpace::CacheEntry& entry,
         const StateID rid,
         const std::unordered_set<StateID>& quotient_states);
 

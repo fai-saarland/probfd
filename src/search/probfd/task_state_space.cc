@@ -13,7 +13,7 @@
 
 namespace probfd {
 
-TaskStateSpace::TaskStateSpace(
+InducedTaskStateSpace::InducedTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     const std::vector<std::shared_ptr<Evaluator>>& path_dependent_evaluators)
     : task_proxy(*task)
@@ -23,17 +23,17 @@ TaskStateSpace::TaskStateSpace(
 {
 }
 
-StateID TaskStateSpace::get_state_id(const State& state)
+StateID InducedTaskStateSpace::get_state_id(const State& state)
 {
     return state.get_id();
 }
 
-State TaskStateSpace::get_state(StateID state_id)
+State InducedTaskStateSpace::get_state(StateID state_id)
 {
     return state_registry_.lookup_state(::StateID(state_id));
 }
 
-void TaskStateSpace::generate_applicable_actions(
+void InducedTaskStateSpace::generate_applicable_actions(
     StateID state_id,
     std::vector<OperatorID>& result)
 {
@@ -44,7 +44,7 @@ void TaskStateSpace::generate_applicable_actions(
     statistics_.generated_operators += result.size();
 }
 
-void TaskStateSpace::generate_action_transitions(
+void InducedTaskStateSpace::generate_action_transitions(
     StateID state_id,
     OperatorID op_id,
     Distribution<StateID>& result)
@@ -56,7 +56,7 @@ void TaskStateSpace::generate_action_transitions(
     statistics_.generated_states += result.size();
 }
 
-void TaskStateSpace::generate_all_transitions(
+void InducedTaskStateSpace::generate_all_transitions(
     StateID state_id,
     std::vector<OperatorID>& aops,
     std::vector<Distribution<StateID>>& successors)
@@ -74,22 +74,22 @@ void TaskStateSpace::generate_all_transitions(
     statistics_.generated_operators += aops.size();
 }
 
-const State& TaskStateSpace::get_initial_state()
+const State& InducedTaskStateSpace::get_initial_state()
 {
     return state_registry_.get_initial_state();
 }
 
-size_t TaskStateSpace::get_num_registered_states() const
+size_t InducedTaskStateSpace::get_num_registered_states() const
 {
     return state_registry_.size();
 }
 
-void TaskStateSpace::print_statistics(std::ostream& out) const
+void InducedTaskStateSpace::print_statistics(std::ostream& out) const
 {
     statistics_.print(out);
 }
 
-void TaskStateSpace::Statistics::print(std::ostream& out) const
+void InducedTaskStateSpace::Statistics::print(std::ostream& out) const
 {
     out << "  Applicable operators: " << generated_operators << " generated, "
         << computed_operators << " computed, " << aops_generator_calls
@@ -101,7 +101,7 @@ void TaskStateSpace::Statistics::print(std::ostream& out) const
         << std::endl;
 }
 
-void TaskStateSpace::compute_applicable_operators(
+void InducedTaskStateSpace::compute_applicable_operators(
     const State& s,
     std::vector<OperatorID>& ops)
 {
@@ -111,7 +111,7 @@ void TaskStateSpace::compute_applicable_operators(
     statistics_.computed_operators += ops.size();
 }
 
-void TaskStateSpace::compute_successor_states(
+void InducedTaskStateSpace::compute_successor_states(
     const State& state,
     OperatorID op_id,
     std::vector<StateID>& succs)
@@ -136,7 +136,7 @@ void TaskStateSpace::compute_successor_states(
     statistics_.computed_successors += num_outcomes;
 }
 
-size_t TaskStateSpace::compute_successor_dist(
+size_t InducedTaskStateSpace::compute_successor_dist(
     const State& state,
     OperatorID op_id,
     Distribution<StateID>& successor_dist)

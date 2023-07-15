@@ -29,7 +29,7 @@ MDPSolver::MDPSolver(const plugins::Options& opts)
                     task,
                     opts.get_list<std::shared_ptr<Evaluator>>(
                         "path_dependent_evaluators"))
-              : new TaskStateSpace(
+              : new InducedTaskStateSpace(
                     task,
                     opts.get_list<std::shared_ptr<Evaluator>>(
                         "path_dependent_evaluators")))

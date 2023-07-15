@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/engine_interfaces/cost_function.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "probfd/task_proxy.h"
 

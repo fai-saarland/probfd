@@ -1,7 +1,7 @@
 #ifndef PROBFD_COST_MODEL_H
 #define PROBFD_COST_MODEL_H
 
-#include "probfd/engine_interfaces/cost_function.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "probfd/interval.h"
 

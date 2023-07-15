@@ -21,9 +21,8 @@ public:
     explicit VDiffSorterFactory(const plugins::Options&);
     ~VDiffSorterFactory() override = default;
 
-    std::shared_ptr<engine_interfaces::TransitionSorter<OperatorID>>
-    create_transition_sorter(
-        engine_interfaces::StateSpace<State, OperatorID>* state_space) override;
+    std::shared_ptr<TaskTransitionSorter>
+    create_transition_sorter(TaskStateSpace* state_space) override;
 };
 
 } // namespace transition_sorters

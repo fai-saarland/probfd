@@ -1,10 +1,12 @@
 #include "probfd/cost_models/maxprob_cost_model.h"
 
-#include "downward/task_utils/task_properties.h"
+#include "probfd/engine_interfaces/cost_function.h"
 
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/task_proxy.h"
+
+#include "downward/task_utils/task_properties.h"
 
 #include "downward/operator_id.h"
 

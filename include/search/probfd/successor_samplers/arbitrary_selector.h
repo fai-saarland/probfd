@@ -2,6 +2,7 @@
 #define PROBFD_SUCCESSOR_SAMPLERS_ARBITRARY_SELECTOR_H
 
 #include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "downward/operator_id.h"
 

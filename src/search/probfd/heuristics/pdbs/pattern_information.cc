@@ -2,6 +2,8 @@
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
+#include "probfd/engine_interfaces/cost_function.h"
+
 #include <cassert>
 
 using namespace std;

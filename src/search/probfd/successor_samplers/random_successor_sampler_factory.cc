@@ -20,9 +20,8 @@ void RandomSuccessorSamplerFactory::add_options_to_feature(
     utils::add_rng_options(feature);
 }
 
-std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
-RandomSuccessorSamplerFactory::create_sampler(
-    engine_interfaces::StateSpace<State, OperatorID>*)
+std::shared_ptr<TaskSuccessorSampler>
+RandomSuccessorSamplerFactory::create_sampler(TaskStateSpace*)
 {
     return std::make_shared<RandomSuccessorSampler<OperatorID>>(rng);
 }

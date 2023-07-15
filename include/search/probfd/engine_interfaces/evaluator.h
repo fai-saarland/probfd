@@ -60,13 +60,4 @@ public:
 } // namespace engine_interfaces
 } // namespace probfd
 
-class State;
-
-namespace probfd {
-
-/// Type alias for evaluators of planning tasks.
-using TaskEvaluator = engine_interfaces::Evaluator<State>;
-
-} // namespace probfd
-
 #endif // __STATE_EVALUATOR_H__

@@ -5,7 +5,7 @@
 
 namespace probfd {
 
-class CachingTaskStateSpace : public TaskStateSpace {
+class CachingTaskStateSpace : public InducedTaskStateSpace {
     struct CacheEntry {
         bool is_initialized() const
         {

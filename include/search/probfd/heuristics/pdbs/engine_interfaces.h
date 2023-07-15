@@ -3,6 +3,7 @@
 
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "probfd/heuristics/pdbs/state_rank.h"
 

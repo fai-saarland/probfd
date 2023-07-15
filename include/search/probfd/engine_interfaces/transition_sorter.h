@@ -45,13 +45,4 @@ public:
 } // namespace engine_interfaces
 } // namespace probfd
 
-class OperatorID;
-
-namespace probfd {
-
-/// Type alias for TransitionSorters for probabilistic planning tasks.
-using TaskTransitionSorter = engine_interfaces::TransitionSorter<OperatorID>;
-
-} // namespace probfd
-
 #endif // __SUCCESSOR_SORTING_H__

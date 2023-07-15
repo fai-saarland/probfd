@@ -3,6 +3,8 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
+#include "probfd/engine_interfaces/types.h"
+
 #include <memory>
 
 namespace plugins {
@@ -27,7 +29,7 @@ public:
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     int pick_index(
-        engine_interfaces::StateSpace<State, OperatorID>& state_space,
+        TaskStateSpace& state_space,
         StateID state,
         std::optional<OperatorID> prev_policy,
         const std::vector<OperatorID>& action_choices,

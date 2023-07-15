@@ -79,16 +79,4 @@ public:
 } // namespace engine_interfaces
 } // namespace probfd
 
-// Convenience type aliases
-
-class State;
-
-namespace probfd {
-/// Type alias for NewStateObservers for probabilistic planning tasks.
-using TaskNewStateObserver = engine_interfaces::NewStateObserver<State>;
-
-/// Type alias for NewStateObserverLists for probabilistic planning tasks.
-using TaskNewStateObserverList = engine_interfaces::NewStateObserverList<State>;
-} // namespace probfd
-
 #endif // __NEW_STATE_HANDLER_H__

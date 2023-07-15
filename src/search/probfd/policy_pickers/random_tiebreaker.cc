@@ -26,7 +26,7 @@ RandomTiebreaker::RandomTiebreaker(
 }
 
 int RandomTiebreaker::pick_index(
-    engine_interfaces::StateSpace<State, OperatorID>&,
+    TaskStateSpace&,
     StateID,
     std::optional<OperatorID>,
     const std::vector<OperatorID>& options,

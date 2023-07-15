@@ -52,7 +52,7 @@ StateID QuotientSystem<State, OperatorID>::const_iterator::operator*() const
 }
 
 QuotientSystem<State, OperatorID>::QuotientSystem(
-    engine_interfaces::StateSpace<State, OperatorID>* state_space)
+    InducedTaskStateSpace* state_space)
     : cache_(state_space->caching_)
     , state_space_(state_space)
     , fallback_(nullptr)
@@ -65,7 +65,7 @@ QuotientSystem<State, OperatorID>::QuotientSystem(
     }
 }
 
-engine_interfaces::StateSpace<State, OperatorID>*
+InducedTaskStateSpace*
 QuotientSystem<State, OperatorID>::get_parent_state_space()
 {
     return state_space_;
@@ -324,7 +324,7 @@ QuotientSystem<State, OperatorID>::lookup(StateID sid)
 
 void QuotientSystem<State, OperatorID>::update_cache(
     const std::vector<OperatorID>& exclude,
-    engine_interfaces::StateSpace<State, OperatorID>::CacheEntry& entry,
+    InducedTaskStateSpace::CacheEntry& entry,
     const StateID rid,
     const std::unordered_set<StateID>& quotient_states)
 {

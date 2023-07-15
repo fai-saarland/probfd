@@ -19,7 +19,7 @@ namespace probfd {
 CachingTaskStateSpace::CachingTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     const std::vector<std::shared_ptr<Evaluator>>& path_dependent_evaluators)
-    : TaskStateSpace(task, path_dependent_evaluators)
+    : InducedTaskStateSpace(task, path_dependent_evaluators)
 {
 }
 
@@ -211,7 +211,7 @@ CachingTaskStateSpace::lookup(StateID sid, bool& setup)
 
 void CachingTaskStateSpace::print_statistics(std::ostream& out) const
 {
-    TaskStateSpace::print_statistics(out);
+    InducedTaskStateSpace::print_statistics(out);
     out << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
         << std::endl;
 }

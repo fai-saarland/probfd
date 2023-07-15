@@ -15,9 +15,8 @@ VDiffSuccessorSamplerFactory::VDiffSuccessorSamplerFactory(
 {
 }
 
-std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
-VDiffSuccessorSamplerFactory::create_sampler(
-    engine_interfaces::StateSpace<State, OperatorID>*)
+std::shared_ptr<TaskSuccessorSampler>
+VDiffSuccessorSamplerFactory::create_sampler(TaskStateSpace*)
 {
     return std::make_shared<VDiffSuccessorSampler>(rng, prefer_large_gaps);
 }

@@ -123,7 +123,7 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     heuristics::BlindEvaluator<State> value_init;
     cost_models::SSPCostModel cost_model;
 
-    TaskStateSpace state_space(task);
+    InducedTaskStateSpace state_space(task);
     policy_pickers::ArbitraryTiebreaker<State, OperatorID> policy_chooser(true);
 
     heuristic_depth_first_search::
@@ -174,7 +174,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
     heuristics::BlindEvaluator<State> value_init;
     cost_models::SSPCostModel cost_model;
 
-    TaskStateSpace state_space(task);
+    InducedTaskStateSpace state_space(task);
     std::shared_ptr<policy_pickers::ArbitraryTiebreaker<State, OperatorID>>
         policy_chooser(
             new policy_pickers::ArbitraryTiebreaker<State, OperatorID>(true));

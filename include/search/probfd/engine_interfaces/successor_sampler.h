@@ -52,11 +52,4 @@ public:
 } // namespace engine_interfaces
 } // namespace probfd
 
-class OperatorID;
-
-namespace probfd {
-// Type alias for successor samplers for probabilistic planning tasks.
-using TaskSuccessorSampler = engine_interfaces::SuccessorSampler<OperatorID>;
-} // namespace probfd
-
 #endif // __SUCCESSOR_SAMPLER_H__

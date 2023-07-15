@@ -10,8 +10,8 @@ class MostLikelySuccessorSelectorFactory : public TaskSuccessorSamplerFactory {
 public:
     ~MostLikelySuccessorSelectorFactory() override = default;
 
-    std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
-    create_sampler(engine_interfaces::StateSpace<State, OperatorID>*) override;
+    std::shared_ptr<TaskSuccessorSampler>
+    create_sampler(TaskStateSpace*) override;
 };
 
 } // namespace successor_samplers

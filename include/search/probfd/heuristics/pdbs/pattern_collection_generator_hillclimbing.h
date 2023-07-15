@@ -2,11 +2,9 @@
 #define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
 
 #include "probfd/heuristics/pdbs/pattern_collection_generator.h"
-
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/evaluator.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "downward/utils/logging.h"
 

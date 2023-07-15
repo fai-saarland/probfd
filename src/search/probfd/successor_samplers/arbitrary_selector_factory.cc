@@ -4,9 +4,8 @@
 namespace probfd {
 namespace successor_samplers {
 
-std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
-ArbitrarySuccessorSelectorFactory::create_sampler(
-    engine_interfaces::StateSpace<State, OperatorID>*)
+std::shared_ptr<TaskSuccessorSampler>
+ArbitrarySuccessorSelectorFactory::create_sampler(TaskStateSpace*)
 {
     return std::make_shared<ArbitrarySuccessorSelector>();
 }

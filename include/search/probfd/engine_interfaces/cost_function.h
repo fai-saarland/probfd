@@ -149,15 +149,4 @@ public:
 } // namespace engine_interfaces
 } // namespace probfd
 
-class State;
-class OperatorID;
-
-namespace probfd {
-
-/// Type alias for cost functions of probabilistic planning tasks.
-using TaskCostFunction =
-    engine_interfaces::SimpleCostFunction<State, OperatorID>;
-
-} // namespace probfd
-
 #endif

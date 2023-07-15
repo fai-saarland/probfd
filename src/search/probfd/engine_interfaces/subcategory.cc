@@ -5,6 +5,7 @@
 #include "probfd/engine_interfaces/policy_picker.h"
 #include "probfd/engine_interfaces/successor_sampler.h"
 #include "probfd/engine_interfaces/transition_sorter.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "downward/operator_id.h"
 #include "downward/task_proxy.h"

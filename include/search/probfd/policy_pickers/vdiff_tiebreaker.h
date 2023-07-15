@@ -3,6 +3,8 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
+#include "probfd/engine_interfaces/types.h"
+
 #include "downward/operator_id.h"
 
 namespace plugins {
@@ -20,7 +22,7 @@ public:
     explicit VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps_);
 
     int pick_index(
-        engine_interfaces::StateSpace<State, OperatorID>& state_space,
+        TaskStateSpace& state_space,
         StateID state,
         std::optional<OperatorID> prev_policy,
         const std::vector<OperatorID>& action_choices,

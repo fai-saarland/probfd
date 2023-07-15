@@ -49,10 +49,4 @@ public:
 } // namespace engine_interfaces
 } // namespace probfd
 
-class OperatorID;
-
-namespace probfd {
-using TaskOpenList = engine_interfaces::OpenList<OperatorID>;
-}
-
 #endif // __OPEN_LIST_H__

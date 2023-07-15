@@ -12,9 +12,8 @@ UniformSuccessorSamplerFactory::UniformSuccessorSamplerFactory(
 {
 }
 
-std::shared_ptr<engine_interfaces::SuccessorSampler<OperatorID>>
-UniformSuccessorSamplerFactory::create_sampler(
-    engine_interfaces::StateSpace<State, OperatorID>*)
+std::shared_ptr<TaskSuccessorSampler>
+UniformSuccessorSamplerFactory::create_sampler(TaskStateSpace*)
 {
     return std::make_shared<UniformSuccessorSampler>(rng);
 }

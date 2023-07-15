@@ -11,9 +11,8 @@ VDiffSorterFactory::VDiffSorterFactory(const plugins::Options& opts)
 {
 }
 
-std::shared_ptr<engine_interfaces::TransitionSorter<OperatorID>>
-VDiffSorterFactory::create_transition_sorter(
-    engine_interfaces::StateSpace<State, OperatorID>*)
+std::shared_ptr<TaskTransitionSorter>
+VDiffSorterFactory::create_transition_sorter(TaskStateSpace*)
 {
     return std::make_unique<VDiffSorter>(favor_large_gaps_);
 }

@@ -15,6 +15,9 @@
 #include <optional>
 #include <vector>
 
+class State;
+class OperatorID;
+
 namespace probfd {
 
 /// This namespace contains implementations of SSP search algorithms.

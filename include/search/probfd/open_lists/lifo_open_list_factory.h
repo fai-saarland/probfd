@@ -10,8 +10,8 @@ class LifoOpenListFactory : public TaskOpenListFactory {
 public:
     ~LifoOpenListFactory() override = default;
 
-    std::shared_ptr<engine_interfaces::OpenList<OperatorID>> create_open_list(
-        engine_interfaces::StateSpace<State, OperatorID>* state_space) override;
+    std::shared_ptr<TaskOpenList>
+    create_open_list(TaskStateSpace* state_space) override;
 };
 
 } // namespace open_lists

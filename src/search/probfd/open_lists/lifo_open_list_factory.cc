@@ -6,9 +6,8 @@
 namespace probfd {
 namespace open_lists {
 
-std::shared_ptr<engine_interfaces::OpenList<OperatorID>>
-LifoOpenListFactory::create_open_list(
-    engine_interfaces::StateSpace<State, OperatorID>*)
+std::shared_ptr<TaskOpenList>
+LifoOpenListFactory::create_open_list(TaskStateSpace*)
 {
     return std::make_shared<LifoOpenList<OperatorID>>();
 }

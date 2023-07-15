@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_TASK_DEPENDENT_HEURISTIC_H
 
 #include "probfd/engine_interfaces/evaluator.h"
+#include "probfd/engine_interfaces/types.h"
 
 #include "probfd/task_proxy.h"
 
