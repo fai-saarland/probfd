@@ -384,7 +384,7 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
-    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    utils::RandomNumberGenerator& rng,
     bool wildcard) const
 {
     using PredecessorList =
@@ -463,14 +463,14 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
 
     while (!open.empty()) {
         // Choose a random successor
-        auto it = rng->choose(open);
+        auto it = rng.choose(open);
         StateRank s = *it;
 
         std::swap(*it, open.back());
         open.pop_back();
 
         // Consider predecessors in random order
-        rng->shuffle(predecessors[s]);
+        rng.shuffle(predecessors[s]);
 
         for (const auto& [pstate, sel_op] : predecessors[s]) {
             if (closed.insert(pstate).second) {
@@ -496,7 +496,7 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
                         equivalent_operators.end());
                 } else {
                     (*policy)[pstate].push_back(
-                        *rng->choose(equivalent_operators));
+                        *rng.choose(equivalent_operators));
                 }
             }
         }
@@ -510,7 +510,7 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
     StateRank initial_state,
-    const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+    utils::RandomNumberGenerator& rng,
     bool wildcard) const
 {
     ProjectionPolicy* policy =
@@ -546,7 +546,7 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
         }
 
         // Look at the (greedy) operators in random order.
-        rng->shuffle(aops);
+        rng.shuffle(aops);
 
         const ProjectionOperator* greedy_operator = nullptr;
         std::vector<StateRank> greedy_successors;
@@ -598,7 +598,7 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
                 equivalent_operators.begin(),
                 equivalent_operators.end());
         } else {
-            (*policy)[s].push_back(*rng->choose(equivalent_operators));
+            (*policy)[s].push_back(*rng.choose(equivalent_operators));
         }
 
         assert(!(*policy)[s].empty());

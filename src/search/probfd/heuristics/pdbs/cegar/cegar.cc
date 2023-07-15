@@ -53,7 +53,7 @@ PDBInfo::PDBInfo(
           *state_space,
           cost_function,
           initial_state,
-          rng,
+          *rng,
           wildcard))
 {
 }
@@ -88,7 +88,7 @@ PDBInfo::PDBInfo(
           *state_space,
           cost_function,
           initial_state,
-          rng,
+          *rng,
           wildcard))
 {
 }
@@ -123,7 +123,7 @@ PDBInfo::PDBInfo(
           *state_space,
           cost_function,
           initial_state,
-          rng,
+          *rng,
           wildcard))
 {
 }

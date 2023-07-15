@@ -20,7 +20,6 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
-#include <memory>
 #include <ostream>
 #include <set>
 #include <vector>
@@ -339,7 +338,7 @@ public:
         ProjectionStateSpace& state_space,
         ProjectionCostFunction& cost_function,
         StateRank initial_state,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        utils::RandomNumberGenerator& rng,
         bool wildcard) const;
 
     /**
@@ -355,7 +354,7 @@ public:
         ProjectionStateSpace& state_space,
         ProjectionCostFunction& cost_function,
         StateRank initial_state,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        utils::RandomNumberGenerator& rng,
         bool wildcard) const;
 
     void compute_saturated_costs(
