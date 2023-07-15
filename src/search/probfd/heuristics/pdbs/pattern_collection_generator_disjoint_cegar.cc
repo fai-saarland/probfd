@@ -1,7 +1,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
-
+#include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
@@ -119,7 +119,7 @@ void add_pattern_collection_generator_cegar_options_to_feature(
         "strategy used to find flaws in a policy",
         "pucs_flaw_finder()");
 
-    add_generator_options_to_feature(feature);
+    add_pattern_collection_generator_options_to_feature(feature);
     add_cegar_wildcard_option_to_feature(feature);
 }
 

@@ -293,8 +293,9 @@ fast_downward_plugin(
     HELP "Base classes for pattern collection generation for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/pattern_information
-        probfd/heuristics/pdbs/pattern_collection_information
         probfd/heuristics/pdbs/pattern_generator
+        probfd/heuristics/pdbs/pattern_collection_information
+        probfd/heuristics/pdbs/pattern_collection_generator
         probfd/heuristics/pdbs/pattern_collection_generator_multiple
 
         probfd/heuristics/pdbs/subcollection_finder_factory

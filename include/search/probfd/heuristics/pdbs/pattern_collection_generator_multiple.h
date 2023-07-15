@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 #define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 
-#include "probfd/heuristics/pdbs/pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 
 #include "probfd/engine_interfaces/cost_function.h"
 

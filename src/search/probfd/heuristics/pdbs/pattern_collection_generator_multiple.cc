@@ -1,9 +1,11 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_multiple.h"
 
-#include "probfd/cost_model.h"
 #include "probfd/heuristics/pdbs/fully_additive_finder.h"
+#include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
+
+#include "probfd/cost_model.h"
 
 #include "downward/task_utils/task_properties.h"
 
@@ -439,7 +441,7 @@ void add_multiple_options_to_feature(plugins::Feature& feature)
         "algorithm continues with the remaining costs. If false, the maximum "
         "PDB estimate is used.",
         "true");
-    add_generator_options_to_feature(feature);
+    add_pattern_collection_generator_options_to_feature(feature);
     utils::add_rng_options(feature);
 }
 

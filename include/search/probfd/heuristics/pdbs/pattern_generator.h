@@ -1,15 +1,11 @@
 #ifndef PROBFD_HEURISTICS_PDBS_PATTERN_GENERATOR_H
 #define PROBFD_HEURISTICS_PDBS_PATTERN_GENERATOR_H
 
-#include "probfd/heuristics/pdbs/pattern_collection_information.h"
-#include "probfd/heuristics/pdbs/pattern_information.h"
-
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "downward/utils/logging.h"
-#include "downward/utils/printable.h"
+#include "probfd/task_proxy.h"
 
-#include "downward/operator_cost.h"
+#include "downward/utils/logging.h"
 
 #include <memory>
 
@@ -18,18 +14,7 @@ class ProbabilisticTask;
 namespace heuristics {
 namespace pdbs {
 
-class PatternCollectionGenerator {
-protected:
-    mutable utils::LogProxy log;
-
-public:
-    explicit PatternCollectionGenerator(const plugins::Options& opts);
-    explicit PatternCollectionGenerator(const utils::LogProxy& log);
-    virtual ~PatternCollectionGenerator() = default;
-
-    virtual PatternCollectionInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task) = 0;
-};
+class PatternInformation;
 
 class PatternGenerator {
 protected:
@@ -44,7 +29,7 @@ public:
     generate(const std::shared_ptr<ProbabilisticTask>& task) = 0;
 };
 
-extern void add_generator_options_to_feature(plugins::Feature& feature);
+extern void add_pattern_generator_options_to_feature(plugins::Feature& feature);
 
 } // namespace pdbs
 } // namespace heuristics

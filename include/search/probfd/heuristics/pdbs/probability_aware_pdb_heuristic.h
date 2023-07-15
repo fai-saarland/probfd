@@ -1,14 +1,12 @@
 #ifndef PROBFD_HEURISTICS_PDBS_PROBAIBLITY_AWARE_PDB_HEURISTIC_H
 #define PROBFD_HEURISTICS_PDBS_PROBAIBLITY_AWARE_PDB_HEURISTIC_H
 
-#include "probfd/heuristics/pdbs/pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 
 #include "probfd/heuristics/pdbs/state_rank.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
-
-#include "downward/utils/printable.h"
 
 #include <memory>
 #include <ostream>
@@ -22,6 +20,8 @@ class Feature;
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
+
+class SubCollectionFinder;
 
 /**
  * @brief The probability-aware PDB heuristic.

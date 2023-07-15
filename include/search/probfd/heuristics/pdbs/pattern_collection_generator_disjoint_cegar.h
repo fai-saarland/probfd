@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
 #define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
 
-#include "probfd/heuristics/pdbs/pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "downward/plugins/options.h"

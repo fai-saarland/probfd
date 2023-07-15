@@ -1,5 +1,6 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing.h"
 
+#include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
@@ -858,7 +859,7 @@ void add_hillclimbing_options(plugins::Feature& feature)
         "infinity",
         plugins::Bounds("0.0", "infinity"));
 
-    add_generator_options_to_feature(feature);
+    add_pattern_collection_generator_options_to_feature(feature);
     utils::add_rng_options(feature);
 }
 

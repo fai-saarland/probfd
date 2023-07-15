@@ -1,5 +1,6 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_classical.h"
 
+#include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
 #include "probfd/cost_model.h"
@@ -69,7 +70,7 @@ public:
             "generation algorithm, they are used as a heuristic to compute the "
             "corresponding probability-aware PDBs.");
 
-        add_generator_options_to_feature(*this);
+        add_pattern_collection_generator_options_to_feature(*this);
 
         add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
             "generator",

@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 
-#include "probfd/heuristics/pdbs/pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_policy.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"

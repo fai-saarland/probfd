@@ -7,7 +7,7 @@
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
-#include "probfd/heuristics/pdbs/pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 
 #include <memory>
 

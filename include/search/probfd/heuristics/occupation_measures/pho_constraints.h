@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/occupation_measures/constraint_generator.h"
 
-#include "probfd/heuristics/pdbs/pattern_generator.h"
+#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include <memory>
