@@ -40,6 +40,8 @@ SSPCostModel::SSPCostModel()
 {
 }
 
+SSPCostModel::~SSPCostModel() = default;
+
 Interval SSPCostModel::optimal_value_bound() const
 {
     return Interval(0_vt, INFINITE_VALUE);

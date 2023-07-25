@@ -27,17 +27,6 @@ namespace probfd {
     utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
 }
 
-static int parse_int_arg(const string& name, const string& value)
-{
-    try {
-        return stoi(value);
-    } catch (invalid_argument&) {
-        input_error("argument for " + name + " must be an integer");
-    } catch (out_of_range&) {
-        input_error("argument for " + name + " is out of range");
-    }
-}
-
 static double parse_double_arg(const string& name, const string& value)
 {
     try {

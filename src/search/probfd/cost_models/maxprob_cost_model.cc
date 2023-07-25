@@ -39,6 +39,8 @@ MaxProbCostModel::MaxProbCostModel()
 {
 }
 
+MaxProbCostModel::~MaxProbCostModel() = default;
+
 Interval MaxProbCostModel::optimal_value_bound() const
 {
     return Interval(0_vt, 1_vt);

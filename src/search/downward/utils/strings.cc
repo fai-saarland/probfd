@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <iostream>
 
 using namespace std;
@@ -57,7 +58,7 @@ vector<string> split(const string& s, const string& separator, int max_splits)
 
 bool is_alpha_numeric(const string& s)
 {
-    return std::all_of(s.begin(), s.end(), isalnum);
+    return std::all_of(s.begin(), s.end(), ::isalnum);
 }
 
 } // namespace utils
