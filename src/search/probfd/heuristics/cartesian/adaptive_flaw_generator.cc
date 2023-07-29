@@ -38,7 +38,7 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
             log,
             timer);
 
-        if (flaw || generator->is_complete()) return flaw;
+        if (flaw) return flaw;
 
         log << "Switching to the next flaw generator." << std::endl;
 
@@ -65,11 +65,6 @@ void AdaptiveFlawGenerator::notify_split(int v)
 CartesianHeuristic& AdaptiveFlawGenerator::get_heuristic()
 {
     return generators[current_generator]->get_heuristic();
-}
-
-bool AdaptiveFlawGenerator::is_complete()
-{
-    return std::ranges::any_of(generators, &FlawGenerator::is_complete);
 }
 
 void AdaptiveFlawGenerator::print_statistics(utils::LogProxy& log)

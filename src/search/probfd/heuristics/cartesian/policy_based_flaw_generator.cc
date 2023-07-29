@@ -114,11 +114,6 @@ CartesianHeuristic& PolicyBasedFlawGenerator::get_heuristic()
     return heuristic;
 }
 
-bool PolicyBasedFlawGenerator::is_complete()
-{
-    return true;
-}
-
 void PolicyBasedFlawGenerator::print_statistics(utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {

@@ -54,8 +54,6 @@ public:
 
     CartesianHeuristic& get_heuristic() override;
 
-    bool is_complete() override final;
-
     void print_statistics(utils::LogProxy& log) override;
 };
 

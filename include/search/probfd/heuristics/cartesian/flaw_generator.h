@@ -47,8 +47,6 @@ public:
 
     virtual CartesianHeuristic& get_heuristic() = 0;
 
-    virtual bool is_complete() = 0;
-
     virtual void print_statistics(utils::LogProxy& log) = 0;
 };
 

@@ -158,11 +158,6 @@ CartesianHeuristic& TraceBasedFlawGenerator::get_heuristic()
     return heuristic;
 }
 
-bool TraceBasedFlawGenerator::is_complete()
-{
-    return false;
-}
-
 void TraceBasedFlawGenerator::print_statistics(utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
