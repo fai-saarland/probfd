@@ -28,12 +28,11 @@ public:
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
         const AbstractState* init_id,
+        CartesianHeuristic& heuristic,
         utils::LogProxy& log,
         utils::CountdownTimer& timer) override;
 
-    void notify_split(int v) override;
-
-    CartesianHeuristic& get_heuristic() override;
+    void notify_split() override;
 
     void print_statistics(utils::LogProxy& log) override;
 };

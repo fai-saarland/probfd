@@ -40,12 +40,11 @@ public:
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
         const AbstractState* init_id,
+        CartesianHeuristic& heuristic,
         utils::LogProxy& log,
         utils::CountdownTimer& timer) = 0;
 
-    virtual void notify_split(int v) = 0;
-
-    virtual CartesianHeuristic& get_heuristic() = 0;
+    virtual void notify_split() = 0;
 
     virtual void print_statistics(utils::LogProxy& log) = 0;
 };

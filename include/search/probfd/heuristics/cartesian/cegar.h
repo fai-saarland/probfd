@@ -40,6 +40,7 @@ class CEGAR {
 
     std::unique_ptr<Abstraction> abstraction;
     CartesianCostFunction cost_function;
+    CartesianHeuristic heuristic;
 
     std::unique_ptr<FlawGenerator> flaw_generator;
 

@@ -24,6 +24,7 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     Abstraction& abstraction,
     CartesianCostFunction& cost_function,
     const AbstractState* init_id,
+    CartesianHeuristic& heuristic,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
@@ -35,36 +36,23 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
             abstraction,
             cost_function,
             init_id,
+            heuristic,
             log,
             timer);
 
         if (flaw) return flaw;
 
         log << "Switching to the next flaw generator." << std::endl;
-
-        // Copy the heuristic to the next flaw generator
-        CartesianHeuristic& heuristic_prev = generator->get_heuristic();
-        CartesianHeuristic& heuristic_next =
-            generators[++current_generator]->get_heuristic();
-
-        for (int v = 0; v != abstraction.get_num_states(); ++v) {
-            heuristic_next.set_h_value(v, heuristic_prev.get_h_value(v));
-        }
     }
 
     return std::nullopt;
 }
 
-void AdaptiveFlawGenerator::notify_split(int v)
+void AdaptiveFlawGenerator::notify_split()
 {
     for (size_t i = current_generator; i != generators.size(); ++i) {
-        generators[i]->notify_split(v);
+        generators[i]->notify_split();
     }
-}
-
-CartesianHeuristic& AdaptiveFlawGenerator::get_heuristic()
-{
-    return generators[current_generator]->get_heuristic();
 }
 
 void AdaptiveFlawGenerator::print_statistics(utils::LogProxy& log)

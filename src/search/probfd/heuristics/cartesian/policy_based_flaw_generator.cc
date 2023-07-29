@@ -49,6 +49,7 @@ unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
     Abstraction& abstraction,
     CartesianCostFunction& cost_function,
     const AbstractState* init,
+    CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_policy_timer);
@@ -80,11 +81,12 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     Abstraction& abstraction,
     CartesianCostFunction& cost_function,
     const AbstractState* init,
+    CartesianHeuristic& heuristic,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
     unique_ptr<Solution> solution =
-        find_solution(abstraction, cost_function, init, timer);
+        find_solution(abstraction, cost_function, init, heuristic, timer);
 
     if (!solution) {
         if (log.is_at_least_normal()) {
@@ -104,14 +106,8 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     return flaw;
 }
 
-void PolicyBasedFlawGenerator::notify_split(int v)
+void PolicyBasedFlawGenerator::notify_split()
 {
-    heuristic.on_split(v);
-}
-
-CartesianHeuristic& PolicyBasedFlawGenerator::get_heuristic()
-{
-    return heuristic;
 }
 
 void PolicyBasedFlawGenerator::print_statistics(utils::LogProxy& log)

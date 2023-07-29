@@ -20,8 +20,6 @@ class TraceBasedFlawGenerator : public FlawGenerator {
     utils::Timer find_trace_timer = utils::Timer(true);
     utils::Timer find_flaw_timer = utils::Timer(true);
 
-    CartesianHeuristic heuristic;
-
     std::unique_ptr<Trace> find_trace(
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
@@ -47,12 +45,11 @@ public:
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
         const AbstractState* init_id,
+        CartesianHeuristic& heuristic,
         utils::LogProxy& log,
         utils::CountdownTimer& timer) override;
 
-    void notify_split(int v) override;
-
-    CartesianHeuristic& get_heuristic() override;
+    void notify_split() override;
 
     void print_statistics(utils::LogProxy& log) override;
 };

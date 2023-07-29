@@ -81,7 +81,7 @@ unique_ptr<Abstraction> CEGAR::extract_abstraction()
 
 CartesianHeuristic& CEGAR::get_heuristic()
 {
-    return flaw_generator->get_heuristic();
+    return heuristic;
 }
 
 void CEGAR::separate_facts_unreachable_before_goal()
@@ -106,8 +106,7 @@ void CEGAR::separate_facts_unreachable_before_goal()
                 abstraction->get_initial_state(),
                 var_id,
                 unreachable_values);
-            flaw_generator->notify_split(
-                abstraction->get_initial_state().get_id());
+            flaw_generator->notify_split();
         }
     }
     abstraction->mark_all_states_as_goals();
@@ -147,7 +146,8 @@ void CEGAR::refine_abstraction(
     vector<Split> splits = flaw.get_possible_splits();
     const Split& split = split_selector.pick_split(abstract_state, splits, rng);
     abstraction->refine(abstract_state, split.var_id, split.values);
-    flaw_generator->notify_split(state_id);
+    heuristic.on_split(state_id);
+    flaw_generator->notify_split();
 }
 
 void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
@@ -175,6 +175,7 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
                 *abstraction,
                 cost_function,
                 &abstraction->get_initial_state(),
+                heuristic,
                 log,
                 timer);
 

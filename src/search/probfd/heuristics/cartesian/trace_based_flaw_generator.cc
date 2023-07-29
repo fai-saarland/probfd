@@ -53,6 +53,7 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     Abstraction& abstraction,
     CartesianCostFunction& cost_function,
     const AbstractState* init,
+    CartesianHeuristic& heuristic,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
@@ -146,16 +147,9 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
         get_cartesian_set(domain_sizes, task_proxy.get_goals()));
 }
 
-void TraceBasedFlawGenerator::notify_split(int v)
+void TraceBasedFlawGenerator::notify_split()
 {
-    // Update heuristic
-    heuristic.on_split(v);
     trace_generator->notify_split();
-}
-
-CartesianHeuristic& TraceBasedFlawGenerator::get_heuristic()
-{
-    return heuristic;
 }
 
 void TraceBasedFlawGenerator::print_statistics(utils::LogProxy& log)
