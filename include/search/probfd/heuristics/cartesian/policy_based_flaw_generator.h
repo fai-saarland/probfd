@@ -21,8 +21,6 @@ class PolicyBasedFlawGenerator : public FlawGenerator {
 
     CartesianHeuristic heuristic;
 
-    bool is_complete() override final;
-
     std::unique_ptr<Solution> find_solution(
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
@@ -60,6 +58,8 @@ public:
     void notify_split(int v) override;
 
     CartesianHeuristic& get_heuristic() override;
+
+    bool is_complete() override final;
 };
 
 class ILAOFlawGeneratorFactory : public FlawGeneratorFactory {
