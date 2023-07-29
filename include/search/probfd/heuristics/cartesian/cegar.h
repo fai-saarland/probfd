@@ -49,15 +49,33 @@ class CEGAR {
 
     utils::LogProxy& log;
 
+public:
+    CEGAR(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const FlawGeneratorFactory& flaw_generator_factory,
+        int max_states,
+        int max_non_looping_transitions,
+        double max_time,
+        PickSplit pick,
+        utils::RandomNumberGenerator& rng,
+        utils::LogProxy& log);
+
+    ~CEGAR();
+
+    std::unique_ptr<Abstraction> extract_abstraction();
+
+    CartesianHeuristic& get_heuristic();
+
+private:
     bool may_keep_refining() const;
 
     /*
-      Map all states that can only be reached after reaching the goal
-      fact to arbitrary goal states.
+        Map all states that can only be reached after reaching the goal
+        fact to arbitrary goal states.
 
-      We need this method only for landmark subtasks, but calling it
-      for other subtasks with a single goal fact doesn't hurt and
-      simplifies the implementation.
+        We need this method only for landmark subtasks, but calling it
+        for other subtasks with a single goal fact doesn't hurt and
+        simplifies the implementation.
     */
     void separate_facts_unreachable_before_goal();
 
@@ -70,24 +88,6 @@ class CEGAR {
     void refinement_loop(utils::RandomNumberGenerator& rng);
 
     void print_statistics();
-
-public:
-    CEGAR(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const FlawGeneratorFactory& flaw_generator_factory,
-        int max_states,
-        int max_non_looping_transitions,
-        double max_time,
-        PickSplit pick,
-        utils::RandomNumberGenerator& rng,
-        utils::LogProxy& log);
-    ~CEGAR();
-
-    CEGAR(const CEGAR&) = delete;
-
-    std::unique_ptr<Abstraction> extract_abstraction();
-
-    CartesianHeuristic& get_heuristic();
 };
 
 } // namespace cartesian

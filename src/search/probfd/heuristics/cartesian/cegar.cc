@@ -84,6 +84,29 @@ CartesianHeuristic& CEGAR::get_heuristic()
     return heuristic;
 }
 
+bool CEGAR::may_keep_refining() const
+{
+    if (abstraction->get_num_states() >= max_states) {
+        if (log.is_at_least_normal()) {
+            log << "Reached maximum number of states." << endl;
+        }
+        return false;
+    } else if (
+        abstraction->get_transition_system().get_num_non_loops() >=
+        max_non_looping_transitions) {
+        if (log.is_at_least_normal()) {
+            log << "Reached maximum number of transitions." << endl;
+        }
+        return false;
+    } else if (!utils::extra_memory_padding_is_reserved()) {
+        if (log.is_at_least_normal()) {
+            log << "Reached memory limit." << endl;
+        }
+        return false;
+    }
+    return true;
+}
+
 void CEGAR::separate_facts_unreachable_before_goal()
 {
     assert(abstraction->get_goals().size() == 1);
@@ -110,29 +133,6 @@ void CEGAR::separate_facts_unreachable_before_goal()
         }
     }
     abstraction->mark_all_states_as_goals();
-}
-
-bool CEGAR::may_keep_refining() const
-{
-    if (abstraction->get_num_states() >= max_states) {
-        if (log.is_at_least_normal()) {
-            log << "Reached maximum number of states." << endl;
-        }
-        return false;
-    } else if (
-        abstraction->get_transition_system().get_num_non_loops() >=
-        max_non_looping_transitions) {
-        if (log.is_at_least_normal()) {
-            log << "Reached maximum number of transitions." << endl;
-        }
-        return false;
-    } else if (!utils::extra_memory_padding_is_reserved()) {
-        if (log.is_at_least_normal()) {
-            log << "Reached memory limit." << endl;
-        }
-        return false;
-    }
-    return true;
 }
 
 void CEGAR::refine_abstraction(
