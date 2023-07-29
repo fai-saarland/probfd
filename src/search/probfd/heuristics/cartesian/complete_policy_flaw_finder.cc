@@ -29,14 +29,18 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
+CompletePolicyFlawFinder::CompletePolicyFlawFinder(int max_search_states)
+    : max_search_states(max_search_states)
+{
+}
+
 optional<Flaw> CompletePolicyFlawFinder::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     Abstraction& abstraction,
     Solution& policy,
     utils::CountdownTimer& timer,
     utils::LogProxy& log,
-    const std::vector<int>& domain_sizes,
-    int max_search_states)
+    const std::vector<int>& domain_sizes)
 {
     StateRegistry state_registry(task_proxy);
 

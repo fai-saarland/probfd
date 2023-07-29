@@ -44,8 +44,7 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     const std::vector<int>& domain_sizes,
     utils::Timer& find_trace_timer,
     utils::Timer& find_flaw_timer,
-    utils::CountdownTimer& timer,
-    int)
+    utils::CountdownTimer& timer)
 {
     // Exception safety (timeout)
     scope_exit guard([&] {

@@ -33,8 +33,7 @@ public:
         Solution& policy,
         utils::CountdownTimer& timer,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes,
-        int max_search_states) = 0;
+        const std::vector<int>& domain_sizes) = 0;
 };
 
 } // namespace cartesian

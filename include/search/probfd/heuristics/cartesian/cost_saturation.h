@@ -36,7 +36,6 @@ class CostSaturation {
     const std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators;
     const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory;
     const int max_states;
-    const int max_search_states;
     const int max_non_looping_transitions;
     const double max_time;
     const bool use_general_costs;
@@ -67,7 +66,6 @@ public:
             subtask_generators,
         std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
         int max_states,
-        int max_search_states,
         int max_non_looping_transitions,
         double max_time,
         bool use_general_costs,

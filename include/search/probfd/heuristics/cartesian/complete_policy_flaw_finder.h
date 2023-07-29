@@ -8,15 +8,18 @@ namespace heuristics {
 namespace cartesian {
 
 class CompletePolicyFlawFinder : public PolicyFlawFinder {
+    int max_search_states;
+
 public:
+    CompletePolicyFlawFinder(int max_search_states);
+
     std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
         Abstraction& abstraction,
         Solution& policy,
         utils::CountdownTimer& timer,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes,
-        int max_search_states) override;
+        const std::vector<int>& domain_sizes) override;
 };
 
 } // namespace cartesian

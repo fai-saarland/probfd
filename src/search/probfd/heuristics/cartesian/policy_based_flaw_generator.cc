@@ -52,8 +52,7 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     const std::vector<int>& domain_sizes,
     utils::Timer& find_trace_timer,
     utils::Timer& find_flaw_timer,
-    utils::CountdownTimer& timer,
-    int max_search_states)
+    utils::CountdownTimer& timer)
 {
     find_trace_timer.resume();
     unique_ptr<Solution> solution =
@@ -76,8 +75,7 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
         *solution,
         timer,
         log,
-        domain_sizes,
-        max_search_states);
+        domain_sizes);
     find_flaw_timer.stop();
 
     return flaw;
@@ -98,12 +96,17 @@ bool PolicyBasedFlawGenerator::is_complete()
     return true;
 }
 
+ILAOFlawGeneratorFactory::ILAOFlawGeneratorFactory(int max_search_states)
+    : max_search_states(max_search_states)
+{
+}
+
 std::unique_ptr<FlawGenerator>
 ILAOFlawGeneratorFactory::create_flaw_generator() const
 {
     return std::make_unique<PolicyBasedFlawGenerator>(
         new ILAOPolicyGenerator(),
-        new CompletePolicyFlawFinder());
+        new CompletePolicyFlawFinder(max_search_states));
 }
 
 class ILAOFlawGeneratorFactoryFeature
@@ -113,13 +116,21 @@ public:
     ILAOFlawGeneratorFactoryFeature()
         : TypedFeature("flaws_ilao")
     {
+        add_option<int>(
+            "max_search_states",
+            "maximum number of concrete states allowed to be generated during "
+            "flaw "
+            "search before giving up",
+            "infinity",
+            plugins::Bounds("1", "infinity"));
     }
 
     virtual shared_ptr<ILAOFlawGeneratorFactory>
-    create_component(const plugins::Options&, const utils::Context&)
+    create_component(const plugins::Options& opts, const utils::Context&)
         const override
     {
-        return make_shared<ILAOFlawGeneratorFactory>();
+        return make_shared<ILAOFlawGeneratorFactory>(
+            opts.get<int>("max_search_states"));
     }
 };
 

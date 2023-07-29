@@ -35,7 +35,6 @@ CEGAR::CEGAR(
     const shared_ptr<ProbabilisticTask>& task,
     const FlawGeneratorFactory& flaw_generator_factory,
     int max_states,
-    int max_search_states,
     int max_non_looping_transitions,
     double max_time,
     PickSplit pick,
@@ -44,7 +43,6 @@ CEGAR::CEGAR(
     : task_proxy(*task)
     , domain_sizes(cegar::get_domain_sizes(task_proxy))
     , max_states(max_states)
-    , max_search_states(max_search_states)
     , max_non_looping_transitions(max_non_looping_transitions)
     , split_selector(task, pick)
     , abstraction(new Abstraction(task, log))
@@ -59,8 +57,6 @@ CEGAR::CEGAR(
     if (log.is_at_least_normal()) {
         log << "Start building abstraction." << endl;
         log << "Maximum number of abstract states: " << max_states << endl;
-        log << "Maximum number of flaw search states: " << max_search_states
-            << endl;
         log << "Maximum number of abstract transitions: "
             << max_non_looping_transitions << endl;
     }
@@ -169,8 +165,7 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
                 domain_sizes,
                 find_trace_timer,
                 find_flaw_timer,
-                timer,
-                max_search_states);
+                timer);
 
             if (!flaw) {
                 break;

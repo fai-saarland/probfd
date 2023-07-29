@@ -32,7 +32,6 @@ generate_heuristic_functions(const plugins::Options& opts, utils::LogProxy& log)
         opts.get_list<shared_ptr<SubtaskGenerator>>("subtasks"),
         opts.get<shared_ptr<FlawGeneratorFactory>>("flaw_generator_factory"),
         opts.get<int>("max_states"),
-        opts.get<int>("max_search_states"),
         opts.get<int>("max_transitions"),
         opts.get<double>("max_time"),
         opts.get<bool>("use_general_costs"),
@@ -87,13 +86,6 @@ public:
         add_option<int>(
             "max_states",
             "maximum sum of abstract states over all abstractions",
-            "infinity",
-            plugins::Bounds("1", "infinity"));
-        add_option<int>(
-            "max_search_states",
-            "maximum number of concrete states allowed to be generated during "
-            "flaw "
-            "search before giving up",
             "infinity",
             plugins::Bounds("1", "infinity"));
         add_option<int>(

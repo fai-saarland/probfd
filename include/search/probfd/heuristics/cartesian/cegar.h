@@ -34,7 +34,6 @@ class CEGAR {
     const ProbabilisticTaskProxy task_proxy;
     const std::vector<int> domain_sizes;
     const int max_states;
-    const int max_search_states;
     const int max_non_looping_transitions;
     const SplitSelector split_selector;
 
@@ -70,7 +69,6 @@ public:
         const std::shared_ptr<ProbabilisticTask>& task,
         const FlawGeneratorFactory& flaw_generator_factory,
         int max_states,
-        int max_search_states,
         int max_non_looping_transitions,
         double max_time,
         PickSplit pick,

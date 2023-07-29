@@ -25,8 +25,7 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     const std::vector<int>& domain_sizes,
     utils::Timer& find_trace_timer,
     utils::Timer& find_flaw_timer,
-    utils::CountdownTimer& timer,
-    int max_search_states)
+    utils::CountdownTimer& timer)
 {
     while (current_generator != generators.size()) {
         auto& generator = generators[current_generator];
@@ -39,8 +38,7 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
             domain_sizes,
             find_trace_timer,
             find_flaw_timer,
-            timer,
-            max_search_states);
+            timer);
 
         if (flaw || generator->is_complete()) return flaw;
 
