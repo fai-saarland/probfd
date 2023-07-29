@@ -16,12 +16,21 @@ class TraceBasedFlawGenerator : public FlawGenerator {
     std::unique_ptr<TraceGenerator> trace_generator;
     CartesianHeuristic heuristic;
 
+    std::unique_ptr<Trace> find_trace(
+        Abstraction& abstraction,
+        CartesianCostFunction& cost_function,
+        int init_id,
+        CartesianHeuristic& heuristic,
+        utils::Timer& find_trace_timer,
+        utils::CountdownTimer& timer);
+
     std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
         const Trace& solution,
         Abstraction& abstraction,
         utils::LogProxy& log,
         const std::vector<int>& domain_sizes,
+        utils::Timer& find_flaw_timer,
         utils::CountdownTimer& timer);
 
 public:

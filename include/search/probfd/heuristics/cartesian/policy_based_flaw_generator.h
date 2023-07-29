@@ -23,6 +23,22 @@ class PolicyBasedFlawGenerator : public FlawGenerator {
 
     bool is_complete() override final;
 
+    std::unique_ptr<Solution> find_solution(
+        Abstraction& abstraction,
+        CartesianCostFunction& cost_function,
+        const AbstractState* init,
+        utils::Timer& find_policy_timer,
+        utils::CountdownTimer& timer);
+
+    std::optional<Flaw> find_flaw(
+        const ProbabilisticTaskProxy& task_proxy,
+        Abstraction& abstraction,
+        Solution& solution,
+        utils::Timer& find_flaw_timer,
+        utils::CountdownTimer& timer,
+        utils::LogProxy& log,
+        const std::vector<int>& domain_sizes);
+
 public:
     PolicyBasedFlawGenerator(
         PolicyGenerator* policy_generator,

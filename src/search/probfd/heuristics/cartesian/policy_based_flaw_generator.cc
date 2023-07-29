@@ -16,6 +16,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/utils/guards.h"
+
 #include "probfd/policy.h"
 
 #include "downward/cegar/abstract_state.h"
@@ -43,6 +45,37 @@ PolicyBasedFlawGenerator::PolicyBasedFlawGenerator(
 
 PolicyBasedFlawGenerator::~PolicyBasedFlawGenerator() = default;
 
+unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
+    Abstraction& abstraction,
+    CartesianCostFunction& cost_function,
+    const AbstractState* init,
+    utils::Timer& find_policy_timer,
+    utils::CountdownTimer& timer)
+{
+    TimerScope scope(find_policy_timer);
+    return policy_generator
+        ->find_solution(abstraction, cost_function, init, heuristic, timer);
+}
+
+optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
+    const ProbabilisticTaskProxy& task_proxy,
+    Abstraction& abstraction,
+    Solution& solution,
+    utils::Timer& find_flaw_timer,
+    utils::CountdownTimer& timer,
+    utils::LogProxy& log,
+    const std::vector<int>& domain_sizes)
+{
+    TimerScope scope(find_flaw_timer);
+    return policy_flaw_finder->find_flaw(
+        task_proxy,
+        abstraction,
+        solution,
+        timer,
+        log,
+        domain_sizes);
+}
+
 std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     Abstraction& abstraction,
@@ -50,16 +83,16 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     const AbstractState* init,
     utils::LogProxy& log,
     const std::vector<int>& domain_sizes,
-    utils::Timer& find_trace_timer,
+    utils::Timer& find_policy_timer,
     utils::Timer& find_flaw_timer,
     utils::CountdownTimer& timer)
 {
-    find_trace_timer.resume();
-    unique_ptr<Solution> solution =
-        policy_generator
-            ->find_solution(abstraction, cost_function, init, heuristic, timer);
-
-    find_trace_timer.stop();
+    unique_ptr<Solution> solution = find_solution(
+        abstraction,
+        cost_function,
+        init,
+        find_policy_timer,
+        timer);
 
     if (!solution) {
         if (log.is_at_least_normal()) {
@@ -68,15 +101,14 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
         return std::nullopt;
     }
 
-    find_flaw_timer.resume();
-    optional<Flaw> flaw = policy_flaw_finder->find_flaw(
+    optional<Flaw> flaw = find_flaw(
         task_proxy,
         abstraction,
         *solution,
+        find_flaw_timer,
         timer,
         log,
         domain_sizes);
-    find_flaw_timer.stop();
 
     return flaw;
 }

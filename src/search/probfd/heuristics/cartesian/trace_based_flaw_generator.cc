@@ -35,6 +35,19 @@ TraceBasedFlawGenerator::TraceBasedFlawGenerator(
 
 TraceBasedFlawGenerator::~TraceBasedFlawGenerator() = default;
 
+std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
+    Abstraction& abstraction,
+    CartesianCostFunction& cost_function,
+    int init_id,
+    CartesianHeuristic& heuristic,
+    utils::Timer& find_trace_timer,
+    utils::CountdownTimer& timer)
+{
+    TimerScope scope(find_trace_timer);
+    return trace_generator
+        ->find_trace(abstraction, cost_function, init_id, heuristic, timer);
+}
+
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     Abstraction& abstraction,
@@ -46,33 +59,24 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     utils::Timer& find_flaw_timer,
     utils::CountdownTimer& timer)
 {
-    // Exception safety (timeout)
-    scope_exit guard([&] {
-        find_trace_timer.stop();
-        find_flaw_timer.stop();
-    });
-
-    find_trace_timer.resume();
-
     const int init_id = init->get_id();
-    std::unique_ptr<Trace> solution =
-        trace_generator
-            ->find_trace(abstraction, cost_function, init_id, heuristic, timer);
-
-    find_trace_timer.stop();
+    std::unique_ptr<Trace> solution = find_trace(
+        abstraction,
+        cost_function,
+        init->get_id(),
+        heuristic,
+        find_trace_timer,
+        timer);
 
     if (solution) {
-        find_flaw_timer.resume();
-
         optional<Flaw> flaw = find_flaw(
             task_proxy,
             *solution,
             abstraction,
             log,
             domain_sizes,
+            find_flaw_timer,
             timer);
-
-        find_flaw_timer.stop();
 
         if (!flaw && log.is_at_least_normal()) {
             log << "Found a plan without a flaw in the determinized problem."
@@ -97,8 +101,11 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     Abstraction& abstraction,
     utils::LogProxy& log,
     const std::vector<int>& domain_sizes,
+    utils::Timer& find_flaw_timer,
     utils::CountdownTimer& timer)
 {
+    TimerScope scope(find_flaw_timer);
+
     if (log.is_at_least_debug()) log << "Check solution:" << endl;
 
     const AbstractState* abstract_state = &abstraction.get_initial_state();
