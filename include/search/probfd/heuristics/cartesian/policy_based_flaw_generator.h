@@ -3,6 +3,8 @@
 
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 
+#include "downward/utils/timer.h"
+
 #include <memory>
 
 namespace probfd {
@@ -19,23 +21,24 @@ class PolicyBasedFlawGenerator : public FlawGenerator {
     std::unique_ptr<PolicyGenerator> policy_generator;
     std::unique_ptr<PolicyFlawFinder> policy_flaw_finder;
 
+    utils::Timer find_policy_timer = utils::Timer(true);
+    utils::Timer find_flaw_timer = utils::Timer(true);
+
     CartesianHeuristic heuristic;
 
     std::unique_ptr<Solution> find_solution(
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
         const AbstractState* init,
-        utils::Timer& find_policy_timer,
         utils::CountdownTimer& timer);
 
     std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
+        const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
         Solution& solution,
-        utils::Timer& find_flaw_timer,
-        utils::CountdownTimer& timer,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes);
+        utils::CountdownTimer& timer);
 
 public:
     PolicyBasedFlawGenerator(
@@ -46,13 +49,11 @@ public:
 
     std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
+        const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
         const AbstractState* init_id,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes,
-        utils::Timer& find_trace_timer,
-        utils::Timer& find_flaw_timer,
         utils::CountdownTimer& timer) override;
 
     void notify_split(int v) override;
@@ -60,6 +61,8 @@ public:
     CartesianHeuristic& get_heuristic() override;
 
     bool is_complete() override final;
+
+    void print_statistics(utils::LogProxy& log) override;
 };
 
 class ILAOFlawGeneratorFactory : public FlawGeneratorFactory {

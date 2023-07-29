@@ -9,6 +9,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/policy.h"
+#include "probfd/utils/guards.h"
 
 #include "downward/cegar/cartesian_set.h"
 #include "downward/cegar/utils.h"
@@ -135,6 +136,20 @@ bool CEGAR::may_keep_refining() const
     return true;
 }
 
+void CEGAR::refine_abstraction(
+    const Flaw& flaw,
+    utils::RandomNumberGenerator& rng,
+    utils::Timer& timer)
+{
+    TimerScope scope(timer);
+    const AbstractState& abstract_state = flaw.current_abstract_state;
+    const int state_id = abstract_state.get_id();
+    vector<Split> splits = flaw.get_possible_splits();
+    const Split& split = split_selector.pick_split(abstract_state, splits, rng);
+    abstraction->refine(abstract_state, split.var_id, split.values);
+    flaw_generator->notify_split(state_id);
+}
+
 void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
 {
     /*
@@ -148,8 +163,6 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
         separate_facts_unreachable_before_goal();
     }
 
-    utils::Timer find_trace_timer(true);
-    utils::Timer find_flaw_timer(true);
     utils::Timer refine_timer(true);
 
     try {
@@ -158,18 +171,12 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
 
             std::optional flaw = flaw_generator->generate_flaw(
                 task_proxy,
+                domain_sizes,
                 *abstraction,
                 cost_function,
                 &abstraction->get_initial_state(),
                 log,
-                domain_sizes,
-                find_trace_timer,
-                find_flaw_timer,
                 timer);
-
-            if (!flaw) {
-                break;
-            }
 
             if (!utils::extra_memory_padding_is_reserved()) {
                 if (log.is_at_least_normal()) {
@@ -178,15 +185,16 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
                 break;
             }
 
-            refine_timer.resume();
-            const AbstractState& abstract_state = flaw->current_abstract_state;
-            const int state_id = abstract_state.get_id();
-            vector<Split> splits = flaw->get_possible_splits();
-            const Split& split =
-                split_selector.pick_split(abstract_state, splits, rng);
-            abstraction->refine(abstract_state, split.var_id, split.values);
-            flaw_generator->notify_split(state_id);
-            refine_timer.stop();
+            if (!flaw) {
+                if (log.is_at_least_normal()) {
+                    log << "Failed to generate a flaw. Stopping refinement "
+                           "loop."
+                        << endl;
+                }
+                break;
+            }
+
+            refine_abstraction(*flaw, rng, refine_timer);
 
             if (log.is_at_least_verbose() &&
                 abstraction->get_num_states() % 1000 == 0) {
@@ -206,9 +214,9 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
         }
     }
 
+    flaw_generator->print_statistics(log);
+
     if (log.is_at_least_normal()) {
-        log << "Time for finding abstract traces: " << find_trace_timer << endl;
-        log << "Time for finding flaws: " << find_flaw_timer << endl;
         log << "Time for splitting states: " << refine_timer << endl;
     }
 }

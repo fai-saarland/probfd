@@ -24,13 +24,11 @@ public:
 
     std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
+        const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
         const AbstractState* init_id,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes,
-        utils::Timer& find_trace_timer,
-        utils::Timer& find_flaw_timer,
         utils::CountdownTimer& timer) override;
 
     void notify_split(int v) override;
@@ -38,6 +36,8 @@ public:
     CartesianHeuristic& get_heuristic() override;
 
     bool is_complete() override;
+
+    void print_statistics(utils::LogProxy& log) override;
 };
 
 class AdaptiveFlawGeneratorFactory : public FlawGeneratorFactory {

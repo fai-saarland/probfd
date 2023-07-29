@@ -36,11 +36,11 @@ CompletePolicyFlawFinder::CompletePolicyFlawFinder(int max_search_states)
 
 optional<Flaw> CompletePolicyFlawFinder::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
+    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     Solution& policy,
-    utils::CountdownTimer& timer,
     utils::LogProxy& log,
-    const std::vector<int>& domain_sizes)
+    utils::CountdownTimer& timer)
 {
     StateRegistry state_registry(task_proxy);
 

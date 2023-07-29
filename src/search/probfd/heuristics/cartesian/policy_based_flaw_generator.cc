@@ -49,7 +49,6 @@ unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
     Abstraction& abstraction,
     CartesianCostFunction& cost_function,
     const AbstractState* init,
-    utils::Timer& find_policy_timer,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_policy_timer);
@@ -59,56 +58,48 @@ unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
 
 optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
+    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     Solution& solution,
-    utils::Timer& find_flaw_timer,
-    utils::CountdownTimer& timer,
     utils::LogProxy& log,
-    const std::vector<int>& domain_sizes)
+    utils::CountdownTimer& timer)
 {
     TimerScope scope(find_flaw_timer);
     return policy_flaw_finder->find_flaw(
         task_proxy,
+        domain_sizes,
         abstraction,
         solution,
-        timer,
         log,
-        domain_sizes);
+        timer);
 }
 
 std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
+    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     CartesianCostFunction& cost_function,
     const AbstractState* init,
     utils::LogProxy& log,
-    const std::vector<int>& domain_sizes,
-    utils::Timer& find_policy_timer,
-    utils::Timer& find_flaw_timer,
     utils::CountdownTimer& timer)
 {
-    unique_ptr<Solution> solution = find_solution(
-        abstraction,
-        cost_function,
-        init,
-        find_policy_timer,
-        timer);
+    unique_ptr<Solution> solution =
+        find_solution(abstraction, cost_function, init, timer);
 
     if (!solution) {
         if (log.is_at_least_normal()) {
             log << "Abstract task is unsolvable." << endl;
         }
+
         return std::nullopt;
     }
 
-    optional<Flaw> flaw = find_flaw(
-        task_proxy,
-        abstraction,
-        *solution,
-        find_flaw_timer,
-        timer,
-        log,
-        domain_sizes);
+    optional<Flaw> flaw =
+        find_flaw(task_proxy, domain_sizes, abstraction, *solution, log, timer);
+
+    if (!flaw && log.is_at_least_normal()) {
+        log << "Found a policy without a flaw." << endl;
+    }
 
     return flaw;
 }
@@ -126,6 +117,15 @@ CartesianHeuristic& PolicyBasedFlawGenerator::get_heuristic()
 bool PolicyBasedFlawGenerator::is_complete()
 {
     return true;
+}
+
+void PolicyBasedFlawGenerator::print_statistics(utils::LogProxy& log)
+{
+    if (log.is_at_least_normal()) {
+        log << "Time for finding abstract policies: " << find_policy_timer
+            << endl;
+        log << "Time for finding policy flaws: " << find_flaw_timer << endl;
+    }
 }
 
 ILAOFlawGeneratorFactory::ILAOFlawGeneratorFactory(int max_search_states)

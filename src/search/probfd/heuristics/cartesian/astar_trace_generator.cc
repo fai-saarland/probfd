@@ -140,6 +140,8 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
         }
     }
 
+    heuristic.set_h_value(init_id, INFINITE_VALUE);
+
     return nullptr;
 }
 

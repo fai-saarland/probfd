@@ -3,6 +3,8 @@
 
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 
+#include "downward/utils/timer.h"
+
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
@@ -14,6 +16,10 @@ class TraceGenerator;
 */
 class TraceBasedFlawGenerator : public FlawGenerator {
     std::unique_ptr<TraceGenerator> trace_generator;
+
+    utils::Timer find_trace_timer = utils::Timer(true);
+    utils::Timer find_flaw_timer = utils::Timer(true);
+
     CartesianHeuristic heuristic;
 
     std::unique_ptr<Trace> find_trace(
@@ -21,16 +27,14 @@ class TraceBasedFlawGenerator : public FlawGenerator {
         CartesianCostFunction& cost_function,
         int init_id,
         CartesianHeuristic& heuristic,
-        utils::Timer& find_trace_timer,
         utils::CountdownTimer& timer);
 
     std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
+        const std::vector<int>& domain_sizes,
         const Trace& solution,
         Abstraction& abstraction,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes,
-        utils::Timer& find_flaw_timer,
         utils::CountdownTimer& timer);
 
 public:
@@ -39,13 +43,11 @@ public:
 
     std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
+        const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
         const AbstractState* init_id,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes,
-        utils::Timer& find_trace_timer,
-        utils::Timer& find_flaw_timer,
         utils::CountdownTimer& timer) override;
 
     void notify_split(int v) override;
@@ -53,6 +55,8 @@ public:
     CartesianHeuristic& get_heuristic() override;
 
     bool is_complete() override final;
+
+    void print_statistics(utils::LogProxy& log) override;
 };
 
 class AStarFlawGeneratorFactory : public FlawGeneratorFactory {

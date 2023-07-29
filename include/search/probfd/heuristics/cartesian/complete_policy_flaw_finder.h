@@ -15,11 +15,11 @@ public:
 
     std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
+        const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
         Solution& policy,
-        utils::CountdownTimer& timer,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes) override;
+        utils::CountdownTimer& timer) override;
 };
 
 } // namespace cartesian

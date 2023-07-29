@@ -36,13 +36,11 @@ public:
 
     virtual std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
+        const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
         const AbstractState* init_id,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes,
-        utils::Timer& find_trace_timer,
-        utils::Timer& find_flaw_timer,
         utils::CountdownTimer& timer) = 0;
 
     virtual void notify_split(int v) = 0;
@@ -50,6 +48,8 @@ public:
     virtual CartesianHeuristic& get_heuristic() = 0;
 
     virtual bool is_complete() = 0;
+
+    virtual void print_statistics(utils::LogProxy& log) = 0;
 };
 
 class FlawGeneratorFactory {

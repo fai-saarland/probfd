@@ -15,6 +15,7 @@
 namespace utils {
 class RandomNumberGenerator;
 class LogProxy;
+class Timer;
 } // namespace utils
 
 namespace probfd {
@@ -58,6 +59,11 @@ class CEGAR {
       simplifies the implementation.
     */
     void separate_facts_unreachable_before_goal();
+
+    void refine_abstraction(
+        const Flaw& flaw,
+        utils::RandomNumberGenerator& rng,
+        utils::Timer& timer);
 
     // Build abstraction.
     void refinement_loop(utils::RandomNumberGenerator& rng);

@@ -29,11 +29,11 @@ public:
 
     virtual std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
+        const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
         Solution& policy,
-        utils::CountdownTimer& timer,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes) = 0;
+        utils::CountdownTimer& timer) = 0;
 };
 
 } // namespace cartesian

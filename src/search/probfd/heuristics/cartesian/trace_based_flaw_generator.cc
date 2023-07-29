@@ -40,7 +40,6 @@ std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
     CartesianCostFunction& cost_function,
     int init_id,
     CartesianHeuristic& heuristic,
-    utils::Timer& find_trace_timer,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_trace_timer);
@@ -50,58 +49,45 @@ std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
 
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
+    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     CartesianCostFunction& cost_function,
     const AbstractState* init,
     utils::LogProxy& log,
-    const std::vector<int>& domain_sizes,
-    utils::Timer& find_trace_timer,
-    utils::Timer& find_flaw_timer,
     utils::CountdownTimer& timer)
 {
-    const int init_id = init->get_id();
     std::unique_ptr<Trace> solution = find_trace(
         abstraction,
         cost_function,
         init->get_id(),
         heuristic,
-        find_trace_timer,
         timer);
 
-    if (solution) {
-        optional<Flaw> flaw = find_flaw(
-            task_proxy,
-            *solution,
-            abstraction,
-            log,
-            domain_sizes,
-            find_flaw_timer,
-            timer);
-
-        if (!flaw && log.is_at_least_normal()) {
-            log << "Found a plan without a flaw in the determinized problem."
-                << endl;
+    if (!solution) {
+        if (log.is_at_least_normal()) {
+            log << "Abstract task is unsolvable." << endl;
         }
 
-        return flaw;
+        return std::nullopt;
     }
 
-    if (log.is_at_least_normal()) {
-        log << "Abstract task is unsolvable." << endl;
+    optional<Flaw> flaw =
+        find_flaw(task_proxy, domain_sizes, *solution, abstraction, log, timer);
+
+    if (!flaw && log.is_at_least_normal()) {
+        log << "Found a plan without a flaw in the determinized problem."
+            << endl;
     }
 
-    heuristic.set_h_value(init_id, INFINITE_VALUE);
-
-    return std::nullopt;
+    return flaw;
 }
 
 optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
+    const std::vector<int>& domain_sizes,
     const Trace& solution,
     Abstraction& abstraction,
     utils::LogProxy& log,
-    const std::vector<int>& domain_sizes,
-    utils::Timer& find_flaw_timer,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_flaw_timer);
@@ -175,6 +161,14 @@ CartesianHeuristic& TraceBasedFlawGenerator::get_heuristic()
 bool TraceBasedFlawGenerator::is_complete()
 {
     return false;
+}
+
+void TraceBasedFlawGenerator::print_statistics(utils::LogProxy& log)
+{
+    if (log.is_at_least_normal()) {
+        log << "Time for finding abstract traces: " << find_trace_timer << endl;
+        log << "Time for finding trace flaws: " << find_flaw_timer << endl;
+    }
 }
 
 std::unique_ptr<FlawGenerator>

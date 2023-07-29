@@ -6,6 +6,8 @@
 
 #include "downward/plugins/plugin.h"
 
+#include <algorithm>
+
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
@@ -18,26 +20,22 @@ AdaptiveFlawGenerator::AdaptiveFlawGenerator(
 
 std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
+    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     CartesianCostFunction& cost_function,
     const AbstractState* init_id,
     utils::LogProxy& log,
-    const std::vector<int>& domain_sizes,
-    utils::Timer& find_trace_timer,
-    utils::Timer& find_flaw_timer,
     utils::CountdownTimer& timer)
 {
     while (current_generator != generators.size()) {
         auto& generator = generators[current_generator];
         std::optional<Flaw> flaw = generator->generate_flaw(
             task_proxy,
+            domain_sizes,
             abstraction,
             cost_function,
             init_id,
             log,
-            domain_sizes,
-            find_trace_timer,
-            find_flaw_timer,
             timer);
 
         if (flaw || generator->is_complete()) return flaw;
@@ -71,11 +69,14 @@ CartesianHeuristic& AdaptiveFlawGenerator::get_heuristic()
 
 bool AdaptiveFlawGenerator::is_complete()
 {
-    for (const auto& generator : generators) {
-        if (generator->is_complete()) return true;
-    }
+    return std::ranges::any_of(generators, &FlawGenerator::is_complete);
+}
 
-    return false;
+void AdaptiveFlawGenerator::print_statistics(utils::LogProxy& log)
+{
+    for (auto& gen : generators) {
+        gen->print_statistics(log);
+    }
 }
 
 AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(
