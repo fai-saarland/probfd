@@ -231,6 +231,8 @@ void CostSaturation::build_abstractions(
             rng,
             log);
 
+        unique_ptr<RefinementHierarchy> refinement_hierarchy =
+            cegar.extract_refinement_hierarchy();
         unique_ptr<Abstraction> abstraction = cegar.extract_abstraction();
         CartesianHeuristic heuristic = std::move(cegar.get_heuristic());
         ++num_abstractions;
@@ -249,7 +251,7 @@ void CostSaturation::build_abstractions(
             use_general_costs);
 
         heuristic_functions.emplace_back(
-            abstraction->extract_refinement_hierarchy(),
+            std::move(refinement_hierarchy),
             std::move(goal_distances));
 
         reduce_remaining_costs(saturated_costs);

@@ -13,9 +13,9 @@
 #include "probfd/utils/guards.h"
 
 #include "downward/cegar/cartesian_set.h"
+#include "downward/cegar/refinement_hierarchy.h"
 #include "downward/cegar/utils.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/math.h"
 #include "downward/utils/memory.h"
 
@@ -61,16 +61,17 @@ CEGAR::CEGAR(
     const FlawGeneratorFactory& flaw_generator_factory,
     PickSplit pick,
     utils::RandomNumberGenerator& rng,
-    utils::LogProxy& log)
+    utils::LogProxy log)
     : task_proxy(*task)
     , domain_sizes(cegar::get_domain_sizes(task_proxy))
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
     , flaw_generator(flaw_generator_factory.create_flaw_generator())
     , split_selector(create_split_selector(pick, task, rng))
-    , log(log)
+    , log(std::move(log))
     , timer(max_time)
-    , abstraction(new Abstraction(task, log))
+    , refinement_hierarchy(new RefinementHierarchy(task))
+    , abstraction(new Abstraction(task_proxy, log))
     , cost_function(
           *abstraction,
           task_properties::get_operator_costs(task_proxy))
@@ -93,6 +94,12 @@ CEGAR::CEGAR(
 }
 
 CEGAR::~CEGAR() = default;
+
+std::unique_ptr<RefinementHierarchy> CEGAR::extract_refinement_hierarchy()
+{
+    assert(refinement_hierarchy);
+    return std::move(refinement_hierarchy);
+}
 
 unique_ptr<Abstraction> CEGAR::extract_abstraction()
 {
@@ -128,7 +135,7 @@ bool CEGAR::may_keep_refining() const
     return true;
 }
 
-void CEGAR::separate_facts_unreachable_before_goal()
+void CEGAR::separate_facts_unreachable_before_goal(utils::Timer& timer)
 {
     assert(abstraction->get_goals().size() == 1);
     assert(abstraction->get_num_states() == 1);
@@ -146,11 +153,11 @@ void CEGAR::separate_facts_unreachable_before_goal()
                 unreachable_values.push_back(value);
         }
         if (!unreachable_values.empty()) {
-            abstraction->refine(
+            TimerScope scope(timer);
+            refine_abstraction(
                 abstraction->get_initial_state(),
                 var_id,
                 unreachable_values);
-            flaw_generator->notify_split();
         }
     }
     abstraction->mark_all_states_as_goals();
@@ -160,16 +167,57 @@ void CEGAR::refine_abstraction(const Flaw& flaw, utils::Timer& timer)
 {
     TimerScope scope(timer);
     const AbstractState& abstract_state = flaw.current_abstract_state;
-    const int state_id = abstract_state.get_id();
     vector<Split> splits = flaw.get_possible_splits();
-    const Split& split = split_selector->pick_split(abstract_state, splits);
-    abstraction->refine(abstract_state, split.var_id, split.values);
-    heuristic.on_split(state_id);
+    const auto& [var, wanted] =
+        split_selector->pick_split(abstract_state, splits);
+    refine_abstraction(abstract_state, var, wanted);
+}
+
+void CEGAR::refine_abstraction(
+    const AbstractState& abstract_state,
+    int split_var,
+    const std::vector<int>& wanted)
+{
+    if (log.is_at_least_debug())
+        log << "Refine " << abstract_state << " for " << split_var << "="
+            << wanted << endl;
+
+    int v_id = abstract_state.get_id();
+    // Reuse state ID from obsolete parent to obtain consecutive IDs.
+    int v1_id = v_id;
+    int v2_id = abstraction->get_num_states();
+
+    // Update refinement hierarchy.
+    pair<NodeID, NodeID> node_ids = refinement_hierarchy->split(
+        abstract_state.get_node_id(),
+        split_var,
+        wanted,
+        v1_id,
+        v2_id);
+
+    pair<cegar::CartesianSet, cegar::CartesianSet> cartesian_sets =
+        abstract_state.split_domain(split_var, wanted);
+
+    unique_ptr v1 = std::make_unique<AbstractState>(
+        v1_id,
+        node_ids.first,
+        std::move(cartesian_sets.first));
+    unique_ptr v2 = std::make_unique<AbstractState>(
+        v2_id,
+        node_ids.second,
+        std::move(cartesian_sets.second));
+
+    abstraction
+        ->refine(abstract_state, std::move(v1), std::move(v2), split_var);
+
+    heuristic.on_split(v_id);
     flaw_generator->notify_split();
 }
 
 void CEGAR::refinement_loop()
 {
+    utils::Timer refine_timer(true);
+
     /*
       For landmark tasks we have to map all states in which the
       landmark might have been achieved to arbitrary abstract goal
@@ -178,10 +226,8 @@ void CEGAR::refinement_loop()
       with one goal doesn't hurt and simplifies the implementation.
     */
     if (task_proxy.get_goals().size() == 1) {
-        separate_facts_unreachable_before_goal();
+        separate_facts_unreachable_before_goal(refine_timer);
     }
-
-    utils::Timer refine_timer(true);
 
     try {
         while (may_keep_refining()) {
