@@ -3,6 +3,7 @@
 #include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/cartesian_heuristic_function.h"
 #include "probfd/heuristics/cartesian/cegar.h"
+#include "probfd/heuristics/cartesian/distances.h"
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/split_selector.h"

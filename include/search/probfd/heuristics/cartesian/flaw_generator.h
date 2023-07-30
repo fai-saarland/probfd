@@ -4,8 +4,6 @@
 #include "probfd/heuristics/cartesian/flaw.h"
 #include "probfd/heuristics/cartesian/types.h"
 
-#include "probfd/value_type.h"
-
 #include <memory>
 #include <optional>
 #include <vector>
@@ -52,15 +50,6 @@ public:
     virtual ~FlawGeneratorFactory() = default;
     virtual std::unique_ptr<FlawGenerator> create_flaw_generator() = 0;
 };
-
-/**
- * @brief Calls topological value iteration to compute the complete optimal
- * value function (for states reachable from the initial state).
- */
-std::vector<value_t> compute_distances(
-    Abstraction& abstraction,
-    CartesianHeuristic& heuristic,
-    const std::vector<value_t>& costs);
 
 } // namespace cartesian
 } // namespace heuristics
