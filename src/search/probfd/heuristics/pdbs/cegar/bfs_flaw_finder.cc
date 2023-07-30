@@ -1,6 +1,7 @@
 #include "probfd/heuristics/pdbs/cegar/bfs_flaw_finder.h"
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include "probfd/task_utils/task_properties.h"
 

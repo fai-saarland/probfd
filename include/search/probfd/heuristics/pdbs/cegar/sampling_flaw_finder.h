@@ -7,8 +7,7 @@
 
 #include "probfd/distribution.h"
 
-#include <stack>
-#include <unordered_map>
+#include <vector>
 
 class StateID;
 class State;

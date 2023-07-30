@@ -5,7 +5,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include <stack>
+#include <deque>
 #include <unordered_set>
 
 class StateID;

@@ -11,9 +11,6 @@
 
 #include "downward/task_proxy.h"
 
-#include <stack>
-#include <unordered_map>
-
 class StateID;
 class State;
 class StateRegistry;

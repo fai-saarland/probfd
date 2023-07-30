@@ -2,6 +2,8 @@
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_policy.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -25,6 +27,8 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace cegar {
+
+CEGARResult::~CEGARResult() = default;
 
 PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
@@ -128,6 +132,8 @@ PDBInfo::PDBInfo(
 {
 }
 
+PDBInfo::~PDBInfo() = default;
+
 const Pattern& PDBInfo::get_pattern() const
 {
     return pdb->get_pattern();
@@ -200,6 +206,8 @@ CEGAR::CEGAR(
     , blacklisted_variables(std::move(blacklisted_variables))
 {
 }
+
+CEGAR::~CEGAR() = default;
 
 void CEGAR::print_collection() const
 {

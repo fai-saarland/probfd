@@ -1,36 +1,29 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
-#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
-#include "probfd/heuristics/pdbs/projection_policy.h"
+#include "probfd/heuristics/pdbs/engine_interfaces.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
-
 
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/rng.h"
 
-#include <ranges>
-#include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-namespace plugins {
-class Feature;
-}
-
 namespace utils {
 class CountdownTimer;
-class LogProxy;
+class RandomNumberGenerator;
 } // namespace utils
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
+class ProjectionPolicy;
+class ProbabilityAwarePatternDatabase;
 class SubCollectionFinderFactory;
 
 namespace cegar {
@@ -86,6 +79,8 @@ public:
         bool wildcard,
         utils::CountdownTimer& timer);
 
+    ~PDBInfo();
+
     const Pattern& get_pattern() const;
 
     const ProbabilityAwarePatternDatabase& get_pdb() const;
@@ -113,7 +108,7 @@ class CEGAR {
     const std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     // Flaw finding strategy
-    const std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
+    const std::shared_ptr<FlawFindingStrategy> flaw_strategy;
 
     // behavior defining parameters
     const bool wildcard;
@@ -146,6 +141,8 @@ public:
         double max_time,
         std::vector<int> goals,
         std::unordered_set<int> blacklisted_variables = {});
+
+    ~CEGAR();
 
     std::pair<
         std::unique_ptr<ProjectionCollection>,
