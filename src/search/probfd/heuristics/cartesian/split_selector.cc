@@ -203,6 +203,19 @@ SplitSelectorMaxHAddFactory::create_split_selector(
     return std::make_unique<SplitSelectorMaxHAdd>(task);
 }
 
+static class SplitSelectorFactoryCategoryPlugin
+    : public plugins::TypedCategoryPlugin<SplitSelectorFactory> {
+public:
+    SplitSelectorFactoryCategoryPlugin()
+        : TypedCategoryPlugin("SplitSelectorFactory")
+    {
+        document_synopsis("Factory for split selection algorithms used in the "
+                          "cartesian abstraction refinement loop");
+    }
+} _category_plugin;
+
+namespace {
+
 class SplitSelectorRandomFactoryFeature
     : public plugins::
           TypedFeature<SplitSelectorFactory, SplitSelectorRandomFactory> {
@@ -341,6 +354,8 @@ public:
         return std::make_shared<SplitSelectorMaxHAddFactory>();
     }
 };
+
+} // namespace
 
 static plugins::FeaturePlugin<SplitSelectorRandomFactoryFeature> _plugin;
 static plugins::FeaturePlugin<SplitSelectorMinUnwantedFactoryFeature> _plugin2;
