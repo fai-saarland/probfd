@@ -217,20 +217,18 @@ void CostSaturation::build_abstractions(
 
         assert(num_states < max_states);
         CEGAR cegar(
-            subtask,
             max(1, (max_states - num_states) / rem_subtasks),
             max(1,
                 (max_non_looping_transitions - num_non_looping_transitions) /
                     rem_subtasks),
             timer.get_remaining_time() / rem_subtasks,
-            *flaw_generator_factory,
-            *split_selector_factory,
+            flaw_generator_factory,
+            split_selector_factory,
             log);
 
-        unique_ptr<RefinementHierarchy> refinement_hierarchy =
-            cegar.extract_refinement_hierarchy();
-        unique_ptr<Abstraction> abstraction = cegar.extract_abstraction();
-        CartesianHeuristic heuristic = std::move(cegar.get_heuristic());
+        auto [refinement_hierarchy, abstraction, heuristic] =
+            cegar.run_refinement_loop(subtask);
+
         ++num_abstractions;
         num_states += abstraction->get_num_states();
         num_non_looping_transitions +=
@@ -240,7 +238,7 @@ void CostSaturation::build_abstractions(
         vector<value_t> costs = task_properties::get_operator_costs(
             ProbabilisticTaskProxy(*subtask));
         vector<value_t> goal_distances =
-            compute_distances(*abstraction, heuristic, costs);
+            compute_distances(*abstraction, *heuristic, costs);
         vector<value_t> saturated_costs = compute_saturated_costs(
             abstraction->get_transition_system(),
             goal_distances,
