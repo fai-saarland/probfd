@@ -80,12 +80,15 @@ bool BFSFlawFinder::apply_policy(
             if (abs_operators.empty()) {
                 assert(solution.is_goal(abs));
 
-                return base.collect_flaws(
-                    goals,
-                    current,
-                    solution_index,
-                    false,
-                    flaw_list);
+                if (base.collect_flaws(
+                        goals,
+                        current,
+                        solution_index,
+                        false,
+                        flaw_list))
+                    return false;
+
+                goto continue_exploration;
             }
 
             std::vector<Flaw> local_flaws;
