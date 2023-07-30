@@ -13,8 +13,6 @@
 #include "probfd/task_utils/task_properties.h"
 #include "probfd/tasks/modified_operator_costs_task.h"
 
-#include "probfd/value_type.h"
-
 #include "downward/cegar/abstract_state.h"
 #include "downward/cegar/cartesian_heuristic_function.h"
 #include "downward/cegar/refinement_hierarchy.h"
