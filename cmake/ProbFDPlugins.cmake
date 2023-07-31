@@ -541,6 +541,17 @@ create_library(
 )
 
 create_library(
+    NAME pa_merge_and_shrink_heuristic_feature
+    HELP "Enables the Merge-and-shrink heuristic plugin"
+    SOURCES
+        probfd/cli/heuristics/merge_and_shrink_heuristic
+    DEPENDS
+        probability_aware_mas_heuristic
+    TARGET
+        probfd
+)
+
+create_library(
     NAME open_list_plugin
     HELP "Enables the open list plugin"
     SOURCES
