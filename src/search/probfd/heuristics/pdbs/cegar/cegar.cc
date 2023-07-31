@@ -3,11 +3,11 @@
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
-#include "probfd/heuristics/pdbs/projection_policy.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/multi_policy.h"
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/collections.h"
@@ -30,7 +30,71 @@ namespace cegar {
 
 CEGARResult::~CEGARResult() = default;
 
-PDBInfo::PDBInfo(
+/*
+ * Implementation notes: The state space needs to be kept to find flaws in the
+ * policy. Since it exists anyway, the algorithm is also a producer of
+ * projection state spaces, not only of PDBs. Hence the heap allocation to
+ * return it to the user, in case he needs it, e.g. to compute the saturated
+ * costs of the PDB.
+ */
+class CEGAR::PDBInfo {
+    std::unique_ptr<ProjectionStateSpace> state_space;
+    InducedProjectionCostFunction cost_function;
+    StateRank initial_state;
+    std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
+    std::unique_ptr<ProjectionMultiPolicy> policy;
+    bool solved = false;
+
+public:
+    PDBInfo(
+        const ProbabilisticTaskProxy& task_proxy,
+        StateRankingFunction ranking_function,
+        TaskCostFunction& task_cost_function,
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        bool wildcard,
+        utils::CountdownTimer& timer);
+
+    PDBInfo(
+        const ProbabilisticTaskProxy& task_proxy,
+        StateRankingFunction ranking_function,
+        TaskCostFunction& task_cost_function,
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        const ProbabilityAwarePatternDatabase& previous,
+        int add_var,
+        bool wildcard,
+        utils::CountdownTimer& timer);
+
+    PDBInfo(
+        const ProbabilisticTaskProxy& task_proxy,
+        StateRankingFunction ranking_function,
+        TaskCostFunction& task_cost_function,
+        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        const ProbabilityAwarePatternDatabase& merge_left,
+        const ProbabilityAwarePatternDatabase& merge_right,
+        bool wildcard,
+        utils::CountdownTimer& timer);
+
+    const Pattern& get_pattern() const;
+
+    const ProbabilityAwarePatternDatabase& get_pdb() const;
+
+    const ProjectionMultiPolicy& get_policy() const;
+
+    value_t get_policy_cost(const State& state) const;
+
+    std::unique_ptr<ProjectionStateSpace> extract_state_space();
+    std::unique_ptr<ProbabilityAwarePatternDatabase> extract_pdb();
+
+    bool is_solved() const;
+
+    void mark_as_solved();
+
+    bool solution_exists() const;
+
+    bool is_goal(StateRank rank) const;
+};
+
+CEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     TaskCostFunction& task_cost_function,
@@ -62,7 +126,7 @@ PDBInfo::PDBInfo(
 {
 }
 
-PDBInfo::PDBInfo(
+CEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     TaskCostFunction& task_cost_function,
@@ -97,7 +161,7 @@ PDBInfo::PDBInfo(
 {
 }
 
-PDBInfo::PDBInfo(
+CEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     TaskCostFunction& task_cost_function,
@@ -132,55 +196,53 @@ PDBInfo::PDBInfo(
 {
 }
 
-PDBInfo::~PDBInfo() = default;
-
-const Pattern& PDBInfo::get_pattern() const
+const Pattern& CEGAR::PDBInfo::get_pattern() const
 {
     return pdb->get_pattern();
 }
 
-const ProbabilityAwarePatternDatabase& PDBInfo::get_pdb() const
+const ProbabilityAwarePatternDatabase& CEGAR::PDBInfo::get_pdb() const
 {
     assert(pdb);
     return *pdb;
 }
 
-const ProjectionPolicy& PDBInfo::get_policy() const
+const ProjectionMultiPolicy& CEGAR::PDBInfo::get_policy() const
 {
     return *policy;
 }
 
-value_t PDBInfo::get_policy_cost(const State& state) const
+value_t CEGAR::PDBInfo::get_policy_cost(const State& state) const
 {
     return pdb->lookup_estimate(state);
 }
 
-std::unique_ptr<ProjectionStateSpace> PDBInfo::extract_state_space()
+std::unique_ptr<ProjectionStateSpace> CEGAR::PDBInfo::extract_state_space()
 {
     return std::move(state_space);
 }
 
-std::unique_ptr<ProbabilityAwarePatternDatabase> PDBInfo::extract_pdb()
+std::unique_ptr<ProbabilityAwarePatternDatabase> CEGAR::PDBInfo::extract_pdb()
 {
     return std::move(pdb);
 }
 
-bool PDBInfo::is_solved() const
+bool CEGAR::PDBInfo::is_solved() const
 {
     return solved;
 }
 
-void PDBInfo::mark_as_solved()
+void CEGAR::PDBInfo::mark_as_solved()
 {
     solved = true;
 }
 
-bool PDBInfo::solution_exists() const
+bool CEGAR::PDBInfo::solution_exists() const
 {
     return !pdb->is_dead_end(initial_state);
 }
 
-bool PDBInfo::is_goal(StateRank rank) const
+bool CEGAR::PDBInfo::is_goal(StateRank rank) const
 {
     return cost_function.is_goal(rank);
 }
@@ -274,7 +336,8 @@ int CEGAR::get_flaws(
         const size_t num_flaws_before = flaws.size();
         const bool executable = flaw_strategy->apply_policy(
             task_proxy,
-            *info,
+            info->get_pdb(),
+            info->get_policy(),
             blacklisted_variables,
             flaws,
             timer);

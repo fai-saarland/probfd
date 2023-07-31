@@ -1,27 +1,12 @@
 #ifndef PROBFD_POLICY_H
 #define PROBFD_POLICY_H
 
-#include "probfd/interval.h"
+#include "probfd/multi_policy.h"
 
 #include <optional>
 #include <vector>
 
 namespace probfd {
-
-/// Stores an action and a bounding interval for the Q* value of this action.
-template <typename Action>
-struct PolicyDecision {
-    Action action;                 ///< The action.
-    Interval q_value_interval;     ///< The Q* value interval.
-
-    PolicyDecision(
-        Action action,
-        Interval q_value_interval = Interval(-INFINITE_VALUE, INFINITE_VALUE))
-        : action(action)
-        , q_value_interval(q_value_interval)
-    {
-    }
-};
 
 /**
  * @brief Represents a deterministic, stationary, partial policy.
@@ -35,14 +20,23 @@ struct PolicyDecision {
  * @tparam Action - The action type of the underlying state space.
  */
 template <typename State, typename Action>
-class PartialPolicy {
+class PartialPolicy : public MultiPolicy<State, Action> {
 public:
     virtual ~PartialPolicy() = default;
 
     /// Retrives the action and optimal state value interval specified by the
     /// policy for a given state.
     virtual std::optional<PolicyDecision<Action>>
-    get_decision(const State& state) = 0;
+    get_decision(const State& state) const = 0;
+
+    std::vector<PolicyDecision<Action>>
+    get_decisions(const State& state) const override
+    {
+        std::optional decision = this->get_decision(state);
+        std::vector<PolicyDecision<Action>> decisions;
+        if (decision) decisions.emplace_back(std::move(*decision));
+        return decisions;
+    }
 };
 
 } // namespace probfd

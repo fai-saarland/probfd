@@ -43,7 +43,8 @@ public:
 
     bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,
-        const PDBInfo& pdb_info,
+        const ProbabilityAwarePatternDatabase& pdb,
+        const ProjectionMultiPolicy& policy,
         const std::unordered_set<int>& blacklisted_variables,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;

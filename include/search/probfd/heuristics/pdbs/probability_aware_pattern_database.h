@@ -4,7 +4,6 @@
 #include "probfd/heuristics/pdbs/engine_interfaces.h"
 #include "probfd/heuristics/pdbs/match_tree.h"
 #include "probfd/heuristics/pdbs/projection_operator.h"
-#include "probfd/heuristics/pdbs/projection_policy.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
@@ -333,7 +332,7 @@ public:
      * wildcard option is specified, a wildcard policy will be returned, i.e., a
      * policy that assigns multiple equivalent operators to a abstract state.
      */
-    [[nodiscard]] std::unique_ptr<ProjectionPolicy>
+    [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
     compute_optimal_projection_policy(
         ProjectionStateSpace& state_space,
         ProjectionCostFunction& cost_function,
@@ -349,7 +348,7 @@ public:
      * wildcard option is specified, a wildcard policy will be returned, i.e., a
      * policy that assigns multiple equivalent operators to a abstract state.
      */
-    [[nodiscard]] std::unique_ptr<ProjectionPolicy>
+    [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
     compute_greedy_projection_policy(
         ProjectionStateSpace& state_space,
         ProjectionCostFunction& cost_function,

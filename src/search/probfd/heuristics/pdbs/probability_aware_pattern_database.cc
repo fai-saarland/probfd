@@ -2,6 +2,7 @@
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/engines/ta_topological_value_iteration.h"
+#include "probfd/policies/vector_multi_policy.h"
 
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
@@ -379,7 +380,7 @@ ProbabilityAwarePatternDatabase::get_abstract_state(const State& s) const
     return ranking_function_.get_abstract_rank(s);
 }
 
-std::unique_ptr<ProjectionPolicy>
+std::unique_ptr<ProjectionMultiPolicy>
 ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
@@ -392,12 +393,14 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
 
     assert(!is_dead_end(initial_state));
 
-    ProjectionPolicy* policy =
-        new ProjectionPolicy(ranking_function_.num_states());
+    std::unique_ptr policy = std::make_unique<
+        policies::VectorMultiPolicy<StateRank, const ProjectionOperator*>>(
+        &state_space,
+        ranking_function_.num_states());
 
     // return empty policy indicating unsolvable
     if (cost_function.is_goal(initial_state)) {
-        return std::unique_ptr<ProjectionPolicy>(policy);
+        return policy;
     }
 
     std::map<StateRank, PredecessorList> predecessors;
@@ -473,39 +476,37 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
         rng.shuffle(predecessors[s]);
 
         for (const auto& [pstate, sel_op] : predecessors[s]) {
-            if (closed.insert(pstate).second) {
-                open.push_back(pstate);
+            if (!closed.insert(pstate).second) continue;
+            open.push_back(pstate);
 
-                // Collect all equivalent greedy operators
-                std::vector<const ProjectionOperator*> aops;
-                state_space.generate_applicable_actions(pstate.id, aops);
+            const value_t parent_cost = value_table[pstate.id];
 
-                std::vector<const ProjectionOperator*> equivalent_operators;
+            // Collect all equivalent greedy operators
+            std::vector<const ProjectionOperator*> aops;
+            state_space.generate_applicable_actions(pstate.id, aops);
 
-                for (const ProjectionOperator* op : aops) {
-                    if (are_equivalent(*op, *sel_op)) {
-                        equivalent_operators.push_back(op);
-                    }
-                }
+            const value_t cost_sel_op = cost_function.get_action_cost(sel_op);
 
-                // If wildcard consider all, else randomly pick one
-                if (wildcard) {
-                    (*policy)[pstate].insert(
-                        (*policy)[pstate].end(),
-                        equivalent_operators.begin(),
-                        equivalent_operators.end());
-                } else {
-                    (*policy)[pstate].push_back(
-                        *rng.choose(equivalent_operators));
+            std::vector<PolicyDecision<const ProjectionOperator*>> decisions;
+
+            for (const ProjectionOperator* op : aops) {
+                const value_t cost_op = cost_function.get_action_cost(op);
+                if (are_equivalent(*op, *sel_op) && cost_op == cost_sel_op) {
+                    decisions.emplace_back(op, Interval(parent_cost));
                 }
             }
+
+            // If not wildcard, randomly pick one
+            if (!wildcard) decisions = {*rng.choose(decisions)};
+
+            (*policy)[pstate.id] = std::move(decisions);
         }
     }
 
-    return std::unique_ptr<ProjectionPolicy>(policy);
+    return policy;
 }
 
-std::unique_ptr<ProjectionPolicy>
+std::unique_ptr<ProjectionMultiPolicy>
 ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
     ProjectionStateSpace& state_space,
     ProjectionCostFunction& cost_function,
@@ -513,11 +514,13 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
     utils::RandomNumberGenerator& rng,
     bool wildcard) const
 {
-    ProjectionPolicy* policy =
-        new ProjectionPolicy(ranking_function_.num_states());
+    std::unique_ptr policy = std::make_unique<
+        policies::VectorMultiPolicy<StateRank, const ProjectionOperator*>>(
+        &state_space,
+        ranking_function_.num_states());
 
     if (cost_function.is_goal(initial_state)) {
-        return std::unique_ptr<ProjectionPolicy>(policy);
+        return policy;
     }
 
     std::deque<StateRank> open;
@@ -548,7 +551,7 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
         // Look at the (greedy) operators in random order.
         rng.shuffle(aops);
 
-        const ProjectionOperator* greedy_operator = nullptr;
+        const ProjectionOperator* greedy;
         std::vector<StateRank> greedy_successors;
 
         // Select first greedy operator
@@ -566,13 +569,16 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
             }
 
             if (is_approx_equal(value, op_value)) {
-                greedy_operator = op;
+                greedy = op;
                 greedy_successors = std::move(successors);
-                break;
+                goto found;
             }
         }
 
-        assert(greedy_operator != nullptr);
+        abort();
+
+    found:;
+        const value_t cost_greedy = cost_function.get_action_cost(greedy);
 
         // Generate successors
         for (const StateRank& succ : greedy_successors) {
@@ -583,28 +589,24 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
         }
 
         // Collect all equivalent greedy operators
-        std::vector<const ProjectionOperator*> equivalent_operators;
+        std::vector<PolicyDecision<const ProjectionOperator*>> decisions;
 
         for (const ProjectionOperator* op : aops) {
-            if (are_equivalent(*op, *greedy_operator)) {
-                equivalent_operators.push_back(op);
+            const value_t cost_op = cost_function.get_action_cost(op);
+
+            if (are_equivalent(*op, *greedy) && cost_op == cost_greedy) {
+                decisions.emplace_back(op, Interval(value));
             }
         }
 
-        // If wildcard consider all, else randomly pick one
-        if (wildcard) {
-            (*policy)[s].insert(
-                (*policy)[s].end(),
-                equivalent_operators.begin(),
-                equivalent_operators.end());
-        } else {
-            (*policy)[s].push_back(*rng.choose(equivalent_operators));
-        }
+        // If not wildcard, randomly pick one
+        if (!wildcard) decisions = {*rng.choose(decisions)};
+        (*policy)[s.id] = std::move(decisions);
 
-        assert(!(*policy)[s].empty());
+        assert(!(*policy)[s.id].empty());
     }
 
-    return std::unique_ptr<ProjectionPolicy>(policy);
+    return policy;
 }
 
 void ProbabilityAwarePatternDatabase::compute_saturated_costs(

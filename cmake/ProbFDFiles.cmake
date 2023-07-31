@@ -309,7 +309,6 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/trivial_finder
         probfd/heuristics/pdbs/subcollections
 
-        probfd/heuristics/pdbs/projection_policy
         probfd/heuristics/pdbs/utils
     DEPENDS PROBABILITY_AWARE_PDBS CAUSAL_GRAPH MAX_CLIQUES
     DEPENDENCY_ONLY

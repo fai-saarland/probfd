@@ -13,13 +13,13 @@ namespace pdbs {
 
 namespace {
 
-class ProjectionOperator {
+class SyntacticProjectionOperator {
     std::map<std::vector<FactPair>, value_t> effects_to_probs;
 
 public:
     using const_iterator = decltype(std::as_const(effects_to_probs).begin());
 
-    ProjectionOperator(
+    SyntacticProjectionOperator(
         const Pattern& pattern,
         const ProbabilisticOperatorProxy& op)
     {
@@ -215,7 +215,7 @@ std::vector<std::vector<int>> build_compatibility_graph_weak_orthogonality(
             const Pattern& pattern = patterns[j];
 
             // Get the syntactically projected operator
-            ProjectionOperator abs_op(pattern, op);
+            SyntacticProjectionOperator abs_op(pattern, op);
 
             // If the operator is "truly stochastic" add it to the set
             if (abs_op.is_stochastic() && !abs_op.is_pseudo_deterministic()) {
@@ -246,7 +246,8 @@ bool is_independent_collection(
     const ProbabilisticTaskProxy& task_proxy,
     const PatternCollection& patterns)
 {
-    using ProjectionOutcomeIterator = ProjectionOperator::const_iterator;
+    using ProjectionOutcomeIterator =
+        SyntacticProjectionOperator::const_iterator;
 
     // Construct union pattern here
     Pattern union_pattern;
@@ -269,7 +270,7 @@ bool is_independent_collection(
 
     const std::size_t num_patterns = patterns.size();
 
-    std::vector<ProjectionOperator> abs_op_individual;
+    std::vector<SyntacticProjectionOperator> abs_op_individual;
     std::vector<ProjectionOutcomeIterator> proj_outcomes_values;
     std::vector<std::pair<ProjectionOutcomeIterator, ProjectionOutcomeIterator>>
         proj_outcomes_ranges;
@@ -282,7 +283,7 @@ bool is_independent_collection(
 
     for (const ProbabilisticOperatorProxy& op : task_proxy.get_operators()) {
         // Build the operator of the task projection wrt the pattern union
-        ProjectionOperator abs_op_union(union_pattern, op);
+        SyntacticProjectionOperator abs_op_union(union_pattern, op);
 
         // Build the operators of the individual task projections
         for (const Pattern& pattern : patterns) {

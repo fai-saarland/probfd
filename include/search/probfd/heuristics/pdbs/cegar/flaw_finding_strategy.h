@@ -1,6 +1,10 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDER_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDER_H
 
+#include "probfd/heuristics/pdbs/types.h"
+
+#include "probfd/heuristics/pdbs/cegar/flaw.h"
+
 #include "probfd/task_proxy.h"
 
 #include <string>
@@ -14,12 +18,11 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class ProjectionPolicy;
+class ProbabilityAwarePatternDatabase;
 
 namespace cegar {
 
 struct Flaw;
-class PDBInfo;
 
 class FlawFindingStrategy {
 public:
@@ -30,7 +33,8 @@ public:
     // remaining goals are added to the list for goal violations.
     virtual bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,
-        const PDBInfo& pdb_info,
+        const ProbabilityAwarePatternDatabase& pdb,
+        const ProjectionMultiPolicy& policy,
         const std::unordered_set<int>& blacklisted_variables,
         std::vector<Flaw>& flaws,
         utils::CountdownTimer& timer) = 0;

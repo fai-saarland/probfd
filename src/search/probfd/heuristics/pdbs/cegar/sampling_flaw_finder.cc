@@ -1,6 +1,5 @@
 #include "probfd/heuristics/pdbs/cegar/sampling_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/cegar/cegar.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
@@ -9,6 +8,7 @@
 #include "probfd/utils/guards.h"
 
 #include "probfd/distribution.h"
+#include "probfd/multi_policy.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
@@ -46,7 +46,8 @@ SamplingFlawFinder::SamplingFlawFinder(
 
 bool SamplingFlawFinder::apply_policy(
     const ProbabilisticTaskProxy& task_proxy,
-    const PDBInfo& pdb_info,
+    const ProbabilityAwarePatternDatabase& pdb,
+    const ProjectionMultiPolicy& policy,
     const std::unordered_set<int>& blacklisted_variables,
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
@@ -61,9 +62,6 @@ bool SamplingFlawFinder::apply_policy(
 
     StateRegistry registry(task_proxy);
     stk.push_back(registry.get_initial_state());
-
-    const ProjectionPolicy& policy = pdb_info.get_policy();
-    const ProbabilityAwarePatternDatabase& pdb = pdb_info.get_pdb();
 
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
@@ -84,11 +82,11 @@ bool SamplingFlawFinder::apply_policy(
                 goto backtrack;
             }
 
-            const auto& abs_operators = policy[abs];
+            const std::vector abs_decisions = policy.get_decisions(abs);
 
             // Goal flaw check
-            if (abs_operators.empty()) {
-                assert(pdb_info.is_goal(abs));
+            if (abs_decisions.empty()) {
+                // assert(pdb_info.is_goal(abs));
 
                 if (collect_flaws(
                         goals,
@@ -104,7 +102,8 @@ bool SamplingFlawFinder::apply_policy(
             std::vector<Flaw> local_flaws;
 
             // Precondition flaw check
-            for (const ProjectionOperator* abs_op : abs_operators) {
+            for (const auto& decision : abs_decisions) {
+                const auto* abs_op = decision.action;
                 const auto op = operators[abs_op->operator_id];
 
                 if (collect_flaws(
