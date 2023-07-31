@@ -30,24 +30,11 @@ class ProbabilisticOutcomeProxy;
 class ProbabilisticOutcomesProxy;
 class ProbabilisticTaskProxy;
 
-/// Returns the begin iterator of a proxy collection.
-template <class ProxyCollection>
-inline ProxyIterator<ProxyCollection> begin(ProxyCollection& collection)
-{
-    return ProxyIterator<ProxyCollection>(collection, 0);
-}
-
-/// Returns the end iterator for a proxy collection.
-template <class ProxyCollection>
-inline ProxyIterator<ProxyCollection> end(ProxyCollection& collection)
-{
-    return ProxyIterator<ProxyCollection>(collection, collection.size());
-}
-
 /// Proxy class used to inspect the list of effect conditions of a conditional
 /// effect of a probabilistic operator. Can be used as a range of FactProxies,
 /// one for each effect condition.
-class ProbabilisticEffectConditionsProxy {
+class ProbabilisticEffectConditionsProxy
+    : public ProxyCollection<ProbabilisticEffectConditionsProxy> {
     const ProbabilisticTask* task;
 
     int op_index;
@@ -55,9 +42,6 @@ class ProbabilisticEffectConditionsProxy {
     int eff_index;
 
 public:
-    /// The item type for ProxyIterator to support usage as a range.
-    using ItemType = FactProxy;
-
     ProbabilisticEffectConditionsProxy(
         const ProbabilisticTask& task,
         int op_index,
@@ -91,9 +75,6 @@ public:
                 eff_index,
                 index));
     }
-
-    /// Checks if the list of effect conditions is empty.
-    bool empty() const { return size() == 0; }
 };
 
 /// Proxy class used to inspect a probabilistic effect of a probabilistic
@@ -144,15 +125,13 @@ public:
 /// Proxy class used to inspect the list of probabilistic effects of a
 /// probabilistic operator. Can be used as a range of
 /// ProbabilisticEffectProxies, one for each probabilistic effect.
-class ProbabilisticEffectsProxy {
+class ProbabilisticEffectsProxy
+    : public ProxyCollection<ProbabilisticEffectsProxy> {
     const ProbabilisticTask* task;
     int op_index;
     int outcome_index;
 
 public:
-    /// The item type for ProxyIterator to support usage as a range.
-    using ItemType = ProbabilisticEffectProxy;
-
     ProbabilisticEffectsProxy(
         const ProbabilisticTask& task,
         int op_index,
@@ -224,14 +203,12 @@ public:
 /// Proxy class used to inspect the list of probabilistic outcomes of a
 /// probabilistic operator. Can be used as a range of
 /// ProbabilisticOutcomeProxies, one for each probabilistic outcome.
-class ProbabilisticOutcomesProxy {
+class ProbabilisticOutcomesProxy
+    : public ProxyCollection<ProbabilisticOutcomesProxy> {
     const ProbabilisticTask* task;
     int op_index;
 
 public:
-    /// The item type for ProxyIterator to support usage as a range.
-    using ItemType = ProbabilisticOutcomeProxy;
-
     ProbabilisticOutcomesProxy(const ProbabilisticTask& task, int op_index)
         : task(&task)
         , op_index(op_index)
@@ -294,13 +271,11 @@ ProbabilisticOutcomesProxy::get_operator() const
 /// Proxy class used to inspect a list of probabilistic operators of a
 /// probabilistic task. Can be used as a range of ProbabilisticOperatorProxies,
 /// one for each probabilistic operator.
-class ProbabilisticOperatorsProxy {
+class ProbabilisticOperatorsProxy
+    : public ProxyCollection<ProbabilisticOperatorsProxy> {
     const ProbabilisticTask* task;
 
 public:
-    /// The item type for ProxyIterator to support usage as a range.
-    using ItemType = ProbabilisticOperatorProxy;
-
     explicit ProbabilisticOperatorsProxy(const ProbabilisticTask& task)
         : task(&task)
     {
@@ -308,9 +283,6 @@ public:
 
     /// Returns the number of probabilistic operators in the list.
     std::size_t size() const { return task->get_num_operators(); }
-
-    /// Checks if the list of operators is empty.
-    bool empty() const { return size() == 0; }
 
     /// Get a proxy for a specific probabilistic operator by list index.
     ProbabilisticOperatorProxy operator[](std::size_t index) const

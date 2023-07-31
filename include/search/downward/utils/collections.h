@@ -134,8 +134,8 @@ std::vector<ElemTo> map_vector(const Collection& collection, MapFunc map_func)
     std::vector<ElemTo> transformed;
     transformed.reserve(collection.size());
     std::transform(
-        begin(collection),
-        end(collection),
+        std::begin(collection),
+        std::end(collection),
         std::back_inserter(transformed),
         map_func);
     return transformed;

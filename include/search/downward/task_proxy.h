@@ -12,8 +12,10 @@
 #include "downward/utils/system.h"
 
 #include <cassert>
+#include <compare>
 #include <cstddef>
 #include <iterator>
+#include <ranges>
 #include <string>
 #include <variant>
 #include <vector>
@@ -102,25 +104,33 @@ using PackedStateBin = int_packer::IntPacker::Bin;
   task_properties.h module.
 */
 
-/*
-  Basic iterator support for proxy collections.
-*/
-template <typename ProxyCollection>
-    requires requires(ProxyCollection c) { typename ProxyCollection::ItemType; }
+template <typename T>
+concept SizedSubscriptable = requires(const T c, std::size_t s) {
+    c.operator[](s);
+    {
+        c.size()
+    } -> std::convertible_to<std::size_t>;
+};
+
+template <SizedSubscriptable T>
 class ProxyIterator {
     /* We store a pointer to collection instead of a reference
        because iterators have to be copy assignable. */
-    const ProxyCollection* collection;
+    const T* collection;
     std::size_t pos;
 
 public:
-    using iterator_category = std::input_iterator_tag;
-    using value_type = typename ProxyCollection::ItemType;
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type =
+        typename std::remove_cvref_t<decltype(std::declval<T>().operator[](
+            0U))>;
     using difference_type = int;
     using pointer = const value_type*;
     using reference = value_type;
 
-    ProxyIterator(const ProxyCollection& collection, std::size_t pos)
+    ProxyIterator() = default;
+
+    ProxyIterator(const T& collection, std::size_t pos)
         : collection(&collection)
         , pos(pos)
     {
@@ -128,42 +138,102 @@ public:
 
     reference operator*() const { return (*collection)[pos]; }
 
-    value_type operator++(int)
+    ProxyIterator<T> operator++(int)
     {
-        value_type value(**this);
+        auto r = *this;
         ++(*this);
-        return value;
+        return r;
     }
 
-    ProxyIterator& operator++()
+    ProxyIterator<T> operator--(int)
+    {
+        auto r = *this;
+        --(*this);
+        return r;
+    }
+
+    ProxyIterator<T>& operator++()
     {
         ++pos;
         return *this;
     }
 
-    bool operator==(const ProxyIterator& other) const
+    ProxyIterator<T>& operator--()
     {
-        assert(collection == other.collection);
-        return pos == other.pos;
+        --pos;
+        return *this;
     }
 
-    bool operator!=(const ProxyIterator& other) const
+    reference operator[](difference_type n) const { return *(this + n); }
+
+    ProxyIterator<T>& operator+=(difference_type n)
     {
-        return !(*this == other);
+        pos += n;
+        return *this;
+    }
+
+    ProxyIterator<T>& operator-=(difference_type n)
+    {
+        pos -= n;
+        return *this;
+    }
+
+    friend ProxyIterator<T>
+    operator+(const ProxyIterator<T>& lhs, difference_type rhs)
+    {
+        return ProxyIterator<T>(*lhs.collection, lhs.pos + rhs);
+    }
+
+    friend ProxyIterator<T>
+    operator+(difference_type lhs, const ProxyIterator<T>& rhs)
+    {
+        return ProxyIterator<T>(*rhs.collection, rhs.pos + lhs);
+    }
+
+    friend ProxyIterator<T>
+    operator-(const ProxyIterator<T>& lhs, difference_type rhs)
+    {
+        return ProxyIterator<T>(*lhs.collection, lhs.pos - rhs);
+    }
+
+    friend difference_type
+    operator-(const ProxyIterator<T>& lhs, const ProxyIterator<T>& rhs)
+    {
+        return lhs.pos - rhs.pos;
+    }
+
+    friend bool
+    operator==(const ProxyIterator<T>& lhs, const ProxyIterator<T>& rhs)
+    {
+        assert(lhs.collection == rhs.collection);
+        return lhs.pos == rhs.pos;
+    }
+
+    friend auto
+    operator<=>(const ProxyIterator<T>& lhs, const ProxyIterator<T>& rhs)
+    {
+        assert(lhs.collection == rhs.collection);
+        return lhs.pos <=> rhs.pos;
     }
 };
 
-template <class ProxyCollection>
-inline ProxyIterator<ProxyCollection> begin(ProxyCollection& collection)
-{
-    return ProxyIterator<ProxyCollection>(collection, 0);
-}
+template <typename T>
+class ProxyCollection : public std::ranges::view_interface<ProxyCollection<T>> {
+public:
+    auto begin() const
+    {
+        static_assert(std::random_access_iterator<ProxyIterator<T>>);
+        return ProxyIterator<T>(*static_cast<const T*>(this), 0);
+    }
 
-template <class ProxyCollection>
-inline ProxyIterator<ProxyCollection> end(ProxyCollection& collection)
-{
-    return ProxyIterator<ProxyCollection>(collection, collection.size());
-}
+    auto end() const
+    {
+        static_assert(std::random_access_iterator<ProxyIterator<T>>);
+        return ProxyIterator<T>(*static_cast<const T*>(this), size());
+    }
+
+    std::size_t size() const { return static_cast<const T*>(this)->size(); }
+};
 
 class FactProxy {
     const AbstractTaskBase* task;
@@ -324,11 +394,10 @@ public:
     }
 };
 
-class VariablesProxy {
+class VariablesProxy : public ProxyCollection<VariablesProxy> {
     const AbstractTaskBase* task;
 
 public:
-    using ItemType = VariableProxy;
     explicit VariablesProxy(const AbstractTaskBase& task)
         : task(&task)
     {
@@ -346,12 +415,12 @@ public:
     FactsProxy get_facts() const { return FactsProxy(*task); }
 };
 
-class AxiomPreconditionsProxy {
+class AxiomPreconditionsProxy
+    : public ProxyCollection<AxiomPreconditionsProxy> {
     const AbstractTaskBase* task;
     int axiom_index;
 
 public:
-    using ItemType = FactProxy;
     AxiomPreconditionsProxy(const AbstractTaskBase& task, int axiom_index)
         : task(&task)
         , axiom_index(axiom_index)
@@ -363,8 +432,6 @@ public:
         return task->get_num_axiom_preconditions(axiom_index);
     }
 
-    bool empty() { return size() == 0; }
-
     FactProxy operator[](std::size_t fact_index) const
     {
         assert(fact_index < size());
@@ -374,12 +441,12 @@ public:
     }
 };
 
-class OperatorPreconditionsProxy {
+class OperatorPreconditionsProxy
+    : public ProxyCollection<OperatorPreconditionsProxy> {
     const AbstractTaskBase* task;
     int op_index;
 
 public:
-    using ItemType = FactProxy;
     OperatorPreconditionsProxy(const AbstractTaskBase& task, int op_index)
         : task(&task)
         , op_index(op_index)
@@ -391,8 +458,6 @@ public:
         return task->get_num_operator_preconditions(op_index);
     }
 
-    bool empty() { return size() == 0; }
-
     FactProxy operator[](std::size_t fact_index) const
     {
         assert(fact_index < size());
@@ -402,11 +467,10 @@ public:
     }
 };
 
-class PreconditionsProxy {
+class PreconditionsProxy : public ProxyCollection<PreconditionsProxy> {
     std::variant<AxiomPreconditionsProxy, OperatorPreconditionsProxy> proxy;
 
 public:
-    using ItemType = FactProxy;
     PreconditionsProxy(AxiomPreconditionsProxy proxy)
         : proxy(proxy)
     {
@@ -422,8 +486,6 @@ public:
         return std::visit([](const auto& arg) { return arg.size(); }, proxy);
     }
 
-    bool empty() { return size() == 0; }
-
     FactProxy operator[](std::size_t fact_index) const
     {
         return std::visit(
@@ -434,13 +496,13 @@ public:
     }
 };
 
-class AxiomEffectConditionsProxy {
+class AxiomEffectConditionsProxy
+    : public ProxyCollection<AxiomEffectConditionsProxy> {
     const AbstractTaskBase* task;
     int axiom_index;
     int eff_index;
 
 public:
-    using ItemType = FactProxy;
     AxiomEffectConditionsProxy(
         const AbstractTaskBase& task,
         int axiom_index,
@@ -456,8 +518,6 @@ public:
         return task->get_num_axiom_effect_conditions(axiom_index, eff_index);
     }
 
-    std::size_t empty() const { return size() == 0; }
-
     FactProxy operator[](std::size_t index) const
     {
         assert(index < size());
@@ -467,13 +527,13 @@ public:
     }
 };
 
-class OperatorEffectConditionsProxy {
+class OperatorEffectConditionsProxy
+    : public ProxyCollection<OperatorEffectConditionsProxy> {
     const AbstractTask* task;
     int op_index;
     int eff_index;
 
 public:
-    using ItemType = FactProxy;
     OperatorEffectConditionsProxy(
         const AbstractTask& task,
         int op_index,
@@ -489,8 +549,6 @@ public:
         return task->get_num_operator_effect_conditions(op_index, eff_index);
     }
 
-    std::size_t empty() const { return size() == 0; }
-
     FactProxy operator[](std::size_t index) const
     {
         assert(index < size());
@@ -500,12 +558,11 @@ public:
     }
 };
 
-class EffectConditionsProxy {
+class EffectConditionsProxy : public ProxyCollection<EffectConditionsProxy> {
     std::variant<AxiomEffectConditionsProxy, OperatorEffectConditionsProxy>
         proxy;
 
 public:
-    using ItemType = FactProxy;
     EffectConditionsProxy(AxiomEffectConditionsProxy proxy)
         : proxy(proxy)
     {
@@ -520,8 +577,6 @@ public:
     {
         return std::visit([](const auto& arg) { return arg.size(); }, proxy);
     }
-
-    std::size_t empty() const { return size() == 0; }
 
     FactProxy operator[](std::size_t fact_index) const
     {
@@ -615,12 +670,11 @@ public:
     }
 };
 
-class AxiomEffectsProxy {
+class AxiomEffectsProxy : public ProxyCollection<AxiomEffectsProxy> {
     const AbstractTaskBase* task;
     int op_index;
 
 public:
-    using ItemType = AxiomEffectProxy;
     AxiomEffectsProxy(const AbstractTaskBase& task, int op_index)
         : task(&task)
         , op_index(op_index)
@@ -636,12 +690,11 @@ public:
     }
 };
 
-class OperatorEffectsProxy {
+class OperatorEffectsProxy : public ProxyCollection<OperatorEffectsProxy> {
     const AbstractTask* task;
     int op_index;
 
 public:
-    using ItemType = OperatorEffectProxy;
     OperatorEffectsProxy(const AbstractTask& task, int op_index)
         : task(&task)
         , op_index(op_index)
@@ -660,11 +713,10 @@ public:
     }
 };
 
-class EffectsProxy {
+class EffectsProxy : public ProxyCollection<EffectsProxy> {
     std::variant<AxiomEffectsProxy, OperatorEffectsProxy> proxy;
 
 public:
-    using ItemType = EffectProxy;
     EffectsProxy(AxiomEffectsProxy proxy)
         : proxy(proxy)
     {
@@ -864,19 +916,16 @@ public:
     }
 };
 
-class AxiomsProxy {
+class AxiomsProxy : public ProxyCollection<AxiomsProxy> {
     const AbstractTaskBase* task;
 
 public:
-    using ItemType = AxiomProxy;
     explicit AxiomsProxy(const AbstractTaskBase& task)
         : task(&task)
     {
     }
 
     std::size_t size() const { return task->get_num_axioms(); }
-
-    bool empty() const { return size() == 0; }
 
     AxiomProxy operator[](std::size_t index) const
     {
@@ -885,19 +934,16 @@ public:
     }
 };
 
-class OperatorsProxy {
+class OperatorsProxy : public ProxyCollection<OperatorsProxy> {
     const AbstractTask* task;
 
 public:
-    using ItemType = OperatorProxy;
     explicit OperatorsProxy(const AbstractTask& task)
         : task(&task)
     {
     }
 
     std::size_t size() const { return task->get_num_operators(); }
-
-    bool empty() const { return size() == 0; }
 
     OperatorProxy operator[](std::size_t index) const
     {
@@ -911,19 +957,16 @@ public:
     }
 };
 
-class OperatorsLightProxy {
+class OperatorsLightProxy : public ProxyCollection<OperatorsLightProxy> {
     const AbstractTaskBase* task;
 
 public:
-    using ItemType = OperatorLightProxy;
     explicit OperatorsLightProxy(const AbstractTaskBase& task)
         : task(&task)
     {
     }
 
     std::size_t size() const { return task->get_num_operators(); }
-
-    bool empty() const { return size() == 0; }
 
     OperatorLightProxy operator[](std::size_t index) const
     {
@@ -937,12 +980,10 @@ public:
     }
 };
 
-class GoalsProxy {
+class GoalsProxy : public ProxyCollection<GoalsProxy> {
     const AbstractTaskBase* task;
 
 public:
-    using ItemType = FactProxy;
-
     explicit GoalsProxy(const AbstractTaskBase& task)
         : task(&task)
     {
@@ -959,7 +1000,7 @@ public:
 
 bool does_fire(const EffectProxy& effect, const State& state);
 
-class State {
+class State : public ProxyCollection<State> {
     /*
       TODO: We want to try out two things:
         1. having StateID and num_variables next to each other, so that they
@@ -989,8 +1030,6 @@ class State {
     int num_variables;
 
 public:
-    using ItemType = FactProxy;
-
     // Construct a registered state with only packed data.
     State(
         const AbstractTaskBase& task,
