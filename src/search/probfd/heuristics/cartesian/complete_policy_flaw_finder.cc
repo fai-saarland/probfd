@@ -26,6 +26,7 @@
 #include <deque>
 
 using namespace std;
+using namespace std::views;
 
 namespace probfd {
 namespace heuristics {
@@ -44,14 +45,16 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
-    StateRegistry state_registry(task_proxy);
+    const auto operators = task_proxy.get_operators();
+
+    StateRegistry registry(task_proxy);
 
     struct QueueItem {
         ::StateID state_id;
         const AbstractState* abstract_state;
     };
 
-    const State initial = state_registry.get_initial_state();
+    const State initial = registry.get_initial_state();
     const AbstractState* abstract_initial = &abstraction.get_initial_state();
 
     std::deque<QueueItem> frontier({{initial.get_id(), abstract_initial}});
@@ -62,30 +65,29 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
         timer.throw_if_expired();
         if (!utils::extra_memory_padding_is_reserved()) return std::nullopt;
 
-        QueueItem& next = frontier.front();
+        auto& [state_id, abstract_state] = frontier.front();
 
-        State state = state_registry.lookup_state(next.state_id);
+        State state = registry.lookup_state(state_id);
 
-        auto decision = policy.get_decision(next.abstract_state);
+        auto decision = policy.get_decision(abstract_state);
 
         // Check for goal state
         if (!decision) {
-            assert(abstraction.get_goals().contains(
-                next.abstract_state->get_id()));
+            assert(abstraction.get_goals().contains(abstract_state->get_id()));
 
             if (!::task_properties::is_goal_state(task_proxy, state)) {
                 if (log.is_at_least_debug()) log << "Goal test failed." << endl;
                 state.unpack();
                 return Flaw(
                     std::move(state),
-                    *next.abstract_state,
+                    *abstract_state,
                     get_cartesian_set(domain_sizes, task_proxy.get_goals()));
             }
             continue;
         }
 
         const ProbabilisticTransition* transition = decision->action;
-        const auto op = task_proxy.get_operators()[transition->op_id];
+        const auto op = operators[transition->op_id];
 
         // Check for operator applicability
         if (!::task_properties::is_applicable(op, state)) {
@@ -94,20 +96,17 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
             state.unpack();
             return Flaw(
                 std::move(state),
-                *next.abstract_state,
+                *abstract_state,
                 get_cartesian_set(domain_sizes, op.get_preconditions()));
         }
 
+        const auto& targets = transition->target_ids;
+
         // Generate successors and check for matching abstract states
-        for (size_t i = 0; i != transition->target_ids.size(); ++i) {
-            const auto outcome = op.get_outcomes()[i];
-            const AbstractState* next_abstract_state =
-                &abstraction.get_abstract_state(transition->target_ids[i]);
+        for (const auto [outcome, abs_t] : zip(op.get_outcomes(), targets)) {
+            State next_concrete = registry.get_successor_state(state, outcome);
 
-            State next_concrete_state =
-                state_registry.get_successor_state(state, outcome);
-
-            if (static_cast<int>(state_registry.size()) > max_search_states) {
+            if (static_cast<int>(registry.size()) > max_search_states) {
                 if (log.is_at_least_normal()) {
                     log << "Reached maximal number of flaw search states."
                         << endl;
@@ -115,22 +114,22 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
                 return std::nullopt;
             }
 
-            if (!next_abstract_state->includes(next_concrete_state)) {
+            const auto* next_abstract = &abstraction.get_abstract_state(abs_t);
+
+            if (!next_abstract->includes(next_concrete)) {
                 if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
                 state.unpack();
                 return Flaw(
                     std::move(state),
-                    *next.abstract_state,
-                    next_abstract_state->regress(op, outcome.get_effects()));
+                    *abstract_state,
+                    next_abstract->regress(op, outcome.get_effects()));
             }
 
             // Add successor to frontier if not seen before
-            auto bool_proxy = visited[next_concrete_state.get_id()];
+            auto bool_proxy = visited[next_concrete.get_id()];
             if (!bool_proxy) {
                 bool_proxy = true;
-                frontier.emplace_back(
-                    next_concrete_state.get_id(),
-                    next_abstract_state);
+                frontier.emplace_back(next_concrete.get_id(), next_abstract);
             }
         }
     }
