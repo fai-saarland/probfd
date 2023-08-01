@@ -2,6 +2,7 @@
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
@@ -64,7 +65,7 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
         std::move(goals));
 
     std::shared_ptr pdbs =
-        cegar.generate_pdbs(task_proxy, *task_cost_function).second;
+        cegar.generate_pdbs(task_proxy, *task_cost_function).pdbs;
 
     auto patterns = std::make_shared<PatternCollection>();
 

@@ -2,6 +2,8 @@
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
 
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_policy.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -25,6 +27,8 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 namespace cegar {
+
+CEGARResult::~CEGARResult() = default;
 
 PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
@@ -128,6 +132,8 @@ PDBInfo::PDBInfo(
 {
 }
 
+PDBInfo::~PDBInfo() = default;
+
 const Pattern& PDBInfo::get_pattern() const
 {
     return pdb->get_pattern();
@@ -201,6 +207,8 @@ CEGAR::CEGAR(
 {
 }
 
+CEGAR::~CEGAR() = default;
+
 void CEGAR::print_collection() const
 {
     log << "[";
@@ -242,6 +250,7 @@ void CEGAR::generate_trivial_solution_collection(
 int CEGAR::get_flaws(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws,
+    std::vector<int>& flaw_offsets,
     utils::CountdownTimer& timer)
 {
     const int num_pdb_infos = static_cast<int>(pdb_infos.size());
@@ -249,6 +258,7 @@ int CEGAR::get_flaws(
         auto& info = pdb_infos[idx];
 
         if (!info || info->is_solved()) {
+            flaw_offsets[idx] = static_cast<int>(flaws.size());
             continue;
         }
 
@@ -262,11 +272,18 @@ int CEGAR::get_flaws(
         // would not work for the concrete task.
         // We always start with the initial state.
         const size_t num_flaws_before = flaws.size();
-        const bool executable =
-            flaw_strategy->apply_policy(*this, task_proxy, idx, flaws, timer);
+        const bool executable = flaw_strategy->apply_policy(
+            task_proxy,
+            *info,
+            blacklisted_variables,
+            flaws,
+            timer);
+
+        const size_t new_num_flaws = flaws.size();
+        flaw_offsets[idx] = static_cast<int>(new_num_flaws);
 
         // Check for new flaws
-        if (flaws.size() == num_flaws_before) {
+        if (new_num_flaws == num_flaws_before) {
             // Check if policy is executable modulo blacklisting.
             // Even if there are no flaws, there might be goal violations
             // that did not make it into the flaw list.
@@ -426,6 +443,7 @@ void CEGAR::refine(
     TaskCostFunction& task_cost_function,
     const VariablesProxy& variables,
     const std::vector<Flaw>& flaws,
+    const std::vector<int>& flaw_offsets,
     utils::CountdownTimer& timer)
 {
     assert(!flaws.empty());
@@ -434,9 +452,14 @@ void CEGAR::refine(
     int random_flaw_index = rng->random(flaws.size());
     const Flaw& flaw = flaws[random_flaw_index];
 
+    int solution_index = std::distance(
+        flaw_offsets.begin(),
+        std::ranges::upper_bound(flaw_offsets, random_flaw_index));
+    int var = flaw.variable;
+
     if (log.is_at_least_verbose()) {
         log << "CEGAR: chosen flaw: pattern "
-            << pdb_infos[flaw.solution_index]->get_pattern();
+            << pdb_infos[solution_index]->get_pattern();
     }
 
     if (log.is_at_least_verbose()) {
@@ -446,18 +469,15 @@ void CEGAR::refine(
         } else {
             log << " goal ";
         }
-        log << "on " << flaw.variable << endl;
+        log << "on " << var << endl;
     }
-
-    int sol_index = flaw.solution_index;
-    int var = flaw.variable;
 
     const auto it = variable_to_collection_index.find(var);
 
     if (it != variable_to_collection_index.end()) {
         // var is already in another pattern of the collection
         int other_index = it->second;
-        assert(other_index != sol_index);
+        assert(other_index != solution_index);
         assert(pdb_infos[other_index] != nullptr);
 
         if (log.is_at_least_verbose()) {
@@ -465,7 +485,7 @@ void CEGAR::refine(
                 << pdb_infos[other_index]->get_pattern() << endl;
         }
 
-        if (can_merge_patterns(sol_index, other_index)) {
+        if (can_merge_patterns(solution_index, other_index)) {
             if (log.is_at_least_verbose()) {
                 log << "CEGAR: merge the two patterns" << endl;
             }
@@ -473,7 +493,7 @@ void CEGAR::refine(
             merge_patterns(
                 task_proxy,
                 task_cost_function,
-                sol_index,
+                solution_index,
                 other_index,
                 timer);
             return;
@@ -488,7 +508,7 @@ void CEGAR::refine(
                 << endl;
         }
 
-        if (can_add_variable_to_pattern(variables, sol_index, var)) {
+        if (can_add_variable_to_pattern(variables, solution_index, var)) {
             if (log.is_at_least_verbose()) {
                 log << "CEGAR: add it to the pattern" << endl;
             }
@@ -496,7 +516,7 @@ void CEGAR::refine(
             add_variable_to_pattern(
                 task_proxy,
                 task_cost_function,
-                sol_index,
+                solution_index,
                 var,
                 timer);
             return;
@@ -511,8 +531,7 @@ void CEGAR::refine(
     blacklisted_variables.insert(var);
 }
 
-pair<std::unique_ptr<ProjectionCollection>, std::unique_ptr<PPDBCollection>>
-CEGAR::generate_pdbs(
+CEGARResult CEGAR::generate_pdbs(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function)
 {
@@ -542,6 +561,7 @@ CEGAR::generate_pdbs(
     initial_state.unpack();
 
     std::vector<Flaw> flaws;
+    std::vector<int> flaw_offsets(pdb_infos.size(), 0);
     int solution_index = -1;
 
     // main loop of the algorithm
@@ -553,7 +573,7 @@ CEGAR::generate_pdbs(
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            solution_index = get_flaws(task_proxy, flaws, timer);
+            solution_index = get_flaws(task_proxy, flaws, flaw_offsets, timer);
 
             if (flaws.empty()) {
                 if (solution_index != -1) {
@@ -582,7 +602,13 @@ CEGAR::generate_pdbs(
 
             // if there was a flaw, then refine the abstraction
             // such that said flaw does not occur again
-            refine(task_proxy, task_cost_function, variables, flaws, timer);
+            refine(
+                task_proxy,
+                task_cost_function,
+                variables,
+                flaws,
+                flaw_offsets,
+                timer);
 
             ++refinement_counter;
             flaws.clear();
@@ -636,7 +662,7 @@ CEGAR::generate_pdbs(
             << endl;
     }
 
-    return std::make_pair(std::move(state_spaces), std::move(pdbs));
+    return CEGARResult{std::move(state_spaces), std::move(pdbs)};
 }
 
 void add_cegar_wildcard_option_to_feature(plugins::Feature& feature)

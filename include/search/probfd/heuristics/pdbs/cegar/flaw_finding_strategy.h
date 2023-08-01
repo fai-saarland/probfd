@@ -4,6 +4,7 @@
 #include "probfd/task_proxy.h"
 
 #include <string>
+#include <unordered_set>
 
 namespace utils {
 class CountdownTimer;
@@ -18,7 +19,7 @@ class ProjectionPolicy;
 namespace cegar {
 
 struct Flaw;
-class CEGAR;
+class PDBInfo;
 
 class FlawFindingStrategy {
 public:
@@ -28,14 +29,26 @@ public:
     // Note that the output flaw list might be empty regardless since only
     // remaining goals are added to the list for goal violations.
     virtual bool apply_policy(
-        const CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
-        int solution_index,
+        const PDBInfo& pdb_info,
+        const std::unordered_set<int>& blacklisted_variables,
         std::vector<Flaw>& flaws,
         utils::CountdownTimer& timer) = 0;
 
     virtual std::string get_name() = 0;
 };
+
+bool collect_flaws(
+    PreconditionsProxy facts,
+    const State& state,
+    const std::unordered_set<int>& blacklist,
+    std::vector<Flaw>& flaw_list);
+
+bool collect_flaws(
+    GoalsProxy facts,
+    const State& state,
+    const std::unordered_set<int>& blacklist,
+    std::vector<Flaw>& flaw_list);
 
 } // namespace cegar
 } // namespace pdbs

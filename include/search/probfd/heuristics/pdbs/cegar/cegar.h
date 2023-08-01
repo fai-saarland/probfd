@@ -1,49 +1,45 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
-#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
-#include "probfd/heuristics/pdbs/projection_policy.h"
+#include "probfd/heuristics/pdbs/engine_interfaces.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
-
 
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/rng.h"
 
-#include <ranges>
-#include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-namespace plugins {
-class Feature;
-}
-
 namespace utils {
 class CountdownTimer;
-class LogProxy;
+class RandomNumberGenerator;
 } // namespace utils
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
+class ProjectionPolicy;
+class ProbabilityAwarePatternDatabase;
 class SubCollectionFinderFactory;
 
 namespace cegar {
 
 class FlawFindingStrategy;
-class BFSFlawFinder;
-class PUCSFlawFinder;
-class SamplingFlawFinder;
 
 struct Flaw {
-    int solution_index;
     int variable;
     bool is_precondition;
+};
+
+struct CEGARResult {
+    std::unique_ptr<ProjectionCollection> projections;
+    std::unique_ptr<PPDBCollection> pdbs;
+
+    ~CEGARResult();
 };
 
 /*
@@ -90,6 +86,8 @@ public:
         bool wildcard,
         utils::CountdownTimer& timer);
 
+    ~PDBInfo();
+
     const Pattern& get_pattern() const;
 
     const ProbabilityAwarePatternDatabase& get_pdb() const;
@@ -111,17 +109,13 @@ public:
 };
 
 class CEGAR {
-    friend class cegar::BFSFlawFinder;
-    friend class cegar::PUCSFlawFinder;
-    friend class cegar::SamplingFlawFinder;
-
     mutable utils::LogProxy log;
 
     // Random number generator
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     // Flaw finding strategy
-    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
+    const std::shared_ptr<FlawFindingStrategy> flaw_strategy;
 
     // behavior defining parameters
     const bool wildcard;
@@ -155,36 +149,11 @@ public:
         std::vector<int> goals,
         std::unordered_set<int> blacklisted_variables = {});
 
-    std::pair<
-        std::unique_ptr<ProjectionCollection>,
-        std::unique_ptr<PPDBCollection>>
-    generate_pdbs(
+    ~CEGAR();
+
+    CEGARResult generate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function);
-
-protected:
-    bool collect_flaws(
-        auto facts,
-        const State& state,
-        int solution_index,
-        bool is_precondition,
-        std::vector<Flaw>& flaw_list) const
-    {
-        bool flaws_found = false;
-
-        // Collect all non-satisfied goal fact variables.
-        for (const FactProxy fact : facts) {
-            const auto& [var, val] = fact.get_pair();
-
-            if (state[var].get_value() != val &&
-                !blacklisted_variables.contains(var)) {
-                flaws_found = true;
-                flaw_list.emplace_back(solution_index, var, is_precondition);
-            }
-        }
-
-        return flaws_found;
-    }
 
 private:
     void generate_trivial_solution_collection(
@@ -195,6 +164,7 @@ private:
     int get_flaws(
         const ProbabilisticTaskProxy& task_proxy,
         std::vector<Flaw>& flaws,
+        std::vector<int>& flaw_offsets,
         utils::CountdownTimer& timer);
 
     bool
@@ -228,6 +198,7 @@ private:
         TaskCostFunction& task_cost_function,
         const VariablesProxy& variables,
         const std::vector<Flaw>& flaws,
+        const std::vector<int>& flaw_offsets,
         utils::CountdownTimer& timer);
 
     void print_collection() const;

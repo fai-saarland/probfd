@@ -1,6 +1,7 @@
 #include "probfd/heuristics/pdbs/cegar/pucs_flaw_finder.h"
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -33,9 +34,9 @@ PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
 }
 
 bool PUCSFlawFinder::apply_policy(
-    const CEGAR& base,
     const ProbabilisticTaskProxy& task_proxy,
-    int solution_index,
+    const PDBInfo& pdb_info,
+    const std::unordered_set<int>& blacklisted_variables,
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
 {
@@ -55,9 +56,9 @@ bool PUCSFlawFinder::apply_policy(
         probabilities[StateID(init.get_id())].path_probability = 1.0;
     }
 
-    const PDBInfo& solution = *base.pdb_infos[solution_index];
-    const ProjectionPolicy& policy = solution.get_policy();
-    const ProbabilityAwarePatternDatabase& pdb = solution.get_pdb();
+    const ProjectionPolicy& policy = pdb_info.get_policy();
+    const ProbabilityAwarePatternDatabase& pdb = pdb_info.get_pdb();
+
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
 
@@ -89,14 +90,12 @@ bool PUCSFlawFinder::apply_policy(
 
         // We reached a terminal state, check if it is a goal
         if (abs_operators.empty()) {
-            assert(solution.is_goal(abs));
+            assert(pdb_info.is_goal(abs));
 
-            return base.collect_flaws(
-                goals,
-                current,
-                solution_index,
-                false,
-                flaw_list);
+            if (collect_flaws(goals, current, blacklisted_variables, flaw_list))
+                return false;
+
+            continue;
         }
 
         std::vector<Flaw> local_flaws;
@@ -104,11 +103,10 @@ bool PUCSFlawFinder::apply_policy(
         for (const ProjectionOperator* abs_op : abs_operators) {
             const auto op = operators[abs_op->operator_id];
 
-            if (base.collect_flaws(
+            if (collect_flaws(
                     op.get_preconditions(),
                     current,
-                    solution_index,
-                    true,
+                    blacklisted_variables,
                     local_flaws)) {
                 continue; // Try next operator
             }

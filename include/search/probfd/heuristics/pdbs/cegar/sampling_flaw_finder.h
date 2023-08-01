@@ -7,8 +7,7 @@
 
 #include "probfd/distribution.h"
 
-#include <stack>
-#include <unordered_map>
+#include <vector>
 
 class StateID;
 class State;
@@ -17,6 +16,10 @@ class StateRegistry;
 namespace plugins {
 class Options;
 } // namespace plugins
+
+namespace utils {
+class RandomNumberGenerator;
+}
 
 namespace probfd {
 namespace heuristics {
@@ -32,18 +35,21 @@ class SamplingFlawFinder : public FlawFindingStrategy {
     std::vector<State> stk;
     storage::PerStateStorage<ExplorationInfo> einfos;
 
+    const std::shared_ptr<utils::RandomNumberGenerator> rng;
     const int max_search_states;
 
 public:
     explicit SamplingFlawFinder(const plugins::Options& opts);
-    explicit SamplingFlawFinder(int max_search_states);
+    explicit SamplingFlawFinder(
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
+        int max_search_states);
 
     ~SamplingFlawFinder() override = default;
 
     bool apply_policy(
-        const CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
-        int solution_index,
+        const PDBInfo& pdb_info,
+        const std::unordered_set<int>& blacklisted_variables,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;
 
