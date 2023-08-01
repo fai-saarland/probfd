@@ -119,6 +119,11 @@ NodeID AbstractState::get_node_id() const
     return node_id;
 }
 
+std::ostream& operator<<(std::ostream& os, const AbstractState& state)
+{
+    return os << "#" << state.get_id() << state.cartesian_set;
+}
+
 unique_ptr<AbstractState>
 AbstractState::get_trivial_abstract_state(const vector<int>& domain_sizes)
 {

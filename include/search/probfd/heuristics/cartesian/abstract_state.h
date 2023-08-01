@@ -6,10 +6,8 @@
 
 #include <vector>
 
-class ConditionsProxy;
 struct FactPair;
 class State;
-class TaskProxy;
 
 namespace probfd {
 class ProbabilisticOperatorProxy;
@@ -17,8 +15,6 @@ class ProbabilisticEffectsProxy;
 
 namespace heuristics {
 namespace cartesian {
-
-class Node;
 
 /*
   Store the Cartesian set and the ID of the node in the refinement hierarchy
@@ -36,6 +32,7 @@ public:
     AbstractState(int state_id, NodeID node_id, CartesianSet&& cartesian_set);
 
     AbstractState(const AbstractState&) = delete;
+    AbstractState& operator=(const AbstractState&) = delete;
 
     bool domain_subsets_intersect(const AbstractState& other, int var) const;
 
@@ -67,10 +64,7 @@ public:
     NodeID get_node_id() const;
 
     friend std::ostream&
-    operator<<(std::ostream& os, const AbstractState& state)
-    {
-        return os << "#" << state.get_id() << state.cartesian_set;
-    }
+    operator<<(std::ostream& os, const AbstractState& state);
 
     // Create the initial, unrefined abstract state.
     static std::unique_ptr<AbstractState>
