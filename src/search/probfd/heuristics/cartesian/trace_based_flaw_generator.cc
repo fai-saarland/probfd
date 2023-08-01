@@ -161,7 +161,7 @@ void TraceBasedFlawGenerator::print_statistics(utils::LogProxy& log)
 }
 
 std::unique_ptr<FlawGenerator>
-AStarFlawGeneratorFactory::create_flaw_generator() const
+AStarFlawGeneratorFactory::create_flaw_generator()
 {
     return std::make_unique<TraceBasedFlawGenerator>(new AStarTraceGenerator());
 }

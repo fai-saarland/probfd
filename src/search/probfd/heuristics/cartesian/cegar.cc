@@ -2,8 +2,10 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
+#include "probfd/heuristics/cartesian/flaw.h"
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
+#include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/types.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
@@ -33,41 +35,20 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-SplitSelector* create_split_selector(
-    PickSplit pick,
-    const shared_ptr<ProbabilisticTask>& task,
-    utils::RandomNumberGenerator& rng)
-{
-    switch (pick) {
-    default:
-        cerr << "Invalid pick strategy: " << static_cast<int>(pick) << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
-
-    case PickSplit::RANDOM: return new SplitSelectorRandom(rng);
-    case PickSplit::MIN_UNWANTED: return new SplitSelectorMinUnwanted();
-    case PickSplit::MAX_UNWANTED: return new SplitSelectorMaxUnwanted();
-    case PickSplit::MIN_REFINED: return new SplitSelectorMinRefined(task);
-    case PickSplit::MAX_REFINED: return new SplitSelectorMaxRefined(task);
-    case PickSplit::MIN_HADD: return new SplitSelectorMinHAdd(task);
-    case PickSplit::MAX_HADD: return new SplitSelectorMaxHAdd(task);
-    }
-}
-
 CEGAR::CEGAR(
     const shared_ptr<ProbabilisticTask>& task,
     int max_states,
     int max_non_looping_transitions,
     double max_time,
-    const FlawGeneratorFactory& flaw_generator_factory,
-    PickSplit pick,
-    utils::RandomNumberGenerator& rng,
+    FlawGeneratorFactory& flaw_generator_factory,
+    SplitSelectorFactory& split_selector_factory,
     utils::LogProxy log)
     : task_proxy(*task)
     , domain_sizes(cegar::get_domain_sizes(task_proxy))
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
     , flaw_generator(flaw_generator_factory.create_flaw_generator())
-    , split_selector(create_split_selector(pick, task, rng))
+    , split_selector(split_selector_factory.create_split_selector(task))
     , log(std::move(log))
     , timer(max_time)
     , refinement_hierarchy(new RefinementHierarchy(task))

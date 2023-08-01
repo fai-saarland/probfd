@@ -2,8 +2,6 @@
 #define PROBFD_HEURISTICS_CARTESIAN_CEGAR_H
 
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
-#include "probfd/heuristics/cartesian/flaw.h"
-#include "probfd/heuristics/cartesian/split_selector.h"
 
 #include "probfd/task_proxy.h"
 
@@ -16,7 +14,6 @@
 
 namespace utils {
 class RandomNumberGenerator;
-class LogProxy;
 class Timer;
 } // namespace utils
 
@@ -26,8 +23,11 @@ namespace cartesian {
 
 class AbstractState;
 class Abstraction;
+struct Flaw;
 class FlawGenerator;
 class FlawGeneratorFactory;
+class SplitSelector;
+class SplitSelectorFactory;
 
 /*
   Iteratively refine a Cartesian abstraction with counterexample-guided
@@ -62,9 +62,8 @@ public:
         int max_states,
         int max_non_looping_transitions,
         double max_time,
-        const FlawGeneratorFactory& flaw_generator_factory,
-        PickSplit pick,
-        utils::RandomNumberGenerator& rng,
+        FlawGeneratorFactory& flaw_generator_factory,
+        SplitSelectorFactory& split_selector_factory,
         utils::LogProxy log);
 
     ~CEGAR();

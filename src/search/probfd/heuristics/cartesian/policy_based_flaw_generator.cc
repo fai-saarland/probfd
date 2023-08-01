@@ -124,8 +124,7 @@ ILAOFlawGeneratorFactory::ILAOFlawGeneratorFactory(int max_search_states)
 {
 }
 
-std::unique_ptr<FlawGenerator>
-ILAOFlawGeneratorFactory::create_flaw_generator() const
+std::unique_ptr<FlawGenerator> ILAOFlawGeneratorFactory::create_flaw_generator()
 {
     return std::make_unique<PolicyBasedFlawGenerator>(
         new ILAOPolicyGenerator(),

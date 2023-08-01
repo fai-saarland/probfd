@@ -18,6 +18,8 @@ CartesianHeuristicFunction::CartesianHeuristicFunction(
 {
 }
 
+CartesianHeuristicFunction::~CartesianHeuristicFunction() = default;
+
 value_t CartesianHeuristicFunction::get_value(const State& state) const
 {
     int abstract_state_id = refinement_hierarchy->get_abstract_state_id(state);

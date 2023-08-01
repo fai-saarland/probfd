@@ -67,7 +67,7 @@ class ILAOFlawGeneratorFactory : public FlawGeneratorFactory {
 public:
     ILAOFlawGeneratorFactory(int max_search_states);
 
-    std::unique_ptr<FlawGenerator> create_flaw_generator() const override;
+    std::unique_ptr<FlawGenerator> create_flaw_generator() override;
 };
 
 } // namespace cartesian

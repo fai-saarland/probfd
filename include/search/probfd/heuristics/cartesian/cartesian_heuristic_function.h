@@ -31,6 +31,8 @@ public:
     CartesianHeuristicFunction(const CartesianHeuristicFunction&) = delete;
     CartesianHeuristicFunction(CartesianHeuristicFunction&&) = default;
 
+    ~CartesianHeuristicFunction();
+
     value_t get_value(const State& state) const;
 };
 

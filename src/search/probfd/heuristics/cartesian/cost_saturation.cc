@@ -5,6 +5,7 @@
 #include "probfd/heuristics/cartesian/cegar.h"
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
+#include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/subtask_generators.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
@@ -18,7 +19,6 @@
 #include "downward/cegar/refinement_hierarchy.h"
 
 #include "downward/utils/countdown_timer.h"
-#include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
 
 #include <algorithm>
@@ -98,22 +98,20 @@ static vector<value_t> compute_saturated_costs(
 CostSaturation::CostSaturation(
     const vector<shared_ptr<SubtaskGenerator>>& subtask_generators,
     shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
+    shared_ptr<SplitSelectorFactory> split_selector_factory,
     int max_states,
     int max_non_looping_transitions,
     double max_time,
     bool use_general_costs,
-    PickSplit pick_split,
-    utils::RandomNumberGenerator& rng,
-    utils::LogProxy& log)
+    utils::LogProxy log)
     : subtask_generators(subtask_generators)
     , flaw_generator_factory(flaw_generator_factory)
+    , split_selector_factory(split_selector_factory)
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
     , max_time(max_time)
     , use_general_costs(use_general_costs)
-    , pick_split(pick_split)
-    , rng(rng)
-    , log(log)
+    , log(std::move(log))
     , num_abstractions(0)
     , num_states(0)
     , num_non_looping_transitions(0)
@@ -227,8 +225,7 @@ void CostSaturation::build_abstractions(
                     rem_subtasks),
             timer.get_remaining_time() / rem_subtasks,
             *flaw_generator_factory,
-            pick_split,
-            rng,
+            *split_selector_factory,
             log);
 
         unique_ptr<RefinementHierarchy> refinement_hierarchy =

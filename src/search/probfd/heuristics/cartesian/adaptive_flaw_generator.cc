@@ -70,7 +70,7 @@ AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(
 }
 
 std::unique_ptr<FlawGenerator>
-AdaptiveFlawGeneratorFactory::create_flaw_generator() const
+AdaptiveFlawGeneratorFactory::create_flaw_generator()
 {
     std::vector<std::unique_ptr<FlawGenerator>> generators;
 

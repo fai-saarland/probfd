@@ -56,7 +56,7 @@ public:
 
 class AStarFlawGeneratorFactory : public FlawGeneratorFactory {
 public:
-    std::unique_ptr<FlawGenerator> create_flaw_generator() const override;
+    std::unique_ptr<FlawGenerator> create_flaw_generator() override;
 };
 
 } // namespace cartesian

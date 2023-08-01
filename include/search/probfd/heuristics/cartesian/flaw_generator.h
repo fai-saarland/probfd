@@ -52,7 +52,7 @@ public:
 class FlawGeneratorFactory {
 public:
     virtual ~FlawGeneratorFactory() = default;
-    virtual std::unique_ptr<FlawGenerator> create_flaw_generator() const = 0;
+    virtual std::unique_ptr<FlawGenerator> create_flaw_generator() = 0;
 };
 
 /**

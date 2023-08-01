@@ -13,6 +13,10 @@ namespace additive_heuristic {
 class AdditiveHeuristic;
 }
 
+namespace plugins {
+class Options;
+}
+
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -20,20 +24,6 @@ class RandomNumberGenerator;
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
-
-// Strategies for selecting a split in case there are multiple possibilities.
-enum class PickSplit {
-    RANDOM,
-    // Number of values that land in the state whose h-value is probably raised.
-    MIN_UNWANTED,
-    MAX_UNWANTED,
-    // Refinement: - (remaining_values / original_domain_size)
-    MIN_REFINED,
-    MAX_REFINED,
-    // Compare the h^add(s_0) values of the facts.
-    MIN_HADD,
-    MAX_HADD
-};
 
 struct Split {
     int var_id;
@@ -94,47 +84,26 @@ public:
 };
 
 // Number of values that land in the state whose h-value is probably raised.
-class SplitSelectorMinUnwanted
-    : public RateBasedSplitSelector<SplitSelectorMinUnwanted> {
-public:
-    double rate_split(const AbstractState& state, const Split& split) const;
-};
+class SplitSelectorUnwanted
+    : public RateBasedSplitSelector<SplitSelectorUnwanted> {
+    const int factor;
 
-// Number of values that land in the state whose h-value is probably raised.
-class SplitSelectorMaxUnwanted
-    : public RateBasedSplitSelector<SplitSelectorMaxUnwanted> {
 public:
+    explicit SplitSelectorUnwanted(int factor);
+
     double rate_split(const AbstractState& state, const Split& split) const;
 };
 
 // Refinement: - (remaining_values / original_domain_size)
-class SplitSelectorRefinedness {
+class SplitSelectorRefinedness
+    : public RateBasedSplitSelector<SplitSelectorRefinedness> {
     const ProbabilisticTaskProxy task_proxy;
+    const double factor;
 
 public:
-    explicit SplitSelectorRefinedness(
-        const std::shared_ptr<ProbabilisticTask>& task);
-
-protected:
-    double get_refinedness(const AbstractState& state, int var_id) const;
-};
-
-class SplitSelectorMinRefined
-    : public RateBasedSplitSelector<SplitSelectorMinRefined>
-    , public SplitSelectorRefinedness {
-public:
-    explicit SplitSelectorMinRefined(
-        const std::shared_ptr<ProbabilisticTask>& task);
-
-    double rate_split(const AbstractState& state, const Split& split) const;
-};
-
-class SplitSelectorMaxRefined
-    : public RateBasedSplitSelector<SplitSelectorMaxRefined>
-    , public SplitSelectorRefinedness {
-public:
-    explicit SplitSelectorMaxRefined(
-        const std::shared_ptr<ProbabilisticTask>& task);
+    SplitSelectorRefinedness(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        double factor);
 
     double rate_split(const AbstractState& state, const Split& split) const;
 };
@@ -176,6 +145,84 @@ public:
 
 private:
     int get_max_hadd_value(int var_id, const std::vector<int>& values) const;
+};
+
+/*
+  Select split in case there are multiple possible splits.
+*/
+class SplitSelectorFactory {
+public:
+    virtual ~SplitSelectorFactory() = default;
+
+    virtual std::unique_ptr<SplitSelector>
+    create_split_selector(const std::shared_ptr<ProbabilisticTask>& task) = 0;
+};
+
+/*
+  Select split in case there are multiple possible splits.
+*/
+class SplitSelectorRandomFactory : public SplitSelectorFactory {
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
+
+public:
+    SplitSelectorRandomFactory(const plugins::Options& opts);
+
+    std::unique_ptr<SplitSelector> create_split_selector(
+        const std::shared_ptr<ProbabilisticTask>& task) override;
+};
+
+/*
+  Select split in case there are multiple possible splits.
+*/
+class SplitSelectorMinUnwantedFactory : public SplitSelectorFactory {
+public:
+    std::unique_ptr<SplitSelector> create_split_selector(
+        const std::shared_ptr<ProbabilisticTask>& task) override;
+};
+
+/*
+  Select split in case there are multiple possible splits.
+*/
+class SplitSelectorMaxUnwantedFactory : public SplitSelectorFactory {
+public:
+    std::unique_ptr<SplitSelector> create_split_selector(
+        const std::shared_ptr<ProbabilisticTask>& task) override;
+};
+
+/*
+  Select split in case there are multiple possible splits.
+*/
+class SplitSelectorMinRefinedFactory : public SplitSelectorFactory {
+public:
+    std::unique_ptr<SplitSelector> create_split_selector(
+        const std::shared_ptr<ProbabilisticTask>& task) override;
+};
+
+/*
+  Select split in case there are multiple possible splits.
+*/
+class SplitSelectorMaxRefinedFactory : public SplitSelectorFactory {
+public:
+    std::unique_ptr<SplitSelector> create_split_selector(
+        const std::shared_ptr<ProbabilisticTask>& task) override;
+};
+
+/*
+  Select split in case there are multiple possible splits.
+*/
+class SplitSelectorMinHAddFactory : public SplitSelectorFactory {
+public:
+    std::unique_ptr<SplitSelector> create_split_selector(
+        const std::shared_ptr<ProbabilisticTask>& task) override;
+};
+
+/*
+  Select split in case there are multiple possible splits.
+*/
+class SplitSelectorMaxHAddFactory : public SplitSelectorFactory {
+public:
+    std::unique_ptr<SplitSelector> create_split_selector(
+        const std::shared_ptr<ProbabilisticTask>& task) override;
 };
 
 } // namespace cartesian
