@@ -531,8 +531,7 @@ void CEGAR::refine(
     blacklisted_variables.insert(var);
 }
 
-pair<std::unique_ptr<ProjectionCollection>, std::unique_ptr<PPDBCollection>>
-CEGAR::generate_pdbs(
+CEGARResult CEGAR::generate_pdbs(
     const ProbabilisticTaskProxy& task_proxy,
     TaskCostFunction& task_cost_function)
 {
@@ -663,7 +662,7 @@ CEGAR::generate_pdbs(
             << endl;
     }
 
-    return std::make_pair(std::move(state_spaces), std::move(pdbs));
+    return CEGARResult{std::move(state_spaces), std::move(pdbs)};
 }
 
 void add_cegar_wildcard_option_to_feature(plugins::Feature& feature)

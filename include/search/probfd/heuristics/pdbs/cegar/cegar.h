@@ -35,6 +35,13 @@ struct Flaw {
     bool is_precondition;
 };
 
+struct CEGARResult {
+    std::unique_ptr<ProjectionCollection> projections;
+    std::unique_ptr<PPDBCollection> pdbs;
+
+    ~CEGARResult();
+};
+
 /*
  * Implementation notes: The state space needs to be kept to find flaws in the
  * policy. Since it exists anyway, the algorithm is also a producer of
@@ -144,10 +151,7 @@ public:
 
     ~CEGAR();
 
-    std::pair<
-        std::unique_ptr<ProjectionCollection>,
-        std::unique_ptr<PPDBCollection>>
-    generate_pdbs(
+    CEGARResult generate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function);
 

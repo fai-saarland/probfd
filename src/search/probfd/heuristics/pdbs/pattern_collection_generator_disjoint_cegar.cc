@@ -65,7 +65,7 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
         std::move(goals));
 
     std::shared_ptr pdbs =
-        cegar.generate_pdbs(task_proxy, *task_cost_function).second;
+        cegar.generate_pdbs(task_proxy, *task_cost_function).pdbs;
 
     auto patterns = std::make_shared<PatternCollection>();
 

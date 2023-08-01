@@ -1,6 +1,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar.h"
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
+#include "probfd/heuristics/pdbs/projection_state_space.h"
 
 #include "probfd/engine_interfaces/cost_function.h"
 
