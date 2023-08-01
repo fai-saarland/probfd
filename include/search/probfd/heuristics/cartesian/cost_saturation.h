@@ -1,14 +1,15 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_COST_SATURATION_H
 #define PROBFD_HEURISTICS_CARTESIAN_COST_SATURATION_H
 
-#include "downward/cegar/refinement_hierarchy.h"
-
-#include "probfd/heuristics/cartesian/split_selector.h"
-
 #include "probfd/value_type.h"
 
+#include "downward/utils/logging.h"
+
+#include <functional>
 #include <memory>
 #include <vector>
+
+class State;
 
 namespace utils {
 class CountdownTimer;
@@ -18,11 +19,15 @@ class LogProxy;
 } // namespace utils
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+class ProbabilisticTask;
+
 namespace heuristics {
 namespace cartesian {
 
 class CartesianHeuristicFunction;
 class FlawGeneratorFactory;
+class SplitSelectorFactory;
 class SubtaskGenerator;
 
 /*
@@ -35,14 +40,12 @@ class SubtaskGenerator;
 class CostSaturation {
     const std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators;
     const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory;
+    const std::shared_ptr<SplitSelectorFactory> split_selector_factory;
     const int max_states;
-    const int max_search_states;
     const int max_non_looping_transitions;
     const double max_time;
     const bool use_general_costs;
-    const PickSplit pick_split;
-    utils::RandomNumberGenerator& rng;
-    utils::LogProxy& log;
+    mutable utils::LogProxy log;
 
     std::vector<CartesianHeuristicFunction> heuristic_functions;
     std::vector<value_t> remaining_costs;
@@ -66,14 +69,12 @@ public:
         const std::vector<std::shared_ptr<SubtaskGenerator>>&
             subtask_generators,
         std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
+        std::shared_ptr<SplitSelectorFactory> split_selector_factory,
         int max_states,
-        int max_search_states,
         int max_non_looping_transitions,
         double max_time,
         bool use_general_costs,
-        PickSplit pick_split,
-        utils::RandomNumberGenerator& rng,
-        utils::LogProxy& log);
+        utils::LogProxy log);
 
     std::vector<CartesianHeuristicFunction> generate_heuristic_functions(
         const std::shared_ptr<ProbabilisticTask>& task);

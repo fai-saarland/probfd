@@ -1,7 +1,7 @@
-#ifndef PROBFD_POLICIES_MAP_POLICY_H
-#define PROBFD_POLICIES_MAP_POLICY_H
+#ifndef PROBFD_POLICIES_MAP_MULTI_POLICY_H
+#define PROBFD_POLICIES_MAP_MULTI_POLICY_H
 
-#include "probfd/policy.h"
+#include "probfd/multi_policy.h"
 #include "probfd/types.h"
 
 #include <unordered_map>
@@ -10,28 +10,33 @@ namespace probfd {
 namespace policies {
 
 template <typename State, typename Action>
-class MapPolicy : public PartialPolicy<State, Action> {
+class MapMultiPolicy : public MultiPolicy<State, Action> {
     engine_interfaces::StateSpace<State, Action>* state_space;
-    std::unordered_map<StateID, PolicyDecision<Action>> mapping;
+    std::unordered_map<StateID, std::vector<PolicyDecision<Action>>> mapping;
 
 public:
-    explicit MapPolicy(
+    explicit MapMultiPolicy(
         engine_interfaces::StateSpace<State, Action>* state_space)
         : state_space(state_space)
     {
     }
 
-    ~MapPolicy() override = default;
-
-    std::optional<PolicyDecision<Action>>
-    get_decision(const State& state) const override
+    std::vector<PolicyDecision<Action>>
+    get_decisions(const State& state) const override
     {
         const auto state_id = state_space->get_state_id(state);
         auto it = mapping.find(state_id);
         if (it != mapping.end()) {
             return it->second;
         }
-        return std::nullopt;
+        return {};
+    }
+
+    std::vector<PolicyDecision<Action>>& emplace_decisions(
+        StateID state_id,
+        std::vector<PolicyDecision<Action>> decisions)
+    {
+        return mapping.emplace(state_id, std::move(decisions)).first->second;
     }
 
     PolicyDecision<Action>&
@@ -41,12 +46,13 @@ public:
             .first->second;
     }
 
-    PolicyDecision<Action>& operator[](StateID state_id)
+    std::vector<PolicyDecision<Action>>& operator[](StateID state_id)
     {
         return mapping[state_id];
     }
 
-    const PolicyDecision<Action>& operator[](StateID state_id) const
+    const std::vector<PolicyDecision<Action>>&
+    operator[](StateID state_id) const
     {
         return mapping.find(state_id)->second;
     }

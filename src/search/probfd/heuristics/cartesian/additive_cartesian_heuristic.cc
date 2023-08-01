@@ -31,13 +31,11 @@ generate_heuristic_functions(const plugins::Options& opts, utils::LogProxy& log)
     CostSaturation cost_saturation(
         opts.get_list<shared_ptr<SubtaskGenerator>>("subtasks"),
         opts.get<shared_ptr<FlawGeneratorFactory>>("flaw_generator_factory"),
+        opts.get<shared_ptr<SplitSelectorFactory>>("split_selector_factory"),
         opts.get<int>("max_states"),
-        opts.get<int>("max_search_states"),
         opts.get<int>("max_transitions"),
         opts.get<double>("max_time"),
         opts.get<bool>("use_general_costs"),
-        opts.get<PickSplit>("pick"),
-        *utils::parse_rng_from_options(opts),
         log);
 
     return cost_saturation.generate_heuristic_functions(
@@ -84,16 +82,14 @@ public:
             "factory for the flaw generation algorithm used in the refinement "
             "loop",
             "flaws_ilao()");
+        add_option<shared_ptr<SplitSelectorFactory>>(
+            "split_selector_factory",
+            "factory for the split selection algorithm used in the refinement "
+            "loop",
+            "max_refined()");
         add_option<int>(
             "max_states",
             "maximum sum of abstract states over all abstractions",
-            "infinity",
-            plugins::Bounds("1", "infinity"));
-        add_option<int>(
-            "max_search_states",
-            "maximum number of concrete states allowed to be generated during "
-            "flaw "
-            "search before giving up",
             "infinity",
             plugins::Bounds("1", "infinity"));
         add_option<int>(
@@ -107,16 +103,11 @@ public:
             "maximum time in seconds for building abstractions",
             "infinity",
             plugins::Bounds("0.0", "infinity"));
-        add_option<PickSplit>(
-            "pick",
-            "how to choose on which variable to split the flaw state",
-            "max_refined");
         add_option<bool>(
             "use_general_costs",
             "allow negative costs in cost partitioning",
             "true");
         TaskDependentHeuristic::add_options_to_feature(*this);
-        utils::add_rng_options(*this);
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");
@@ -130,31 +121,6 @@ public:
 };
 
 static plugins::FeaturePlugin<AdditiveCartesianHeuristicFeature> _plugin;
-
-static plugins::TypedEnumPlugin<PickSplit> _enum_plugin(
-    {{"random", "select a random variable (among all eligible variables)"},
-     {"min_unwanted",
-      "select an eligible variable which has the least unwanted values "
-      "(number of values of v that land in the abstract state whose "
-      "h-value will probably be raised) in the flaw state"},
-     {"max_unwanted",
-      "select an eligible variable which has the most unwanted values "
-      "(number of values of v that land in the abstract state whose "
-      "h-value will probably be raised) in the flaw state"},
-     {"min_refined",
-      "select an eligible variable which is the least refined "
-      "(-1 * (remaining_values(v) / original_domain_size(v))) "
-      "in the flaw state"},
-     {"max_refined",
-      "select an eligible variable which is the most refined "
-      "(-1 * (remaining_values(v) / original_domain_size(v))) "
-      "in the flaw state"},
-     {"min_hadd",
-      "select an eligible variable with minimal h^add(s_0) value "
-      "over all facts that need to be removed from the flaw state"},
-     {"max_hadd",
-      "select an eligible variable with maximal h^add(s_0) value "
-      "over all facts that need to be removed from the flaw state"}});
 
 } // namespace cartesian
 } // namespace heuristics

@@ -309,7 +309,6 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/trivial_finder
         probfd/heuristics/pdbs/subcollections
 
-        probfd/heuristics/pdbs/projection_policy
         probfd/heuristics/pdbs/utils
     DEPENDS PROBABILITY_AWARE_PDBS CAUSAL_GRAPH MAX_CLIQUES
     DEPENDENCY_ONLY
@@ -402,16 +401,21 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/abstraction
         probfd/heuristics/cartesian/adaptive_flaw_generator
         probfd/heuristics/cartesian/additive_cartesian_heuristic
-        probfd/heuristics/cartesian/astar_flaw_generator
+        probfd/heuristics/cartesian/astar_trace_generator
         probfd/heuristics/cartesian/cartesian_heuristic_function
         probfd/heuristics/cartesian/cegar
         probfd/heuristics/cartesian/cost_saturation
+        probfd/heuristics/cartesian/complete_policy_flaw_finder
+        probfd/heuristics/cartesian/distances
+        probfd/heuristics/cartesian/engine_interfaces
+        probfd/heuristics/cartesian/flaw
         probfd/heuristics/cartesian/flaw_generator
-        probfd/heuristics/cartesian/ilao_flaw_generator
-        probfd/heuristics/cartesian/probabilistic_transition
+        probfd/heuristics/cartesian/ilao_policy_generator
+        probfd/heuristics/cartesian/policy_based_flaw_generator
         probfd/heuristics/cartesian/probabilistic_transition_system
         probfd/heuristics/cartesian/split_selector
         probfd/heuristics/cartesian/subtask_generators
+        probfd/heuristics/cartesian/trace_based_flaw_generator
         probfd/heuristics/cartesian/utils
     DEPENDS CEGAR ADDITIVE_HEURISTIC EXTRA_PROBABILISTIC_TASKS
 )

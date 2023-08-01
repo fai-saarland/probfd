@@ -8,6 +8,7 @@
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/collections.h"
+#include "downward/utils/logging.h"
 
 #include <memory>
 #include <vector>
@@ -42,18 +43,12 @@ class Abstraction
     // Abstract goal states.
     Goals goals;
 
-    /* DAG with inner nodes for all split states and leaves for all
-       current states. */
-    std::unique_ptr<RefinementHierarchy> refinement_hierarchy;
-
-    utils::LogProxy& log;
+    mutable utils::LogProxy log;
 
     void initialize_trivial_abstraction(const std::vector<int>& domain_sizes);
 
 public:
-    Abstraction(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy& log);
+    Abstraction(const ProbabilisticTaskProxy& task, utils::LogProxy log);
     ~Abstraction();
 
     Abstraction(const Abstraction&) = delete;
@@ -81,14 +76,16 @@ public:
     const Goals& get_goals() const;
     const AbstractState& get_abstract_state(int state_id) const;
     const ProbabilisticTransitionSystem& get_transition_system() const;
-    std::unique_ptr<RefinementHierarchy> extract_refinement_hierarchy();
 
     /* Needed for CEGAR::separate_facts_unreachable_before_goal(). */
     void mark_all_states_as_goals();
 
     // Split state into two child states.
-    std::pair<int, int>
-    refine(const AbstractState& state, int var, const std::vector<int>& wanted);
+    std::pair<int, int> refine(
+        RefinementHierarchy& refinement_hierarchy,
+        const AbstractState& abstract_state,
+        int split_var,
+        const std::vector<int>& wanted);
 
     void print_statistics() const;
 };

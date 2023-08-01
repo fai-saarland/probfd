@@ -6,6 +6,8 @@
 
 #include "downward/plugins/plugin.h"
 
+#include <algorithm>
+
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
@@ -18,66 +20,46 @@ AdaptiveFlawGenerator::AdaptiveFlawGenerator(
 
 std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
+    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     CartesianCostFunction& cost_function,
     const AbstractState* init_id,
+    CartesianHeuristic& heuristic,
     utils::LogProxy& log,
-    const std::vector<int>& domain_sizes,
-    utils::Timer& find_trace_timer,
-    utils::Timer& find_flaw_timer,
-    utils::CountdownTimer& timer,
-    int max_search_states)
+    utils::CountdownTimer& timer)
 {
     while (current_generator != generators.size()) {
         auto& generator = generators[current_generator];
         std::optional<Flaw> flaw = generator->generate_flaw(
             task_proxy,
+            domain_sizes,
             abstraction,
             cost_function,
             init_id,
+            heuristic,
             log,
-            domain_sizes,
-            find_trace_timer,
-            find_flaw_timer,
-            timer,
-            max_search_states);
+            timer);
 
-        if (flaw || generator->is_complete()) return flaw;
+        if (flaw) return flaw;
 
         log << "Switching to the next flaw generator." << std::endl;
-
-        // Copy the heuristic to the next flaw generator
-        CartesianHeuristic& heuristic_prev = generator->get_heuristic();
-        CartesianHeuristic& heuristic_next =
-            generators[++current_generator]->get_heuristic();
-
-        for (int v = 0; v != abstraction.get_num_states(); ++v) {
-            heuristic_next.set_h_value(v, heuristic_prev.get_h_value(v));
-        }
     }
 
     return std::nullopt;
 }
 
-void AdaptiveFlawGenerator::notify_split(int v)
+void AdaptiveFlawGenerator::notify_split()
 {
     for (size_t i = current_generator; i != generators.size(); ++i) {
-        generators[i]->notify_split(v);
+        generators[i]->notify_split();
     }
 }
 
-CartesianHeuristic& AdaptiveFlawGenerator::get_heuristic()
+void AdaptiveFlawGenerator::print_statistics(utils::LogProxy& log)
 {
-    return generators[current_generator]->get_heuristic();
-}
-
-bool AdaptiveFlawGenerator::is_complete()
-{
-    for (const auto& generator : generators) {
-        if (generator->is_complete()) return true;
+    for (auto& gen : generators) {
+        gen->print_statistics(log);
     }
-
-    return false;
 }
 
 AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(
@@ -88,7 +70,7 @@ AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(
 }
 
 std::unique_ptr<FlawGenerator>
-AdaptiveFlawGeneratorFactory::create_flaw_generator() const
+AdaptiveFlawGeneratorFactory::create_flaw_generator()
 {
     std::vector<std::unique_ptr<FlawGenerator>> generators;
 

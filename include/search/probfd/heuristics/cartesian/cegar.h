@@ -1,88 +1,112 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_CEGAR_H
 #define PROBFD_HEURISTICS_CARTESIAN_CEGAR_H
 
-#include "probfd/heuristics/cartesian/engine_interfaces.h"
-#include "probfd/heuristics/cartesian/flaw_generator.h"
-#include "probfd/heuristics/cartesian/split_selector.h"
+#include "probfd/heuristics/cartesian/types.h"
 
 #include "probfd/task_proxy.h"
 
-#include "downward/utils/countdown_timer.h"
+#include "downward/utils/logging.h"
 
 #include <memory>
-#include <optional>
+#include <vector>
 
 namespace utils {
-class RandomNumberGenerator;
-class LogProxy;
+class Timer;
 } // namespace utils
 
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
+class AbstractState;
 class Abstraction;
+class CartesianHeuristic;
+struct Flaw;
+class FlawGenerator;
+class FlawGeneratorFactory;
+class SplitSelector;
+class SplitSelectorFactory;
+
+/**
+ * Contains the final abstraction mapping (RefinementHierarchy), the final
+ * Cartesian abstraction, and the final heuristic for the abstract state
+ * distances.
+ */
+struct CEGARResult {
+    std::unique_ptr<RefinementHierarchy> refinement_hierarchy;
+    std::unique_ptr<Abstraction> abstraction;
+    std::unique_ptr<CartesianHeuristic> heuristic;
+
+    ~CEGARResult();
+};
 
 /*
   Iteratively refine a Cartesian abstraction with counterexample-guided
   abstraction refinement (CEGAR).
 
-  Store the abstraction, use FlawGenerator to find flaws, use SplitSelector to
-  select splits in case of ambiguities and break spurious solutions.
+  Computes the abstraction, uses FlawGenerator to find flaws, uses SplitSelector
+  to select splits in case of ambiguities and break spurious solutions.
 */
 class CEGAR {
-    const ProbabilisticTaskProxy task_proxy;
-    const std::vector<int> domain_sizes;
     const int max_states;
-    const int max_search_states;
     const int max_non_looping_transitions;
-    const SplitSelector split_selector;
+    const double max_time;
+    const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory;
+    const std::shared_ptr<SplitSelectorFactory> split_selector_factory;
 
-    std::unique_ptr<Abstraction> abstraction;
-    CartesianCostFunction cost_function;
-
-    std::unique_ptr<FlawGenerator> flaw_generator;
-
-    // Limit the time for building the abstraction.
-    utils::CountdownTimer timer;
-
-    utils::LogProxy& log;
-
-    bool may_keep_refining() const;
-
-    /*
-      Map all states that can only be reached after reaching the goal
-      fact to arbitrary goal states.
-
-      We need this method only for landmark subtasks, but calling it
-      for other subtasks with a single goal fact doesn't hurt and
-      simplifies the implementation.
-    */
-    void separate_facts_unreachable_before_goal();
-
-    // Build abstraction.
-    void refinement_loop(utils::RandomNumberGenerator& rng);
-
-    void print_statistics();
+    mutable utils::LogProxy log;
 
 public:
     CEGAR(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const FlawGeneratorFactory& flaw_generator_factory,
         int max_states,
-        int max_search_states,
         int max_non_looping_transitions,
         double max_time,
-        PickSplit pick,
-        utils::RandomNumberGenerator& rng,
-        utils::LogProxy& log);
+        std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
+        std::shared_ptr<SplitSelectorFactory> split_selector_factory,
+        utils::LogProxy log);
+
     ~CEGAR();
 
-    CEGAR(const CEGAR&) = delete;
+    // Build abstraction.
+    CEGARResult
+    run_refinement_loop(const std::shared_ptr<ProbabilisticTask>& task);
 
-    std::unique_ptr<Abstraction> extract_abstraction();
+private:
+    bool may_keep_refining(const Abstraction& abstraction) const;
 
-    CartesianHeuristic& get_heuristic();
+    /*
+        Map all states that can only be reached after reaching the goal
+        fact to arbitrary goal states.
+
+        We need this method only for landmark subtasks, but calling it
+        for other subtasks with a single goal fact doesn't hurt and
+        simplifies the implementation.
+    */
+    void separate_facts_unreachable_before_goal(
+        ProbabilisticTaskProxy task_proxy,
+        FlawGenerator& flaw_generator,
+        RefinementHierarchy& refinement_hierarchy,
+        Abstraction& abstraction,
+        CartesianHeuristic& heuristic,
+        utils::Timer& timer);
+
+    void refine_abstraction(
+        FlawGenerator& flaw_generator,
+        SplitSelector& split_selector,
+        RefinementHierarchy& refinement_hierarchy,
+        Abstraction& abstraction,
+        CartesianHeuristic& heuristic,
+        const Flaw& flaw,
+        utils::Timer& timer);
+
+    void refine_abstraction(
+        FlawGenerator& flaw_generator,
+        RefinementHierarchy& refinement_hierarchy,
+        Abstraction& abstraction,
+        CartesianHeuristic& heuristic,
+        const AbstractState& abstract_state,
+        int split_var,
+        const std::vector<int>& wanted);
 };
 
 } // namespace cartesian

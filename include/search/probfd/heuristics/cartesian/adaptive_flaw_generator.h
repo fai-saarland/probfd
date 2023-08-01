@@ -6,6 +6,10 @@
 #include <memory>
 #include <vector>
 
+namespace plugins {
+class Options;
+}
+
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
@@ -24,21 +28,17 @@ public:
 
     std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
+        const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
         CartesianCostFunction& cost_function,
         const AbstractState* init_id,
+        CartesianHeuristic& heuristic,
         utils::LogProxy& log,
-        const std::vector<int>& domain_sizes,
-        utils::Timer& find_trace_timer,
-        utils::Timer& find_flaw_timer,
-        utils::CountdownTimer& timer,
-        int max_search_states) override;
+        utils::CountdownTimer& timer) override;
 
-    void notify_split(int v) override;
+    void notify_split() override;
 
-    CartesianHeuristic& get_heuristic() override;
-
-    bool is_complete() override;
+    void print_statistics(utils::LogProxy& log) override;
 };
 
 class AdaptiveFlawGeneratorFactory : public FlawGeneratorFactory {
@@ -47,7 +47,7 @@ class AdaptiveFlawGeneratorFactory : public FlawGeneratorFactory {
 public:
     explicit AdaptiveFlawGeneratorFactory(const plugins::Options& opts);
 
-    std::unique_ptr<FlawGenerator> create_flaw_generator() const override;
+    std::unique_ptr<FlawGenerator> create_flaw_generator() override;
 };
 
 } // namespace cartesian

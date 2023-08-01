@@ -1,6 +1,5 @@
 #include "probfd/heuristics/pdbs/cegar/pucs_flaw_finder.h"
 
-#include "probfd/heuristics/pdbs/cegar/cegar.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
@@ -8,12 +7,16 @@
 
 #include "probfd/utils/guards.h"
 
+#include "probfd/multi_policy.h"
+
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 
 #include "downward/state_registry.h"
 
 #include "downward/plugins/plugin.h"
+
+#include <ranges>
 
 using namespace std;
 using namespace utils;
@@ -35,7 +38,8 @@ PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
 
 bool PUCSFlawFinder::apply_policy(
     const ProbabilisticTaskProxy& task_proxy,
-    const PDBInfo& pdb_info,
+    const ProbabilityAwarePatternDatabase& pdb,
+    const ProjectionMultiPolicy& policy,
     const std::unordered_set<int>& blacklisted_variables,
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
@@ -55,9 +59,6 @@ bool PUCSFlawFinder::apply_policy(
         pq.push(1.0, init);
         probabilities[StateID(init.get_id())].path_probability = 1.0;
     }
-
-    const ProjectionPolicy& policy = pdb_info.get_policy();
-    const ProbabilityAwarePatternDatabase& pdb = pdb_info.get_pdb();
 
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
@@ -86,11 +87,11 @@ bool PUCSFlawFinder::apply_policy(
             continue;
         }
 
-        const auto& abs_operators = policy[abs];
+        const std::vector abs_decisions = policy.get_decisions(abs);
 
         // We reached a terminal state, check if it is a goal
-        if (abs_operators.empty()) {
-            assert(pdb_info.is_goal(abs));
+        if (abs_decisions.empty()) {
+            // assert(pdb_info.is_goal(abs));
 
             if (collect_flaws(goals, current, blacklisted_variables, flaw_list))
                 return false;
@@ -100,7 +101,8 @@ bool PUCSFlawFinder::apply_policy(
 
         std::vector<Flaw> local_flaws;
 
-        for (const ProjectionOperator* abs_op : abs_operators) {
+        for (const auto& decision : abs_decisions) {
+            const auto* abs_op = decision.action;
             const auto op = operators[abs_op->operator_id];
 
             if (collect_flaws(
