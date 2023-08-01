@@ -1,28 +1,27 @@
-#include "probfd/heuristics/cartesian/ilao_flaw_generator.h"
+#include "probfd/heuristics/cartesian/complete_policy_flaw_finder.h"
 
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "probfd/engines/ta_topological_value_iteration.h"
-#include "probfd/engines/trap_aware_dfhs.h"
-
 #include "probfd/quotients/engine_interfaces.h"
-#include "probfd/quotients/heuristic_search_interface.h"
 
-#include "probfd/preprocessing/qualitative_reachability_analysis.h"
+#include "probfd/storage/per_state_storage.h"
 
 #include "probfd/task_utils/task_properties.h"
+
+#include "probfd/policy.h"
+
+#include "downward/state_registry.h"
 
 #include "downward/cegar/abstract_state.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/memory.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <cassert>
+#include <deque>
 
 using namespace std;
 
@@ -30,107 +29,7 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-ILAOFlawGenerator::ILAOFlawGenerator()
-    : ptb(new policy_pickers::ArbitraryTiebreaker<
-          const AbstractState*,
-          const ProbabilisticTransition*>(true))
-    , report(0.0_vt)
-{
-    report.disable();
-}
-
-std::optional<Flaw> ILAOFlawGenerator::generate_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
-    Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
-    const AbstractState* init,
-    utils::LogProxy& log,
-    const std::vector<int>& domain_sizes,
-    utils::Timer& find_trace_timer,
-    utils::Timer& find_flaw_timer,
-    utils::CountdownTimer& timer,
-    int max_search_states)
-{
-    find_trace_timer.resume();
-    unique_ptr<Solution> solution =
-        this->find_solution(abstraction, cost_function, init, timer);
-    find_trace_timer.stop();
-
-    if (!solution) {
-        if (log.is_at_least_normal()) {
-            log << "Abstract task is unsolvable." << endl;
-        }
-        return std::nullopt;
-    }
-
-    find_flaw_timer.resume();
-    optional<Flaw> flaw = this->find_flaw(
-        task_proxy,
-        abstraction,
-        *solution,
-        timer,
-        log,
-        domain_sizes,
-        max_search_states);
-    find_flaw_timer.stop();
-
-    return flaw;
-}
-
-unique_ptr<Solution> ILAOFlawGenerator::find_solution(
-    Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
-    const AbstractState* state,
-    utils::CountdownTimer& timer)
-{
-    quotients::
-        QuotientSystem<const AbstractState*, const ProbabilisticTransition*>
-            quotient(&abstraction);
-
-    quotients::DefaultQuotientCostFunction<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        costs(&quotient, &cost_function);
-
-    quotients::RepresentativePolicyPicker<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        picker(&quotient, ptb);
-
-    engines::trap_aware_dfhs::TADepthFirstHeuristicSearch<
-        const AbstractState*,
-        const ProbabilisticTransition*,
-        false>
-        hdfs(
-            &quotient,
-            &costs,
-            &heuristic,
-            &picker,
-            nullptr,
-            &report,
-            false,
-            false,
-            engines::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
-            false,
-            false,
-            false,
-            true,
-            false,
-            true,
-            nullptr);
-
-    auto policy = hdfs.compute_policy(state, timer.get_remaining_time());
-
-    for (int i = 0; i != abstraction.get_num_states(); ++i) {
-        if (hdfs.was_visited(i)) {
-            heuristic.set_h_value(i, hdfs.lookup_value(i));
-        }
-    }
-
-    return policy;
-}
-
-optional<Flaw> ILAOFlawGenerator::find_flaw(
+optional<Flaw> CompletePolicyFlawFinder::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     Abstraction& abstraction,
     Solution& policy,
@@ -237,46 +136,6 @@ optional<Flaw> ILAOFlawGenerator::find_flaw(
 
     return std::nullopt;
 }
-
-void ILAOFlawGenerator::notify_split(int v)
-{
-    heuristic.on_split(v);
-}
-
-CartesianHeuristic& ILAOFlawGenerator::get_heuristic()
-{
-    return heuristic;
-}
-
-bool ILAOFlawGenerator::is_complete()
-{
-    return true;
-}
-
-std::unique_ptr<FlawGenerator>
-ILAOFlawGeneratorFactory::create_flaw_generator() const
-{
-    return std::make_unique<ILAOFlawGenerator>();
-}
-
-class ILAOFlawGeneratorFactoryFeature
-    : public plugins::
-          TypedFeature<FlawGeneratorFactory, ILAOFlawGeneratorFactory> {
-public:
-    ILAOFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_ilao")
-    {
-    }
-
-    virtual shared_ptr<ILAOFlawGeneratorFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
-    {
-        return make_shared<ILAOFlawGeneratorFactory>();
-    }
-};
-
-static plugins::FeaturePlugin<ILAOFlawGeneratorFactoryFeature> _plugin;
 
 } // namespace cartesian
 } // namespace heuristics

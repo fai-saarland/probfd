@@ -406,9 +406,11 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/cartesian_heuristic_function
         probfd/heuristics/cartesian/cegar
         probfd/heuristics/cartesian/cost_saturation
+        probfd/heuristics/cartesian/complete_policy_flaw_finder
+        probfd/heuristics/cartesian/flaw
         probfd/heuristics/cartesian/flaw_generator
-        probfd/heuristics/cartesian/ilao_flaw_generator
-        probfd/heuristics/cartesian/probabilistic_transition
+        probfd/heuristics/cartesian/ilao_policy_generator
+        probfd/heuristics/cartesian/policy_based_flaw_generator
         probfd/heuristics/cartesian/probabilistic_transition_system
         probfd/heuristics/cartesian/split_selector
         probfd/heuristics/cartesian/subtask_generators

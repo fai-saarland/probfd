@@ -38,6 +38,9 @@ using AbstractStates = std::vector<std::unique_ptr<AbstractState>>;
 using Loops = std::vector<int>;
 using ProbabilisticTransitions = std::vector<ProbabilisticTransition>;
 
+using Solution =
+    PartialPolicy<const AbstractState*, const ProbabilisticTransition*>;
+
 static constexpr int UNDEFINED = -1;
 
 } // namespace cartesian

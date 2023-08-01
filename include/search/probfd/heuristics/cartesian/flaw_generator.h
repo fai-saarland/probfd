@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_CARTESIAN_FLAW_GENERATOR_H
 
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
+#include "probfd/heuristics/cartesian/flaw.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition.h"
 #include "probfd/heuristics/cartesian/types.h"
 
@@ -25,26 +26,6 @@ class Timer;
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
-
-struct Split;
-
-struct Flaw {
-    // Last concrete and abstract state reached while tracing solution.
-    State concrete_state;
-    const AbstractState& current_abstract_state;
-    // Hypothetical Cartesian set we would have liked to reach.
-    CartesianSet desired_cartesian_set;
-
-    Flaw(
-        State&& concrete_state,
-        const AbstractState& current_abstract_state,
-        CartesianSet&& desired_cartesian_set);
-
-    std::vector<Split> get_possible_splits() const;
-};
-
-using Solution =
-    PartialPolicy<const AbstractState*, const ProbabilisticTransition*>;
 
 /**
  * @brief Find flaws in the abstraction.

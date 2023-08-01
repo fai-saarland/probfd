@@ -3,48 +3,32 @@
 
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 
-namespace utils {
-class CountdownTimer;
-class Timer;
-} // namespace utils
+#include <memory>
 
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
+class PolicyGenerator;
+class PolicyFlawFinder;
+
 /**
  * @brief Find flaws using ILAO*.
  */
-class ILAOFlawGenerator : public FlawGenerator {
+class PolicyBasedFlawGenerator : public FlawGenerator {
+    std::unique_ptr<PolicyGenerator> policy_generator;
+    std::unique_ptr<PolicyFlawFinder> policy_flaw_finder;
+
     CartesianHeuristic heuristic;
-    std::shared_ptr<policy_pickers::ArbitraryTiebreaker<
-        const AbstractState*,
-        const ProbabilisticTransition*>>
-        ptb;
-
-    ProgressReport report;
-
-    std::unique_ptr<Solution> find_solution(
-        Abstraction& abstraction,
-        CartesianCostFunction& cost_function,
-        const AbstractState* init_id,
-        utils::CountdownTimer& time_limit);
-
-    /* Try to convert the abstract solution into a concrete trace. Return the
-       first encountered flaw or nullptr if there is no flaw. */
-    std::optional<Flaw> find_flaw(
-        const ProbabilisticTaskProxy& task_proxy,
-        Abstraction& abstraction,
-        Solution& policy,
-        utils::CountdownTimer& timer,
-        utils::LogProxy& log,
-        const std::vector<int>& domain_sizes,
-        int max_search_states);
 
     bool is_complete() override final;
 
 public:
-    ILAOFlawGenerator();
+    PolicyBasedFlawGenerator(
+        PolicyGenerator* policy_generator,
+        PolicyFlawFinder* policy_flaw_finder);
+
+    ~PolicyBasedFlawGenerator();
 
     std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
