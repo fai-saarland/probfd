@@ -402,7 +402,7 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/abstraction
         probfd/heuristics/cartesian/adaptive_flaw_generator
         probfd/heuristics/cartesian/additive_cartesian_heuristic
-        probfd/heuristics/cartesian/astar_flaw_generator
+        probfd/heuristics/cartesian/astar_trace_generator
         probfd/heuristics/cartesian/cartesian_heuristic_function
         probfd/heuristics/cartesian/cegar
         probfd/heuristics/cartesian/cost_saturation
@@ -414,6 +414,7 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/probabilistic_transition_system
         probfd/heuristics/cartesian/split_selector
         probfd/heuristics/cartesian/subtask_generators
+        probfd/heuristics/cartesian/trace_based_flaw_generator
         probfd/heuristics/cartesian/utils
     DEPENDS CEGAR ADDITIVE_HEURISTIC EXTRA_PROBABILISTIC_TASKS
 )

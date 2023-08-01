@@ -3,6 +3,7 @@
 
 #include "downward/cegar/types.h"
 
+#include <deque>
 #include <limits>
 #include <memory>
 #include <unordered_set>
@@ -21,6 +22,8 @@ class PartialPolicy;
 namespace heuristics {
 namespace cartesian {
 
+struct TransitionOutcome;
+
 struct ProbabilisticTransition;
 
 // Classed reused from classical implementation
@@ -37,6 +40,8 @@ using AbstractStates = std::vector<std::unique_ptr<AbstractState>>;
 
 using Loops = std::vector<int>;
 using ProbabilisticTransitions = std::vector<ProbabilisticTransition>;
+
+using Trace = std::deque<TransitionOutcome>;
 
 using Solution =
     PartialPolicy<const AbstractState*, const ProbabilisticTransition*>;
