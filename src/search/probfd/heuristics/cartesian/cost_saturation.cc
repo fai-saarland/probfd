@@ -3,6 +3,7 @@
 #include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/cartesian_heuristic_function.h"
 #include "probfd/heuristics/cartesian/cegar.h"
+#include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/subtask_generators.h"
 #include "probfd/heuristics/cartesian/utils.h"
@@ -220,12 +221,12 @@ void CostSaturation::build_abstractions(
         assert(num_states < max_states);
         CEGAR cegar(
             subtask,
-            *flaw_generator_factory,
             max(1, (max_states - num_states) / rem_subtasks),
             max(1,
                 (max_non_looping_transitions - num_non_looping_transitions) /
                     rem_subtasks),
             timer.get_remaining_time() / rem_subtasks,
+            *flaw_generator_factory,
             pick_split,
             rng,
             log);

@@ -2,6 +2,7 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
+#include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/types.h"
 #include "probfd/heuristics/cartesian/utils.h"
@@ -32,12 +33,32 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
+SplitSelector* create_split_selector(
+    PickSplit pick,
+    const shared_ptr<ProbabilisticTask>& task,
+    utils::RandomNumberGenerator& rng)
+{
+    switch (pick) {
+    default:
+        cerr << "Invalid pick strategy: " << static_cast<int>(pick) << endl;
+        utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
+
+    case PickSplit::RANDOM: return new SplitSelectorRandom(rng);
+    case PickSplit::MIN_UNWANTED: return new SplitSelectorMinUnwanted();
+    case PickSplit::MAX_UNWANTED: return new SplitSelectorMaxUnwanted();
+    case PickSplit::MIN_REFINED: return new SplitSelectorMinRefined(task);
+    case PickSplit::MAX_REFINED: return new SplitSelectorMaxRefined(task);
+    case PickSplit::MIN_HADD: return new SplitSelectorMinHAdd(task);
+    case PickSplit::MAX_HADD: return new SplitSelectorMaxHAdd(task);
+    }
+}
+
 CEGAR::CEGAR(
     const shared_ptr<ProbabilisticTask>& task,
-    const FlawGeneratorFactory& flaw_generator_factory,
     int max_states,
     int max_non_looping_transitions,
     double max_time,
+    const FlawGeneratorFactory& flaw_generator_factory,
     PickSplit pick,
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)
@@ -45,14 +66,14 @@ CEGAR::CEGAR(
     , domain_sizes(cegar::get_domain_sizes(task_proxy))
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
-    , split_selector(task, pick)
+    , flaw_generator(flaw_generator_factory.create_flaw_generator())
+    , split_selector(create_split_selector(pick, task, rng))
+    , log(log)
+    , timer(max_time)
     , abstraction(new Abstraction(task, log))
     , cost_function(
           *abstraction,
           task_properties::get_operator_costs(task_proxy))
-    , flaw_generator(flaw_generator_factory.create_flaw_generator())
-    , timer(max_time)
-    , log(log)
 {
     assert(max_states >= 1);
     if (log.is_at_least_normal()) {
@@ -62,7 +83,7 @@ CEGAR::CEGAR(
             << max_non_looping_transitions << endl;
     }
 
-    refinement_loop(rng);
+    refinement_loop();
     if (log.is_at_least_normal()) {
         log << "Done building abstraction." << endl;
         log << "Time for building abstraction: " << timer.get_elapsed_time()
@@ -135,22 +156,19 @@ void CEGAR::separate_facts_unreachable_before_goal()
     abstraction->mark_all_states_as_goals();
 }
 
-void CEGAR::refine_abstraction(
-    const Flaw& flaw,
-    utils::RandomNumberGenerator& rng,
-    utils::Timer& timer)
+void CEGAR::refine_abstraction(const Flaw& flaw, utils::Timer& timer)
 {
     TimerScope scope(timer);
     const AbstractState& abstract_state = flaw.current_abstract_state;
     const int state_id = abstract_state.get_id();
     vector<Split> splits = flaw.get_possible_splits();
-    const Split& split = split_selector.pick_split(abstract_state, splits, rng);
+    const Split& split = split_selector->pick_split(abstract_state, splits);
     abstraction->refine(abstract_state, split.var_id, split.values);
     heuristic.on_split(state_id);
     flaw_generator->notify_split();
 }
 
-void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
+void CEGAR::refinement_loop()
 {
     /*
       For landmark tasks we have to map all states in which the
@@ -195,7 +213,7 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
                 break;
             }
 
-            refine_abstraction(*flaw, rng, refine_timer);
+            refine_abstraction(*flaw, refine_timer);
 
             if (log.is_at_least_verbose() &&
                 abstraction->get_num_states() % 1000 == 0) {

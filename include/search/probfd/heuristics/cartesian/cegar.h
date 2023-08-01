@@ -2,7 +2,7 @@
 #define PROBFD_HEURISTICS_CARTESIAN_CEGAR_H
 
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
-#include "probfd/heuristics/cartesian/flaw_generator.h"
+#include "probfd/heuristics/cartesian/flaw.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
 
 #include "probfd/task_proxy.h"
@@ -23,6 +23,8 @@ namespace heuristics {
 namespace cartesian {
 
 class Abstraction;
+class FlawGenerator;
+class FlawGeneratorFactory;
 
 /*
   Iteratively refine a Cartesian abstraction with counterexample-guided
@@ -36,26 +38,25 @@ class CEGAR {
     const std::vector<int> domain_sizes;
     const int max_states;
     const int max_non_looping_transitions;
-    const SplitSelector split_selector;
+    const std::unique_ptr<FlawGenerator> flaw_generator;
+    const std::unique_ptr<SplitSelector> split_selector;
+
+    utils::LogProxy& log;
+
+    // Limit the time for building the abstraction.
+    utils::CountdownTimer timer;
 
     std::unique_ptr<Abstraction> abstraction;
     CartesianCostFunction cost_function;
     CartesianHeuristic heuristic;
 
-    std::unique_ptr<FlawGenerator> flaw_generator;
-
-    // Limit the time for building the abstraction.
-    utils::CountdownTimer timer;
-
-    utils::LogProxy& log;
-
 public:
     CEGAR(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const FlawGeneratorFactory& flaw_generator_factory,
         int max_states,
         int max_non_looping_transitions,
         double max_time,
+        const FlawGeneratorFactory& flaw_generator_factory,
         PickSplit pick,
         utils::RandomNumberGenerator& rng,
         utils::LogProxy& log);
@@ -79,13 +80,10 @@ private:
     */
     void separate_facts_unreachable_before_goal();
 
-    void refine_abstraction(
-        const Flaw& flaw,
-        utils::RandomNumberGenerator& rng,
-        utils::Timer& timer);
+    void refine_abstraction(const Flaw& flaw, utils::Timer& timer);
 
     // Build abstraction.
-    void refinement_loop(utils::RandomNumberGenerator& rng);
+    void refinement_loop();
 
     void print_statistics();
 };
