@@ -12,6 +12,7 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/rng.h"
+#include "downward/utils/rng_options.h"
 
 #include "downward/state_registry.h"
 
@@ -28,19 +29,24 @@ namespace pdbs {
 namespace cegar {
 
 SamplingFlawFinder::SamplingFlawFinder(const plugins::Options& opts)
-    : SamplingFlawFinder(opts.get<int>("max_search_states"))
+    : SamplingFlawFinder(
+          utils::parse_rng_from_options(opts),
+          opts.get<int>("max_search_states"))
 {
 }
 
-SamplingFlawFinder::SamplingFlawFinder(int max_search_states)
-    : max_search_states(max_search_states)
+SamplingFlawFinder::SamplingFlawFinder(
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
+    int max_search_states)
+    : rng(std::move(rng))
+    , max_search_states(max_search_states)
 {
 }
 
 bool SamplingFlawFinder::apply_policy(
-    const CEGAR& base,
     const ProbabilisticTaskProxy& task_proxy,
-    int solution_index,
+    const PDBInfo& pdb_info,
+    const std::unordered_set<int>& blacklisted_variables,
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
 {
@@ -55,9 +61,9 @@ bool SamplingFlawFinder::apply_policy(
     StateRegistry registry(task_proxy);
     stk.push_back(registry.get_initial_state());
 
-    const PDBInfo& solution = *base.pdb_infos[solution_index];
-    const ProjectionPolicy& policy = solution.get_policy();
-    const ProbabilityAwarePatternDatabase& pdb = solution.get_pdb();
+    const ProjectionPolicy& policy = pdb_info.get_policy();
+    const ProbabilityAwarePatternDatabase& pdb = pdb_info.get_pdb();
+
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
 
@@ -81,13 +87,12 @@ bool SamplingFlawFinder::apply_policy(
 
             // Goal flaw check
             if (abs_operators.empty()) {
-                assert(solution.is_goal(abs));
+                assert(pdb_info.is_goal(abs));
 
-                if (base.collect_flaws(
+                if (collect_flaws(
                         goals,
                         *current,
-                        solution_index,
-                        false,
+                        blacklisted_variables,
                         flaw_list)) {
                     return false;
                 }
@@ -101,11 +106,10 @@ bool SamplingFlawFinder::apply_policy(
             for (const ProjectionOperator* abs_op : abs_operators) {
                 const auto op = operators[abs_op->operator_id];
 
-                if (base.collect_flaws(
+                if (collect_flaws(
                         op.get_preconditions(),
                         *current,
-                        solution_index,
-                        true,
+                        blacklisted_variables,
                         local_flaws)) {
                     continue; // Try next operator
                 }
@@ -143,7 +147,7 @@ bool SamplingFlawFinder::apply_policy(
                 timer.throw_if_expired();
 
                 // Sample next successor
-                auto it = einfo->successors.sample(*base.rng);
+                auto it = einfo->successors.sample(*rng);
                 const StateID succ_id = it->item;
                 einfo->successors.erase(it);
 
@@ -187,6 +191,7 @@ public:
     SamplingFlawFinderFeature()
         : TypedFeature("sampling_flaw_finder")
     {
+        utils::add_rng_options(*this);
         add_option<int>(
             "max_search_states",
             "Maximal number of generated states after which the flaw search is "

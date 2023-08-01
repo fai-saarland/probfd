@@ -34,9 +34,9 @@ BFSFlawFinder::BFSFlawFinder(int max_search_states)
 }
 
 bool BFSFlawFinder::apply_policy(
-    const CEGAR& base,
     const ProbabilisticTaskProxy& task_proxy,
-    int solution_index,
+    const PDBInfo& pdb_info,
+    const std::unordered_set<int>& blacklisted_variables,
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
 {
@@ -56,9 +56,9 @@ bool BFSFlawFinder::apply_policy(
         closed[init.get_id()] = true;
     }
 
-    const PDBInfo& solution = *base.pdb_infos[solution_index];
-    const ProjectionPolicy& policy = solution.get_policy();
-    const ProbabilityAwarePatternDatabase& pdb = solution.get_pdb();
+    const ProjectionPolicy& policy = pdb_info.get_policy();
+    const ProbabilityAwarePatternDatabase& pdb = pdb_info.get_pdb();
+
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
 
@@ -78,13 +78,12 @@ bool BFSFlawFinder::apply_policy(
 
             // We reached a terminal state, check if it is a goal
             if (abs_operators.empty()) {
-                assert(solution.is_goal(abs));
+                assert(pdb_info.is_goal(abs));
 
-                if (base.collect_flaws(
+                if (collect_flaws(
                         goals,
                         current,
-                        solution_index,
-                        false,
+                        blacklisted_variables,
                         flaw_list))
                     return false;
 
@@ -97,11 +96,10 @@ bool BFSFlawFinder::apply_policy(
                 const auto op = operators[abs_op->operator_id];
 
                 // Flaws occured.
-                if (base.collect_flaws(
+                if (collect_flaws(
                         op.get_preconditions(),
                         current,
-                        solution_index,
-                        true,
+                        blacklisted_variables,
                         local_flaws)) {
                     continue; // Try next operator
                 }

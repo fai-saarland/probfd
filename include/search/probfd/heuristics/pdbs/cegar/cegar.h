@@ -36,12 +36,8 @@ class SubCollectionFinderFactory;
 namespace cegar {
 
 class FlawFindingStrategy;
-class BFSFlawFinder;
-class PUCSFlawFinder;
-class SamplingFlawFinder;
 
 struct Flaw {
-    int solution_index;
     int variable;
     bool is_precondition;
 };
@@ -111,17 +107,13 @@ public:
 };
 
 class CEGAR {
-    friend class cegar::BFSFlawFinder;
-    friend class cegar::PUCSFlawFinder;
-    friend class cegar::SamplingFlawFinder;
-
     mutable utils::LogProxy log;
 
     // Random number generator
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     // Flaw finding strategy
-    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
+    const std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
     // behavior defining parameters
     const bool wildcard;
@@ -162,30 +154,6 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         TaskCostFunction& task_cost_function);
 
-protected:
-    bool collect_flaws(
-        auto facts,
-        const State& state,
-        int solution_index,
-        bool is_precondition,
-        std::vector<Flaw>& flaw_list) const
-    {
-        bool flaws_found = false;
-
-        // Collect all non-satisfied goal fact variables.
-        for (const FactProxy fact : facts) {
-            const auto& [var, val] = fact.get_pair();
-
-            if (state[var].get_value() != val &&
-                !blacklisted_variables.contains(var)) {
-                flaws_found = true;
-                flaw_list.emplace_back(solution_index, var, is_precondition);
-            }
-        }
-
-        return flaws_found;
-    }
-
 private:
     void generate_trivial_solution_collection(
         const ProbabilisticTaskProxy& task_proxy,
@@ -195,6 +163,7 @@ private:
     int get_flaws(
         const ProbabilisticTaskProxy& task_proxy,
         std::vector<Flaw>& flaws,
+        std::vector<int>& flaw_offsets,
         utils::CountdownTimer& timer);
 
     bool
@@ -228,6 +197,7 @@ private:
         TaskCostFunction& task_cost_function,
         const VariablesProxy& variables,
         const std::vector<Flaw>& flaws,
+        const std::vector<int>& flaw_offsets,
         utils::CountdownTimer& timer);
 
     void print_collection() const;

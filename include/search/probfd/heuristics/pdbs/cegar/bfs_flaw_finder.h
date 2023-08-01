@@ -34,9 +34,9 @@ public:
     ~BFSFlawFinder() override = default;
 
     bool apply_policy(
-        const CEGAR& base,
         const ProbabilisticTaskProxy& task_proxy,
-        int solution_index,
+        const PDBInfo& pdb_info,
+        const std::unordered_set<int>& blacklisted_variables,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;
 
