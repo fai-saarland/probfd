@@ -82,10 +82,10 @@ public:
 
     // Split state into two child states.
     std::pair<int, int> refine(
-        const AbstractState& state,
-        std::unique_ptr<AbstractState>&& v1,
-        std::unique_ptr<AbstractState>&& v2,
-        int var);
+        RefinementHierarchy& refinement_hierarchy,
+        const AbstractState& abstract_state,
+        int split_var,
+        const std::vector<int>& wanted);
 
     void print_statistics() const;
 };

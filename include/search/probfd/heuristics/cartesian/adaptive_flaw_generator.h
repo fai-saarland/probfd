@@ -6,6 +6,10 @@
 #include <memory>
 #include <vector>
 
+namespace plugins {
+class Options;
+}
+
 namespace probfd {
 namespace heuristics {
 namespace cartesian {

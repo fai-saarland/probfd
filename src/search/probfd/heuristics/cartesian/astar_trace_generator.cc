@@ -1,9 +1,10 @@
 #include "probfd/heuristics/cartesian/astar_trace_generator.h"
 
-#include "probfd/heuristics/cartesian/trace_generator.h"
-
+#include "probfd/heuristics/cartesian/abstract_state.h"
+#include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
+#include "probfd/heuristics/cartesian/trace_generator.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
 #include "probfd/quotients/engine_interfaces.h"
@@ -11,8 +12,6 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/utils/guards.h"
-
-#include "downward/cegar/abstract_state.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/memory.h"

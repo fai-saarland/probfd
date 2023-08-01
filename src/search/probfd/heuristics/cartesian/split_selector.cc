@@ -21,8 +21,9 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-SplitSelectorRandom::SplitSelectorRandom(utils::RandomNumberGenerator& rng)
-    : rng(rng)
+SplitSelectorRandom::SplitSelectorRandom(
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : rng(std::move(rng))
 {
 }
 
@@ -49,6 +50,8 @@ SplitSelectorHAdd::SplitSelectorHAdd(
         task_proxy.get_initial_state());
 }
 
+SplitSelectorHAdd::~SplitSelectorHAdd() = default;
+
 SplitSelectorMinHAdd::SplitSelectorMinHAdd(
     const std::shared_ptr<ProbabilisticTask>& task)
     : SplitSelectorHAdd(task)
@@ -61,10 +64,6 @@ SplitSelectorMaxHAdd::SplitSelectorMaxHAdd(
 {
 }
 
-SplitSelectorMinHAdd::~SplitSelectorMinHAdd() = default;
-
-SplitSelectorMaxHAdd::~SplitSelectorMaxHAdd() = default;
-
 const Split& SplitSelectorRandom::pick_split(
     const AbstractState&,
     const std::vector<Split>& splits)
@@ -75,7 +74,7 @@ const Split& SplitSelectorRandom::pick_split(
         return splits[0];
     }
 
-    return *rng.choose(splits);
+    return *rng->choose(splits);
 }
 
 double SplitSelectorUnwanted::rate_split(

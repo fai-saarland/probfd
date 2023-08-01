@@ -3,6 +3,8 @@
 
 #include "probfd/heuristics/cartesian/trace_generator.h"
 
+#include "downward/algorithms/priority_queues.h"
+
 namespace probfd {
 namespace heuristics {
 namespace cartesian {

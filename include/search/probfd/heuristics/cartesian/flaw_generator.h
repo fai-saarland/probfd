@@ -1,31 +1,29 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_FLAW_GENERATOR_H
 #define PROBFD_HEURISTICS_CARTESIAN_FLAW_GENERATOR_H
 
-#include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/flaw.h"
-#include "probfd/heuristics/cartesian/probabilistic_transition.h"
 #include "probfd/heuristics/cartesian/types.h"
 
-#include "probfd/policy_pickers/arbitrary_tiebreaker.h"
-
-#include "probfd/progress_report.h"
 #include "probfd/value_type.h"
 
-#include "downward/algorithms/priority_queues.h"
-
-#include <deque>
 #include <memory>
 #include <optional>
 #include <vector>
 
 namespace utils {
 class CountdownTimer;
+class LogProxy;
 class Timer;
 } // namespace utils
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace heuristics {
 namespace cartesian {
+class Abstraction;
+class CartesianCostFunction;
+class CartesianHeuristic;
 
 /**
  * @brief Find flaws in the abstraction.

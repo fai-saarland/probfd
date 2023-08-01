@@ -1,5 +1,7 @@
 #include "probfd/heuristics/cartesian/complete_policy_flaw_finder.h"
 
+#include "probfd/heuristics/cartesian/abstract_state.h"
+#include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/split_selector.h"

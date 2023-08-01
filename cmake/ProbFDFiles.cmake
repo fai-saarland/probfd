@@ -407,6 +407,7 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/cegar
         probfd/heuristics/cartesian/cost_saturation
         probfd/heuristics/cartesian/complete_policy_flaw_finder
+        probfd/heuristics/cartesian/engine_interfaces
         probfd/heuristics/cartesian/flaw
         probfd/heuristics/cartesian/flaw_generator
         probfd/heuristics/cartesian/ilao_policy_generator

@@ -6,6 +6,9 @@
 
 #include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
+#include "probfd/heuristics/cartesian/types.h"
+
+#include "downward/cegar/refinement_hierarchy.h"
 
 #include "downward/utils/logging.h"
 
@@ -27,26 +30,28 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     std::fstream file(
         file_path.remove_filename() / "../sas_files/gripper_example.sas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
+    const ProbabilisticTaskProxy task_proxy(*task);
 
-    cartesian::Abstraction abs(task, utils::g_log);
+    cartesian::RefinementHierarchy refinement_hierarchy(task);
+    cartesian::Abstraction abs(task_proxy, utils::g_log);
 
     ASSERT_EQ(
         get_num_transitions(abs.get_transition_system()),
         task->get_num_operators());
 
-    abs.refine(abs.get_abstract_state(0), 1, {1});
+    abs.refine(refinement_hierarchy, abs.get_abstract_state(0), 1, {1});
     ASSERT_EQ(abs.get_num_states(), 2);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
-    abs.refine(abs.get_abstract_state(0), 0, {1});
+    abs.refine(refinement_hierarchy, abs.get_abstract_state(0), 0, {1});
     ASSERT_EQ(abs.get_num_states(), 3);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
-    abs.refine(abs.get_abstract_state(2), 1, {0});
+    abs.refine(refinement_hierarchy, abs.get_abstract_state(2), 1, {0});
     ASSERT_EQ(abs.get_num_states(), 4);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 10);
 
-    abs.refine(abs.get_abstract_state(0), 1, {2});
+    abs.refine(refinement_hierarchy, abs.get_abstract_state(0), 1, {2});
     ASSERT_EQ(abs.get_num_states(), 5);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 10);
 }
@@ -57,19 +62,21 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
     std::fstream file(
         file_path.remove_filename() / "../sas_files/pblocksworld_example.sas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
+    const ProbabilisticTaskProxy task_proxy(*task);
 
-    cartesian::Abstraction abs(task, utils::g_log);
+    cartesian::RefinementHierarchy refinement_hierarchy(task);
+    cartesian::Abstraction abs(task_proxy, utils::g_log);
 
     ASSERT_EQ(abs.get_num_states(), 1);
     ASSERT_EQ(
         get_num_transitions(abs.get_transition_system()),
         task->get_num_operators());
 
-    abs.refine(abs.get_abstract_state(0), 4, {1});
+    abs.refine(refinement_hierarchy, abs.get_abstract_state(0), 4, {1});
     ASSERT_EQ(abs.get_num_states(), 2);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 28);
 
-    abs.refine(abs.get_abstract_state(1), 2, {1, 2, 3});
+    abs.refine(refinement_hierarchy, abs.get_abstract_state(1), 2, {1, 2, 3});
     ASSERT_EQ(abs.get_num_states(), 3);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 34);
 }

@@ -8,6 +8,8 @@
 
 #include "probfd/distribution.h"
 
+#include "downward/cegar/refinement_hierarchy.h"
+
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/math.h"
 #include "downward/utils/memory.h"
@@ -137,22 +139,48 @@ void Abstraction::initialize_trivial_abstraction(
 }
 
 pair<int, int> Abstraction::refine(
-    const AbstractState& state,
-    std::unique_ptr<AbstractState>&& v1,
-    std::unique_ptr<AbstractState>&& v2,
-    int var)
+    RefinementHierarchy& refinement_hierarchy,
+    const AbstractState& abstract_state,
+    int split_var,
+    const std::vector<int>& wanted)
 {
-    assert(state.includes(*v1));
-    assert(state.includes(*v2));
+    if (log.is_at_least_debug())
+        log << "Refine " << abstract_state << " for " << split_var << "="
+            << wanted << endl;
 
-    const int v1_id = v1->get_id();
-    const int v2_id = v2->get_id();
+    int v_id = abstract_state.get_id();
+    // Reuse state ID from obsolete parent to obtain consecutive IDs.
+    int v1_id = v_id;
+    int v2_id = get_num_states();
+
+    // Update refinement hierarchy.
+    pair<NodeID, NodeID> node_ids = refinement_hierarchy.split(
+        abstract_state.get_node_id(),
+        split_var,
+        wanted,
+        v1_id,
+        v2_id);
+
+    pair<cegar::CartesianSet, cegar::CartesianSet> cartesian_sets =
+        abstract_state.split_domain(split_var, wanted);
+
+    unique_ptr v1 = std::make_unique<AbstractState>(
+        v1_id,
+        node_ids.first,
+        std::move(cartesian_sets.first));
+    unique_ptr v2 = std::make_unique<AbstractState>(
+        v2_id,
+        node_ids.second,
+        std::move(cartesian_sets.second));
+
+    assert(abstract_state.includes(*v1));
+    assert(abstract_state.includes(*v2));
 
     /*
       Due to the way we split the state into v1 and v2, v2 is never the new
       initial state and v1 is never a goal state.
     */
-    if (state.get_id() == init_id) {
+    if (abstract_state.get_id() == init_id) {
         if (v1->includes(concrete_initial_state)) {
             assert(!v2->includes(concrete_initial_state));
             init_id = v1_id;
@@ -178,7 +206,7 @@ pair<int, int> Abstraction::refine(
         }
     }
 
-    transition_system->rewire(states, *v1, *v2, var);
+    transition_system->rewire(states, *v1, *v2, split_var);
 
     states[v1_id] = std::move(v1);
     assert(static_cast<int>(states.size()) == v2_id);

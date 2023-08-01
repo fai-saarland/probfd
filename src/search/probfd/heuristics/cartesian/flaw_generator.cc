@@ -1,5 +1,7 @@
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 
+#include "probfd/heuristics/cartesian/abstract_state.h"
+#include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
@@ -14,8 +16,6 @@
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
 #include "probfd/task_utils/task_properties.h"
-
-#include "downward/cegar/abstract_state.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/memory.h"

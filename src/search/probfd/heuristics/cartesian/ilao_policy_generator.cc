@@ -1,5 +1,6 @@
 #include "probfd/heuristics/cartesian/ilao_policy_generator.h"
 
+#include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/utils.h"

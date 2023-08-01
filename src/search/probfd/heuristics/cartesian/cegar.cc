@@ -159,39 +159,11 @@ void CEGAR::refine_abstraction(
     int split_var,
     const std::vector<int>& wanted)
 {
-    if (log.is_at_least_debug())
-        log << "Refine " << abstract_state << " for " << split_var << "="
-            << wanted << endl;
-
-    int v_id = abstract_state.get_id();
-    // Reuse state ID from obsolete parent to obtain consecutive IDs.
-    int v1_id = v_id;
-    int v2_id = abstraction->get_num_states();
-
-    // Update refinement hierarchy.
-    pair<NodeID, NodeID> node_ids = refinement_hierarchy->split(
-        abstract_state.get_node_id(),
-        split_var,
-        wanted,
-        v1_id,
-        v2_id);
-
-    pair<cegar::CartesianSet, cegar::CartesianSet> cartesian_sets =
-        abstract_state.split_domain(split_var, wanted);
-
-    unique_ptr v1 = std::make_unique<AbstractState>(
-        v1_id,
-        node_ids.first,
-        std::move(cartesian_sets.first));
-    unique_ptr v2 = std::make_unique<AbstractState>(
-        v2_id,
-        node_ids.second,
-        std::move(cartesian_sets.second));
-
+    int id = abstract_state.get_id();
     abstraction
-        ->refine(abstract_state, std::move(v1), std::move(v2), split_var);
+        ->refine(*refinement_hierarchy, abstract_state, split_var, wanted);
 
-    heuristic.on_split(v_id);
+    heuristic.on_split(id);
     flaw_generator->notify_split();
 }
 

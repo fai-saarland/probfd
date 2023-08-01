@@ -43,10 +43,11 @@ public:
 };
 
 class SplitSelectorRandom : public SplitSelector {
-    utils::RandomNumberGenerator& rng;
+    std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
-    explicit SplitSelectorRandom(utils::RandomNumberGenerator& rng);
+    explicit SplitSelectorRandom(
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     const Split&
     pick_split(const AbstractState& state, const std::vector<Split>& splits)
@@ -116,6 +117,7 @@ class SplitSelectorHAdd {
 
 public:
     explicit SplitSelectorHAdd(const std::shared_ptr<ProbabilisticTask>& task);
+    ~SplitSelectorHAdd();
 
 protected:
     int get_hadd_value(int var_id, int value) const;
