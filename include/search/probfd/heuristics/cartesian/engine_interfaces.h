@@ -14,9 +14,8 @@ class Abstraction;
 struct ProbabilisticTransition;
 
 class CartesianCostFunction
-    : public engine_interfaces::StateIndependentCostFunction<
-          const AbstractState*,
-          const ProbabilisticTransition*> {
+    : public engine_interfaces::
+          CostFunction<const AbstractState*, const ProbabilisticTransition*> {
     Abstraction& abstraction;
     std::vector<value_t> operator_costs;
 

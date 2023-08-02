@@ -47,9 +47,8 @@ DefaultQuotientCostFunction::get_termination_info(bisimulation::QuotientState s)
     return TerminationInfo(false, default_);
 }
 
-value_t DefaultQuotientCostFunction::get_action_cost(
-    StateID,
-    bisimulation::QuotientAction)
+value_t
+DefaultQuotientCostFunction::get_action_cost(bisimulation::QuotientAction)
 {
     return 0;
 }

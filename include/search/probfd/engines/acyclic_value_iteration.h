@@ -83,7 +83,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         {
             assert(!this->remaining_aops.empty());
             auto& next_action = remaining_aops.back();
-            t_value = engine.get_action_cost(state, next_action);
+            t_value = engine.get_action_cost(next_action);
             transition.clear();
             engine.generate_action_transitions(state, next_action, transition);
             successor = transition.begin();
@@ -105,7 +105,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
             }
 
             auto& next_action = remaining_aops.back();
-            t_value = engine.get_action_cost(state, next_action);
+            t_value = engine.get_action_cost(next_action);
             transition.clear();
             engine.generate_action_transitions(state, next_action, transition);
             successor = transition.begin();

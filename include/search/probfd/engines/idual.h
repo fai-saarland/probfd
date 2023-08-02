@@ -207,7 +207,7 @@ public:
 
                     lp::LPConstraint c(-inf, inf);
 
-                    double base_val = -this->get_action_cost(state_id, aops[j]);
+                    double base_val = -this->get_action_cost(aops[j]);
                     StateID next_prev_state = prev_state;
                     double w = 1.0;
 

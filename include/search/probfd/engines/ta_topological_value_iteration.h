@@ -485,9 +485,8 @@ public:
 
                 // Has next action -> stop backtracking
                 if (explore->next_action(this, state_id)) {
-                    const auto cost = this->get_action_cost(
-                        state_id,
-                        explore->get_current_action());
+                    const auto cost =
+                        this->get_action_cost(explore->get_current_action());
                     explore->nz_or_leaves_scc = cost != 0.0_vt;
                     stack_info->ec_transitions.emplace_back(cost);
 
@@ -579,7 +578,7 @@ private:
             }
 
             const auto cost =
-                this->get_action_cost(state_id, explore.get_current_action());
+                this->get_action_cost(explore.get_current_action());
 
             explore.nz_or_leaves_scc = cost != 0.0_vt;
             stack_info.ec_transitions.emplace_back(cost);
@@ -648,8 +647,7 @@ private:
                 state_info.stack_id = stack_size;
 
                 // Found non self loop action, push and return success.
-                const auto cost =
-                    this->get_action_cost(state_id, aops.back());
+                const auto cost = this->get_action_cost(aops.back());
 
                 ExplorationInfo& explore = exploration_stack_.emplace_back(
                     stack_size,

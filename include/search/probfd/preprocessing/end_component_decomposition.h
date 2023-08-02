@@ -141,12 +141,10 @@ class EndComponentDecomposition {
             unsigned stck,
             std::vector<Action> aops,
             std::vector<std::vector<StateID>> successors,
-            StateID state_id,
             engine_interfaces::MDP<State, Action>& mdp)
             : stck(stck)
             , lstck(stck)
-            , nz_or_leaves_scc(
-                  mdp.get_action_cost(state_id, aops.back()) != 0_vt)
+            , nz_or_leaves_scc(mdp.get_action_cost(aops.back()) != 0_vt)
             , aops(std::move(aops))
             , successors(std::move(successors))
         {
@@ -161,17 +159,14 @@ class EndComponentDecomposition {
             return !aops.empty();
         }
 
-        bool next_action(
-            StateID state_id,
-            engine_interfaces::MDP<State, Action>& mdp)
+        bool next_action(engine_interfaces::MDP<State, Action>& mdp)
         {
             assert(aops.size() == successors.size());
             aops.pop_back();
             successors.pop_back();
 
             if (!aops.empty()) {
-                nz_or_leaves_scc =
-                    mdp.get_action_cost(state_id, aops.back()) != 0_vt;
+                nz_or_leaves_scc = mdp.get_action_cost(aops.back()) != 0_vt;
                 return true;
             }
 
@@ -370,7 +365,6 @@ private:
             stack_.size(),
             std::move(aops),
             std::move(successors),
-            state_id,
             mdp);
 
         state_info.stackid_ = stack_.size();
@@ -481,7 +475,7 @@ private:
                 bool next_action;
 
                 if constexpr (RootIteration) {
-                    next_action = e->next_action(s->stateid, mdp);
+                    next_action = e->next_action(mdp);
                 } else {
                     next_action = e->next_action();
                 }
@@ -549,7 +543,7 @@ private:
             bool next_action;
 
             if constexpr (RootIteration) {
-                next_action = e.next_action(s.stateid, mdp);
+                next_action = e.next_action(mdp);
             } else {
                 next_action = e.next_action();
             }

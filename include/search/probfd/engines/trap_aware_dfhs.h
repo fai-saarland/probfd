@@ -353,14 +353,13 @@ private:
                 flags.complete = false;
                 return false;
             }
-            zero_cost =
-                this->get_action_cost(state, *result.policy_action) == 0;
+            zero_cost = this->get_action_cost(*result.policy_action) == 0;
             enqueue(state, *result.policy_action, zero_cost);
 
         } else {
             QAction action = this->get_policy(state);
             this->generate_action_transitions(state, action, transition_);
-            zero_cost = this->get_action_cost(state, action) == 0;
+            zero_cost = this->get_action_cost(action) == 0;
             enqueue(state, action, zero_cost);
         }
 
@@ -407,7 +406,7 @@ private:
 
         flags.clear();
         const bool zero_cost =
-            this->get_action_cost(state, *result.policy_action) == 0;
+            this->get_action_cost(*result.policy_action) == 0;
         enqueue(state, *result.policy_action, zero_cost);
         return true;
     }

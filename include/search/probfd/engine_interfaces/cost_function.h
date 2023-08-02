@@ -40,7 +40,7 @@ namespace engine_interfaces {
  * states of a state space to the MDP engines. Users must implement the public
  * methods
  * `get_termination_info(const State& state)` and
- * `get_action_cost(const State& state, const Action& action)`.
+ * `get_action_cost(const Action& action)`.
  *
  * Example
  * =======
@@ -57,7 +57,7 @@ protected:
         return TerminationInfo(is_goal, is_goal ? -1.0_vt : 0.0_vt);
     }
 
-    value_t get_action_cost(const State& state, OperatorID) override
+    value_t get_action_cost(OperatorID) override
     {
         // Actions have no cost.
         return 0;
@@ -82,10 +82,9 @@ public:
     virtual TerminationInfo get_termination_info(param_type<State> state) = 0;
 
     /**
-     * @brief Gets the action cost of a state-action.
+     * @brief Gets the cost of an action.
      */
-    virtual value_t
-    get_action_cost(StateID state_id, param_type<Action> action) = 0;
+    virtual value_t get_action_cost(param_type<Action> action) = 0;
 
     /**
      * @brief Prints statistics, e.g. the number of queries made to the
@@ -95,23 +94,7 @@ public:
 };
 
 template <typename State, typename Action>
-class StateIndependentCostFunction : public CostFunction<State, Action> {
-public:
-    virtual ~StateIndependentCostFunction() override = default;
-
-    /**
-     * @brief Get the action cost of the action when applied in a state.
-     */
-    value_t get_action_cost(StateID, param_type<Action> action) override final
-    {
-        return get_action_cost(action);
-    }
-
-    virtual value_t get_action_cost(param_type<Action> action) = 0;
-};
-
-template <typename State, typename Action>
-class SimpleCostFunction : public StateIndependentCostFunction<State, Action> {
+class SimpleCostFunction : public CostFunction<State, Action> {
     value_t goal_termination;
     value_t non_goal_termination;
 

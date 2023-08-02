@@ -702,7 +702,7 @@ private:
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
-            EngineValueType t_value(this->get_action_cost(state_id, op));
+            EngineValueType t_value(this->get_action_cost(op));
             value_t self_loop = 0_vt;
             bool non_loop = false;
 
@@ -762,7 +762,7 @@ private:
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
-            EngineValueType t_value(this->get_action_cost(state_id, op));
+            EngineValueType t_value(this->get_action_cost(op));
             value_t self_loop = 0_vt;
             bool non_loop = false;
 

@@ -43,7 +43,7 @@ struct DefaultQuotientCostFunction : public QuotientCostFunction {
 
     TerminationInfo get_termination_info(QuotientState state) override;
 
-    value_t get_action_cost(StateID state, QuotientAction action) override;
+    value_t get_action_cost(QuotientAction action) override;
 };
 
 } // namespace bisimulation

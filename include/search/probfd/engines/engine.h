@@ -119,7 +119,7 @@ public:
      */
     void generate_action_transitions(
         StateID sid,
-        const Action& a,
+        param_type<Action> a,
         Distribution<StateID>& successors) const
     {
         state_space_->generate_action_transitions(sid, a, successors);
@@ -153,9 +153,9 @@ public:
      * @brief Get the action cost for action \p a when applied in the state
      * with id \p sid .
      */
-    value_t get_action_cost(StateID sid, const Action& a) const
+    value_t get_action_cost(param_type<Action> a) const
     {
-        return cost_function_->get_action_cost(sid, a);
+        return cost_function_->get_action_cost(a);
     }
 
     /**

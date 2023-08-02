@@ -380,7 +380,7 @@ void dump_state_space_dot_graph(
             transitions.end());
 
         for (const auto& [act, successors] : transitions) {
-            const auto a_cost = cost_fn->get_action_cost(state_id, act);
+            const auto a_cost = cost_fn->get_action_cost(act);
             if (a_cost != 0_vt) {
                 ss << a_cost << "\\n";
             }

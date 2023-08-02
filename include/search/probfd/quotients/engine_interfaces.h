@@ -29,9 +29,9 @@ public:
         return eval_->get_termination_info(s);
     }
 
-    value_t get_action_cost(StateID, QuotientAction<Action> qa) override
+    value_t get_action_cost(QuotientAction<Action> qa) override
     {
-        return eval_->get_action_cost(qa.state_id, qa.action);
+        return eval_->get_action_cost(qa.action);
     }
 
     engine_interfaces::CostFunction<State, Action>* real() const

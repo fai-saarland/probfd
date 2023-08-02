@@ -81,9 +81,9 @@ struct MDP {
     /**
      * @brief Gets the action cost of a state-action.
      */
-    value_t get_action_cost(StateID state_id, param_type<Action> action)
+    value_t get_action_cost(param_type<Action> action)
     {
-        return cost_function.get_action_cost(state_id, action);
+        return cost_function.get_action_cost(action);
     }
 };
 

@@ -472,8 +472,7 @@ private:
 
         assert(!e.successors.empty());
         this->selected_transition_.clear();
-        e.flags.is_trap =
-            this->get_action_cost(state, *result.policy_action) == 0;
+        e.flags.is_trap = this->get_action_cost(*result.policy_action) == 0;
         stack_index_[state] = stack_.size();
         stack_.emplace_back(state, *result.policy_action);
         return true;

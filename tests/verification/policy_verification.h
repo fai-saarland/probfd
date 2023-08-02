@@ -84,7 +84,7 @@ extern bool verify_policy(
         // Check Bellman equation
         {
             value_t expected_cost =
-                cost_function.get_action_cost(state_id, decision->action);
+                cost_function.get_action_cost(decision->action);
 
             for (const auto [successor_id, probability] : info->successors) {
                 const State successor = state_space.get_state(successor_id);

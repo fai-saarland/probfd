@@ -404,7 +404,7 @@ public:
                     Action& action = explore->get_current_action();
                     stack_info->nconv_qs.emplace_back(
                         action,
-                        this->get_action_cost(state_id, action));
+                        this->get_action_cost(action));
 
                     break;
                 }
@@ -514,7 +514,7 @@ private:
 
                 s_info.nconv_qs.emplace_back(
                     current_op,
-                    this->get_action_cost(state_id, current_op));
+                    this->get_action_cost(current_op));
 
                 exploration_stack_.emplace_back(
                     state_id,
@@ -598,7 +598,7 @@ private:
 
             stack_info.nconv_qs.emplace_back(
                 action,
-                this->get_action_cost(state_id, action));
+                this->get_action_cost(action));
         }
     }
 

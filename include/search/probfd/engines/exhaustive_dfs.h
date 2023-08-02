@@ -462,12 +462,12 @@ private:
             if (succs.empty()) {
                 if (!all_self_loops) {
                     pure_self_loop = false;
-                    t.base += cost + this->get_action_cost(state_id, a);
+                    t.base += cost + this->get_action_cost(a);
                     auto non_loop = 1_vt - t.self_loop;
                     update_lower_bound(info.value, t.base / non_loop);
                 }
             } else {
-                t.base += cost + this->get_action_cost(state_id, a);
+                t.base += cost + this->get_action_cost(a);
 
                 if (t.self_loop == 0_vt) {
                     t.self_loop = 1_vt;
