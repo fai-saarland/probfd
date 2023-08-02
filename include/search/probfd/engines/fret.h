@@ -147,13 +147,12 @@ class FRET : public MDPEngine<State, Action> {
 
 public:
     FRET(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         QuotientSystem* quotient,
         ProgressReport* report,
         std::shared_ptr<HeuristicSearchEngine<State, QAction, UseInterval>>
             engine)
-        : MDPEngine<State, Action>(state_space, cost_function)
+        : MDPEngine<State, Action>(mdp)
         , quotient_(quotient)
         , base_engine_(engine)
     {
@@ -184,7 +183,7 @@ public:
          */
 
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(this->get_state_space()));
+            new policies::MapPolicy<State, Action>(this->get_mdp()));
 
         const StateID initial_state_id = this->get_state_id(state);
 

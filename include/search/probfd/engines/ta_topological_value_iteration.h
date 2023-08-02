@@ -341,10 +341,9 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
 
 public:
     TATopologicalValueIteration(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         const engine_interfaces::Evaluator<State>* value_initializer)
-        : MDPEngine<State, Action>(state_space, cost_function)
+        : MDPEngine<State, Action>(mdp)
         , value_initializer_(value_initializer)
     {
     }

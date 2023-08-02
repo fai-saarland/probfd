@@ -23,27 +23,26 @@ class CachingTaskStateSpace : public InducedTaskStateSpace {
 public:
     CachingTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
+        TaskSimpleCostFunction* cost_function,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators);
 
-    StateID get_state_id(const State& state) override;
-    State get_state(StateID state_id) override;
-
     void generate_applicable_actions(
         StateID state_id,
-        std::vector<OperatorID>& result) override;
+        std::vector<OperatorID>& result) override final;
 
     void generate_action_transitions(
         StateID state,
         OperatorID operator_id,
-        Distribution<StateID>& result) override;
+        Distribution<StateID>& result) override final;
 
     void generate_all_transitions(
         StateID state,
         std::vector<OperatorID>& aops,
-        std::vector<Distribution<StateID>>& successors) override;
+        std::vector<Distribution<StateID>>& successors) override final;
 
-    void print_statistics(std::ostream& out) const override;
+    void print_statistics() const override final;
 
 protected:
     bool setup_cache(StateID state_id, CacheEntry& entry);

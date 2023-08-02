@@ -83,12 +83,11 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
        current states. */
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy(
         new RefinementHierarchy(task));
-    std::unique_ptr<Abstraction> abstraction(new Abstraction(task_proxy, log));
+    std::unique_ptr<Abstraction> abstraction(new Abstraction(
+        task_proxy,
+        task_properties::get_operator_costs(task_proxy),
+        log));
     std::unique_ptr<CartesianHeuristic> heuristic(new CartesianHeuristic());
-
-    CartesianCostFunction cost_function(
-        *abstraction,
-        task_properties::get_operator_costs(task_proxy));
 
     utils::Timer refine_timer(true);
 
@@ -117,7 +116,6 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
                 task_proxy,
                 domain_sizes,
                 *abstraction,
-                cost_function,
                 &abstraction->get_initial_state(),
                 *heuristic,
                 log,

@@ -47,7 +47,8 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
 {
     // Store the set of goals in random order.
     ProbabilisticTaskProxy task_proxy(*task);
-    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
+    TaskSimpleCostFunction* task_cost_function =
+        g_cost_model->get_cost_function();
     vector<int> goals = get_goals_in_random_order(task_proxy, *rng);
 
     if (single_goal) {

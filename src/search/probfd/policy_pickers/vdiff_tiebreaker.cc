@@ -21,7 +21,7 @@ VDiffTiebreaker::VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps)
 }
 
 int VDiffTiebreaker::pick_index(
-    TaskStateSpace&,
+    TaskMDP&,
     StateID,
     std::optional<OperatorID>,
     const std::vector<OperatorID>&,

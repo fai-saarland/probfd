@@ -14,7 +14,7 @@ namespace heuristics {
 namespace pdbs {
 
 namespace {
-class UniformTaskCostFunction : public TaskCostFunction {
+class UniformTaskCostFunction : public TaskSimpleCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
 
@@ -22,8 +22,7 @@ public:
     UniformTaskCostFunction(
         const ProbabilisticTaskProxy& task_proxy,
         size_t num_abstractions)
-        : TaskCostFunction(0_vt, INFINITE_VALUE)
-        , task_proxy(task_proxy)
+        : task_proxy(task_proxy)
     {
         const auto operators = task_proxy.get_operators();
         costs.reserve(operators.size());
@@ -34,11 +33,20 @@ public:
         }
     }
 
-    value_t get_action_cost(OperatorID op) { return costs[op.get_index()]; }
+    value_t get_action_cost(OperatorID op) override
+    {
+        return costs[op.get_index()];
+    }
 
-    bool is_goal(const State& state) const
+    bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
+    }
+
+    value_t get_goal_termination_cost() const override { return 0_vt; }
+    value_t get_non_goal_termination_cost() const override
+    {
+        return INFINITE_VALUE;
     }
 };
 } // namespace
@@ -76,9 +84,8 @@ UCPHeuristic::UCPHeuristic(
             rankingf,
             task_costs,
             true);
-        InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
         StateRank init_rank = rankingf.get_abstract_rank(initial_state);
-        pdbs.emplace_back(state_space, std::move(rankingf), costs, init_rank);
+        pdbs.emplace_back(state_space, std::move(rankingf), init_rank);
     }
 }
 

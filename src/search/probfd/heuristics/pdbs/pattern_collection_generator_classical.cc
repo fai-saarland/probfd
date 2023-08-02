@@ -41,7 +41,8 @@ PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
     const std::shared_ptr<ProbabilisticTask>& task)
 {
     ProbabilisticTaskProxy task_proxy(*task);
-    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
+    TaskSimpleCostFunction* task_cost_function =
+        g_cost_model->get_cost_function();
 
     std::shared_ptr<tasks::AODDeterminizationTask> determinization(
         new tasks::AODDeterminizationTask(task.get()));

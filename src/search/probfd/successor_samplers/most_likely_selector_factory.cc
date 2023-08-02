@@ -5,7 +5,7 @@ namespace probfd {
 namespace successor_samplers {
 
 std::shared_ptr<TaskSuccessorSampler>
-MostLikelySuccessorSelectorFactory::create_sampler(TaskStateSpace*)
+MostLikelySuccessorSelectorFactory::create_sampler(TaskMDP*)
 {
     return std::make_shared<MostLikelySuccessorSelector>();
 }

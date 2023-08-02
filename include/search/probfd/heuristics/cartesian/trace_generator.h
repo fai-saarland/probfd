@@ -39,7 +39,6 @@ public:
 
     virtual std::unique_ptr<Trace> find_trace(
         Abstraction& abstraction,
-        CartesianCostFunction& cost_function,
         int init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& timer) = 0;

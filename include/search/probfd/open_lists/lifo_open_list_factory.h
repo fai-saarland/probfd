@@ -11,7 +11,7 @@ public:
     ~LifoOpenListFactory() override = default;
 
     std::shared_ptr<TaskOpenList>
-    create_open_list(TaskStateSpace* state_space) override;
+    create_open_list(TaskMDP* state_space) override;
 };
 
 } // namespace open_lists

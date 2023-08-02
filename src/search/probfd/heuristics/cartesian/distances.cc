@@ -14,14 +14,10 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-vector<value_t> compute_distances(
-    Abstraction& abstraction,
-    CartesianHeuristic& heuristic,
-    const vector<value_t>& costs)
+vector<value_t>
+compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic)
 {
     vector<value_t> values(abstraction.get_num_states(), INFINITE_VALUE);
-
-    CartesianCostFunction cost_function(abstraction, costs);
 
     preprocessing::QualitativeReachabilityAnalysis<
         const AbstractState*,
@@ -30,7 +26,7 @@ vector<value_t> compute_distances(
 
     std::vector<StateID> pruned_states;
     qr_analysis.run_analysis(
-        {abstraction, cost_function},
+        abstraction,
         &abstraction.get_initial_state(),
         iterators::discarding_output_iterator{},
         std::back_inserter(pruned_states),
@@ -43,7 +39,7 @@ vector<value_t> compute_distances(
     engines::ta_topological_vi::TATopologicalValueIteration<
         const AbstractState*,
         const ProbabilisticTransition*>
-        tvi(&abstraction, &cost_function, &heuristic);
+        tvi(&abstraction, &heuristic);
 
     tvi.solve(abstraction.get_initial_state().get_id(), values);
 

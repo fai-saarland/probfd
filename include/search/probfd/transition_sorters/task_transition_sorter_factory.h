@@ -14,7 +14,7 @@ public:
 
     /// Creates a successor sorter from a given state and action id map.
     virtual std::shared_ptr<TaskTransitionSorter>
-    create_transition_sorter(TaskStateSpace* state_space) = 0;
+    create_transition_sorter(TaskMDP* state_space) = 0;
 };
 
 } // namespace probfd

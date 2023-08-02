@@ -9,7 +9,6 @@
 
 #include "probfd/engines/fret.h"
 
-#include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/heuristic_search_interface.h"
 #include "probfd/quotients/quotient_system.h"
 
@@ -101,7 +100,6 @@ class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
 
     quotients::QuotientSystem<State, OperatorID> quotient_;
 
-    std::shared_ptr<engine_interfaces::CostFunction<State, QAction>> q_cost_;
     std::shared_ptr<engine_interfaces::PolicyPicker<State, QAction>>
         q_policy_tiebreaker_;
 
@@ -111,9 +109,6 @@ public:
     explicit MDPHeuristicSearch(const plugins::Options& opts)
         : MDPHeuristicSearchBase(opts)
         , quotient_(this->state_space_.get())
-        , q_cost_(new quotients::DefaultQuotientCostFunction<State, OperatorID>(
-              &quotient_,
-              this->cost_function_))
         , q_policy_tiebreaker_(
               this->policy_tiebreaker_ != nullptr
                   ? new quotients::RepresentativePolicyPicker<State>(
@@ -162,7 +157,6 @@ public:
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
                 &quotient_,
-                q_cost_.get(),
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -172,7 +166,6 @@ public:
         } else {
             return std::make_unique<HS<State, OperatorID, false>>(
                 &quotient_,
-                q_cost_.get(),
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -213,7 +206,6 @@ private:
     {
         std::shared_ptr engine = std::make_shared<HS<State, QAction, Interval>>(
             &quotient_,
-            q_cost_.get(),
             heuristic_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
@@ -222,7 +214,6 @@ private:
             std::forward<Args>(args)...);
         return std::make_unique<Fret<State, OperatorID, Interval>>(
             this->state_space_.get(),
-            this->cost_function_,
             &quotient_,
             &progress_,
             std::move(engine));

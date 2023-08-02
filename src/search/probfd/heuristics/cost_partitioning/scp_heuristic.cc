@@ -16,14 +16,13 @@ namespace heuristics {
 namespace pdbs {
 
 namespace {
-class ExplicitTaskCostFunction : public TaskCostFunction {
+class ExplicitTaskCostFunction : public TaskSimpleCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
 
 public:
     ExplicitTaskCostFunction(const ProbabilisticTaskProxy& task_proxy)
-        : TaskCostFunction(0_vt, INFINITE_VALUE)
-        , task_proxy(task_proxy)
+        : task_proxy(task_proxy)
     {
         const auto operators = task_proxy.get_operators();
         costs.reserve(operators.size());
@@ -33,11 +32,20 @@ public:
         }
     }
 
-    value_t get_action_cost(OperatorID op) { return costs[op.get_index()]; }
+    value_t get_action_cost(OperatorID op) override
+    {
+        return costs[op.get_index()];
+    }
 
-    bool is_goal(const State& state) const
+    bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
+    }
+
+    value_t get_goal_termination_cost() const override { return 0_vt; }
+    value_t get_non_goal_termination_cost() const override
+    {
+        return INFINITE_VALUE;
     }
 
     value_t& operator[](size_t i) { return costs[i]; }
@@ -111,14 +119,12 @@ SCPHeuristic::SCPHeuristic(
             rankingf,
             task_costs,
             false);
-        InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
         const StateRank initial_state_rank =
             rankingf.get_abstract_rank(initial_state);
 
         auto& pdb = pdbs.emplace_back(
             state_space,
             std::move(rankingf),
-            costs,
             initial_state_rank);
 
         pdb.compute_saturated_costs(state_space, saturated_costs);

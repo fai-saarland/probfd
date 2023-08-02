@@ -124,14 +124,13 @@ class I2Dual : public MDPEngine<State, Action> {
 
 public:
     I2Dual(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         engine_interfaces::Evaluator<State>* heuristic,
         ProgressReport* progress,
         bool hpom_enabled,
         bool incremental_updates,
         lp::LPSolverType solver_type)
-        : MDPEngine<State, Action>(state_space, cost_function)
+        : MDPEngine<State, Action>(mdp)
         , task_proxy(*tasks::g_root_task)
         , heuristic_(heuristic)
         , progress_(progress)

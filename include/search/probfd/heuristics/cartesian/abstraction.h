@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/cartesian/types.h"
 
-#include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/mdp.h"
 
 #include "probfd/task_proxy.h"
 
@@ -31,7 +31,7 @@ class ProbabilisticTransitionSystem;
 */
 class Abstraction
     : public engine_interfaces::
-          StateSpace<const AbstractState*, const ProbabilisticTransition*> {
+          MDP<const AbstractState*, const ProbabilisticTransition*> {
     const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
     const State concrete_initial_state;
     const std::vector<FactPair> goal_facts;
@@ -43,12 +43,17 @@ class Abstraction
     // Abstract goal states.
     Goals goals;
 
+    std::vector<value_t> operator_costs;
+
     mutable utils::LogProxy log;
 
     void initialize_trivial_abstraction(const std::vector<int>& domain_sizes);
 
 public:
-    Abstraction(const ProbabilisticTaskProxy& task, utils::LogProxy log);
+    Abstraction(
+        const ProbabilisticTaskProxy& task,
+        std::vector<value_t> operator_costs,
+        utils::LogProxy log);
     ~Abstraction();
 
     Abstraction(const Abstraction&) = delete;
@@ -71,6 +76,12 @@ public:
         std::vector<const ProbabilisticTransition*>& aops,
         std::vector<Distribution<StateID>>& successors) override;
 
+    TerminationInfo get_termination_info(const AbstractState* s) override;
+
+    value_t get_action_cost(const ProbabilisticTransition* t) override;
+
+    value_t get_cost(int op_index) const;
+
     int get_num_states() const;
     const AbstractState& get_initial_state() const;
     const Goals& get_goals() const;
@@ -87,7 +98,7 @@ public:
         int split_var,
         const std::vector<int>& wanted);
 
-    void print_statistics() const;
+    void print_statistics() const override;
 };
 
 } // namespace cartesian

@@ -205,8 +205,7 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        quotients::QuotientSystem<State, Action>* qstate_space,
-        engine_interfaces::CostFunction<State, QAction>* cost_function,
+        quotients::QuotientSystem<State, Action>* quotient_mdp,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -222,14 +221,13 @@ public:
         bool reexpand_removed_traps,
         engine_interfaces::OpenList<QAction>* open_list)
         : HeuristicSearchBase(
-              qstate_space,
-              cost_function,
+              quotient_mdp,
               value_init,
               policy_chooser,
               new_state_handler,
               report,
               interval_comparison)
-        , quotient_(qstate_space)
+        , quotient_(quotient_mdp)
         , forward_updates_(forward_updates)
         , backtrack_update_type_(backtrack_update_type)
         , expand_tip_states_(expand_tip_states)
@@ -669,8 +667,7 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        quotients::QuotientSystem<State, Action>* qstate_space,
-        engine_interfaces::CostFunction<State, QAction>* cost_function,
+        quotients::QuotientSystem<State, Action>* quotient_mdp,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -686,8 +683,7 @@ public:
         bool reexpand_removed_traps,
         engine_interfaces::OpenList<QAction>* open_list)
         : engine_(
-              qstate_space,
-              cost_function,
+              quotient_mdp,
               value_init,
               policy_chooser,
               new_state_handler,
@@ -715,7 +711,7 @@ public:
     {
         this->solve(state, max_time);
 
-        auto* parent_state_space = engine_.quotient_->get_parent_state_space();
+        auto* parent_mdp = engine_.quotient_->get_parent_mdp();
 
         /*
          * The quotient policy only specifies the optimal actions between
@@ -734,10 +730,9 @@ public:
          */
 
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(parent_state_space));
+            new policies::MapPolicy<State, Action>(parent_mdp));
 
-        const StateID initial_state_id =
-            parent_state_space->get_state_id(state);
+        const StateID initial_state_id = parent_mdp->get_state_id(state);
 
         std::deque<StateID> queue({initial_state_id});
         std::set<StateID> visited({initial_state_id});
@@ -775,7 +770,7 @@ public:
                     Action action = qaction.action;
 
                     Distribution<StateID> successors;
-                    parent_state_space->generate_action_transitions(
+                    parent_mdp->generate_action_transitions(
                         source_id,
                         action,
                         successors);

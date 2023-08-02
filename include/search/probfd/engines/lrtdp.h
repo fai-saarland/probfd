@@ -186,8 +186,7 @@ public:
      * @brief Constructs an LRTDP solver object.
      */
     LRTDP(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -196,8 +195,7 @@ public:
         TrialTerminationCondition stop_consistent,
         engine_interfaces::SuccessorSampler<Action>* succ_sampler)
         : HeuristicSearchBase(
-              state_space,
-              cost_function,
+              mdp,
               value_init,
               policy_chooser,
               new_state_handler,

@@ -13,6 +13,8 @@
 #include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
 
+#include "downward/utils/logging.h"
+
 #include "downward/state_registry.h"
 
 #include <memory>
@@ -36,9 +38,9 @@ class MDPSolver : public SolverInterface {
 protected:
     const std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;
+    mutable utils::LogProxy log;
 
     std::unique_ptr<InducedTaskStateSpace> state_space_;
-    engine_interfaces::CostFunction<State, OperatorID>* cost_function_;
 
     ProgressReport progress_;
 
@@ -64,7 +66,6 @@ public:
     {
         return std::make_unique<Engine>(
             state_space_.get(),
-            cost_function_,
             std::forward<Args>(args)...);
     }
 

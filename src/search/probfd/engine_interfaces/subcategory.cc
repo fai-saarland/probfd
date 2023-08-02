@@ -32,11 +32,11 @@ public:
     }
 } _category_plugin_new_state_observer;
 
-static class TaskCostFunctionCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskCostFunction> {
+static class TaskSimpleCostFunctionCategoryPlugin
+    : public plugins::TypedCategoryPlugin<TaskSimpleCostFunction> {
 public:
-    TaskCostFunctionCategoryPlugin()
-        : TypedCategoryPlugin("TaskCostFunction")
+    TaskSimpleCostFunctionCategoryPlugin()
+        : TypedCategoryPlugin("TaskSimpleCostFunction")
     {
     }
 } _category_plugin_cost_function;

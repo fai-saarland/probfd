@@ -183,8 +183,7 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        quotients::QuotientSystem<State, Action>* qstate_space,
-        engine_interfaces::CostFunction<State, QAction>* cost_function,
+        quotients::QuotientSystem<State, Action>* quotient_mdp,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -194,14 +193,13 @@ public:
         bool reexpand_traps,
         engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : HeuristicSearchBase(
-              qstate_space,
-              cost_function,
+              quotient_mdp,
               value_init,
               policy_chooser,
               new_state_handler,
               report,
               interval_comparison)
-        , quotient_(qstate_space)
+        , quotient_(quotient_mdp)
         , stop_at_consistent_(stop_consistent)
         , reexpand_traps_(reexpand_traps)
         , sample_(succ_sampler)
@@ -490,8 +488,7 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        quotients::QuotientSystem<State, Action>* qstate_space,
-        engine_interfaces::CostFunction<State, QAction>* cost_function,
+        quotients::QuotientSystem<State, Action>* quotient_mdp,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -501,8 +498,7 @@ public:
         bool reexpand_traps,
         engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : engine_(
-              qstate_space,
-              cost_function,
+              quotient_mdp,
               value_init,
               policy_chooser,
               new_state_handler,

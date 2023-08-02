@@ -3,7 +3,7 @@
 
 #include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/mdp.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -295,8 +295,7 @@ template <typename State, typename Action>
 void dump_state_space_dot_graph(
     std::ostream& out,
     const State& initial_state,
-    engine_interfaces::StateSpace<State, Action>* state_space,
-    engine_interfaces::CostFunction<State, Action>* cost_fn,
+    engine_interfaces::MDP<State, Action>* mdp,
     engine_interfaces::Evaluator<State>* prune = nullptr,
     std::function<std::string(const State&)> sstr =
         [](const State&) { return ""; },
@@ -320,7 +319,7 @@ void dump_state_space_dot_graph(
         }
     };
 
-    StateID istateid = state_space->get_state_id(initial_state);
+    StateID istateid = mdp->get_state_id(initial_state);
     internal::GraphBuilder builder(istateid);
     std::stringstream ss;
     ss << std::setprecision(3);
@@ -338,7 +337,7 @@ void dump_state_space_dot_graph(
         node->setAttribute("label", sstr(state));
         node->setAttribute("shape", "circle");
 
-        const auto rew = cost_fn->get_termination_info(state);
+        const auto rew = mdp->get_termination_info(state);
         bool expand = expand_terminal || !rew.is_goal_state();
 
         if (rew.is_goal_state()) {
@@ -358,7 +357,7 @@ void dump_state_space_dot_graph(
 
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> all_successors;
-        state_space->generate_all_transitions(state_id, aops, all_successors);
+        mdp->generate_all_transitions(state_id, aops, all_successors);
 
         std::vector<std::pair<Action, Distribution<StateID>>> transitions;
 
@@ -380,7 +379,7 @@ void dump_state_space_dot_graph(
             transitions.end());
 
         for (const auto& [act, successors] : transitions) {
-            const auto a_cost = cost_fn->get_action_cost(act);
+            const auto a_cost = mdp->get_action_cost(act);
             if (a_cost != 0_vt) {
                 ss << a_cost << "\\n";
             }
@@ -399,7 +398,7 @@ void dump_state_space_dot_graph(
                 if (inserted) {
                     open.emplace_back(
                         succ_id,
-                        state_space->get_state(succ_id),
+                        mdp->get_state(succ_id),
                         succ_node);
                 }
 
@@ -419,7 +418,7 @@ void dump_state_space_dot_graph(
                 if (inserted) {
                     open.emplace_back(
                         succ_id,
-                        state_space->get_state(succ_id),
+                        mdp->get_state(succ_id),
                         succ_node);
                 }
             }

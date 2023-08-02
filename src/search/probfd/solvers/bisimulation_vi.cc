@@ -66,9 +66,8 @@ public:
         std::cout << "Building bisimulation..." << std::endl;
 
         BisimulationTimer stats;
-        bisimulation::BisimilarStateSpace state_space(tasks::g_root_task.get());
-        bisimulation::DefaultQuotientCostFunction cost(
-            &state_space,
+        bisimulation::BisimilarStateSpace state_space(
+            tasks::g_root_task.get(),
             g_cost_model->optimal_value_bound(),
             g_cost_model->optimal_value_bound().upper);
 
@@ -91,13 +90,13 @@ public:
         if (interval_iteration_) {
             solver.reset(new engines::interval_iteration::IntervalIteration<
                          QState,
-                         QAction>(&state_space, &cost, nullptr, false, false));
+                         QAction>(&state_space, nullptr, false, false));
             val = solver->solve(state_space.get_initial_state());
         } else {
             heuristics::ConstantEvaluator<QState> initializer(0_vt);
             solver.reset(new engines::topological_vi::TopologicalValueIteration<
                          QState,
-                         QAction>(&state_space, &cost, &initializer, false));
+                         QAction>(&state_space, &initializer, false));
             val = solver->solve(state_space.get_initial_state());
         }
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;

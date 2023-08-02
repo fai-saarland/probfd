@@ -14,19 +14,24 @@ namespace probfd {
 namespace cost_models {
 
 namespace {
-class MaxProbCostFunction : public TaskCostFunction {
+class MaxProbCostFunction : public TaskSimpleCostFunction {
     ProbabilisticTaskProxy task_proxy;
 
 public:
     MaxProbCostFunction(const ProbabilisticTaskProxy& task_proxy)
-        : TaskCostFunction(0_vt, 1_vt)
-        , task_proxy(task_proxy)
+        : task_proxy(task_proxy)
     {
     }
 
     bool is_goal(param_type<State> state) const override
     {
         return task_properties::is_goal_state(task_proxy, state);
+    }
+
+    value_t get_goal_termination_cost() const override final { return 0_vt; }
+    value_t get_non_goal_termination_cost() const override final
+    {
+        return 1_vt;
     }
 
     value_t get_action_cost(OperatorID) override { return 0_vt; }
@@ -46,7 +51,7 @@ Interval MaxProbCostModel::optimal_value_bound() const
     return Interval(0_vt, 1_vt);
 }
 
-TaskCostFunction* MaxProbCostModel::get_cost_function()
+TaskSimpleCostFunction* MaxProbCostModel::get_cost_function()
 {
     return cost_function_.get();
 }

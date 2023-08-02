@@ -14,7 +14,16 @@ template <typename, typename>
 class StateSpace;
 
 template <typename, typename>
+class CostFunction;
+
+template <typename, typename>
 class SimpleCostFunction;
+
+template <typename, typename>
+class MDP;
+
+template <typename, typename>
+class SimpleMDP;
 
 // Heuristics / Evaluators
 template <typename>
@@ -47,6 +56,16 @@ using TaskStateSpace = engine_interfaces::StateSpace<State, OperatorID>;
 /// Type alias for cost functions of probabilistic planning tasks.
 using TaskCostFunction =
     engine_interfaces::SimpleCostFunction<State, OperatorID>;
+
+/// Type alias for simple cost functions of probabilistic planning tasks.
+using TaskSimpleCostFunction =
+    engine_interfaces::SimpleCostFunction<State, OperatorID>;
+
+/// Type alias for MDPs of probabilistic planning tasks.
+using TaskMDP = engine_interfaces::MDP<State, OperatorID>;
+
+/// Type alias for simple MDPs of probabilistic planning tasks.
+using TaskSimpleMDP = engine_interfaces::SimpleMDP<State, OperatorID>;
 
 /// Type alias for evaluators of planning tasks.
 using TaskEvaluator = engine_interfaces::Evaluator<State>;

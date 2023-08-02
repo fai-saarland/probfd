@@ -56,7 +56,6 @@ protected:
 
     bisimulation::BisimilarStateSpace state_space_;
 
-    std::shared_ptr<bisimulation::QuotientCostFunction> cost_;
     std::shared_ptr<engine_interfaces::Evaluator<QState>> heuristic_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>> policy_;
     std::shared_ptr<engine_interfaces::NewStateObserver<QState>>
@@ -69,10 +68,7 @@ public:
         const std::string& engine_name)
         : task(tasks::g_root_task)
         , engine_name_(engine_name)
-        , state_space_(task.get())
-        , cost_(new bisimulation::DefaultQuotientCostFunction(
-              &state_space_,
-              g_cost_model->optimal_value_bound()))
+        , state_space_(task.get(), g_cost_model->optimal_value_bound())
         , heuristic_(new bisimulation::DefaultQuotientEvaluator(
               &state_space_,
               g_cost_model->optimal_value_bound(),
@@ -109,7 +105,6 @@ public:
 
         res->engine_.reset(new HS<QState, QAction, Interval>(
             &res->state_space_,
-            res->cost_.get(),
             res->heuristic_.get(),
             res->policy_.get(),
             res->new_state_handler_.get(),
@@ -144,7 +139,6 @@ class QBisimulationBasedHeuristicSearchEngine
 
     quotients::QuotientSystem<QState, QAction> quotient_;
 
-    std::shared_ptr<engine_interfaces::CostFunction<QState, QQAction>> q_cost_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QState, QQAction>>
         q_policy_tiebreaker_;
 
@@ -153,9 +147,6 @@ public:
         const std::string& engine_name)
         : BisimulationBasedHeuristicSearchEngine(engine_name)
         , quotient_(&state_space_)
-        , q_cost_(new quotients::DefaultQuotientCostFunction(
-              &quotient_,
-              cost_.get()))
         , q_policy_tiebreaker_(new policy_pickers::ArbitraryTiebreaker<
                                QState,
                                quotients::QuotientAction<QAction>>(true))
@@ -181,7 +172,6 @@ public:
         std::shared_ptr<HS<QState, QQAction, Interval>> engine(
             new HS<QState, QQAction, Interval>(
                 &res->quotient_,
-                res->q_cost_.get(),
                 res->heuristic_.get(),
                 res->q_policy_tiebreaker_.get(),
                 res->new_state_handler_.get(),
@@ -191,7 +181,6 @@ public:
 
         res->engine_.reset(new Fret<QState, QAction, Interval>(
             &res->state_space_,
-            res->cost_.get(),
             &res->quotient_,
             &progress,
             engine));

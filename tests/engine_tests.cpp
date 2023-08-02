@@ -11,10 +11,8 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/heuristic_search_interface.h"
 #include "probfd/quotients/quotient_system.h"
-
 
 #include "probfd/task_proxy.h"
 
@@ -123,14 +121,16 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     heuristics::BlindEvaluator<State> value_init;
     cost_models::SSPCostModel cost_model;
 
-    InducedTaskStateSpace state_space(task);
+    InducedTaskStateSpace state_space(
+        task,
+        utils::get_silent_log(),
+        cost_model.get_cost_function());
     policy_pickers::ArbitraryTiebreaker<State, OperatorID> policy_chooser(true);
 
     heuristic_depth_first_search::
         HeuristicDepthFirstSearch<State, OperatorID, false, true>
             hdfs(
                 &state_space,
-                cost_model.get_cost_function(),
                 &value_init,
                 &policy_chooser,
                 nullptr,
@@ -174,15 +174,15 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
     heuristics::BlindEvaluator<State> value_init;
     cost_models::SSPCostModel cost_model;
 
-    InducedTaskStateSpace state_space(task);
+    InducedTaskStateSpace state_space(
+        task,
+        utils::get_silent_log(),
+        cost_model.get_cost_function());
     std::shared_ptr<policy_pickers::ArbitraryTiebreaker<State, OperatorID>>
         policy_chooser(
             new policy_pickers::ArbitraryTiebreaker<State, OperatorID>(true));
 
     quotients::QuotientSystem<State, OperatorID> quotient(&state_space);
-    quotients::DefaultQuotientCostFunction<State, OperatorID> q_cost_function(
-        &quotient,
-        cost_model.get_cost_function());
     quotients::RepresentativePolicyPicker<State> q_policy_chooser(
         &quotient,
         policy_chooser);
@@ -194,7 +194,6 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
             false,
             true>>(
         &quotient,
-        &q_cost_function,
         &value_init,
         &q_policy_chooser,
         nullptr,
@@ -210,7 +209,6 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 
     fret::FRETPi<State, OperatorID, false> fret(
         &state_space,
-        cost_model.get_cost_function(),
         &quotient,
         &report,
         hdfs);

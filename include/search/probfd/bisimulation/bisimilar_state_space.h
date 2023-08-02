@@ -1,16 +1,16 @@
 #ifndef PROBFD_BISIMULATION_BISIMILAR_STATE_SPACE_H
 #define PROBFD_BISIMULATION_BISIMILAR_STATE_SPACE_H
 
-#include "downward/algorithms/segmented_vector.h"
-
 #include "probfd/bisimulation/types.h"
 
+#include "probfd/engine_interfaces/mdp.h"
+
 #include "probfd/distribution.h"
+#include "probfd/interval.h"
+#include "probfd/task_proxy.h"
 #include "probfd/types.h"
 
-#include "probfd/task_proxy.h"
-
-#include "probfd/engine_interfaces/state_space.h"
+#include "downward/algorithms/segmented_vector.h"
 
 #include <cassert>
 #include <memory>
@@ -39,7 +39,7 @@ namespace bisimulation {
  * respect to this probabilistic bisimulation.
  */
 class BisimilarStateSpace
-    : public engine_interfaces::StateSpace<QuotientState, QuotientAction> {
+    : public engine_interfaces::MDP<QuotientState, QuotientAction> {
     struct CachedTransition {
         unsigned op;
         int* successors;
@@ -51,6 +51,9 @@ class BisimilarStateSpace
     const merge_and_shrink::TransitionSystem* abstraction_;
     std::unique_ptr<merge_and_shrink::Distances> distances_;
     unsigned num_cached_transitions_;
+
+    const Interval bound_;
+    const value_t default_;
 
     QuotientState initial_state_;
     QuotientState dead_end_state_;
@@ -64,7 +67,11 @@ public:
      * @brief Constructs the quotient of the induced state space of the task
      * with respect to a bisimulation of the all outcomes determinization.
      */
-    explicit BisimilarStateSpace(const ProbabilisticTask* task);
+    BisimilarStateSpace(
+        const ProbabilisticTask* task,
+        Interval bound,
+        value_t default_value = 0);
+
     ~BisimilarStateSpace();
 
     StateID get_state_id(QuotientState state) override;
@@ -84,6 +91,10 @@ public:
         StateID state,
         std::vector<QuotientAction>& aops,
         std::vector<Distribution<StateID>>& result) override;
+
+    TerminationInfo get_termination_info(QuotientState state) override;
+
+    value_t get_action_cost(QuotientAction action) override;
 
     /// Get the initial state of the probabilistic bisimulation quotient.
     QuotientState get_initial_state() const;

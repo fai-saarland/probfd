@@ -14,7 +14,7 @@ namespace pdbs {
 
 PatternInformation::PatternInformation(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction* task_cost_function,
+    TaskSimpleCostFunction* task_cost_function,
     Pattern pattern)
     : task_proxy(task_proxy)
     , pattern(std::move(pattern))

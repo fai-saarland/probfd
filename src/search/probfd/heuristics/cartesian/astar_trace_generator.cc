@@ -7,8 +7,6 @@
 #include "probfd/heuristics/cartesian/trace_generator.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "probfd/quotients/engine_interfaces.h"
-
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/utils/guards.h"
@@ -72,7 +70,6 @@ AStarTraceGenerator::AStarTraceGenerator()
 
 unique_ptr<Trace> AStarTraceGenerator::find_trace(
     Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
     int init_id,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
@@ -110,7 +107,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
             open_queue.clear();
             std::unique_ptr<Trace> solution =
                 extract_solution(init_id, state_id, timer);
-            update_heuristic(abstraction, cost_function, heuristic, *solution);
+            update_heuristic(abstraction, heuristic, *solution);
             return solution;
         }
 
@@ -119,7 +116,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
                 int op_id = transition->op_id;
                 int succ_id = transition->target_ids[i];
 
-                const value_t op_cost = cost_function.get_cost(op_id);
+                const value_t op_cost = abstraction.get_cost(op_id);
                 assert(op_cost >= 0);
                 const value_t succ_g = g + op_cost;
                 assert(succ_g >= 0);
@@ -165,14 +162,13 @@ unique_ptr<Trace> AStarTraceGenerator::extract_solution(
 
 void AStarTraceGenerator::update_heuristic(
     Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
     CartesianHeuristic& heuristic,
     const Trace& solution) const
 {
     // Update the heuristic
     value_t solution_cost = 0;
     for (const TransitionOutcome& transition : solution) {
-        solution_cost += cost_function.get_cost(transition.op_id);
+        solution_cost += abstraction.get_cost(transition.op_id);
     }
 
     for (int i = 0; i != abstraction.get_num_states(); ++i) {

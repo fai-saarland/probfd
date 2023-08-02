@@ -1,7 +1,7 @@
 #ifndef PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H
 #define PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H
 
-#include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/mdp.h"
 
 #include "probfd/utils/iterators.h"
 
@@ -39,8 +39,7 @@ struct QuotientAction {
 
 template <typename State, typename Action>
 class DefaultQuotientSystem
-    : public engine_interfaces::
-          StateSpace<State, quotients::QuotientAction<Action>> {
+    : public engine_interfaces::MDP<State, quotients::QuotientAction<Action>> {
     friend struct const_iterator;
 
     struct QuotientInformation {
@@ -125,7 +124,7 @@ class DefaultQuotientSystem
 
     std::unordered_map<StateID::size_type, QuotientInformation> quotients_;
     segmented_vector::SegmentedVector<StateID::size_type> quotient_ids_;
-    engine_interfaces::StateSpace<State, Action>* state_space_;
+    engine_interfaces::MDP<State, Action>* mdp_;
 
     // MASK: bitmask used to obtain the quotient state id, if it exists
     // FLAG: whether a quotient state id exists
@@ -183,21 +182,17 @@ public:
 
     static_assert(std::input_iterator<const_iterator>);
 
-    explicit DefaultQuotientSystem(
-        engine_interfaces::StateSpace<State, Action>* state_space)
-        : state_space_(state_space)
+    explicit DefaultQuotientSystem(engine_interfaces::MDP<State, Action>* mdp)
+        : mdp_(mdp)
     {
     }
 
     StateID get_state_id(param_type<State> s) override
     {
-        return state_space_->get_state_id(s);
+        return mdp_->get_state_id(s);
     }
 
-    State get_state(StateID sid) override
-    {
-        return state_space_->get_state(sid);
-    }
+    State get_state(StateID sid) override { return mdp_->get_state(sid); }
 
     void generate_applicable_actions(StateID sid, std::vector<QAction>& aops)
         override
@@ -205,7 +200,7 @@ public:
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
             std::vector<Action> orig;
-            state_space_->generate_applicable_actions(sid, orig);
+            mdp_->generate_applicable_actions(sid, orig);
 
             aops.reserve(orig.size());
 
@@ -235,7 +230,7 @@ public:
         Distribution<StateID>& result) override
     {
         Distribution<StateID> orig;
-        state_space_->generate_action_transitions(a.state_id, a.action, orig);
+        mdp_->generate_action_transitions(a.state_id, a.action, orig);
 
         for (const auto& [state_id, probability] : orig) {
             result.add_probability(
@@ -252,7 +247,7 @@ public:
         const QuotientInformation* info = get_quotient_info(sid);
         if (!info) {
             std::vector<Action> orig_a;
-            state_space_->generate_applicable_actions(sid, orig_a);
+            mdp_->generate_applicable_actions(sid, orig_a);
 
             aops.reserve(orig_a.size());
             successors.reserve(orig_a.size());
@@ -284,10 +279,17 @@ public:
         }
     }
 
-    engine_interfaces::StateSpace<State, Action>* get_parent_state_space()
+    TerminationInfo get_termination_info(param_type<State> s) override
     {
-        return state_space_;
+        return mdp_->get_termination_info(s);
     }
+
+    value_t get_action_cost(QuotientAction<Action> qa) override
+    {
+        return mdp_->get_action_cost(qa.action);
+    }
+
+    engine_interfaces::MDP<State, Action>* get_parent_mdp() { return mdp_; }
 
     const_iterator begin() const { return const_iterator(this, 0); }
 
@@ -374,7 +376,7 @@ public:
 
             // Generate the applicable actions and add them to the new
             // quotient
-            state_space_->generate_applicable_actions(rid, qinfo.aops);
+            mdp_->generate_applicable_actions(rid, qinfo.aops);
 
             // Partition new actions
             auto new_aops = std::ranges::subrange(
@@ -438,7 +440,7 @@ public:
 
                 // Generate the applicable actions and add them to the new
                 // quotient
-                state_space_->generate_applicable_actions(state_id, qinfo.aops);
+                mdp_->generate_applicable_actions(state_id, qinfo.aops);
 
                 // Partition new actions
                 auto new_aops = std::ranges::subrange(
@@ -477,7 +479,7 @@ public:
         set_masked_state_id(rid, rid);
 
         // Generate the applicable actions
-        state_space_->generate_applicable_actions(rid, qinfo.aops);
+        mdp_->generate_applicable_actions(rid, qinfo.aops);
 
         // Partition actions
         {
@@ -505,7 +507,7 @@ public:
             set_masked_state_id(state_id, rid);
 
             // Generate the applicable actions
-            state_space_->generate_applicable_actions(state_id, qinfo.aops);
+            mdp_->generate_applicable_actions(state_id, qinfo.aops);
 
             // Partition actions
             auto [pivot, last] = partition_actions(qinfo.aops, aops);

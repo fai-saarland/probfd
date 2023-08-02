@@ -22,7 +22,7 @@ public:
     explicit VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps_);
 
     int pick_index(
-        TaskStateSpace& state_space,
+        TaskMDP& mdp,
         StateID state,
         std::optional<OperatorID> prev_policy,
         const std::vector<OperatorID>& action_choices,

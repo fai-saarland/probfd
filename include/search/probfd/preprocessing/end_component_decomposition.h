@@ -4,7 +4,6 @@
 #include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/mdp.h"
 
-#include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/storage/per_state_storage.h"
@@ -256,14 +255,14 @@ public:
      * state is considered.
      */
     std::unique_ptr<QuotientSystem> build_quotient_system(
-        engine_interfaces::MDP<State, Action> mdp,
+        engine_interfaces::MDP<State, Action>& mdp,
         param_type<State> initial_state,
         double max_time = std::numeric_limits<double>::infinity())
     {
         utils::CountdownTimer timer(max_time);
 
         stats_ = ECDStatistics();
-        auto sys = std::make_unique<QuotientSystem>(&mdp.state_space);
+        auto sys = std::make_unique<QuotientSystem>(&mdp);
 
         auto init_id = mdp.get_state_id(initial_state);
 
@@ -284,7 +283,7 @@ public:
 
 private:
     bool push_root(
-        engine_interfaces::MDP<State, Action> mdp,
+        engine_interfaces::MDP<State, Action>& mdp,
         StateID state_id,
         StateInfo& state_info)
     {
@@ -402,7 +401,7 @@ private:
 
     template <bool RootIteration>
     void find_and_decompose_sccs(
-        engine_interfaces::MDP<State, Action> mdp,
+        engine_interfaces::MDP<State, Action>& mdp,
         QuotientSystem& sys,
         const unsigned limit,
         utils::CountdownTimer& timer)
@@ -492,7 +491,7 @@ private:
 
     template <bool RootIteration>
     bool push_successor(
-        engine_interfaces::MDP<State, Action> mdp,
+        engine_interfaces::MDP<State, Action>& mdp,
         ExpansionInfo& e,
         StackInfo& s,
         utils::CountdownTimer& timer)
@@ -561,7 +560,7 @@ private:
 
     template <bool RootIteration>
     void scc_found(
-        engine_interfaces::MDP<State, Action> mdp,
+        engine_interfaces::MDP<State, Action>& mdp,
         QuotientSystem& sys,
         ExpansionInfo& e,
         StackInfo& s,
@@ -637,7 +636,7 @@ private:
     }
 
     void decompose(
-        engine_interfaces::MDP<State, Action> mdp,
+        engine_interfaces::MDP<State, Action>& mdp,
         QuotientSystem& sys,
         unsigned start,
         utils::CountdownTimer& timer)

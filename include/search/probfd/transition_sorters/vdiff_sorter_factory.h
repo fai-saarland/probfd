@@ -22,7 +22,7 @@ public:
     ~VDiffSorterFactory() override = default;
 
     std::shared_ptr<TaskTransitionSorter>
-    create_transition_sorter(TaskStateSpace* state_space) override;
+    create_transition_sorter(TaskMDP* state_space) override;
 };
 
 } // namespace transition_sorters

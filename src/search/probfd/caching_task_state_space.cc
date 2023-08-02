@@ -18,19 +18,15 @@ namespace probfd {
 
 CachingTaskStateSpace::CachingTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
+    utils::LogProxy log,
+    TaskSimpleCostFunction* cost_function,
     const std::vector<std::shared_ptr<Evaluator>>& path_dependent_evaluators)
-    : InducedTaskStateSpace(task, path_dependent_evaluators)
+    : InducedTaskStateSpace(
+          task,
+          std::move(log),
+          cost_function,
+          path_dependent_evaluators)
 {
-}
-
-StateID CachingTaskStateSpace::get_state_id(const State& state)
-{
-    return state.get_id();
-}
-
-State CachingTaskStateSpace::get_state(StateID state_id)
-{
-    return state_registry_.lookup_state(::StateID(state_id));
 }
 
 void CachingTaskStateSpace::generate_applicable_actions(
@@ -209,10 +205,10 @@ CachingTaskStateSpace::lookup(StateID sid, bool& setup)
     return entry;
 }
 
-void CachingTaskStateSpace::print_statistics(std::ostream& out) const
+void CachingTaskStateSpace::print_statistics() const
 {
-    InducedTaskStateSpace::print_statistics(out);
-    out << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
+    InducedTaskStateSpace::print_statistics();
+    log << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
         << std::endl;
 }
 

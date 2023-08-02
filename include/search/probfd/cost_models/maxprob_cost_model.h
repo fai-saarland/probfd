@@ -19,7 +19,7 @@ namespace cost_models {
  * maximal probability of reaching the goal.
  */
 class MaxProbCostModel : public CostModel {
-    std::unique_ptr<TaskCostFunction> cost_function_;
+    std::unique_ptr<TaskSimpleCostFunction> cost_function_;
 
 public:
     /// Default constructor.
@@ -29,7 +29,7 @@ public:
     /// Returns the interval [0, 1]
     Interval optimal_value_bound() const override;
 
-    TaskCostFunction* get_cost_function() override;
+    TaskSimpleCostFunction* get_cost_function() override;
 };
 
 } // namespace cost_models

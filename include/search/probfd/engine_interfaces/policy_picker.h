@@ -1,7 +1,7 @@
 #ifndef PROBFD_ENGINE_INTERFACES_POLICY_PICKER_H
 #define PROBFD_ENGINE_INTERFACES_POLICY_PICKER_H
 
-#include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/mdp.h"
 
 #include "probfd/types.h"
 
@@ -33,7 +33,7 @@ class StateProperties;
 class AlwaysFirstPicker : public PolicyPicker<const ProbabilisticOperator*> {
 protected:
     int pick_index(
-        StateSpace<State, Action>&,
+        MDP<State, Action>&,
         StateID,
         Action,
         const std::vector<Action>&,
@@ -56,7 +56,7 @@ public:
      * @brief Selects a greedy action from multiple candidates by returning its
      * index in the candidate list.
      *
-     * @param state_space - The state space in which the search is performed.
+     * @param mdp - The MDP in which the search is performed.
      * @param state_id - The state for which a greedy action is chosen.
      * @param previous_greedy_id - The ID of the previous greedy action.
      * @param greedy_action_candidates - A list of candidate greedy actions.
@@ -67,7 +67,7 @@ public:
      * actions.
      */
     virtual int pick_index(
-        StateSpace<State, Action>& state_space,
+        MDP<State, Action>& mdp,
         StateID state_id,
         std::optional<Action> previous_greedy,
         const std::vector<Action>& greedy_action_candidates,

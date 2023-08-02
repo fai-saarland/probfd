@@ -6,8 +6,7 @@
 namespace probfd {
 namespace open_lists {
 
-std::shared_ptr<TaskOpenList>
-FifoOpenListFactory::create_open_list(TaskStateSpace*)
+std::shared_ptr<TaskOpenList> FifoOpenListFactory::create_open_list(TaskMDP*)
 {
     return std::make_shared<FifoOpenList<OperatorID>>();
 }

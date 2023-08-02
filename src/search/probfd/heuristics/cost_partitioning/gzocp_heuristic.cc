@@ -18,15 +18,14 @@ namespace heuristics {
 namespace pdbs {
 
 namespace {
-class ExplicitTaskCostFunction : public TaskCostFunction {
+class ExplicitTaskCostFunction : public TaskSimpleCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
     std::vector<std::set<int>> affected_vars;
 
 public:
     ExplicitTaskCostFunction(const ProbabilisticTaskProxy& task_proxy)
-        : TaskCostFunction(0_vt, INFINITE_VALUE)
-        , task_proxy(task_proxy)
+        : task_proxy(task_proxy)
     {
         const auto operators = task_proxy.get_operators();
 
@@ -42,11 +41,20 @@ public:
         }
     }
 
-    value_t get_action_cost(OperatorID op) { return costs[op.get_index()]; }
+    value_t get_action_cost(OperatorID op) override
+    {
+        return costs[op.get_index()];
+    }
 
-    bool is_goal(const State& state) const
+    bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
+    }
+
+    value_t get_goal_termination_cost() const override { return 0_vt; }
+    value_t get_non_goal_termination_cost() const override
+    {
+        return INFINITE_VALUE;
     }
 
     void decrease_costs(const ProbabilityAwarePatternDatabase& pdb)
@@ -129,13 +137,9 @@ GZOCPHeuristic::GZOCPHeuristic(
             rankingf,
             task_costs,
             false);
-        InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
         StateRank init_rank = rankingf.get_abstract_rank(initial_state);
-        auto& pdb = pdbs.emplace_back(
-            state_space,
-            std::move(rankingf),
-            costs,
-            init_rank);
+        auto& pdb =
+            pdbs.emplace_back(state_space, std::move(rankingf), init_rank);
 
         task_costs.decrease_costs(pdb);
     }

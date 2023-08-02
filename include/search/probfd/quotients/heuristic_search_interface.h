@@ -33,7 +33,7 @@ public:
     }
 
     int pick_index(
-        engine_interfaces::StateSpace<State, QuotientAction>&,
+        engine_interfaces::MDP<State, QuotientAction>&,
         StateID state,
         std::optional<QuotientAction> prev_policy,
         const std::vector<QuotientAction>& action_choices,
@@ -51,7 +51,7 @@ public:
         }
 
         return original_->pick_index(
-            *quotient_->get_parent_state_space(),
+            *quotient_->get_parent_mdp(),
             state,
             oprev,
             choices_,

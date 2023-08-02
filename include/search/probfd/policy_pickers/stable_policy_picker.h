@@ -24,7 +24,7 @@ public:
     }
 
     int pick_index(
-        engine_interfaces::StateSpace<State, Action>& state_space,
+        engine_interfaces::MDP<State, Action>& mdp,
         StateID state_id,
         std::optional<Action> previous_greedy,
         const std::vector<Action>& greedy_action_candidates,
@@ -40,7 +40,7 @@ public:
         }
 
         return static_cast<Derived*>(this)->pick_index(
-            state_space,
+            mdp,
             state_id,
             previous_greedy,
             greedy_action_candidates,

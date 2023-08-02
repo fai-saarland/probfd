@@ -21,7 +21,7 @@ void RandomSuccessorSamplerFactory::add_options_to_feature(
 }
 
 std::shared_ptr<TaskSuccessorSampler>
-RandomSuccessorSamplerFactory::create_sampler(TaskStateSpace*)
+RandomSuccessorSamplerFactory::create_sampler(TaskMDP*)
 {
     return std::make_shared<RandomSuccessorSampler<OperatorID>>(rng);
 }

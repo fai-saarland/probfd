@@ -23,8 +23,7 @@ public:
     explicit VBiasedSuccessorSamplerFactory(const plugins::Options&);
     ~VBiasedSuccessorSamplerFactory() override = default;
 
-    std::shared_ptr<TaskSuccessorSampler>
-    create_sampler(TaskStateSpace*) override;
+    std::shared_ptr<TaskSuccessorSampler> create_sampler(TaskMDP*) override;
 };
 
 } // namespace successor_samplers

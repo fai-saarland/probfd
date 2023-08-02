@@ -30,7 +30,6 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
-        CartesianCostFunction& cost_function,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
         utils::LogProxy& log,

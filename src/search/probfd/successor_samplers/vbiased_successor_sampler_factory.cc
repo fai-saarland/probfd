@@ -13,7 +13,7 @@ VBiasedSuccessorSamplerFactory::VBiasedSuccessorSamplerFactory(
 }
 
 std::shared_ptr<TaskSuccessorSampler>
-VBiasedSuccessorSamplerFactory::create_sampler(TaskStateSpace*)
+VBiasedSuccessorSamplerFactory::create_sampler(TaskMDP*)
 {
     return std::make_shared<VBiasedSuccessorSampler>(rng);
 }

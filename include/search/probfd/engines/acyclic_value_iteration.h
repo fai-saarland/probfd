@@ -123,10 +123,9 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
 
 public:
     AcyclicValueIteration(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         engine_interfaces::Evaluator<State>* prune = nullptr)
-        : MDPEngine<State, Action>(state_space, cost_function)
+        : MDPEngine<State, Action>(mdp)
         , prune_(prune)
     {
     }
@@ -135,7 +134,7 @@ public:
     compute_policy(param_type<State> initial_state, double max_time) override
     {
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(this->get_state_space()));
+            new policies::MapPolicy<State, Action>(this->get_mdp()));
         solve(initial_state, max_time, policy.get());
         return policy;
     }

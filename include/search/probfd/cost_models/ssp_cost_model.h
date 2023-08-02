@@ -21,7 +21,7 @@ namespace cost_models {
  * if the goal cannot be reached with certainty).
  */
 class SSPCostModel : public CostModel {
-    std::unique_ptr<TaskCostFunction> cost_function_;
+    std::unique_ptr<TaskSimpleCostFunction> cost_function_;
 
 public:
     /// Default constructor.
@@ -31,7 +31,7 @@ public:
     /// Returns the interval [0, infinity]
     Interval optimal_value_bound() const override;
 
-    TaskCostFunction* get_cost_function() override;
+    TaskSimpleCostFunction* get_cost_function() override;
 };
 
 } // namespace cost_models

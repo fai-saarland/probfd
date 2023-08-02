@@ -13,12 +13,28 @@
 
 namespace probfd {
 
+void InducedTaskStateSpace::Statistics::print(utils::LogProxy log) const
+{
+    log << "  Applicable operators: " << generated_operators << " generated, "
+        << computed_operators << " computed, " << aops_generator_calls
+        << " generator calls." << std::endl;
+    log << "  Generated " << generated_states
+        << " successor state(s): " << computed_successors << " computed, "
+        << single_transition_generator_calls << " single-transition calls, "
+        << all_transitions_generator_calls << " all-transitions calls."
+        << std::endl;
+}
+
 InducedTaskStateSpace::InducedTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
+    utils::LogProxy log,
+    TaskSimpleCostFunction* cost_function,
     const std::vector<std::shared_ptr<Evaluator>>& path_dependent_evaluators)
     : task_proxy(*task)
+    , log(std::move(log))
     , gen_(task_proxy)
     , state_registry_(task_proxy)
+    , cost_function_(cost_function)
     , notify_(path_dependent_evaluators)
 {
 }
@@ -74,6 +90,26 @@ void InducedTaskStateSpace::generate_all_transitions(
     statistics_.generated_operators += aops.size();
 }
 
+value_t InducedTaskStateSpace::get_action_cost(OperatorID op)
+{
+    return cost_function_->get_action_cost(op);
+}
+
+bool InducedTaskStateSpace::is_goal(param_type<State> state) const
+{
+    return cost_function_->is_goal(state);
+}
+
+value_t InducedTaskStateSpace::get_goal_termination_cost() const
+{
+    return cost_function_->get_goal_termination_cost();
+}
+
+value_t InducedTaskStateSpace::get_non_goal_termination_cost() const
+{
+    return cost_function_->get_non_goal_termination_cost();
+}
+
 const State& InducedTaskStateSpace::get_initial_state()
 {
     return state_registry_.get_initial_state();
@@ -84,21 +120,9 @@ size_t InducedTaskStateSpace::get_num_registered_states() const
     return state_registry_.size();
 }
 
-void InducedTaskStateSpace::print_statistics(std::ostream& out) const
+void InducedTaskStateSpace::print_statistics() const
 {
-    statistics_.print(out);
-}
-
-void InducedTaskStateSpace::Statistics::print(std::ostream& out) const
-{
-    out << "  Applicable operators: " << generated_operators << " generated, "
-        << computed_operators << " computed, " << aops_generator_calls
-        << " generator calls." << std::endl;
-    out << "  Generated " << generated_states
-        << " successor state(s): " << computed_successors << " computed, "
-        << single_transition_generator_calls << " single-transition calls, "
-        << all_transitions_generator_calls << " all-transitions calls."
-        << std::endl;
+    statistics_.print(log);
 }
 
 void InducedTaskStateSpace::compute_applicable_operators(

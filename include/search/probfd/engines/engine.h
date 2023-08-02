@@ -1,9 +1,8 @@
 #ifndef PROBFD_ENGINES_ENGINE_H
 #define PROBFD_ENGINES_ENGINE_H
 
-#include "probfd/engine_interfaces/cost_function.h"
 #include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/mdp.h"
 
 #include "probfd/policies/empty_policy.h"
 
@@ -68,21 +67,14 @@ public:
  */
 template <typename State, typename Action>
 class MDPEngine : public MDPEngineInterface<State, Action> {
-    engine_interfaces::StateSpace<State, Action>* state_space_;
-    engine_interfaces::CostFunction<State, Action>* cost_function_;
+    engine_interfaces::MDP<State, Action>* mdp;
 
 public:
     /**
-     * @brief Construct the MDP engine from the given MDP model interfaces.
-     *
-     * @param state_space - The state space interface.
-     * @param cost_function - The cost function.
+     * @brief Construct the MDP engine from the given MDP interface.
      */
-    explicit MDPEngine(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function)
-        : state_space_(state_space)
-        , cost_function_(cost_function)
+    explicit MDPEngine(engine_interfaces::MDP<State, Action>* mdp)
+        : mdp(mdp)
     {
     }
 
@@ -91,17 +83,14 @@ public:
      */
     StateID get_state_id(param_type<State> s) const
     {
-        return state_space_->get_state_id(s);
+        return mdp->get_state_id(s);
     }
 
     /**
      * @brief Looks up the state corresponding to id \p sid in the state id
      * mapping.
      */
-    State lookup_state(StateID sid) const
-    {
-        return state_space_->get_state(sid);
-    }
+    State lookup_state(StateID sid) const { return mdp->get_state(sid); }
 
     /**
      * @brief Output the list of applicable operators in the state with id
@@ -110,7 +99,7 @@ public:
     void
     generate_applicable_actions(StateID sid, std::vector<Action>& ops) const
     {
-        state_space_->generate_applicable_actions(sid, ops);
+        mdp->generate_applicable_actions(sid, ops);
     }
 
     /**
@@ -122,7 +111,7 @@ public:
         param_type<Action> a,
         Distribution<StateID>& successors) const
     {
-        state_space_->generate_action_transitions(sid, a, successors);
+        mdp->generate_action_transitions(sid, a, successors);
     }
 
     /**
@@ -138,7 +127,7 @@ public:
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors) const
     {
-        state_space_->generate_all_transitions(sid, aops, successors);
+        mdp->generate_all_transitions(sid, aops, successors);
     }
 
     /**
@@ -146,7 +135,7 @@ public:
      */
     TerminationInfo get_termination_info(param_type<State> s) const
     {
-        return cost_function_->get_termination_info(s);
+        return mdp->get_termination_info(s);
     }
 
     /**
@@ -155,24 +144,13 @@ public:
      */
     value_t get_action_cost(param_type<Action> a) const
     {
-        return cost_function_->get_action_cost(a);
+        return mdp->get_action_cost(a);
     }
 
     /**
      * @brief Get the state space interface.
      */
-    engine_interfaces::StateSpace<State, Action>* get_state_space() const
-    {
-        return state_space_;
-    }
-
-    /**
-     * @brief Get the cost function.
-     */
-    engine_interfaces::CostFunction<State, Action>* get_cost_function() const
-    {
-        return cost_function_;
-    }
+    engine_interfaces::MDP<State, Action>* get_mdp() const { return mdp; }
 };
 
 } // namespace engines

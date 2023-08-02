@@ -13,8 +13,7 @@ public:
     virtual ~TaskSuccessorSamplerFactory() = default;
 
     /// Creates a transition sampler from a given state and action id map.
-    virtual std::shared_ptr<TaskSuccessorSampler>
-    create_sampler(TaskStateSpace*) = 0;
+    virtual std::shared_ptr<TaskSuccessorSampler> create_sampler(TaskMDP*) = 0;
 };
 
 } // namespace probfd

@@ -23,17 +23,21 @@ namespace solvers {
 MDPSolver::MDPSolver(const plugins::Options& opts)
     : task(tasks::g_root_task)
     , task_proxy(*task)
+    , log(utils::get_log_from_options(opts))
     , state_space_(
           opts.get<bool>("cache")
               ? new CachingTaskStateSpace(
                     task,
+                    log,
+                    g_cost_model->get_cost_function(),
                     opts.get_list<std::shared_ptr<Evaluator>>(
                         "path_dependent_evaluators"))
               : new InducedTaskStateSpace(
                     task,
+                    log,
+                    g_cost_model->get_cost_function(),
                     opts.get_list<std::shared_ptr<Evaluator>>(
                         "path_dependent_evaluators")))
-    , cost_function_(g_cost_model->get_cost_function())
     , progress_(
           opts.contains("report_epsilon")
               ? std::optional<value_t>(opts.get<value_t>("report_epsilon"))
@@ -79,7 +83,7 @@ void MDPSolver::solve()
         std::cout << "State space interface:" << std::endl;
         std::cout << "  Registered state(s): "
                   << state_space_->get_num_registered_states() << std::endl;
-        state_space_->print_statistics(std::cout);
+        state_space_->print_statistics();
 
         std::cout << std::endl;
         std::cout << "Engine " << get_engine_name()
@@ -104,6 +108,7 @@ void MDPSolver::add_options_to_feature(plugins::Feature& feature)
     feature.add_option<value_t>("report_epsilon", "", "1e-4");
     feature.add_option<bool>("report_enabled", "", "true");
     feature.add_option<double>("max_time", "", "infinity");
+    utils::add_log_options_to_feature(feature);
 }
 
 } // namespace solvers

@@ -7,7 +7,6 @@
 #include "probfd/preprocessing/end_component_decomposition.h"
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
-#include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/storage/per_state_storage.h"
@@ -75,12 +74,11 @@ public:
     using BoolStore = std::vector<StateID>;
 
     explicit IntervalIteration(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         const engine_interfaces::Evaluator<State>* heuristic,
         bool extract_probability_one_states,
         bool expand_goals)
-        : MDPEngine<State, Action>(state_space, cost_function)
+        : MDPEngine<State, Action>(mdp)
         , heuristic_(heuristic)
         , extract_probability_one_states_(extract_probability_one_states)
         , expand_goals_(expand_goals)
@@ -145,7 +143,7 @@ private:
         Decomposer ec_decomposer(expand_goals_, heuristic_);
 
         auto sys = ec_decomposer.build_quotient_system(
-            {*this->get_state_space(), *this->get_cost_function()},
+            {*this->get_mdp()},
             state,
             timer.get_remaining_time());
 
@@ -165,16 +163,12 @@ private:
     {
         using namespace engine_interfaces;
 
-        quotients::DefaultQuotientCostFunction<State, Action> q_cost(
-            sys,
-            this->get_cost_function());
-
         preprocessing::QualitativeReachabilityAnalysis<State, QAction> analysis(
             expand_goals_);
 
         if (extract_probability_one_states_) {
             analysis.run_analysis(
-                {*sys, q_cost},
+                *sys,
                 state,
                 std::back_inserter(dead_ends),
                 iterators::discarding_output_iterator(),
@@ -185,7 +179,7 @@ private:
                        .is_goal_state());
         } else {
             analysis.run_analysis(
-                {*sys, q_cost},
+                *sys,
                 state,
                 std::back_inserter(dead_ends),
                 iterators::discarding_output_iterator(),
@@ -201,7 +195,7 @@ private:
         const auto new_init_id =
             sys->translate_state_id(this->get_state_id(state));
 
-        ValueIteration vi(sys, &q_cost, heuristic_, expand_goals_);
+        ValueIteration vi(sys, heuristic_, expand_goals_);
 
         const Interval result =
             vi.solve(new_init_id, value_store, timer.get_remaining_time());

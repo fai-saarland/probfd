@@ -57,7 +57,6 @@ class ProbabilityAwarePatternDatabase {
 
     void compute_value_table(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const StateRankEvaluator& heuristic,
         double max_time);
@@ -85,7 +84,7 @@ public:
     ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         Pattern pattern,
-        TaskCostFunction& task_cost_function,
+        TaskSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
@@ -97,7 +96,6 @@ public:
      *
      * @param projection The projection state space.
      * @param ranking_function The state ranking function for the projection.
-     * @param projection_cost_function The cost function of the projection.
      * @param initial_state The abstract initial state of the projection. States
      * unreachable from the initial state are treated as dead ends.
      * @param heuristic An admissible heuristic for the projection, used to
@@ -110,7 +108,6 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& projection,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
         double max_time = std::numeric_limits<double>::infinity());
@@ -136,7 +133,7 @@ public:
     ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         const ::pdbs::PatternDatabase& pdb,
-        TaskCostFunction& task_cost_function,
+        TaskSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -148,7 +145,6 @@ public:
      *
      * @param projection The projection state space.
      * @param ranking_function The state ranking function for the projection.
-     * @param projection_cost_function The cost function of the projection.
      * @param initial_state The abstract initial state of the projection. States
      * unreachable from the initial state are treated as dead ends.
      * @param pdb The determinization-based pattern database. This PDB must be
@@ -161,7 +157,6 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& projection,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const ::pdbs::PatternDatabase& pdb,
         double max_time = std::numeric_limits<double>::infinity());
@@ -192,7 +187,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
-        TaskCostFunction& task_cost_function,
+        TaskSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -207,7 +202,6 @@ public:
      *
      * @param state_space The preconstructed state space of the projection.
      * @param ranking_function The preconstructed ranking function for the PDB.
-     * @param projection_cost_function The cost function of the projection.
      * @param initial_state The rank of the initial state for the exhaustive
      * solver. States unreachable from this state are treated as dead ends.
      * @param pdb A previous probability-aware pattern database.
@@ -221,7 +215,6 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
@@ -255,7 +248,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
-        TaskCostFunction& task_cost_function,
+        TaskSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -270,7 +263,6 @@ public:
      *
      * @param state_space The preconstructed state space of the projection.
      * @param ranking_function The preconstructed ranking function for the PDB.
-     * @param projection_cost_function The cost function of the projection.
      * @param initial_state The rank of the initial state for the exhaustive
      * solver. States unreachable from this state are treated as dead ends.
      * @param left A previous pattern database for the given task.
@@ -283,7 +275,6 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
@@ -335,7 +326,6 @@ public:
     [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
     compute_optimal_projection_policy(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         utils::RandomNumberGenerator& rng,
         bool wildcard) const;
@@ -351,7 +341,6 @@ public:
     [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
     compute_greedy_projection_policy(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         utils::RandomNumberGenerator& rng,
         bool wildcard) const;
@@ -367,7 +356,6 @@ public:
     void dump_graphviz(
         const ProbabilisticTaskProxy& task_proxy,
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         std::ostream& out,
         bool transition_labels) const;
@@ -376,7 +364,6 @@ public:
 private:
     void verify(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::vector<StateID>& proper_states);
 #endif

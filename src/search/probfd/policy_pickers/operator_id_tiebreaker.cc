@@ -23,7 +23,7 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(bool stable_policy, int ascending)
 }
 
 int OperatorIdTiebreaker::pick_index(
-    TaskStateSpace&,
+    TaskMDP&,
     StateID,
     std::optional<OperatorID>,
     const std::vector<OperatorID>& choices,

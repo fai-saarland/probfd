@@ -85,26 +85,10 @@ public:
      * @brief Gets the cost of an action.
      */
     virtual value_t get_action_cost(param_type<Action> action) = 0;
-
-    /**
-     * @brief Prints statistics, e.g. the number of queries made to the
-     * interface.
-     */
-    virtual void print_statistics() const {}
 };
 
 template <typename State, typename Action>
 class SimpleCostFunction : public CostFunction<State, Action> {
-    value_t goal_termination;
-    value_t non_goal_termination;
-
-protected:
-    SimpleCostFunction(value_t goal_termination, value_t non_goal_termination)
-        : goal_termination(goal_termination)
-        , non_goal_termination(non_goal_termination)
-    {
-    }
-
 public:
     virtual ~SimpleCostFunction() override = default;
 
@@ -116,17 +100,13 @@ public:
         const bool goal = is_goal(state);
         return TerminationInfo(
             goal,
-            goal ? goal_termination : non_goal_termination);
+            goal ? get_goal_termination_cost()
+                 : get_non_goal_termination_cost());
     }
 
     virtual bool is_goal(param_type<State> state) const = 0;
-
-    value_t get_goal_termination_cost() const { return goal_termination; }
-
-    value_t get_non_goal_termination_cost() const
-    {
-        return non_goal_termination;
-    }
+    virtual value_t get_goal_termination_cost() const = 0;
+    virtual value_t get_non_goal_termination_cost() const = 0;
 };
 
 } // namespace engine_interfaces

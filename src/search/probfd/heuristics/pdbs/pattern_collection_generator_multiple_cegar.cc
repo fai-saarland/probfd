@@ -34,7 +34,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
+    TaskSimpleCostFunction& task_cost_function,
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {

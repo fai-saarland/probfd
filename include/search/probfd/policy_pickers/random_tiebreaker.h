@@ -29,7 +29,7 @@ public:
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     int pick_index(
-        TaskStateSpace& state_space,
+        TaskMDP& mdp,
         StateID state,
         std::optional<OperatorID> prev_policy,
         const std::vector<OperatorID>& action_choices,

@@ -30,7 +30,7 @@ public:
     virtual Interval optimal_value_bound() const = 0;
 
     /// Returns a cost function for the input task.
-    virtual TaskCostFunction* get_cost_function() = 0;
+    virtual TaskSimpleCostFunction* get_cost_function() = 0;
 };
 
 extern std::shared_ptr<CostModel> g_cost_model;

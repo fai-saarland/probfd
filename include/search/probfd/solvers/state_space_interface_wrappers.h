@@ -6,7 +6,6 @@
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/successor_sampler.h"
 
-#include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/heuristic_search_interface.h"
 #include "probfd/quotients/quotient_system.h"
 

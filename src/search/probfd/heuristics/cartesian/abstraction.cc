@@ -37,11 +37,13 @@ vector<int> get_domain_sizes(const TaskBaseProxy& task)
 
 Abstraction::Abstraction(
     const ProbabilisticTaskProxy& task_proxy,
+    std::vector<value_t> operator_costs,
     utils::LogProxy log)
     : transition_system(std::make_unique<ProbabilisticTransitionSystem>(
           task_proxy.get_operators()))
     , concrete_initial_state(task_proxy.get_initial_state())
     , goal_facts(::task_properties::get_fact_pairs(task_proxy.get_goals()))
+    , operator_costs(std::move(operator_costs))
     , log(std::move(log))
 {
     initialize_trivial_abstraction(get_domain_sizes(task_proxy));
@@ -93,6 +95,25 @@ void Abstraction::generate_all_transitions(
         aops.push_back(t);
         generate_action_transitions(state, t, successors.emplace_back());
     }
+}
+
+TerminationInfo Abstraction::get_termination_info(const AbstractState* s)
+{
+    if (goals.contains(s->get_id())) {
+        return TerminationInfo(true, 0.0_vt);
+    }
+
+    return TerminationInfo(false, INFINITE_VALUE);
+}
+
+value_t Abstraction::get_action_cost(const ProbabilisticTransition* t)
+{
+    return operator_costs[t->op_id];
+}
+
+value_t Abstraction::get_cost(int op_index) const
+{
+    return operator_costs[op_index];
 }
 
 const AbstractState& Abstraction::get_initial_state() const

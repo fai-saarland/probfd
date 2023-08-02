@@ -55,8 +55,7 @@ class ExhaustiveAOSearch : public internal::AOBase<State, Action, UseInterval> {
 
 public:
     ExhaustiveAOSearch(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -64,8 +63,7 @@ public:
         bool interval_comparison,
         engine_interfaces::OpenList<Action>* open_list)
         : AOBase(
-              state_space,
-              cost_function,
+              mdp,
               value_init,
               policy_chooser,
               new_state_handler,

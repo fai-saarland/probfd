@@ -132,67 +132,6 @@ StateRank MergeEvaluator::convert(
     return rank;
 }
 
-InducedProjectionCostFunction::InducedProjectionCostFunction(
-    const ProbabilisticTaskProxy& task_proxy,
-    const StateRankingFunction& ranking_function,
-    TaskCostFunction* parent_cost_function)
-    : ProjectionCostFunction(
-          parent_cost_function->get_goal_termination_cost(),
-          parent_cost_function->get_non_goal_termination_cost())
-    , parent_cost_function(parent_cost_function)
-    , goal_state_flags_(ranking_function.num_states(), false)
-{
-    const GoalsProxy task_goals = task_proxy.get_goals();
-    const Pattern& pattern = ranking_function.get_pattern();
-
-    std::vector<int> non_goal_vars;
-    StateRank base(0);
-
-    // Translate sparse goal into pdb index space
-    // and collect non-goal variables aswell.
-    const int num_goal_facts = task_goals.size();
-    const int num_variables = pattern.size();
-
-    for (int v = 0, w = 0; v != static_cast<int>(pattern.size());) {
-        const int p_var = pattern[v];
-        const FactProxy goal_fact = task_goals[w];
-        const int g_var = goal_fact.get_variable().get_id();
-
-        if (p_var < g_var) {
-            non_goal_vars.push_back(v++);
-        } else {
-            if (p_var == g_var) {
-                const int g_val = goal_fact.get_value();
-                base.id += ranking_function.rank_fact(v++, g_val);
-            }
-
-            if (++w == num_goal_facts) {
-                while (v < num_variables) {
-                    non_goal_vars.push_back(v++);
-                }
-                break;
-            }
-        }
-    }
-
-    assert(non_goal_vars.size() != pattern.size()); // No goal no fun.
-
-    do {
-        goal_state_flags_[base.id] = true;
-    } while (ranking_function.next_rank(base, non_goal_vars));
-}
-
-bool InducedProjectionCostFunction::is_goal(StateRank state) const
-{
-    return goal_state_flags_[state.id];
-}
-
-value_t
-InducedProjectionCostFunction::get_action_cost(const ProjectionOperator* op)
-{
-    return parent_cost_function->get_action_cost(op->operator_id);
-}
-
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd

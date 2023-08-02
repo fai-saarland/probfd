@@ -11,7 +11,6 @@
 #include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/heuristic_search_interface.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -47,14 +46,12 @@ PolicyBasedFlawGenerator::~PolicyBasedFlawGenerator() = default;
 
 unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
     Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_policy_timer);
-    return policy_generator
-        ->find_solution(abstraction, cost_function, init, heuristic, timer);
+    return policy_generator->find_solution(abstraction, init, heuristic, timer);
 }
 
 optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
@@ -79,14 +76,13 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
     unique_ptr<Solution> solution =
-        find_solution(abstraction, cost_function, init, heuristic, timer);
+        find_solution(abstraction, init, heuristic, timer);
 
     if (!solution) {
         if (log.is_at_least_normal()) {

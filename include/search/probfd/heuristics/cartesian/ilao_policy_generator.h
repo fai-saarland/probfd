@@ -31,7 +31,6 @@ public:
 
     std::unique_ptr<Solution> find_solution(
         Abstraction& abstraction,
-        CartesianCostFunction& cost_function,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& time_limit) override;

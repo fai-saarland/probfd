@@ -1,7 +1,7 @@
 #ifndef PROBFD_TASK_STATE_SPACE_H
 #define PROBFD_TASK_STATE_SPACE_H
 
-#include "probfd/engine_interfaces/state_space.h"
+#include "probfd/engine_interfaces/mdp.h"
 #include "probfd/engine_interfaces/types.h"
 
 #include "probfd/storage/per_state_storage.h"
@@ -15,6 +15,8 @@
 
 #include "downward/state_registry.h"
 
+#include "downward/utils/logging.h"
+
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -27,7 +29,7 @@ class Evaluator;
 namespace probfd {
 class ProbabilisticTask;
 
-class InducedTaskStateSpace : public TaskStateSpace {
+class InducedTaskStateSpace : public TaskSimpleMDP {
 protected:
     struct Statistics {
         unsigned long long single_transition_generator_calls = 0;
@@ -43,14 +45,17 @@ protected:
         unsigned long long transition_computations = 0;
         unsigned long long computed_successors = 0;
 
-        void print(std::ostream& out) const;
+        void print(utils::LogProxy log) const;
     };
 
 protected:
     ProbabilisticTaskProxy task_proxy;
+    mutable utils::LogProxy log;
 
     successor_generator::SuccessorGenerator gen_;
     StateRegistry state_registry_;
+
+    TaskSimpleCostFunction* cost_function_;
 
     const std::vector<std::shared_ptr<::Evaluator>> notify_;
 
@@ -62,11 +67,13 @@ protected:
 public:
     InducedTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
+        TaskSimpleCostFunction* cost_function,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators = {});
 
-    StateID get_state_id(const State& state) override;
-    State get_state(StateID state_id) override;
+    StateID get_state_id(const State& state) override final;
+    State get_state(StateID state_id) override final;
 
     void generate_applicable_actions(
         StateID state_id,
@@ -82,11 +89,17 @@ public:
         std::vector<OperatorID>& aops,
         std::vector<Distribution<StateID>>& successors) override;
 
+    value_t get_action_cost(OperatorID op) override;
+
+    bool is_goal(param_type<State> state) const override final;
+    value_t get_goal_termination_cost() const override final;
+    value_t get_non_goal_termination_cost() const override final;
+
     const State& get_initial_state();
 
     size_t get_num_registered_states() const;
 
-    virtual void print_statistics(std::ostream& out) const;
+    void print_statistics() const override;
 
 protected:
     void

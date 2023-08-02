@@ -12,7 +12,7 @@ VDiffSorterFactory::VDiffSorterFactory(const plugins::Options& opts)
 }
 
 std::shared_ptr<TaskTransitionSorter>
-VDiffSorterFactory::create_transition_sorter(TaskStateSpace*)
+VDiffSorterFactory::create_transition_sorter(TaskMDP*)
 {
     return std::make_unique<VDiffSorter>(favor_large_gaps_);
 }

@@ -1,40 +1,12 @@
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
-#include "probfd/heuristics/cartesian/abstraction.h"
-#include "probfd/heuristics/cartesian/probabilistic_transition.h"
+
+#include "downward/utils/collections.h"
 
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
-
-CartesianCostFunction::CartesianCostFunction(
-    Abstraction& abstraction,
-    std::vector<value_t> operator_costs)
-    : abstraction(abstraction)
-    , operator_costs(std::move(operator_costs))
-{
-}
-
-TerminationInfo
-CartesianCostFunction::get_termination_info(const AbstractState* s)
-{
-    if (abstraction.get_goals().contains(s->get_id())) {
-        return TerminationInfo(true, 0.0_vt);
-    }
-
-    return TerminationInfo(false, INFINITE_VALUE);
-}
-
-value_t CartesianCostFunction::get_action_cost(const ProbabilisticTransition* t)
-{
-    return operator_costs[t->op_id];
-}
-
-value_t CartesianCostFunction::get_cost(int op_index) const
-{
-    return operator_costs[op_index];
-}
 
 EvaluationResult
 CartesianHeuristic::evaluate(const AbstractState* state) const

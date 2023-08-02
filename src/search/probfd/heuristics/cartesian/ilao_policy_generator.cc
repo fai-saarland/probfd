@@ -7,7 +7,6 @@
 
 #include "probfd/engines/trap_aware_dfhs.h"
 
-#include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/heuristic_search_interface.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -33,7 +32,6 @@ ILAOPolicyGenerator::ILAOPolicyGenerator()
 
 unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
     const AbstractState* state,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
@@ -41,11 +39,6 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     quotients::
         QuotientSystem<const AbstractState*, const ProbabilisticTransition*>
             quotient(&abstraction);
-
-    quotients::DefaultQuotientCostFunction<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        costs(&quotient, &cost_function);
 
     quotients::RepresentativePolicyPicker<
         const AbstractState*,
@@ -58,7 +51,6 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
         false>
         hdfs(
             &quotient,
-            &costs,
             &heuristic,
             &picker,
             nullptr,

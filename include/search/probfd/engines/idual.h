@@ -108,12 +108,11 @@ class IDual : public MDPEngine<State, Action> {
 
 public:
     explicit IDual(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         engine_interfaces::Evaluator<State>* value_initializer,
         ProgressReport* report,
         lp::LPSolverType solver_type)
-        : MDPEngine<State, Action>(state_space, cost_function)
+        : MDPEngine<State, Action>(mdp)
         , value_initializer_(value_initializer)
         , report_(report)
         , lp_solver_(solver_type)

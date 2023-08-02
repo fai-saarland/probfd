@@ -188,14 +188,13 @@ protected:
 
 public:
     HeuristicSearchBase(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         engine_interfaces::Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison)
-        : MDPEngine<State, Action>(state_space, cost_function)
+        : MDPEngine<State, Action>(mdp)
         , value_initializer_(value_init)
         , policy_chooser_(policy_chooser)
         , on_new_state_(new_state_handler)
@@ -228,7 +227,7 @@ public:
          */
 
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(this->get_state_space()));
+            new policies::MapPolicy<State, Action>(this->get_mdp()));
 
         const StateID initial_state_id = this->get_state_id(state);
 
@@ -296,7 +295,7 @@ public:
             if (opt_aops.empty()) return std::nullopt;
 
             return opt_aops[this->policy_chooser_->pick_index(
-                *this->get_state_space(),
+                *this->get_mdp(),
                 state_id,
                 std::nullopt,
                 opt_aops,
@@ -933,7 +932,7 @@ private:
         ++statistics_.policy_updates;
 
         const int index = this->policy_chooser_->pick_index(
-            *this->get_state_space(),
+            *this->get_mdp(),
             state_id,
             state_info.get_policy(),
             opt_aops,

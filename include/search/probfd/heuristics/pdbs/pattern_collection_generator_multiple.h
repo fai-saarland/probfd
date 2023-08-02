@@ -47,7 +47,7 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function,
+        TaskSimpleCostFunction& task_cost_function,
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
 

@@ -264,11 +264,10 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
 
 public:
     TopologicalValueIteration(
-        engine_interfaces::StateSpace<State, Action>* state_space,
-        engine_interfaces::CostFunction<State, Action>* cost_function,
+        engine_interfaces::MDP<State, Action>* mdp,
         const engine_interfaces::Evaluator<State>* value_initializer,
         bool expand_goals)
-        : MDPEngine<State, Action>(state_space, cost_function)
+        : MDPEngine<State, Action>(mdp)
         , value_initializer_(value_initializer)
         , expand_goals_(expand_goals)
     {
@@ -282,7 +281,7 @@ public:
     {
         storage::PerStateStorage<EngineValueType> value_store;
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(this->get_state_space()));
+            new policies::MapPolicy<State, Action>(this->get_mdp()));
         this->solve(
             this->get_state_id(state),
             value_store,

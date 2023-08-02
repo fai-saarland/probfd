@@ -4,7 +4,6 @@
 #include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/mdp.h"
 
-#include "probfd/quotients/engine_interfaces.h"
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/storage/per_state_storage.h"
@@ -190,7 +189,7 @@ public:
     }
 
     void run_analysis(
-        engine_interfaces::MDP<State, Action> mdp,
+        engine_interfaces::MDP<State, Action>& mdp,
         param_type<State> source_state,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto non_proper_out,
@@ -307,7 +306,7 @@ public:
 
 private:
     bool push(
-        engine_interfaces::MDP<State, Action> mdp,
+        engine_interfaces::MDP<State, Action>& mdp,
         StateID state_id,
         StateInfo& state_info,
         std::output_iterator<StateID> auto dead_out,
@@ -399,7 +398,7 @@ private:
     }
 
     bool push_successor(
-        engine_interfaces::MDP<State, Action> mdp,
+        engine_interfaces::MDP<State, Action>& mdp,
         ExpansionInfo& e,
         StackInfo& s,
         StateInfo& st,

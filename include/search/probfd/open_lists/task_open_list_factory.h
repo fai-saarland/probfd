@@ -14,7 +14,7 @@ public:
 
     /// Creates a open list from a given state and action id map.
     virtual std::shared_ptr<TaskOpenList>
-    create_open_list(TaskStateSpace* state_space) = 0;
+    create_open_list(TaskMDP* state_space) = 0;
 };
 
 } // namespace probfd
