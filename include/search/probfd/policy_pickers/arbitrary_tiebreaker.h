@@ -27,7 +27,7 @@ public:
     }
 
     int pick_index(
-        engine_interfaces::MDP<State, Action>&,
+        MDP<State, Action>&,
         StateID,
         std::optional<Action>,
         const std::vector<Action>&,

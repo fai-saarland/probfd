@@ -2,7 +2,7 @@
 
 #include "probfd/engines/acyclic_value_iteration.h"
 
-#include "probfd/engine_interfaces/evaluator.h"
+#include "probfd/evaluator.h"
 
 #include "downward/plugins/plugin.h"
 

@@ -5,6 +5,9 @@ fast_downward_plugin(
         # Main
         probfd/command_line
 
+        # Evaluators
+        probfd/evaluator
+
         # Tasks
         probfd/probabilistic_task
 

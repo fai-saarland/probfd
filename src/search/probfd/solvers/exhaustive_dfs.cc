@@ -4,12 +4,12 @@
 
 #include "probfd/engines/exhaustive_dfs.h"
 
-#include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/transition_sorter.h"
 
 #include "probfd/transition_sorters/task_transition_sorter_factory.h"
 
+#include "probfd/evaluator.h"
 #include "probfd/progress_report.h"
 
 #include "downward/plugins/plugin.h"

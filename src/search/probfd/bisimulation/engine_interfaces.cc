@@ -3,7 +3,7 @@
 namespace probfd {
 namespace bisimulation {
 
-DefaultQuotientEvaluator::DefaultQuotientEvaluator(
+InducedQuotientEvaluator::InducedQuotientEvaluator(
     bisimulation::BisimilarStateSpace* bisim,
     Interval bound,
     value_t def)
@@ -14,7 +14,7 @@ DefaultQuotientEvaluator::DefaultQuotientEvaluator(
 }
 
 EvaluationResult
-DefaultQuotientEvaluator::evaluate(bisimulation::QuotientState s) const
+InducedQuotientEvaluator::evaluate(bisimulation::QuotientState s) const
 {
     if (bisim_->is_dead_end(s)) {
         return EvaluationResult(true, bound_.upper);

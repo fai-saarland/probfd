@@ -3,8 +3,7 @@
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/engine_interfaces/cost_function.h"
-
+#include "probfd/cost_function.h"
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/countdown_timer.h"

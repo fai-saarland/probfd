@@ -7,6 +7,8 @@
 #include <vector>
 
 namespace probfd {
+
+/// This namespace contains interfaces related to search engines.
 namespace engine_interfaces {
 
 /**

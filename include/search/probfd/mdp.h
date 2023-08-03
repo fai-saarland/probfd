@@ -1,13 +1,10 @@
-#ifndef PROBFD_ENGINE_INTERFACES_MDP_H
-#define PROBFD_ENGINE_INTERFACES_MDP_H
+#ifndef PROBFD_MDP_H
+#define PROBFD_MDP_H
 
-#include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/state_space.h"
+#include "probfd/cost_function.h"
+#include "probfd/state_space.h"
 
 namespace probfd {
-
-/// This namespace contains interfaces related to search engines.
-namespace engine_interfaces {
 
 /**
  * @brief Basic interface for MDPs.
@@ -126,7 +123,6 @@ struct CompositeMDP : public MDP<State, Action> {
 template <typename State, typename Action>
 CompositeMDP(State, Action) -> CompositeMDP<State, Action>;
 
-} // namespace engine_interfaces
 } // namespace probfd
 
 #endif

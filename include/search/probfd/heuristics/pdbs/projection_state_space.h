@@ -5,8 +5,8 @@
 #include "probfd/heuristics/pdbs/projection_operator.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
-#include "probfd/engine_interfaces/mdp.h"
-#include "probfd/engine_interfaces/types.h"
+#include "probfd/mdp.h"
+#include "probfd/task_types.h"
 
 #include <limits>
 #include <vector>
@@ -22,8 +22,7 @@ class StateRankingFunction;
 
 /// Represents the state space of a projection of a probabilistic planning task.
 class ProjectionStateSpace
-    : public engine_interfaces::
-          SimpleMDP<StateRank, const ProjectionOperator*> {
+    : public SimpleMDP<StateRank, const ProjectionOperator*> {
 
     MatchTree match_tree_;
     TaskSimpleCostFunction* parent_cost_function;

@@ -147,7 +147,7 @@ class FRET : public MDPEngine<State, Action> {
 
 public:
     FRET(
-        engine_interfaces::MDP<State, Action>* mdp,
+        MDP<State, Action>* mdp,
         QuotientSystem* quotient,
         ProgressReport* report,
         std::shared_ptr<HeuristicSearchEngine<State, QAction, UseInterval>>

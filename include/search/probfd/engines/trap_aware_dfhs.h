@@ -206,7 +206,7 @@ public:
      */
     TADepthFirstHeuristicSearch(
         quotients::QuotientSystem<State, Action>* quotient_mdp,
-        engine_interfaces::Evaluator<State>* value_init,
+        Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
@@ -668,7 +668,7 @@ public:
      */
     TADepthFirstHeuristicSearch(
         quotients::QuotientSystem<State, Action>* quotient_mdp,
-        engine_interfaces::Evaluator<State>* value_init,
+        Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,

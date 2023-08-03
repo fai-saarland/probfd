@@ -243,7 +243,7 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
         }
     };
 
-    engine_interfaces::Evaluator<State>* evaluator_;
+    Evaluator<State>* evaluator_;
     engine_interfaces::NewStateObserver<State>* new_state_handler_;
     engine_interfaces::TransitionSorter<Action>* transition_sort_;
 
@@ -269,8 +269,8 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
 
 public:
     explicit ExhaustiveDepthFirstSearch(
-        engine_interfaces::MDP<State, Action>* mdp,
-        engine_interfaces::Evaluator<State>* evaluator,
+        MDP<State, Action>* mdp,
+        Evaluator<State>* evaluator,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         engine_interfaces::TransitionSorter<Action>* transition_sorting,
         Interval cost_bound,

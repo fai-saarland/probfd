@@ -1,5 +1,5 @@
-#ifndef PROBFD_ENGINE_INTERFACES_COST_FUNCTION_H
-#define PROBFD_ENGINE_INTERFACES_COST_FUNCTION_H
+#ifndef PROBFD_COST_FUNCTION_H
+#define PROBFD_COST_FUNCTION_H
 
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
@@ -29,8 +29,6 @@ public:
     /// Obtains the cost paid upon termination in the state.
     value_t get_cost() const { return terminal_cost_; }
 };
-
-namespace engine_interfaces {
 
 /**
  * @brief The interface specifying action and state termination costs, aswell as
@@ -109,7 +107,6 @@ public:
     virtual value_t get_non_goal_termination_cost() const = 0;
 };
 
-} // namespace engine_interfaces
 } // namespace probfd
 
 #endif

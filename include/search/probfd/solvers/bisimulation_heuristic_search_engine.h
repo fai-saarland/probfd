@@ -56,7 +56,7 @@ protected:
 
     bisimulation::BisimilarStateSpace state_space_;
 
-    std::shared_ptr<engine_interfaces::Evaluator<QState>> heuristic_;
+    std::shared_ptr<Evaluator<QState>> heuristic_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>> policy_;
     std::shared_ptr<engine_interfaces::NewStateObserver<QState>>
         new_state_handler_;
@@ -69,7 +69,7 @@ public:
         : task(tasks::g_root_task)
         , engine_name_(engine_name)
         , state_space_(task.get(), g_cost_model->optimal_value_bound())
-        , heuristic_(new bisimulation::DefaultQuotientEvaluator(
+        , heuristic_(new bisimulation::InducedQuotientEvaluator(
               &state_space_,
               g_cost_model->optimal_value_bound(),
               g_cost_model->optimal_value_bound().upper))

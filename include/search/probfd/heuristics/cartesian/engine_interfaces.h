@@ -1,8 +1,7 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_ENGINE_INTERFACES_H
 #define PROBFD_HEURISTICS_CARTESIAN_ENGINE_INTERFACES_H
 
-#include "probfd/engine_interfaces/evaluator.h"
-
+#include "probfd/evaluator.h"
 #include "probfd/value_type.h"
 
 #include <vector>
@@ -13,8 +12,7 @@ namespace cartesian {
 
 class AbstractState;
 
-class CartesianHeuristic
-    : public engine_interfaces::Evaluator<const AbstractState*> {
+class CartesianHeuristic : public Evaluator<const AbstractState*> {
     std::vector<value_t> h_values = {0.0_vt};
 
 public:

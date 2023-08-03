@@ -186,8 +186,8 @@ public:
      * @brief Constructs an LRTDP solver object.
      */
     LRTDP(
-        engine_interfaces::MDP<State, Action>* mdp,
-        engine_interfaces::Evaluator<State>* value_init,
+        MDP<State, Action>* mdp,
+        Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,

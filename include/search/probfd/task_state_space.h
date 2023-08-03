@@ -1,13 +1,12 @@
 #ifndef PROBFD_TASK_STATE_SPACE_H
 #define PROBFD_TASK_STATE_SPACE_H
 
-#include "probfd/engine_interfaces/mdp.h"
-#include "probfd/engine_interfaces/types.h"
-
 #include "probfd/storage/per_state_storage.h"
 #include "probfd/storage/segmented_memory_pool.h"
 
+#include "probfd/mdp.h"
 #include "probfd/task_proxy.h"
+#include "probfd/task_types.h"
 
 #include "downward/algorithms/segmented_vector.h"
 

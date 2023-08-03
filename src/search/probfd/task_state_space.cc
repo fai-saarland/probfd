@@ -29,7 +29,7 @@ InducedTaskStateSpace::InducedTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     utils::LogProxy log,
     TaskSimpleCostFunction* cost_function,
-    const std::vector<std::shared_ptr<Evaluator>>& path_dependent_evaluators)
+    const std::vector<std::shared_ptr<::Evaluator>>& path_dependent_evaluators)
     : task_proxy(*task)
     , log(std::move(log))
     , gen_(task_proxy)

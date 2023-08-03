@@ -11,12 +11,12 @@ namespace policies {
 
 template <typename State, typename Action>
 class VectorMultiPolicy : public MultiPolicy<State, Action> {
-    engine_interfaces::StateSpace<State, Action>* state_space;
+    StateSpace<State, Action>* state_space;
     std::vector<std::vector<PolicyDecision<Action>>> decisions_per_state;
 
 public:
     explicit VectorMultiPolicy(
-        engine_interfaces::StateSpace<State, Action>* state_space,
+        StateSpace<State, Action>* state_space,
         size_t num_states)
         : state_space(state_space)
         , decisions_per_state(num_states, std::vector<PolicyDecision<Action>>{})

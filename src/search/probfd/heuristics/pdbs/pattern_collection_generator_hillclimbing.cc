@@ -4,8 +4,7 @@
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
-#include "probfd/engine_interfaces/cost_function.h"
-
+#include "probfd/cost_function.h"
 #include "probfd/cost_model.h"
 #include "probfd/task_proxy.h"
 

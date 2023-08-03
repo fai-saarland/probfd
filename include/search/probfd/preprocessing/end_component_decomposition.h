@@ -1,15 +1,14 @@
 #ifndef PROBFD_PREPROCESSING_END_COMPONENT_DECOMPOSITION_H
 #define PROBFD_PREPROCESSING_END_COMPONENT_DECOMPOSITION_H
 
-#include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/mdp.h"
-
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/utils/iterators.h"
 
+#include "probfd/evaluator.h"
+#include "probfd/mdp.h"
 #include "probfd/type_traits.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -140,7 +139,7 @@ class EndComponentDecomposition {
             unsigned stck,
             std::vector<Action> aops,
             std::vector<std::vector<StateID>> successors,
-            engine_interfaces::MDP<State, Action>& mdp)
+            MDP<State, Action>& mdp)
             : stck(stck)
             , lstck(stck)
             , nz_or_leaves_scc(mdp.get_action_cost(aops.back()) != 0_vt)
@@ -158,7 +157,7 @@ class EndComponentDecomposition {
             return !aops.empty();
         }
 
-        bool next_action(engine_interfaces::MDP<State, Action>& mdp)
+        bool next_action(MDP<State, Action>& mdp)
         {
             assert(aops.size() == successors.size());
             aops.pop_back();
@@ -228,7 +227,7 @@ class EndComponentDecomposition {
     };
 
     const bool expand_goals_;
-    const engine_interfaces::Evaluator<State>* pruning_function_;
+    const Evaluator<State>* pruning_function_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
     std::deque<ExpansionInfo> expansion_queue_;
@@ -241,7 +240,7 @@ public:
 
     EndComponentDecomposition(
         bool expand_goals,
-        const engine_interfaces::Evaluator<State>* pruning_function = nullptr)
+        const Evaluator<State>* pruning_function = nullptr)
         : expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
     {
@@ -255,7 +254,7 @@ public:
      * state is considered.
      */
     std::unique_ptr<QuotientSystem> build_quotient_system(
-        engine_interfaces::MDP<State, Action>& mdp,
+        MDP<State, Action>& mdp,
         param_type<State> initial_state,
         double max_time = std::numeric_limits<double>::infinity())
     {
@@ -282,10 +281,8 @@ public:
     ECDStatistics get_statistics() const { return stats_; }
 
 private:
-    bool push_root(
-        engine_interfaces::MDP<State, Action>& mdp,
-        StateID state_id,
-        StateInfo& state_info)
+    bool
+    push_root(MDP<State, Action>& mdp, StateID state_id, StateInfo& state_info)
     {
         state_info.explored = 1;
         State state = mdp.get_state(state_id);
@@ -401,7 +398,7 @@ private:
 
     template <bool RootIteration>
     void find_and_decompose_sccs(
-        engine_interfaces::MDP<State, Action>& mdp,
+        MDP<State, Action>& mdp,
         QuotientSystem& sys,
         const unsigned limit,
         utils::CountdownTimer& timer)
@@ -491,7 +488,7 @@ private:
 
     template <bool RootIteration>
     bool push_successor(
-        engine_interfaces::MDP<State, Action>& mdp,
+        MDP<State, Action>& mdp,
         ExpansionInfo& e,
         StackInfo& s,
         utils::CountdownTimer& timer)
@@ -560,7 +557,7 @@ private:
 
     template <bool RootIteration>
     void scc_found(
-        engine_interfaces::MDP<State, Action>& mdp,
+        MDP<State, Action>& mdp,
         QuotientSystem& sys,
         ExpansionInfo& e,
         StackInfo& s,
@@ -636,7 +633,7 @@ private:
     }
 
     void decompose(
-        engine_interfaces::MDP<State, Action>& mdp,
+        MDP<State, Action>& mdp,
         QuotientSystem& sys,
         unsigned start,
         utils::CountdownTimer& timer)

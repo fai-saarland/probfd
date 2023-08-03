@@ -11,9 +11,6 @@ namespace probfd {
 template <typename>
 class Distribution;
 
-/// This namespace contains interfaces related to search engines.
-namespace engine_interfaces {
-
 /**
  * @brief An interface representing a Markov Decision Process (MDP) without
  * objective function.
@@ -77,7 +74,6 @@ public:
         std::vector<Distribution<StateID>>& successors) = 0;
 };
 
-} // namespace engine_interfaces
 } // namespace probfd
 
 #endif

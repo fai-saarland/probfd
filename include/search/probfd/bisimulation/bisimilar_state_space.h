@@ -3,7 +3,7 @@
 
 #include "probfd/bisimulation/types.h"
 
-#include "probfd/engine_interfaces/mdp.h"
+#include "probfd/mdp.h"
 
 #include "probfd/distribution.h"
 #include "probfd/interval.h"
@@ -38,8 +38,7 @@ namespace bisimulation {
  * space (although usually not the coarsest). The quotient is constructed with
  * respect to this probabilistic bisimulation.
  */
-class BisimilarStateSpace
-    : public engine_interfaces::MDP<QuotientState, QuotientAction> {
+class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
     struct CachedTransition {
         unsigned op;
         int* successors;

@@ -1,15 +1,14 @@
 #ifndef PROBFD_PREPROCESSING_QUALITATIVE_REACHABILITY_ANALYSIS_H
 #define PROBFD_PREPROCESSING_QUALITATIVE_REACHABILITY_ANALYSIS_H
 
-#include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/mdp.h"
-
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/utils/iterators.h"
 
+#include "probfd/evaluator.h"
+#include "probfd/mdp.h"
 #include "probfd/type_traits.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -122,9 +121,7 @@ class QualitativeReachabilityAnalysis {
          * Advances to the next non-loop action. Returns nullptr if such an
          * action does not exist.
          */
-        bool next_action(
-            engine_interfaces::MDP<State, Action>& mdp,
-            StateID state_id)
+        bool next_action(MDP<State, Action>& mdp, StateID state_id)
         {
             for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
                 transition.clear();
@@ -171,7 +168,7 @@ class QualitativeReachabilityAnalysis {
     using StackInfo = internal::StackInfo;
 
     bool expand_goals_;
-    const engine_interfaces::Evaluator<State>* pruning_function_;
+    const Evaluator<State>* pruning_function_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
     std::deque<ExpansionInfo> expansion_queue_;
@@ -182,14 +179,14 @@ class QualitativeReachabilityAnalysis {
 public:
     QualitativeReachabilityAnalysis(
         bool expand_goals,
-        const engine_interfaces::Evaluator<State>* pruning_function = nullptr)
+        const Evaluator<State>* pruning_function = nullptr)
         : expand_goals_(expand_goals)
         , pruning_function_(pruning_function)
     {
     }
 
     void run_analysis(
-        engine_interfaces::MDP<State, Action>& mdp,
+        MDP<State, Action>& mdp,
         param_type<State> source_state,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto non_proper_out,
@@ -306,7 +303,7 @@ public:
 
 private:
     bool push(
-        engine_interfaces::MDP<State, Action>& mdp,
+        MDP<State, Action>& mdp,
         StateID state_id,
         StateInfo& state_info,
         std::output_iterator<StateID> auto dead_out,
@@ -398,7 +395,7 @@ private:
     }
 
     bool push_successor(
-        engine_interfaces::MDP<State, Action>& mdp,
+        MDP<State, Action>& mdp,
         ExpansionInfo& e,
         StackInfo& s,
         StateInfo& st,

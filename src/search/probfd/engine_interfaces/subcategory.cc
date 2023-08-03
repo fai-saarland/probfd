@@ -1,14 +1,9 @@
-#include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/evaluator.h"
 #include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/policy_picker.h"
 #include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engine_interfaces/task_types.h"
 #include "probfd/engine_interfaces/transition_sorter.h"
-#include "probfd/engine_interfaces/types.h"
-
-#include "downward/operator_id.h"
-#include "downward/task_proxy.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -31,23 +26,5 @@ public:
     {
     }
 } _category_plugin_new_state_observer;
-
-static class TaskSimpleCostFunctionCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskSimpleCostFunction> {
-public:
-    TaskSimpleCostFunctionCategoryPlugin()
-        : TypedCategoryPlugin("TaskSimpleCostFunction")
-    {
-    }
-} _category_plugin_cost_function;
-
-static class TaskEvaluatorCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskEvaluator> {
-public:
-    TaskEvaluatorCategoryPlugin()
-        : TypedCategoryPlugin("TaskEvaluator")
-    {
-    }
-} _category_plugin_evaluator;
 
 } // namespace probfd

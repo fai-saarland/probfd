@@ -3,7 +3,7 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
-#include "probfd/engine_interfaces/types.h"
+#include "probfd/task_types.h"
 
 #include <memory>
 

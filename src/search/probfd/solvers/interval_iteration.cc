@@ -2,8 +2,7 @@
 
 #include "probfd/engines/interval_iteration.h"
 
-#include "probfd/engine_interfaces/evaluator.h"
-
+#include "probfd/evaluator.h"
 #include "probfd/quotient_system.h"
 
 #include "downward/plugins/plugin.h"

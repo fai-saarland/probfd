@@ -1,11 +1,10 @@
 #ifndef PROBFD_UTILS_GRAPH_VISUALIZATION_H
 #define PROBFD_UTILS_GRAPH_VISUALIZATION_H
 
-#include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/mdp.h"
-
 #include "probfd/storage/per_state_storage.h"
+
+#include "probfd/evaluator.h"
+#include "probfd/mdp.h"
 
 #include <cassert>
 #include <deque>
@@ -295,8 +294,8 @@ template <typename State, typename Action>
 void dump_state_space_dot_graph(
     std::ostream& out,
     const State& initial_state,
-    engine_interfaces::MDP<State, Action>* mdp,
-    engine_interfaces::Evaluator<State>* prune = nullptr,
+    MDP<State, Action>* mdp,
+    Evaluator<State>* prune = nullptr,
     std::function<std::string(const State&)> sstr =
         [](const State&) { return ""; },
     std::function<std::string(const Action&)> astr =

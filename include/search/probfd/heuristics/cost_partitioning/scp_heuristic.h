@@ -1,13 +1,12 @@
 #ifndef PROBFD_HEURISTICS_PDBS_SATURATED_COST_PARTITIONING_SCP_HEURISTIC_H
 #define PROBFD_HEURISTICS_PDBS_SATURATED_COST_PARTITIONING_SCP_HEURISTIC_H
 
-#include "probfd/engine_interfaces/evaluator.h"
-
-#include "probfd/types.h"
-
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
 #include "probfd/heuristics/pdbs/pattern_collection_generator.h"
+
+#include "probfd/evaluator.h"
+#include "probfd/types.h"
 
 #include <memory>
 #include <vector>

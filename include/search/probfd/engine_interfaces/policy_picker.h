@@ -1,8 +1,7 @@
 #ifndef PROBFD_ENGINE_INTERFACES_POLICY_PICKER_H
 #define PROBFD_ENGINE_INTERFACES_POLICY_PICKER_H
 
-#include "probfd/engine_interfaces/mdp.h"
-
+#include "probfd/mdp.h"
 #include "probfd/types.h"
 
 #include <optional>

@@ -3,7 +3,7 @@
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 
-#include "probfd/engine_interfaces/cost_function.h"
+#include "probfd/cost_function.h"
 
 #include "downward/utils/logging.h"
 

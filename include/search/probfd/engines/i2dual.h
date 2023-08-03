@@ -99,7 +99,7 @@ template <typename State, typename Action>
 class I2Dual : public MDPEngine<State, Action> {
     ProbabilisticTaskProxy task_proxy;
 
-    engine_interfaces::Evaluator<State>* heuristic_;
+    Evaluator<State>* heuristic_;
 
     ProgressReport* progress_;
 
@@ -124,8 +124,8 @@ class I2Dual : public MDPEngine<State, Action> {
 
 public:
     I2Dual(
-        engine_interfaces::MDP<State, Action>* mdp,
-        engine_interfaces::Evaluator<State>* heuristic,
+        MDP<State, Action>* mdp,
+        Evaluator<State>* heuristic,
         ProgressReport* progress,
         bool hpom_enabled,
         bool incremental_updates,

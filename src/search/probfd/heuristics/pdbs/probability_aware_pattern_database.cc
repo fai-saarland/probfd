@@ -630,8 +630,6 @@ void ProbabilityAwarePatternDatabase::dump_graphviz(
     std::ostream& out,
     bool transition_labels) const
 {
-    using namespace engine_interfaces;
-
     ProjectionOperatorToString op_names(task_proxy);
 
     auto sts = [this](StateRank x) {

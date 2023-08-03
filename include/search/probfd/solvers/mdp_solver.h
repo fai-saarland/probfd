@@ -5,10 +5,10 @@
 
 #include "probfd/solver_interface.h"
 
-#include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/types.h"
+#include "probfd/engine_interfaces/task_types.h"
 
+#include "probfd/cost_function.h"
+#include "probfd/evaluator.h"
 #include "probfd/progress_report.h"
 #include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"

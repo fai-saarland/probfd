@@ -1,12 +1,11 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/cost_model.h"
-
 #include "probfd/engines/ta_topological_value_iteration.h"
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/engine_interfaces/evaluator.h"
+#include "probfd/cost_model.h"
+#include "probfd/evaluator.h"
 
 #include "downward/plugins/plugin.h"
 

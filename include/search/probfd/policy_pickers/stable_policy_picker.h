@@ -2,7 +2,7 @@
 #define PROBFD_POLICY_PICKERS_STABLE_POLICY_PICKER_H
 
 #include "probfd/engine_interfaces/policy_picker.h"
-#include "probfd/engine_interfaces/types.h"
+#include "probfd/engine_interfaces/task_types.h"
 
 #include "probfd/distribution.h"
 
@@ -24,7 +24,7 @@ public:
     }
 
     int pick_index(
-        engine_interfaces::MDP<State, Action>& mdp,
+        MDP<State, Action>& mdp,
         StateID state_id,
         std::optional<Action> previous_greedy,
         const std::vector<Action>& greedy_action_candidates,

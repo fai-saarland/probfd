@@ -2,8 +2,7 @@
 
 #include "probfd/engines/idual.h"
 
-#include "probfd/engine_interfaces/evaluator.h"
-
+#include "probfd/evaluator.h"
 #include "probfd/progress_report.h"
 
 #include "downward/lp/lp_solver.h"

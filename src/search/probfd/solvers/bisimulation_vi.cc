@@ -24,8 +24,6 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
-
 struct BisimulationTimer {
     utils::Timer timer;
     unsigned states;

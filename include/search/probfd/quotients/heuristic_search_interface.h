@@ -33,7 +33,7 @@ public:
     }
 
     int pick_index(
-        engine_interfaces::MDP<State, QuotientAction>&,
+        MDP<State, QuotientAction>&,
         StateID state,
         std::optional<QuotientAction> prev_policy,
         const std::vector<QuotientAction>& action_choices,

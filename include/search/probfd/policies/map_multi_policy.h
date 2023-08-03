@@ -11,12 +11,11 @@ namespace policies {
 
 template <typename State, typename Action>
 class MapMultiPolicy : public MultiPolicy<State, Action> {
-    engine_interfaces::StateSpace<State, Action>* state_space;
+    StateSpace<State, Action>* state_space;
     std::unordered_map<StateID, std::vector<PolicyDecision<Action>>> mapping;
 
 public:
-    explicit MapMultiPolicy(
-        engine_interfaces::StateSpace<State, Action>* state_space)
+    explicit MapMultiPolicy(StateSpace<State, Action>* state_space)
         : state_space(state_space)
     {
     }

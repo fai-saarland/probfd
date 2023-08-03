@@ -1,12 +1,11 @@
 #ifndef PROBFD_TESTS_VERIFICATION_POLICY_VERIFICATION
 #define PROBFD_TESTS_VERIFICATION_POLICY_VERIFICATION
 
-#include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/state_space.h"
-
-#include "probfd/policy.h"
-
 #include "probfd/storage/per_state_storage.h"
+
+#include "probfd/cost_function.h"
+#include "probfd/policy.h"
+#include "probfd/state_space.h"
 
 #include <ranges>
 #include <stack>
@@ -21,8 +20,8 @@ namespace tests {
  */
 template <typename State, typename Action>
 extern bool verify_policy(
-    engine_interfaces::StateSpace<State, Action>& state_space,
-    engine_interfaces::CostFunction<State, Action>& cost_function,
+    StateSpace<State, Action>& state_space,
+    CostFunction<State, Action>& cost_function,
     PartialPolicy<State, Action>& policy,
     StateID init_id)
 {

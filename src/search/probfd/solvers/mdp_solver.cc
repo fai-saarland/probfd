@@ -30,13 +30,13 @@ MDPSolver::MDPSolver(const plugins::Options& opts)
                     task,
                     log,
                     g_cost_model->get_cost_function(),
-                    opts.get_list<std::shared_ptr<Evaluator>>(
+                    opts.get_list<std::shared_ptr<::Evaluator>>(
                         "path_dependent_evaluators"))
               : new InducedTaskStateSpace(
                     task,
                     log,
                     g_cost_model->get_cost_function(),
-                    opts.get_list<std::shared_ptr<Evaluator>>(
+                    opts.get_list<std::shared_ptr<::Evaluator>>(
                         "path_dependent_evaluators")))
     , progress_(
           opts.contains("report_epsilon")
@@ -101,7 +101,7 @@ void MDPSolver::solve()
 void MDPSolver::add_options_to_feature(plugins::Feature& feature)
 {
     feature.add_option<bool>("cache", "", "false");
-    feature.add_list_option<std::shared_ptr<Evaluator>>(
+    feature.add_list_option<std::shared_ptr<::Evaluator>>(
         "path_dependent_evaluators",
         "",
         "[]");

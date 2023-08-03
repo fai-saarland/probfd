@@ -328,7 +328,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         }
     };
 
-    const engine_interfaces::Evaluator<State>* value_initializer_;
+    const Evaluator<State>* value_initializer_;
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::deque<ExplorationInfo> exploration_stack_;
@@ -341,8 +341,8 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
 
 public:
     TATopologicalValueIteration(
-        engine_interfaces::MDP<State, Action>* mdp,
-        const engine_interfaces::Evaluator<State>* value_initializer)
+        MDP<State, Action>* mdp,
+        const Evaluator<State>* value_initializer)
         : MDPEngine<State, Action>(mdp)
         , value_initializer_(value_initializer)
     {

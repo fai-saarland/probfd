@@ -4,7 +4,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/engine_interfaces/types.h"
+#include "probfd/task_types.h"
 
 #include "downward/utils/logging.h"
 

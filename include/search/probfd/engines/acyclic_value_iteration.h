@@ -4,11 +4,11 @@
 #include "probfd/engines/engine.h"
 #include "probfd/engines/utils.h"
 
-#include "probfd/engine_interfaces/evaluator.h"
-
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/policies/map_policy.h"
+
+#include "probfd/evaluator.h"
 
 #include "downward/utils/countdown_timer.h"
 
@@ -114,7 +114,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         }
     };
 
-    engine_interfaces::Evaluator<State>* prune_;
+    Evaluator<State>* prune_;
 
     Statistics statistics_;
 
@@ -123,8 +123,8 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
 
 public:
     AcyclicValueIteration(
-        engine_interfaces::MDP<State, Action>* mdp,
-        engine_interfaces::Evaluator<State>* prune = nullptr)
+        MDP<State, Action>* mdp,
+        Evaluator<State>* prune = nullptr)
         : MDPEngine<State, Action>(mdp)
         , prune_(prune)
     {

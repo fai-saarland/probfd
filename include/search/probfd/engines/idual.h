@@ -94,7 +94,7 @@ private:
  */
 template <typename State, typename Action>
 class IDual : public MDPEngine<State, Action> {
-    engine_interfaces::Evaluator<State>* value_initializer_;
+    Evaluator<State>* value_initializer_;
 
     ProgressReport* report_;
 
@@ -108,8 +108,8 @@ class IDual : public MDPEngine<State, Action> {
 
 public:
     explicit IDual(
-        engine_interfaces::MDP<State, Action>* mdp,
-        engine_interfaces::Evaluator<State>* value_initializer,
+        MDP<State, Action>* mdp,
+        Evaluator<State>* value_initializer,
         ProgressReport* report,
         lp::LPSolverType solver_type)
         : MDPEngine<State, Action>(mdp)

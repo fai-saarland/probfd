@@ -1,8 +1,8 @@
 #ifndef PROBFD_HEURISTICS_DEAD_END_PRUNING_H
 #define PROBFD_HEURISTICS_DEAD_END_PRUNING_H
 
-#include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/types.h"
+#include "probfd/evaluator.h"
+#include "probfd/task_types.h"
 
 #include <memory>
 

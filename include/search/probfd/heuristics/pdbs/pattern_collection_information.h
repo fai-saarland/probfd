@@ -5,9 +5,8 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/engine_interfaces/types.h"
-
 #include "probfd/task_proxy.h"
+#include "probfd/task_types.h"
 
 #include "downward/operator_cost.h"
 

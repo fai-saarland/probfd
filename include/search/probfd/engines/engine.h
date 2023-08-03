@@ -1,13 +1,12 @@
 #ifndef PROBFD_ENGINES_ENGINE_H
 #define PROBFD_ENGINES_ENGINE_H
 
-#include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/mdp.h"
-
 #include "probfd/policies/empty_policy.h"
 
 #include "probfd/distribution.h"
+#include "probfd/evaluator.h"
 #include "probfd/interval.h"
+#include "probfd/mdp.h"
 
 #include <limits>
 #include <memory>
@@ -67,13 +66,13 @@ public:
  */
 template <typename State, typename Action>
 class MDPEngine : public MDPEngineInterface<State, Action> {
-    engine_interfaces::MDP<State, Action>* mdp;
+    MDP<State, Action>* mdp;
 
 public:
     /**
      * @brief Construct the MDP engine from the given MDP interface.
      */
-    explicit MDPEngine(engine_interfaces::MDP<State, Action>* mdp)
+    explicit MDPEngine(MDP<State, Action>* mdp)
         : mdp(mdp)
     {
     }
@@ -150,7 +149,7 @@ public:
     /**
      * @brief Get the state space interface.
      */
-    engine_interfaces::MDP<State, Action>* get_mdp() const { return mdp; }
+    MDP<State, Action>* get_mdp() const { return mdp; }
 };
 
 } // namespace engines

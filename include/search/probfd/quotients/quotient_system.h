@@ -1,11 +1,10 @@
 #ifndef PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H
 #define PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H
 
-#include "probfd/engine_interfaces/mdp.h"
-
 #include "probfd/utils/iterators.h"
 
 #include "probfd/distribution.h"
+#include "probfd/mdp.h"
 
 #include "downward/algorithms/segmented_vector.h"
 
@@ -39,7 +38,7 @@ struct QuotientAction {
 
 template <typename State, typename Action>
 class DefaultQuotientSystem
-    : public engine_interfaces::MDP<State, quotients::QuotientAction<Action>> {
+    : public MDP<State, quotients::QuotientAction<Action>> {
     friend struct const_iterator;
 
     struct QuotientInformation {
@@ -124,7 +123,7 @@ class DefaultQuotientSystem
 
     std::unordered_map<StateID::size_type, QuotientInformation> quotients_;
     segmented_vector::SegmentedVector<StateID::size_type> quotient_ids_;
-    engine_interfaces::MDP<State, Action>* mdp_;
+    MDP<State, Action>* mdp_;
 
     // MASK: bitmask used to obtain the quotient state id, if it exists
     // FLAG: whether a quotient state id exists
@@ -182,7 +181,7 @@ public:
 
     static_assert(std::input_iterator<const_iterator>);
 
-    explicit DefaultQuotientSystem(engine_interfaces::MDP<State, Action>* mdp)
+    explicit DefaultQuotientSystem(MDP<State, Action>* mdp)
         : mdp_(mdp)
     {
     }
@@ -289,7 +288,7 @@ public:
         return mdp_->get_action_cost(qa.action);
     }
 
-    engine_interfaces::MDP<State, Action>* get_parent_mdp() { return mdp_; }
+    MDP<State, Action>* get_parent_mdp() { return mdp_; }
 
     const_iterator begin() const { return const_iterator(this, 0); }
 

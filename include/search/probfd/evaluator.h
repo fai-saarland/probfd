@@ -1,5 +1,5 @@
-#ifndef PROBFD_ENGINE_INTERFACES_EVALUATOR_H
-#define PROBFD_ENGINE_INTERFACES_EVALUATOR_H
+#ifndef PROBFD_EVALUATOR_H
+#define PROBFD_EVALUATOR_H
 
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
@@ -30,8 +30,6 @@ public:
     value_t get_estimate() const { return estimate_; }
 };
 
-namespace engine_interfaces {
-
 /**
  * @brief The interface representing heuristic functions.
  *
@@ -57,7 +55,6 @@ public:
     virtual void print_statistics() const {}
 };
 
-} // namespace engine_interfaces
 } // namespace probfd
 
 #endif // __STATE_EVALUATOR_H__

@@ -3,8 +3,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/engine_interfaces/evaluator.h"
-
+#include "probfd/evaluator.h"
 #include "probfd/value_type.h"
 
 #include <memory>

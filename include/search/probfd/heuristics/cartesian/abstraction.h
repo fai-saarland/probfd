@@ -3,8 +3,7 @@
 
 #include "probfd/heuristics/cartesian/types.h"
 
-#include "probfd/engine_interfaces/mdp.h"
-
+#include "probfd/mdp.h"
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/collections.h"
@@ -30,8 +29,7 @@ class ProbabilisticTransitionSystem;
   solutions and maintain the RefinementHierarchy.
 */
 class Abstraction
-    : public engine_interfaces::
-          MDP<const AbstractState*, const ProbabilisticTransition*> {
+    : public MDP<const AbstractState*, const ProbabilisticTransition*> {
     const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
     const State concrete_initial_state;
     const std::vector<FactPair> goal_facts;

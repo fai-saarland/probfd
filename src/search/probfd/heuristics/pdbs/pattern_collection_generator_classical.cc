@@ -3,12 +3,13 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
+#include "probfd/tasks/all_outcomes_determinization.h"
+
 #include "probfd/cost_model.h"
 
 #include "downward/pdbs/pattern_database.h"
 
 #include "downward/tasks/root_task.h"
-#include "probfd/tasks/all_outcomes_determinization.h"
 
 #include "downward/plugins/plugin.h"
 
