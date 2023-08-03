@@ -1,7 +1,6 @@
 #ifndef PROBFD_ENGINES_I2DUAL_H
 #define PROBFD_ENGINES_I2DUAL_H
 
-#include "probfd/engines/engine.h"
 #include "probfd/engines/utils.h"
 
 #include "probfd/cost_models/maxprob_cost_model.h"
@@ -16,6 +15,7 @@
 
 #include "probfd/utils/guards.h"
 
+#include "probfd/engine.h"
 #include "probfd/progress_report.h"
 #include "probfd/value_type.h"
 

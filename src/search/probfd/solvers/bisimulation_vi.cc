@@ -86,7 +86,7 @@ public:
                   << " on the bisimulation..." << std::endl;
 
         utils::Timer vi_timer;
-        std::unique_ptr<engines::MDPEngine<QState, QAction>> solver;
+        std::unique_ptr<MDPEngine<QState, QAction>> solver;
         Interval val;
         if (interval_iteration_) {
             solver.reset(

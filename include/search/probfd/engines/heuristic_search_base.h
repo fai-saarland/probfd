@@ -1,7 +1,6 @@
 #ifndef PROBFD_ENGINES_HEURISTIC_SEARCH_BASE_H
 #define PROBFD_ENGINES_HEURISTIC_SEARCH_BASE_H
 
-#include "probfd/engines/engine.h"
 #include "probfd/engines/heuristic_search_state_information.h"
 #include "probfd/engines/utils.h"
 
@@ -13,6 +12,7 @@
 
 #include "probfd/utils/graph_visualization.h"
 
+#include "probfd/engine.h"
 #include "probfd/progress_report.h"
 
 #include "downward/utils/collections.h"

@@ -1,5 +1,5 @@
-#ifndef PROBFD_ENGINES_ENGINE_H
-#define PROBFD_ENGINES_ENGINE_H
+#ifndef PROBFD_ENGINE_H
+#define PROBFD_ENGINE_H
 
 #include "probfd/policies/empty_policy.h"
 
@@ -17,9 +17,6 @@ class State;
 class OperatorID;
 
 namespace probfd {
-
-/// This namespace contains implementations of SSP search algorithms.
-namespace engines {
 
 /**
  * @brief Interface for MDP engine implementations.
@@ -59,10 +56,6 @@ public:
      */
     virtual void print_statistics(std::ostream&) const {}
 };
-
-} // namespace engines
-
-using TaskMDPEngine = engines::MDPEngine<State, OperatorID>;
 
 } // namespace probfd
 

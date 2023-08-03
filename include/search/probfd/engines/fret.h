@@ -1,17 +1,18 @@
 #ifndef PROBFD_ENGINES_FRET_H
 #define PROBFD_ENGINES_FRET_H
 
-#include "probfd/engines/engine.h"
 #include "probfd/engines/heuristic_search_base.h"
 
 #include "probfd/utils/graph_visualization.h"
 
-#include "probfd/progress_report.h"
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/policies/map_policy.h"
 
 #include "probfd/task_utils/task_properties.h"
+
+#include "probfd/engine.h"
+#include "probfd/progress_report.h"
 
 #include "downward/utils/countdown_timer.h"
 

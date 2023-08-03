@@ -491,7 +491,7 @@ private:
 };
 
 template <typename State, typename Action, bool UseInterval>
-class TALRTDP : public engines::MDPEngine<State, Action> {
+class TALRTDP : public MDPEngine<State, Action> {
     using QAction = quotients::QuotientAction<Action>;
 
     TALRTDP<State, QAction, UseInterval> engine_;

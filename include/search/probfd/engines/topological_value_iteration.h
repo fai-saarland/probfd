@@ -1,7 +1,6 @@
 #ifndef PROBFD_ENGINES_TOPOLOGICAL_VALUE_ITERATION_H
 #define PROBFD_ENGINES_TOPOLOGICAL_VALUE_ITERATION_H
 
-#include "probfd/engines/engine.h"
 #include "probfd/engines/utils.h"
 
 #include "probfd/storage/per_state_storage.h"
@@ -9,6 +8,8 @@
 #include "probfd/policies/map_policy.h"
 
 #include "probfd/utils/iterators.h"
+
+#include "probfd/engine.h"
 
 #include "downward/utils/countdown_timer.h"
 

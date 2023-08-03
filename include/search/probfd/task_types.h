@@ -22,6 +22,9 @@ class MDP;
 template <typename, typename>
 class SimpleMDP;
 
+template <typename, typename>
+class MDPEngine;
+
 // Heuristics / Evaluators
 template <typename>
 class Evaluator;
@@ -43,6 +46,9 @@ using TaskSimpleMDP = SimpleMDP<State, OperatorID>;
 
 /// Type alias for evaluators of planning tasks.
 using TaskEvaluator = Evaluator<State>;
+
+// Type alias for search engines for planning task MDPs.
+using TaskMDPEngine = MDPEngine<State, OperatorID>;
 
 } // namespace probfd
 

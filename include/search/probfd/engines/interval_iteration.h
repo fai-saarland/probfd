@@ -1,7 +1,6 @@
 #ifndef PROBFD_ENGINES_INTERVAL_ITERATION_H
 #define PROBFD_ENGINES_INTERVAL_ITERATION_H
 
-#include "probfd/engines/engine.h"
 #include "probfd/engines/topological_value_iteration.h"
 
 #include "probfd/preprocessing/end_component_decomposition.h"
@@ -10,6 +9,8 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/storage/per_state_storage.h"
+
+#include "probfd/engine.h"
 
 #include "downward/utils/collections.h"
 

@@ -1,10 +1,11 @@
 #ifndef PROBFD_ENGINES_TA_TOPOLOGICAL_VALUE_ITERATION_H
 #define PROBFD_ENGINES_TA_TOPOLOGICAL_VALUE_ITERATION_H
 
-#include "probfd/engines/engine.h"
 #include "probfd/engines/utils.h"
 
 #include "probfd/utils/iterators.h"
+
+#include "probfd/engine.h"
 
 #include "probfd/storage/per_state_storage.h"
 

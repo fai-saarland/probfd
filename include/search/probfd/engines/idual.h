@@ -1,11 +1,11 @@
 #ifndef PROBFD_ENGINES_IDUAL_H
 #define PROBFD_ENGINES_IDUAL_H
 
-#include "probfd/engines/engine.h"
 #include "probfd/engines/utils.h"
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/engine.h"
 #include "probfd/progress_report.h"
 
 #include "downward/lp/lp_solver.h"

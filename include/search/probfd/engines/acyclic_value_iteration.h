@@ -1,13 +1,13 @@
 #ifndef PROBFD_ENGINES_ACYCLIC_VALUE_ITERATION_H
 #define PROBFD_ENGINES_ACYCLIC_VALUE_ITERATION_H
 
-#include "probfd/engines/engine.h"
 #include "probfd/engines/utils.h"
 
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/policies/map_policy.h"
 
+#include "probfd/engine.h"
 #include "probfd/evaluator.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -16,6 +16,8 @@
 #include <stack>
 
 namespace probfd {
+
+/// This namespace contains implementations of SSP search algorithms.
 namespace engines {
 
 /// Namespace dedicated to the acyclic value iteration algorithm.

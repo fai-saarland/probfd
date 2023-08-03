@@ -1,7 +1,6 @@
 #ifndef PROBFD_ENGINES_EXHAUSTIVE_DFS_H
 #define PROBFD_ENGINES_EXHAUSTIVE_DFS_H
 
-#include "probfd/engines/engine.h"
 #include "probfd/engines/heuristic_search_state_information.h"
 #include "probfd/engines/utils.h"
 
@@ -11,6 +10,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/engine.h"
 #include "probfd/progress_report.h"
 
 #include "downward/utils/system.h"
