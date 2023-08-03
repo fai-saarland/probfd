@@ -112,14 +112,12 @@ protected:
 
 public:
     AOBase(
-        MDP<State, Action>* mdp,
         Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison)
         : HeuristicSearchBase(
-              mdp,
               value_init,
               policy_chooser,
               new_state_handler,
@@ -140,7 +138,9 @@ protected:
             [&](std::ostream& out) { out << "i=" << statistics_.iterations; });
     }
 
-    void backpropagate_tip_value(utils::CountdownTimer& timer)
+    void backpropagate_tip_value(
+        MDP<State, Action>& mdp,
+        utils::CountdownTimer& timer)
     {
         while (!queue_.empty()) {
             timer.throw_if_expired();
@@ -162,8 +162,12 @@ protected:
 
             bool solved = false;
             bool dead = false;
-            bool value_changed =
-                update_value_check_solved(elem.state_id, info, solved, dead);
+            bool value_changed = update_value_check_solved(
+                mdp,
+                elem.state_id,
+                info,
+                solved,
+                dead);
 
             if (solved) {
                 mark_solved_push_parents(elem.state_id, info, dead);
@@ -205,6 +209,7 @@ protected:
     }
 
     void initialize_tip_state_value(
+        MDP<State, Action>& mdp,
         StateID state,
         StateInfo& info,
         bool& terminal,
@@ -219,7 +224,8 @@ protected:
 
         terminal = false;
         solved = false;
-        value_changed = update_value_check_solved(state, info, solved, dead);
+        value_changed =
+            update_value_check_solved(mdp, state, info, solved, dead);
 
         if (info.is_terminal()) {
             terminal = true;
@@ -231,7 +237,7 @@ protected:
             }
 
             push_parents_to_queue(info);
-            backpropagate_tip_value(timer);
+            backpropagate_tip_value(mdp, timer);
         }
 
         assert(queue_.empty());
@@ -281,6 +287,7 @@ protected:
 
 private:
     bool update_value_check_solved(
+        MDP<State, Action>& mdp,
         StateID state,
         const StateInfo& info,
         bool& solved,
@@ -290,7 +297,8 @@ private:
             ClearGuard guard(selected_transition_);
 
             const bool result =
-                this->async_update(state, &selected_transition_).value_changed;
+                this->async_update(mdp, state, &selected_transition_)
+                    .value_changed;
             solved = true;
             dead = !selected_transition_.empty() || info.is_dead_end();
 
@@ -302,7 +310,7 @@ private:
 
             return result;
         } else {
-            const bool result = this->async_update(state);
+            const bool result = this->async_update(mdp, state);
 
             solved = info.unsolved == 0;
             dead = solved && info.alive == 0 && !info.is_goal_state();

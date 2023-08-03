@@ -55,7 +55,6 @@ class ExhaustiveAOSearch : public internal::AOBase<State, Action, UseInterval> {
 
 public:
     ExhaustiveAOSearch(
-        MDP<State, Action>* mdp,
         Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -63,7 +62,6 @@ public:
         bool interval_comparison,
         engine_interfaces::OpenList<Action>* open_list)
         : AOBase(
-              mdp,
               value_init,
               policy_chooser,
               new_state_handler,
@@ -74,17 +72,19 @@ public:
     }
 
 protected:
-    Interval do_solve(param_type<State> state, double max_time) override
+    Interval
+    do_solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
+        override
     {
         utils::CountdownTimer timer(max_time);
 
-        StateID stateid = this->get_state_id(state);
+        StateID stateid = mdp.get_state_id(state);
         const auto& state_info = this->get_state_info(stateid);
         open_list_->push(stateid);
 
         do {
-            timer.is_expired();
-            step(timer);
+            timer.throw_if_expired();
+            step(mdp, timer);
             this->print_progress();
         } while (!state_info.is_solved());
 
@@ -92,7 +92,7 @@ protected:
     }
 
 private:
-    void step(utils::CountdownTimer& timer)
+    void step(MDP<State, Action>& mdp, utils::CountdownTimer& timer)
     {
         assert(!this->open_list_->empty());
         StateID stateid = open_list_->pop();
@@ -109,6 +109,7 @@ private:
         bool value_changed = false;
 
         this->initialize_tip_state_value(
+            mdp,
             stateid,
             info,
             terminal,
@@ -128,10 +129,7 @@ private:
 
         ClearGuard _guard(this->aops_, this->transitions_);
 
-        this->generate_all_transitions(
-            stateid,
-            this->aops_,
-            this->transitions_);
+        mdp.generate_all_transitions(stateid, this->aops_, this->transitions_);
 
         assert(this->aops_.size() == this->transitions_.size());
 
@@ -159,7 +157,7 @@ private:
 
         if (unsolved == 0) {
             this->mark_solved_push_parents(stateid, info, info.alive == 0);
-            this->backpropagate_tip_value(timer);
+            this->backpropagate_tip_value(mdp, timer);
         } else {
             assert(min_succ_order < std::numeric_limits<unsigned>::max());
             info.update_order = min_succ_order + 1;
@@ -175,7 +173,7 @@ private:
 
             if (value_changed) {
                 this->push_parents_to_queue(info);
-                this->backpropagate_tip_value(timer);
+                this->backpropagate_tip_value(mdp, timer);
             }
         }
     }

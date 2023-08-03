@@ -124,14 +124,12 @@ class I2Dual : public MDPEngine<State, Action> {
 
 public:
     I2Dual(
-        MDP<State, Action>* mdp,
         Evaluator<State>* heuristic,
         ProgressReport* progress,
         bool hpom_enabled,
         bool incremental_updates,
         lp::LPSolverType solver_type)
-        : MDPEngine<State, Action>(mdp)
-        , task_proxy(*tasks::g_root_task)
+        : task_proxy(*tasks::g_root_task)
         , heuristic_(heuristic)
         , progress_(progress)
         , hpom_enabled_(hpom_enabled)
@@ -145,7 +143,9 @@ public:
         statistics_.print(out);
     }
 
-    Interval solve(param_type<State> state, double max_time) override
+    Interval
+    solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
+        override
     {
         utils::CountdownTimer timer(max_time);
 
@@ -195,8 +195,8 @@ public:
         objective_ = -1_vt;
 
         {
-            const StateID init_id = this->get_state_id(state);
-            if (!evaluate_state(state, idual_data[init_id])) {
+            const StateID init_id = mdp.get_state_id(state);
+            if (!evaluate_state(mdp, state, idual_data[init_id])) {
                 frontier.push_back(init_id);
             }
         }
@@ -205,7 +205,7 @@ public:
             progress_->print();
             timer.throw_if_expired();
 
-            update_hpom_constraints_expanded(idual_data, frontier);
+            update_hpom_constraints_expanded(mdp, idual_data, frontier);
 
             // Expand each state in frontier
             statistics_.expansions_ += frontier.size();
@@ -232,12 +232,12 @@ public:
 
                 // generate transitions
                 ClearGuard _guard_a(aops_);
-                this->generate_applicable_actions(state_id, aops_);
+                mdp.generate_applicable_actions(state_id, aops_);
 
                 for (const Action& act : aops_) {
                     ClearGuard _guard_s(succs_);
 
-                    this->generate_action_transitions(state_id, act, succs_);
+                    mdp.generate_action_transitions(state_id, act, succs_);
 
                     if (succs_.is_dirac(state_id)) {
                         continue;
@@ -255,10 +255,10 @@ public:
                         }
 
                         IDualData& succ_data = idual_data[succ_id];
-                        if (succ_data.is_new() &&
-                            !evaluate_state(
-                                this->lookup_state(succ_id),
-                                succ_data)) {
+                        if (succ_data.is_new() && !evaluate_state(
+                                                      mdp,
+                                                      mdp.get_state(succ_id),
+                                                      succ_data)) {
                             lp_solver_.add_constraint(dummy_constraint);
                             frontier_candidates.push_back(succ_id);
                         }
@@ -296,6 +296,7 @@ public:
             frontier.clear();
 
             update_hpom_constraints_frontier(
+                mdp,
                 idual_data,
                 frontier_candidates,
                 start_new_states);
@@ -336,11 +337,14 @@ public:
     }
 
 private:
-    bool evaluate_state(param_type<State> state, IDualData& data)
+    bool evaluate_state(
+        MDP<State, Action>& mdp,
+        param_type<State> state,
+        IDualData& data)
     {
         assert(data.is_new());
 
-        const TerminationInfo term_info = this->get_termination_info(state);
+        const TerminationInfo term_info = mdp.get_termination_info(state);
         if (term_info.is_goal_state()) {
             data.set_terminal(-term_info.get_cost());
             return true;
@@ -394,6 +398,7 @@ private:
     }
 
     void update_hpom_constraints_expanded(
+        MDP<State, Action>& mdp,
         storage::PerStateStorage<IDualData>& data,
         const std::vector<StateID>& expanded)
     {
@@ -405,7 +410,7 @@ private:
             TimerScope scope(statistics_.hpom_timer_);
             for (const StateID state_id : expanded) {
                 remove_fringe_state_from_hpom(
-                    this->lookup_state(state_id),
+                    mdp.get_state(state_id),
                     data[state_id],
                     hpom_constraints_);
             }
@@ -415,6 +420,7 @@ private:
     }
 
     void update_hpom_constraints_frontier(
+        MDP<State, Action>& mdp,
         storage::PerStateStorage<IDualData>& data,
         const std::vector<StateID>& frontier,
         const unsigned start)
@@ -429,7 +435,7 @@ private:
 
         for (; i < frontier.size(); ++i) {
             StateID state_id = frontier[i];
-            State s = this->lookup_state(state_id);
+            State s = mdp.get_state(state_id);
             add_fringe_state_to_hpom(s, data[state_id], hpom_constraints_);
         }
 

@@ -186,7 +186,6 @@ public:
      * @brief Constructs an LRTDP solver object.
      */
     LRTDP(
-        MDP<State, Action>* mdp,
         Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -195,7 +194,6 @@ public:
         TrialTerminationCondition stop_consistent,
         engine_interfaces::SuccessorSampler<Action>* succ_sampler)
         : HeuristicSearchBase(
-              mdp,
               value_init,
               policy_chooser,
               new_state_handler,
@@ -214,11 +212,13 @@ public:
     void reset_search_state() override { state_infos_.clear(); }
 
 protected:
-    Interval do_solve(param_type<State> state, double max_time) override
+    Interval
+    do_solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
+        override
     {
         utils::CountdownTimer timer(max_time);
 
-        const StateID state_id = this->get_state_id(state);
+        const StateID state_id = mdp.get_state_id(state);
 
         for (;;) {
             StateInfoT& info = get_lrtdp_state_info(state_id);
@@ -227,7 +227,7 @@ protected:
                 break;
             }
 
-            this->trial(state_id, timer);
+            this->trial(mdp, state_id, timer);
             this->statistics_.trials++;
             this->print_progress();
         }
@@ -248,7 +248,10 @@ protected:
     }
 
 private:
-    void trial(StateID initial_state, utils::CountdownTimer& timer)
+    void trial(
+        MDP<State, Action>& mdp,
+        StateID initial_state,
+        utils::CountdownTimer& timer)
     {
         using enum TrialTerminationCondition;
 
@@ -271,7 +274,7 @@ private:
 
             this->statistics_.trial_bellman_backups++;
             const bool value_changed =
-                this->async_update(state_id, &this->selected_transition_)
+                this->async_update(mdp, state_id, &this->selected_transition_)
                     .value_changed;
             if (this->selected_transition_.empty()) {
                 auto& base_info = this->get_state_info(state_id, state_info);
@@ -313,7 +316,10 @@ private:
         do {
             timer.throw_if_expired();
 
-            if (!this->check_and_solve(this->current_trial_.back(), timer)) {
+            if (!this->check_and_solve(
+                    mdp,
+                    this->current_trial_.back(),
+                    timer)) {
                 break;
             }
 
@@ -321,7 +327,10 @@ private:
         } while (!this->current_trial_.empty());
     }
 
-    bool check_and_solve(StateID init_state_id, utils::CountdownTimer& timer)
+    bool check_and_solve(
+        MDP<State, Action>& mdp,
+        StateID init_state_id,
+        utils::CountdownTimer& timer)
     {
         assert(!this->current_trial_.empty());
         assert(this->policy_queue_.empty());
@@ -354,7 +363,7 @@ private:
             this->statistics_.check_and_solve_bellman_backups++;
 
             const bool value_changed =
-                this->async_update(state_id, &this->selected_transition_)
+                this->async_update(mdp, state_id, &this->selected_transition_)
                     .value_changed;
 
             if (value_changed) {
@@ -393,7 +402,7 @@ private:
         } else {
             for (StateID sid : this->visited_) {
                 statistics_.check_and_solve_bellman_backups++;
-                this->async_update(sid);
+                this->async_update(mdp, sid);
                 get_lrtdp_state_info(sid).unmark();
             }
         }
@@ -413,7 +422,9 @@ private:
     }
 
     /*
-    bool check_and_solve_original(StateID init_state_id)
+    bool check_and_solve_original(
+        MDP<State, Action>& mdp,
+        StateID init_state_id)
     {
         bool rv = true;
 
@@ -434,7 +445,7 @@ private:
 
             this->statistics_.check_and_solve_bellman_backups++;
             const bool value_changed =
-                this->async_update(stateid, &this->selected_transition_);
+                this->async_update(mdp, stateid, &this->selected_transition_);
 
             if (value_changed) {
                 rv = false;
@@ -465,7 +476,7 @@ private:
                 const StateID sid = this->visited_.back();
                 auto& info = get_lrtdp_state_info(sid);
                 info.unmark();
-                this->async_update(sid);
+                this->async_update(mdp, sid);
                 this->visited_.pop_back();
                 this->statistics_.check_and_solve_bellman_backups++;
             }

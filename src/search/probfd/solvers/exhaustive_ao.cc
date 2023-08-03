@@ -26,7 +26,7 @@ public:
         : MDPHeuristicSearch<Bisimulation, false>(opts)
         , open_list_(this->wrap(
               opts.get<std::shared_ptr<TaskOpenListFactory>>("open_list")
-                  ->create_open_list(this->state_space_.get())))
+                  ->create_open_list(this->task_mdp.get())))
     {
     }
 
@@ -35,7 +35,7 @@ public:
         return "exhaustive_ao";
     }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<TaskMDPEngine> create_engine() override
     {
         return this->template create_heuristic_search_engine<
             engines::exhaustive_ao::ExhaustiveAOSearch>(open_list_.get());

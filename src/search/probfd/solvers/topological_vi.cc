@@ -38,7 +38,7 @@ public:
         return "topological_value_iteration";
     }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<TaskMDPEngine> create_engine() override
     {
         using TVIEngine = engines::topological_vi::
             TopologicalValueIteration<State, OperatorID>;

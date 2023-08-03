@@ -52,7 +52,7 @@ public:
 
     std::string get_heuristic_search_name() const override { return name_; }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<TaskMDPEngine> create_engine() override
     {
         return this->template create_heuristic_search_engine<Engine>(
             labeling_,

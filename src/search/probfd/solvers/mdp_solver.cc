@@ -24,7 +24,7 @@ MDPSolver::MDPSolver(const plugins::Options& opts)
     : task(tasks::g_root_task)
     , task_proxy(*task)
     , log(utils::get_log_from_options(opts))
-    , state_space_(
+    , task_mdp(
           opts.get<bool>("cache")
               ? new CachingTaskStateSpace(
                     task,
@@ -46,7 +46,7 @@ MDPSolver::MDPSolver(const plugins::Options& opts)
           opts.get<bool>("report_enabled"))
     , max_time(opts.get<double>("max_time"))
 {
-    progress_.register_print([&ss = *this->state_space_](std::ostream& out) {
+    progress_.register_print([&ss = *this->task_mdp](std::ostream& out) {
         out << "registered=" << ss.get_num_registered_states();
     });
 }
@@ -65,11 +65,11 @@ void MDPSolver::solve()
 
     try {
         utils::Timer total_timer;
-        std::unique_ptr<TaskMDPEngineInterface> engine = create_engine();
+        std::unique_ptr<TaskMDPEngine> engine = create_engine();
 
-        const State& initial_state = state_space_->get_initial_state();
+        const State& initial_state = task_mdp->get_initial_state();
 
-        Interval val = engine->solve(initial_state, max_time);
+        Interval val = engine->solve(*task_mdp, initial_state, max_time);
         progress_.force_print();
         total_timer.stop();
 
@@ -82,8 +82,8 @@ void MDPSolver::solve()
         std::cout << std::endl;
         std::cout << "State space interface:" << std::endl;
         std::cout << "  Registered state(s): "
-                  << state_space_->get_num_registered_states() << std::endl;
-        state_space_->print_statistics();
+                  << task_mdp->get_num_registered_states() << std::endl;
+        task_mdp->print_statistics();
 
         std::cout << std::endl;
         std::cout << "Engine " << get_engine_name()

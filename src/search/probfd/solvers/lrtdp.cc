@@ -35,7 +35,7 @@ public:
         , successor_sampler_(
               this->wrap(opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
                                  "successor_sampler")
-                             ->create_sampler(this->state_space_.get())))
+                             ->create_sampler(this->task_mdp.get())))
     {
         if constexpr (Fret) {
             if (stop_consistent_ != TrialTerminationCondition::CONSISTENT) {
@@ -51,7 +51,7 @@ public:
 
     std::string get_heuristic_search_name() const override { return "lrtdp"; }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<TaskMDPEngine> create_engine() override
     {
         return this->template create_heuristic_search_engine<LRTDP>(
             stop_consistent_,

@@ -121,7 +121,7 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     heuristics::BlindEvaluator<State> value_init;
     cost_models::SSPCostModel cost_model;
 
-    InducedTaskStateSpace state_space(
+    InducedTaskStateSpace mdp(
         task,
         utils::get_silent_log(),
         cost_model.get_cost_function());
@@ -130,7 +130,6 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     heuristic_depth_first_search::
         HeuristicDepthFirstSearch<State, OperatorID, false, true>
             hdfs(
-                &state_space,
                 &value_init,
                 &policy_chooser,
                 nullptr,
@@ -144,19 +143,16 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
                 true,
                 false);
 
-    auto policy = hdfs.compute_policy(state_space.get_initial_state());
+    auto policy = hdfs.compute_policy(mdp, mdp.get_initial_state());
 
     std::optional<PolicyDecision<OperatorID>> decision =
-        policy->get_decision(state_space.get_initial_state());
+        policy->get_decision(mdp.get_initial_state());
 
     ASSERT_NE(policy, nullptr);
     ASSERT_TRUE(decision.has_value());
     EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.01);
-    ASSERT_TRUE(verify_policy(
-        state_space,
-        *cost_model.get_cost_function(),
-        *policy,
-        state_space.get_state_id(state_space.get_initial_state())));
+    ASSERT_TRUE(
+        verify_policy(mdp, *policy, mdp.get_state_id(mdp.get_initial_state())));
 }
 
 TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
@@ -174,7 +170,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
     heuristics::BlindEvaluator<State> value_init;
     cost_models::SSPCostModel cost_model;
 
-    InducedTaskStateSpace state_space(
+    InducedTaskStateSpace mdp(
         task,
         utils::get_silent_log(),
         cost_model.get_cost_function());
@@ -182,9 +178,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         policy_chooser(
             new policy_pickers::ArbitraryTiebreaker<State, OperatorID>(true));
 
-    quotients::QuotientSystem<State, OperatorID> quotient(&state_space);
     quotients::RepresentativePolicyPicker<State> q_policy_chooser(
-        &quotient,
         policy_chooser);
 
     auto hdfs = std::make_shared<
@@ -193,7 +187,6 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
             quotients::QuotientAction<OperatorID>,
             false,
             true>>(
-        &quotient,
         &value_init,
         &q_policy_chooser,
         nullptr,
@@ -207,23 +200,16 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         true,
         false);
 
-    fret::FRETPi<State, OperatorID, false> fret(
-        &state_space,
-        &quotient,
-        &report,
-        hdfs);
+    fret::FRETPi<State, OperatorID, false> fret(&report, hdfs);
 
-    auto policy = fret.compute_policy(state_space.get_initial_state());
+    auto policy = fret.compute_policy(mdp, mdp.get_initial_state());
 
     std::optional<PolicyDecision<OperatorID>> decision =
-        policy->get_decision(state_space.get_initial_state());
+        policy->get_decision(mdp.get_initial_state());
 
     ASSERT_NE(policy, nullptr);
     ASSERT_TRUE(decision.has_value());
     EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.01);
-    ASSERT_TRUE(verify_policy(
-        state_space,
-        *cost_model.get_cost_function(),
-        *policy,
-        state_space.get_state_id(state_space.get_initial_state())));
+    ASSERT_TRUE(
+        verify_policy(mdp, *policy, mdp.get_state_id(mdp.get_initial_state())));
 }

@@ -40,7 +40,7 @@ protected:
     ProbabilisticTaskProxy task_proxy;
     mutable utils::LogProxy log;
 
-    std::unique_ptr<InducedTaskStateSpace> state_space_;
+    std::unique_ptr<InducedTaskStateSpace> task_mdp;
 
     ProgressReport progress_;
 
@@ -62,17 +62,15 @@ public:
      * @tparam Engine - The engine type to construct.
      */
     template <typename Engine, typename... Args>
-    std::unique_ptr<TaskMDPEngineInterface> engine_factory(Args&&... args)
+    std::unique_ptr<TaskMDPEngine> engine_factory(Args&&... args)
     {
-        return std::make_unique<Engine>(
-            state_space_.get(),
-            std::forward<Args>(args)...);
+        return std::make_unique<Engine>(std::forward<Args>(args)...);
     }
 
     /**
      * @brief Factory method a new instance of the encapsulated MDP engine.
      */
-    virtual std::unique_ptr<TaskMDPEngineInterface> create_engine() = 0;
+    virtual std::unique_ptr<TaskMDPEngine> create_engine() = 0;
 
     /**
      * @brief Returns the name of the encapsulated MDP engine.

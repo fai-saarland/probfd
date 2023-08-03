@@ -48,7 +48,7 @@ public:
               opts.contains("order")
                   ? opts.get<std::shared_ptr<TaskTransitionSorterFactory>>(
                             "order")
-                        ->create_transition_sorter(this->state_space_.get())
+                        ->create_transition_sorter(this->task_mdp.get())
                   : nullptr)
         , dual_bounds_(
               opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
@@ -65,7 +65,7 @@ public:
 
     std::string get_engine_name() const override { return "exhaustive_dfs"; }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<TaskMDPEngine> create_engine() override
     {
         using Engine = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
         using Engine2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;

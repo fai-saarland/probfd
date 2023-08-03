@@ -43,14 +43,13 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     quotients::RepresentativePolicyPicker<
         const AbstractState*,
         const ProbabilisticTransition*>
-        picker(&quotient, ptb);
+        picker(ptb);
 
     engines::trap_aware_dfhs::TADepthFirstHeuristicSearch<
         const AbstractState*,
         const ProbabilisticTransition*,
         false>
         hdfs(
-            &quotient,
             &heuristic,
             &picker,
             nullptr,
@@ -66,7 +65,8 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
             true,
             nullptr);
 
-    auto policy = hdfs.compute_policy(state, timer.get_remaining_time());
+    auto policy =
+        hdfs.compute_policy(abstraction, state, timer.get_remaining_time());
 
     for (int i = 0; i != abstraction.get_num_states(); ++i) {
         if (hdfs.was_visited(i)) {

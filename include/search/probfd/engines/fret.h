@@ -139,7 +139,6 @@ class FRET : public MDPEngine<State, Action> {
         }
     };
 
-    QuotientSystem* quotient_;
     std::shared_ptr<HeuristicSearchEngine<State, QAction, UseInterval>>
         base_engine_;
 
@@ -147,14 +146,10 @@ class FRET : public MDPEngine<State, Action> {
 
 public:
     FRET(
-        MDP<State, Action>* mdp,
-        QuotientSystem* quotient,
         ProgressReport* report,
         std::shared_ptr<HeuristicSearchEngine<State, QAction, UseInterval>>
             engine)
-        : MDPEngine<State, Action>(mdp)
-        , quotient_(quotient)
-        , base_engine_(engine)
+        : base_engine_(engine)
     {
         report->register_print([&](std::ostream& out) {
             out << "fret=" << statistics_.iterations
@@ -163,10 +158,12 @@ public:
     }
 
     std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
+        MDP<State, Action>& mdp,
         param_type<State> state,
         double max_time = std::numeric_limits<double>::infinity()) override
     {
-        this->solve(state, max_time);
+        QuotientSystem quotient(&mdp);
+        this->solve(quotient, state, max_time);
 
         /*
          * The quotient policy only specifies the optimal actions between traps.
@@ -183,9 +180,9 @@ public:
          */
 
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(this->get_mdp()));
+            new policies::MapPolicy<State, Action>(&mdp));
 
-        const StateID initial_state_id = this->get_state_id(state);
+        const StateID initial_state_id = mdp.get_state_id(state);
 
         std::deque<StateID> queue;
         std::set<StateID> visited;
@@ -215,19 +212,19 @@ public:
                 quotient_bound);
 
             // Nothing else needs to be done if the trap has only one state.
-            if (quotient_->quotient_size(quotient_id) != 1) {
+            if (quotient.quotient_size(quotient_id) != 1) {
                 std::unordered_map<StateID, std::set<QAction>> parents;
 
                 // Build the inverse graph
                 std::vector<QAction> inner_actions;
-                quotient_->get_pruned_ops(quotient_id, inner_actions);
+                quotient.get_pruned_ops(quotient_id, inner_actions);
 
                 for (const QAction& qaction : inner_actions) {
                     StateID source_id = qaction.state_id;
                     Action action = qaction.action;
 
                     Distribution<StateID> successors;
-                    this->generate_action_transitions(
+                    mdp.generate_action_transitions(
                         source_id,
                         action,
                         successors);
@@ -262,7 +259,7 @@ public:
 
             // Push the successor traps.
             Distribution<StateID> successors;
-            quotient_->generate_action_transitions(
+            quotient.generate_action_transitions(
                 quotient_id,
                 *quotient_action,
                 successors);
@@ -277,14 +274,23 @@ public:
         return policy;
     }
 
-    Interval solve(param_type<State> state, double max_time) override
+    Interval
+    solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
+        override
+    {
+        QuotientSystem quotient(&mdp);
+        return solve(quotient, state, max_time);
+    }
+
+    Interval
+    solve(QuotientSystem& quotient, param_type<State> state, double max_time)
     {
         utils::CountdownTimer timer(max_time);
 
         for (;;) {
-            const Interval value = heuristic_search(state, timer);
+            const Interval value = heuristic_search(quotient, state, timer);
 
-            if (find_and_remove_traps(state, timer)) {
+            if (find_and_remove_traps(quotient, state, timer)) {
                 return value;
             }
 
@@ -292,13 +298,15 @@ public:
         }
     }
 
-    Interval
-    heuristic_search(param_type<State> state, utils::CountdownTimer& timer)
+    Interval heuristic_search(
+        QuotientSystem& quotient,
+        param_type<State> state,
+        utils::CountdownTimer& timer)
     {
 #if defined(EXPENSIVE_STATISTICS)
         TimerScope scoped(statistics_.heuristic_search);
 #endif
-        return base_engine_->solve(state, timer.get_remaining_time());
+        return base_engine_->solve(quotient, state, timer.get_remaining_time());
     }
 
     void print_statistics(std::ostream& out) const override
@@ -308,8 +316,10 @@ public:
     }
 
 private:
-    bool
-    find_and_remove_traps(param_type<State> state, utils::CountdownTimer& timer)
+    bool find_and_remove_traps(
+        QuotientSystem& quotient,
+        param_type<State> state,
+        utils::CountdownTimer& timer)
     {
 #if defined(EXPENSIVE_STATISTICS)
         TimerScope scoped(statistics_.trap_identification);
@@ -321,11 +331,17 @@ private:
         std::deque<ExplorationInfo> exploration_queue;
         std::deque<StackInfo> stack;
 
-        StateID state_id = this->get_state_id(state);
+        StateID state_id = quotient.get_state_id(state);
         TarjanStateInformation* sinfo = &state_infos[state_id];
 
         {
-            if (!push(exploration_queue, stack, *sinfo, state_id, unexpanded)) {
+            if (!push(
+                    quotient,
+                    exploration_queue,
+                    stack,
+                    *sinfo,
+                    state_id,
+                    unexpanded)) {
                 return unexpanded == 0;
             }
         }
@@ -344,6 +360,7 @@ private:
                         std::min(sinfo->lowlink, succ_info.stack_index);
                 } else if (
                     !succ_info.is_explored() && push(
+                                                    quotient,
                                                     exploration_queue,
                                                     stack,
                                                     succ_info,
@@ -377,8 +394,8 @@ private:
                     if (einfo->is_leaf) {
                         // Terminal and self-loop leaf SCCs are always pruned
                         assert(scc.size() > 1);
-                        collapse_trap(scc);
-                        base_engine_->async_update(state_id);
+                        collapse_trap(quotient, scc);
+                        base_engine_->async_update(quotient, state_id);
                         ++trap_counter;
                     }
 
@@ -410,20 +427,21 @@ private:
 
     using StackIterator = std::deque<StateID>::iterator;
 
-    void collapse_trap(auto scc)
+    void collapse_trap(QuotientSystem& quotient, auto scc)
     {
 #if defined(EXPENSIVE_STATISTICS)
         TimerScope t(statistics_.trap_removal);
 #endif
 
         // Now collapse the quotient
-        quotient_->build_quotient(scc, *scc.begin());
+        quotient.build_quotient(scc, *scc.begin());
         base_engine_->clear_policy(scc.begin()->state_id);
 
         ++statistics_.traps;
     }
 
     bool push(
+        QuotientSystem& quotient,
         std::deque<ExplorationInfo>& queue,
         std::deque<StackInfo>& stack,
         TarjanStateInformation& info,
@@ -437,7 +455,12 @@ private:
         GreedyGraphGenerator greedy_graph;
         std::vector<QAction> aops;
         std::vector<StateID> succs;
-        if (greedy_graph.get_successors(*base_engine_, state_id, aops, succs)) {
+        if (greedy_graph.get_successors(
+                quotient,
+                *base_engine_,
+                state_id,
+                aops,
+                succs)) {
             ++unexpanded;
         }
 
@@ -454,13 +477,15 @@ private:
 
 template <typename State, typename Action, bool UseInterval>
 class ValueGraph {
-    using QAction = typename quotients::QuotientSystem<State, Action>::QAction;
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QAction = typename QuotientSystem::QAction;
 
     std::unordered_set<StateID> ids;
     std::vector<Distribution<StateID>> opt_transitions;
 
 public:
     bool get_successors(
+        QuotientSystem& quotient,
         HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
         StateID qstate,
         std::vector<QAction>& aops,
@@ -472,6 +497,7 @@ public:
 
         bool value_changed =
             base_engine.compute_value_update_and_optimal_transitions(
+                quotient,
                 qstate,
                 aops,
                 opt_transitions);
@@ -490,12 +516,14 @@ public:
 
 template <typename State, typename Action, bool UseInterval>
 class PolicyGraph {
-    using QAction = typename quotients::QuotientSystem<State, Action>::QAction;
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QAction = typename QuotientSystem::QAction;
 
     Distribution<StateID> t_;
 
 public:
     bool get_successors(
+        QuotientSystem& quotient,
         HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
         StateID qstate,
         std::vector<QAction>& aops,
@@ -503,7 +531,7 @@ public:
     {
         ClearGuard _guard(t_);
 
-        bool result = base_engine.apply_policy(qstate, t_);
+        bool result = base_engine.apply_policy(quotient, qstate, t_);
         for (StateID sid : t_.support()) {
             successors.push_back(sid);
         }

@@ -59,7 +59,7 @@ public:
     using MDPHeuristicSearchBase::add_options_to_feature;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngineInterface>
+    std::unique_ptr<TaskMDPEngine>
     create_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -98,8 +98,6 @@ template <>
 class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
     using QAction = quotients::QuotientAction<OperatorID>;
 
-    quotients::QuotientSystem<State, OperatorID> quotient_;
-
     std::shared_ptr<engine_interfaces::PolicyPicker<State, QAction>>
         q_policy_tiebreaker_;
 
@@ -108,11 +106,9 @@ class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
 public:
     explicit MDPHeuristicSearch(const plugins::Options& opts)
         : MDPHeuristicSearchBase(opts)
-        , quotient_(this->state_space_.get())
         , q_policy_tiebreaker_(
               this->policy_tiebreaker_ != nullptr
                   ? new quotients::RepresentativePolicyPicker<State>(
-                        &quotient_,
                         this->policy_tiebreaker_)
                   : nullptr)
         , fret_on_policy_(opts.get<bool>("fret_on_policy", false))
@@ -120,7 +116,7 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngineInterface>
+    std::unique_ptr<TaskMDPEngine>
     create_heuristic_search_engine(Args&&... args)
     {
         if (this->dual_bounds_) {
@@ -151,12 +147,11 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngineInterface>
+    std::unique_ptr<TaskMDPEngine>
     create_quotient_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
-                &quotient_,
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -165,7 +160,6 @@ public:
                 std::forward<Args>(args)...);
         } else {
             return std::make_unique<HS<State, OperatorID, false>>(
-                &quotient_,
                 heuristic_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
@@ -190,7 +184,7 @@ protected:
     template <typename T>
     typename Wrapper<false, true, T>::type wrap(T t)
     {
-        return Wrapper<false, true, T>()(&quotient_, t);
+        return Wrapper<false, true, T>()(t);
     }
 
 private:
@@ -201,11 +195,10 @@ private:
         class HS,
         bool Interval,
         typename... Args>
-    std::unique_ptr<TaskMDPEngineInterface>
+    std::unique_ptr<TaskMDPEngine>
     create_heuristic_search_engine_wrapper(Args&&... args)
     {
         std::shared_ptr engine = std::make_shared<HS<State, QAction, Interval>>(
-            &quotient_,
             heuristic_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
@@ -213,8 +206,6 @@ private:
             interval_comparison_,
             std::forward<Args>(args)...);
         return std::make_unique<Fret<State, OperatorID, Interval>>(
-            this->state_space_.get(),
-            &quotient_,
             &progress_,
             std::move(engine));
     }
@@ -232,7 +223,7 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngineInterface>
+    std::unique_ptr<TaskMDPEngine>
     create_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -277,7 +268,7 @@ public:
     using MDPHeuristicSearchBase::add_options_to_feature;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngineInterface>
+    std::unique_ptr<TaskMDPEngine>
     create_heuristic_search_engine(Args&&... args)
     {
         if (this->dual_bounds_) {
@@ -311,7 +302,7 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    std::unique_ptr<TaskMDPEngineInterface>
+    std::unique_ptr<TaskMDPEngine>
     create_quotient_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -358,7 +349,7 @@ private:
         template <typename, typename, bool>
         class HS,
         typename... Args>
-    std::unique_ptr<TaskMDPEngineInterface>
+    std::unique_ptr<TaskMDPEngine>
     heuristic_search_engine_factory_wrapper(Args&&... args)
     {
         return QBisimulationBasedHeuristicSearchEngine::

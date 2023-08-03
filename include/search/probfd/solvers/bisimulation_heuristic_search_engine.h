@@ -42,7 +42,7 @@ struct BisimulationTimer {
     }
 };
 
-class BisimulationBasedHeuristicSearchEngine : public TaskMDPEngineInterface {
+class BisimulationBasedHeuristicSearchEngine : public TaskMDPEngine {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
     using QQAction = quotients::QuotientAction<QAction>;
@@ -61,7 +61,7 @@ protected:
     std::shared_ptr<engine_interfaces::NewStateObserver<QState>>
         new_state_handler_;
 
-    std::shared_ptr<MDPEngineInterface<QState, QAction>> engine_;
+    std::shared_ptr<MDPEngine<QState, QAction>> engine_;
 
 public:
     explicit BisimulationBasedHeuristicSearchEngine(
@@ -104,7 +104,6 @@ public:
             engine_name);
 
         res->engine_.reset(new HS<QState, QAction, Interval>(
-            &res->state_space_,
             res->heuristic_.get(),
             res->policy_.get(),
             res->new_state_handler_.get(),
@@ -115,10 +114,13 @@ public:
         return res;
     }
 
-    virtual Interval solve(const State&, double max_time) override
+    virtual Interval solve(TaskMDP&, const State&, double max_time) override
     {
         std::cout << "Running " << engine_name_ << "..." << std::endl;
-        return engine_->solve(state_space_.get_initial_state(), max_time);
+        return engine_->solve(
+            state_space_,
+            state_space_.get_initial_state(),
+            max_time);
     }
 
     virtual void print_statistics(std::ostream& out) const override
@@ -137,8 +139,6 @@ class QBisimulationBasedHeuristicSearchEngine
     using QAction = bisimulation::QuotientAction;
     using QQAction = quotients::QuotientAction<QAction>;
 
-    quotients::QuotientSystem<QState, QAction> quotient_;
-
     std::shared_ptr<engine_interfaces::PolicyPicker<QState, QQAction>>
         q_policy_tiebreaker_;
 
@@ -146,7 +146,6 @@ public:
     explicit QBisimulationBasedHeuristicSearchEngine(
         const std::string& engine_name)
         : BisimulationBasedHeuristicSearchEngine(engine_name)
-        , quotient_(&state_space_)
         , q_policy_tiebreaker_(new policy_pickers::ArbitraryTiebreaker<
                                QState,
                                quotients::QuotientAction<QAction>>(true))
@@ -171,7 +170,6 @@ public:
 
         std::shared_ptr<HS<QState, QQAction, Interval>> engine(
             new HS<QState, QQAction, Interval>(
-                &res->quotient_,
                 res->heuristic_.get(),
                 res->q_policy_tiebreaker_.get(),
                 res->new_state_handler_.get(),
@@ -179,11 +177,8 @@ public:
                 interval,
                 std::forward<Args>(args)...));
 
-        res->engine_.reset(new Fret<QState, QAction, Interval>(
-            &res->state_space_,
-            &res->quotient_,
-            &progress,
-            engine));
+        res->engine_.reset(
+            new Fret<QState, QAction, Interval>(&progress, engine));
 
         return res;
     }

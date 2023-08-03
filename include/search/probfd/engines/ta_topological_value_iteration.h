@@ -111,12 +111,11 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
          * Advances to the next non-loop action. Returns nullptr if such an
          * action does not exist.
          */
-        bool
-        next_action(TATopologicalValueIteration* self, unsigned int state_id)
+        bool next_action(MDP<State, Action>& mdp, unsigned int state_id)
         {
             for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
                 transition.clear();
-                self->generate_action_transitions(
+                mdp.generate_action_transitions(
                     state_id,
                     aops.back(),
                     transition);
@@ -340,25 +339,24 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
     Statistics statistics_;
 
 public:
-    TATopologicalValueIteration(
-        MDP<State, Action>* mdp,
-        const Evaluator<State>* value_initializer)
-        : MDPEngine<State, Action>(mdp)
-        , value_initializer_(value_initializer)
+    TATopologicalValueIteration(const Evaluator<State>* value_initializer)
+        : value_initializer_(value_initializer)
     {
     }
 
     /**
      * \copydoc MDPEngine::solve(param_type<State>, double)
      */
-    Interval solve(param_type<State> state, double max_time) override
+    Interval
+    solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
+        override
     {
         storage::PerStateStorage<EngineValueType> value_store;
-        return this->solve(this->get_state_id(state), value_store, max_time);
+        return this->solve(mdp, mdp.get_state_id(state), value_store, max_time);
     }
 
     /**
-     * \copydoc MDPEngineInterface::print_statistics(std::ostream&) const
+     * \copydoc MDPEngine::print_statistics(std::ostream&) const
      */
     void print_statistics(std::ostream& out) const override
     {
@@ -379,6 +377,7 @@ public:
      */
     template <typename ValueStore>
     Interval solve(
+        MDP<State, Action>& mdp,
         StateID init_state_id,
         ValueStore& value_store,
         double max_time = std::numeric_limits<double>::infinity())
@@ -388,7 +387,7 @@ public:
         StateInfo& iinfo = state_information_[init_state_id];
         EngineValueType& init_value = value_store[init_state_id];
 
-        if (!push_state(init_state_id, iinfo, init_value)) {
+        if (!push_state(mdp, init_state_id, iinfo, init_value)) {
             if constexpr (UseInterval) {
                 return init_value;
             } else {
@@ -402,6 +401,7 @@ public:
 
         for (;;) {
             while (successor_loop(
+                mdp,
                 *explore,
                 *stack_info,
                 state_id,
@@ -483,9 +483,9 @@ public:
                 }
 
                 // Has next action -> stop backtracking
-                if (explore->next_action(this, state_id)) {
+                if (explore->next_action(mdp, state_id)) {
                     const auto cost =
-                        this->get_action_cost(explore->get_current_action());
+                        mdp.get_action_cost(explore->get_current_action());
                     explore->nz_or_leaves_scc = cost != 0.0_vt;
                     stack_info->ec_transitions.emplace_back(cost);
 
@@ -514,6 +514,7 @@ private:
      */
     template <typename ValueStore>
     bool successor_loop(
+        MDP<State, Action>& mdp,
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateID state_id,
@@ -541,7 +542,7 @@ private:
 
                 switch (status) {
                 case StateInfo::NEW:
-                    if (push_state(succ_id, succ_info, s_value)) {
+                    if (push_state(mdp, succ_id, succ_info, s_value)) {
                         return true; // recursion on new state
                     }
 
@@ -572,12 +573,11 @@ private:
                 stack_info.ec_transitions.pop_back();
             }
 
-            if (!explore.next_action(this, state_id)) {
+            if (!explore.next_action(mdp, state_id)) {
                 return false;
             }
 
-            const auto cost =
-                this->get_action_cost(explore.get_current_action());
+            const auto cost = mdp.get_action_cost(explore.get_current_action());
 
             explore.nz_or_leaves_scc = cost != 0.0_vt;
             stack_info.ec_transitions.emplace_back(cost);
@@ -590,15 +590,16 @@ private:
      * true if the state was pushed.
      */
     bool push_state(
+        MDP<State, Action>& mdp,
         StateID state_id,
         StateInfo& state_info,
         EngineValueType& state_value)
     {
         assert(state_info.status == StateInfo::NEW);
 
-        const State state = this->lookup_state(state_id);
+        const State state = mdp.get_state(state_id);
 
-        const TerminationInfo state_term = this->get_termination_info(state);
+        const TerminationInfo state_term = mdp.get_termination_info(state);
         const auto t_cost = state_term.get_cost();
 
         if (state_term.is_goal_state()) {
@@ -618,7 +619,7 @@ private:
         state_info.status = StateInfo::ONSTACK;
 
         std::vector<Action> aops;
-        this->generate_applicable_actions(state_id, aops);
+        mdp.generate_applicable_actions(state_id, aops);
         ++statistics_.expanded_states;
 
         if (aops.empty()) {
@@ -632,10 +633,7 @@ private:
         Distribution<StateID> transition;
 
         do {
-            this->generate_action_transitions(
-                state_id,
-                aops.back(),
-                transition);
+            mdp.generate_action_transitions(state_id, aops.back(), transition);
 
             assert(!transition.empty());
 
@@ -646,7 +644,7 @@ private:
                 state_info.stack_id = stack_size;
 
                 // Found non self loop action, push and return success.
-                const auto cost = this->get_action_cost(aops.back());
+                const auto cost = mdp.get_action_cost(aops.back());
 
                 ExplorationInfo& explore = exploration_stack_.emplace_back(
                     stack_size,

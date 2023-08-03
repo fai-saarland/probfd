@@ -19,27 +19,27 @@ class RepresentativePolicyPicker
     using QuotientAction = quotients::QuotientAction<Action>;
 
     std::vector<Action> choices_;
-    QuotientSystem* quotient_;
     std::shared_ptr<engine_interfaces::PolicyPicker<State, Action>> original_;
 
 public:
     RepresentativePolicyPicker(
-        QuotientSystem* quotient,
         std::shared_ptr<engine_interfaces::PolicyPicker<State, Action>>
             original)
-        : quotient_(quotient)
-        , original_(original)
+        : original_(original)
     {
     }
 
     int pick_index(
-        MDP<State, QuotientAction>&,
+        MDP<State, QuotientAction>& mdp,
         StateID state,
         std::optional<QuotientAction> prev_policy,
         const std::vector<QuotientAction>& action_choices,
         const std::vector<Distribution<StateID>>& successors,
         engine_interfaces::StateProperties& properties) override
     {
+        assert(dynamic_cast<QuotientSystem*>(&mdp));
+        QuotientSystem& quotient = static_cast<QuotientSystem&>(mdp);
+
         std::optional<Action> oprev = std::nullopt;
 
         if (prev_policy) oprev = prev_policy->action;
@@ -51,7 +51,7 @@ public:
         }
 
         return original_->pick_index(
-            *quotient_->get_parent_mdp(),
+            *quotient.get_parent_mdp(),
             state,
             oprev,
             choices_,
@@ -69,18 +69,14 @@ template <typename State>
 class RepresentativeSuccessorSampler
     : public engine_interfaces::SuccessorSampler<
           quotients::QuotientAction<OperatorID>> {
-    using QuotientSystem = quotients::QuotientSystem<State, OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
-    QuotientSystem* quotient_;
     std::shared_ptr<TaskSuccessorSampler> original_;
 
 public:
     RepresentativeSuccessorSampler(
-        QuotientSystem* quotient,
         std::shared_ptr<TaskSuccessorSampler> original)
-        : quotient_(quotient)
-        , original_(original)
+        : original_(original)
     {
     }
 
@@ -103,18 +99,13 @@ template <typename State>
 class RepresentativeOpenList
     : public engine_interfaces::OpenList<
           quotients::QuotientAction<OperatorID>> {
-    using QuotientSystem = quotients::QuotientSystem<State, OperatorID>;
     using QuotientAction = quotients::QuotientAction<OperatorID>;
 
-    QuotientSystem* quotient_;
     std::shared_ptr<TaskOpenList> original_;
 
 public:
-    RepresentativeOpenList(
-        QuotientSystem* quotient,
-        std::shared_ptr<TaskOpenList> original)
-        : quotient_(quotient)
-        , original_(original)
+    RepresentativeOpenList(std::shared_ptr<TaskOpenList> original)
+        : original_(original)
     {
     }
 

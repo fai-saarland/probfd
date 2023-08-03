@@ -13,8 +13,7 @@ InducedQuotientEvaluator::InducedQuotientEvaluator(
 {
 }
 
-EvaluationResult
-InducedQuotientEvaluator::evaluate(bisimulation::QuotientState s) const
+EvaluationResult InducedQuotientEvaluator::evaluate(QuotientState s) const
 {
     if (bisim_->is_dead_end(s)) {
         return EvaluationResult(true, bound_.upper);

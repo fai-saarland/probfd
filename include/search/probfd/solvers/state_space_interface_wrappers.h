@@ -50,12 +50,10 @@ struct Wrapper<false, true, std::shared_ptr<TaskSuccessorSampler>> {
     using type = std::shared_ptr<engine_interfaces::SuccessorSampler<
         quotients::QuotientAction<OperatorID>>>;
 
-    type operator()(
-        quotients::QuotientSystem<State, OperatorID>* q,
-        std::shared_ptr<TaskSuccessorSampler> t) const
+    type operator()(std::shared_ptr<TaskSuccessorSampler> t) const
     {
         return std::make_shared<
-            quotients::RepresentativeSuccessorSampler<State>>(q, t);
+            quotients::RepresentativeSuccessorSampler<State>>(t);
     }
 };
 
@@ -85,11 +83,9 @@ struct Wrapper<false, true, std::shared_ptr<TaskOpenList>> {
     using type = std::shared_ptr<
         engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>;
 
-    type operator()(
-        quotients::QuotientSystem<State, OperatorID>* q,
-        std::shared_ptr<TaskOpenList> t) const
+    type operator()(std::shared_ptr<TaskOpenList> t) const
     {
-        return std::make_shared<quotients::RepresentativeOpenList<State>>(q, t);
+        return std::make_shared<quotients::RepresentativeOpenList<State>>(t);
     }
 };
 

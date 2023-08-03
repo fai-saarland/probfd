@@ -108,18 +108,19 @@ class IDual : public MDPEngine<State, Action> {
 
 public:
     explicit IDual(
-        MDP<State, Action>* mdp,
         Evaluator<State>* value_initializer,
         ProgressReport* report,
         lp::LPSolverType solver_type)
-        : MDPEngine<State, Action>(mdp)
-        , value_initializer_(value_initializer)
+        : value_initializer_(value_initializer)
         , report_(report)
         , lp_solver_(solver_type)
     {
     }
 
-    Interval solve(param_type<State> initial_state, double max_time) override
+    Interval solve(
+        MDP<State, Action>& mdp,
+        param_type<State> initial_state,
+        double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 
@@ -153,7 +154,7 @@ public:
                 std::move(vars),
                 std::move(constraints),
                 inf));
-            prev_state = this->get_state_id(initial_state);
+            prev_state = mdp.get_state_id(initial_state);
             PerStateInfo& info = state_infos_[prev_state];
             info.idx = next_var_id;
             info.status = PerStateInfo::CLOSED;
@@ -180,9 +181,9 @@ public:
             for (const StateID state_id : frontier) {
                 timer.throw_if_expired();
 
-                const State state = this->lookup_state(state_id);
+                const State state = mdp.get_state(state_id);
                 const TerminationInfo term_info =
-                    this->get_termination_info(state);
+                    mdp.get_termination_info(state);
                 const auto t_cost = term_info.get_cost();
 
                 const unsigned var_id = state_infos_[state_id].idx;
@@ -195,7 +196,7 @@ public:
                 }
 
                 ClearGuard _guard(aops, transitions);
-                this->generate_all_transitions(state_id, aops, transitions);
+                mdp.generate_all_transitions(state_id, aops, transitions);
 
                 for (unsigned j = 0; j < transitions.size(); ++j) {
                     Distribution<StateID>& transition = transitions[j];
@@ -206,7 +207,7 @@ public:
 
                     lp::LPConstraint c(-inf, inf);
 
-                    double base_val = -this->get_action_cost(aops[j]);
+                    double base_val = -mdp.get_action_cost(aops[j]);
                     StateID next_prev_state = prev_state;
                     double w = 1.0;
 
@@ -221,7 +222,7 @@ public:
                         if (succ_id > prev_state) {
                             assert(state_infos_[succ_id].idx == (unsigned)-1);
 
-                            State succ_state = this->lookup_state(succ_id);
+                            State succ_state = mdp.get_state(succ_id);
                             const auto eval =
                                 value_initializer_->evaluate(succ_state);
                             const auto value = -eval.get_estimate();

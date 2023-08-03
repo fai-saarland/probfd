@@ -28,7 +28,7 @@ public:
         return "interval_iteration";
     }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<TaskMDPEngine> create_engine() override
     {
         using IIEngine =
             engines::interval_iteration::IntervalIteration<State, OperatorID>;

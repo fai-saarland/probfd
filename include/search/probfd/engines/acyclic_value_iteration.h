@@ -77,15 +77,15 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         IncrementalExpansionInfo(
             StateID state,
             std::vector<Action> remaining_aops,
-            MDPEngine<State, Action>& engine)
+            MDP<State, Action>& mdp)
             : state(state)
             , remaining_aops(std::move(remaining_aops))
         {
             assert(!this->remaining_aops.empty());
             auto& next_action = remaining_aops.back();
-            t_value = engine.get_action_cost(next_action);
+            t_value = mdp.get_action_cost(next_action);
             transition.clear();
-            engine.generate_action_transitions(state, next_action, transition);
+            mdp.generate_action_transitions(state, next_action, transition);
             successor = transition.begin();
         }
 
@@ -95,7 +95,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
             return ++successor != transition.end();
         }
 
-        bool generate_next_transition(MDPEngine<State, Action>& engine)
+        bool generate_next_transition(MDP<State, Action>& engine)
         {
             assert(!remaining_aops.empty());
             remaining_aops.pop_back();
@@ -122,45 +122,48 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
     std::stack<IncrementalExpansionInfo> expansion_stack_;
 
 public:
-    AcyclicValueIteration(
-        MDP<State, Action>* mdp,
-        Evaluator<State>* prune = nullptr)
-        : MDPEngine<State, Action>(mdp)
-        , prune_(prune)
+    explicit AcyclicValueIteration(Evaluator<State>* prune = nullptr)
+        : prune_(prune)
     {
     }
 
-    std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(param_type<State> initial_state, double max_time) override
+    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
+        MDP<State, Action>& mdp,
+        param_type<State> initial_state,
+        double max_time) override
     {
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(this->get_mdp()));
-        solve(initial_state, max_time, policy.get());
+            new policies::MapPolicy<State, Action>(&mdp));
+        solve(mdp, initial_state, max_time, policy.get());
         return policy;
     }
 
-    Interval solve(param_type<State> initial_state, double max_time) override
+    Interval solve(
+        MDP<State, Action>& mdp,
+        param_type<State> initial_state,
+        double max_time) override
     {
-        return solve(initial_state, max_time, nullptr);
+        return solve(mdp, initial_state, max_time, nullptr);
     }
 
     Interval solve(
+        MDP<State, Action>& mdp,
         param_type<State> initial_state,
         double max_time,
         policies::MapPolicy<State, Action>* policy)
     {
         utils::CountdownTimer timer(max_time);
 
-        const StateID initial_state_id = this->get_state_id(initial_state);
+        const StateID initial_state_id = mdp.get_state_id(initial_state);
         StateInfo& iinfo = state_infos_[initial_state_id];
 
-        if (!push_state(initial_state_id, iinfo)) {
+        if (!push_state(mdp, initial_state_id, iinfo)) {
             return Interval(iinfo.value);
         }
 
         do {
-            dfs_expand(timer, policy);
-        } while (dfs_backtrack(timer, policy));
+            dfs_expand(mdp, timer, policy);
+        } while (dfs_backtrack(mdp, timer, policy));
 
         assert(expansion_stack_.empty());
         return Interval(iinfo.value);
@@ -173,6 +176,7 @@ public:
 
 private:
     void dfs_expand(
+        MDP<State, Action>& mdp,
         utils::CountdownTimer& timer,
         policies::MapPolicy<State, Action>* policy)
     {
@@ -185,7 +189,8 @@ private:
                 const auto [succ_id, probability] = *e->successor;
                 StateInfo& succ_info = state_infos_[succ_id];
 
-                if (!succ_info.expanded && push_state(succ_id, succ_info)) {
+                if (!succ_info.expanded &&
+                    push_state(mdp, succ_id, succ_info)) {
                     e = &expansion_stack_.top();
                     continue; // DFS recursion
                 }
@@ -198,7 +203,7 @@ private:
             }
 
             finalize_transition(*e);
-        } while (e->generate_next_transition(*this));
+        } while (e->generate_next_transition(mdp));
 
         on_fully_expanded(*e, policy);
     }
@@ -238,6 +243,7 @@ private:
     }
 
     bool dfs_backtrack(
+        MDP<State, Action>& mdp,
         utils::CountdownTimer& timer,
         policies::MapPolicy<State, Action>* policy)
     {
@@ -263,7 +269,7 @@ private:
 
             finalize_transition(*e);
 
-            if (e->generate_next_transition(*this)) {
+            if (e->generate_next_transition(mdp)) {
                 return true;
             }
 
@@ -271,13 +277,14 @@ private:
         }
     }
 
-    bool push_state(StateID state_id, StateInfo& succ_info)
+    bool
+    push_state(MDP<State, Action>& mdp, StateID state_id, StateInfo& succ_info)
     {
         assert(!succ_info.expanded);
         succ_info.expanded = true;
 
-        const State state = this->lookup_state(state_id);
-        const TerminationInfo term_info = this->get_termination_info(state);
+        const State state = mdp.get_state(state_id);
+        const TerminationInfo term_info = mdp.get_termination_info(state);
         const value_t value = term_info.get_cost();
 
         succ_info.value = value;
@@ -294,14 +301,14 @@ private:
         }
 
         std::vector<Action> remaining_aops;
-        this->generate_applicable_actions(state_id, remaining_aops);
+        mdp.generate_applicable_actions(state_id, remaining_aops);
         if (remaining_aops.empty()) {
             ++statistics_.terminal_states;
             return false;
         }
 
         ++statistics_.state_expansions;
-        expansion_stack_.emplace(state_id, std::move(remaining_aops), *this);
+        expansion_stack_.emplace(state_id, std::move(remaining_aops), mdp);
 
         return true;
     }

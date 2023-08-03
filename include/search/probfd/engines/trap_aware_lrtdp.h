@@ -161,8 +161,6 @@ class TALRTDP<State, quotients::QuotientAction<Action>, UseInterval>
     static constexpr int STATE_UNSEEN = -1;
     static constexpr int STATE_CLOSED = -2;
 
-    QuotientSystem* quotient_;
-
     const TrialTerminationCondition stop_at_consistent_;
     const bool reexpand_traps_;
 
@@ -183,7 +181,6 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        quotients::QuotientSystem<State, Action>* quotient_mdp,
         Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -193,13 +190,11 @@ public:
         bool reexpand_traps,
         engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : HeuristicSearchBase(
-              quotient_mdp,
               value_init,
               policy_chooser,
               new_state_handler,
               report,
               interval_comparison)
-        , quotient_(quotient_mdp)
         , stop_at_consistent_(stop_consistent)
         , reexpand_traps_(reexpand_traps)
         , sample_(succ_sampler)
@@ -207,21 +202,31 @@ public:
     {
     }
 
-protected:
-    Interval do_solve(param_type<State> s, double max_time) override
+    Interval solve_quotient(
+        quotients::QuotientSystem<State, Action>& quotient,
+        param_type<State> s,
+        double max_time)
     {
         utils::CountdownTimer timer(max_time);
 
-        const StateID state_id = this->get_state_id(s);
+        const StateID state_id = quotient.get_state_id(s);
         bool terminate = false;
         do {
-            terminate = trial(state_id, timer);
+            terminate = trial(quotient, state_id, timer);
             statistics_.trials++;
-            assert(state_id == quotient_->translate_state_id(state_id));
+            assert(state_id == quotient.translate_state_id(state_id));
             this->print_progress();
         } while (!terminate);
 
         return this->lookup_bounds(state_id);
+    }
+
+protected:
+    Interval do_solve(MDP<State, QAction>&, param_type<State>, double) override
+    {
+        // FIXME refine class hierarchy as not to inherit this function
+        std::cerr << "This function should not be called!" << std::endl;
+        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
     void print_additional_statistics(std::ostream& out) const override
@@ -235,7 +240,10 @@ protected:
     }
 
 private:
-    bool trial(StateID start_state, utils::CountdownTimer& timer)
+    bool trial(
+        quotients::QuotientSystem<State, Action>& quotient,
+        StateID start_state,
+        utils::CountdownTimer& timer)
     {
         using enum TrialTerminationCondition;
 
@@ -256,7 +264,7 @@ private:
 
             statistics_.trial_bellman_backups++;
             const bool changed =
-                this->async_update(stateid, &selected_transition_)
+                this->async_update(quotient, stateid, &selected_transition_)
                     .value_changed;
 
             if (selected_transition_.empty()) {
@@ -291,7 +299,7 @@ private:
         do {
             timer.throw_if_expired();
 
-            if (!check_and_solve(timer)) {
+            if (!check_and_solve(quotient, timer)) {
                 return false;
             }
 
@@ -301,12 +309,14 @@ private:
         return true;
     }
 
-    bool check_and_solve(utils::CountdownTimer& timer)
+    bool check_and_solve(
+        quotients::QuotientSystem<State, Action>& quotient,
+        utils::CountdownTimer& timer)
     {
         assert(!this->current_trial_.empty());
 
         const StateID s =
-            quotient_->translate_state_id(this->current_trial_.back());
+            quotient.translate_state_id(this->current_trial_.back());
         auto& sinfo = this->get_state_info(s);
 
         if (sinfo.is_solved()) {
@@ -314,7 +324,7 @@ private:
             return true;
         }
 
-        if (Flags flags; !push_to_queue(s, flags)) {
+        if (Flags flags; !push_to_queue(quotient, s, flags)) {
             stack_index_.clear();
             return flags.rv;
         }
@@ -326,7 +336,7 @@ private:
                 timer.throw_if_expired();
 
                 const StateID succ =
-                    quotient_->translate_state_id(einfo->successors.back());
+                    quotient.translate_state_id(einfo->successors.back());
                 StateInfo& succ_info = this->get_state_info(succ);
                 int& sidx = stack_index_[succ];
                 if (sidx == STATE_UNSEEN) {
@@ -335,7 +345,7 @@ private:
                     }
                     if (succ_info.is_solved()) {
                         einfo->flags.update(succ_info);
-                    } else if (push_to_queue(succ, einfo->flags)) {
+                    } else if (push_to_queue(quotient, succ, einfo->flags)) {
                         einfo = &queue_.back();
                         continue;
                     }
@@ -369,7 +379,7 @@ private:
                         stack_.pop_back();
                         if (!einfo->flags.rv) {
                             ++this->statistics_.check_and_solve_bellman_backups;
-                            this->async_update(state);
+                            this->async_update(quotient, state);
                         } else {
                             this->get_state_info(state).set_solved();
                         }
@@ -380,20 +390,20 @@ private:
                                 stack_index_[entry.state_id] = STATE_CLOSED;
                             }
                             TimerScope scope(statistics_.trap_timer);
-                            quotient_->build_quotient(scc, *scc.begin());
+                            quotient.build_quotient(scc, *scc.begin());
                             this->get_state_info(state).clear_policy();
                             ++this->statistics_.traps;
                             ++this->statistics_.check_and_solve_bellman_backups;
                             stack_.erase(scc.begin(), scc.end());
                             if (reexpand_traps_) {
                                 queue_.pop_back();
-                                if (push_to_queue(state, flags)) {
+                                if (push_to_queue(quotient, state, flags)) {
                                     break;
                                 } else {
                                     goto skip_pop;
                                 }
                             } else {
-                                this->async_update(state);
+                                this->async_update(quotient, state);
                                 einfo->flags.rv = false;
                             }
                         } else if (einfo->flags.rv) {
@@ -406,7 +416,7 @@ private:
                         } else {
                             for (const auto& entry : scc) {
                                 stack_index_[entry.state_id] = STATE_CLOSED;
-                                this->async_update(entry.state_id);
+                                this->async_update(quotient, entry.state_id);
                             }
                             stack_.erase(scc.begin(), scc.end());
                         }
@@ -435,15 +445,18 @@ private:
         }
     }
 
-    bool push_to_queue(const StateID state, Flags& parent_flags)
+    bool push_to_queue(
+        quotients::QuotientSystem<State, Action>& quotient,
+        const StateID state,
+        Flags& parent_flags)
     {
-        assert(this->quotient_->translate_state_id(state) == state);
+        assert(quotient.translate_state_id(state) == state);
         assert(this->selected_transition_.empty());
 
         ++this->statistics_.check_and_solve_bellman_backups;
 
         const auto result =
-            this->async_update(state, &this->selected_transition_);
+            this->async_update(quotient, state, &this->selected_transition_);
 
         if (this->selected_transition_.empty()) {
             assert(this->get_state_info(state).is_dead_end());
@@ -470,7 +483,7 @@ private:
 
         assert(!e.successors.empty());
         this->selected_transition_.clear();
-        e.flags.is_trap = this->get_action_cost(*result.policy_action) == 0;
+        e.flags.is_trap = quotient.get_action_cost(*result.policy_action) == 0;
         stack_index_[state] = stack_.size();
         stack_.emplace_back(state, *result.policy_action);
         return true;
@@ -478,7 +491,7 @@ private:
 };
 
 template <typename State, typename Action, bool UseInterval>
-class TALRTDP : public engines::MDPEngineInterface<State, Action> {
+class TALRTDP : public engines::MDPEngine<State, Action> {
     using QAction = quotients::QuotientAction<Action>;
 
     TALRTDP<State, QAction, UseInterval> engine_;
@@ -488,7 +501,6 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        quotients::QuotientSystem<State, Action>* quotient_mdp,
         Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -498,7 +510,6 @@ public:
         bool reexpand_traps,
         engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : engine_(
-              quotient_mdp,
               value_init,
               policy_chooser,
               new_state_handler,
@@ -510,9 +521,12 @@ public:
     {
     }
 
-    Interval solve(param_type<State> s, double max_time) override
+    Interval
+    solve(MDP<State, Action>& mdp, param_type<State> s, double max_time)
+        override
     {
-        return engine_.solve(s, max_time);
+        quotients::QuotientSystem<State, Action> quotient(&mdp);
+        return engine_.solve_quotient(quotient, s, max_time);
     }
 
     void print_statistics(std::ostream& out) const override

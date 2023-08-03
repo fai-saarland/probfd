@@ -269,7 +269,6 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
 
 public:
     explicit ExhaustiveDepthFirstSearch(
-        MDP<State, Action>* mdp,
         Evaluator<State>* evaluator,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         engine_interfaces::TransitionSorter<Action>* transition_sorting,
@@ -279,8 +278,7 @@ public:
         bool path_updates,
         bool only_propagate_when_changed,
         ProgressReport* progress)
-        : MDPEngine<State, Action>(mdp)
-        , evaluator_(evaluator)
+        : evaluator_(evaluator)
         , new_state_handler_(new_state_handler)
         , transition_sort_(transition_sorting)
         , report_(progress)
@@ -293,17 +291,22 @@ public:
     {
     }
 
-    Interval solve(param_type<State> state, double) override
+    Interval
+    solve(MDP<State, Action>& mdp, param_type<State> state, double) override
     {
-        StateID stateid = this->get_state_id(state);
+        StateID stateid = mdp.get_state_id(state);
         SearchNodeInformation& info = search_space_[stateid];
-        if (!initialize_search_node(state, info)) {
-        } else if (!push_state(stateid, info)) {
-            std::cout << "initial state is dead end!" << std::endl;
-        } else {
-            register_value_reports(&info);
-            run_exploration();
+        if (!initialize_search_node(mdp, state, info)) {
+            return search_space_.lookup_bounds(stateid);
         }
+
+        if (!push_state(mdp, stateid, info)) {
+            std::cout << "initial state is dead end!" << std::endl;
+            return search_space_.lookup_bounds(stateid);
+        }
+
+        register_value_reports(&info);
+        run_exploration(mdp);
 
         return search_space_.lookup_bounds(stateid);
     }
@@ -345,18 +348,23 @@ private:
         }
     }
 
-    bool initialize_search_node(StateID state_id, SearchNodeInformation& info)
+    bool initialize_search_node(
+        MDP<State, Action>& mdp,
+        StateID state_id,
+        SearchNodeInformation& info)
     {
-        return initialize_search_node(this->lookup_state(state_id), info);
+        return initialize_search_node(mdp, mdp.get_state(state_id), info);
     }
 
-    bool
-    initialize_search_node(param_type<State> state, SearchNodeInformation& info)
+    bool initialize_search_node(
+        MDP<State, Action>& mdp,
+        param_type<State> state,
+        SearchNodeInformation& info)
     {
         assert(info.is_new());
         info.value = trivial_bound_;
 
-        TerminationInfo term_info = this->get_termination_info(state);
+        TerminationInfo term_info = mdp.get_termination_info(state);
         info.state_cost = term_info.get_cost();
         if (term_info.is_goal_state()) {
             info.close();
@@ -391,11 +399,14 @@ private:
         return true;
     }
 
-    bool push_state(StateID state_id, SearchNodeInformation& info)
+    bool push_state(
+        MDP<State, Action>& mdp,
+        StateID state_id,
+        SearchNodeInformation& info)
     {
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> successors;
-        this->generate_all_transitions(state_id, aops, successors);
+        mdp.generate_all_transitions(state_id, aops, successors);
         if (successors.empty()) {
             info.value = EngineValueType(info.state_cost);
             info.set_dead_end();
@@ -427,7 +438,7 @@ private:
             auto& t = si.successors[i];
             bool all_self_loops = true;
 
-            succs.remove_if([this, &exp, &t, &all_self_loops, state_id](
+            succs.remove_if([this, &mdp, &exp, &t, &all_self_loops, state_id](
                                 auto& elem) {
                 const auto [succ_id, prob] = elem;
 
@@ -439,7 +450,7 @@ private:
 
                 SearchNodeInformation& succ_info = search_space_[succ_id];
                 if (succ_info.is_new()) {
-                    initialize_search_node(succ_id, succ_info);
+                    initialize_search_node(mdp, succ_id, succ_info);
                 }
 
                 if (succ_info.is_closed()) {
@@ -461,12 +472,12 @@ private:
             if (succs.empty()) {
                 if (!all_self_loops) {
                     pure_self_loop = false;
-                    t.base += cost + this->get_action_cost(a);
+                    t.base += cost + mdp.get_action_cost(a);
                     auto non_loop = 1_vt - t.self_loop;
                     update_lower_bound(info.value, t.base / non_loop);
                 }
             } else {
-                t.base += cost + this->get_action_cost(a);
+                t.base += cost + mdp.get_action_cost(a);
 
                 if (t.self_loop == 0_vt) {
                     t.self_loop = 1_vt;
@@ -510,7 +521,7 @@ private:
         return true;
     }
 
-    void run_exploration()
+    void run_exploration(MDP<State, Action>& mdp)
     {
         while (!expansion_infos_.empty()) {
             ExpansionInformation& expanding = expansion_infos_.back();
@@ -543,7 +554,7 @@ private:
                     assert(!succ_info.is_new());
 
                     if (succ_info.is_open()) {
-                        if (push_state(succ_id, succ_info)) {
+                        if (push_state(mdp, succ_id, succ_info)) {
                             goto skip;
                         }
 

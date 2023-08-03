@@ -29,7 +29,7 @@ public:
 
     std::string get_engine_name() const override { return "i2dual"; }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<TaskMDPEngine> create_engine() override
     {
         using I2DualEngine = engines::i2dual::I2Dual<State, OperatorID>;
 

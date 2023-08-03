@@ -59,6 +59,9 @@ public:
 
     void solve() override
     {
+        using namespace engines::interval_iteration;
+        using namespace engines::topological_vi;
+
         utils::Timer total_timer;
 
         std::cout << "Building bisimulation..." << std::endl;
@@ -86,16 +89,15 @@ public:
         std::unique_ptr<engines::MDPEngine<QState, QAction>> solver;
         Interval val;
         if (interval_iteration_) {
-            solver.reset(new engines::interval_iteration::IntervalIteration<
-                         QState,
-                         QAction>(&state_space, nullptr, false, false));
-            val = solver->solve(state_space.get_initial_state());
+            solver.reset(
+                new IntervalIteration<QState, QAction>(nullptr, false, false));
+            val = solver->solve(state_space, state_space.get_initial_state());
         } else {
             heuristics::ConstantEvaluator<QState> initializer(0_vt);
-            solver.reset(new engines::topological_vi::TopologicalValueIteration<
-                         QState,
-                         QAction>(&state_space, &initializer, false));
-            val = solver->solve(state_space.get_initial_state());
+            solver.reset(new TopologicalValueIteration<QState, QAction>(
+                &initializer,
+                false));
+            val = solver->solve(state_space, state_space.get_initial_state());
         }
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
         std::cout << std::endl;

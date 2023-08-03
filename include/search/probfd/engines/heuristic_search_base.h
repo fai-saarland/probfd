@@ -188,14 +188,12 @@ protected:
 
 public:
     HeuristicSearchBase(
-        MDP<State, Action>* mdp,
         Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison)
-        : MDPEngine<State, Action>(mdp)
-        , value_initializer_(value_init)
+        : value_initializer_(value_init)
         , policy_chooser_(policy_chooser)
         , on_new_state_(new_state_handler)
         , report_(report)
@@ -204,22 +202,22 @@ public:
         statistics_.state_info_bytes = sizeof(StateInfo);
     }
 
-    virtual ~HeuristicSearchBase() = default;
-
     Interval solve(
+        MDP<State, Action>& mdp,
         param_type<State> state,
         double max_time =
             std::numeric_limits<double>::infinity()) final override
     {
-        this->initialize_report(state);
-        return this->do_solve(state, max_time);
+        this->initialize_report(mdp, state);
+        return this->do_solve(mdp, state, max_time);
     }
 
     std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
+        MDP<State, Action>& mdp,
         param_type<State> state,
         double max_time = std::numeric_limits<double>::infinity()) override
     {
-        this->solve(state, max_time);
+        this->solve(mdp, state, max_time);
 
         /*
          * Expand some greedy policy graph, starting from the initial state.
@@ -227,9 +225,9 @@ public:
          */
 
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(this->get_mdp()));
+            new policies::MapPolicy<State, Action>(&mdp));
 
-        const StateID initial_state_id = this->get_state_id(state);
+        const StateID initial_state_id = mdp.get_state_id(state);
 
         std::deque<StateID> queue;
         std::set<StateID> visited;
@@ -240,7 +238,13 @@ public:
             const StateID state_id = queue.front();
             queue.pop_front();
 
-            std::optional action = this->lookup_policy(state_id);
+            std::optional<Action> action;
+
+            if constexpr (StorePolicy) {
+                action = this->lookup_policy(state_id);
+            } else {
+                action = this->lookup_policy(mdp, state_id);
+            }
 
             // Terminal states have no policy decision.
             if (!action) {
@@ -253,7 +257,7 @@ public:
 
             // Push the successor traps.
             Distribution<StateID> successors;
-            this->generate_action_transitions(state_id, *action, successors);
+            mdp.generate_action_transitions(state_id, *action, successors);
 
             for (const StateID succ_id : successors.support()) {
                 if (visited.insert(succ_id).second) {
@@ -281,29 +285,34 @@ public:
         return get_state_info(state_id).get_bounds();
     }
 
-    std::optional<Action> lookup_policy(StateID state_id)
+    std::optional<Action>
+    lookup_policy(MDP<State, Action>& mdp, StateID state_id)
+        requires(!StorePolicy)
     {
-        if constexpr (!StorePolicy) {
-            std::vector<Action> opt_aops;
-            std::vector<Distribution<StateID>> opt_transitions;
-            compute_optimal_transitions(
-                state_id,
-                lookup_initialize(state_id),
-                opt_aops,
-                opt_transitions);
+        std::vector<Action> opt_aops;
+        std::vector<Distribution<StateID>> opt_transitions;
+        compute_optimal_transitions(
+            mdp,
+            state_id,
+            lookup_initialize(mdp, state_id),
+            opt_aops,
+            opt_transitions);
 
-            if (opt_aops.empty()) return std::nullopt;
+        if (opt_aops.empty()) return std::nullopt;
 
-            return opt_aops[this->policy_chooser_->pick_index(
-                *this->get_mdp(),
-                state_id,
-                std::nullopt,
-                opt_aops,
-                opt_transitions,
-                state_infos_)];
-        } else {
-            return get_state_info(state_id).policy;
-        }
+        return opt_aops[this->policy_chooser_->pick_index(
+            mdp,
+            state_id,
+            std::nullopt,
+            opt_aops,
+            opt_transitions,
+            state_infos_)];
+    }
+
+    std::optional<Action> lookup_policy(StateID state_id)
+        requires(StorePolicy)
+    {
+        return get_state_info(state_id).policy;
     }
 
     /**
@@ -372,23 +381,26 @@ public:
      * @param[out] result - The returned successor distribution when applying
      * the current greedy action in the state represented by \p state
      */
-    bool apply_policy(StateID state_id, Distribution<StateID>& result)
+    bool apply_policy(
+        MDP<State, Action>& mdp,
+        StateID state_id,
+        Distribution<StateID>& result)
     {
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
         std::optional a = get_state_info(state_id).get_policy();
 
         if (!a) {
-            return async_update(state_id, &result).value_changed;
+            return async_update(mdp, state_id, &result).value_changed;
         }
 
-        this->generate_action_transitions(state_id, *a, result);
+        mdp.generate_action_transitions(state_id, *a, result);
         return false;
     }
 
     /**
-     * @brief Calls notify_dead_end(StateID, StateInfo&) with the
-     * respective state info object
+     * @brief Calls notify_dead_end(StateInfo&) with the respective state info
+     * object
      */
     bool notify_dead_end(StateID state_id)
     {
@@ -411,8 +423,8 @@ public:
     }
 
     /**
-     * @brief Calls notify_dead_end_ifnot_goal(StateID, StateInfo&) for
-     * the internal state info object of \p state_id.
+     * @brief Calls notify_dead_end_ifnot_goal(StateInfo&) for the internal
+     * state info object of \p state_id.
      */
     bool notify_dead_end_ifnot_goal(StateID state_id)
     {
@@ -442,12 +454,12 @@ public:
      * If the policy is stored, the greedy action for s is also updated using
      * the internal policy tiebreaking settings.
      */
-    bool async_update(StateID s)
+    bool async_update(MDP<State, Action>& mdp, StateID s)
     {
         if constexpr (!StorePolicy) {
-            return compute_value_update(s, lookup_initialize(s));
+            return compute_value_update(mdp, s, lookup_initialize(mdp, s));
         } else {
-            return compute_value_policy_update(s, nullptr).value_changed;
+            return compute_value_policy_update(mdp, s, nullptr).value_changed;
         }
     }
 
@@ -462,20 +474,24 @@ public:
      * @param[out] policy_transition - Return address for the new greedy
      * transition.
      */
-    UpdateResult
-    async_update(StateID s, Distribution<StateID>* policy_transition)
+    UpdateResult async_update(
+        MDP<State, Action>& mdp,
+        StateID s,
+        Distribution<StateID>* policy_transition)
     {
-        return compute_value_policy_update(s, policy_transition);
+        return compute_value_policy_update(mdp, s, policy_transition);
     }
 
     bool compute_value_update_and_optimal_transitions(
+        MDP<State, Action>& mdp,
         StateID state_id,
         std::vector<Action>& opt_aops,
         std::vector<Distribution<StateID>>& opt_transitions)
     {
         return compute_value_update_and_optimal_transitions(
+            mdp,
             state_id,
-            lookup_initialize(state_id),
+            lookup_initialize(mdp, state_id),
             opt_aops,
             opt_transitions);
     }
@@ -486,7 +502,10 @@ protected:
      *
      * Called internally after initializing the progress report.
      */
-    virtual Interval do_solve(param_type<State> state, double max_time) = 0;
+    virtual Interval do_solve(
+        MDP<State, Action>& mdp,
+        param_type<State> state,
+        double max_time) = 0;
 
     /**
      * @brief Prints additional statistics to the output stream.
@@ -574,13 +593,13 @@ protected:
     }
 
 private:
-    void initialize_report(param_type<State> state)
+    void initialize_report(MDP<State, Action>& mdp, param_type<State> state)
     {
-        initial_state_id_ = this->get_state_id(state);
+        initial_state_id_ = mdp.get_state_id(state);
 
         StateInfo& info = get_state_info(initial_state_id_);
 
-        if (!initialize_if_needed(initial_state_id_, info)) {
+        if (!initialize_if_needed(mdp, initial_state_id_, info)) {
             return;
         }
 
@@ -612,20 +631,23 @@ private:
         }
     }
 
-    StateInfo& lookup_initialize(StateID state_id)
+    StateInfo& lookup_initialize(MDP<State, Action>& mdp, StateID state_id)
     {
         StateInfo& state_info = get_state_info(state_id);
-        initialize_if_needed(state_id, state_info);
+        initialize_if_needed(mdp, state_id, state_info);
         return state_info;
     }
 
-    bool initialize_if_needed(StateID state_id, StateInfo& state_info)
+    bool initialize_if_needed(
+        MDP<State, Action>& mdp,
+        StateID state_id,
+        StateInfo& state_info)
     {
         if (!state_info.is_value_initialized()) {
             statistics_.evaluated_states++;
 
-            State state = this->lookup_state(state_id);
-            TerminationInfo term = this->get_termination_info(state);
+            State state = mdp.get_state(state_id);
+            TerminationInfo term = mdp.get_termination_info(state);
             const value_t t_cost = term.get_cost();
 
             state_info.termination_cost = t_cost;
@@ -660,7 +682,10 @@ private:
         return false;
     }
 
-    bool compute_value_update(StateID state_id, StateInfo& state_info)
+    bool compute_value_update(
+        MDP<State, Action>& mdp,
+        StateID state_id,
+        StateInfo& state_info)
     {
 #if defined(EXPENSIVE_STATISTICS)
         TimerScope scoped_upd_timer(statistics_.update_time);
@@ -678,7 +703,7 @@ private:
 
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> transitions;
-        this->generate_all_transitions(state_id, aops, transitions);
+        mdp.generate_all_transitions(state_id, aops, transitions);
 
         assert(aops.size() == transitions.size());
 
@@ -701,7 +726,7 @@ private:
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
-            EngineValueType t_value(this->get_action_cost(op));
+            EngineValueType t_value(mdp.get_action_cost(op));
             value_t self_loop = 0_vt;
             bool non_loop = false;
 
@@ -709,7 +734,8 @@ private:
                 if (succ_id == state_id) {
                     self_loop += prob;
                 } else {
-                    const StateInfo& succ_info = lookup_initialize(succ_id);
+                    const StateInfo& succ_info =
+                        lookup_initialize(mdp, succ_id);
                     t_value += prob * succ_info.value;
                     non_loop = true;
                 }
@@ -742,13 +768,14 @@ private:
     }
 
     EngineValueType compute_non_loop_transitions_and_values(
+        MDP<State, Action>& mdp,
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& transitions,
         std::vector<EngineValueType>& values)
     {
-        this->generate_all_transitions(state_id, aops, transitions);
+        mdp.generate_all_transitions(state_id, aops, transitions);
 
         assert(aops.size() == transitions.size());
 
@@ -761,7 +788,7 @@ private:
             Action& op = aops[i];
             Distribution<StateID>& transition = transitions[i];
 
-            EngineValueType t_value(this->get_action_cost(op));
+            EngineValueType t_value(mdp.get_action_cost(op));
             value_t self_loop = 0_vt;
             bool non_loop = false;
 
@@ -769,7 +796,8 @@ private:
                 if (succ_id == state_id) {
                     self_loop += prob;
                 } else {
-                    const StateInfo& succ_info = lookup_initialize(succ_id);
+                    const StateInfo& succ_info =
+                        lookup_initialize(mdp, succ_id);
                     t_value += prob * succ_info.value;
                     non_loop = true;
                 }
@@ -802,6 +830,7 @@ private:
     }
 
     EngineValueType compute_optimal_transitions(
+        MDP<State, Action>& mdp,
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& opt_aops,
@@ -810,6 +839,7 @@ private:
         std::vector<EngineValueType> values;
         const EngineValueType best_value =
             compute_non_loop_transitions_and_values(
+                mdp,
                 state_id,
                 state_info,
                 opt_aops,
@@ -845,6 +875,7 @@ private:
     }
 
     bool compute_value_update_and_optimal_transitions(
+        MDP<State, Action>& mdp,
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& opt_aops,
@@ -865,6 +896,7 @@ private:
         }
 
         EngineValueType optimal_value = compute_optimal_transitions(
+            mdp,
             state_id,
             state_info,
             opt_aops,
@@ -887,6 +919,7 @@ private:
     }
 
     UpdateResult compute_value_policy_update(
+        MDP<State, Action>& mdp,
         StateID state_id,
         Distribution<StateID>* greedy_transition)
     {
@@ -895,9 +928,10 @@ private:
         std::vector<Action> opt_aops;
         std::vector<Distribution<StateID>> opt_transitions;
 
-        StateInfo& state_info = lookup_initialize(state_id);
+        StateInfo& state_info = lookup_initialize(mdp, state_id);
 
         const bool value_changed = compute_value_update_and_optimal_transitions(
+            mdp,
             state_id,
             state_info,
             opt_aops,
@@ -909,6 +943,7 @@ private:
         }
 
         auto [policy_changed, action] = compute_policy_update(
+            mdp,
             state_id,
             state_info,
             opt_aops,
@@ -919,6 +954,7 @@ private:
     }
 
     std::pair<bool, Action> compute_policy_update(
+        MDP<State, Action>& mdp,
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& opt_aops,
@@ -932,7 +968,7 @@ private:
         ++statistics_.policy_updates;
 
         const int index = this->policy_chooser_->pick_index(
-            *this->get_mdp(),
+            mdp,
             state_id,
             state_info.get_policy(),
             opt_aops,

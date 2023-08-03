@@ -54,9 +54,18 @@ namespace interval_iteration {
  */
 template <typename State, typename Action>
 class IntervalIteration : public MDPEngine<State, Action> {
+    using Decomposer = preprocessing::EndComponentDecomposition<State, Action>;
+    using QuotientSystem = typename Decomposer::QuotientSystem;
+    using QAction = typename QuotientSystem::QAction;
+    using ValueIteration =
+        topological_vi::TopologicalValueIteration<State, QAction, true>;
+
     const Evaluator<State>* heuristic_;
     const bool extract_probability_one_states_;
     const bool expand_goals_;
+
+    preprocessing::QualitativeReachabilityAnalysis<State, QAction> qr_analysis;
+    ValueIteration vi;
 
     preprocessing::ECDStatistics ecd_statistics_;
     topological_vi::Statistics tvi_statistics_;
@@ -64,33 +73,28 @@ class IntervalIteration : public MDPEngine<State, Action> {
     storage::PerStateStorage<Interval> value_store_;
 
 public:
-    using Decomposer = preprocessing::EndComponentDecomposition<State, Action>;
-    using QuotientSystem = typename Decomposer::QuotientSystem;
-    using QAction = typename QuotientSystem::QAction;
-
-    using ValueIteration =
-        topological_vi::TopologicalValueIteration<State, QAction, true>;
-
     using BoolStore = std::vector<StateID>;
 
     explicit IntervalIteration(
-        MDP<State, Action>* mdp,
         const Evaluator<State>* heuristic,
         bool extract_probability_one_states,
         bool expand_goals)
-        : MDPEngine<State, Action>(mdp)
-        , heuristic_(heuristic)
+        : heuristic_(heuristic)
         , extract_probability_one_states_(extract_probability_one_states)
         , expand_goals_(expand_goals)
+        , qr_analysis(expand_goals_)
+        , vi(heuristic, expand_goals)
     {
     }
 
-    Interval solve(param_type<State> state, double max_time) override
+    Interval
+    solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
+        override
     {
         utils::CountdownTimer timer(max_time);
-        std::unique_ptr<QuotientSystem> sys = get_quotient(state, timer);
+        std::unique_ptr<QuotientSystem> sys = get_quotient(mdp, state, timer);
         BoolStore dead, one;
-        return mysolve(state, value_store_, dead, one, sys.get(), timer);
+        return mysolve(mdp, state, value_store_, dead, one, *sys, timer);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -101,6 +105,7 @@ public:
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval solve(
+        MDP<State, Action>& mdp,
         param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
@@ -109,14 +114,15 @@ public:
     {
         utils::CountdownTimer timer(max_time);
 
-        auto sys = get_quotient(state, timer);
+        auto sys = get_quotient(mdp, state, timer);
 
         const Interval x = this->mysolve(
+            mdp,
             state,
             value_store,
             dead_ends,
             one_states,
-            sys.get(),
+            *sys,
             timer);
 
         for (StateID repr_id : *sys) {
@@ -137,13 +143,15 @@ public:
     }
 
 private:
-    std::unique_ptr<QuotientSystem>
-    get_quotient(param_type<State> state, utils::CountdownTimer& timer)
+    std::unique_ptr<QuotientSystem> get_quotient(
+        MDP<State, Action>& mdp,
+        param_type<State> state,
+        utils::CountdownTimer& timer)
     {
         Decomposer ec_decomposer(expand_goals_, heuristic_);
 
         auto sys = ec_decomposer.build_quotient_system(
-            {*this->get_mdp()},
+            mdp,
             state,
             timer.get_remaining_time());
 
@@ -154,30 +162,27 @@ private:
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval mysolve(
+        MDP<State, Action>& mdp,
         param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
         SetLike2& one_states,
-        QuotientSystem* sys,
+        QuotientSystem& sys,
         utils::CountdownTimer timer)
     {
-        preprocessing::QualitativeReachabilityAnalysis<State, QAction> analysis(
-            expand_goals_);
-
         if (extract_probability_one_states_) {
-            analysis.run_analysis(
-                *sys,
+            qr_analysis.run_analysis(
+                sys,
                 state,
                 std::back_inserter(dead_ends),
                 iterators::discarding_output_iterator(),
                 std::back_inserter(one_states),
                 timer.get_remaining_time());
-            assert(this->get_termination_info(
-                           this->lookup_state(one_states.front()))
+            assert(mdp.get_termination_info(mdp.get_state(one_states.front()))
                        .is_goal_state());
         } else {
-            analysis.run_analysis(
-                *sys,
+            qr_analysis.run_analysis(
+                sys,
                 state,
                 std::back_inserter(dead_ends),
                 iterators::discarding_output_iterator(),
@@ -187,16 +192,14 @@ private:
 
         assert(::utils::is_unique(dead_ends) && ::utils::is_unique(one_states));
 
-        sys->build_quotient(dead_ends);
-        sys->build_quotient(one_states);
+        sys.build_quotient(dead_ends);
+        sys.build_quotient(one_states);
 
         const auto new_init_id =
-            sys->translate_state_id(this->get_state_id(state));
-
-        ValueIteration vi(sys, heuristic_, expand_goals_);
+            sys.translate_state_id(mdp.get_state_id(state));
 
         const Interval result =
-            vi.solve(new_init_id, value_store, timer.get_remaining_time());
+            vi.solve(sys, new_init_id, value_store, timer.get_remaining_time());
         tvi_statistics_ = vi.get_statistics();
         return result;
     }

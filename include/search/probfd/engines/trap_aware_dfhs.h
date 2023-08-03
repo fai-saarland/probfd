@@ -176,8 +176,6 @@ class TADepthFirstHeuristicSearch<
     static constexpr int STATE_UNSEEN = -1;
     static constexpr int STATE_CLOSED = -2;
 
-    QuotientSystem* quotient_;
-
     const bool forward_updates_;
     const BacktrackingUpdateType backtrack_update_type_;
     const bool expand_tip_states_;
@@ -205,7 +203,6 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        quotients::QuotientSystem<State, Action>* quotient_mdp,
         Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -221,13 +218,11 @@ public:
         bool reexpand_removed_traps,
         engine_interfaces::OpenList<QAction>* open_list)
         : HeuristicSearchBase(
-              quotient_mdp,
               value_init,
               policy_chooser,
               new_state_handler,
               report,
               interval_comparison)
-        , quotient_(quotient_mdp)
         , forward_updates_(forward_updates)
         , backtrack_update_type_(backtrack_update_type)
         , expand_tip_states_(expand_tip_states)
@@ -241,18 +236,28 @@ public:
     {
     }
 
-protected:
-    Interval do_solve(param_type<State> qstate, double max_time) override
+    Interval solve_quotient(
+        quotients::QuotientSystem<State, Action>& quotient,
+        param_type<State> qstate,
+        double max_time)
     {
         utils::CountdownTimer timer(max_time);
 
-        StateID state_id = this->get_state_id(qstate);
+        StateID state_id = quotient.get_state_id(qstate);
         if (value_iteration_) {
-            dfhs_vi_driver(state_id, timer);
+            dfhs_vi_driver(quotient, state_id, timer);
         } else {
-            dfhs_label_driver(state_id, timer);
+            dfhs_label_driver(quotient, state_id, timer);
         }
         return this->lookup_bounds(state_id);
+    }
+
+protected:
+    Interval do_solve(MDP<State, QAction>&, param_type<State>, double) override
+    {
+        // FIXME refine class hierarchy as not to inherit this function
+        std::cerr << "This function should not be called!" << std::endl;
+        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
     void print_additional_statistics(std::ostream& out) const override
@@ -266,13 +271,17 @@ protected:
     }
 
 private:
-    void dfhs_vi_driver(const StateID state, utils::CountdownTimer& timer)
+    void dfhs_vi_driver(
+        quotients::QuotientSystem<State, Action>& quotient,
+        const StateID state,
+        utils::CountdownTimer& timer)
     {
         UpdateResult vi_res{true, true};
         do {
-            const bool is_complete = policy_exploration(state, timer);
+            const bool is_complete = policy_exploration(quotient, state, timer);
             if (is_complete) {
-                vi_res = value_iteration<false>(visited_states_, timer);
+                vi_res =
+                    value_iteration<false>(quotient, visited_states_, timer);
             }
             visited_states_.clear();
             ++statistics_.iterations;
@@ -280,11 +289,14 @@ private:
         } while (vi_res.value_changed || vi_res.policy_changed);
     }
 
-    void dfhs_label_driver(const StateID state, utils::CountdownTimer& timer)
+    void dfhs_label_driver(
+        quotients::QuotientSystem<State, Action>& quotient,
+        const StateID state,
+        utils::CountdownTimer& timer)
     {
         bool is_complete = false;
         do {
-            is_complete = policy_exploration(state, timer) &&
+            is_complete = policy_exploration(quotient, state, timer) &&
                           this->get_state_info(state).is_solved();
             visited_states_.clear();
             ++statistics_.iterations;
@@ -326,7 +338,11 @@ private:
         info.flags.is_trap = zero_cost;
     }
 
-    bool push_state(StateID state, StateInfo& state_info, Flags& flags)
+    bool push_state(
+        quotients::QuotientSystem<State, Action>& quotient,
+        StateID state,
+        StateInfo& state_info,
+        Flags& flags)
     {
         assert(!terminated_);
         assert(!state_info.is_solved() && !state_info.is_terminal());
@@ -336,7 +352,7 @@ private:
         const bool tip = state_info.is_on_fringe();
         if (tip || forward_updates_) {
             ++statistics_.fw_updates;
-            auto result = this->async_update(state, &transition_);
+            auto result = this->async_update(quotient, state, &transition_);
             flags.all_solved = flags.all_solved && !result.value_changed;
             const bool cutoff = (!expand_tip_states_ && tip) ||
                                 (cutoff_inconsistent_ && result.value_changed);
@@ -351,20 +367,23 @@ private:
                 flags.complete = false;
                 return false;
             }
-            zero_cost = this->get_action_cost(*result.policy_action) == 0;
+            zero_cost = quotient.get_action_cost(*result.policy_action) == 0;
             enqueue(state, *result.policy_action, zero_cost);
 
         } else {
             QAction action = this->get_policy(state);
-            this->generate_action_transitions(state, action, transition_);
-            zero_cost = this->get_action_cost(action) == 0;
+            quotient.generate_action_transitions(state, action, transition_);
+            zero_cost = quotient.get_action_cost(action) == 0;
             enqueue(state, action, zero_cost);
         }
 
         return true;
     }
 
-    bool push_state(StateID state, Flags& flags)
+    bool push_state(
+        quotients::QuotientSystem<State, Action>& quotient,
+        StateID state,
+        Flags& flags)
     {
         StateInfo& state_info = this->get_state_info(state);
         if (state_info.is_terminal() || state_info.is_solved()) {
@@ -373,15 +392,18 @@ private:
             return false;
         }
 
-        return push_state(state, state_info, flags);
+        return push_state(quotient, state, state_info, flags);
     }
 
-    bool repush_trap(StateID state, Flags& flags)
+    bool repush_trap(
+        quotients::QuotientSystem<State, Action>& quotient,
+        StateID state,
+        Flags& flags)
     {
         flags.clear();
         ++statistics_.fw_updates;
 
-        auto result = this->async_update(state, &transition_);
+        auto result = this->async_update(quotient, state, &transition_);
         flags.all_solved = !result.value_changed;
         const bool cutoff = !reexpand_removed_traps_ ||
                             (cutoff_inconsistent_ && result.value_changed);
@@ -404,18 +426,21 @@ private:
 
         flags.clear();
         const bool zero_cost =
-            this->get_action_cost(*result.policy_action) == 0;
+            quotient.get_action_cost(*result.policy_action) == 0;
         enqueue(state, *result.policy_action, zero_cost);
         return true;
     }
 
-    bool policy_exploration(StateID start_state, utils::CountdownTimer& timer)
+    bool policy_exploration(
+        quotients::QuotientSystem<State, Action>& quotient,
+        StateID start_state,
+        utils::CountdownTimer& timer)
     {
         using enum BacktrackingUpdateType;
 
         assert(visited_states_.empty());
         terminated_ = false;
-        if (Flags flags; !push_state(start_state, flags)) {
+        if (Flags flags; !push_state(quotient, start_state, flags)) {
             return flags.complete;
         }
 
@@ -427,7 +452,7 @@ private:
                 timer.throw_if_expired();
 
                 const StateID succ =
-                    quotient_->translate_state_id(einfo->successors.back());
+                    quotient.translate_state_id(einfo->successors.back());
 
                 int& succ_status = stack_index_[succ];
                 if (succ_status == STATE_UNSEEN) {
@@ -437,7 +462,11 @@ private:
                     if (succ_info.is_terminal() || succ_info.is_solved()) {
                         succ_info.set_solved();
                         einfo->flags.update(succ_info);
-                    } else if (push_state(succ, succ_info, einfo->flags)) {
+                    } else if (push_state(
+                                   quotient,
+                                   succ,
+                                   succ_info,
+                                   einfo->flags)) {
                         einfo = &queue_.back();
                         state = einfo->state;
                         continue;
@@ -471,7 +500,7 @@ private:
                     (backtrack_update_type_ == ON_DEMAND &&
                      (!flags.complete || !flags.all_solved))) {
                     ++statistics_.bw_updates;
-                    auto updated = this->async_update(state, nullptr);
+                    auto updated = this->async_update(quotient, state, nullptr);
                     flags.complete = flags.complete && !updated.policy_changed;
                     flags.all_solved =
                         flags.all_solved && !updated.value_changed;
@@ -488,7 +517,8 @@ private:
 
                     if (scc.size() == 1) {
                         if (backtrack_update_type_ == CONVERGENCE) {
-                            auto res = this->async_update(state, nullptr);
+                            auto res =
+                                this->async_update(quotient, state, nullptr);
                             flags.complete =
                                 flags.complete && !res.policy_changed;
                             flags.all_solved =
@@ -502,6 +532,7 @@ private:
                     } else {
                         if (backtrack_update_type_ == CONVERGENCE) {
                             auto res = value_iteration<true>(
+                                quotient,
                                 scc |
                                     std::views::transform(&StackInfo::state_id),
                                 timer);
@@ -514,7 +545,11 @@ private:
                                 (terminate_exploration_ &&
                                  cutoff_inconsistent_ && res.value_changed);
                         }
-                        if (backtrack_from_non_singleton(state, flags, scc)) {
+                        if (backtrack_from_non_singleton(
+                                quotient,
+                                state,
+                                flags,
+                                scc)) {
                             break; // re-expanded trap, continue exploring
                         }
                     }
@@ -556,14 +591,17 @@ private:
         flags.is_trap = false;
     }
 
-    bool
-    backtrack_from_non_singleton(const StateID state, Flags& flags, auto scc)
+    bool backtrack_from_non_singleton(
+        quotients::QuotientSystem<State, Action>& quotient,
+        const StateID state,
+        Flags& flags,
+        auto scc)
     {
         assert(!flags.is_trap || !flags.complete || flags.all_solved);
 
         if (flags.complete && flags.all_solved) {
             if (flags.is_trap) {
-                return backtrack_trap(state, flags, scc);
+                return backtrack_trap(quotient, state, flags, scc);
             }
 
             backtrack_solved(state, flags, scc);
@@ -574,7 +612,11 @@ private:
         return false;
     }
 
-    bool backtrack_trap(const StateID state, Flags& flags, auto scc)
+    bool backtrack_trap(
+        quotients::QuotientSystem<State, Action>& quotient,
+        const StateID state,
+        Flags& flags,
+        auto scc)
     {
         assert(flags.dead);
         ++this->statistics_.traps;
@@ -585,10 +627,10 @@ private:
 
         TimerScope scope(statistics_.trap_timer);
 
-        quotient_->build_quotient(scc, *scc.begin());
+        quotient.build_quotient(scc, *scc.begin());
         this->get_state_info(state).clear_policy();
         stack_.erase(scc.begin(), scc.end());
-        return repush_trap(state, flags);
+        return repush_trap(quotient, state, flags);
     }
 
     void backtrack_solved(const StateID, Flags& flags, auto scc)
@@ -623,6 +665,7 @@ private:
 
     template <bool Convergence>
     UpdateResult value_iteration(
+        quotients::QuotientSystem<State, Action>& quotient,
         const std::ranges::input_range auto& range,
         utils::CountdownTimer& timer)
     {
@@ -637,7 +680,7 @@ private:
             for (const StateID id : range) {
                 timer.throw_if_expired();
 
-                const auto result = this->async_update(id, nullptr);
+                const auto result = this->async_update(quotient, id, nullptr);
                 value_changed = value_changed || result.value_changed;
                 policy_changed = policy_changed || result.policy_changed;
             }
@@ -653,7 +696,7 @@ private:
 };
 
 template <typename State, typename Action, bool UseInterval>
-class TADepthFirstHeuristicSearch : public MDPEngineInterface<State, Action> {
+class TADepthFirstHeuristicSearch : public MDPEngine<State, Action> {
     TADepthFirstHeuristicSearch<
         State,
         quotients::QuotientAction<Action>,
@@ -667,7 +710,6 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        quotients::QuotientSystem<State, Action>* quotient_mdp,
         Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
@@ -683,7 +725,6 @@ public:
         bool reexpand_removed_traps,
         engine_interfaces::OpenList<QAction>* open_list)
         : engine_(
-              quotient_mdp,
               value_init,
               policy_chooser,
               new_state_handler,
@@ -701,17 +742,21 @@ public:
     {
     }
 
-    Interval solve(param_type<State> state, double max_time) override
+    Interval
+    solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
+        override
     {
-        return engine_.solve(state, max_time);
+        quotients::QuotientSystem<State, Action> quotient(&mdp);
+        return engine_.solve_quotient(quotient, state, max_time);
     }
 
-    std::unique_ptr<PartialPolicy<State, Action>>
-    compute_policy(param_type<State> state, double max_time) override
+    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
+        MDP<State, Action>& mdp,
+        param_type<State> state,
+        double max_time) override
     {
-        this->solve(state, max_time);
-
-        auto* parent_mdp = engine_.quotient_->get_parent_mdp();
+        quotients::QuotientSystem<State, Action> quotient(&mdp);
+        engine_.solve_quotient(quotient, state, max_time);
 
         /*
          * The quotient policy only specifies the optimal actions between
@@ -730,9 +775,9 @@ public:
          */
 
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(parent_mdp));
+            new policies::MapPolicy<State, Action>(&mdp));
 
-        const StateID initial_state_id = parent_mdp->get_state_id(state);
+        const StateID initial_state_id = mdp.get_state_id(state);
 
         std::deque<StateID> queue({initial_state_id});
         std::set<StateID> visited({initial_state_id});
@@ -758,19 +803,19 @@ public:
                 quotient_bound);
 
             // Nothing else needs to be done if the trap has only one state.
-            if (engine_.quotient_->quotient_size(quotient_id) != 1) {
+            if (quotient.quotient_size(quotient_id) != 1) {
                 std::unordered_map<StateID, std::set<QAction>> parents;
 
                 // Build the inverse graph
                 std::vector<QAction> inner_actions;
-                engine_.quotient_->get_pruned_ops(quotient_id, inner_actions);
+                quotient.get_pruned_ops(quotient_id, inner_actions);
 
                 for (const QAction& qaction : inner_actions) {
                     StateID source_id = qaction.state_id;
                     Action action = qaction.action;
 
                     Distribution<StateID> successors;
-                    parent_mdp->generate_action_transitions(
+                    mdp.generate_action_transitions(
                         source_id,
                         action,
                         successors);
@@ -803,7 +848,7 @@ public:
 
             // Push the successor traps.
             Distribution<StateID> successors;
-            engine_.quotient_->generate_action_transitions(
+            quotient.generate_action_transitions(
                 quotient_id,
                 *quotient_action,
                 successors);
