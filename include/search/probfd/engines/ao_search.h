@@ -74,14 +74,14 @@ template <
     template <typename>
     class StateInfoExtension>
 class AOBase
-    : public heuristic_search::HeuristicSearchBase<
+    : public heuristic_search::HeuristicSearchEngine<
           State,
           Action,
           Interval,
           StorePolicy,
           StateInfoExtension> {
     /// The heuristic search base class.
-    using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
+    using HeuristicSearchEngine = heuristic_search::HeuristicSearchEngine<
         State,
         Action,
         Interval,
@@ -103,7 +103,7 @@ class AOBase
     std::priority_queue<PrioritizedStateID> queue_;
 
 protected:
-    using StateInfo = typename HeuristicSearchBase::StateInfo;
+    using StateInfo = typename HeuristicSearchEngine::StateInfo;
 
     std::vector<Action> aops_;
     Distribution<StateID> selected_transition_;
@@ -116,7 +116,7 @@ public:
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison)
-        : HeuristicSearchBase(
+        : HeuristicSearchEngine(
               policy_chooser,
               new_state_handler,
               report,

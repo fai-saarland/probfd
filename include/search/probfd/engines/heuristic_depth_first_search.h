@@ -78,13 +78,13 @@ using StandalonePerStateInformation =
 template <typename State, typename Action, bool UseInterval, bool Fret>
 using HDFSBase = std::conditional_t<
     Fret,
-    heuristic_search::HeuristicSearchBase<
+    heuristic_search::HeuristicSearchEngine<
         State,
         Action,
         UseInterval,
         true,
         heuristic_search::NoAdditionalStateData>,
-    heuristic_search::HeuristicSearchBase<
+    heuristic_search::HeuristicSearchEngine<
         State,
         Action,
         UseInterval,
@@ -108,10 +108,10 @@ class HeuristicDepthFirstSearch
 
     using Statistics = internal::Statistics;
 
-    using HeuristicSearchBase =
+    using HeuristicSearchEngine =
         internal::HDFSBase<State, Action, UseInterval, Fret>;
 
-    using StateInfo = typename HeuristicSearchBase::StateInfo;
+    using StateInfo = typename HeuristicSearchEngine::StateInfo;
 
     using AdditionalStateInfo = std::
         conditional_t<Fret, internal::StandalonePerStateInformation, StateInfo>;
@@ -186,7 +186,7 @@ public:
         bool GreedyExploration,
         bool PerformValueIteration,
         bool ExpandTipStates)
-        : HeuristicSearchBase(
+        : HeuristicSearchEngine(
               policy_chooser,
               new_state_handler,
               report,

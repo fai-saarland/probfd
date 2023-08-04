@@ -115,8 +115,8 @@ struct PerStateInformation : public StateInfo {
 template <typename State, typename Action, bool UseInterval, bool Fret>
 using LRTDPBase = std::conditional_t<
     Fret,
-    heuristic_search::HeuristicSearchBase<State, Action, UseInterval, true>,
-    heuristic_search::HeuristicSearchBase<
+    heuristic_search::HeuristicSearchEngine<State, Action, UseInterval, true>,
+    heuristic_search::HeuristicSearchEngine<
         State,
         Action,
         UseInterval,
@@ -163,7 +163,7 @@ using LRTDPStateInfo = std::conditional_t<
  */
 template <typename State, typename Action, bool UseInterval, bool Fret>
 class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
-    using HeuristicSearchBase =
+    using HeuristicSearchEngine =
         internal::LRTDPBase<State, Action, UseInterval, Fret>;
     using StateInfoT =
         internal::LRTDPStateInfo<State, Action, UseInterval, Fret>;
@@ -192,7 +192,7 @@ public:
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         engine_interfaces::SuccessorSampler<Action>* succ_sampler)
-        : HeuristicSearchBase(
+        : HeuristicSearchEngine(
               policy_chooser,
               new_state_handler,
               report,
@@ -200,7 +200,7 @@ public:
         , StopConsistent(stop_consistent)
         , sample_(succ_sampler)
     {
-        using HSBInfo = typename HeuristicSearchBase::StateInfo;
+        using HSBInfo = typename HeuristicSearchEngine::StateInfo;
 
         if constexpr (!std::is_same_v<StateInfoT, HSBInfo>) {
             statistics_.state_info_bytes = sizeof(StateInfoT);
@@ -421,7 +421,7 @@ private:
 
     StateInfoT& get_lrtdp_state_info(StateID sid)
     {
-        using HSBInfo = typename HeuristicSearchBase::StateInfo;
+        using HSBInfo = typename HeuristicSearchEngine::StateInfo;
 
         if constexpr (std::is_same_v<StateInfoT, HSBInfo>) {
             return this->get_state_info(sid);

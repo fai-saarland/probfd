@@ -130,7 +130,7 @@ struct Statistics : public CoreStatistics {
  * @tparam StateInfoT - The state information container type.
  */
 template <typename State, typename Action, typename StateInfoT>
-class HeuristicSearchBase : public MDPEngine<State, Action> {
+class HeuristicSearchBase {
 public:
     using StateInfo = StateInfoT;
 
@@ -171,11 +171,10 @@ private:
 
     StateInfos state_infos_;
 
-    Statistics statistics_;
-
     StateID initial_state_id_ = StateID::undefined;
 
 protected:
+    Statistics statistics_;
     ProgressReport* report_;
     const bool interval_comparison_;
 
@@ -197,81 +196,6 @@ public:
         , interval_comparison_(interval_comparison)
     {
         statistics_.state_info_bytes = sizeof(StateInfo);
-    }
-
-    Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        param_type<State> state,
-        double max_time =
-            std::numeric_limits<double>::infinity()) final override
-    {
-        this->initialize_report(mdp, heuristic, state);
-        return this->do_solve(mdp, heuristic, state, max_time);
-    }
-
-    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        param_type<State> state,
-        double max_time = std::numeric_limits<double>::infinity()) override
-    {
-        this->solve(mdp, heuristic, state, max_time);
-
-        /*
-         * Expand some greedy policy graph, starting from the initial state.
-         * Collect optimal actions along the way.
-         */
-
-        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(&mdp));
-
-        const StateID initial_state_id = mdp.get_state_id(state);
-
-        std::deque<StateID> queue;
-        std::set<StateID> visited;
-        queue.push_back(initial_state_id);
-        visited.insert(initial_state_id);
-
-        do {
-            const StateID state_id = queue.front();
-            queue.pop_front();
-
-            std::optional<Action> action;
-
-            if constexpr (StorePolicy) {
-                action = this->lookup_policy(state_id);
-            } else {
-                action = this->lookup_policy(mdp, heuristic, state_id);
-            }
-
-            // Terminal states have no policy decision.
-            if (!action) {
-                continue;
-            }
-
-            const Interval bound = this->lookup_bounds(state_id);
-
-            policy->emplace_decision(state_id, *action, bound);
-
-            // Push the successor traps.
-            Distribution<StateID> successors;
-            mdp.generate_action_transitions(state_id, *action, successors);
-
-            for (const StateID succ_id : successors.support()) {
-                if (visited.insert(succ_id).second) {
-                    queue.push_back(succ_id);
-                }
-            }
-        } while (!queue.empty());
-
-        return policy;
-    }
-
-    void print_statistics(std::ostream& out) const final override
-    {
-        statistics_.print(out);
-        this->print_additional_statistics(out);
     }
 
     value_t lookup_value(StateID state_id) const
@@ -316,14 +240,6 @@ public:
     {
         return get_state_info(state_id).policy;
     }
-
-    /**
-     * @brief Resets the heuristic search engine to a clean state.
-     *
-     * This method is needed by the FRET wrapper engine to restart the heuristic
-     * search after traps have been collapsed.
-     */
-    virtual void reset_search_state() {}
 
     /**
      * @brief Checks if the state \p state_id is terminal.
@@ -516,28 +432,34 @@ public:
     }
 
 protected:
-    /**
-     * @brief Solves for the optimal state value of the input state.
-     *
-     * Called internally after initializing the progress report.
-     */
-    virtual Interval do_solve(
+    void initialize_report(
         MDP<State, Action>& mdp,
         Evaluator<State>& heuristic,
-        param_type<State> state,
-        double max_time) = 0;
+        param_type<State> state)
+    {
+        initial_state_id_ = mdp.get_state_id(state);
 
-    /**
-     * @brief Prints additional statistics to the output stream.
-     *
-     * Called internally after printing the base heuristic search statistics.
-     */
-    virtual void print_additional_statistics(std::ostream& out) const = 0;
+        StateInfo& info = get_state_info(initial_state_id_);
 
-    /**
-     * @brief Sets up internal custom reports of a state in an implementation.
-     */
-    virtual void setup_custom_reports(param_type<State>) {}
+        if (!initialize_if_needed(mdp, heuristic, initial_state_id_, info)) {
+            return;
+        }
+
+        if constexpr (UseInterval) {
+            report_->register_bound("v", [&info]() { return info.value; });
+        } else {
+            report_->register_bound("v", [&info]() {
+                return Interval(info.value, INFINITE_VALUE);
+            });
+        }
+
+        statistics_.value = info.get_value();
+        statistics_.before_last_update = statistics_;
+        statistics_.initial_state_estimate = info.get_value();
+        statistics_.initial_state_found_terminal = info.is_terminal();
+    }
+
+    void print_statistics(std::ostream& out) const { statistics_.print(out); }
 
     /**
      * @brief Advances the progress report.
@@ -613,35 +535,6 @@ protected:
     }
 
 private:
-    void initialize_report(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        param_type<State> state)
-    {
-        initial_state_id_ = mdp.get_state_id(state);
-
-        StateInfo& info = get_state_info(initial_state_id_);
-
-        if (!initialize_if_needed(mdp, heuristic, initial_state_id_, info)) {
-            return;
-        }
-
-        if constexpr (UseInterval) {
-            report_->register_bound("v", [&info]() { return info.value; });
-        } else {
-            report_->register_bound("v", [&info]() {
-                return Interval(info.value, INFINITE_VALUE);
-            });
-        }
-
-        statistics_.value = info.get_value();
-        statistics_.before_last_update = statistics_;
-        statistics_.initial_state_estimate = info.get_value();
-        statistics_.initial_state_found_terminal = info.is_terminal();
-
-        setup_custom_reports(state);
-    }
-
     bool update(StateInfo& state_info, const EngineValueType& other)
     {
         if constexpr (UseInterval) {
@@ -1021,6 +914,130 @@ private:
     }
 };
 
+/**
+ * @brief Extends HeuristicSearchBase with default implementations for
+ * MDPEngine.
+ *
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the undelying MDP model.
+ * @tparam StateInfoT - The state information container type.
+ */
+template <typename State, typename Action, typename StateInfoT>
+class HeuristicSearchEngine
+    : public HeuristicSearchBase<State, Action, StateInfoT>
+    , public MDPEngine<State, Action> {
+    using HeuristicSearchBase = HeuristicSearchBase<State, Action, StateInfoT>;
+
+public:
+    using HeuristicSearchBase::HeuristicSearchBase;
+
+    Interval solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time =
+            std::numeric_limits<double>::infinity()) final override
+    {
+        HeuristicSearchBase::initialize_report(mdp, heuristic, state);
+        this->setup_custom_reports(state);
+        return this->do_solve(mdp, heuristic, state, max_time);
+    }
+
+    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time = std::numeric_limits<double>::infinity()) override
+    {
+        this->solve(mdp, heuristic, state, max_time);
+
+        /*
+         * Expand some greedy policy graph, starting from the initial state.
+         * Collect optimal actions along the way.
+         */
+
+        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
+            new policies::MapPolicy<State, Action>(&mdp));
+
+        const StateID initial_state_id = mdp.get_state_id(state);
+
+        std::deque<StateID> queue;
+        std::set<StateID> visited;
+        queue.push_back(initial_state_id);
+        visited.insert(initial_state_id);
+
+        do {
+            const StateID state_id = queue.front();
+            queue.pop_front();
+
+            std::optional<Action> action;
+
+            if constexpr (HeuristicSearchBase::StorePolicy) {
+                action = this->lookup_policy(state_id);
+            } else {
+                action = this->lookup_policy(mdp, heuristic, state_id);
+            }
+
+            // Terminal states have no policy decision.
+            if (!action) {
+                continue;
+            }
+
+            const Interval bound = this->lookup_bounds(state_id);
+
+            policy->emplace_decision(state_id, *action, bound);
+
+            // Push the successor traps.
+            Distribution<StateID> successors;
+            mdp.generate_action_transitions(state_id, *action, successors);
+
+            for (const StateID succ_id : successors.support()) {
+                if (visited.insert(succ_id).second) {
+                    queue.push_back(succ_id);
+                }
+            }
+        } while (!queue.empty());
+
+        return policy;
+    }
+
+    void print_statistics(std::ostream& out) const final override
+    {
+        HeuristicSearchBase::print_statistics(out);
+        this->print_additional_statistics(out);
+    }
+
+    /**
+     * @brief Sets up internal custom reports of a state in an implementation.
+     */
+    virtual void setup_custom_reports(param_type<State>) {}
+    /**
+     * @brief Resets the heuristic search engine to a clean state.
+     *
+     * This method is needed by the FRET wrapper engine to restart the
+     * heuristic search after traps have been collapsed.
+     */
+    virtual void reset_search_state() {}
+
+    /**
+     * @brief Solves for the optimal state value of the input state.
+     *
+     * Called internally after initializing the progress report.
+     */
+    virtual Interval do_solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time) = 0;
+
+    /**
+     * @brief Prints additional statistics to the output stream.
+     *
+     * Called internally after printing the base heuristic search statistics.
+     */
+    virtual void print_additional_statistics(std::ostream& out) const = 0;
+};
+
 } // namespace internal
 
 template <typename T>
@@ -1033,6 +1050,17 @@ template <
     bool StorePolicy = false,
     template <typename> class StateInfo = NoAdditionalStateData>
 using HeuristicSearchBase = internal::HeuristicSearchBase<
+    State,
+    Action,
+    StateInfo<PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;
+
+template <
+    typename State,
+    typename Action,
+    bool UseInterval = false,
+    bool StorePolicy = false,
+    template <typename> class StateInfo = NoAdditionalStateData>
+using HeuristicSearchEngine = internal::HeuristicSearchEngine<
     State,
     Action,
     StateInfo<PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;

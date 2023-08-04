@@ -240,6 +240,9 @@ public:
         param_type<State> qstate,
         double max_time)
     {
+        HeuristicSearchBase::initialize_report(quotient, heuristic, qstate);
+        statistics_.register_report(this->report_);
+
         utils::CountdownTimer timer(max_time);
 
         StateID state_id = quotient.get_state_id(qstate);
@@ -252,23 +255,10 @@ public:
     }
 
 protected:
-    Interval
-    do_solve(MDP<State, QAction>&, Evaluator<State>&, param_type<State>, double)
-        override
+    void print_statistics(std::ostream& out) const
     {
-        // FIXME refine class hierarchy as not to inherit this function
-        std::cerr << "This function should not be called!" << std::endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-    }
-
-    void print_additional_statistics(std::ostream& out) const override
-    {
+        HeuristicSearchBase::print_statistics(out);
         statistics_.print(out);
-    }
-
-    void setup_custom_reports(param_type<State>) override
-    {
-        statistics_.register_report(this->report_);
     }
 
 private:

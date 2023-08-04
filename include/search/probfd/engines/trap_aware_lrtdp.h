@@ -48,9 +48,9 @@ struct Statistics {
         out << "  Trap removal time: " << trap_timer << std::endl;
     }
 
-    void register_report(ProgressReport* report) const
+    void register_report(ProgressReport& report) const
     {
-        report->register_print([this](std::ostream& out) {
+        report.register_print([this](std::ostream& out) {
             out << "traps=" << traps << ", trials=" << trials;
         });
     }
@@ -203,12 +203,15 @@ public:
     Interval solve_quotient(
         quotients::QuotientSystem<State, Action>& quotient,
         Evaluator<State>& heuristic,
-        param_type<State> s,
+        param_type<State> state,
         double max_time)
     {
+        HeuristicSearchBase::initialize_report(quotient, heuristic, state);
+        this->statistics_.register_report(*this->report_);
+
         utils::CountdownTimer timer(max_time);
 
-        const StateID state_id = quotient.get_state_id(s);
+        const StateID state_id = quotient.get_state_id(state);
         bool terminate = false;
         do {
             terminate = trial(quotient, heuristic, state_id, timer);
@@ -220,24 +223,10 @@ public:
         return this->lookup_bounds(state_id);
     }
 
-protected:
-    Interval
-    do_solve(MDP<State, QAction>&, Evaluator<State>&, param_type<State>, double)
-        override
+    void print_statistics(std::ostream& out) const
     {
-        // FIXME refine class hierarchy as not to inherit this function
-        std::cerr << "This function should not be called!" << std::endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-    }
-
-    void print_additional_statistics(std::ostream& out) const override
-    {
-        statistics_.print(out);
-    }
-
-    void setup_custom_reports(param_type<State>) override
-    {
-        this->statistics_.register_report(this->report_);
+        HeuristicSearchBase::print_statistics(out);
+        this->statistics_.print(out);
     }
 
 private:
@@ -544,13 +533,13 @@ public:
         MDP<State, Action>& mdp,
         Evaluator<State>& heuristic,
         param_type<State> s,
-        double max_time) override
+        double max_time) override final
     {
         quotients::QuotientSystem<State, Action> quotient(&mdp);
         return engine_.solve_quotient(quotient, heuristic, s, max_time);
     }
 
-    void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override final
     {
         return engine_.print_statistics(out);
     }

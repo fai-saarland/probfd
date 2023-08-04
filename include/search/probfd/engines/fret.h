@@ -33,7 +33,7 @@ namespace fret {
 
 template <typename State, typename Action, bool UseInterval>
 using HeuristicSearchEngine =
-    heuristic_search::HeuristicSearchBase<State, Action, UseInterval, true>;
+    heuristic_search::HeuristicSearchEngine<State, Action, UseInterval, true>;
 
 namespace internal {
 
