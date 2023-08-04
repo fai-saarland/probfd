@@ -215,37 +215,6 @@ public:
         return get_state_info(state_id).get_bounds();
     }
 
-    std::optional<Action>
-    lookup_policy(MDP& mdp, Evaluator& heuristic, StateID state_id)
-        requires(!StorePolicy)
-    {
-        std::vector<Action> opt_aops;
-        std::vector<Distribution<StateID>> opt_transitions;
-        compute_optimal_transitions(
-            mdp,
-            heuristic,
-            state_id,
-            lookup_initialize(mdp, heuristic, state_id),
-            opt_aops,
-            opt_transitions);
-
-        if (opt_aops.empty()) return std::nullopt;
-
-        return opt_aops[this->policy_chooser_->pick_index(
-            mdp,
-            state_id,
-            std::nullopt,
-            opt_aops,
-            opt_transitions,
-            state_infos_)];
-    }
-
-    std::optional<Action> lookup_policy(StateID state_id)
-        requires(StorePolicy)
-    {
-        return get_state_info(state_id).policy;
-    }
-
     /**
      * @brief Checks if the state \p state_id is terminal.
      */
@@ -281,46 +250,6 @@ public:
         static_assert(StorePolicy, "Policy not stored by algorithm!");
 
         get_state_info(state_id).clear_policy();
-    }
-
-    /**
-     * @brief Gets the currently selected greedy action for the state
-     * represented by \p state_id
-     */
-    Action get_policy(StateID state_id)
-    {
-        static_assert(StorePolicy, "Policy not stored by algorithm!");
-
-        std::optional a = get_state_info(state_id).get_policy();
-        assert(a.has_value());
-        return *a;
-    }
-
-    /**
-     * @brief Generates the successor distribution referring to the application
-     * of the current greedy action in a state
-     *
-     * @param[in] state - The id of the source state
-     * @param[out] result - The returned successor distribution when applying
-     * the current greedy action in the state represented by \p state
-     */
-    bool apply_policy(
-        MDP& mdp,
-        Evaluator& heuristic,
-        StateID state_id,
-        Distribution<StateID>& result)
-    {
-        static_assert(StorePolicy, "Policy not stored by algorithm!");
-
-        std::optional a = get_state_info(state_id).get_policy();
-
-        if (!a) {
-            return async_update(mdp, heuristic, state_id, &result)
-                .value_changed;
-        }
-
-        mdp.generate_action_transitions(state_id, *a, result);
-        return false;
     }
 
     /**
@@ -372,6 +301,63 @@ public:
         return true;
     }
 
+    std::optional<Action> get_greedy_action(StateID state_id)
+        requires(StorePolicy)
+    {
+        return get_state_info(state_id).policy;
+    }
+
+    std::optional<Action>
+    get_greedy_action(MDP& mdp, Evaluator& heuristic, StateID state_id)
+        requires(!StorePolicy)
+    {
+        std::vector<Action> opt_aops;
+        std::vector<Distribution<StateID>> opt_transitions;
+        compute_greedy_transitions(
+            mdp,
+            heuristic,
+            state_id,
+            lookup_initialize(mdp, heuristic, state_id),
+            opt_aops,
+            opt_transitions);
+
+        if (opt_aops.empty()) return std::nullopt;
+
+        return opt_aops[this->policy_chooser_->pick_index(
+            mdp,
+            state_id,
+            std::nullopt,
+            opt_aops,
+            opt_transitions,
+            state_infos_)];
+    }
+
+    /**
+     * @brief Generates the successor distribution referring to the application
+     * of the current greedy action in a state
+     *
+     * @param[in] state - The id of the source state
+     * @param[out] result - The returned successor distribution when applying
+     * the current greedy action in the state represented by \p state
+     */
+    bool apply_policy(
+        MDP& mdp,
+        Evaluator& heuristic,
+        StateID state_id,
+        Distribution<StateID>& result)
+        requires(StorePolicy)
+    {
+        std::optional a = get_greedy_action(state_id);
+
+        if (!a) {
+            return async_update(mdp, heuristic, state_id, &result)
+                .value_changed;
+        }
+
+        mdp.generate_action_transitions(state_id, *a, result);
+        return false;
+    }
+
     /**
      * @brief Computes the value update for a state and returns whether the
      * value changed.
@@ -382,7 +368,7 @@ public:
     bool async_update(MDP& mdp, Evaluator& heuristic, StateID s)
     {
         if constexpr (!StorePolicy) {
-            return compute_value_update(
+            return compute_bellman_update(
                 mdp,
                 heuristic,
                 s,
@@ -494,7 +480,7 @@ protected:
      * is retrieved and returned.
      */
     template <typename AlgStateInfo>
-    StateInfo& get_state_info(const StateID id, AlgStateInfo& info)
+    StateInfo& get_state_info(StateID id, AlgStateInfo& info)
     {
         if constexpr (std::is_same_v<AlgStateInfo, StateInfo>) {
             return info;
@@ -530,20 +516,36 @@ protected:
         StateID source,
         const Distribution<StateID>& transition)
     {
-        return sampler
-            .sample(source, this->get_policy(source), transition, state_infos_);
+        return sampler.sample(
+            source,
+            *this->get_greedy_action(source),
+            transition,
+            state_infos_);
     }
 
 private:
-    bool update(StateInfo& state_info, const EngineValueType& other)
+    bool update(StateInfo& state_info, StateID state_id, EngineValueType other)
+        requires(UseInterval)
     {
-        if constexpr (UseInterval) {
-            return engines::update(
-                state_info.value,
-                other,
-                interval_comparison_);
-        } else {
-            return engines::update(state_info.value, other);
+        const bool b =
+            engines::update(state_info.value, other, interval_comparison_);
+        if (b) state_value_changed(state_id);
+        return b;
+    }
+
+    bool update(StateInfo& state_info, StateID state_id, EngineValueType other)
+        requires(!UseInterval)
+    {
+        const bool b = engines::update(state_info.value, other);
+        if (b) state_value_changed(state_id);
+        return b;
+    }
+
+    void state_value_changed(StateID state_id)
+    {
+        ++statistics_.value_changes;
+        if (state_id == initial_state_id_) {
+            statistics_.jump();
         }
     }
 
@@ -600,7 +602,7 @@ private:
         return false;
     }
 
-    bool compute_value_update(
+    bool compute_bellman_update(
         MDP& mdp,
         Evaluator& heuristic,
         StateID state_id,
@@ -629,12 +631,7 @@ private:
         if (aops.empty()) {
             statistics_.terminal_states++;
             const bool result = notify_dead_end(state_info);
-            if (result) {
-                ++statistics_.value_changes;
-                if (state_id == initial_state_id_) {
-                    statistics_.jump();
-                }
-            }
+            if (result) state_value_changed(state_id);
             return result;
         }
 
@@ -652,12 +649,13 @@ private:
             for (const auto& [succ_id, prob] : transition) {
                 if (succ_id == state_id) {
                     self_loop += prob;
-                } else {
-                    const StateInfo& succ_info =
-                        lookup_initialize(mdp, heuristic, succ_id);
-                    t_value += prob * succ_info.value;
-                    non_loop = true;
+                    continue;
                 }
+
+                const auto& succ_info =
+                    lookup_initialize(mdp, heuristic, succ_id);
+                t_value += prob * succ_info.value;
+                non_loop = true;
             }
 
             if (non_loop) {
@@ -675,44 +673,36 @@ private:
             return notify_dead_end(state_info);
         }
 
-        if (this->update(state_info, new_value)) {
-            ++statistics_.value_changes;
-            if (state_id == initial_state_id_) {
-                statistics_.jump();
-            }
-            return true;
-        }
-
-        return false;
+        return this->update(state_info, state_id, new_value);
     }
 
-    EngineValueType compute_non_loop_transitions_and_values(
+    EngineValueType compute_non_loop_transitions_and_qvalues(
         MDP& mdp,
         Evaluator& heuristic,
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& aops,
-        std::vector<Distribution<StateID>>& transitions,
-        std::vector<EngineValueType>& values)
+        std::vector<Distribution<StateID>>& sdists,
+        std::vector<EngineValueType>& qvalues)
     {
-        mdp.generate_all_transitions(state_id, aops, transitions);
+        mdp.generate_all_transitions(state_id, aops, sdists);
 
-        assert(aops.size() == transitions.size());
+        assert(aops.size() == sdists.size());
 
-        values.reserve(aops.size());
+        qvalues.reserve(aops.size());
 
         EngineValueType best_value(state_info.termination_cost);
 
         unsigned non_loop_end = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
             Action& op = aops[i];
-            Distribution<StateID>& transition = transitions[i];
+            Distribution<StateID>& sdist = sdists[i];
 
             EngineValueType t_value(mdp.get_action_cost(op));
             value_t self_loop = 0_vt;
             bool non_loop = false;
 
-            for (const auto& [succ_id, prob] : transition) {
+            for (const auto& [succ_id, prob] : sdist) {
                 if (succ_id == state_id) {
                     self_loop += prob;
                 } else {
@@ -730,26 +720,24 @@ private:
 
                 if (non_loop_end != i) {
                     aops[non_loop_end] = std::move(op);
-                    transitions[non_loop_end] = std::move(transition);
+                    sdists[non_loop_end] = std::move(sdist);
                 }
 
                 ++non_loop_end;
 
                 set_min(best_value, t_value);
-                values.push_back(t_value);
+                qvalues.push_back(t_value);
             }
         }
 
         // erase self-loop states
         aops.erase(aops.begin() + non_loop_end, aops.end());
-        transitions.erase(
-            transitions.begin() + non_loop_end,
-            transitions.end());
+        sdists.erase(sdists.begin() + non_loop_end, sdists.end());
 
         return best_value;
     }
 
-    EngineValueType compute_optimal_transitions(
+    EngineValueType compute_greedy_transitions(
         MDP& mdp,
         Evaluator& heuristic,
         StateID state_id,
@@ -757,16 +745,16 @@ private:
         std::vector<Action>& opt_aops,
         std::vector<Distribution<StateID>>& opt_transitions)
     {
-        std::vector<EngineValueType> values;
+        std::vector<EngineValueType> qvalues;
         const EngineValueType best_value =
-            compute_non_loop_transitions_and_values(
+            compute_non_loop_transitions_and_qvalues(
                 mdp,
                 heuristic,
                 state_id,
                 state_info,
                 opt_aops,
                 opt_transitions,
-                values);
+                qvalues);
 
         if (opt_aops.empty()) {
             return best_value;
@@ -776,7 +764,7 @@ private:
         for (unsigned i = 0; i < opt_aops.size(); ++i) {
             if (is_approx_equal(
                     as_lower_bound(best_value),
-                    as_lower_bound(values[i]))) {
+                    as_lower_bound(qvalues[i]))) {
                 if (optimal_end != i) {
                     opt_aops[optimal_end] = std::move(opt_aops[i]);
                     opt_transitions[optimal_end] =
@@ -818,7 +806,7 @@ private:
             state_info.removed_from_fringe();
         }
 
-        EngineValueType optimal_value = compute_optimal_transitions(
+        EngineValueType optimal_value = compute_greedy_transitions(
             mdp,
             heuristic,
             state_id,
@@ -831,15 +819,7 @@ private:
             return notify_dead_end(state_info);
         }
 
-        if (this->update(state_info, optimal_value)) {
-            ++statistics_.value_changes;
-            if (state_id == initial_state_id_) {
-                statistics_.jump();
-            }
-            return true;
-        }
-
-        return false;
+        return this->update(state_info, state_id, optimal_value);
     }
 
     UpdateResult compute_value_policy_update(
@@ -984,9 +964,9 @@ public:
             std::optional<Action> action;
 
             if constexpr (HSBase::StorePolicy) {
-                action = this->lookup_policy(state_id);
+                action = this->get_greedy_action(state_id);
             } else {
-                action = this->lookup_policy(mdp, heuristic, state_id);
+                action = this->get_greedy_action(mdp, heuristic, state_id);
             }
 
             // Terminal states have no policy decision.

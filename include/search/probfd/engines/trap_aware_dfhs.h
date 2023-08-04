@@ -357,7 +357,7 @@ private:
             enqueue(state, *result.policy_action, zero_cost);
 
         } else {
-            QAction action = this->get_policy(state);
+            QAction action = *this->get_greedy_action(state);
             quotient.generate_action_transitions(state, action, transition_);
             bool zero_cost = quotient.get_action_cost(action) == 0;
             enqueue(state, action, zero_cost);
@@ -795,7 +795,8 @@ public:
             const StateID quotient_id = queue.front();
             queue.pop_front();
 
-            std::optional quotient_action = engine_.lookup_policy(quotient_id);
+            std::optional quotient_action =
+                engine_.get_greedy_action(quotient_id);
 
             // Terminal states have no policy decision.
             if (!quotient_action) {

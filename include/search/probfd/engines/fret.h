@@ -200,7 +200,7 @@ public:
             queue.pop_front();
 
             std::optional quotient_action =
-                base_engine_->lookup_policy(quotient_id);
+                base_engine_->get_greedy_action(quotient_id);
 
             // Terminal states have no policy decision.
             if (!quotient_action) {
@@ -568,7 +568,7 @@ public:
         for (StateID sid : t_.support()) {
             successors.push_back(sid);
         }
-        aops.push_back(base_engine.get_policy(qstate));
+        aops.push_back(*base_engine.get_greedy_action(qstate));
         return result;
     }
 };
