@@ -105,9 +105,17 @@ fast_downward_plugin(
 
 fast_downward_plugin(
     NAME IDUAL_SOLVER
-    HELP "idual & i2dual solvers"
+    HELP "idual solver"
     SOURCES
         probfd/solvers/idual
+    DEPENDS MDP LP_SOLVER
+)
+
+fast_downward_plugin(
+    NAME I2DUAL_SOLVER
+    HELP "i2dual solvers"
+    SOURCES
+        probfd/engines/i2dual
         probfd/solvers/i2dual
     DEPENDS MDP LP_SOLVER OCCUPATION_MEASURE_HEURISTICS
 )

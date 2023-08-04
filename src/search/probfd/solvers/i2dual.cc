@@ -29,9 +29,7 @@ public:
 
     std::unique_ptr<TaskMDPEngine> create_engine() override
     {
-        using I2DualEngine = engines::i2dual::I2Dual<State, OperatorID>;
-
-        return engine_factory<I2DualEngine>(
+        return engine_factory<engines::i2dual::I2Dual>(
             &progress_,
             hpom_enabled_,
             incremental_hpom_updates_,

@@ -1,102 +1,48 @@
 #ifndef PROBFD_ENGINES_I2DUAL_H
 #define PROBFD_ENGINES_I2DUAL_H
 
-#include "probfd/engines/utils.h"
-
-#include "probfd/cost_models/maxprob_cost_model.h"
-
-#include "probfd/heuristics/occupation_measures/hpom_constraints.h"
-
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/task_utils/task_properties.h"
-
-#include "probfd/tasks/root_task.h"
-
-#include "probfd/utils/guards.h"
-
 #include "probfd/engine.h"
-#include "probfd/progress_report.h"
+#include "probfd/task_proxy.h"
+#include "probfd/task_types.h"
 #include "probfd/value_type.h"
 
 #include "downward/lp/lp_solver.h"
 
-#include "downward/utils/countdown_timer.h"
 #include "downward/utils/timer.h"
 
-#include "downward/task_proxy.h"
-#include "downward/task_utils/task_properties.h"
-
-#include <memory>
 #include <vector>
 
+namespace lp {
+class LinearProgram;
+}
+
 namespace probfd {
+class ProgressReport;
+
 namespace engines {
 namespace i2dual {
 
-struct IDualData {
-    enum { NEW, FRONTIER, TERMINAL, CLOSED };
+class I2Dual : public MDPEngine<State, OperatorID> {
+    struct IDualData;
 
-    std::vector<std::pair<double, unsigned>> incoming;
-    double estimate = -1;
-    unsigned constraint = -1;
-    uint8_t status = NEW;
+    struct Statistics {
+        utils::Timer idual_timer_ = utils::Timer(true);
+        utils::Timer lp_solver_timer_ = utils::Timer(true);
+        utils::Timer hpom_timer_ = utils::Timer(true);
 
-    bool is_new() const { return status == NEW; }
-    bool is_terminal() const { return status == TERMINAL; }
-    bool is_frontier() const { return status == FRONTIER; }
+        unsigned long long iterations_ = 0;
+        unsigned long long expansions_ = 0;
+        unsigned long long open_states_ = 0;
+        unsigned long long num_lp_vars_ = 0;
+        unsigned long long num_lp_constraints_ = 0;
+        unsigned long long hpom_num_vars_ = 0;
+        unsigned long long hpom_num_constraints_ = 0;
 
-    void open(unsigned c, double est)
-    {
-        status = FRONTIER;
-        constraint = c;
-        estimate = est;
-    }
+        void print(std::ostream& out) const;
+    };
 
-    void set_terminal(double val)
-    {
-        status = TERMINAL;
-        estimate = val;
-    }
-
-    void close()
-    {
-        status = CLOSED;
-        std::vector<std::pair<double, unsigned>>().swap(incoming);
-    }
-};
-
-struct Statistics {
-    utils::Timer idual_timer_ = utils::Timer(true);
-    utils::Timer lp_solver_timer_ = utils::Timer(true);
-    utils::Timer hpom_timer_ = utils::Timer(true);
-
-    unsigned long long iterations_ = 0;
-    unsigned long long expansions_ = 0;
-    unsigned long long open_states_ = 0;
-    unsigned long long num_lp_vars_ = 0;
-    unsigned long long num_lp_constraints_ = 0;
-    unsigned long long hpom_num_vars_ = 0;
-    unsigned long long hpom_num_constraints_ = 0;
-
-    void print(std::ostream& out) const
-    {
-        out << "Engine I2-Dual statistics:" << std::endl;
-        out << "  Actual solver time: " << idual_timer_() << std::endl;
-        out << "  Iterations: " << iterations_ << std::endl;
-        out << "  Expansions: " << expansions_ << std::endl;
-        out << "  Open states: " << open_states_ << std::endl;
-        out << "  LP Variables: " << num_lp_vars_ << std::endl;
-        out << "  LP Constraints: " << num_lp_constraints_ << std::endl;
-        out << "  LP Timer: " << lp_solver_timer_() << std::endl;
-        out << "  hPom LP Variables: " << hpom_num_vars_ << std::endl;
-        out << "  hPom LP Constraints: " << hpom_num_constraints_ << std::endl;
-        out << "  hPom Overhead: " << hpom_timer_() << std::endl;
-    }
-};
-
-template <typename State, typename Action>
-class I2Dual : public MDPEngine<State, Action> {
     ProbabilisticTaskProxy task_proxy;
 
     ProgressReport* progress_;
@@ -117,7 +63,7 @@ class I2Dual : public MDPEngine<State, Action> {
 
     value_t objective_;
 
-    std::vector<Action> aops_;
+    std::vector<OperatorID> aops_;
     Distribution<StateID> succs_;
 
 public:
@@ -125,350 +71,47 @@ public:
         ProgressReport* progress,
         bool hpom_enabled,
         bool incremental_updates,
-        lp::LPSolverType solver_type)
-        : task_proxy(*tasks::g_root_task)
-        , progress_(progress)
-        , hpom_enabled_(hpom_enabled)
-        , incremental_hpom_updates_(incremental_updates)
-        , lp_solver_(solver_type)
-    {
-    }
+        lp::LPSolverType solver_type);
 
-    void print_statistics(std::ostream& out) const override
-    {
-        statistics_.print(out);
-    }
+    void print_statistics(std::ostream& out) const override;
 
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        param_type<State> state,
-        double max_time) override
-    {
-        utils::CountdownTimer timer(max_time);
-
-        statistics_ = Statistics();
-
-        std::cout << "Initializing I2-Dual..." << std::endl;
-
-        if (!std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
-                g_cost_model)) {
-            std::cerr
-                << "I2-Dual currently only supports goal probability analysis"
-                << std::endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-        }
-
-        if (hpom_enabled_) {
-            ::task_properties::verify_no_axioms(task_proxy);
-            probfd::task_properties::verify_no_conditional_effects(task_proxy);
-        }
-
-        storage::PerStateStorage<IDualData> idual_data;
-
-        next_lp_var_ = 0;
-        next_lp_constr_id_ = 0;
-
-        TimerScope scope(statistics_.idual_timer_);
-
-        prepare_lp();
-
-        progress_->register_bound("v", [this]() {
-            return Interval(objective_, INFINITE_VALUE);
-        });
-
-        const double infinity = lp_solver_.get_infinity();
-
-        // Data structures for refining LP
-        lp::LPVariable dummy_variable(0, infinity, 0);
-        lp::LPConstraint dummy_constraint(-infinity, 0);
-        std::vector<int> var_constraint_ids;
-        std::vector<double> var_constraint_coefs;
-        std::vector<double> obj_coef(next_lp_var_, 0);
-
-        // IDual data structures
-        std::vector<StateID> frontier;
-        std::vector<StateID> frontier_candidates;
-
-        objective_ = -1_vt;
-
-        {
-            const StateID init_id = mdp.get_state_id(state);
-            if (!evaluate_state(mdp, heuristic, state, idual_data[init_id])) {
-                frontier.push_back(init_id);
-            }
-        }
-
-        while (!frontier.empty()) {
-            progress_->print();
-            timer.throw_if_expired();
-
-            update_hpom_constraints_expanded(mdp, idual_data, frontier);
-
-            // Expand each state in frontier
-            statistics_.expansions_ += frontier.size();
-            unsigned start_new_states = frontier_candidates.size();
-
-            for (StateID state_id : frontier) {
-                timer.throw_if_expired();
-
-                IDualData& state_data = idual_data[state_id];
-                assert(state_data.is_frontier());
-
-                if (!hpom_enabled_) {
-                    for (const auto& [prob, var_id] : state_data.incoming) {
-                        const double amount = state_data.estimate * prob;
-                        obj_coef[var_id] -= amount;
-                        assert(obj_coef[var_id] >= -g_epsilon);
-                        lp_solver_.set_objective_coefficient(
-                            var_id,
-                            std::abs(obj_coef[var_id]));
-                    }
-                }
-
-                state_data.close();
-
-                // generate transitions
-                ClearGuard _guard_a(aops_);
-                mdp.generate_applicable_actions(state_id, aops_);
-
-                for (const Action& act : aops_) {
-                    ClearGuard _guard_s(succs_);
-
-                    mdp.generate_action_transitions(state_id, act, succs_);
-
-                    if (succs_.is_dirac(state_id)) {
-                        continue;
-                    }
-
-                    ClearGuard _guard(var_constraint_ids, var_constraint_coefs);
-
-                    unsigned lp_var_id = next_lp_var_++;
-
-                    double p_self = 0;
-                    for (const auto& [succ_id, prob] : succs_) {
-                        if (succ_id == state_id) {
-                            p_self += prob;
-                            continue;
-                        }
-
-                        IDualData& succ_data = idual_data[succ_id];
-                        if (succ_data.is_new() && !evaluate_state(
-                                                      mdp,
-                                                      heuristic,
-                                                      mdp.get_state(succ_id),
-                                                      succ_data)) {
-                            lp_solver_.add_constraint(dummy_constraint);
-                            frontier_candidates.push_back(succ_id);
-                        }
-
-                        if (!succ_data.is_terminal()) {
-                            assert(succ_data.constraint < next_lp_constr_id_);
-                            var_constraint_ids.push_back(succ_data.constraint);
-                            var_constraint_coefs.push_back(-prob);
-                        }
-
-                        if (succ_data.is_frontier()) {
-                            succ_data.incoming.emplace_back(prob, lp_var_id);
-                        }
-
-                        if (succ_data.is_terminal() ||
-                            (!hpom_enabled_ && succ_data.is_frontier())) {
-                            dummy_variable.objective_coefficient +=
-                                prob * succ_data.estimate;
-                        }
-                    }
-
-                    var_constraint_ids.push_back(state_data.constraint);
-                    var_constraint_coefs.push_back(1.0 - p_self);
-                    obj_coef.push_back(dummy_variable.objective_coefficient);
-
-                    lp_solver_.add_variable(
-                        dummy_variable,
-                        var_constraint_ids,
-                        var_constraint_coefs);
-
-                    dummy_variable.objective_coefficient = 0.0;
-                }
-            }
-
-            frontier.clear();
-
-            update_hpom_constraints_frontier(
-                mdp,
-                idual_data,
-                frontier_candidates,
-                start_new_states);
-
-            {
-                TimerScope lp_scope(statistics_.lp_solver_timer_);
-                lp_solver_.solve();
-                timer.throw_if_expired();
-            }
-
-            assert(lp_solver_.has_optimal_solution());
-            objective_ = -lp_solver_.get_objective_value();
-            std::vector<double> solution = lp_solver_.extract_solution();
-
-            // Push frontier candidates and remove them
-            std::erase_if(frontier_candidates, [&](StateID state_id) {
-                for (const auto& [_, var_id] : idual_data[state_id].incoming) {
-                    if (solution[var_id] > g_epsilon) {
-                        frontier.push_back(state_id);
-                        return true;
-                    }
-                }
-
-                return false;
-            });
-
-            lp_solver_.clear_temporary_constraints();
-
-            statistics_.iterations_++;
-            statistics_.open_states_ =
-                frontier_candidates.size() + frontier.size();
-        }
-
-        statistics_.num_lp_vars_ = next_lp_var_;
-        statistics_.num_lp_constraints_ = next_lp_constr_id_;
-
-        return Interval(objective_, INFINITE_VALUE);
-    }
+        TaskMDP& mdp,
+        TaskEvaluator& heuristic,
+        const State& state,
+        double max_time) override;
 
 private:
     bool evaluate_state(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        param_type<State> state,
-        IDualData& data)
-    {
-        assert(data.is_new());
+        TaskMDP& mdp,
+        TaskEvaluator& heuristic,
+        const State& state,
+        IDualData& data);
 
-        const TerminationInfo term_info = mdp.get_termination_info(state);
-        if (term_info.is_goal_state()) {
-            data.set_terminal(-term_info.get_cost());
-            return true;
-        }
+    void prepare_lp();
 
-        const EvaluationResult eval = heuristic.evaluate(state);
-        if (eval.is_unsolvable()) {
-            data.set_terminal(0);
-            return true;
-        }
-
-        data.open(next_lp_constr_id_++, -eval.get_estimate());
-        return false;
-    }
-
-    void prepare_lp()
-    {
-        // setup empty LP
-        lp::LinearProgram lp(
-            lp::LPObjectiveSense::MAXIMIZE,
-            named_vector::NamedVector<lp::LPVariable>(),
-            named_vector::NamedVector<lp::LPConstraint>(),
-            lp_solver_.get_infinity());
-
-        prepare_hpom(lp);
-
-        next_lp_var_ = lp.get_variables().size();
-        next_lp_constr_id_ = lp.get_constraints().size();
-
-        lp.get_constraints().emplace_back(-lp_solver_.get_infinity(), 1);
-        lp_solver_.load_problem(lp);
-    }
-
-    void prepare_hpom(lp::LinearProgram& lp)
-    {
-        if (!hpom_enabled_) {
-            return;
-        }
-
-        TimerScope scope(statistics_.hpom_timer_);
-        heuristics::occupation_measures::HPOMGenerator::generate_hpom_lp(
-            ProbabilisticTaskProxy(*tasks::g_root_task),
-            lp,
-            offset_,
-            true);
-
-        hpom_constraints_ = std::move(lp.get_constraints());
-
-        statistics_.hpom_num_vars_ = lp.get_variables().size();
-        statistics_.hpom_num_constraints_ = hpom_constraints_.size();
-    }
+    void prepare_hpom(lp::LinearProgram& lp);
 
     void update_hpom_constraints_expanded(
-        MDP<State, Action>& mdp,
+        TaskMDP& mdp,
         storage::PerStateStorage<IDualData>& data,
-        const std::vector<StateID>& expanded)
-    {
-        if (!hpom_enabled_ || !incremental_hpom_updates_) {
-            return;
-        }
-
-        if (hpom_initialized_) {
-            TimerScope scope(statistics_.hpom_timer_);
-            for (const StateID state_id : expanded) {
-                remove_fringe_state_from_hpom(
-                    mdp.get_state(state_id),
-                    data[state_id],
-                    hpom_constraints_);
-            }
-        }
-
-        hpom_initialized_ = true;
-    }
+        const std::vector<StateID>& expanded);
 
     void update_hpom_constraints_frontier(
-        MDP<State, Action>& mdp,
+        TaskMDP& mdp,
         storage::PerStateStorage<IDualData>& data,
         const std::vector<StateID>& frontier,
-        const unsigned start)
-    {
-        if (!hpom_enabled_) {
-            return;
-        }
-
-        TimerScope scope(statistics_.hpom_timer_);
-
-        size_t i = incremental_hpom_updates_ ? start : 0;
-
-        for (; i < frontier.size(); ++i) {
-            StateID state_id = frontier[i];
-            State s = mdp.get_state(state_id);
-            add_fringe_state_to_hpom(s, data[state_id], hpom_constraints_);
-        }
-
-        lp_solver_.add_temporary_constraints(hpom_constraints_);
-    }
+        const unsigned start);
 
     void remove_fringe_state_from_hpom(
-        param_type<State> state,
+        const State& state,
         const IDualData& data,
-        named_vector::NamedVector<lp::LPConstraint>& constraints) const
-    {
-        for (VariableProxy var : task_proxy.get_variables()) {
-            const int val = state[var].get_value();
-            lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
-            for (const auto& om : data.incoming) {
-                c.remove(om.second);
-            }
-        }
-    }
+        named_vector::NamedVector<lp::LPConstraint>& constraints) const;
 
     void add_fringe_state_to_hpom(
-        param_type<State> state,
+        const State& state,
         const IDualData& data,
-        named_vector::NamedVector<lp::LPConstraint>& constraints) const
-    {
-        for (VariableProxy var : task_proxy.get_variables()) {
-            const int val = state[var].get_value();
-            lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
-            for (const auto& om : data.incoming) {
-                c.insert(om.second, om.first);
-            }
-        }
-    }
+        named_vector::NamedVector<lp::LPConstraint>& constraints) const;
 };
 
 } // namespace i2dual
