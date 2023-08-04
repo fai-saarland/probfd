@@ -177,7 +177,7 @@ class TADFHSImpl
     const bool mark_solved_;
     const bool reexpand_removed_traps_;
 
-    QuotientOpenList* open_list_;
+    std::shared_ptr<QuotientOpenList> open_list_;
 
     bool terminated_ = false;
 
@@ -195,8 +195,8 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADFHSImpl(
-        QuotientPolicyPicker* policy_chooser,
-        QuotientNewStateObserver* new_state_handler,
+        std::shared_ptr<QuotientPolicyPicker> policy_chooser,
+        std::shared_ptr<QuotientNewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,
@@ -207,7 +207,7 @@ public:
         bool value_iteration,
         bool mark_solved,
         bool reexpand_removed_traps,
-        QuotientOpenList* open_list)
+        std::shared_ptr<QuotientOpenList> open_list)
         : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , forward_updates_(forward_updates)
         , backtrack_update_type_(backtrack_update_type)
@@ -719,8 +719,8 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        QuotientPolicyPicker* policy_chooser,
-        QuotientNewStateObserver* new_state_handler,
+        std::shared_ptr<QuotientPolicyPicker> policy_chooser,
+        std::shared_ptr<QuotientNewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,
@@ -731,7 +731,7 @@ public:
         bool value_iteration,
         bool mark_solved,
         bool reexpand_removed_traps,
-        QuotientOpenList* open_list)
+        std::shared_ptr<QuotientOpenList> open_list)
         : engine_(
               policy_chooser,
               new_state_handler,

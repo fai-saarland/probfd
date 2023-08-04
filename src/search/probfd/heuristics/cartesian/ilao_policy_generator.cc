@@ -23,7 +23,9 @@ ILAOPolicyGenerator::ILAOPolicyGenerator()
     : ptb(new policy_pickers::ArbitraryTiebreaker<
           const AbstractState*,
           const ProbabilisticTransition*>(true))
-    , picker(ptb)
+    , picker(new quotients::RepresentativePolicyPicker<
+             const AbstractState*,
+             const ProbabilisticTransition*>(ptb))
     , report(0.0_vt)
 {
     report.disable();
@@ -43,7 +45,7 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
         const ProbabilisticTransition*,
         false>
         hdfs(
-            &picker,
+            picker,
             nullptr,
             &report,
             false,

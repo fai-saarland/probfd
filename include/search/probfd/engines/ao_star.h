@@ -50,16 +50,16 @@ class AOStar
 
     using SuccessorSampler = engine_interfaces::SuccessorSampler<Action>;
 
-    SuccessorSampler* outcome_selection_;
+    std::shared_ptr<SuccessorSampler> outcome_selection_;
     std::vector<Distribution<StateID>> transitions_;
 
 public:
     AOStar(
-        PolicyPicker* policy_chooser,
-        NewStateObserver* new_state_handler,
+        std::shared_ptr<PolicyPicker> policy_chooser,
+        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        SuccessorSampler* outcome_selection)
+        std::shared_ptr<SuccessorSampler> outcome_selection)
         : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , outcome_selection_(outcome_selection)
     {

@@ -173,8 +173,8 @@ private:
         }
     };
 
-    PolicyPicker* policy_chooser_;
-    NewStateObserver* on_new_state_;
+    std::shared_ptr<PolicyPicker> policy_chooser_;
+    std::shared_ptr<NewStateObserver> on_new_state_;
 
     StateInfos state_infos_;
 
@@ -193,8 +193,8 @@ protected:
 
 public:
     HeuristicSearchBase(
-        PolicyPicker* policy_chooser,
-        NewStateObserver* new_state_handler,
+        std::shared_ptr<PolicyPicker> policy_chooser,
+        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison)
         : policy_chooser_(policy_chooser)

@@ -55,7 +55,7 @@ public:
     {
         return this->template create_heuristic_search_engine<LRTDP>(
             stop_consistent_,
-            successor_sampler_.get());
+            successor_sampler_);
     }
 
 protected:

@@ -125,12 +125,13 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
         task,
         utils::get_silent_log(),
         cost_model.get_cost_function());
-    policy_pickers::ArbitraryTiebreaker<State, OperatorID> policy_chooser(true);
+    auto policy_chooser = std::make_shared<
+        policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
     heuristic_depth_first_search::
         HeuristicDepthFirstSearch<State, OperatorID, false, true>
             hdfs(
-                &policy_chooser,
+                policy_chooser,
                 nullptr,
                 &report,
                 false,
@@ -173,12 +174,12 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         task,
         utils::get_silent_log(),
         cost_model.get_cost_function());
-    std::shared_ptr<policy_pickers::ArbitraryTiebreaker<State, OperatorID>>
-        policy_chooser(
-            new policy_pickers::ArbitraryTiebreaker<State, OperatorID>(true));
+    auto policy_chooser = std::make_shared<
+        policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
-    quotients::RepresentativePolicyPicker<State> q_policy_chooser(
-        policy_chooser);
+    auto q_policy_chooser =
+        std::make_shared<quotients::RepresentativePolicyPicker<State>>(
+            policy_chooser);
 
     auto hdfs = std::make_shared<
         heuristic_depth_first_search::HeuristicDepthFirstSearch<
@@ -186,7 +187,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
             quotients::QuotientAction<OperatorID>,
             false,
             true>>(
-        &q_policy_chooser,
+        q_policy_chooser,
         nullptr,
         &report,
         false,

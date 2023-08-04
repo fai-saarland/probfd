@@ -67,8 +67,8 @@ public:
 
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
-                new_state_handler_.get(),
-                transition_sort_.get(),
+                new_state_handler_,
+                transition_sort_,
                 cost_bound_,
                 reevaluate_,
                 notify_s0_,
@@ -77,8 +77,8 @@ public:
                 &progress_);
         } else {
             return this->template engine_factory<Engine>(
-                new_state_handler_.get(),
-                transition_sort_.get(),
+                new_state_handler_,
+                transition_sort_,
                 cost_bound_,
                 reevaluate_,
                 notify_s0_,

@@ -163,7 +163,7 @@ class TALRTDPImpl
     const TrialTerminationCondition stop_at_consistent_;
     const bool reexpand_traps_;
 
-    QuotientSuccessorSampler* sample_;
+    std::shared_ptr<QuotientSuccessorSampler> sample_;
 
     Distribution<StateID> selected_transition_;
 
@@ -180,13 +180,13 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDPImpl(
-        QuotientPolicyPicker* policy_chooser,
-        QuotientNewStateObserver* new_state_handler,
+        std::shared_ptr<QuotientPolicyPicker> policy_chooser,
+        std::shared_ptr<QuotientNewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
-        QuotientSuccessorSampler* succ_sampler)
+        std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
         : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , stop_at_consistent_(stop_consistent)
         , reexpand_traps_(reexpand_traps)
@@ -519,13 +519,13 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        QuotientPolicyPicker* policy_chooser,
-        QuotientNewStateObserver* new_state_handler,
+        std::shared_ptr<QuotientPolicyPicker> policy_chooser,
+        std::shared_ptr<QuotientNewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
-        QuotientSuccessorSampler* succ_sampler)
+        std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
         : engine_(
               policy_chooser,
               new_state_handler,

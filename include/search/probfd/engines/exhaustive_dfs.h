@@ -244,8 +244,8 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
         }
     };
 
-    NewStateObserver* new_state_handler_;
-    TransitionSorter* transition_sort_;
+    std::shared_ptr<NewStateObserver> new_state_handler_;
+    std::shared_ptr<TransitionSorter> transition_sort_;
 
     ProgressReport* report_;
     const Interval cost_bound_;
@@ -269,8 +269,8 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
 
 public:
     explicit ExhaustiveDepthFirstSearch(
-        NewStateObserver* new_state_handler,
-        TransitionSorter* transition_sorting,
+        std::shared_ptr<NewStateObserver> new_state_handler,
+        std::shared_ptr<TransitionSorter> transition_sorting,
         Interval cost_bound,
         bool reevaluate,
         bool notify_initial,

@@ -38,7 +38,7 @@ public:
     std::unique_ptr<TaskMDPEngine> create_engine() override
     {
         return this->template create_heuristic_search_engine<
-            engines::exhaustive_ao::ExhaustiveAOSearch>(open_list_.get());
+            engines::exhaustive_ao::ExhaustiveAOSearch>(open_list_);
     }
 };
 

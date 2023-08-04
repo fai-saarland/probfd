@@ -25,9 +25,9 @@ class ILAOPolicyGenerator : public PolicyGenerator {
         const AbstractState*,
         const ProbabilisticTransition*>>
         ptb;
-    quotients::RepresentativePolicyPicker<
+    std::shared_ptr<quotients::RepresentativePolicyPicker<
         const AbstractState*,
-        const ProbabilisticTransition*>
+        const ProbabilisticTransition*>>
         picker;
 
     ProgressReport report;

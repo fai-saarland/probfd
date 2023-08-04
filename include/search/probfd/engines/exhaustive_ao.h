@@ -57,16 +57,16 @@ class ExhaustiveAOSearch : public internal::AOBase<State, Action, UseInterval> {
 
     using OpenList = engine_interfaces::OpenList<Action>;
 
-    OpenList* open_list_;
+    std::shared_ptr<OpenList> open_list_;
     std::vector<Distribution<StateID>> transitions_;
 
 public:
     ExhaustiveAOSearch(
-        PolicyPicker* policy_chooser,
-        NewStateObserver* new_state_handler,
+        std::shared_ptr<PolicyPicker> policy_chooser,
+        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        OpenList* open_list)
+        std::shared_ptr<OpenList> open_list)
         : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , open_list_(open_list)
     {

@@ -99,8 +99,8 @@ public:
             engine_name);
 
         res->engine_.reset(new HS<QState, QAction, Interval>(
-            res->policy_.get(),
-            res->new_state_handler_.get(),
+            res->policy_,
+            res->new_state_handler_,
             &progress,
             interval,
             std::forward<Args>(args)...));
@@ -171,8 +171,8 @@ public:
 
         std::shared_ptr<HS<QState, QQAction, Interval>> engine(
             new HS<QState, QQAction, Interval>(
-                res->q_policy_tiebreaker_.get(),
-                res->new_state_handler_.get(),
+                res->q_policy_tiebreaker_,
+                res->new_state_handler_,
                 &progress,
                 interval,
                 std::forward<Args>(args)...));

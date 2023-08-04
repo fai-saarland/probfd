@@ -174,7 +174,7 @@ class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
     using Statistics = internal::Statistics;
 
     const TrialTerminationCondition StopConsistent;
-    SuccessorSampler* sample_;
+    std::shared_ptr<SuccessorSampler> sample_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
 
@@ -190,12 +190,12 @@ public:
      * @brief Constructs an LRTDP solver object.
      */
     LRTDP(
-        PolicyPicker* policy_chooser,
-        NewStateObserver* new_state_handler,
+        std::shared_ptr<PolicyPicker> policy_chooser,
+        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
-        SuccessorSampler* succ_sampler)
+        std::shared_ptr<SuccessorSampler> succ_sampler)
         : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , StopConsistent(stop_consistent)
         , sample_(succ_sampler)

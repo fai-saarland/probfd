@@ -61,7 +61,7 @@ public:
             value_iteration_,
             !value_iteration_,
             reexpand_traps_,
-            open_list_.get());
+            open_list_);
     }
 
 protected:

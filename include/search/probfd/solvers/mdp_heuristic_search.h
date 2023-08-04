@@ -64,16 +64,16 @@ public:
         if (dual_bounds_) {
             using HeuristicSearchType = HS<State, OperatorID, true>;
             return engine_factory<HeuristicSearchType>(
-                policy_tiebreaker_.get(),
-                new_state_handler_.get(),
+                policy_tiebreaker_,
+                new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
             using HeuristicSearchType = HS<State, OperatorID, false>;
             return engine_factory<HeuristicSearchType>(
-                policy_tiebreaker_.get(),
-                new_state_handler_.get(),
+                policy_tiebreaker_,
+                new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
@@ -149,15 +149,15 @@ public:
     {
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
-                q_policy_tiebreaker_.get(),
-                new_state_handler_.get(),
+                q_policy_tiebreaker_,
+                new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
             return std::make_unique<HS<State, OperatorID, false>>(
-                q_policy_tiebreaker_.get(),
-                new_state_handler_.get(),
+                q_policy_tiebreaker_,
+                new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
@@ -194,8 +194,8 @@ private:
     create_heuristic_search_engine_wrapper(Args&&... args)
     {
         std::shared_ptr engine = std::make_shared<HS<State, QAction, Interval>>(
-            q_policy_tiebreaker_.get(),
-            new_state_handler_.get(),
+            q_policy_tiebreaker_,
+            new_state_handler_,
             &progress_,
             interval_comparison_,
             std::forward<Args>(args)...);

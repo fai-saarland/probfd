@@ -179,8 +179,8 @@ class HeuristicDepthFirstSearch
 
 public:
     HeuristicDepthFirstSearch(
-        PolicyPicker* policy_chooser,
-        NewStateObserver* new_state_handler,
+        std::shared_ptr<PolicyPicker> policy_chooser,
+        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool LabelSolved,

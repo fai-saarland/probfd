@@ -45,7 +45,7 @@ public:
         return this->template create_quotient_heuristic_search_engine<Engine>(
             stop_consistent_,
             reexpand_traps_,
-            successor_sampler_.get());
+            successor_sampler_);
     }
 
 protected:
