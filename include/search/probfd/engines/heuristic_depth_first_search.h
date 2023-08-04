@@ -105,13 +105,17 @@ using HDFSBase = std::conditional_t<
 template <typename State, typename Action, bool UseInterval, bool Fret>
 class HeuristicDepthFirstSearch
     : public internal::HDFSBase<State, Action, UseInterval, Fret> {
+    using Base = typename HeuristicDepthFirstSearch::HeuristicSearchEngine;
+
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
+    using PolicyPicker = typename Base::PolicyPicker;
+    using NewStateObserver = typename Base::NewStateObserver;
+
+    using StateInfo = typename Base::StateInfo;
 
     using Statistics = internal::Statistics;
-
-    using HeuristicSearchEngine =
-        internal::HDFSBase<State, Action, UseInterval, Fret>;
-
-    using StateInfo = typename HeuristicSearchEngine::StateInfo;
 
     using AdditionalStateInfo = std::
         conditional_t<Fret, internal::StandalonePerStateInformation, StateInfo>;
@@ -175,8 +179,8 @@ class HeuristicDepthFirstSearch
 
 public:
     HeuristicDepthFirstSearch(
-        engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
+        PolicyPicker* policy_chooser,
+        NewStateObserver* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool LabelSolved,
@@ -186,11 +190,7 @@ public:
         bool GreedyExploration,
         bool PerformValueIteration,
         bool ExpandTipStates)
-        : HeuristicSearchEngine(
-              policy_chooser,
-              new_state_handler,
-              report,
-              interval_comparison)
+        : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , LabelSolved(LabelSolved)
         , ForwardUpdates(ForwardUpdates)
         , BackwardUpdates(BackwardUpdates)
@@ -205,8 +205,8 @@ public:
 
 protected:
     Interval do_solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {
@@ -238,8 +238,8 @@ private:
     }
 
     void solve_with_vi_termination(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID stateid,
         utils::CountdownTimer& timer)
     {
@@ -263,8 +263,8 @@ private:
     }
 
     void solve_without_vi_termination(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID stateid,
         utils::CountdownTimer& timer)
     {
@@ -280,8 +280,8 @@ private:
 
     template <bool GetVisited>
     bool policy_exploration(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state,
         utils::CountdownTimer& timer)
     {
@@ -460,8 +460,8 @@ private:
     }
 
     uint8_t push(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID stateid,
         AdditionalStateInfo& sinfo,
         bool& parent_value_changed,
@@ -523,8 +523,8 @@ private:
     }
 
     std::pair<bool, bool> value_iteration(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         const std::ranges::input_range auto& range,
         bool until_convergence,
         utils::CountdownTimer& timer)

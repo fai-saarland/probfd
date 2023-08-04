@@ -80,14 +80,16 @@ class AOBase
           Interval,
           StorePolicy,
           StateInfoExtension> {
-    /// The heuristic search base class.
-    using HeuristicSearchEngine = heuristic_search::HeuristicSearchEngine<
-        State,
-        Action,
-        Interval,
-        StorePolicy,
-        StateInfoExtension>;
+    using Base = typename AOBase::HeuristicSearchEngine;
 
+protected:
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+    using StateInfo = typename Base::StateInfo;
+    using PolicyPicker = typename Base::PolicyPicker;
+    using NewStateObserver = typename Base::NewStateObserver;
+
+private:
     struct PrioritizedStateID {
         unsigned update_order;
         StateID state_id;
@@ -103,8 +105,6 @@ class AOBase
     std::priority_queue<PrioritizedStateID> queue_;
 
 protected:
-    using StateInfo = typename HeuristicSearchEngine::StateInfo;
-
     std::vector<Action> aops_;
     Distribution<StateID> selected_transition_;
 
@@ -112,15 +112,11 @@ protected:
 
 public:
     AOBase(
-        engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
+        PolicyPicker* policy_chooser,
+        NewStateObserver* new_state_handler,
         ProgressReport* report,
         bool interval_comparison)
-        : HeuristicSearchEngine(
-              policy_chooser,
-              new_state_handler,
-              report,
-              interval_comparison)
+        : Base(policy_chooser, new_state_handler, report, interval_comparison)
     {
     }
 
@@ -137,8 +133,8 @@ protected:
     }
 
     void backpropagate_tip_value(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         utils::CountdownTimer& timer)
     {
         while (!queue_.empty()) {
@@ -209,8 +205,8 @@ protected:
     }
 
     void initialize_tip_state_value(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state,
         StateInfo& info,
         bool& terminal,
@@ -293,8 +289,8 @@ protected:
 
 private:
     bool update_value_check_solved(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state,
         const StateInfo& info,
         bool& solved,
@@ -319,8 +315,8 @@ private:
     }
 
     bool update_value_check_solved(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state,
         const StateInfo& info,
         bool& solved,

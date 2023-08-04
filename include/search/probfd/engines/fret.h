@@ -88,8 +88,14 @@ template <
     bool UseInterval,
     typename GreedyGraphGenerator>
 class FRET : public MDPEngine<State, Action> {
+    using Base = typename FRET::MDPEngine;
+
+    using PartialPolicy = typename Base::PartialPolicy;
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using QAction = typename QuotientSystem::QAction;
+    using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchEngine =
         HeuristicSearchEngine<State, QAction, UseInterval>;
 
@@ -156,9 +162,9 @@ public:
         });
     }
 
-    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+    std::unique_ptr<PartialPolicy> compute_policy(
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time = std::numeric_limits<double>::infinity()) override
     {
@@ -275,8 +281,8 @@ public:
     }
 
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {
@@ -286,7 +292,7 @@ public:
 
     Interval solve(
         QuotientSystem& quotient,
-        Evaluator<State>& heuristic,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time)
     {
@@ -306,7 +312,7 @@ public:
 
     Interval heuristic_search(
         QuotientSystem& quotient,
-        Evaluator<State>& heuristic,
+        Evaluator& heuristic,
         param_type<State> state,
         utils::CountdownTimer& timer)
     {
@@ -326,7 +332,7 @@ public:
 private:
     bool find_and_remove_traps(
         QuotientSystem& quotient,
-        Evaluator<State>& heuristic,
+        Evaluator& heuristic,
         param_type<State> state,
         utils::CountdownTimer& timer)
     {
@@ -456,7 +462,7 @@ private:
 
     bool push(
         QuotientSystem& quotient,
-        Evaluator<State>& heuristic,
+        Evaluator& heuristic,
         std::deque<ExplorationInfo>& queue,
         std::deque<StackInfo>& stack,
         TarjanStateInformation& info,
@@ -494,9 +500,11 @@ private:
 template <typename State, typename Action, bool UseInterval>
 class ValueGraph {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using QAction = typename QuotientSystem::QAction;
+    using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchEngine =
         HeuristicSearchEngine<State, QAction, UseInterval>;
+
+    using Evaluator = Evaluator<State>;
 
     std::unordered_set<StateID> ids;
     std::vector<Distribution<StateID>> opt_transitions;
@@ -504,7 +512,7 @@ class ValueGraph {
 public:
     bool get_successors(
         QuotientSystem& quotient,
-        Evaluator<State>& heuristic,
+        Evaluator& heuristic,
         QHeuristicSearchEngine& base_engine,
         StateID qstate,
         std::vector<QAction>& aops,
@@ -537,16 +545,18 @@ public:
 template <typename State, typename Action, bool UseInterval>
 class PolicyGraph {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using QAction = typename QuotientSystem::QAction;
+    using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchEngine =
         HeuristicSearchEngine<State, QAction, UseInterval>;
+
+    using Evaluator = Evaluator<State>;
 
     Distribution<StateID> t_;
 
 public:
     bool get_successors(
         QuotientSystem& quotient,
-        Evaluator<State>& heuristic,
+        Evaluator& heuristic,
         QHeuristicSearchEngine& base_engine,
         StateID qstate,
         std::vector<QAction>& aops,

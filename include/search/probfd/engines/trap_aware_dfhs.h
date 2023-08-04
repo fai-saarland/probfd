@@ -74,33 +74,25 @@ struct PerStateInformation : public BaseInfo {
 } // namespace internal
 
 template <typename State, typename Action, bool UseInterval>
-class TADepthFirstHeuristicSearch;
-
-template <typename State, typename Action, bool UseInterval>
-class TADepthFirstHeuristicSearch<
-    State,
-    quotients::QuotientAction<Action>,
-    UseInterval>
+class TADFHSImpl
     : public heuristic_search::HeuristicSearchBase<
           State,
           quotients::QuotientAction<Action>,
           UseInterval,
           true,
           internal::PerStateInformation> {
-    friend class TADepthFirstHeuristicSearch<State, Action, UseInterval>;
+    using Base = typename TADFHSImpl::HeuristicSearchBase;
 
-    using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
-        State,
-        quotients::QuotientAction<Action>,
-        UseInterval,
-        true,
-        internal::PerStateInformation>;
-
-    using UpdateResult = typename HeuristicSearchBase::UpdateResult;
-
-    using QAction = quotients::QuotientAction<Action>;
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using StateInfo = typename HeuristicSearchBase::StateInfo;
+    using QAction = quotients::QuotientAction<Action>;
+
+    using Evaluator = typename Base::Evaluator;
+    using QuotientPolicyPicker = typename Base::PolicyPicker;
+    using QuotientNewStateObserver = typename Base::NewStateObserver;
+    using UpdateResult = typename Base ::UpdateResult;
+    using StateInfo = typename Base::StateInfo;
+
+    using QuotientOpenList = engine_interfaces::OpenList<QAction>;
 
     struct Flags {
         /// was the exploration cut off?
@@ -185,7 +177,7 @@ class TADepthFirstHeuristicSearch<
     const bool mark_solved_;
     const bool reexpand_removed_traps_;
 
-    engine_interfaces::OpenList<QAction>* open_list_;
+    QuotientOpenList* open_list_;
 
     bool terminated_ = false;
 
@@ -202,9 +194,9 @@ public:
     /**
      * @brief Constructs a trap-aware DFHS solver object.
      */
-    TADepthFirstHeuristicSearch(
-        engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
+    TADFHSImpl(
+        QuotientPolicyPicker* policy_chooser,
+        QuotientNewStateObserver* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,
@@ -215,12 +207,8 @@ public:
         bool value_iteration,
         bool mark_solved,
         bool reexpand_removed_traps,
-        engine_interfaces::OpenList<QAction>* open_list)
-        : HeuristicSearchBase(
-              policy_chooser,
-              new_state_handler,
-              report,
-              interval_comparison)
+        QuotientOpenList* open_list)
+        : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , forward_updates_(forward_updates)
         , backtrack_update_type_(backtrack_update_type)
         , expand_tip_states_(expand_tip_states)
@@ -235,12 +223,12 @@ public:
     }
 
     Interval solve_quotient(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         param_type<State> qstate,
         double max_time)
     {
-        HeuristicSearchBase::initialize_report(quotient, heuristic, qstate);
+        Base::initialize_report(quotient, heuristic, qstate);
         statistics_.register_report(this->report_);
 
         utils::CountdownTimer timer(max_time);
@@ -254,17 +242,16 @@ public:
         return this->lookup_bounds(state_id);
     }
 
-protected:
     void print_statistics(std::ostream& out) const
     {
-        HeuristicSearchBase::print_statistics(out);
+        Base::print_statistics(out);
         statistics_.print(out);
     }
 
 private:
     void dfhs_vi_driver(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         const StateID state,
         utils::CountdownTimer& timer)
     {
@@ -286,8 +273,8 @@ private:
     }
 
     void dfhs_label_driver(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         const StateID state,
         utils::CountdownTimer& timer)
     {
@@ -337,8 +324,8 @@ private:
     }
 
     bool push_state(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         StateID state,
         StateInfo& state_info,
         Flags& flags)
@@ -380,8 +367,8 @@ private:
     }
 
     bool push_state(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         StateID state,
         Flags& flags)
     {
@@ -396,8 +383,8 @@ private:
     }
 
     bool repush_trap(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         StateID state,
         Flags& flags)
     {
@@ -434,8 +421,8 @@ private:
     }
 
     bool policy_exploration(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         StateID start_state,
         utils::CountdownTimer& timer)
     {
@@ -602,8 +589,8 @@ private:
     }
 
     bool backtrack_from_non_singleton(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         const StateID state,
         Flags& flags,
         auto scc)
@@ -624,8 +611,8 @@ private:
     }
 
     bool backtrack_trap(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         const StateID state,
         Flags& flags,
         auto scc)
@@ -677,8 +664,8 @@ private:
 
     template <bool Convergence>
     UpdateResult value_iteration(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         const std::ranges::input_range auto& range,
         utils::CountdownTimer& timer)
     {
@@ -711,21 +698,29 @@ private:
 
 template <typename State, typename Action, bool UseInterval>
 class TADepthFirstHeuristicSearch : public MDPEngine<State, Action> {
-    TADepthFirstHeuristicSearch<
-        State,
-        quotients::QuotientAction<Action>,
-        UseInterval>
-        engine_;
+    using Base = typename TADepthFirstHeuristicSearch::MDPEngine;
 
+    using PartialPolicy = typename Base::PartialPolicy;
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
+
+    using QuotientPolicyPicker =
+        engine_interfaces::PolicyPicker<State, QAction>;
+    using QuotientNewStateObserver = engine_interfaces::NewStateObserver<State>;
+    using QuotientOpenList = engine_interfaces::OpenList<QAction>;
+
+    TADFHSImpl<State, Action, UseInterval> engine_;
 
 public:
     /**
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
-        engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
+        QuotientPolicyPicker* policy_chooser,
+        QuotientNewStateObserver* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,
@@ -736,7 +731,7 @@ public:
         bool value_iteration,
         bool mark_solved,
         bool reexpand_removed_traps,
-        engine_interfaces::OpenList<QAction>* open_list)
+        QuotientOpenList* open_list)
         : engine_(
               policy_chooser,
               new_state_handler,
@@ -755,22 +750,22 @@ public:
     }
 
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {
-        quotients::QuotientSystem<State, Action> quotient(&mdp);
+        QuotientSystem quotient(&mdp);
         return engine_.solve_quotient(quotient, heuristic, state, max_time);
     }
 
-    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+    std::unique_ptr<PartialPolicy> compute_policy(
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {
-        quotients::QuotientSystem<State, Action> quotient(&mdp);
+        QuotientSystem quotient(&mdp);
         engine_.solve_quotient(quotient, heuristic, state, max_time);
 
         /*
@@ -788,9 +783,8 @@ public:
          * the action with which it is encountered first as the policy
          * action.
          */
-
-        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(&mdp));
+        using MapPolicy = policies::MapPolicy<State, Action>;
+        std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
 
         const StateID initial_state_id = mdp.get_state_id(state);
 

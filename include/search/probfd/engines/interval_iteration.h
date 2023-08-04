@@ -55,17 +55,25 @@ namespace interval_iteration {
  */
 template <typename State, typename Action>
 class IntervalIteration : public MDPEngine<State, Action> {
+    using Base = typename IntervalIteration::MDPEngine;
+
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QAction = quotients::QuotientAction<Action>;
+
     using Decomposer = preprocessing::EndComponentDecomposition<State, Action>;
-    using QuotientSystem = typename Decomposer::QuotientSystem;
-    using QAction = typename QuotientSystem::QAction;
-    using ValueIteration =
+    using QuotientQRAnalysis =
+        preprocessing::QualitativeReachabilityAnalysis<State, QAction>;
+    using QuotientValueIteration =
         topological_vi::TopologicalValueIteration<State, QAction, true>;
 
     const bool extract_probability_one_states_;
     const bool expand_goals_;
 
-    preprocessing::QualitativeReachabilityAnalysis<State, QAction> qr_analysis;
-    ValueIteration vi;
+    QuotientQRAnalysis qr_analysis;
+    QuotientValueIteration vi;
 
     preprocessing::ECDStatistics ecd_statistics_;
     topological_vi::Statistics tvi_statistics_;
@@ -86,8 +94,8 @@ public:
     }
 
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {
@@ -113,8 +121,8 @@ public:
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
@@ -154,8 +162,8 @@ public:
 
 private:
     std::unique_ptr<QuotientSystem> get_quotient(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         utils::CountdownTimer& timer)
     {
@@ -173,8 +181,8 @@ private:
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval mysolve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,

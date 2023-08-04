@@ -57,6 +57,14 @@ struct Statistics {
  */
 template <typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
+    using Base = typename AcyclicValueIteration::MDPEngine;
+
+    using PartialPolicy = typename Base::PartialPolicy;
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
+    using MapPolicy = policies::MapPolicy<State, Action>;
+
     struct StateInfo {
         bool expanded = false;
         std::optional<Action> best_action = std::nullopt;
@@ -79,7 +87,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         IncrementalExpansionInfo(
             StateID state,
             std::vector<Action> remaining_aops,
-            MDP<State, Action>& mdp)
+            MDP& mdp)
             : state(state)
             , remaining_aops(std::move(remaining_aops))
         {
@@ -97,7 +105,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
             return ++successor != transition.end();
         }
 
-        bool generate_next_transition(MDP<State, Action>& engine)
+        bool generate_next_transition(MDP& engine)
         {
             assert(!remaining_aops.empty());
             remaining_aops.pop_back();
@@ -122,21 +130,20 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
     std::stack<IncrementalExpansionInfo> expansion_stack_;
 
 public:
-    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+    std::unique_ptr<PartialPolicy> compute_policy(
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> initial_state,
         double max_time) override
     {
-        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(&mdp));
+        std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
         solve(mdp, heuristic, initial_state, max_time, policy.get());
         return policy;
     }
 
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> initial_state,
         double max_time) override
     {
@@ -144,11 +151,11 @@ public:
     }
 
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> initial_state,
         double max_time,
-        policies::MapPolicy<State, Action>* policy)
+        MapPolicy* policy)
     {
         utils::CountdownTimer timer(max_time);
 
@@ -174,10 +181,10 @@ public:
 
 private:
     void dfs_expand(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         utils::CountdownTimer& timer,
-        policies::MapPolicy<State, Action>* policy)
+        MapPolicy* policy)
     {
         IncrementalExpansionInfo* e = &expansion_stack_.top();
 
@@ -227,9 +234,7 @@ private:
         }
     }
 
-    void on_fully_expanded(
-        IncrementalExpansionInfo& e,
-        policies::MapPolicy<State, Action>* policy)
+    void on_fully_expanded(IncrementalExpansionInfo& e, MapPolicy* policy)
     {
         StateInfo& info = state_infos_[e.state];
 
@@ -241,10 +246,8 @@ private:
         }
     }
 
-    bool dfs_backtrack(
-        MDP<State, Action>& mdp,
-        utils::CountdownTimer& timer,
-        policies::MapPolicy<State, Action>* policy)
+    bool
+    dfs_backtrack(MDP& mdp, utils::CountdownTimer& timer, MapPolicy* policy)
     {
         IncrementalExpansionInfo* e;
 
@@ -277,8 +280,8 @@ private:
     }
 
     bool push_state(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         StateInfo& succ_info)
     {

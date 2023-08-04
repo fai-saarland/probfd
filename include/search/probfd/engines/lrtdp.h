@@ -123,12 +123,6 @@ using LRTDPBase = std::conditional_t<
         true,
         internal::PerStateInformation>>;
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
-using LRTDPStateInfo = std::conditional_t<
-    Fret,
-    internal::PerStateInformation<internal::EmptyStateInfo>,
-    typename LRTDPBase<State, Action, UseInterval, Fret>::StateInfo>;
-
 } // namespace internal
 
 /**
@@ -163,16 +157,26 @@ using LRTDPStateInfo = std::conditional_t<
  */
 template <typename State, typename Action, bool UseInterval, bool Fret>
 class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
-    using HeuristicSearchEngine =
-        internal::LRTDPBase<State, Action, UseInterval, Fret>;
-    using StateInfoT =
-        internal::LRTDPStateInfo<State, Action, UseInterval, Fret>;
+    using Base = typename LRTDP::HeuristicSearchEngine;
+
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+    using PolicyPicker = typename Base::PolicyPicker;
+    using NewStateObserver = typename Base::NewStateObserver;
+
+    using SuccessorSampler = engine_interfaces::SuccessorSampler<Action>;
+
+    using StateInfo = std::conditional_t<
+        Fret,
+        internal::PerStateInformation<internal::EmptyStateInfo>,
+        typename Base::StateInfo>;
+
     using Statistics = internal::Statistics;
 
     const TrialTerminationCondition StopConsistent;
-    engine_interfaces::SuccessorSampler<Action>* sample_;
+    SuccessorSampler* sample_;
 
-    storage::PerStateStorage<StateInfoT> state_infos_;
+    storage::PerStateStorage<StateInfo> state_infos_;
 
     std::vector<StateID> current_trial_;
     Distribution<StateID> selected_transition_;
@@ -186,24 +190,18 @@ public:
      * @brief Constructs an LRTDP solver object.
      */
     LRTDP(
-        engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
+        PolicyPicker* policy_chooser,
+        NewStateObserver* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
-        engine_interfaces::SuccessorSampler<Action>* succ_sampler)
-        : HeuristicSearchEngine(
-              policy_chooser,
-              new_state_handler,
-              report,
-              interval_comparison)
+        SuccessorSampler* succ_sampler)
+        : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , StopConsistent(stop_consistent)
         , sample_(succ_sampler)
     {
-        using HSBInfo = typename HeuristicSearchEngine::StateInfo;
-
-        if constexpr (!std::is_same_v<StateInfoT, HSBInfo>) {
-            statistics_.state_info_bytes = sizeof(StateInfoT);
+        if constexpr (!std::is_same_v<StateInfo, typename Base::StateInfo>) {
+            statistics_.state_info_bytes = sizeof(StateInfo);
         }
     }
 
@@ -211,8 +209,8 @@ public:
 
 protected:
     Interval do_solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {
@@ -221,7 +219,7 @@ protected:
         const StateID state_id = mdp.get_state_id(state);
 
         for (;;) {
-            StateInfoT& info = get_lrtdp_state_info(state_id);
+            StateInfo& info = get_lrtdp_state_info(state_id);
 
             if (info.is_solved()) {
                 break;
@@ -249,8 +247,8 @@ protected:
 
 private:
     void trial(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID initial_state,
         utils::CountdownTimer& timer)
     {
@@ -333,8 +331,8 @@ private:
     }
 
     bool check_and_solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID init_state_id,
         utils::CountdownTimer& timer)
     {
@@ -419,11 +417,9 @@ private:
         return epsilon_consistent && mark_solved;
     }
 
-    StateInfoT& get_lrtdp_state_info(StateID sid)
+    StateInfo& get_lrtdp_state_info(StateID sid)
     {
-        using HSBInfo = typename HeuristicSearchEngine::StateInfo;
-
-        if constexpr (std::is_same_v<StateInfoT, HSBInfo>) {
+        if constexpr (std::is_same_v<StateInfo, typename Base::StateInfo>) {
             return this->get_state_info(sid);
         } else {
             return state_infos_[sid];
@@ -432,8 +428,8 @@ private:
 
     /*
     bool check_and_solve_original(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID init_state_id)
     {
         bool rv = true;

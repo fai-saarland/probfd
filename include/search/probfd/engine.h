@@ -26,6 +26,14 @@ namespace probfd {
  */
 template <typename State, typename Action>
 class MDPEngine {
+protected:
+    using PartialPolicy = PartialPolicy<State, Action>;
+
+    using MDP = MDP<State, Action>;
+    using Evaluator = Evaluator<State>;
+
+    static constexpr double INF_TIME = std::numeric_limits<double>::infinity();
+
 public:
     virtual ~MDPEngine() = default;
 
@@ -34,11 +42,8 @@ public:
      *
      * The default implementation of this method returns an empty policy.
      */
-    virtual std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        MDP<State, Action>&,
-        Evaluator<State>&,
-        param_type<State>,
-        double = std::numeric_limits<double>::infinity())
+    virtual std::unique_ptr<PartialPolicy>
+    compute_policy(MDP&, Evaluator&, param_type<State>, double = INF_TIME)
     {
         return std::make_unique<policies::EmptyPolicy<State, Action>>();
     }
@@ -48,10 +53,10 @@ public:
      * maximum time limit.
      */
     virtual Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
-        double max_time = std::numeric_limits<double>::infinity()) = 0;
+        double max_time = INF_TIME) = 0;
 
     /**
      * @brief Prints algorithm statistics to the specified output stream.

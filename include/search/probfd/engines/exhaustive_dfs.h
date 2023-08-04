@@ -99,6 +99,14 @@ inline bool update_lower_bound(Interval& x, value_t v)
  */
 template <typename State, typename Action, bool UseInterval>
 class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
+    using Base = typename ExhaustiveDepthFirstSearch::MDPEngine;
+
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
+    using NewStateObserver = engine_interfaces::NewStateObserver<State>;
+    using TransitionSorter = engine_interfaces::TransitionSorter<Action>;
+
     using EngineValueType = engines::EngineValueType<UseInterval>;
 
     struct SearchNodeInformation {
@@ -236,8 +244,8 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
         }
     };
 
-    engine_interfaces::NewStateObserver<State>* new_state_handler_;
-    engine_interfaces::TransitionSorter<Action>* transition_sort_;
+    NewStateObserver* new_state_handler_;
+    TransitionSorter* transition_sort_;
 
     ProgressReport* report_;
     const Interval cost_bound_;
@@ -261,8 +269,8 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
 
 public:
     explicit ExhaustiveDepthFirstSearch(
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
-        engine_interfaces::TransitionSorter<Action>* transition_sorting,
+        NewStateObserver* new_state_handler,
+        TransitionSorter* transition_sorting,
         Interval cost_bound,
         bool reevaluate,
         bool notify_initial,
@@ -281,11 +289,9 @@ public:
     {
     }
 
-    Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        param_type<State> state,
-        double) override
+    Interval
+    solve(MDP& mdp, Evaluator& heuristic, param_type<State> state, double)
+        override
     {
         StateID stateid = mdp.get_state_id(state);
         SearchNodeInformation& info = search_space_[stateid];
@@ -333,8 +339,8 @@ private:
     }
 
     bool initialize_search_node(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         SearchNodeInformation& info)
     {
@@ -346,8 +352,8 @@ private:
     }
 
     bool initialize_search_node(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         SearchNodeInformation& info)
     {
@@ -390,8 +396,8 @@ private:
     }
 
     bool push_state(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         SearchNodeInformation& info)
     {
@@ -511,7 +517,7 @@ private:
         return true;
     }
 
-    void run_exploration(MDP<State, Action>& mdp, Evaluator<State>& heuristic)
+    void run_exploration(MDP& mdp, Evaluator& heuristic)
     {
         while (!expansion_infos_.empty()) {
             ExpansionInformation& expanding = expansion_infos_.back();

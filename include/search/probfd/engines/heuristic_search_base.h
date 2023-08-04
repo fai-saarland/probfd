@@ -131,6 +131,13 @@ struct Statistics : public CoreStatistics {
  */
 template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchBase {
+protected:
+    using MDP = MDP<State, Action>;
+    using Evaluator = Evaluator<State>;
+
+    using PolicyPicker = engine_interfaces::PolicyPicker<State, Action>;
+    using NewStateObserver = engine_interfaces::NewStateObserver<State>;
+
 public:
     using StateInfo = StateInfoT;
 
@@ -166,8 +173,8 @@ private:
         }
     };
 
-    engine_interfaces::PolicyPicker<State, Action>* policy_chooser_;
-    engine_interfaces::NewStateObserver<State>* on_new_state_;
+    PolicyPicker* policy_chooser_;
+    NewStateObserver* on_new_state_;
 
     StateInfos state_infos_;
 
@@ -186,8 +193,8 @@ protected:
 
 public:
     HeuristicSearchBase(
-        engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
+        PolicyPicker* policy_chooser,
+        NewStateObserver* new_state_handler,
         ProgressReport* report,
         bool interval_comparison)
         : policy_chooser_(policy_chooser)
@@ -208,10 +215,8 @@ public:
         return get_state_info(state_id).get_bounds();
     }
 
-    std::optional<Action> lookup_policy(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        StateID state_id)
+    std::optional<Action>
+    lookup_policy(MDP& mdp, Evaluator& heuristic, StateID state_id)
         requires(!StorePolicy)
     {
         std::vector<Action> opt_aops;
@@ -300,8 +305,8 @@ public:
      * the current greedy action in the state represented by \p state
      */
     bool apply_policy(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         Distribution<StateID>& result)
     {
@@ -374,10 +379,7 @@ public:
      * If the policy is stored, the greedy action for s is also updated using
      * the internal policy tiebreaking settings.
      */
-    bool async_update(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        StateID s)
+    bool async_update(MDP& mdp, Evaluator& heuristic, StateID s)
     {
         if constexpr (!StorePolicy) {
             return compute_value_update(
@@ -403,8 +405,8 @@ public:
      * transition.
      */
     UpdateResult async_update(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID s,
         Distribution<StateID>* policy_transition)
     {
@@ -416,8 +418,8 @@ public:
     }
 
     bool compute_value_update_and_optimal_transitions(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         std::vector<Action>& opt_aops,
         std::vector<Distribution<StateID>>& opt_transitions)
@@ -432,10 +434,8 @@ public:
     }
 
 protected:
-    void initialize_report(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        param_type<State> state)
+    void
+    initialize_report(MDP& mdp, Evaluator& heuristic, param_type<State> state)
     {
         initial_state_id_ = mdp.get_state_id(state);
 
@@ -547,10 +547,8 @@ private:
         }
     }
 
-    StateInfo& lookup_initialize(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        StateID state_id)
+    StateInfo&
+    lookup_initialize(MDP& mdp, Evaluator& heuristic, StateID state_id)
     {
         StateInfo& state_info = get_state_info(state_id);
         initialize_if_needed(mdp, heuristic, state_id, state_info);
@@ -558,8 +556,8 @@ private:
     }
 
     bool initialize_if_needed(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         StateInfo& state_info)
     {
@@ -603,8 +601,8 @@ private:
     }
 
     bool compute_value_update(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         StateInfo& state_info)
     {
@@ -689,8 +687,8 @@ private:
     }
 
     EngineValueType compute_non_loop_transitions_and_values(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& aops,
@@ -752,8 +750,8 @@ private:
     }
 
     EngineValueType compute_optimal_transitions(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& opt_aops,
@@ -799,8 +797,8 @@ private:
     }
 
     bool compute_value_update_and_optimal_transitions(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& opt_aops,
@@ -845,8 +843,8 @@ private:
     }
 
     UpdateResult compute_value_policy_update(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         Distribution<StateID>* greedy_transition)
     {
@@ -882,7 +880,7 @@ private:
     }
 
     std::pair<bool, Action> compute_policy_update(
-        MDP<State, Action>& mdp,
+        MDP& mdp,
         StateID state_id,
         StateInfo& state_info,
         std::vector<Action>& opt_aops,
@@ -924,28 +922,42 @@ private:
  */
 template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchEngine
-    : public HeuristicSearchBase<State, Action, StateInfoT>
-    , public MDPEngine<State, Action> {
-    using HeuristicSearchBase = HeuristicSearchBase<State, Action, StateInfoT>;
+    : public MDPEngine<State, Action>
+    , public HeuristicSearchBase<State, Action, StateInfoT> {
+    using EngineBase = typename HeuristicSearchEngine::MDPEngine;
+    using HSBase = typename HeuristicSearchEngine::HeuristicSearchBase;
+
+protected:
+    using PartialPolicy = typename EngineBase::PartialPolicy;
+
+    using MDP = typename EngineBase::MDP;
+    using Evaluator = typename EngineBase::Evaluator;
+
+    using StateInfo = typename HSBase::StateInfo;
+    using PolicyPicker = typename HSBase::PolicyPicker;
+    using NewStateObserver = typename HSBase::NewStateObserver;
+
+    using MapPolicy = policies::MapPolicy<State, Action>;
 
 public:
-    using HeuristicSearchBase::HeuristicSearchBase;
+    // Inherited constructor
+    using HSBase::HSBase;
 
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time =
             std::numeric_limits<double>::infinity()) final override
     {
-        HeuristicSearchBase::initialize_report(mdp, heuristic, state);
+        HSBase::initialize_report(mdp, heuristic, state);
         this->setup_custom_reports(state);
         return this->do_solve(mdp, heuristic, state, max_time);
     }
 
-    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+    std::unique_ptr<PartialPolicy> compute_policy(
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time = std::numeric_limits<double>::infinity()) override
     {
@@ -956,8 +968,7 @@ public:
          * Collect optimal actions along the way.
          */
 
-        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(&mdp));
+        std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
 
         const StateID initial_state_id = mdp.get_state_id(state);
 
@@ -972,7 +983,7 @@ public:
 
             std::optional<Action> action;
 
-            if constexpr (HeuristicSearchBase::StorePolicy) {
+            if constexpr (HSBase::StorePolicy) {
                 action = this->lookup_policy(state_id);
             } else {
                 action = this->lookup_policy(mdp, heuristic, state_id);
@@ -1003,7 +1014,7 @@ public:
 
     void print_statistics(std::ostream& out) const final override
     {
-        HeuristicSearchBase::print_statistics(out);
+        HSBase::print_statistics(out);
         this->print_additional_statistics(out);
     }
 
@@ -1025,8 +1036,8 @@ public:
      * Called internally after initializing the progress report.
      */
     virtual Interval do_solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) = 0;
 

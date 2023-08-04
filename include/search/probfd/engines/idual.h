@@ -94,6 +94,11 @@ private:
  */
 template <typename State, typename Action>
 class IDual : public MDPEngine<State, Action> {
+    using Base = typename IDual::MDPEngine;
+
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
     ProgressReport* report_;
 
     lp::LPSolver lp_solver_;
@@ -112,8 +117,8 @@ public:
     }
 
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> initial_state,
         double max_time) override
     {

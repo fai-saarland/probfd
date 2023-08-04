@@ -41,29 +41,34 @@ namespace ao_star {
 template <typename State, typename Action, bool UseInterval>
 class AOStar
     : public AOBase<State, Action, UseInterval, true, PerStateInformation> {
-    engine_interfaces::SuccessorSampler<Action>* outcome_selection_;
+    using Base = typename AOStar::AOBase;
+
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+    using PolicyPicker = typename Base::PolicyPicker;
+    using NewStateObserver = typename Base::NewStateObserver;
+
+    using SuccessorSampler = engine_interfaces::SuccessorSampler<Action>;
+
+    SuccessorSampler* outcome_selection_;
     std::vector<Distribution<StateID>> transitions_;
 
 public:
     AOStar(
-        engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
+        PolicyPicker* policy_chooser,
+        NewStateObserver* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
-        engine_interfaces::SuccessorSampler<Action>* outcome_selection)
-        : AOBase<State, Action, UseInterval, true, PerStateInformation>(
-              policy_chooser,
-              new_state_handler,
-              report,
-              interval_comparison)
+        SuccessorSampler* outcome_selection)
+        : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , outcome_selection_(outcome_selection)
     {
     }
 
 protected:
     Interval do_solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {

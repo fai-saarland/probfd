@@ -73,26 +73,25 @@ struct PerStateInformation : public StateInfo {
 } // namespace internal
 
 template <typename State, typename Action, bool UseInterval>
-class TALRTDP;
-
-template <typename State, typename Action, bool UseInterval>
-class TALRTDP<State, quotients::QuotientAction<Action>, UseInterval>
+class TALRTDPImpl
     : public heuristic_search::HeuristicSearchBase<
           State,
           quotients::QuotientAction<Action>,
           UseInterval,
           true,
           internal::PerStateInformation> {
-    using HeuristicSearchBase = heuristic_search::HeuristicSearchBase<
-        State,
-        quotients::QuotientAction<Action>,
-        UseInterval,
-        true,
-        internal::PerStateInformation>;
+    using Base = typename TALRTDPImpl::HeuristicSearchBase;
 
-    using QAction = quotients::QuotientAction<Action>;
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using StateInfo = typename HeuristicSearchBase::StateInfo;
+    using QAction = quotients::QuotientAction<Action>;
+
+    using Evaluator = typename Base::Evaluator;
+    using QuotientPolicyPicker = typename Base::PolicyPicker;
+    using QuotientNewStateObserver = typename Base::NewStateObserver;
+    using StateInfo = typename Base::StateInfo;
+
+    using QuotientSuccessorSampler =
+        engine_interfaces::SuccessorSampler<QAction>;
 
     struct Flags {
         bool is_dead = true;
@@ -164,7 +163,7 @@ class TALRTDP<State, quotients::QuotientAction<Action>, UseInterval>
     const TrialTerminationCondition stop_at_consistent_;
     const bool reexpand_traps_;
 
-    engine_interfaces::SuccessorSampler<QAction>* sample_;
+    QuotientSuccessorSampler* sample_;
 
     Distribution<StateID> selected_transition_;
 
@@ -180,19 +179,15 @@ public:
     /**
      * @brief Constructs a trap-aware LRTDP solver object.
      */
-    TALRTDP(
-        engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
+    TALRTDPImpl(
+        QuotientPolicyPicker* policy_chooser,
+        QuotientNewStateObserver* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
-        engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
-        : HeuristicSearchBase(
-              policy_chooser,
-              new_state_handler,
-              report,
-              interval_comparison)
+        QuotientSuccessorSampler* succ_sampler)
+        : Base(policy_chooser, new_state_handler, report, interval_comparison)
         , stop_at_consistent_(stop_consistent)
         , reexpand_traps_(reexpand_traps)
         , sample_(succ_sampler)
@@ -201,12 +196,12 @@ public:
     }
 
     Interval solve_quotient(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time)
     {
-        HeuristicSearchBase::initialize_report(quotient, heuristic, state);
+        Base::initialize_report(quotient, heuristic, state);
         this->statistics_.register_report(*this->report_);
 
         utils::CountdownTimer timer(max_time);
@@ -225,14 +220,14 @@ public:
 
     void print_statistics(std::ostream& out) const
     {
-        HeuristicSearchBase::print_statistics(out);
+        Base::print_statistics(out);
         this->statistics_.print(out);
     }
 
 private:
     bool trial(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         StateID start_state,
         utils::CountdownTimer& timer)
     {
@@ -304,8 +299,8 @@ private:
     }
 
     bool check_and_solve(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         utils::CountdownTimer& timer)
     {
         assert(!this->current_trial_.empty());
@@ -452,8 +447,8 @@ private:
     }
 
     bool push_to_queue(
-        quotients::QuotientSystem<State, Action>& quotient,
-        Evaluator<State>& heuristic,
+        QuotientSystem& quotient,
+        Evaluator& heuristic,
         const StateID state,
         Flags& parent_flags)
     {
@@ -502,22 +497,35 @@ private:
 
 template <typename State, typename Action, bool UseInterval>
 class TALRTDP : public MDPEngine<State, Action> {
+    using Base = typename TALRTDP::MDPEngine;
+
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    TALRTDP<State, QAction, UseInterval> engine_;
+    using PartialPolicy = typename Base::PartialPolicy;
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
+    using QuotientPolicyPicker =
+        engine_interfaces::PolicyPicker<State, QAction>;
+    using QuotientNewStateObserver = engine_interfaces::NewStateObserver<State>;
+    using QuotientSuccessorSampler =
+        engine_interfaces::SuccessorSampler<QAction>;
+
+    TALRTDPImpl<State, Action, UseInterval> engine_;
 
 public:
     /**
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
-        engine_interfaces::NewStateObserver<State>* new_state_handler,
+        QuotientPolicyPicker* policy_chooser,
+        QuotientNewStateObserver* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
-        engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
+        QuotientSuccessorSampler* succ_sampler)
         : engine_(
               policy_chooser,
               new_state_handler,
@@ -529,13 +537,11 @@ public:
     {
     }
 
-    Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
-        param_type<State> s,
-        double max_time) override final
+    Interval
+    solve(MDP& mdp, Evaluator& heuristic, param_type<State> s, double max_time)
+        override final
     {
-        quotients::QuotientSystem<State, Action> quotient(&mdp);
+        QuotientSystem quotient(&mdp);
         return engine_.solve_quotient(quotient, heuristic, s, max_time);
     }
 

@@ -75,6 +75,13 @@ struct Statistics {
  */
 template <typename State, typename Action, bool UseInterval = false>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
+    using Base = typename TopologicalValueIteration::MDPEngine;
+
+    using PartialPolicy = typename Base::PartialPolicy;
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
+    using MapPolicy = policies::MapPolicy<State, Action>;
     using EngineValueType = engines::EngineValueType<UseInterval>;
 
     struct StateInfo {
@@ -117,7 +124,7 @@ class TopologicalValueIteration : public MDPEngine<State, Action> {
          * Advances to the next non-loop action. Returns nullptr if such an
          * action does not exist.
          */
-        bool next_action(MDP<State, Action>& mdp, unsigned int state_id)
+        bool next_action(MDP& mdp, unsigned int state_id)
         {
             for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
                 transition.clear();
@@ -271,15 +278,14 @@ public:
     /**
      * \copydoc MDPEngine::compute_policy(param_type<State>, double)
      */
-    std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+    std::unique_ptr<PartialPolicy> compute_policy(
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
-        std::unique_ptr<policies::MapPolicy<State, Action>> policy(
-            new policies::MapPolicy<State, Action>(&mdp));
+        std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
         this->solve(
             mdp,
             heuristic,
@@ -294,8 +300,8 @@ public:
      * \copydoc MDPEngine::solve(param_type<State>, double)
      */
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {
@@ -330,12 +336,12 @@ public:
      */
     template <typename ValueStore>
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID init_state_id,
         ValueStore& value_store,
         double max_time = std::numeric_limits<double>::infinity(),
-        policies::MapPolicy<State, Action>* policy = nullptr)
+        MapPolicy* policy = nullptr)
     {
         utils::CountdownTimer timer(max_time);
 
@@ -439,8 +445,8 @@ private:
      * true if the state was pushed.
      */
     bool push_state(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         StateInfo& state_info,
         EngineValueType& state_value)
@@ -557,8 +563,8 @@ private:
      */
     template <typename ValueStore>
     bool successor_loop(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateID state_id,
@@ -623,7 +629,7 @@ private:
     void scc_found(
         StackIterator begin,
         StackIterator end,
-        policies::MapPolicy<State, Action>* policy,
+        MapPolicy* policy,
         utils::CountdownTimer& timer)
     {
         assert(begin != end);

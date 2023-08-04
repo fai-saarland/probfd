@@ -63,6 +63,11 @@ struct Statistics {
  */
 template <typename State, typename Action, bool UseInterval = false>
 class TATopologicalValueIteration : public MDPEngine<State, Action> {
+    using Base = typename TATopologicalValueIteration::MDPEngine;
+
+    using MDP = typename Base::MDP;
+    using Evaluator = typename Base::Evaluator;
+
     using EngineValueType = engines::EngineValueType<UseInterval>;
 
     struct StateInfo {
@@ -112,7 +117,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
          * Advances to the next non-loop action. Returns nullptr if such an
          * action does not exist.
          */
-        bool next_action(MDP<State, Action>& mdp, unsigned int state_id)
+        bool next_action(MDP& mdp, unsigned int state_id)
         {
             for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
                 transition.clear();
@@ -342,8 +347,8 @@ public:
      * \copydoc MDPEngine::solve(param_type<State>, double)
      */
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         param_type<State> state,
         double max_time) override
     {
@@ -378,8 +383,8 @@ public:
      */
     template <typename ValueStore>
     Interval solve(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID init_state_id,
         ValueStore& value_store,
         double max_time = std::numeric_limits<double>::infinity())
@@ -517,8 +522,8 @@ private:
      */
     template <typename ValueStore>
     bool successor_loop(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateID state_id,
@@ -599,8 +604,8 @@ private:
      * true if the state was pushed.
      */
     bool push_state(
-        MDP<State, Action>& mdp,
-        Evaluator<State>& heuristic,
+        MDP& mdp,
+        Evaluator& heuristic,
         StateID state_id,
         StateInfo& state_info,
         EngineValueType& state_value)
