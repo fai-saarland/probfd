@@ -5,6 +5,8 @@
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
+#include "probfd/quotients/heuristic_search_interface.h"
+
 #include "probfd/progress_report.h"
 
 #include <memory>
@@ -23,6 +25,10 @@ class ILAOPolicyGenerator : public PolicyGenerator {
         const AbstractState*,
         const ProbabilisticTransition*>>
         ptb;
+    quotients::RepresentativePolicyPicker<
+        const AbstractState*,
+        const ProbabilisticTransition*>
+        picker;
 
     ProgressReport report;
 

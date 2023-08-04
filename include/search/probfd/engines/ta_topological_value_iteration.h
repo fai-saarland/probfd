@@ -328,8 +328,6 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
         }
     };
 
-    const Evaluator<State>* value_initializer_;
-
     storage::PerStateStorage<StateInfo> state_information_;
     std::deque<ExplorationInfo> exploration_stack_;
     std::vector<StackInfo> stack_;
@@ -340,20 +338,22 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
     Statistics statistics_;
 
 public:
-    TATopologicalValueIteration(const Evaluator<State>* value_initializer)
-        : value_initializer_(value_initializer)
-    {
-    }
-
     /**
      * \copydoc MDPEngine::solve(param_type<State>, double)
      */
-    Interval
-    solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
-        override
+    Interval solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time) override
     {
         storage::PerStateStorage<EngineValueType> value_store;
-        return this->solve(mdp, mdp.get_state_id(state), value_store, max_time);
+        return this->solve(
+            mdp,
+            heuristic,
+            mdp.get_state_id(state),
+            value_store,
+            max_time);
     }
 
     /**
@@ -379,6 +379,7 @@ public:
     template <typename ValueStore>
     Interval solve(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID init_state_id,
         ValueStore& value_store,
         double max_time = std::numeric_limits<double>::infinity())
@@ -388,7 +389,7 @@ public:
         StateInfo& iinfo = state_information_[init_state_id];
         EngineValueType& init_value = value_store[init_state_id];
 
-        if (!push_state(mdp, init_state_id, iinfo, init_value)) {
+        if (!push_state(mdp, heuristic, init_state_id, iinfo, init_value)) {
             if constexpr (UseInterval) {
                 return init_value;
             } else {
@@ -403,6 +404,7 @@ public:
         for (;;) {
             while (successor_loop(
                 mdp,
+                heuristic,
                 *explore,
                 *stack_info,
                 state_id,
@@ -516,6 +518,7 @@ private:
     template <typename ValueStore>
     bool successor_loop(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateID state_id,
@@ -543,7 +546,12 @@ private:
 
                 switch (status) {
                 case StateInfo::NEW:
-                    if (push_state(mdp, succ_id, succ_info, s_value)) {
+                    if (push_state(
+                            mdp,
+                            heuristic,
+                            succ_id,
+                            succ_info,
+                            s_value)) {
                         return true; // recursion on new state
                     }
 
@@ -592,6 +600,7 @@ private:
      */
     bool push_state(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID state_id,
         StateInfo& state_info,
         EngineValueType& state_value)
@@ -607,7 +616,7 @@ private:
             ++statistics_.goal_states;
         }
 
-        const EvaluationResult h_eval = value_initializer_->evaluate(state);
+        const EvaluationResult h_eval = heuristic.evaluate(state);
         const auto estimate = h_eval.get_estimate();
 
         if (h_eval.is_unsolvable()) {

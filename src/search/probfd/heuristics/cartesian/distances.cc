@@ -39,9 +39,13 @@ compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic)
     engines::ta_topological_vi::TATopologicalValueIteration<
         const AbstractState*,
         const ProbabilisticTransition*>
-        tvi(&heuristic);
+        tvi;
 
-    tvi.solve(abstraction, abstraction.get_initial_state().get_id(), values);
+    tvi.solve(
+        abstraction,
+        heuristic,
+        abstraction.get_initial_state().get_id(),
+        values);
 
     return values;
 }

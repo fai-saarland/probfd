@@ -38,6 +38,7 @@ MDPSolver::MDPSolver(const plugins::Options& opts)
                     g_cost_model->get_cost_function(),
                     opts.get_list<std::shared_ptr<::Evaluator>>(
                         "path_dependent_evaluators")))
+    , heuristic(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
     , progress_(
           opts.contains("report_epsilon")
               ? std::optional<value_t>(opts.get<value_t>("report_epsilon"))
@@ -69,7 +70,8 @@ void MDPSolver::solve()
 
         const State& initial_state = task_mdp->get_initial_state();
 
-        Interval val = engine->solve(*task_mdp, initial_state, max_time);
+        Interval val =
+            engine->solve(*task_mdp, *heuristic, initial_state, max_time);
         progress_.force_print();
         total_timer.stop();
 
@@ -91,6 +93,8 @@ void MDPSolver::solve()
         std::cout << "  Actual solver time: " << total_timer << std::endl;
         engine->print_statistics(std::cout);
 
+        heuristic->print_statistics();
+
         print_additional_statistics();
     } catch (utils::TimeoutException&) {
         std::cout << "Time limit reached. Analysis was aborted." << std::endl;
@@ -100,6 +104,10 @@ void MDPSolver::solve()
 
 void MDPSolver::add_options_to_feature(plugins::Feature& feature)
 {
+    feature.add_option<std::shared_ptr<TaskEvaluator>>(
+        "eval",
+        "",
+        "blind_eval");
     feature.add_option<bool>("cache", "", "false");
     feature.add_list_option<std::shared_ptr<::Evaluator>>(
         "path_dependent_evaluators",

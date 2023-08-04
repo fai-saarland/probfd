@@ -112,13 +112,11 @@ protected:
 
 public:
     AOBase(
-        Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison)
         : HeuristicSearchBase(
-              value_init,
               policy_chooser,
               new_state_handler,
               report,
@@ -140,6 +138,7 @@ protected:
 
     void backpropagate_tip_value(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         utils::CountdownTimer& timer)
     {
         while (!queue_.empty()) {
@@ -164,6 +163,7 @@ protected:
             bool dead = false;
             bool value_changed = update_value_check_solved(
                 mdp,
+                heuristic,
                 elem.state_id,
                 info,
                 solved,
@@ -210,6 +210,7 @@ protected:
 
     void initialize_tip_state_value(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID state,
         StateInfo& info,
         bool& terminal,
@@ -224,8 +225,13 @@ protected:
 
         terminal = false;
         solved = false;
-        value_changed =
-            update_value_check_solved(mdp, state, info, solved, dead);
+        value_changed = update_value_check_solved(
+            mdp,
+            heuristic,
+            state,
+            info,
+            solved,
+            dead);
 
         if (info.is_terminal()) {
             terminal = true;
@@ -237,7 +243,7 @@ protected:
             }
 
             push_parents_to_queue(info);
-            backpropagate_tip_value(mdp, timer);
+            backpropagate_tip_value(mdp, heuristic, timer);
         }
 
         assert(queue_.empty());
@@ -288,35 +294,45 @@ protected:
 private:
     bool update_value_check_solved(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID state,
         const StateInfo& info,
         bool& solved,
         bool& dead)
+        requires(StorePolicy)
     {
-        if constexpr (StorePolicy) {
-            ClearGuard guard(selected_transition_);
+        ClearGuard guard(selected_transition_);
 
-            const bool result =
-                this->async_update(mdp, state, &selected_transition_)
-                    .value_changed;
-            solved = true;
-            dead = !selected_transition_.empty() || info.is_dead_end();
+        const bool result =
+            this->async_update(mdp, heuristic, state, &selected_transition_)
+                .value_changed;
+        solved = true;
+        dead = !selected_transition_.empty() || info.is_dead_end();
 
-            for (const StateID succ_id : selected_transition_.support()) {
-                const auto& succ_info = this->get_state_info(succ_id);
-                solved = solved && succ_info.is_solved();
-                dead = dead && succ_info.is_dead_end();
-            }
-
-            return result;
-        } else {
-            const bool result = this->async_update(mdp, state);
-
-            solved = info.unsolved == 0;
-            dead = solved && info.alive == 0 && !info.is_goal_state();
-
-            return result;
+        for (const StateID succ_id : selected_transition_.support()) {
+            const auto& succ_info = this->get_state_info(succ_id);
+            solved = solved && succ_info.is_solved();
+            dead = dead && succ_info.is_dead_end();
         }
+
+        return result;
+    }
+
+    bool update_value_check_solved(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        StateID state,
+        const StateInfo& info,
+        bool& solved,
+        bool& dead)
+        requires(!StorePolicy)
+    {
+        const bool result = this->async_update(mdp, heuristic, state);
+
+        solved = info.unsolved == 0;
+        dead = solved && info.alive == 0 && !info.is_goal_state();
+
+        return result;
     }
 };
 

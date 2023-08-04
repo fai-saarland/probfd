@@ -175,7 +175,6 @@ class HeuristicDepthFirstSearch
 
 public:
     HeuristicDepthFirstSearch(
-        Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
@@ -188,7 +187,6 @@ public:
         bool PerformValueIteration,
         bool ExpandTipStates)
         : HeuristicSearchBase(
-              value_init,
               policy_chooser,
               new_state_handler,
               report,
@@ -206,17 +204,19 @@ public:
     void reset_search_state() override { state_flags_.clear(); }
 
 protected:
-    Interval
-    do_solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
-        override
+    Interval do_solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 
         const StateID stateid = mdp.get_state_id(state);
         if (PerformValueIteration) {
-            solve_with_vi_termination(mdp, stateid, timer);
+            solve_with_vi_termination(mdp, heuristic, stateid, timer);
         } else {
-            solve_without_vi_termination(mdp, stateid, timer);
+            solve_without_vi_termination(mdp, heuristic, stateid, timer);
         }
 
         return this->get_state_info(stateid).get_bounds();
@@ -239,15 +239,17 @@ private:
 
     void solve_with_vi_termination(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID stateid,
         utils::CountdownTimer& timer)
     {
         bool terminate = false;
         do {
-            if (!policy_exploration<true>(mdp, stateid, timer)) {
+            if (!policy_exploration<true>(mdp, heuristic, stateid, timer)) {
                 unsigned ups = statistics_.backtracking_updates;
                 statistics_.convergence_value_iterations++;
-                auto x = value_iteration(mdp, visited_, false, timer);
+                auto x =
+                    value_iteration(mdp, heuristic, visited_, false, timer);
                 terminate = !x.first && !x.second;
                 statistics_.convergence_updates +=
                     (statistics_.backtracking_updates - ups);
@@ -262,12 +264,14 @@ private:
 
     void solve_without_vi_termination(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID stateid,
         utils::CountdownTimer& timer)
     {
         bool terminate = false;
         do {
-            terminate = !policy_exploration<false>(mdp, stateid, timer);
+            terminate =
+                !policy_exploration<false>(mdp, heuristic, stateid, timer);
             statistics_.iterations++;
             this->print_progress();
             assert(visited_.empty());
@@ -277,6 +281,7 @@ private:
     template <bool GetVisited>
     bool policy_exploration(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID state,
         utils::CountdownTimer& timer)
     {
@@ -289,7 +294,7 @@ private:
             bool value_changed = false;
             bool pruned = false;
             const uint8_t pstatus =
-                push(mdp, state, pers_info, value_changed, pruned);
+                push(mdp, heuristic, state, pers_info, value_changed, pruned);
 
             if (pers_info.is_solved()) {
                 // is terminal
@@ -334,6 +339,7 @@ private:
                 if (succ_info.status == LocalStateInfo::NEW) {
                     const uint8_t status = push(
                         mdp,
+                        heuristic,
                         succid,
                         pers_succ_info,
                         einfo->value_changed,
@@ -382,7 +388,8 @@ private:
             if (BackwardUpdates == SINGLE ||
                 (last_value_changed && BackwardUpdates == ON_DEMAND)) {
                 statistics_.backtracking_updates++;
-                auto result = this->async_update(mdp, einfo->stateid, nullptr);
+                auto result =
+                    this->async_update(mdp, heuristic, einfo->stateid, nullptr);
                 last_value_changed = result.value_changed;
                 last_unsolved_successors =
                     last_unsolved_successors || result.policy_changed;
@@ -407,7 +414,8 @@ private:
 
                 if (BackwardUpdates == CONVERGENCE &&
                     last_unsolved_successors) {
-                    auto result = value_iteration(mdp, scc, true, timer);
+                    auto result =
+                        value_iteration(mdp, heuristic, scc, true, timer);
                     last_value_changed = result.first;
                     last_unsolved_successors =
                         result.second || last_unsolved_successors;
@@ -453,6 +461,7 @@ private:
 
     uint8_t push(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID stateid,
         AdditionalStateInfo& sinfo,
         bool& parent_value_changed,
@@ -468,7 +477,8 @@ private:
             sinfo.set_policy_initialized();
             statistics_.forward_updates++;
             const bool value_changed =
-                this->async_update(mdp, stateid, &transition_).value_changed;
+                this->async_update(mdp, heuristic, stateid, &transition_)
+                    .value_changed;
 
             if constexpr (UseInterval) {
                 parent_value_changed =
@@ -505,7 +515,7 @@ private:
                 return LocalStateInfo::CLOSED_DEAD;
             }
 
-            this->apply_policy(mdp, stateid, transition_);
+            this->apply_policy(mdp, heuristic, stateid, transition_);
             expansion_queue_.emplace_back(stateid, transition_);
         }
 
@@ -514,6 +524,7 @@ private:
 
     std::pair<bool, bool> value_iteration(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         const std::ranges::input_range auto& range,
         bool until_convergence,
         utils::CountdownTimer& timer)
@@ -533,7 +544,8 @@ private:
 
                 statistics_.backtracking_updates++;
 
-                const auto result = this->async_update(mdp, id, nullptr);
+                const auto result =
+                    this->async_update(mdp, heuristic, id, nullptr);
                 value_changed = value_changed || result.value_changed;
 
                 if constexpr (UseInterval) {

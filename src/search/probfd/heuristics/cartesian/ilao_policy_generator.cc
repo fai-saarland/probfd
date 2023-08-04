@@ -7,8 +7,6 @@
 
 #include "probfd/engines/trap_aware_dfhs.h"
 
-#include "probfd/quotients/heuristic_search_interface.h"
-
 #include "probfd/task_utils/task_properties.h"
 
 #include "downward/cartesian_abstractions/abstract_state.h"
@@ -25,6 +23,7 @@ ILAOPolicyGenerator::ILAOPolicyGenerator()
     : ptb(new policy_pickers::ArbitraryTiebreaker<
           const AbstractState*,
           const ProbabilisticTransition*>(true))
+    , picker(ptb)
     , report(0.0_vt)
 {
     report.disable();
@@ -36,21 +35,14 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
 {
-    quotients::
-        QuotientSystem<const AbstractState*, const ProbabilisticTransition*>
-            quotient(&abstraction);
-
-    quotients::RepresentativePolicyPicker<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        picker(ptb);
-
+    // TODO: ideally, this object should not be recreated each time, in
+    // particular the storage for the search state. Needs some way to clear
+    // the search state.
     engines::trap_aware_dfhs::TADepthFirstHeuristicSearch<
         const AbstractState*,
         const ProbabilisticTransition*,
         false>
         hdfs(
-            &heuristic,
             &picker,
             nullptr,
             &report,
@@ -65,8 +57,11 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
             true,
             nullptr);
 
-    auto policy =
-        hdfs.compute_policy(abstraction, state, timer.get_remaining_time());
+    auto policy = hdfs.compute_policy(
+        abstraction,
+        heuristic,
+        state,
+        timer.get_remaining_time());
 
     for (int i = 0; i != abstraction.get_num_states(); ++i) {
         if (hdfs.was_visited(i)) {

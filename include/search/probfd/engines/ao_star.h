@@ -46,14 +46,12 @@ class AOStar
 
 public:
     AOStar(
-        Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, Action>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         engine_interfaces::SuccessorSampler<Action>* outcome_selection)
         : AOBase<State, Action, UseInterval, true, PerStateInformation>(
-              value_init,
               policy_chooser,
               new_state_handler,
               report,
@@ -63,9 +61,11 @@ public:
     }
 
 protected:
-    Interval
-    do_solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
-        override
+    Interval do_solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 
@@ -90,6 +90,7 @@ protected:
 
                     this->initialize_tip_state_value(
                         mdp,
+                        heuristic,
                         stateid,
                         info,
                         terminal,
@@ -105,7 +106,7 @@ protected:
 
                     if (solved) {
                         this->mark_solved_push_parents(stateid, info, dead);
-                        this->backpropagate_tip_value(mdp, timer);
+                        this->backpropagate_tip_value(mdp, heuristic, timer);
                         break;
                     }
 
@@ -152,7 +153,7 @@ protected:
 
                     if (value_changed) {
                         this->push_parents_to_queue(info);
-                        this->backpropagate_tip_value(mdp, timer);
+                        this->backpropagate_tip_value(mdp, heuristic, timer);
                         break;
                     }
                 }
@@ -162,7 +163,11 @@ protected:
                     !info.is_solved());
 
                 ClearGuard guard(this->selected_transition_);
-                this->apply_policy(mdp, stateid, this->selected_transition_);
+                this->apply_policy(
+                    mdp,
+                    heuristic,
+                    stateid,
+                    this->selected_transition_);
 
                 this->selected_transition_.remove_if_normalize(
                     [this](const auto& target) {

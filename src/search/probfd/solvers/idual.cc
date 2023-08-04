@@ -16,13 +16,11 @@ namespace {
 using namespace engine_interfaces;
 
 class IDualSolver : public MDPSolver {
-    std::shared_ptr<TaskEvaluator> eval_;
     lp::LPSolverType solver_type_;
 
 public:
     explicit IDualSolver(const plugins::Options& opts)
         : MDPSolver(opts)
-        , eval_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
         , solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
     {
     }
@@ -33,10 +31,7 @@ public:
     {
         using IDualEngine = engines::idual::IDual<State, OperatorID>;
 
-        return engine_factory<IDualEngine>(
-            eval_.get(),
-            &progress_,
-            solver_type_);
+        return engine_factory<IDualEngine>(&progress_, solver_type_);
     }
 };
 
@@ -50,7 +45,6 @@ public:
 
         MDPSolver::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "blind_eval");
         lp::add_lp_solver_option_to_feature(*this);
     }
 };

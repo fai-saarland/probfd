@@ -41,6 +41,7 @@ protected:
     mutable utils::LogProxy log;
 
     std::unique_ptr<InducedTaskStateSpace> task_mdp;
+    std::shared_ptr<TaskEvaluator> heuristic;
 
     ProgressReport progress_;
 

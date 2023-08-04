@@ -31,7 +31,6 @@ enum class FretMode { DISABLED, POLICY, VALUE };
 
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
-    std::shared_ptr<TaskEvaluator> heuristic_;
     std::shared_ptr<TaskPolicyPicker> policy_tiebreaker_;
     std::shared_ptr<TaskNewStateObserver> new_state_handler_;
 
@@ -65,7 +64,6 @@ public:
         if (dual_bounds_) {
             using HeuristicSearchType = HS<State, OperatorID, true>;
             return engine_factory<HeuristicSearchType>(
-                heuristic_.get(),
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 &progress_,
@@ -74,7 +72,6 @@ public:
         } else {
             using HeuristicSearchType = HS<State, OperatorID, false>;
             return engine_factory<HeuristicSearchType>(
-                heuristic_.get(),
                 policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 &progress_,
@@ -152,7 +149,6 @@ public:
     {
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
-                heuristic_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 &progress_,
@@ -160,7 +156,6 @@ public:
                 std::forward<Args>(args)...);
         } else {
             return std::make_unique<HS<State, OperatorID, false>>(
-                heuristic_.get(),
                 q_policy_tiebreaker_.get(),
                 new_state_handler_.get(),
                 &progress_,
@@ -199,7 +194,6 @@ private:
     create_heuristic_search_engine_wrapper(Args&&... args)
     {
         std::shared_ptr engine = std::make_shared<HS<State, QAction, Interval>>(
-            heuristic_.get(),
             q_policy_tiebreaker_.get(),
             new_state_handler_.get(),
             &progress_,

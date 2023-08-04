@@ -36,6 +36,7 @@ public:
      */
     virtual std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
         MDP<State, Action>&,
+        Evaluator<State>&,
         param_type<State>,
         double = std::numeric_limits<double>::infinity())
     {
@@ -48,6 +49,7 @@ public:
      */
     virtual Interval solve(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> state,
         double max_time = std::numeric_limits<double>::infinity()) = 0;
 

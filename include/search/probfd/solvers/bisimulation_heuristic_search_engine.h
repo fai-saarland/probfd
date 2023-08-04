@@ -56,7 +56,6 @@ protected:
 
     bisimulation::BisimilarStateSpace state_space_;
 
-    std::shared_ptr<Evaluator<QState>> heuristic_;
     std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>> policy_;
     std::shared_ptr<engine_interfaces::NewStateObserver<QState>>
         new_state_handler_;
@@ -69,10 +68,6 @@ public:
         : task(tasks::g_root_task)
         , engine_name_(engine_name)
         , state_space_(task.get(), g_cost_model->optimal_value_bound())
-        , heuristic_(new bisimulation::InducedQuotientEvaluator(
-              &state_space_,
-              g_cost_model->optimal_value_bound(),
-              g_cost_model->optimal_value_bound().upper))
         , policy_(
               new policy_pickers::ArbitraryTiebreaker<QState, QAction>(true))
         , new_state_handler_(new engine_interfaces::NewStateObserver<QState>())
@@ -104,7 +99,6 @@ public:
             engine_name);
 
         res->engine_.reset(new HS<QState, QAction, Interval>(
-            res->heuristic_.get(),
             res->policy_.get(),
             res->new_state_handler_.get(),
             &progress,
@@ -114,11 +108,18 @@ public:
         return res;
     }
 
-    virtual Interval solve(TaskMDP&, const State&, double max_time) override
+    virtual Interval
+    solve(TaskMDP&, TaskEvaluator&, const State&, double max_time) override
     {
+        bisimulation::InducedQuotientEvaluator heuristic(
+            &state_space_,
+            g_cost_model->optimal_value_bound(),
+            g_cost_model->optimal_value_bound().upper);
+
         std::cout << "Running " << engine_name_ << "..." << std::endl;
         return engine_->solve(
             state_space_,
+            heuristic,
             state_space_.get_initial_state(),
             max_time);
     }
@@ -170,7 +171,6 @@ public:
 
         std::shared_ptr<HS<QState, QQAction, Interval>> engine(
             new HS<QState, QQAction, Interval>(
-                res->heuristic_.get(),
                 res->q_policy_tiebreaker_.get(),
                 res->new_state_handler_.get(),
                 &progress,

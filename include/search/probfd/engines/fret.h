@@ -90,6 +90,8 @@ template <
 class FRET : public MDPEngine<State, Action> {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QAction = typename QuotientSystem::QAction;
+    using QHeuristicSearchEngine =
+        HeuristicSearchEngine<State, QAction, UseInterval>;
 
     struct TarjanStateInformation {
         static constexpr unsigned UNDEF = -1;
@@ -140,17 +142,13 @@ class FRET : public MDPEngine<State, Action> {
         }
     };
 
-    std::shared_ptr<HeuristicSearchEngine<State, QAction, UseInterval>>
-        base_engine_;
+    std::shared_ptr<QHeuristicSearchEngine> base_engine_;
 
     Statistics statistics_;
 
 public:
-    FRET(
-        ProgressReport* report,
-        std::shared_ptr<HeuristicSearchEngine<State, QAction, UseInterval>>
-            engine)
-        : base_engine_(engine)
+    FRET(ProgressReport* report, std::shared_ptr<QHeuristicSearchEngine> engine)
+        : base_engine_(std::move(engine))
     {
         report->register_print([&](std::ostream& out) {
             out << "fret=" << statistics_.iterations
@@ -160,11 +158,12 @@ public:
 
     std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> state,
         double max_time = std::numeric_limits<double>::infinity()) override
     {
         QuotientSystem quotient(&mdp);
-        this->solve(quotient, state, max_time);
+        this->solve(quotient, heuristic, state, max_time);
 
         /*
          * The quotient policy only specifies the optimal actions between traps.
@@ -275,23 +274,29 @@ public:
         return policy;
     }
 
-    Interval
-    solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
-        override
+    Interval solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time) override
     {
         QuotientSystem quotient(&mdp);
-        return solve(quotient, state, max_time);
+        return solve(quotient, heuristic, state, max_time);
     }
 
-    Interval
-    solve(QuotientSystem& quotient, param_type<State> state, double max_time)
+    Interval solve(
+        QuotientSystem& quotient,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time)
     {
         utils::CountdownTimer timer(max_time);
 
         for (;;) {
-            const Interval value = heuristic_search(quotient, state, timer);
+            const Interval value =
+                heuristic_search(quotient, heuristic, state, timer);
 
-            if (find_and_remove_traps(quotient, state, timer)) {
+            if (find_and_remove_traps(quotient, heuristic, state, timer)) {
                 return value;
             }
 
@@ -301,13 +306,15 @@ public:
 
     Interval heuristic_search(
         QuotientSystem& quotient,
+        Evaluator<State>& heuristic,
         param_type<State> state,
         utils::CountdownTimer& timer)
     {
 #if defined(EXPENSIVE_STATISTICS)
         TimerScope scoped(statistics_.heuristic_search);
 #endif
-        return base_engine_->solve(quotient, state, timer.get_remaining_time());
+        return base_engine_
+            ->solve(quotient, heuristic, state, timer.get_remaining_time());
     }
 
     void print_statistics(std::ostream& out) const override
@@ -319,6 +326,7 @@ public:
 private:
     bool find_and_remove_traps(
         QuotientSystem& quotient,
+        Evaluator<State>& heuristic,
         param_type<State> state,
         utils::CountdownTimer& timer)
     {
@@ -338,6 +346,7 @@ private:
         {
             if (!push(
                     quotient,
+                    heuristic,
                     exploration_queue,
                     stack,
                     *sinfo,
@@ -362,6 +371,7 @@ private:
                 } else if (
                     !succ_info.is_explored() && push(
                                                     quotient,
+                                                    heuristic,
                                                     exploration_queue,
                                                     stack,
                                                     succ_info,
@@ -396,7 +406,10 @@ private:
                         // Terminal and self-loop leaf SCCs are always pruned
                         assert(scc.size() > 1);
                         collapse_trap(quotient, scc);
-                        base_engine_->async_update(quotient, state_id);
+                        base_engine_->async_update(
+                            quotient,
+                            heuristic,
+                            state_id);
                         ++trap_counter;
                     }
 
@@ -443,6 +456,7 @@ private:
 
     bool push(
         QuotientSystem& quotient,
+        Evaluator<State>& heuristic,
         std::deque<ExplorationInfo>& queue,
         std::deque<StackInfo>& stack,
         TarjanStateInformation& info,
@@ -458,6 +472,7 @@ private:
         std::vector<StateID> succs;
         if (greedy_graph.get_successors(
                 quotient,
+                heuristic,
                 *base_engine_,
                 state_id,
                 aops,
@@ -480,6 +495,8 @@ template <typename State, typename Action, bool UseInterval>
 class ValueGraph {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QAction = typename QuotientSystem::QAction;
+    using QHeuristicSearchEngine =
+        HeuristicSearchEngine<State, QAction, UseInterval>;
 
     std::unordered_set<StateID> ids;
     std::vector<Distribution<StateID>> opt_transitions;
@@ -487,7 +504,8 @@ class ValueGraph {
 public:
     bool get_successors(
         QuotientSystem& quotient,
-        HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
+        Evaluator<State>& heuristic,
+        QHeuristicSearchEngine& base_engine,
         StateID qstate,
         std::vector<QAction>& aops,
         std::vector<StateID>& successors)
@@ -499,6 +517,7 @@ public:
         bool value_changed =
             base_engine.compute_value_update_and_optimal_transitions(
                 quotient,
+                heuristic,
                 qstate,
                 aops,
                 opt_transitions);
@@ -519,20 +538,23 @@ template <typename State, typename Action, bool UseInterval>
 class PolicyGraph {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QAction = typename QuotientSystem::QAction;
+    using QHeuristicSearchEngine =
+        HeuristicSearchEngine<State, QAction, UseInterval>;
 
     Distribution<StateID> t_;
 
 public:
     bool get_successors(
         QuotientSystem& quotient,
-        HeuristicSearchEngine<State, QAction, UseInterval>& base_engine,
+        Evaluator<State>& heuristic,
+        QHeuristicSearchEngine& base_engine,
         StateID qstate,
         std::vector<QAction>& aops,
         std::vector<StateID>& successors)
     {
         ClearGuard _guard(t_);
 
-        bool result = base_engine.apply_policy(quotient, qstate, t_);
+        bool result = base_engine.apply_policy(quotient, heuristic, qstate, t_);
         for (StateID sid : t_.support()) {
             successors.push_back(sid);
         }

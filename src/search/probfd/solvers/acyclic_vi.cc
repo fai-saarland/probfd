@@ -10,19 +10,10 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
-
-using AVIEngine = engines::acyclic_vi::AcyclicValueIteration<State, OperatorID>;
-
 class AcyclicVISolver : public MDPSolver {
-    std::shared_ptr<TaskEvaluator> prune_;
 
 public:
-    explicit AcyclicVISolver(const plugins::Options& opts)
-        : MDPSolver(opts)
-        , prune_(opts.get<std::shared_ptr<TaskEvaluator>>("eval", nullptr))
-    {
-    }
+    using MDPSolver::MDPSolver;
 
     std::string get_engine_name() const override
     {
@@ -31,7 +22,9 @@ public:
 
     std::unique_ptr<TaskMDPEngine> create_engine() override
     {
-        return engine_factory<AVIEngine>(prune_.get());
+        using AVIEngine =
+            engines::acyclic_vi::AcyclicValueIteration<State, OperatorID>;
+        return engine_factory<AVIEngine>();
     }
 };
 
@@ -43,13 +36,7 @@ public:
               "acyclic_value_iteration")
     {
         document_title("Acyclic Value Iteration.");
-
         MDPSolver::add_options_to_feature(*this);
-
-        add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            plugins::ArgumentInfo::NO_DEFAULT);
     }
 };
 

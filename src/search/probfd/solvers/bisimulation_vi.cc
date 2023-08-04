@@ -79,26 +79,27 @@ public:
         std::cout << "Bisimulation built after " << stats.timer << std::endl;
         std::cout << "Bisimilar state space contains "
                   << state_space.num_bisimilar_states() << " states and "
-                  << state_space.num_transitions() << " transitions."
+                  << state_space.num_transitions() << " transitions.\n"
                   << std::endl;
-        std::cout << std::endl;
+
         std::cout << "Running " << get_engine_name()
                   << " on the bisimulation..." << std::endl;
 
         utils::Timer vi_timer;
+
         std::unique_ptr<MDPEngine<QState, QAction>> solver;
-        Interval val;
+
         if (interval_iteration_) {
-            solver.reset(
-                new IntervalIteration<QState, QAction>(nullptr, false, false));
-            val = solver->solve(state_space, state_space.get_initial_state());
+            solver.reset(new IntervalIteration<QState, QAction>(false, false));
         } else {
-            heuristics::ConstantEvaluator<QState> initializer(0_vt);
-            solver.reset(new TopologicalValueIteration<QState, QAction>(
-                &initializer,
-                false));
-            val = solver->solve(state_space, state_space.get_initial_state());
+            solver.reset(new TopologicalValueIteration<QState, QAction>(false));
         }
+
+        heuristics::BlindEvaluator<QState> blind;
+
+        const Interval val =
+            solver->solve(state_space, blind, state_space.get_initial_state());
+
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
         std::cout << std::endl;
 

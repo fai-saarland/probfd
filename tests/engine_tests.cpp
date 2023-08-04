@@ -118,7 +118,7 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     TaskBaseProxy task_proxy(*task);
 
     ProgressReport report(0.0_vt, std::cout, false);
-    heuristics::BlindEvaluator<State> value_init;
+    heuristics::BlindEvaluator<State> heuristic;
     cost_models::SSPCostModel cost_model;
 
     InducedTaskStateSpace mdp(
@@ -130,7 +130,6 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     heuristic_depth_first_search::
         HeuristicDepthFirstSearch<State, OperatorID, false, true>
             hdfs(
-                &value_init,
                 &policy_chooser,
                 nullptr,
                 &report,
@@ -143,7 +142,7 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
                 true,
                 false);
 
-    auto policy = hdfs.compute_policy(mdp, mdp.get_initial_state());
+    auto policy = hdfs.compute_policy(mdp, heuristic, mdp.get_initial_state());
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(mdp.get_initial_state());
@@ -167,7 +166,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
     TaskBaseProxy task_proxy(*task);
 
     ProgressReport report(0.0_vt, std::cout, false);
-    heuristics::BlindEvaluator<State> value_init;
+    heuristics::BlindEvaluator<State> heuristic;
     cost_models::SSPCostModel cost_model;
 
     InducedTaskStateSpace mdp(
@@ -187,7 +186,6 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
             quotients::QuotientAction<OperatorID>,
             false,
             true>>(
-        &value_init,
         &q_policy_chooser,
         nullptr,
         &report,
@@ -202,7 +200,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 
     fret::FRETPi<State, OperatorID, false> fret(&report, hdfs);
 
-    auto policy = fret.compute_policy(mdp, mdp.get_initial_state());
+    auto policy = fret.compute_policy(mdp, heuristic, mdp.get_initial_state());
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(mdp.get_initial_state());

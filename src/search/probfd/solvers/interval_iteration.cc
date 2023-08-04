@@ -11,17 +11,9 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
-
 class IntervalIterationSolver : public MDPSolver {
-    std::shared_ptr<TaskEvaluator> prune_;
-
 public:
-    explicit IntervalIterationSolver(const plugins::Options& opts)
-        : MDPSolver(opts)
-        , prune_(opts.get<std::shared_ptr<TaskEvaluator>>("eval", nullptr))
-    {
-    }
+    using MDPSolver::MDPSolver;
 
     std::string get_engine_name() const override
     {
@@ -32,7 +24,7 @@ public:
     {
         using IIEngine =
             engines::interval_iteration::IntervalIteration<State, OperatorID>;
-        return engine_factory<IIEngine>(prune_.get(), false, false);
+        return engine_factory<IIEngine>(false, false);
     }
 };
 
@@ -46,11 +38,6 @@ public:
         document_title("Interval Iteration");
 
         MDPSolver::add_options_to_feature(*this);
-
-        add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            plugins::ArgumentInfo::NO_DEFAULT);
     }
 };
 

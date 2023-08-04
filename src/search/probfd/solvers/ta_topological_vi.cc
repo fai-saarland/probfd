@@ -13,25 +13,9 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-std::shared_ptr<TaskEvaluator> get_evaluator(const plugins::Options& opts)
-{
-    if (opts.contains("eval")) {
-        return opts.get<std::shared_ptr<TaskEvaluator>>("eval");
-    }
-
-    return std::make_shared<heuristics::ConstantEvaluator<State>>(
-        g_cost_model->optimal_value_bound().upper);
-}
-
 class TATopologicalVISolver : public MDPSolver {
-    std::shared_ptr<TaskEvaluator> prune_;
-
 public:
-    explicit TATopologicalVISolver(const plugins::Options& opts)
-        : MDPSolver(opts)
-        , prune_(get_evaluator(opts))
-    {
-    }
+    using MDPSolver::MDPSolver;
 
     std::string get_engine_name() const override
     {
@@ -42,7 +26,7 @@ public:
     {
         using TVIEngine = engines::ta_topological_vi::
             TATopologicalValueIteration<State, OperatorID>;
-        return engine_factory<TVIEngine>(prune_.get());
+        return engine_factory<TVIEngine>();
     }
 };
 
@@ -53,12 +37,8 @@ public:
         : plugins::TypedFeature<SolverInterface, TATopologicalVISolver>(
               "ta_topological_value_iteration")
     {
+        document_title("Trap-Aware Topological Value Iteration.");
         MDPSolver::add_options_to_feature(*this);
-
-        add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            plugins::ArgumentInfo::NO_DEFAULT);
     }
 };
 

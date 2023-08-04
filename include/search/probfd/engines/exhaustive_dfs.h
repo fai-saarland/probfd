@@ -44,10 +44,6 @@ struct Statistics {
     unsigned long long pruned_dead_end_sccs = 0;
     unsigned long long summed_dead_end_scc_sizes = 0;
 
-#if defined(EXPENSIVE_STATISTICS)
-    utils::Timer evaluation_time = utils::Timer(true);
-#endif
-
     void print(std::ostream& out) const
     {
         out << "  Expanded " << expanded << " state(s)." << std::endl;
@@ -63,9 +59,6 @@ struct Statistics {
         out << "  Found " << dead_end_sccs << " dead-end SCC(s)." << std::endl;
         out << "  Partially pruned " << pruned_dead_end_sccs
             << " dead-end SCC(s)." << std::endl;
-#if defined(EXPENSIVE_STATISTICS)
-        out << "  Evaluator time: " << evaluation_time << std::endl;
-#endif
         out << "  Average dead-end SCC size: "
             << (static_cast<double>(summed_dead_end_scc_sizes) /
                 static_cast<int>(dead_end_sccs))
@@ -243,7 +236,6 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
         }
     };
 
-    Evaluator<State>* evaluator_;
     engine_interfaces::NewStateObserver<State>* new_state_handler_;
     engine_interfaces::TransitionSorter<Action>* transition_sort_;
 
@@ -269,7 +261,6 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
 
 public:
     explicit ExhaustiveDepthFirstSearch(
-        Evaluator<State>* evaluator,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         engine_interfaces::TransitionSorter<Action>* transition_sorting,
         Interval cost_bound,
@@ -278,8 +269,7 @@ public:
         bool path_updates,
         bool only_propagate_when_changed,
         ProgressReport* progress)
-        : evaluator_(evaluator)
-        , new_state_handler_(new_state_handler)
+        : new_state_handler_(new_state_handler)
         , transition_sort_(transition_sorting)
         , report_(progress)
         , cost_bound_(cost_bound)
@@ -291,22 +281,25 @@ public:
     {
     }
 
-    Interval
-    solve(MDP<State, Action>& mdp, param_type<State> state, double) override
+    Interval solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double) override
     {
         StateID stateid = mdp.get_state_id(state);
         SearchNodeInformation& info = search_space_[stateid];
-        if (!initialize_search_node(mdp, state, info)) {
+        if (!initialize_search_node(mdp, heuristic, state, info)) {
             return search_space_.lookup_bounds(stateid);
         }
 
-        if (!push_state(mdp, stateid, info)) {
+        if (!push_state(mdp, heuristic, stateid, info)) {
             std::cout << "initial state is dead end!" << std::endl;
             return search_space_.lookup_bounds(stateid);
         }
 
         register_value_reports(&info);
-        run_exploration(mdp);
+        run_exploration(mdp, heuristic);
 
         return search_space_.lookup_bounds(stateid);
     }
@@ -330,15 +323,6 @@ private:
         }
     }
 
-    EvaluationResult evaluate(param_type<State> state)
-    {
-#if defined(EXPENSIVE_STATISTICS)
-        TimerScope t(statistics_.evaluation_time);
-#endif
-        ++statistics_.evaluations;
-        return evaluator_->evaluate(state);
-    }
-
     EngineValueType get_trivial_bound() const
     {
         if constexpr (UseInterval) {
@@ -350,14 +334,20 @@ private:
 
     bool initialize_search_node(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID state_id,
         SearchNodeInformation& info)
     {
-        return initialize_search_node(mdp, mdp.get_state(state_id), info);
+        return initialize_search_node(
+            mdp,
+            heuristic,
+            mdp.get_state(state_id),
+            info);
     }
 
     bool initialize_search_node(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> state,
         SearchNodeInformation& info)
     {
@@ -376,7 +366,7 @@ private:
             return false;
         }
 
-        EvaluationResult eval_result = evaluate(state);
+        EvaluationResult eval_result = heuristic.evaluate(state);
         if (eval_result.is_unsolvable()) {
             info.value = EngineValueType(info.state_cost);
             info.mark_dead_end();
@@ -401,6 +391,7 @@ private:
 
     bool push_state(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         StateID state_id,
         SearchNodeInformation& info)
     {
@@ -438,8 +429,7 @@ private:
             auto& t = si.successors[i];
             bool all_self_loops = true;
 
-            succs.remove_if([this, &mdp, &exp, &t, &all_self_loops, state_id](
-                                auto& elem) {
+            succs.remove_if([&, this, state_id](auto& elem) {
                 const auto [succ_id, prob] = elem;
 
                 // Remove self loops
@@ -450,7 +440,7 @@ private:
 
                 SearchNodeInformation& succ_info = search_space_[succ_id];
                 if (succ_info.is_new()) {
-                    initialize_search_node(mdp, succ_id, succ_info);
+                    initialize_search_node(mdp, heuristic, succ_id, succ_info);
                 }
 
                 if (succ_info.is_closed()) {
@@ -521,7 +511,7 @@ private:
         return true;
     }
 
-    void run_exploration(MDP<State, Action>& mdp)
+    void run_exploration(MDP<State, Action>& mdp, Evaluator<State>& heuristic)
     {
         while (!expansion_infos_.empty()) {
             ExpansionInformation& expanding = expansion_infos_.back();
@@ -554,7 +544,7 @@ private:
                     assert(!succ_info.is_new());
 
                     if (succ_info.is_open()) {
-                        if (push_state(mdp, succ_id, succ_info)) {
+                        if (push_state(mdp, heuristic, succ_id, succ_info)) {
                             goto skip;
                         }
 

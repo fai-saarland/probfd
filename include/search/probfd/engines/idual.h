@@ -94,8 +94,6 @@ private:
  */
 template <typename State, typename Action>
 class IDual : public MDPEngine<State, Action> {
-    Evaluator<State>* value_initializer_;
-
     ProgressReport* report_;
 
     lp::LPSolver lp_solver_;
@@ -107,18 +105,15 @@ class IDual : public MDPEngine<State, Action> {
     value_t objective_;
 
 public:
-    explicit IDual(
-        Evaluator<State>* value_initializer,
-        ProgressReport* report,
-        lp::LPSolverType solver_type)
-        : value_initializer_(value_initializer)
-        , report_(report)
+    explicit IDual(ProgressReport* report, lp::LPSolverType solver_type)
+        : report_(report)
         , lp_solver_(solver_type)
     {
     }
 
     Interval solve(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> initial_state,
         double max_time) override
     {
@@ -135,8 +130,7 @@ public:
 
         {
             // initialize lp
-            const EvaluationResult eval =
-                value_initializer_->evaluate(initial_state);
+            const EvaluationResult eval = heuristic.evaluate(initial_state);
             const auto estimate = eval.get_estimate();
             if (eval.is_unsolvable()) {
                 objective_ = estimate;
@@ -223,8 +217,7 @@ public:
                             assert(state_infos_[succ_id].idx == (unsigned)-1);
 
                             State succ_state = mdp.get_state(succ_id);
-                            const auto eval =
-                                value_initializer_->evaluate(succ_state);
+                            const auto eval = heuristic.evaluate(succ_state);
                             const auto value = -eval.get_estimate();
 
                             if (eval.is_unsolvable()) {

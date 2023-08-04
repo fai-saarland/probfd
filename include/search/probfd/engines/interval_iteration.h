@@ -61,7 +61,6 @@ class IntervalIteration : public MDPEngine<State, Action> {
     using ValueIteration =
         topological_vi::TopologicalValueIteration<State, QAction, true>;
 
-    const Evaluator<State>* heuristic_;
     const bool extract_probability_one_states_;
     const bool expand_goals_;
 
@@ -77,25 +76,33 @@ public:
     using BoolStore = std::vector<StateID>;
 
     explicit IntervalIteration(
-        const Evaluator<State>* heuristic,
         bool extract_probability_one_states,
         bool expand_goals)
-        : heuristic_(heuristic)
-        , extract_probability_one_states_(extract_probability_one_states)
+        : extract_probability_one_states_(extract_probability_one_states)
         , expand_goals_(expand_goals)
-        , qr_analysis(expand_goals_)
-        , vi(heuristic, expand_goals)
+        , qr_analysis(expand_goals)
+        , vi(expand_goals)
     {
     }
 
-    Interval
-    solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
-        override
+    Interval solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time) override
     {
         utils::CountdownTimer timer(max_time);
-        std::unique_ptr<QuotientSystem> sys = get_quotient(mdp, state, timer);
+        std::unique_ptr sys = get_quotient(mdp, heuristic, state, timer);
         BoolStore dead, one;
-        return mysolve(mdp, state, value_store_, dead, one, *sys, timer);
+        return mysolve(
+            mdp,
+            heuristic,
+            state,
+            value_store_,
+            dead,
+            one,
+            *sys,
+            timer);
     }
 
     void print_statistics(std::ostream& out) const override
@@ -107,6 +114,7 @@ public:
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval solve(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
@@ -115,10 +123,11 @@ public:
     {
         utils::CountdownTimer timer(max_time);
 
-        auto sys = get_quotient(mdp, state, timer);
+        auto sys = get_quotient(mdp, heuristic, state, timer);
 
         const Interval x = this->mysolve(
             mdp,
+            heuristic,
             state,
             value_store,
             dead_ends,
@@ -146,10 +155,11 @@ public:
 private:
     std::unique_ptr<QuotientSystem> get_quotient(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> state,
         utils::CountdownTimer& timer)
     {
-        Decomposer ec_decomposer(expand_goals_, heuristic_);
+        Decomposer ec_decomposer(expand_goals_, &heuristic);
 
         auto sys = ec_decomposer.build_quotient_system(
             mdp,
@@ -164,6 +174,7 @@ private:
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval mysolve(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
@@ -199,8 +210,12 @@ private:
         const auto new_init_id =
             sys.translate_state_id(mdp.get_state_id(state));
 
-        const Interval result =
-            vi.solve(sys, new_init_id, value_store, timer.get_remaining_time());
+        const Interval result = vi.solve(
+            sys,
+            heuristic,
+            new_init_id,
+            value_store,
+            timer.get_remaining_time());
         tvi_statistics_ = vi.get_statistics();
         return result;
     }

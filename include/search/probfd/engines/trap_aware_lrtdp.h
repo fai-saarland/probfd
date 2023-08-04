@@ -181,7 +181,6 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
@@ -190,7 +189,6 @@ public:
         bool reexpand_traps,
         engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : HeuristicSearchBase(
-              value_init,
               policy_chooser,
               new_state_handler,
               report,
@@ -204,6 +202,7 @@ public:
 
     Interval solve_quotient(
         quotients::QuotientSystem<State, Action>& quotient,
+        Evaluator<State>& heuristic,
         param_type<State> s,
         double max_time)
     {
@@ -212,7 +211,7 @@ public:
         const StateID state_id = quotient.get_state_id(s);
         bool terminate = false;
         do {
-            terminate = trial(quotient, state_id, timer);
+            terminate = trial(quotient, heuristic, state_id, timer);
             statistics_.trials++;
             assert(state_id == quotient.translate_state_id(state_id));
             this->print_progress();
@@ -222,7 +221,9 @@ public:
     }
 
 protected:
-    Interval do_solve(MDP<State, QAction>&, param_type<State>, double) override
+    Interval
+    do_solve(MDP<State, QAction>&, Evaluator<State>&, param_type<State>, double)
+        override
     {
         // FIXME refine class hierarchy as not to inherit this function
         std::cerr << "This function should not be called!" << std::endl;
@@ -242,6 +243,7 @@ protected:
 private:
     bool trial(
         quotients::QuotientSystem<State, Action>& quotient,
+        Evaluator<State>& heuristic,
         StateID start_state,
         utils::CountdownTimer& timer)
     {
@@ -263,9 +265,12 @@ private:
             }
 
             statistics_.trial_bellman_backups++;
-            const bool changed =
-                this->async_update(quotient, stateid, &selected_transition_)
-                    .value_changed;
+            const bool changed = this->async_update(
+                                         quotient,
+                                         heuristic,
+                                         stateid,
+                                         &selected_transition_)
+                                     .value_changed;
 
             if (selected_transition_.empty()) {
                 info.set_solved();
@@ -299,7 +304,7 @@ private:
         do {
             timer.throw_if_expired();
 
-            if (!check_and_solve(quotient, timer)) {
+            if (!check_and_solve(quotient, heuristic, timer)) {
                 return false;
             }
 
@@ -311,6 +316,7 @@ private:
 
     bool check_and_solve(
         quotients::QuotientSystem<State, Action>& quotient,
+        Evaluator<State>& heuristic,
         utils::CountdownTimer& timer)
     {
         assert(!this->current_trial_.empty());
@@ -324,7 +330,7 @@ private:
             return true;
         }
 
-        if (Flags flags; !push_to_queue(quotient, s, flags)) {
+        if (Flags flags; !push_to_queue(quotient, heuristic, s, flags)) {
             stack_index_.clear();
             return flags.rv;
         }
@@ -345,7 +351,11 @@ private:
                     }
                     if (succ_info.is_solved()) {
                         einfo->flags.update(succ_info);
-                    } else if (push_to_queue(quotient, succ, einfo->flags)) {
+                    } else if (push_to_queue(
+                                   quotient,
+                                   heuristic,
+                                   succ,
+                                   einfo->flags)) {
                         einfo = &queue_.back();
                         continue;
                     }
@@ -379,7 +389,7 @@ private:
                         stack_.pop_back();
                         if (!einfo->flags.rv) {
                             ++this->statistics_.check_and_solve_bellman_backups;
-                            this->async_update(quotient, state);
+                            this->async_update(quotient, heuristic, state);
                         } else {
                             this->get_state_info(state).set_solved();
                         }
@@ -397,13 +407,17 @@ private:
                             stack_.erase(scc.begin(), scc.end());
                             if (reexpand_traps_) {
                                 queue_.pop_back();
-                                if (push_to_queue(quotient, state, flags)) {
+                                if (push_to_queue(
+                                        quotient,
+                                        heuristic,
+                                        state,
+                                        flags)) {
                                     break;
                                 } else {
                                     goto skip_pop;
                                 }
                             } else {
-                                this->async_update(quotient, state);
+                                this->async_update(quotient, heuristic, state);
                                 einfo->flags.rv = false;
                             }
                         } else if (einfo->flags.rv) {
@@ -416,7 +430,10 @@ private:
                         } else {
                             for (const auto& entry : scc) {
                                 stack_index_[entry.state_id] = STATE_CLOSED;
-                                this->async_update(quotient, entry.state_id);
+                                this->async_update(
+                                    quotient,
+                                    heuristic,
+                                    entry.state_id);
                             }
                             stack_.erase(scc.begin(), scc.end());
                         }
@@ -447,6 +464,7 @@ private:
 
     bool push_to_queue(
         quotients::QuotientSystem<State, Action>& quotient,
+        Evaluator<State>& heuristic,
         const StateID state,
         Flags& parent_flags)
     {
@@ -455,8 +473,11 @@ private:
 
         ++this->statistics_.check_and_solve_bellman_backups;
 
-        const auto result =
-            this->async_update(quotient, state, &this->selected_transition_);
+        const auto result = this->async_update(
+            quotient,
+            heuristic,
+            state,
+            &this->selected_transition_);
 
         if (this->selected_transition_.empty()) {
             assert(this->get_state_info(state).is_dead_end());
@@ -501,7 +522,6 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
-        Evaluator<State>* value_init,
         engine_interfaces::PolicyPicker<State, QAction>* policy_chooser,
         engine_interfaces::NewStateObserver<State>* new_state_handler,
         ProgressReport* report,
@@ -510,7 +530,6 @@ public:
         bool reexpand_traps,
         engine_interfaces::SuccessorSampler<QAction>* succ_sampler)
         : engine_(
-              value_init,
               policy_chooser,
               new_state_handler,
               report,
@@ -521,12 +540,14 @@ public:
     {
     }
 
-    Interval
-    solve(MDP<State, Action>& mdp, param_type<State> s, double max_time)
-        override
+    Interval solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> s,
+        double max_time) override
     {
         quotients::QuotientSystem<State, Action> quotient(&mdp);
-        return engine_.solve_quotient(quotient, s, max_time);
+        return engine_.solve_quotient(quotient, heuristic, s, max_time);
     }
 
     void print_statistics(std::ostream& out) const override

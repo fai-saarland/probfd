@@ -94,8 +94,8 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
 
     WrapperHeuristic h(pruned_states, heuristic, dead_end_cost);
 
-    TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi(&h);
-    vi.solve(mdp, initial_state.id, value_table, timer.get_remaining_time());
+    TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi;
+    vi.solve(mdp, h, initial_state.id, value_table, timer.get_remaining_time());
 
 #if !defined(NDEBUG)
     std::cout << "(II) Pattern [";

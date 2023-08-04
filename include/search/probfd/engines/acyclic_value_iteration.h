@@ -116,40 +116,36 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         }
     };
 
-    Evaluator<State>* prune_;
-
     Statistics statistics_;
 
     storage::PerStateStorage<StateInfo> state_infos_;
     std::stack<IncrementalExpansionInfo> expansion_stack_;
 
 public:
-    explicit AcyclicValueIteration(Evaluator<State>* prune = nullptr)
-        : prune_(prune)
-    {
-    }
-
     std::unique_ptr<PartialPolicy<State, Action>> compute_policy(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> initial_state,
         double max_time) override
     {
         std::unique_ptr<policies::MapPolicy<State, Action>> policy(
             new policies::MapPolicy<State, Action>(&mdp));
-        solve(mdp, initial_state, max_time, policy.get());
+        solve(mdp, heuristic, initial_state, max_time, policy.get());
         return policy;
     }
 
     Interval solve(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> initial_state,
         double max_time) override
     {
-        return solve(mdp, initial_state, max_time, nullptr);
+        return solve(mdp, heuristic, initial_state, max_time, nullptr);
     }
 
     Interval solve(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> initial_state,
         double max_time,
         policies::MapPolicy<State, Action>* policy)
@@ -159,12 +155,12 @@ public:
         const StateID initial_state_id = mdp.get_state_id(initial_state);
         StateInfo& iinfo = state_infos_[initial_state_id];
 
-        if (!push_state(mdp, initial_state_id, iinfo)) {
+        if (!push_state(mdp, heuristic, initial_state_id, iinfo)) {
             return Interval(iinfo.value);
         }
 
         do {
-            dfs_expand(mdp, timer, policy);
+            dfs_expand(mdp, heuristic, timer, policy);
         } while (dfs_backtrack(mdp, timer, policy));
 
         assert(expansion_stack_.empty());
@@ -179,6 +175,7 @@ public:
 private:
     void dfs_expand(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         utils::CountdownTimer& timer,
         policies::MapPolicy<State, Action>* policy)
     {
@@ -192,7 +189,7 @@ private:
                 StateInfo& succ_info = state_infos_[succ_id];
 
                 if (!succ_info.expanded &&
-                    push_state(mdp, succ_id, succ_info)) {
+                    push_state(mdp, heuristic, succ_id, succ_info)) {
                     e = &expansion_stack_.top();
                     continue; // DFS recursion
                 }
@@ -279,8 +276,11 @@ private:
         }
     }
 
-    bool
-    push_state(MDP<State, Action>& mdp, StateID state_id, StateInfo& succ_info)
+    bool push_state(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        StateID state_id,
+        StateInfo& succ_info)
     {
         assert(!succ_info.expanded);
         succ_info.expanded = true;
@@ -297,7 +297,7 @@ private:
             return false;
         }
 
-        if (prune_ && prune_->evaluate(state).is_unsolvable()) {
+        if (heuristic.evaluate(state).is_unsolvable()) {
             ++statistics_.pruned;
             return false;
         }

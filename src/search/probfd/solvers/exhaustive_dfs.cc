@@ -25,7 +25,6 @@ using namespace engines::exhaustive_dfs;
 class ExhaustiveDFSSolver : public MDPSolver {
     const Interval cost_bound_;
 
-    std::shared_ptr<TaskEvaluator> heuristic_;
     std::shared_ptr<TaskNewStateObserverList> new_state_handler_;
     std::shared_ptr<TaskTransitionSorter> transition_sort_;
 
@@ -40,7 +39,6 @@ public:
     explicit ExhaustiveDFSSolver(const plugins::Options& opts)
         : MDPSolver(opts)
         , cost_bound_(g_cost_model->optimal_value_bound())
-        , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
         , new_state_handler_(new TaskNewStateObserverList(
               opts.get_list<std::shared_ptr<TaskNewStateObserver>>(
                   "on_new_state")))
@@ -50,11 +48,8 @@ public:
                             "order")
                         ->create_transition_sorter(this->task_mdp.get())
                   : nullptr)
-        , dual_bounds_(
-              opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
-        , interval_comparison_(
-              opts.contains("interval_comparison") &&
-              opts.get<bool>("interval_comparison"))
+        , dual_bounds_(opts.get<bool>("dual_bounds"))
+        , interval_comparison_(opts.get<bool>("interval_comparison"))
         , reevaluate_(opts.get<bool>("reevaluate"))
         , notify_s0_(opts.get<bool>("initial_state_notification"))
         , path_updates_(opts.get<bool>("reverse_path_updates"))
@@ -72,7 +67,6 @@ public:
 
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
-                heuristic_.get(),
                 new_state_handler_.get(),
                 transition_sort_.get(),
                 cost_bound_,
@@ -83,7 +77,6 @@ public:
                 &progress_);
         } else {
             return this->template engine_factory<Engine>(
-                heuristic_.get(),
                 new_state_handler_.get(),
                 transition_sort_.get(),
                 cost_bound_,
@@ -107,7 +100,6 @@ public:
 
         MDPSolver::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "blind_eval");
         add_list_option<std::shared_ptr<TaskNewStateObserver>>(
             "on_new_state",
             "",

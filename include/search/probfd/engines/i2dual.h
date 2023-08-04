@@ -99,8 +99,6 @@ template <typename State, typename Action>
 class I2Dual : public MDPEngine<State, Action> {
     ProbabilisticTaskProxy task_proxy;
 
-    Evaluator<State>* heuristic_;
-
     ProgressReport* progress_;
 
     const bool hpom_enabled_;
@@ -124,13 +122,11 @@ class I2Dual : public MDPEngine<State, Action> {
 
 public:
     I2Dual(
-        Evaluator<State>* heuristic,
         ProgressReport* progress,
         bool hpom_enabled,
         bool incremental_updates,
         lp::LPSolverType solver_type)
         : task_proxy(*tasks::g_root_task)
-        , heuristic_(heuristic)
         , progress_(progress)
         , hpom_enabled_(hpom_enabled)
         , incremental_hpom_updates_(incremental_updates)
@@ -143,9 +139,11 @@ public:
         statistics_.print(out);
     }
 
-    Interval
-    solve(MDP<State, Action>& mdp, param_type<State> state, double max_time)
-        override
+    Interval solve(
+        MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
+        param_type<State> state,
+        double max_time) override
     {
         utils::CountdownTimer timer(max_time);
 
@@ -196,7 +194,7 @@ public:
 
         {
             const StateID init_id = mdp.get_state_id(state);
-            if (!evaluate_state(mdp, state, idual_data[init_id])) {
+            if (!evaluate_state(mdp, heuristic, state, idual_data[init_id])) {
                 frontier.push_back(init_id);
             }
         }
@@ -257,6 +255,7 @@ public:
                         IDualData& succ_data = idual_data[succ_id];
                         if (succ_data.is_new() && !evaluate_state(
                                                       mdp,
+                                                      heuristic,
                                                       mdp.get_state(succ_id),
                                                       succ_data)) {
                             lp_solver_.add_constraint(dummy_constraint);
@@ -339,6 +338,7 @@ public:
 private:
     bool evaluate_state(
         MDP<State, Action>& mdp,
+        Evaluator<State>& heuristic,
         param_type<State> state,
         IDualData& data)
     {
@@ -350,7 +350,7 @@ private:
             return true;
         }
 
-        const EvaluationResult eval = heuristic_->evaluate(state);
+        const EvaluationResult eval = heuristic.evaluate(state);
         if (eval.is_unsolvable()) {
             data.set_terminal(0);
             return true;
