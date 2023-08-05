@@ -60,9 +60,9 @@ BisimilarStateSpace::BisimilarStateSpace(
     merge_tree_options.set<utils::Verbosity>(
         "verbosity",
         utils::Verbosity::SILENT);
-    merge_tree_options.set<merge_and_shrink::UpdateOption>(
+    merge_tree_options.set<UpdateOption>(
         "update_option",
-        merge_and_shrink::UpdateOption::USE_FIRST);
+        UpdateOption::USE_FIRST);
     merge_tree_options.set<variable_order_finder::VariableOrderType>(
         "variable_order",
         variable_order_finder::VariableOrderType::LEVEL);
@@ -198,7 +198,7 @@ BisimilarStateSpace::BisimilarStateSpace(
 
         for (LocalLabelInfo local_info : *abstraction_) {
             for (const int g_op_id : local_info.get_label_group()) {
-                for (const Transition& trans : local_info.get_transitions()) {
+                for (const auto& trans : local_info.get_transitions()) {
                     std::vector<CachedTransition>& ts = transitions_[trans.src];
                     assert(trans.target != PRUNED_STATE);
                     // if (trans.target == PRUNED_STATE ||

@@ -106,7 +106,6 @@ private:
 
 protected:
     std::vector<Action> aops_;
-    Distribution<StateID> selected_transition_;
 
     Statistics statistics_;
 
@@ -297,21 +296,26 @@ private:
         bool& dead)
         requires(StorePolicy)
     {
-        ClearGuard guard(selected_transition_);
+        const auto update_result =
+            this->bellman_policy_update(mdp, heuristic, state);
+        const auto& greedy_transition = update_result.greedy_transition;
 
-        const bool result =
-            this->async_update(mdp, heuristic, state, &selected_transition_)
-                .value_changed;
         solved = true;
-        dead = !selected_transition_.empty() || info.is_dead_end();
 
-        for (const StateID succ_id : selected_transition_.support()) {
+        if (!greedy_transition) {
+            dead = true;
+            return update_result.value_changed;
+        }
+
+        dead = info.is_dead_end();
+
+        for (const auto succ_id : greedy_transition->successor_dist.support()) {
             const auto& succ_info = this->get_state_info(succ_id);
             solved = solved && succ_info.is_solved();
             dead = dead && succ_info.is_dead_end();
         }
 
-        return result;
+        return update_result.value_changed;
     }
 
     bool update_value_check_solved(
@@ -323,7 +327,7 @@ private:
         bool& dead)
         requires(!StorePolicy)
     {
-        const bool result = this->async_update(mdp, heuristic, state);
+        const bool result = this->bellman_update(mdp, heuristic, state);
 
         solved = info.unsolved == 0;
         dead = solved && info.alive == 0 && !info.is_goal_state();

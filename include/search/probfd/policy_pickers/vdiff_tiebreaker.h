@@ -25,8 +25,7 @@ public:
         TaskMDP& mdp,
         StateID state,
         std::optional<OperatorID> prev_policy,
-        const std::vector<OperatorID>& action_choices,
-        const std::vector<Distribution<StateID>>& successors,
+        const std::vector<Transition<OperatorID>>& greedy_transitions,
         engine_interfaces::StateProperties& properties);
 };
 

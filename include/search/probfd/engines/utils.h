@@ -31,6 +31,23 @@ public:
     }
 };
 
+/**
+ * @brief Function object calling std::get<n> on its argument. Useful in ranges
+ * algorithms.
+ */
+template <size_t n>
+struct get_t {
+    template <typename T>
+    decltype(auto) operator()(T&& t) const
+    {
+        using std::get;
+        return get<n>(std::forward<T>(t));
+    }
+};
+
+template <size_t n>
+inline constexpr get_t<n> project;
+
 /// Convenience value type alias for engines selecting interval iteration
 /// behaviour based on a template parameter.
 template <bool UseInterval>

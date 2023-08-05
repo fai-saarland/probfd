@@ -1,15 +1,14 @@
-#ifndef PROBFD_ENGINE_INTERFACES_STATE_SPACE_H
-#define PROBFD_ENGINE_INTERFACES_STATE_SPACE_H
+#ifndef PROBFD_STATE_SPACE_H
+#define PROBFD_STATE_SPACE_H
 
+#include "probfd/transition.h"
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
 
+#include <ranges>
 #include <vector>
 
 namespace probfd {
-
-template <typename>
-class Distribution;
 
 /**
  * @brief An interface representing a Markov Decision Process (MDP) without
@@ -72,6 +71,23 @@ public:
         StateID state,
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors) = 0;
+
+    /**
+     * @brief Generates all applicable actions and their corresponding successor
+     * distributions for a given state.
+     */
+    virtual void generate_all_transitions(
+        StateID state,
+        std::vector<Transition<Action>>& transitions)
+    {
+        std::vector<Action> aops;
+        std::vector<Distribution<StateID>> successors;
+        this->generate_all_transitions(state, aops, successors);
+
+        for (const auto [op, dist] : std::views::zip(aops, successors)) {
+            transitions.emplace_back(std::move(op), std::move(dist));
+        }
+    }
 };
 
 } // namespace probfd

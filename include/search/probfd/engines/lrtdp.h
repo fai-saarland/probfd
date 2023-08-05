@@ -179,7 +179,6 @@ class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
     storage::PerStateStorage<StateInfo> state_infos_;
 
     std::vector<StateID> current_trial_;
-    Distribution<StateID> selected_transition_;
     std::vector<StateID> policy_queue_;
     std::deque<StateID> visited_;
 
@@ -269,16 +268,13 @@ private:
                 break;
             }
 
-            ClearGuard guard(this->selected_transition_);
-
             this->statistics_.trial_bellman_backups++;
-            const bool value_changed = this->async_update(
-                                               mdp,
-                                               heuristic,
-                                               state_id,
-                                               &this->selected_transition_)
-                                           .value_changed;
-            if (this->selected_transition_.empty()) {
+            const auto upd_info =
+                this->bellman_policy_update(mdp, heuristic, state_id);
+            const bool value_changed = upd_info.value_changed;
+            const auto& transition = upd_info.greedy_transition;
+
+            if (!transition) {
                 auto& base_info = this->get_state_info(state_id, state_info);
                 // terminal
                 assert(base_info.is_terminal());
@@ -304,7 +300,7 @@ private:
             this->current_trial_.push_back(this->sample_state(
                 *sample_,
                 state_id,
-                this->selected_transition_));
+                transition->successor_dist));
         }
 
         if (StopConsistent == REVISITED) {
@@ -356,8 +352,6 @@ private:
         while (!this->policy_queue_.empty()) {
             timer.throw_if_expired();
 
-            ClearGuard guard(this->selected_transition_);
-
             const auto state_id = this->policy_queue_.back();
             policy_queue_.pop_back();
 
@@ -366,38 +360,41 @@ private:
 
             this->statistics_.check_and_solve_bellman_backups++;
 
-            const bool value_changed = this->async_update(
-                                               mdp,
-                                               heuristic,
-                                               state_id,
-                                               &this->selected_transition_)
-                                           .value_changed;
+            const auto upd_info =
+                this->bellman_policy_update(mdp, heuristic, state_id);
+
+            const bool value_changed = upd_info.value_changed;
+            const auto& transition = upd_info.greedy_transition;
 
             if (value_changed) {
                 epsilon_consistent = false;
                 this->visited_.push_front(state_id);
-            } else if (this->selected_transition_.empty()) {
+                continue;
+            }
+
+            if (!transition) {
                 auto& base_info = this->get_state_info(state_id, info);
                 assert(base_info.is_terminal());
 
                 this->notify_dead_end_ifnot_goal(base_info);
                 info.mark_solved();
-            } else {
-                this->visited_.push_front(state_id);
+                continue;
+            }
 
-                if constexpr (UseInterval) {
-                    if (this->check_interval_comparison() &&
-                        !this->get_state_info(state_id, info).bounds_agree()) {
-                        mark_solved = false;
-                    }
+            this->visited_.push_front(state_id);
+
+            if constexpr (UseInterval) {
+                if (this->check_interval_comparison() &&
+                    !this->get_state_info(state_id, info).bounds_agree()) {
+                    mark_solved = false;
                 }
+            }
 
-                for (StateID succ_id : selected_transition_.support()) {
-                    auto& succ_info = get_lrtdp_state_info(succ_id);
-                    if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
-                        succ_info.mark_open();
-                        this->policy_queue_.emplace_back(succ_id);
-                    }
+            for (StateID succ_id : transition->successor_dist.support()) {
+                auto& succ_info = get_lrtdp_state_info(succ_id);
+                if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
+                    succ_info.mark_open();
+                    this->policy_queue_.emplace_back(succ_id);
                 }
             }
         }
@@ -409,7 +406,7 @@ private:
         } else {
             for (StateID sid : this->visited_) {
                 statistics_.check_and_solve_bellman_backups++;
-                this->async_update(mdp, heuristic, sid);
+                this->bellman_policy_update(mdp, heuristic, sid);
                 get_lrtdp_state_info(sid).unmark();
             }
         }
@@ -447,23 +444,23 @@ private:
                 continue;
             }
 
-            ClearGuard guard(this->selected_transition_);
-
             this->statistics_.check_and_solve_bellman_backups++;
-            const bool value_changed =
-                this->async_update(
+            const auto upd_info =
+                this->bellman_policy_update(
                     mdp,
                     heuristic,
-                    stateid,
-                    &this->selected_transition_);
+                    stateid);
+
+            const bool value_changed = upd_info.value_changed;
+            const auto& std::optional transition = upd_info.transition;
 
             if (value_changed) {
                 rv = false;
                 continue;
             }
 
-            if (rv && !this->selected_transition_.empty()) {
-                for (StateID succid : selected_transition_.support()) {
+            if (rv && !transition) {
+                for (StateID succid : transition->successor_dist.support()) {
                     auto& succ_info = get_lrtdp_state_info(succid);
                     if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
                         succ_info.mark_open();
@@ -486,7 +483,7 @@ private:
                 const StateID sid = this->visited_.back();
                 auto& info = get_lrtdp_state_info(sid);
                 info.unmark();
-                this->async_update(mdp, heuristic, sid);
+                this->bellman_policy_update(mdp, heuristic, sid);
                 this->visited_.pop_back();
                 this->statistics_.check_and_solve_bellman_backups++;
             }

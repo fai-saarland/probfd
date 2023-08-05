@@ -412,7 +412,7 @@ private:
                         // Terminal and self-loop leaf SCCs are always pruned
                         assert(scc.size() > 1);
                         collapse_trap(quotient, scc);
-                        base_engine_->async_update(
+                        base_engine_->bellman_policy_update(
                             quotient,
                             heuristic,
                             state_id);
@@ -507,7 +507,7 @@ class ValueGraph {
     using Evaluator = Evaluator<State>;
 
     std::unordered_set<StateID> ids;
-    std::vector<Distribution<StateID>> opt_transitions;
+    std::vector<Transition<QAction>> opt_transitions;
 
 public:
     bool get_successors(
@@ -522,16 +522,15 @@ public:
 
         ClearGuard _guard(ids, opt_transitions);
 
-        bool value_changed =
-            base_engine.compute_value_update_and_optimal_transitions(
-                quotient,
-                heuristic,
-                qstate,
-                aops,
-                opt_transitions);
+        bool value_changed = base_engine.bellman_update(
+            quotient,
+            heuristic,
+            qstate,
+            opt_transitions);
 
         for (const auto& transition : opt_transitions) {
-            for (const StateID sid : transition.support()) {
+            aops.push_back(transition.action);
+            for (const StateID sid : transition.successor_dist.support()) {
                 if (ids.insert(sid).second) {
                     successors.push_back(sid);
                 }
@@ -562,14 +561,30 @@ public:
         std::vector<QAction>& aops,
         std::vector<StateID>& successors)
     {
+        std::optional a = base_engine.get_greedy_action(qstate);
+
+        if (!a) {
+            auto info =
+                base_engine.bellman_policy_update(quotient, heuristic, qstate);
+            const Transition<QAction>& transition = *info.greedy_transition;
+            for (StateID sid : transition.successor_dist.support()) {
+                successors.push_back(sid);
+            }
+            aops.push_back(transition.action);
+            return info.value_changed;
+        }
+
         ClearGuard _guard(t_);
 
-        bool result = base_engine.apply_policy(quotient, heuristic, qstate, t_);
+        quotient.generate_action_transitions(qstate, *a, t_);
+
         for (StateID sid : t_.support()) {
             successors.push_back(sid);
         }
-        aops.push_back(*base_engine.get_greedy_action(qstate));
-        return result;
+
+        aops.push_back(*a);
+
+        return false;
     }
 };
 

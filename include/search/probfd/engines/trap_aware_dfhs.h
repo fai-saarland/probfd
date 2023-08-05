@@ -289,23 +289,29 @@ private:
         } while (!is_complete);
     }
 
-    void enqueue(StateID state, QAction& action, bool zero_cost)
+    void enqueue(
+        QuotientSystem& quotient,
+        StateID state,
+        QAction action,
+        const Distribution<StateID>& successor_dist)
     {
+        const bool zero_cost = quotient.get_action_cost(action) == 0;
+
         queue_.emplace_back(state, stack_.size());
         stack_index_[state] = stack_.size();
         stack_.emplace_back(state, action);
 
         ExplorationInformation& info = queue_.back();
-        info.successors.reserve(transition_.size());
+        info.successors.reserve(successor_dist.size());
 
         if (open_list_ == nullptr) {
-            for (const StateID item : transition_.support()) {
+            for (const StateID item : successor_dist.support()) {
                 if (item != state) {
                     info.successors.push_back(item);
                 }
             }
         } else {
-            for (const auto& [item, probability] : transition_) {
+            for (const auto& [item, probability] : successor_dist) {
                 if (item != state) {
                     open_list_->push(state, action, probability, item);
                 }
@@ -319,7 +325,6 @@ private:
         }
 
         assert(!info.successors.empty());
-        transition_.clear();
         info.flags.is_trap = zero_cost;
     }
 
@@ -337,30 +342,33 @@ private:
         if (tip || forward_updates_) {
             ++statistics_.fw_updates;
             auto result =
-                this->async_update(quotient, heuristic, state, &transition_);
+                this->bellman_policy_update(quotient, heuristic, state);
             flags.all_solved = flags.all_solved && !result.value_changed;
             const bool cutoff = (!expand_tip_states_ && tip) ||
                                 (cutoff_inconsistent_ && result.value_changed);
             terminated_ = terminate_exploration_ && cutoff;
-            if (transition_.empty()) {
+
+            const auto& transition = result.greedy_transition;
+            if (!transition) {
                 assert(state_info.is_dead_end());
                 flags.is_trap = false;
                 return false;
             }
             if (cutoff) {
-                transition_.clear();
                 flags.complete = false;
                 return false;
             }
-            bool zero_cost =
-                quotient.get_action_cost(*result.policy_action) == 0;
-            enqueue(state, *result.policy_action, zero_cost);
 
+            enqueue(
+                quotient,
+                state,
+                transition->action,
+                transition->successor_dist);
         } else {
             QAction action = *this->get_greedy_action(state);
             quotient.generate_action_transitions(state, action, transition_);
-            bool zero_cost = quotient.get_action_cost(action) == 0;
-            enqueue(state, action, zero_cost);
+            enqueue(quotient, state, action, transition_);
+            transition_.clear();
         }
 
         return true;
@@ -391,20 +399,19 @@ private:
         flags.clear();
         ++statistics_.fw_updates;
 
-        auto result =
-            this->async_update(quotient, heuristic, state, &transition_);
+        auto result = this->bellman_policy_update(quotient, heuristic, state);
         flags.all_solved = !result.value_changed;
         const bool cutoff = !reexpand_removed_traps_ ||
                             (cutoff_inconsistent_ && result.value_changed);
         terminated_ = terminated_ || (terminate_exploration_ && cutoff);
 
-        if (transition_.empty()) {
+        const auto& transition = result.greedy_transition;
+        if (!transition) {
             flags.is_trap = false;
             return false;
         }
 
         if (cutoff) {
-            transition_.clear();
             flags.complete = false;
             return false;
         }
@@ -414,9 +421,12 @@ private:
         }
 
         flags.clear();
-        const bool zero_cost =
-            quotient.get_action_cost(*result.policy_action) == 0;
-        enqueue(state, *result.policy_action, zero_cost);
+
+        enqueue(
+            quotient,
+            state,
+            transition->action,
+            transition->successor_dist);
         return true;
     }
 
@@ -492,7 +502,7 @@ private:
                      (!flags.complete || !flags.all_solved))) {
                     ++statistics_.bw_updates;
                     auto updated =
-                        this->async_update(quotient, heuristic, state, nullptr);
+                        this->bellman_policy_update(quotient, heuristic, state);
                     flags.complete = flags.complete && !updated.policy_changed;
                     flags.all_solved =
                         flags.all_solved && !updated.value_changed;
@@ -509,11 +519,10 @@ private:
 
                     if (scc.size() == 1) {
                         if (backtrack_update_type_ == CONVERGENCE) {
-                            auto res = this->async_update(
+                            auto res = this->bellman_policy_update(
                                 quotient,
                                 heuristic,
-                                state,
-                                nullptr);
+                                state);
                             flags.complete =
                                 flags.complete && !res.policy_changed;
                             flags.all_solved =
@@ -681,7 +690,7 @@ private:
                 timer.throw_if_expired();
 
                 const auto result =
-                    this->async_update(quotient, heuristic, id, nullptr);
+                    this->bellman_policy_update(quotient, heuristic, id);
                 value_changed = value_changed || result.value_changed;
                 policy_changed = policy_changed || result.policy_changed;
             }

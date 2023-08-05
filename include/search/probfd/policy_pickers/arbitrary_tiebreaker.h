@@ -21,8 +21,7 @@ public:
     }
 
     explicit ArbitraryTiebreaker(bool stable_policy)
-        : StablePolicyPicker<State, Action, ArbitraryTiebreaker<State, Action>>(
-              stable_policy)
+        : ArbitraryTiebreaker::StablePolicyPicker(stable_policy)
     {
     }
 
@@ -30,8 +29,7 @@ public:
         MDP<State, Action>&,
         StateID,
         std::optional<Action>,
-        const std::vector<Action>&,
-        const std::vector<Distribution<StateID>>&,
+        const std::vector<Transition<Action>>&,
         engine_interfaces::StateProperties&)
     {
         return 0;

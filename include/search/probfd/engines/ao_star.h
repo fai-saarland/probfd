@@ -53,6 +53,8 @@ class AOStar
     std::shared_ptr<SuccessorSampler> outcome_selection_;
     std::vector<Distribution<StateID>> transitions_;
 
+    Distribution<StateID> selected_transition_;
+
 public:
     AOStar(
         std::shared_ptr<PolicyPicker> policy_chooser,
@@ -168,10 +170,9 @@ protected:
                     !info.is_solved());
 
                 ClearGuard guard(this->selected_transition_);
-                this->apply_policy(
-                    mdp,
-                    heuristic,
+                mdp.generate_action_transitions(
                     stateid,
+                    *this->get_greedy_action(stateid),
                     this->selected_transition_);
 
                 this->selected_transition_.remove_if_normalize(

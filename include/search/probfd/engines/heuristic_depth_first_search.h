@@ -173,7 +173,6 @@ class HeuristicDepthFirstSearch
     std::vector<StateID> visited_;
     std::deque<ExpansionInfo> expansion_queue_;
     std::deque<StateID> stack_;
-    Distribution<StateID> transition_;
 
     Statistics statistics_;
 
@@ -389,7 +388,7 @@ private:
                 (last_value_changed && BackwardUpdates == ON_DEMAND)) {
                 statistics_.backtracking_updates++;
                 auto result =
-                    this->async_update(mdp, heuristic, einfo->stateid, nullptr);
+                    this->bellman_policy_update(mdp, heuristic, einfo->stateid);
                 last_value_changed = result.value_changed;
                 last_unsolved_successors =
                     last_unsolved_successors || result.policy_changed;
@@ -469,16 +468,15 @@ private:
     {
         assert(!sinfo.is_solved());
 
-        ClearGuard _guard(transition_);
-
         const bool is_tip_state = !sinfo.is_policy_initialized();
 
         if (ForwardUpdates || is_tip_state) {
             sinfo.set_policy_initialized();
             statistics_.forward_updates++;
-            const bool value_changed =
-                this->async_update(mdp, heuristic, stateid, &transition_)
-                    .value_changed;
+            const auto upd_info =
+                this->bellman_policy_update(mdp, heuristic, stateid);
+            const bool value_changed = upd_info.value_changed;
+            const auto& transition = upd_info.greedy_transition;
 
             if constexpr (UseInterval) {
                 parent_value_changed =
@@ -490,7 +488,7 @@ private:
                 parent_value_changed = parent_value_changed || value_changed;
             }
 
-            if (transition_.empty()) {
+            if (!transition) {
                 sinfo.set_solved();
                 uint8_t closed = LocalStateInfo::CLOSED;
                 if (this->notify_dead_end_ifnot_goal(stateid)) {
@@ -507,7 +505,9 @@ private:
                 return LocalStateInfo::UNSOLVED;
             }
 
-            auto& einfo = expansion_queue_.emplace_back(stateid, transition_);
+            auto& einfo = expansion_queue_.emplace_back(
+                stateid,
+                transition->successor_dist);
             einfo.value_changed = value_changed;
         } else {
             if (this->get_state_info(stateid, sinfo).is_dead_end()) {
@@ -515,8 +515,11 @@ private:
                 return LocalStateInfo::CLOSED_DEAD;
             }
 
-            this->apply_policy(mdp, heuristic, stateid, transition_);
-            expansion_queue_.emplace_back(stateid, transition_);
+            const auto transition =
+                this->bellman_policy_update(mdp, heuristic, stateid)
+                    .greedy_transition;
+            assert(transition.has_value());
+            expansion_queue_.emplace_back(stateid, transition->successor_dist);
         }
 
         return LocalStateInfo::ONSTACK;
@@ -545,7 +548,7 @@ private:
                 statistics_.backtracking_updates++;
 
                 const auto result =
-                    this->async_update(mdp, heuristic, id, nullptr);
+                    this->bellman_policy_update(mdp, heuristic, id);
                 value_changed = value_changed || result.value_changed;
 
                 if constexpr (UseInterval) {

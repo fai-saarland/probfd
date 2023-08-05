@@ -27,13 +27,12 @@ public:
         MDP<State, Action>& mdp,
         StateID state_id,
         std::optional<Action> previous_greedy,
-        const std::vector<Action>& greedy_action_candidates,
-        const std::vector<Distribution<StateID>>& candidate_successors,
+        const std::vector<Transition<Action>>& greedy_transitions,
         engine_interfaces::StateProperties& properties) override
     {
         if (stable_policy_) {
-            for (unsigned i = 0; i < greedy_action_candidates.size(); ++i) {
-                if (greedy_action_candidates[i] == previous_greedy) {
+            for (unsigned i = 0; i < greedy_transitions.size(); ++i) {
+                if (greedy_transitions[i].action == previous_greedy) {
                     return i;
                 }
             }
@@ -43,8 +42,7 @@ public:
             mdp,
             state_id,
             previous_greedy,
-            greedy_action_candidates,
-            candidate_successors,
+            greedy_transitions,
             properties);
     }
 };

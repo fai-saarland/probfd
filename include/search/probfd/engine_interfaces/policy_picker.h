@@ -2,6 +2,7 @@
 #define PROBFD_ENGINE_INTERFACES_POLICY_PICKER_H
 
 #include "probfd/mdp.h"
+#include "probfd/transition.h"
 #include "probfd/types.h"
 
 #include <optional>
@@ -52,15 +53,13 @@ public:
     virtual ~PolicyPicker() = default;
 
     /**
-     * @brief Selects a greedy action from multiple candidates by returning its
-     * index in the candidate list.
+     * @brief Selects a greedy transition from multiple candidates by returning
+     * its index in the candidate list.
      *
      * @param mdp - The MDP in which the search is performed.
      * @param state_id - The state for which a greedy action is chosen.
-     * @param previous_greedy_id - The ID of the previous greedy action.
-     * @param greedy_action_candidates - A list of candidate greedy actions.
-     * @param candidate_successors - The successor distributions for each of the
-     * candidate greedy actions.
+     * @param incumbent_greedy - The incumbent greedy action.
+     * @param greedy_transitions - A list of candidate greedy transitions.
      * @param properties - The interface to the heuristic search algorithm.
      * Can be used to query additional information about the involved states and
      * actions.
@@ -68,9 +67,8 @@ public:
     virtual int pick_index(
         MDP<State, Action>& mdp,
         StateID state_id,
-        std::optional<Action> previous_greedy,
-        const std::vector<Action>& greedy_action_candidates,
-        const std::vector<Distribution<StateID>>& candidate_successors,
+        std::optional<Action> incumbent_greedy,
+        const std::vector<Transition<Action>>& greedy_transitions,
         StateProperties& properties) = 0;
 
     /**

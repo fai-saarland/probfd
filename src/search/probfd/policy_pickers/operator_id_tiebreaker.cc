@@ -26,14 +26,13 @@ int OperatorIdTiebreaker::pick_index(
     TaskMDP&,
     StateID,
     std::optional<OperatorID>,
-    const std::vector<OperatorID>& choices,
-    const std::vector<Distribution<StateID>>&,
+    const std::vector<Transition<OperatorID>>& greedy_transitions,
     engine_interfaces::StateProperties&)
 {
     int min_id = std::numeric_limits<int>::max();
     unsigned min_idx = -1;
-    for (int i = choices.size() - 1; i >= 0; i--) {
-        int id = choices[i].get_index() * ascending_;
+    for (int i = greedy_transitions.size() - 1; i >= 0; i--) {
+        int id = greedy_transitions[i].action.get_index() * ascending_;
         if (id < min_id) {
             min_id = id;
             min_idx = i;

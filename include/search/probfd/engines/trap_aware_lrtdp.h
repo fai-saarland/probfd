@@ -165,8 +165,6 @@ class TALRTDPImpl
 
     std::shared_ptr<QuotientSuccessorSampler> sample_;
 
-    Distribution<StateID> selected_transition_;
-
     std::deque<StateID> current_trial_;
 
     std::deque<ExplorationInformation> queue_;
@@ -234,7 +232,6 @@ private:
         using enum TrialTerminationCondition;
 
         assert(current_trial_.empty());
-        assert(selected_transition_.empty());
 
         ClearGuard guard(current_trial_);
         current_trial_.push_back(start_state);
@@ -249,14 +246,12 @@ private:
             }
 
             statistics_.trial_bellman_backups++;
-            const bool changed = this->async_update(
-                                         quotient,
-                                         heuristic,
-                                         stateid,
-                                         &selected_transition_)
-                                     .value_changed;
+            const auto result =
+                this->bellman_policy_update(quotient, heuristic, stateid);
+            const bool changed = result.value_changed;
+            const auto& transition = result.greedy_transition;
 
-            if (selected_transition_.empty()) {
+            if (!transition) {
                 info.set_solved();
                 current_trial_.pop_back();
                 break;
@@ -265,7 +260,6 @@ private:
             if ((stop_at_consistent_ == CONSISTENT && !changed) ||
                 (stop_at_consistent_ == INCONSISTENT && changed) ||
                 (stop_at_consistent_ == REVISITED && info.is_on_trial())) {
-                selected_transition_.clear();
                 break;
             }
 
@@ -273,9 +267,10 @@ private:
                 info.set_on_trial();
             }
 
-            current_trial_.push_back(
-                this->sample_state(*sample_, stateid, selected_transition_));
-            selected_transition_.clear();
+            current_trial_.push_back(this->sample_state(
+                *sample_,
+                stateid,
+                transition->successor_dist));
         }
 
         statistics_.trial_length += current_trial_.size();
@@ -373,7 +368,10 @@ private:
                         stack_.pop_back();
                         if (!einfo->flags.rv) {
                             ++this->statistics_.check_and_solve_bellman_backups;
-                            this->async_update(quotient, heuristic, state);
+                            this->bellman_policy_update(
+                                quotient,
+                                heuristic,
+                                state);
                         } else {
                             this->get_state_info(state).set_solved();
                         }
@@ -401,7 +399,10 @@ private:
                                     goto skip_pop;
                                 }
                             } else {
-                                this->async_update(quotient, heuristic, state);
+                                this->bellman_policy_update(
+                                    quotient,
+                                    heuristic,
+                                    state);
                                 einfo->flags.rv = false;
                             }
                         } else if (einfo->flags.rv) {
@@ -414,7 +415,7 @@ private:
                         } else {
                             for (const auto& entry : scc) {
                                 stack_index_[entry.state_id] = STATE_CLOSED;
-                                this->async_update(
+                                this->bellman_policy_update(
                                     quotient,
                                     heuristic,
                                     entry.state_id);
@@ -453,17 +454,14 @@ private:
         Flags& parent_flags)
     {
         assert(quotient.translate_state_id(state) == state);
-        assert(this->selected_transition_.empty());
 
         ++this->statistics_.check_and_solve_bellman_backups;
 
-        const auto result = this->async_update(
-            quotient,
-            heuristic,
-            state,
-            &this->selected_transition_);
+        const auto result =
+            this->bellman_policy_update(quotient, heuristic, state);
+        const auto& transition = result.greedy_transition;
 
-        if (this->selected_transition_.empty()) {
+        if (!transition) {
             assert(this->get_state_info(state).is_dead_end());
             parent_flags.rv = parent_flags.rv && !result.value_changed;
             parent_flags.is_trap = false;
@@ -474,23 +472,21 @@ private:
             parent_flags.rv = false;
             parent_flags.is_trap = false;
             parent_flags.is_dead = false;
-            this->selected_transition_.clear();
             return false;
         }
 
         queue_.emplace_back(state);
         ExplorationInformation& e = queue_.back();
-        for (const StateID sel : this->selected_transition_.support()) {
+        for (const StateID sel : transition->successor_dist.support()) {
             if (sel != state) {
                 e.successors.push_back(sel);
             }
         }
 
         assert(!e.successors.empty());
-        this->selected_transition_.clear();
-        e.flags.is_trap = quotient.get_action_cost(*result.policy_action) == 0;
+        e.flags.is_trap = quotient.get_action_cost(transition->action) == 0;
         stack_index_[state] = stack_.size();
-        stack_.emplace_back(state, *result.policy_action);
+        stack_.emplace_back(state, transition->action);
         return true;
     }
 };

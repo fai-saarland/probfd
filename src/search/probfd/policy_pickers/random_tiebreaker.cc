@@ -29,11 +29,10 @@ int RandomTiebreaker::pick_index(
     TaskMDP&,
     StateID,
     std::optional<OperatorID>,
-    const std::vector<OperatorID>& options,
-    const std::vector<Distribution<StateID>>&,
+    const std::vector<Transition<OperatorID>>& greedy_transitions,
     engine_interfaces::StateProperties&)
 {
-    return rng->random(options.size());
+    return rng->random(greedy_transitions.size());
 }
 
 } // namespace policy_pickers

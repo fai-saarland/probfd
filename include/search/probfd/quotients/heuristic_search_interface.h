@@ -18,7 +18,7 @@ class RepresentativePolicyPicker
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QuotientAction = quotients::QuotientAction<Action>;
 
-    std::vector<Action> choices_;
+    std::vector<Transition<Action>> choices_;
     std::shared_ptr<engine_interfaces::PolicyPicker<State, Action>> original_;
 
 public:
@@ -33,8 +33,7 @@ public:
         MDP<State, QuotientAction>& mdp,
         StateID state,
         std::optional<QuotientAction> prev_policy,
-        const std::vector<QuotientAction>& action_choices,
-        const std::vector<Distribution<StateID>>& successors,
+        const std::vector<Transition<QuotientAction>>& greedy_transitions,
         engine_interfaces::StateProperties& properties) override
     {
         assert(dynamic_cast<QuotientSystem*>(&mdp));
@@ -45,9 +44,9 @@ public:
         if (prev_policy) oprev = prev_policy->action;
 
         choices_.clear();
-        choices_.reserve(action_choices.size());
-        for (unsigned i = 0; i < action_choices.size(); ++i) {
-            choices_.push_back(action_choices[i].action);
+        choices_.reserve(greedy_transitions.size());
+        for (const auto& [action, dist] : greedy_transitions) {
+            choices_.emplace_back(action.action, dist);
         }
 
         return original_->pick_index(
@@ -55,7 +54,6 @@ public:
             state,
             oprev,
             choices_,
-            successors,
             properties);
     }
 

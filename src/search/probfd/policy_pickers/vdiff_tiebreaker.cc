@@ -24,25 +24,19 @@ int VDiffTiebreaker::pick_index(
     TaskMDP&,
     StateID,
     std::optional<OperatorID>,
-    const std::vector<OperatorID>&,
-    const std::vector<Distribution<StateID>>& successors,
+    const std::vector<Transition<OperatorID>>& greedy_transitions,
     engine_interfaces::StateProperties& properties)
 {
-    value_t best = INFINITE_VALUE;
-    unsigned choice = 1;
-    for (int i = successors.size() - 1; i >= 0; --i) {
-        const Distribution<StateID>& t = successors[i];
-        value_t sum = 0_vt;
-        for (auto it = t.begin(); it != t.end(); ++it) {
-            auto value = properties.lookup_bounds(it->item);
-            sum += it->probability * value.length();
-        }
-        if (is_approx_less(favor_large_gaps_ * sum, best)) {
-            best = sum;
-            choice = i;
-        }
-    }
-    return choice;
+    auto it = std::ranges::min_element(
+        greedy_transitions,
+        [](value_t lhs, value_t rhs) { return is_approx_less(lhs, rhs); },
+        [&, factor = favor_large_gaps_](const Transition<OperatorID>& t) {
+            return t.successor_dist.expectation([&](StateID id) {
+                return factor * properties.lookup_bounds(id).length();
+            });
+        });
+
+    return std::distance(greedy_transitions.begin(), it);
 }
 
 } // namespace policy_pickers
