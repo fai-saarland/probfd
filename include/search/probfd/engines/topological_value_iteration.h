@@ -5,6 +5,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/distribution.h"
 #include "probfd/engine.h"
 
 #include <deque>

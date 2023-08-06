@@ -6,7 +6,6 @@
 
 #include "probfd/engine.h"
 #include "probfd/progress_report.h"
-#include "probfd/transition.h"
 
 #if defined(EXPENSIVE_STATISTICS)
 #include "downward/utils/timer.h"
@@ -18,6 +17,12 @@
 #include <vector>
 
 namespace probfd {
+
+template <typename>
+class Distribution;
+
+template <typename>
+struct Transition;
 
 namespace engine_interfaces {
 template <typename, typename>

@@ -11,6 +11,7 @@
 
 #include "probfd/evaluator.h"
 #include "probfd/mdp.h"
+#include "probfd/transition.h"
 
 #include "downward/utils/collections.h"
 

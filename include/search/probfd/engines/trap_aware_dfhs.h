@@ -4,6 +4,8 @@
 #include "probfd/engines/heuristic_search_base.h"
 #include "probfd/quotients/quotient_system.h"
 
+#include "probfd/distribution.h"
+
 #include "downward/utils/timer.h"
 
 #include <type_traits>
