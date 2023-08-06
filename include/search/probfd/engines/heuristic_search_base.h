@@ -93,6 +93,7 @@ class HeuristicSearchBase {
 protected:
     using MDP = MDP<State, Action>;
     using Evaluator = Evaluator<State>;
+    using Transition = Transition<Action>;
 
     using PolicyPicker = engine_interfaces::PolicyPicker<State, Action>;
     using NewStateObserver = engine_interfaces::NewStateObserver<State>;
@@ -140,7 +141,7 @@ private:
     StateID initial_state_id_ = StateID::undefined;
 
     // Reused buffer
-    std::vector<Transition<Action>> transitions_;
+    std::vector<Transition> transitions_;
 
 protected:
     Statistics statistics_;
@@ -150,7 +151,7 @@ protected:
     struct UpdateResult {
         bool value_changed;
         bool policy_changed;
-        std::optional<Transition<Action>> greedy_transition = std::nullopt;
+        std::optional<Transition> greedy_transition = std::nullopt;
     };
 
 public:
@@ -240,7 +241,7 @@ public:
         MDP& mdp,
         Evaluator& h,
         StateID state_id,
-        std::vector<Transition<Action>>& greedy);
+        std::vector<Transition>& greedy);
 
     /**
      * @brief Computes the Bellman update for a state, recomputes the greedy
@@ -327,14 +328,14 @@ private:
         MDP& mdp,
         Evaluator& h,
         StateID state_id,
-        const Transition<Action>& transition);
+        const Transition& transition);
 
     EngineValueType filter_greedy_transitions(
         MDP& mdp,
         Evaluator& h,
         StateID state_id,
         StateInfo& state_info,
-        std::vector<Transition<Action>>& transitions);
+        std::vector<Transition>& transitions);
 
     bool bellman_update(
         MDP& mdp,
@@ -347,7 +348,7 @@ private:
         Evaluator& h,
         StateID state_id,
         StateInfo& state_info,
-        std::vector<Transition<Action>>& greedy);
+        std::vector<Transition>& greedy);
 };
 
 /**

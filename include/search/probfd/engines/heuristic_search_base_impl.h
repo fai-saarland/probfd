@@ -218,7 +218,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
     MDP& mdp,
     Evaluator& h,
     StateID state_id,
-    std::vector<Transition<Action>>& greedy)
+    std::vector<Transition>& greedy)
 {
     return bellman_update(
         mdp,
@@ -464,7 +464,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::normalized_qvalue(
     MDP& mdp,
     Evaluator& h,
     StateID state_id,
-    const Transition<Action>& transition) -> std::optional<EngineValueType>
+    const Transition& transition) -> std::optional<EngineValueType>
 {
     EngineValueType t_value(mdp.get_action_cost(transition.action));
     value_t non_self_loop = 1_vt;
@@ -496,7 +496,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
     Evaluator& h,
     StateID state_id,
     StateInfo& state_info,
-    std::vector<Transition<Action>>& transitions) -> EngineValueType
+    std::vector<Transition>& transitions) -> EngineValueType
 {
     using std::ranges::remove_if;
 
@@ -586,7 +586,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
     Evaluator& h,
     StateID state_id,
     StateInfo& state_info,
-    std::vector<Transition<Action>>& greedy)
+    std::vector<Transition>& greedy)
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped_upd_timer(statistics_.update_time);
