@@ -536,8 +536,15 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
     MDP& mdp,
     Evaluator& h,
     StateID state_id,
-    StateInfo& state_info)
+    StateInfo& state_info,
+    auto&... optional_out_greedy)
 {
+    static_assert(
+        sizeof...(optional_out_greedy) == 0 ||
+        sizeof...(optional_out_greedy) == 1);
+
+    constexpr bool input_exists = sizeof...(optional_out_greedy) == 1;
+
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
@@ -552,69 +559,48 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
         state_info.removed_from_fringe();
     }
 
-    ClearGuard guard(transitions_);
-    mdp.generate_all_transitions(state_id, transitions_);
+    auto& transitions = [&]() -> auto& {
+        if constexpr (input_exists) {
+            auto& transitions = std::get<0>(std::tie(optional_out_greedy...));
+            mdp.generate_all_transitions(state_id, transitions);
+            return transitions;
+        } else {
+            mdp.generate_all_transitions(state_id, transitions_);
+            return transitions_;
+        }
+    }();
 
-    if (transitions_.empty()) {
+    if (transitions.empty()) {
         statistics_.terminal_states++;
         const bool result = notify_dead_end(state_info);
         if (result) state_value_changed(state_id);
         return result;
     }
 
-    EngineValueType best_value(state_info.termination_cost);
+    EngineValueType best_value;
+    bool has_only_self_loops;
 
-    bool has_only_self_loops = true;
-    for (auto& transition : transitions_) {
-        if (auto Q = normalized_qvalue(mdp, h, state_id, transition)) {
-            set_min(best_value, *Q);
-            has_only_self_loops = false;
+    if constexpr (input_exists) {
+        best_value = filter_greedy_transitions(
+            mdp,
+            h,
+            state_id,
+            state_info,
+            transitions);
+        has_only_self_loops = transitions.empty();
+    } else {
+        best_value = EngineValueType(state_info.termination_cost);
+        has_only_self_loops = true;
+
+        for (auto& transition : transitions) {
+            if (auto Q = normalized_qvalue(mdp, h, state_id, transition)) {
+                set_min(best_value, *Q);
+                has_only_self_loops = false;
+            }
         }
     }
 
     if (has_only_self_loops) {
-        statistics_.self_loop_states++;
-        return notify_dead_end(state_info);
-    }
-
-    return this->update(state_info, state_id, best_value);
-}
-
-template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
-    MDP& mdp,
-    Evaluator& h,
-    StateID state_id,
-    StateInfo& state_info,
-    std::vector<Transition>& greedy)
-{
-#if defined(EXPENSIVE_STATISTICS)
-    TimerScope scoped_upd_timer(statistics_.update_time);
-#endif
-    statistics_.backups++;
-
-    if (state_info.is_terminal()) {
-        return false;
-    }
-
-    if (state_info.is_on_fringe()) {
-        ++statistics_.backed_up_states;
-        state_info.removed_from_fringe();
-    }
-
-    mdp.generate_all_transitions(state_id, greedy);
-
-    if (greedy.empty()) {
-        statistics_.terminal_states++;
-        const bool result = notify_dead_end(state_info);
-        if (result) state_value_changed(state_id);
-        return result;
-    }
-
-    EngineValueType best_value =
-        filter_greedy_transitions(mdp, h, state_id, state_info, greedy);
-
-    if (greedy.empty()) {
         statistics_.self_loop_states++;
         return notify_dead_end(state_info);
     }

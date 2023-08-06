@@ -341,14 +341,8 @@ private:
         MDP& mdp,
         Evaluator& h,
         StateID state_id,
-        StateInfo& state_info);
-
-    bool bellman_update(
-        MDP& mdp,
-        Evaluator& h,
-        StateID state_id,
         StateInfo& state_info,
-        std::vector<Transition>& greedy);
+        auto&... optional_out_greedy);
 };
 
 /**
