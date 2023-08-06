@@ -91,6 +91,10 @@ public:
         std::vector<QuotientAction>& aops,
         std::vector<Distribution<StateID>>& result) override;
 
+    void generate_all_transitions(
+        StateID state,
+        std::vector<Transition<QuotientAction>>& transitions) override;
+
     TerminationInfo get_termination_info(QuotientState state) override;
 
     value_t get_action_cost(QuotientAction action) override;

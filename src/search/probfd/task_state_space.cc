@@ -69,7 +69,6 @@ void InducedTaskStateSpace::generate_action_transitions(
     compute_successor_dist(state, op_id, result);
 
     ++statistics_.single_transition_generator_calls;
-    statistics_.generated_states += result.size();
 }
 
 void InducedTaskStateSpace::generate_all_transitions(
@@ -82,12 +81,24 @@ void InducedTaskStateSpace::generate_all_transitions(
     successors.reserve(aops.size());
 
     for (const auto& op : aops) {
-        auto num = compute_successor_dist(state, op, successors.emplace_back());
-        statistics_.generated_states += num;
+        compute_successor_dist(state, op, successors.emplace_back());
     }
 
     ++statistics_.all_transitions_generator_calls;
     statistics_.generated_operators += aops.size();
+}
+
+void InducedTaskStateSpace::generate_all_transitions(
+    StateID state_id,
+    std::vector<Transition<OperatorID>>& transitions)
+{
+    State state = state_registry_.lookup_state(::StateID(state_id));
+    gen_.generate_transitions(state, transitions, *this);
+
+    ++statistics_.aops_computations;
+    ++statistics_.all_transitions_generator_calls;    
+    statistics_.computed_operators += transitions.size();
+    statistics_.generated_operators += transitions.size();
 }
 
 value_t InducedTaskStateSpace::get_action_cost(OperatorID op)
@@ -125,42 +136,7 @@ void InducedTaskStateSpace::print_statistics() const
     statistics_.print(log);
 }
 
-void InducedTaskStateSpace::compute_applicable_operators(
-    const State& s,
-    std::vector<OperatorID>& ops)
-{
-    gen_.generate_applicable_ops(s, ops);
-
-    ++statistics_.aops_computations;
-    statistics_.computed_operators += ops.size();
-}
-
-void InducedTaskStateSpace::compute_successor_states(
-    const State& state,
-    OperatorID op_id,
-    std::vector<StateID>& succs)
-{
-    const ProbabilisticOperatorProxy op = task_proxy.get_operators()[op_id];
-    const auto outcomes = op.get_outcomes();
-    const size_t num_outcomes = outcomes.size();
-    succs.reserve(num_outcomes);
-
-    for (const ProbabilisticOutcomeProxy outcome : outcomes) {
-        State succ = state_registry_.get_successor_state(state, outcome);
-
-        for (const auto& h : notify_) {
-            OperatorID det_op_id(outcome.get_determinization_id());
-            h->notify_state_transition(state, det_op_id, succ);
-        }
-
-        succs.emplace_back(succ.get_id());
-    }
-
-    ++statistics_.transition_computations;
-    statistics_.computed_successors += num_outcomes;
-}
-
-size_t InducedTaskStateSpace::compute_successor_dist(
+void InducedTaskStateSpace::compute_successor_dist(
     const State& state,
     OperatorID op_id,
     Distribution<StateID>& successor_dist)
@@ -184,10 +160,17 @@ size_t InducedTaskStateSpace::compute_successor_dist(
 
     ++statistics_.transition_computations;
     statistics_.computed_successors += num_outcomes;
+    statistics_.generated_states += successor_dist.size();
+}
 
-    return num_outcomes;
+void InducedTaskStateSpace::compute_applicable_operators(
+    const State& s,
+    std::vector<OperatorID>& ops)
+{
+    gen_.generate_applicable_ops(s, ops);
+
+    ++statistics_.aops_computations;
+    statistics_.computed_operators += ops.size();
 }
 
 } // namespace probfd
-
-#undef DEBUG_CACHE_CONSISTENCY_CHECK

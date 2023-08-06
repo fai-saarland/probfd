@@ -88,9 +88,13 @@ public:
         std::vector<OperatorID>& aops,
         std::vector<Distribution<StateID>>& successors) override;
 
+    void generate_all_transitions(
+        StateID state,
+        std::vector<Transition<OperatorID>>& transitions) override;
+
     value_t get_action_cost(OperatorID op) override;
 
-    bool is_goal(param_type<State> state) const override final;
+    bool is_goal(const State& state) const override final;
     value_t get_goal_termination_cost() const override final;
     value_t get_non_goal_termination_cost() const override final;
 
@@ -100,19 +104,14 @@ public:
 
     void print_statistics() const override;
 
-protected:
-    void
-    compute_applicable_operators(const State& s, std::vector<OperatorID>& ops);
-
-    void compute_successor_states(
-        const State& s,
-        OperatorID op_id,
-        std::vector<StateID>& successors);
-
-    size_t compute_successor_dist(
+    void compute_successor_dist(
         const State& s,
         OperatorID op_id,
         Distribution<StateID>& successors);
+
+protected:
+    void
+    compute_applicable_operators(const State& s, std::vector<OperatorID>& ops);
 };
 
 } // namespace probfd

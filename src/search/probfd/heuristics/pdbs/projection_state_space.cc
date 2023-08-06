@@ -290,6 +290,13 @@ void ProjectionStateSpace::generate_all_transitions(
     }
 }
 
+void ProjectionStateSpace::generate_all_transitions(
+    StateID sid,
+    std::vector<Transition<const ProjectionOperator*>>& transitions)
+{
+    match_tree_.generate_all_transitions(StateRank(sid), transitions, *this);
+}
+
 bool ProjectionStateSpace::is_goal(StateRank state) const
 {
     return goal_state_flags_[state.id];

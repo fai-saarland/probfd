@@ -74,6 +74,11 @@ public:
         std::vector<const ProbabilisticTransition*>& aops,
         std::vector<Distribution<StateID>>& successors) override;
 
+    void generate_all_transitions(
+        StateID state,
+        std::vector<Transition<const ProbabilisticTransition*>>& transitions)
+        override;
+
     TerminationInfo get_termination_info(const AbstractState* s) override;
 
     value_t get_action_cost(const ProbabilisticTransition* t) override;

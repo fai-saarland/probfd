@@ -97,6 +97,17 @@ void Abstraction::generate_all_transitions(
     }
 }
 
+void Abstraction::generate_all_transitions(
+    StateID state,
+    std::vector<Transition<const ProbabilisticTransition*>>& transitions)
+{
+    for (const auto* t :
+         transition_system->get_outgoing_transitions()[state.id]) {
+        auto& transition = transitions.emplace_back(t);
+        generate_action_transitions(state, t, transition.successor_dist);
+    }
+}
+
 TerminationInfo Abstraction::get_termination_info(const AbstractState* s)
 {
     if (goals.contains(s->get_id())) {

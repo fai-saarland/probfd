@@ -78,16 +78,7 @@ public:
      */
     virtual void generate_all_transitions(
         StateID state,
-        std::vector<Transition<Action>>& transitions)
-    {
-        std::vector<Action> aops;
-        std::vector<Distribution<StateID>> successors;
-        this->generate_all_transitions(state, aops, successors);
-
-        for (const auto [op, dist] : std::views::zip(aops, successors)) {
-            transitions.emplace_back(std::move(op), std::move(dist));
-        }
-    }
+        std::vector<Transition<Action>>& transitions) = 0;
 };
 
 } // namespace probfd

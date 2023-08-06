@@ -29,6 +29,7 @@
 #include <cassert>
 #include <map>
 #include <memory>
+#include <ranges>
 #include <unordered_set>
 #include <vector>
 
@@ -302,13 +303,30 @@ void BisimilarStateSpace::generate_action_transitions(
 
 void BisimilarStateSpace::generate_all_transitions(
     StateID state,
-    std::vector<bisimulation::QuotientAction>& aops,
+    std::vector<QuotientAction>& aops,
     std::vector<Distribution<StateID>>& result)
 {
     generate_applicable_actions(state, aops);
     result.resize(aops.size());
     for (int i = aops.size() - 1; i >= 0; --i) {
         generate_action_transitions(state, aops[i], result[i]);
+    }
+}
+
+void BisimilarStateSpace::generate_all_transitions(
+    StateID state,
+    std::vector<Transition<QuotientAction>>& transitions)
+{
+    if (state == dead_end_state_.id) {
+        return;
+    }
+
+    const std::vector<CachedTransition>& cache = transitions_[state];
+    transitions.reserve(cache.size());
+    for (unsigned i : std::views::iota(0U, cache.size())) {
+        QuotientAction a{i};
+        auto& t = transitions.emplace_back(a);
+        generate_action_transitions(state, a, t.successor_dist);
     }
 }
 

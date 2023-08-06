@@ -54,6 +54,11 @@ public:
         std::vector<const ProjectionOperator*>& aops,
         std::vector<Distribution<StateID>>& result) override;
 
+    void generate_all_transitions(
+        StateID state,
+        std::vector<Transition<const ProjectionOperator*>>& transitions)
+        override;
+
     bool is_goal(StateRank state) const override;
 
     value_t get_goal_termination_cost() const override;

@@ -2,6 +2,8 @@
 
 #include "downward/task_proxy.h"
 
+#include "probfd/task_state_space.h"
+
 #include <cassert>
 
 using namespace std;
@@ -89,6 +91,15 @@ void GeneratorForkBinary::generate_applicable_ops(
     generator2->generate_applicable_ops(state, applicable_ops);
 }
 
+void GeneratorForkBinary::generate_transitions(
+    const State& state,
+    std::vector<probfd::Transition<OperatorID>>& transitions,
+    probfd::InducedTaskStateSpace& task_state_space) const
+{
+    generator1->generate_transitions(state, transitions, task_state_space);
+    generator2->generate_transitions(state, transitions, task_state_space);
+}
+
 GeneratorForkMulti::GeneratorForkMulti(
     vector<unique_ptr<GeneratorBase>> children)
     : children(std::move(children))
@@ -108,6 +119,15 @@ void GeneratorForkMulti::generate_applicable_ops(
         generator->generate_applicable_ops(state, applicable_ops);
 }
 
+void GeneratorForkMulti::generate_transitions(
+    const State& state,
+    std::vector<probfd::Transition<OperatorID>>& transitions,
+    probfd::InducedTaskStateSpace& task_state_space) const
+{
+    for (const auto& generator : children)
+        generator->generate_transitions(state, transitions, task_state_space);
+}
+
 GeneratorSwitchVector::GeneratorSwitchVector(
     int switch_var_id,
     vector<unique_ptr<GeneratorBase>>&& generator_for_value)
@@ -125,6 +145,22 @@ void GeneratorSwitchVector::generate_applicable_ops(
         generator_for_value[val];
     if (generator_for_val) {
         generator_for_val->generate_applicable_ops(state, applicable_ops);
+    }
+}
+
+void GeneratorSwitchVector::generate_transitions(
+    const State& state,
+    std::vector<probfd::Transition<OperatorID>>& transitions,
+    probfd::InducedTaskStateSpace& task_state_space) const
+{
+    int val = state.get_unpacked_values()[switch_var_id];
+    const unique_ptr<GeneratorBase>& generator_for_val =
+        generator_for_value[val];
+    if (generator_for_val) {
+        generator_for_val->generate_transitions(
+            state,
+            transitions,
+            task_state_space);
     }
 }
 
@@ -148,6 +184,22 @@ void GeneratorSwitchHash::generate_applicable_ops(
     }
 }
 
+void GeneratorSwitchHash::generate_transitions(
+    const State& state,
+    std::vector<probfd::Transition<OperatorID>>& transitions,
+    probfd::InducedTaskStateSpace& task_state_space) const
+{
+    int val = state.get_unpacked_values()[switch_var_id];
+    const auto& child = generator_for_value.find(val);
+    if (child != generator_for_value.end()) {
+        const unique_ptr<GeneratorBase>& generator_for_val = child->second;
+        generator_for_val->generate_transitions(
+            state,
+            transitions,
+            task_state_space);
+    }
+}
+
 GeneratorSwitchSingle::GeneratorSwitchSingle(
     int switch_var_id,
     int value,
@@ -164,6 +216,19 @@ void GeneratorSwitchSingle::generate_applicable_ops(
 {
     if (value == state[switch_var_id]) {
         generator_for_value->generate_applicable_ops(state, applicable_ops);
+    }
+}
+
+void GeneratorSwitchSingle::generate_transitions(
+    const State& state,
+    std::vector<probfd::Transition<OperatorID>>& transitions,
+    probfd::InducedTaskStateSpace& task_state_space) const
+{
+    if (value == state.get_unpacked_values()[switch_var_id]) {
+        generator_for_value->generate_transitions(
+            state,
+            transitions,
+            task_state_space);
     }
 }
 
@@ -189,6 +254,17 @@ void GeneratorLeafVector::generate_applicable_ops(
     }
 }
 
+void GeneratorLeafVector::generate_transitions(
+    const State& state,
+    std::vector<probfd::Transition<OperatorID>>& transitions,
+    probfd::InducedTaskStateSpace& task_state_space) const
+{
+    for (OperatorID id : applicable_operators) {
+        auto& t = transitions.emplace_back(id);
+        task_state_space.compute_successor_dist(state, id, t.successor_dist);
+    }
+}
+
 GeneratorLeafSingle::GeneratorLeafSingle(OperatorID applicable_operator)
     : applicable_operator(applicable_operator)
 {
@@ -200,4 +276,17 @@ void GeneratorLeafSingle::generate_applicable_ops(
 {
     applicable_ops.push_back(applicable_operator);
 }
+
+void GeneratorLeafSingle::generate_transitions(
+    const State& state,
+    std::vector<probfd::Transition<OperatorID>>& transitions,
+    probfd::InducedTaskStateSpace& task_state_space) const
+{
+    auto& t = transitions.emplace_back(applicable_operator);
+    task_state_space.compute_successor_dist(
+        state,
+        applicable_operator,
+        t.successor_dist);
+}
+
 } // namespace successor_generator

@@ -42,9 +42,18 @@ public:
         std::vector<OperatorID>& aops,
         std::vector<Distribution<StateID>>& successors) override final;
 
+    void generate_all_transitions(
+        StateID state,
+        std::vector<Transition<OperatorID>>& transitions) override final;
+
     void print_statistics() const override final;
 
-protected:
+private:
+    void compute_successor_states(
+        const State& s,
+        OperatorID op_id,
+        std::vector<StateID>& successors);
+
     bool setup_cache(StateID state_id, CacheEntry& entry);
 
     CacheEntry& lookup(StateID state_id);

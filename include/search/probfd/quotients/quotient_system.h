@@ -278,6 +278,41 @@ public:
         }
     }
 
+    void generate_all_transitions(
+        StateID id,
+        std::vector<Transition<QAction>>& transitions) override
+    {
+        const QuotientInformation* info = get_quotient_info(id);
+        if (!info) {
+            std::vector<Action> orig_a;
+            mdp_->generate_applicable_actions(id, orig_a);
+
+            transitions.reserve(orig_a.size());
+
+            for (Action a : orig_a) {
+                QAction qa(id, a);
+                Transition<QAction>& t = transitions.emplace_back(qa);
+                generate_action_transitions(id, qa, t.successor_dist);
+            }
+        } else {
+            transitions.reserve(info->total_num_outer_acts);
+
+            auto aop = info->aops.begin();
+
+            for (const auto& info : info->state_infos) {
+                const auto outers_end = aop + info.num_outer_acts;
+                for (; aop != outers_end; ++aop) {
+                    QAction qa(info.state_id, *aop);
+                    Transition<QAction>& t = transitions.emplace_back(qa);
+                    generate_action_transitions(id, qa, t.successor_dist);
+                }
+                aop += info.num_inner_acts; // Skip inner actions
+            }
+
+            assert(transitions.size() == info->total_num_outer_acts);
+        }
+    }
+
     TerminationInfo get_termination_info(param_type<State> s) override
     {
         return mdp_->get_termination_info(s);

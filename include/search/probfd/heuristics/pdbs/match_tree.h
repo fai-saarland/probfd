@@ -12,10 +12,15 @@
 #include <vector>
 
 namespace probfd {
+
+template <typename>
+struct Transition;
+
 namespace heuristics {
 namespace pdbs {
 
 class ProjectionOperator;
+class ProjectionStateSpace;
 class StateRankingFunction;
 
 /**
@@ -39,6 +44,12 @@ class MatchTree {
         Node* node,
         StateRank abstract_state,
         std::vector<const ProjectionOperator*>& operators) const;
+
+    void generate_all_transitions_recursive(
+        Node* node,
+        StateRank abstract_state,
+        std::vector<Transition<const ProjectionOperator*>>& transitions,
+        ProjectionStateSpace& state_space) const;
 
     void dump_recursive(std::ostream& out, Node* node) const;
 
@@ -65,6 +76,14 @@ public:
         StateRank abstract_state,
         std::vector<const ProjectionOperator*>& operators) const;
 
+    /**
+     * @brief Obtain the applicable prohjection operators for a given
+     * abstract state.
+     */
+    void generate_all_transitions(
+        StateRank abstract_state,
+        std::vector<Transition<const ProjectionOperator*>>& transitions,
+        ProjectionStateSpace& state_space) const;
     /**
      * @brief Obtain the projection operator at a specific index.
      */

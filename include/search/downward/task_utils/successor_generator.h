@@ -10,6 +10,13 @@ class OperatorID;
 class State;
 class TaskBaseProxy;
 
+namespace probfd {
+class InducedTaskStateSpace;
+
+template <typename>
+struct Transition;
+} // namespace probfd
+
 namespace successor_generator {
 class GeneratorBase;
 
@@ -28,6 +35,11 @@ public:
     void generate_applicable_ops(
         const State& state,
         std::vector<OperatorID>& applicable_ops) const;
+
+    void generate_transitions(
+        const State& state,
+        std::vector<probfd::Transition<OperatorID>>& transitions,
+        probfd::InducedTaskStateSpace& task_state_space) const;
 };
 
 extern PerTaskInformation<SuccessorGenerator> g_successor_generators;
