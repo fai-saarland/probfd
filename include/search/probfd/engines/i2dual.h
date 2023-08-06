@@ -3,6 +3,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/distribution.h"
 #include "probfd/engine.h"
 #include "probfd/task_proxy.h"
 #include "probfd/task_types.h"

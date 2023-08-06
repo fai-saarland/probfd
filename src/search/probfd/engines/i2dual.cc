@@ -14,6 +14,9 @@
 
 #include "probfd/progress_report.h"
 
+#include "probfd/evaluator.h"
+#include "probfd/mdp.h"
+
 #include "downward/utils/countdown_timer.h"
 
 namespace probfd {

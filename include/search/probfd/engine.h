@@ -3,20 +3,18 @@
 
 #include "probfd/policies/empty_policy.h"
 
-#include "probfd/distribution.h"
-#include "probfd/evaluator.h"
-#include "probfd/interval.h"
-#include "probfd/mdp.h"
+#include "probfd/type_traits.h"
 
 #include <limits>
 #include <memory>
-#include <optional>
-#include <vector>
-
-class State;
-class OperatorID;
 
 namespace probfd {
+
+template <typename, typename>
+class MDP;
+
+template <typename>
+class Evaluator;
 
 /**
  * @brief Interface for MDP engine implementations.

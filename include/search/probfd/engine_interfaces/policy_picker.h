@@ -1,16 +1,22 @@
 #ifndef PROBFD_ENGINE_INTERFACES_POLICY_PICKER_H
 #define PROBFD_ENGINE_INTERFACES_POLICY_PICKER_H
 
-#include "probfd/mdp.h"
-#include "probfd/transition.h"
 #include "probfd/types.h"
 
 #include <optional>
+#include <ostream>
+#include <vector>
 
 namespace probfd {
 
 template <typename>
 class Distribution;
+
+template <typename>
+struct Transition;
+
+template <typename, typename>
+class MDP;
 
 namespace engine_interfaces {
 

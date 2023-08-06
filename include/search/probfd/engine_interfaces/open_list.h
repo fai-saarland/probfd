@@ -1,11 +1,8 @@
 #ifndef PROBFD_ENGINE_INTERFACES_OPEN_LIST_H
 #define PROBFD_ENGINE_INTERFACES_OPEN_LIST_H
 
-#include "probfd/type_traits.h"
 #include "probfd/types.h"
 #include "probfd/value_type.h"
-
-#include <deque>
 
 namespace probfd {
 namespace engine_interfaces {
@@ -40,7 +37,7 @@ public:
 
     /// Offers a new successor state to the open list and additionally
     /// provides the generating transition the successor.
-    virtual void push(StateID, param_type<Action>, value_t, StateID state_id)
+    virtual void push(StateID, Action, value_t, StateID state_id)
     {
         push(state_id);
     }

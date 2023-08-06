@@ -1,7 +1,7 @@
 #ifndef PROBFD_ENGINES_HEURISTIC_SEARCH_STATE_INFORMATION_H
 #define PROBFD_ENGINES_HEURISTIC_SEARCH_STATE_INFORMATION_H
 
-#include "probfd/engines/utils.h"
+#include "probfd/engines/types.h"
 
 #include "probfd/engine_interfaces/state_properties.h"
 

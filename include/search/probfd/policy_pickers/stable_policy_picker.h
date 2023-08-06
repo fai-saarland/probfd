@@ -5,6 +5,7 @@
 #include "probfd/engine_interfaces/task_types.h"
 
 #include "probfd/distribution.h"
+#include "probfd/transition.h"
 
 namespace probfd {
 namespace policy_pickers {

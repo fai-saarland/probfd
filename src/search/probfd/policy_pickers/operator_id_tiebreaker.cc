@@ -1,5 +1,7 @@
 #include "probfd/policy_pickers/operator_id_tiebreaker.h"
 
+#include "probfd/transition.h"
+
 #include "downward/operator_id.h"
 
 #include "downward/plugins/options.h"

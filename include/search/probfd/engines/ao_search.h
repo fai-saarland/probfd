@@ -5,11 +5,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "downward/utils/countdown_timer.h"
-
-#include <limits>
 #include <queue>
-#include <string>
 #include <type_traits>
 #include <vector>
 
@@ -110,98 +106,20 @@ protected:
     Statistics statistics_;
 
 public:
-    AOBase(
-        std::shared_ptr<PolicyPicker> policy_chooser,
-        std::shared_ptr<NewStateObserver> new_state_handler,
-        ProgressReport* report,
-        bool interval_comparison)
-        : Base(policy_chooser, new_state_handler, report, interval_comparison)
-    {
-    }
+    // Inherit constructor
+    using Base::Base;
 
 protected:
-    void print_additional_statistics(std::ostream& out) const override
-    {
-        statistics_.print(out);
-    }
+    void print_additional_statistics(std::ostream& out) const override;
 
-    void setup_custom_reports(param_type<State>) override
-    {
-        this->report_->register_print(
-            [&](std::ostream& out) { out << "i=" << statistics_.iterations; });
-    }
+    void setup_custom_reports(param_type<State>) override;
 
     void backpropagate_tip_value(
         MDP& mdp,
         Evaluator& heuristic,
-        utils::CountdownTimer& timer)
-    {
-        while (!queue_.empty()) {
-            timer.throw_if_expired();
+        utils::CountdownTimer& timer);
 
-            auto elem = queue_.top();
-            queue_.pop();
-
-            auto& info = this->get_state_info(elem.state_id);
-            assert(!info.is_goal_state());
-            assert(!info.is_terminal() || info.is_solved());
-
-            if (info.is_solved()) {
-                // has been handled already
-                continue;
-            }
-
-            assert(info.is_marked());
-            info.unmark();
-
-            bool solved = false;
-            bool dead = false;
-            bool value_changed = update_value_check_solved(
-                mdp,
-                heuristic,
-                elem.state_id,
-                info,
-                solved,
-                dead);
-
-            if (solved) {
-                mark_solved_push_parents(elem.state_id, info, dead);
-            } else if (value_changed) {
-                push_parents_to_queue(info);
-            }
-        }
-    }
-
-    void backpropagate_update_order(StateID tip, utils::CountdownTimer& timer)
-    {
-        queue_.emplace(this->get_state_info(tip).update_order, tip);
-
-        while (!queue_.empty()) {
-            timer.throw_if_expired();
-
-            auto elem = queue_.top();
-            queue_.pop();
-
-            auto& info = this->get_state_info(elem.state_id);
-            if (info.update_order > elem.update_order) {
-                continue;
-            }
-
-            std::erase_if(info.get_parents(), [this, elem](StateID state_id) {
-                auto& pinfo = this->get_state_info(state_id);
-                if (pinfo.is_solved()) {
-                    return true;
-                }
-
-                if (pinfo.update_order <= elem.update_order) {
-                    pinfo.update_order = elem.update_order + 1;
-                    queue_.emplace(elem.update_order + 1, state_id);
-                }
-
-                return false;
-            });
-        }
-    }
+    void backpropagate_update_order(StateID tip, utils::CountdownTimer& timer);
 
     void initialize_tip_state_value(
         MDP& mdp,
@@ -212,79 +130,11 @@ protected:
         bool& solved,
         bool& dead,
         bool& value_changed,
-        utils::CountdownTimer& timer)
-    {
-        assert(!info.is_solved());
-        assert(info.is_tip_state());
-        assert(queue_.empty());
+        utils::CountdownTimer& timer);
 
-        terminal = false;
-        solved = false;
-        value_changed = update_value_check_solved(
-            mdp,
-            heuristic,
-            state,
-            info,
-            solved,
-            dead);
+    void push_parents_to_queue(StateInfo& info);
 
-        if (info.is_terminal()) {
-            terminal = true;
-            info.set_solved();
-            dead = !info.is_goal_state();
-
-            if (dead) {
-                this->notify_dead_end(state);
-            }
-
-            push_parents_to_queue(info);
-            backpropagate_tip_value(mdp, heuristic, timer);
-        }
-
-        assert(queue_.empty());
-    }
-
-    void push_parents_to_queue(StateInfo& info)
-    {
-        auto& parents = info.get_parents();
-        for (StateID parent : parents) {
-            auto& pinfo = this->get_state_info(parent);
-            assert(!pinfo.is_dead_end() || pinfo.is_solved());
-
-            if constexpr (!StorePolicy) {
-                if (info.is_solved()) {
-                    assert(pinfo.unsolved > 0 || pinfo.is_solved());
-                    --pinfo.unsolved;
-                    if (!info.is_dead_end()) {
-                        pinfo.alive = 1;
-                    }
-                }
-            }
-
-            if (pinfo.is_unflagged()) {
-                pinfo.mark();
-                queue_.emplace(pinfo.update_order, parent);
-            }
-        }
-
-        if (info.is_solved()) {
-            std::remove_reference_t<decltype(parents)>().swap(parents);
-        }
-    }
-
-    void
-    mark_solved_push_parents(StateID state, StateInfo& info, const bool dead)
-    {
-        assert(!info.is_terminal());
-
-        if (dead) {
-            assert(!info.is_solved() && !info.is_goal_state());
-            this->notify_dead_end(state);
-        }
-
-        info.set_solved();
-        push_parents_to_queue(info);
-    }
+    void mark_solved_push_parents(StateID state, StateInfo& info, bool dead);
 
 private:
     bool update_value_check_solved(
@@ -294,29 +144,7 @@ private:
         const StateInfo& info,
         bool& solved,
         bool& dead)
-        requires(StorePolicy)
-    {
-        const auto update_result =
-            this->bellman_policy_update(mdp, heuristic, state);
-        const auto& greedy_transition = update_result.greedy_transition;
-
-        solved = true;
-
-        if (!greedy_transition) {
-            dead = true;
-            return update_result.value_changed;
-        }
-
-        dead = info.is_dead_end();
-
-        for (const auto succ_id : greedy_transition->successor_dist.support()) {
-            const auto& succ_info = this->get_state_info(succ_id);
-            solved = solved && succ_info.is_solved();
-            dead = dead && succ_info.is_dead_end();
-        }
-
-        return update_result.value_changed;
-    }
+        requires(StorePolicy);
 
     bool update_value_check_solved(
         MDP& mdp,
@@ -325,19 +153,15 @@ private:
         const StateInfo& info,
         bool& solved,
         bool& dead)
-        requires(!StorePolicy)
-    {
-        const bool result = this->bellman_update(mdp, heuristic, state);
-
-        solved = info.unsolved == 0;
-        dead = solved && info.alive == 0 && !info.is_goal_state();
-
-        return result;
-    }
+        requires(!StorePolicy);
 };
 
 } // namespace ao_search
 } // namespace engines
 } // namespace probfd
+
+#define GUARD_INCLUDE_PROBFD_ENGINES_AO_SEARCH_H
+#include "probfd/engines/ao_search_impl.h"
+#undef GUARD_INCLUDE_PROBFD_ENGINES_AO_SEARCH_H
 
 #endif // __AO_SEARCH_H__

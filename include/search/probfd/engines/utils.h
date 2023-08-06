@@ -5,7 +5,6 @@
 
 #include <cassert>
 #include <tuple>
-#include <vector>
 
 namespace probfd {
 namespace engines {
@@ -47,11 +46,6 @@ struct get_t {
 
 template <size_t n>
 inline constexpr get_t<n> project;
-
-/// Convenience value type alias for engines selecting interval iteration
-/// behaviour based on a template parameter.
-template <bool UseInterval>
-using EngineValueType = std::conditional_t<UseInterval, Interval, value_t>;
 
 /// Returns the lower bound of the interval.
 value_t as_lower_bound(Interval interval);

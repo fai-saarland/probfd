@@ -1,7 +1,6 @@
 #ifndef PROBFD_ENGINE_INTERFACES_SUCCESSOR_SAMPLER_H
 #define PROBFD_ENGINE_INTERFACES_SUCCESSOR_SAMPLER_H
 
-#include "probfd/type_traits.h"
 #include "probfd/types.h"
 
 namespace probfd {
@@ -38,7 +37,7 @@ public:
      */
     virtual StateID sample(
         StateID state,
-        param_type<Action> action,
+        Action action,
         const Distribution<StateID>& successor_dist,
         StateProperties& properties) = 0;
 
