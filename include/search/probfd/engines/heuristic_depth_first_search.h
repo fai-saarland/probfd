@@ -109,17 +109,19 @@ class HeuristicDepthFirstSearch
     using AdditionalStateInfo = std::
         conditional_t<Fret, internal::StandalonePerStateInformation, StateInfo>;
 
-    struct LocalStateInfo {
-        static constexpr uint8_t NEW = 0;
-        static constexpr uint8_t ONSTACK = 1;
-        static constexpr uint8_t CLOSED = 2;
-        static constexpr uint8_t CLOSED_DEAD = 3;
-        static constexpr uint8_t UNSOLVED = 4;
-        static constexpr unsigned UNDEF = ((unsigned)-1) >> 1;
+    enum StateStatus {
+        NEW = 0,
+        ONSTACK = 1,
+        CLOSED = 2,
+        CLOSED_DEAD = 3,
+        UNSOLVED = 4,
+        UNDEF = ((unsigned)-1) >> 1
+    };
 
-        uint8_t status = NEW;
-        unsigned index = UNDEF;
-        unsigned lowlink = UNDEF;
+    struct LocalStateInfo {
+        uint8_t status = StateStatus::NEW;
+        unsigned index = StateStatus::UNDEF;
+        unsigned lowlink = StateStatus::UNDEF;
 
         void open(const unsigned& index)
         {
@@ -143,7 +145,7 @@ class HeuristicDepthFirstSearch
         std::vector<StateID> successors;
 
         bool dead = true;
-        bool unsolved_successor = false;
+        bool unsolved_succs = false;
         bool value_changed = false;
         bool leaf = true;
     };

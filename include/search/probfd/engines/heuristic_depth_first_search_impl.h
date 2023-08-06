@@ -165,7 +165,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
             return false;
         }
 
-        if (pstatus != LocalStateInfo::ONSTACK) {
+        if (pstatus != ONSTACK) {
             return value_changed || pruned;
         }
 
@@ -179,10 +179,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
     LocalStateInfo* sinfo = &state_infos_[einfo->stateid];
 
     for (;;) {
-    recurse:;
-        timer.throw_if_expired();
-
-        while (keep_expanding && !einfo->successors.empty()) {
+        do {
             timer.throw_if_expired();
 
             StateID succid = einfo->successors.back();
@@ -200,122 +197,120 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
             }
 
             LocalStateInfo& succ_info = state_infos_[succid];
-            if (succ_info.status == LocalStateInfo::NEW) {
+            if (succ_info.status == NEW) {
                 const uint8_t status = push(
                     mdp,
                     heuristic,
                     succid,
                     pers_succ_info,
                     einfo->value_changed,
-                    einfo->unsolved_successor);
+                    einfo->unsolved_succs);
 
-                if (status == LocalStateInfo::ONSTACK) {
+                if (status == ONSTACK) {
                     succ_info.open(stack_.size());
                     stack_.push_back(succid);
                     einfo = &expansion_queue_.back();
                     sinfo = &state_infos_[einfo->stateid];
-                    goto recurse;
+                    continue;
                 }
 
                 einfo->leaf = false;
                 succ_info.status = status;
 
-                if (status == LocalStateInfo::UNSOLVED) {
-                    einfo->unsolved_successor = true;
+                if (status == UNSOLVED) {
+                    einfo->unsolved_succs = true;
                     einfo->dead = false;
-                } else if (status == LocalStateInfo::CLOSED) {
+                } else if (status == CLOSED) {
                     einfo->dead = false;
                 }
 
-                if (GreedyExploration && einfo->unsolved_successor) {
+                if (GreedyExploration && einfo->unsolved_succs) {
                     keep_expanding = false;
                 }
-            } else if (succ_info.status == LocalStateInfo::ONSTACK) {
+            } else if (succ_info.status == ONSTACK) {
                 sinfo->lowlink = std::min(sinfo->lowlink, succ_info.index);
             } else {
-                einfo->unsolved_successor =
-                    einfo->unsolved_successor ||
-                    succ_info.status == LocalStateInfo::UNSOLVED;
+                einfo->unsolved_succs =
+                    einfo->unsolved_succs || succ_info.status == UNSOLVED;
                 einfo->leaf = false;
-                einfo->dead = einfo->dead &&
-                              succ_info.status == LocalStateInfo::CLOSED_DEAD;
+                einfo->dead = einfo->dead && succ_info.status == CLOSED_DEAD;
             }
-        }
+        } while (!einfo->successors.empty());
 
-        unsigned last_lowlink = sinfo->lowlink;
-        bool last_unsolved_successors = einfo->unsolved_successor;
-        bool last_dead = einfo->dead;
-        bool last_value_changed = einfo->value_changed;
-        bool last_leaf = einfo->leaf;
+        do {
+            unsigned last_lowlink = sinfo->lowlink;
+            bool last_unsolved_succs = einfo->unsolved_succs;
+            bool last_dead = einfo->dead;
+            bool last_value_changed = einfo->value_changed;
+            bool last_leaf = einfo->leaf;
 
-        if (BackwardUpdates == SINGLE ||
-            (last_value_changed && BackwardUpdates == ON_DEMAND)) {
-            statistics_.backtracking_updates++;
-            auto result =
-                this->bellman_policy_update(mdp, heuristic, einfo->stateid);
-            last_value_changed = result.value_changed;
-            last_unsolved_successors =
-                last_unsolved_successors || result.policy_changed;
-        }
-
-        if (sinfo->index == sinfo->lowlink) {
-            last_leaf = false;
-
-            auto scc = std::ranges::subrange(
-                std::next(stack_.begin(), sinfo->index),
-                stack_.end());
-
-            for (const StateID state_id : scc) {
-                state_infos_[state_id].status = LocalStateInfo::UNSOLVED;
+            if (BackwardUpdates == SINGLE ||
+                (last_value_changed && BackwardUpdates == ON_DEMAND)) {
+                statistics_.backtracking_updates++;
+                auto result =
+                    this->bellman_policy_update(mdp, heuristic, einfo->stateid);
+                last_value_changed = result.value_changed;
+                last_unsolved_succs =
+                    last_unsolved_succs || result.policy_changed;
             }
 
-            if constexpr (GetVisited) {
-                if (!last_unsolved_successors && !last_value_changed) {
-                    visited_.insert(visited_.end(), scc.begin(), scc.end());
-                }
-            }
+            if (sinfo->index == sinfo->lowlink) {
+                last_leaf = false;
 
-            if (BackwardUpdates == CONVERGENCE && last_unsolved_successors) {
-                auto result = value_iteration(mdp, heuristic, scc, true, timer);
-                last_value_changed = result.first;
-                last_unsolved_successors =
-                    result.second || last_unsolved_successors;
-            }
+                auto scc = std::ranges::subrange(
+                    std::next(stack_.begin(), sinfo->index),
+                    stack_.end());
 
-            last_dead = false;
-
-            last_unsolved_successors =
-                last_unsolved_successors || last_value_changed;
-
-            if (!last_unsolved_successors) {
-                const uint8_t closed = last_dead ? LocalStateInfo::CLOSED_DEAD
-                                                 : LocalStateInfo::CLOSED;
                 for (const StateID state_id : scc) {
-                    state_infos_[state_id].status = closed;
+                    state_infos_[state_id].status = UNSOLVED;
+                }
 
-                    if (LabelSolved) {
-                        get_pers_info(state_id).set_solved();
+                if constexpr (GetVisited) {
+                    if (!last_unsolved_succs && !last_value_changed) {
+                        visited_.insert(visited_.end(), scc.begin(), scc.end());
                     }
                 }
+
+                if (BackwardUpdates == CONVERGENCE && last_unsolved_succs) {
+                    auto result =
+                        value_iteration(mdp, heuristic, scc, true, timer);
+                    last_value_changed = result.first;
+                    last_unsolved_succs = result.second || last_unsolved_succs;
+                }
+
+                last_dead = false;
+
+                last_unsolved_succs = last_unsolved_succs || last_value_changed;
+
+                if (!last_unsolved_succs) {
+                    const uint8_t closed = last_dead ? CLOSED_DEAD : CLOSED;
+                    for (const StateID state_id : scc) {
+                        state_infos_[state_id].status = closed;
+
+                        if (LabelSolved) {
+                            get_pers_info(state_id).set_solved();
+                        }
+                    }
+                }
+
+                stack_.erase(scc.begin(), scc.end());
             }
 
-            stack_.erase(scc.begin(), scc.end());
-        }
+            expansion_queue_.pop_back();
 
-        expansion_queue_.pop_back();
+            if (expansion_queue_.empty())
+                return last_unsolved_succs || last_value_changed;
 
-        if (expansion_queue_.empty())
-            return last_unsolved_successors || last_value_changed;
+            einfo = &expansion_queue_.back();
+            sinfo = &state_infos_[einfo->stateid];
 
-        einfo = &expansion_queue_.back();
-        sinfo = &state_infos_[einfo->stateid];
-
-        sinfo->lowlink = std::min(sinfo->lowlink, last_lowlink);
-        einfo->unsolved_successor =
-            einfo->unsolved_successor || last_unsolved_successors;
-        einfo->value_changed = einfo->value_changed || last_value_changed;
-        einfo->dead = einfo->dead && last_dead;
-        einfo->leaf = einfo->leaf && last_leaf;
+            sinfo->lowlink = std::min(sinfo->lowlink, last_lowlink);
+            einfo->unsolved_succs =
+                einfo->unsolved_succs || last_unsolved_succs;
+            einfo->value_changed = einfo->value_changed || last_value_changed;
+            einfo->dead = einfo->dead && last_dead;
+            einfo->leaf = einfo->leaf && last_leaf;
+        } while (!keep_expanding || einfo->successors.empty());
     }
 }
 
@@ -326,7 +321,7 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::push(
     StateID stateid,
     AdditionalStateInfo& sinfo,
     bool& parent_value_changed,
-    bool& parent_unsolved_successors)
+    bool& parent_unsolved_succss)
 {
     assert(!sinfo.is_solved());
 
@@ -335,8 +330,8 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::push(
     if (ForwardUpdates || is_tip_state) {
         sinfo.set_policy_initialized();
         statistics_.forward_updates++;
-        const auto upd_info =
-            this->bellman_policy_update(mdp, heuristic, stateid);
+
+        auto upd_info = this->bellman_policy_update(mdp, heuristic, stateid);
         const bool value_changed = upd_info.value_changed;
         const auto& transition = upd_info.greedy_transition;
 
@@ -351,19 +346,19 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::push(
 
         if (!transition) {
             sinfo.set_solved();
-            uint8_t closed = LocalStateInfo::CLOSED;
+            uint8_t closed = CLOSED;
             if (this->notify_dead_end_ifnot_goal(stateid)) {
-                closed = LocalStateInfo::CLOSED_DEAD;
+                closed = CLOSED_DEAD;
             }
 
-            return value_changed ? LocalStateInfo::UNSOLVED : closed;
+            return value_changed ? UNSOLVED : closed;
         }
 
         if ((!ExpandTipStates && is_tip_state) ||
             (CutoffInconsistent && value_changed)) {
-            parent_unsolved_successors = true;
+            parent_unsolved_succss = true;
 
-            return LocalStateInfo::UNSOLVED;
+            return UNSOLVED;
         }
 
         auto& einfo =
@@ -372,7 +367,7 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::push(
     } else {
         if (this->get_state_info(stateid, sinfo).is_dead_end()) {
             sinfo.set_solved();
-            return LocalStateInfo::CLOSED_DEAD;
+            return CLOSED_DEAD;
         }
 
         const auto transition =
@@ -382,7 +377,7 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::push(
         expansion_queue_.emplace_back(stateid, transition->successor_dist);
     }
 
-    return LocalStateInfo::ONSTACK;
+    return ONSTACK;
 }
 
 template <typename State, typename Action, bool UseInterval, bool Fret>
@@ -394,15 +389,15 @@ HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::value_iteration(
     bool until_convergence,
     utils::CountdownTimer& timer)
 {
-    std::pair<bool, bool> updated_all(false, false);
-    bool value_changed = true;
-    bool policy_graph_changed;
+    bool ever_values_not_conv = false;
+    bool ever_policy_not_conv = false;
+
+    bool values_not_conv;
+    bool policy_not_conv;
 
     do {
-        bool all_converged = true;
-
-        value_changed = false;
-        policy_graph_changed = false;
+        values_not_conv = false;
+        policy_not_conv = false;
 
         for (const StateID id : range) {
             timer.throw_if_expired();
@@ -410,25 +405,22 @@ HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::value_iteration(
             statistics_.backtracking_updates++;
 
             const auto result = this->bellman_policy_update(mdp, heuristic, id);
-            value_changed = value_changed || result.value_changed;
+            values_not_conv = values_not_conv || result.value_changed;
+            policy_not_conv = policy_not_conv || result.policy_changed;
 
             if constexpr (UseInterval) {
-                all_converged =
-                    all_converged && (!this->interval_comparison_ ||
-                                      this->get_state_info(id)
-                                          .value.bounds_approximately_equal());
+                values_not_conv = values_not_conv ||
+                                  (this->interval_comparison_ &&
+                                   !this->get_state_info(id)
+                                        .value.bounds_approximately_equal());
             }
-
-            policy_graph_changed =
-                policy_graph_changed || result.policy_changed;
         }
 
-        updated_all.first =
-            updated_all.first || value_changed || !all_converged;
-        updated_all.second = updated_all.second || policy_graph_changed;
-    } while (value_changed && (until_convergence || !policy_graph_changed));
+        ever_values_not_conv = ever_values_not_conv || values_not_conv;
+        ever_policy_not_conv = ever_policy_not_conv || policy_not_conv;
+    } while (values_not_conv && (until_convergence || !policy_not_conv));
 
-    return updated_all;
+    return std::make_pair(ever_values_not_conv, ever_policy_not_conv);
 }
 
 } // namespace heuristic_depth_first_search
