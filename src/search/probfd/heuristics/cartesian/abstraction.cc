@@ -52,21 +52,19 @@ Abstraction::Abstraction(
 
 Abstraction::~Abstraction() = default;
 
-StateID
-Abstraction::get_state_id(const heuristics::cartesian::AbstractState* state)
+StateID Abstraction::get_state_id(const AbstractState* state)
 {
     return state->get_id();
 }
 
-const heuristics::cartesian::AbstractState*
-Abstraction::get_state(StateID state_id)
+const AbstractState* Abstraction::get_state(StateID state_id)
 {
     return &get_abstract_state(state_id.id);
 }
 
 void Abstraction::generate_applicable_actions(
     StateID state,
-    std::vector<const heuristics::cartesian::ProbabilisticTransition*>& result)
+    std::vector<const ProbabilisticTransition*>& result)
 {
     for (const auto* t :
          transition_system->get_outgoing_transitions()[state.id]) {
@@ -76,7 +74,7 @@ void Abstraction::generate_applicable_actions(
 
 void Abstraction::generate_action_transitions(
     StateID,
-    const heuristics::cartesian::ProbabilisticTransition* action,
+    const ProbabilisticTransition* action,
     Distribution<StateID>& result)
 {
     for (size_t i = 0; i != action->target_ids.size(); ++i) {
@@ -88,7 +86,7 @@ void Abstraction::generate_action_transitions(
 
 void Abstraction::generate_all_transitions(
     StateID state,
-    std::vector<const heuristics::cartesian::ProbabilisticTransition*>& aops,
+    std::vector<const ProbabilisticTransition*>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
     for (const auto* t :
