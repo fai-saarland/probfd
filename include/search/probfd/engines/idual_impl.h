@@ -47,6 +47,8 @@ Interval IDual<State, Action>::solve(
     param_type<State> initial_state,
     double max_time)
 {
+    using namespace std::views;
+
     utils::CountdownTimer timer(max_time);
 
     const double eps = g_epsilon;
@@ -121,16 +123,12 @@ Interval IDual<State, Action>::solve(
             ClearGuard _guard(aops, transitions);
             mdp.generate_all_transitions(state_id, aops, transitions);
 
-            for (unsigned j = 0; j < transitions.size(); ++j) {
-                Distribution<StateID>& transition = transitions[j];
-
-                if (transition.is_dirac(state_id)) {
-                    continue;
-                }
+            for (const auto [action, transition] : zip(aops, transitions)) {
+                if (transition.is_dirac(state_id)) continue;
 
                 lp::LPConstraint c(-inf, inf);
 
-                double base_val = -mdp.get_action_cost(aops[j]);
+                double base_val = -mdp.get_action_cost(action);
                 StateID next_prev_state = prev_state;
                 double w = 1.0;
 
@@ -173,11 +171,11 @@ Interval IDual<State, Action>::solve(
                         assert(succ_info.status != PerStateInfo::NEW);
 
                         switch (succ_info.status) {
-                        case (PerStateInfo::OPEN):
+                        case PerStateInfo::OPEN:
                             open_states[succ_id].incoming.push_back(
                                 next_constraint_id);
                             [[fallthrough]];
-                        case (PerStateInfo::CLOSED):
+                        case PerStateInfo::CLOSED:
                             c.insert(succ_info.idx, -prob);
                             break;
                         default:
@@ -207,23 +205,21 @@ Interval IDual<State, Action>::solve(
         lp_sol = lp_solver_.extract_dual_solution();
         objective_ = -lp_solver_.get_objective_value();
 
-        auto it = open_states.begin();
-        while (it != open_states.end()) {
+        open_states.erase_if([&](const auto& pair) {
             double sum = 0;
 
-            for (auto& r : it->second.incoming) {
+            for (auto& r : pair.second.incoming) {
                 sum += lp_sol[r];
             }
 
             if (sum > eps) {
-                StateID id(it->first);
-                state_infos_[id].status = PerStateInfo::CLOSED;
-                frontier.emplace_back(id);
-                it = open_states.erase(it);
-            } else {
-                ++it;
+                state_infos_[pair.first.id].status = PerStateInfo::CLOSED;
+                frontier.emplace_back(pair.first);
+                return true;
             }
-        }
+
+            return false;
+        });
 
         report_->print();
     } while (!frontier.empty());
