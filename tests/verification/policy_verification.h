@@ -20,7 +20,7 @@ namespace tests {
 template <typename State, typename Action>
 extern bool verify_policy(
     MDP<State, Action>& mdp,
-    PartialPolicy<State, Action>& policy,
+    Policy<State, Action>& policy,
     StateID init_id)
 {
     struct StateInfo {

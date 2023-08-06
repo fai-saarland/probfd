@@ -46,7 +46,7 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
-    double max_time) -> std::unique_ptr<PartialPolicy>
+    double max_time) -> std::unique_ptr<Policy>
 {
     QuotientSystem quotient(&mdp);
     this->solve(quotient, heuristic, state, max_time);

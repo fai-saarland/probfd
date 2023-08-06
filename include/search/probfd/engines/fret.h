@@ -72,7 +72,7 @@ template <
 class FRET : public MDPEngine<State, Action> {
     using Base = typename FRET::MDPEngine;
 
-    using PartialPolicy = typename Base::PartialPolicy;
+    using Policy = typename Base::Policy;
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
 
@@ -141,7 +141,7 @@ public:
         ProgressReport* report,
         std::shared_ptr<QHeuristicSearchEngine> engine);
 
-    std::unique_ptr<PartialPolicy> compute_policy(
+    std::unique_ptr<Policy> compute_policy(
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,

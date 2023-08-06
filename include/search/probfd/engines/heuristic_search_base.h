@@ -361,7 +361,7 @@ class HeuristicSearchEngine
     using HSBase = typename HeuristicSearchEngine::HeuristicSearchBase;
 
 protected:
-    using PartialPolicy = typename EngineBase::PartialPolicy;
+    using Policy = typename EngineBase::Policy;
 
     using MDP = typename EngineBase::MDP;
     using Evaluator = typename EngineBase::Evaluator;
@@ -381,7 +381,7 @@ public:
         double max_time =
             std::numeric_limits<double>::infinity()) final override;
 
-    std::unique_ptr<PartialPolicy> compute_policy(
+    std::unique_ptr<Policy> compute_policy(
         MDP& mdp,
         Evaluator& h,
         param_type<State> state,

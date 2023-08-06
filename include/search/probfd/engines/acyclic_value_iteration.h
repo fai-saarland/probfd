@@ -67,7 +67,7 @@ template <typename State, typename Action>
 class AcyclicValueIteration : public MDPEngine<State, Action> {
     using Base = typename AcyclicValueIteration::MDPEngine;
 
-    using PartialPolicy = typename Base::PartialPolicy;
+    using Policy = typename Base::Policy;
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
 
@@ -107,7 +107,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
     std::stack<IncrementalExpansionInfo> expansion_stack_;
 
 public:
-    std::unique_ptr<PartialPolicy> compute_policy(
+    std::unique_ptr<Policy> compute_policy(
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> initial_state,

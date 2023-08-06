@@ -209,7 +209,7 @@ class TALRTDP : public MDPEngine<State, Action> {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using PartialPolicy = typename Base::PartialPolicy;
+    using Policy = typename Base::Policy;
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
 

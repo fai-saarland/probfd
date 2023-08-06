@@ -70,7 +70,7 @@ template <typename State, typename Action, bool UseInterval = false>
 class TopologicalValueIteration : public MDPEngine<State, Action> {
     using Base = typename TopologicalValueIteration::MDPEngine;
 
-    using PartialPolicy = typename Base::PartialPolicy;
+    using Policy = typename Base::Policy;
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
 
@@ -185,7 +185,7 @@ public:
     /**
      * \copydoc MDPEngine::compute_policy(param_type<State>, double)
      */
-    std::unique_ptr<PartialPolicy> compute_policy(
+    std::unique_ptr<Policy> compute_policy(
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,

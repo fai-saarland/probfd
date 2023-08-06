@@ -638,7 +638,7 @@ auto HeuristicSearchEngine<State, Action, StateInfoT>::compute_policy(
     MDP& mdp,
     Evaluator& h,
     param_type<State> state,
-    double max_time) -> std::unique_ptr<PartialPolicy>
+    double max_time) -> std::unique_ptr<Policy>
 {
     this->solve(mdp, h, state, max_time);
 

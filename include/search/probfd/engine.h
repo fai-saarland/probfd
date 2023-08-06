@@ -25,7 +25,7 @@ class Evaluator;
 template <typename State, typename Action>
 class MDPEngine {
 protected:
-    using PartialPolicy = PartialPolicy<State, Action>;
+    using Policy = Policy<State, Action>;
 
     using MDP = MDP<State, Action>;
     using Evaluator = Evaluator<State>;
@@ -40,7 +40,7 @@ public:
      *
      * The default implementation of this method returns an empty policy.
      */
-    virtual std::unique_ptr<PartialPolicy>
+    virtual std::unique_ptr<Policy>
     compute_policy(MDP&, Evaluator&, param_type<State>, double = INF_TIME)
     {
         return std::make_unique<policies::EmptyPolicy<State, Action>>();

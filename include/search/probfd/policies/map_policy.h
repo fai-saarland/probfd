@@ -11,7 +11,7 @@ namespace probfd {
 namespace policies {
 
 template <typename State, typename Action>
-class MapPolicy : public PartialPolicy<State, Action> {
+class MapPolicy : public Policy<State, Action> {
     StateSpace<State, Action>* state_space;
     std::unordered_map<StateID, PolicyDecision<Action>> mapping;
 

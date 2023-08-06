@@ -8,7 +8,7 @@ namespace probfd {
 namespace policies {
 
 template <typename State, typename Action>
-class EmptyPolicy : public PartialPolicy<State, Action> {
+class EmptyPolicy : public Policy<State, Action> {
 public:
     /// Retrives the action and optimal state value interval specified by the
     /// policy for a given state.

@@ -607,7 +607,7 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
-    double max_time) -> std::unique_ptr<PartialPolicy>
+    double max_time) -> std::unique_ptr<Policy>
 {
     QuotientSystem quotient(&mdp);
     engine_.solve_quotient(quotient, heuristic, state, max_time);
