@@ -335,13 +335,13 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::push(
         const bool value_changed = upd_info.value_changed;
         const auto& transition = upd_info.greedy_transition;
 
+        parent_value_changed = parent_value_changed || value_changed;
+
         if constexpr (UseInterval) {
-            parent_value_changed = parent_value_changed || value_changed ||
+            parent_value_changed = parent_value_changed ||
                                    (this->interval_comparison_ &&
                                     !this->get_state_info(stateid, sinfo)
                                          .value.bounds_approximately_equal());
-        } else {
-            parent_value_changed = parent_value_changed || value_changed;
         }
 
         if (!transition) {

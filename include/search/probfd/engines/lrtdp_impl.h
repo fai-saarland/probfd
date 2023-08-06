@@ -67,7 +67,7 @@ Interval LRTDP<State, Action, UseInterval, Fret>::do_solve(
             break;
         }
 
-        this->trial(mdp, heuristic, state_id, timer);
+        trial(mdp, heuristic, state_id, timer);
         this->statistics_.trials++;
         this->print_progress();
     }
@@ -99,24 +99,24 @@ void LRTDP<State, Action, UseInterval, Fret>::trial(
 {
     using enum TrialTerminationCondition;
 
-    ClearGuard guard(this->current_trial_);
+    ClearGuard guard(current_trial_);
 
-    this->current_trial_.push_back(initial_state);
+    current_trial_.push_back(initial_state);
 
     for (;;) {
         timer.throw_if_expired();
 
-        const StateID state_id = this->current_trial_.back();
+        const StateID state_id = current_trial_.back();
 
         auto& state_info = get_lrtdp_state_info(state_id);
         if (state_info.is_solved()) {
-            this->current_trial_.pop_back();
+            current_trial_.pop_back();
             break;
         }
 
         this->statistics_.trial_bellman_backups++;
-        const auto upd_info =
-            this->bellman_policy_update(mdp, heuristic, state_id);
+
+        auto upd_info = this->bellman_policy_update(mdp, heuristic, state_id);
         const bool value_changed = upd_info.value_changed;
         const auto& transition = upd_info.greedy_transition;
 
@@ -126,7 +126,7 @@ void LRTDP<State, Action, UseInterval, Fret>::trial(
             assert(base_info.is_terminal());
             this->notify_dead_end_ifnot_goal(base_info);
             state_info.mark_solved();
-            this->current_trial_.pop_back();
+            current_trial_.pop_back();
             break;
         }
 
@@ -143,7 +143,7 @@ void LRTDP<State, Action, UseInterval, Fret>::trial(
             state_info.mark_trial();
         }
 
-        this->current_trial_.push_back(
+        current_trial_.push_back(
             this->sample_state(*sample_, state_id, transition->successor_dist));
     }
 
@@ -158,16 +158,12 @@ void LRTDP<State, Action, UseInterval, Fret>::trial(
     do {
         timer.throw_if_expired();
 
-        if (!this->check_and_solve(
-                mdp,
-                heuristic,
-                this->current_trial_.back(),
-                timer)) {
+        if (!check_and_solve(mdp, heuristic, current_trial_.back(), timer)) {
             break;
         }
 
-        this->current_trial_.pop_back();
-    } while (!this->current_trial_.empty());
+        current_trial_.pop_back();
+    } while (!current_trial_.empty());
 }
 
 template <typename State, typename Action, bool UseInterval, bool Fret>
@@ -177,27 +173,24 @@ bool LRTDP<State, Action, UseInterval, Fret>::check_and_solve(
     StateID init_state_id,
     utils::CountdownTimer& timer)
 {
-    assert(!this->current_trial_.empty());
-    assert(this->policy_queue_.empty());
+    assert(!current_trial_.empty() && policy_queue_.empty());
 
-    ClearGuard guard(this->visited_);
+    ClearGuard guard(visited_);
 
     bool mark_solved = true;
     bool epsilon_consistent = true;
 
     {
         auto& init_info = get_lrtdp_state_info(init_state_id);
-
-        if (!init_info.is_solved()) {
-            init_info.mark_open();
-            this->policy_queue_.emplace_back(init_state_id);
-        }
+        if (init_info.is_solved()) return true;
+        init_info.mark_open();
+        policy_queue_.emplace_back(init_state_id);
     }
 
-    while (!this->policy_queue_.empty()) {
+    do {
         timer.throw_if_expired();
 
-        const auto state_id = this->policy_queue_.back();
+        const auto state_id = policy_queue_.back();
         policy_queue_.pop_back();
 
         auto& info = get_lrtdp_state_info(state_id);
@@ -205,15 +198,13 @@ bool LRTDP<State, Action, UseInterval, Fret>::check_and_solve(
 
         this->statistics_.check_and_solve_bellman_backups++;
 
-        const auto upd_info =
-            this->bellman_policy_update(mdp, heuristic, state_id);
-
+        auto upd_info = this->bellman_policy_update(mdp, heuristic, state_id);
         const bool value_changed = upd_info.value_changed;
         const auto& transition = upd_info.greedy_transition;
 
         if (value_changed) {
             epsilon_consistent = false;
-            this->visited_.push_front(state_id);
+            visited_.push_front(state_id);
             continue;
         }
 
@@ -226,7 +217,7 @@ bool LRTDP<State, Action, UseInterval, Fret>::check_and_solve(
             continue;
         }
 
-        this->visited_.push_front(state_id);
+        visited_.push_front(state_id);
 
         if constexpr (UseInterval) {
             if (this->check_interval_comparison() &&
@@ -239,17 +230,17 @@ bool LRTDP<State, Action, UseInterval, Fret>::check_and_solve(
             auto& succ_info = get_lrtdp_state_info(succ_id);
             if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
                 succ_info.mark_open();
-                this->policy_queue_.emplace_back(succ_id);
+                policy_queue_.emplace_back(succ_id);
             }
         }
-    }
+    } while (!policy_queue_.empty());
 
     if (epsilon_consistent && mark_solved) {
-        for (StateID sid : this->visited_) {
+        for (StateID sid : visited_) {
             get_lrtdp_state_info(sid).mark_solved();
         }
     } else {
-        for (StateID sid : this->visited_) {
+        for (StateID sid : visited_) {
             statistics_.check_and_solve_bellman_backups++;
             this->bellman_policy_update(mdp, heuristic, sid);
             get_lrtdp_state_info(sid).unmark();
@@ -280,12 +271,12 @@ bool LRTDP<State, Action, UseInterval, Fret>::check_and_solve_original(
     bool rv = true;
 
     get_lrtdp_state_info(init_state_id).mark_open();
-    this->policy_queue_.emplace_back(init_state_id);
+    policy_queue_.emplace_back(init_state_id);
 
     do {
-        const StateID stateid = this->policy_queue_.back();
-        this->policy_queue_.pop_back();
-        this->visited_.push_back(stateid);
+        const StateID stateid = policy_queue_.back();
+        policy_queue_.pop_back();
+        visited_.push_back(stateid);
 
         auto& info = get_lrtdp_state_info(stateid);
         if (info.is_solved()) {
@@ -312,27 +303,27 @@ bool LRTDP<State, Action, UseInterval, Fret>::check_and_solve_original(
                 auto& succ_info = get_lrtdp_state_info(succid);
                 if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
                     succ_info.mark_open();
-                    this->policy_queue_.emplace_back(succid);
+                    policy_queue_.emplace_back(succid);
                 }
             }
         }
-    } while (!this->policy_queue_.empty());
+    } while (!policy_queue_.empty());
 
     if (rv) {
-        while (!this->visited_.empty()) {
-            const StateID sid = this->visited_.back();
+        while (!visited_.empty()) {
+            const StateID sid = visited_.back();
             auto& info = get_lrtdp_state_info(sid);
             info.unmark();
             info.mark_solved();
-            this->visited_.pop_back();
+            visited_.pop_back();
         }
     } else {
-        while (!this->visited_.empty()) {
-            const StateID sid = this->visited_.back();
+        while (!visited_.empty()) {
+            const StateID sid = visited_.back();
             auto& info = get_lrtdp_state_info(sid);
             info.unmark();
             this->bellman_policy_update(mdp, heuristic, sid);
-            this->visited_.pop_back();
+            visited_.pop_back();
             this->statistics_.check_and_solve_bellman_backups++;
         }
     }
