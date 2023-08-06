@@ -2,6 +2,7 @@
 
 #include "downward/task_proxy.h"
 
+#include "probfd/transition.h"
 #include "probfd/task_state_space.h"
 
 #include <cassert>

@@ -7,6 +7,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/transition.h"
+
 #include "downward/algorithms/segmented_vector.h"
 
 #include "downward/merge_and_shrink/distances.h"

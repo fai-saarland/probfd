@@ -5,6 +5,7 @@
 
 #include "probfd/distribution.h"
 #include "probfd/mdp.h"
+#include "probfd/transition.h"
 
 #include "downward/algorithms/segmented_vector.h"
 

@@ -1,5 +1,7 @@
 #include "probfd/caching_task_state_space.h"
 
+#include "probfd/transition.h"
+
 #include "downward/algorithms/int_packer.h"
 
 #include "downward/evaluator.h"

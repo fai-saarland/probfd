@@ -1,14 +1,18 @@
 #ifndef PROBFD_STATE_SPACE_H
 #define PROBFD_STATE_SPACE_H
 
-#include "probfd/transition.h"
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
 
-#include <ranges>
 #include <vector>
 
 namespace probfd {
+
+template <typename>
+class Distribution;
+
+template <typename>
+struct Transition;
 
 /**
  * @brief An interface representing a Markov Decision Process (MDP) without

@@ -7,6 +7,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/distribution.h"
+#include "probfd/transition.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
