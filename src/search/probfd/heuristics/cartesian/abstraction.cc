@@ -99,11 +99,11 @@ void Abstraction::generate_all_transitions(
 
 void Abstraction::generate_all_transitions(
     StateID state,
-    std::vector<Transition<const ProbabilisticTransition*>>& transitions)
+    std::vector<Transition>& transitions)
 {
     for (const auto* t :
          transition_system->get_outgoing_transitions()[state.id]) {
-        auto& transition = transitions.emplace_back(t);
+        Transition& transition = transitions.emplace_back(t);
         generate_action_transitions(state, t, transition.successor_dist);
     }
 }

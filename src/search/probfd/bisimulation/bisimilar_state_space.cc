@@ -315,7 +315,7 @@ void BisimilarStateSpace::generate_all_transitions(
 
 void BisimilarStateSpace::generate_all_transitions(
     StateID state,
-    std::vector<Transition<QuotientAction>>& transitions)
+    std::vector<Transition>& transitions)
 {
     if (state == dead_end_state_.id) {
         return;
@@ -325,7 +325,7 @@ void BisimilarStateSpace::generate_all_transitions(
     transitions.reserve(cache.size());
     for (unsigned i : std::views::iota(0U, cache.size())) {
         QuotientAction a{i};
-        auto& t = transitions.emplace_back(a);
+        Transition& t = transitions.emplace_back(a);
         generate_action_transitions(state, a, t.successor_dist);
     }
 }

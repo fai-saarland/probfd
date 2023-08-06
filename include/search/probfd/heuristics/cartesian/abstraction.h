@@ -76,8 +76,7 @@ public:
 
     void generate_all_transitions(
         StateID state,
-        std::vector<Transition<const ProbabilisticTransition*>>& transitions)
-        override;
+        std::vector<Transition>& transitions) override;
 
     TerminationInfo get_termination_info(const AbstractState* s) override;
 

@@ -93,7 +93,7 @@ public:
 
     void generate_all_transitions(
         StateID state,
-        std::vector<Transition<QuotientAction>>& transitions) override;
+        std::vector<Transition>& transitions) override;
 
     TerminationInfo get_termination_info(QuotientState state) override;
 

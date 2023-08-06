@@ -44,7 +44,7 @@ public:
 
     void generate_all_transitions(
         StateID state,
-        std::vector<Transition<OperatorID>>& transitions) override final;
+        std::vector<Transition>& transitions) override final;
 
     void print_statistics() const override final;
 

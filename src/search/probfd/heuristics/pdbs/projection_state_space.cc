@@ -292,7 +292,7 @@ void ProjectionStateSpace::generate_all_transitions(
 
 void ProjectionStateSpace::generate_all_transitions(
     StateID sid,
-    std::vector<Transition<const ProjectionOperator*>>& transitions)
+    std::vector<Transition>& transitions)
 {
     match_tree_.generate_all_transitions(StateRank(sid), transitions, *this);
 }

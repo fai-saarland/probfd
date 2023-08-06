@@ -56,8 +56,7 @@ public:
 
     void generate_all_transitions(
         StateID state,
-        std::vector<Transition<const ProjectionOperator*>>& transitions)
-        override;
+        std::vector<Transition>& transitions) override;
 
     bool is_goal(StateRank state) const override;
 

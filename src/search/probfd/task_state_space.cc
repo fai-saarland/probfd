@@ -90,7 +90,7 @@ void InducedTaskStateSpace::generate_all_transitions(
 
 void InducedTaskStateSpace::generate_all_transitions(
     StateID state_id,
-    std::vector<Transition<OperatorID>>& transitions)
+    std::vector<Transition>& transitions)
 {
     State state = state_registry_.lookup_state(::StateID(state_id));
     gen_.generate_transitions(state, transitions, *this);
