@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <compare>
 #include <iostream>
 #include <vector>
 
@@ -81,14 +82,159 @@ class SegmentedVector {
     SegmentedVector(const SegmentedVector<Entry>&) = delete;
     SegmentedVector& operator=(const SegmentedVector<Entry>&) = delete;
 
+    template <bool is_const>
+    class sviterator {
+        std::vector<Entry*>::iterator current_segment;
+        Entry* current_entry = nullptr;
+        Entry* first_entry = nullptr;
+        Entry* last_entry = nullptr;
+
+    public:
+        using value_type = std::conditional_t<is_const, const Entry, Entry>;
+        using pointer = std::conditional_t<is_const, const Entry*, Entry*>;
+        using reference = std::conditional_t<is_const, const Entry&, Entry&>;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::random_access_iterator_tag;
+
+        sviterator() = default;
+
+        sviterator(
+            std::vector<Entry*>::iterator current_segment,
+            Entry* current_entry)
+            : current_segment(current_segment)
+            , current_entry(current_entry)
+            , first_entry(*current_segment)
+            , last_entry(first_entry + SEGMENT_ELEMENTS)
+        {
+        }
+
+        reference operator*() const { return *current_entry; }
+        pointer operator->() { return current_entry; };
+
+        sviterator& operator++()
+        {
+            ++current_entry;
+
+            if (current_entry == last_entry) {
+                ++current_segment;
+                first_entry = *current_segment;
+                last_entry = *current_segment + SEGMENT_ELEMENTS;
+                current_entry = first_entry;
+            }
+
+            return *this;
+        }
+
+        sviterator& operator--()
+        {
+            if (current_entry == first_entry) {
+                --current_segment;
+                first_entry = *current_segment;
+                last_entry = *current_segment + SEGMENT_ELEMENTS;
+                current_entry = last_entry;
+            }
+
+            --current_entry;
+
+            return *this;
+        }
+
+        friend difference_type
+        operator-(const sviterator& lhs, const sviterator& rhs)
+        {
+            return (lhs.current_segment - rhs.current_segment) *
+                       SEGMENT_ELEMENTS +
+                   (lhs.current_entry - rhs.current_entry);
+        }
+
+        sviterator& operator+=(int n)
+        {
+            int offset = n + (current_entry - first_entry);
+
+            if (offset > 0 && offset < SEGMENT_ELEMENTS) {
+                current_entry += n;
+                return *this;
+            }
+
+            const difference_type segment_offset =
+                offset > 0
+                    ? offset / difference_type(SEGMENT_ELEMENTS)
+                    : -difference_type((-offset - 1) / SEGMENT_ELEMENTS) - 1;
+
+            current_segment += segment_offset;
+            first_entry = *current_segment;
+            last_entry = *current_segment + SEGMENT_ELEMENTS;
+            current_entry =
+                first_entry +
+                (offset - segment_offset * difference_type(SEGMENT_ELEMENTS));
+
+            return *this;
+        }
+
+        sviterator operator++(int)
+        {
+            auto r = *this;
+            ++(*this);
+            return r;
+        }
+
+        sviterator operator--(int)
+        {
+            auto r = *this;
+            --(*this);
+            return r;
+        }
+
+        friend sviterator operator+(const sviterator& it, int n)
+        {
+            auto r = it;
+            r += n;
+            return r;
+        }
+
+        friend sviterator operator+(int n, const sviterator& it)
+        {
+            auto r = it;
+            r += n;
+            return r;
+        }
+
+        friend sviterator operator-(const sviterator& it, int n)
+        {
+            auto r = it;
+            r -= n;
+            return r;
+        }
+
+        sviterator& operator-=(int n) { return (*this) += -n; }
+
+        reference operator[](int n) { return *(*this + n); };
+
+        friend auto operator<=>(const sviterator&, const sviterator&) = default;
+
+        friend void swap(sviterator& left, sviterator& right)
+        {
+            using std::swap;
+            swap(left.current_segment, right.current_segment);
+            swap(left.current_entry, right.current_entry);
+        }
+    };
+
 public:
+    using iterator = sviterator<false>;
+    using const_iterator = sviterator<true>;
+
     SegmentedVector()
         : the_size(0) {
+        // Add an initial segment to make iterator implementation easier
+        add_segment();
     }
 
-    SegmentedVector(const EntryAllocator &allocator_)
-        : entry_allocator(allocator_),
-          the_size(0) {
+    SegmentedVector(const EntryAllocator& allocator_)
+        : entry_allocator(allocator_)
+        , the_size(0)
+    {
+        add_segment();
     }
 
     ~SegmentedVector() {
@@ -121,7 +267,7 @@ public:
     void push_back(const Entry &entry) {
         size_t segment = get_segment(the_size);
         size_t offset = get_offset(the_size);
-        if (segment == segments.size()) {
+        if (segment == segments.size() - 1) {
             assert(offset == 0);
             // Must add a new segment.
             add_segment();
@@ -157,6 +303,23 @@ public:
         }
 
         the_size = 0;
+    }
+
+    iterator begin() { return iterator(segments.begin(), *segments.front()); }
+
+    iterator end()
+    {
+        return iterator(segments.end() - 1, *(segments.end() - 1));
+    }
+
+    const_iterator begin() const
+    {
+        return const_iterator(segments.begin(), *segments.front());
+    }
+
+    const_iterator end() const
+    {
+        return const_iterator(segments.end() - 1, *(segments.end() - 1));
     }
 };
 
