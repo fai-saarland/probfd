@@ -37,14 +37,15 @@ public:
                                  "successor_sampler")
                              ->create_sampler(this->task_mdp.get())))
     {
+        using enum TrialTerminationCondition;
         if constexpr (Fret) {
-            if (stop_consistent_ != TrialTerminationCondition::CONSISTENT) {
+            if (stop_consistent_ != CONSISTENT &&
+                stop_consistent_ != REVISITED) {
                 std::cout << std::endl;
-                std::cout
-                    << "Warning: LRTDP is run within FRET without "
-                       "stop_consistent being enabled! LRTDP's trials may "
-                       "get stuck in cycles."
-                    << std::endl;
+                std::cout << "Warning: LRTDP is run within FRET with an unsafe "
+                             "trial termination condition! LRTDP's trials may "
+                             "get stuck in cycles."
+                          << std::endl;
             }
         }
     }
