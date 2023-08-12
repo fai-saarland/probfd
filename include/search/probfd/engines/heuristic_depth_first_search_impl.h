@@ -345,7 +345,7 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::push(
         if (!transition) {
             sinfo.set_solved();
             uint8_t closed = CLOSED;
-            if (this->notify_dead_end_ifnot_goal(stateid)) {
+            if (this->is_marked_dead_end(stateid)) {
                 closed = CLOSED_DEAD;
             }
 

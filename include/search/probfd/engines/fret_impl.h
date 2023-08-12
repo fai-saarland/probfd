@@ -438,24 +438,14 @@ bool ValueGraph<State, Action, UseInterval>::get_successors(
 template <typename State, typename Action, bool UseInterval>
 bool PolicyGraph<State, Action, UseInterval>::get_successors(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    Evaluator&,
     QHeuristicSearchEngine& base_engine,
     StateID qstate,
     std::vector<QAction>& aops,
     std::vector<StateID>& successors)
 {
     std::optional a = base_engine.get_greedy_action(qstate);
-
-    if (!a) {
-        auto info =
-            base_engine.bellman_policy_update(quotient, heuristic, qstate);
-        const Transition<QAction>& transition = *info.greedy_transition;
-        for (StateID sid : transition.successor_dist.support()) {
-            successors.push_back(sid);
-        }
-        aops.push_back(transition.action);
-        return info.value_changed;
-    }
+    assert(a.has_value());
 
     ClearGuard _guard(t_);
 

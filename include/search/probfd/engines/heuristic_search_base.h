@@ -138,7 +138,7 @@ private:
 
     StateInfos state_infos_;
 
-    StateID initial_state_id_ = StateID::undefined;
+    StateInfo* initial_state_info = nullptr;
 
     // Reused buffer
     std::vector<Transition> transitions_;
@@ -206,19 +206,6 @@ public:
      * change.
      */
     bool notify_dead_end(StateInfo& state_info);
-
-    /**
-     * @brief Calls notify_dead_end_ifnot_goal(StateInfo&) for the internal
-     * state info object of \p state_id.
-     */
-    bool notify_dead_end_ifnot_goal(StateID state_id);
-
-    /**
-     * @brief If no goal state flag was set, calls notify_dead_end(StateInfo&).
-     *
-     * Returns true if the goal flag was set.
-     */
-    bool notify_dead_end_ifnot_goal(StateInfo& state_info);
 
     std::optional<Action> get_greedy_action(StateID state_id)
         requires(StorePolicy);
@@ -308,13 +295,9 @@ protected:
         const Distribution<StateID>& transition);
 
 private:
-    bool update(StateInfo& state_info, StateID state_id, EngineValueType other)
-        requires(UseInterval);
+    bool update(StateInfo& state_info, EngineValueType other);
 
-    bool update(StateInfo& state_info, StateID state_id, EngineValueType other)
-        requires(!UseInterval);
-
-    void state_value_changed(StateID state_id);
+    void state_value_changed(StateInfo& info);
 
     StateInfo& lookup_initialize(MDP& mdp, Evaluator& h, StateID state_id);
 

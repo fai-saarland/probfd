@@ -121,10 +121,8 @@ void LRTDP<State, Action, UseInterval, Fret>::trial(
         const auto& transition = upd_info.greedy_transition;
 
         if (!transition) {
-            auto& base_info = this->get_state_info(state_id, state_info);
             // terminal
-            assert(base_info.is_terminal());
-            this->notify_dead_end_ifnot_goal(base_info);
+            assert(this->get_state_info(state_id, state_info).is_terminal());
             state_info.mark_solved();
             current_trial_.pop_back();
             break;
@@ -211,10 +209,7 @@ bool LRTDP<State, Action, UseInterval, Fret>::check_and_solve(
         }
 
         if (!transition) {
-            auto& base_info = this->get_state_info(state_id, info);
-            assert(base_info.is_terminal());
-
-            this->notify_dead_end_ifnot_goal(base_info);
+            assert(this->get_state_info(state_id, info).is_terminal());
             info.mark_solved();
             continue;
         }

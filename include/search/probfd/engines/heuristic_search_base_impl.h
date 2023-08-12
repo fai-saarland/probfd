@@ -138,31 +138,12 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::notify_dead_end(
 {
     if (!state_info.is_dead_end()) {
         state_info.set_dead_end();
+        state_value_changed(state_info);
         state_info.value = EngineValueType(state_info.termination_cost);
         return true;
     }
 
     return false;
-}
-
-template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::notify_dead_end_ifnot_goal(
-    StateID state_id)
-{
-    return notify_dead_end_ifnot_goal(get_state_info(state_id));
-}
-
-template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::notify_dead_end_ifnot_goal(
-    StateInfo& state_info)
-{
-    if (state_info.is_goal_state()) {
-        return false;
-    }
-
-    notify_dead_end(state_info);
-
-    return true;
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -274,11 +255,11 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
     Evaluator& h,
     param_type<State> state)
 {
-    initial_state_id_ = mdp.get_state_id(state);
+    const StateID initial_id = mdp.get_state_id(state);
+    StateInfo& info = get_state_info(initial_id);
+    initial_state_info = &info;
 
-    StateInfo& info = get_state_info(initial_state_id_);
-
-    if (!initialize_if_needed(mdp, h, initial_state_id_, info)) {
+    if (!initialize_if_needed(mdp, h, initial_id, info)) {
         return;
     }
 
@@ -372,34 +353,24 @@ StateID HeuristicSearchBase<State, Action, StateInfoT>::sample_state(
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::update(
     StateInfo& state_info,
-    StateID state_id,
     EngineValueType other)
-    requires(UseInterval)
 {
-    const bool b =
-        engines::update(state_info.value, other, interval_comparison_);
-    if (b) state_value_changed(state_id);
-    return b;
-}
-
-template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::update(
-    StateInfo& state_info,
-    StateID state_id,
-    EngineValueType other)
-    requires(!UseInterval)
-{
-    const bool b = engines::update(state_info.value, other);
-    if (b) state_value_changed(state_id);
+    bool b;
+    if constexpr (UseInterval) {
+        b = engines::update(state_info.value, other, interval_comparison_);
+    } else {
+        b = engines::update(state_info.value, other);
+    }
+    if (b) state_value_changed(state_info);
     return b;
 }
 
 template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::state_value_changed(
-    StateID state_id)
+    StateInfo& info)
 {
     ++statistics_.value_changes;
-    if (state_id == initial_state_id_) {
+    if (&info == initial_state_info) {
         statistics_.jump();
     }
 }
@@ -572,9 +543,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
     if (transitions.empty()) {
         statistics_.terminal_states++;
-        const bool result = notify_dead_end(state_info);
-        if (result) state_value_changed(state_id);
-        return result;
+        return notify_dead_end(state_info);
     }
 
     EngineValueType best_value;
@@ -605,7 +574,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
         return notify_dead_end(state_info);
     }
 
-    return this->update(state_info, state_id, best_value);
+    return this->update(state_info, best_value);
 }
 
 template <typename State, typename Action, typename StateInfoT>

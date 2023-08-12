@@ -155,10 +155,6 @@ void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
         info.set_solved();
         dead = !info.is_goal_state();
 
-        if (dead) {
-            this->notify_dead_end(state);
-        }
-
         push_parents_to_queue(info);
         backpropagate_tip_value(mdp, heuristic, timer);
     }
