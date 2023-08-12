@@ -148,6 +148,8 @@ void LRTDP<State, Action, UseInterval, Fret>::trial(
     }
 
     if (StopConsistent == REVISITED) {
+        current_trial_.pop_back();
+
         for (const StateID state : current_trial_) {
             auto& info = this->get_lrtdp_state_info(state);
             assert(info.is_marked_trial());

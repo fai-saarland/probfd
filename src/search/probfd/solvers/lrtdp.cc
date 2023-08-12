@@ -75,7 +75,7 @@ public:
         add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
             "successor_sampler",
             "",
-            "random_successor_sampler_factory");
+            "random_successor_sampler_factory()");
 
         add_option<TrialTerminationCondition>(
             "terminate_trial",
