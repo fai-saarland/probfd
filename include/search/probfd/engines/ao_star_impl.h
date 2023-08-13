@@ -84,16 +84,14 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
                 unsigned min_succ_order = UMAX;
 
-                ClearGuard _guard(this->aops_, this->transitions_);
+                ClearGuard _guard(this->transitions_);
 
-                mdp.generate_all_transitions(
-                    stateid,
-                    this->aops_,
-                    this->transitions_);
+                mdp.generate_all_transitions(stateid, this->transitions_);
 
                 auto all_successors =
-                    this->transitions_ |
-                    transform([](auto& t) { return t.support(); });
+                    this->transitions_ | transform([](auto& t) {
+                        return t.successor_dist.support();
+                    });
 
                 for (auto successors : all_successors) {
                     for (const StateID succ_id : successors) {

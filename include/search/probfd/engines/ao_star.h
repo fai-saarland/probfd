@@ -52,7 +52,6 @@ class AOStar
     using SuccessorSampler = engine_interfaces::SuccessorSampler<Action>;
 
     std::shared_ptr<SuccessorSampler> outcome_selection_;
-    std::vector<Distribution<StateID>> transitions_;
 
     Distribution<StateID> selected_transition_;
 

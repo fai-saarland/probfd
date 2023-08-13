@@ -74,15 +74,12 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         unsigned unsolved = 0;
         unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
-        ClearGuard _guard(this->aops_, this->transitions_);
+        ClearGuard _guard(this->transitions_);
 
-        mdp.generate_all_transitions(stateid, this->aops_, this->transitions_);
+        mdp.generate_all_transitions(stateid, this->transitions_);
 
-        assert(this->aops_.size() == this->transitions_.size());
-
-        for (std::size_t i = 0; i != this->aops_.size(); ++i) {
-            auto& op = this->aops_[i];
-            for (auto& [succid, prob] : this->transitions_[i]) {
+        for (const auto& [op, dist] : this->transitions_) {
+            for (auto& [succid, prob] : dist) {
                 auto& succ_info = this->get_state_info(succid);
                 if (!succ_info.is_solved()) {
                     if (!succ_info.is_marked()) {
@@ -112,8 +109,8 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         info.update_order = min_succ_order + 1;
         info.unsolved = unsolved;
 
-        for (const auto& transition : transitions_) {
-            for (StateID succ_id : transition.support()) {
+        for (const auto& transition : this->transitions_) {
+            for (StateID succ_id : transition.successor_dist.support()) {
                 this->get_state_info(succ_id).unmark();
             }
         }

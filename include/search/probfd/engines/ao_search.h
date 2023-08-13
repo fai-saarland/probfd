@@ -101,7 +101,7 @@ private:
     std::priority_queue<PrioritizedStateID> queue_;
 
 protected:
-    std::vector<Action> aops_;
+    std::vector<Transition<Action>> transitions_;
 
     Statistics statistics_;
 

@@ -59,7 +59,6 @@ class ExhaustiveAOSearch
     using OpenList = engine_interfaces::OpenList<Action>;
 
     std::shared_ptr<OpenList> open_list_;
-    std::vector<Distribution<StateID>> transitions_;
 
 public:
     ExhaustiveAOSearch(
