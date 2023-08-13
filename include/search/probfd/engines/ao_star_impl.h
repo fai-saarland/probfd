@@ -75,7 +75,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                 }
 
                 if (solved) {
-                    this->mark_solved_push_parents(stateid, info, dead);
+                    this->mark_solved_push_parents(info, dead);
                     this->backpropagate_tip_value(mdp, heuristic, timer);
                     break;
                 }

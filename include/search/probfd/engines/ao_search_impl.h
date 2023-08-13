@@ -77,7 +77,7 @@ void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
             dead);
 
         if (solved) {
-            mark_solved_push_parents(elem.state_id, info, dead);
+            mark_solved_push_parents(info, dead);
         } else if (value_changed) {
             push_parents_to_queue(info);
         }
@@ -206,13 +206,13 @@ template <
     template <typename>
     class StateInfoExtension>
 void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    mark_solved_push_parents(StateID state, StateInfo& info, bool dead)
+    mark_solved_push_parents(StateInfo& info, bool dead)
 {
     assert(!info.is_terminal());
 
     if (dead) {
         assert(!info.is_solved() && !info.is_goal_state());
-        this->notify_dead_end(state);
+        this->notify_dead_end(info);
     }
 
     info.set_solved();

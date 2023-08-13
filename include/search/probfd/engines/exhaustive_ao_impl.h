@@ -100,7 +100,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         info.alive = alive > 0;
 
         if (unsolved == 0) {
-            this->mark_solved_push_parents(stateid, info, info.alive == 0);
+            this->mark_solved_push_parents(info, info.alive == 0);
             this->backpropagate_tip_value(mdp, heuristic, timer);
             continue;
         }

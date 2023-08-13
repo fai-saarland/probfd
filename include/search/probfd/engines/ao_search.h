@@ -134,7 +134,7 @@ protected:
 
     void push_parents_to_queue(StateInfo& info);
 
-    void mark_solved_push_parents(StateID state, StateInfo& info, bool dead);
+    void mark_solved_push_parents(StateInfo& info, bool dead);
 
 private:
     bool update_value_check_solved(
