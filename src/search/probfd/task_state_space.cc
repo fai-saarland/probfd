@@ -113,11 +113,6 @@ bool InducedTaskStateSpace::is_goal(param_type<State> state) const
     return cost_function_->is_goal(state);
 }
 
-value_t InducedTaskStateSpace::get_goal_termination_cost() const
-{
-    return cost_function_->get_goal_termination_cost();
-}
-
 value_t InducedTaskStateSpace::get_non_goal_termination_cost() const
 {
     return cost_function_->get_non_goal_termination_cost();

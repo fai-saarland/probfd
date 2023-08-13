@@ -28,9 +28,6 @@ public:
     SSPCostModel();
     ~SSPCostModel();
 
-    /// Returns the interval [0, infinity]
-    Interval optimal_value_bound() const override;
-
     TaskSimpleCostFunction* get_cost_function() override;
 };
 

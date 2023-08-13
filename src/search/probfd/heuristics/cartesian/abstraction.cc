@@ -107,13 +107,14 @@ void Abstraction::generate_all_transitions(
     }
 }
 
-TerminationInfo Abstraction::get_termination_info(const AbstractState* s)
+bool Abstraction::is_goal(const AbstractState* state) const
 {
-    if (goals.contains(s->get_id())) {
-        return TerminationInfo(true, 0.0_vt);
-    }
+    return goals.contains(state->get_id());
+}
 
-    return TerminationInfo(false, INFINITE_VALUE);
+value_t Abstraction::get_non_goal_termination_cost() const
+{
+    return INFINITE_VALUE;
 }
 
 value_t Abstraction::get_action_cost(const ProbabilisticTransition* t)

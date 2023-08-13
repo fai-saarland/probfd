@@ -44,12 +44,10 @@ static constexpr const int BUCKET_SIZE = 1024 * 64;
 
 BisimilarStateSpace::BisimilarStateSpace(
     const ProbabilisticTask* task,
-    Interval bound,
-    value_t default_value)
+    value_t upper_bound)
     : task_proxy(*task)
+    , upper_bound_(upper_bound)
     , abstraction_(nullptr)
-    , bound_(bound)
-    , default_(default_value)
 {
     utils::Timer timer_total;
     utils::Timer timer;
@@ -255,19 +253,19 @@ BisimilarStateSpace::BisimilarStateSpace(
 
 BisimilarStateSpace::~BisimilarStateSpace() = default;
 
-StateID BisimilarStateSpace::get_state_id(bisimulation::QuotientState s)
+StateID BisimilarStateSpace::get_state_id(QuotientState s)
 {
     return s.id;
 }
 
-bisimulation::QuotientState BisimilarStateSpace::get_state(StateID s)
+QuotientState BisimilarStateSpace::get_state(StateID s)
 {
-    return bisimulation::QuotientState(s);
+    return QuotientState(s);
 }
 
 void BisimilarStateSpace::generate_applicable_actions(
     StateID s,
-    std::vector<bisimulation::QuotientAction>& result)
+    std::vector<QuotientAction>& result)
 {
     if (s == dead_end_state_.id) {
         return;
@@ -282,7 +280,7 @@ void BisimilarStateSpace::generate_applicable_actions(
 
 void BisimilarStateSpace::generate_action_transitions(
     StateID s,
-    bisimulation::QuotientAction a,
+    QuotientAction a,
     Distribution<StateID>& result)
 {
     assert(s != dead_end_state_.id);
@@ -332,19 +330,13 @@ void BisimilarStateSpace::generate_all_transitions(
     }
 }
 
-TerminationInfo
-BisimilarStateSpace::get_termination_info(bisimulation::QuotientState s)
+TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
 {
-    if (is_dead_end(s)) {
-        return TerminationInfo(false, bound_.upper);
-    }
-    if (is_goal_state(s)) {
-        return TerminationInfo(true, bound_.lower);
-    }
-    return TerminationInfo(false, default_);
+    return is_goal_state(s) ? TerminationInfo::from_goal()
+                            : TerminationInfo::from_non_goal(upper_bound_);
 }
 
-value_t BisimilarStateSpace::get_action_cost(bisimulation::QuotientAction)
+value_t BisimilarStateSpace::get_action_cost(QuotientAction)
 {
     return 0;
 }

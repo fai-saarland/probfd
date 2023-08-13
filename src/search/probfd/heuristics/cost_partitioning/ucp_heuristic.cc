@@ -43,7 +43,6 @@ public:
         return ::task_properties::is_goal_state(task_proxy, state);
     }
 
-    value_t get_goal_termination_cost() const override { return 0_vt; }
     value_t get_non_goal_termination_cost() const override
     {
         return INFINITE_VALUE;

@@ -29,7 +29,7 @@ class ProbabilisticTransitionSystem;
   solutions and maintain the RefinementHierarchy.
 */
 class Abstraction
-    : public MDP<const AbstractState*, const ProbabilisticTransition*> {
+    : public SimpleMDP<const AbstractState*, const ProbabilisticTransition*> {
     const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
     const State concrete_initial_state;
     const std::vector<FactPair> goal_facts;
@@ -78,7 +78,8 @@ public:
         StateID state,
         std::vector<Transition>& transitions) override;
 
-    TerminationInfo get_termination_info(const AbstractState* s) override;
+    bool is_goal(const AbstractState* state) const override;
+    value_t get_non_goal_termination_cost() const override;
 
     value_t get_action_cost(const ProbabilisticTransition* t) override;
 

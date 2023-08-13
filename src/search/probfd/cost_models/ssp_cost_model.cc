@@ -25,7 +25,6 @@ public:
         return task_properties::is_goal_state(task_proxy, state);
     }
 
-    value_t get_goal_termination_cost() const override final { return 0_vt; }
     value_t get_non_goal_termination_cost() const override final
     {
         return INFINITE_VALUE;
@@ -45,11 +44,6 @@ SSPCostModel::SSPCostModel()
 }
 
 SSPCostModel::~SSPCostModel() = default;
-
-Interval SSPCostModel::optimal_value_bound() const
-{
-    return Interval(0_vt, INFINITE_VALUE);
-}
 
 TaskSimpleCostFunction* SSPCostModel::get_cost_function()
 {

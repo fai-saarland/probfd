@@ -95,7 +95,6 @@ public:
     value_t get_action_cost(OperatorID op) override;
 
     bool is_goal(const State& state) const override final;
-    value_t get_goal_termination_cost() const override final;
     value_t get_non_goal_termination_cost() const override final;
 
     const State& get_initial_state();

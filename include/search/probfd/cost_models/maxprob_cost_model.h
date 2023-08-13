@@ -26,9 +26,6 @@ public:
     MaxProbCostModel();
     ~MaxProbCostModel();
 
-    /// Returns the interval [0, 1]
-    Interval optimal_value_bound() const override;
-
     TaskSimpleCostFunction* get_cost_function() override;
 };
 

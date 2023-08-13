@@ -67,7 +67,10 @@ public:
         const std::string& engine_name)
         : task(tasks::g_root_task)
         , engine_name_(engine_name)
-        , state_space_(task.get(), g_cost_model->optimal_value_bound())
+        , state_space_(
+              task.get(),
+              g_cost_model->get_cost_function()
+                  ->get_non_goal_termination_cost())
         , policy_(
               new policy_pickers::ArbitraryTiebreaker<QState, QAction>(true))
         , new_state_handler_(new engine_interfaces::NewStateObserver<QState>())
@@ -113,8 +116,7 @@ public:
     {
         bisimulation::InducedQuotientEvaluator heuristic(
             &state_space_,
-            g_cost_model->optimal_value_bound(),
-            g_cost_model->optimal_value_bound().upper);
+            g_cost_model->get_cost_function()->get_non_goal_termination_cost());
 
         std::cout << "Running " << engine_name_ << "..." << std::endl;
         return engine_->solve(

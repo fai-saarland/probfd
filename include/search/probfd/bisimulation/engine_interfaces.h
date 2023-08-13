@@ -14,13 +14,11 @@ using QuotientEvaluator = Evaluator<QuotientState>;
 
 struct InducedQuotientEvaluator : public QuotientEvaluator {
     BisimilarStateSpace* bisim_;
-    const Interval bound_;
-    const value_t default_;
+    const value_t upper_bound_;
 
     explicit InducedQuotientEvaluator(
         BisimilarStateSpace* bisim,
-        Interval bound,
-        value_t default_value = 0);
+        value_t upper_bound = 0);
 
     EvaluationResult evaluate(QuotientState state) const override;
 };

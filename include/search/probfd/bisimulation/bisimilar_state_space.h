@@ -45,14 +45,12 @@ class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
     };
 
     ProbabilisticTaskProxy task_proxy;
+    const value_t upper_bound_;
 
     std::unique_ptr<merge_and_shrink::FactoredTransitionSystem> fts_;
     const merge_and_shrink::TransitionSystem* abstraction_;
     std::unique_ptr<merge_and_shrink::Distances> distances_;
     unsigned num_cached_transitions_;
-
-    const Interval bound_;
-    const value_t default_;
 
     QuotientState initial_state_;
     QuotientState dead_end_state_;
@@ -66,10 +64,7 @@ public:
      * @brief Constructs the quotient of the induced state space of the task
      * with respect to a bisimulation of the all outcomes determinization.
      */
-    BisimilarStateSpace(
-        const ProbabilisticTask* task,
-        Interval bound,
-        value_t default_value = 0);
+    BisimilarStateSpace(const ProbabilisticTask* task, value_t upper_bound);
 
     ~BisimilarStateSpace();
 

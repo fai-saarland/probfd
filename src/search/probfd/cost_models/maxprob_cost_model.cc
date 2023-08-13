@@ -27,7 +27,6 @@ public:
         return task_properties::is_goal_state(task_proxy, state);
     }
 
-    value_t get_goal_termination_cost() const override final { return 0_vt; }
     value_t get_non_goal_termination_cost() const override final
     {
         return 1_vt;
@@ -44,11 +43,6 @@ MaxProbCostModel::MaxProbCostModel()
 }
 
 MaxProbCostModel::~MaxProbCostModel() = default;
-
-Interval MaxProbCostModel::optimal_value_bound() const
-{
-    return Interval(0_vt, 1_vt);
-}
 
 TaskSimpleCostFunction* MaxProbCostModel::get_cost_function()
 {

@@ -19,15 +19,6 @@ class CostModel {
 public:
     virtual ~CostModel() = default;
 
-    /**
-     * @brief Returns an closed interval in which the optimal state values lie
-     * (with respect to the cost function).
-     *
-     * The cost model may specify infinite upper or lower bounds in case the
-     * state values may be infinite or if a conservative bound is not available.
-     */
-    virtual Interval optimal_value_bound() const = 0;
-
     /// Returns a cost function for the input task.
     virtual TaskSimpleCostFunction* get_cost_function() = 0;
 };

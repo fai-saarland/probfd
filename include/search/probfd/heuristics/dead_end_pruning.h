@@ -24,33 +24,26 @@ namespace heuristics {
  * safe.
  */
 class DeadEndPruningHeuristic : public TaskEvaluator {
-    const value_t default_value_;
+    const std::shared_ptr<::Evaluator> pruning_function_;
     const value_t dead_end_value_;
-    std::shared_ptr<::Evaluator> pruning_function_;
 
 public:
     /**
-     * @brief Construct with the given clasical heuristic.
+     * @brief Construct with the given classical heuristic.
      *
-     * @param default_value - State estimate returned for states that are not
-     * dead-ends according to the classical heuristic.
+     * @param pruning_function - The classical heuristic.
      * @param dead_end_value - State estimate returned for states that are
      * dead-ends according to the classical heuristic.
-     * @param pruning_function - The classical heuristic.
      */
     DeadEndPruningHeuristic(
-        value_t default_value,
-        value_t dead_end_value,
-        std::shared_ptr<::Evaluator> pruning_function);
+        std::shared_ptr<::Evaluator> pruning_function,
+        value_t dead_end_value);
 
     /**
      * @brief Construct from options.
      *
      * @param opts - Available options:
-     * + \em pessimistic - If true, returns g_analysis_objective_max() for
-     * states that the deterministic heuristic does not recognize as dead-ends.
-     * Otherwise return g_analysis_objective_min() for such states.
-     * + \em heuristic - The classical heuristic.
+     * + \em heuristic - The classical heuristic to use for dead-end pruning.
      */
     explicit DeadEndPruningHeuristic(const plugins::Options& opts);
 

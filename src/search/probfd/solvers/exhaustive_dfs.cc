@@ -38,7 +38,10 @@ class ExhaustiveDFSSolver : public MDPSolver {
 public:
     explicit ExhaustiveDFSSolver(const plugins::Options& opts)
         : MDPSolver(opts)
-        , cost_bound_(g_cost_model->optimal_value_bound())
+        , cost_bound_(
+              0_vt,
+              g_cost_model->get_cost_function()
+                  ->get_non_goal_termination_cost())
         , new_state_handler_(new TaskNewStateObserverList(
               opts.get_list<std::shared_ptr<TaskNewStateObserver>>(
                   "on_new_state")))

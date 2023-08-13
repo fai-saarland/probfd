@@ -69,8 +69,7 @@ public:
         BisimulationTimer stats;
         bisimulation::BisimilarStateSpace state_space(
             tasks::g_root_task.get(),
-            g_cost_model->optimal_value_bound(),
-            g_cost_model->optimal_value_bound().upper);
+            g_cost_model->get_cost_function()->get_non_goal_termination_cost());
 
         stats.timer.stop();
         stats.states = state_space.num_bisimilar_states();
