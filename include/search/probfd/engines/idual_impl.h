@@ -65,8 +65,7 @@ Interval IDual<State, Action>::solve(
         const EvaluationResult eval = heuristic.evaluate(initial_state);
         const auto estimate = eval.get_estimate();
         if (eval.is_unsolvable()) {
-            objective_ = estimate;
-            return Interval(objective_, INFINITE_VALUE);
+            return Interval(estimate);
         }
 
         named_vector::NamedVector<lp::LPVariable> vars;
@@ -93,8 +92,10 @@ Interval IDual<State, Action>::solve(
     std::vector<Distribution<StateID>> transitions;
     std::vector<double> lp_sol;
 
-    report_->register_bound("v", [this] {
-        return Interval(objective_, INFINITE_VALUE);
+    value_t objective = 0_vt;
+
+    report_->register_bound("v", [&] {
+        return Interval(objective, INFINITE_VALUE);
     });
     report_->register_print([&](std::ostream& out) {
         out << "iteration=" << statistics_.iterations;
@@ -203,7 +204,7 @@ Interval IDual<State, Action>::solve(
 
         assert(lp_solver_.has_optimal_solution());
         lp_sol = lp_solver_.extract_dual_solution();
-        objective_ = -lp_solver_.get_objective_value();
+        objective = -lp_solver_.get_objective_value();
 
         open_states.erase_if([&](const auto& pair) {
             double sum = 0;
@@ -230,7 +231,7 @@ Interval IDual<State, Action>::solve(
     statistics_.lp_constraints = next_constraint_id;
     statistics_.open = open_states.size();
 
-    return Interval(objective_, INFINITE_VALUE);
+    return Interval(objective, INFINITE_VALUE);
 }
 
 } // namespace idual

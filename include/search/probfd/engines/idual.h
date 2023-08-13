@@ -87,8 +87,6 @@ class IDual : public MDPEngine<State, Action> {
 
     Statistics statistics_;
 
-    value_t objective_;
-
 public:
     explicit IDual(ProgressReport* report, lp::LPSolverType solver_type);
 
