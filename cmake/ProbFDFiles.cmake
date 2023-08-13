@@ -29,10 +29,15 @@ fast_downward_plugin(
         # Engines
         probfd/engines/utils
 
-        # Cost Models
-        probfd/cost_model
-        probfd/cost_models/maxprob_cost_model
-        probfd/cost_models/ssp_cost_model
+        # Cost Functions
+        probfd/maxprob_cost_function
+        probfd/ssp_cost_function
+
+        # Task Cost Function Factories
+        probfd/task_cost_function_factory
+
+        # Task Evaluator Factories
+        probfd/task_evaluator_factory
 
         # Constant evaluator (default)
         probfd/heuristics/constant_evaluator

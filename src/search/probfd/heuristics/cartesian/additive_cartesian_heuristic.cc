@@ -6,6 +6,8 @@
 #include "probfd/heuristics/cartesian/types.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
+#include "probfd/task_evaluator_factory.h"
+
 #include "downward/plugins/plugin.h"
 
 #include "downward/utils/logging.h"
@@ -21,31 +23,55 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-static vector<CartesianHeuristicFunction>
-generate_heuristic_functions(const plugins::Options& opts, utils::LogProxy& log)
+static vector<CartesianHeuristicFunction> generate_heuristic_functions(
+    std::shared_ptr<ProbabilisticTask> task,
+    utils::LogProxy log,
+    std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators,
+    std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
+    std::shared_ptr<SplitSelectorFactory> split_selector_factory,
+    int max_states,
+    int max_transitions,
+    double max_time,
+    bool use_general_costs)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing additive Cartesian heuristic..." << endl;
     }
 
     CostSaturation cost_saturation(
-        opts.get_list<shared_ptr<SubtaskGenerator>>("subtasks"),
-        opts.get<shared_ptr<FlawGeneratorFactory>>("flaw_generator_factory"),
-        opts.get<shared_ptr<SplitSelectorFactory>>("split_selector_factory"),
-        opts.get<int>("max_states"),
-        opts.get<int>("max_transitions"),
-        opts.get<double>("max_time"),
-        opts.get<bool>("use_general_costs"),
+        subtask_generators,
+        flaw_generator_factory,
+        split_selector_factory,
+        max_states,
+        max_transitions,
+        max_time,
+        use_general_costs,
         log);
 
-    return cost_saturation.generate_heuristic_functions(
-        opts.get<shared_ptr<ProbabilisticTask>>("transform"));
+    return cost_saturation.generate_heuristic_functions(task);
 }
 
 AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
-    const plugins::Options& opts)
-    : TaskDependentHeuristic(opts)
-    , heuristic_functions(generate_heuristic_functions(opts, log))
+    std::shared_ptr<ProbabilisticTask> task,
+    utils::LogProxy log,
+    std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators,
+    std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
+    std::shared_ptr<SplitSelectorFactory> split_selector_factory,
+    int max_states,
+    int max_transitions,
+    double max_time,
+    bool use_general_costs)
+    : TaskDependentHeuristic(std::move(task), std::move(log))
+    , heuristic_functions(generate_heuristic_functions(
+          this->task,
+          this->log,
+          subtask_generators,
+          flaw_generator_factory,
+          split_selector_factory,
+          max_states,
+          max_transitions,
+          max_time,
+          use_general_costs))
 {
 }
 
@@ -65,10 +91,65 @@ AdditiveCartesianHeuristic::evaluate(const State& ancestor_state) const
     return EvaluationResult(false, sum_h);
 }
 
-class AdditiveCartesianHeuristicFeature
-    : public plugins::TypedFeature<TaskEvaluator, AdditiveCartesianHeuristic> {
+namespace {
+
+class AdditiveCartesianHeuristicFactory : public TaskEvaluatorFactory {
+    const utils::LogProxy log_;
+    const std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators;
+    const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory;
+    const std::shared_ptr<SplitSelectorFactory> split_selector_factory;
+    const int max_states;
+    const int max_transitions;
+    const double max_time;
+    const bool use_general_costs;
+
 public:
-    AdditiveCartesianHeuristicFeature()
+    explicit AdditiveCartesianHeuristicFactory(const plugins::Options& opts);
+
+    std::unique_ptr<TaskEvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+};
+
+AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
+    const plugins::Options& opts)
+    : log_(utils::get_log_from_options(opts))
+    , subtask_generators(
+          opts.get_list<shared_ptr<SubtaskGenerator>>("subtasks"))
+    , flaw_generator_factory(
+          opts.get<shared_ptr<FlawGeneratorFactory>>("flaw_generator_factory"))
+    , split_selector_factory(
+          opts.get<shared_ptr<SplitSelectorFactory>>("split_selector_factory"))
+    , max_states(opts.get<int>("max_states"))
+    , max_transitions(opts.get<int>("max_transitions"))
+    , max_time(opts.get<double>("max_time"))
+    , use_general_costs(opts.get<bool>("use_general_costs"))
+{
+}
+
+std::unique_ptr<TaskEvaluator>
+AdditiveCartesianHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<TaskCostFunction>)
+{
+    return std::make_unique<AdditiveCartesianHeuristic>(
+        task,
+        log_,
+        subtask_generators,
+        flaw_generator_factory,
+        split_selector_factory,
+        max_states,
+        max_transitions,
+        max_time,
+        use_general_costs);
+}
+
+class AdditiveCartesianHeuristicFactoryFeature
+    : public plugins::TypedFeature<
+          TaskEvaluatorFactory,
+          AdditiveCartesianHeuristicFactory> {
+public:
+    AdditiveCartesianHeuristicFactoryFeature()
         : TypedFeature("pcegar")
     {
         document_title("Additive CEGAR heuristic");
@@ -120,8 +201,9 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<AdditiveCartesianHeuristicFeature> _plugin;
+static plugins::FeaturePlugin<AdditiveCartesianHeuristicFactoryFeature> _plugin;
 
+} // namespace
 } // namespace cartesian
 } // namespace heuristics
 } // namespace probfd

@@ -6,8 +6,6 @@
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
-#include "probfd/cost_model.h"
-
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/rng.h"
@@ -43,12 +41,11 @@ PatternCollectionGeneratorDisjointCegar::
 }
 
 PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
-    const std::shared_ptr<ProbabilisticTask>& task)
+    const std::shared_ptr<ProbabilisticTask>& task,
+    const std::shared_ptr<TaskCostFunction>& task_cost_function)
 {
     // Store the set of goals in random order.
     ProbabilisticTaskProxy task_proxy(*task);
-    TaskSimpleCostFunction* task_cost_function =
-        g_cost_model->get_cost_function();
     vector<int> goals = get_goals_in_random_order(task_proxy, *rng);
 
     if (single_goal) {

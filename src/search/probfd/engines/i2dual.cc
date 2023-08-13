@@ -1,7 +1,5 @@
 #include "probfd/engines/i2dual.h"
 
-#include "probfd/cost_models/maxprob_cost_model.h"
-
 #include "probfd/engines/utils.h"
 
 #include "probfd/heuristics/occupation_measures/hpom_constraints.h"
@@ -71,11 +69,14 @@ struct I2Dual::IDualData {
 };
 
 I2Dual::I2Dual(
+    std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<TaskCostFunction> task_cost_function,
     ProgressReport* progress,
     bool hpom_enabled,
     bool incremental_updates,
     lp::LPSolverType solver_type)
-    : task_proxy(*tasks::g_root_task)
+    : task_proxy(*task)
+    , task_cost_function(std::move(task_cost_function))
     , progress_(progress)
     , hpom_enabled_(hpom_enabled)
     , incremental_hpom_updates_(incremental_updates)
@@ -99,13 +100,6 @@ Interval I2Dual::solve(
     statistics_ = Statistics();
 
     std::cout << "Initializing I2-Dual..." << std::endl;
-
-    if (!std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
-            g_cost_model)) {
-        std::cerr << "I2-Dual currently only supports goal probability analysis"
-                  << std::endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-    }
 
     if (hpom_enabled_) {
         ::task_properties::verify_no_axioms(task_proxy);
@@ -332,10 +326,10 @@ void I2Dual::prepare_hpom(lp::LinearProgram& lp)
 
     TimerScope scope(statistics_.hpom_timer_);
     heuristics::occupation_measures::HPOMGenerator::generate_hpom_lp(
-        ProbabilisticTaskProxy(*tasks::g_root_task),
+        task_proxy,
+        *task_cost_function,
         lp,
-        offset_,
-        true);
+        offset_);
 
     hpom_constraints_ = std::move(lp.get_constraints());
 

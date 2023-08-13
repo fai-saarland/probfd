@@ -30,11 +30,7 @@ public:
     }
 
     /// Check if this state is a goal.
-    bool is_goal_state() const
-    {
-        assert(terminal_cost_ == 0_vt);
-        return is_goal_;
-    }
+    bool is_goal_state() const { return is_goal_; }
 
     /// Obtains the cost paid upon termination in the state.
     value_t get_cost() const { return terminal_cost_; }

@@ -30,6 +30,8 @@ public:
     std::unique_ptr<TaskMDPEngine> create_engine() override
     {
         return engine_factory<engines::i2dual::I2Dual>(
+            this->task,
+            this->task_cost_function,
             &progress_,
             hpom_enabled_,
             incremental_hpom_updates_,

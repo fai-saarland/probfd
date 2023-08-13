@@ -51,8 +51,9 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
 
-    virtual PatternCollectionInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
+    virtual PatternCollectionInformation generate(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<TaskCostFunction>& task_cost_function) override;
 
 public:
     explicit PatternCollectionGeneratorMultiple(

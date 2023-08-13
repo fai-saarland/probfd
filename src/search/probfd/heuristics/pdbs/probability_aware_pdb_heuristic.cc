@@ -3,6 +3,8 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
+#include "probfd/task_evaluator_factory.h"
+
 #include "downward/pdbs/dominance_pruning.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -20,17 +22,8 @@ namespace heuristics {
 namespace pdbs {
 
 ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
-    const plugins::Options& opts)
-    : ProbabilityAwarePDBHeuristic(
-          opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-          opts.get<double>("max_time_dominance_pruning"),
-          utils::get_log_from_options(opts))
-{
-}
-
-ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<TaskCostFunction> task_cost_function,
     std::shared_ptr<PatternCollectionGenerator> generator,
     double max_time_dominance_pruning,
     utils::LogProxy log)
@@ -39,7 +32,8 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     utils::Timer construction_timer;
 
     utils::Timer generator_timer;
-    auto pattern_collection_info = generator->generate(task);
+    auto pattern_collection_info =
+        generator->generate(task, task_cost_function);
     const double generator_time = generator_timer();
 
     this->patterns = pattern_collection_info.get_patterns();
@@ -123,11 +117,49 @@ ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
     return subcollection_finder->evaluate(*pdbs, *subcollections, state);
 }
 
-class ProbabilityAwarePDBHeuristicFeature
-    : public plugins::
-          TypedFeature<TaskEvaluator, ProbabilityAwarePDBHeuristic> {
+namespace {
+
+class ProbabilityAwarePDBHeuristicFactory : public TaskEvaluatorFactory {
+    const std::shared_ptr<PatternCollectionGenerator> patterns_;
+    const double time_dominance_pruning_;
+    const utils::LogProxy log_;
+
 public:
-    ProbabilityAwarePDBHeuristicFeature()
+    explicit ProbabilityAwarePDBHeuristicFactory(const plugins::Options& opts);
+
+    std::unique_ptr<TaskEvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+};
+
+ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
+    const plugins::Options& opts)
+    : patterns_(
+          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
+    , time_dominance_pruning_(opts.get<double>("max_time_dominance_pruning"))
+    , log_(utils::get_log_from_options(opts))
+{
+}
+
+std::unique_ptr<TaskEvaluator>
+ProbabilityAwarePDBHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<TaskCostFunction> task_cost_function)
+{
+    return std::make_unique<ProbabilityAwarePDBHeuristic>(
+        task,
+        task_cost_function,
+        patterns_,
+        time_dominance_pruning_,
+        log_);
+}
+
+class ProbabilityAwarePDBHeuristicFactoryFeature
+    : public plugins::TypedFeature<
+          TaskEvaluatorFactory,
+          ProbabilityAwarePDBHeuristicFactory> {
+public:
+    ProbabilityAwarePDBHeuristicFactoryFeature()
         : TypedFeature("ppdbs")
     {
         document_title("Probability-aware Pattern database heuristic");
@@ -152,7 +184,9 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<ProbabilityAwarePDBHeuristicFeature> _plugin;
+static plugins::FeaturePlugin<ProbabilityAwarePDBHeuristicFactoryFeature>
+    _plugin;
+} // namespace
 
 } // namespace pdbs
 } // namespace heuristics

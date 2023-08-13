@@ -37,21 +37,14 @@ class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
     std::shared_ptr<SubCollectionFinder> subcollection_finder;
 
 public:
-    /**
-     * @brief Construct from options.
-     */
-    explicit ProbabilityAwarePDBHeuristic(const plugins::Options& opts);
-
     ProbabilityAwarePDBHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function,
         std::shared_ptr<PatternCollectionGenerator> generator,
         double max_time_dominance_pruning,
         utils::LogProxy log);
 
     EvaluationResult evaluate(const State& state) const override;
-
-public:
-    static void add_options_to_feature(plugins::Feature& feature);
 };
 
 } // namespace pdbs

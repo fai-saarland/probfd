@@ -8,8 +8,6 @@
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
-#include "probfd/cost_model.h"
-
 #include "probfd/bisimulation/bisimilar_state_space.h"
 #include "probfd/bisimulation/engine_interfaces.h"
 
@@ -49,6 +47,7 @@ class BisimulationBasedHeuristicSearchEngine : public TaskMDPEngine {
 
 protected:
     const std::shared_ptr<ProbabilisticTask> task;
+    const std::shared_ptr<TaskCostFunction> task_cost_function;
 
     const std::string engine_name_;
 
@@ -64,13 +63,15 @@ protected:
 
 public:
     explicit BisimulationBasedHeuristicSearchEngine(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function,
         const std::string& engine_name)
-        : task(tasks::g_root_task)
+        : task(std::move(task))
+        , task_cost_function(std::move(task_cost_function))
         , engine_name_(engine_name)
         , state_space_(
               task.get(),
-              g_cost_model->get_cost_function()
-                  ->get_non_goal_termination_cost())
+              task_cost_function->get_non_goal_termination_cost())
         , policy_(
               new policy_pickers::ArbitraryTiebreaker<QState, QAction>(true))
         , new_state_handler_(new engine_interfaces::NewStateObserver<QState>())
@@ -93,12 +94,16 @@ public:
         bool Interval,
         typename... Args>
     static std::unique_ptr<BisimulationBasedHeuristicSearchEngine> Constructor(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function,
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
         Args&&... args)
     {
         auto res = std::make_unique<BisimulationBasedHeuristicSearchEngine>(
+            std::move(task),
+            std::move(task_cost_function),
             engine_name);
 
         res->engine_.reset(new HS<QState, QAction, Interval>(
@@ -116,7 +121,7 @@ public:
     {
         bisimulation::InducedQuotientEvaluator heuristic(
             &state_space_,
-            g_cost_model->get_cost_function()->get_non_goal_termination_cost());
+            task_cost_function->get_non_goal_termination_cost());
 
         std::cout << "Running " << engine_name_ << "..." << std::endl;
         return engine_->solve(
@@ -147,8 +152,13 @@ class QBisimulationBasedHeuristicSearchEngine
 
 public:
     explicit QBisimulationBasedHeuristicSearchEngine(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function,
         const std::string& engine_name)
-        : BisimulationBasedHeuristicSearchEngine(engine_name)
+        : BisimulationBasedHeuristicSearchEngine(
+              std::move(task),
+              std::move(task_cost_function),
+              engine_name)
         , q_policy_tiebreaker_(new policy_pickers::ArbitraryTiebreaker<
                                QState,
                                quotients::QuotientAction<QAction>>(true))
@@ -163,12 +173,16 @@ public:
         bool Interval,
         typename... Args>
     static std::unique_ptr<QBisimulationBasedHeuristicSearchEngine> Constructor(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function,
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
         Args&&... args)
     {
         auto res = std::make_unique<QBisimulationBasedHeuristicSearchEngine>(
+            std::move(task),
+            std::move(task_cost_function),
             engine_name);
 
         std::shared_ptr<HS<QState, QQAction, Interval>> engine(

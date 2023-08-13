@@ -25,8 +25,6 @@ protected:
     mutable utils::LogProxy log;
 
 public:
-    explicit TaskDependentHeuristic(const plugins::Options& options);
-
     TaskDependentHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log);

@@ -1,7 +1,6 @@
 #include "probfd/heuristics/dead_end_pruning.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/cost_model.h"
 
 #include "downward/utils/system.h"
 
@@ -28,13 +27,6 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     }
 }
 
-DeadEndPruningHeuristic::DeadEndPruningHeuristic(const plugins::Options& opts)
-    : DeadEndPruningHeuristic(
-          opts.get<std::shared_ptr<::Evaluator>>("heuristic"),
-          g_cost_model->get_cost_function()->get_non_goal_termination_cost())
-{
-}
-
 EvaluationResult DeadEndPruningHeuristic::evaluate(const State& state) const
 {
     EvaluationContext context(state);
@@ -51,17 +43,52 @@ void DeadEndPruningHeuristic::print_statistics() const
     // pruning_function_->print_statistics();
 }
 
-class DeadEndPruningHeuristicFeature
-    : public plugins::TypedFeature<TaskEvaluator, DeadEndPruningHeuristic> {
+namespace {
+class DeadEndPruningHeuristicFactory : public TaskEvaluatorFactory {
+    const std::shared_ptr<::Evaluator> evaluator_;
+
 public:
-    DeadEndPruningHeuristicFeature()
+    /**
+     * @brief Construct from options.
+     *
+     * @param opts - Only one option is available:
+     * + heuristic - Specifies the underlying classical heuristic.
+     */
+    explicit DeadEndPruningHeuristicFactory(const plugins::Options& opts);
+
+    std::unique_ptr<TaskEvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+};
+
+DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
+    const plugins::Options& opts)
+    : evaluator_(opts.get<std::shared_ptr<::Evaluator>>("evaluator"))
+{
+}
+
+std::unique_ptr<TaskEvaluator> DeadEndPruningHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask>,
+    std::shared_ptr<TaskCostFunction> task_cost_function)
+{
+    return std::make_unique<DeadEndPruningHeuristic>(
+        evaluator_,
+        task_cost_function->get_non_goal_termination_cost());
+}
+
+class DeadEndPruningHeuristicFactoryFeature
+    : public plugins::
+          TypedFeature<TaskEvaluatorFactory, DeadEndPruningHeuristicFactory> {
+public:
+    DeadEndPruningHeuristicFactoryFeature()
         : TypedFeature("prune_dead_ends")
     {
         add_option<std::shared_ptr<::Evaluator>>("evaluator");
     }
 };
 
-static plugins::FeaturePlugin<DeadEndPruningHeuristicFeature> _plugin;
+static plugins::FeaturePlugin<DeadEndPruningHeuristicFactoryFeature> _plugin;
+} // namespace
 
 } // namespace heuristics
 } // namespace probfd

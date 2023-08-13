@@ -5,6 +5,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/task_evaluator_factory.h"
 #include "probfd/value_type.h"
 
 #include "downward/utils/collections.h"
@@ -74,18 +75,9 @@ public:
 };
 } // namespace
 
-GZOCPHeuristic::GZOCPHeuristic(const plugins::Options& opts)
-    : GZOCPHeuristic(
-          opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
-          utils::get_log_from_options(opts),
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-          opts.get<OrderingStrategy>("order"),
-          utils::parse_rng_from_options(opts))
-{
-}
-
 GZOCPHeuristic::GZOCPHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<TaskCostFunction> task_cost_function,
     utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator,
     OrderingStrategy order,
@@ -94,7 +86,8 @@ GZOCPHeuristic::GZOCPHeuristic(
     , ordering(order)
     , rng(rng)
 {
-    auto pattern_collection_info = generator->generate(task);
+    auto pattern_collection_info =
+        generator->generate(task, task_cost_function);
 
     auto patterns = pattern_collection_info.get_patterns();
 
@@ -161,10 +154,50 @@ EvaluationResult GZOCPHeuristic::evaluate(const State& state) const
     return EvaluationResult{false, value};
 }
 
-class GZOCPHeuristicFeature
-    : public plugins::TypedFeature<TaskEvaluator, GZOCPHeuristic> {
+namespace {
+
+class GZOCPHeuristicFactory : public TaskEvaluatorFactory {
+    const utils::LogProxy log_;
+    const std::shared_ptr<PatternCollectionGenerator>
+        pattern_collection_generator_;
+    const GZOCPHeuristic::OrderingStrategy ordering_;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
+
 public:
-    GZOCPHeuristicFeature()
+    explicit GZOCPHeuristicFactory(const plugins::Options& opts);
+
+    std::unique_ptr<TaskEvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+};
+
+GZOCPHeuristicFactory::GZOCPHeuristicFactory(const plugins::Options& opts)
+    : log_(utils::get_log_from_options(opts))
+    , pattern_collection_generator_(
+          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
+    , ordering_(opts.get<GZOCPHeuristic::OrderingStrategy>("order"))
+    , rng_(utils::parse_rng_from_options(opts))
+{
+}
+
+std::unique_ptr<TaskEvaluator> GZOCPHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<TaskCostFunction> task_cost_function)
+{
+    return std::make_unique<GZOCPHeuristic>(
+        task,
+        task_cost_function,
+        log_,
+        pattern_collection_generator_,
+        ordering_,
+        rng_);
+}
+
+class GZOCPHeuristicFactoryFeature
+    : public plugins::
+          TypedFeature<TaskEvaluatorFactory, GZOCPHeuristicFactory> {
+public:
+    GZOCPHeuristicFactoryFeature()
         : TypedFeature("gzocp_heuristic")
     {
         TaskDependentHeuristic::add_options_to_feature(*this);
@@ -181,7 +214,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<GZOCPHeuristicFeature> _plugin;
+static plugins::FeaturePlugin<GZOCPHeuristicFactoryFeature> _plugin;
 
 static plugins::TypedEnumPlugin<GZOCPHeuristic::OrderingStrategy> _enum_plugin(
     {{"random", "the order is random"},
@@ -190,6 +223,7 @@ static plugins::TypedEnumPlugin<GZOCPHeuristic::OrderingStrategy> _enum_plugin(
      {"inherit",
       "inherits the order from the underlying pattern generation algorithm"}});
 
+} // namespace
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd

@@ -25,7 +25,6 @@ namespace occupation_measures {
  * of PDBs.
  */
 class HigherOrderHPOMGenerator : public ConstraintGenerator {
-    const bool is_maxprob_;
     const int projection_size_;
 
     struct PatternInfo {
@@ -52,10 +51,11 @@ class HigherOrderHPOMGenerator : public ConstraintGenerator {
 public:
     explicit HigherOrderHPOMGenerator(const plugins::Options& opts);
 
-    HigherOrderHPOMGenerator(bool maxprob, int projection_size);
+    explicit HigherOrderHPOMGenerator(int projection_size);
 
     virtual void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<TaskCostFunction>& task_cost_function,
         lp::LinearProgram& lp) override final;
 
     void

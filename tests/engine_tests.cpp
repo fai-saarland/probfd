@@ -2,8 +2,6 @@
 
 #include "probfd/tasks/root_task.h"
 
-#include "probfd/cost_models/ssp_cost_model.h"
-
 #include "probfd/engines/fret.h"
 #include "probfd/engines/heuristic_depth_first_search.h"
 
@@ -14,6 +12,7 @@
 #include "probfd/quotients/heuristic_search_interface.h"
 #include "probfd/quotients/quotient_system.h"
 
+#include "probfd/ssp_cost_function.h"
 #include "probfd/task_proxy.h"
 
 #include "tasks/blocksworld.h"
@@ -115,16 +114,13 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
 
     probfd::tasks::set_root_task(task);
 
-    TaskBaseProxy task_proxy(*task);
+    ProbabilisticTaskProxy task_proxy(*task);
 
     ProgressReport report(0.0_vt, std::cout, false);
     heuristics::BlindEvaluator<State> heuristic;
-    cost_models::SSPCostModel cost_model;
+    auto cost_function = std::make_shared<SSPCostFunction>(task_proxy);
 
-    InducedTaskStateSpace mdp(
-        task,
-        utils::get_silent_log(),
-        cost_model.get_cost_function());
+    InducedTaskStateSpace mdp(task, utils::get_silent_log(), cost_function);
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
@@ -164,16 +160,13 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 
     probfd::tasks::set_root_task(task);
 
-    TaskBaseProxy task_proxy(*task);
+    ProbabilisticTaskProxy task_proxy(*task);
 
     ProgressReport report(0.0_vt, std::cout, false);
     heuristics::BlindEvaluator<State> heuristic;
-    cost_models::SSPCostModel cost_model;
+    auto cost_function = std::make_shared<SSPCostFunction>(task_proxy);
 
-    InducedTaskStateSpace mdp(
-        task,
-        utils::get_silent_log(),
-        cost_model.get_cost_function());
+    InducedTaskStateSpace mdp(task, utils::get_silent_log(), cost_function);
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 

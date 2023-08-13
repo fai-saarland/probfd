@@ -29,14 +29,6 @@ protected:
     mutable lp::LPSolver lp_solver_;
 
 public:
-    explicit LPHeuristic(const plugins::Options& opts)
-        : LPHeuristic(
-              opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
-              utils::get_log_from_options(opts),
-              opts.get<lp::LPSolverType>("lpsolver"))
-    {
-    }
-
     LPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,

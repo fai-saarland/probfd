@@ -45,6 +45,7 @@ class I2Dual : public MDPEngine<State, OperatorID> {
     };
 
     ProbabilisticTaskProxy task_proxy;
+    std::shared_ptr<TaskCostFunction> task_cost_function;
 
     ProgressReport* progress_;
 
@@ -69,6 +70,8 @@ class I2Dual : public MDPEngine<State, OperatorID> {
 
 public:
     I2Dual(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function,
         ProgressReport* progress,
         bool hpom_enabled,
         bool incremental_updates,

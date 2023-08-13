@@ -39,8 +39,9 @@ public:
     PatternCollectionGeneratorClassical(const plugins::Options& opts);
     ~PatternCollectionGeneratorClassical() override = default;
 
-    PatternCollectionInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
+    PatternCollectionInformation generate(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<TaskCostFunction>& task_cost_function) override;
 };
 
 } // namespace pdbs

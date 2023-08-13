@@ -223,6 +223,8 @@ public:
         if (dual_bounds_) {
             return BisimulationBasedHeuristicSearchEngine::
                 template Constructor<HS, true>(
+                    this->task,
+                    this->task_cost_function,
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
@@ -230,6 +232,8 @@ public:
         } else {
             return BisimulationBasedHeuristicSearchEngine::
                 template Constructor<HS, false>(
+                    this->task,
+                    this->task_cost_function,
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
@@ -302,6 +306,8 @@ public:
         if (dual_bounds_) {
             return QBisimulationBasedHeuristicSearchEngine::
                 template Constructor<HS, true>(
+                    this->task,
+                    this->task_cost_function,
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
@@ -309,6 +315,8 @@ public:
         } else {
             return QBisimulationBasedHeuristicSearchEngine::
                 template Constructor<HS, false>(
+                    this->task,
+                    this->task_cost_function,
                     this->get_heuristic_search_name(),
                     this->progress_,
                     this->interval_comparison_,
@@ -348,6 +356,8 @@ private:
     {
         return QBisimulationBasedHeuristicSearchEngine::
             template Constructor<Fret, HS, Interval>(
+                this->task,
+                this->task_cost_function,
                 this->get_heuristic_search_name(),
                 this->progress_,
                 this->interval_comparison_,

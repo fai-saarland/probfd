@@ -1,7 +1,5 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/cost_model.h"
-
 #include "probfd/engines/exhaustive_dfs.h"
 
 #include "probfd/engine_interfaces/new_state_observer.h"
@@ -38,10 +36,7 @@ class ExhaustiveDFSSolver : public MDPSolver {
 public:
     explicit ExhaustiveDFSSolver(const plugins::Options& opts)
         : MDPSolver(opts)
-        , cost_bound_(
-              0_vt,
-              g_cost_model->get_cost_function()
-                  ->get_non_goal_termination_cost())
+        , cost_bound_(0_vt, task_cost_function->get_non_goal_termination_cost())
         , new_state_handler_(new TaskNewStateObserverList(
               opts.get_list<std::shared_ptr<TaskNewStateObserver>>(
                   "on_new_state")))

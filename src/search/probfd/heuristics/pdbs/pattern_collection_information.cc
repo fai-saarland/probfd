@@ -21,14 +21,14 @@ namespace heuristics {
 namespace pdbs {
 
 PatternCollectionInformation::PatternCollectionInformation(
-    const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction* task_cost_function,
+    const ProbabilisticTaskProxy& arg_task_proxy,
+    std::shared_ptr<TaskCostFunction> arg_task_cost_function,
     ::pdbs::PatternCollectionInformation det_info,
-    shared_ptr<SubCollectionFinder> subcollection_finder)
-    : task_proxy(task_proxy)
-    , task_cost_function(task_cost_function)
+    shared_ptr<SubCollectionFinder> arg_subcollection_finder)
+    : task_proxy(arg_task_proxy)
+    , task_cost_function(std::move(arg_task_cost_function))
     , patterns_(det_info.get_patterns())
-    , subcollection_finder_(std::move(subcollection_finder))
+    , subcollection_finder_(std::move(arg_subcollection_finder))
 {
     auto pdbs = det_info.get_pdbs();
 
@@ -49,11 +49,11 @@ PatternCollectionInformation::PatternCollectionInformation(
 
 PatternCollectionInformation::PatternCollectionInformation(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction* task_cost_function,
+    std::shared_ptr<TaskCostFunction> task_cost_function,
     shared_ptr<PatternCollection> patterns)
     : PatternCollectionInformation(
           task_proxy,
-          task_cost_function,
+          std::move(task_cost_function),
           std::move(patterns),
           make_shared<TrivialFinder>())
 {
@@ -61,11 +61,11 @@ PatternCollectionInformation::PatternCollectionInformation(
 
 PatternCollectionInformation::PatternCollectionInformation(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction* task_cost_function,
+    std::shared_ptr<TaskCostFunction> task_cost_function,
     shared_ptr<PatternCollection> patterns,
     shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)
-    , task_cost_function(task_cost_function)
+    , task_cost_function(std::move(task_cost_function))
     , patterns_(std::move(patterns))
     , subcollection_finder_(std::move(subcollection_finder))
 {

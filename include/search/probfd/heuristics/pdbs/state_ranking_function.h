@@ -158,11 +158,14 @@ public:
 };
 
 class StateRankToString {
-    std::shared_ptr<StateRankingFunction> state_mapper_;
+    const VariablesProxy variables_;
+    const StateRankingFunction& state_mapper_;
 
 public:
     explicit StateRankToString(
-        std::shared_ptr<StateRankingFunction> state_mapper);
+        VariablesProxy variables,
+        const StateRankingFunction& state_mapper);
+
     std::string operator()(StateID id, StateRank state) const;
 };
 

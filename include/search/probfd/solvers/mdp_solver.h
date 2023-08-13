@@ -38,6 +38,7 @@ class MDPSolver : public SolverInterface {
 protected:
     const std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;
+    const std::shared_ptr<TaskCostFunction> task_cost_function;
     mutable utils::LogProxy log;
 
     std::unique_ptr<InducedTaskStateSpace> task_mdp;

@@ -1,5 +1,3 @@
-#include "probfd/cost_model.h"
-
 #include "probfd/solver_interface.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
@@ -69,7 +67,7 @@ public:
         BisimulationTimer stats;
         bisimulation::BisimilarStateSpace state_space(
             tasks::g_root_task.get(),
-            g_cost_model->get_cost_function()->get_non_goal_termination_cost());
+            1_vt);
 
         stats.timer.stop();
         stats.states = state_space.num_bisimilar_states();

@@ -166,8 +166,9 @@ public:
       variable) may break the maximum collection size limit, if the latter is
       set too small or if there are many goal variables with a large domain.
     */
-    PatternCollectionInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
+    PatternCollectionInformation generate(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<TaskCostFunction>& task_cost_function) override;
 };
 
 } // namespace pdbs

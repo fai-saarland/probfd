@@ -1,14 +1,15 @@
 #include "probfd/solvers/mdp_solver.h"
 
+#include "probfd/tasks/root_task.h"
+
 #include "probfd/caching_task_state_space.h"
-#include "probfd/cost_model.h"
+#include "probfd/task_cost_function_factory.h"
+#include "probfd/task_evaluator_factory.h"
 
 #include "downward/utils/timer.h"
 
 #include "downward/heuristic.h"
 #include "downward/operator_cost.h"
-
-#include "probfd/tasks/root_task.h"
 
 #include "downward/utils/exceptions.h"
 
@@ -23,22 +24,26 @@ namespace solvers {
 MDPSolver::MDPSolver(const plugins::Options& opts)
     : task(tasks::g_root_task)
     , task_proxy(*task)
+    , task_cost_function(
+          opts.get<std::shared_ptr<TaskCostFunctionFactory>>("costs")
+              ->create_cost_function(task))
     , log(utils::get_log_from_options(opts))
     , task_mdp(
           opts.get<bool>("cache")
               ? new CachingTaskStateSpace(
                     task,
                     log,
-                    g_cost_model->get_cost_function(),
+                    task_cost_function,
                     opts.get_list<std::shared_ptr<::Evaluator>>(
                         "path_dependent_evaluators"))
               : new InducedTaskStateSpace(
                     task,
                     log,
-                    g_cost_model->get_cost_function(),
+                    task_cost_function,
                     opts.get_list<std::shared_ptr<::Evaluator>>(
                         "path_dependent_evaluators")))
-    , heuristic(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
+    , heuristic(opts.get<std::shared_ptr<TaskEvaluatorFactory>>("eval")
+                    ->create_evaluator(task, task_cost_function))
     , progress_(
           opts.contains("report_epsilon")
               ? std::optional<value_t>(opts.get<value_t>("report_epsilon"))
@@ -104,10 +109,14 @@ void MDPSolver::solve()
 
 void MDPSolver::add_options_to_feature(plugins::Feature& feature)
 {
-    feature.add_option<std::shared_ptr<TaskEvaluator>>(
+    feature.add_option<std::shared_ptr<TaskCostFunctionFactory>>(
+        "costs",
+        "",
+        "ssp()");
+    feature.add_option<std::shared_ptr<TaskEvaluatorFactory>>(
         "eval",
         "",
-        "blind_eval");
+        "blind_eval()");
     feature.add_option<bool>("cache", "", "false");
     feature.add_list_option<std::shared_ptr<::Evaluator>>(
         "path_dependent_evaluators",

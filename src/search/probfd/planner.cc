@@ -29,9 +29,9 @@ int main(int argc, const char** argv)
     bool unit_cost = false;
     if (static_cast<string>(argv[1]) != "--help") {
         utils::g_log << "reading input..." << endl;
-        probfd::tasks::read_root_tasks(cin);
+        auto input_task = probfd::tasks::read_root_tasks(cin);
         utils::g_log << "done reading input!" << endl;
-        ProbabilisticTaskProxy task_proxy(*probfd::tasks::g_root_task);
+        ProbabilisticTaskProxy task_proxy(*input_task);
         unit_cost = probfd::task_properties::is_unit_cost(task_proxy);
     }
 

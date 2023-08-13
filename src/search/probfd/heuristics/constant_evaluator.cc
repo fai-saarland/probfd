@@ -1,6 +1,6 @@
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/cost_model.h"
+#include "probfd/task_evaluator_factory.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -9,42 +9,41 @@
 namespace probfd {
 namespace heuristics {
 
-class ConstantEvaluatorFeature
-    : public plugins::TypedFeature<TaskEvaluator, ConstantEvaluator<State>> {
+namespace {
+class BlindEvaluatorFactory : public TaskEvaluatorFactory {
 public:
-    ConstantEvaluatorFeature()
-        : TypedFeature("const_eval")
-    {
-        add_option<double>("value", "", plugins::ArgumentInfo::NO_DEFAULT);
-    }
-
-    std::shared_ptr<ConstantEvaluator<State>>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return std::make_shared<ConstantEvaluator<State>>(
-            double_to_value(opts.get<double>("value")));
-    }
+    std::unique_ptr<TaskEvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function) override;
 };
 
-class BlindEvaluatorFeature
-    : public plugins::TypedFeature<TaskEvaluator, BlindEvaluator<State>> {
+std::unique_ptr<TaskEvaluator> BlindEvaluatorFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask>,
+    std::shared_ptr<TaskCostFunction>)
+{
+    return std::make_unique<BlindEvaluator<State>>();
+}
+
+class BlindEvaluatorFactoryFeature
+    : public plugins::
+          TypedFeature<TaskEvaluatorFactory, BlindEvaluatorFactory> {
 public:
-    BlindEvaluatorFeature()
+    BlindEvaluatorFactoryFeature()
         : TypedFeature("blind_eval")
     {
     }
 
-    std::shared_ptr<BlindEvaluator<State>>
+    std::shared_ptr<BlindEvaluatorFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
     {
-        return std::make_shared<BlindEvaluator<State>>();
+        return std::make_shared<BlindEvaluatorFactory>();
     }
 };
 
-static plugins::FeaturePlugin<ConstantEvaluatorFeature> _plugin;
-static plugins::FeaturePlugin<BlindEvaluatorFeature> _plugin2;
+static plugins::FeaturePlugin<BlindEvaluatorFactoryFeature> _plugin;
+
+} // namespace
 
 } // namespace heuristics
 } // namespace probfd

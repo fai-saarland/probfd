@@ -54,7 +54,7 @@ protected:
     successor_generator::SuccessorGenerator gen_;
     StateRegistry state_registry_;
 
-    TaskSimpleCostFunction* cost_function_;
+    const std::shared_ptr<TaskSimpleCostFunction> cost_function_;
 
     const std::vector<std::shared_ptr<::Evaluator>> notify_;
 
@@ -67,7 +67,7 @@ public:
     InducedTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
-        TaskSimpleCostFunction* cost_function,
+        std::shared_ptr<TaskSimpleCostFunction> cost_function,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators = {});
 

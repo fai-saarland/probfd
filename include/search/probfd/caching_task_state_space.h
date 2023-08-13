@@ -24,7 +24,7 @@ public:
     CachingTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
-        TaskSimpleCostFunction* cost_function,
+        std::shared_ptr<TaskSimpleCostFunction> task_cost_function,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators);
 

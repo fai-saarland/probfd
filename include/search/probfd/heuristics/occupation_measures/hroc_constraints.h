@@ -14,16 +14,12 @@ namespace occupation_measures {
  * \cite trevizan:etal:icaps-17 .
  */
 class HROCGenerator : public ConstraintGenerator {
-    const bool is_maxprob_;
     std::vector<std::size_t> ncc_offsets_;
 
 public:
-    HROCGenerator();
-
-    explicit HROCGenerator(bool maxprob);
-
-    virtual void initialize_constraints(
+    void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<TaskCostFunction>& task_cost_function,
         lp::LinearProgram& lp) override final;
 
     void

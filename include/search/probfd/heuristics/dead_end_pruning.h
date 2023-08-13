@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_DEAD_END_PRUNING_H
 
 #include "probfd/evaluator.h"
+#include "probfd/task_evaluator_factory.h"
 #include "probfd/task_types.h"
 
 #include <memory>
@@ -39,19 +40,9 @@ public:
         std::shared_ptr<::Evaluator> pruning_function,
         value_t dead_end_value);
 
-    /**
-     * @brief Construct from options.
-     *
-     * @param opts - Available options:
-     * + \em heuristic - The classical heuristic to use for dead-end pruning.
-     */
-    explicit DeadEndPruningHeuristic(const plugins::Options& opts);
+    EvaluationResult evaluate(const State& state) const override;
 
-    static void add_options_to_feature(plugins::Feature& feature);
-
-    virtual void print_statistics() const override;
-
-    virtual EvaluationResult evaluate(const State& state) const override;
+    void print_statistics() const override;
 };
 
 } // namespace heuristics

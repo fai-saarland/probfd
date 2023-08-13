@@ -23,10 +23,9 @@ class UCPHeuristic : public TaskDependentHeuristic {
     std::vector<ProbabilityAwarePatternDatabase> pdbs;
 
 public:
-    explicit UCPHeuristic(const plugins::Options& opts);
-
     explicit UCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function,
         utils::LogProxy log,
         std::shared_ptr<PatternCollectionGenerator> generator);
 
@@ -37,9 +36,6 @@ public:
 
 protected:
     EvaluationResult evaluate(const State& state) const override;
-
-public:
-    static void add_options_to_feature(plugins::Feature& feature);
 };
 
 } // namespace pdbs

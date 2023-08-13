@@ -4,7 +4,6 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/cost_model.h"
 #include "probfd/evaluator.h"
 
 #include "downward/plugins/plugin.h"

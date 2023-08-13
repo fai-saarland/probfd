@@ -15,17 +15,8 @@ namespace heuristics {
 namespace occupation_measures {
 
 OccupationMeasureHeuristic::OccupationMeasureHeuristic(
-    const plugins::Options& opts)
-    : OccupationMeasureHeuristic(
-          opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
-          utils::get_log_from_options(opts),
-          opts.get<lp::LPSolverType>("lpsolver"),
-          opts.get<shared_ptr<ConstraintGenerator>>("constraint_generator"))
-{
-}
-
-OccupationMeasureHeuristic::OccupationMeasureHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<TaskCostFunction> task_cost_function,
     utils::LogProxy log,
     lp::LPSolverType solver_type,
     std::shared_ptr<ConstraintGenerator> constraint_generator)
@@ -38,7 +29,7 @@ OccupationMeasureHeuristic::OccupationMeasureHeuristic(
         named_vector::NamedVector<lp::LPConstraint>(),
         lp_solver_.get_infinity());
 
-    constraint_generator_->initialize_constraints(task, lp);
+    constraint_generator_->initialize_constraints(task, task_cost_function, lp);
 
     lp_solver_.load_problem(lp);
 }

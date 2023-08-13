@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_DETERMINIZATION_COST_H
 
 #include "probfd/evaluator.h"
+#include "probfd/task_evaluator_factory.h"
 #include "probfd/task_types.h"
 
 #include <memory>
@@ -24,28 +25,16 @@ namespace heuristics {
  * heuristic is also admissible/heuristic.
  */
 class DeterminizationCostHeuristic : public TaskEvaluator {
-    std::shared_ptr<::Evaluator> evaluator_;
+    const std::shared_ptr<::Evaluator> evaluator_;
 
 public:
     /**
-     * @brief Construct from options.
-     *
-     * @param opts - Only one option is available:
-     * + heuristic - Specifies the underlying classical heuristic.
-     */
-    explicit DeterminizationCostHeuristic(const plugins::Options& opts);
-
-    /**
-     * @brief Construct from classical heuristic.
-     *
-     * @param heuristic - The classical heuristic.
+     * @brief Construct from a classical heuristic.
      */
     explicit DeterminizationCostHeuristic(
         std::shared_ptr<::Evaluator> heuristic);
 
     ~DeterminizationCostHeuristic() override;
-
-    static void add_options_to_feature(plugins::Feature& feature);
 
     EvaluationResult evaluate(const State& state) const override;
 

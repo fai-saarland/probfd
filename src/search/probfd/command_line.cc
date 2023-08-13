@@ -1,8 +1,5 @@
 #include "probfd/command_line.h"
 
-#include "probfd/cost_models/maxprob_cost_model.h"
-#include "probfd/cost_models/ssp_cost_model.h"
-
 #include "probfd/solver_interface.h"
 
 #include "downward/parser/lexical_analyzer.h"
@@ -95,23 +92,7 @@ parse_cmd_line_aux(const vector<string>& args)
     for (size_t i = 0; i < args.size(); ++i) {
         string arg = args[i];
         bool is_last = (i == args.size() - 1);
-        if (arg == "--maxprob") {
-            if (g_cost_model) input_error("multiple cost models defined");
-            if (engine) input_error("cost model options must precede --search");
-            g_cost_model.reset(new cost_models::MaxProbCostModel());
-            std::cout << "Using MaxProb cost model." << std::endl;
-        } else if (arg == "--ssp") {
-            if (g_cost_model) input_error("multiple cost models defined");
-            if (engine) input_error("cost model options must precede --search");
-            g_cost_model.reset(new cost_models::SSPCostModel());
-            std::cout << "Using SSP cost model." << std::endl;
-        } else if (arg == "--search") {
-            // The default cost model is the SSP cost model.
-            if (!g_cost_model) {
-                g_cost_model.reset(new cost_models::SSPCostModel());
-                std::cout << "Using SSP cost model." << std::endl;
-            }
-
+        if (arg == "--search") {
             if (engine) input_error("multiple --search arguments defined");
             if (is_last) input_error("missing argument after --search");
             string search_arg = args[++i];

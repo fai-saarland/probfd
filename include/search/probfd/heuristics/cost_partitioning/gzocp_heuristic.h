@@ -33,13 +33,11 @@ private:
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
-    explicit GZOCPHeuristic(const plugins::Options& opts);
-
     explicit GZOCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<TaskCostFunction> task_cost_function,
         utils::LogProxy log,
-        std::shared_ptr<PatternCollectionGenerator>
-            generator,
+        std::shared_ptr<PatternCollectionGenerator> generator,
         OrderingStrategy order,
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
@@ -50,9 +48,6 @@ public:
 
 protected:
     EvaluationResult evaluate(const State& state) const override;
-
-public:
-    static void add_options_to_feature(plugins::Feature& feature);
 };
 
 } // namespace pdbs

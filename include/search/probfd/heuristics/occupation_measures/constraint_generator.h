@@ -1,6 +1,8 @@
 #ifndef PROBFD_HEURISTICS_OCCUPATION_MEASURE_HEURISTICS_CONSTRAINT_GENERATOR_H
 #define PROBFD_HEURISTICS_OCCUPATION_MEASURE_HEURISTICS_CONSTRAINT_GENERATOR_H
 
+#include "probfd/task_types.h"
+
 #include <memory>
 #include <vector>
 
@@ -27,6 +29,7 @@ public:
     */
     virtual void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<TaskCostFunction>& task_cost_function,
         lp::LinearProgram& lp) = 0;
 
     /*
