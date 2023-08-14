@@ -18,7 +18,7 @@ namespace engine_interfaces {
 template <typename>
 class NewStateObserver;
 
-template <typename>
+template <typename, typename>
 class TransitionSorter;
 } // namespace engine_interfaces
 
@@ -66,7 +66,7 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
     using Evaluator = typename Base::Evaluator;
 
     using NewStateObserver = engine_interfaces::NewStateObserver<State>;
-    using TransitionSorter = engine_interfaces::TransitionSorter<Action>;
+    using TransitionSorter = engine_interfaces::TransitionSorter<State, Action>;
 
     using EngineValueType = engines::EngineValueType<UseInterval>;
 

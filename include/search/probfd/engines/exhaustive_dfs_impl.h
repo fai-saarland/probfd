@@ -211,7 +211,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
     statistics_.expanded++;
 
     if (transition_sort_ != nullptr) {
-        transition_sort_->sort(state_id, aops, successors, search_space_);
+        transition_sort_->sort(state, aops, successors, search_space_);
     }
 
     expansion_infos_.emplace_back(stack_infos_.size(), neighbors_.size());

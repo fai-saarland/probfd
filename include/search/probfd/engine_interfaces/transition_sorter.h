@@ -1,6 +1,7 @@
 #ifndef PROBFD_ENGINE_INTERFACES_TRANSITION_SORTER_H
 #define PROBFD_ENGINE_INTERFACES_TRANSITION_SORTER_H
 
+#include "probfd/type_traits.h"
 #include "probfd/types.h"
 
 #include <vector>
@@ -19,7 +20,7 @@ class StateProperties;
  *
  * @tparam Action - The action type of the underlying MDP model.
  */
-template <typename Action>
+template <typename State, typename Action>
 class TransitionSorter {
 public:
     virtual ~TransitionSorter() = default;
@@ -36,7 +37,7 @@ public:
      * actions.
      */
     virtual void sort(
-        StateID state,
+        param_type<State> state,
         const std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors,
         StateProperties& properties) = 0;

@@ -23,7 +23,7 @@ class PolicyPicker;
 template <typename>
 class SuccessorSampler;
 
-template <typename>
+template <typename, typename>
 class TransitionSorter;
 
 } // namespace engine_interfaces
@@ -44,7 +44,8 @@ using TaskPolicyPicker = engine_interfaces::PolicyPicker<State, OperatorID>;
 using TaskSuccessorSampler = engine_interfaces::SuccessorSampler<OperatorID>;
 
 /// Type alias for TransitionSorters for probabilistic planning tasks.
-using TaskTransitionSorter = engine_interfaces::TransitionSorter<OperatorID>;
+using TaskTransitionSorter =
+    engine_interfaces::TransitionSorter<State, OperatorID>;
 
 } // namespace probfd
 

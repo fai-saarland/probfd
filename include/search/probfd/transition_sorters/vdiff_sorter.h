@@ -17,7 +17,7 @@ public:
 
 protected:
     virtual void sort(
-        StateID state,
+        const State& state,
         const std::vector<OperatorID>& action_choices,
         std::vector<Distribution<StateID>>& successors,
         engine_interfaces::StateProperties& properties) override;
