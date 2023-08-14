@@ -1,8 +1,8 @@
 #ifndef PROBFD_POLICY_PICKERS_STABLE_POLICY_PICKER_H
 #define PROBFD_POLICY_PICKERS_STABLE_POLICY_PICKER_H
 
+#include "probfd/engine_interfaces/fdr_types.h"
 #include "probfd/engine_interfaces/policy_picker.h"
-#include "probfd/engine_interfaces/task_types.h"
 
 #include "probfd/distribution.h"
 #include "probfd/transition.h"

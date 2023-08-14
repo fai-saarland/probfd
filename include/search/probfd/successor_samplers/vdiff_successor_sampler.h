@@ -1,8 +1,8 @@
 #ifndef PROBFD_SUCCESSOR_SAMPLERS_VDIFF_SUCCESSOR_SAMPLER_H
 #define PROBFD_SUCCESSOR_SAMPLERS_VDIFF_SUCCESSOR_SAMPLER_H
 
+#include "probfd/engine_interfaces/fdr_types.h"
 #include "probfd/engine_interfaces/successor_sampler.h"
-#include "probfd/engine_interfaces/task_types.h"
 
 #include "probfd/distribution.h"
 
@@ -17,7 +17,7 @@ class RandomNumberGenerator;
 namespace probfd {
 namespace successor_samplers {
 
-class VDiffSuccessorSampler : public TaskSuccessorSampler {
+class VDiffSuccessorSampler : public FDRSuccessorSampler {
     Distribution<StateID> biased_;
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 

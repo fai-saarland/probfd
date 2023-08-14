@@ -46,11 +46,11 @@ struct translate_action<false, Op> {
 /* SuccessorSampler */
 
 template <>
-struct Wrapper<false, true, std::shared_ptr<TaskSuccessorSampler>> {
+struct Wrapper<false, true, std::shared_ptr<FDRSuccessorSampler>> {
     using type = std::shared_ptr<engine_interfaces::SuccessorSampler<
         quotients::QuotientAction<OperatorID>>>;
 
-    type operator()(std::shared_ptr<TaskSuccessorSampler> t) const
+    type operator()(std::shared_ptr<FDRSuccessorSampler> t) const
     {
         return std::make_shared<
             quotients::RepresentativeSuccessorSampler<State>>(t);
@@ -58,11 +58,11 @@ struct Wrapper<false, true, std::shared_ptr<TaskSuccessorSampler>> {
 };
 
 template <bool Fret>
-struct Wrapper<true, Fret, std::shared_ptr<TaskSuccessorSampler>> {
+struct Wrapper<true, Fret, std::shared_ptr<FDRSuccessorSampler>> {
     using type = std::shared_ptr<engine_interfaces::SuccessorSampler<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>;
 
-    type operator()(std::shared_ptr<TaskSuccessorSampler>) const
+    type operator()(std::shared_ptr<FDRSuccessorSampler>) const
     {
         // HACK to access the global rng...
         plugins::Options opts;
@@ -79,22 +79,22 @@ struct Wrapper<true, Fret, std::shared_ptr<TaskSuccessorSampler>> {
 /* OpenList */
 
 template <>
-struct Wrapper<false, true, std::shared_ptr<TaskOpenList>> {
+struct Wrapper<false, true, std::shared_ptr<FDROpenList>> {
     using type = std::shared_ptr<
         engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>;
 
-    type operator()(std::shared_ptr<TaskOpenList> t) const
+    type operator()(std::shared_ptr<FDROpenList> t) const
     {
         return std::make_shared<quotients::RepresentativeOpenList<State>>(t);
     }
 };
 
 template <bool Fret>
-struct Wrapper<true, Fret, std::shared_ptr<TaskOpenList>> {
+struct Wrapper<true, Fret, std::shared_ptr<FDROpenList>> {
     using type = std::shared_ptr<engine_interfaces::OpenList<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>;
 
-    type operator()(std::shared_ptr<TaskOpenList>) const
+    type operator()(std::shared_ptr<FDROpenList>) const
     {
         return std::make_shared<open_lists::LifoOpenList<
             typename translate_action<Fret, bisimulation::QuotientAction>::

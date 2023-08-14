@@ -6,12 +6,11 @@
 namespace probfd {
 namespace open_lists {
 
-class FifoOpenListFactory : public TaskOpenListFactory {
+class FifoOpenListFactory : public FDROpenListFactory {
 public:
     ~FifoOpenListFactory() override = default;
 
-    std::shared_ptr<TaskOpenList>
-    create_open_list(TaskMDP* state_space) override;
+    std::shared_ptr<FDROpenList> create_open_list(FDRMDP* state_space) override;
 };
 
 } // namespace open_lists

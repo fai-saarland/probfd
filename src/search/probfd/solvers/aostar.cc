@@ -20,13 +20,13 @@ class AOStarSolver : public MDPHeuristicSearch<Bisimulation, false> {
         typename MDPHeuristicSearch<Bisimulation, false>::template WrappedType<
             T>;
 
-    WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
+    WrappedType<std::shared_ptr<FDRSuccessorSampler>> successor_sampler_;
 
 public:
     explicit AOStarSolver(const plugins::Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
         , successor_sampler_(this->template wrap<>(
-              opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+              opts.get<std::shared_ptr<FDRSuccessorSamplerFactory>>(
                       "successor_sampler")
                   ->create_sampler(this->task_mdp.get())))
     {
@@ -34,7 +34,7 @@ public:
 
     std::string get_heuristic_search_name() const override { return "aostar"; }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         return this->template create_heuristic_search_engine<
             engines::ao_search::ao_star::AOStar>(successor_sampler_);
@@ -54,7 +54,7 @@ public:
     AOStarSolverFeature()
         : MDPHeuristicSearchSolverFeature<AOStarSolver>("aostar")
     {
-        add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+        add_option<std::shared_ptr<FDRSuccessorSamplerFactory>>(
             "successor_sampler",
             "",
             "arbitrary_successor_selector_factory");

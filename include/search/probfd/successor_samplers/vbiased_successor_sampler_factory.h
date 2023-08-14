@@ -16,14 +16,14 @@ namespace probfd {
 
 namespace successor_samplers {
 
-class VBiasedSuccessorSamplerFactory : public TaskSuccessorSamplerFactory {
+class VBiasedSuccessorSamplerFactory : public FDRSuccessorSamplerFactory {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
     explicit VBiasedSuccessorSamplerFactory(const plugins::Options&);
     ~VBiasedSuccessorSamplerFactory() override = default;
 
-    std::shared_ptr<TaskSuccessorSampler> create_sampler(TaskMDP*) override;
+    std::shared_ptr<FDRSuccessorSampler> create_sampler(FDRMDP*) override;
 };
 
 } // namespace successor_samplers

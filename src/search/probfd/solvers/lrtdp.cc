@@ -25,7 +25,7 @@ class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     using LRTDP = LRTDP<State, Action, Interval, Fret>;
 
     const TrialTerminationCondition stop_consistent_;
-    WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
+    WrappedType<std::shared_ptr<FDRSuccessorSampler>> successor_sampler_;
 
 public:
     explicit LRTDPSolver(const plugins::Options& opts)
@@ -33,7 +33,7 @@ public:
         , stop_consistent_(
               opts.get<TrialTerminationCondition>("terminate_trial"))
         , successor_sampler_(
-              this->wrap(opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+              this->wrap(opts.get<std::shared_ptr<FDRSuccessorSamplerFactory>>(
                                  "successor_sampler")
                              ->create_sampler(this->task_mdp.get())))
     {
@@ -52,7 +52,7 @@ public:
 
     std::string get_heuristic_search_name() const override { return "lrtdp"; }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         return this->template create_heuristic_search_engine<LRTDP>(
             stop_consistent_,
@@ -73,7 +73,7 @@ public:
     LRTDPSolverFeature()
         : MDPFRETHeuristicSearchSolverFeature<LRTDPSolver>("lrtdp")
     {
-        add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+        add_option<std::shared_ptr<FDRSuccessorSamplerFactory>>(
             "successor_sampler",
             "",
             "random_successor_sampler_factory()");

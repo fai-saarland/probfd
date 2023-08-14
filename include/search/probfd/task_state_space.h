@@ -4,9 +4,9 @@
 #include "probfd/storage/per_state_storage.h"
 #include "probfd/storage/segmented_memory_pool.h"
 
+#include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
 #include "probfd/task_proxy.h"
-#include "probfd/task_types.h"
 
 #include "downward/algorithms/segmented_vector.h"
 
@@ -28,7 +28,7 @@ class Evaluator;
 namespace probfd {
 class ProbabilisticTask;
 
-class InducedTaskStateSpace : public TaskSimpleMDP {
+class TaskStateSpace : public FDRSimpleMDP {
 protected:
     struct Statistics {
         unsigned long long single_transition_generator_calls = 0;
@@ -54,7 +54,7 @@ protected:
     successor_generator::SuccessorGenerator gen_;
     StateRegistry state_registry_;
 
-    const std::shared_ptr<TaskSimpleCostFunction> cost_function_;
+    const std::shared_ptr<FDRSimpleCostFunction> cost_function_;
 
     const std::vector<std::shared_ptr<::Evaluator>> notify_;
 
@@ -64,10 +64,10 @@ protected:
     Statistics statistics_;
 
 public:
-    InducedTaskStateSpace(
+    TaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
-        std::shared_ptr<TaskSimpleCostFunction> cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> cost_function,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators = {});
 

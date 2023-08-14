@@ -27,7 +27,7 @@ class HPOMGenerator : public ConstraintGenerator {
 public:
     void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<TaskCostFunction>& task_cost_function,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function,
         lp::LinearProgram& lp) override final;
 
     void
@@ -38,7 +38,7 @@ public:
 
     static void generate_hpom_lp(
         const ProbabilisticTaskProxy& task_proxy,
-        const TaskCostFunction& task_cost_function,
+        const FDRCostFunction& task_cost_function,
         lp::LinearProgram& lp,
         std::vector<int>& offsets);
 };

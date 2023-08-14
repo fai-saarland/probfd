@@ -16,7 +16,7 @@ namespace occupation_measures {
 
 OccupationMeasureHeuristic::OccupationMeasureHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction> task_cost_function,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     utils::LogProxy log,
     lp::LPSolverType solver_type,
     std::shared_ptr<ConstraintGenerator> constraint_generator)

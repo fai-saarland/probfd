@@ -23,8 +23,8 @@ using namespace engines::exhaustive_dfs;
 class ExhaustiveDFSSolver : public MDPSolver {
     const Interval cost_bound_;
 
-    std::shared_ptr<TaskNewStateObserverList> new_state_handler_;
-    std::shared_ptr<TaskTransitionSorter> transition_sort_;
+    std::shared_ptr<FDRNewStateObserverList> new_state_handler_;
+    std::shared_ptr<FDRTransitionSorter> transition_sort_;
 
     const bool dual_bounds_;
     const bool interval_comparison_;
@@ -37,12 +37,12 @@ public:
     explicit ExhaustiveDFSSolver(const plugins::Options& opts)
         : MDPSolver(opts)
         , cost_bound_(0_vt, task_cost_function->get_non_goal_termination_cost())
-        , new_state_handler_(new TaskNewStateObserverList(
-              opts.get_list<std::shared_ptr<TaskNewStateObserver>>(
+        , new_state_handler_(new FDRNewStateObserverList(
+              opts.get_list<std::shared_ptr<FDRNewStateObserver>>(
                   "on_new_state")))
         , transition_sort_(
               opts.contains("order")
-                  ? opts.get<std::shared_ptr<TaskTransitionSorterFactory>>(
+                  ? opts.get<std::shared_ptr<FDRTransitionSorterFactory>>(
                             "order")
                         ->create_transition_sorter(this->task_mdp.get())
                   : nullptr)
@@ -58,7 +58,7 @@ public:
 
     std::string get_engine_name() const override { return "exhaustive_dfs"; }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         using Engine = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
         using Engine2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
@@ -98,11 +98,11 @@ public:
 
         MDPSolver::add_options_to_feature(*this);
 
-        add_list_option<std::shared_ptr<TaskNewStateObserver>>(
+        add_list_option<std::shared_ptr<FDRNewStateObserver>>(
             "on_new_state",
             "",
             "[]");
-        add_option<std::shared_ptr<TaskTransitionSorterFactory>>(
+        add_option<std::shared_ptr<FDRTransitionSorterFactory>>(
             "order",
             "",
             plugins::ArgumentInfo::NO_DEFAULT);

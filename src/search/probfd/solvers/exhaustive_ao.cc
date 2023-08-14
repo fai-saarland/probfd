@@ -19,13 +19,13 @@ class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
         typename MDPHeuristicSearch<Bisimulation, false>::template WrappedType<
             T>;
 
-    WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
+    WrappedType<std::shared_ptr<FDROpenList>> open_list_;
 
 public:
     explicit ExhaustiveAOSolver(const plugins::Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
         , open_list_(this->wrap(
-              opts.get<std::shared_ptr<TaskOpenListFactory>>("open_list")
+              opts.get<std::shared_ptr<FDROpenListFactory>>("open_list")
                   ->create_open_list(this->task_mdp.get())))
     {
     }
@@ -35,7 +35,7 @@ public:
         return "exhaustive_ao";
     }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         return this->template create_heuristic_search_engine<
             engines::exhaustive_ao::ExhaustiveAOSearch>(open_list_);
@@ -48,7 +48,7 @@ public:
     ExhaustiveAOSolverFeature()
         : MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver>("exhaustive_ao")
     {
-        add_option<std::shared_ptr<TaskOpenListFactory>>(
+        add_option<std::shared_ptr<FDROpenListFactory>>(
             "open_list",
             "",
             "lifo_open_list_factory");

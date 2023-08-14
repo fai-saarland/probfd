@@ -38,7 +38,7 @@ PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
 
 PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<TaskCostFunction>& task_cost_function)
+    const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
     ProbabilisticTaskProxy task_proxy(*task);
 

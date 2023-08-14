@@ -6,18 +6,18 @@
 namespace probfd {
 namespace open_lists {
 
-static class TaskOpenListFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskOpenListFactory> {
+static class FDROpenListFactoryCategoryPlugin
+    : public plugins::TypedCategoryPlugin<FDROpenListFactory> {
 public:
-    TaskOpenListFactoryCategoryPlugin()
-        : TypedCategoryPlugin("TaskOpenListFactory")
+    FDROpenListFactoryCategoryPlugin()
+        : TypedCategoryPlugin("FDROpenListFactory")
     {
         document_synopsis("Factory for open lists");
     }
 } _category_plugin;
 
 class FifoOpenListFactoryFeature
-    : public plugins::TypedFeature<TaskOpenListFactory, FifoOpenListFactory> {
+    : public plugins::TypedFeature<FDROpenListFactory, FifoOpenListFactory> {
 public:
     FifoOpenListFactoryFeature()
         : TypedFeature("fifo_open_list_factory")
@@ -33,7 +33,7 @@ public:
 };
 
 class LifoOpenListFactoryFeature
-    : public plugins::TypedFeature<TaskOpenListFactory, LifoOpenListFactory> {
+    : public plugins::TypedFeature<FDROpenListFactory, LifoOpenListFactory> {
 public:
     LifoOpenListFactoryFeature()
         : TypedFeature("lifo_open_list_factory")

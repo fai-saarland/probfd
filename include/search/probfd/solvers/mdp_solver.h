@@ -3,15 +3,15 @@
 
 #include "probfd/solver_interface.h"
 
-#include "probfd/engine_interfaces/task_types.h"
+#include "probfd/engine_interfaces/fdr_types.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/engine.h"
 #include "probfd/evaluator.h"
+#include "probfd/fdr_types.h"
 #include "probfd/progress_report.h"
 #include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
-#include "probfd/task_types.h"
 
 #include "downward/utils/logging.h"
 
@@ -26,7 +26,7 @@ class Feature;
 } // namespace plugins
 
 namespace probfd {
-class InducedTaskStateSpace;
+class TaskStateSpace;
 
 /// This namespace contains the solver plugins for various search engines.
 namespace solvers {
@@ -38,11 +38,11 @@ class MDPSolver : public SolverInterface {
 protected:
     const std::shared_ptr<ProbabilisticTask> task;
     ProbabilisticTaskProxy task_proxy;
-    const std::shared_ptr<TaskCostFunction> task_cost_function;
+    const std::shared_ptr<FDRCostFunction> task_cost_function;
     mutable utils::LogProxy log;
 
-    std::unique_ptr<InducedTaskStateSpace> task_mdp;
-    std::shared_ptr<TaskEvaluator> heuristic;
+    std::unique_ptr<TaskStateSpace> task_mdp;
+    std::shared_ptr<FDREvaluator> heuristic;
 
     ProgressReport progress_;
 
@@ -64,7 +64,7 @@ public:
      * @tparam Engine - The engine type to construct.
      */
     template <typename Engine, typename... Args>
-    std::unique_ptr<TaskMDPEngine> engine_factory(Args&&... args)
+    std::unique_ptr<FDRMDPEngine> engine_factory(Args&&... args)
     {
         return std::make_unique<Engine>(std::forward<Args>(args)...);
     }
@@ -72,7 +72,7 @@ public:
     /**
      * @brief Factory method a new instance of the encapsulated MDP engine.
      */
-    virtual std::unique_ptr<TaskMDPEngine> create_engine() = 0;
+    virtual std::unique_ptr<FDRMDPEngine> create_engine() = 0;
 
     /**
      * @brief Returns the name of the encapsulated MDP engine.

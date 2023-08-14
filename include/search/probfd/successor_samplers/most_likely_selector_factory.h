@@ -6,11 +6,11 @@
 namespace probfd {
 namespace successor_samplers {
 
-class MostLikelySuccessorSelectorFactory : public TaskSuccessorSamplerFactory {
+class MostLikelySuccessorSelectorFactory : public FDRSuccessorSamplerFactory {
 public:
     ~MostLikelySuccessorSelectorFactory() override = default;
 
-    std::shared_ptr<TaskSuccessorSampler> create_sampler(TaskMDP*) override;
+    std::shared_ptr<FDRSuccessorSampler> create_sampler(FDRMDP*) override;
 };
 
 } // namespace successor_samplers

@@ -3,7 +3,7 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
-#include "probfd/task_types.h"
+#include "probfd/fdr_types.h"
 
 #include "downward/operator_id.h"
 
@@ -22,7 +22,7 @@ public:
     explicit VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps_);
 
     int pick_index(
-        TaskMDP& mdp,
+        FDRMDP& mdp,
         StateID state,
         std::optional<OperatorID> prev_policy,
         const std::vector<Transition<OperatorID>>& greedy_transitions,

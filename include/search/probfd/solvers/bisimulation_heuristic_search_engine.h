@@ -40,14 +40,14 @@ struct BisimulationTimer {
     }
 };
 
-class BisimulationBasedHeuristicSearchEngine : public TaskMDPEngine {
+class BisimulationBasedHeuristicSearchEngine : public FDRMDPEngine {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
     using QQAction = quotients::QuotientAction<QAction>;
 
 protected:
     const std::shared_ptr<ProbabilisticTask> task;
-    const std::shared_ptr<TaskCostFunction> task_cost_function;
+    const std::shared_ptr<FDRCostFunction> task_cost_function;
 
     const std::string engine_name_;
 
@@ -64,7 +64,7 @@ protected:
 public:
     explicit BisimulationBasedHeuristicSearchEngine(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function,
+        std::shared_ptr<FDRCostFunction> task_cost_function,
         const std::string& engine_name)
         : task(std::move(task))
         , task_cost_function(std::move(task_cost_function))
@@ -95,7 +95,7 @@ public:
         typename... Args>
     static std::unique_ptr<BisimulationBasedHeuristicSearchEngine> Constructor(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function,
+        std::shared_ptr<FDRCostFunction> task_cost_function,
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,
@@ -117,7 +117,7 @@ public:
     }
 
     virtual Interval
-    solve(TaskMDP&, TaskEvaluator&, const State&, double max_time) override
+    solve(FDRMDP&, FDREvaluator&, const State&, double max_time) override
     {
         bisimulation::InducedQuotientEvaluator heuristic(
             &state_space_,
@@ -153,7 +153,7 @@ class QBisimulationBasedHeuristicSearchEngine
 public:
     explicit QBisimulationBasedHeuristicSearchEngine(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function,
+        std::shared_ptr<FDRCostFunction> task_cost_function,
         const std::string& engine_name)
         : BisimulationBasedHeuristicSearchEngine(
               std::move(task),
@@ -174,7 +174,7 @@ public:
         typename... Args>
     static std::unique_ptr<QBisimulationBasedHeuristicSearchEngine> Constructor(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function,
+        std::shared_ptr<FDRCostFunction> task_cost_function,
         const std::string& engine_name,
         ProgressReport& progress,
         bool interval,

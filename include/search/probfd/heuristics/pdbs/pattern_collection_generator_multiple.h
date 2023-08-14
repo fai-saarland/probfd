@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 
-#include "probfd/task_types.h"
+#include "probfd/fdr_types.h"
 
 #include <memory>
 #include <set>
@@ -47,13 +47,13 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const ProbabilisticTaskProxy& task_proxy,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
 
     virtual PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<TaskCostFunction>& task_cost_function) override;
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 
 public:
     explicit PatternCollectionGeneratorMultiple(

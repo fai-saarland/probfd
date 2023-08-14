@@ -12,11 +12,11 @@
 namespace probfd {
 namespace policy_pickers {
 
-static class TaskPolicyPickerCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskPolicyPicker> {
+static class FDRPolicyPickerCategoryPlugin
+    : public plugins::TypedCategoryPlugin<FDRPolicyPicker> {
 public:
-    TaskPolicyPickerCategoryPlugin()
-        : TypedCategoryPlugin("TaskPolicyPicker")
+    FDRPolicyPickerCategoryPlugin()
+        : TypedCategoryPlugin("FDRPolicyPicker")
     {
         document_synopsis("Factory for policy action tiebreakers");
     }
@@ -24,7 +24,7 @@ public:
 
 class ArbitraryTieBreakerFeature
     : public plugins::TypedFeature<
-          TaskPolicyPicker,
+          FDRPolicyPicker,
           ArbitraryTiebreaker<State, OperatorID>> {
 public:
     ArbitraryTieBreakerFeature()
@@ -35,7 +35,7 @@ public:
 };
 
 class OperatorIDTieBreakerFeature
-    : public plugins::TypedFeature<TaskPolicyPicker, OperatorIdTiebreaker> {
+    : public plugins::TypedFeature<FDRPolicyPicker, OperatorIdTiebreaker> {
 public:
     OperatorIDTieBreakerFeature()
         : TypedFeature("operator_id_policy_tiebreaker")
@@ -46,7 +46,7 @@ public:
 };
 
 class RandomTieBreakerFeature
-    : public plugins::TypedFeature<TaskPolicyPicker, RandomTiebreaker> {
+    : public plugins::TypedFeature<FDRPolicyPicker, RandomTiebreaker> {
 public:
     RandomTieBreakerFeature()
         : TypedFeature("random_policy_tiebreaker")
@@ -57,7 +57,7 @@ public:
 };
 
 class ValueGapTieBreakerFeature
-    : public plugins::TypedFeature<TaskPolicyPicker, VDiffTiebreaker> {
+    : public plugins::TypedFeature<FDRPolicyPicker, VDiffTiebreaker> {
 public:
     ValueGapTieBreakerFeature()
         : TypedFeature("value_gap_policy_tiebreaker")

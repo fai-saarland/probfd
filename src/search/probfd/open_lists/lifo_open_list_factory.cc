@@ -6,7 +6,7 @@
 namespace probfd {
 namespace open_lists {
 
-std::shared_ptr<TaskOpenList> LifoOpenListFactory::create_open_list(TaskMDP*)
+std::shared_ptr<FDROpenList> LifoOpenListFactory::create_open_list(FDRMDP*)
 {
     return std::make_shared<LifoOpenList<OperatorID>>();
 }

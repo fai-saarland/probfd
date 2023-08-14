@@ -83,7 +83,7 @@ public:
     ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         Pattern pattern,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
@@ -132,7 +132,7 @@ public:
     ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         const ::pdbs::PatternDatabase& pdb,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -186,7 +186,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -247,7 +247,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());

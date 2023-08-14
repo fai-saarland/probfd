@@ -23,7 +23,7 @@ namespace pdbs {
 
 ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction> task_cost_function,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     std::shared_ptr<PatternCollectionGenerator> generator,
     double max_time_dominance_pruning,
     utils::LogProxy log)
@@ -128,9 +128,9 @@ class ProbabilityAwarePDBHeuristicFactory : public TaskEvaluatorFactory {
 public:
     explicit ProbabilityAwarePDBHeuristicFactory(const plugins::Options& opts);
 
-    std::unique_ptr<TaskEvaluator> create_evaluator(
+    std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
@@ -142,10 +142,10 @@ ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
 {
 }
 
-std::unique_ptr<TaskEvaluator>
+std::unique_ptr<FDREvaluator>
 ProbabilityAwarePDBHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction> task_cost_function)
+    std::shared_ptr<FDRCostFunction> task_cost_function)
 {
     return std::make_unique<ProbabilityAwarePDBHeuristic>(
         task,

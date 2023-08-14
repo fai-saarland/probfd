@@ -54,7 +54,7 @@ vector<int> get_non_goal_variables(const ProbabilisticTaskProxy& task_proxy)
     return non_goal_variables;
 }
 
-class ExplicitTaskCostFunction : public TaskSimpleCostFunction {
+class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
     const ProbabilisticTaskProxy& task_proxy;
     std::vector<value_t> costs;
     const value_t non_goal_termination;
@@ -62,7 +62,7 @@ class ExplicitTaskCostFunction : public TaskSimpleCostFunction {
 public:
     ExplicitTaskCostFunction(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskSimpleCostFunction& cost_function)
+        FDRSimpleCostFunction& cost_function)
         : task_proxy(task_proxy)
         , non_goal_termination(cost_function.get_non_goal_termination_cost())
     {
@@ -160,7 +160,7 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
 
 PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     const shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<TaskCostFunction>& task_cost_function)
+    const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
     if (log.is_at_least_normal()) {
         log << "max pdb size: " << max_pdb_size << endl;

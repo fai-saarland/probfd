@@ -22,7 +22,7 @@ namespace pdbs {
 
 PatternCollectionInformation::PatternCollectionInformation(
     const ProbabilisticTaskProxy& arg_task_proxy,
-    std::shared_ptr<TaskCostFunction> arg_task_cost_function,
+    std::shared_ptr<FDRCostFunction> arg_task_cost_function,
     ::pdbs::PatternCollectionInformation det_info,
     shared_ptr<SubCollectionFinder> arg_subcollection_finder)
     : task_proxy(arg_task_proxy)
@@ -49,7 +49,7 @@ PatternCollectionInformation::PatternCollectionInformation(
 
 PatternCollectionInformation::PatternCollectionInformation(
     const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<TaskCostFunction> task_cost_function,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     shared_ptr<PatternCollection> patterns)
     : PatternCollectionInformation(
           task_proxy,
@@ -61,7 +61,7 @@ PatternCollectionInformation::PatternCollectionInformation(
 
 PatternCollectionInformation::PatternCollectionInformation(
     const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<TaskCostFunction> task_cost_function,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     shared_ptr<PatternCollection> patterns,
     shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)

@@ -15,7 +15,7 @@
 
 namespace probfd {
 
-void InducedTaskStateSpace::Statistics::print(utils::LogProxy log) const
+void TaskStateSpace::Statistics::print(utils::LogProxy log) const
 {
     log << "  Applicable operators: " << generated_operators << " generated, "
         << computed_operators << " computed, " << aops_generator_calls
@@ -27,10 +27,10 @@ void InducedTaskStateSpace::Statistics::print(utils::LogProxy log) const
         << std::endl;
 }
 
-InducedTaskStateSpace::InducedTaskStateSpace(
+TaskStateSpace::TaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     utils::LogProxy log,
-    std::shared_ptr<TaskSimpleCostFunction> cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> cost_function,
     const std::vector<std::shared_ptr<::Evaluator>>& path_dependent_evaluators)
     : task_proxy(*task)
     , log(std::move(log))
@@ -41,17 +41,17 @@ InducedTaskStateSpace::InducedTaskStateSpace(
 {
 }
 
-StateID InducedTaskStateSpace::get_state_id(const State& state)
+StateID TaskStateSpace::get_state_id(const State& state)
 {
     return state.get_id();
 }
 
-State InducedTaskStateSpace::get_state(StateID state_id)
+State TaskStateSpace::get_state(StateID state_id)
 {
     return state_registry_.lookup_state(::StateID(state_id));
 }
 
-void InducedTaskStateSpace::generate_applicable_actions(
+void TaskStateSpace::generate_applicable_actions(
     const State& state,
     std::vector<OperatorID>& result)
 {
@@ -61,7 +61,7 @@ void InducedTaskStateSpace::generate_applicable_actions(
     statistics_.generated_operators += result.size();
 }
 
-void InducedTaskStateSpace::generate_action_transitions(
+void TaskStateSpace::generate_action_transitions(
     const State& state,
     OperatorID op_id,
     Distribution<StateID>& result)
@@ -70,7 +70,7 @@ void InducedTaskStateSpace::generate_action_transitions(
     ++statistics_.single_transition_generator_calls;
 }
 
-void InducedTaskStateSpace::generate_all_transitions(
+void TaskStateSpace::generate_all_transitions(
     const State& state,
     std::vector<OperatorID>& aops,
     std::vector<Distribution<StateID>>& successors)
@@ -86,7 +86,7 @@ void InducedTaskStateSpace::generate_all_transitions(
     statistics_.generated_operators += aops.size();
 }
 
-void InducedTaskStateSpace::generate_all_transitions(
+void TaskStateSpace::generate_all_transitions(
     const State& state,
     std::vector<Transition>& transitions)
 {
@@ -98,37 +98,37 @@ void InducedTaskStateSpace::generate_all_transitions(
     statistics_.generated_operators += transitions.size();
 }
 
-value_t InducedTaskStateSpace::get_action_cost(OperatorID op)
+value_t TaskStateSpace::get_action_cost(OperatorID op)
 {
     return cost_function_->get_action_cost(op);
 }
 
-bool InducedTaskStateSpace::is_goal(param_type<State> state) const
+bool TaskStateSpace::is_goal(param_type<State> state) const
 {
     return cost_function_->is_goal(state);
 }
 
-value_t InducedTaskStateSpace::get_non_goal_termination_cost() const
+value_t TaskStateSpace::get_non_goal_termination_cost() const
 {
     return cost_function_->get_non_goal_termination_cost();
 }
 
-const State& InducedTaskStateSpace::get_initial_state()
+const State& TaskStateSpace::get_initial_state()
 {
     return state_registry_.get_initial_state();
 }
 
-size_t InducedTaskStateSpace::get_num_registered_states() const
+size_t TaskStateSpace::get_num_registered_states() const
 {
     return state_registry_.size();
 }
 
-void InducedTaskStateSpace::print_statistics() const
+void TaskStateSpace::print_statistics() const
 {
     statistics_.print(log);
 }
 
-void InducedTaskStateSpace::compute_successor_dist(
+void TaskStateSpace::compute_successor_dist(
     const State& state,
     OperatorID op_id,
     Distribution<StateID>& successor_dist)
@@ -155,7 +155,7 @@ void InducedTaskStateSpace::compute_successor_dist(
     statistics_.generated_states += successor_dist.size();
 }
 
-void InducedTaskStateSpace::compute_applicable_operators(
+void TaskStateSpace::compute_applicable_operators(
     const State& s,
     std::vector<OperatorID>& ops)
 {

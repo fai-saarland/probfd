@@ -15,14 +15,14 @@ class RandomNumberGenerator;
 namespace probfd {
 namespace successor_samplers {
 
-class UniformSuccessorSamplerFactory : public TaskSuccessorSamplerFactory {
+class UniformSuccessorSamplerFactory : public FDRSuccessorSamplerFactory {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
     explicit UniformSuccessorSamplerFactory(const plugins::Options&);
     ~UniformSuccessorSamplerFactory() override = default;
 
-    std::shared_ptr<TaskSuccessorSampler> create_sampler(TaskMDP*) override;
+    std::shared_ptr<FDRSuccessorSampler> create_sampler(FDRMDP*) override;
 };
 
 } // namespace successor_samplers

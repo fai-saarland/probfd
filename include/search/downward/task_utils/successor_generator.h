@@ -11,7 +11,7 @@ class State;
 class TaskBaseProxy;
 
 namespace probfd {
-class InducedTaskStateSpace;
+class TaskStateSpace;
 
 template <typename>
 struct Transition;
@@ -39,7 +39,7 @@ public:
     void generate_transitions(
         const State& state,
         std::vector<probfd::Transition<OperatorID>>& transitions,
-        probfd::InducedTaskStateSpace& task_state_space) const;
+        probfd::TaskStateSpace& task_state_space) const;
 };
 
 extern PerTaskInformation<SuccessorGenerator> g_successor_generators;

@@ -29,7 +29,7 @@ void SuccessorGenerator::generate_applicable_ops(
 void SuccessorGenerator::generate_transitions(
     const State& state,
     std::vector<probfd::Transition<OperatorID>>& transitions,
-    probfd::InducedTaskStateSpace& task_state_space) const
+    probfd::TaskStateSpace& task_state_space) const
 {
     state.unpack();
     root->generate_transitions(

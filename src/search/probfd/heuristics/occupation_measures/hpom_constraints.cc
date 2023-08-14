@@ -59,7 +59,7 @@ std::vector<std::vector<value_t>> get_transition_probs_explicit(
 
 void HPOMGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<TaskCostFunction>& task_cost_function,
+    const std::shared_ptr<FDRCostFunction>& task_cost_function,
     lp::LinearProgram& lp)
 {
     std::cout << "Initializing HPOM LP constraints..." << std::endl;
@@ -92,7 +92,7 @@ void HPOMGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 
 void HPOMGenerator::generate_hpom_lp(
     const ProbabilisticTaskProxy& task_proxy,
-    const TaskCostFunction& task_cost_function,
+    const FDRCostFunction& task_cost_function,
     lp::LinearProgram& lp,
     std::vector<int>& offset_)
 {

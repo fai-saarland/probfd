@@ -21,7 +21,7 @@ public:
         return "ta_topological_value_iteration";
     }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         using TVIEngine = engines::ta_topological_vi::
             TATopologicalValueIteration<State, OperatorID>;

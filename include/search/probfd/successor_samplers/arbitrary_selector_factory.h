@@ -8,11 +8,11 @@ namespace probfd {
 /// Namespace dedicated to transition sampling.
 namespace successor_samplers {
 
-class ArbitrarySuccessorSelectorFactory : public TaskSuccessorSamplerFactory {
+class ArbitrarySuccessorSelectorFactory : public FDRSuccessorSamplerFactory {
 public:
     ~ArbitrarySuccessorSelectorFactory() override = default;
 
-    std::shared_ptr<TaskSuccessorSampler> create_sampler(TaskMDP*) override;
+    std::shared_ptr<FDRSuccessorSampler> create_sampler(FDRMDP*) override;
 };
 
 } // namespace successor_samplers

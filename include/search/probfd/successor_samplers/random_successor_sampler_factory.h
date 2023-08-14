@@ -15,7 +15,7 @@ class RandomNumberGenerator;
 namespace probfd {
 namespace successor_samplers {
 
-class RandomSuccessorSamplerFactory : public TaskSuccessorSamplerFactory {
+class RandomSuccessorSamplerFactory : public FDRSuccessorSamplerFactory {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
@@ -24,7 +24,7 @@ public:
 
     static void add_options_to_feature(plugins::Feature& feature);
 
-    std::shared_ptr<TaskSuccessorSampler> create_sampler(TaskMDP*) override;
+    std::shared_ptr<FDRSuccessorSampler> create_sampler(FDRMDP*) override;
 };
 
 } // namespace successor_samplers

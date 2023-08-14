@@ -27,7 +27,7 @@ public:
 
     std::string get_engine_name() const override { return "i2dual"; }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         return engine_factory<engines::i2dual::I2Dual>(
             this->task,

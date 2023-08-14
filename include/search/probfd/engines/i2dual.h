@@ -5,8 +5,8 @@
 
 #include "probfd/distribution.h"
 #include "probfd/engine.h"
+#include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"
-#include "probfd/task_types.h"
 #include "probfd/value_type.h"
 
 #include "downward/lp/lp_solver.h"
@@ -45,7 +45,7 @@ class I2Dual : public MDPEngine<State, OperatorID> {
     };
 
     ProbabilisticTaskProxy task_proxy;
-    std::shared_ptr<TaskCostFunction> task_cost_function;
+    std::shared_ptr<FDRCostFunction> task_cost_function;
 
     ProgressReport* progress_;
 
@@ -71,7 +71,7 @@ class I2Dual : public MDPEngine<State, OperatorID> {
 public:
     I2Dual(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function,
+        std::shared_ptr<FDRCostFunction> task_cost_function,
         ProgressReport* progress,
         bool hpom_enabled,
         bool incremental_updates,
@@ -80,15 +80,15 @@ public:
     void print_statistics(std::ostream& out) const override;
 
     Interval solve(
-        TaskMDP& mdp,
-        TaskEvaluator& heuristic,
+        FDRMDP& mdp,
+        FDREvaluator& heuristic,
         const State& state,
         double max_time) override;
 
 private:
     bool evaluate_state(
-        TaskMDP& mdp,
-        TaskEvaluator& heuristic,
+        FDRMDP& mdp,
+        FDREvaluator& heuristic,
         const State& state,
         IDualData& data);
 
@@ -97,12 +97,12 @@ private:
     void prepare_hpom(lp::LinearProgram& lp);
 
     void update_hpom_constraints_expanded(
-        TaskMDP& mdp,
+        FDRMDP& mdp,
         storage::PerStateStorage<IDualData>& data,
         const std::vector<StateID>& expanded);
 
     void update_hpom_constraints_frontier(
-        TaskMDP& mdp,
+        FDRMDP& mdp,
         storage::PerStateStorage<IDualData>& data,
         const std::vector<StateID>& frontier,
         const unsigned start);

@@ -1,15 +1,15 @@
 #ifndef PROBFD_SUCCESSOR_SAMPLERS_MOST_LIKELY_SELECTOR_H
 #define PROBFD_SUCCESSOR_SAMPLERS_MOST_LIKELY_SELECTOR_H
 
+#include "probfd/engine_interfaces/fdr_types.h"
 #include "probfd/engine_interfaces/successor_sampler.h"
-#include "probfd/engine_interfaces/task_types.h"
 
 #include "downward/operator_id.h"
 
 namespace probfd {
 namespace successor_samplers {
 
-class MostLikelySuccessorSelector : public TaskSuccessorSampler {
+class MostLikelySuccessorSelector : public FDRSuccessorSampler {
 protected:
     StateID sample(
         StateID state,

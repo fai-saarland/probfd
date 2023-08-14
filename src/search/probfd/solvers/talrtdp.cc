@@ -22,7 +22,7 @@ class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
 
     const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;
-    WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
+    WrappedType<std::shared_ptr<FDRSuccessorSampler>> successor_sampler_;
 
 public:
     explicit TrapAwareLRTDPSolver(const plugins::Options& opts)
@@ -31,7 +31,7 @@ public:
               opts.get<TrialTerminationCondition>("terminate_trial"))
         , reexpand_traps_(opts.get<bool>("reexpand_traps"))
         , successor_sampler_(
-              this->wrap(opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+              this->wrap(opts.get<std::shared_ptr<FDRSuccessorSamplerFactory>>(
                                  "successor_sampler")
                              ->create_sampler(this->task_mdp.get())))
     {
@@ -40,7 +40,7 @@ public:
     std::string get_engine_name() const override { return "talrtdp"; }
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         return this->template create_quotient_heuristic_search_engine<Engine>(
             stop_consistent_,
@@ -69,7 +69,7 @@ public:
 
         MDPHeuristicSearchBase::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+        add_option<std::shared_ptr<FDRSuccessorSamplerFactory>>(
             "successor_sampler",
             "Successor bias for the trials.",
             "random_successor_sampler_factory");

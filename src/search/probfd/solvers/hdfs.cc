@@ -52,7 +52,7 @@ public:
 
     std::string get_heuristic_search_name() const override { return name_; }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         return this->template create_heuristic_search_engine<Engine>(
             labeling_,
@@ -139,7 +139,7 @@ public:
     {
         document_title("LAO* variant of depth-first heuristic search.");
 
-        add_option<std::shared_ptr<TaskOpenList>>(
+        add_option<std::shared_ptr<FDROpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
@@ -174,7 +174,7 @@ public:
     {
         document_title("iLAO* variant of depth-first heuristic search.");
 
-        add_option<std::shared_ptr<TaskOpenList>>(
+        add_option<std::shared_ptr<FDROpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
@@ -212,7 +212,7 @@ public:
 
         MDPHeuristicSearchBase::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<TaskOpenList>>(
+        add_option<std::shared_ptr<FDROpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",

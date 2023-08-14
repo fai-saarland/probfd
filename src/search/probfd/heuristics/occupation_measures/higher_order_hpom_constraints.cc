@@ -158,7 +158,7 @@ HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(int projection_size)
 
 void HigherOrderHPOMGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<TaskCostFunction>& task_cost_function,
+    const std::shared_ptr<FDRCostFunction>& task_cost_function,
     lp::LinearProgram& lp)
 {
     const value_t term_cost =

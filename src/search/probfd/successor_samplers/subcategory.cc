@@ -12,18 +12,18 @@
 namespace probfd {
 namespace successor_samplers {
 
-static class TaskSuccessorSamplerFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskSuccessorSamplerFactory> {
+static class FDRSuccessorSamplerFactoryCategoryPlugin
+    : public plugins::TypedCategoryPlugin<FDRSuccessorSamplerFactory> {
 public:
-    TaskSuccessorSamplerFactoryCategoryPlugin()
-        : TypedCategoryPlugin("TaskSuccessorSamplerFactory")
+    FDRSuccessorSamplerFactoryCategoryPlugin()
+        : TypedCategoryPlugin("FDRSuccessorSamplerFactory")
     {
     }
 } _category_plugin_collection;
 
 class ArbitrarySuccessorSelectorFactoryFeature
     : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
+          FDRSuccessorSamplerFactory,
           ArbitrarySuccessorSelectorFactory> {
 public:
     ArbitrarySuccessorSelectorFactoryFeature()
@@ -41,7 +41,7 @@ public:
 
 class MostLikelySuccessorSelectorFactoryFeature
     : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
+          FDRSuccessorSamplerFactory,
           MostLikelySuccessorSelectorFactory> {
 public:
     MostLikelySuccessorSelectorFactoryFeature()
@@ -59,7 +59,7 @@ public:
 
 class RandomSuccessorSelectorFactoryFeature
     : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
+          FDRSuccessorSamplerFactory,
           RandomSuccessorSamplerFactory> {
 public:
     RandomSuccessorSelectorFactoryFeature()
@@ -71,7 +71,7 @@ public:
 
 class UniformSuccessorSelectorFactoryFeature
     : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
+          FDRSuccessorSamplerFactory,
           UniformSuccessorSamplerFactory> {
 public:
     UniformSuccessorSelectorFactoryFeature()
@@ -83,7 +83,7 @@ public:
 
 class VBiasedSuccessorSamplerFactoryFeature
     : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
+          FDRSuccessorSamplerFactory,
           VBiasedSuccessorSamplerFactory> {
 public:
     VBiasedSuccessorSamplerFactoryFeature()
@@ -95,7 +95,7 @@ public:
 
 class VDiffSuccessorSamplerFactoryFeature
     : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
+          FDRSuccessorSamplerFactory,
           VDiffSuccessorSamplerFactory> {
 public:
     VDiffSuccessorSamplerFactoryFeature()

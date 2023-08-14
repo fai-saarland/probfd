@@ -41,7 +41,7 @@ class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
 public:
     ProbabilityAwarePDBHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function,
+        std::shared_ptr<FDRCostFunction> task_cost_function,
         std::shared_ptr<PatternCollectionGenerator> generator,
         double max_time_dominance_pruning,
         utils::LogProxy log);

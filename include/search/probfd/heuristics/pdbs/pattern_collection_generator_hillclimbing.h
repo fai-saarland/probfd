@@ -4,7 +4,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/task_types.h"
+#include "probfd/fdr_types.h"
 
 #include "downward/utils/logging.h"
 
@@ -79,7 +79,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     unsigned int generate_candidate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const ProbabilityAwarePatternDatabase& pdb,
@@ -141,7 +141,7 @@ class PatternCollectionGeneratorHillclimbing
     void hill_climbing(
         const ProbabilisticTask* task,
         const ProbabilisticTaskProxy& task_proxy,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         IncrementalPPDBs& current_pdbs);
 
 public:
@@ -157,7 +157,7 @@ public:
     */
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<TaskCostFunction>& task_cost_function) override;
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 };
 
 } // namespace pdbs

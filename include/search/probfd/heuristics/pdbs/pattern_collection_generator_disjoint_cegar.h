@@ -42,7 +42,7 @@ public:
 
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<TaskCostFunction>& task_cost_function) override;
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 };
 
 void add_pattern_collection_generator_cegar_options_to_feature(

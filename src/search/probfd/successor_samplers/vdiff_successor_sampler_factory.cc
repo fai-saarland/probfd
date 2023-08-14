@@ -15,8 +15,8 @@ VDiffSuccessorSamplerFactory::VDiffSuccessorSamplerFactory(
 {
 }
 
-std::shared_ptr<TaskSuccessorSampler>
-VDiffSuccessorSamplerFactory::create_sampler(TaskMDP*)
+std::shared_ptr<FDRSuccessorSampler>
+VDiffSuccessorSamplerFactory::create_sampler(FDRMDP*)
 {
     return std::make_shared<VDiffSuccessorSampler>(rng, prefer_large_gaps);
 }

@@ -36,7 +36,7 @@ template <
     typename Key,
     typename Pop = LifoPop,
     typename Comparison = typename std::less<Key>>
-class KeyBasedOpenList : public TaskOpenList {
+class KeyBasedOpenList : public FDROpenList {
 private:
     using Bucket = std::vector<StateID>;
     // using Buckets = std::vector<Bucket>;

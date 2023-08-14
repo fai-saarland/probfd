@@ -42,7 +42,7 @@ PatternCollectionGeneratorDisjointCegar::
 
 PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<TaskCostFunction>& task_cost_function)
+    const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
     // Store the set of goals in random order.
     ProbabilisticTaskProxy task_proxy(*task);

@@ -1,7 +1,7 @@
 #ifndef PROBFD_TRANSITION_SORTERS_VDIFF_SORTER_H
 #define PROBFD_TRANSITION_SORTERS_VDIFF_SORTER_H
 
-#include "probfd/engine_interfaces/task_types.h"
+#include "probfd/engine_interfaces/fdr_types.h"
 #include "probfd/engine_interfaces/transition_sorter.h"
 
 #include "probfd/value_type.h"
@@ -9,7 +9,7 @@
 namespace probfd {
 namespace transition_sorters {
 
-class VDiffSorter : public TaskTransitionSorter {
+class VDiffSorter : public FDRTransitionSorter {
     const value_t favor_large_gaps_;
 
 public:

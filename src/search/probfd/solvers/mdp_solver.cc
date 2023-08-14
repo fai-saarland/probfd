@@ -36,7 +36,7 @@ MDPSolver::MDPSolver(const plugins::Options& opts)
                     task_cost_function,
                     opts.get_list<std::shared_ptr<::Evaluator>>(
                         "path_dependent_evaluators"))
-              : new InducedTaskStateSpace(
+              : new TaskStateSpace(
                     task,
                     log,
                     task_cost_function,
@@ -71,7 +71,7 @@ void MDPSolver::solve()
 
     try {
         utils::Timer total_timer;
-        std::unique_ptr<TaskMDPEngine> engine = create_engine();
+        std::unique_ptr<FDRMDPEngine> engine = create_engine();
 
         const State& initial_state = task_mdp->get_initial_state();
 

@@ -5,8 +5,8 @@
 #include "probfd/heuristics/pdbs/projection_operator.h"
 #include "probfd/heuristics/pdbs/state_rank.h"
 
+#include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
-#include "probfd/task_types.h"
 
 #include <limits>
 #include <vector>
@@ -25,14 +25,14 @@ class ProjectionStateSpace
     : public SimpleMDP<StateRank, const ProjectionOperator*> {
 
     MatchTree match_tree_;
-    TaskSimpleCostFunction* parent_cost_function;
+    FDRSimpleCostFunction* parent_cost_function;
     std::vector<bool> goal_state_flags_;
 
 public:
     ProjectionStateSpace(
         const ProbabilisticTaskProxy& task_proxy,
         const StateRankingFunction& ranking_function,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
 

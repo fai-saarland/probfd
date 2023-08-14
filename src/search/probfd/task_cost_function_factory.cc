@@ -20,24 +20,24 @@ public:
 
 class MaxProbCostFunctionFactory : public TaskCostFunctionFactory {
 public:
-    std::unique_ptr<TaskCostFunction>
+    std::unique_ptr<FDRCostFunction>
     create_cost_function(std::shared_ptr<ProbabilisticTask> task) override;
 };
 
 class SSPCostFunctionFactory : public TaskCostFunctionFactory {
 public:
-    std::unique_ptr<TaskCostFunction>
+    std::unique_ptr<FDRCostFunction>
     create_cost_function(std::shared_ptr<ProbabilisticTask> task) override;
 };
 
-std::unique_ptr<TaskCostFunction>
+std::unique_ptr<FDRCostFunction>
 MaxProbCostFunctionFactory::create_cost_function(
     std::shared_ptr<ProbabilisticTask> task)
 {
     return std::make_unique<MaxProbCostFunction>(ProbabilisticTaskProxy(*task));
 }
 
-std::unique_ptr<TaskCostFunction> SSPCostFunctionFactory::create_cost_function(
+std::unique_ptr<FDRCostFunction> SSPCostFunctionFactory::create_cost_function(
     std::shared_ptr<ProbabilisticTask> task)
 {
     return std::make_unique<SSPCostFunction>(ProbabilisticTaskProxy(*task));

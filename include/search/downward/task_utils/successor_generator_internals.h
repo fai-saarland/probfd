@@ -10,7 +10,7 @@
 class State;
 
 namespace probfd {
-class InducedTaskStateSpace;
+class TaskStateSpace;
 
 template <typename>
 struct Transition;
@@ -28,7 +28,7 @@ public:
     virtual void generate_transitions(
         const State& state,
         std::vector<probfd::Transition<OperatorID>>& transitions,
-        probfd::InducedTaskStateSpace& task_state_space) const = 0;
+        probfd::TaskStateSpace& task_state_space) const = 0;
 };
 
 class GeneratorForkBinary : public GeneratorBase {
@@ -47,7 +47,7 @@ public:
     virtual void generate_transitions(
         const State& state,
         std::vector<probfd::Transition<OperatorID>>& transitions,
-        probfd::InducedTaskStateSpace& task_state_space) const override;
+        probfd::TaskStateSpace& task_state_space) const override;
 };
 
 class GeneratorForkMulti : public GeneratorBase {
@@ -63,7 +63,7 @@ public:
     virtual void generate_transitions(
         const State& state,
         std::vector<probfd::Transition<OperatorID>>& transitions,
-        probfd::InducedTaskStateSpace& task_state_space) const override;
+        probfd::TaskStateSpace& task_state_space) const override;
 };
 
 class GeneratorSwitchVector : public GeneratorBase {
@@ -82,7 +82,7 @@ public:
     virtual void generate_transitions(
         const State& state,
         std::vector<probfd::Transition<OperatorID>>& transitions,
-        probfd::InducedTaskStateSpace& task_state_space) const override;
+        probfd::TaskStateSpace& task_state_space) const override;
 };
 
 class GeneratorSwitchHash : public GeneratorBase {
@@ -102,7 +102,7 @@ public:
     virtual void generate_transitions(
         const State& state,
         std::vector<probfd::Transition<OperatorID>>& transitions,
-        probfd::InducedTaskStateSpace& task_state_space) const override;
+        probfd::TaskStateSpace& task_state_space) const override;
 };
 
 class GeneratorSwitchSingle : public GeneratorBase {
@@ -123,7 +123,7 @@ public:
     virtual void generate_transitions(
         const State& state,
         std::vector<probfd::Transition<OperatorID>>& transitions,
-        probfd::InducedTaskStateSpace& task_state_space) const override;
+        probfd::TaskStateSpace& task_state_space) const override;
 };
 
 class GeneratorLeafVector : public GeneratorBase {
@@ -139,7 +139,7 @@ public:
     virtual void generate_transitions(
         const State& state,
         std::vector<probfd::Transition<OperatorID>>& transitions,
-        probfd::InducedTaskStateSpace& task_state_space) const override;
+        probfd::TaskStateSpace& task_state_space) const override;
 };
 
 class GeneratorLeafSingle : public GeneratorBase {
@@ -155,7 +155,7 @@ public:
     virtual void generate_transitions(
         const State& state,
         std::vector<probfd::Transition<OperatorID>>& transitions,
-        probfd::InducedTaskStateSpace& task_state_space) const override;
+        probfd::TaskStateSpace& task_state_space) const override;
 };
 } // namespace successor_generator
 

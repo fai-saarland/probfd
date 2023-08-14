@@ -2,8 +2,8 @@
 #define PROBFD_HEURISTICS_DETERMINIZATION_COST_H
 
 #include "probfd/evaluator.h"
+#include "probfd/fdr_types.h"
 #include "probfd/task_evaluator_factory.h"
-#include "probfd/task_types.h"
 
 #include <memory>
 
@@ -24,7 +24,7 @@ namespace heuristics {
  * @note If the underlying classical heuristic is admissible/consistent, this
  * heuristic is also admissible/heuristic.
  */
-class DeterminizationCostHeuristic : public TaskEvaluator {
+class DeterminizationCostHeuristic : public FDREvaluator {
     const std::shared_ptr<::Evaluator> evaluator_;
 
 public:

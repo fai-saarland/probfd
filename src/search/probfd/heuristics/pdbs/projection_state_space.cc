@@ -50,7 +50,7 @@ struct OutcomeInfo {
 ProjectionStateSpace::ProjectionStateSpace(
     const ProbabilisticTaskProxy& task_proxy,
     const StateRankingFunction& ranking_function,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     bool operator_pruning,
     double max_time)
     : match_tree_(task_proxy.get_operators().size())

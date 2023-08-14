@@ -152,7 +152,7 @@ struct PatternCollectionGeneratorHillclimbing::Sample {
 
 class PatternCollectionGeneratorHillclimbing::IncrementalPPDBs {
     ProbabilisticTaskProxy task_proxy;
-    std::shared_ptr<TaskSimpleCostFunction> task_cost_function;
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function;
 
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PPDBCollection> pattern_databases;
@@ -171,13 +171,13 @@ class PatternCollectionGeneratorHillclimbing::IncrementalPPDBs {
 public:
     IncrementalPPDBs(
         const ProbabilisticTaskProxy& task_proxy,
-        std::shared_ptr<TaskSimpleCostFunction> task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const PatternCollection& initial_patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
     IncrementalPPDBs(
         const ProbabilisticTaskProxy& task_proxy,
-        std::shared_ptr<TaskSimpleCostFunction> task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         PatternCollectionInformation& initial_patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
@@ -216,7 +216,7 @@ private:
 
 PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
     const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<TaskSimpleCostFunction> task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     const PatternCollection& initial_patterns,
     std::shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)
@@ -235,7 +235,7 @@ PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
 
 PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
     const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<TaskSimpleCostFunction> task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     PatternCollectionInformation& initial_patterns,
     std::shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy(task_proxy)
@@ -422,7 +422,7 @@ PatternCollectionGeneratorHillclimbing::
 
 unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     utils::CountdownTimer& hill_climbing_timer,
     const std::vector<std::vector<int>>& relevant_neighbours,
     const ProbabilityAwarePatternDatabase& pdb,
@@ -613,7 +613,7 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
 void PatternCollectionGeneratorHillclimbing::hill_climbing(
     const ProbabilisticTask* task,
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     IncrementalPPDBs& current_pdbs)
 {
     const value_t termination_cost =
@@ -771,7 +771,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
 
 PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<TaskCostFunction>& task_cost_function)
+    const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
     utils::Timer timer;
 

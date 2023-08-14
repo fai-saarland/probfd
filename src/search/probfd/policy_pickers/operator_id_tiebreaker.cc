@@ -25,7 +25,7 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(bool stable_policy, int ascending)
 }
 
 int OperatorIdTiebreaker::pick_index(
-    TaskMDP&,
+    FDRMDP&,
     StateID,
     std::optional<OperatorID>,
     const std::vector<Transition<OperatorID>>& greedy_transitions,

@@ -7,7 +7,7 @@
 
 namespace probfd {
 
-class CachingTaskStateSpace : public InducedTaskStateSpace {
+class CachingTaskStateSpace : public TaskStateSpace {
     struct CacheEntry {
         bool is_initialized() const
         {
@@ -26,7 +26,7 @@ public:
     CachingTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
-        std::shared_ptr<TaskSimpleCostFunction> task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators);
 

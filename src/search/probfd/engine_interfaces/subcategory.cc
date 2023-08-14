@@ -1,28 +1,28 @@
+#include "probfd/engine_interfaces/fdr_types.h"
 #include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/policy_picker.h"
 #include "probfd/engine_interfaces/successor_sampler.h"
-#include "probfd/engine_interfaces/task_types.h"
 #include "probfd/engine_interfaces/transition_sorter.h"
 
 #include "downward/plugins/plugin.h"
 
 namespace probfd {
 
-static class TaskOpenListCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskOpenList> {
+static class FDROpenListCategoryPlugin
+    : public plugins::TypedCategoryPlugin<FDROpenList> {
 public:
-    TaskOpenListCategoryPlugin()
-        : TypedCategoryPlugin("TaskOpenList")
+    FDROpenListCategoryPlugin()
+        : TypedCategoryPlugin("FDROpenList")
     {
     }
 } _category_plugin_open_list;
 
-static class TaskNewStateObserverCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskNewStateObserver> {
+static class FDRNewStateObserverCategoryPlugin
+    : public plugins::TypedCategoryPlugin<FDRNewStateObserver> {
 public:
-    TaskNewStateObserverCategoryPlugin()
-        : TypedCategoryPlugin("TaskNewStateObserver")
+    FDRNewStateObserverCategoryPlugin()
+        : TypedCategoryPlugin("FDRNewStateObserver")
     {
     }
 } _category_plugin_new_state_observer;

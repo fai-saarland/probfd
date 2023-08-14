@@ -19,7 +19,7 @@ namespace heuristics {
 namespace pdbs {
 
 namespace {
-class ExplicitTaskCostFunction : public TaskSimpleCostFunction {
+class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
     std::vector<std::set<int>> affected_vars;
@@ -77,7 +77,7 @@ public:
 
 GZOCPHeuristic::GZOCPHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction> task_cost_function,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator,
     OrderingStrategy order,
@@ -167,9 +167,9 @@ class GZOCPHeuristicFactory : public TaskEvaluatorFactory {
 public:
     explicit GZOCPHeuristicFactory(const plugins::Options& opts);
 
-    std::unique_ptr<TaskEvaluator> create_evaluator(
+    std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 GZOCPHeuristicFactory::GZOCPHeuristicFactory(const plugins::Options& opts)
@@ -181,9 +181,9 @@ GZOCPHeuristicFactory::GZOCPHeuristicFactory(const plugins::Options& opts)
 {
 }
 
-std::unique_ptr<TaskEvaluator> GZOCPHeuristicFactory::create_evaluator(
+std::unique_ptr<FDREvaluator> GZOCPHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction> task_cost_function)
+    std::shared_ptr<FDRCostFunction> task_cost_function)
 {
     return std::make_unique<GZOCPHeuristic>(
         task,

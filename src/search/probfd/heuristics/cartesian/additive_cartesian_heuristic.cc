@@ -106,9 +106,9 @@ class AdditiveCartesianHeuristicFactory : public TaskEvaluatorFactory {
 public:
     explicit AdditiveCartesianHeuristicFactory(const plugins::Options& opts);
 
-    std::unique_ptr<TaskEvaluator> create_evaluator(
+    std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
@@ -127,10 +127,10 @@ AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
 {
 }
 
-std::unique_ptr<TaskEvaluator>
+std::unique_ptr<FDREvaluator>
 AdditiveCartesianHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction>)
+    std::shared_ptr<FDRCostFunction>)
 {
     return std::make_unique<AdditiveCartesianHeuristic>(
         task,

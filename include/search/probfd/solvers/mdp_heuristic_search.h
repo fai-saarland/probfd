@@ -31,8 +31,8 @@ enum class FretMode { DISABLED, POLICY, VALUE };
 
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
-    std::shared_ptr<TaskPolicyPicker> policy_tiebreaker_;
-    std::shared_ptr<TaskNewStateObserver> new_state_handler_;
+    std::shared_ptr<FDRPolicyPicker> policy_tiebreaker_;
+    std::shared_ptr<FDRNewStateObserver> new_state_handler_;
 
     const bool dual_bounds_;
     const bool interval_comparison_;
@@ -58,8 +58,7 @@ public:
     using MDPHeuristicSearchBase::add_options_to_feature;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngine>
-    create_heuristic_search_engine(Args&&... args)
+    std::unique_ptr<FDRMDPEngine> create_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
             using HeuristicSearchType = HS<State, OperatorID, true>;
@@ -113,8 +112,7 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngine>
-    create_heuristic_search_engine(Args&&... args)
+    std::unique_ptr<FDRMDPEngine> create_heuristic_search_engine(Args&&... args)
     {
         if (this->dual_bounds_) {
             if (this->fret_on_policy_) {
@@ -144,7 +142,7 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngine>
+    std::unique_ptr<FDRMDPEngine>
     create_quotient_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -190,7 +188,7 @@ private:
         class HS,
         bool Interval,
         typename... Args>
-    std::unique_ptr<TaskMDPEngine>
+    std::unique_ptr<FDRMDPEngine>
     create_heuristic_search_engine_wrapper(Args&&... args)
     {
         std::shared_ptr engine = std::make_shared<HS<State, QAction, Interval>>(
@@ -217,8 +215,7 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngine>
-    create_heuristic_search_engine(Args&&... args)
+    std::unique_ptr<FDRMDPEngine> create_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
             return BisimulationBasedHeuristicSearchEngine::
@@ -266,8 +263,7 @@ public:
     using MDPHeuristicSearchBase::add_options_to_feature;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<TaskMDPEngine>
-    create_heuristic_search_engine(Args&&... args)
+    std::unique_ptr<FDRMDPEngine> create_heuristic_search_engine(Args&&... args)
     {
         if (this->dual_bounds_) {
             if (this->fret_on_policy_) {
@@ -300,7 +296,7 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    std::unique_ptr<TaskMDPEngine>
+    std::unique_ptr<FDRMDPEngine>
     create_quotient_heuristic_search_engine(Args&&... args)
     {
         if (dual_bounds_) {
@@ -351,7 +347,7 @@ private:
         template <typename, typename, bool>
         class HS,
         typename... Args>
-    std::unique_ptr<TaskMDPEngine>
+    std::unique_ptr<FDRMDPEngine>
     heuristic_search_engine_factory_wrapper(Args&&... args)
     {
         return QBisimulationBasedHeuristicSearchEngine::

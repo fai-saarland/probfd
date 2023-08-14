@@ -20,7 +20,7 @@ public:
         return "acyclic_value_iteration";
     }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         using AVIEngine =
             engines::acyclic_vi::AcyclicValueIteration<State, OperatorID>;

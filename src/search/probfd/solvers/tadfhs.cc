@@ -19,7 +19,7 @@ class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
     template <typename State, typename Action, bool Interval>
     using Engine = TADepthFirstHeuristicSearch<State, Action, Interval>;
 
-    WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
+    WrappedType<std::shared_ptr<FDROpenList>> open_list_;
     const bool forward_updates_;
     const BacktrackingUpdateType backward_updates_;
     const bool cutoff_tip_;
@@ -34,7 +34,7 @@ public:
         , open_list_(
               opts.contains("open_list")
                   ? this->wrap(
-                        opts.get<std::shared_ptr<TaskOpenList>>("open_list"))
+                        opts.get<std::shared_ptr<FDROpenList>>("open_list"))
                   : nullptr)
         , forward_updates_(opts.get<bool>("fwup"))
         , backward_updates_(opts.get<BacktrackingUpdateType>("bwup"))
@@ -50,7 +50,7 @@ public:
 
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<TaskMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPEngine> create_engine() override
     {
         return this->template create_quotient_heuristic_search_engine<Engine>(
             forward_updates_,
@@ -114,7 +114,7 @@ public:
             "reexpand_traps",
             "Immediately re-expand the collapsed trap state.",
             "true");
-        add_option<std::shared_ptr<TaskOpenList>>(
+        add_option<std::shared_ptr<FDROpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
@@ -133,7 +133,7 @@ public:
 
         MDPHeuristicSearchBase::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<TaskOpenList>>(
+        add_option<std::shared_ptr<FDROpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
@@ -170,7 +170,7 @@ public:
 
         MDPHeuristicSearchBase::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<TaskOpenList>>(
+        add_option<std::shared_ptr<FDROpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
@@ -207,7 +207,7 @@ public:
 
         MDPHeuristicSearchBase::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<TaskOpenList>>(
+        add_option<std::shared_ptr<FDROpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",

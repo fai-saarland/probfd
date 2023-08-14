@@ -21,7 +21,7 @@ VDiffTiebreaker::VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps)
 }
 
 int VDiffTiebreaker::pick_index(
-    TaskMDP&,
+    FDRMDP&,
     StateID,
     std::optional<OperatorID>,
     const std::vector<Transition<OperatorID>>& greedy_transitions,

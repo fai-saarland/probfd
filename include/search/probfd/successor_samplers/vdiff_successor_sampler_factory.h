@@ -14,7 +14,7 @@ class RandomNumberGenerator;
 namespace probfd {
 namespace successor_samplers {
 
-class VDiffSuccessorSamplerFactory : public TaskSuccessorSamplerFactory {
+class VDiffSuccessorSamplerFactory : public FDRSuccessorSamplerFactory {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
     const bool prefer_large_gaps;
 
@@ -22,7 +22,7 @@ public:
     explicit VDiffSuccessorSamplerFactory(const plugins::Options&);
     ~VDiffSuccessorSamplerFactory() override = default;
 
-    std::shared_ptr<TaskSuccessorSampler> create_sampler(TaskMDP*) override;
+    std::shared_ptr<FDRSuccessorSampler> create_sampler(FDRMDP*) override;
 };
 
 } // namespace successor_samplers

@@ -26,7 +26,7 @@ RandomTiebreaker::RandomTiebreaker(
 }
 
 int RandomTiebreaker::pick_index(
-    TaskMDP&,
+    FDRMDP&,
     StateID,
     std::optional<OperatorID>,
     const std::vector<Transition<OperatorID>>& greedy_transitions,

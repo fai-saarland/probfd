@@ -12,8 +12,8 @@ UniformSuccessorSamplerFactory::UniformSuccessorSamplerFactory(
 {
 }
 
-std::shared_ptr<TaskSuccessorSampler>
-UniformSuccessorSamplerFactory::create_sampler(TaskMDP*)
+std::shared_ptr<FDRSuccessorSampler>
+UniformSuccessorSamplerFactory::create_sampler(FDRMDP*)
 {
     return std::make_shared<UniformSuccessorSampler>(rng);
 }

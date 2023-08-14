@@ -15,7 +15,7 @@ namespace heuristics {
 namespace pdbs {
 
 namespace {
-class UniformTaskCostFunction : public TaskSimpleCostFunction {
+class UniformTaskCostFunction : public FDRSimpleCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
 
@@ -53,7 +53,7 @@ public:
 
 UCPHeuristic::UCPHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction> task_cost_function,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator)
     : TaskDependentHeuristic(task, log)
@@ -111,9 +111,9 @@ class UCPHeuristicFactory : public TaskEvaluatorFactory {
 public:
     explicit UCPHeuristicFactory(const plugins::Options& opts);
 
-    std::unique_ptr<TaskEvaluator> create_evaluator(
+    std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 UCPHeuristicFactory::UCPHeuristicFactory(const plugins::Options& opts)
@@ -123,9 +123,9 @@ UCPHeuristicFactory::UCPHeuristicFactory(const plugins::Options& opts)
 {
 }
 
-std::unique_ptr<TaskEvaluator> UCPHeuristicFactory::create_evaluator(
+std::unique_ptr<FDREvaluator> UCPHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction> task_cost_function)
+    std::shared_ptr<FDRCostFunction> task_cost_function)
 {
     return std::make_unique<UCPHeuristic>(
         task,

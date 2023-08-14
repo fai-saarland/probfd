@@ -52,9 +52,9 @@ public:
      */
     explicit DeadEndPruningHeuristicFactory(const plugins::Options& opts);
 
-    std::unique_ptr<TaskEvaluator> create_evaluator(
+    std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
@@ -63,9 +63,9 @@ DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
 {
 }
 
-std::unique_ptr<TaskEvaluator> DeadEndPruningHeuristicFactory::create_evaluator(
+std::unique_ptr<FDREvaluator> DeadEndPruningHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask>,
-    std::shared_ptr<TaskCostFunction> task_cost_function)
+    std::shared_ptr<FDRCostFunction> task_cost_function)
 {
     return std::make_unique<DeadEndPruningHeuristic>(
         evaluator_,

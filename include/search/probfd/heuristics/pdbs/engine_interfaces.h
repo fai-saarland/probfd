@@ -4,7 +4,7 @@
 #include "probfd/heuristics/pdbs/state_rank.h"
 
 #include "probfd/evaluator.h"
-#include "probfd/task_types.h"
+#include "probfd/fdr_types.h"
 
 #include <vector>
 

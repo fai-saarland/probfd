@@ -11,9 +11,9 @@ using namespace engine_interfaces;
 
 MDPHeuristicSearchBase::MDPHeuristicSearchBase(const plugins::Options& opts)
     : MDPSolver(opts)
-    , policy_tiebreaker_(opts.get<std::shared_ptr<TaskPolicyPicker>>("policy"))
-    , new_state_handler_(new TaskNewStateObserverList(
-          opts.get_list<std::shared_ptr<TaskNewStateObserver>>("on_new_state")))
+    , policy_tiebreaker_(opts.get<std::shared_ptr<FDRPolicyPicker>>("policy"))
+    , new_state_handler_(new FDRNewStateObserverList(
+          opts.get_list<std::shared_ptr<FDRNewStateObserver>>("on_new_state")))
     , dual_bounds_(
           opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
     , interval_comparison_(
@@ -33,11 +33,11 @@ void MDPHeuristicSearchBase::add_options_to_feature(plugins::Feature& feature)
 {
     MDPSolver::add_options_to_feature(feature);
 
-    feature.add_list_option<std::shared_ptr<TaskNewStateObserver>>(
+    feature.add_list_option<std::shared_ptr<FDRNewStateObserver>>(
         "on_new_state",
         "",
         "[]");
-    feature.add_option<std::shared_ptr<TaskPolicyPicker>>(
+    feature.add_option<std::shared_ptr<FDRPolicyPicker>>(
         "policy",
         "",
         "arbitrary_policy_tiebreaker(false)");

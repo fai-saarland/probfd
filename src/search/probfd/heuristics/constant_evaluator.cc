@@ -12,14 +12,14 @@ namespace heuristics {
 namespace {
 class BlindEvaluatorFactory : public TaskEvaluatorFactory {
 public:
-    std::unique_ptr<TaskEvaluator> create_evaluator(
+    std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
-std::unique_ptr<TaskEvaluator> BlindEvaluatorFactory::create_evaluator(
+std::unique_ptr<FDREvaluator> BlindEvaluatorFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask>,
-    std::shared_ptr<TaskCostFunction>)
+    std::shared_ptr<FDRCostFunction>)
 {
     return std::make_unique<BlindEvaluator<State>>();
 }

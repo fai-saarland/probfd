@@ -121,7 +121,7 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     heuristics::BlindEvaluator<State> heuristic;
     auto cost_function = std::make_shared<SSPCostFunction>(task_proxy);
 
-    InducedTaskStateSpace mdp(task, utils::get_silent_log(), cost_function);
+    TaskStateSpace mdp(task, utils::get_silent_log(), cost_function);
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
@@ -167,7 +167,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
     heuristics::BlindEvaluator<State> heuristic;
     auto cost_function = std::make_shared<SSPCostFunction>(task_proxy);
 
-    InducedTaskStateSpace mdp(task, utils::get_silent_log(), cost_function);
+    TaskStateSpace mdp(task, utils::get_silent_log(), cost_function);
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 

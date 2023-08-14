@@ -70,7 +70,7 @@ struct I2Dual::IDualData {
 
 I2Dual::I2Dual(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction> task_cost_function,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     ProgressReport* progress,
     bool hpom_enabled,
     bool incremental_updates,
@@ -90,8 +90,8 @@ void I2Dual::print_statistics(std::ostream& out) const
 }
 
 Interval I2Dual::solve(
-    TaskMDP& mdp,
-    TaskEvaluator& heuristic,
+    FDRMDP& mdp,
+    FDREvaluator& heuristic,
     const State& state,
     double max_time)
 {
@@ -279,8 +279,8 @@ Interval I2Dual::solve(
 }
 
 bool I2Dual::evaluate_state(
-    TaskMDP& mdp,
-    TaskEvaluator& heuristic,
+    FDRMDP& mdp,
+    FDREvaluator& heuristic,
     const State& state,
     IDualData& data)
 {
@@ -342,7 +342,7 @@ void I2Dual::prepare_hpom(lp::LinearProgram& lp)
 }
 
 void I2Dual::update_hpom_constraints_expanded(
-    TaskMDP& mdp,
+    FDRMDP& mdp,
     storage::PerStateStorage<IDualData>& data,
     const std::vector<StateID>& expanded)
 {
@@ -364,7 +364,7 @@ void I2Dual::update_hpom_constraints_expanded(
 }
 
 void I2Dual::update_hpom_constraints_frontier(
-    TaskMDP& mdp,
+    FDRMDP& mdp,
     storage::PerStateStorage<IDualData>& data,
     const std::vector<StateID>& frontier,
     const unsigned start)

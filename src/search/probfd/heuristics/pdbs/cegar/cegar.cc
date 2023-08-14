@@ -48,7 +48,7 @@ public:
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -56,7 +56,7 @@ public:
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const ProbabilityAwarePatternDatabase& previous,
         int add_var,
@@ -66,7 +66,7 @@ public:
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
-        TaskSimpleCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const ProbabilityAwarePatternDatabase& merge_left,
         const ProbabilityAwarePatternDatabase& merge_right,
@@ -98,7 +98,7 @@ public:
 CEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -127,7 +127,7 @@ CEGAR::PDBInfo::PDBInfo(
 CEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const ProbabilityAwarePatternDatabase& previous,
     int add_var,
@@ -159,7 +159,7 @@ CEGAR::PDBInfo::PDBInfo(
 CEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
@@ -288,7 +288,7 @@ void CEGAR::print_collection() const
 
 void CEGAR::generate_trivial_solution_collection(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     utils::CountdownTimer& timer)
 {
     assert(!goals.empty());
@@ -407,7 +407,7 @@ bool CEGAR::can_merge_patterns(int index1, int index2) const
 
 void CEGAR::add_pattern_for_var(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     int var,
     utils::CountdownTimer& timer)
 {
@@ -424,7 +424,7 @@ void CEGAR::add_pattern_for_var(
 
 void CEGAR::add_variable_to_pattern(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     int index,
     int var,
     utils::CountdownTimer& timer)
@@ -457,7 +457,7 @@ void CEGAR::add_variable_to_pattern(
 
 void CEGAR::merge_patterns(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     int index1,
     int index2,
     utils::CountdownTimer& timer)
@@ -503,7 +503,7 @@ void CEGAR::merge_patterns(
 
 void CEGAR::refine(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const VariablesProxy& variables,
     const std::vector<Flaw>& flaws,
     const std::vector<int>& flaw_offsets,
@@ -596,7 +596,7 @@ void CEGAR::refine(
 
 CEGARResult CEGAR::generate_pdbs(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskSimpleCostFunction& task_cost_function)
+    FDRSimpleCostFunction& task_cost_function)
 {
     if (log.is_at_least_normal()) {
         log << "CEGAR options: \n"

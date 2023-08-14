@@ -3,8 +3,8 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
+#include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"
-#include "probfd/task_types.h"
 
 #include "downward/utils/logging.h"
 
@@ -28,7 +28,7 @@ public:
 
     virtual PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<TaskCostFunction>& task_cost_function) = 0;
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) = 0;
 };
 
 extern void

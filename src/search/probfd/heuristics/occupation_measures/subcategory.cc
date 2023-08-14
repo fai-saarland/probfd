@@ -27,9 +27,9 @@ class OccupationMeasureHeuristicFactory : public TaskEvaluatorFactory {
 public:
     explicit OccupationMeasureHeuristicFactory(const plugins::Options& opts);
 
-    std::unique_ptr<TaskEvaluator> create_evaluator(
+    std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<TaskCostFunction> task_cost_function) override;
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
@@ -41,10 +41,10 @@ OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
 {
 }
 
-std::unique_ptr<TaskEvaluator>
+std::unique_ptr<FDREvaluator>
 OccupationMeasureHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<TaskCostFunction> task_cost_function)
+    std::shared_ptr<FDRCostFunction> task_cost_function)
 {
     return std::make_unique<OccupationMeasureHeuristic>(
         task,

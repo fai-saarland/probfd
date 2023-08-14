@@ -2,13 +2,13 @@
 #define PROBFD_MAXPROB_COST_FUNCTION_H
 
 #include "probfd/cost_function.h"
+#include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"
-#include "probfd/task_types.h"
 #include "probfd/value_type.h"
 
 namespace probfd {
 
-class MaxProbCostFunction : public TaskCostFunction {
+class MaxProbCostFunction : public FDRCostFunction {
     ProbabilisticTaskProxy task_proxy;
 
 public:

@@ -6,12 +6,11 @@
 namespace probfd {
 namespace open_lists {
 
-class LifoOpenListFactory : public TaskOpenListFactory {
+class LifoOpenListFactory : public FDROpenListFactory {
 public:
     ~LifoOpenListFactory() override = default;
 
-    std::shared_ptr<TaskOpenList>
-    create_open_list(TaskMDP* state_space) override;
+    std::shared_ptr<FDROpenList> create_open_list(FDRMDP* state_space) override;
 };
 
 } // namespace open_lists

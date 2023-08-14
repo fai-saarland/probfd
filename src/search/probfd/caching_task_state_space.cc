@@ -21,9 +21,9 @@ namespace probfd {
 CachingTaskStateSpace::CachingTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     utils::LogProxy log,
-    std::shared_ptr<TaskSimpleCostFunction> cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> cost_function,
     const std::vector<std::shared_ptr<::Evaluator>>& path_dependent_evaluators)
-    : InducedTaskStateSpace(
+    : TaskStateSpace(
           task,
           std::move(log),
           std::move(cost_function),
@@ -128,7 +128,7 @@ void CachingTaskStateSpace::generate_all_transitions(
 
 void CachingTaskStateSpace::print_statistics() const
 {
-    InducedTaskStateSpace::print_statistics();
+    TaskStateSpace::print_statistics();
     log << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
         << std::endl;
 }
