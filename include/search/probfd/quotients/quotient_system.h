@@ -38,8 +38,7 @@ struct QuotientAction {
 };
 
 template <typename State, typename Action>
-class DefaultQuotientSystem
-    : public MDP<State, quotients::QuotientAction<Action>> {
+class QuotientSystem : public MDP<State, quotients::QuotientAction<Action>> {
     friend struct const_iterator;
 
     struct QuotientInformation {
@@ -138,14 +137,14 @@ public:
         const StateID*>;
 
     struct const_iterator {
-        const DefaultQuotientSystem* qs_;
+        const QuotientSystem* qs_;
         StateID i;
 
     public:
         using difference_type = std::ptrdiff_t;
         using value_type = StateID;
 
-        const_iterator(const DefaultQuotientSystem* qs, StateID x)
+        const_iterator(const QuotientSystem* qs, StateID x)
             : qs_(qs)
             , i(x)
 
@@ -156,7 +155,7 @@ public:
         {
             while (++i.id < qs_->quotient_ids_.size()) {
                 const StateID ref = qs_->quotient_ids_[i];
-                if (i == (ref & DefaultQuotientSystem::MASK)) {
+                if (i == (ref & QuotientSystem::MASK)) {
                     break;
                 }
             }
@@ -182,7 +181,7 @@ public:
 
     static_assert(std::input_iterator<const_iterator>);
 
-    explicit DefaultQuotientSystem(MDP<State, Action>* mdp)
+    explicit QuotientSystem(MDP<State, Action>* mdp)
         : mdp_(mdp)
     {
     }
@@ -609,20 +608,6 @@ private:
         quotient_ids_[sid] = qsid | FLAG;
     }
 };
-
-template <typename State, typename Action>
-class QuotientSystem : public DefaultQuotientSystem<State, Action> {
-public:
-    using QAction = QuotientAction<Action>;
-    using QuotientStateIDIterator =
-        typename DefaultQuotientSystem<State, Action>::QuotientStateIDIterator;
-    using DefaultQuotientSystem<State, Action>::DefaultQuotientSystem;
-};
-
-/*
-template <typename State>
-class QuotientSystem<State, OperatorID>;
-*/
 
 } // namespace quotients
 

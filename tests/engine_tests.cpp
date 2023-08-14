@@ -14,6 +14,7 @@
 
 #include "probfd/ssp_cost_function.h"
 #include "probfd/task_proxy.h"
+#include "probfd/task_state_space.h"
 
 #include "tasks/blocksworld.h"
 

@@ -5,7 +5,7 @@
 #include "probfd/engine_interfaces/policy_picker.h"
 #include "probfd/engine_interfaces/successor_sampler.h"
 
-#include "probfd/quotient_system.h"
+#include "probfd/quotients/quotient_system.h"
 
 namespace probfd {
 
