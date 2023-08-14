@@ -262,14 +262,14 @@ StateRank ProjectionStateSpace::get_state(StateID id)
 }
 
 void ProjectionStateSpace::generate_applicable_actions(
-    StateID state,
+    StateRank state,
     std::vector<const ProjectionOperator*>& aops)
 {
-    match_tree_.get_applicable_operators(StateRank(state.id), aops);
+    match_tree_.get_applicable_operators(state, aops);
 }
 
 void ProjectionStateSpace::generate_action_transitions(
-    StateID state,
+    StateRank state,
     const ProjectionOperator* op,
     Distribution<StateID>& result)
 {
@@ -279,7 +279,7 @@ void ProjectionStateSpace::generate_action_transitions(
 }
 
 void ProjectionStateSpace::generate_all_transitions(
-    StateID state,
+    StateRank state,
     std::vector<const ProjectionOperator*>& aops,
     std::vector<Distribution<StateID>>& result)
 {
@@ -291,10 +291,10 @@ void ProjectionStateSpace::generate_all_transitions(
 }
 
 void ProjectionStateSpace::generate_all_transitions(
-    StateID sid,
+    StateRank state,
     std::vector<Transition>& transitions)
 {
-    match_tree_.generate_all_transitions(StateRank(sid), transitions, *this);
+    match_tree_.generate_all_transitions(state, transitions, *this);
 }
 
 bool ProjectionStateSpace::is_goal(StateRank state) const

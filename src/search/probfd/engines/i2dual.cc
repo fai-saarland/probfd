@@ -171,13 +171,15 @@ Interval I2Dual::solve(
             state_data.close();
 
             // generate transitions
+            const State state = mdp.get_state(state_id);
+
             ClearGuard _guard_a(aops_);
-            mdp.generate_applicable_actions(state_id, aops_);
+            mdp.generate_applicable_actions(state, aops_);
 
             for (const OperatorID& act : aops_) {
                 ClearGuard _guard_s(succs_);
 
-                mdp.generate_action_transitions(state_id, act, succs_);
+                mdp.generate_action_transitions(state, act, succs_);
 
                 if (succs_.is_dirac(state_id)) {
                     continue;

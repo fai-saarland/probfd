@@ -3,6 +3,8 @@
 
 #include "probfd/task_state_space.h"
 
+#include "downward/per_state_information.h"
+
 namespace probfd {
 
 class CachingTaskStateSpace : public InducedTaskStateSpace {
@@ -17,7 +19,7 @@ class CachingTaskStateSpace : public InducedTaskStateSpace {
         StateID* succs = nullptr;
     };
 
-    storage::PerStateStorage<CacheEntry> cache_;
+    PerStateInformation<CacheEntry> cache_;
     storage::SegmentedMemoryPool<> cache_data_;
 
 public:
@@ -29,21 +31,21 @@ public:
             path_dependent_evaluators);
 
     void generate_applicable_actions(
-        StateID state_id,
+        const State& state,
         std::vector<OperatorID>& result) override final;
 
     void generate_action_transitions(
-        StateID state,
+        const State& state,
         OperatorID operator_id,
         Distribution<StateID>& result) override final;
 
     void generate_all_transitions(
-        StateID state,
+        const State& state,
         std::vector<OperatorID>& aops,
         std::vector<Distribution<StateID>>& successors) override final;
 
     void generate_all_transitions(
-        StateID state,
+        const State& state,
         std::vector<Transition>& transitions) override final;
 
     void print_statistics() const override final;
@@ -54,10 +56,9 @@ private:
         OperatorID op_id,
         std::vector<StateID>& successors);
 
-    bool setup_cache(StateID state_id, CacheEntry& entry);
+    void setup_cache(const State& state, CacheEntry& entry);
 
-    CacheEntry& lookup(StateID state_id);
-    CacheEntry& lookup(StateID state_id, bool& initialized);
+    CacheEntry& lookup(const State& state);
 };
 
 } // namespace probfd

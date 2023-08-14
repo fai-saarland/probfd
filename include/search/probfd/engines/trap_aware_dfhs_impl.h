@@ -181,7 +181,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::push_state(
     QuotientSystem& quotient,
     Evaluator& heuristic,
-    StateID state,
+    StateID state_id,
     StateInfo& state_info,
     Flags& flags)
 {
@@ -191,7 +191,8 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
     const bool tip = state_info.is_on_fringe();
     if (tip || forward_updates_) {
         ++statistics_.fw_updates;
-        auto result = this->bellman_policy_update(quotient, heuristic, state);
+        auto result =
+            this->bellman_policy_update(quotient, heuristic, state_id);
         flags.all_solved = flags.all_solved && !result.value_changed;
         const bool cutoff = (!expand_tip_states_ && tip) ||
                             (cutoff_inconsistent_ && result.value_changed);
@@ -210,13 +211,14 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
 
         enqueue(
             quotient,
-            state,
+            state_id,
             transition->action,
             transition->successor_dist);
     } else {
-        QAction action = *this->get_greedy_action(state);
+        const State state = quotient.get_state(state_id);
+        QAction action = *this->get_greedy_action(state_id);
         quotient.generate_action_transitions(state, action, transition_);
-        enqueue(quotient, state, action, transition_);
+        enqueue(quotient, state_id, action, transition_);
         transition_.clear();
     }
 
@@ -665,8 +667,10 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
                 StateID source_id = qaction.state_id;
                 Action action = qaction.action;
 
+                const State source = mdp.get_state(source_id);
+
                 Distribution<StateID> successors;
-                mdp.generate_action_transitions(source_id, action, successors);
+                mdp.generate_action_transitions(source, action, successors);
 
                 for (const StateID succ_id : successors.support()) {
                     parents[succ_id].insert(qaction);
@@ -692,9 +696,11 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
         }
 
         // Push the successor traps.
+        const State quotient_state = quotient.get_state(quotient_id);
+
         Distribution<StateID> successors;
         quotient.generate_action_transitions(
-            quotient_id,
+            quotient_state,
             *quotient_action,
             successors);
 

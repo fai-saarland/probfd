@@ -74,7 +74,7 @@ extern bool verify_policy(
 
         // Generate successors.
         mdp.generate_action_transitions(
-            state_id,
+            state,
             decision->action,
             info->successors);
 

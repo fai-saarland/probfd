@@ -1,5 +1,6 @@
 #include "probfd/heuristics/cartesian/ilao_policy_generator.h"
 
+#include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
@@ -20,11 +21,10 @@ namespace heuristics {
 namespace cartesian {
 
 ILAOPolicyGenerator::ILAOPolicyGenerator()
-    : ptb(new policy_pickers::ArbitraryTiebreaker<
-          const AbstractState*,
-          const ProbabilisticTransition*>(true))
+    : ptb(new policy_pickers::
+              ArbitraryTiebreaker<int, const ProbabilisticTransition*>(true))
     , picker(new quotients::RepresentativePolicyPicker<
-             const AbstractState*,
+             int,
              const ProbabilisticTransition*>(ptb))
     , report(0.0_vt)
 {
@@ -40,29 +40,27 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     // TODO: ideally, this object should not be recreated each time, in
     // particular the storage for the search state. Needs some way to clear
     // the search state.
-    engines::trap_aware_dfhs::TADepthFirstHeuristicSearch<
-        const AbstractState*,
-        const ProbabilisticTransition*,
-        false>
-        hdfs(
-            picker,
-            nullptr,
-            &report,
-            false,
-            false,
-            engines::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
-            false,
-            false,
-            false,
-            true,
-            false,
-            true,
-            nullptr);
+    engines::trap_aware_dfhs::
+        TADepthFirstHeuristicSearch<int, const ProbabilisticTransition*, false>
+            hdfs(
+                picker,
+                nullptr,
+                &report,
+                false,
+                false,
+                engines::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
+                false,
+                false,
+                false,
+                true,
+                false,
+                true,
+                nullptr);
 
     auto policy = hdfs.compute_policy(
         abstraction,
         heuristic,
-        state,
+        state->get_id(),
         timer.get_remaining_time());
 
     for (int i = 0; i != abstraction.get_num_states(); ++i) {

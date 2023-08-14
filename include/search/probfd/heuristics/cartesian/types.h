@@ -43,7 +43,7 @@ using ProbabilisticTransitions = std::vector<ProbabilisticTransition>;
 
 using Trace = std::deque<TransitionOutcome>;
 
-using Solution = Policy<const AbstractState*, const ProbabilisticTransition*>;
+using Solution = Policy<int, const ProbabilisticTransition*>;
 
 static constexpr int UNDEFINED = -1;
 

@@ -52,10 +52,9 @@ State InducedTaskStateSpace::get_state(StateID state_id)
 }
 
 void InducedTaskStateSpace::generate_applicable_actions(
-    StateID state_id,
+    const State& state,
     std::vector<OperatorID>& result)
 {
-    State state = state_registry_.lookup_state(::StateID(state_id));
     compute_applicable_operators(state, result);
 
     ++statistics_.aops_generator_calls;
@@ -63,22 +62,19 @@ void InducedTaskStateSpace::generate_applicable_actions(
 }
 
 void InducedTaskStateSpace::generate_action_transitions(
-    StateID state_id,
+    const State& state,
     OperatorID op_id,
     Distribution<StateID>& result)
 {
-    State state = state_registry_.lookup_state(::StateID(state_id));
     compute_successor_dist(state, op_id, result);
-
     ++statistics_.single_transition_generator_calls;
 }
 
 void InducedTaskStateSpace::generate_all_transitions(
-    StateID state_id,
+    const State& state,
     std::vector<OperatorID>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
-    State state = state_registry_.lookup_state(::StateID(state_id));
     compute_applicable_operators(state, aops);
     successors.reserve(aops.size());
 
@@ -91,10 +87,9 @@ void InducedTaskStateSpace::generate_all_transitions(
 }
 
 void InducedTaskStateSpace::generate_all_transitions(
-    StateID state_id,
+    const State& state,
     std::vector<Transition>& transitions)
 {
-    State state = state_registry_.lookup_state(::StateID(state_id));
     gen_.generate_transitions(state, transitions, *this);
 
     ++statistics_.aops_computations;

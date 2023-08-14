@@ -129,7 +129,7 @@ Interval IDual<State, Action>::solve(
             }
 
             ClearGuard _guard(aops, transitions);
-            mdp.generate_all_transitions(state_id, aops, transitions);
+            mdp.generate_all_transitions(state, aops, transitions);
 
             for (const auto [action, transition] : zip(aops, transitions)) {
                 if (transition.is_dirac(state_id)) continue;

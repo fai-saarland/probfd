@@ -54,7 +54,8 @@ bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 {
     for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
         transition.clear();
-        mdp.generate_action_transitions(state_id, aops.back(), transition);
+        const State state = mdp.get_state(state_id);
+        mdp.generate_action_transitions(state, aops.back(), transition);
 
         if (!transition.is_dirac(state_id)) {
             successor = transition.begin();
@@ -360,7 +361,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::push_state(
     state_info.status = StateInfo::ONSTACK;
 
     std::vector<Action> aops;
-    mdp.generate_applicable_actions(state_id, aops);
+    mdp.generate_applicable_actions(state, aops);
     ++statistics_.expanded_states;
 
     if (aops.empty()) {
@@ -378,7 +379,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::push_state(
     do {
         Action& current_op = aops.back();
 
-        mdp.generate_action_transitions(state_id, aops.back(), transition);
+        mdp.generate_action_transitions(state, aops.back(), transition);
 
         assert(!transition.empty());
 

@@ -67,7 +67,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
 
         State state = registry.lookup_state(state_id);
 
-        auto decision = policy.get_decision(abstract_state);
+        auto decision = policy.get_decision(abstract_state->get_id());
 
         // Check for goal state
         if (!decision) {

@@ -41,21 +41,21 @@ public:
     StateRank get_state(StateID id) override;
 
     void generate_applicable_actions(
-        StateID state,
+        StateRank state,
         std::vector<const ProjectionOperator*>& aops) override;
 
     void generate_action_transitions(
-        StateID state,
+        StateRank state,
         const ProjectionOperator* op,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
-        StateID state,
+        StateRank state,
         std::vector<const ProjectionOperator*>& aops,
         std::vector<Distribution<StateID>>& result) override;
 
     void generate_all_transitions(
-        StateID state,
+        StateRank state,
         std::vector<Transition>& transitions) override;
 
     bool is_goal(StateRank state) const override;

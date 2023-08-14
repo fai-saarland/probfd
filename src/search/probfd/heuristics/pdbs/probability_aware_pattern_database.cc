@@ -389,7 +389,7 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
 
         // Generate operators...
         std::vector<const ProjectionOperator*> aops;
-        mdp.generate_applicable_actions(s.id, aops);
+        mdp.generate_applicable_actions(s, aops);
 
         // Select the greedy operators and add their successors
         for (const ProjectionOperator* op : aops) {
@@ -398,7 +398,7 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
             std::vector<StateRank> successors;
 
             Distribution<StateID> successor_dist;
-            mdp.generate_action_transitions(s.id, op, successor_dist);
+            mdp.generate_action_transitions(s, op, successor_dist);
 
             for (const auto& [t, prob] : successor_dist) {
                 op_value += prob * value_table[t.id];
@@ -446,7 +446,7 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
 
             // Collect all equivalent greedy operators
             std::vector<const ProjectionOperator*> aops;
-            mdp.generate_applicable_actions(pstate.id, aops);
+            mdp.generate_applicable_actions(pstate, aops);
 
             const value_t cost_sel_op = mdp.get_action_cost(sel_op);
 
@@ -506,7 +506,7 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
 
         // Generate operators...
         std::vector<const ProjectionOperator*> aops;
-        mdp.generate_applicable_actions(s.id, aops);
+        mdp.generate_applicable_actions(s, aops);
 
         if (aops.empty()) {
             continue;
@@ -525,7 +525,7 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
             std::vector<StateRank> successors;
 
             Distribution<StateID> successor_dist;
-            mdp.generate_action_transitions(s.id, op, successor_dist);
+            mdp.generate_action_transitions(s, op, successor_dist);
 
             for (const auto& [t, prob] : successor_dist) {
                 op_value += prob * value_table[t.id];
@@ -589,13 +589,13 @@ void ProbabilityAwarePatternDatabase::compute_saturated_costs(
 
         // Generate operators...
         std::vector<const ProjectionOperator*> aops;
-        state_space.generate_applicable_actions(s.id, aops);
+        state_space.generate_applicable_actions(s, aops);
 
         for (const ProjectionOperator* op : aops) {
             int oid = op->operator_id.get_index();
 
             Distribution<StateID> successor_dist;
-            state_space.generate_action_transitions(s.id, op, successor_dist);
+            state_space.generate_action_transitions(s, op, successor_dist);
 
             value_t h_succ = 0;
 
@@ -718,14 +718,14 @@ void ProbabilityAwarePatternDatabase::verify(
 
         // Generate operators...
         std::vector<const ProjectionOperator*> aops;
-        mdp.generate_applicable_actions(s.id, aops);
+        mdp.generate_applicable_actions(s, aops);
 
         // Push successors
         for (const ProjectionOperator* op : aops) {
             const value_t cost = mdp.get_action_cost(op);
 
             Distribution<StateID> successor_dist;
-            mdp.generate_action_transitions(s.id, op, successor_dist);
+            mdp.generate_action_transitions(s, op, successor_dist);
 
             if (successor_dist.is_dirac(s.id)) {
                 continue;

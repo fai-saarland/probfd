@@ -109,8 +109,10 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
                 StateID source_id = qaction.state_id;
                 Action action = qaction.action;
 
+                const State source = mdp.get_state(source_id);
+
                 Distribution<StateID> successors;
-                mdp.generate_action_transitions(source_id, action, successors);
+                mdp.generate_action_transitions(source, action, successors);
 
                 for (const StateID succ_id : successors.support()) {
                     parents[succ_id].insert(qaction);
@@ -138,9 +140,11 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
         }
 
         // Push the successor traps.
+        const State quotient_state = quotient.get_state(quotient_id);
+
         Distribution<StateID> successors;
         quotient.generate_action_transitions(
-            quotient_id,
+            quotient_state,
             *quotient_action,
             successors);
 
@@ -440,16 +444,17 @@ bool PolicyGraph<State, Action, UseInterval>::get_successors(
     QuotientSystem& quotient,
     Evaluator&,
     QHeuristicSearchEngine& base_engine,
-    StateID qstate,
+    StateID quotient_state_id,
     std::vector<QAction>& aops,
     std::vector<StateID>& successors)
 {
-    std::optional a = base_engine.get_greedy_action(qstate);
+    std::optional a = base_engine.get_greedy_action(quotient_state_id);
     assert(a.has_value());
 
     ClearGuard _guard(t_);
 
-    quotient.generate_action_transitions(qstate, *a, t_);
+    const State quotient_state = quotient.get_state(quotient_state_id);
+    quotient.generate_action_transitions(quotient_state, *a, t_);
 
     for (StateID sid : t_.support()) {
         successors.push_back(sid);

@@ -306,7 +306,7 @@ private:
         }
 
         std::vector<Action> aops;
-        mdp.generate_applicable_actions(state_id, aops);
+        mdp.generate_applicable_actions(state, aops);
 
         if (aops.empty()) {
             if (expand_goals_ && state_info.expandable_goal) {
@@ -324,7 +324,7 @@ private:
         unsigned non_loop_actions = 0;
         for (unsigned i = 0; i < aops.size(); ++i) {
             Distribution<StateID> transition;
-            mdp.generate_action_transitions(state_id, aops[i], transition);
+            mdp.generate_action_transitions(state, aops[i], transition);
 
             std::vector<StateID> succ_ids;
 

@@ -75,8 +75,8 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
         ClearGuard _guard(this->transitions_);
-
-        mdp.generate_all_transitions(stateid, this->transitions_);
+        const State state = mdp.get_state(stateid);
+        mdp.generate_all_transitions(state, this->transitions_);
 
         for (const auto& [op, dist] : this->transitions_) {
             for (auto& [succid, prob] : dist) {

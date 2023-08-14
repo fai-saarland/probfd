@@ -75,21 +75,21 @@ public:
     State get_state(StateID state_id) override final;
 
     void generate_applicable_actions(
-        StateID state_id,
+        const State& state,
         std::vector<OperatorID>& result) override;
 
     void generate_action_transitions(
-        StateID state,
+        const State& state,
         OperatorID operator_id,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
-        StateID state,
+        const State& state,
         std::vector<OperatorID>& aops,
         std::vector<Distribution<StateID>>& successors) override;
 
     void generate_all_transitions(
-        StateID state,
+        const State& state,
         std::vector<Transition>& transitions) override;
 
     value_t get_action_cost(OperatorID op) override;

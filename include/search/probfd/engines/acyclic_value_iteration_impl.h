@@ -18,10 +18,10 @@ namespace acyclic_vi {
 template <typename State, typename Action>
 AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
     IncrementalExpansionInfo(
-        StateID state,
+        StateID state_id,
         std::vector<Action> remaining_aops,
         MDP& mdp)
-    : state(state)
+    : state_id(state_id)
     , remaining_aops(std::move(remaining_aops))
 {
     assert(!this->remaining_aops.empty());
@@ -59,6 +59,7 @@ void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
 {
     auto& next_action = remaining_aops.back();
     t_value = mdp.get_action_cost(next_action);
+    const State state = mdp.get_state(state_id);
     mdp.generate_action_transitions(state, next_action, transition);
     successor = transition.begin();
 }
@@ -163,7 +164,7 @@ void AcyclicValueIteration<State, Action>::finalize_transition(
     IncrementalExpansionInfo& e)
 {
     // Minimum Q-value
-    StateInfo& info = state_infos_[e.state];
+    StateInfo& info = state_infos_[e.state_id];
 
     if (e.t_value < info.value) {
         info.best_action = e.remaining_aops.back();
@@ -176,9 +177,12 @@ void AcyclicValueIteration<State, Action>::finalize_expansion(
     IncrementalExpansionInfo& e,
     MapPolicy* policy)
 {
-    StateInfo& info = state_infos_[e.state];
+    StateInfo& info = state_infos_[e.state_id];
     if (!policy) return;
-    policy->emplace_decision(e.state, *info.best_action, Interval(info.value));
+    policy->emplace_decision(
+        e.state_id,
+        *info.best_action,
+        Interval(info.value));
 }
 
 template <typename State, typename Action>
@@ -245,7 +249,7 @@ bool AcyclicValueIteration<State, Action>::push_state(
     }
 
     std::vector<Action> remaining_aops;
-    mdp.generate_applicable_actions(state_id, remaining_aops);
+    mdp.generate_applicable_actions(state, remaining_aops);
     if (remaining_aops.empty()) {
         ++statistics_.terminal_states;
         return false;

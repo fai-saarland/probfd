@@ -264,14 +264,14 @@ QuotientState BisimilarStateSpace::get_state(StateID s)
 }
 
 void BisimilarStateSpace::generate_applicable_actions(
-    StateID s,
+    QuotientState state,
     std::vector<QuotientAction>& result)
 {
-    if (s == dead_end_state_.id) {
+    if (state == dead_end_state_) {
         return;
     }
 
-    const std::vector<CachedTransition>& cache = transitions_[s];
+    const std::vector<CachedTransition>& cache = transitions_[state.id];
     result.reserve(cache.size());
     for (unsigned i = 0; i < cache.size(); ++i) {
         result.emplace_back(i);
@@ -279,16 +279,16 @@ void BisimilarStateSpace::generate_applicable_actions(
 }
 
 void BisimilarStateSpace::generate_action_transitions(
-    StateID s,
+    QuotientState state,
     QuotientAction a,
     Distribution<StateID>& result)
 {
-    assert(s != dead_end_state_.id);
-    assert(a.idx < transitions_[s].size());
+    assert(state != dead_end_state_);
+    assert(a.idx < transitions_[state.id].size());
 
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    const CachedTransition& t = transitions_[s][a.idx];
+    const CachedTransition& t = transitions_[state.id][a.idx];
     const ProbabilisticOperatorProxy& op = operators[t.op];
     const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
@@ -302,7 +302,7 @@ void BisimilarStateSpace::generate_action_transitions(
 }
 
 void BisimilarStateSpace::generate_all_transitions(
-    StateID state,
+    QuotientState state,
     std::vector<QuotientAction>& aops,
     std::vector<Distribution<StateID>>& result)
 {
@@ -314,14 +314,14 @@ void BisimilarStateSpace::generate_all_transitions(
 }
 
 void BisimilarStateSpace::generate_all_transitions(
-    StateID state,
+    QuotientState state,
     std::vector<Transition>& transitions)
 {
-    if (state == dead_end_state_.id) {
+    if (state == dead_end_state_) {
         return;
     }
 
-    const std::vector<CachedTransition>& cache = transitions_[state];
+    const std::vector<CachedTransition>& cache = transitions_[state.id];
     transitions.reserve(cache.size());
     for (unsigned i : std::views::iota(0U, cache.size())) {
         QuotientAction a{i};

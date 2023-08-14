@@ -77,7 +77,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
     using Statistics = internal::Statistics;
 
     struct IncrementalExpansionInfo {
-        const StateID state;
+        const StateID state_id;
 
         // Applicable operators left to expand
         std::vector<Action> remaining_aops;
@@ -90,7 +90,7 @@ class AcyclicValueIteration : public MDPEngine<State, Action> {
         value_t t_value;
 
         IncrementalExpansionInfo(
-            StateID state,
+            StateID state_id,
             std::vector<Action> remaining_aops,
             MDP& mdp);
 

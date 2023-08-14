@@ -32,10 +32,10 @@ CachingTaskStateSpace::CachingTaskStateSpace(
 }
 
 void CachingTaskStateSpace::generate_applicable_actions(
-    StateID state_id,
+    const State& state,
     std::vector<OperatorID>& result)
 {
-    CacheEntry& entry = lookup(state_id);
+    CacheEntry& entry = lookup(state);
     result.reserve(entry.naops);
     for (size_t i = 0; i != entry.naops; ++i) {
         result.push_back(entry.aops[i]);
@@ -46,13 +46,13 @@ void CachingTaskStateSpace::generate_applicable_actions(
 }
 
 void CachingTaskStateSpace::generate_action_transitions(
-    StateID state_id,
+    const State& state,
     OperatorID op_id,
     Distribution<StateID>& result)
 {
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    const CacheEntry& entry = cache_[state_id];
+    const CacheEntry& entry = lookup(state);
     assert(entry.is_initialized());
     const StateID* succs = entry.succs;
 
@@ -70,13 +70,13 @@ void CachingTaskStateSpace::generate_action_transitions(
 }
 
 void CachingTaskStateSpace::generate_all_transitions(
-    StateID state_id,
+    const State& state,
     std::vector<OperatorID>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    CacheEntry& entry = lookup(state_id);
+    CacheEntry& entry = lookup(state);
     const StateID* succs = entry.succs;
     aops.reserve(entry.naops);
     successors.reserve(entry.naops);
@@ -98,12 +98,12 @@ void CachingTaskStateSpace::generate_all_transitions(
 }
 
 void CachingTaskStateSpace::generate_all_transitions(
-    StateID state_id,
+    const State& state,
     std::vector<Transition>& transitions)
 {
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    CacheEntry& entry = lookup(state_id);
+    CacheEntry& entry = lookup(state);
     const StateID* succs = entry.succs;
     transitions.reserve(entry.naops);
 
@@ -158,11 +158,10 @@ void CachingTaskStateSpace::compute_successor_states(
     statistics_.computed_successors += num_outcomes;
 }
 
-bool CachingTaskStateSpace::setup_cache(StateID state_id, CacheEntry& entry)
+void CachingTaskStateSpace::setup_cache(const State& state, CacheEntry& entry)
 {
-    if (entry.is_initialized()) return false;
-    
-    State state = state_registry_.lookup_state(::StateID(state_id));
+    if (entry.is_initialized()) return;
+
     assert(aops_.empty() && successors_.empty());
     compute_applicable_operators(state, aops_);
     entry.naops = aops_.size();
@@ -193,22 +192,13 @@ bool CachingTaskStateSpace::setup_cache(StateID state_id, CacheEntry& entry)
         aops_.clear();
         successors_.clear();
     }
-
-    return true;
-}
-
-CachingTaskStateSpace::CacheEntry& CachingTaskStateSpace::lookup(StateID sid)
-{
-    CacheEntry& entry = cache_[sid];
-    setup_cache(sid, entry);
-    return entry;
 }
 
 CachingTaskStateSpace::CacheEntry&
-CachingTaskStateSpace::lookup(StateID sid, bool& setup)
+CachingTaskStateSpace::lookup(const State& state)
 {
-    CacheEntry& entry = cache_[sid];
-    setup = setup_cache(sid, entry);
+    CacheEntry& entry = cache_[state];
+    setup_cache(state, entry);
     return entry;
 }
 

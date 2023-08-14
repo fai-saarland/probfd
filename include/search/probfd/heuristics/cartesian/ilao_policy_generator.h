@@ -22,11 +22,11 @@ struct ProbabilisticTransition;
  */
 class ILAOPolicyGenerator : public PolicyGenerator {
     std::shared_ptr<policy_pickers::ArbitraryTiebreaker<
-        const AbstractState*,
+        int,
         const ProbabilisticTransition*>>
         ptb;
     std::shared_ptr<quotients::RepresentativePolicyPicker<
-        const AbstractState*,
+        int,
         const ProbabilisticTransition*>>
         picker;
 

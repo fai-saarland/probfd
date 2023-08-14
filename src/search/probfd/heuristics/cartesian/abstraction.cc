@@ -52,28 +52,27 @@ Abstraction::Abstraction(
 
 Abstraction::~Abstraction() = default;
 
-StateID Abstraction::get_state_id(const AbstractState* state)
+StateID Abstraction::get_state_id(int state)
 {
-    return state->get_id();
+    return static_cast<StateID>(state);
 }
 
-const AbstractState* Abstraction::get_state(StateID state_id)
+int Abstraction::get_state(StateID state_id)
 {
-    return &get_abstract_state(state_id.id);
+    return static_cast<int>(state_id);
 }
 
 void Abstraction::generate_applicable_actions(
-    StateID state,
+    int state,
     std::vector<const ProbabilisticTransition*>& result)
 {
-    for (const auto* t :
-         transition_system->get_outgoing_transitions()[state.id]) {
+    for (const auto* t : transition_system->get_outgoing_transitions()[state]) {
         result.push_back(t);
     }
 }
 
 void Abstraction::generate_action_transitions(
-    StateID,
+    int,
     const ProbabilisticTransition* action,
     Distribution<StateID>& result)
 {
@@ -85,31 +84,29 @@ void Abstraction::generate_action_transitions(
 }
 
 void Abstraction::generate_all_transitions(
-    StateID state,
+    int state,
     std::vector<const ProbabilisticTransition*>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
-    for (const auto* t :
-         transition_system->get_outgoing_transitions()[state.id]) {
+    for (const auto* t : transition_system->get_outgoing_transitions()[state]) {
         aops.push_back(t);
         generate_action_transitions(state, t, successors.emplace_back());
     }
 }
 
 void Abstraction::generate_all_transitions(
-    StateID state,
+    int state,
     std::vector<Transition>& transitions)
 {
-    for (const auto* t :
-         transition_system->get_outgoing_transitions()[state.id]) {
+    for (const auto* t : transition_system->get_outgoing_transitions()[state]) {
         Transition& transition = transitions.emplace_back(t);
         generate_action_transitions(state, t, transition.successor_dist);
     }
 }
 
-bool Abstraction::is_goal(const AbstractState* state) const
+bool Abstraction::is_goal(int state) const
 {
-    return goals.contains(state->get_id());
+    return goals.contains(state);
 }
 
 value_t Abstraction::get_non_goal_termination_cost() const

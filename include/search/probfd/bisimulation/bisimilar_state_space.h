@@ -73,21 +73,21 @@ public:
     QuotientState get_state(StateID state_id) override;
 
     void generate_applicable_actions(
-        StateID state,
+        QuotientState state,
         std::vector<QuotientAction>& result) override;
 
     void generate_action_transitions(
-        StateID state,
+        QuotientState state,
         QuotientAction action,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
-        StateID state,
+        QuotientState state,
         std::vector<QuotientAction>& aops,
         std::vector<Distribution<StateID>>& result) override;
 
     void generate_all_transitions(
-        StateID state,
+        QuotientState state,
         std::vector<Transition>& transitions) override;
 
     TerminationInfo get_termination_info(QuotientState state) override;

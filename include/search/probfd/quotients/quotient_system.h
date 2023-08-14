@@ -194,18 +194,21 @@ public:
 
     State get_state(StateID sid) override { return mdp_->get_state(sid); }
 
-    void generate_applicable_actions(StateID sid, std::vector<QAction>& aops)
-        override
+    void generate_applicable_actions(
+        param_type<State> state,
+        std::vector<QAction>& aops) override
     {
-        const QuotientInformation* info = get_quotient_info(sid);
+        const StateID state_id = get_state_id(state);
+
+        const QuotientInformation* info = get_quotient_info(state_id);
         if (!info) {
             std::vector<Action> orig;
-            mdp_->generate_applicable_actions(sid, orig);
+            mdp_->generate_applicable_actions(state, orig);
 
             aops.reserve(orig.size());
 
             for (const Action& a : orig) {
-                aops.emplace_back(sid, a);
+                aops.emplace_back(state_id, a);
             }
         } else {
             aops.reserve(info->total_num_outer_acts);
@@ -225,12 +228,13 @@ public:
     }
 
     void generate_action_transitions(
-        StateID,
+        param_type<State>,
         QAction a,
         Distribution<StateID>& result) override
     {
         Distribution<StateID> orig;
-        mdp_->generate_action_transitions(a.state_id, a.action, orig);
+        const State state = this->mdp_->get_state(a.state_id);
+        mdp_->generate_action_transitions(state, a.action, orig);
 
         for (const auto& [state_id, probability] : orig) {
             result.add_probability(
@@ -240,21 +244,25 @@ public:
     }
 
     void generate_all_transitions(
-        StateID sid,
+        param_type<State> state,
         std::vector<QAction>& aops,
         std::vector<Distribution<StateID>>& successors) override
     {
-        const QuotientInformation* info = get_quotient_info(sid);
+        const StateID state_id = this->get_state_id(state);
+        const QuotientInformation* info = get_quotient_info(state_id);
         if (!info) {
             std::vector<Action> orig_a;
-            mdp_->generate_applicable_actions(sid, orig_a);
+            mdp_->generate_applicable_actions(state, orig_a);
 
             aops.reserve(orig_a.size());
             successors.reserve(orig_a.size());
 
             for (unsigned i = 0; i < orig_a.size(); ++i) {
-                const QAction& a = aops.emplace_back(sid, orig_a[i]);
-                generate_action_transitions(sid, a, successors.emplace_back());
+                const QAction& a = aops.emplace_back(state_id, orig_a[i]);
+                generate_action_transitions(
+                    state,
+                    a,
+                    successors.emplace_back());
             }
         } else {
             aops.reserve(info->total_num_outer_acts);
@@ -267,7 +275,7 @@ public:
                 for (; aop != outers_end; ++aop) {
                     const QAction& a = aops.emplace_back(info.state_id, *aop);
                     generate_action_transitions(
-                        sid,
+                        state,
                         a,
                         successors.emplace_back());
                 }
@@ -280,20 +288,21 @@ public:
     }
 
     void generate_all_transitions(
-        StateID id,
+        param_type<State> state,
         std::vector<Transition<QAction>>& transitions) override
     {
-        const QuotientInformation* info = get_quotient_info(id);
+        const StateID state_id = this->get_state_id(state);
+        const QuotientInformation* info = get_quotient_info(state_id);
         if (!info) {
             std::vector<Action> orig_a;
-            mdp_->generate_applicable_actions(id, orig_a);
+            mdp_->generate_applicable_actions(state, orig_a);
 
             transitions.reserve(orig_a.size());
 
             for (Action a : orig_a) {
-                QAction qa(id, a);
+                QAction qa(state_id, a);
                 Transition<QAction>& t = transitions.emplace_back(qa);
-                generate_action_transitions(id, qa, t.successor_dist);
+                generate_action_transitions(state, qa, t.successor_dist);
             }
         } else {
             transitions.reserve(info->total_num_outer_acts);
@@ -305,7 +314,7 @@ public:
                 for (; aop != outers_end; ++aop) {
                     QAction qa(info.state_id, *aop);
                     Transition<QAction>& t = transitions.emplace_back(qa);
-                    generate_action_transitions(id, qa, t.successor_dist);
+                    generate_action_transitions(state, qa, t.successor_dist);
                 }
                 aop += info.num_inner_acts; // Skip inner actions
             }
@@ -413,7 +422,8 @@ public:
 
             // Generate the applicable actions and add them to the new
             // quotient
-            mdp_->generate_applicable_actions(rid, qinfo.aops);
+            const State repr = mdp_->get_state(rid);
+            mdp_->generate_applicable_actions(repr, qinfo.aops);
 
             // Partition new actions
             auto new_aops = qinfo.aops | drop(prev_size);
@@ -475,7 +485,8 @@ public:
 
                 // Generate the applicable actions and add them to the new
                 // quotient
-                mdp_->generate_applicable_actions(state_id, qinfo.aops);
+                const State mem = mdp_->get_state(rid);
+                mdp_->generate_applicable_actions(mem, qinfo.aops);
 
                 // Partition new actions
                 auto new_aops = qinfo.aops | drop(prev_size);
@@ -512,7 +523,8 @@ public:
         set_masked_state_id(rid, rid);
 
         // Generate the applicable actions
-        mdp_->generate_applicable_actions(rid, qinfo.aops);
+        const State repr = mdp_->get_state(rid);
+        mdp_->generate_applicable_actions(repr, qinfo.aops);
 
         // Partition actions
         {
@@ -540,7 +552,8 @@ public:
             set_masked_state_id(state_id, rid);
 
             // Generate the applicable actions
-            mdp_->generate_applicable_actions(state_id, qinfo.aops);
+            const State mem = mdp_->get_state(rid);
+            mdp_->generate_applicable_actions(mem, qinfo.aops);
 
             // Partition actions
             auto [pivot, last] = partition_actions(qinfo.aops, aops);

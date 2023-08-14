@@ -357,7 +357,7 @@ void dump_state_space_dot_graph(
 
         std::vector<Action> aops;
         std::vector<Distribution<StateID>> all_successors;
-        mdp->generate_all_transitions(state_id, aops, all_successors);
+        mdp->generate_all_transitions(state, aops, all_successors);
 
         std::vector<std::pair<Action, Distribution<StateID>>> transitions;
 

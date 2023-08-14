@@ -96,16 +96,16 @@ public:
     StateID get_state_id(param_type<State> s) override;
     State get_state(StateID sid) override;
 
-    void generate_applicable_actions(StateID sid, std::vector<QAction>& result)
-        override;
+    void generate_applicable_actions(
+        param_type<State> state, std::vector<QAction>& result) override;
 
     void generate_action_transitions(
-        StateID,
+        param_type<State>,
         param_type<QAction> a,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
-        StateID sid,
+        param_type<State>,
         std::vector<QAction>& aops,
         std::vector<Distribution<StateID>>& successors) override;
 

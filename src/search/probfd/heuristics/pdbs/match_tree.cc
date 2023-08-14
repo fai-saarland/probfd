@@ -199,7 +199,7 @@ void MatchTree::generate_all_transitions_recursive(
         auto* op = projection_operators.data() + op_index;
         auto& t = transitions.emplace_back(op);
         state_space.generate_action_transitions(
-            abstract_state.id,
+            abstract_state,
             op,
             t.successor_dist);
     }

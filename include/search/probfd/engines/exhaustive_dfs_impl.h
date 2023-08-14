@@ -199,7 +199,8 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
 {
     std::vector<Action> aops;
     std::vector<Distribution<StateID>> successors;
-    mdp.generate_all_transitions(state_id, aops, successors);
+    const State state = mdp.get_state(state_id);
+    mdp.generate_all_transitions(state, aops, successors);
     if (successors.empty()) {
         info.value = EngineValueType(info.term_cost);
         info.set_dead_end();

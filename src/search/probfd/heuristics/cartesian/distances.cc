@@ -19,15 +19,14 @@ compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic)
 {
     vector<value_t> values(abstraction.get_num_states(), INFINITE_VALUE);
 
-    preprocessing::QualitativeReachabilityAnalysis<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        qr_analysis(true);
+    preprocessing::
+        QualitativeReachabilityAnalysis<int, const ProbabilisticTransition*>
+            qr_analysis(true);
 
     std::vector<StateID> pruned_states;
     qr_analysis.run_analysis(
         abstraction,
-        &abstraction.get_initial_state(),
+        abstraction.get_initial_state().get_id(),
         iterators::discarding_output_iterator{},
         std::back_inserter(pruned_states),
         iterators::discarding_output_iterator{});
@@ -36,10 +35,9 @@ compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic)
         heuristic.set_h_value(pruned_id, INFINITE_VALUE);
     }
 
-    engines::ta_topological_vi::TATopologicalValueIteration<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        tvi;
+    engines::ta_topological_vi::
+        TATopologicalValueIteration<int, const ProbabilisticTransition*>
+            tvi;
 
     tvi.solve(
         abstraction,

@@ -85,8 +85,8 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                 unsigned min_succ_order = UMAX;
 
                 ClearGuard _guard(this->transitions_);
-
-                mdp.generate_all_transitions(stateid, this->transitions_);
+                const State state = mdp.get_state(stateid);
+                mdp.generate_all_transitions(state, this->transitions_);
 
                 auto all_successors =
                     this->transitions_ | transform([](auto& t) {
@@ -131,9 +131,11 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                 !info.is_tip_state() && !info.is_terminal() &&
                 !info.is_solved());
 
+            const State state = mdp.get_state(stateid);
+
             ClearGuard guard(this->selected_transition_);
             mdp.generate_action_transitions(
-                stateid,
+                state,
                 *this->get_greedy_action(stateid),
                 this->selected_transition_);
 

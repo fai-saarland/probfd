@@ -164,7 +164,8 @@ HeuristicSearchBase<State, Action, StateInfoT>::compute_greedy_action(
     requires(!StorePolicy)
 {
     ClearGuard guard(transitions_);
-    mdp.generate_all_transitions(state_id, transitions_);
+    const State state = mdp.get_state(state_id);
+    mdp.generate_all_transitions(state, transitions_);
 
     filter_greedy_transitions(
         mdp,
@@ -531,12 +532,13 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
     }
 
     auto& transitions = [&]() -> auto& {
+        const State state = mdp.get_state(state_id);
         if constexpr (input_exists) {
             auto& transitions = std::get<0>(std::tie(optional_out_greedy...));
-            mdp.generate_all_transitions(state_id, transitions);
+            mdp.generate_all_transitions(state, transitions);
             return transitions;
         } else {
-            mdp.generate_all_transitions(state_id, transitions_);
+            mdp.generate_all_transitions(state, transitions_);
             return transitions_;
         }
     }();
@@ -634,8 +636,10 @@ auto HeuristicSearchEngine<State, Action, StateInfoT>::compute_policy(
         policy->emplace_decision(state_id, *action, bound);
 
         // Push the successor traps.
+        const State state = mdp.get_state(state_id);
+
         Distribution<StateID> successors;
-        mdp.generate_action_transitions(state_id, *action, successors);
+        mdp.generate_action_transitions(state, *action, successors);
 
         for (const StateID succ_id : successors.support()) {
             if (visited.insert(succ_id).second) {

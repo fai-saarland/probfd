@@ -125,10 +125,8 @@ class QualitativeReachabilityAnalysis {
         {
             for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
                 transition.clear();
-                mdp.generate_action_transitions(
-                    state_id,
-                    aops.back(),
-                    transition);
+                const State state = mdp.get_state(state_id);
+                mdp.generate_action_transitions(state, aops.back(), transition);
 
                 if (!transition.is_dirac(state_id)) {
                     successor = transition.begin();
@@ -342,7 +340,7 @@ private:
         }
 
         std::vector<Action> aops;
-        mdp.generate_applicable_actions(state_id, aops);
+        mdp.generate_applicable_actions(state, aops);
 
         if (aops.empty()) {
             ++stats_.terminals;
@@ -361,7 +359,7 @@ private:
         Distribution<StateID> transition;
 
         do {
-            mdp.generate_action_transitions(state_id, aops.back(), transition);
+            mdp.generate_action_transitions(state, aops.back(), transition);
 
             assert(!transition.empty());
 

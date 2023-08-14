@@ -67,8 +67,9 @@ struct CompositeMDP : public MDP<State, Action> {
     /**
      * @brief Generates the applicable actions of the state.
      */
-    void generate_applicable_actions(StateID state, std::vector<Action>& result)
-        override final
+    void generate_applicable_actions(
+        param_type<State> state,
+        std::vector<Action>& result) override final
     {
         return state_space.generate_applicable_actions(state, result);
     }
@@ -77,7 +78,7 @@ struct CompositeMDP : public MDP<State, Action> {
      * @brief Generates the successor distribution for a given state and action.
      */
     void generate_action_transitions(
-        StateID state,
+        param_type<State> state,
         param_type<Action> action,
         Distribution<StateID>& result) override final
     {
@@ -89,7 +90,7 @@ struct CompositeMDP : public MDP<State, Action> {
      * distributions for a given state.
      */
     void generate_all_transitions(
-        StateID state,
+        param_type<State> state,
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors) override final
     {
