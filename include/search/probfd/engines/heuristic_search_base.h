@@ -195,18 +195,6 @@ public:
     void clear_policy(StateID state_id)
         requires(StorePolicy);
 
-    /**
-     * @brief Calls notify_dead_end(StateInfo&) with the respective state info
-     * object
-     */
-    bool notify_dead_end(StateID state_id);
-
-    /**
-     * @brief Stores dead-end information in \p state_info. Returns true on
-     * change.
-     */
-    bool notify_dead_end(StateInfo& state_info);
-
     std::optional<Action> get_greedy_action(StateID state_id)
         requires(StorePolicy);
 
@@ -295,6 +283,9 @@ protected:
         const Distribution<StateID>& transition);
 
 private:
+    // Stores dead-end information in state info and returns true on change.
+    bool notify_dead_end(StateInfo& state_info, value_t termination_cost);
+
     bool update(StateInfo& state_info, EngineValueType other);
 
     void state_value_changed(StateInfo& info);
@@ -317,8 +308,8 @@ private:
         MDP& mdp,
         Evaluator& h,
         StateID state_id,
-        StateInfo& state_info,
-        std::vector<Transition>& transitions);
+        std::vector<Transition>& transitions,
+        value_t termination_cost);
 
     bool bellman_update(
         MDP& mdp,

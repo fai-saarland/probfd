@@ -47,7 +47,6 @@ struct StateFlags {
     static constexpr uint8_t BITS = 3;
 
     uint8_t info = 0;
-    value_t termination_cost;
 
     bool is_value_initialized() const { return (info & MASK) != 0; }
     bool is_dead_end() const { return (info & MASK) == DEAD; }

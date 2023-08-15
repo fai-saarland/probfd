@@ -208,12 +208,8 @@ template <
 void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     mark_solved_push_parents(StateInfo& info, bool dead)
 {
-    assert(!info.is_terminal());
-
-    if (dead) {
-        assert(!info.is_solved() && !info.is_goal_state());
-        this->notify_dead_end(info);
-    }
+    assert(!info.is_terminal() && !info.is_solved());
+    assert(!dead || info.is_dead_end());
 
     info.set_solved();
     push_parents_to_queue(info);
