@@ -43,6 +43,7 @@ struct BisimulationTimer {
 class BisimulationBasedHeuristicSearchEngine : public FDRMDPEngine {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
+    using QQState = quotients::QuotientState<QState, QAction>;
     using QQAction = quotients::QuotientAction<QAction>;
 
 protected:
@@ -145,10 +146,13 @@ class QBisimulationBasedHeuristicSearchEngine
     : public BisimulationBasedHeuristicSearchEngine {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
+    using QQState = quotients::QuotientState<QState, QAction>;
     using QQAction = quotients::QuotientAction<QAction>;
 
-    std::shared_ptr<engine_interfaces::PolicyPicker<QState, QQAction>>
+    std::shared_ptr<engine_interfaces::PolicyPicker<QQState, QQAction>>
         q_policy_tiebreaker_;
+    std::shared_ptr<engine_interfaces::NewStateObserver<QQState>>
+        q_new_state_handler_;
 
 public:
     explicit QBisimulationBasedHeuristicSearchEngine(
@@ -159,9 +163,10 @@ public:
               std::move(task),
               std::move(task_cost_function),
               engine_name)
-        , q_policy_tiebreaker_(new policy_pickers::ArbitraryTiebreaker<
-                               QState,
-                               quotients::QuotientAction<QAction>>(true))
+        , q_policy_tiebreaker_(
+              new policy_pickers::ArbitraryTiebreaker<QQState, QQAction>(true))
+        , q_new_state_handler_(
+              new engine_interfaces::NewStateObserver<QQState>())
     {
     }
 
@@ -185,10 +190,10 @@ public:
             std::move(task_cost_function),
             engine_name);
 
-        std::shared_ptr<HS<QState, QQAction, Interval>> engine(
-            new HS<QState, QQAction, Interval>(
+        std::shared_ptr<HS<QQState, QQAction, Interval>> engine(
+            new HS<QQState, QQAction, Interval>(
                 res->q_policy_tiebreaker_,
-                res->new_state_handler_,
+                res->q_new_state_handler_,
                 &progress,
                 interval,
                 std::forward<Args>(args)...));

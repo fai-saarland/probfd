@@ -52,8 +52,7 @@ struct Wrapper<false, true, std::shared_ptr<FDRSuccessorSampler>> {
 
     type operator()(std::shared_ptr<FDRSuccessorSampler> t) const
     {
-        return std::make_shared<
-            quotients::RepresentativeSuccessorSampler<State>>(t);
+        return std::make_shared<quotients::RepresentativeSuccessorSampler>(t);
     }
 };
 
@@ -85,7 +84,7 @@ struct Wrapper<false, true, std::shared_ptr<FDROpenList>> {
 
     type operator()(std::shared_ptr<FDROpenList> t) const
     {
-        return std::make_shared<quotients::RepresentativeOpenList<State>>(t);
+        return std::make_shared<quotients::RepresentativeOpenList>(t);
     }
 };
 

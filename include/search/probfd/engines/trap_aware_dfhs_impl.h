@@ -6,6 +6,8 @@
 
 #include "probfd/policies/map_policy.h"
 
+#include "probfd/quotients/heuristic_search_interface.h"
+
 #include "probfd/utils/guards.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -70,8 +72,8 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
 template <typename State, typename Action, bool UseInterval>
 Interval TADFHSImpl<State, Action, UseInterval>::solve_quotient(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
-    param_type<State> qstate,
+    QEvaluator& heuristic,
+    param_type<QState> qstate,
     double max_time)
 {
     Base::initialize_report(quotient, heuristic, qstate);
@@ -99,7 +101,7 @@ void TADFHSImpl<State, Action, UseInterval>::print_statistics(
 template <typename State, typename Action, bool UseInterval>
 void TADFHSImpl<State, Action, UseInterval>::dfhs_vi_driver(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     const StateID state,
     utils::CountdownTimer& timer)
 {
@@ -123,7 +125,7 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_vi_driver(
 template <typename State, typename Action, bool UseInterval>
 void TADFHSImpl<State, Action, UseInterval>::dfhs_label_driver(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     const StateID state,
     utils::CountdownTimer& timer)
 {
@@ -180,7 +182,7 @@ void TADFHSImpl<State, Action, UseInterval>::enqueue(
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::push_state(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     StateID state_id,
     StateInfo& state_info,
     Flags& flags)
@@ -215,7 +217,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
             transition->action,
             transition->successor_dist);
     } else {
-        const State state = quotient.get_state(state_id);
+        const QState state = quotient.get_state(state_id);
         QAction action = *this->get_greedy_action(state_id);
         quotient.generate_action_transitions(state, action, transition_);
         enqueue(quotient, state_id, action, transition_);
@@ -228,7 +230,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::push_state(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     StateID state,
     Flags& flags)
 {
@@ -245,7 +247,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::repush_trap(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     StateID state,
     Flags& flags)
 {
@@ -282,7 +284,7 @@ bool TADFHSImpl<State, Action, UseInterval>::repush_trap(
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     StateID start_state,
     utils::CountdownTimer& timer)
 {
@@ -445,7 +447,7 @@ void TADFHSImpl<State, Action, UseInterval>::backtrack_from_singleton(
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::backtrack_from_non_singleton(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     const StateID state,
     Flags& flags,
     auto scc)
@@ -468,7 +470,7 @@ bool TADFHSImpl<State, Action, UseInterval>::backtrack_from_non_singleton(
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::backtrack_trap(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     const StateID state,
     Flags& flags,
     auto scc)
@@ -529,7 +531,7 @@ template <typename State, typename Action, bool UseInterval>
 template <bool Convergence>
 auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     const std::ranges::input_range auto& range,
     utils::CountdownTimer& timer) -> UpdateResult
 {
@@ -598,8 +600,13 @@ Interval TADepthFirstHeuristicSearch<State, Action, UseInterval>::solve(
     param_type<State> state,
     double max_time)
 {
-    QuotientSystem quotient(&mdp);
-    return engine_.solve_quotient(quotient, heuristic, state, max_time);
+    QuotientSystem quotient(mdp);
+    quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
+    return engine_.solve_quotient(
+        quotient,
+        qheuristic,
+        quotient.translate_state(state),
+        max_time);
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -609,8 +616,11 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
     param_type<State> state,
     double max_time) -> std::unique_ptr<Policy>
 {
-    QuotientSystem quotient(&mdp);
-    engine_.solve_quotient(quotient, heuristic, state, max_time);
+    QuotientSystem quotient(mdp);
+    quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
+
+    QState qinit = quotient.translate_state(state);
+    engine_.solve_quotient(quotient, qheuristic, qinit, max_time);
 
     /*
      * The quotient policy only specifies the optimal actions between
@@ -630,13 +640,14 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
     using MapPolicy = policies::MapPolicy<State, Action>;
     std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
 
-    const StateID initial_state_id = mdp.get_state_id(state);
+    const StateID initial_state_id = quotient.get_state_id(qinit);
 
     std::deque<StateID> queue({initial_state_id});
     std::set<StateID> visited({initial_state_id});
 
     do {
         const StateID quotient_id = queue.front();
+        const QState quotient_state = quotient.get_state(quotient_id);
         queue.pop_front();
 
         std::optional quotient_action = engine_.get_greedy_action(quotient_id);
@@ -656,12 +667,12 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
             quotient_bound);
 
         // Nothing else needs to be done if the trap has only one state.
-        if (quotient.quotient_size(quotient_id) != 1) {
+        if (quotient_state.num_members() != 1) {
             std::unordered_map<StateID, std::set<QAction>> parents;
 
             // Build the inverse graph
             std::vector<QAction> inner_actions;
-            quotient.get_pruned_ops(quotient_id, inner_actions);
+            quotient_state.get_collapsed_actions(inner_actions);
 
             for (const QAction& qaction : inner_actions) {
                 StateID source_id = qaction.state_id;
@@ -696,8 +707,6 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
         }
 
         // Push the successor traps.
-        const State quotient_state = quotient.get_state(quotient_id);
-
         Distribution<StateID> successors;
         quotient.generate_action_transitions(
             quotient_state,

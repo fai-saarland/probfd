@@ -1,22 +1,50 @@
 #ifndef PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 #define PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 
+#include "probfd/engine_interfaces/fdr_types.h"
 #include "probfd/engine_interfaces/open_list.h"
 #include "probfd/engine_interfaces/policy_picker.h"
 #include "probfd/engine_interfaces/successor_sampler.h"
 
 #include "probfd/quotients/quotient_system.h"
 
+#include "probfd/evaluator.h"
+
 namespace probfd {
 
 namespace quotients {
 
+template <typename State, typename Action>
+class QuotientMaxHeuristic : public Evaluator<QuotientState<State, Action>> {
+    using QuotientState = QuotientState<State, Action>;
+
+    const Evaluator<State>& original_;
+
+public:
+    QuotientMaxHeuristic(const Evaluator<State>& original)
+        : original_(original)
+    {
+    }
+
+    value_t evaluate(param_type<QuotientState> state) const override
+    {
+        return state.member_maximum(
+            std::bind_front(&Evaluator<State>::evaluate, std::ref(original_)));
+    }
+
+    void print_statistics() const final override
+    {
+        original_.print_statistics();
+    }
+};
+
 template <typename State, typename Action = OperatorID>
 class RepresentativePolicyPicker
     : public engine_interfaces::
-          PolicyPicker<State, quotients::QuotientAction<Action>> {
-    using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using QuotientAction = quotients::QuotientAction<Action>;
+          PolicyPicker<QuotientState<State, Action>, QuotientAction<Action>> {
+    using QuotientSystem = QuotientSystem<State, Action>;
+    using QuotientState = QuotientState<State, Action>;
+    using QuotientAction = QuotientAction<Action>;
 
     std::vector<Transition<Action>> choices_;
     std::shared_ptr<engine_interfaces::PolicyPicker<State, Action>> original_;
@@ -30,7 +58,7 @@ public:
     }
 
     int pick_index(
-        MDP<State, QuotientAction>& mdp,
+        MDP<QuotientState, QuotientAction>& mdp,
         StateID state,
         std::optional<QuotientAction> prev_policy,
         const std::vector<Transition<QuotientAction>>& greedy_transitions,
@@ -50,7 +78,7 @@ public:
         }
 
         return original_->pick_index(
-            *quotient.get_parent_mdp(),
+            quotient.get_parent_mdp(),
             state,
             oprev,
             choices_,
@@ -63,11 +91,9 @@ public:
     }
 };
 
-template <typename State>
 class RepresentativeSuccessorSampler
-    : public engine_interfaces::SuccessorSampler<
-          quotients::QuotientAction<OperatorID>> {
-    using QuotientAction = quotients::QuotientAction<OperatorID>;
+    : public engine_interfaces::SuccessorSampler<QuotientAction<OperatorID>> {
+    using QuotientAction = QuotientAction<OperatorID>;
 
     std::shared_ptr<FDRSuccessorSampler> original_;
 
@@ -93,11 +119,9 @@ public:
     }
 };
 
-template <typename State>
 class RepresentativeOpenList
-    : public engine_interfaces::OpenList<
-          quotients::QuotientAction<OperatorID>> {
-    using QuotientAction = quotients::QuotientAction<OperatorID>;
+    : public engine_interfaces::OpenList<QuotientAction<OperatorID>> {
+    using QuotientAction = QuotientAction<OperatorID>;
 
     std::shared_ptr<FDROpenList> original_;
 

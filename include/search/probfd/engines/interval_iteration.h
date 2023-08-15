@@ -60,13 +60,14 @@ class IntervalIteration : public MDPEngine<State, Action> {
     using Evaluator = typename Base::Evaluator;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
     using Decomposer = preprocessing::EndComponentDecomposition<State, Action>;
     using QuotientQRAnalysis =
-        preprocessing::QualitativeReachabilityAnalysis<State, QAction>;
+        preprocessing::QualitativeReachabilityAnalysis<QState, QAction>;
     using QuotientValueIteration =
-        topological_vi::TopologicalValueIteration<State, QAction, true>;
+        topological_vi::TopologicalValueIteration<QState, QAction, true>;
 
     const bool extract_probability_one_states_;
     const bool expand_goals_;

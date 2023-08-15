@@ -64,7 +64,7 @@ struct PerStateInformation : public StateInfo {
 template <typename State, typename Action, bool UseInterval>
 class TALRTDPImpl
     : public heuristic_search::HeuristicSearchBase<
-          State,
+          quotients::QuotientState<State, Action>,
           quotients::QuotientAction<Action>,
           UseInterval,
           true,
@@ -72,9 +72,10 @@ class TALRTDPImpl
     using Base = typename TALRTDPImpl::HeuristicSearchBase;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using Evaluator = typename Base::Evaluator;
+    using QEvaluator = typename Base::Evaluator;
     using QuotientPolicyPicker = typename Base::PolicyPicker;
     using QuotientNewStateObserver = typename Base::NewStateObserver;
     using StateInfo = typename Base::StateInfo;
@@ -177,8 +178,8 @@ public:
 
     Interval solve_quotient(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
-        param_type<State> state,
+        QEvaluator& heuristic,
+        param_type<QState> state,
         double max_time);
 
     void print_statistics(std::ostream& out) const;
@@ -186,18 +187,18 @@ public:
 private:
     bool trial(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         StateID start_state,
         utils::CountdownTimer& timer);
 
     bool check_and_solve(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         utils::CountdownTimer& timer);
 
     bool push_to_queue(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         const StateID state,
         Flags& parent_flags);
 };
@@ -207,6 +208,7 @@ class TALRTDP : public MDPEngine<State, Action> {
     using Base = typename TALRTDP::MDPEngine;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
     using Policy = typename Base::Policy;
@@ -214,8 +216,9 @@ class TALRTDP : public MDPEngine<State, Action> {
     using Evaluator = typename Base::Evaluator;
 
     using QuotientPolicyPicker =
-        engine_interfaces::PolicyPicker<State, QAction>;
-    using QuotientNewStateObserver = engine_interfaces::NewStateObserver<State>;
+        engine_interfaces::PolicyPicker<QState, QAction>;
+    using QuotientNewStateObserver =
+        engine_interfaces::NewStateObserver<QState>;
     using QuotientSuccessorSampler =
         engine_interfaces::SuccessorSampler<QAction>;
 

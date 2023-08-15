@@ -4,6 +4,8 @@
 
 #include "probfd/policies/map_policy.h"
 
+#include "probfd/quotients/heuristic_search_interface.h"
+
 #include "downward/utils/countdown_timer.h"
 
 namespace probfd {
@@ -48,8 +50,13 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
     param_type<State> state,
     double max_time) -> std::unique_ptr<Policy>
 {
-    QuotientSystem quotient(&mdp);
-    this->solve(quotient, heuristic, state, max_time);
+    QuotientSystem quotient(mdp);
+    quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
+    this->solve(
+        quotient,
+        qheuristic,
+        quotient.translate_state(state),
+        max_time);
 
     /*
      * The quotient policy only specifies the optimal actions between traps.
@@ -77,6 +84,7 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
 
     do {
         const StateID quotient_id = queue.front();
+        const QState quotient_state = quotient.get_state(quotient_id);
         queue.pop_front();
 
         std::optional quotient_action =
@@ -98,12 +106,12 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
             quotient_bound);
 
         // Nothing else needs to be done if the trap has only one state.
-        if (quotient.quotient_size(quotient_id) != 1) {
+        if (quotient_state.num_members() != 1) {
             std::unordered_map<StateID, std::set<QAction>> parents;
 
             // Build the inverse graph
             std::vector<QAction> inner_actions;
-            quotient.get_pruned_ops(quotient_id, inner_actions);
+            quotient_state.get_collapsed_actions(inner_actions);
 
             for (const QAction& qaction : inner_actions) {
                 StateID source_id = qaction.state_id;
@@ -140,8 +148,6 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
         }
 
         // Push the successor traps.
-        const State quotient_state = quotient.get_state(quotient_id);
-
         Distribution<StateID> successors;
         quotient.generate_action_transitions(
             quotient_state,
@@ -169,8 +175,13 @@ Interval FRET<State, Action, UseInterval, GreedyGraphGenerator>::solve(
     param_type<State> state,
     double max_time)
 {
-    QuotientSystem quotient(&mdp);
-    return solve(quotient, heuristic, state, max_time);
+    QuotientSystem quotient(mdp);
+    quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
+    return solve(
+        quotient,
+        qheuristic,
+        quotient.translate_state(state),
+        max_time);
 }
 
 template <
@@ -192,8 +203,8 @@ template <
     typename GreedyGraphGenerator>
 Interval FRET<State, Action, UseInterval, GreedyGraphGenerator>::solve(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
-    param_type<State> state,
+    QEvaluator& heuristic,
+    param_type<QState> state,
     double max_time)
 {
     utils::CountdownTimer timer(max_time);
@@ -218,8 +229,8 @@ template <
 Interval
 FRET<State, Action, UseInterval, GreedyGraphGenerator>::heuristic_search(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
-    param_type<State> state,
+    QEvaluator& heuristic,
+    param_type<QState> state,
     utils::CountdownTimer& timer)
 {
 #if defined(EXPENSIVE_STATISTICS)
@@ -237,8 +248,8 @@ template <
 bool FRET<State, Action, UseInterval, GreedyGraphGenerator>::
     find_and_remove_traps(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
-        param_type<State> state,
+        QEvaluator& heuristic,
+        param_type<QState> state,
         utils::CountdownTimer& timer)
 {
 #if defined(EXPENSIVE_STATISTICS)
@@ -373,7 +384,7 @@ template <
     typename GreedyGraphGenerator>
 bool FRET<State, Action, UseInterval, GreedyGraphGenerator>::push(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     std::deque<ExplorationInfo>& queue,
     std::deque<StackInfo>& stack,
     TarjanStateInformation& info,
@@ -410,7 +421,7 @@ bool FRET<State, Action, UseInterval, GreedyGraphGenerator>::push(
 template <typename State, typename Action, bool UseInterval>
 bool ValueGraph<State, Action, UseInterval>::get_successors(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     QHeuristicSearchEngine& base_engine,
     StateID qstate,
     std::vector<QAction>& aops,
@@ -442,7 +453,7 @@ bool ValueGraph<State, Action, UseInterval>::get_successors(
 template <typename State, typename Action, bool UseInterval>
 bool PolicyGraph<State, Action, UseInterval>::get_successors(
     QuotientSystem& quotient,
-    Evaluator&,
+    QEvaluator&,
     QHeuristicSearchEngine& base_engine,
     StateID quotient_state_id,
     std::vector<QAction>& aops,
@@ -453,7 +464,7 @@ bool PolicyGraph<State, Action, UseInterval>::get_successors(
 
     ClearGuard _guard(t_);
 
-    const State quotient_state = quotient.get_state(quotient_state_id);
+    const QState quotient_state = quotient.get_state(quotient_state_id);
     quotient.generate_action_transitions(quotient_state, *a, t_);
 
     for (StateID sid : t_.support()) {

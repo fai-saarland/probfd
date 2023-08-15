@@ -261,7 +261,7 @@ public:
         utils::CountdownTimer timer(max_time);
 
         stats_ = ECDStatistics();
-        auto sys = std::make_unique<QuotientSystem>(&mdp);
+        auto sys = std::make_unique<QuotientSystem>(mdp);
 
         auto init_id = mdp.get_state_id(initial_state);
 

@@ -4,6 +4,8 @@
 
 #include "probfd/engine_interfaces/successor_sampler.h"
 
+#include "probfd/quotients/heuristic_search_interface.h"
+
 #include "probfd/utils/guards.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -55,8 +57,8 @@ TALRTDPImpl<State, Action, UseInterval>::TALRTDPImpl(
 template <typename State, typename Action, bool UseInterval>
 Interval TALRTDPImpl<State, Action, UseInterval>::solve_quotient(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
-    param_type<State> state,
+    QEvaluator& heuristic,
+    param_type<QState> state,
     double max_time)
 {
     Base::initialize_report(quotient, heuristic, state);
@@ -87,7 +89,7 @@ void TALRTDPImpl<State, Action, UseInterval>::print_statistics(
 template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::trial(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     StateID start_state,
     utils::CountdownTimer& timer)
 {
@@ -156,7 +158,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
 template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     utils::CountdownTimer& timer)
 {
     assert(!this->current_trial_.empty());
@@ -304,7 +306,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
 template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::push_to_queue(
     QuotientSystem& quotient,
-    Evaluator& heuristic,
+    QEvaluator& heuristic,
     const StateID state,
     Flags& parent_flags)
 {
@@ -371,8 +373,13 @@ Interval TALRTDP<State, Action, UseInterval>::solve(
     param_type<State> s,
     double max_time)
 {
-    QuotientSystem quotient(&mdp);
-    return engine_.solve_quotient(quotient, heuristic, s, max_time);
+    QuotientSystem quotient(mdp);
+    quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
+    return engine_.solve_quotient(
+        quotient,
+        qheuristic,
+        quotient.translate_state(s),
+        max_time);
 }
 
 template <typename State, typename Action, bool UseInterval>

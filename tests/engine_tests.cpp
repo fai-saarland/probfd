@@ -177,7 +177,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 
     auto hdfs = std::make_shared<
         heuristic_depth_first_search::HeuristicDepthFirstSearch<
-            State,
+            quotients::QuotientState<State, OperatorID>,
             quotients::QuotientAction<OperatorID>,
             false,
             true>>(

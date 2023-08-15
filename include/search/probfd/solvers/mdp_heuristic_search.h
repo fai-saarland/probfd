@@ -92,10 +92,14 @@ protected:
 
 template <>
 class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
+    using QState = quotients::QuotientState<State, OperatorID>;
     using QAction = quotients::QuotientAction<OperatorID>;
 
-    std::shared_ptr<engine_interfaces::PolicyPicker<State, QAction>>
+    std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>>
         q_policy_tiebreaker_;
+
+    std::shared_ptr<engine_interfaces::NewStateObserver<QState>>
+        q_new_state_handler_;
 
     const bool fret_on_policy_;
 
@@ -107,6 +111,8 @@ public:
                   ? new quotients::RepresentativePolicyPicker<State>(
                         this->policy_tiebreaker_)
                   : nullptr)
+        , q_new_state_handler_(
+              new engine_interfaces::NewStateObserver<QState>())
         , fret_on_policy_(opts.get<bool>("fret_on_policy", false))
     {
     }
@@ -148,14 +154,14 @@ public:
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
                 q_policy_tiebreaker_,
-                new_state_handler_,
+                q_new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
             return std::make_unique<HS<State, OperatorID, false>>(
                 q_policy_tiebreaker_,
-                new_state_handler_,
+                q_new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
@@ -191,12 +197,13 @@ private:
     std::unique_ptr<FDRMDPEngine>
     create_heuristic_search_engine_wrapper(Args&&... args)
     {
-        std::shared_ptr engine = std::make_shared<HS<State, QAction, Interval>>(
-            q_policy_tiebreaker_,
-            new_state_handler_,
-            &progress_,
-            interval_comparison_,
-            std::forward<Args>(args)...);
+        std::shared_ptr engine =
+            std::make_shared<HS<QState, QAction, Interval>>(
+                q_policy_tiebreaker_,
+                q_new_state_handler_,
+                &progress_,
+                interval_comparison_,
+                std::forward<Args>(args)...);
         return std::make_unique<Fret<State, OperatorID, Interval>>(
             &progress_,
             std::move(engine));

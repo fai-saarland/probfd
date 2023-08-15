@@ -64,7 +64,7 @@ struct PerStateInformation : public BaseInfo {
 template <typename State, typename Action, bool UseInterval>
 class TADFHSImpl
     : public heuristic_search::HeuristicSearchBase<
-          State,
+          quotients::QuotientState<State, Action>,
           quotients::QuotientAction<Action>,
           UseInterval,
           true,
@@ -72,9 +72,10 @@ class TADFHSImpl
     using Base = typename TADFHSImpl::HeuristicSearchBase;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using Evaluator = typename Base::Evaluator;
+    using QEvaluator = typename Base::Evaluator;
     using QuotientPolicyPicker = typename Base::PolicyPicker;
     using QuotientNewStateObserver = typename Base::NewStateObserver;
     using UpdateResult = typename Base ::UpdateResult;
@@ -200,8 +201,8 @@ public:
 
     Interval solve_quotient(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
-        param_type<State> qstate,
+        QEvaluator& heuristic,
+        param_type<QState> qstate,
         double max_time);
 
     void print_statistics(std::ostream& out) const;
@@ -209,13 +210,13 @@ public:
 private:
     void dfhs_vi_driver(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         const StateID state,
         utils::CountdownTimer& timer);
 
     void dfhs_label_driver(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         const StateID state,
         utils::CountdownTimer& timer);
 
@@ -227,26 +228,26 @@ private:
 
     bool push_state(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         StateID state,
         StateInfo& state_info,
         Flags& flags);
 
     bool push_state(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         StateID state,
         Flags& flags);
 
     bool repush_trap(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         StateID state,
         Flags& flags);
 
     bool policy_exploration(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         StateID start_state,
         utils::CountdownTimer& timer);
 
@@ -254,14 +255,14 @@ private:
 
     bool backtrack_from_non_singleton(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         const StateID state,
         Flags& flags,
         auto scc);
 
     bool backtrack_trap(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         const StateID state,
         Flags& flags,
         auto scc);
@@ -273,7 +274,7 @@ private:
     template <bool Convergence>
     UpdateResult value_iteration(
         QuotientSystem& quotient,
-        Evaluator& heuristic,
+        QEvaluator& heuristic,
         const std::ranges::input_range auto& range,
         utils::CountdownTimer& timer);
 };
@@ -287,11 +288,13 @@ class TADepthFirstHeuristicSearch : public MDPEngine<State, Action> {
     using Evaluator = typename Base::Evaluator;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
     using QuotientPolicyPicker =
-        engine_interfaces::PolicyPicker<State, QAction>;
-    using QuotientNewStateObserver = engine_interfaces::NewStateObserver<State>;
+        engine_interfaces::PolicyPicker<QState, QAction>;
+    using QuotientNewStateObserver =
+        engine_interfaces::NewStateObserver<QState>;
     using QuotientOpenList = engine_interfaces::OpenList<QAction>;
 
     TADFHSImpl<State, Action, UseInterval> engine_;

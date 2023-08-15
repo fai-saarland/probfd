@@ -22,7 +22,8 @@ class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
 
     const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;
-    WrappedType<std::shared_ptr<FDRSuccessorSampler>> successor_sampler_;
+    WrappedType<std::shared_ptr<FDRSuccessorSampler>>
+        successor_sampler_;
 
 public:
     explicit TrapAwareLRTDPSolver(const plugins::Options& opts)

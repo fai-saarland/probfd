@@ -2,6 +2,8 @@
 #error "This file should only be included from interval_iteration.h"
 #endif
 
+#include "probfd/quotients/heuristic_search_interface.h"
+
 #include <iterator>
 
 namespace probfd {
@@ -65,17 +67,17 @@ Interval IntervalIteration<State, Action>::solve(
         timer);
 
     for (StateID repr_id : *sys) {
-        auto [sit, send] = sys->quotient_range(repr_id);
-        const StateID repr = *sit;
+        const auto value = value_store[repr_id];
+        const bool dead = utils::contains(dead_ends, repr_id);
+        const bool one = utils::contains(one_states, repr_id);
 
-        const auto value = value_store[repr];
-        const bool dead = utils::contains(dead_ends, repr);
-        const bool one = utils::contains(one_states, repr);
-        for (++sit; sit != send; ++sit) {
-            value_store[*sit] = value;
-            if (dead) dead_ends.push_back(*sit);
-            if (one) one_states.push_back(*sit);
-        }
+        sys->for_each_member_state(
+            repr_id,
+            [&, value, dead, one](StateID member_id) {
+                value_store[member_id] = value;
+                if (dead) dead_ends.push_back(member_id);
+                if (one) one_states.push_back(member_id);
+            });
     }
 
     return x;
@@ -112,10 +114,12 @@ Interval IntervalIteration<State, Action>::mysolve(
     QuotientSystem& sys,
     utils::CountdownTimer timer)
 {
+    QState qstate = sys.translate_state(state);
+
     if (extract_probability_one_states_) {
         qr_analysis.run_analysis(
             sys,
-            state,
+            qstate,
             std::back_inserter(dead_ends),
             iterators::discarding_output_iterator(),
             std::back_inserter(one_states),
@@ -125,7 +129,7 @@ Interval IntervalIteration<State, Action>::mysolve(
     } else {
         qr_analysis.run_analysis(
             sys,
-            state,
+            qstate,
             std::back_inserter(dead_ends),
             iterators::discarding_output_iterator(),
             iterators::discarding_output_iterator(),
@@ -139,9 +143,11 @@ Interval IntervalIteration<State, Action>::mysolve(
 
     const auto new_init_id = sys.translate_state_id(mdp.get_state_id(state));
 
+    quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
+
     const Interval result = vi.solve(
         sys,
-        heuristic,
+        qheuristic,
         new_init_id,
         value_store,
         timer.get_remaining_time());
