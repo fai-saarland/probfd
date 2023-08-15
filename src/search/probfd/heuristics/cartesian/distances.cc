@@ -26,6 +26,7 @@ compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic)
     std::vector<StateID> pruned_states;
     qr_analysis.run_analysis(
         abstraction,
+        nullptr,
         abstraction.get_initial_state().get_id(),
         iterators::discarding_output_iterator{},
         std::back_inserter(pruned_states),

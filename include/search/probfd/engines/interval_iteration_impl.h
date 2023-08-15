@@ -15,8 +15,8 @@ IntervalIteration<State, Action>::IntervalIteration(
     bool extract_probability_one_states,
     bool expand_goals)
     : extract_probability_one_states_(extract_probability_one_states)
-    , expand_goals_(expand_goals)
     , qr_analysis(expand_goals)
+    , ec_decomposer(expand_goals)
     , vi(expand_goals)
 {
 }
@@ -90,10 +90,9 @@ auto IntervalIteration<State, Action>::create_quotient(
     param_type<State> state,
     utils::CountdownTimer& timer) -> std::unique_ptr<QuotientSystem>
 {
-    Decomposer ec_decomposer(expand_goals_, &heuristic);
-
     auto sys = ec_decomposer.build_quotient_system(
         mdp,
+        &heuristic,
         state,
         timer.get_remaining_time());
 
@@ -119,6 +118,7 @@ Interval IntervalIteration<State, Action>::mysolve(
     if (extract_probability_one_states_) {
         qr_analysis.run_analysis(
             sys,
+            nullptr,
             qstate,
             std::back_inserter(dead_ends),
             iterators::discarding_output_iterator(),
@@ -129,6 +129,7 @@ Interval IntervalIteration<State, Action>::mysolve(
     } else {
         qr_analysis.run_analysis(
             sys,
+            nullptr,
             qstate,
             std::back_inserter(dead_ends),
             iterators::discarding_output_iterator(),

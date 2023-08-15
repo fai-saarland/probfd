@@ -70,9 +70,10 @@ class IntervalIteration : public MDPEngine<State, Action> {
         topological_vi::TopologicalValueIteration<QState, QAction, true>;
 
     const bool extract_probability_one_states_;
-    const bool expand_goals_;
 
     QuotientQRAnalysis qr_analysis;
+    Decomposer ec_decomposer;
+
     QuotientValueIteration vi;
 
     preprocessing::ECDStatistics ecd_statistics_;

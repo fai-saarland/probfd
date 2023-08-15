@@ -77,6 +77,7 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
     if (mdp.get_non_goal_termination_cost() == INFINITE_VALUE) {
         analysis.run_analysis(
             mdp,
+            nullptr,
             initial_state,
             iterators::discarding_output_iterator{},
             std::back_inserter(pruned_states),
@@ -85,6 +86,7 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
     } else {
         analysis.run_analysis(
             mdp,
+            nullptr,
             initial_state,
             std::back_inserter(pruned_states),
             iterators::discarding_output_iterator{},

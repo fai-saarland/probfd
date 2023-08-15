@@ -22,6 +22,13 @@ struct overloaded : Ts... {
 template <class... Ts>
 overloaded(Ts... ts) -> overloaded<Ts...>;
 
+template <size_t i>
+decltype(auto) select(auto&&... args)
+    requires(i < sizeof...(args))
+{
+    return std::get<i>(std::tie(args...));
+}
+
 template <typename Derived>
 class add_postfix_inc_dec {
 public:
