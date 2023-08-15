@@ -6,6 +6,13 @@ namespace probfd {
 namespace quotients {
 
 template <typename Action>
+struct QuotientInformation<Action>::StateInfo {
+    StateID state_id;
+    size_t num_outer_acts = 0;
+    size_t num_inner_acts = 0;
+};
+
+template <typename Action>
 size_t QuotientInformation<Action>::num_members() const
 {
     return state_infos.size();
@@ -177,15 +184,6 @@ auto QuotientSystem<State, Action>::const_iterator::operator++()
     }
 
     return *this;
-}
-
-template <typename State, typename Action>
-auto QuotientSystem<State, Action>::const_iterator::operator++(int)
-    -> const_iterator
-{
-    auto r = *this;
-    ++(*this);
-    return r;
 }
 
 template <typename State, typename Action>

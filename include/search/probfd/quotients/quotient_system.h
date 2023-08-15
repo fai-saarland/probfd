@@ -1,7 +1,7 @@
 #ifndef PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H
 #define PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H
 
-#include "probfd/utils/iterators.h"
+#include "probfd/utils/language.h"
 
 #include "probfd/distribution.h"
 #include "probfd/mdp.h"
@@ -51,11 +51,7 @@ class QuotientInformation {
     template <typename, typename>
     friend struct QuotientState;
 
-    struct StateInfo {
-        StateID state_id;
-        size_t num_outer_acts = 0;
-        size_t num_inner_acts = 0;
-    };
+    struct StateInfo;
 
     std::vector<StateInfo> state_infos;
     std::vector<Action> aops; // First outer, then inner actions
@@ -77,11 +73,6 @@ struct QuotientState {
 
     using QuotientInformation = QuotientInformation<Action>;
     using MDP = MDP<State, Action>;
-
-    template <class... Ts>
-    struct overloaded : Ts... {
-        using Ts::operator()...;
-    };
 
     MDP& mdp;
     std::variant<State, const QuotientInformation*> single_or_quotient;
@@ -124,17 +115,14 @@ class QuotientSystem
     static constexpr StateID::size_type MASK = (StateID::size_type(-1) >> 1);
     static constexpr StateID::size_type FLAG = ~MASK;
 
-    template <class... Ts>
-    struct overloaded : Ts... {
-        using Ts::operator()...;
-    };
-
 public:
-    struct const_iterator {
+    struct const_iterator : public add_postfix_inc_dec<const_iterator> {
         const QuotientSystem* qs_ = nullptr;
         StateID i;
 
     public:
+        using add_postfix_inc_dec<const_iterator>::operator++;
+
         using difference_type = std::ptrdiff_t;
         using value_type = StateID;
 
@@ -142,7 +130,6 @@ public:
         const_iterator(const QuotientSystem* qs, StateID x);
 
         const_iterator& operator++();
-        const_iterator operator++(int);
         StateID operator*() const;
 
         friend bool
