@@ -16,27 +16,26 @@ using namespace std;
 
 namespace landmarks {
 static bool are_dead_ends_reliable(
-    const shared_ptr<LandmarkFactory>& lm_factory,
-    const TaskProxy& task_proxy)
-{
+    const shared_ptr<LandmarkFactory> &lm_factory,
+    const TaskProxy &task_proxy) {
     if (task_properties::has_axioms(task_proxy)) {
         return false;
     }
 
-    if (!lm_factory->supports_conditional_effects() &&
-        task_properties::has_conditional_effects(task_proxy)) {
+    if (!lm_factory->supports_conditional_effects()
+        && task_properties::has_conditional_effects(task_proxy)) {
         return false;
     }
 
     return true;
 }
 
-LandmarkSumHeuristic::LandmarkSumHeuristic(const plugins::Options& opts)
-    : LandmarkHeuristic(opts)
-    , dead_ends_reliable(are_dead_ends_reliable(
-          opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
-          task_proxy))
-{
+LandmarkSumHeuristic::LandmarkSumHeuristic(const plugins::Options &opts)
+    : LandmarkHeuristic(opts),
+      dead_ends_reliable(
+          are_dead_ends_reliable(
+              opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
+              task_proxy)) {
     if (log.is_at_least_normal()) {
         log << "Initializing landmark sum heuristic..." << endl;
     }
@@ -45,8 +44,7 @@ LandmarkSumHeuristic::LandmarkSumHeuristic(const plugins::Options& opts)
 }
 
 int LandmarkSumHeuristic::get_min_cost_of_achievers(
-    const set<int>& achievers) const
-{
+    const set<int> &achievers) const {
     int min_cost = numeric_limits<int>::max();
     for (int id : achievers) {
         OperatorProxy op = get_operator_or_axiom(task_proxy, id);
@@ -55,8 +53,7 @@ int LandmarkSumHeuristic::get_min_cost_of_achievers(
     return min_cost;
 }
 
-void LandmarkSumHeuristic::compute_landmark_costs()
-{
+void LandmarkSumHeuristic::compute_landmark_costs() {
     /*
       This function runs under the assumption that landmark node IDs go
       from 0 to the number of landmarks - 1, therefore the entry in
@@ -73,13 +70,13 @@ void LandmarkSumHeuristic::compute_landmark_costs()
     int min_operator_cost = task_properties::get_min_operator_cost(task_proxy);
     min_first_achiever_costs.reserve(lm_graph->get_num_landmarks());
     min_possible_achiever_costs.reserve(lm_graph->get_num_landmarks());
-    for (auto& node : lm_graph->get_nodes()) {
+    for (auto &node : lm_graph->get_nodes()) {
         if (node->get_landmark().is_derived) {
             min_first_achiever_costs.push_back(min_operator_cost);
             min_possible_achiever_costs.push_back(min_operator_cost);
         } else {
-            int min_first_achiever_cost =
-                get_min_cost_of_achievers(node->get_landmark().first_achievers);
+            int min_first_achiever_cost = get_min_cost_of_achievers(
+                node->get_landmark().first_achievers);
             min_first_achiever_costs.push_back(min_first_achiever_cost);
             int min_possible_achiever_cost = get_min_cost_of_achievers(
                 node->get_landmark().possible_achievers);
@@ -88,48 +85,33 @@ void LandmarkSumHeuristic::compute_landmark_costs()
     }
 }
 
-int LandmarkSumHeuristic::get_heuristic_value(const State& state)
-{
-    /*
-      Need explicit test to see if state is a goal state. The landmark
-      heuristic may compute h != 0 for a goal state if landmarks are
-      achieved before their parents in the landmarks graph (because
-      they do not get counted as reached in that case). However, we
-      must return 0 for a goal state.
-      TODO: This check could be done before updating the *lm_status_manager*,
-       but if we want to do that in the base class, we need to delay this check
-       because it is only relevant for the inadmissible case. Moreover, it
-       should be redundant once we update the landmark progression.
-    */
-    if (task_properties::is_goal_state(task_proxy, state)) return 0;
-
+int LandmarkSumHeuristic::get_heuristic_value(const State &ancestor_state) {
     int h = 0;
+    ConstBitsetView past =
+        lm_status_manager->get_past_landmarks(ancestor_state);
+    ConstBitsetView future =
+        lm_status_manager->get_future_landmarks(ancestor_state);
     for (int id = 0; id < lm_graph->get_num_landmarks(); ++id) {
-        landmark_status status = lm_status_manager->get_landmark_status(id);
-        if (status == lm_not_reached) {
-            if (min_first_achiever_costs[id] == numeric_limits<int>::max())
+        if (future.test(id)) {
+            int min_achiever_cost = past.test(id) ? min_possible_achiever_costs[id]
+                : min_first_achiever_costs[id];
+            if (min_achiever_cost < numeric_limits<int>::max()) {
+                h += min_achiever_cost;
+            } else {
                 return DEAD_END;
-            h += min_first_achiever_costs[id];
-        } else if (status == lm_needed_again) {
-            if (min_possible_achiever_costs[id] == numeric_limits<int>::max())
-                return DEAD_END;
-            h += min_possible_achiever_costs[id];
+            }
         }
     }
     return h;
 }
 
-bool LandmarkSumHeuristic::dead_ends_are_reliable() const
-{
+bool LandmarkSumHeuristic::dead_ends_are_reliable() const {
     return dead_ends_reliable;
 }
 
-class LandmarkSumHeuristicFeature
-    : public plugins::TypedFeature<Evaluator, LandmarkSumHeuristic> {
+class LandmarkSumHeuristicFeature : public plugins::TypedFeature<Evaluator, LandmarkSumHeuristic> {
 public:
-    LandmarkSumHeuristicFeature()
-        : TypedFeature("landmark_sum")
-    {
+    LandmarkSumHeuristicFeature() : TypedFeature("landmark_sum") {
         document_title("Landmark sum heuristic");
         document_synopsis(
             "Formerly known as the landmark heuristic or landmark count "
@@ -147,8 +129,7 @@ public:
             "and" +
             utils::format_journal_reference(
                 {"Silvia Richter", "Matthias Westphal"},
-                "The LAMA Planner: Guiding Cost-Based Anytime Planning with "
-                "Landmarks",
+                "The LAMA Planner: Guiding Cost-Based Anytime Planning with Landmarks",
                 "http://www.aaai.org/Papers/JAIR/Vol39/JAIR-3903.pdf",
                 "Journal of Artificial Intelligence Research",
                 "39",
@@ -172,10 +153,8 @@ public:
             "pref=true because it has a nontrivial runtime cost. Using the "
             "heuristic for preferred operators without setting pref=true "
             "has no effect.\n"
-            "Our implementation to compute preferred operators based on "
-            "landmarks "
-            "differs from the description in the literature (see reference "
-            "above)."
+            "Our implementation to compute preferred operators based on landmarks "
+            "differs from the description in the literature (see reference above)."
             "The original implementation computes two kinds of preferred "
             "operators:\n\n"
             "+ If there is an applicable operator that reaches a landmark, all "
@@ -184,16 +163,13 @@ public:
             "exploration towards the nearest landmarks (according to the "
             "landmark orderings) and use the preferred operators of this "
             "exploration.\n\n\n"
-            "Our implementation only considers preferred operators of the "
-            "first "
+            "Our implementation only considers preferred operators of the first "
             "type and does not include the second type. The rationale for this "
             "change is that it reduces code complexity and helps more cleanly "
             "separate landmark-based and FF-based computations in LAMA-like "
             "planner configurations. In our experiments, only considering "
-            "preferred operators of the first type reduces performance when "
-            "using "
-            "the heuristic and its preferred operators in isolation but "
-            "improves "
+            "preferred operators of the first type reduces performance when using "
+            "the heuristic and its preferred operators in isolation but improves "
             "performance when using this heuristic in conjunction with the "
             "FF heuristic, as in LAMA-like planner configurations.");
 
@@ -215,4 +191,4 @@ public:
 };
 
 static plugins::FeaturePlugin<LandmarkSumHeuristicFeature> _plugin;
-} // namespace landmarks
+}

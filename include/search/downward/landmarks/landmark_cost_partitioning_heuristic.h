@@ -9,16 +9,15 @@ class LandmarkCostAssignment;
 class LandmarkCostPartitioningHeuristic : public LandmarkHeuristic {
     std::unique_ptr<LandmarkCostAssignment> lm_cost_assignment;
 
-    void check_unsupported_features(const plugins::Options& opts);
-    void set_cost_assignment(const plugins::Options& opts);
+    void check_unsupported_features(const plugins::Options &opts);
+    void set_cost_assignment(const plugins::Options &opts);
 
-    int get_heuristic_value(const State& state) override;
-
+    int get_heuristic_value(const State &ancestor_state) override;
 public:
-    explicit LandmarkCostPartitioningHeuristic(const plugins::Options& opts);
+    explicit LandmarkCostPartitioningHeuristic(const plugins::Options &opts);
 
     virtual bool dead_ends_are_reliable() const override;
 };
-} // namespace landmarks
+}
 
 #endif

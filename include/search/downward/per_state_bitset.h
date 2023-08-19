@@ -23,15 +23,39 @@ public:
     static Block bit_mask(std::size_t pos);
 };
 
+class ConstBitsetView {
+    ConstArrayView<BitsetMath::Block> data;
+    int num_bits;
+
+public:
+    ConstBitsetView(ConstArrayView<BitsetMath::Block> data, int num_bits)
+        : data(data)
+        , num_bits(num_bits)
+    {
+    }
+
+    ConstBitsetView(const ConstBitsetView& other) = default;
+    ConstBitsetView& operator=(const ConstBitsetView& other) = default;
+
+    bool test(int index) const;
+    int size() const;
+};
+
 class BitsetView {
     ArrayView<BitsetMath::Block> data;
     int num_bits;
 
 public:
-    BitsetView(ArrayView<BitsetMath::Block> data, int num_bits);
+    BitsetView(ArrayView<BitsetMath::Block> data, int num_bits)
+        : data(data)
+        , num_bits(num_bits)
+    {
+    }
 
     BitsetView(const BitsetView& other) = default;
     BitsetView& operator=(const BitsetView& other) = default;
+
+    operator ConstBitsetView() const { return ConstBitsetView(data, num_bits); }
 
     void set(int index);
     void reset(int index);
@@ -52,6 +76,7 @@ public:
     PerStateBitset& operator=(const PerStateBitset&) = delete;
 
     BitsetView operator[](const State& state);
+    ConstBitsetView operator[](const State& state) const;
 };
 
 #endif

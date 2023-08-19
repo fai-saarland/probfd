@@ -3,6 +3,8 @@
 
 #include "downward/lp/lp_solver.h"
 
+#include "downward/task_proxy.h"
+
 #include <set>
 #include <vector>
 
@@ -15,14 +17,12 @@ class LandmarkNode;
 class LandmarkStatusManager;
 
 class LandmarkCostAssignment {
-    const std::set<int> empty;
-
 protected:
     const LandmarkGraph& lm_graph;
     const std::vector<int> operator_costs;
 
     const std::set<int>&
-    get_achievers(int lmn_status, const Landmark& landmark) const;
+    get_achievers(const Landmark& landmark, bool past) const;
 
 public:
     LandmarkCostAssignment(
@@ -30,8 +30,9 @@ public:
         const LandmarkGraph& graph);
     virtual ~LandmarkCostAssignment() = default;
 
-    virtual double
-    cost_sharing_h_value(const LandmarkStatusManager& lm_status_manager) = 0;
+    virtual double cost_sharing_h_value(
+        const LandmarkStatusManager& lm_status_manager,
+        const State& ancestor_state) = 0;
 };
 
 class LandmarkUniformSharedCostAssignment : public LandmarkCostAssignment {
@@ -44,7 +45,8 @@ public:
         bool use_action_landmarks);
 
     virtual double cost_sharing_h_value(
-        const LandmarkStatusManager& lm_status_manager) override;
+        const LandmarkStatusManager& lm_status_manager,
+        const State& ancestor_state) override;
 };
 
 class LandmarkEfficientOptimalSharedCostAssignment
@@ -70,7 +72,8 @@ public:
         lp::LPSolverType solver_type);
 
     virtual double cost_sharing_h_value(
-        const LandmarkStatusManager& lm_status_manager) override;
+        const LandmarkStatusManager& lm_status_manager,
+        const State& ancestor_state) override;
 };
 } // namespace landmarks
 
