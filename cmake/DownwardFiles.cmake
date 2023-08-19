@@ -118,7 +118,6 @@ fast_downward_plugin(
         downward/utils/markup
         downward/utils/math
         downward/utils/memory
-        downward/utils/printable
         downward/utils/rng
         downward/utils/rng_options
         downward/utils/strings
