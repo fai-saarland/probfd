@@ -162,31 +162,9 @@ public:
 
     LP_METHOD(void load_problem(const LinearProgram& lp))
     LP_METHOD(void add_temporary_constraints(
-        const std::vector<LPConstraint>& constraints))
-    LP_METHOD(void add_temporary_constraints(
         const named_vector::NamedVector<LPConstraint>& constraints))
     LP_METHOD(void clear_temporary_constraints())
     LP_METHOD(double get_infinity() const)
-
-    LP_METHOD(int add_variable(
-        const LPVariable& var,
-        const std::vector<int>& constraints,
-        const std::vector<double>& coefficients))
-    LP_METHOD(void add_variable(
-        const LPVariable& var,
-        const std::vector<int>& ids,
-        const std::vector<double>& coefs,
-        const std::string& name))
-
-    LP_METHOD(
-        void add_constraints(const std::vector<LPConstraint>& constraints))
-    LP_METHOD(int add_constraint(const LPConstraint& constraint))
-    LP_METHOD(void add_constraint(
-        const LPConstraint& constraint,
-        const std::string& name))
-
-    LP_METHOD(void delete_variables(int num, const int* var_ids))
-    LP_METHOD(void delete_constraints(int num, const int* constraint_ids))
 
     LP_METHOD(void set_objective_coefficients(
         const std::vector<double>& coefficients))
@@ -233,6 +211,25 @@ public:
     LP_METHOD(int get_num_constraints() const)
     LP_METHOD(int has_temporary_constraints() const)
     LP_METHOD(void print_statistics() const)
+
+    /**
+     * These methods are not present in vanilla Fast Downward. They are needed
+     * for i2-dual, which builds its LP incrementally.
+     */
+    LP_METHOD(int add_variable(
+        const LPVariable& var,
+        const std::vector<int>& constraints,
+        const std::vector<double>& coefficients))
+    LP_METHOD(void add_variable(
+        const LPVariable& var,
+        const std::vector<int>& ids,
+        const std::vector<double>& coefs,
+        const std::string& name))
+
+    LP_METHOD(int add_constraint(const LPConstraint& constraint))
+    LP_METHOD(void add_constraint(
+        const LPConstraint& constraint,
+        const std::string& name))
 };
 #ifdef __GNUG__
 #pragma GCC diagnostic pop

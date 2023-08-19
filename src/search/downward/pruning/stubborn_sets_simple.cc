@@ -94,7 +94,7 @@ public:
             "optimality of the overall search is preserved. As stubborn sets "
             "rely "
             "on several design choices, there are different variants thereof. "
-            "The variant 'StubbornSetsSimple' resolves the design choices in a "
+            "This stubborn set variant resolves the design choices in a "
             "straight-forward way. For details, see the following papers: " +
             utils::format_conference_reference(
                 {"Yusra Alkhazraji",

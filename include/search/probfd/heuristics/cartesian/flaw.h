@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/cartesian/types.h"
 
-#include "downward/cegar/cartesian_set.h"
+#include "downward/cartesian_abstractions/cartesian_set.h"
 
 #include "downward/task_proxy.h"
 

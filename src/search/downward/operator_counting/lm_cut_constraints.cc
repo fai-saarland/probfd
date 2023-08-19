@@ -27,7 +27,7 @@ bool LMCutConstraints::update_constraints(
     lp::LPSolver& lp_solver)
 {
     assert(landmark_generator);
-    vector<lp::LPConstraint> constraints;
+    named_vector::NamedVector<lp::LPConstraint> constraints;
     double infinity = lp_solver.get_infinity();
 
     bool dead_end = landmark_generator->compute_landmarks(

@@ -8,7 +8,7 @@
 
 #include "probfd/distribution.h"
 
-#include "downward/cegar/refinement_hierarchy.h"
+#include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/math.h"
@@ -161,8 +161,10 @@ pair<int, int> Abstraction::refine(
         v1_id,
         v2_id);
 
-    pair<cegar::CartesianSet, cegar::CartesianSet> cartesian_sets =
-        abstract_state.split_domain(split_var, wanted);
+    pair<
+        cartesian_abstractions::CartesianSet,
+        cartesian_abstractions::CartesianSet>
+        cartesian_sets = abstract_state.split_domain(split_var, wanted);
 
     unique_ptr v1 = std::make_unique<AbstractState>(
         v1_id,

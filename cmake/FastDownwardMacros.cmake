@@ -5,7 +5,7 @@ macro(fast_downward_set_compiler_flags)
     set(CMAKE_CXX_STANDARD 23)
 
     if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang|GNU")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic -Wnon-virtual-dtor")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic -Wnon-virtual-dtor -Wfloat-conversion")
 
         if(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-range-loop-analysis")

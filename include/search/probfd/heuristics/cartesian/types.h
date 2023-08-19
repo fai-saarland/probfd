@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_TYPES_H
 #define PROBFD_HEURISTICS_CARTESIAN_TYPES_H
 
-#include "downward/cegar/types.h"
+#include "downward/cartesian_abstractions/types.h"
 
 #include <deque>
 #include <limits>
@@ -9,11 +9,11 @@
 #include <unordered_set>
 #include <vector>
 
-namespace cegar {
+namespace cartesian_abstractions {
 class CartesianSet;
 class CartesianHeuristicFunction;
 class RefinementHierarchy;
-}
+} // namespace cartesian_abstractions
 
 namespace probfd {
 template <typename, typename>
@@ -27,14 +27,14 @@ struct TransitionOutcome;
 struct ProbabilisticTransition;
 
 // Classed reused from classical implementation
-using CartesianSet = cegar::CartesianSet;
-using RefinementHierarchy = cegar::RefinementHierarchy;
+using CartesianSet = cartesian_abstractions::CartesianSet;
+using RefinementHierarchy = cartesian_abstractions::RefinementHierarchy;
 
 // Typedefs reused from classical implementation
-using Goals = cegar::Goals;
-using NodeID = cegar::NodeID;
+using Goals = cartesian_abstractions::Goals;
+using NodeID = cartesian_abstractions::NodeID;
 
-// Typdefs adapted from classical implementation
+// Typedefs adapted from classical implementation
 class AbstractState;
 using AbstractStates = std::vector<std::unique_ptr<AbstractState>>;
 

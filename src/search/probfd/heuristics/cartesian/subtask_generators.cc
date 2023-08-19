@@ -10,7 +10,7 @@
 
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "downward/cegar/utils_landmarks.h"
+#include "downward/cartesian_abstractions/utils_landmarks.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
@@ -161,7 +161,8 @@ LandmarkDecomposition::build_domain_abstracted_task(
 {
     assert(combine_facts);
     extra_tasks::VarToGroups value_groups;
-    for (auto& pair : cegar::get_prev_landmarks(landmark_graph, fact)) {
+    for (auto& pair :
+         cartesian_abstractions::get_prev_landmarks(landmark_graph, fact)) {
         int var = pair.first;
         vector<int>& group = pair.second;
         if (group.size() >= 2) value_groups[var].push_back(group);
@@ -177,8 +178,9 @@ SharedTasks LandmarkDecomposition::get_subtasks(
         std::make_shared<tasks::AODDeterminizationTask>(task.get());
     SharedTasks subtasks;
     shared_ptr<landmarks::LandmarkGraph> landmark_graph =
-        cegar::get_landmark_graph(determinzation_task);
-    Facts landmark_facts = cegar::get_fact_landmarks(*landmark_graph);
+        cartesian_abstractions::get_landmark_graph(determinzation_task);
+    Facts landmark_facts =
+        cartesian_abstractions::get_fact_landmarks(*landmark_graph);
     filter_and_order_facts(task, fact_order, landmark_facts, *rng, log);
     for (const FactPair& landmark : landmark_facts) {
         shared_ptr<ProbabilisticTask> subtask =

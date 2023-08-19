@@ -3,6 +3,8 @@
 #include "downward/lp/lp_internals.h"
 
 #include "downward/plugins/plugin.h"
+
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/system.h"
 
@@ -230,6 +232,7 @@ void LPSolver::load_problem(const LinearProgram& lp)
 
     for (const LPConstraint& constraint : lp.get_constraints()) {
         const vector<int>& vars = constraint.get_variables();
+        assert(utils::all_values_unique(vars));
         const vector<double>& coeffs = constraint.get_coefficients();
         assert(vars.size() == coeffs.size());
         starts.push_back(elements.size());
@@ -320,37 +323,6 @@ void LPSolver::load_problem(const LinearProgram& lp)
 }
 
 void LPSolver::add_temporary_constraints(
-    const vector<LPConstraint>& constraints)
-{
-    if (!constraints.empty()) {
-        clear_temporary_data();
-        int num_rows = constraints.size();
-        for (const LPConstraint& constraint : constraints) {
-            row_lb.push_back(constraint.get_lower_bound());
-            row_ub.push_back(constraint.get_upper_bound());
-            rows.push_back(new CoinShallowPackedVector(
-                constraint.get_variables().size(),
-                constraint.get_variables().data(),
-                constraint.get_coefficients().data(),
-                false));
-        }
-
-        try {
-            lp_solver
-                ->addRows(num_rows, rows.data(), row_lb.data(), row_ub.data());
-        } catch (CoinError& error) {
-            handle_coin_error(error);
-        }
-        for (CoinPackedVectorBase* row : rows) {
-            delete row;
-        }
-        clear_temporary_data();
-        has_temporary_constraints_ = true;
-        is_solved = false;
-    }
-}
-
-void LPSolver::add_temporary_constraints(
     const named_vector::NamedVector<LPConstraint>& constraints)
 {
     if (!constraints.empty()) {
@@ -401,131 +373,6 @@ double LPSolver::get_infinity() const
     } catch (CoinError& error) {
         handle_coin_error(error);
     }
-}
-
-int LPSolver::add_variable(
-    const LPVariable& var,
-    const std::vector<int>& constraint_index,
-    const std::vector<double>& coefficients)
-{
-    assert(!has_temporary_constraints_);
-    assert(constraint_index.size() == coefficients.size());
-    is_solved = false;
-    try {
-        int res = lp_solver->getNumCols();
-        lp_solver->addCol(
-            coefficients.size(),
-            constraint_index.data(),
-            coefficients.data(),
-            var.lower_bound,
-            var.upper_bound,
-            var.objective_coefficient);
-        return res; // num_variables++;
-    } catch (CoinError& error) {
-        handle_coin_error(error);
-    }
-}
-
-void LPSolver::add_variable(
-    const LPVariable& var,
-    const std::vector<int>& ids,
-    const std::vector<double>& coefs,
-    const std::string& name)
-{
-    assert(!has_temporary_constraints_);
-    assert(ids.size() == coefs.size());
-    is_solved = false;
-    try {
-        lp_solver->addCol(
-            coefs.size(),
-            ids.data(),
-            coefs.data(),
-            var.lower_bound,
-            var.upper_bound,
-            var.objective_coefficient,
-            name);
-    } catch (CoinError& error) {
-        handle_coin_error(error);
-    }
-}
-
-void LPSolver::add_constraints(const std::vector<LPConstraint>& constraints)
-{
-    assert(!has_temporary_constraints_);
-    add_temporary_constraints(constraints);
-    has_temporary_constraints_ = false;
-    num_permanent_constraints += constraints.size();
-}
-
-void LPSolver::add_constraint(
-    const LPConstraint& constraint,
-    const std::string& name)
-{
-    assert(!has_temporary_constraints_);
-    is_solved = false;
-    num_permanent_constraints++;
-    try {
-        CoinShallowPackedVector constr(
-            constraint.get_variables().size(),
-            constraint.get_variables().data(),
-            constraint.get_coefficients().data(),
-            false);
-        lp_solver->addRow(
-            constr,
-            constraint.get_lower_bound(),
-            constraint.get_upper_bound(),
-            name);
-    } catch (CoinError& error) {
-        handle_coin_error(error);
-    }
-}
-
-int LPSolver::add_constraint(const LPConstraint& constraint)
-{
-    assert(!has_temporary_constraints_);
-    is_solved = false;
-    num_permanent_constraints++;
-    try {
-#ifndef NDEBUG
-        std::vector<int> vars(constraint.get_variables());
-        assert(std::is_sorted(vars.begin(), vars.end()));
-        assert(std::unique(vars.begin(), vars.end()) == vars.end());
-#endif
-
-        CoinShallowPackedVector constr(
-            constraint.get_variables().size(),
-            constraint.get_variables().data(),
-            constraint.get_coefficients().data(),
-            false);
-        int res = lp_solver->getNumRows();
-        lp_solver->addRow(
-            constr,
-            constraint.get_lower_bound(),
-            constraint.get_upper_bound());
-        return res;
-    } catch (CoinError& error) {
-        handle_coin_error(error);
-    }
-}
-
-void LPSolver::delete_variables(int num, const int* var_ids)
-{
-    try {
-        lp_solver->deleteCols(num, var_ids);
-    } catch (CoinError& error) {
-        handle_coin_error(error);
-    }
-    is_solved = false;
-}
-
-void LPSolver::delete_constraints(int num, const int* constraint_ids)
-{
-    try {
-        lp_solver->deleteRows(num, constraint_ids);
-    } catch (CoinError& error) {
-        handle_coin_error(error);
-    }
-    is_solved = false;
 }
 
 void LPSolver::set_objective_coefficients(const vector<double>& coefficients)
@@ -749,6 +596,103 @@ void LPSolver::print_statistics() const
 {
     utils::g_log << "LP variables: " << get_num_variables() << endl;
     utils::g_log << "LP constraints: " << get_num_constraints() << endl;
+}
+
+int LPSolver::add_variable(
+    const LPVariable& var,
+    const std::vector<int>& constraint_index,
+    const std::vector<double>& coefficients)
+{
+    assert(!has_temporary_constraints_);
+    assert(constraint_index.size() == coefficients.size());
+    is_solved = false;
+    try {
+        int res = lp_solver->getNumCols();
+        lp_solver->addCol(
+            coefficients.size(),
+            constraint_index.data(),
+            coefficients.data(),
+            var.lower_bound,
+            var.upper_bound,
+            var.objective_coefficient);
+        return res; // num_variables++;
+    } catch (CoinError& error) {
+        handle_coin_error(error);
+    }
+}
+
+void LPSolver::add_variable(
+    const LPVariable& var,
+    const std::vector<int>& ids,
+    const std::vector<double>& coefs,
+    const std::string& name)
+{
+    assert(!has_temporary_constraints_);
+    assert(ids.size() == coefs.size());
+    is_solved = false;
+    try {
+        lp_solver->addCol(
+            coefs.size(),
+            ids.data(),
+            coefs.data(),
+            var.lower_bound,
+            var.upper_bound,
+            var.objective_coefficient,
+            name);
+    } catch (CoinError& error) {
+        handle_coin_error(error);
+    }
+}
+
+void LPSolver::add_constraint(
+    const LPConstraint& constraint,
+    const std::string& name)
+{
+    assert(!has_temporary_constraints_);
+    is_solved = false;
+    num_permanent_constraints++;
+    try {
+        CoinShallowPackedVector constr(
+            constraint.get_variables().size(),
+            constraint.get_variables().data(),
+            constraint.get_coefficients().data(),
+            false);
+        lp_solver->addRow(
+            constr,
+            constraint.get_lower_bound(),
+            constraint.get_upper_bound(),
+            name);
+    } catch (CoinError& error) {
+        handle_coin_error(error);
+    }
+}
+
+int LPSolver::add_constraint(const LPConstraint& constraint)
+{
+    assert(!has_temporary_constraints_);
+    is_solved = false;
+    num_permanent_constraints++;
+    try {
+#ifndef NDEBUG
+        std::vector<int> vars(constraint.get_variables());
+        assert(std::is_sorted(vars.begin(), vars.end()));
+        assert(std::unique(vars.begin(), vars.end()) == vars.end());
+#endif
+
+        CoinShallowPackedVector constr(
+            constraint.get_variables().size(),
+            constraint.get_variables().data(),
+            constraint.get_coefficients().data(),
+            false);
+        int res = lp_solver->getNumRows();
+        lp_solver->addRow(
+            constr,
+            constraint.get_lower_bound(),
+            constraint.get_upper_bound());
+        return res;
+    } catch (CoinError& error) {
+        handle_coin_error(error);
+    }
 }
 
 #endif

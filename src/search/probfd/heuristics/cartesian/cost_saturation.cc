@@ -13,9 +13,9 @@
 #include "probfd/task_utils/task_properties.h"
 #include "probfd/tasks/modified_operator_costs_task.h"
 
-#include "downward/cegar/abstract_state.h"
-#include "downward/cegar/cartesian_heuristic_function.h"
-#include "downward/cegar/refinement_hierarchy.h"
+#include "downward/cartesian_abstractions/abstract_state.h"
+#include "downward/cartesian_abstractions/cartesian_heuristic_function.h"
+#include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/memory.h"

@@ -8,7 +8,7 @@
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/types.h"
 
-#include "downward/cegar/refinement_hierarchy.h"
+#include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
 #include "downward/utils/logging.h"
 

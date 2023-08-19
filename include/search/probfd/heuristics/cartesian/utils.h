@@ -1,11 +1,11 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_UTILS_H
 #define PROBFD_HEURISTICS_CARTESIAN_UTILS_H
 
-#include "downward/cegar/cartesian_set.h"
+#include "downward/cartesian_abstractions/cartesian_set.h"
 
 #include "probfd/task_proxy.h"
 
-#include "downward/cegar/utils.h"
+#include "downward/cartesian_abstractions/utils.h"
 
 #include <memory>
 #include <unordered_set>
@@ -25,11 +25,11 @@ namespace cartesian {
 // Create the Cartesian set that corresponds to the given preconditions or
 // goals.
 template <typename ConditionsProxy>
-cegar::CartesianSet get_cartesian_set(
+cartesian_abstractions::CartesianSet get_cartesian_set(
     const std::vector<int>& domain_sizes,
     const ConditionsProxy& conditions)
 {
-    cegar::CartesianSet cartesian_set(domain_sizes);
+    cartesian_abstractions::CartesianSet cartesian_set(domain_sizes);
     for (FactProxy condition : conditions) {
         cartesian_set.set_single_value(
             condition.get_variable().get_id(),

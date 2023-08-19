@@ -1,6 +1,6 @@
 #include "probfd/heuristics/cartesian/cartesian_heuristic_function.h"
 
-#include "downward/cegar/refinement_hierarchy.h"
+#include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
 #include "downward/utils/collections.h"
 

@@ -14,9 +14,9 @@
 #include "probfd/policy.h"
 #include "probfd/utils/guards.h"
 
-#include "downward/cegar/cartesian_set.h"
-#include "downward/cegar/refinement_hierarchy.h"
-#include "downward/cegar/utils.h"
+#include "downward/cartesian_abstractions/cartesian_set.h"
+#include "downward/cartesian_abstractions/refinement_hierarchy.h"
+#include "downward/cartesian_abstractions/utils.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/math.h"
@@ -68,7 +68,8 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
     }
 
     const ProbabilisticTaskProxy task_proxy(*task);
-    const std::vector<int> domain_sizes(cegar::get_domain_sizes(task_proxy));
+    const std::vector<int> domain_sizes(
+        cartesian_abstractions::get_domain_sizes(task_proxy));
 
     std::unique_ptr<FlawGenerator> flaw_generator =
         flaw_generator_factory->create_flaw_generator();

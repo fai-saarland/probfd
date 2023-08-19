@@ -12,7 +12,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "downward/cegar/abstract_state.h"
+#include "downward/cartesian_abstractions/abstract_state.h"
 
 #include <cassert>
 

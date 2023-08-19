@@ -20,7 +20,7 @@
 
 #include "probfd/policy.h"
 
-#include "downward/cegar/abstract_state.h"
+#include "downward/cartesian_abstractions/abstract_state.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/memory.h"

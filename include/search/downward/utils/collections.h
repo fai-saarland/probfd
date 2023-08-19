@@ -67,6 +67,13 @@ extern bool is_sorted_unique(const std::vector<T>& values)
 }
 
 template <class T>
+extern bool all_values_unique(const std::vector<T>& v)
+{
+    std::unordered_set<T> s(v.begin(), v.end());
+    return s.size() == v.size();
+}
+
+template <class T>
 extern bool is_unique(const std::vector<T>& values)
 {
     std::vector<T> temp(values.begin(), values.end());

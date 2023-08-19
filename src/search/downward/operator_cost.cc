@@ -59,5 +59,5 @@ static plugins::TypedEnumPlugin<OperatorCost> _enum_plugin(
       "This is the behaviour known for the heuristics of the LAMA "
       "planner. "
       "This is intended to be used by the heuristics, not search "
-      "engines, "
+      "algorithms, "
       "but is supported for both."}});
