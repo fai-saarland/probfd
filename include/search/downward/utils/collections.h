@@ -16,54 +16,20 @@
 
 namespace utils {
 
-template <typename T, typename A>
-std::vector<T, A>
-merge_sorted(const std::vector<T, A>& left, const std::vector<T, A>& right)
+template <class T>
+extern void sort_unique(std::vector<T>& vec)
 {
-    std::vector<T, A> merged;
-    merged.reserve(left.size() + right.size());
-    std::ranges::merge(left, right, std::back_inserter(merged));
-    return merged;
-}
-
-template <typename T, typename A>
-void insert_set(std::vector<T, A>& lhs, T element)
-{
-    assert(std::is_sorted(lhs.begin(), lhs.end()));
-
-    auto it = std::lower_bound(lhs.begin(), lhs.end(), element);
-    if (it == lhs.end() || *it != element) {
-        lhs.insert(it, std::move(element));
-    }
-}
-
-template <typename T, typename A>
-void insert_set(std::vector<T, A>& lhs, const std::vector<T, A>& rhs)
-{
-    for (const auto& element : rhs) {
-        insert_set(lhs, element);
-    }
-}
-
-template <std::ranges::input_range T>
-bool contains(T&& range, const std::ranges::range_value_t<T>& val)
-{
-    return std::ranges::find(range, val) != std::ranges::end(range);
-}
-
-template <class T, class A>
-extern void sort_unique(std::vector<T, A>& vec)
-{
-    std::ranges::sort(vec);
-    const auto [first, last] = std::ranges::unique(vec);
-    vec.erase(first, last);
+    std::sort(vec.begin(), vec.end());
+    vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
 }
 
 template <class T>
 extern bool is_sorted_unique(const std::vector<T>& values)
 {
-    return std::ranges::is_sorted(values) &&
-           std::ranges::adjacent_find(values) == values.end();
+    for (size_t i = 1; i < values.size(); ++i) {
+        if (values[i - 1] >= values[i]) return false;
+    }
+    return true;
 }
 
 template <class T>
@@ -71,14 +37,6 @@ extern bool all_values_unique(const std::vector<T>& v)
 {
     std::unordered_set<T> s(v.begin(), v.end());
     return s.size() == v.size();
-}
-
-template <class T>
-extern bool is_unique(const std::vector<T>& values)
-{
-    std::vector<T> temp(values.begin(), values.end());
-    std::ranges::sort(temp);
-    return is_sorted_unique(temp);
 }
 
 template <class T>
@@ -91,13 +49,6 @@ template <class T>
 bool in_bounds(std::unsigned_integral auto index, const T& container)
 {
     return static_cast<size_t>(index) < container.size();
-}
-
-template <typename Iterator, typename Sentinel, typename T>
-auto find_sorted(Iterator begin, Sentinel end, const T& elem)
-{
-    auto it = std::lower_bound(begin, end, elem);
-    return it != end && *it == elem ? it : end;
 }
 
 template <typename T>
@@ -114,12 +65,6 @@ template <class T>
 void release_vector_memory(std::vector<T>& vec)
 {
     std::vector<T>().swap(vec);
-}
-
-template <class T>
-void release_container_memory(T& container)
-{
-    T().swap(container);
 }
 
 template <class KeyType, class ValueType>
@@ -254,6 +199,63 @@ bool have_common_element(const Range1& range1, const Range2& range2)
         std::end(range1),
         std::begin(range2),
         std::end(range2));
+}
+
+// The following are used by probfd
+template <typename T, typename A>
+std::vector<T, A>
+merge_sorted(const std::vector<T, A>& left, const std::vector<T, A>& right)
+{
+    std::vector<T, A> merged;
+    merged.reserve(left.size() + right.size());
+    std::ranges::merge(left, right, std::back_inserter(merged));
+    return merged;
+}
+
+template <typename T, typename A>
+void insert_set(std::vector<T, A>& lhs, T element)
+{
+    assert(std::is_sorted(lhs.begin(), lhs.end()));
+
+    auto it = std::lower_bound(lhs.begin(), lhs.end(), element);
+    if (it == lhs.end() || *it != element) {
+        lhs.insert(it, std::move(element));
+    }
+}
+
+template <typename T, typename A>
+void insert_set(std::vector<T, A>& lhs, const std::vector<T, A>& rhs)
+{
+    for (const auto& element : rhs) {
+        insert_set(lhs, element);
+    }
+}
+
+template <std::ranges::input_range T>
+bool contains(T&& range, const std::ranges::range_value_t<T>& val)
+{
+    return std::ranges::find(range, val) != std::ranges::end(range);
+}
+
+template <class T>
+extern bool is_unique(const std::vector<T>& values)
+{
+    std::vector<T> temp(values.begin(), values.end());
+    std::ranges::sort(temp);
+    return is_sorted_unique(temp);
+}
+
+template <typename Iterator, typename Sentinel, typename T>
+auto find_sorted(Iterator begin, Sentinel end, const T& elem)
+{
+    auto it = std::lower_bound(begin, end, elem);
+    return it != end && *it == elem ? it : end;
+}
+
+template <class T>
+void release_container_memory(T& container)
+{
+    T().swap(container);
 }
 
 } // namespace utils
