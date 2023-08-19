@@ -2,7 +2,6 @@
 
 #include "downward/merge_and_shrink/distances.h"
 #include "downward/merge_and_shrink/factored_transition_system.h"
-#include "downward/merge_and_shrink/label_equivalence_relation.h"
 #include "downward/merge_and_shrink/transition_system.h"
 
 #include "downward/plugins/plugin.h"
@@ -17,7 +16,6 @@
 #include <limits>
 #include <memory>
 #include <unordered_map>
-
 
 using namespace std;
 
@@ -195,9 +193,9 @@ void ShrinkBisimulation::compute_signatures(
                                                 threshold=1),
             label_reduction=exact(before_shrinking=true,before_merging=false)))
     */
-    for (GroupAndTransitions gat : ts) {
-        const LabelGroup& label_group = gat.label_group;
-        const vector<Transition>& transitions = gat.transitions;
+    for (const LocalLabelInfo& local_label_info : ts) {
+        const vector<Transition>& transitions =
+            local_label_info.get_transitions();
         for (const Transition& transition : transitions) {
             assert(signatures[transition.src + 1].state == transition.src);
             bool skip_transition = false;
@@ -208,7 +206,7 @@ void ShrinkBisimulation::compute_signatures(
                     // We skip transitions connected to an irrelevant state.
                     skip_transition = true;
                 } else {
-                    int cost = label_group.get_cost();
+                    int cost = local_label_info.get_cost();
                     assert(target_h + cost >= src_h);
                     skip_transition = (target_h + cost != src_h);
                 }

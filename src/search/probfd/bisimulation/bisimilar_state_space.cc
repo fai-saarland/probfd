@@ -11,7 +11,6 @@
 
 #include "downward/merge_and_shrink/distances.h"
 #include "downward/merge_and_shrink/factored_transition_system.h"
-#include "downward/merge_and_shrink/label_equivalence_relation.h"
 #include "downward/merge_and_shrink/label_reduction.h"
 #include "downward/merge_and_shrink/merge_and_shrink_algorithm.h"
 #include "downward/merge_and_shrink/merge_and_shrink_representation.h"
@@ -192,15 +191,13 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
             return result;
         };
 
-        for (GroupAndTransitions grouped_transitions : *abstraction_) {
-            LabelGroup label_group = grouped_transitions.label_group;
-            for (const int g_op_id : label_group) {
-                for (const Transition& trans :
-                     grouped_transitions.transitions) {
+        for (LocalLabelInfo local_info : *abstraction_) {
+            for (const int g_op_id : local_info.get_label_group()) {
+                for (const Transition& trans : local_info.get_transitions()) {
                     std::vector<CachedTransition>& ts = transitions_[trans.src];
                     assert(trans.target != PRUNED_STATE);
-                    // if (trans.target != PRUNED_STATE &&
-                    //     trans.target != trans.src) {
+                    // if (trans.target == PRUNED_STATE ||
+                    //     trans.target == trans.src) continue;
                     const auto& op = g_to_p[g_op_id];
 
                     CachedTransition* t = nullptr;
@@ -224,7 +221,6 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
                     }
 
                     t->successors[op.second] = trans.target;
-                    //}
                 }
             }
         }

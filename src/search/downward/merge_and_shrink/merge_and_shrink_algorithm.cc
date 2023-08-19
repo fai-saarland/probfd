@@ -25,6 +25,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <utility>
 #include <vector>
@@ -85,6 +86,9 @@ void MergeAndShrinkAlgorithm::dump_options() const
             << max_states_before_merge << endl;
         log << "Threshold to trigger shrinking right before merge: "
             << shrink_threshold_before_merge << endl;
+        log << endl;
+
+        shrink_strategy->dump_options(log);
         log << endl;
 
         log << "Pruning unreachable states: "

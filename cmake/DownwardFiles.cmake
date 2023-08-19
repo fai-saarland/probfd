@@ -666,7 +666,6 @@ fast_downward_plugin(
         downward/merge_and_shrink/distances
         downward/merge_and_shrink/factored_transition_system
         downward/merge_and_shrink/fts_factory
-        downward/merge_and_shrink/label_equivalence_relation
         downward/merge_and_shrink/label_reduction
         downward/merge_and_shrink/labels
         downward/merge_and_shrink/merge_and_shrink_algorithm

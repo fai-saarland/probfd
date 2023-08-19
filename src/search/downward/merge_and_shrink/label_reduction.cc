@@ -1,7 +1,6 @@
 #include "downward/merge_and_shrink/label_reduction.h"
 
 #include "downward/merge_and_shrink/factored_transition_system.h"
-#include "downward/merge_and_shrink/label_equivalence_relation.h"
 #include "downward/merge_and_shrink/labels.h"
 #include "downward/merge_and_shrink/transition_system.h"
 #include "downward/merge_and_shrink/types.h"
@@ -26,30 +25,26 @@ using namespace std;
 using utils::ExitCode;
 
 namespace merge_and_shrink {
-LabelReduction::LabelReduction(const plugins::Options& options)
-    : lr_before_shrinking(options.get<bool>("before_shrinking"))
-    , lr_before_merging(options.get<bool>("before_merging"))
-    , lr_method(options.get<LabelReductionMethod>("method"))
-    , lr_system_order(options.get<LabelReductionSystemOrder>("system_order"))
-    , rng(utils::parse_rng_from_options(options))
-{
+LabelReduction::LabelReduction(const plugins::Options &options)
+    : lr_before_shrinking(options.get<bool>("before_shrinking")),
+      lr_before_merging(options.get<bool>("before_merging")),
+      lr_method(options.get<LabelReductionMethod>("method")),
+      lr_system_order(options.get<LabelReductionSystemOrder>("system_order")),
+      rng(utils::parse_rng_from_options(options)) {
 }
 
-bool LabelReduction::initialized() const
-{
+bool LabelReduction::initialized() const {
     return !transition_system_order.empty();
 }
 
-void LabelReduction::initialize(const TaskProxy& task_proxy)
-{
+void LabelReduction::initialize(const TaskProxy &task_proxy) {
     assert(!initialized());
 
     // Compute the transition system order.
-    size_t max_transition_system_count =
-        task_proxy.get_variables().size() * 2 - 1;
+    size_t max_transition_system_count = task_proxy.get_variables().size() * 2 - 1;
     transition_system_order.reserve(max_transition_system_count);
-    if (lr_system_order == LabelReductionSystemOrder::REGULAR ||
-        lr_system_order == LabelReductionSystemOrder::RANDOM) {
+    if (lr_system_order == LabelReductionSystemOrder::REGULAR
+        || lr_system_order == LabelReductionSystemOrder::RANDOM) {
         for (size_t i = 0; i < max_transition_system_count; ++i)
             transition_system_order.push_back(i);
         if (lr_system_order == LabelReductionSystemOrder::RANDOM) {
@@ -58,66 +53,57 @@ void LabelReduction::initialize(const TaskProxy& task_proxy)
     } else {
         assert(lr_system_order == LabelReductionSystemOrder::REVERSE);
         for (size_t i = 0; i < max_transition_system_count; ++i)
-            transition_system_order.push_back(
-                max_transition_system_count - 1 - i);
+            transition_system_order.push_back(max_transition_system_count - 1 - i);
     }
 }
 
 void LabelReduction::compute_label_mapping(
-    const equivalence_relation::EquivalenceRelation* relation,
-    const FactoredTransitionSystem& fts,
-    vector<pair<int, vector<int>>>& label_mapping,
-    utils::LogProxy& log) const
-{
-    const Labels& labels = fts.get_labels();
-    int next_new_label_no = labels.get_size();
+    const equivalence_relation::EquivalenceRelation &relation,
+    const FactoredTransitionSystem &fts,
+    vector<pair<int, vector<int>>> &label_mapping,
+    utils::LogProxy &log) const {
+    const Labels &labels = fts.get_labels();
+    int next_new_label = labels.get_num_total_labels();
     int num_labels = 0;
     int num_labels_after_reduction = 0;
-    for (auto group_it = relation->begin(); group_it != relation->end();
-         ++group_it) {
-        const equivalence_relation::Block& block = *group_it;
-        unordered_map<int, vector<int>> equivalent_label_nos;
-        for (auto label_it = block.begin(); label_it != block.end();
-             ++label_it) {
-            assert(*label_it < next_new_label_no);
-            int label_no = *label_it;
-            if (labels.is_current_label(label_no)) {
-                // only consider non-reduced labels
-                int cost = labels.get_label_cost(label_no);
-                equivalent_label_nos[cost].push_back(label_no);
-                ++num_labels;
-            }
+    for (const equivalence_relation::Block &block : relation) {
+        unordered_map<int, vector<int>> cost_to_equivalent_labels;
+        for (int label : block) {
+            assert(label < next_new_label);
+            int cost = labels.get_label_cost(label);
+            cost_to_equivalent_labels[cost].push_back(label);
+            ++num_labels;
         }
-        for (auto it = equivalent_label_nos.begin();
-             it != equivalent_label_nos.end();
-             ++it) {
-            const vector<int>& label_nos = it->second;
-            if (label_nos.size() > 1) {
+        for (auto &entry : cost_to_equivalent_labels) {
+            vector<int> &equivalent_labels = entry.second;
+            if (equivalent_labels.size() > 1) {
+                // Labels have to be sorted for LocalLabelInfo.
+                sort(equivalent_labels.begin(), equivalent_labels.end());
                 if (log.is_at_least_debug()) {
-                    log << "Reducing labels " << label_nos << " to "
-                        << next_new_label_no << endl;
+                    log << "Reducing labels "
+                        << equivalent_labels << " to " << next_new_label << endl;
                 }
-                label_mapping.push_back(
-                    make_pair(next_new_label_no, label_nos));
-                ++next_new_label_no;
+                label_mapping.push_back(make_pair(next_new_label, equivalent_labels));
+                ++next_new_label;
             }
-            if (!label_nos.empty()) {
+            if (!equivalent_labels.empty()) {
                 ++num_labels_after_reduction;
             }
         }
     }
     int number_reduced_labels = num_labels - num_labels_after_reduction;
     if (log.is_at_least_verbose() && number_reduced_labels > 0) {
-        log << "Label reduction: " << num_labels << " labels, "
-            << num_labels_after_reduction << " after reduction" << endl;
+        log << "Label reduction: "
+            << num_labels << " labels, "
+            << num_labels_after_reduction << " after reduction"
+            << endl;
     }
 }
 
-equivalence_relation::EquivalenceRelation*
+equivalence_relation::EquivalenceRelation
 LabelReduction::compute_combinable_equivalence_relation(
     int ts_index,
-    const FactoredTransitionSystem& fts) const
-{
+    const FactoredTransitionSystem &fts) const {
     /*
       Returns an equivalence relation over labels s.t. l ~ l'
       iff l and l' are locally equivalent in all transition systems
@@ -125,26 +111,20 @@ LabelReduction::compute_combinable_equivalence_relation(
     */
 
     // Create the equivalence relation where all labels are equivalent.
-    const Labels& labels = fts.get_labels();
-    int num_labels = labels.get_size();
-    vector<pair<int, int>> annotated_labels;
-    annotated_labels.reserve(num_labels);
-    for (int label_no = 0; label_no < num_labels; ++label_no) {
-        if (labels.is_current_label(label_no)) {
-            annotated_labels.push_back(make_pair(0, label_no));
-        }
+    const Labels &labels = fts.get_labels();
+    int num_labels = labels.get_num_active_labels();
+    vector<int> all_active_labels;
+    all_active_labels.reserve(num_labels);
+    for (int label : labels) {
+        all_active_labels.push_back(label);
     }
-    equivalence_relation::EquivalenceRelation* relation =
-        equivalence_relation::EquivalenceRelation::from_annotated_elements<int>(
-            num_labels,
-            annotated_labels);
+    equivalence_relation::EquivalenceRelation relation(all_active_labels);
 
     for (int index : fts) {
         if (index != ts_index) {
-            const TransitionSystem& ts = fts.get_transition_system(index);
-            for (GroupAndTransitions gat : ts) {
-                const LabelGroup& label_group = gat.label_group;
-                relation->refine(label_group.begin(), label_group.end());
+            const TransitionSystem &ts = fts.get_transition_system(index);
+            for (const LocalLabelInfo &local_label_info : ts) {
+                relation.refine(local_label_info.get_label_group());
             }
         }
     }
@@ -152,10 +132,9 @@ LabelReduction::compute_combinable_equivalence_relation(
 }
 
 bool LabelReduction::reduce(
-    const pair<int, int>& next_merge,
-    FactoredTransitionSystem& fts,
-    utils::LogProxy& log) const
-{
+    const pair<int, int> &next_merge,
+    FactoredTransitionSystem &fts,
+    utils::LogProxy &log) const {
     assert(initialized());
     assert(reduce_before_shrinking() || reduce_before_merging());
     int num_transition_systems = fts.get_size();
@@ -173,7 +152,7 @@ bool LabelReduction::reduce(
         assert(fts.is_active(next_merge.second));
 
         bool reduced = false;
-        equivalence_relation::EquivalenceRelation* relation =
+        equivalence_relation::EquivalenceRelation relation =
             compute_combinable_equivalence_relation(next_merge.first, fts);
         vector<pair<int, vector<int>>> label_mapping;
         compute_label_mapping(relation, fts, label_mapping, log);
@@ -181,18 +160,16 @@ bool LabelReduction::reduce(
             fts.apply_label_mapping(label_mapping, next_merge.first);
             reduced = true;
         }
-        delete relation;
-        relation = nullptr;
         utils::release_vector_memory(label_mapping);
 
-        relation =
-            compute_combinable_equivalence_relation(next_merge.second, fts);
+        relation = compute_combinable_equivalence_relation(
+            next_merge.second,
+            fts);
         compute_label_mapping(relation, fts, label_mapping, log);
         if (!label_mapping.empty()) {
             fts.apply_label_mapping(label_mapping, next_merge.second);
             reduced = true;
         }
-        delete relation;
         return reduced;
     }
 
@@ -208,9 +185,7 @@ bool LabelReduction::reduce(
     int max_iterations;
     if (lr_method == LabelReductionMethod::ALL_TRANSITION_SYSTEMS) {
         max_iterations = num_transition_systems;
-    } else if (
-        lr_method ==
-        LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
+    } else if (lr_method == LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
         max_iterations = INF;
     } else {
         ABORT("unknown label reduction method");
@@ -235,10 +210,9 @@ bool LabelReduction::reduce(
 
         vector<pair<int, vector<int>>> label_mapping;
         if (fts.is_active(ts_index)) {
-            equivalence_relation::EquivalenceRelation* relation =
+            equivalence_relation::EquivalenceRelation relation =
                 compute_combinable_equivalence_relation(ts_index, fts);
             compute_label_mapping(relation, fts, label_mapping, log);
-            delete relation;
         }
 
         if (label_mapping.empty()) {
@@ -274,8 +248,7 @@ bool LabelReduction::reduce(
     return reduced;
 }
 
-void LabelReduction::dump_options(utils::LogProxy& log) const
-{
+void LabelReduction::dump_options(utils::LogProxy &log) const {
     if (log.is_at_least_normal()) {
         log << "Label reduction options:" << endl;
         log << "Before merging: "
@@ -296,25 +269,27 @@ void LabelReduction::dump_options(utils::LogProxy& log) const
         }
         log << endl;
         if (lr_method == LabelReductionMethod::ALL_TRANSITION_SYSTEMS ||
-            lr_method ==
-                LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
+            lr_method == LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
             log << "System order: ";
             switch (lr_system_order) {
-            case LabelReductionSystemOrder::REGULAR: log << "regular"; break;
-            case LabelReductionSystemOrder::REVERSE: log << "reversed"; break;
-            case LabelReductionSystemOrder::RANDOM: log << "random"; break;
+            case LabelReductionSystemOrder::REGULAR:
+                log << "regular";
+                break;
+            case LabelReductionSystemOrder::REVERSE:
+                log << "reversed";
+                break;
+            case LabelReductionSystemOrder::RANDOM:
+                log << "random";
+                break;
             }
             log << endl;
         }
     }
 }
 
-class LabelReductionFeature
-    : public plugins::TypedFeature<LabelReduction, LabelReduction> {
+class LabelReductionFeature : public plugins::TypedFeature<LabelReduction, LabelReduction> {
 public:
-    LabelReductionFeature()
-        : TypedFeature("exact")
-    {
+    LabelReductionFeature() : TypedFeature("exact") {
         document_title("Exact generalized label reduction");
         document_synopsis(
             "This class implements the exact generalized label reduction "
@@ -360,15 +335,13 @@ public:
         utils::add_rng_options(*this);
     }
 
-    virtual shared_ptr<LabelReduction> create_component(
-        const plugins::Options& options,
-        const utils::Context& context) const override
-    {
+    virtual shared_ptr<LabelReduction> create_component(const plugins::Options &options, const utils::Context &context) const override {
         bool lr_before_shrinking = options.get<bool>("before_shrinking");
         bool lr_before_merging = options.get<bool>("before_merging");
         if (!lr_before_shrinking && !lr_before_merging) {
-            context.error("Please turn on at least one of the options "
-                          "before_shrinking or before_merging!");
+            context.error(
+                "Please turn on at least one of the options "
+                "before_shrinking or before_merging!");
         }
         return make_shared<LabelReduction>(options);
     }
@@ -376,34 +349,33 @@ public:
 
 static plugins::FeaturePlugin<LabelReductionFeature> _plugin;
 
-static class LabelReductionCategoryPlugin
-    : public plugins::TypedCategoryPlugin<LabelReduction> {
+static class LabelReductionCategoryPlugin : public plugins::TypedCategoryPlugin<LabelReduction> {
 public:
-    LabelReductionCategoryPlugin()
-        : TypedCategoryPlugin("LabelReduction")
-    {
-        document_synopsis("This page describes the current single 'option' for "
-                          "label reduction.");
+    LabelReductionCategoryPlugin() : TypedCategoryPlugin("LabelReduction") {
+        document_synopsis("This page describes the current single 'option' for label reduction.");
     }
-} _category_plugin;
+}
+_category_plugin;
 
-static plugins::TypedEnumPlugin<LabelReductionMethod>
-    _label_reduction_method_enum_plugin(
-        {{"two_transition_systems",
-          "compute the 'combinable relation' only for the two transition "
-          "systems being merged next"},
-         {"all_transition_systems",
-          "compute the 'combinable relation' for labels once for every "
-          "transition system and reduce labels"},
-         {"all_transition_systems_with_fixpoint",
-          "keep computing the 'combinable relation' for labels iteratively "
-          "for all transition systems until no more labels can be reduced"}});
+static plugins::TypedEnumPlugin<LabelReductionMethod> _label_reduction_method_enum_plugin({
+        {"two_transition_systems",
+         "compute the 'combinable relation' only for the two transition "
+         "systems being merged next"},
+        {"all_transition_systems",
+         "compute the 'combinable relation' for labels once for every "
+         "transition system and reduce labels"},
+        {"all_transition_systems_with_fixpoint",
+         "keep computing the 'combinable relation' for labels iteratively "
+         "for all transition systems until no more labels can be reduced"}
+    });
 
-static plugins::TypedEnumPlugin<LabelReductionSystemOrder>
-    _label_reduction_system_order_enum_plugin(
-        {{"regular",
-          "transition systems are considered in the order given in the planner "
-          "input if atomic and in the order of their creation if composite."},
-         {"reverse", "inverse of regular"},
-         {"random", "random order"}});
-} // namespace merge_and_shrink
+static plugins::TypedEnumPlugin<LabelReductionSystemOrder> _label_reduction_system_order_enum_plugin({
+        {"regular",
+         "transition systems are considered in the order given in the planner "
+         "input if atomic and in the order of their creation if composite."},
+        {"reverse",
+         "inverse of regular"},
+        {"random",
+         "random order"}
+    });
+}
