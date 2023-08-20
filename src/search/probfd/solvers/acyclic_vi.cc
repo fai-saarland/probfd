@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engines/acyclic_value_iteration.h"
+#include "probfd/algorithms/acyclic_value_iteration.h"
 
 #include "probfd/evaluator.h"
 
@@ -15,16 +15,16 @@ class AcyclicVISolver : public MDPSolver {
 public:
     using MDPSolver::MDPSolver;
 
-    std::string get_engine_name() const override
+    std::string get_algorithm_name() const override
     {
         return "acyclic_value_iteration";
     }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using AVIEngine =
-            engines::acyclic_vi::AcyclicValueIteration<State, OperatorID>;
-        return engine_factory<AVIEngine>();
+        using AVIAlgorithm =
+            algorithms::acyclic_vi::AcyclicValueIteration<State, OperatorID>;
+        return algorithm_factory<AVIAlgorithm>();
     }
 };
 

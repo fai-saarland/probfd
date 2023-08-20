@@ -1,13 +1,13 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engines/policy_picker.h"
+#include "probfd/algorithms/policy_picker.h"
 
 #include <sstream>
 
 namespace probfd {
 namespace solvers {
 
-using namespace engines;
+using namespace algorithms;
 
 MDPHeuristicSearchBase::MDPHeuristicSearchBase(const plugins::Options& opts)
     : MDPSolver(opts)
@@ -39,7 +39,7 @@ void MDPHeuristicSearchBase::add_options_to_feature(plugins::Feature& feature)
     feature.add_option<bool>("dual_bounds", "", "false");
 }
 
-std::string MDPHeuristicSearchBase::get_engine_name() const
+std::string MDPHeuristicSearchBase::get_algorithm_name() const
 {
     return this->get_heuristic_search_name();
 }

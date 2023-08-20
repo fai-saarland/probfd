@@ -2,11 +2,11 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
-#include "probfd/heuristics/cartesian/engine_interfaces.h"
+#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "probfd/engines/trap_aware_dfhs.h"
+#include "probfd/algorithms/trap_aware_dfhs.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -40,14 +40,14 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     // TODO: ideally, this object should not be recreated each time, in
     // particular the storage for the search state. Needs some way to clear
     // the search state.
-    engines::trap_aware_dfhs::
+    algorithms::trap_aware_dfhs::
         TADepthFirstHeuristicSearch<int, const ProbabilisticTransition*, false>
             hdfs(
                 picker,
                 &report,
                 false,
                 false,
-                engines::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
+                algorithms::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
                 false,
                 false,
                 false,

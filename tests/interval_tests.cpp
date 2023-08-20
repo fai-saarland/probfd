@@ -2,7 +2,7 @@
 
 #include "probfd/interval.h"
 
-#include "probfd/engines/utils.h"
+#include "probfd/algorithms/utils.h"
 
 using namespace probfd;
 

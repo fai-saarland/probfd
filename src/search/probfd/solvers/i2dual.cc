@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engines/i2dual.h"
+#include "probfd/algorithms/i2dual.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -9,7 +9,7 @@ namespace solvers {
 namespace i2dual {
 namespace {
 
-using namespace engines;
+using namespace algorithms;
 
 class I2DualSolver : public MDPSolver {
     bool hpom_enabled_;
@@ -25,11 +25,11 @@ public:
     {
     }
 
-    std::string get_engine_name() const override { return "i2dual"; }
+    std::string get_algorithm_name() const override { return "i2dual"; }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return engine_factory<engines::i2dual::I2Dual>(
+        return algorithm_factory<algorithms::i2dual::I2Dual>(
             this->task,
             this->task_cost_function,
             &progress_,

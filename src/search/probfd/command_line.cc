@@ -86,14 +86,14 @@ static std::shared_ptr<SolverInterface>
 parse_cmd_line_aux(const vector<string>& args)
 {
     using SearchPtr = shared_ptr<SolverInterface>;
-    SearchPtr engine = nullptr;
+    SearchPtr algorithm = nullptr;
 
     // TODO: Remove code duplication.
     for (size_t i = 0; i < args.size(); ++i) {
         string arg = args[i];
         bool is_last = (i == args.size() - 1);
         if (arg == "--search") {
-            if (engine) input_error("multiple --search arguments defined");
+            if (algorithm) input_error("multiple --search arguments defined");
             if (is_last) input_error("missing argument after --search");
             string search_arg = args[++i];
             try {
@@ -101,7 +101,7 @@ parse_cmd_line_aux(const vector<string>& args)
                 parser::ASTNodePtr parsed = parser::parse(tokens);
                 parser::DecoratedASTNodePtr decorated = parsed->decorate();
                 std::any constructed = decorated->construct();
-                engine = std::any_cast<SearchPtr>(constructed);
+                algorithm = std::any_cast<SearchPtr>(constructed);
             } catch (const utils::ContextError& e) {
                 input_error(e.get_message());
             }
@@ -173,7 +173,7 @@ parse_cmd_line_aux(const vector<string>& args)
         }
     }
 
-    return engine;
+    return algorithm;
 }
 
 std::shared_ptr<SolverInterface>
@@ -204,7 +204,7 @@ string usage(const string& progname)
 {
     return "usage: \n" + progname +
            " [OPTIONS] --search SEARCH < OUTPUT\n\n"
-           "* SEARCH (SearchEngine): configuration of the search algorithm\n"
+           "* SEARCH (SearchAlgorithm): configuration of the search algorithm\n"
            "* OUTPUT (filename): translator output\n\n"
            "Options:\n"
            "--maxprob\n"

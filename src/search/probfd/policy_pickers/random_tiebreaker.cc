@@ -30,7 +30,7 @@ int RandomTiebreaker::pick_index(
     StateID,
     std::optional<OperatorID>,
     const std::vector<Transition<OperatorID>>& greedy_transitions,
-    engines::StateProperties&)
+    algorithms::StateProperties&)
 {
     return rng->random(greedy_transitions.size());
 }

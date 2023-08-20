@@ -1,10 +1,10 @@
 #ifndef PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 #define PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
 
-#include "probfd/engines/fdr_types.h"
-#include "probfd/engines/open_list.h"
-#include "probfd/engines/policy_picker.h"
-#include "probfd/engines/successor_sampler.h"
+#include "probfd/algorithms/fdr_types.h"
+#include "probfd/algorithms/open_list.h"
+#include "probfd/algorithms/policy_picker.h"
+#include "probfd/algorithms/successor_sampler.h"
 
 #include "probfd/quotients/quotient_system.h"
 
@@ -40,18 +40,18 @@ public:
 
 template <typename State, typename Action = OperatorID>
 class RepresentativePolicyPicker
-    : public engines::
+    : public algorithms::
           PolicyPicker<QuotientState<State, Action>, QuotientAction<Action>> {
     using QuotientSystem = QuotientSystem<State, Action>;
     using QuotientState = QuotientState<State, Action>;
     using QuotientAction = QuotientAction<Action>;
 
     std::vector<Transition<Action>> choices_;
-    std::shared_ptr<engines::PolicyPicker<State, Action>> original_;
+    std::shared_ptr<algorithms::PolicyPicker<State, Action>> original_;
 
 public:
     RepresentativePolicyPicker(
-        std::shared_ptr<engines::PolicyPicker<State, Action>> original)
+        std::shared_ptr<algorithms::PolicyPicker<State, Action>> original)
         : original_(original)
     {
     }
@@ -61,7 +61,7 @@ public:
         StateID state,
         std::optional<QuotientAction> prev_policy,
         const std::vector<Transition<QuotientAction>>& greedy_transitions,
-        engines::StateProperties& properties) override
+        algorithms::StateProperties& properties) override
     {
         assert(dynamic_cast<QuotientSystem*>(&mdp));
         QuotientSystem& quotient = static_cast<QuotientSystem&>(mdp);
@@ -91,7 +91,7 @@ public:
 };
 
 class RepresentativeSuccessorSampler
-    : public engines::SuccessorSampler<QuotientAction<OperatorID>> {
+    : public algorithms::SuccessorSampler<QuotientAction<OperatorID>> {
     using QuotientAction = QuotientAction<OperatorID>;
 
     std::shared_ptr<FDRSuccessorSampler> original_;
@@ -107,7 +107,7 @@ public:
         StateID state,
         QuotientAction qaction,
         const Distribution<StateID>& transition,
-        engines::StateProperties& properties) override
+        algorithms::StateProperties& properties) override
     {
         return original_->sample(state, qaction.action, transition, properties);
     }
@@ -119,7 +119,7 @@ public:
 };
 
 class RepresentativeOpenList
-    : public engines::OpenList<QuotientAction<OperatorID>> {
+    : public algorithms::OpenList<QuotientAction<OperatorID>> {
     using QuotientAction = QuotientAction<OperatorID>;
 
     std::shared_ptr<FDROpenList> original_;

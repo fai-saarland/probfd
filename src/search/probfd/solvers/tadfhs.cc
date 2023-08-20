@@ -1,5 +1,5 @@
-#include "probfd/engines/open_list.h"
-#include "probfd/engines/trap_aware_dfhs.h"
+#include "probfd/algorithms/open_list.h"
+#include "probfd/algorithms/trap_aware_dfhs.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
 #include "downward/plugins/plugin.h"
@@ -8,8 +8,8 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engines;
-using namespace engines::trap_aware_dfhs;
+using namespace algorithms;
+using namespace algorithms::trap_aware_dfhs;
 
 class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
     template <typename T>
@@ -17,7 +17,7 @@ class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
         typename MDPHeuristicSearch<false, true>::WrappedType<T>;
 
     template <typename State, typename Action, bool Interval>
-    using Engine = TADepthFirstHeuristicSearch<State, Action, Interval>;
+    using Algorithm = TADepthFirstHeuristicSearch<State, Action, Interval>;
 
     WrappedType<std::shared_ptr<FDROpenList>> open_list_;
     const bool forward_updates_;
@@ -46,22 +46,23 @@ public:
     {
     }
 
-    std::string get_engine_name() const override { return "tadfhs"; }
+    std::string get_algorithm_name() const override { return "tadfhs"; }
 
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_quotient_heuristic_search_engine<Engine>(
-            forward_updates_,
-            backward_updates_,
-            !cutoff_tip_,
-            cutoff_inconsistent_,
-            terminate_exploration_,
-            value_iteration_,
-            !value_iteration_,
-            reexpand_traps_,
-            open_list_);
+        return this
+            ->template create_quotient_heuristic_search_algorithm<Algorithm>(
+                forward_updates_,
+                backward_updates_,
+                !cutoff_tip_,
+                cutoff_inconsistent_,
+                terminate_exploration_,
+                value_iteration_,
+                !value_iteration_,
+                reexpand_traps_,
+                open_list_);
     }
 
 protected:

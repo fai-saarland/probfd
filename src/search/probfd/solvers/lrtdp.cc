@@ -1,8 +1,8 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engines/lrtdp.h"
+#include "probfd/algorithms/lrtdp.h"
 
-#include "probfd/engines/successor_sampler.h"
+#include "probfd/algorithms/successor_sampler.h"
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
 #include "downward/plugins/plugin.h"
@@ -11,8 +11,8 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engines;
-using namespace engines::lrtdp;
+using namespace algorithms;
+using namespace algorithms::lrtdp;
 
 template <bool Bisimulation, bool Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
@@ -52,9 +52,9 @@ public:
 
     std::string get_heuristic_search_name() const override { return "lrtdp"; }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_heuristic_search_engine<LRTDP>(
+        return this->template create_heuristic_search_algorithm<LRTDP>(
             stop_consistent_,
             successor_sampler_);
     }

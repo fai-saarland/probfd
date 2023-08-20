@@ -1,5 +1,5 @@
-#include "probfd/engines/successor_sampler.h"
-#include "probfd/engines/trap_aware_lrtdp.h"
+#include "probfd/algorithms/successor_sampler.h"
+#include "probfd/algorithms/trap_aware_lrtdp.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
@@ -9,8 +9,8 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engines;
-using namespace engines::trap_aware_lrtdp;
+using namespace algorithms;
+using namespace algorithms::trap_aware_lrtdp;
 
 class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
     template <typename T>
@@ -18,7 +18,7 @@ class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
         typename MDPHeuristicSearch<false, true>::WrappedType<T>;
 
     template <typename State, typename Action, bool Interval>
-    using Engine = TALRTDP<State, Action, Interval>;
+    using Algorithm = TALRTDP<State, Action, Interval>;
 
     const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;
@@ -38,15 +38,16 @@ public:
     {
     }
 
-    std::string get_engine_name() const override { return "talrtdp"; }
+    std::string get_algorithm_name() const override { return "talrtdp"; }
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_quotient_heuristic_search_engine<Engine>(
-            stop_consistent_,
-            reexpand_traps_,
-            successor_sampler_);
+        return this
+            ->template create_quotient_heuristic_search_algorithm<Algorithm>(
+                stop_consistent_,
+                reexpand_traps_,
+                successor_sampler_);
     }
 
 protected:

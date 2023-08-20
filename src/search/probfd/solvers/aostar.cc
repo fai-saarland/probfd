@@ -1,8 +1,8 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engines/ao_star.h"
+#include "probfd/algorithms/ao_star.h"
 
-#include "probfd/engines/successor_sampler.h"
+#include "probfd/algorithms/successor_sampler.h"
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
 #include "downward/plugins/plugin.h"
@@ -11,7 +11,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engines;
+using namespace algorithms;
 
 template <bool Bisimulation>
 class AOStarSolver : public MDPHeuristicSearch<Bisimulation, false> {
@@ -34,10 +34,10 @@ public:
 
     std::string get_heuristic_search_name() const override { return "aostar"; }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_heuristic_search_engine<
-            engines::ao_search::ao_star::AOStar>(successor_sampler_);
+        return this->template create_heuristic_search_algorithm<
+            algorithms::ao_search::ao_star::AOStar>(successor_sampler_);
     }
 
 protected:

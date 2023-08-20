@@ -23,7 +23,7 @@ template <typename, typename>
 class SimpleMDP;
 
 template <typename, typename>
-class MDPEngine;
+class MDPAlgorithm;
 
 // Heuristics / Evaluators
 template <typename>
@@ -47,8 +47,8 @@ using FDRSimpleMDP = SimpleMDP<State, OperatorID>;
 /// Type alias for evaluators for states in FDR.
 using FDREvaluator = Evaluator<State>;
 
-// Type alias for search engines for MDPs in FDR.
-using FDRMDPEngine = MDPEngine<State, OperatorID>;
+// Type alias for search algorithms for MDPs in FDR.
+using FDRMDPAlgorithm = MDPAlgorithm<State, OperatorID>;
 
 } // namespace probfd
 

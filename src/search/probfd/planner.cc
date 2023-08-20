@@ -35,18 +35,19 @@ int main(int argc, const char** argv)
         unit_cost = probfd::task_properties::is_unit_cost(task_proxy);
     }
 
-    shared_ptr<SolverInterface> engine = parse_cmd_line(argc, argv, unit_cost);
+    shared_ptr<SolverInterface> algorithm =
+        parse_cmd_line(argc, argv, unit_cost);
 
     utils::g_search_timer.resume();
-    engine->solve();
+    algorithm->solve();
     utils::g_search_timer.stop();
     utils::g_timer.stop();
 
-    engine->print_statistics();
+    algorithm->print_statistics();
     utils::g_log << "Search time: " << utils::g_search_timer << endl;
     utils::g_log << "Total time: " << utils::g_timer << endl;
 
-    ExitCode exitcode = engine->found_solution()
+    ExitCode exitcode = algorithm->found_solution()
                             ? ExitCode::SUCCESS
                             : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
     utils::report_exit_code_reentrant(exitcode);

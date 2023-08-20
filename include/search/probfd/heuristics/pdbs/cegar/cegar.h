@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 
-#include "probfd/heuristics/pdbs/engine_interfaces.h"
+#include "probfd/heuristics/pdbs/algorithm_interfaces.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw.h"

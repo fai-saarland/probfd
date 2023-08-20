@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engines/ta_topological_value_iteration.h"
+#include "probfd/algorithms/ta_topological_value_iteration.h"
 
 #include "probfd/heuristics/constant_evaluator.h"
 
@@ -16,16 +16,16 @@ class TATopologicalVISolver : public MDPSolver {
 public:
     using MDPSolver::MDPSolver;
 
-    std::string get_engine_name() const override
+    std::string get_algorithm_name() const override
     {
         return "ta_topological_value_iteration";
     }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using TVIEngine = engines::ta_topological_vi::
+        using TVIAlgorithm = algorithms::ta_topological_vi::
             TATopologicalValueIteration<State, OperatorID>;
-        return engine_factory<TVIEngine>();
+        return algorithm_factory<TVIAlgorithm>();
     }
 };
 

@@ -22,7 +22,7 @@ StateID UniformSuccessorSampler::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engines::StateProperties&)
+    algorithms::StateProperties&)
 {
     assert(!successors.empty());
     return successors.begin()[rng_->random(successors.size())].item;

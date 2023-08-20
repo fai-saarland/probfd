@@ -30,7 +30,7 @@ public:
         StateID,
         std::optional<Action>,
         const std::vector<Transition<Action>>&,
-        engines::StateProperties&)
+        algorithms::StateProperties&)
     {
         return 0;
     }

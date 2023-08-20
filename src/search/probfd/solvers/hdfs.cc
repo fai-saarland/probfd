@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engines/heuristic_depth_first_search.h"
+#include "probfd/algorithms/heuristic_depth_first_search.h"
 
 #include "downward/utils/system.h"
 
@@ -12,8 +12,8 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engines;
-using namespace engines::heuristic_depth_first_search;
+using namespace algorithms;
+using namespace algorithms::heuristic_depth_first_search;
 
 template <bool Bisimulation, bool Fret>
 class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
@@ -23,7 +23,7 @@ class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
             T>;
 
     template <typename State, typename Action, bool Interval>
-    using Engine = HeuristicDepthFirstSearch<State, Action, Interval, Fret>;
+    using Algorithm = HeuristicDepthFirstSearch<State, Action, Interval, Fret>;
 
     const std::string name_;
 
@@ -52,9 +52,9 @@ public:
 
     std::string get_heuristic_search_name() const override { return name_; }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_heuristic_search_engine<Engine>(
+        return this->template create_heuristic_search_algorithm<Algorithm>(
             labeling_,
             forward_updates_,
             backward_updates_,

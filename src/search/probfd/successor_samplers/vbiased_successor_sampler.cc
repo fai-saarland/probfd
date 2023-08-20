@@ -1,6 +1,6 @@
 #include "probfd/successor_samplers/vbiased_successor_sampler.h"
 
-#include "probfd/engines/state_properties.h"
+#include "probfd/algorithms/state_properties.h"
 
 #include "probfd/distribution.h"
 
@@ -21,7 +21,7 @@ StateID VBiasedSuccessorSampler::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engines::StateProperties& properties)
+    algorithms::StateProperties& properties)
 {
     biased_.clear();
 

@@ -1,7 +1,7 @@
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
-#include "probfd/engines/ta_topological_value_iteration.h"
+#include "probfd/algorithms/ta_topological_value_iteration.h"
 #include "probfd/policies/vector_multi_policy.h"
 
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
@@ -65,7 +65,7 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
     double max_time)
 {
     using namespace preprocessing;
-    using namespace engines::ta_topological_vi;
+    using namespace algorithms::ta_topological_vi;
 
     utils::CountdownTimer timer(max_time);
 

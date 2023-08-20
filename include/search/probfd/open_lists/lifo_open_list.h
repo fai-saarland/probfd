@@ -1,7 +1,7 @@
 #ifndef PROBFD_OPEN_LISTS_LIFO_OPEN_LIST_H
 #define PROBFD_OPEN_LISTS_LIFO_OPEN_LIST_H
 
-#include "probfd/engines/open_list.h"
+#include "probfd/algorithms/open_list.h"
 
 #include <deque>
 
@@ -9,7 +9,7 @@ namespace probfd {
 namespace open_lists {
 
 template <typename Action>
-class LifoOpenList : public engines::OpenList<Action> {
+class LifoOpenList : public algorithms::OpenList<Action> {
     std::deque<StateID> queue_;
 
 public:

@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engines/exhaustive_ao.h"
+#include "probfd/algorithms/exhaustive_ao.h"
 
 #include "probfd/open_lists/task_open_list_factory.h"
 
@@ -10,7 +10,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engines;
+using namespace algorithms;
 
 template <bool Bisimulation>
 class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
@@ -35,10 +35,10 @@ public:
         return "exhaustive_ao";
     }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_heuristic_search_engine<
-            engines::exhaustive_ao::ExhaustiveAOSearch>(open_list_);
+        return this->template create_heuristic_search_algorithm<
+            algorithms::exhaustive_ao::ExhaustiveAOSearch>(open_list_);
     }
 };
 

@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engines/idual.h"
+#include "probfd/algorithms/idual.h"
 
 #include "probfd/evaluator.h"
 #include "probfd/progress_report.h"
@@ -13,7 +13,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engines;
+using namespace algorithms;
 
 class IDualSolver : public MDPSolver {
     lp::LPSolverType solver_type_;
@@ -25,13 +25,13 @@ public:
     {
     }
 
-    std::string get_engine_name() const override { return "idual"; }
+    std::string get_algorithm_name() const override { return "idual"; }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using IDualEngine = engines::idual::IDual<State, OperatorID>;
+        using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 
-        return engine_factory<IDualEngine>(&progress_, solver_type_);
+        return algorithm_factory<IDualAlgorithm>(&progress_, solver_type_);
     }
 };
 

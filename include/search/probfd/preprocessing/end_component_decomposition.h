@@ -78,7 +78,7 @@ struct ECDStatistics {
  * it easy to extendt the final potimal value function for the quotient to
  * the optimal value function for the original MDP.
  *
- * @see engines::interval_iteration::IntervalIteration
+ * @see algorithms::interval_iteration::IntervalIteration
  *
  * @tparam State - The state type of the underlying state space.
  * @tparam Action - The action type of the underlying state space.

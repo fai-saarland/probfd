@@ -18,7 +18,7 @@ fast_downward_plugin(
         probfd/interval
         probfd/value_type
         
-        # Engine interfaces
+        # MDP interfaces
         probfd/state_evaluator
         probfd/cost_function
         probfd/caching_task_state_space
@@ -26,8 +26,8 @@ fast_downward_plugin(
         probfd/progress_report
         probfd/quotient_system
 
-        # Engines
-        probfd/engines/utils
+        # Algorithms
+        probfd/algorithms/utils
 
         # Cost Functions
         probfd/maxprob_cost_function
@@ -79,7 +79,7 @@ fast_downward_plugin(
     HELP "bisimulation_core"
     SOURCES
         probfd/bisimulation/bisimilar_state_space
-        probfd/bisimulation/engine_interfaces
+        probfd/bisimulation/algorithm_interfaces
     DEPENDS MDP
     DEPENDENCY_ONLY
 )
@@ -120,7 +120,7 @@ fast_downward_plugin(
     NAME I2DUAL_SOLVER
     HELP "i2dual solvers"
     SOURCES
-        probfd/engines/i2dual
+        probfd/algorithms/i2dual
         probfd/solvers/i2dual
     DEPENDS MDP LP_SOLVER OCCUPATION_MEASURE_HEURISTICS
 )
@@ -137,8 +137,8 @@ fast_downward_plugin(
     NAME MDP_HEURISTIC_SEARCH_BASE
     HELP "mdp heuristic search core"
     SOURCES
-        # Engine interface subcategories
-        probfd/engines/subcategory
+        # Algorithm interface subcategories
+        probfd/algorithms/subcategory
 
         # Open Lists
         probfd/open_lists/fifo_open_list_factory
@@ -293,7 +293,7 @@ fast_downward_plugin(
     NAME PROBABILITY_AWARE_PDBS
     HELP "Probability-aware PDBs base classes"
     SOURCES
-        probfd/heuristics/pdbs/engine_interfaces
+        probfd/heuristics/pdbs/algorithm_interfaces
         probfd/heuristics/pdbs/match_tree
         probfd/heuristics/pdbs/probability_aware_pattern_database
         probfd/heuristics/pdbs/projection_operator
@@ -423,7 +423,7 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/cost_saturation
         probfd/heuristics/cartesian/complete_policy_flaw_finder
         probfd/heuristics/cartesian/distances
-        probfd/heuristics/cartesian/engine_interfaces
+        probfd/heuristics/cartesian/algorithm_interfaces
         probfd/heuristics/cartesian/flaw
         probfd/heuristics/cartesian/flaw_generator
         probfd/heuristics/cartesian/ilao_policy_generator

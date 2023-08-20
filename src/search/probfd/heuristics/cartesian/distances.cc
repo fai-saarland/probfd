@@ -2,9 +2,9 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
-#include "probfd/heuristics/cartesian/engine_interfaces.h"
+#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
 
-#include "probfd/engines/ta_topological_value_iteration.h"
+#include "probfd/algorithms/ta_topological_value_iteration.h"
 
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
@@ -36,7 +36,7 @@ compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic)
         heuristic.set_h_value(pruned_id, INFINITE_VALUE);
     }
 
-    engines::ta_topological_vi::
+    algorithms::ta_topological_vi::
         TATopologicalValueIteration<int, const ProbabilisticTransition*>
             tvi;
 

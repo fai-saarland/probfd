@@ -1,10 +1,10 @@
 #include "probfd/solver_interface.h"
 
+#include "probfd/bisimulation/algorithm_interfaces.h"
 #include "probfd/bisimulation/bisimilar_state_space.h"
-#include "probfd/bisimulation/engine_interfaces.h"
 
-#include "probfd/engines/interval_iteration.h"
-#include "probfd/engines/topological_value_iteration.h"
+#include "probfd/algorithms/interval_iteration.h"
+#include "probfd/algorithms/topological_value_iteration.h"
 
 #include "probfd/heuristics/constant_evaluator.h"
 
@@ -46,7 +46,7 @@ public:
     {
     }
 
-    std::string get_engine_name() const
+    std::string get_algorithm_name() const
     {
         return (
             interval_iteration_ ? "bisimulation interval iteration"
@@ -57,8 +57,8 @@ public:
 
     void solve() override
     {
-        using namespace engines::interval_iteration;
-        using namespace engines::topological_vi;
+        using namespace algorithms::interval_iteration;
+        using namespace algorithms::topological_vi;
 
         utils::Timer total_timer;
 
@@ -79,12 +79,12 @@ public:
                   << state_space.num_transitions() << " transitions.\n"
                   << std::endl;
 
-        std::cout << "Running " << get_engine_name()
+        std::cout << "Running " << get_algorithm_name()
                   << " on the bisimulation..." << std::endl;
 
         utils::Timer vi_timer;
 
-        std::unique_ptr<MDPEngine<QState, QAction>> solver;
+        std::unique_ptr<MDPAlgorithm<QState, QAction>> solver;
 
         if (interval_iteration_) {
             solver.reset(new IntervalIteration<QState, QAction>(false, false));
@@ -107,7 +107,7 @@ public:
         stats.print(std::cout);
 
         std::cout << std::endl;
-        std::cout << "Engine " << get_engine_name()
+        std::cout << "Algorithm " << get_algorithm_name()
                   << " statistics:" << std::endl;
         std::cout << "  Actual solver time: " << vi_timer << std::endl;
         solver->print_statistics(std::cout);

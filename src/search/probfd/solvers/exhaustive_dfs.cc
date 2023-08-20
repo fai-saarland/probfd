@@ -1,8 +1,8 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engines/exhaustive_dfs.h"
+#include "probfd/algorithms/exhaustive_dfs.h"
 
-#include "probfd/engines/transition_sorter.h"
+#include "probfd/algorithms/transition_sorter.h"
 
 #include "probfd/transition_sorters/task_transition_sorter_factory.h"
 
@@ -15,9 +15,9 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engines;
+using namespace algorithms;
 
-using namespace engines::exhaustive_dfs;
+using namespace algorithms::exhaustive_dfs;
 
 class ExhaustiveDFSSolver : public MDPSolver {
     const Interval cost_bound_;
@@ -51,15 +51,15 @@ public:
     {
     }
 
-    std::string get_engine_name() const override { return "exhaustive_dfs"; }
+    std::string get_algorithm_name() const override { return "exhaustive_dfs"; }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using Engine = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
-        using Engine2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
+        using Algorithm = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
+        using Algorithm2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
 
         if (dual_bounds_) {
-            return this->template engine_factory<Engine2>(
+            return this->template algorithm_factory<Algorithm2>(
                 transition_sort_,
                 cost_bound_,
                 reevaluate_,
@@ -68,7 +68,7 @@ public:
                 only_propagate_when_changed_,
                 &progress_);
         } else {
-            return this->template engine_factory<Engine>(
+            return this->template algorithm_factory<Algorithm>(
                 transition_sort_,
                 cost_bound_,
                 reevaluate_,

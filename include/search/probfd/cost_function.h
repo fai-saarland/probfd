@@ -41,8 +41,8 @@ public:
  * the goal states of a state space.
  *
  * This interface communicates the action and termination costs and the goal
- * states of a state space to the MDP engines. Users must implement the public
- * methods
+ * states of a state space to the MDP algorithms. Users must implement the
+ * public methods
  * `get_termination_info(const State& state)` and
  * `get_action_cost(const Action& action)`.
  *

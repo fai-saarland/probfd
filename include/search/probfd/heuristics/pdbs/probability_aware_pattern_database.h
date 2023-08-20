@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PATTERN_DATABASE_H
 #define PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PATTERN_DATABASE_H
 
-#include "probfd/heuristics/pdbs/engine_interfaces.h"
+#include "probfd/heuristics/pdbs/algorithm_interfaces.h"
 #include "probfd/heuristics/pdbs/match_tree.h"
 #include "probfd/heuristics/pdbs/projection_operator.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"

@@ -61,7 +61,7 @@ MDPSolver::~MDPSolver() = default;
 
 void MDPSolver::solve()
 {
-    std::cout << "Running MDP engine " << get_engine_name();
+    std::cout << "Running MDP algorithm " << get_algorithm_name();
 
     if (max_time != std::numeric_limits<double>::infinity()) {
         std::cout << " with a time limit of " << max_time << " seconds";
@@ -71,12 +71,12 @@ void MDPSolver::solve()
 
     try {
         utils::Timer total_timer;
-        std::unique_ptr<FDRMDPEngine> engine = create_engine();
+        std::unique_ptr<FDRMDPAlgorithm> algorithm = create_algorithm();
 
         const State& initial_state = task_mdp->get_initial_state();
 
         Interval val =
-            engine->solve(*task_mdp, *heuristic, initial_state, max_time);
+            algorithm->solve(*task_mdp, *heuristic, initial_state, max_time);
         progress_.force_print();
         total_timer.stop();
 
@@ -93,10 +93,10 @@ void MDPSolver::solve()
         task_mdp->print_statistics();
 
         std::cout << std::endl;
-        std::cout << "Engine " << get_engine_name()
+        std::cout << "Algorithm " << get_algorithm_name()
                   << " statistics:" << std::endl;
         std::cout << "  Actual solver time: " << total_timer << std::endl;
-        engine->print_statistics(std::cout);
+        algorithm->print_statistics(std::cout);
 
         heuristic->print_statistics();
 

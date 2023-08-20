@@ -1,6 +1,6 @@
 #include "probfd/successor_samplers/vdiff_successor_sampler.h"
 
-#include "probfd/engines/state_properties.h"
+#include "probfd/algorithms/state_properties.h"
 
 #include "downward/utils/rng.h"
 
@@ -19,7 +19,7 @@ StateID VDiffSuccessorSampler::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engines::StateProperties& properties)
+    algorithms::StateProperties& properties)
 {
     biased_.clear();
 

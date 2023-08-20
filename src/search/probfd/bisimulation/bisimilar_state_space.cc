@@ -1,6 +1,6 @@
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
-#include "probfd/bisimulation/engine_interfaces.h"
+#include "probfd/bisimulation/algorithm_interfaces.h"
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 #include "probfd/tasks/root_task.h"

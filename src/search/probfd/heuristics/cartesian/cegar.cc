@@ -2,7 +2,7 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
-#include "probfd/heuristics/cartesian/engine_interfaces.h"
+#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
 #include "probfd/heuristics/cartesian/flaw.h"
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"

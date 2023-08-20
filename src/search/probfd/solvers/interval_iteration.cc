@@ -1,6 +1,6 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engines/interval_iteration.h"
+#include "probfd/algorithms/interval_iteration.h"
 
 #include "probfd/quotients/quotient_system.h"
 
@@ -16,16 +16,16 @@ class IntervalIterationSolver : public MDPSolver {
 public:
     using MDPSolver::MDPSolver;
 
-    std::string get_engine_name() const override
+    std::string get_algorithm_name() const override
     {
         return "interval_iteration";
     }
 
-    std::unique_ptr<FDRMDPEngine> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using IIEngine =
-            engines::interval_iteration::IntervalIteration<State, OperatorID>;
-        return engine_factory<IIEngine>(false, false);
+        using IIAlgorithm = algorithms::interval_iteration::
+            IntervalIteration<State, OperatorID>;
+        return algorithm_factory<IIAlgorithm>(false, false);
     }
 };
 
