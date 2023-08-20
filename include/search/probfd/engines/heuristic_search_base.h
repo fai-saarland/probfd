@@ -113,11 +113,6 @@ private:
             return state_infos_[sid];
         }
 
-        const StateFlags& lookup_state_flags(StateID state_id) override
-        {
-            return state_infos_[state_id];
-        }
-
         value_t lookup_value(StateID state_id) override
         {
             return state_infos_[state_id].get_value();

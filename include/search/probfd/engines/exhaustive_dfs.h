@@ -184,12 +184,6 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
             return infos[state_id];
         }
 
-        engines::heuristic_search::StateFlags&
-        lookup_state_flags(StateID) override
-        {
-            ABORT("Exhaustive DFS does not store state flags.");
-        }
-
         value_t lookup_value(StateID state_id) override
         {
             return infos[state_id].get_value();
