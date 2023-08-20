@@ -1,8 +1,8 @@
 #ifndef PROBFD_TRANSITION_SORTERS_VDIFF_SORTER_H
 #define PROBFD_TRANSITION_SORTERS_VDIFF_SORTER_H
 
-#include "probfd/engine_interfaces/fdr_types.h"
-#include "probfd/engine_interfaces/transition_sorter.h"
+#include "probfd/engines/fdr_types.h"
+#include "probfd/engines/transition_sorter.h"
 
 #include "probfd/value_type.h"
 
@@ -20,7 +20,7 @@ protected:
         const State& state,
         const std::vector<OperatorID>& action_choices,
         std::vector<Distribution<StateID>>& successors,
-        engine_interfaces::StateProperties& properties) override;
+        engines::StateProperties& properties) override;
 };
 
 } // namespace transition_sorters

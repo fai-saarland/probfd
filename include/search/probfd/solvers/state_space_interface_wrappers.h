@@ -3,8 +3,8 @@
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
-#include "probfd/engine_interfaces/open_list.h"
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/open_list.h"
+#include "probfd/engines/successor_sampler.h"
 
 #include "probfd/quotients/heuristic_search_interface.h"
 #include "probfd/quotients/quotient_system.h"
@@ -47,8 +47,8 @@ struct translate_action<false, Op> {
 
 template <>
 struct Wrapper<false, true, std::shared_ptr<FDRSuccessorSampler>> {
-    using type = std::shared_ptr<engine_interfaces::SuccessorSampler<
-        quotients::QuotientAction<OperatorID>>>;
+    using type = std::shared_ptr<
+        engines::SuccessorSampler<quotients::QuotientAction<OperatorID>>>;
 
     type operator()(std::shared_ptr<FDRSuccessorSampler> t) const
     {
@@ -58,7 +58,7 @@ struct Wrapper<false, true, std::shared_ptr<FDRSuccessorSampler>> {
 
 template <bool Fret>
 struct Wrapper<true, Fret, std::shared_ptr<FDRSuccessorSampler>> {
-    using type = std::shared_ptr<engine_interfaces::SuccessorSampler<
+    using type = std::shared_ptr<engines::SuccessorSampler<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>;
 
     type operator()(std::shared_ptr<FDRSuccessorSampler>) const
@@ -80,7 +80,7 @@ struct Wrapper<true, Fret, std::shared_ptr<FDRSuccessorSampler>> {
 template <>
 struct Wrapper<false, true, std::shared_ptr<FDROpenList>> {
     using type = std::shared_ptr<
-        engine_interfaces::OpenList<quotients::QuotientAction<OperatorID>>>;
+        engines::OpenList<quotients::QuotientAction<OperatorID>>>;
 
     type operator()(std::shared_ptr<FDROpenList> t) const
     {
@@ -90,7 +90,7 @@ struct Wrapper<false, true, std::shared_ptr<FDROpenList>> {
 
 template <bool Fret>
 struct Wrapper<true, Fret, std::shared_ptr<FDROpenList>> {
-    using type = std::shared_ptr<engine_interfaces::OpenList<
+    using type = std::shared_ptr<engines::OpenList<
         typename translate_action<Fret, bisimulation::QuotientAction>::type>>;
 
     type operator()(std::shared_ptr<FDROpenList>) const

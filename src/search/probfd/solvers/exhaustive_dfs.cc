@@ -2,7 +2,7 @@
 
 #include "probfd/engines/exhaustive_dfs.h"
 
-#include "probfd/engine_interfaces/transition_sorter.h"
+#include "probfd/engines/transition_sorter.h"
 
 #include "probfd/transition_sorters/task_transition_sorter_factory.h"
 
@@ -15,7 +15,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace engines;
 
 using namespace engines::exhaustive_dfs;
 

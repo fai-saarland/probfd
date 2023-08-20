@@ -1,6 +1,6 @@
 #include "probfd/transition_sorters/vdiff_sorter.h"
 
-#include "probfd/engine_interfaces/state_properties.h"
+#include "probfd/engines/state_properties.h"
 
 #include "probfd/distribution.h"
 
@@ -19,7 +19,7 @@ void VDiffSorter::sort(
     const State&,
     const std::vector<OperatorID>&,
     std::vector<Distribution<StateID>>& all_successors,
-    engine_interfaces::StateProperties& properties)
+    engines::StateProperties& properties)
 {
     std::vector<double> k0;
     k0.reserve(all_successors.size());

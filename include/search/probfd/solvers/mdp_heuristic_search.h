@@ -3,8 +3,8 @@
 
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engine_interfaces/policy_picker.h"
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/policy_picker.h"
+#include "probfd/engines/successor_sampler.h"
 
 #include "probfd/engines/fret.h"
 
@@ -91,7 +91,7 @@ class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
     using QState = quotients::QuotientState<State, OperatorID>;
     using QAction = quotients::QuotientAction<OperatorID>;
 
-    std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>>
+    std::shared_ptr<engines::PolicyPicker<QState, QAction>>
         q_policy_tiebreaker_;
 
     const bool fret_on_policy_;

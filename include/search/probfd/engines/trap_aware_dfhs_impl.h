@@ -2,7 +2,7 @@
 #error "This file should only be included from trap_aware_dfhs.h"
 #endif
 
-#include "probfd/engine_interfaces/open_list.h"
+#include "probfd/engines/open_list.h"
 
 #include "probfd/policies/map_policy.h"
 

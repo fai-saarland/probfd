@@ -21,7 +21,6 @@
 #include "verification/policy_verification.h"
 
 using namespace probfd;
-using namespace probfd::engine_interfaces;
 using namespace probfd::engines;
 using namespace probfd::tests;
 

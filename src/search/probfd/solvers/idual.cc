@@ -13,7 +13,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace engines;
 
 class IDualSolver : public MDPSolver {
     lp::LPSolverType solver_type_;

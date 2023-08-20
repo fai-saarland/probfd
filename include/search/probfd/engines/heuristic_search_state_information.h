@@ -3,7 +3,7 @@
 
 #include "probfd/engines/types.h"
 
-#include "probfd/engine_interfaces/state_properties.h"
+#include "probfd/engines/state_properties.h"
 
 #include "probfd/storage/per_state_storage.h"
 

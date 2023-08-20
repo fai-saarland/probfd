@@ -1,7 +1,7 @@
 #ifndef PROBFD_OPEN_LISTS_TASK_OPEN_LIST_FACTORY_H
 #define PROBFD_OPEN_LISTS_TASK_OPEN_LIST_FACTORY_H
 
-#include "probfd/engine_interfaces/fdr_types.h"
+#include "probfd/engines/fdr_types.h"
 
 #include "probfd/fdr_types.h"
 

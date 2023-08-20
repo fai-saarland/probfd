@@ -2,7 +2,7 @@
 #error "This file should only be included from trap_aware_lrtdp.h"
 #endif
 
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/successor_sampler.h"
 
 #include "probfd/quotients/heuristic_search_interface.h"
 

@@ -24,15 +24,13 @@ class Distribution;
 template <typename>
 struct Transition;
 
-namespace engine_interfaces {
+namespace engines {
+
 template <typename, typename>
 class PolicyPicker;
 
 template <typename>
 class SuccessorSampler;
-} // namespace engine_interfaces
-
-namespace engines {
 
 /// Namespace dedicated to the MDP h search base implementation
 namespace heuristic_search {
@@ -92,7 +90,7 @@ protected:
     using Evaluator = Evaluator<State>;
     using Transition = Transition<Action>;
 
-    using PolicyPicker = engine_interfaces::PolicyPicker<State, Action>;
+    using PolicyPicker = PolicyPicker<State, Action>;
 
 public:
     using StateInfo = StateInfoT;
@@ -100,10 +98,10 @@ public:
     static constexpr bool StorePolicy = StateInfo::StorePolicy;
     static constexpr bool UseInterval = StateInfo::UseInterval;
 
-    using EngineValueType = engines::EngineValueType<UseInterval>;
+    using EngineValueType = EngineValueType<UseInterval>;
 
 private:
-    class StateInfos : public engine_interfaces::StateProperties {
+    class StateInfos : public StateProperties {
         storage::PerStateStorage<StateInfo> state_infos_;
 
     public:
@@ -267,7 +265,7 @@ protected:
     const StateInfo& get_state_info(StateID id, const AlgStateInfo& info) const;
 
     StateID sample_state(
-        engine_interfaces::SuccessorSampler<Action>& sampler,
+        SuccessorSampler<Action>& sampler,
         StateID source,
         const Distribution<StateID>& transition);
 

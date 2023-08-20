@@ -1,13 +1,13 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/engines/policy_picker.h"
 
 #include <sstream>
 
 namespace probfd {
 namespace solvers {
 
-using namespace engine_interfaces;
+using namespace engines;
 
 MDPHeuristicSearchBase::MDPHeuristicSearchBase(const plugins::Options& opts)
     : MDPSolver(opts)

@@ -8,7 +8,7 @@ namespace probfd {
 template <typename>
 class Distribution;
 
-namespace engine_interfaces {
+namespace engines {
 
 class StateProperties;
 
@@ -48,7 +48,7 @@ public:
     virtual void print_statistics(std::ostream&) const {}
 };
 
-} // namespace engine_interfaces
+} // namespace engines
 } // namespace probfd
 
 #endif // __SUCCESSOR_SAMPLER_H__

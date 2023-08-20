@@ -6,13 +6,10 @@
 #include <vector>
 
 namespace probfd {
+namespace engines {
 
-namespace engine_interfaces {
 template <typename>
 class SuccessorSampler;
-}
-
-namespace engines {
 
 /// Namespace dedicated to the AO* algorithm.
 namespace ao_search {
@@ -48,7 +45,7 @@ class AOStar
     using Evaluator = typename Base::Evaluator;
     using PolicyPicker = typename Base::PolicyPicker;
 
-    using SuccessorSampler = engine_interfaces::SuccessorSampler<Action>;
+    using SuccessorSampler = SuccessorSampler<Action>;
 
     std::shared_ptr<SuccessorSampler> outcome_selection_;
 

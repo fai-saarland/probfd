@@ -5,7 +5,7 @@
 #include "probfd/value_type.h"
 
 namespace probfd {
-namespace engine_interfaces {
+namespace engines {
 
 /**
  * @brief An interface for open lists used during search algorithms.
@@ -43,7 +43,7 @@ public:
     }
 };
 
-} // namespace engine_interfaces
+} // namespace engines
 } // namespace probfd
 
 #endif // __OPEN_LIST_H__

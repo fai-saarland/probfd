@@ -4,7 +4,7 @@
 
 #include "probfd/engines/utils.h"
 
-#include "probfd/engine_interfaces/transition_sorter.h"
+#include "probfd/engines/transition_sorter.h"
 
 #include <cassert>
 

@@ -4,7 +4,7 @@
 
 #include "probfd/engines/utils.h"
 
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/successor_sampler.h"
 
 #include "downward/utils/countdown_timer.h"
 

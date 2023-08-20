@@ -1,4 +1,4 @@
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/successor_sampler.h"
 #include "probfd/engines/trap_aware_lrtdp.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
@@ -9,7 +9,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace engines;
 using namespace engines::trap_aware_lrtdp;
 
 class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {

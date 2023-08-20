@@ -1,4 +1,4 @@
-#include "probfd/engine_interfaces/open_list.h"
+#include "probfd/engines/open_list.h"
 #include "probfd/engines/trap_aware_dfhs.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
@@ -8,7 +8,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace engines;
 using namespace engines::trap_aware_dfhs;
 
 class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {

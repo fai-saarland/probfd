@@ -138,7 +138,7 @@ fast_downward_plugin(
     HELP "mdp heuristic search core"
     SOURCES
         # Engine interface subcategories
-        probfd/engine_interfaces/subcategory
+        probfd/engines/subcategory
 
         # Open Lists
         probfd/open_lists/fifo_open_list_factory

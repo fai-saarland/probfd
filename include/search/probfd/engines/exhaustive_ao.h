@@ -4,13 +4,10 @@
 #include "probfd/engines/ao_search.h"
 
 namespace probfd {
+namespace engines {
 
-namespace engine_interfaces {
 template <typename>
 class OpenList;
-}
-
-namespace engines {
 
 /// I do not know this algorithm.
 namespace exhaustive_ao {
@@ -55,7 +52,7 @@ class ExhaustiveAOSearch
     using Evaluator = typename Base::Evaluator;
     using PolicyPicker = typename Base::PolicyPicker;
 
-    using OpenList = engine_interfaces::OpenList<Action>;
+    using OpenList = OpenList<Action>;
 
     std::shared_ptr<OpenList> open_list_;
 

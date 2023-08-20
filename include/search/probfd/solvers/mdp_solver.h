@@ -3,7 +3,7 @@
 
 #include "probfd/solver_interface.h"
 
-#include "probfd/engine_interfaces/fdr_types.h"
+#include "probfd/engines/fdr_types.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/engine.h"

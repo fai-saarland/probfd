@@ -1,8 +1,8 @@
 #ifndef PROBFD_POLICY_PICKERS_STABLE_POLICY_PICKER_H
 #define PROBFD_POLICY_PICKERS_STABLE_POLICY_PICKER_H
 
-#include "probfd/engine_interfaces/fdr_types.h"
-#include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/engines/fdr_types.h"
+#include "probfd/engines/policy_picker.h"
 
 #include "probfd/distribution.h"
 #include "probfd/transition.h"
@@ -14,8 +14,7 @@ namespace policy_pickers {
  * @brief CRTP base class for stable policy picker implementations.
  */
 template <typename State, typename Action, class Derived>
-class StablePolicyPicker
-    : public engine_interfaces::PolicyPicker<State, Action> {
+class StablePolicyPicker : public engines::PolicyPicker<State, Action> {
     bool stable_policy_;
 
 public:
@@ -29,7 +28,7 @@ public:
         StateID state_id,
         std::optional<Action> previous_greedy,
         const std::vector<Transition<Action>>& greedy_transitions,
-        engine_interfaces::StateProperties& properties) override
+        engines::StateProperties& properties) override
     {
         if (stable_policy_) {
             for (unsigned i = 0; i < greedy_transitions.size(); ++i) {

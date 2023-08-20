@@ -5,7 +5,7 @@ class State;
 class OperatorID;
 
 namespace probfd {
-namespace engine_interfaces {
+namespace engines {
 
 // Behavioural interfaces
 template <typename>
@@ -20,20 +20,19 @@ class SuccessorSampler;
 template <typename, typename>
 class TransitionSorter;
 
-} // namespace engine_interfaces
+} // namespace engines
 
 /// Type alias for OpenLists for MDPs in FDR.
-using FDROpenList = engine_interfaces::OpenList<OperatorID>;
+using FDROpenList = engines::OpenList<OperatorID>;
 
 /// Type alias for policy pickers for MDPs in FDR.
-using FDRPolicyPicker = engine_interfaces::PolicyPicker<State, OperatorID>;
+using FDRPolicyPicker = engines::PolicyPicker<State, OperatorID>;
 
 // Type alias for successor samplers for MDPs in FDR.
-using FDRSuccessorSampler = engine_interfaces::SuccessorSampler<OperatorID>;
+using FDRSuccessorSampler = engines::SuccessorSampler<OperatorID>;
 
 /// Type alias for TransitionSorters for MDPs in FDR.
-using FDRTransitionSorter =
-    engine_interfaces::TransitionSorter<State, OperatorID>;
+using FDRTransitionSorter = engines::TransitionSorter<State, OperatorID>;
 
 } // namespace probfd
 

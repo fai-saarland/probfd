@@ -10,7 +10,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace engines;
 
 template <bool Bisimulation>
 class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {

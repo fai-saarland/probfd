@@ -3,8 +3,8 @@
 
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engine_interfaces/open_list.h"
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/open_list.h"
+#include "probfd/engines/successor_sampler.h"
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
@@ -56,7 +56,7 @@ protected:
 
     bisimulation::BisimilarStateSpace state_space_;
 
-    std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>> policy_;
+    std::shared_ptr<engines::PolicyPicker<QState, QAction>> policy_;
 
     std::shared_ptr<MDPEngine<QState, QAction>> engine_;
 
@@ -145,7 +145,7 @@ class QBisimulationBasedHeuristicSearchEngine
     using QQState = quotients::QuotientState<QState, QAction>;
     using QQAction = quotients::QuotientAction<QAction>;
 
-    std::shared_ptr<engine_interfaces::PolicyPicker<QQState, QQAction>>
+    std::shared_ptr<engines::PolicyPicker<QQState, QQAction>>
         q_policy_tiebreaker_;
 
 public:

@@ -10,13 +10,10 @@ class CountdownTimer;
 }
 
 namespace probfd {
+namespace engines {
 
-namespace engine_interface {
 template <typename>
 class SuccessorSampler;
-}
-
-namespace engines {
 
 /// Namespace dedicated to labelled real-time dynamic programming (LRTDP).
 namespace lrtdp {
@@ -134,7 +131,7 @@ using LRTDPBase = std::conditional_t<
  * solved.
  *
  * The method to generate the trials can be configured. The interface
- * \ref engine_interfaces::SuccessorSampler describes how successor
+ * \ref engines::SuccessorSampler describes how successor
  * states in the greedy policy graph are sampled when generating a trial.
  * Additionally, the enumeration \ref TrialTerminationCondition specifies when a
  * trial is stopped.
@@ -157,7 +154,7 @@ class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
     using Evaluator = typename Base::Evaluator;
     using PolicyPicker = typename Base::PolicyPicker;
 
-    using SuccessorSampler = engine_interfaces::SuccessorSampler<Action>;
+    using SuccessorSampler = SuccessorSampler<Action>;
 
     using StateInfo = std::conditional_t<
         Fret,

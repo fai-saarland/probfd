@@ -11,7 +11,7 @@ namespace probfd {
 template <typename>
 class Distribution;
 
-namespace engine_interfaces {
+namespace engines {
 
 class StateProperties;
 
@@ -43,7 +43,7 @@ public:
         StateProperties& properties) = 0;
 };
 
-} // namespace engine_interfaces
+} // namespace engines
 } // namespace probfd
 
 #endif // __SUCCESSOR_SORTING_H__

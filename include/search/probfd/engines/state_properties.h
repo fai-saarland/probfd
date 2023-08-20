@@ -7,12 +7,7 @@
 #include <optional>
 
 namespace probfd {
-
-namespace engines::heuristic_search {
-struct StateFlags;
-}
-
-namespace engine_interfaces {
+namespace engines {
 
 /**
  * @brief Interface providing access to various state properties during
@@ -35,7 +30,7 @@ public:
     virtual Interval lookup_bounds(StateID state_id) = 0;
 };
 
-} // namespace engine_interfaces
+} // namespace engines
 } // namespace probfd
 
 #endif // __HEURISTIC_SEARCH_CONNECTOR_H__

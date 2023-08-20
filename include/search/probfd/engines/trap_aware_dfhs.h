@@ -16,13 +16,10 @@ class CountdownTimer;
 }
 
 namespace probfd {
+namespace engines {
 
-namespace engine_interfaces {
 template <typename>
 class OpenList;
-}
-
-namespace engines {
 
 /// Namespace dedicated to the depth-first heuristic search (DFHS) family with
 /// native trap handling support.
@@ -80,7 +77,7 @@ class TADFHSImpl
     using UpdateResult = typename Base ::UpdateResult;
     using StateInfo = typename Base::StateInfo;
 
-    using QuotientOpenList = engine_interfaces::OpenList<QAction>;
+    using QuotientOpenList = OpenList<QAction>;
 
     struct Flags {
         /// was the exploration cut off?
@@ -289,9 +286,8 @@ class TADepthFirstHeuristicSearch : public MDPEngine<State, Action> {
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using QuotientPolicyPicker =
-        engine_interfaces::PolicyPicker<QState, QAction>;
-    using QuotientOpenList = engine_interfaces::OpenList<QAction>;
+    using QuotientPolicyPicker = PolicyPicker<QState, QAction>;
+    using QuotientOpenList = OpenList<QAction>;
 
     TADFHSImpl<State, Action, UseInterval> engine_;
 

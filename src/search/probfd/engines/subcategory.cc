@@ -1,8 +1,8 @@
-#include "probfd/engine_interfaces/fdr_types.h"
-#include "probfd/engine_interfaces/open_list.h"
-#include "probfd/engine_interfaces/policy_picker.h"
-#include "probfd/engine_interfaces/successor_sampler.h"
-#include "probfd/engine_interfaces/transition_sorter.h"
+#include "probfd/engines/fdr_types.h"
+#include "probfd/engines/open_list.h"
+#include "probfd/engines/policy_picker.h"
+#include "probfd/engines/successor_sampler.h"
+#include "probfd/engines/transition_sorter.h"
 
 #include "downward/plugins/plugin.h"
 

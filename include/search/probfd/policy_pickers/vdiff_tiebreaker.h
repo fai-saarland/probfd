@@ -26,7 +26,7 @@ public:
         StateID state,
         std::optional<OperatorID> prev_policy,
         const std::vector<Transition<OperatorID>>& greedy_transitions,
-        engine_interfaces::StateProperties& properties);
+        engines::StateProperties& properties);
 };
 
 } // namespace policy_pickers

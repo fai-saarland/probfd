@@ -12,7 +12,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace engines;
 using namespace engines::heuristic_depth_first_search;
 
 template <bool Bisimulation, bool Fret>

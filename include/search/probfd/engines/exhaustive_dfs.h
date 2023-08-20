@@ -1,7 +1,7 @@
 #ifndef PROBFD_ENGINES_EXHAUSTIVE_DFS_H
 #define PROBFD_ENGINES_EXHAUSTIVE_DFS_H
 
-#include "probfd/engine_interfaces/state_properties.h"
+#include "probfd/engines/state_properties.h"
 
 #include "probfd/engines/types.h"
 
@@ -13,13 +13,10 @@
 #include <deque>
 
 namespace probfd {
+namespace engines {
 
-namespace engine_interfaces {
 template <typename, typename>
 class TransitionSorter;
-} // namespace engine_interfaces
-
-namespace engines {
 
 /// namespace for anytime TVI
 namespace exhaustive_dfs {
@@ -62,9 +59,9 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
 
-    using TransitionSorter = engine_interfaces::TransitionSorter<State, Action>;
+    using TransitionSorter = TransitionSorter<State, Action>;
 
-    using EngineValueType = engines::EngineValueType<UseInterval>;
+    using EngineValueType = EngineValueType<UseInterval>;
 
     struct SearchNodeInformation {
         static constexpr uint8_t NEW = 0;
@@ -171,7 +168,7 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
         int i = -1;
     };
 
-    struct SearchNodeInfos : public engine_interfaces::StateProperties {
+    struct SearchNodeInfos : public StateProperties {
         storage::PerStateStorage<SearchNodeInformation> infos;
 
         SearchNodeInformation& operator[](StateID state_id)

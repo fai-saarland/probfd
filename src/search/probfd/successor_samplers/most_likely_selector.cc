@@ -9,7 +9,7 @@ StateID MostLikelySuccessorSelector::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engine_interfaces::StateProperties&)
+    engines::StateProperties&)
 {
     value_t max = -INFINITE_VALUE;
 

@@ -12,13 +12,10 @@ class CountdownTimer;
 }
 
 namespace probfd {
+namespace engines {
 
-namespace engine_interfaces {
 template <typename>
 class SuccessorSampler;
-}
-
-namespace engines {
 
 /// Namespace dedicated to labelled real-time dynamic programming (LRTDP) with
 /// native trap handling support.
@@ -79,8 +76,7 @@ class TALRTDPImpl
     using QuotientPolicyPicker = typename Base::PolicyPicker;
     using StateInfo = typename Base::StateInfo;
 
-    using QuotientSuccessorSampler =
-        engine_interfaces::SuccessorSampler<QAction>;
+    using QuotientSuccessorSampler = SuccessorSampler<QAction>;
 
     struct Flags {
         bool is_dead = true;
@@ -213,10 +209,8 @@ class TALRTDP : public MDPEngine<State, Action> {
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
 
-    using QuotientPolicyPicker =
-        engine_interfaces::PolicyPicker<QState, QAction>;
-    using QuotientSuccessorSampler =
-        engine_interfaces::SuccessorSampler<QAction>;
+    using QuotientPolicyPicker = PolicyPicker<QState, QAction>;
+    using QuotientSuccessorSampler = SuccessorSampler<QAction>;
 
     TALRTDPImpl<State, Action, UseInterval> engine_;
 

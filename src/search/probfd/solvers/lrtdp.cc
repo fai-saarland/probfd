@@ -2,7 +2,7 @@
 
 #include "probfd/engines/lrtdp.h"
 
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/successor_sampler.h"
 #include "probfd/successor_samplers/task_successor_sampler_factory.h"
 
 #include "downward/plugins/plugin.h"
@@ -11,7 +11,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace engines;
 using namespace engines::lrtdp;
 
 template <bool Bisimulation, bool Fret>

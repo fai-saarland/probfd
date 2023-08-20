@@ -2,7 +2,7 @@
 #error "This file should only be included from exhaustive_ao.h"
 #endif
 
-#include "probfd/engine_interfaces/open_list.h"
+#include "probfd/engines/open_list.h"
 
 #include "downward/utils/countdown_timer.h"
 

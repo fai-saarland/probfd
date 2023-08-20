@@ -9,7 +9,7 @@ namespace solvers {
 namespace i2dual {
 namespace {
 
-using namespace engine_interfaces;
+using namespace engines;
 
 class I2DualSolver : public MDPSolver {
     bool hpom_enabled_;

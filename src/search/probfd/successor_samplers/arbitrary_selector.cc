@@ -9,7 +9,7 @@ StateID ArbitrarySuccessorSelector::sample(
     StateID,
     OperatorID,
     const Distribution<StateID>& successors,
-    engine_interfaces::StateProperties&)
+    engines::StateProperties&)
 {
     auto it = successors.begin();
     return it->item;

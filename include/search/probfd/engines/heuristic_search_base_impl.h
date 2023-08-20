@@ -2,7 +2,7 @@
 #error "This file should only be included from heuristic_search_base.h"
 #endif
 
-#include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/engines/policy_picker.h"
 
 #include "probfd/engines/utils.h"
 
@@ -330,7 +330,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::get_state_info(
 
 template <typename State, typename Action, typename StateInfoT>
 StateID HeuristicSearchBase<State, Action, StateInfoT>::sample_state(
-    engine_interfaces::SuccessorSampler<Action>& sampler,
+    SuccessorSampler<Action>& sampler,
     StateID source,
     const Distribution<StateID>& transition)
 {

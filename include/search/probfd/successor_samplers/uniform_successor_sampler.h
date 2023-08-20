@@ -1,8 +1,8 @@
 #ifndef PROBFD_SUCCESSOR_SAMPLERS_UNIFORM_SUCCESSOR_SAMPLER_H
 #define PROBFD_SUCCESSOR_SAMPLERS_UNIFORM_SUCCESSOR_SAMPLER_H
 
-#include "probfd/engine_interfaces/fdr_types.h"
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/fdr_types.h"
+#include "probfd/engines/successor_sampler.h"
 
 #include "downward/operator_id.h"
 
@@ -27,7 +27,7 @@ protected:
         StateID state,
         OperatorID op,
         const Distribution<StateID>& successors,
-        engine_interfaces::StateProperties& properties) override final;
+        engines::StateProperties& properties) override final;
 };
 
 } // namespace successor_samplers

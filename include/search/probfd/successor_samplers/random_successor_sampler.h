@@ -1,7 +1,7 @@
 #ifndef PROBFD_SUCCESSOR_SAMPLERS_RANDOM_SUCCESSOR_SAMPLER_H
 #define PROBFD_SUCCESSOR_SAMPLERS_RANDOM_SUCCESSOR_SAMPLER_H
 
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/successor_sampler.h"
 
 #include "probfd/distribution.h"
 
@@ -13,8 +13,7 @@ namespace probfd {
 namespace successor_samplers {
 
 template <typename Action>
-class RandomSuccessorSampler
-    : public engine_interfaces::SuccessorSampler<Action> {
+class RandomSuccessorSampler : public engines::SuccessorSampler<Action> {
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
@@ -29,7 +28,7 @@ protected:
         StateID,
         Action,
         const Distribution<StateID>& successors,
-        engine_interfaces::StateProperties&) override
+        engines::StateProperties&) override
     {
         return successors.sample(*rng_)->item;
     }

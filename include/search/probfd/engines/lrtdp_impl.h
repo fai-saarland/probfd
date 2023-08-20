@@ -2,7 +2,7 @@
 #error "This file should only be included from lrtdp.h"
 #endif
 
-#include "probfd/engine_interfaces/successor_sampler.h"
+#include "probfd/engines/successor_sampler.h"
 
 #include "downward/utils/countdown_timer.h"
 

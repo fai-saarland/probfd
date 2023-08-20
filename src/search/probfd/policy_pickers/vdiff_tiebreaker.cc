@@ -1,6 +1,6 @@
 #include "probfd/policy_pickers/vdiff_tiebreaker.h"
 
-#include "probfd/engine_interfaces/state_properties.h"
+#include "probfd/engines/state_properties.h"
 
 #include "downward/plugins/options.h"
 
@@ -25,7 +25,7 @@ int VDiffTiebreaker::pick_index(
     StateID,
     std::optional<OperatorID>,
     const std::vector<Transition<OperatorID>>& greedy_transitions,
-    engine_interfaces::StateProperties& properties)
+    engines::StateProperties& properties)
 {
     auto it = std::ranges::min_element(
         greedy_transitions,

@@ -18,7 +18,7 @@ struct Transition;
 template <typename, typename>
 class MDP;
 
-namespace engine_interfaces {
+namespace engines {
 
 class StateProperties;
 
@@ -84,7 +84,7 @@ public:
     virtual void print_statistics(std::ostream&) {}
 };
 
-} // namespace engine_interfaces
+} // namespace engines
 } // namespace probfd
 
 #endif // __POLICY_PICKER_H__

@@ -1,7 +1,7 @@
 #ifndef PROBFD_SUCCESSOR_SAMPLERS_TASK_SUCCESSOR_SAMPLER_FACTORY_H
 #define PROBFD_SUCCESSOR_SAMPLERS_TASK_SUCCESSOR_SAMPLER_FACTORY_H
 
-#include "probfd/engine_interfaces/fdr_types.h"
+#include "probfd/engines/fdr_types.h"
 
 #include "probfd/fdr_types.h"
 
