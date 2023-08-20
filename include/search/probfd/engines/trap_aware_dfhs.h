@@ -77,7 +77,6 @@ class TADFHSImpl
 
     using QEvaluator = typename Base::Evaluator;
     using QuotientPolicyPicker = typename Base::PolicyPicker;
-    using QuotientNewStateObserver = typename Base::NewStateObserver;
     using UpdateResult = typename Base ::UpdateResult;
     using StateInfo = typename Base::StateInfo;
 
@@ -186,7 +185,6 @@ public:
      */
     TADFHSImpl(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        std::shared_ptr<QuotientNewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,
@@ -293,8 +291,6 @@ class TADepthFirstHeuristicSearch : public MDPEngine<State, Action> {
 
     using QuotientPolicyPicker =
         engine_interfaces::PolicyPicker<QState, QAction>;
-    using QuotientNewStateObserver =
-        engine_interfaces::NewStateObserver<QState>;
     using QuotientOpenList = engine_interfaces::OpenList<QAction>;
 
     TADFHSImpl<State, Action, UseInterval> engine_;
@@ -305,7 +301,6 @@ public:
      */
     TADepthFirstHeuristicSearch(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        std::shared_ptr<QuotientNewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,

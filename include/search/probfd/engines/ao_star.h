@@ -47,7 +47,6 @@ class AOStar
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
     using PolicyPicker = typename Base::PolicyPicker;
-    using NewStateObserver = typename Base::NewStateObserver;
 
     using SuccessorSampler = engine_interfaces::SuccessorSampler<Action>;
 
@@ -58,7 +57,6 @@ class AOStar
 public:
     AOStar(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         std::shared_ptr<SuccessorSampler> outcome_selection);

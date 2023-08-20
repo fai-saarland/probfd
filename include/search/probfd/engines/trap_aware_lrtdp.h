@@ -77,7 +77,6 @@ class TALRTDPImpl
 
     using QEvaluator = typename Base::Evaluator;
     using QuotientPolicyPicker = typename Base::PolicyPicker;
-    using QuotientNewStateObserver = typename Base::NewStateObserver;
     using StateInfo = typename Base::StateInfo;
 
     using QuotientSuccessorSampler =
@@ -169,7 +168,6 @@ public:
      */
     TALRTDPImpl(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        std::shared_ptr<QuotientNewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
@@ -217,8 +215,6 @@ class TALRTDP : public MDPEngine<State, Action> {
 
     using QuotientPolicyPicker =
         engine_interfaces::PolicyPicker<QState, QAction>;
-    using QuotientNewStateObserver =
-        engine_interfaces::NewStateObserver<QState>;
     using QuotientSuccessorSampler =
         engine_interfaces::SuccessorSampler<QAction>;
 
@@ -230,7 +226,6 @@ public:
      */
     TALRTDP(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        std::shared_ptr<QuotientNewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,

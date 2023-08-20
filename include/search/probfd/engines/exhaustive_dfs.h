@@ -15,9 +15,6 @@
 namespace probfd {
 
 namespace engine_interfaces {
-template <typename>
-class NewStateObserver;
-
 template <typename, typename>
 class TransitionSorter;
 } // namespace engine_interfaces
@@ -65,7 +62,6 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
 
-    using NewStateObserver = engine_interfaces::NewStateObserver<State>;
     using TransitionSorter = engine_interfaces::TransitionSorter<State, Action>;
 
     using EngineValueType = engines::EngineValueType<UseInterval>;
@@ -205,7 +201,6 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
         }
     };
 
-    std::shared_ptr<NewStateObserver> new_state_handler_;
     std::shared_ptr<TransitionSorter> transition_sort_;
 
     ProgressReport* report_;
@@ -230,7 +225,6 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
 
 public:
     explicit ExhaustiveDepthFirstSearch(
-        std::shared_ptr<NewStateObserver> new_state_handler,
         std::shared_ptr<TransitionSorter> transition_sorting,
         Interval cost_bound,
         bool reevaluate,

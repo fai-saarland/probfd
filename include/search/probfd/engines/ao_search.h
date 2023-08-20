@@ -83,7 +83,6 @@ protected:
     using Evaluator = typename Base::Evaluator;
     using StateInfo = typename Base::StateInfo;
     using PolicyPicker = typename Base::PolicyPicker;
-    using NewStateObserver = typename Base::NewStateObserver;
 
 private:
     struct PrioritizedStateID {

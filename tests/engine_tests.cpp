@@ -129,7 +129,6 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
         HeuristicDepthFirstSearch<State, OperatorID, false, true>
             hdfs(
                 policy_chooser,
-                nullptr,
                 &report,
                 false,
                 false,
@@ -182,7 +181,6 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
             false,
             true>>(
         q_policy_chooser,
-        nullptr,
         &report,
         false,
         false,

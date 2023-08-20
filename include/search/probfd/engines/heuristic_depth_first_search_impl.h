@@ -32,7 +32,6 @@ template <typename State, typename Action, bool UseInterval, bool Fret>
 HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool LabelSolved,
@@ -42,7 +41,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
         bool GreedyExploration,
         bool PerformValueIteration,
         bool ExpandTipStates)
-    : Base(policy_chooser, new_state_handler, report, interval_comparison)
+    : Base(policy_chooser, report, interval_comparison)
     , LabelSolved(LabelSolved)
     , ForwardUpdates(ForwardUpdates)
     , BackwardUpdates(BackwardUpdates)

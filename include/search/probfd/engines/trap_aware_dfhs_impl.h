@@ -43,7 +43,6 @@ inline void Statistics::register_report(ProgressReport* report) const
 template <typename State, typename Action, bool UseInterval>
 TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-    std::shared_ptr<QuotientNewStateObserver> new_state_handler,
     ProgressReport* report,
     bool interval_comparison,
     bool forward_updates,
@@ -55,7 +54,7 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     bool mark_solved,
     bool reexpand_removed_traps,
     std::shared_ptr<QuotientOpenList> open_list)
-    : Base(policy_chooser, new_state_handler, report, interval_comparison)
+    : Base(policy_chooser, report, interval_comparison)
     , forward_updates_(forward_updates)
     , backtrack_update_type_(backtrack_update_type)
     , expand_tip_states_(expand_tip_states)
@@ -564,7 +563,6 @@ template <typename State, typename Action, bool UseInterval>
 TADepthFirstHeuristicSearch<State, Action, UseInterval>::
     TADepthFirstHeuristicSearch(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        std::shared_ptr<QuotientNewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,
@@ -578,7 +576,6 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
         std::shared_ptr<QuotientOpenList> open_list)
     : engine_(
           policy_chooser,
-          new_state_handler,
           report,
           interval_comparison,
           forward_updates,

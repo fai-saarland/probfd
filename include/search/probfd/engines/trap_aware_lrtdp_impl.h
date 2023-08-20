@@ -40,13 +40,12 @@ inline void Statistics::register_report(ProgressReport& report) const
 template <typename State, typename Action, bool UseInterval>
 TALRTDPImpl<State, Action, UseInterval>::TALRTDPImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-    std::shared_ptr<QuotientNewStateObserver> new_state_handler,
     ProgressReport* report,
     bool interval_comparison,
     TrialTerminationCondition stop_consistent,
     bool reexpand_traps,
     std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
-    : Base(policy_chooser, new_state_handler, report, interval_comparison)
+    : Base(policy_chooser, report, interval_comparison)
     , stop_at_consistent_(stop_consistent)
     , reexpand_traps_(reexpand_traps)
     , sample_(succ_sampler)
@@ -349,7 +348,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::push_to_queue(
 template <typename State, typename Action, bool UseInterval>
 TALRTDP<State, Action, UseInterval>::TALRTDP(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-    std::shared_ptr<QuotientNewStateObserver> new_state_handler,
     ProgressReport* report,
     bool interval_comparison,
     TrialTerminationCondition stop_consistent,
@@ -357,7 +355,6 @@ TALRTDP<State, Action, UseInterval>::TALRTDP(
     std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
     : engine_(
           policy_chooser,
-          new_state_handler,
           report,
           interval_comparison,
           stop_consistent,

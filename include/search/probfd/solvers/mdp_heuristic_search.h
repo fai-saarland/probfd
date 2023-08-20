@@ -3,7 +3,6 @@
 
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/policy_picker.h"
 #include "probfd/engine_interfaces/successor_sampler.h"
 
@@ -32,7 +31,6 @@ enum class FretMode { DISABLED, POLICY, VALUE };
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
     std::shared_ptr<FDRPolicyPicker> policy_tiebreaker_;
-    std::shared_ptr<FDRNewStateObserver> new_state_handler_;
 
     const bool dual_bounds_;
     const bool interval_comparison_;
@@ -64,7 +62,6 @@ public:
             using HeuristicSearchType = HS<State, OperatorID, true>;
             return engine_factory<HeuristicSearchType>(
                 policy_tiebreaker_,
-                new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
@@ -72,7 +69,6 @@ public:
             using HeuristicSearchType = HS<State, OperatorID, false>;
             return engine_factory<HeuristicSearchType>(
                 policy_tiebreaker_,
-                new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
@@ -98,9 +94,6 @@ class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
     std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>>
         q_policy_tiebreaker_;
 
-    std::shared_ptr<engine_interfaces::NewStateObserver<QState>>
-        q_new_state_handler_;
-
     const bool fret_on_policy_;
 
 public:
@@ -111,8 +104,6 @@ public:
                   ? new quotients::RepresentativePolicyPicker<State>(
                         this->policy_tiebreaker_)
                   : nullptr)
-        , q_new_state_handler_(
-              new engine_interfaces::NewStateObserver<QState>())
         , fret_on_policy_(opts.get<bool>("fret_on_policy", false))
     {
     }
@@ -154,14 +145,12 @@ public:
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
                 q_policy_tiebreaker_,
-                q_new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
             return std::make_unique<HS<State, OperatorID, false>>(
                 q_policy_tiebreaker_,
-                q_new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
@@ -200,7 +189,6 @@ private:
         std::shared_ptr engine =
             std::make_shared<HS<QState, QAction, Interval>>(
                 q_policy_tiebreaker_,
-                q_new_state_handler_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);

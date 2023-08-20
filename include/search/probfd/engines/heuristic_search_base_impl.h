@@ -2,7 +2,6 @@
 #error "This file should only be included from heuristic_search_base.h"
 #endif
 
-#include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/policy_picker.h"
 
 #include "probfd/engines/utils.h"
@@ -73,11 +72,9 @@ inline void Statistics::print(std::ostream& out) const
 template <typename State, typename Action, typename StateInfoT>
 HeuristicSearchBase<State, Action, StateInfoT>::HeuristicSearchBase(
     std::shared_ptr<PolicyPicker> policy_chooser,
-    std::shared_ptr<NewStateObserver> new_state_handler,
     ProgressReport* report,
     bool interval_comparison)
     : policy_chooser_(policy_chooser)
-    , on_new_state_(new_state_handler)
     , report_(report)
     , interval_comparison_(interval_comparison)
 {
@@ -399,7 +396,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
         state_info.set_goal();
         state_info.value = EngineValueType(t_cost);
         statistics_.goal_states++;
-        if (on_new_state_) on_new_state_->notify_goal(state);
         return true;
     }
 
@@ -407,7 +403,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
     if (estimate == t_cost) {
         statistics_.pruned_states++;
         notify_dead_end(state_info, t_cost);
-        if (on_new_state_) on_new_state_->notify_dead(state);
     } else {
         state_info.set_on_fringe();
 
@@ -417,8 +412,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
         } else {
             state_info.value = estimate;
         }
-
-        if (on_new_state_) on_new_state_->notify_state(state);
     }
 
     return true;

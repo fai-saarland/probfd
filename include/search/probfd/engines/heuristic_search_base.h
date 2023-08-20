@@ -29,9 +29,6 @@ template <typename, typename>
 class PolicyPicker;
 
 template <typename>
-class NewStateObserver;
-
-template <typename>
 class SuccessorSampler;
 } // namespace engine_interfaces
 
@@ -96,7 +93,6 @@ protected:
     using Transition = Transition<Action>;
 
     using PolicyPicker = engine_interfaces::PolicyPicker<State, Action>;
-    using NewStateObserver = engine_interfaces::NewStateObserver<State>;
 
 public:
     using StateInfo = StateInfoT;
@@ -134,7 +130,6 @@ private:
     };
 
     std::shared_ptr<PolicyPicker> policy_chooser_;
-    std::shared_ptr<NewStateObserver> on_new_state_;
 
     StateInfos state_infos_;
 
@@ -157,7 +152,6 @@ protected:
 public:
     HeuristicSearchBase(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison);
 
@@ -342,7 +336,6 @@ protected:
 
     using StateInfo = typename HSBase::StateInfo;
     using PolicyPicker = typename HSBase::PolicyPicker;
-    using NewStateObserver = typename HSBase::NewStateObserver;
 
 public:
     // Inherited constructor

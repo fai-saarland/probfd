@@ -44,7 +44,6 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
         TADepthFirstHeuristicSearch<int, const ProbabilisticTransition*, false>
             hdfs(
                 picker,
-                nullptr,
                 &report,
                 false,
                 false,

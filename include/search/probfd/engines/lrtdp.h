@@ -156,7 +156,6 @@ class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
     using PolicyPicker = typename Base::PolicyPicker;
-    using NewStateObserver = typename Base::NewStateObserver;
 
     using SuccessorSampler = engine_interfaces::SuccessorSampler<Action>;
 
@@ -184,7 +183,6 @@ public:
      */
     LRTDP(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,

@@ -4,7 +4,6 @@
 
 #include "probfd/engines/utils.h"
 
-#include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/transition_sorter.h"
 
 #include <cassert>
@@ -57,7 +56,6 @@ void Statistics::print(std::ostream& out) const
 template <typename State, typename Action, bool UseInterval>
 ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     ExhaustiveDepthFirstSearch(
-        std::shared_ptr<NewStateObserver> new_state_handler,
         std::shared_ptr<TransitionSorter> transition_sorting,
         Interval cost_bound,
         bool reevaluate,
@@ -65,8 +63,7 @@ ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         bool path_updates,
         bool only_propagate_when_changed,
         ProgressReport* progress)
-    : new_state_handler_(new_state_handler)
-    , transition_sort_(transition_sorting)
+    : transition_sort_(transition_sorting)
     , report_(progress)
     , cost_bound_(cost_bound)
     , trivial_bound_([=] {
@@ -161,9 +158,6 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         info.close();
         info.value = EngineValueType(term_cost);
         ++statistics_.goal_states;
-        if (new_state_handler_) {
-            new_state_handler_->notify_goal(state);
-        }
         return false;
     }
 
@@ -172,9 +166,6 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         info.value = EngineValueType(term_cost);
         info.mark_dead_end();
         ++statistics_.dead_ends;
-        if (new_state_handler_) {
-            new_state_handler_->notify_dead(state);
-        }
         return false;
     }
 
@@ -183,9 +174,6 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     }
 
     info.open();
-    if (new_state_handler_) {
-        new_state_handler_->notify_state(state);
-    }
 
     return true;
 }

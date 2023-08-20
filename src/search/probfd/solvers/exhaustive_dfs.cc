@@ -2,7 +2,6 @@
 
 #include "probfd/engines/exhaustive_dfs.h"
 
-#include "probfd/engine_interfaces/new_state_observer.h"
 #include "probfd/engine_interfaces/transition_sorter.h"
 
 #include "probfd/transition_sorters/task_transition_sorter_factory.h"
@@ -23,7 +22,6 @@ using namespace engines::exhaustive_dfs;
 class ExhaustiveDFSSolver : public MDPSolver {
     const Interval cost_bound_;
 
-    std::shared_ptr<FDRNewStateObserverList> new_state_handler_;
     std::shared_ptr<FDRTransitionSorter> transition_sort_;
 
     const bool dual_bounds_;
@@ -37,9 +35,6 @@ public:
     explicit ExhaustiveDFSSolver(const plugins::Options& opts)
         : MDPSolver(opts)
         , cost_bound_(0_vt, task_cost_function->get_non_goal_termination_cost())
-        , new_state_handler_(new FDRNewStateObserverList(
-              opts.get_list<std::shared_ptr<FDRNewStateObserver>>(
-                  "on_new_state")))
         , transition_sort_(
               opts.contains("order")
                   ? opts.get<std::shared_ptr<FDRTransitionSorterFactory>>(
@@ -65,7 +60,6 @@ public:
 
         if (dual_bounds_) {
             return this->template engine_factory<Engine2>(
-                new_state_handler_,
                 transition_sort_,
                 cost_bound_,
                 reevaluate_,
@@ -75,7 +69,6 @@ public:
                 &progress_);
         } else {
             return this->template engine_factory<Engine>(
-                new_state_handler_,
                 transition_sort_,
                 cost_bound_,
                 reevaluate_,
@@ -98,10 +91,6 @@ public:
 
         MDPSolver::add_options_to_feature(*this);
 
-        add_list_option<std::shared_ptr<FDRNewStateObserver>>(
-            "on_new_state",
-            "",
-            "[]");
         add_option<std::shared_ptr<FDRTransitionSorterFactory>>(
             "order",
             "",

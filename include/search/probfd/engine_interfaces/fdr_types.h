@@ -9,12 +9,6 @@ namespace engine_interfaces {
 
 // Behavioural interfaces
 template <typename>
-class NewStateObserver;
-
-template <typename>
-class NewStateObserverList;
-
-template <typename>
 class OpenList;
 
 template <typename, typename>
@@ -27,12 +21,6 @@ template <typename, typename>
 class TransitionSorter;
 
 } // namespace engine_interfaces
-
-/// Type alias for NewStateObservers for MDPs in FDR.
-using FDRNewStateObserver = engine_interfaces::NewStateObserver<State>;
-
-/// Type alias for NewStateObserverLists for MDPs in FDR.
-using FDRNewStateObserverList = engine_interfaces::NewStateObserverList<State>;
 
 /// Type alias for OpenLists for MDPs in FDR.
 using FDROpenList = engine_interfaces::OpenList<OperatorID>;

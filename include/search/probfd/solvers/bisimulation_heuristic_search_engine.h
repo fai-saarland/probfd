@@ -57,8 +57,6 @@ protected:
     bisimulation::BisimilarStateSpace state_space_;
 
     std::shared_ptr<engine_interfaces::PolicyPicker<QState, QAction>> policy_;
-    std::shared_ptr<engine_interfaces::NewStateObserver<QState>>
-        new_state_handler_;
 
     std::shared_ptr<MDPEngine<QState, QAction>> engine_;
 
@@ -75,7 +73,6 @@ public:
               task_cost_function->get_non_goal_termination_cost())
         , policy_(
               new policy_pickers::ArbitraryTiebreaker<QState, QAction>(true))
-        , new_state_handler_(new engine_interfaces::NewStateObserver<QState>())
     {
         stats.timer.stop();
         stats.states = state_space_.num_bisimilar_states();
@@ -109,7 +106,6 @@ public:
 
         res->engine_.reset(new HS<QState, QAction, Interval>(
             res->policy_,
-            res->new_state_handler_,
             &progress,
             interval,
             std::forward<Args>(args)...));
@@ -151,8 +147,6 @@ class QBisimulationBasedHeuristicSearchEngine
 
     std::shared_ptr<engine_interfaces::PolicyPicker<QQState, QQAction>>
         q_policy_tiebreaker_;
-    std::shared_ptr<engine_interfaces::NewStateObserver<QQState>>
-        q_new_state_handler_;
 
 public:
     explicit QBisimulationBasedHeuristicSearchEngine(
@@ -165,8 +159,6 @@ public:
               engine_name)
         , q_policy_tiebreaker_(
               new policy_pickers::ArbitraryTiebreaker<QQState, QQAction>(true))
-        , q_new_state_handler_(
-              new engine_interfaces::NewStateObserver<QQState>())
     {
     }
 
@@ -193,7 +185,6 @@ public:
         std::shared_ptr<HS<QQState, QQAction, Interval>> engine(
             new HS<QQState, QQAction, Interval>(
                 res->q_policy_tiebreaker_,
-                res->q_new_state_handler_,
                 &progress,
                 interval,
                 std::forward<Args>(args)...));

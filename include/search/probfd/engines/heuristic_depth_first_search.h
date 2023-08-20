@@ -100,7 +100,6 @@ class HeuristicDepthFirstSearch
     using Evaluator = typename Base::Evaluator;
 
     using PolicyPicker = typename Base::PolicyPicker;
-    using NewStateObserver = typename Base::NewStateObserver;
 
     using StateInfo = typename Base::StateInfo;
 
@@ -170,7 +169,6 @@ class HeuristicDepthFirstSearch
 public:
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         bool LabelSolved,

@@ -54,7 +54,6 @@ class ExhaustiveAOSearch
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
     using PolicyPicker = typename Base::PolicyPicker;
-    using NewStateObserver = typename Base::NewStateObserver;
 
     using OpenList = engine_interfaces::OpenList<Action>;
 
@@ -63,7 +62,6 @@ class ExhaustiveAOSearch
 public:
     ExhaustiveAOSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        std::shared_ptr<NewStateObserver> new_state_handler,
         ProgressReport* report,
         bool interval_comparison,
         std::shared_ptr<OpenList> open_list);
