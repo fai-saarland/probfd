@@ -1,13 +1,14 @@
-#include "probfd/successor_samplers/most_likely_selector.h"
+#include "probfd/successor_samplers/most_likely_sampler.h"
 
 #include "probfd/distribution.h"
 
 namespace probfd {
 namespace successor_samplers {
 
-StateID MostLikelySuccessorSelector::sample(
+template <typename Action>
+StateID MostLikelySuccessorSampler<Action>::sample(
     StateID,
-    OperatorID,
+    Action,
     const Distribution<StateID>& successors,
     algorithms::StateProperties&)
 {

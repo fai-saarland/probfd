@@ -1,23 +1,31 @@
-#include "probfd/successor_samplers/vdiff_successor_sampler.h"
+#include "probfd/successor_samplers/vbiased_successor_sampler.h"
 
 #include "probfd/algorithms/state_properties.h"
 
 #include "downward/utils/rng.h"
+#include "downward/utils/rng_options.h"
 
 namespace probfd {
 namespace successor_samplers {
 
-VDiffSuccessorSampler::VDiffSuccessorSampler(
-    std::shared_ptr<utils::RandomNumberGenerator> rng,
-    bool prefer_large_gaps)
-    : rng_(rng)
-    , prefer_large_gaps_(prefer_large_gaps)
+template <typename Action>
+VBiasedSuccessorSampler<Action>::VBiasedSuccessorSampler(
+    const plugins::Options& opts)
+    : rng_(utils::parse_rng_from_options(opts))
 {
 }
 
-StateID VDiffSuccessorSampler::sample(
+template <typename Action>
+VBiasedSuccessorSampler<Action>::VBiasedSuccessorSampler(
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : rng_(std::move(rng))
+{
+}
+
+template <typename Action>
+StateID VBiasedSuccessorSampler<Action>::sample(
     StateID,
-    OperatorID,
+    Action,
     const Distribution<StateID>& successors,
     algorithms::StateProperties& properties)
 {
@@ -25,14 +33,13 @@ StateID VDiffSuccessorSampler::sample(
 
     value_t sum = 0;
     for (const auto& [item, probability] : successors) {
-        const value_t error = properties.lookup_bounds(item).length();
-        const value_t p =
-            probability * (prefer_large_gaps_ ? error : (1_vt - error));
+        const auto p = probability * properties.lookup_value(item);
         if (p > 0_vt) {
             sum += p;
             biased_.add_probability(item, p);
         }
     }
+
     if (biased_.empty()) {
         return successors.sample(*rng_)->item;
     }

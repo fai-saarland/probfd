@@ -1,24 +1,24 @@
-#ifndef PROBFD_SUCCESSOR_SAMPLERS_MOST_LIKELY_SELECTOR_H
-#define PROBFD_SUCCESSOR_SAMPLERS_MOST_LIKELY_SELECTOR_H
+#ifndef PROBFD_SUCCESSOR_SAMPLERS_MOST_LIKELY_SAMPLER_H
+#define PROBFD_SUCCESSOR_SAMPLERS_MOST_LIKELY_SAMPLER_H
 
-#include "probfd/algorithms/fdr_types.h"
 #include "probfd/algorithms/successor_sampler.h"
-
-#include "downward/operator_id.h"
 
 namespace probfd {
 namespace successor_samplers {
 
-class MostLikelySuccessorSelector : public FDRSuccessorSampler {
+template <typename Action>
+class MostLikelySuccessorSampler : public algorithms::SuccessorSampler<Action> {
 protected:
     StateID sample(
         StateID state,
-        OperatorID op,
+        Action action,
         const Distribution<StateID>& successors,
         algorithms::StateProperties& properties) override;
 };
 
 } // namespace successor_samplers
 } // namespace probfd
+
+#include "probfd/successor_samplers/most_likely_sampler_impl.h"
 
 #endif // __MOST_LIKELY_SELECTOR_H__

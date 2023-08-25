@@ -3,7 +3,8 @@
 #include "probfd/algorithms/lrtdp.h"
 
 #include "probfd/algorithms/successor_sampler.h"
-#include "probfd/successor_samplers/task_successor_sampler_factory.h"
+
+#include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -14,28 +15,38 @@ namespace {
 using namespace algorithms;
 using namespace algorithms::lrtdp;
 
+using namespace plugins;
+
+template <bool Bisimulation, bool Fret>
+using Sampler = std::conditional_t<
+    Bisimulation,
+    std::conditional_t<
+        Fret,
+        SuccessorSampler<
+            quotients::QuotientAction<bisimulation::QuotientAction>>,
+        SuccessorSampler<bisimulation::QuotientAction>>,
+    std::conditional_t<
+        Fret,
+        SuccessorSampler<quotients::QuotientAction<OperatorID>>,
+        SuccessorSampler<OperatorID>>>;
+
 template <bool Bisimulation, bool Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
-    template <typename T>
-    using WrappedType =
-        typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
-            T>;
-
     template <typename State, typename Action, bool Interval>
     using LRTDP = LRTDP<State, Action, Interval, Fret>;
 
+    using Sampler = Sampler<Bisimulation, Fret>;
+
     const TrialTerminationCondition stop_consistent_;
-    WrappedType<std::shared_ptr<FDRSuccessorSampler>> successor_sampler_;
+    const std::shared_ptr<Sampler> successor_sampler_;
 
 public:
-    explicit LRTDPSolver(const plugins::Options& opts)
+    explicit LRTDPSolver(const Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
         , stop_consistent_(
               opts.get<TrialTerminationCondition>("terminate_trial"))
         , successor_sampler_(
-              this->wrap(opts.get<std::shared_ptr<FDRSuccessorSamplerFactory>>(
-                                 "successor_sampler")
-                             ->create_sampler(this->task_mdp.get())))
+              opts.get<std::shared_ptr<Sampler>>("successor_sampler"))
     {
         using enum TrialTerminationCondition;
         if constexpr (Fret) {
@@ -67,27 +78,39 @@ protected:
     }
 };
 
+template <bool Bisimulation, bool Fret>
 class LRTDPSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<LRTDPSolver> {
+    : public TypedFeature<SolverInterface, LRTDPSolver<Bisimulation, Fret>> {
 public:
     LRTDPSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<LRTDPSolver>("lrtdp")
+        : TypedFeature<SolverInterface, LRTDPSolver<Bisimulation, Fret>>(
+              add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
     {
-        add_option<std::shared_ptr<FDRSuccessorSamplerFactory>>(
+        MDPHeuristicSearchBase::add_options_to_feature(*this);
+
+        if constexpr (Fret) {
+            this->template add_option<bool>("fret_on_policy", "", "true");
+        }
+
+        this->template add_option<std::shared_ptr<Sampler<Bisimulation, Fret>>>(
             "successor_sampler",
             "",
-            "random_successor_sampler_factory()");
+            add_mdp_type_to_option<Bisimulation, Fret>(
+                "random_successor_sampler()"));
 
-        add_option<TrialTerminationCondition>(
+        this->template add_option<TrialTerminationCondition>(
             "terminate_trial",
             "",
             "terminal");
     }
 };
 
-static plugins::FeaturePlugin<LRTDPSolverFeature> _plugin;
+static FeaturePlugin<LRTDPSolverFeature<false, false>> _plugin;
+static FeaturePlugin<LRTDPSolverFeature<false, true>> _plugin2;
+static FeaturePlugin<LRTDPSolverFeature<true, false>> _plugin3;
+static FeaturePlugin<LRTDPSolverFeature<true, true>> _plugin4;
 
-static plugins::TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
+static TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
     {{"terminal", "Stop trials at terminal states"},
      {"consistent", "Stop trials at epsilon consistent states"},
      {"inconsistent", "Stop trials at epsilon inconsistent states"},

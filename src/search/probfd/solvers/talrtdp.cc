@@ -1,9 +1,12 @@
 #include "probfd/algorithms/successor_sampler.h"
 #include "probfd/algorithms/trap_aware_lrtdp.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
-#include "probfd/successor_samplers/task_successor_sampler_factory.h"
+
+#include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
+
+#include <memory>
 
 namespace probfd {
 namespace solvers {
@@ -12,18 +15,13 @@ namespace {
 using namespace algorithms;
 using namespace algorithms::trap_aware_lrtdp;
 
+using QSuccessorSampler =
+    SuccessorSampler<quotients::QuotientAction<OperatorID>>;
+
 class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
-    template <typename T>
-    using WrappedType =
-        typename MDPHeuristicSearch<false, true>::WrappedType<T>;
-
-    template <typename State, typename Action, bool Interval>
-    using Algorithm = TALRTDP<State, Action, Interval>;
-
     const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;
-    WrappedType<std::shared_ptr<FDRSuccessorSampler>>
-        successor_sampler_;
+    const std::shared_ptr<QSuccessorSampler> successor_sampler_;
 
 public:
     explicit TrapAwareLRTDPSolver(const plugins::Options& opts)
@@ -32,9 +30,7 @@ public:
               opts.get<TrialTerminationCondition>("terminate_trial"))
         , reexpand_traps_(opts.get<bool>("reexpand_traps"))
         , successor_sampler_(
-              this->wrap(opts.get<std::shared_ptr<FDRSuccessorSamplerFactory>>(
-                                 "successor_sampler")
-                             ->create_sampler(this->task_mdp.get())))
+              opts.get<std::shared_ptr<QSuccessorSampler>>("successor_sampler"))
     {
     }
 
@@ -44,7 +40,7 @@ public:
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
         return this
-            ->template create_quotient_heuristic_search_algorithm<Algorithm>(
+            ->template create_quotient_heuristic_search_algorithm<TALRTDP>(
                 stop_consistent_,
                 reexpand_traps_,
                 successor_sampler_);
@@ -71,10 +67,10 @@ public:
 
         MDPHeuristicSearchBase::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<FDRSuccessorSamplerFactory>>(
+        add_option<std::shared_ptr<QSuccessorSampler>>(
             "successor_sampler",
             "Successor bias for the trials.",
-            "random_successor_sampler_factory");
+            add_mdp_type_to_option<false, true>("random_successor_sampler"));
         add_option<TrialTerminationCondition>(
             "terminate_trial",
             "The trial termination condition.",

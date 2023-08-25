@@ -90,34 +90,6 @@ public:
     }
 };
 
-class RepresentativeSuccessorSampler
-    : public algorithms::SuccessorSampler<QuotientAction<OperatorID>> {
-    using QuotientAction = QuotientAction<OperatorID>;
-
-    std::shared_ptr<FDRSuccessorSampler> original_;
-
-public:
-    RepresentativeSuccessorSampler(
-        std::shared_ptr<FDRSuccessorSampler> original)
-        : original_(original)
-    {
-    }
-
-    StateID sample(
-        StateID state,
-        QuotientAction qaction,
-        const Distribution<StateID>& transition,
-        algorithms::StateProperties& properties) override
-    {
-        return original_->sample(state, qaction.action, transition, properties);
-    }
-
-    void print_statistics(std::ostream& out) const override
-    {
-        original_->print_statistics(out);
-    }
-};
-
 class RepresentativeOpenList
     : public algorithms::OpenList<QuotientAction<OperatorID>> {
     using QuotientAction = QuotientAction<OperatorID>;

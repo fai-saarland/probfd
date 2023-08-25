@@ -1,18 +1,18 @@
-#include "probfd/successor_samplers/arbitrary_selector.h"
+#include "probfd/successor_samplers/arbitrary_sampler.h"
 
 #include "probfd/distribution.h"
 
 namespace probfd {
 namespace successor_samplers {
 
-StateID ArbitrarySuccessorSelector::sample(
+template <typename Action>
+StateID ArbitrarySuccessorSampler<Action>::sample(
     StateID,
-    OperatorID,
+    Action,
     const Distribution<StateID>& successors,
     algorithms::StateProperties&)
 {
-    auto it = successors.begin();
-    return it->item;
+    return successors.begin()->item;
 }
 
 } // namespace successor_samplers

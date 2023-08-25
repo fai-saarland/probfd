@@ -148,19 +148,6 @@ fast_downward_plugin(
 
         # Transition Samplers
         probfd/successor_sampler
-        probfd/successor_samplers/arbitrary_selector
-        probfd/successor_samplers/most_likely_selector
-        probfd/successor_samplers/uniform_successor_sampler
-        probfd/successor_samplers/vbiased_successor_sampler
-        probfd/successor_samplers/vdiff_successor_sampler
-
-        probfd/successor_samplers/arbitrary_selector_factory
-        probfd/successor_samplers/most_likely_selector_factory
-        probfd/successor_samplers/uniform_successor_sampler_factory
-        probfd/successor_samplers/random_successor_sampler_factory
-        probfd/successor_samplers/vbiased_successor_sampler_factory
-        probfd/successor_samplers/vdiff_successor_sampler_factory
-
         probfd/successor_samplers/subcategory
 
         # Policy Tiebreakers

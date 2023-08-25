@@ -3,7 +3,11 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
-#include "probfd/distribution.h"
+#include <memory>
+
+namespace plugins {
+class Options;
+}
 
 namespace utils {
 class RandomNumberGenerator;
@@ -17,24 +21,22 @@ class RandomSuccessorSampler : public algorithms::SuccessorSampler<Action> {
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
+    explicit RandomSuccessorSampler(const plugins::Options& opts);
+
     explicit RandomSuccessorSampler(
-        std::shared_ptr<utils::RandomNumberGenerator> rng)
-        : rng_(rng)
-    {
-    }
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
 protected:
     StateID sample(
         StateID,
         Action,
         const Distribution<StateID>& successors,
-        algorithms::StateProperties&) override
-    {
-        return successors.sample(*rng_)->item;
-    }
+        algorithms::StateProperties&) override;
 };
 
 } // namespace successor_samplers
 } // namespace probfd
+
+#include "probfd/successor_samplers/random_successor_sampler_impl.h"
 
 #endif // __RANDOM_SUCCESSOR_SAMPLER_H__

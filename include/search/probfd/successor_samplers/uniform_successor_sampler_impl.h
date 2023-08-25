@@ -5,22 +5,29 @@
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
-#include "downward/operator_id.h"
-
 #include <memory>
 
 namespace probfd {
 namespace successor_samplers {
 
-UniformSuccessorSampler::UniformSuccessorSampler(
+template <typename Action>
+UniformSuccessorSampler<Action>::UniformSuccessorSampler(
+    const plugins::Options& opts)
+    : rng_(utils::parse_rng_from_options(opts))
+{
+}
+
+template <typename Action>
+UniformSuccessorSampler<Action>::UniformSuccessorSampler(
     std::shared_ptr<utils::RandomNumberGenerator> rng)
     : rng_(rng)
 {
 }
 
-StateID UniformSuccessorSampler::sample(
+template <typename Action>
+StateID UniformSuccessorSampler<Action>::sample(
     StateID,
-    OperatorID,
+    Action,
     const Distribution<StateID>& successors,
     algorithms::StateProperties&)
 {
