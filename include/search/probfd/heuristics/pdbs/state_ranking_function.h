@@ -166,7 +166,7 @@ public:
         VariablesProxy variables,
         const StateRankingFunction& state_mapper);
 
-    std::string operator()(StateID id, StateRank state) const;
+    std::string operator()(StateRank state) const;
 };
 
 } // namespace pdbs

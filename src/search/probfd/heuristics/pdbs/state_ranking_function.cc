@@ -160,7 +160,7 @@ StateRankToString::StateRankToString(
 {
 }
 
-std::string StateRankToString::operator()(StateID, StateRank state) const
+std::string StateRankToString::operator()(StateRank state) const
 {
     using namespace std::views;
 
