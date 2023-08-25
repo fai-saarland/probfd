@@ -98,10 +98,10 @@ public:
     QuotientState get_initial_state() const;
 
     /// Checks whether the given quotient state is a goal state.
-    bool is_goal_state(const QuotientState& s) const;
+    bool is_goal_state(QuotientState s) const;
 
     /// Checks whether the given quotient state is a dead end.
-    bool is_dead_end(const QuotientState& s) const;
+    bool is_dead_end(QuotientState s) const;
 
     /// Gets the number of states in the probabilistic bisimulation.
     unsigned num_bisimilar_states() const;

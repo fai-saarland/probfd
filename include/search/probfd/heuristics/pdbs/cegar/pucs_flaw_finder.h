@@ -11,7 +11,6 @@
 
 #include "downward/task_proxy.h"
 
-class StateID;
 class State;
 class StateRegistry;
 

@@ -8,7 +8,6 @@
 #include <deque>
 #include <unordered_set>
 
-class StateID;
 class State;
 class StateRegistry;
 

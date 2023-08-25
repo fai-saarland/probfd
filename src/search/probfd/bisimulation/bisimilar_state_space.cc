@@ -255,12 +255,12 @@ BisimilarStateSpace::~BisimilarStateSpace() = default;
 
 StateID BisimilarStateSpace::get_state_id(QuotientState s)
 {
-    return s.id;
+    return std::to_underlying(s);
 }
 
 QuotientState BisimilarStateSpace::get_state(StateID s)
 {
-    return QuotientState(s);
+    return static_cast<QuotientState>(s.id);
 }
 
 void BisimilarStateSpace::generate_applicable_actions(
@@ -271,10 +271,11 @@ void BisimilarStateSpace::generate_applicable_actions(
         return;
     }
 
-    const std::vector<CachedTransition>& cache = transitions_[state.id];
+    const std::vector<CachedTransition>& cache =
+        transitions_[std::to_underlying(state)];
     result.reserve(cache.size());
     for (unsigned i = 0; i < cache.size(); ++i) {
-        result.emplace_back(i);
+        result.emplace_back(static_cast<QuotientAction>(i));
     }
 }
 
@@ -284,19 +285,22 @@ void BisimilarStateSpace::generate_action_transitions(
     Distribution<StateID>& result)
 {
     assert(state != dead_end_state_);
-    assert(a.idx < transitions_[state.id].size());
+    assert(
+        std::to_underlying(a) < transitions_[std::to_underlying(state)].size());
 
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    const CachedTransition& t = transitions_[state.id][a.idx];
+    const CachedTransition& t =
+        transitions_[std::to_underlying(state)][std::to_underlying(a)];
     const ProbabilisticOperatorProxy& op = operators[t.op];
     const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
     for (unsigned i = 0; i < outcomes.size(); ++i) {
         const ProbabilisticOutcomeProxy outcome = outcomes[i];
         const value_t probability = outcome.get_probability();
-        const StateID id = t.successors[i] == PRUNED_STATE ? dead_end_state_.id
-                                                           : t.successors[i];
+        const StateID id = t.successors[i] == PRUNED_STATE
+                               ? std::to_underlying(dead_end_state_)
+                               : t.successors[i];
         result.add_probability(id, probability);
     }
 }
@@ -321,10 +325,11 @@ void BisimilarStateSpace::generate_all_transitions(
         return;
     }
 
-    const std::vector<CachedTransition>& cache = transitions_[state.id];
+    const std::vector<CachedTransition>& cache =
+        transitions_[std::to_underlying(state)];
     transitions.reserve(cache.size());
     for (unsigned i : std::views::iota(0U, cache.size())) {
-        QuotientAction a{i};
+        QuotientAction a = static_cast<QuotientAction>(i);
         Transition& t = transitions.emplace_back(a);
         generate_action_transitions(state, a, t.successor_dist);
     }
@@ -346,12 +351,13 @@ QuotientState BisimilarStateSpace::get_initial_state() const
     return initial_state_;
 }
 
-bool BisimilarStateSpace::is_goal_state(const QuotientState& s) const
+bool BisimilarStateSpace::is_goal_state(QuotientState s) const
 {
-    return s != dead_end_state_ && abstraction_->is_goal_state(s.id);
+    return s != dead_end_state_ &&
+           abstraction_->is_goal_state(std::to_underlying(s));
 }
 
-bool BisimilarStateSpace::is_dead_end(const QuotientState& s) const
+bool BisimilarStateSpace::is_dead_end(QuotientState s) const
 {
     return s == dead_end_state_;
 }
@@ -400,7 +406,7 @@ void BisimilarStateSpace::dump(std::ostream& out) const
     }
 
     out << "\n";
-    out << "\"\" -> n" << initial_state_.id << "\n";
+    out << "\"\" -> n" << std::to_underlying(initial_state_) << "\n";
 
     t = 0;
     for (unsigned node = 0; node < transitions_.size(); ++node) {
