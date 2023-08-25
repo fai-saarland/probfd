@@ -166,12 +166,9 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
     auto cost_function = std::make_shared<SSPCostFunction>(task_proxy);
 
     TaskStateSpace mdp(task, utils::get_silent_log(), cost_function);
-    auto policy_chooser = std::make_shared<
-        policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
-
-    auto q_policy_chooser =
-        std::make_shared<quotients::RepresentativePolicyPicker<State>>(
-            policy_chooser);
+    auto policy_chooser = std::make_shared<policy_pickers::ArbitraryTiebreaker<
+        quotients::QuotientState<State, OperatorID>,
+        quotients::QuotientAction<OperatorID>>>(true);
 
     auto hdfs = std::make_shared<
         heuristic_depth_first_search::HeuristicDepthFirstSearch<
@@ -179,7 +176,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
             quotients::QuotientAction<OperatorID>,
             false,
             true>>(
-        q_policy_chooser,
+        policy_chooser,
         &report,
         false,
         false,

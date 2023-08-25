@@ -7,30 +7,35 @@
 namespace probfd {
 namespace policy_pickers {
 
-VDiffTiebreaker::VDiffTiebreaker(const plugins::Options& opts)
+template <typename State, typename Action>
+VDiffTiebreaker<State, Action>::VDiffTiebreaker(const plugins::Options& opts)
     : VDiffTiebreaker(
           opts.get<bool>("stable_policy"),
           opts.get<bool>("prefer_large_gaps") ? -1 : 1)
 {
 }
 
-VDiffTiebreaker::VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps)
-    : TaskStablePolicyPicker<VDiffTiebreaker>(stable_policy)
+template <typename State, typename Action>
+VDiffTiebreaker<State, Action>::VDiffTiebreaker(
+    bool stable_policy,
+    value_t favor_large_gaps)
+    : VDiffTiebreaker::StablePolicyPicker(stable_policy)
     , favor_large_gaps_(favor_large_gaps)
 {
 }
 
-int VDiffTiebreaker::pick_index(
-    FDRMDP&,
+template <typename State, typename Action>
+int VDiffTiebreaker<State, Action>::pick_index(
+    MDP<State, Action>&,
     StateID,
-    std::optional<OperatorID>,
-    const std::vector<Transition<OperatorID>>& greedy_transitions,
+    std::optional<Action>,
+    const std::vector<Transition<Action>>& greedy_transitions,
     algorithms::StateProperties& properties)
 {
     auto it = std::ranges::min_element(
         greedy_transitions,
         [](value_t lhs, value_t rhs) { return is_approx_less(lhs, rhs); },
-        [&, factor = favor_large_gaps_](const Transition<OperatorID>& t) {
+        [&, factor = favor_large_gaps_](const Transition<Action>& t) {
             return t.successor_dist.expectation([&](StateID id) {
                 return factor * properties.lookup_bounds(id).length();
             });

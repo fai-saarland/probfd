@@ -4,6 +4,7 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
+#include "probfd/plugins/multi_feature_plugin.h"
 #include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
@@ -73,8 +74,8 @@ public:
 protected:
     void print_additional_statistics() const override
     {
-        successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<Bisimulation, Fret>::print_additional_statistics();
+        successor_sampler_->print_statistics(std::cout);
     }
 };
 
@@ -86,7 +87,7 @@ public:
         : TypedFeature<SolverInterface, LRTDPSolver<Bisimulation, Fret>>(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
     {
-        MDPHeuristicSearchBase::add_options_to_feature(*this);
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
 
         if constexpr (Fret) {
             this->template add_option<bool>("fret_on_policy", "", "true");
@@ -105,10 +106,7 @@ public:
     }
 };
 
-static FeaturePlugin<LRTDPSolverFeature<false, false>> _plugin;
-static FeaturePlugin<LRTDPSolverFeature<false, true>> _plugin2;
-static FeaturePlugin<LRTDPSolverFeature<true, false>> _plugin3;
-static FeaturePlugin<LRTDPSolverFeature<true, true>> _plugin4;
+static MultiFeaturePlugin<LRTDPSolverFeature> _plugins;
 
 static TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
     {{"terminal", "Stop trials at terminal states"},

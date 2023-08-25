@@ -12,6 +12,14 @@
 #include <memory>
 
 namespace probfd {
+
+namespace quotients {
+template <typename, typename>
+class QuotientState;
+template <typename>
+class QuotientAction;
+} // namespace quotients
+
 namespace heuristics {
 namespace cartesian {
 
@@ -22,12 +30,8 @@ struct ProbabilisticTransition;
  */
 class ILAOPolicyGenerator : public PolicyGenerator {
     std::shared_ptr<policy_pickers::ArbitraryTiebreaker<
-        int,
-        const ProbabilisticTransition*>>
-        ptb;
-    std::shared_ptr<quotients::RepresentativePolicyPicker<
-        int,
-        const ProbabilisticTransition*>>
+        quotients::QuotientState<int, const ProbabilisticTransition*>,
+        quotients::QuotientAction<const ProbabilisticTransition*>>>
         picker;
 
     ProgressReport report;

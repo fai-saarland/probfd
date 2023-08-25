@@ -3,6 +3,15 @@
 #include "probfd/policy_pickers/random_tiebreaker.h"
 #include "probfd/policy_pickers/vdiff_tiebreaker.h"
 
+#include "probfd/algorithms/fdr_types.h"
+
+#include "probfd/bisimulation/types.h"
+
+#include "probfd/quotients/quotient_system.h"
+
+#include "probfd/plugins/multi_feature_plugin.h"
+#include "probfd/plugins/naming_conventions.h"
+
 #include "downward/operator_id.h"
 
 #include "downward/plugins/plugin.h"
@@ -11,31 +20,62 @@
 
 namespace probfd {
 namespace policy_pickers {
+namespace {
 
-static class FDRPolicyPickerCategoryPlugin
-    : public plugins::TypedCategoryPlugin<FDRPolicyPicker> {
+using namespace plugins;
+
+template <
+    template <typename, typename>
+    typename S,
+    bool Bisimulation,
+    bool Fret>
+using Wrapper = std::conditional_t<
+    Bisimulation,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientState<
+              bisimulation::QuotientState,
+              bisimulation::QuotientAction>,
+          quotients::QuotientAction<bisimulation::QuotientAction>>,
+        S<bisimulation::QuotientState, bisimulation::QuotientAction>>,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientState<State, OperatorID>,
+          quotients::QuotientAction<OperatorID>>,
+        S<State, OperatorID>>>;
+
+template <bool Bisimulation, bool Fret>
+using PolicyPicker = Wrapper<algorithms::PolicyPicker, Bisimulation, Fret>;
+
+template <bool Bisimulation, bool Fret>
+class PolicyPickerCategoryPlugin
+    : public TypedCategoryPlugin<PolicyPicker<Bisimulation, Fret>> {
 public:
-    FDRPolicyPickerCategoryPlugin()
-        : TypedCategoryPlugin("FDRPolicyPicker")
+    PolicyPickerCategoryPlugin()
+        : PolicyPickerCategoryPlugin::TypedCategoryPlugin(
+              add_mdp_type_to_category<Bisimulation, Fret>("PolicyPicker"))
     {
-        document_synopsis("Factory for policy action tiebreakers");
+        this->document_synopsis("Tiebreaker for greedy actions.");
     }
-} _category_plugin_collection;
+};
 
+template <bool Bisimulation, bool Fret>
 class ArbitraryTieBreakerFeature
-    : public plugins::TypedFeature<
-          FDRPolicyPicker,
-          ArbitraryTiebreaker<State, OperatorID>> {
+    : public TypedFeature<
+          PolicyPicker<Bisimulation, Fret>,
+          Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>> {
 public:
     ArbitraryTieBreakerFeature()
-        : TypedFeature("arbitrary_policy_tiebreaker")
+        : ArbitraryTieBreakerFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>(
+                  "arbitrary_policy_tiebreaker"))
     {
-        add_option<bool>("stable_policy", "", "true");
+        this->template add_option<bool>("stable_policy", "", "true");
     }
 };
 
 class OperatorIDTieBreakerFeature
-    : public plugins::TypedFeature<FDRPolicyPicker, OperatorIdTiebreaker> {
+    : public TypedFeature<FDRPolicyPicker, OperatorIdTiebreaker> {
 public:
     OperatorIDTieBreakerFeature()
         : TypedFeature("operator_id_policy_tiebreaker")
@@ -45,32 +85,46 @@ public:
     }
 };
 
+template <bool Bisimulation, bool Fret>
 class RandomTieBreakerFeature
-    : public plugins::TypedFeature<FDRPolicyPicker, RandomTiebreaker> {
+    : public TypedFeature<
+          PolicyPicker<Bisimulation, Fret>,
+          Wrapper<RandomTiebreaker, Bisimulation, Fret>> {
 public:
     RandomTieBreakerFeature()
-        : TypedFeature("random_policy_tiebreaker")
+        : RandomTieBreakerFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>(
+                  "random_policy_tiebreaker"))
     {
-        add_option<bool>("stable_policy", "", "true");
+        this->template add_option<bool>("stable_policy", "", "true");
         utils::add_rng_options(*this);
     }
 };
 
+template <bool Bisimulation, bool Fret>
 class ValueGapTieBreakerFeature
-    : public plugins::TypedFeature<FDRPolicyPicker, VDiffTiebreaker> {
+    : public TypedFeature<
+          PolicyPicker<Bisimulation, Fret>,
+          Wrapper<VDiffTiebreaker, Bisimulation, Fret>> {
 public:
     ValueGapTieBreakerFeature()
-        : TypedFeature("value_gap_policy_tiebreaker")
+        : ValueGapTieBreakerFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>(
+                  "value_gap_policy_tiebreaker"))
     {
-        add_option<bool>("stable_policy", "", "true");
-        add_option<bool>("prefer_large_gaps", "", "true");
+        this->template add_option<bool>("stable_policy", "", "true");
+        this->template add_option<bool>("prefer_large_gaps", "", "true");
     }
 };
 
-static plugins::FeaturePlugin<ArbitraryTieBreakerFeature> _plugin_arbitary;
-static plugins::FeaturePlugin<OperatorIDTieBreakerFeature> _plugin_operator_id;
-static plugins::FeaturePlugin<RandomTieBreakerFeature> _plugin_random;
-static plugins::FeaturePlugin<ValueGapTieBreakerFeature> _plugin_value_gap;
+static MultiCategoryPlugin<PolicyPickerCategoryPlugin> _category_plugin1;
 
+static FeaturePlugin<OperatorIDTieBreakerFeature> _plugin_operator_id;
+
+static MultiFeaturePlugin<ArbitraryTieBreakerFeature> _plugin_arbitary;
+static MultiFeaturePlugin<RandomTieBreakerFeature> _plugin_random;
+static MultiFeaturePlugin<ValueGapTieBreakerFeature> _plugin_value_gap;
+
+} // namespace
 } // namespace policy_pickers
 } // namespace probfd

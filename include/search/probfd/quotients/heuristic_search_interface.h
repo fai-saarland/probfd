@@ -38,58 +38,6 @@ public:
     }
 };
 
-template <typename State, typename Action = OperatorID>
-class RepresentativePolicyPicker
-    : public algorithms::
-          PolicyPicker<QuotientState<State, Action>, QuotientAction<Action>> {
-    using QuotientSystem = QuotientSystem<State, Action>;
-    using QuotientState = QuotientState<State, Action>;
-    using QuotientAction = QuotientAction<Action>;
-
-    std::vector<Transition<Action>> choices_;
-    std::shared_ptr<algorithms::PolicyPicker<State, Action>> original_;
-
-public:
-    RepresentativePolicyPicker(
-        std::shared_ptr<algorithms::PolicyPicker<State, Action>> original)
-        : original_(original)
-    {
-    }
-
-    int pick_index(
-        MDP<QuotientState, QuotientAction>& mdp,
-        StateID state,
-        std::optional<QuotientAction> prev_policy,
-        const std::vector<Transition<QuotientAction>>& greedy_transitions,
-        algorithms::StateProperties& properties) override
-    {
-        assert(dynamic_cast<QuotientSystem*>(&mdp));
-        QuotientSystem& quotient = static_cast<QuotientSystem&>(mdp);
-
-        std::optional<Action> oprev = std::nullopt;
-
-        if (prev_policy) oprev = prev_policy->action;
-
-        choices_.clear();
-        choices_.reserve(greedy_transitions.size());
-        for (const auto& [action, dist] : greedy_transitions) {
-            choices_.emplace_back(action.action, dist);
-        }
-
-        return original_->pick_index(
-            quotient.get_parent_mdp(),
-            state,
-            oprev,
-            choices_,
-            properties);
-    }
-
-    void print_statistics(std::ostream& out) override
-    {
-        original_->print_statistics(out);
-    }
-};
-
 class RepresentativeOpenList
     : public algorithms::OpenList<QuotientAction<OperatorID>> {
     using QuotientAction = QuotientAction<OperatorID>;

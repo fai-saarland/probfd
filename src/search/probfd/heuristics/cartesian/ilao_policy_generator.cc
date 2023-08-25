@@ -21,11 +21,9 @@ namespace heuristics {
 namespace cartesian {
 
 ILAOPolicyGenerator::ILAOPolicyGenerator()
-    : ptb(new policy_pickers::
-              ArbitraryTiebreaker<int, const ProbabilisticTransition*>(true))
-    , picker(new quotients::RepresentativePolicyPicker<
-             int,
-             const ProbabilisticTransition*>(ptb))
+    : picker(new policy_pickers::ArbitraryTiebreaker<
+             quotients::QuotientState<int, const ProbabilisticTransition*>,
+             quotients::QuotientAction<const ProbabilisticTransition*>>(true))
     , report(0.0_vt)
 {
     report.disable();

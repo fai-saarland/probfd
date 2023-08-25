@@ -3,10 +3,6 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
-#include "probfd/fdr_types.h"
-
-#include "downward/operator_id.h"
-
 namespace plugins {
 class Options;
 } // namespace plugins
@@ -14,7 +10,9 @@ class Options;
 namespace probfd {
 namespace policy_pickers {
 
-class VDiffTiebreaker : public TaskStablePolicyPicker<VDiffTiebreaker> {
+template <typename State, typename Action>
+class VDiffTiebreaker
+    : public StablePolicyPicker<State, Action, VDiffTiebreaker<State, Action>> {
     const value_t favor_large_gaps_;
 
 public:
@@ -22,14 +20,16 @@ public:
     explicit VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps_);
 
     int pick_index(
-        FDRMDP& mdp,
+        MDP<State, Action>& mdp,
         StateID state,
-        std::optional<OperatorID> prev_policy,
-        const std::vector<Transition<OperatorID>>& greedy_transitions,
+        std::optional<Action> prev_policy,
+        const std::vector<Transition<Action>>& greedy_transitions,
         algorithms::StateProperties& properties);
 };
 
 } // namespace policy_pickers
 } // namespace probfd
+
+#include "probfd/policy_pickers/vdiff_tiebreaker_impl.h"
 
 #endif // __VDIFF_TIEBREAKER_H__

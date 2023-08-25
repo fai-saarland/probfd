@@ -1,35 +1,34 @@
-#include "probfd/policy_pickers/random_tiebreaker.h"
-
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
-
-#include "downward/operator_id.h"
 
 #include "downward/plugins/options.h"
 
 namespace probfd {
 namespace policy_pickers {
 
-RandomTiebreaker::RandomTiebreaker(const plugins::Options& opts)
+template <typename State, typename Action>
+RandomTiebreaker<State, Action>::RandomTiebreaker(const plugins::Options& opts)
     : RandomTiebreaker(
           opts.get<bool>("stable_policy"),
           utils::parse_rng_from_options(opts))
 {
 }
 
-RandomTiebreaker::RandomTiebreaker(
+template <typename State, typename Action>
+RandomTiebreaker<State, Action>::RandomTiebreaker(
     bool stable_policy,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : TaskStablePolicyPicker<RandomTiebreaker>(stable_policy)
+    : RandomTiebreaker::StablePolicyPicker(stable_policy)
     , rng(rng)
 {
 }
 
-int RandomTiebreaker::pick_index(
-    FDRMDP&,
+template <typename State, typename Action>
+int RandomTiebreaker<State, Action>::pick_index(
+    MDP<State, Action>&,
     StateID,
-    std::optional<OperatorID>,
-    const std::vector<Transition<OperatorID>>& greedy_transitions,
+    std::optional<Action>,
+    const std::vector<Transition<Action>>& greedy_transitions,
     algorithms::StateProperties&)
 {
     return rng->random(greedy_transitions.size());

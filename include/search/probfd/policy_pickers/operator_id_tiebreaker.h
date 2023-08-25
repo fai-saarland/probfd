@@ -15,7 +15,7 @@ namespace probfd {
 namespace policy_pickers {
 
 class OperatorIdTiebreaker
-    : public TaskStablePolicyPicker<OperatorIdTiebreaker> {
+    : public StablePolicyPicker<State, OperatorID, OperatorIdTiebreaker> {
     const int ascending_;
 
 public:

@@ -3,8 +3,6 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
-#include "probfd/fdr_types.h"
-
 #include <memory>
 
 namespace plugins {
@@ -19,7 +17,12 @@ class RandomNumberGenerator;
 namespace probfd {
 namespace policy_pickers {
 
-class RandomTiebreaker : public TaskStablePolicyPicker<RandomTiebreaker> {
+template <typename State, typename Action>
+class RandomTiebreaker
+    : public StablePolicyPicker<
+          State,
+          Action,
+          RandomTiebreaker<State, Action>> {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
@@ -29,14 +32,16 @@ public:
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     int pick_index(
-        FDRMDP& mdp,
+        MDP<State, Action>& mdp,
         StateID state,
-        std::optional<OperatorID> prev_policy,
-        const std::vector<Transition<OperatorID>>& greedy_transitions,
+        std::optional<Action> prev_policy,
+        const std::vector<Transition<Action>>& greedy_transitions,
         algorithms::StateProperties& properties);
 };
 
 } // namespace policy_pickers
 } // namespace probfd
+
+#include "probfd/policy_pickers/random_tiebreaker_impl.h"
 
 #endif // __RANDOM_TIEBREAKER_H__

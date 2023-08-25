@@ -56,8 +56,6 @@ protected:
 
     bisimulation::BisimilarStateSpace state_space_;
 
-    std::shared_ptr<algorithms::PolicyPicker<QState, QAction>> policy_;
-
     std::shared_ptr<MDPAlgorithm<QState, QAction>> algorithm_;
 
 public:
@@ -71,8 +69,6 @@ public:
         , state_space_(
               task.get(),
               task_cost_function->get_non_goal_termination_cost())
-        , policy_(
-              new policy_pickers::ArbitraryTiebreaker<QState, QAction>(true))
     {
         stats.timer.stop();
         stats.states = state_space_.num_bisimilar_states();
@@ -98,6 +94,7 @@ public:
         const std::string& algorithm_name,
         ProgressReport& progress,
         bool interval,
+        std::shared_ptr<algorithms::PolicyPicker<QState, QAction>> tiebreaker,
         Args&&... args)
     {
         auto res = std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
@@ -106,7 +103,7 @@ public:
             algorithm_name);
 
         res->algorithm_.reset(new HS<QState, QAction, Interval>(
-            res->policy_,
+            tiebreaker,
             &progress,
             interval,
             std::forward<Args>(args)...));
@@ -146,9 +143,6 @@ class QBisimulationBasedHeuristicSearchAlgorithm
     using QQState = quotients::QuotientState<QState, QAction>;
     using QQAction = quotients::QuotientAction<QAction>;
 
-    std::shared_ptr<algorithms::PolicyPicker<QQState, QQAction>>
-        q_policy_tiebreaker_;
-
 public:
     explicit QBisimulationBasedHeuristicSearchAlgorithm(
         std::shared_ptr<ProbabilisticTask> task,
@@ -158,8 +152,6 @@ public:
               std::move(task),
               std::move(task_cost_function),
               algorithm_name)
-        , q_policy_tiebreaker_(
-              new policy_pickers::ArbitraryTiebreaker<QQState, QQAction>(true))
     {
     }
 
@@ -177,6 +169,7 @@ public:
         const std::string& algorithm_name,
         ProgressReport& progress,
         bool interval,
+        std::shared_ptr<algorithms::PolicyPicker<QQState, QQAction>> tiebreaker,
         Args&&... args)
     {
         auto res = std::make_unique<QBisimulationBasedHeuristicSearchAlgorithm>(
@@ -186,7 +179,7 @@ public:
 
         std::shared_ptr<HS<QQState, QQAction, Interval>> algorithm(
             new HS<QQState, QQAction, Interval>(
-                res->q_policy_tiebreaker_,
+                tiebreaker,
                 &progress,
                 interval,
                 std::forward<Args>(args)...));

@@ -9,6 +9,7 @@
 
 #include "probfd/quotients/quotient_system.h"
 
+#include "probfd/plugins/multi_feature_plugin.h"
 #include "probfd/plugins/naming_conventions.h"
 
 #include "probfd/fdr_types.h"
@@ -21,6 +22,7 @@
 
 namespace probfd {
 namespace successor_samplers {
+namespace {
 
 using namespace plugins;
 
@@ -154,63 +156,17 @@ public:
     }
 };
 
-static SuccessorSamplerCategoryPlugin<false, false> _category_plugin;
-static SuccessorSamplerCategoryPlugin<false, true> _category_plugin2;
-static SuccessorSamplerCategoryPlugin<true, false> _category_plugin3;
-static SuccessorSamplerCategoryPlugin<true, true> _category_plugin4;
+static MultiCategoryPlugin<SuccessorSamplerCategoryPlugin> _category_plugin;
 
-static FeaturePlugin<ArbitrarySuccessorSamplerFeature<false, false>>
-    _plugin_arbitary1;
-static FeaturePlugin<ArbitrarySuccessorSamplerFeature<false, true>>
-    _plugin_arbitary2;
-static FeaturePlugin<ArbitrarySuccessorSamplerFeature<true, false>>
-    _plugin_arbitary3;
-static FeaturePlugin<ArbitrarySuccessorSamplerFeature<true, true>>
-    _plugin_arbitary4;
+static MultiFeaturePlugin<ArbitrarySuccessorSamplerFeature> _plugin_arbitary;
+static MultiFeaturePlugin<MostLikelySuccessorSamplerFeature>
+    _plugin_most_likely;
+static MultiFeaturePlugin<RandomSuccessorSamplerFeature> _plugin_random;
+static MultiFeaturePlugin<UniformSuccessorSamplerFeature>
+    _plugin_uniform_random;
+static MultiFeaturePlugin<VBiasedSuccessorSamplerFeature> _plugin_vbiased;
+static MultiFeaturePlugin<VDiffSuccessorSamplerFeature> _plugin_value_gap;
 
-static FeaturePlugin<MostLikelySuccessorSamplerFeature<false, false>>
-    _plugin_most_likely1;
-static FeaturePlugin<MostLikelySuccessorSamplerFeature<false, true>>
-    _plugin_most_likely2;
-static FeaturePlugin<MostLikelySuccessorSamplerFeature<true, false>>
-    _plugin_most_likely3;
-static FeaturePlugin<MostLikelySuccessorSamplerFeature<true, true>>
-    _plugin_most_likely4;
-
-static FeaturePlugin<RandomSuccessorSamplerFeature<false, false>>
-    _plugin_random1;
-static FeaturePlugin<RandomSuccessorSamplerFeature<false, true>>
-    _plugin_random2;
-static FeaturePlugin<RandomSuccessorSamplerFeature<true, false>>
-    _plugin_random3;
-static FeaturePlugin<RandomSuccessorSamplerFeature<true, true>> _plugin_random4;
-
-static FeaturePlugin<UniformSuccessorSamplerFeature<false, false>>
-    _plugin_uniform_random1;
-static FeaturePlugin<UniformSuccessorSamplerFeature<false, true>>
-    _plugin_uniform_random2;
-static FeaturePlugin<UniformSuccessorSamplerFeature<true, false>>
-    _plugin_uniform_random3;
-static FeaturePlugin<UniformSuccessorSamplerFeature<true, true>>
-    _plugin_uniform_random4;
-
-static FeaturePlugin<VBiasedSuccessorSamplerFeature<false, false>>
-    _plugin_vbiased1;
-static FeaturePlugin<VBiasedSuccessorSamplerFeature<false, true>>
-    _plugin_vbiased2;
-static FeaturePlugin<VBiasedSuccessorSamplerFeature<true, false>>
-    _plugin_vbiased3;
-static FeaturePlugin<VBiasedSuccessorSamplerFeature<true, true>>
-    _plugin_vbiased4;
-
-static FeaturePlugin<VDiffSuccessorSamplerFeature<false, false>>
-    _plugin_value_gap1;
-static FeaturePlugin<VDiffSuccessorSamplerFeature<false, true>>
-    _plugin_value_gap2;
-static FeaturePlugin<VDiffSuccessorSamplerFeature<true, false>>
-    _plugin_value_gap3;
-static FeaturePlugin<VDiffSuccessorSamplerFeature<true, true>>
-    _plugin_value_gap4;
-
+} // namespace
 } // namespace successor_samplers
 } // namespace probfd

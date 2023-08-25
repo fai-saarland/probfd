@@ -19,7 +19,7 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(const plugins::Options& opts)
 }
 
 OperatorIdTiebreaker::OperatorIdTiebreaker(bool stable_policy, int ascending)
-    : TaskStablePolicyPicker<OperatorIdTiebreaker>(stable_policy)
+    : OperatorIdTiebreaker::StablePolicyPicker(stable_policy)
     , ascending_(ascending)
 {
 }

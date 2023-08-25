@@ -152,14 +152,6 @@ fast_downward_plugin(
 
         # Policy Tiebreakers
         probfd/policy_pickers/operator_id_tiebreaker
-        probfd/policy_pickers/random_tiebreaker
-        probfd/policy_pickers/vdiff_tiebreaker
-
-        probfd/policy_pickers/arbitrary_tiebreaker_factory
-        probfd/policy_pickers/operator_id_tiebreaker_factory
-        probfd/policy_pickers/random_tiebreaker_factory
-        probfd/policy_pickers/vdiff_tiebreaker_factory
-
         probfd/policy_pickers/subcategory
 
         # Successor Sorters
