@@ -48,8 +48,19 @@ fast_downward_plugin(
         probfd/solver_interface
         
         probfd/solvers/mdp_solver
-    DEPENDS SUCCESSOR_GENERATOR
+    DEPENDS PROBABILISTIC_SUCCESSOR_GENERATOR
     CORE_PLUGIN
+)
+
+fast_downward_plugin(
+    NAME PROBABILISTIC_SUCCESSOR_GENERATOR
+    HELP "Probabilistic Successor generator"
+    SOURCES
+        probfd/task_utils/probabilistic_successor_generator
+        probfd/task_utils/probabilistic_successor_generator_factory
+        probfd/task_utils/probabilistic_successor_generator_internals
+    DEPENDS TASK_PROPERTIES
+    DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(

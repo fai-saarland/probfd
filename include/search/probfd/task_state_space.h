@@ -4,13 +4,13 @@
 #include "probfd/storage/per_state_storage.h"
 #include "probfd/storage/segmented_memory_pool.h"
 
+#include "probfd/task_utils/probabilistic_successor_generator.h"
+
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
 #include "probfd/task_proxy.h"
 
 #include "downward/algorithms/segmented_vector.h"
-
-#include "downward/task_utils/successor_generator.h"
 
 #include "downward/state_registry.h"
 
@@ -51,7 +51,7 @@ protected:
     ProbabilisticTaskProxy task_proxy;
     mutable utils::LogProxy log;
 
-    successor_generator::SuccessorGenerator gen_;
+    successor_generator::ProbabilisticSuccessorGenerator gen_;
     StateRegistry state_registry_;
 
     const std::shared_ptr<FDRSimpleCostFunction> cost_function_;

@@ -5,9 +5,6 @@
 
 #include "downward/abstract_task.h"
 
-#include "probfd/task_state_space.h"
-#include "probfd/transition.h"
-
 using namespace std;
 
 namespace successor_generator {
@@ -24,18 +21,6 @@ void SuccessorGenerator::generate_applicable_ops(
 {
     state.unpack();
     root->generate_applicable_ops(state.get_unpacked_values(), applicable_ops);
-}
-
-void SuccessorGenerator::generate_transitions(
-    const State& state,
-    std::vector<probfd::Transition<OperatorID>>& transitions,
-    probfd::TaskStateSpace& task_state_space) const
-{
-    state.unpack();
-    root->generate_transitions(
-        state,
-        transitions,
-        task_state_space);
 }
 
 PerTaskInformation<SuccessorGenerator> g_successor_generators;
