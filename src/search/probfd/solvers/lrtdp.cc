@@ -19,24 +19,11 @@ using namespace algorithms::lrtdp;
 using namespace plugins;
 
 template <bool Bisimulation, bool Fret>
-using Sampler = std::conditional_t<
-    Bisimulation,
-    std::conditional_t<
-        Fret,
-        SuccessorSampler<
-            quotients::QuotientAction<bisimulation::QuotientAction>>,
-        SuccessorSampler<bisimulation::QuotientAction>>,
-    std::conditional_t<
-        Fret,
-        SuccessorSampler<quotients::QuotientAction<OperatorID>>,
-        SuccessorSampler<OperatorID>>>;
-
-template <bool Bisimulation, bool Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     template <typename State, typename Action, bool Interval>
     using LRTDP = LRTDP<State, Action, Interval, Fret>;
 
-    using Sampler = Sampler<Bisimulation, Fret>;
+    using Sampler = WrappedType<SuccessorSampler, Bisimulation, Fret>;
 
     const TrialTerminationCondition stop_consistent_;
     const std::shared_ptr<Sampler> successor_sampler_;
@@ -89,7 +76,8 @@ public:
     {
         MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
 
-        this->template add_option<std::shared_ptr<Sampler<Bisimulation, Fret>>>(
+        this->template add_option<
+            std::shared_ptr<WrappedType<SuccessorSampler, Bisimulation, Fret>>>(
             "successor_sampler",
             "",
             add_mdp_type_to_option<Bisimulation, Fret>(

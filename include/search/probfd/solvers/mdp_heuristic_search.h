@@ -24,17 +24,53 @@ class Feature;
 namespace probfd {
 namespace solvers {
 
+template <template <typename> typename S, bool Bisimulation, bool Fret>
+using WrappedType = std::conditional_t<
+    Bisimulation,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientAction<bisimulation::QuotientAction>>,
+        S<bisimulation::QuotientAction>>,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientAction<OperatorID>>,
+        S<OperatorID>>>;
+
+template <
+    template <typename, typename>
+    typename S,
+    bool Bisimulation,
+    bool Fret>
+using WrappedType2 = std::conditional_t<
+    Bisimulation,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientState<
+              bisimulation::QuotientState,
+              bisimulation::QuotientAction>,
+          quotients::QuotientAction<bisimulation::QuotientAction>>,
+        S<bisimulation::QuotientState, bisimulation::QuotientAction>>,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientState<State, OperatorID>,
+          quotients::QuotientAction<OperatorID>>,
+        S<State, OperatorID>>>;
+
+template <bool Bisimulation, bool Fret>
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
     const bool dual_bounds_;
     const bool interval_comparison_;
+    const std::shared_ptr<
+        WrappedType2<algorithms::PolicyPicker, Bisimulation, Fret>>
+        tiebreaker_;
 
 public:
     explicit MDPHeuristicSearchBase(const plugins::Options& opts);
 
     static void add_options_to_feature(plugins::Feature& feature);
 
-    std::string get_algorithm_name() const override;
+    void print_additional_statistics() const override;
 
     virtual std::string get_heuristic_search_name() const = 0;
 };
@@ -43,15 +79,14 @@ template <bool Bisimulation, bool Fret>
 class MDPHeuristicSearch;
 
 template <>
-class MDPHeuristicSearch<false, false> : public MDPHeuristicSearchBase {
-    std::shared_ptr<FDRPolicyPicker> tiebreaker_;
-
+class MDPHeuristicSearch<false, false>
+    : public MDPHeuristicSearchBase<false, false> {
 public:
     explicit MDPHeuristicSearch(const plugins::Options& opts);
 
     static void add_options_to_feature(plugins::Feature& feature);
 
-    void print_additional_statistics() const override;
+    std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm>
@@ -76,12 +111,8 @@ public:
 };
 
 template <>
-class MDPHeuristicSearch<false, true> : public MDPHeuristicSearchBase {
-    using QState = quotients::QuotientState<State, OperatorID>;
-    using QAction = quotients::QuotientAction<OperatorID>;
-
-    std::shared_ptr<algorithms::PolicyPicker<QState, QAction>> tiebreaker_;
-
+class MDPHeuristicSearch<false, true>
+    : public MDPHeuristicSearchBase<false, true> {
     const bool fret_on_policy_;
 
 public:
@@ -89,15 +120,7 @@ public:
 
     static void add_options_to_feature(plugins::Feature& feature);
 
-    void print_additional_statistics() const override;
-
-    std::string get_algorithm_name() const override
-    {
-        std::ostringstream out;
-        out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
-            << this->get_heuristic_search_name() << ")";
-        return out.str();
-    }
+    std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm>
@@ -171,23 +194,14 @@ private:
 };
 
 template <>
-class MDPHeuristicSearch<true, false> : public MDPHeuristicSearchBase {
-    using QState = bisimulation::QuotientState;
-    using QAction = bisimulation::QuotientAction;
-
-    std::shared_ptr<algorithms::PolicyPicker<QState, QAction>> tiebreaker_;
-
+class MDPHeuristicSearch<true, false>
+    : public MDPHeuristicSearchBase<true, false> {
 public:
     explicit MDPHeuristicSearch(const plugins::Options& opts);
 
     static void add_options_to_feature(plugins::Feature& feature);
 
-    void print_additional_statistics() const override;
-
-    std::string get_algorithm_name() const override
-    {
-        return get_heuristic_search_name() + "(bisimulation)";
-    }
+    std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm>
@@ -216,14 +230,8 @@ public:
 };
 
 template <>
-class MDPHeuristicSearch<true, true> : public MDPHeuristicSearchBase {
-    using QState = bisimulation::QuotientState;
-    using QAction = bisimulation::QuotientAction;
-    using QQState = quotients::QuotientState<QState, QAction>;
-    using QQAction = quotients::QuotientAction<QAction>;
-
-    std::shared_ptr<algorithms::PolicyPicker<QQState, QQAction>> tiebreaker_;
-
+class MDPHeuristicSearch<true, true>
+    : public MDPHeuristicSearchBase<true, true> {
     const bool fret_on_policy_;
 
 public:
@@ -231,16 +239,7 @@ public:
 
     static void add_options_to_feature(plugins::Feature& feature);
 
-    void print_additional_statistics() const override;
-
-    std::string get_algorithm_name() const override
-    {
-        std::ostringstream out;
-        out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
-            << this->get_heuristic_search_name() << "(bisimulation)"
-            << ")";
-        return out.str();
-    }
+    std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm>
@@ -325,47 +324,6 @@ private:
                 this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
-    }
-};
-
-template <template <bool> class SolverClass, bool Bisimulation>
-class MDPHeuristicSearchSolverFeature
-    : public plugins::TypedFeature<SolverInterface, SolverClass<Bisimulation>> {
-public:
-    MDPHeuristicSearchSolverFeature(const std::string& name)
-        : MDPHeuristicSearchSolverFeature::TypedFeature(name)
-    {
-        MDPHeuristicSearchBase::add_options_to_feature(*this);
-    }
-
-    std::shared_ptr<SolverClass<Bisimulation>>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
-    {
-        return std::make_shared<SolverClass<Bisimulation>>(options);
-    }
-};
-
-template <template <bool, bool> class SolverClass, bool Bisimulation, bool Fret>
-class MDPFRETHeuristicSearchSolverFeature
-    : public plugins::
-          TypedFeature<SolverInterface, SolverClass<Bisimulation, Fret>> {
-public:
-    MDPFRETHeuristicSearchSolverFeature(const std::string& name)
-        : MDPFRETHeuristicSearchSolverFeature::TypedFeature(name)
-    {
-        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
-
-        if constexpr (Fret) {
-            this->add_option<bool>("fret_on_policy", "", "true");
-        }
-    }
-
-    std::shared_ptr<SolverClass<Bisimulation, Fret>>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
-    {
-        return std::make_shared<SolverClass<Bisimulation, Fret>>(options);
     }
 };
 

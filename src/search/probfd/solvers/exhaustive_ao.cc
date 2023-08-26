@@ -16,20 +16,15 @@ using namespace algorithms;
 using namespace plugins;
 
 template <bool Bisimulation>
-using OpenList = std::conditional_t<
-    Bisimulation,
-    algorithms::OpenList<bisimulation::QuotientAction>,
-    algorithms::OpenList<OperatorID>>;
-
-template <bool Bisimulation>
 class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
-    std::shared_ptr<OpenList<Bisimulation>> open_list_;
+    using OpenList = WrappedType<OpenList, Bisimulation, false>;
+
+    const std::shared_ptr<OpenList> open_list_;
 
 public:
     explicit ExhaustiveAOSolver(const Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
-        , open_list_(
-              opts.get<std::shared_ptr<OpenList<Bisimulation>>>("open_list"))
+        , open_list_(opts.get<std::shared_ptr<OpenList>>("open_list"))
     {
     }
 
@@ -47,13 +42,15 @@ public:
 
 template <bool Bisimulation>
 class ExhaustiveAOSolverFeature
-    : public MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver, Bisimulation> {
+    : public TypedFeature<SolverInterface, ExhaustiveAOSolver<Bisimulation>> {
 public:
     ExhaustiveAOSolverFeature()
-        : MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver, Bisimulation>(
+        : ExhaustiveAOSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"))
     {
-        this->template add_option<std::shared_ptr<OpenList<Bisimulation>>>(
+        MDPHeuristicSearch<Bisimulation, false>::add_options_to_feature(*this);
+        this->template add_option<
+            std::shared_ptr<WrappedType<OpenList, Bisimulation, false>>>(
             "open_list",
             "",
             add_mdp_type_to_option<Bisimulation, false>("lifo_open_list()"));

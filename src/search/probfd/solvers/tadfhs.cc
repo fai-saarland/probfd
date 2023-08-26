@@ -62,12 +62,6 @@ public:
                 reexpand_traps_,
                 open_list_);
     }
-
-protected:
-    void print_additional_statistics() const override
-    {
-        MDPHeuristicSearch<false, true>::print_additional_statistics();
-    }
 };
 
 class TrapAwareDFHSSolverFeature
@@ -80,7 +74,7 @@ public:
         document_synopsis(
             "Supports all MDPs (even non-SSPs) without FRET loop.");
 
-        MDPHeuristicSearchBase::add_options_to_feature(*this);
+        MDPHeuristicSearch<false, true>::add_options_to_feature(*this);
 
         add_option<bool>(
             "fwup",
@@ -130,7 +124,7 @@ public:
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search.");
 
-        MDPHeuristicSearchBase::add_options_to_feature(*this);
+        MDPHeuristicSearch<false, true>::add_options_to_feature(*this);
 
         add_option<std::shared_ptr<QOpenList>>(
             "open_list",
@@ -167,7 +161,7 @@ public:
         document_title("Labelled iLAO* variant of trap-aware depth-first "
                        "heuristic search.");
 
-        MDPHeuristicSearchBase::add_options_to_feature(*this);
+        MDPHeuristicSearch<false, true>::add_options_to_feature(*this);
 
         add_option<std::shared_ptr<QOpenList>>(
             "open_list",
@@ -204,7 +198,7 @@ public:
         document_title(
             "HDP variant of trap-aware depth-first heuristic search.");
 
-        MDPHeuristicSearchBase::add_options_to_feature(*this);
+        MDPHeuristicSearch<false, true>::add_options_to_feature(*this);
 
         add_option<std::shared_ptr<QOpenList>>(
             "open_list",

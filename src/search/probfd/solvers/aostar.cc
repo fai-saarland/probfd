@@ -18,20 +18,16 @@ using namespace algorithms::ao_search::ao_star;
 using namespace plugins;
 
 template <bool Bisimulation>
-using Sampler = std::conditional_t<
-    Bisimulation,
-    SuccessorSampler<bisimulation::QuotientAction>,
-    SuccessorSampler<OperatorID>>;
-
-template <bool Bisimulation>
 class AOStarSolver : public MDPHeuristicSearch<Bisimulation, false> {
-    const std::shared_ptr<Sampler<Bisimulation>> successor_sampler_;
+    using Sampler = WrappedType<SuccessorSampler, Bisimulation, false>;
+
+    const std::shared_ptr<Sampler> successor_sampler_;
 
 public:
     explicit AOStarSolver(const Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
-        , successor_sampler_(opts.get<std::shared_ptr<Sampler<Bisimulation>>>(
-              "successor_sampler"))
+        , successor_sampler_(
+              opts.get<std::shared_ptr<Sampler>>("successor_sampler"))
     {
     }
 
@@ -46,8 +42,8 @@ public:
 protected:
     void print_additional_statistics() const override
     {
-        successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<Bisimulation, false>::print_additional_statistics();
+        successor_sampler_->print_statistics(std::cout);
     }
 };
 
@@ -59,9 +55,10 @@ public:
         : TypedFeature<SolverInterface, AOStarSolver<Bisimulation>>(
               add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
     {
-        MDPHeuristicSearchBase::add_options_to_feature(*this);
+        MDPHeuristicSearch<Bisimulation, false>::add_options_to_feature(*this);
 
-        this->template add_option<std::shared_ptr<Sampler<Bisimulation>>>(
+        this->template add_option<std::shared_ptr<
+            WrappedType<SuccessorSampler, Bisimulation, false>>>(
             "successor_sampler",
             "",
             add_mdp_type_to_option<Bisimulation, false>(

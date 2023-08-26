@@ -49,8 +49,8 @@ public:
 protected:
     void print_additional_statistics() const override
     {
-        successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<false, true>::print_additional_statistics();
+        successor_sampler_->print_statistics(std::cout);
     }
 };
 
@@ -65,7 +65,7 @@ public:
         document_synopsis(
             "Supports all MDP types (even non-SSPs) without FRET loop.");
 
-        MDPHeuristicSearchBase::add_options_to_feature(*this);
+        MDPHeuristicSearch<false, true>::add_options_to_feature(*this);
 
         add_option<std::shared_ptr<QSuccessorSampler>>(
             "successor_sampler",

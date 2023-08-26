@@ -115,16 +115,15 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class DFHSSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<
-          DFHSSolver,
-          Bisimulation,
-          Fret> {
+    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
 public:
     DFHSSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver, Bisimulation, Fret>(
+        : DFHSSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("dfhs"))
     {
         this->document_title("Depth-first heuristic search family.");
+
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
 
         this->template add_option<bool>("labeling", "", "true");
         this->template add_option<bool>("fwup", "", "true");
@@ -141,26 +140,19 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class LAOSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<
-          DFHSSolver,
-          Bisimulation,
-          Fret> {
+    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
 public:
     LAOSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver, Bisimulation, Fret>(
+        : LAOSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lao"))
     {
         this->document_title("LAO* variant of depth-first heuristic search.");
 
-        this->template add_option<std::shared_ptr<FDROpenList>>(
-            "open_list",
-            "Ordering in which successors are considered during policy "
-            "exploration.",
-            add_mdp_type_to_option<Bisimulation, Fret>("fifo_open_list()"));
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
     }
 
     std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
-    create_component(const Options& options, const utils::Context& context)
+    create_component(const Options& options, const utils::Context&)
         const override
     {
         Options opts_copy(options);
@@ -174,35 +166,25 @@ public:
         opts_copy.set<bool>("partial_exploration", false);
         opts_copy.set<bool>("expand_tip", true);
         opts_copy.set<bool>("vi", false);
-        return MDPFRETHeuristicSearchSolverFeature<
-            DFHSSolver,
-            Bisimulation,
-            Fret>::create_component(opts_copy, context);
+        return std::make_shared<DFHSSolver<Bisimulation, Fret>>(opts_copy);
     }
 };
 
 template <bool Bisimulation, bool Fret>
 class ILAOSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<
-          DFHSSolver,
-          Bisimulation,
-          Fret> {
+    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
 public:
     ILAOSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver, Bisimulation, Fret>(
+        : ILAOSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("ilao"))
     {
         this->document_title("iLAO* variant of depth-first heuristic search.");
 
-        this->template add_option<std::shared_ptr<FDROpenList>>(
-            "open_list",
-            "Ordering in which successors are considered during policy "
-            "exploration.",
-            add_mdp_type_to_option<Bisimulation, Fret>("fifo_open_list()"));
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
     }
 
     std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
-    create_component(const Options& options, const utils::Context& context)
+    create_component(const Options& options, const utils::Context&)
         const override
     {
         Options opts_copy(options);
@@ -216,36 +198,26 @@ public:
         opts_copy.set<bool>("partial_exploration", false);
         opts_copy.set<bool>("expand_tip", false);
         opts_copy.set<bool>("vi", true);
-        return MDPFRETHeuristicSearchSolverFeature<
-            DFHSSolver,
-            Bisimulation,
-            Fret>::create_component(opts_copy, context);
+        return std::make_shared<DFHSSolver<Bisimulation, Fret>>(opts_copy);
     }
 };
 
 template <bool Bisimulation, bool Fret>
 class HDPSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<
-          DFHSSolver,
-          Bisimulation,
-          Fret> {
+    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
 public:
     HDPSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver, Bisimulation, Fret>(
+        : HDPSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("hdp"))
     {
         this->document_title(
             "HDP variant of trap-aware depth-first heuristic search.");
 
-        this->template add_option<std::shared_ptr<FDROpenList>>(
-            "open_list",
-            "Ordering in which successors are considered during policy "
-            "exploration.",
-            add_mdp_type_to_option<Bisimulation, Fret>("fifo_open_list()"));
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
     }
 
     std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
-    create_component(const Options& options, const utils::Context& context)
+    create_component(const Options& options, const utils::Context&)
         const override
     {
         Options opts_copy(options);
@@ -259,10 +231,7 @@ public:
         opts_copy.set<bool>("partial_exploration", false);
         opts_copy.set<bool>("vi", false);
         opts_copy.set<bool>("expand_tip", true);
-        return MDPFRETHeuristicSearchSolverFeature<
-            DFHSSolver,
-            Bisimulation,
-            Fret>::create_component(opts_copy, context);
+        return std::make_shared<DFHSSolver<Bisimulation, Fret>>(opts_copy);
     }
 };
 
