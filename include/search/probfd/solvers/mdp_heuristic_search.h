@@ -91,6 +91,14 @@ public:
 
     void print_additional_statistics() const override;
 
+    std::string get_algorithm_name() const override
+    {
+        std::ostringstream out;
+        out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
+            << this->get_heuristic_search_name() << ")";
+        return out.str();
+    }
+
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm>
     create_heuristic_search_algorithm(Args&&... args)
@@ -141,14 +149,6 @@ public:
         }
     }
 
-    std::string get_algorithm_name() const override
-    {
-        std::ostringstream out;
-        out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
-            << this->get_heuristic_search_name() << ")";
-        return out.str();
-    }
-
 private:
     template <
         template <typename, typename, bool>
@@ -160,15 +160,13 @@ private:
     std::unique_ptr<FDRMDPAlgorithm>
     create_heuristic_search_algorithm_wrapper(Args&&... args)
     {
-        std::shared_ptr algorithm =
+        return std::make_unique<Fret<State, OperatorID, Interval>>(
+            &progress_,
             std::make_shared<HS<QState, QAction, Interval>>(
                 tiebreaker_,
                 &progress_,
                 interval_comparison_,
-                std::forward<Args>(args)...);
-        return std::make_unique<Fret<State, OperatorID, Interval>>(
-            &progress_,
-            std::move(algorithm));
+                std::forward<Args>(args)...));
     }
 };
 
@@ -183,6 +181,8 @@ public:
     explicit MDPHeuristicSearch(const plugins::Options& opts);
 
     static void add_options_to_feature(plugins::Feature& feature);
+
+    void print_additional_statistics() const override;
 
     std::string get_algorithm_name() const override
     {
@@ -230,6 +230,17 @@ public:
     explicit MDPHeuristicSearch(const plugins::Options& opts);
 
     static void add_options_to_feature(plugins::Feature& feature);
+
+    void print_additional_statistics() const override;
+
+    std::string get_algorithm_name() const override
+    {
+        std::ostringstream out;
+        out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
+            << this->get_heuristic_search_name() << "(bisimulation)"
+            << ")";
+        return out.str();
+    }
 
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm>
@@ -292,15 +303,6 @@ public:
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
         }
-    }
-
-    std::string get_algorithm_name() const override
-    {
-        std::ostringstream out;
-        out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
-            << this->get_heuristic_search_name() << "(bisimulation)"
-            << ")";
-        return out.str();
     }
 
 private:

@@ -77,16 +77,22 @@ MDPHeuristicSearch<true, true>::MDPHeuristicSearch(const plugins::Options& opts)
 
 void MDPHeuristicSearch<false, false>::print_additional_statistics() const
 {
-    if (tiebreaker_) {
-        tiebreaker_->print_statistics(std::cout);
-    }
+    tiebreaker_->print_statistics(std::cout);
 }
 
 void MDPHeuristicSearch<false, true>::print_additional_statistics() const
 {
-    if (tiebreaker_) {
-        tiebreaker_->print_statistics(std::cout);
-    }
+    tiebreaker_->print_statistics(std::cout);
+}
+
+void MDPHeuristicSearch<true, false>::print_additional_statistics() const
+{
+    tiebreaker_->print_statistics(std::cout);
+}
+
+void MDPHeuristicSearch<true, true>::print_additional_statistics() const
+{
+    tiebreaker_->print_statistics(std::cout);
 }
 
 void MDPHeuristicSearchBase::add_options_to_feature(plugins::Feature& feature)
