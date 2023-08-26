@@ -22,6 +22,9 @@ class CachingTaskStateSpace : public TaskStateSpace {
     PerStateInformation<CacheEntry> cache_;
     storage::SegmentedMemoryPool<> cache_data_;
 
+    std::vector<OperatorID> aops_;
+    std::vector<StateID> successors_;
+
 public:
     CachingTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,

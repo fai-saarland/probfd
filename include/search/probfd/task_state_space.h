@@ -55,11 +55,7 @@ protected:
     StateRegistry state_registry_;
 
     const std::shared_ptr<FDRSimpleCostFunction> cost_function_;
-
     const std::vector<std::shared_ptr<::Evaluator>> notify_;
-
-    std::vector<OperatorID> aops_;
-    std::vector<StateID> successors_;
 
     Statistics statistics_;
 
