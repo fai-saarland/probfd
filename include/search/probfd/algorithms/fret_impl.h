@@ -4,7 +4,7 @@
 
 #include "probfd/policies/map_policy.h"
 
-#include "probfd/quotients/heuristic_search_interface.h"
+#include "probfd/quotients/quotient_max_heuristic.h"
 
 #include "downward/utils/countdown_timer.h"
 

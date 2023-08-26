@@ -2,7 +2,7 @@
 #error "This file should only be included from interval_iteration.h"
 #endif
 
-#include "probfd/quotients/heuristic_search_interface.h"
+#include "probfd/quotients/quotient_max_heuristic.h"
 
 #include <iterator>
 

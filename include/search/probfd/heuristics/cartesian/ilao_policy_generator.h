@@ -5,8 +5,6 @@
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
-#include "probfd/quotients/heuristic_search_interface.h"
-
 #include "probfd/progress_report.h"
 
 #include <memory>

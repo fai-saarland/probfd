@@ -9,7 +9,6 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/quotients/heuristic_search_interface.h"
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/ssp_cost_function.h"

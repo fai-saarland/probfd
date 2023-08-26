@@ -4,7 +4,7 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
-#include "probfd/quotients/heuristic_search_interface.h"
+#include "probfd/quotients/quotient_max_heuristic.h"
 
 #include "probfd/utils/guards.h"
 

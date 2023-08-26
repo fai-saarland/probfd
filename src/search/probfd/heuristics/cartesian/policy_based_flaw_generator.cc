@@ -11,8 +11,6 @@
 #include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
-#include "probfd/quotients/heuristic_search_interface.h"
-
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/utils/guards.h"
