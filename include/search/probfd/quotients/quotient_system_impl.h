@@ -2,6 +2,11 @@
 #error "This file should only be included from quotient_system.h"
 #endif
 
+#include "probfd/distribution.h"
+#include "probfd/transition.h"
+
+#include "downward/utils/collections.h"
+
 namespace probfd {
 namespace quotients {
 

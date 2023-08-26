@@ -12,6 +12,8 @@
 #include "probfd/plugins/multi_feature_plugin.h"
 #include "probfd/plugins/naming_conventions.h"
 
+#include "downward/task_proxy.h"
+
 #include "downward/operator_id.h"
 
 #include "downward/plugins/plugin.h"

@@ -3,27 +3,18 @@
 
 #include "probfd/utils/language.h"
 
-#include "probfd/distribution.h"
 #include "probfd/mdp.h"
-#include "probfd/transition.h"
 
 #include "downward/algorithms/segmented_vector.h"
 
-#include "downward/utils/collections.h"
-
-#include "downward/task_proxy.h"
-
 #include <compare>
-#include <deque>
-#include <iterator>
 #include <ranges>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
-
-class OperatorID;
 
 namespace probfd {
 namespace quotients {
