@@ -2,6 +2,8 @@
 #include "probfd/algorithms/trap_aware_dfhs.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
+#include "probfd/plugins/naming_conventions.h"
+
 #include "downward/plugins/plugin.h"
 
 namespace probfd {
@@ -11,15 +13,15 @@ namespace {
 using namespace algorithms;
 using namespace algorithms::trap_aware_dfhs;
 
-class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
-    template <typename T>
-    using WrappedType =
-        typename MDPHeuristicSearch<false, true>::WrappedType<T>;
+using namespace plugins;
 
+using QOpenList = OpenList<quotients::QuotientAction<OperatorID>>;
+
+class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
     template <typename State, typename Action, bool Interval>
     using Algorithm = TADepthFirstHeuristicSearch<State, Action, Interval>;
 
-    WrappedType<std::shared_ptr<FDROpenList>> open_list_;
+    const std::shared_ptr<QOpenList> open_list_;
     const bool forward_updates_;
     const BacktrackingUpdateType backward_updates_;
     const bool cutoff_tip_;
@@ -29,13 +31,9 @@ class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
     const bool reexpand_traps_;
 
 public:
-    explicit TrapAwareDFHSSolver(const plugins::Options& opts)
+    explicit TrapAwareDFHSSolver(const Options& opts)
         : MDPHeuristicSearch<false, true>(opts)
-        , open_list_(
-              opts.contains("open_list")
-                  ? this->wrap(
-                        opts.get<std::shared_ptr<FDROpenList>>("open_list"))
-                  : nullptr)
+        , open_list_(opts.get<std::shared_ptr<QOpenList>>("open_list"))
         , forward_updates_(opts.get<bool>("fwup"))
         , backward_updates_(opts.get<BacktrackingUpdateType>("bwup"))
         , cutoff_tip_(opts.get<bool>("cutoff_tip"))
@@ -73,10 +71,10 @@ protected:
 };
 
 class TrapAwareDFHSSolverFeature
-    : public plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+    : public TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
 public:
     TrapAwareDFHSSolverFeature()
-        : plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tadfhs")
+        : TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tadfhs")
     {
         document_title("Trap-aware depth-first heuristic search family.");
         document_synopsis(
@@ -115,37 +113,37 @@ public:
             "reexpand_traps",
             "Immediately re-expand the collapsed trap state.",
             "true");
-        add_option<std::shared_ptr<FDROpenList>>(
+        add_option<std::shared_ptr<QOpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            plugins::ArgumentInfo::NO_DEFAULT);
+            add_mdp_type_to_option<false, true>("lifo_open_list()"));
     }
 };
 
 class TrapAwareILAOSolverFeature
-    : public plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+    : public TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
 public:
     TrapAwareILAOSolverFeature()
-        : plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tailao")
+        : TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tailao")
     {
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search.");
 
         MDPHeuristicSearchBase::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<FDROpenList>>(
+        add_option<std::shared_ptr<QOpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            plugins::ArgumentInfo::NO_DEFAULT);
+            add_mdp_type_to_option<false, true>("lifo_open_list()"));
     }
 
     std::shared_ptr<TrapAwareDFHSSolver>
-    create_component(const plugins::Options& options, const utils::Context&)
+    create_component(const Options& options, const utils::Context&)
         const override
     {
-        plugins::Options opts_copy(options);
+        Options opts_copy(options);
         opts_copy.set<std::string>("name", "ilao");
         opts_copy.set<bool>("labeling", false);
         opts_copy.set<bool>("fwup", false);
@@ -161,28 +159,28 @@ public:
 };
 
 class TrapAwareLILAOSolverFeature
-    : public plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+    : public TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
 public:
     TrapAwareLILAOSolverFeature()
-        : plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver>("talilao")
+        : TypedFeature<SolverInterface, TrapAwareDFHSSolver>("talilao")
     {
         document_title("Labelled iLAO* variant of trap-aware depth-first "
                        "heuristic search.");
 
         MDPHeuristicSearchBase::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<FDROpenList>>(
+        add_option<std::shared_ptr<QOpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            plugins::ArgumentInfo::NO_DEFAULT);
+            add_mdp_type_to_option<false, true>("lifo_open_list()"));
     }
 
     std::shared_ptr<TrapAwareDFHSSolver>
-    create_component(const plugins::Options& options, const utils::Context&)
+    create_component(const Options& options, const utils::Context&)
         const override
     {
-        plugins::Options opts_copy(options);
+        Options opts_copy(options);
         opts_copy.set<std::string>("name", "lilao");
         opts_copy.set<bool>("labeling", true);
         opts_copy.set<bool>("fwup", false);
@@ -198,28 +196,28 @@ public:
 };
 
 class TrapAwareHDPSolverFeature
-    : public plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+    : public TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
 public:
     TrapAwareHDPSolverFeature()
-        : plugins::TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tahdp")
+        : TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tahdp")
     {
         document_title(
             "HDP variant of trap-aware depth-first heuristic search.");
 
         MDPHeuristicSearchBase::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<FDROpenList>>(
+        add_option<std::shared_ptr<QOpenList>>(
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            plugins::ArgumentInfo::NO_DEFAULT);
+            add_mdp_type_to_option<false, true>("lifo_open_list()"));
     }
 
     std::shared_ptr<TrapAwareDFHSSolver>
-    create_component(const plugins::Options& options, const utils::Context&)
+    create_component(const Options& options, const utils::Context&)
         const override
     {
-        plugins::Options opts_copy(options);
+        Options opts_copy(options);
         opts_copy.set<std::string>("name", "hdp");
         opts_copy.set<bool>("labeling", true);
         opts_copy.set<bool>("fwup", true);
@@ -234,12 +232,12 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<TrapAwareDFHSSolverFeature> _plugin;
-static plugins::FeaturePlugin<TrapAwareILAOSolverFeature> _plugin_ilao;
-static plugins::FeaturePlugin<TrapAwareLILAOSolverFeature> _plugin_lilao;
-static plugins::FeaturePlugin<TrapAwareHDPSolverFeature> _plugin_hdp;
+static FeaturePlugin<TrapAwareDFHSSolverFeature> _plugin;
+static FeaturePlugin<TrapAwareILAOSolverFeature> _plugin_ilao;
+static FeaturePlugin<TrapAwareLILAOSolverFeature> _plugin_lilao;
+static FeaturePlugin<TrapAwareHDPSolverFeature> _plugin_hdp;
 
-static plugins::TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
+static TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
     {{"disabled", "No value updates are made."},
      {"ondemand", "update if some value changed during forward updates"},
      {"single", "single update"},

@@ -38,36 +38,6 @@ public:
     }
 };
 
-class RepresentativeOpenList
-    : public algorithms::OpenList<QuotientAction<OperatorID>> {
-    using QuotientAction = QuotientAction<OperatorID>;
-
-    std::shared_ptr<FDROpenList> original_;
-
-public:
-    RepresentativeOpenList(std::shared_ptr<FDROpenList> original)
-        : original_(original)
-    {
-    }
-
-    StateID pop() override { return original_->pop(); }
-
-    void push(StateID state_id) override { original_->push(state_id); }
-
-    /*void
-    /push(StateID parent, QuotientAction qaction, value_t prob, StateID
-    state_id) override
-    {
-        original_->push(parent, qaction.action, prob, state_id);
-    }*/
-
-    unsigned size() const override { return original_->size(); }
-
-    bool empty() const override { return original_->empty(); }
-
-    void clear() override { original_->clear(); }
-};
-
 } // namespace quotients
 } // namespace probfd
 

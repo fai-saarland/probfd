@@ -137,13 +137,7 @@ fast_downward_plugin(
     NAME MDP_HEURISTIC_SEARCH_BASE
     HELP "mdp heuristic search core"
     SOURCES
-        # Algorithm interface subcategories
-        probfd/algorithms/subcategory
-
         # Open Lists
-        probfd/open_lists/fifo_open_list_factory
-        probfd/open_lists/lifo_open_list_factory
-
         probfd/open_lists/subcategory
 
         # Transition Samplers

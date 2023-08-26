@@ -12,7 +12,6 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/solvers/bisimulation_heuristic_search_algorithm.h"
-#include "probfd/solvers/state_space_interface_wrappers.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -76,16 +75,6 @@ public:
                 interval_comparison_,
                 std::forward<Args>(args)...);
         }
-    }
-
-protected:
-    template <typename T>
-    using WrappedType = typename Wrapper<false, false, T>::type;
-
-    template <typename T>
-    T wrap(T t)
-    {
-        return t;
     }
 };
 
@@ -163,16 +152,6 @@ public:
         return out.str();
     }
 
-protected:
-    template <typename T>
-    using WrappedType = typename Wrapper<false, true, T>::type;
-
-    template <typename T>
-    typename Wrapper<false, true, T>::type wrap(T t)
-    {
-        return Wrapper<false, true, T>()(t);
-    }
-
 private:
     template <
         template <typename, typename, bool>
@@ -238,16 +217,6 @@ public:
                     this->tiebreaker_,
                     std::forward<Args>(args)...);
         }
-    }
-
-protected:
-    template <typename T>
-    using WrappedType = typename Wrapper<true, false, T>::type;
-
-    template <typename T>
-    WrappedType<T> wrap(T t) const
-    {
-        return Wrapper<true, false, T>()(t);
     }
 };
 
@@ -341,16 +310,6 @@ public:
         return out.str();
     }
 
-protected:
-    template <typename T>
-    using WrappedType = typename Wrapper<true, true, T>::type;
-
-    template <typename T>
-    auto wrap(T t) const
-    {
-        return Wrapper<true, true, T>()(t);
-    }
-
 private:
     template <
         template <typename, typename, bool>
@@ -374,26 +333,21 @@ private:
     }
 };
 
-template <template <bool> class SolverClass>
+template <template <bool> class SolverClass, bool Bisimulation>
 class MDPHeuristicSearchSolverFeature
-    : public plugins::TypedFeature<SolverInterface, SolverInterface> {
+    : public plugins::TypedFeature<SolverInterface, SolverClass<Bisimulation>> {
 public:
     MDPHeuristicSearchSolverFeature(const std::string& name)
-        : TypedFeature(name)
+        : MDPHeuristicSearchSolverFeature::TypedFeature(name)
     {
         MDPHeuristicSearchBase::add_options_to_feature(*this);
-        add_option<bool>("bisimulation", "", "false");
     }
 
-    std::shared_ptr<SolverInterface>
+    std::shared_ptr<SolverClass<Bisimulation>>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
-        if (options.get<bool>("bisimulation")) {
-            return std::make_shared<SolverClass<true>>(options);
-        } else {
-            return std::make_shared<SolverClass<false>>(options);
-        }
+        return std::make_shared<SolverClass<Bisimulation>>(options);
     }
 };
 

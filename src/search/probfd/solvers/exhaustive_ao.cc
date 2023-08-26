@@ -1,8 +1,10 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
 #include "probfd/algorithms/exhaustive_ao.h"
+#include "probfd/algorithms/open_list.h"
 
-#include "probfd/open_lists/task_open_list_factory.h"
+#include "probfd/plugins/multi_feature_plugin.h"
+#include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -11,22 +13,23 @@ namespace solvers {
 namespace {
 
 using namespace algorithms;
+using namespace plugins;
+
+template <bool Bisimulation>
+using OpenList = std::conditional_t<
+    Bisimulation,
+    algorithms::OpenList<bisimulation::QuotientAction>,
+    algorithms::OpenList<OperatorID>>;
 
 template <bool Bisimulation>
 class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
-    template <typename T>
-    using WrappedType =
-        typename MDPHeuristicSearch<Bisimulation, false>::template WrappedType<
-            T>;
-
-    WrappedType<std::shared_ptr<FDROpenList>> open_list_;
+    std::shared_ptr<OpenList<Bisimulation>> open_list_;
 
 public:
-    explicit ExhaustiveAOSolver(const plugins::Options& opts)
+    explicit ExhaustiveAOSolver(const Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
-        , open_list_(this->wrap(
-              opts.get<std::shared_ptr<FDROpenListFactory>>("open_list")
-                  ->create_open_list(this->task_mdp.get())))
+        , open_list_(
+              opts.get<std::shared_ptr<OpenList<Bisimulation>>>("open_list"))
     {
     }
 
@@ -42,20 +45,22 @@ public:
     }
 };
 
+template <bool Bisimulation>
 class ExhaustiveAOSolverFeature
-    : public MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver> {
+    : public MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver, Bisimulation> {
 public:
     ExhaustiveAOSolverFeature()
-        : MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver>("exhaustive_ao")
+        : MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver, Bisimulation>(
+              add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"))
     {
-        add_option<std::shared_ptr<FDROpenListFactory>>(
+        this->template add_option<std::shared_ptr<OpenList<Bisimulation>>>(
             "open_list",
             "",
-            "lifo_open_list_factory");
+            add_mdp_type_to_option<Bisimulation, false>("lifo_open_list()"));
     }
 };
 
-static plugins::FeaturePlugin<ExhaustiveAOSolverFeature> _plugin;
+static BinaryFeaturePlugin<ExhaustiveAOSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

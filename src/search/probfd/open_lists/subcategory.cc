@@ -1,55 +1,91 @@
-#include "probfd/open_lists/fifo_open_list_factory.h"
-#include "probfd/open_lists/lifo_open_list_factory.h"
+#include "probfd/open_lists/fifo_open_list.h"
+#include "probfd/open_lists/lifo_open_list.h"
+
+#include "probfd/bisimulation/types.h"
+
+#include "probfd/quotients/quotient_system.h"
+
+#include "probfd/plugins/multi_feature_plugin.h"
+#include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
 
 namespace probfd {
 namespace open_lists {
+namespace {
 
-static class FDROpenListFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<FDROpenListFactory> {
+using namespace algorithms;
+using namespace plugins;
+
+template <template <typename> typename S, bool Bisimulation, bool Fret>
+using Wrapped = std::conditional_t<
+    Bisimulation,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientAction<bisimulation::QuotientAction>>,
+        S<bisimulation::QuotientAction>>,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientAction<OperatorID>>,
+        S<OperatorID>>>;
+
+template <bool Bisimulation, bool Fret>
+using OpenList = Wrapped<algorithms::OpenList, Bisimulation, Fret>;
+
+template <bool Bisimulation, bool Fret>
+class OpenListCategoryPlugin
+    : public TypedCategoryPlugin<OpenList<Bisimulation, Fret>> {
 public:
-    FDROpenListFactoryCategoryPlugin()
-        : TypedCategoryPlugin("FDROpenListFactory")
+    OpenListCategoryPlugin()
+        : OpenListCategoryPlugin::TypedCategoryPlugin(
+              add_mdp_type_to_category<Bisimulation, Fret>("ProbFDOpenList"))
     {
-        document_synopsis("Factory for open lists");
-    }
-} _category_plugin;
-
-class FifoOpenListFactoryFeature
-    : public plugins::TypedFeature<FDROpenListFactory, FifoOpenListFactory> {
-public:
-    FifoOpenListFactoryFeature()
-        : TypedFeature("fifo_open_list_factory")
-    {
-    }
-
-    std::shared_ptr<FifoOpenListFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
-    {
-        return std::make_shared<FifoOpenListFactory>();
+        this->document_synopsis("Open list.");
     }
 };
 
-class LifoOpenListFactoryFeature
-    : public plugins::TypedFeature<FDROpenListFactory, LifoOpenListFactory> {
+template <bool Bisimulation, bool Fret>
+class FifoOpenListFeature
+    : public TypedFeature<
+          OpenList<Bisimulation, Fret>,
+          Wrapped<FifoOpenList, Bisimulation, Fret>> {
 public:
-    LifoOpenListFactoryFeature()
-        : TypedFeature("lifo_open_list_factory")
+    FifoOpenListFeature()
+        : FifoOpenListFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>("fifo_open_list"))
     {
     }
 
-    std::shared_ptr<LifoOpenListFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    std::shared_ptr<Wrapped<FifoOpenList, Bisimulation, Fret>>
+    create_component(const Options&, const utils::Context&) const override
     {
-        return std::make_shared<LifoOpenListFactory>();
+        return std::make_shared<Wrapped<FifoOpenList, Bisimulation, Fret>>();
     }
 };
 
-static plugins::FeaturePlugin<FifoOpenListFactoryFeature> _plugin_fifo;
-static plugins::FeaturePlugin<LifoOpenListFactoryFeature> _plugin_lifo;
+template <bool Bisimulation, bool Fret>
+class LifoOpenListFeature
+    : public TypedFeature<
+          OpenList<Bisimulation, Fret>,
+          Wrapped<LifoOpenList, Bisimulation, Fret>> {
+public:
+    LifoOpenListFeature()
+        : LifoOpenListFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>("lifo_open_list"))
+    {
+    }
 
+    std::shared_ptr<Wrapped<LifoOpenList, Bisimulation, Fret>>
+    create_component(const Options&, const utils::Context&) const override
+    {
+        return std::make_shared<Wrapped<LifoOpenList, Bisimulation, Fret>>();
+    }
+};
+
+static MultiCategoryPlugin<OpenListCategoryPlugin> _category_plugin;
+static MultiFeaturePlugin<FifoOpenListFeature> _plugin_fifo;
+static MultiFeaturePlugin<LifoOpenListFeature> _plugin_lifo;
+
+} // namespace
 } // namespace open_lists
 } // namespace probfd

@@ -15,9 +15,7 @@ class FifoOpenList : public algorithms::OpenList<Action> {
     std::deque<StateID> queue_;
 
 public:
-    ~FifoOpenList() override = default;
-
-    void clear() override { queue_.clear(); }
+    bool empty() const override { return queue_.empty(); }
 
     unsigned size() const override { return queue_.size(); }
 
@@ -29,6 +27,8 @@ public:
     }
 
     void push(StateID state_id) override { queue_.push_back(state_id); }
+
+    void clear() override { queue_.clear(); }
 };
 
 } // namespace open_lists

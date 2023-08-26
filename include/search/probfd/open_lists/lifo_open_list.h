@@ -13,8 +13,6 @@ class LifoOpenList : public algorithms::OpenList<Action> {
     std::deque<StateID> queue_;
 
 public:
-    ~LifoOpenList() override = default;
-
     bool empty() const override { return queue_.empty(); }
 
     unsigned size() const override { return queue_.size(); }

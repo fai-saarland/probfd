@@ -18,6 +18,12 @@ class MultiCategoryPlugin {
     T<true, true> category_plugin4;
 };
 
+template <template <bool> typename T>
+class BinaryFeaturePlugin {
+    plugins::FeaturePlugin<T<false>> plugin1;
+    plugins::FeaturePlugin<T<true>> plugin2;
+};
+
 template <template <bool, bool> typename T>
 class MultiFeaturePlugin {
     plugins::FeaturePlugin<T<false, false>> plugin1;

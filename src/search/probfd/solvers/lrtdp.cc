@@ -89,10 +89,6 @@ public:
     {
         MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
 
-        if constexpr (Fret) {
-            this->template add_option<bool>("fret_on_policy", "", "true");
-        }
-
         this->template add_option<std::shared_ptr<Sampler<Bisimulation, Fret>>>(
             "successor_sampler",
             "",

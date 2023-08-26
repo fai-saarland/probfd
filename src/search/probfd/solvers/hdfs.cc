@@ -122,7 +122,7 @@ class DFHSSolverFeature
 public:
     DFHSSolverFeature()
         : MDPFRETHeuristicSearchSolverFeature<DFHSSolver, Bisimulation, Fret>(
-              add_mdp_type_to_option<Bisimulation, Fret>("dfhs"))
+              add_wrapper_algo_suffix<Bisimulation, Fret>("dfhs"))
     {
         this->document_title("Depth-first heuristic search family.");
 
@@ -148,7 +148,7 @@ class LAOSolverFeature
 public:
     LAOSolverFeature()
         : MDPFRETHeuristicSearchSolverFeature<DFHSSolver, Bisimulation, Fret>(
-              add_mdp_type_to_option<Bisimulation, Fret>("lao"))
+              add_wrapper_algo_suffix<Bisimulation, Fret>("lao"))
     {
         this->document_title("LAO* variant of depth-first heuristic search.");
 
@@ -156,7 +156,7 @@ public:
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            ArgumentInfo::NO_DEFAULT);
+            add_mdp_type_to_option<Bisimulation, Fret>("fifo_open_list()"));
     }
 
     std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
@@ -190,7 +190,7 @@ class ILAOSolverFeature
 public:
     ILAOSolverFeature()
         : MDPFRETHeuristicSearchSolverFeature<DFHSSolver, Bisimulation, Fret>(
-              add_mdp_type_to_option<Bisimulation, Fret>("ilao"))
+              add_wrapper_algo_suffix<Bisimulation, Fret>("ilao"))
     {
         this->document_title("iLAO* variant of depth-first heuristic search.");
 
@@ -198,7 +198,7 @@ public:
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            ArgumentInfo::NO_DEFAULT);
+            add_mdp_type_to_option<Bisimulation, Fret>("fifo_open_list()"));
     }
 
     std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
@@ -232,7 +232,7 @@ class HDPSolverFeature
 public:
     HDPSolverFeature()
         : MDPFRETHeuristicSearchSolverFeature<DFHSSolver, Bisimulation, Fret>(
-              add_mdp_type_to_option<Bisimulation, Fret>("hdp"))
+              add_wrapper_algo_suffix<Bisimulation, Fret>("hdp"))
     {
         this->document_title(
             "HDP variant of trap-aware depth-first heuristic search.");
@@ -241,7 +241,7 @@ public:
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            ArgumentInfo::NO_DEFAULT);
+            add_mdp_type_to_option<Bisimulation, Fret>("fifo_open_list()"));
     }
 
     std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
