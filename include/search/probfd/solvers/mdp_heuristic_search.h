@@ -24,8 +24,6 @@ class Feature;
 namespace probfd {
 namespace solvers {
 
-enum class FretMode { DISABLED, POLICY, VALUE };
-
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
     const bool dual_bounds_;

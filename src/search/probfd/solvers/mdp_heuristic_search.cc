@@ -146,10 +146,5 @@ std::string MDPHeuristicSearchBase::get_algorithm_name() const
     return this->get_heuristic_search_name();
 }
 
-static plugins::TypedEnumPlugin<FretMode> _fret_enum_plugin(
-    {{"disabled", "FRET is disabled"},
-     {"policy", "FRET-pi is used"},
-     {"value", "FRET-V is used"}});
-
 } // namespace solvers
 } // namespace probfd
