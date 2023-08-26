@@ -26,8 +26,6 @@ public:
 
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using TVIAlgorithm = algorithms::topological_vi::
-            TopologicalValueIteration<State, OperatorID>;
         return std::make_unique<TopologicalValueIteration<State, OperatorID>>(
             false);
     }
