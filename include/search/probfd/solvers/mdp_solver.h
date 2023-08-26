@@ -37,12 +37,12 @@ namespace solvers {
 class MDPSolver : public SolverInterface {
 protected:
     const std::shared_ptr<ProbabilisticTask> task;
-    ProbabilisticTaskProxy task_proxy;
+    const ProbabilisticTaskProxy task_proxy;
     const std::shared_ptr<FDRCostFunction> task_cost_function;
     mutable utils::LogProxy log;
 
-    std::unique_ptr<TaskStateSpace> task_mdp;
-    std::shared_ptr<FDREvaluator> heuristic;
+    const std::unique_ptr<TaskStateSpace> task_mdp;
+    const std::shared_ptr<FDREvaluator> heuristic;
 
     ProgressReport progress_;
 
