@@ -12,6 +12,8 @@ namespace probfd {
 namespace solvers {
 namespace {
 
+using namespace plugins;
+
 class TATopologicalVISolver : public MDPSolver {
 public:
     using MDPSolver::MDPSolver;
@@ -25,15 +27,15 @@ public:
     {
         using TVIAlgorithm = algorithms::ta_topological_vi::
             TATopologicalValueIteration<State, OperatorID>;
-        return algorithm_factory<TVIAlgorithm>();
+        return std::make_unique<TVIAlgorithm>();
     }
 };
 
 class TATopologicalVISolverFeature
-    : public plugins::TypedFeature<SolverInterface, TATopologicalVISolver> {
+    : public TypedFeature<SolverInterface, TATopologicalVISolver> {
 public:
     TATopologicalVISolverFeature()
-        : plugins::TypedFeature<SolverInterface, TATopologicalVISolver>(
+        : TypedFeature<SolverInterface, TATopologicalVISolver>(
               "ta_topological_value_iteration")
     {
         document_title("Trap-Aware Topological Value Iteration.");
@@ -41,7 +43,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<TATopologicalVISolverFeature> _plugin;
+static FeaturePlugin<TATopologicalVISolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

@@ -14,12 +14,13 @@ namespace solvers {
 namespace {
 
 using namespace algorithms;
+using namespace plugins;
 
 class IDualSolver : public MDPSolver {
     lp::LPSolverType solver_type_;
 
 public:
-    explicit IDualSolver(const plugins::Options& opts)
+    explicit IDualSolver(const Options& opts)
         : MDPSolver(opts)
         , solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
     {
@@ -31,15 +32,15 @@ public:
     {
         using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 
-        return algorithm_factory<IDualAlgorithm>(&progress_, solver_type_);
+        return std::make_unique<IDualAlgorithm>(&progress_, solver_type_);
     }
 };
 
 class IDualSolverFeature
-    : public plugins::TypedFeature<SolverInterface, IDualSolver> {
+    : public TypedFeature<SolverInterface, IDualSolver> {
 public:
     IDualSolverFeature()
-        : plugins::TypedFeature<SolverInterface, IDualSolver>("idual")
+        : TypedFeature<SolverInterface, IDualSolver>("idual")
     {
         document_title("i-dual");
 
@@ -49,7 +50,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<IDualSolverFeature> _plugin;
+static FeaturePlugin<IDualSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

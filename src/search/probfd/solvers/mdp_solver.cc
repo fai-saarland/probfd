@@ -21,7 +21,9 @@
 namespace probfd {
 namespace solvers {
 
-MDPSolver::MDPSolver(const plugins::Options& opts)
+using namespace plugins;
+
+MDPSolver::MDPSolver(const Options& opts)
     : task(tasks::g_root_task)
     , task_proxy(*task)
     , task_cost_function(
@@ -107,7 +109,7 @@ void MDPSolver::solve()
     }
 }
 
-void MDPSolver::add_options_to_feature(plugins::Feature& feature)
+void MDPSolver::add_options_to_feature(Feature& feature)
 {
     feature.add_option<std::shared_ptr<TaskCostFunctionFactory>>(
         "costs",

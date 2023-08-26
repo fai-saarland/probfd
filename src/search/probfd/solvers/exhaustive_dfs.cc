@@ -16,8 +16,8 @@ namespace solvers {
 namespace {
 
 using namespace algorithms;
-
 using namespace algorithms::exhaustive_dfs;
+using namespace plugins;
 
 class ExhaustiveDFSSolver : public MDPSolver {
     const Interval cost_bound_;
@@ -32,7 +32,7 @@ class ExhaustiveDFSSolver : public MDPSolver {
     const bool only_propagate_when_changed_;
 
 public:
-    explicit ExhaustiveDFSSolver(const plugins::Options& opts)
+    explicit ExhaustiveDFSSolver(const Options& opts)
         : MDPSolver(opts)
         , cost_bound_(0_vt, task_cost_function->get_non_goal_termination_cost())
         , transition_sort_(
@@ -59,7 +59,7 @@ public:
         using Algorithm2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
 
         if (dual_bounds_) {
-            return this->template algorithm_factory<Algorithm2>(
+            return std::make_unique<Algorithm2>(
                 transition_sort_,
                 cost_bound_,
                 reevaluate_,
@@ -68,7 +68,7 @@ public:
                 only_propagate_when_changed_,
                 &progress_);
         } else {
-            return this->template algorithm_factory<Algorithm>(
+            return std::make_unique<Algorithm>(
                 transition_sort_,
                 cost_bound_,
                 reevaluate_,
@@ -81,11 +81,10 @@ public:
 };
 
 class ExhaustiveDFSSolverFeature
-    : public plugins::TypedFeature<SolverInterface, ExhaustiveDFSSolver> {
+    : public TypedFeature<SolverInterface, ExhaustiveDFSSolver> {
 public:
     ExhaustiveDFSSolverFeature()
-        : plugins::TypedFeature<SolverInterface, ExhaustiveDFSSolver>(
-              "exhaustive_dfs")
+        : TypedFeature<SolverInterface, ExhaustiveDFSSolver>("exhaustive_dfs")
     {
         document_title("Exhaustive Depth-First Search");
 
@@ -94,7 +93,7 @@ public:
         add_option<std::shared_ptr<FDRTransitionSorterFactory>>(
             "order",
             "",
-            plugins::ArgumentInfo::NO_DEFAULT);
+            ArgumentInfo::NO_DEFAULT);
 
         add_option<bool>("interval_comparison", "", "false");
         add_option<bool>("dual_bounds", "", "false");
@@ -105,7 +104,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<ExhaustiveDFSSolverFeature> _plugin;
+static FeaturePlugin<ExhaustiveDFSSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

@@ -12,6 +12,9 @@ namespace probfd {
 namespace solvers {
 namespace {
 
+using namespace algorithms::interval_iteration;
+using namespace plugins;
+
 class IntervalIterationSolver : public MDPSolver {
 public:
     using MDPSolver::MDPSolver;
@@ -23,17 +26,17 @@ public:
 
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using IIAlgorithm = algorithms::interval_iteration::
-            IntervalIteration<State, OperatorID>;
-        return algorithm_factory<IIAlgorithm>(false, false);
+        return std::make_unique<IntervalIteration<State, OperatorID>>(
+            false,
+            false);
     }
 };
 
 class IntervalIterationSolverFeature
-    : public plugins::TypedFeature<SolverInterface, IntervalIterationSolver> {
+    : public TypedFeature<SolverInterface, IntervalIterationSolver> {
 public:
     IntervalIterationSolverFeature()
-        : plugins::TypedFeature<SolverInterface, IntervalIterationSolver>(
+        : TypedFeature<SolverInterface, IntervalIterationSolver>(
               "interval_iteration")
     {
         document_title("Interval Iteration");
@@ -42,7 +45,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<IntervalIterationSolverFeature> _plugin;
+static FeaturePlugin<IntervalIterationSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

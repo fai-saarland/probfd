@@ -94,14 +94,14 @@ public:
     {
         if (dual_bounds_) {
             using HeuristicSearchType = HS<State, OperatorID, true>;
-            return algorithm_factory<HeuristicSearchType>(
+            return std::make_unique<HeuristicSearchType>(
                 tiebreaker_,
                 &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
             using HeuristicSearchType = HS<State, OperatorID, false>;
-            return algorithm_factory<HeuristicSearchType>(
+            return std::make_unique<HeuristicSearchType>(
                 tiebreaker_,
                 &progress_,
                 interval_comparison_,
@@ -113,6 +113,9 @@ public:
 template <>
 class MDPHeuristicSearch<false, true>
     : public MDPHeuristicSearchBase<false, true> {
+    using QState = quotients::QuotientState<State, OperatorID>;
+    using QAction = quotients::QuotientAction<OperatorID>;
+
     const bool fret_on_policy_;
 
 public:

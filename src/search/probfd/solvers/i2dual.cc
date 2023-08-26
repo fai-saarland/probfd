@@ -10,6 +10,7 @@ namespace i2dual {
 namespace {
 
 using namespace algorithms;
+using namespace plugins;
 
 class I2DualSolver : public MDPSolver {
     bool hpom_enabled_;
@@ -17,7 +18,7 @@ class I2DualSolver : public MDPSolver {
     lp::LPSolverType solver_type_;
 
 public:
-    explicit I2DualSolver(const plugins::Options& opts)
+    explicit I2DualSolver(const Options& opts)
         : MDPSolver(opts)
         , hpom_enabled_(!opts.get<bool>("disable_hpom"))
         , incremental_hpom_updates_(opts.get<bool>("incremental_updates"))
@@ -29,7 +30,7 @@ public:
 
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return algorithm_factory<algorithms::i2dual::I2Dual>(
+        return std::make_unique<algorithms::i2dual::I2Dual>(
             this->task,
             this->task_cost_function,
             &progress_,
@@ -40,10 +41,10 @@ public:
 };
 
 class I2DualSolverFeature
-    : public plugins::TypedFeature<SolverInterface, I2DualSolver> {
+    : public TypedFeature<SolverInterface, I2DualSolver> {
 public:
     I2DualSolverFeature()
-        : plugins::TypedFeature<SolverInterface, I2DualSolver>("i2dual")
+        : TypedFeature<SolverInterface, I2DualSolver>("i2dual")
     {
         document_title("i^2-dual");
 
@@ -56,7 +57,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<I2DualSolverFeature> _plugin;
+static FeaturePlugin<I2DualSolverFeature> _plugin;
 
 } // namespace
 } // namespace i2dual

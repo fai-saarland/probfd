@@ -58,18 +58,6 @@ public:
     ~MDPSolver();
 
     /**
-     * @brief Factory method that constructs an new MDP algorithm from the
-     * given arguments.
-     *
-     * @tparam Algorithm - The algorithm type to construct.
-     */
-    template <typename Algorithm, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm> algorithm_factory(Args&&... args)
-    {
-        return std::make_unique<Algorithm>(std::forward<Args>(args)...);
-    }
-
-    /**
      * @brief Factory method a new instance of the encapsulated MDP algorithm.
      */
     virtual std::unique_ptr<FDRMDPAlgorithm> create_algorithm() = 0;

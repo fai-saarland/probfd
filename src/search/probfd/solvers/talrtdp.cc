@@ -14,6 +14,7 @@ namespace {
 
 using namespace algorithms;
 using namespace algorithms::trap_aware_lrtdp;
+using namespace plugins;
 
 using QSuccessorSampler =
     SuccessorSampler<quotients::QuotientAction<OperatorID>>;
@@ -24,7 +25,7 @@ class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
     const std::shared_ptr<QSuccessorSampler> successor_sampler_;
 
 public:
-    explicit TrapAwareLRTDPSolver(const plugins::Options& opts)
+    explicit TrapAwareLRTDPSolver(const Options& opts)
         : MDPHeuristicSearch<false, true>(opts)
         , stop_consistent_(
               opts.get<TrialTerminationCondition>("terminate_trial"))
@@ -55,11 +56,10 @@ protected:
 };
 
 class TrapAwareLRTDPSolverFeature
-    : public plugins::TypedFeature<SolverInterface, TrapAwareLRTDPSolver> {
+    : public TypedFeature<SolverInterface, TrapAwareLRTDPSolver> {
 public:
     TrapAwareLRTDPSolverFeature()
-        : plugins::TypedFeature<SolverInterface, TrapAwareLRTDPSolver>(
-              "talrtdp")
+        : TypedFeature<SolverInterface, TrapAwareLRTDPSolver>("talrtdp")
     {
         document_title("Trap-aware LRTDP.");
         document_synopsis(
@@ -82,9 +82,9 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<TrapAwareLRTDPSolverFeature> _plugin;
+static FeaturePlugin<TrapAwareLRTDPSolverFeature> _plugin;
 
-static plugins::TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
+static TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
     {{"terminal", "Stop trials at terminal states"},
      {"consistent", "Stop trials at epsilon consistent states"},
      {"inconsistent", "Stop trials at epsilon inconsistent states"},

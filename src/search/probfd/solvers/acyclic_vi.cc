@@ -10,6 +10,9 @@ namespace probfd {
 namespace solvers {
 namespace {
 
+using namespace algorithms::acyclic_vi;
+using namespace plugins;
+
 class AcyclicVISolver : public MDPSolver {
 
 public:
@@ -22,25 +25,22 @@ public:
 
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using AVIAlgorithm =
-            algorithms::acyclic_vi::AcyclicValueIteration<State, OperatorID>;
-        return algorithm_factory<AVIAlgorithm>();
+        return std::make_unique<AcyclicValueIteration<State, OperatorID>>();
     }
 };
 
 class AcyclicVISolverFeature
-    : public plugins::TypedFeature<SolverInterface, AcyclicVISolver> {
+    : public TypedFeature<SolverInterface, AcyclicVISolver> {
 public:
     AcyclicVISolverFeature()
-        : plugins::TypedFeature<SolverInterface, AcyclicVISolver>(
-              "acyclic_value_iteration")
+        : TypedFeature("acyclic_value_iteration")
     {
         document_title("Acyclic Value Iteration.");
         MDPSolver::add_options_to_feature(*this);
     }
 };
 
-static plugins::FeaturePlugin<AcyclicVISolverFeature> _plugin;
+static FeaturePlugin<AcyclicVISolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

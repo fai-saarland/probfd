@@ -22,6 +22,8 @@ namespace probfd {
 namespace solvers {
 namespace {
 
+using namespace plugins;
+
 struct BisimulationTimer {
     utils::Timer timer;
     unsigned states;
@@ -116,7 +118,7 @@ public:
 
 class BisimulationValueIteration : public BisimulationIteration {
 public:
-    explicit BisimulationValueIteration(const plugins::Options&)
+    explicit BisimulationValueIteration(const Options&)
         : BisimulationIteration(false)
     {
     }
@@ -124,18 +126,17 @@ public:
 
 class BisimulationIntervalIteration : public BisimulationIteration {
 public:
-    explicit BisimulationIntervalIteration(const plugins::Options&)
+    explicit BisimulationIntervalIteration(const Options&)
         : BisimulationIteration(true)
     {
     }
 };
 
 class BisimulationVISolverFeature
-    : public plugins::
-          TypedFeature<SolverInterface, BisimulationValueIteration> {
+    : public TypedFeature<SolverInterface, BisimulationValueIteration> {
 public:
     BisimulationVISolverFeature()
-        : plugins::TypedFeature<SolverInterface, BisimulationValueIteration>(
+        : TypedFeature<SolverInterface, BisimulationValueIteration>(
               "bisimulation_vi")
     {
         document_title("Bisimulation Value Iteration.");
@@ -143,19 +144,18 @@ public:
 };
 
 class BisimulationIISolverFeature
-    : public plugins::
-          TypedFeature<SolverInterface, BisimulationIntervalIteration> {
+    : public TypedFeature<SolverInterface, BisimulationIntervalIteration> {
 public:
     BisimulationIISolverFeature()
-        : plugins::TypedFeature<SolverInterface, BisimulationIntervalIteration>(
+        : TypedFeature<SolverInterface, BisimulationIntervalIteration>(
               "bisimulation_ii")
     {
         document_title("Bisimulation Interval Iteration.");
     }
 };
 
-static plugins::FeaturePlugin<BisimulationVISolverFeature> _plugin_bvi;
-static plugins::FeaturePlugin<BisimulationIISolverFeature> _plugin_bii;
+static FeaturePlugin<BisimulationVISolverFeature> _plugin_bvi;
+static FeaturePlugin<BisimulationIISolverFeature> _plugin_bii;
 
 } // namespace
 } // namespace solvers
