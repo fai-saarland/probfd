@@ -196,25 +196,23 @@ public:
     create_heuristic_search_algorithm(Args&&... args)
     {
         if (dual_bounds_) {
-            return BisimulationBasedHeuristicSearchAlgorithm::
-                template Constructor<HS, true>(
-                    this->task,
-                    this->task_cost_function,
-                    this->get_heuristic_search_name(),
-                    this->progress_,
-                    this->interval_comparison_,
-                    this->tiebreaker_,
-                    std::forward<Args>(args)...);
+            return BisimulationBasedHeuristicSearchAlgorithm::create<HS, true>(
+                this->task,
+                this->task_cost_function,
+                this->get_heuristic_search_name(),
+                this->progress_,
+                this->interval_comparison_,
+                this->tiebreaker_,
+                std::forward<Args>(args)...);
         } else {
-            return BisimulationBasedHeuristicSearchAlgorithm::
-                template Constructor<HS, false>(
-                    this->task,
-                    this->task_cost_function,
-                    this->get_heuristic_search_name(),
-                    this->progress_,
-                    this->interval_comparison_,
-                    this->tiebreaker_,
-                    std::forward<Args>(args)...);
+            return BisimulationBasedHeuristicSearchAlgorithm::create<HS, false>(
+                this->task,
+                this->task_cost_function,
+                this->get_heuristic_search_name(),
+                this->progress_,
+                this->interval_comparison_,
+                this->tiebreaker_,
+                std::forward<Args>(args)...);
         }
     }
 };
@@ -278,25 +276,23 @@ public:
     create_quotient_heuristic_search_algorithm(Args&&... args)
     {
         if (dual_bounds_) {
-            return QBisimulationBasedHeuristicSearchAlgorithm::
-                template Constructor<HS, true>(
-                    this->task,
-                    this->task_cost_function,
-                    this->get_heuristic_search_name(),
-                    this->progress_,
-                    this->interval_comparison_,
-                    this->tiebreaker_,
-                    std::forward<Args>(args)...);
+            return BisimulationBasedHeuristicSearchAlgorithm::create<HS, true>(
+                this->task,
+                this->task_cost_function,
+                this->get_heuristic_search_name(),
+                this->progress_,
+                this->interval_comparison_,
+                this->tiebreaker_,
+                std::forward<Args>(args)...);
         } else {
-            return QBisimulationBasedHeuristicSearchAlgorithm::
-                template Constructor<HS, false>(
-                    this->task,
-                    this->task_cost_function,
-                    this->get_heuristic_search_name(),
-                    this->progress_,
-                    this->interval_comparison_,
-                    this->tiebreaker_,
-                    std::forward<Args>(args)...);
+            return BisimulationBasedHeuristicSearchAlgorithm::create<HS, false>(
+                this->task,
+                this->task_cost_function,
+                this->get_heuristic_search_name(),
+                this->progress_,
+                this->interval_comparison_,
+                this->tiebreaker_,
+                std::forward<Args>(args)...);
         }
     }
 
@@ -320,8 +316,8 @@ private:
     std::unique_ptr<FDRMDPAlgorithm>
     heuristic_search_algorithm_factory_wrapper(Args&&... args)
     {
-        return QBisimulationBasedHeuristicSearchAlgorithm::
-            template Constructor<Fret, HS, Interval>(
+        return BisimulationBasedHeuristicSearchAlgorithm::
+            create<Fret, HS, Interval>(
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
