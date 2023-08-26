@@ -35,8 +35,7 @@ public:
     /// Checks if the open list is empty.
     virtual bool empty() const { return size() == 0; }
 
-    /// Offers a new successor state to the open list and additionally
-    /// provides the generating transition the successor.
+    /// Offers a new state to the open list that is the target of a transition.
     virtual void push(StateID, Action, value_t, StateID state_id)
     {
         push(state_id);

@@ -36,13 +36,13 @@ class StateProperties;
  * =======
  *
  * ```
-class AlwaysFirstPicker : public PolicyPicker<const ProbabilisticOperator*> {
+class AlwaysFirstPicker : public PolicyPicker<OperatorID> {
 protected:
     int pick_index(
-        MDP<State, Action>&,
+        MDP<State, OperatorID>&,
         StateID,
-        Action,
-        const std::vector<Action>&,
+        OperatorID,
+        const std::vector<OperatorID>&,
         const std::vector<Distribution<StateID>>&,
         StateProperties&) override
     {
