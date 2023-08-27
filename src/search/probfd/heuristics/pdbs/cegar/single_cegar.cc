@@ -411,7 +411,7 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
             << "SingleCEGAR statistics:\n"
             << "  computation time: " << timer.get_elapsed_time() << "\n"
             << "  number of iterations: " << refinement_counter << "\n"
-            << "  final collection: " << pdb_info->get_pattern() << "\n";
+            << "  final pattern: " << pdb_info->get_pattern() << "\n";
     }
 
     return SingleCEGARResult{
