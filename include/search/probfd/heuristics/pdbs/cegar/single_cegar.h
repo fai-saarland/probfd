@@ -10,6 +10,7 @@
 
 #include "downward/utils/logging.h"
 
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -80,8 +81,9 @@ public:
         FDRSimpleCostFunction& task_cost_function);
 
 private:
-    bool get_flaws(
+    std::optional<Flaw> get_flaw(
         const PDBInfo& pdb_info,
+        const State& state,
         const ProbabilisticTaskProxy& task_proxy,
         std::vector<Flaw>& flaws,
         value_t termination_cost,
@@ -103,8 +105,7 @@ private:
         PDBInfo& pdb_info,
         const ProbabilisticTaskProxy& task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        const VariablesProxy& variables,
-        const std::vector<Flaw>& flaws,
+        Flaw flaw,
         utils::CountdownTimer& timer);
 };
 

@@ -39,25 +39,20 @@ class SingleCEGAR::PDBInfo {
     std::unique_ptr<ProjectionStateSpace> state_space;
     StateRank initial_state;
     std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
-    std::unique_ptr<ProjectionMultiPolicy> policy;
 
 public:
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
         FDRSimpleCostFunction& task_cost_function,
-        utils::RandomNumberGenerator& rng,
-        bool wildcard,
         utils::CountdownTimer& timer);
 
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
         FDRSimpleCostFunction& task_cost_function,
-        utils::RandomNumberGenerator& rng,
         const ProbabilityAwarePatternDatabase& previous,
         int add_var,
-        bool wildcard,
         utils::CountdownTimer& timer);
 
     const Pattern& get_pattern() const;
@@ -66,14 +61,16 @@ public:
 
     const ProbabilityAwarePatternDatabase& get_pdb() const;
 
-    const ProjectionMultiPolicy& get_policy() const;
-
-    value_t get_policy_cost(const State& state) const;
+    value_t get_initial_state_cost(const State& state) const;
 
     std::unique_ptr<ProjectionStateSpace> extract_state_space();
     std::unique_ptr<ProbabilityAwarePatternDatabase> extract_pdb();
 
-    bool solution_exists(value_t termination_cost) const;
+    std::unique_ptr<ProjectionMultiPolicy>
+    compute_optimal_policy(utils::RandomNumberGenerator& rng, bool wildcard)
+        const;
+
+    bool is_initial_state_solvable(value_t termination_cost) const;
 
     bool is_goal(StateRank rank) const;
 };
@@ -82,8 +79,6 @@ SingleCEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     FDRSimpleCostFunction& task_cost_function,
-    utils::RandomNumberGenerator& rng,
-    bool wildcard,
     utils::CountdownTimer& timer)
     : state_space(new ProjectionStateSpace(
           task_proxy,
@@ -99,11 +94,6 @@ SingleCEGAR::PDBInfo::PDBInfo(
           initial_state,
           heuristics::ConstantEvaluator<StateRank>(0_vt),
           timer.get_remaining_time()))
-    , policy(pdb->compute_optimal_projection_policy(
-          *state_space,
-          initial_state,
-          rng,
-          wildcard))
 {
 }
 
@@ -111,10 +101,8 @@ SingleCEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     FDRSimpleCostFunction& task_cost_function,
-    utils::RandomNumberGenerator& rng,
     const ProbabilityAwarePatternDatabase& previous,
     int add_var,
-    bool wildcard,
     utils::CountdownTimer& timer)
     : state_space(new ProjectionStateSpace(
           task_proxy,
@@ -131,11 +119,6 @@ SingleCEGAR::PDBInfo::PDBInfo(
           previous,
           add_var,
           timer.get_remaining_time()))
-    , policy(pdb->compute_optimal_projection_policy(
-          *state_space,
-          initial_state,
-          rng,
-          wildcard))
 {
 }
 
@@ -156,12 +139,7 @@ const ProbabilityAwarePatternDatabase& SingleCEGAR::PDBInfo::get_pdb() const
     return *pdb;
 }
 
-const ProjectionMultiPolicy& SingleCEGAR::PDBInfo::get_policy() const
-{
-    return *policy;
-}
-
-value_t SingleCEGAR::PDBInfo::get_policy_cost(const State& state) const
+value_t SingleCEGAR::PDBInfo::get_initial_state_cost(const State& state) const
 {
     return pdb->lookup_estimate(state);
 }
@@ -178,7 +156,20 @@ SingleCEGAR::PDBInfo::extract_pdb()
     return std::move(pdb);
 }
 
-bool SingleCEGAR::PDBInfo::solution_exists(value_t termination_cost) const
+std::unique_ptr<ProjectionMultiPolicy>
+SingleCEGAR::PDBInfo::compute_optimal_policy(
+    utils::RandomNumberGenerator& rng,
+    bool wildcard) const
+{
+    return pdb->compute_optimal_projection_policy(
+        *state_space,
+        initial_state,
+        rng,
+        wildcard);
+}
+
+bool SingleCEGAR::PDBInfo::is_initial_state_solvable(
+    value_t termination_cost) const
 {
     return pdb->lookup_estimate(initial_state) != termination_cost;
 }
@@ -210,23 +201,26 @@ SingleCEGAR::SingleCEGAR(
 
 SingleCEGAR::~SingleCEGAR() = default;
 
-bool SingleCEGAR::get_flaws(
+std::optional<Flaw> SingleCEGAR::get_flaw(
     const PDBInfo& pdb_info,
+    const State& state,
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws,
     value_t termination_cost,
     utils::CountdownTimer& timer)
 {
-    if (!pdb_info.solution_exists(termination_cost)) {
+    if (!pdb_info.is_initial_state_solvable(termination_cost)) {
         log << "SingleCEGAR: Problem unsolvable" << endl;
-        return true;
+        return std::nullopt;
     }
+
+    auto policy = pdb_info.compute_optimal_policy(*rng, wildcard);
 
     const bool executable = flaw_strategy->apply_policy(
         task_proxy,
         pdb_info.get_mdp(),
         pdb_info.get_pdb(),
-        pdb_info.get_policy(),
+        *policy,
         blacklisted_variables,
         flaws,
         timer);
@@ -237,9 +231,26 @@ bool SingleCEGAR::get_flaws(
      * If there are no flaws, this does not guarantee that the
      * plan is valid in the concrete state space because we might
      * have ignored variables that have been blacklisted. Hence the
-     * tests for empty blacklists.
+     * empty blacklist check for the log output.
      */
-    return flaws.empty() && executable && blacklisted_variables.empty();
+    if (flaws.empty()) {
+        if (log.is_at_least_verbose()) {
+            if (executable && blacklisted_variables.empty()) {
+                log << "SingleCEGAR: Task solved during computation of "
+                       "abstract policies.\n"
+                       "SingleCEGAR: Cost of policy: "
+                    << pdb_info.get_initial_state_cost(state) << endl;
+
+            } else {
+                log << "SingleCEGAR: Flaw list empty."
+                    << "No further refinements possible." << endl;
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    return *rng->choose(flaws);
 }
 
 bool SingleCEGAR::can_add_variable(
@@ -268,10 +279,8 @@ void SingleCEGAR::add_variable_to_pattern(
             task_proxy.get_variables(),
             extended_pattern(pdb.get_pattern(), var)),
         task_cost_function,
-        *rng,
         pdb,
         var,
-        wildcard,
         timer);
 }
 
@@ -279,14 +288,11 @@ void SingleCEGAR::refine(
     PDBInfo& pdb_info,
     const ProbabilisticTaskProxy& task_proxy,
     FDRSimpleCostFunction& task_cost_function,
-    const VariablesProxy& variables,
-    const std::vector<Flaw>& flaws,
+    Flaw flaw,
     utils::CountdownTimer& timer)
 {
-    assert(!flaws.empty());
+    const VariablesProxy variables = task_proxy.get_variables();
 
-    // pick a random flaw
-    const Flaw& flaw = *rng->choose(flaws);
     int var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
@@ -339,15 +345,11 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
 
     utils::CountdownTimer timer(max_time);
 
-    const VariablesProxy variables = task_proxy.get_variables();
-
     // Start with a solution of the trivial abstraction
     std::unique_ptr<PDBInfo> pdb_info(new PDBInfo(
         task_proxy,
         StateRankingFunction(task_proxy.get_variables(), {goal}),
         task_cost_function,
-        *rng,
-        wildcard,
         timer));
 
     if (log.is_at_least_normal()) {
@@ -375,31 +377,15 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            bool solution_found = get_flaws(
+            auto flaw = get_flaw(
                 *pdb_info,
+                initial_state,
                 task_proxy,
                 flaws,
                 termination_cost,
                 timer);
 
-            if (solution_found) {
-                assert(blacklisted_variables.empty());
-
-                if (log.is_at_least_verbose()) {
-                    log << "SingleCEGAR: Task solved during computation of "
-                           "abstract policies.\n"
-                           "SingleCEGAR: Cost of policy: "
-                        << pdb_info->get_policy_cost(initial_state) << endl;
-                }
-                break;
-            }
-
-            if (flaws.empty()) {
-                if (log.is_at_least_verbose()) {
-                    log << "SingleCEGAR: Flaw list empty."
-                        << "No further refinements possible." << endl;
-                }
-
+            if (!flaw) {
                 break;
             }
 
@@ -407,13 +393,7 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
 
             // if there was a flaw, then refine the abstraction
             // such that said flaw does not occur again
-            refine(
-                *pdb_info,
-                task_proxy,
-                task_cost_function,
-                variables,
-                flaws,
-                timer);
+            refine(*pdb_info, task_proxy, task_cost_function, *flaw, timer);
 
             if (log.is_at_least_verbose()) {
                 log << "SingleCEGAR: current pattern: "
