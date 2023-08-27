@@ -334,6 +334,7 @@ fast_downward_plugin(
     NAME PPDBS_CEGAR
     HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
+        probfd/heuristics/pdbs/cegar/single_cegar
         probfd/heuristics/pdbs/cegar/cegar
         probfd/heuristics/pdbs/cegar/bfs_flaw_finder
         probfd/heuristics/pdbs/cegar/pucs_flaw_finder

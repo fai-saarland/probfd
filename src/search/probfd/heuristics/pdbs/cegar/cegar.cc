@@ -431,7 +431,7 @@ void CEGAR::add_variable_to_pattern(
 {
     PDBInfo& info = *pdb_infos[index];
 
-    auto pdb = info.get_pdb();
+    auto& pdb = info.get_pdb();
 
     // compute new solution
     std::unique_ptr<PDBInfo> new_info(new PDBInfo(
