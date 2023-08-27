@@ -56,8 +56,8 @@ class ProbabilityAwarePatternDatabase {
 
     void compute_value_table(
         ProjectionStateSpace& state_space,
-        StateRank initial_state,
         const StateRankEvaluator& heuristic,
+        StateRank initial_state,
         double max_time);
 
 public:
@@ -344,14 +344,6 @@ public:
         StateRank initial_state,
         std::ostream& out,
         bool transition_labels) const;
-
-#if !defined(NDEBUG) && defined(USE_LP)
-private:
-    void verify(
-        ProjectionStateSpace& state_space,
-        StateRank initial_state,
-        const std::vector<StateID>& proper_states);
-#endif
 };
 
 } // namespace pdbs
