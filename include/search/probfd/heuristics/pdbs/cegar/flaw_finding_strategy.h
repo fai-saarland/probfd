@@ -7,6 +7,7 @@
 
 #include "probfd/task_proxy.h"
 
+#include <functional>
 #include <string>
 #include <unordered_set>
 
@@ -18,7 +19,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class ProbabilityAwarePatternDatabase;
+class StateRankingFunction;
 
 namespace cegar {
 
@@ -34,9 +35,9 @@ public:
     virtual bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,
         const ProjectionStateSpace& mdp,
-        const ProbabilityAwarePatternDatabase& pdb,
+        const StateRankingFunction& abstraction_mapping,
         const ProjectionMultiPolicy& policy,
-        const std::unordered_set<int>& blacklisted_variables,
+        std::function<bool(int)> ignore_flaw,
         std::vector<Flaw>& flaws,
         utils::CountdownTimer& timer) = 0;
 
@@ -46,13 +47,13 @@ public:
 bool collect_flaws(
     PreconditionsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
+    std::function<bool(int)> ignore_flaw,
     std::vector<Flaw>& flaw_list);
 
 bool collect_flaws(
     GoalsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
+    std::function<bool(int)> ignore_flaw,
     std::vector<Flaw>& flaw_list);
 
 } // namespace cegar

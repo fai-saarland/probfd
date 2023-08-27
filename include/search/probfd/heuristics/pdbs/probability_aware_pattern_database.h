@@ -62,6 +62,14 @@ class ProbabilityAwarePatternDatabase {
 
 public:
     /**
+     * @brief Construct a probability-aware pattern database from a precomputed
+     * abstraction mapping and value table.
+     */
+    ProbabilityAwarePatternDatabase(
+        StateRankingFunction ranking_function,
+        std::vector<value_t> value_table);
+
+    /**
      * @brief Construct a probability-aware pattern database for a given task
      * and pattern.
      *

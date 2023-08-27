@@ -333,9 +333,9 @@ int CEGAR::get_flaws(
         const bool executable = flaw_strategy->apply_policy(
             task_proxy,
             info->get_mdp(),
-            info->get_pdb(),
+            info->get_pdb().get_state_ranking_function(),
             info->get_policy(),
-            blacklisted_variables,
+            [&](int var) { return blacklisted_variables.contains(var); },
             flaws,
             timer);
 

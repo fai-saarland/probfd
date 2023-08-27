@@ -39,9 +39,9 @@ PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
 bool PUCSFlawFinder::apply_policy(
     const ProbabilisticTaskProxy& task_proxy,
     const ProjectionStateSpace& mdp,
-    const ProbabilityAwarePatternDatabase& pdb,
+    const StateRankingFunction& abstraction_mapping,
     const ProjectionMultiPolicy& policy,
-    const std::unordered_set<int>& blacklisted_variables,
+    const std::function<bool(int)> ignore_flaw,
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
 {
@@ -81,14 +81,14 @@ bool PUCSFlawFinder::apply_policy(
         assert(path_probability != 0_vt);
 
         // Check flaws, generate successors
-        const StateRank abs = pdb.get_abstract_state(current);
+        const StateRank abs = abstraction_mapping.get_abstract_rank(current);
 
         const std::vector abs_decisions = policy.get_decisions(abs);
 
         // We reached a terminal state, check if it is a goal or dead-end
         if (abs_decisions.empty()) {
             if (mdp.is_goal(abs) &&
-                collect_flaws(goals, current, blacklisted_variables, flaw_list))
+                collect_flaws(goals, current, ignore_flaw, flaw_list))
                 return false;
 
             continue;
@@ -103,7 +103,7 @@ bool PUCSFlawFinder::apply_policy(
             if (collect_flaws(
                     op.get_preconditions(),
                     current,
-                    blacklisted_variables,
+                    ignore_flaw,
                     local_flaws)) {
                 continue; // Try next operator
             }

@@ -83,6 +83,19 @@ private:
         const StateRankingFunction& coarser_mapping) const;
 };
 
+class IncrementalValueTableEvaluator : public StateRankEvaluator {
+    std::vector<value_t> current_value_table;
+
+public:
+    explicit IncrementalValueTableEvaluator(int initial_size);
+
+    value_t evaluate(StateRank state) const override;
+
+    void on_refinement(const StateRankingFunction& mapper, int add_var);
+
+    std::vector<value_t>& get_value_table();
+};
+
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd

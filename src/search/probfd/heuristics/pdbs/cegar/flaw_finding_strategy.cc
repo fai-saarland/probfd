@@ -10,11 +10,12 @@ namespace pdbs {
 namespace cegar {
 
 namespace {
+
 bool collect_flaws(
     auto facts,
     const State& state,
     bool is_precondition,
-    const std::unordered_set<int>& blacklist,
+    auto&& ignore_flaw,
     std::vector<Flaw>& flaw_list)
 {
     bool flaws_found = false;
@@ -23,7 +24,7 @@ bool collect_flaws(
     for (const FactProxy fact : facts) {
         const auto& [var, val] = fact.get_pair();
 
-        if (state[var].get_value() != val && !blacklist.contains(var)) {
+        if (state[var].get_value() != val && !ignore_flaw(var)) {
             flaws_found = true;
             flaw_list.emplace_back(var, is_precondition);
         }
@@ -31,24 +32,25 @@ bool collect_flaws(
 
     return flaws_found;
 }
+
 } // namespace
 
 bool collect_flaws(
     PreconditionsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
+    std::function<bool(int)> ignore_flaw,
     std::vector<Flaw>& flaw_list)
 {
-    return collect_flaws(facts, state, true, blacklist, flaw_list);
+    return collect_flaws(facts, state, true, ignore_flaw, flaw_list);
 }
 
 bool collect_flaws(
     GoalsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
+    std::function<bool(int)> ignore_flaw,
     std::vector<Flaw>& flaw_list)
 {
-    return collect_flaws(facts, state, false, blacklist, flaw_list);
+    return collect_flaws(facts, state, false, ignore_flaw, flaw_list);
 }
 
 static class FlawFindingStrategyCategoryPlugin

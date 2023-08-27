@@ -47,9 +47,9 @@ SamplingFlawFinder::SamplingFlawFinder(
 bool SamplingFlawFinder::apply_policy(
     const ProbabilisticTaskProxy& task_proxy,
     const ProjectionStateSpace& mdp,
-    const ProbabilityAwarePatternDatabase& pdb,
+    const StateRankingFunction& abstraction_mapping,
     const ProjectionMultiPolicy& policy,
-    const std::unordered_set<int>& blacklisted_variables,
+    std::function<bool(int)> ignore_flaw,
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
 {
@@ -69,7 +69,7 @@ bool SamplingFlawFinder::apply_policy(
 
     for (;;) {
         const State* current = &stk.back();
-        const StateRank abs = pdb.get_abstract_state(*current);
+        const StateRank abs = abstraction_mapping.get_abstract_rank(*current);
 
         ExplorationInfo* einfo = &einfos[StateID(current->get_id())];
 
@@ -81,11 +81,8 @@ bool SamplingFlawFinder::apply_policy(
 
             // Goal flaw check
             if (abs_decisions.empty()) {
-                if (mdp.is_goal(abs) && collect_flaws(
-                                            goals,
-                                            *current,
-                                            blacklisted_variables,
-                                            flaw_list)) {
+                if (mdp.is_goal(abs) &&
+                    collect_flaws(goals, *current, ignore_flaw, flaw_list)) {
                     return false;
                 }
 
@@ -102,7 +99,7 @@ bool SamplingFlawFinder::apply_policy(
                 if (collect_flaws(
                         op.get_preconditions(),
                         *current,
-                        blacklisted_variables,
+                        ignore_flaw,
                         local_flaws)) {
                     continue; // Try next operator
                 }

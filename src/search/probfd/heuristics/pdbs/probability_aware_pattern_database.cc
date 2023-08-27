@@ -53,6 +53,14 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
+    StateRankingFunction ranking_function,
+    std::vector<value_t> value_table)
+    : ranking_function_(std::move(ranking_function))
+    , value_table(std::move(value_table))
+{
+}
+
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     Pattern pattern,
     FDRSimpleCostFunction& task_cost_function,

@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 
-#include "probfd/heuristics/pdbs/algorithm_interfaces.h"
+#include "probfd/heuristics/pdbs/evaluators.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw.h"
@@ -29,7 +29,7 @@ class ProbabilityAwarePatternDatabase;
 
 namespace cegar {
 
-class FlawFindingStrategy;
+class FlawGenerator;
 
 struct SingleCEGARResult {
     std::unique_ptr<ProjectionStateSpace> projection;
@@ -45,14 +45,8 @@ class SingleCEGAR {
     const int max_pdb_size;
     const double max_time;
 
-    // Flaw finding strategy
-    const std::shared_ptr<FlawFindingStrategy> flaw_strategy;
-
-    // Random number generator (to pick flaws randomly)
-    const std::shared_ptr<utils::RandomNumberGenerator> rng;
-
-    // Find flaws in wildcard policies?
-    const bool wildcard;
+    // Flaw generation
+    std::shared_ptr<FlawGenerator> flaw_generator;
 
     // Goal variable for initial projection
     const int goal;
@@ -67,9 +61,7 @@ public:
     SingleCEGAR(
         int max_pdb_size,
         double max_time,
-        std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
-        std::shared_ptr<utils::RandomNumberGenerator> rng,
-        bool wildcard,
+        std::shared_ptr<FlawGenerator> flaw_generator,
         int goal,
         utils::LogProxy log,
         std::unordered_set<int> blacklisted_variables = {});
@@ -81,29 +73,11 @@ public:
         FDRSimpleCostFunction& task_cost_function);
 
 private:
-    std::optional<Flaw> get_flaw(
-        const PDBInfo& pdb_info,
-        const State& state,
-        const ProbabilisticTaskProxy& task_proxy,
-        std::vector<Flaw>& flaws,
-        value_t termination_cost,
-        utils::CountdownTimer& timer);
-
-    bool can_add_variable(
-        const PDBInfo& pdb_info,
-        const VariablesProxy& variables,
-        int var) const;
-
-    void add_variable_to_pattern(
-        PDBInfo& pdb_info,
-        const ProbabilisticTaskProxy& task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
-        int var,
-        utils::CountdownTimer& timer);
-
     void refine(
-        PDBInfo& pdb_info,
         const ProbabilisticTaskProxy& task_proxy,
+        StateRankingFunction& abstraction_mapping,
+        ProjectionStateSpace& projection_mdp,
+        IncrementalValueTableEvaluator& value_table,
         FDRSimpleCostFunction& task_cost_function,
         Flaw flaw,
         utils::CountdownTimer& timer);

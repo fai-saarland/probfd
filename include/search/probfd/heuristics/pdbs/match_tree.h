@@ -54,7 +54,9 @@ class MatchTree {
     void dump_recursive(std::ostream& out, Node* node) const;
 
 public:
-    MatchTree(size_t hint_num_operators = 0);
+    explicit MatchTree(size_t hint_num_operators = 0);
+
+    MatchTree& operator=(MatchTree&&) noexcept;
 
     ~MatchTree();
 

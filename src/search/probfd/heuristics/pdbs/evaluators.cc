@@ -137,6 +137,49 @@ StateRank MergeEvaluator::convert(
     return rank;
 }
 
+IncrementalValueTableEvaluator::IncrementalValueTableEvaluator(int initial_size)
+    : current_value_table(initial_size, 0_vt)
+{
+}
+
+value_t IncrementalValueTableEvaluator::evaluate(StateRank state) const
+{
+    return current_value_table[state.id];
+}
+
+void IncrementalValueTableEvaluator::on_refinement(
+    const StateRankingFunction& mapper,
+    int add_var)
+{
+    const Pattern& pattern = mapper.get_pattern();
+    auto it = std::ranges::lower_bound(pattern, add_var);
+    assert(it != pattern.end());
+    auto idx = std::distance(pattern.begin(), it);
+
+    int domain_size = mapper.get_domain_size(idx);
+    int left_multiplier = mapper.get_multiplier(idx);
+    int right_multiplier =
+        static_cast<unsigned int>(idx + 1) < mapper.num_vars()
+            ? mapper.get_multiplier(idx + 1)
+            : mapper.num_states();
+
+    std::vector<value_t> next_value_table(mapper.num_states(), 0_vt);
+
+    for (size_t i = 0; i != mapper.num_states(); ++i) {
+        int left = i % left_multiplier;
+        int right = i - (i % right_multiplier);
+        int parent = left + right / domain_size;
+        next_value_table[i] = current_value_table[parent];
+    }
+
+    current_value_table = std::move(next_value_table);
+}
+
+std::vector<value_t>& IncrementalValueTableEvaluator::get_value_table()
+{
+    return current_value_table;
+}
+
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd

@@ -43,9 +43,9 @@ public:
     bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,
         const ProjectionStateSpace& mdp,
-        const ProbabilityAwarePatternDatabase& pdb,
+        const StateRankingFunction& abstraction_mapping,
         const ProjectionMultiPolicy& policy,
-        const std::unordered_set<int>& blacklisted_variables,
+        std::function<bool(int)> ignore_flaw,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;
 

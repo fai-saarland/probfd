@@ -181,7 +181,9 @@ void verify(
     std::vector<double> solution = solver.extract_solution();
 
     for (StateRank s{0}; s.id != num_states; ++s.id) {
-        if (utils::contains(pruned_states, s.id) || !seen.contains(s)) {
+        if (!seen.contains(s)) continue;
+
+        if (utils::contains(pruned_states, s.id)) {
             assert(value_table[s.id] == term_cost);
         } else {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));

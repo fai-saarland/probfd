@@ -37,7 +37,7 @@ std::ostream& operator<<(std::ostream& out, const Pattern& pattern);
 
 /**
  * @brief Computes the optimal state value table of the projection. The state
- * value for states that are unreachable remains unchanged.
+ * values for states that are unreachable remain unchanged.
  */
 void compute_value_table(
     ProjectionStateSpace& state_space,
