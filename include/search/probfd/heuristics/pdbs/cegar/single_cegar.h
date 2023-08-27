@@ -40,35 +40,37 @@ struct SingleCEGARResult {
 class SingleCEGAR {
     class PDBInfo;
 
-    mutable utils::LogProxy log;
-
-    // Random number generator
-    const std::shared_ptr<utils::RandomNumberGenerator> rng;
+    // Early termination criteria
+    const int max_pdb_size;
+    const double max_time;
 
     // Flaw finding strategy
     const std::shared_ptr<FlawFindingStrategy> flaw_strategy;
 
-    // behavior defining parameters
-    const bool wildcard;
-    const int max_pdb_size;
-    const double max_time;
+    // Random number generator (to pick flaws randomly)
+    const std::shared_ptr<utils::RandomNumberGenerator> rng;
 
+    // Find flaws in wildcard policies?
+    const bool wildcard;
+
+    // Goal variable for initial projection
     const int goal;
 
-    std::unordered_set<int> blacklisted_variables;
+    // Log output
+    mutable utils::LogProxy log;
 
-    /// The projection in form of its pdb plus stored policy.
-    std::unique_ptr<PDBInfo> pdb_info;
+    // Blacklist of variables to ignore when encountered as flaws
+    std::unordered_set<int> blacklisted_variables;
 
 public:
     SingleCEGAR(
-        const utils::LogProxy& log,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
-        bool wildcard,
         int max_pdb_size,
         double max_time,
+        std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
+        bool wildcard,
         int goal,
+        utils::LogProxy log,
         std::unordered_set<int> blacklisted_variables = {});
 
     ~SingleCEGAR();
@@ -79,20 +81,26 @@ public:
 
 private:
     bool get_flaws(
+        const PDBInfo& pdb_info,
         const ProbabilisticTaskProxy& task_proxy,
         std::vector<Flaw>& flaws,
         value_t termination_cost,
         utils::CountdownTimer& timer);
 
-    bool can_add_variable(const VariablesProxy& variables, int var) const;
+    bool can_add_variable(
+        const PDBInfo& pdb_info,
+        const VariablesProxy& variables,
+        int var) const;
 
     void add_variable_to_pattern(
+        PDBInfo& pdb_info,
         const ProbabilisticTaskProxy& task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         int var,
         utils::CountdownTimer& timer);
 
     void refine(
+        PDBInfo& pdb_info,
         const ProbabilisticTaskProxy& task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         const VariablesProxy& variables,

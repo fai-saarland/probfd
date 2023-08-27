@@ -46,7 +46,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
         FDRSimpleCostFunction& task_cost_function,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
 
@@ -54,19 +54,9 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
         FDRSimpleCostFunction& task_cost_function,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        utils::RandomNumberGenerator& rng,
         const ProbabilityAwarePatternDatabase& previous,
         int add_var,
-        bool wildcard,
-        utils::CountdownTimer& timer);
-
-    PDBInfo(
-        const ProbabilisticTaskProxy& task_proxy,
-        StateRankingFunction ranking_function,
-        FDRSimpleCostFunction& task_cost_function,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const ProbabilityAwarePatternDatabase& merge_left,
-        const ProbabilityAwarePatternDatabase& merge_right,
         bool wildcard,
         utils::CountdownTimer& timer);
 
@@ -92,7 +82,7 @@ SingleCEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     FDRSimpleCostFunction& task_cost_function,
-    const shared_ptr<utils::RandomNumberGenerator>& rng,
+    utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
     : state_space(new ProjectionStateSpace(
@@ -112,7 +102,7 @@ SingleCEGAR::PDBInfo::PDBInfo(
     , policy(pdb->compute_optimal_projection_policy(
           *state_space,
           initial_state,
-          *rng,
+          rng,
           wildcard))
 {
 }
@@ -121,7 +111,7 @@ SingleCEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
     FDRSimpleCostFunction& task_cost_function,
-    const shared_ptr<utils::RandomNumberGenerator>& rng,
+    utils::RandomNumberGenerator& rng,
     const ProbabilityAwarePatternDatabase& previous,
     int add_var,
     bool wildcard,
@@ -144,39 +134,7 @@ SingleCEGAR::PDBInfo::PDBInfo(
     , policy(pdb->compute_optimal_projection_policy(
           *state_space,
           initial_state,
-          *rng,
-          wildcard))
-{
-}
-
-SingleCEGAR::PDBInfo::PDBInfo(
-    const ProbabilisticTaskProxy& task_proxy,
-    StateRankingFunction ranking_function,
-    FDRSimpleCostFunction& task_cost_function,
-    const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const ProbabilityAwarePatternDatabase& left,
-    const ProbabilityAwarePatternDatabase& right,
-    bool wildcard,
-    utils::CountdownTimer& timer)
-    : state_space(new ProjectionStateSpace(
-          task_proxy,
-          ranking_function,
-          task_cost_function,
-          false,
-          timer.get_remaining_time()))
-    , initial_state(
-          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
-    , pdb(new ProbabilityAwarePatternDatabase(
-          *state_space,
-          std::move(ranking_function),
-          initial_state,
-          left,
-          right,
-          timer.get_remaining_time()))
-    , policy(pdb->compute_optimal_projection_policy(
-          *state_space,
-          initial_state,
-          *rng,
+          rng,
           wildcard))
 {
 }
@@ -231,21 +189,21 @@ bool SingleCEGAR::PDBInfo::is_goal(StateRank rank) const
 }
 
 SingleCEGAR::SingleCEGAR(
-    const utils::LogProxy& log,
-    const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
-    std::shared_ptr<FlawFindingStrategy> flaw_strategy,
-    bool wildcard,
-    int arg_max_pdb_size,
+    int max_pdb_size,
     double max_time,
+    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
+    bool wildcard,
     int goal,
+    utils::LogProxy log,
     std::unordered_set<int> blacklisted_variables)
-    : log(log)
-    , rng(arg_rng)
-    , flaw_strategy(flaw_strategy)
-    , wildcard(wildcard)
-    , max_pdb_size(arg_max_pdb_size)
+    : max_pdb_size(max_pdb_size)
     , max_time(max_time)
+    , flaw_strategy(std::move(flaw_strategy))
+    , rng(std::move(rng))
+    , wildcard(wildcard)
     , goal(goal)
+    , log(std::move(log))
     , blacklisted_variables(std::move(blacklisted_variables))
 {
 }
@@ -253,21 +211,22 @@ SingleCEGAR::SingleCEGAR(
 SingleCEGAR::~SingleCEGAR() = default;
 
 bool SingleCEGAR::get_flaws(
+    const PDBInfo& pdb_info,
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws,
     value_t termination_cost,
     utils::CountdownTimer& timer)
 {
-    if (!pdb_info->solution_exists(termination_cost)) {
+    if (!pdb_info.solution_exists(termination_cost)) {
         log << "SingleCEGAR: Problem unsolvable" << endl;
         return true;
     }
 
     const bool executable = flaw_strategy->apply_policy(
         task_proxy,
-        pdb_info->get_mdp(),
-        pdb_info->get_pdb(),
-        pdb_info->get_policy(),
+        pdb_info.get_mdp(),
+        pdb_info.get_pdb(),
+        pdb_info.get_policy(),
         blacklisted_variables,
         flaws,
         timer);
@@ -283,37 +242,41 @@ bool SingleCEGAR::get_flaws(
     return flaws.empty() && executable && blacklisted_variables.empty();
 }
 
-bool SingleCEGAR::can_add_variable(const VariablesProxy& variables, int var)
-    const
+bool SingleCEGAR::can_add_variable(
+    const PDBInfo& pdb_info,
+    const VariablesProxy& variables,
+    int var) const
 {
-    const int pdb_size = pdb_info->get_pdb().num_states();
+    const int pdb_size = pdb_info.get_pdb().num_states();
     const int domain_size = variables[var].get_domain_size();
 
     return utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size);
 }
 
 void SingleCEGAR::add_variable_to_pattern(
+    PDBInfo& pdb_info,
     const ProbabilisticTaskProxy& task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     int var,
     utils::CountdownTimer& timer)
 {
-    auto& pdb = pdb_info->get_pdb();
+    auto& pdb = pdb_info.get_pdb();
 
-    pdb_info.reset(new PDBInfo(
+    pdb_info = PDBInfo(
         task_proxy,
         StateRankingFunction(
             task_proxy.get_variables(),
             extended_pattern(pdb.get_pattern(), var)),
         task_cost_function,
-        rng,
+        *rng,
         pdb,
         var,
         wildcard,
-        timer));
+        timer);
 }
 
 void SingleCEGAR::refine(
+    PDBInfo& pdb_info,
     const ProbabilisticTaskProxy& task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     const VariablesProxy& variables,
@@ -336,12 +299,17 @@ void SingleCEGAR::refine(
         log << "on " << var << endl;
     }
 
-    if (can_add_variable(variables, var)) {
+    if (can_add_variable(pdb_info, variables, var)) {
         if (log.is_at_least_verbose()) {
             log << "SingleCEGAR: add it to the pattern" << endl;
         }
 
-        add_variable_to_pattern(task_proxy, task_cost_function, var, timer);
+        add_variable_to_pattern(
+            pdb_info,
+            task_proxy,
+            task_cost_function,
+            var,
+            timer);
         return;
     }
 
@@ -374,11 +342,11 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
     const VariablesProxy variables = task_proxy.get_variables();
 
     // Start with a solution of the trivial abstraction
-    pdb_info.reset(new PDBInfo(
+    std::unique_ptr<PDBInfo> pdb_info(new PDBInfo(
         task_proxy,
         StateRankingFunction(task_proxy.get_variables(), {goal}),
         task_cost_function,
-        rng,
+        *rng,
         wildcard,
         timer));
 
@@ -407,8 +375,12 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            bool solution_found =
-                get_flaws(task_proxy, flaws, termination_cost, timer);
+            bool solution_found = get_flaws(
+                *pdb_info,
+                task_proxy,
+                flaws,
+                termination_cost,
+                timer);
 
             if (solution_found) {
                 assert(blacklisted_variables.empty());
@@ -435,7 +407,13 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
 
             // if there was a flaw, then refine the abstraction
             // such that said flaw does not occur again
-            refine(task_proxy, task_cost_function, variables, flaws, timer);
+            refine(
+                *pdb_info,
+                task_proxy,
+                task_cost_function,
+                variables,
+                flaws,
+                timer);
 
             if (log.is_at_least_verbose()) {
                 log << "SingleCEGAR: current pattern: "

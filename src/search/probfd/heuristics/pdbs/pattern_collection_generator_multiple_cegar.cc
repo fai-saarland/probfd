@@ -40,14 +40,15 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     unordered_set<int>&& blacklisted_variables)
 {
     SingleCEGAR cegar(
-        log,
-        rng,
-        flaw_strategy,
-        use_wildcard_policies,
         max_pdb_size,
         max_time,
+        flaw_strategy,
+        rng,
+        use_wildcard_policies,
         goal.var,
+        log,
         std::move(blacklisted_variables));
+
     auto [state_space, pdb] =
         cegar.generate_pdb(task_proxy, task_cost_function);
 
