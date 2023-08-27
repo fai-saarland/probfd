@@ -339,8 +339,7 @@ void SingleCEGAR::refine(
     int var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
-        log << "SingleCEGAR: chosen flaw: pattern " << pdb_info->get_pattern()
-            << " with a violated";
+        log << "SingleCEGAR: chosen flaw: violated";
         if (flaw.is_precondition) {
             log << " precondition ";
         } else {
