@@ -41,10 +41,10 @@ SingleCEGAR::~SingleCEGAR() = default;
 
 void SingleCEGAR::refine(
     const ProbabilisticTaskProxy& task_proxy,
+    FDRSimpleCostFunction& task_cost_function,
     StateRankingFunction& abstraction_mapping,
     ProjectionStateSpace& projection_mdp,
     IncrementalValueTableEvaluator& h,
-    FDRSimpleCostFunction& task_cost_function,
     Flaw flaw,
     utils::CountdownTimer& timer)
 {
@@ -151,10 +151,10 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
             // such that said flaw does not occur again
             refine(
                 task_proxy,
+                task_cost_function,
                 abstraction_mapping,
                 *projection,
                 h,
-                task_cost_function,
                 *flaw,
                 timer);
 

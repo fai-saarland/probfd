@@ -75,10 +75,10 @@ public:
 private:
     void refine(
         const ProbabilisticTaskProxy& task_proxy,
+        FDRSimpleCostFunction& task_cost_function,
         StateRankingFunction& abstraction_mapping,
         ProjectionStateSpace& projection_mdp,
         IncrementalValueTableEvaluator& value_table,
-        FDRSimpleCostFunction& task_cost_function,
         Flaw flaw,
         utils::CountdownTimer& timer);
 };
