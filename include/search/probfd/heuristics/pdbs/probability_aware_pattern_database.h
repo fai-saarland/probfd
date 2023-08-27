@@ -330,6 +330,9 @@ public:
         utils::RandomNumberGenerator& rng,
         bool wildcard) const;
 
+    /**
+     * @brief Computes the saturated costs of the PDB.
+     */
     void compute_saturated_costs(
         ProjectionStateSpace& state_space,
         std::vector<value_t>& saturated_costs) const;

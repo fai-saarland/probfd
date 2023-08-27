@@ -45,6 +45,14 @@ void compute_value_table(
     double max_time,
     std::vector<value_t>& value_table);
 
+/**
+ * @brief Computes the saturated costs of a projection.
+ */
+void compute_saturated_costs(
+    ProjectionStateSpace& state_space,
+    const std::vector<value_t>& value_table,
+    std::vector<value_t>& saturated_costs);
+
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd
