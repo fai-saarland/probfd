@@ -258,15 +258,11 @@ bool SingleCEGAR::get_flaws(
     value_t termination_cost,
     utils::CountdownTimer& timer)
 {
-    // abort here if no abstract solution could be found
     if (!pdb_info->solution_exists(termination_cost)) {
         log << "SingleCEGAR: Problem unsolvable" << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
+        return true;
     }
 
-    // find out if and why the abstract solution
-    // would not work for the concrete task.
-    // We always start with the initial state.
     const bool executable = flaw_strategy->apply_policy(
         task_proxy,
         pdb_info->get_mdp(),
@@ -276,23 +272,15 @@ bool SingleCEGAR::get_flaws(
         flaws,
         timer);
 
-    // Check for new flaws
-    if (flaws.empty()) {
-        // Check if policy is executable modulo blacklisting.
-        // Even if there are no flaws, there might be goal violations
-        // that did not make it into the flaw list.
-        if (executable && blacklisted_variables.empty()) {
-            /*
-             * If there are no flaws, this does not guarantee that the
-             * plan is valid in the concrete state space because we might
-             * have ignored variables that have been blacklisted. Hence the
-             * tests for empty blacklists.
-             */
-            return true;
-        }
-    }
-
-    return false;
+    /*
+     * Even if there are no flaws, there might be goal violations
+     * that did not make it into the flaw list.
+     * If there are no flaws, this does not guarantee that the
+     * plan is valid in the concrete state space because we might
+     * have ignored variables that have been blacklisted. Hence the
+     * tests for empty blacklists.
+     */
+    return flaws.empty() && executable && blacklisted_variables.empty();
 }
 
 bool SingleCEGAR::can_add_variable(const VariablesProxy& variables, int var)

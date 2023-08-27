@@ -326,12 +326,9 @@ int CEGAR::get_flaws(
         // abort here if no abstract solution could be found
         if (!info->solution_exists(termination_cost)) {
             log << "CEGAR: Problem unsolvable" << endl;
-            utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
+            return idx;
         }
 
-        // find out if and why the abstract solution
-        // would not work for the concrete task.
-        // We always start with the initial state.
         const size_t num_flaws_before = flaws.size();
         const bool executable = flaw_strategy->apply_policy(
             task_proxy,
