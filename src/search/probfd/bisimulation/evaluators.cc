@@ -1,4 +1,4 @@
-#include "probfd/bisimulation/algorithm_interfaces.h"
+#include "probfd/bisimulation/evaluators.h"
 
 namespace probfd {
 namespace bisimulation {

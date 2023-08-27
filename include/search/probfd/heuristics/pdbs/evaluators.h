@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_PDBS_ALGORITHM_INTERFACES_H
-#define PROBFD_HEURISTICS_PDBS_ALGORITHM_INTERFACES_H
+#ifndef PROBFD_HEURISTICS_PDBS_EVALUATORS_H
+#define PROBFD_HEURISTICS_PDBS_EVALUATORS_H
 
 #include "probfd/heuristics/pdbs/state_rank.h"
 
@@ -87,4 +87,4 @@ private:
 } // namespace heuristics
 } // namespace probfd
 
-#endif // __ALGORITHM_INTERFACES_H__
+#endif // __EVALUATORS_H__

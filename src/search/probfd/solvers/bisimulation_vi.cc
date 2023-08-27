@@ -1,7 +1,8 @@
 #include "probfd/solver_interface.h"
 
-#include "probfd/bisimulation/algorithm_interfaces.h"
 #include "probfd/bisimulation/bisimilar_state_space.h"
+#include "probfd/bisimulation/evaluators.h"
+
 
 #include "probfd/algorithms/interval_iteration.h"
 #include "probfd/algorithms/topological_value_iteration.h"

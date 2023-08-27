@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/algorithm_interfaces.h"
+#include "probfd/heuristics/pdbs/evaluators.h"
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"

@@ -6,7 +6,7 @@
 #include "probfd/heuristics/cartesian/complete_policy_flaw_finder.h"
 #include "probfd/heuristics/cartesian/ilao_policy_generator.h"
 
-#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
+#include "probfd/heuristics/cartesian/evaluators.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/utils.h"

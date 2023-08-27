@@ -90,7 +90,7 @@ fast_downward_plugin(
     HELP "bisimulation_core"
     SOURCES
         probfd/bisimulation/bisimilar_state_space
-        probfd/bisimulation/algorithm_interfaces
+        probfd/bisimulation/evaluators
     DEPENDS MDP
     DEPENDENCY_ONLY
 )
@@ -277,7 +277,7 @@ fast_downward_plugin(
     NAME PROBABILITY_AWARE_PDBS
     HELP "Probability-aware PDBs base classes"
     SOURCES
-        probfd/heuristics/pdbs/algorithm_interfaces
+        probfd/heuristics/pdbs/evaluators
         probfd/heuristics/pdbs/match_tree
         probfd/heuristics/pdbs/probability_aware_pattern_database
         probfd/heuristics/pdbs/projection_operator
@@ -408,7 +408,7 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/cost_saturation
         probfd/heuristics/cartesian/complete_policy_flaw_finder
         probfd/heuristics/cartesian/distances
-        probfd/heuristics/cartesian/algorithm_interfaces
+        probfd/heuristics/cartesian/evaluators
         probfd/heuristics/cartesian/flaw
         probfd/heuristics/cartesian/flaw_generator
         probfd/heuristics/cartesian/ilao_policy_generator
