@@ -35,19 +35,19 @@ class FlawGenerator;
 class ProjectionFactory;
 
 class SingleCEGAR {
-    // Flaw generation
-    const std::shared_ptr<FlawGenerator> flaw_generator;
-
     // Initial projection factory
     const std::shared_ptr<ProjectionFactory> projection_factory;
+
+    // Flaw generation
+    const std::shared_ptr<FlawGenerator> flaw_generator;
 
     // Log output
     mutable utils::LogProxy log;
 
 public:
     SingleCEGAR(
-        std::shared_ptr<FlawGenerator> flaw_generator,
         std::shared_ptr<ProjectionFactory> projection_factory,
+        std::shared_ptr<FlawGenerator> flaw_generator,
         utils::LogProxy log);
 
     ~SingleCEGAR();

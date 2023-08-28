@@ -43,13 +43,13 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     unordered_set<int>&& blacklisted_variables)
 {
     SingleCEGAR cegar(
+        std::make_shared<ProjectionFactory>(goal.var),
         std::make_shared<FlawGenerator>(
             flaw_strategy,
             rng,
             use_wildcard_policies,
             max_pdb_size,
             std::move(blacklisted_variables)),
-        std::make_shared<ProjectionFactory>(goal.var),
         log);
 
     auto [abstraction_mapping, state_space, heuristic] =

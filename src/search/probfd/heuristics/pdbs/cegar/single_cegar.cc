@@ -20,11 +20,11 @@ namespace pdbs {
 namespace cegar {
 
 SingleCEGAR::SingleCEGAR(
-    std::shared_ptr<FlawGenerator> flaw_generator,
     std::shared_ptr<ProjectionFactory> projection_factory,
+    std::shared_ptr<FlawGenerator> flaw_generator,
     utils::LogProxy log)
-    : flaw_generator(std::move(flaw_generator))
-    , projection_factory(std::move(projection_factory))
+    : projection_factory(std::move(projection_factory))
+    , flaw_generator(std::move(flaw_generator))
     , log(std::move(log))
 {
 }
