@@ -42,13 +42,22 @@ class FlawGenerator {
     // Find flaws in wildcard policies?
     const bool wildcard;
 
+    // The maximum PDB size. Do not report a flaw if the refinement would
+    // increase the PDB size beyond this threshold.
+    const int max_pdb_size;
+
+    // Blacklist of variables to ignore when encountered as flaws
+    std::unordered_set<int> blacklisted_variables;
+
     std::vector<Flaw> flaws;
 
 public:
     FlawGenerator(
         std::shared_ptr<FlawFindingStrategy> flaw_strategy,
         std::shared_ptr<utils::RandomNumberGenerator> rng,
-        bool wildcard);
+        bool wildcard,
+        int max_pdb_size,
+        std::unordered_set<int> blacklisted_variables = {});
 
     /**
      * @brief Generates a single flaw for the given projection.
@@ -58,8 +67,6 @@ public:
         ProjectionInfo& projection_info,
         const State& state,
         value_t termination_cost,
-        std::unordered_set<int>& blacklist,
-        int max_pdb_size,
         utils::LogProxy log,
         utils::CountdownTimer& timer);
 

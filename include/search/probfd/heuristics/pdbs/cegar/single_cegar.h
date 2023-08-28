@@ -35,8 +35,7 @@ class FlawGenerator;
 class ProjectionFactory;
 
 class SingleCEGAR {
-    // Early termination criteria
-    const int max_pdb_size;
+    // Time limit for CEGAR
     const double max_time;
 
     // Flaw generation
@@ -48,17 +47,12 @@ class SingleCEGAR {
     // Log output
     mutable utils::LogProxy log;
 
-    // Blacklist of variables to ignore when encountered as flaws
-    std::unordered_set<int> blacklisted_variables;
-
 public:
     SingleCEGAR(
-        int max_pdb_size,
         double max_time,
         std::shared_ptr<FlawGenerator> flaw_generator,
         std::shared_ptr<ProjectionFactory> projection_factory,
-        utils::LogProxy log,
-        std::unordered_set<int> blacklisted_variables = {});
+        utils::LogProxy log);
 
     ~SingleCEGAR();
 

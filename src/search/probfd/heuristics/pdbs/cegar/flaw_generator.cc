@@ -30,10 +30,14 @@ using namespace std;
 FlawGenerator::FlawGenerator(
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     std::shared_ptr<utils::RandomNumberGenerator> rng,
-    bool wildcard)
+    bool wildcard,
+    int max_pdb_size,
+    std::unordered_set<int> blacklisted_variables)
     : flaw_strategy(std::move(flaw_strategy))
     , rng(std::move(rng))
     , wildcard(wildcard)
+    , max_pdb_size(max_pdb_size)
+    , blacklisted_variables(std::move(blacklisted_variables))
 {
 }
 
@@ -42,8 +46,6 @@ std::optional<Flaw> FlawGenerator::generate_flaw(
     ProjectionInfo& projection_info,
     const State& state,
     value_t termination_cost,
-    std::unordered_set<int>& blacklist,
-    int max_pdb_size,
     utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
@@ -77,13 +79,13 @@ std::optional<Flaw> FlawGenerator::generate_flaw(
     auto ignore_flaw = [&,
                         pdb_size = abstraction_mapping->num_states(),
                         variables = task_proxy.get_variables()](int var) {
-        if (blacklist.contains(var)) return true;
+        if (blacklisted_variables.contains(var)) return true;
 
         if (!utils::is_product_within_limit(
                 pdb_size,
                 variables[var].get_domain_size(),
                 max_pdb_size)) {
-            blacklist.insert(var);
+            blacklisted_variables.insert(var);
             return true;
         };
 
@@ -108,17 +110,12 @@ std::optional<Flaw> FlawGenerator::generate_flaw(
      * empty blacklist check for the log output.
      */
     if (flaws.empty()) {
-        if (log.is_at_least_verbose()) {
-            if (executable && blacklist.empty()) {
-                log << "Task solved during computation of "
-                       "abstract policies.\n"
-                       "Cost of policy: "
-                    << value_table[init_state.id] << endl;
-
-            } else {
-                log << "Flaw list empty."
-                    << "No further refinements possible." << endl;
-            }
+        if (log.is_at_least_verbose() && executable &&
+            blacklisted_variables.empty()) {
+            log << "Task solved during computation of "
+                   "abstract policies.\n"
+                   "Cost of policy: "
+                << value_table[init_state.id] << endl;
         }
 
         return std::nullopt;

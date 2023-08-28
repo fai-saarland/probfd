@@ -20,18 +20,14 @@ namespace pdbs {
 namespace cegar {
 
 SingleCEGAR::SingleCEGAR(
-    int max_pdb_size,
     double max_time,
     std::shared_ptr<FlawGenerator> flaw_generator,
     std::shared_ptr<ProjectionFactory> projection_factory,
-    utils::LogProxy log,
-    std::unordered_set<int> blacklisted_variables)
-    : max_pdb_size(max_pdb_size)
-    , max_time(max_time)
+    utils::LogProxy log)
+    : max_time(max_time)
     , flaw_generator(std::move(flaw_generator))
     , projection_factory(std::move(projection_factory))
     , log(std::move(log))
-    , blacklisted_variables(std::move(blacklisted_variables))
 {
 }
 
@@ -79,9 +75,7 @@ ProjectionInfo SingleCEGAR::generate_pdb(
     if (log.is_at_least_normal()) {
         log << "SingleCEGAR options: \n"
             << "  flaw generation: " << flaw_generator->get_name() << "\n"
-            << "  max pdb size: " << max_pdb_size << "\n"
             << "  max time: " << max_time << "\n"
-            << "  blacklisted variables: " << blacklisted_variables << "\n"
             << endl;
     }
 
@@ -120,12 +114,14 @@ ProjectionInfo SingleCEGAR::generate_pdb(
                 projection_info,
                 initial_state,
                 termination_cost,
-                blacklisted_variables,
-                max_pdb_size,
                 log,
                 timer);
 
             if (!flaw) {
+                if (log.is_at_least_verbose()) {
+                    log << "No flaw was generated. Stopping refinement loop."
+                        << endl;
+                }
                 break;
             }
 
