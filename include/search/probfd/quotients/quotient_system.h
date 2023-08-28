@@ -394,6 +394,8 @@ public:
     void
     build_quotient(SubMDP submdp, std::ranges::range_reference_t<SubMDP> entry)
     {
+        using namespace std::views;
+
         const StateID rid = get<0>(entry);
         const auto& raops = get<1>(entry);
 
@@ -414,14 +416,12 @@ public:
             mdp_->generate_applicable_actions(rid, qinfo.aops);
 
             // Partition new actions
-            auto new_aops = std::ranges::subrange(
-                qinfo.aops.begin() + prev_size,
-                qinfo.aops.end());
+            auto new_aops = qinfo.aops | drop(prev_size);
 
             {
                 auto [pivot, last] = partition_actions(
                     new_aops,
-                    raops | std::views::transform(&QAction::action));
+                    raops | transform(&QAction::action));
 
                 b.num_outer_acts = std::distance(new_aops.begin(), pivot);
                 b.num_inner_acts = std::distance(pivot, last);
@@ -478,9 +478,7 @@ public:
                 mdp_->generate_applicable_actions(state_id, qinfo.aops);
 
                 // Partition new actions
-                auto new_aops = std::ranges::subrange(
-                    qinfo.aops.begin() + prev_size,
-                    qinfo.aops.end());
+                auto new_aops = qinfo.aops | drop(prev_size);
 
                 auto [pivot, last] = partition_actions(
                     new_aops,

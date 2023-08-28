@@ -299,9 +299,7 @@ bool FRET<State, Action, UseInterval, GreedyGraphGenerator>::
             const bool can_reach_child_scc = scc_found || !einfo->is_leaf;
 
             if (scc_found) {
-                auto scc = std::ranges::subrange(
-                    stack.begin() + sinfo->stack_index,
-                    stack.end());
+                auto scc = stack | std::views::drop(sinfo->stack_index);
 
                 for (const auto& info : scc) {
                     state_infos[info.state_id].close();

@@ -563,7 +563,7 @@ private:
         StackInfo& s,
         utils::CountdownTimer& timer)
     {
-        auto scc = std::ranges::subrange(stack_.begin() + e.stck, stack_.end());
+        auto scc = stack_ | std::views::drop(e.stck);
 
         if (scc.size()) {
             assert(s.aops.empty());

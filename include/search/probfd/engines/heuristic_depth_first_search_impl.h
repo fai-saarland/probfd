@@ -257,9 +257,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
             if (sinfo->index == sinfo->lowlink) {
                 last_leaf = false;
 
-                auto scc = std::ranges::subrange(
-                    std::next(stack_.begin(), sinfo->index),
-                    stack_.end());
+                auto scc = stack_ | std::views::drop(sinfo->index);
 
                 for (const StateID state_id : scc) {
                     state_infos_[state_id].status = UNSOLVED;

@@ -360,9 +360,7 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
             // Is SCC root?
             if (einfo->lowlink == stack_index_[state]) {
-                std::ranges::subrange scc(
-                    stack_.begin() + last_lowlink,
-                    stack_.end());
+                auto scc = stack_ | std::views::drop(last_lowlink);
 
                 if (scc.size() == 1) {
                     if (backtrack_update_type_ == CONVERGENCE) {

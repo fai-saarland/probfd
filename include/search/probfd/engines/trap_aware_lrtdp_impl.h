@@ -219,9 +219,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
             if (einfo->is_root) {
                 const StateID state = einfo->state;
                 const unsigned stack_index = stack_index_[state];
-                std::ranges::subrange scc(
-                    std::next(stack_.begin(), stack_index),
-                    stack_.end());
+                auto scc = stack_ | std::views::drop(stack_index);
 
                 if (scc.size() == 1) {
                     stack_index_[state] = STATE_CLOSED;
