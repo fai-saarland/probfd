@@ -107,7 +107,8 @@ AODDeterminizationTask::get_axiom_effect(int op_index, int eff_index) const
 
 int AODDeterminizationTask::get_operator_cost(int index) const
 {
-    return parent_task->get_operator_cost(get_parent_indices(index).first);
+    return static_cast<int>(
+        parent_task->get_operator_cost(get_parent_indices(index).first));
 }
 
 std::string AODDeterminizationTask::get_operator_name(int index) const
