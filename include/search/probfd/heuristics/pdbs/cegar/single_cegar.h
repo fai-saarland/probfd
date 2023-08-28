@@ -35,9 +35,6 @@ class FlawGenerator;
 class ProjectionFactory;
 
 class SingleCEGAR {
-    // Time limit for CEGAR
-    const double max_time;
-
     // Flaw generation
     const std::shared_ptr<FlawGenerator> flaw_generator;
 
@@ -49,7 +46,6 @@ class SingleCEGAR {
 
 public:
     SingleCEGAR(
-        double max_time,
         std::shared_ptr<FlawGenerator> flaw_generator,
         std::shared_ptr<ProjectionFactory> projection_factory,
         utils::LogProxy log);
@@ -58,7 +54,8 @@ public:
 
     ProjectionInfo generate_pdb(
         const ProbabilisticTaskProxy& task_proxy,
-        FDRSimpleCostFunction& task_cost_function);
+        FDRSimpleCostFunction& task_cost_function,
+        double max_time);
 
 private:
     void refine(

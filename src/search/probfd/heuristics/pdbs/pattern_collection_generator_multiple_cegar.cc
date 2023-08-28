@@ -43,7 +43,6 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     unordered_set<int>&& blacklisted_variables)
 {
     SingleCEGAR cegar(
-        max_time,
         std::make_shared<FlawGenerator>(
             flaw_strategy,
             rng,
@@ -54,7 +53,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         log);
 
     auto [abstraction_mapping, state_space, heuristic] =
-        cegar.generate_pdb(task_proxy, task_cost_function);
+        cegar.generate_pdb(task_proxy, task_cost_function, max_time);
 
     return {
         std::move(state_space),

@@ -20,12 +20,10 @@ namespace pdbs {
 namespace cegar {
 
 SingleCEGAR::SingleCEGAR(
-    double max_time,
     std::shared_ptr<FlawGenerator> flaw_generator,
     std::shared_ptr<ProjectionFactory> projection_factory,
     utils::LogProxy log)
-    : max_time(max_time)
-    , flaw_generator(std::move(flaw_generator))
+    : flaw_generator(std::move(flaw_generator))
     , projection_factory(std::move(projection_factory))
     , log(std::move(log))
 {
@@ -70,16 +68,17 @@ void SingleCEGAR::refine(
 
 ProjectionInfo SingleCEGAR::generate_pdb(
     const ProbabilisticTaskProxy& task_proxy,
-    FDRSimpleCostFunction& task_cost_function)
+    FDRSimpleCostFunction& task_cost_function,
+    double max_time)
 {
+    utils::CountdownTimer timer(max_time);
+
     if (log.is_at_least_normal()) {
         log << "SingleCEGAR options: \n"
             << "  flaw generation: " << flaw_generator->get_name() << "\n"
             << "  max time: " << max_time << "\n"
             << endl;
     }
-
-    utils::CountdownTimer timer(max_time);
 
     const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
