@@ -86,11 +86,8 @@ ProjectionInfo SingleCEGAR::generate_pdb(
         timer);
 
     if (log.is_at_least_normal()) {
-        log << "SingleCEGAR initial pattern: " << projection_info.get_pattern();
-
-        if (log.is_at_least_verbose()) {
-            log << endl;
-        }
+        log << "SingleCEGAR initial pattern: " << projection_info.get_pattern()
+            << endl;
     }
 
     // main loop of the algorithm
