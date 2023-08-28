@@ -1,8 +1,11 @@
 #include "probfd/heuristics/pdbs/cegar/flaw_generator.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/cegar/projection_info.h"
 
-#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/evaluators.h"
+#include "probfd/heuristics/pdbs/projection_state_space.h"
+#include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/utils/guards.h"
@@ -36,9 +39,7 @@ FlawGenerator::FlawGenerator(
 
 std::optional<Flaw> FlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
-    const StateRankingFunction& abstraction_mapping,
-    ProjectionStateSpace& projection_mdp,
-    IncrementalValueTableEvaluator& h,
+    ProjectionInfo& projection_info,
     const State& state,
     value_t termination_cost,
     std::unordered_set<int>& blacklist,
@@ -46,18 +47,20 @@ std::optional<Flaw> FlawGenerator::generate_flaw(
     utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
-    const StateRank init_state = abstraction_mapping.get_abstract_rank(state);
+    auto& [abstraction_mapping, projection_mdp, heuristic] = projection_info;
 
-    std::vector<value_t>& value_table = h.get_value_table();
+    const StateRank init_state = abstraction_mapping->get_abstract_rank(state);
+
+    std::vector<value_t>& value_table = heuristic->get_value_table();
 
     pdbs::compute_value_table(
-        projection_mdp,
-        h,
+        *projection_mdp,
+        *heuristic,
         init_state,
         timer.get_remaining_time(),
         value_table);
 
-    if (h.get_value_table()[init_state.id] == termination_cost) {
+    if (value_table[init_state.id] == termination_cost) {
         log << "Problem unsolvable" << endl;
         return std::nullopt;
     }
@@ -65,14 +68,14 @@ std::optional<Flaw> FlawGenerator::generate_flaw(
     scope_exit scope([&] { flaws.clear(); });
 
     auto policy = pdbs::compute_optimal_projection_policy(
-        projection_mdp,
+        *projection_mdp,
         init_state,
         value_table,
         *rng,
         wildcard);
 
     auto ignore_flaw = [&,
-                        pdb_size = abstraction_mapping.num_states(),
+                        pdb_size = abstraction_mapping->num_states(),
                         variables = task_proxy.get_variables()](int var) {
         if (blacklist.contains(var)) return true;
 
@@ -89,8 +92,8 @@ std::optional<Flaw> FlawGenerator::generate_flaw(
 
     const bool executable = flaw_strategy->apply_policy(
         task_proxy,
-        projection_mdp,
-        abstraction_mapping,
+        *projection_mdp,
+        *abstraction_mapping,
         *policy,
         ignore_flaw,
         flaws,

@@ -5,6 +5,7 @@
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw.h"
+#include "probfd/heuristics/pdbs/cegar/projection_info.h"
 
 #include "probfd/task_proxy.h"
 
@@ -24,19 +25,14 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
+class StateRankingFunction;
 class ProjectionStateSpace;
-class ProbabilityAwarePatternDatabase;
+class IncrementalValueTableEvaluator;
 
 namespace cegar {
 
 class FlawGenerator;
-
-struct SingleCEGARResult {
-    std::unique_ptr<ProjectionStateSpace> projection;
-    std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
-
-    ~SingleCEGARResult();
-};
+class ProjectionFactory;
 
 class SingleCEGAR {
     // Early termination criteria
@@ -44,10 +40,10 @@ class SingleCEGAR {
     const double max_time;
 
     // Flaw generation
-    std::shared_ptr<FlawGenerator> flaw_generator;
+    const std::shared_ptr<FlawGenerator> flaw_generator;
 
-    // Goal variable for initial projection
-    const int goal;
+    // Initial projection factory
+    const std::shared_ptr<ProjectionFactory> projection_factory;
 
     // Log output
     mutable utils::LogProxy log;
@@ -60,13 +56,13 @@ public:
         int max_pdb_size,
         double max_time,
         std::shared_ptr<FlawGenerator> flaw_generator,
-        int goal,
+        std::shared_ptr<ProjectionFactory> projection_factory,
         utils::LogProxy log,
         std::unordered_set<int> blacklisted_variables = {});
 
     ~SingleCEGAR();
 
-    SingleCEGARResult generate_pdb(
+    ProjectionInfo generate_pdb(
         const ProbabilisticTaskProxy& task_proxy,
         FDRSimpleCostFunction& task_cost_function);
 
@@ -74,9 +70,7 @@ private:
     void refine(
         const ProbabilisticTaskProxy& task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        StateRankingFunction& abstraction_mapping,
-        ProjectionStateSpace& projection_mdp,
-        IncrementalValueTableEvaluator& value_table,
+        ProjectionInfo& projection_info,
         Flaw flaw,
         utils::CountdownTimer& timer);
 };

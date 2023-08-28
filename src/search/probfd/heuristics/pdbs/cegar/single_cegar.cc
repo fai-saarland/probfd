@@ -1,8 +1,9 @@
 #include "probfd/heuristics/pdbs/cegar/single_cegar.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw_generator.h"
+#include "probfd/heuristics/pdbs/cegar/projection_factory.h"
+#include "probfd/heuristics/pdbs/cegar/projection_info.h"
 
-#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/utils.h"
@@ -10,7 +11,6 @@
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/countdown_timer.h"
-#include "downward/utils/math.h"
 
 using namespace std;
 
@@ -19,19 +19,17 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-SingleCEGARResult::~SingleCEGARResult() = default;
-
 SingleCEGAR::SingleCEGAR(
     int max_pdb_size,
     double max_time,
     std::shared_ptr<FlawGenerator> flaw_generator,
-    int goal,
+    std::shared_ptr<ProjectionFactory> projection_factory,
     utils::LogProxy log,
     std::unordered_set<int> blacklisted_variables)
     : max_pdb_size(max_pdb_size)
     , max_time(max_time)
     , flaw_generator(std::move(flaw_generator))
-    , goal(goal)
+    , projection_factory(std::move(projection_factory))
     , log(std::move(log))
     , blacklisted_variables(std::move(blacklisted_variables))
 {
@@ -42,9 +40,7 @@ SingleCEGAR::~SingleCEGAR() = default;
 void SingleCEGAR::refine(
     const ProbabilisticTaskProxy& task_proxy,
     FDRSimpleCostFunction& task_cost_function,
-    StateRankingFunction& abstraction_mapping,
-    ProjectionStateSpace& projection_mdp,
-    IncrementalValueTableEvaluator& h,
+    ProjectionInfo& projection_info,
     Flaw flaw,
     utils::CountdownTimer& timer)
 {
@@ -60,21 +56,23 @@ void SingleCEGAR::refine(
         log << "on " << var << endl;
     }
 
-    abstraction_mapping = StateRankingFunction(
+    *projection_info.abstraction_mapping = StateRankingFunction(
         task_proxy.get_variables(),
-        extended_pattern(abstraction_mapping.get_pattern(), var));
+        extended_pattern(
+            projection_info.abstraction_mapping->get_pattern(),
+            var));
 
-    projection_mdp = ProjectionStateSpace(
+    *projection_info.projection_mdp = ProjectionStateSpace(
         task_proxy,
-        abstraction_mapping,
+        *projection_info.abstraction_mapping,
         task_cost_function,
         false,
         timer.get_remaining_time());
 
-    h.on_refinement(abstraction_mapping, var);
+    projection_info.on_refinement(var);
 }
 
-SingleCEGARResult SingleCEGAR::generate_pdb(
+ProjectionInfo SingleCEGAR::generate_pdb(
     const ProbabilisticTaskProxy& task_proxy,
     FDRSimpleCostFunction& task_cost_function)
 {
@@ -83,7 +81,6 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
             << "  flaw generation: " << flaw_generator->get_name() << "\n"
             << "  max pdb size: " << max_pdb_size << "\n"
             << "  max time: " << max_time << "\n"
-            << "  goal variable: " << goal << "\n"
             << "  blacklisted variables: " << blacklisted_variables << "\n"
             << endl;
     }
@@ -93,24 +90,13 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
     const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
 
-    // Start with an initial abstraction mapping, projection state space and
-    // a value table of appropriate size filled with zeroes.
-    StateRankingFunction abstraction_mapping(
-        task_proxy.get_variables(),
-        {goal});
-
-    std::unique_ptr<ProjectionStateSpace> projection(new ProjectionStateSpace(
+    ProjectionInfo projection_info = projection_factory->create_projection(
         task_proxy,
-        abstraction_mapping,
         task_cost_function,
-        false,
-        timer.get_remaining_time()));
-
-    IncrementalValueTableEvaluator h(abstraction_mapping.num_states());
+        timer);
 
     if (log.is_at_least_normal()) {
-        log << "SingleCEGAR initial pattern: "
-            << abstraction_mapping.get_pattern();
+        log << "SingleCEGAR initial pattern: " << projection_info.get_pattern();
 
         if (log.is_at_least_verbose()) {
             log << endl;
@@ -131,9 +117,7 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
 
             auto flaw = flaw_generator->generate_flaw(
                 task_proxy,
-                abstraction_mapping,
-                *projection,
-                h,
+                projection_info,
                 initial_state,
                 termination_cost,
                 blacklisted_variables,
@@ -152,15 +136,13 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
             refine(
                 task_proxy,
                 task_cost_function,
-                abstraction_mapping,
-                *projection,
-                h,
+                projection_info,
                 *flaw,
                 timer);
 
             if (log.is_at_least_verbose()) {
                 log << "SingleCEGAR: current pattern: "
-                    << abstraction_mapping.get_pattern() << endl;
+                    << projection_info.get_pattern() << endl;
             }
         }
     } catch (utils::TimeoutException&) {
@@ -174,14 +156,10 @@ SingleCEGARResult SingleCEGAR::generate_pdb(
             << "SingleCEGAR statistics:\n"
             << "  computation time: " << timer.get_elapsed_time() << "\n"
             << "  number of iterations: " << refinement_counter << "\n"
-            << "  final pattern: " << abstraction_mapping.get_pattern() << "\n";
+            << "  final pattern: " << projection_info.get_pattern() << "\n";
     }
 
-    return SingleCEGARResult{
-        std::move(projection),
-        std::make_unique<ProbabilityAwarePatternDatabase>(
-            std::move(abstraction_mapping),
-            std::move(h.get_value_table()))};
+    return projection_info;
 }
 
 } // namespace cegar

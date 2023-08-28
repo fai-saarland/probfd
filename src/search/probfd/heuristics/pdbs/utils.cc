@@ -275,7 +275,9 @@ void compute_saturated_costs(
 {
     std::fill(saturated_costs.begin(), saturated_costs.end(), -INFINITE_VALUE);
 
-    for (StateRank s{0}; s.id < value_table.size(); ++s.id) {
+    const long long int num_states = static_cast<long long>(value_table.size());
+
+    for (StateRank s{0}; s.id < num_states; ++s.id) {
         const value_t value = value_table[s.id];
 
         if (value == INFINITE_VALUE) {

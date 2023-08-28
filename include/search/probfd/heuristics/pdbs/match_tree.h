@@ -56,6 +56,7 @@ class MatchTree {
 public:
     explicit MatchTree(size_t hint_num_operators = 0);
 
+    MatchTree(MatchTree&&) noexcept;
     MatchTree& operator=(MatchTree&&) noexcept;
 
     ~MatchTree();

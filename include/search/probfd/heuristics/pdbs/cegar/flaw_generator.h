@@ -26,15 +26,11 @@ class ProbabilisticTaskProxy;
 
 namespace heuristics {
 namespace pdbs {
-
-class StateRankingFunction;
-class ProjectionStateSpace;
-class IncrementalValueTableEvaluator;
-
 namespace cegar {
 
 struct Flaw;
 class FlawFindingStrategy;
+struct ProjectionInfo;
 
 class FlawGenerator {
     // Flaw finding strategy
@@ -59,9 +55,7 @@ public:
      */
     std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
-        const StateRankingFunction& abstraction_mapping,
-        ProjectionStateSpace& projection_mdp,
-        IncrementalValueTableEvaluator& h,
+        ProjectionInfo& projection_info,
         const State& state,
         value_t termination_cost,
         std::unordered_set<int>& blacklist,

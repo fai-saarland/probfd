@@ -336,6 +336,8 @@ fast_downward_plugin(
     SOURCES
         probfd/heuristics/pdbs/cegar/single_cegar
         probfd/heuristics/pdbs/cegar/cegar
+        probfd/heuristics/pdbs/cegar/projection_info
+        probfd/heuristics/pdbs/cegar/projection_factory
         probfd/heuristics/pdbs/cegar/flaw_generator
         probfd/heuristics/pdbs/cegar/bfs_flaw_finder
         probfd/heuristics/pdbs/cegar/pucs_flaw_finder

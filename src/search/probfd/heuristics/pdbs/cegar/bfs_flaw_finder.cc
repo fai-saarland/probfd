@@ -65,8 +65,6 @@ bool BFSFlawFinder::apply_policy(
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
 
-    const int pdb_size = abstraction_mapping.num_states();
-
     do {
         timer.throw_if_expired();
 

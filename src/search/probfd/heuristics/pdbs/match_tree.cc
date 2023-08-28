@@ -60,6 +60,7 @@ MatchTree::MatchTree(size_t hint_num_operators)
     projection_operators.reserve(hint_num_operators);
 }
 
+MatchTree::MatchTree(MatchTree&&) noexcept = default;
 MatchTree& MatchTree::operator=(MatchTree&&) noexcept = default;
 
 MatchTree::~MatchTree() = default;
