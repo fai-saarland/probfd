@@ -421,7 +421,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
                 }
 
                 [[fallthrough]];
-            default:
+            case StateInfo::CLOSED:
                 explore.nz_or_leaves_scc = true;
                 explore.recurse =
                     explore.recurse || !tinfo.scc_successors.empty();
@@ -706,21 +706,23 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
         const StateID succ_id = e.get_current_successor().item;
         StateInfo& succ_info = state_information_[succ_id];
 
-        if (succ_info.status == StateInfo::NEW) {
+        switch (succ_info.status) {
+        case StateInfo::NEW:
             if (push_ecd(succ_id, succ_info)) {
                 return true;
             }
 
-            goto backtrack_child_scc;
-        } else if (succ_info.status == StateInfo::ONSTACK) {
+            [[fallthrough]];
+        case StateInfo::CLOSED:
+            e.recurse = e.recurse || e.remains_scc;
+            e.leaves_scc = true;
+            break;
+
+        case StateInfo::ONSTACK:
             e.lowlink = std::min(e.lowlink, succ_info.ecd_stack_id);
 
             e.recurse = e.recurse || e.leaves_scc;
             e.remains_scc = true;
-        } else {
-        backtrack_child_scc:
-            e.recurse = e.recurse || e.remains_scc;
-            e.leaves_scc = true;
         }
     } while (e.next_successor() || e.next_transition());
 

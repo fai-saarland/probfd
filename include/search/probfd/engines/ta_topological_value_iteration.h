@@ -61,7 +61,7 @@ class TATopologicalValueIteration : public MDPEngine<State, Action> {
 
     struct StateInfo {
         // Status Flags
-        enum { NEW, ONSTACK, CLOSED };
+        enum { NEW, CLOSED, ONSTACK };
 
         uint8_t status = NEW;
         unsigned stack_id = std::numeric_limits<unsigned>::max();

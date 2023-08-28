@@ -456,17 +456,19 @@ bool TopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 
             StateInfo& succ_info = state_information_[succ_id];
             EngineValueType& s_value = value_store[succ_id];
-            int status = succ_info.status;
 
-            if (status == StateInfo::ONSTACK) {
+            switch (succ_info.status) {
+            case StateInfo::NEW:
+                if (push_state(mdp, heuristic, succ_id, succ_info, s_value)) {
+                    return true; // recursion on new state
+                }
+
+                [[fallthrough]];
+            case StateInfo::CLOSED: tinfo.conv_part += prob * s_value; break;
+
+            case StateInfo::ONSTACK:
                 explore.update_lowlink(succ_info.stack_id);
                 tinfo.nconv_successors.emplace_back(&s_value, prob);
-            } else if (
-                status == StateInfo::NEW &&
-                push_state(mdp, heuristic, succ_id, succ_info, s_value)) {
-                return true; // recursion on new state
-            } else {
-                tinfo.conv_part += prob * s_value;
             }
         } while (explore.next_successor());
 
