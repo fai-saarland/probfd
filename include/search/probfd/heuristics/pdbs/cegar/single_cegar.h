@@ -39,8 +39,6 @@ struct SingleCEGARResult {
 };
 
 class SingleCEGAR {
-    class PDBInfo;
-
     // Early termination criteria
     const int max_pdb_size;
     const double max_time;
