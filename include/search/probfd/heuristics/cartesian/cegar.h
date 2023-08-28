@@ -50,7 +50,6 @@ struct CEGARResult {
 class CEGAR {
     const int max_states;
     const int max_non_looping_transitions;
-    const double max_time;
     const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory;
     const std::shared_ptr<SplitSelectorFactory> split_selector_factory;
 
@@ -60,7 +59,6 @@ public:
     CEGAR(
         int max_states,
         int max_non_looping_transitions,
-        double max_time,
         std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
         std::shared_ptr<SplitSelectorFactory> split_selector_factory,
         utils::LogProxy log);
@@ -68,8 +66,9 @@ public:
     ~CEGAR();
 
     // Build abstraction.
-    CEGARResult
-    run_refinement_loop(const std::shared_ptr<ProbabilisticTask>& task);
+    CEGARResult run_refinement_loop(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        double max_time);
 
 private:
     bool may_keep_refining(const Abstraction& abstraction) const;

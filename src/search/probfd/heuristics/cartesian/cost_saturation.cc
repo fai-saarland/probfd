@@ -221,13 +221,14 @@ void CostSaturation::build_abstractions(
             max(1,
                 (max_non_looping_transitions - num_non_looping_transitions) /
                     rem_subtasks),
-            timer.get_remaining_time() / rem_subtasks,
             flaw_generator_factory,
             split_selector_factory,
             log);
 
         auto [refinement_hierarchy, abstraction, heuristic] =
-            cegar.run_refinement_loop(subtask);
+            cegar.run_refinement_loop(
+                subtask,
+                timer.get_remaining_time() / rem_subtasks);
 
         ++num_abstractions;
         num_states += abstraction->get_num_states();

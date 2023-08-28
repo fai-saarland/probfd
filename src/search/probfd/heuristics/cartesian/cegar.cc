@@ -41,13 +41,11 @@ CEGARResult::~CEGARResult() = default;
 CEGAR::CEGAR(
     int max_states,
     int max_non_looping_transitions,
-    double max_time,
     std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
     std::shared_ptr<SplitSelectorFactory> split_selector_factory,
     utils::LogProxy log)
     : max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
-    , max_time(max_time)
     , flaw_generator_factory(std::move(flaw_generator_factory))
     , split_selector_factory(std::move(split_selector_factory))
     , log(std::move(log))
@@ -57,8 +55,9 @@ CEGAR::CEGAR(
 
 CEGAR::~CEGAR() = default;
 
-CEGARResult
-CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
+CEGARResult CEGAR::run_refinement_loop(
+    const shared_ptr<ProbabilisticTask>& task,
+    double max_time)
 {
     if (log.is_at_least_normal()) {
         log << "Start building abstraction." << endl;
