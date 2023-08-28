@@ -75,20 +75,20 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
 {
 }
 
-EvaluationResult
-AdditiveCartesianHeuristic::evaluate(const State& ancestor_state) const
+value_t AdditiveCartesianHeuristic::evaluate(const State& ancestor_state) const
 {
-    State state = task_proxy.convert_ancestor_state(ancestor_state);
+    const State state = task_proxy.convert_ancestor_state(ancestor_state);
+
     value_t sum_h = 0;
     for (const CartesianHeuristicFunction& function : heuristic_functions) {
-        value_t value = function.get_value(state);
+        const value_t value = function.get_value(state);
         assert(value >= 0_vt);
-        if (value == INFINITE_VALUE)
-            return EvaluationResult(true, INFINITE_VALUE);
+        if (value == INFINITE_VALUE) return INFINITE_VALUE;
         sum_h += value;
     }
+
     assert(sum_h >= 0_vt);
-    return EvaluationResult(false, sum_h);
+    return sum_h;
 }
 
 namespace {

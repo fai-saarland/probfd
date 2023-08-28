@@ -229,9 +229,9 @@ bool AcyclicValueIteration<State, Action>::push_state(
 
     const State state = mdp.get_state(state_id);
     const TerminationInfo term_info = mdp.get_termination_info(state);
-    const value_t value = term_info.get_cost();
+    const value_t term_value = term_info.get_cost();
 
-    succ_info.value = value;
+    succ_info.value = term_value;
 
     if (term_info.is_goal_state()) {
         ++statistics_.terminal_states;
@@ -239,7 +239,7 @@ bool AcyclicValueIteration<State, Action>::push_state(
         return false;
     }
 
-    if (heuristic.evaluate(state).is_unsolvable()) {
+    if (heuristic.evaluate(state) == term_value) {
         ++statistics_.pruned;
         return false;
     }

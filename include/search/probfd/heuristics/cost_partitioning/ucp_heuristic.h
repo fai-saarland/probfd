@@ -20,6 +20,7 @@ namespace heuristics {
 namespace pdbs {
 
 class UCPHeuristic : public TaskDependentHeuristic {
+    const value_t termination_cost;
     std::vector<ProbabilityAwarePatternDatabase> pdbs;
 
 public:
@@ -35,7 +36,7 @@ public:
     }
 
 protected:
-    EvaluationResult evaluate(const State& state) const override;
+    value_t evaluate(const State& state) const override;
 };
 
 } // namespace pdbs

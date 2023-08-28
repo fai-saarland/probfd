@@ -101,6 +101,7 @@ class PatternCollectionGeneratorHillclimbing
         IncrementalPPDBs& current_pdbs,
         const sampling::RandomWalkSampler& sampler,
         value_t init_h,
+        value_t termination_cost,
         std::vector<Sample>& samples);
 
     /*
@@ -112,20 +113,8 @@ class PatternCollectionGeneratorHillclimbing
         utils::CountdownTimer& hill_climbing_timer,
         IncrementalPPDBs& current_pdbs,
         const std::vector<Sample>& samples,
-        PPDBCollection& candidate_pdbs);
-
-    /*
-      Returns true iff the h-value of the new pattern (from pdb) plus the
-      h-value of all pattern cliques from the current pattern
-      collection heuristic if the new pattern was added to it is greater than
-      the h-value of the current pattern collection.
-    */
-    bool is_heuristic_improved(
-        const ProbabilityAwarePatternDatabase& pdb,
-        const Sample& sample,
-        const PPDBCollection& pdbs,
-        const std::vector<PatternSubCollection>& pattern_subcollections,
-        const IncrementalPPDBs& current_pdbs);
+        PPDBCollection& candidate_pdbs,
+        value_t termination_cost);
 
     /*
       This is the core algorithm of this class. The initial PDB collection

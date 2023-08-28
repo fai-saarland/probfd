@@ -20,7 +20,7 @@ struct InducedQuotientEvaluator : public QuotientEvaluator {
         BisimilarStateSpace* bisim,
         value_t upper_bound = 0);
 
-    EvaluationResult evaluate(QuotientState state) const override;
+    value_t evaluate(QuotientState state) const override;
 };
 
 } // namespace bisimulation

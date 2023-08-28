@@ -83,6 +83,7 @@ GZOCPHeuristic::GZOCPHeuristic(
     OrderingStrategy order,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
     : TaskDependentHeuristic(task, log)
+    , termination_cost(task_cost_function->get_non_goal_termination_cost())
     , ordering(order)
     , rng(rng)
 {
@@ -137,21 +138,21 @@ GZOCPHeuristic::GZOCPHeuristic(
     }
 }
 
-EvaluationResult GZOCPHeuristic::evaluate(const State& state) const
+value_t GZOCPHeuristic::evaluate(const State& state) const
 {
     value_t value = 0.0_vt;
 
     for (const auto& pdb : pdbs) {
-        auto eval_result = pdb.evaluate(state);
+        value_t estimate = pdb.lookup_estimate(state);
 
-        if (eval_result.is_unsolvable()) {
-            return eval_result;
+        if (estimate == termination_cost) {
+            return estimate;
         }
 
-        value += eval_result.get_estimate();
+        value += estimate;
     }
 
-    return EvaluationResult{false, value};
+    return value;
 }
 
 namespace {

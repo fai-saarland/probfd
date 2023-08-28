@@ -97,6 +97,7 @@ private:
         const ProbabilisticTaskProxy& task_proxy,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
+        value_t termination_cost,
         utils::CountdownTimer& timer);
 
     bool

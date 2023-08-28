@@ -44,7 +44,6 @@ namespace pdbs {
 class ProbabilityAwarePatternDatabase {
     StateRankingFunction ranking_function_;
     std::vector<value_t> value_table;
-    const value_t dead_end_cost;
 
     ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
@@ -290,14 +289,6 @@ public:
     /// Get the number of states in this PDB's projection.
     [[nodiscard]] unsigned int num_states() const;
 
-    /// Check if the corresponding abstract state in the PDB's projection of an
-    /// input state is a dead end.
-    [[nodiscard]] bool is_dead_end(const State& s) const;
-
-    /// Check if the abstract state in the PDB's projection corresponging to an
-    /// input state rank is a dead end.
-    [[nodiscard]] bool is_dead_end(StateRank rank) const;
-
     /// Compute the state rank of the abstract state of an input state.
     [[nodiscard]] StateRank get_abstract_state(const State& state) const;
 
@@ -308,12 +299,6 @@ public:
     /// Look up the estimate of an abstract state specified by state rank in
     /// the lookup table.
     [[nodiscard]] value_t lookup_estimate(StateRank s) const;
-
-    /// Query a heuristic evaluation for an input state.
-    [[nodiscard]] EvaluationResult evaluate(const State& s) const;
-
-    /// Query a heuristic evaluation for an abstract state.
-    [[nodiscard]] EvaluationResult evaluate(StateRank s) const;
 
     /**
      * @brief Extract an abstract optimal policy for the PDB's projection from

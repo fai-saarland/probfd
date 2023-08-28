@@ -410,8 +410,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
         return true;
     }
 
-    EvaluationResult estimate = h.evaluate(state);
-    if (estimate.is_unsolvable()) {
+    const value_t estimate = h.evaluate(state);
+    if (estimate == t_cost) {
         statistics_.pruned_states++;
         notify_dead_end(state_info);
         if (on_new_state_) on_new_state_->notify_dead(state);
@@ -419,9 +419,9 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
         state_info.set_on_fringe();
 
         if constexpr (UseInterval) {
-            state_info.value.lower = estimate.get_estimate();
+            state_info.value.lower = estimate;
         } else {
-            state_info.value = estimate.get_estimate();
+            state_info.value = estimate;
         }
 
         if (on_new_state_) on_new_state_->notify_state(state);

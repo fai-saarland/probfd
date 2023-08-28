@@ -16,7 +16,7 @@ class CartesianHeuristic : public Evaluator<const AbstractState*> {
     std::vector<value_t> h_values = {0.0_vt};
 
 public:
-    EvaluationResult evaluate(const AbstractState* state) const override;
+    value_t evaluate(const AbstractState* state) const override;
 
     value_t get_h_value(int v) const;
     void set_h_value(int v, value_t h);

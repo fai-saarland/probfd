@@ -83,7 +83,7 @@ class ExhaustiveDepthFirstSearch : public MDPEngine<State, Action> {
         unsigned lowlink = -1;
         uint8_t status = NEW;
         EngineValueType value;
-        value_t state_cost;
+        value_t term_cost;
 
         bool is_new() const { return status == NEW; }
         bool is_open() const { return status == OPEN; }

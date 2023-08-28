@@ -286,17 +286,19 @@ bool I2Dual::evaluate_state(
 
     const TerminationInfo term_info = mdp.get_termination_info(state);
     if (term_info.is_goal_state()) {
-        data.set_terminal(-term_info.get_cost());
+        data.set_terminal(0_vt);
         return true;
     }
 
-    const EvaluationResult eval = heuristic.evaluate(state);
-    if (eval.is_unsolvable()) {
-        data.set_terminal(0);
+    const value_t term_cost = term_info.get_cost();
+    const value_t estimate = heuristic.evaluate(state);
+
+    if (estimate == term_cost) {
+        data.set_terminal(-estimate);
         return true;
     }
 
-    data.open(next_lp_constr_id_++, -eval.get_estimate());
+    data.open(next_lp_constr_id_++, -estimate);
     return false;
 }
 

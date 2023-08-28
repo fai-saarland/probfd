@@ -30,7 +30,7 @@ class PDBEvaluator : public StateRankEvaluator {
 public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
-    EvaluationResult evaluate(StateRank state) const override;
+    value_t evaluate(StateRank state) const override;
 };
 
 class DeadendPDBEvaluator : public StateRankEvaluator {
@@ -39,7 +39,7 @@ class DeadendPDBEvaluator : public StateRankEvaluator {
 public:
     explicit DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
-    EvaluationResult evaluate(StateRank state) const override;
+    value_t evaluate(StateRank state) const override;
 };
 
 class IncrementalPPDBEvaluator : public StateRankEvaluator {
@@ -55,7 +55,7 @@ public:
         const StateRankingFunction* mapper,
         int add_var);
 
-    EvaluationResult evaluate(StateRank state) const override;
+    value_t evaluate(StateRank state) const override;
 
 private:
     StateRank to_parent_state(StateRank state) const;
@@ -65,14 +65,16 @@ class MergeEvaluator : public StateRankEvaluator {
     const StateRankingFunction& mapper;
     const ProbabilityAwarePatternDatabase& left;
     const ProbabilityAwarePatternDatabase& right;
+    const value_t termination_cost;
 
 public:
     MergeEvaluator(
         const StateRankingFunction& mapper,
         const ProbabilityAwarePatternDatabase& left,
-        const ProbabilityAwarePatternDatabase& right);
+        const ProbabilityAwarePatternDatabase& right,
+        value_t termination_cost);
 
-    EvaluationResult evaluate(StateRank state) const override;
+    value_t evaluate(StateRank state) const override;
 
 private:
     StateRank convert(

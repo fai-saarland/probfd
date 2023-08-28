@@ -154,10 +154,12 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     info.value = trivial_bound_;
 
     TerminationInfo term_info = mdp.get_termination_info(state);
-    info.state_cost = term_info.get_cost();
+    const value_t term_cost = term_info.get_cost();
+    info.term_cost = term_cost;
+
     if (term_info.is_goal_state()) {
         info.close();
-        info.value = EngineValueType(term_info.get_cost());
+        info.value = EngineValueType(term_cost);
         ++statistics_.goal_states;
         if (new_state_handler_) {
             new_state_handler_->notify_goal(state);
@@ -165,9 +167,9 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         return false;
     }
 
-    EvaluationResult eval_result = heuristic.evaluate(state);
-    if (eval_result.is_unsolvable()) {
-        info.value = EngineValueType(info.state_cost);
+    const value_t estimate = heuristic.evaluate(state);
+    if (estimate == term_cost) {
+        info.value = EngineValueType(term_cost);
         info.mark_dead_end();
         ++statistics_.dead_ends;
         if (new_state_handler_) {
@@ -177,7 +179,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     }
 
     if constexpr (UseInterval) {
-        info.value.upper = eval_result.get_estimate();
+        info.value.lower = estimate;
     }
 
     info.open();
@@ -199,7 +201,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
     std::vector<Distribution<StateID>> successors;
     mdp.generate_all_transitions(state_id, aops, successors);
     if (successors.empty()) {
-        info.value = EngineValueType(info.state_cost);
+        info.value = EngineValueType(info.term_cost);
         info.set_dead_end();
         statistics_.terminal++;
         return false;
@@ -289,7 +291,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
         stack_infos_.pop_back();
 
         if (pure_self_loop) {
-            info.value = EngineValueType(info.state_cost);
+            info.value = EngineValueType(info.term_cost);
             info.set_dead_end();
             ++statistics_.self_loop;
         } else {
@@ -423,7 +425,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                 do {
                     ++scc_size;
                     auto& info = search_space_[rend->state_ref];
-                    info.value = EngineValueType(info.state_cost);
+                    info.value = EngineValueType(info.term_cost);
                     info.set_dead_end();
                 } while ((rend++)->state_ref != stateid);
 
@@ -548,7 +550,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         for (const auto& successors : exp.successors) {
             for (const StateID sid : successors.support()) {
                 SearchNodeInformation& succ_info = search_space_[sid];
-                succ_info.value = succ_info.state_cost;
+                succ_info.value = succ_info.term_cost;
                 succ_info.mark_dead_end();
 
                 if (succ_info.is_onstack()) {
@@ -563,7 +565,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
             auto it = stack_infos_.rbegin();
             do {
                 SearchNodeInformation& info = search_space_[it->state_ref];
-                info.value = info.state_cost;
+                info.value = info.term_cost;
                 info.mark_dead_end();
             } while ((it++)->state_ref != stateid);
 

@@ -62,9 +62,16 @@ Interval IDual<State, Action>::solve(
 
     {
         // initialize lp
-        const EvaluationResult eval = heuristic.evaluate(initial_state);
-        const auto estimate = eval.get_estimate();
-        if (eval.is_unsolvable()) {
+        const TerminationInfo term = mdp.get_termination_info(initial_state);
+
+        if (term.is_goal_state()) {
+            return Interval(0_vt);
+        }
+
+        const value_t term_cost = term.get_cost();
+        const value_t estimate = heuristic.evaluate(initial_state);
+
+        if (estimate == term_cost) {
             return Interval(estimate);
         }
 
@@ -145,10 +152,13 @@ Interval IDual<State, Action>::solve(
                         assert(state_infos_[succ_id].idx == (unsigned)-1);
 
                         State succ_state = mdp.get_state(succ_id);
-                        const auto eval = heuristic.evaluate(succ_state);
-                        const auto value = -eval.get_estimate();
+                        const auto term = mdp.get_termination_info(succ_state);
+                        const value_t term_cost = term.get_cost();
+                        const value_t estimate = heuristic.evaluate(succ_state);
 
-                        if (eval.is_unsolvable()) {
+                        const auto value = -estimate;
+
+                        if (term_cost == estimate) {
                             succ_info.status = PerStateInfo::TERMINAL;
                             succ_info.idx = terminals_.get_id(value);
                             base_val += prob * value;

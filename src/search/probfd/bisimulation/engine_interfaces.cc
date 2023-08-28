@@ -11,13 +11,9 @@ InducedQuotientEvaluator::InducedQuotientEvaluator(
 {
 }
 
-EvaluationResult InducedQuotientEvaluator::evaluate(QuotientState s) const
+value_t InducedQuotientEvaluator::evaluate(QuotientState s) const
 {
-    if (bisim_->is_dead_end(s)) {
-        return EvaluationResult(true, upper_bound_);
-    }
-
-    return EvaluationResult(false, 0_vt);
+    return bisim_->is_dead_end(s) ? upper_bound_ : 0_vt;
 }
 
 } // namespace bisimulation

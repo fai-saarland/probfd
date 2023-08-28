@@ -34,7 +34,7 @@ public:
         bool use_general_costs);
 
 protected:
-    EvaluationResult evaluate(const State& ancestor_state) const override;
+    value_t evaluate(const State& ancestor_state) const override;
 };
 
 } // namespace cartesian

@@ -469,16 +469,12 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::push_state(
     const State state = mdp.get_state(state_id);
 
     const TerminationInfo state_term = mdp.get_termination_info(state);
-    const auto t_cost = state_term.get_cost();
+    const value_t t_cost = state_term.get_cost();
+    const value_t estimate = heuristic.evaluate(state);
 
     if (state_term.is_goal_state()) {
         ++statistics_.goal_states;
-    }
-
-    const EvaluationResult h_eval = heuristic.evaluate(state);
-    const auto estimate = h_eval.get_estimate();
-
-    if (h_eval.is_unsolvable()) {
+    } else if (estimate == t_cost) {
         ++statistics_.pruned;
         state_value = EngineValueType(estimate);
         state_info.status = StateInfo::CLOSED;

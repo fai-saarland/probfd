@@ -334,10 +334,8 @@ bool TopologicalValueIteration<State, Action, UseInterval>::push_state(
     const State state = mdp.get_state(state_id);
 
     const TerminationInfo state_eval = mdp.get_termination_info(state);
-    const auto t_cost = state_eval.get_cost();
-
-    const EvaluationResult h_eval = heuristic.evaluate(state);
-    const auto estimate = h_eval.get_estimate();
+    const value_t t_cost = state_eval.get_cost();
+    const value_t estimate = heuristic.evaluate(state);
 
     if (state_eval.is_goal_state()) {
         ++statistics_.goal_states;
@@ -345,14 +343,12 @@ bool TopologicalValueIteration<State, Action, UseInterval>::push_state(
         if (!expand_goals_) {
             ++statistics_.terminal_states;
 
-            state_value = EngineValueType(t_cost);
+            state_value = EngineValueType(0_vt);
             state_info.status = StateInfo::CLOSED;
 
             return false;
         }
-    }
-
-    if (h_eval.is_unsolvable()) {
+    } else if (estimate == t_cost) {
         ++statistics_.pruned;
 
         state_value = EngineValueType(estimate);

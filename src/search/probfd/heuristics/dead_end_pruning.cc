@@ -27,15 +27,11 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     }
 }
 
-EvaluationResult DeadEndPruningHeuristic::evaluate(const State& state) const
+value_t DeadEndPruningHeuristic::evaluate(const State& state) const
 {
     EvaluationContext context(state);
     ::EvaluationResult result = pruning_function_->compute_result(context);
-
-    if (result.is_infinite()) {
-        return EvaluationResult(true, dead_end_value_);
-    }
-    return EvaluationResult(false, 0_vt);
+    return result.is_infinite() ? dead_end_value_ : 0_vt;
 }
 
 void DeadEndPruningHeuristic::print_statistics() const

@@ -31,6 +31,8 @@ class SubCollectionFinder;
  * algorithms (see options).
  */
 class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
+    const value_t termination_cost;
+
     std::shared_ptr<std::vector<Pattern>> patterns;
     std::shared_ptr<PPDBCollection> pdbs;
     std::shared_ptr<std::vector<PatternSubCollection>> subcollections;
@@ -44,7 +46,7 @@ public:
         double max_time_dominance_pruning,
         utils::LogProxy log);
 
-    EvaluationResult evaluate(const State& state) const override;
+    value_t evaluate(const State& state) const override;
 };
 
 } // namespace pdbs

@@ -31,9 +31,11 @@ public:
     enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
 
 private:
+    const value_t termination_cost;
+    const OrderingStrategy ordering;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng;
+
     std::vector<ProbabilityAwarePatternDatabase> pdbs;
-    OrderingStrategy ordering;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 public:
     explicit SCPHeuristic(
@@ -45,7 +47,7 @@ public:
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
 protected:
-    EvaluationResult evaluate(const State& state) const override;
+    value_t evaluate(const State& state) const override;
 };
 
 } // namespace pdbs

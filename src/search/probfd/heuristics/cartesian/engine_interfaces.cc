@@ -8,12 +8,10 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-EvaluationResult
-CartesianHeuristic::evaluate(const AbstractState* state) const
+value_t CartesianHeuristic::evaluate(const AbstractState* state) const
 {
     assert(utils::in_bounds(state->get_id(), h_values));
-    const value_t h = h_values[state->get_id()];
-    return EvaluationResult(h == INFINITE_VALUE, h);
+    return h_values[state->get_id()];
 }
 
 value_t CartesianHeuristic::get_h_value(int v) const

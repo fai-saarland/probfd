@@ -40,7 +40,7 @@ public:
         std::shared_ptr<::Evaluator> pruning_function,
         value_t dead_end_value);
 
-    EvaluationResult evaluate(const State& state) const override;
+    value_t evaluate(const State& state) const override;
 
     void print_statistics() const override;
 };

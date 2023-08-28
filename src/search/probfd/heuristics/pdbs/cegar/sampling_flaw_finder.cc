@@ -46,6 +46,7 @@ SamplingFlawFinder::SamplingFlawFinder(
 
 bool SamplingFlawFinder::apply_policy(
     const ProbabilisticTaskProxy& task_proxy,
+    const ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
     const ProjectionMultiPolicy& policy,
     const std::unordered_set<int>& blacklisted_variables,
@@ -76,23 +77,15 @@ bool SamplingFlawFinder::apply_policy(
         einfo->explored = true;
 
         {
-            // We reached a dead-end, the operator is irrelevant.
-            if (pdb.is_dead_end(abs)) {
-                stk.pop_back();
-                goto backtrack;
-            }
-
             const std::vector abs_decisions = policy.get_decisions(abs);
 
             // Goal flaw check
             if (abs_decisions.empty()) {
-                // assert(pdb_info.is_goal(abs));
-
-                if (collect_flaws(
-                        goals,
-                        *current,
-                        blacklisted_variables,
-                        flaw_list)) {
+                if (mdp.is_goal(abs) && collect_flaws(
+                                            goals,
+                                            *current,
+                                            blacklisted_variables,
+                                            flaw_list)) {
                     return false;
                 }
 

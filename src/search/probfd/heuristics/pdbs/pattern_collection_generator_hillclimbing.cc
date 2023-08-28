@@ -147,7 +147,7 @@ compute_relevant_neighbours(const ProbabilisticTask* task)
 
 struct PatternCollectionGeneratorHillclimbing::Sample {
     State state;
-    EvaluationResult h_eval;
+    value_t h;
 };
 
 class PatternCollectionGeneratorHillclimbing::IncrementalPPDBs {
@@ -187,11 +187,10 @@ public:
     int count_improvements(
         const ProbabilityAwarePatternDatabase& pdb,
         const std::vector<PatternCollectionGeneratorHillclimbing::Sample>&
-            samples) const;
+            samples,
+        value_t termination_cost) const;
 
-    value_t get_value(const State& state) const;
-
-    EvaluationResult evaluate(const State& state) const;
+    value_t evaluate(const State& state, value_t termination_cost) const;
 
     /*
       The following method offers a quick dead-end check for the sampling
@@ -199,7 +198,7 @@ public:
       efficiently test if the canonical heuristic is infinite than
       computing the exact heuristic value.
     */
-    bool is_dead_end(const State& state) const;
+    bool is_dead_end(const State& state, value_t termination_cost) const;
 
     PatternCollectionInformation get_pattern_collection_information() const;
 
@@ -211,7 +210,8 @@ private:
     bool is_heuristic_improved(
         const ProbabilityAwarePatternDatabase& pdb,
         const PatternCollectionGeneratorHillclimbing::Sample& sample,
-        const std::vector<PatternSubCollection>& pattern_subcollections) const;
+        const std::vector<PatternSubCollection>& pattern_subcollections,
+        value_t termination_cost) const;
 };
 
 PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
@@ -279,7 +279,8 @@ void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
 int PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
     count_improvements(
         const ProbabilityAwarePatternDatabase& pdb,
-        const std::vector<Sample>& samples) const
+        const std::vector<Sample>& samples,
+        value_t termination_cost) const
 {
     int count = 0;
     std::vector<PatternSubCollection> subcollections =
@@ -288,7 +289,11 @@ int PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
             *pattern_subcollections,
             pdb.get_pattern());
     for (const auto& sample : samples) {
-        if (is_heuristic_improved(pdb, sample, subcollections)) {
+        if (is_heuristic_improved(
+                pdb,
+                sample,
+                subcollections,
+                termination_cost)) {
             ++count;
         }
     }
@@ -296,27 +301,23 @@ int PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
     return count;
 }
 
-value_t PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::get_value(
-    const State& state) const
-{
-    return evaluate(state).get_estimate();
-}
-
-EvaluationResult
-PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::evaluate(
-    const State& state) const
+value_t PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::evaluate(
+    const State& state,
+    value_t termination_cost) const
 {
     return subcollection_finder->evaluate(
         *pattern_databases,
         *pattern_subcollections,
-        state);
+        state,
+        termination_cost);
 }
 
 bool PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::is_dead_end(
-    const State& state) const
+    const State& state,
+    value_t termination_cost) const
 {
     for (const auto& pdb : *pattern_databases) {
-        if (pdb->is_dead_end(state)) {
+        if (pdb->lookup_estimate(state) == termination_cost) {
             return true;
         }
     }
@@ -353,30 +354,27 @@ bool PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
     is_heuristic_improved(
         const ProbabilityAwarePatternDatabase& pdb,
         const Sample& sample,
-        const std::vector<PatternSubCollection>& pattern_subcollections) const
+        const std::vector<PatternSubCollection>& pattern_subcollections,
+        value_t termination_cost) const
 {
-    const EvaluationResult h_pattern_eval = pdb.evaluate(sample.state);
+    const value_t h_pattern = pdb.lookup_estimate(sample.state);
 
-    if (h_pattern_eval.is_unsolvable()) {
+    if (h_pattern == termination_cost) {
         return true;
     }
 
-    const value_t h_pattern = h_pattern_eval.get_estimate();
-
     // h_collection: h-value of the current collection heuristic
-    const EvaluationResult h_collection_eval = sample.h_eval;
+    const value_t h_collection = sample.h;
 
-    if (h_collection_eval.is_unsolvable()) return false;
-
-    const value_t h_collection = h_collection_eval.get_estimate();
+    if (h_collection == termination_cost) return false;
 
     std::vector<value_t> h_values;
     h_values.reserve(pattern_databases->size());
 
     for (const auto& p : *pattern_databases) {
-        const EvaluationResult eval = p->evaluate(sample.state);
-        if (eval.is_unsolvable()) return false;
-        h_values.push_back(eval.get_estimate());
+        const value_t h = p->lookup_estimate(sample.state);
+        if (h == termination_cost) return false;
+        h_values.push_back(h);
     }
 
     for (const PatternSubCollection& subcollection : pattern_subcollections) {
@@ -525,13 +523,14 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
     IncrementalPPDBs& current_pdbs,
     const sampling::RandomWalkSampler& sampler,
     value_t init_h,
+    value_t termination_cost,
     std::vector<Sample>& samples)
 {
     assert(samples.empty());
 
     for (int i = 0; i < num_samples; ++i) {
-        auto f = [&current_pdbs](const State& state) {
-            return current_pdbs.is_dead_end(state);
+        auto f = [=, &current_pdbs](const State& state) {
+            return current_pdbs.is_dead_end(state, termination_cost);
         };
 
         // TODO How to choose the length of the random walk in MaxProb?
@@ -539,8 +538,8 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
 
         hill_climbing_timer.throw_if_expired();
 
-        EvaluationResult eval = current_pdbs.evaluate(sample);
-        samples.emplace_back(std::move(sample), eval);
+        value_t h = current_pdbs.evaluate(sample, termination_cost);
+        samples.emplace_back(std::move(sample), h);
 
         hill_climbing_timer.throw_if_expired();
     }
@@ -551,7 +550,8 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
     utils::CountdownTimer& hill_climbing_timer,
     IncrementalPPDBs& current_pdbs,
     const std::vector<Sample>& samples,
-    PPDBCollection& candidate_pdbs)
+    PPDBCollection& candidate_pdbs,
+    value_t termination_cost)
 {
     /*
       TODO: The original implementation by Haslum et al. uses A* to compute
@@ -593,7 +593,8 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
           statistical confidence interval to stop the A*-search (which they use,
           see above) earlier.
         */
-        const int count = current_pdbs.count_improvements(*pdb, samples);
+        const int count =
+            current_pdbs.count_improvements(*pdb, samples, termination_cost);
 
         if (count > improvement) {
             improvement = count;
@@ -615,6 +616,9 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
     TaskSimpleCostFunction& task_cost_function,
     IncrementalPPDBs& current_pdbs)
 {
+    const value_t termination_cost =
+        task_cost_function.get_non_goal_termination_cost();
+
     int num_iterations = 0;
     utils::CountdownTimer hill_climbing_timer(max_time);
 
@@ -662,8 +666,9 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
 
         while (true) {
             ++num_iterations;
-            value_t init_h = current_pdbs.get_value(initial_state);
-            const bool initial_dead = current_pdbs.is_dead_end(initial_state);
+            value_t init_h =
+                current_pdbs.evaluate(initial_state, termination_cost);
+            const bool initial_dead = init_h == termination_cost;
 
             if (log.is_at_least_verbose()) {
                 std::cout << "current collection size is "
@@ -689,13 +694,15 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
                 current_pdbs,
                 sampler,
                 init_h,
+                termination_cost,
                 samples);
 
             const auto [improvement, best_pdb_index] = find_best_improving_pdb(
                 hill_climbing_timer,
                 current_pdbs,
                 samples,
-                candidate_pdbs);
+                candidate_pdbs,
+                termination_cost);
 
             samples.clear();
 
@@ -795,7 +802,13 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
 
     const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
-    if (!current_pdbs.is_dead_end(initial_state) && max_time > 0) {
+
+    const value_t termination_cost =
+        task_cost_function->get_non_goal_termination_cost();
+
+    value_t init_h = current_pdbs.evaluate(initial_state, termination_cost);
+
+    if (init_h != termination_cost && max_time > 0) {
         hill_climbing(
             task.get(),
             task_proxy,

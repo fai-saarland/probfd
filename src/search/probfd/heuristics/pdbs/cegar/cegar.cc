@@ -75,6 +75,8 @@ public:
 
     const Pattern& get_pattern() const;
 
+    const ProjectionStateSpace& get_mdp() const;
+
     const ProbabilityAwarePatternDatabase& get_pdb() const;
 
     const ProjectionMultiPolicy& get_policy() const;
@@ -88,7 +90,7 @@ public:
 
     void mark_as_solved();
 
-    bool solution_exists() const;
+    bool solution_exists(value_t termination_cost) const;
 
     bool is_goal(StateRank rank) const;
 };
@@ -191,6 +193,12 @@ const Pattern& CEGAR::PDBInfo::get_pattern() const
     return pdb->get_pattern();
 }
 
+const ProjectionStateSpace& CEGAR::PDBInfo::get_mdp() const
+{
+    assert(state_space);
+    return *state_space;
+}
+
 const ProbabilityAwarePatternDatabase& CEGAR::PDBInfo::get_pdb() const
 {
     assert(pdb);
@@ -227,9 +235,9 @@ void CEGAR::PDBInfo::mark_as_solved()
     solved = true;
 }
 
-bool CEGAR::PDBInfo::solution_exists() const
+bool CEGAR::PDBInfo::solution_exists(value_t termination_cost) const
 {
-    return !pdb->is_dead_end(initial_state);
+    return pdb->lookup_estimate(initial_state) != termination_cost;
 }
 
 bool CEGAR::PDBInfo::is_goal(StateRank rank) const
@@ -303,6 +311,7 @@ int CEGAR::get_flaws(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws,
     std::vector<int>& flaw_offsets,
+    value_t termination_cost,
     utils::CountdownTimer& timer)
 {
     const int num_pdb_infos = static_cast<int>(pdb_infos.size());
@@ -315,7 +324,7 @@ int CEGAR::get_flaws(
         }
 
         // abort here if no abstract solution could be found
-        if (!info->solution_exists()) {
+        if (!info->solution_exists(termination_cost)) {
             log << "CEGAR: Problem unsolvable" << endl;
             utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
         }
@@ -326,6 +335,7 @@ int CEGAR::get_flaws(
         const size_t num_flaws_before = flaws.size();
         const bool executable = flaw_strategy->apply_policy(
             task_proxy,
+            info->get_mdp(),
             info->get_pdb(),
             info->get_policy(),
             blacklisted_variables,
@@ -620,13 +630,21 @@ CEGARResult CEGAR::generate_pdbs(
     // main loop of the algorithm
     int refinement_counter = 1;
 
+    const value_t termination_cost =
+        task_cost_function.get_non_goal_termination_cost();
+
     try {
         for (;;) {
             if (log.is_at_least_verbose()) {
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            solution_index = get_flaws(task_proxy, flaws, flaw_offsets, timer);
+            solution_index = get_flaws(
+                task_proxy,
+                flaws,
+                flaw_offsets,
+                termination_cost,
+                timer);
 
             if (flaws.empty()) {
                 if (solution_index != -1) {

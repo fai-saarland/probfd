@@ -17,16 +17,13 @@ DeterminizationCostHeuristic::DeterminizationCostHeuristic(
 
 DeterminizationCostHeuristic::~DeterminizationCostHeuristic() = default;
 
-EvaluationResult
-DeterminizationCostHeuristic::evaluate(const State& state) const
+value_t DeterminizationCostHeuristic::evaluate(const State& state) const
 {
     EvaluationContext context(state);
     ::EvaluationResult result = evaluator_->compute_result(context);
-
-    const bool infinite = result.is_infinite();
-    return EvaluationResult(
-        infinite,
-        infinite ? INFINITE_VALUE : result.get_evaluator_value());
+    return result.is_infinite()
+               ? INFINITE_VALUE
+               : static_cast<value_t>(result.get_evaluator_value());
 }
 
 void DeterminizationCostHeuristic::print_statistics() const

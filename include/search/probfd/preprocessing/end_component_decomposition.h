@@ -287,7 +287,9 @@ private:
         state_info.explored = 1;
         State state = mdp.get_state(state_id);
 
-        if (mdp.get_termination_info(state).is_goal_state()) {
+        const auto term = mdp.get_termination_info(state);
+
+        if (term.is_goal_state()) {
             ++stats_.terminals;
             ++stats_.goals;
 
@@ -298,7 +300,7 @@ private:
             state_info.expandable_goal = 1;
         } else if (
             pruning_function_ != nullptr &&
-            pruning_function_->evaluate(state).is_unsolvable()) {
+            pruning_function_->evaluate(state) == term.get_cost()) {
             ++stats_.terminals;
             return false;
         }

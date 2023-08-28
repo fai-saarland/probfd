@@ -22,15 +22,15 @@ PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 {
 }
 
-EvaluationResult PDBEvaluator::evaluate(StateRank state) const
+value_t PDBEvaluator::evaluate(StateRank state) const
 {
     int deterministic_val = pdb.get_value_for_index(state.id);
 
     if (deterministic_val == std::numeric_limits<int>::max()) {
-        return EvaluationResult(true, INFINITE_VALUE);
+        return INFINITE_VALUE;
     }
 
-    return EvaluationResult(false, static_cast<value_t>(deterministic_val));
+    return static_cast<value_t>(deterministic_val);
 }
 
 DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)
@@ -38,12 +38,15 @@ DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 {
 }
 
-EvaluationResult DeadendPDBEvaluator::evaluate(StateRank state) const
+value_t DeadendPDBEvaluator::evaluate(StateRank state) const
 {
-    const bool dead =
-        pdb.get_value_for_index(state.id) == std::numeric_limits<int>::max();
+    int deterministic_val = pdb.get_value_for_index(state.id);
 
-    return EvaluationResult(dead, dead ? 1_vt : 0_vt);
+    if (deterministic_val == std::numeric_limits<int>::max()) {
+        return 1_vt;
+    }
+
+    return 0_vt;
 }
 
 IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
@@ -65,9 +68,9 @@ IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
             : mapper->num_states();
 }
 
-EvaluationResult IncrementalPPDBEvaluator::evaluate(StateRank state) const
+value_t IncrementalPPDBEvaluator::evaluate(StateRank state) const
 {
-    return pdb.evaluate(to_parent_state(state));
+    return pdb.lookup_estimate(to_parent_state(state));
 }
 
 StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank state) const
@@ -80,34 +83,36 @@ StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank state) const
 MergeEvaluator::MergeEvaluator(
     const StateRankingFunction& mapper,
     const ProbabilityAwarePatternDatabase& left,
-    const ProbabilityAwarePatternDatabase& right)
+    const ProbabilityAwarePatternDatabase& right,
+    value_t termination_cost)
     : mapper(mapper)
     , left(left)
     , right(right)
+    , termination_cost(termination_cost)
 {
 }
 
-EvaluationResult MergeEvaluator::evaluate(StateRank state) const
+value_t MergeEvaluator::evaluate(StateRank state) const
 {
     const StateRank lstate =
         convert(state, mapper, left.get_state_ranking_function());
 
-    auto leval = left.evaluate(lstate);
+    auto leval = left.lookup_estimate(lstate);
 
-    if (leval.is_unsolvable()) {
+    if (leval == termination_cost) {
         return leval;
     }
 
     const StateRank rstate =
         convert(state, mapper, right.get_state_ranking_function());
 
-    auto reval = right.evaluate(rstate);
+    auto reval = right.lookup_estimate(rstate);
 
-    if (reval.is_unsolvable()) {
+    if (reval == termination_cost) {
         return reval;
     }
 
-    return {false, std::max(leval.get_estimate(), reval.get_estimate())};
+    return std::max(leval, reval);
 }
 
 StateRank MergeEvaluator::convert(

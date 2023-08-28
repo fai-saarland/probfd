@@ -337,14 +337,14 @@ void dump_state_space_dot_graph(
         node->setAttribute("label", sstr(state));
         node->setAttribute("shape", "circle");
 
-        const auto rew = mdp->get_termination_info(state);
-        bool expand = expand_terminal || !rew.is_goal_state();
+        const auto term = mdp->get_termination_info(state);
+        bool expand = expand_terminal || !term.is_goal_state();
 
-        if (rew.is_goal_state()) {
+        if (term.is_goal_state()) {
             node->setAttribute("peripheries", std::to_string(2));
         } else if (
             expand && prune != nullptr &&
-            prune->evaluate(state).is_unsolvable()) {
+            prune->evaluate(state) == term.get_cost()) {
             expand = false;
             node->setAttribute("peripheries", std::to_string(3));
         }
