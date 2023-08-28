@@ -86,7 +86,7 @@ void HROCGenerator::initialize_constraints(
     }
 
     for (const ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
-        const int cost = is_maxprob_ ? 0_vt : op.get_cost();
+        const value_t cost = is_maxprob_ ? 0_vt : op.get_cost();
 
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 
