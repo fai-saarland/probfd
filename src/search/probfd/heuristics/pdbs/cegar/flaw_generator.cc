@@ -105,7 +105,7 @@ std::optional<Flaw> FlawGenerator::generate_flaw(
      * Even if there are no flaws, there might be goal violations
      * that did not make it into the flaw list.
      * If there are no flaws, this does not guarantee that the
-     * plan is valid in the concrete state space because we might
+     * policy is valid in the concrete state space because we might
      * have ignored variables that have been blacklisted. Hence the
      * empty blacklist check for the log output.
      */
