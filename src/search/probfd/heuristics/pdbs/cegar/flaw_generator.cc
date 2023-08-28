@@ -45,7 +45,6 @@ std::optional<Flaw> FlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     ProjectionInfo& projection_info,
     const State& state,
-    value_t termination_cost,
     utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
@@ -62,7 +61,8 @@ std::optional<Flaw> FlawGenerator::generate_flaw(
         timer.get_remaining_time(),
         value_table);
 
-    if (value_table[init_state.id] == termination_cost) {
+    if (value_table[init_state.id] ==
+        projection_mdp->get_non_goal_termination_cost()) {
         log << "Problem unsolvable" << endl;
         return std::nullopt;
     }

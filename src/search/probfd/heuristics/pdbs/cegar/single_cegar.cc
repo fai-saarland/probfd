@@ -80,9 +80,6 @@ ProjectionInfo SingleCEGAR::generate_pdb(
             << endl;
     }
 
-    const State initial_state = task_proxy.get_initial_state();
-    initial_state.unpack();
-
     ProjectionInfo projection_info = projection_factory->create_projection(
         task_proxy,
         task_cost_function,
@@ -99,8 +96,8 @@ ProjectionInfo SingleCEGAR::generate_pdb(
     // main loop of the algorithm
     int refinement_counter = 1;
 
-    const value_t termination_cost =
-        task_cost_function.get_non_goal_termination_cost();
+    const State initial_state = task_proxy.get_initial_state();
+    initial_state.unpack();
 
     try {
         for (;; ++refinement_counter) {
@@ -112,7 +109,6 @@ ProjectionInfo SingleCEGAR::generate_pdb(
                 task_proxy,
                 projection_info,
                 initial_state,
-                termination_cost,
                 log,
                 timer);
 

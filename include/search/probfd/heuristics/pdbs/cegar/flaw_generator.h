@@ -66,7 +66,6 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         ProjectionInfo& projection_info,
         const State& state,
-        value_t termination_cost,
         utils::LogProxy log,
         utils::CountdownTimer& timer);
 
