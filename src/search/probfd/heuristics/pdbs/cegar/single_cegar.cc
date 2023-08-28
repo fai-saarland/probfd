@@ -4,11 +4,10 @@
 #include "probfd/heuristics/pdbs/cegar/projection_factory.h"
 #include "probfd/heuristics/pdbs/cegar/projection_info.h"
 
+#include "probfd/heuristics/pdbs/evaluators.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/utils.h"
-
-#include "probfd/task_proxy.h"
 
 #include "downward/utils/countdown_timer.h"
 
@@ -32,7 +31,7 @@ SingleCEGAR::SingleCEGAR(
 SingleCEGAR::~SingleCEGAR() = default;
 
 void SingleCEGAR::refine(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     ProjectionInfo& projection_info,
     Flaw flaw,
@@ -67,7 +66,7 @@ void SingleCEGAR::refine(
 }
 
 ProjectionInfo SingleCEGAR::generate_pdb(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     double max_time)
 {

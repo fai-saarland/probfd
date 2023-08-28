@@ -1,38 +1,28 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 
-#include "probfd/heuristics/pdbs/evaluators.h"
-#include "probfd/heuristics/pdbs/types.h"
-
 #include "probfd/heuristics/pdbs/cegar/flaw.h"
-#include "probfd/heuristics/pdbs/cegar/projection_info.h"
 
+#include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
 
-#include <optional>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include <memory>
 
 namespace utils {
 class CountdownTimer;
-class RandomNumberGenerator;
 } // namespace utils
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
-
-class StateRankingFunction;
-class ProjectionStateSpace;
-class IncrementalValueTableEvaluator;
-
 namespace cegar {
 
-class FlawGenerator;
 class ProjectionFactory;
+class FlawGenerator;
+
+struct ProjectionInfo;
 
 class SingleCEGAR {
     // Initial projection factory
@@ -53,13 +43,13 @@ public:
     ~SingleCEGAR();
 
     ProjectionInfo generate_pdb(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         double max_time);
 
 private:
     void refine(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         ProjectionInfo& projection_info,
         Flaw flaw,
